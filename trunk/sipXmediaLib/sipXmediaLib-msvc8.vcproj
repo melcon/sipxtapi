@@ -1662,10 +1662,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpNotificationDispatcher.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpodBufferRecorder.cpp"
 					>
 				</File>
@@ -2283,10 +2279,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpNotificationDispatcher.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpodBufferRecorder.h"
 					>
 				</File>
@@ -2375,7 +2367,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceNotificationMsg.h"
+					RelativePath=".\include\mp\MpResNotificationMsg.h"
 					>
 				</File>
 				<File
