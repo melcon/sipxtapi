@@ -111,16 +111,6 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
     CPPUNIT_TEST(testNothing) ;
 #endif
 
-#if TEST_AUDIO /* [ */     
-    CPPUNIT_TEST(testGainAPI);
-    CPPUNIT_TEST(testMuteAPI);
-//    CPPUNIT_TEST(testVolumeAPI);       // FAILING on Win32/OS -- need to understand why
-#endif /* TEST_AUDIO ] */
-
-#ifdef VOICE_ENGINE /* [ */
-    CPPUNIT_TEST(testAudioSettings) ;   // requires voiceengine
-#endif  /* VOICE_ENGINE ] */
-
 #if TEST_LINE /* [ */
     CPPUNIT_TEST(testLineAPI_Add) ;
     CPPUNIT_TEST(testLineAPI_Remove) ;
@@ -194,7 +184,7 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
 #endif /* TEST_CALL_HOLD ] */
         
 #if TEST_CONF /* [ */
-    CPPUNIT_TEST(testConfBasic1);
+    /*CPPUNIT_TEST(testConfBasic1);
     CPPUNIT_TEST(testConfBasic2);
     CPPUNIT_TEST(testConfBasic3);
     CPPUNIT_TEST(testConfBasic4);
@@ -204,7 +194,7 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
     CPPUNIT_TEST(testConferenceLegBusy);
     CPPUNIT_TEST(testConfHoldIndividual);
     CPPUNIT_TEST(testConfJoin);
-    CPPUNIT_TEST(testConfHoldNoBridge);
+    CPPUNIT_TEST(testConfHoldNoBridge);*/
     CPPUNIT_TEST(testConfHoldBridge);
     CPPUNIT_TEST(testConfReAdd);
     
@@ -314,11 +304,6 @@ public:
 
 
     void testNothing() ;
-
-    void testGainAPI() ;
-    void testMuteAPI() ;
-    void testVolumeAPI() ;
-    void testAudioSettings();
 
     void testLineAPI_Add() ;
     void testLineAPI_Remove() ;

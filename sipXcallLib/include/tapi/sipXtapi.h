@@ -2510,45 +2510,42 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
 /**
  * Get the number of input devices available on this system.
  *
- * @param hInst Instance pointer obtained by sipxInitialize.
  * @param numDevices The number of input devices available
  *        on this system. 
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(const SIPX_INST hInst,
-                                                     size_t* numDevices);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(size_t* numDevices);
 
 /**
- * Get the name/identifier for input device at position index
+ * Get the name/identifier for input device at position index.
  *
- * @param hInst Instance pointer obtained by sipxInitialize.
  * @param index Zero based index of the input device to be queried.
- * @param szDevice Reference an character string pointer to receive 
- *                 the device name.
+ * @param szDevice Preallocated array of chars that will receive the
+ *        device name. It may not include \0 if it is not big enough.
+ * @param bufferSize Size of szDevice buffer
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
-                                                 const int index,
-                                                 const char** szDevice);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const int index,
+                                                 char* szDevice,
+                                                 unsigned int bufferSize);
 
 /**
  * Get the number of output devices available on this system
- * @param hInst Instance pointer obtained by sipxInitialize.
+ *
  * @param numDevices The number of output devices available
  *        on this system. 
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(const SIPX_INST hInst,
-                                                      size_t* numDevices);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(size_t* numDevices);
 
 /**
  * Get the name/identifier for output device at position index
  *
- * @param hInst Instance pointer obtained by sipxInitialize.
  * @param index Zero based index of the output device to be queried.
- * @param szDevice Reference an character string pointer to receive 
- *                 the device name.
+ * @param szDevice Preallocated array of chars that will receive the
+ *        device name. It may not include \0 if it is not big enough.
+ * @param bufferSize Size of szDevice buffer
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
-                                                  const int index,
-                                                  const char** szDevice);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const int index,
+                                                  char* szDevice,
+                                                  unsigned int bufferSize);
 
 /**
  * Set the call input device (in-call microphone).  
