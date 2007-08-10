@@ -27,7 +27,6 @@
 #include <net/SipContactDb.h>
 #include <net/SdpBody.h>
 #include <os/IStunSocket.h>
-#include <os/OsMsgDispatcher.h>
 
 // DEFINES
 // MACROS
@@ -131,15 +130,16 @@ class SdpCodecFactory;
 class MpStreamPlaylistPlayer;
 class MpStreamPlayer;
 class MpStreamQueuePlayer;
-class CpMediaInterfaceFactoryImpl ;
+class CpMediaInterfaceFactoryImpl;
+class OsMsgDispatcher;
 
 /** 
  * @brief Abstract media control interface.
  * 
  * The CpCallManager creates a CpMediaInterface for each call created.
- * The media inteface is then used to control and query the media sub-system 
+ * The media interface is then used to control and query the media sub-system 
  * used for that call.  As connections are added to the call, the 
- * media inteface is used to add those connections to the media control system 
+ * media interface is used to add those connections to the media control system 
  * such that all connections in that call are bridged together.
  * 
  * @note This abstract class must be sub-classed and implemented to replace 
@@ -226,7 +226,7 @@ public:
    virtual OsStatus
    setMediaNotificationsEnabled(bool enabled, 
                                 const UtlString& resourceName = NULL
-                                ) { return OS_NOT_YET_IMPLEMENTED; } //= 0;
+                                ); //= 0;
      /**<
      *  Enable or disable media notifications for a given resource or all resources.
      *
