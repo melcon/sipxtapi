@@ -204,7 +204,9 @@ public:
    VIDEO_CODEC_PREFERENCES videoCodecSetting;
 
    char*            inputAudioDevices[MAX_AUDIO_DEVICES];
+   int              nInputAudioDevices;
    char*            outputAudioDevices[MAX_AUDIO_DEVICES];
+   int              nOutputAudioDevices;
    SipXMessageObserver* pMessageObserver;
    OsNotification   *pStunNotification;   /**< Signals the initial stun success/failure
                                            when calling sipXconfigEnableStun */
@@ -252,7 +254,9 @@ public:
       bAllowHeader(FALSE),
       bDateHeader(FALSE),
       bRtpOverTcp(FALSE),
-      pKeepaliveDispatcher(NULL)
+      pKeepaliveDispatcher(NULL),
+      nInputAudioDevices(0),
+      nOutputAudioDevices(0)
    {
       // Clear devices
       for (int i = 0; i < MAX_AUDIO_DEVICES; i++)

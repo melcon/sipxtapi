@@ -55,6 +55,7 @@ void initAudioDevices(SIPX_INSTANCE_DATA& pInst)
       assert(result == MMSYSERR_NOERROR);
       pInst.inputAudioDevices[i] = SAFE_STRDUP(incaps.szPname);
    }
+   pInst.nInputAudioDevices = numDevices;
 
    numDevices = waveOutGetNumDevs();
    for (int i = 0; i < numDevices && i < MAX_AUDIO_DEVICES; i++)
@@ -63,6 +64,8 @@ void initAudioDevices(SIPX_INSTANCE_DATA& pInst)
       assert(result == MMSYSERR_NOERROR);
       pInst.outputAudioDevices[i] = SAFE_STRDUP(outcaps.szPname) ;
    }
+   pInst.nOutputAudioDevices = numDevices;
+
 #else
    pInst.inputAudioDevices[0] = SAFE_STRDUP("Default");
    pInst.outputAudioDevices[0] = SAFE_STRDUP("Default");
@@ -709,104 +712,132 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(const SIPX_INST hInst,
-                                                     size_t* numDevices)
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(size_t* numDevices)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetNumInputDevices");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetNumInputDevices hInst=%p",
-      hInst);
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
 
+   if (numDevices)
+   {
+#ifdef _WIN32
+      // TODO: this should be in sipxmedialib
+      *numDevices = waveInGetNumDevs();
+#else
+      *numDevices = 1; // the "default" device
+#endif
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const int index,
+                                                 char* szDevice,
+                                                 unsigned int bufferSize)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+
+   if (index >= 0 && szDevice && bufferSize > 0)
+   {
+#ifdef _WIN32
+      // TODO: this should be in sipxmedialib
+      MMRESULT result;
+      WAVEINCAPS incaps;
+
+      result = waveInGetDevCaps(index, &incaps, sizeof(WAVEINCAPS));
+      if (result == MMSYSERR_NOERROR)
+      {
+         strncpy(szDevice, incaps.szPname, (size_t)bufferSize);
+         rc = SIPX_RESULT_SUCCESS;
+      }
+#else
+      if (index == 0)
+      {
+         strcpy(szDevice, "default");
+         rc = SIPX_RESULT_SUCCESS;
+      }      
+#endif
+   }
+
+   return rc;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(size_t* numDevices)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+
+   if (numDevices)
+   {
+#ifdef _WIN32
+      // TODO: this should be in sipxmedialib
+      *numDevices = waveOutGetNumDevs();
+#else
+      *numDevices = 1; // the "default" device
+#endif
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const int index,
+                                                  char* szDevice,
+                                                  unsigned int bufferSize)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+
+   if (index >= 0 && szDevice && bufferSize > 0)
+   {
+#ifdef _WIN32
+      // TODO: this should be in sipxmedialib
+      MMRESULT result;
+      WAVEOUTCAPS outcaps;
+
+      result = waveOutGetDevCaps(index, &outcaps, sizeof(WAVEOUTCAPS));
+      if (result == MMSYSERR_NOERROR)
+      {
+         strncpy(szDevice, outcaps.szPname, (size_t)bufferSize);
+         rc = SIPX_RESULT_SUCCESS;
+      }
+#else
+      if (index == 0)
+      {
+         strcpy(szDevice, "default");
+         rc = SIPX_RESULT_SUCCESS;
+      }      
+#endif
+   }
+
+   return rc;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioGetAllOutputDevices(const SIPX_INST hInst,
+                                                      const char* szDevices[],
+                                                      unsigned int* arraySize)
+{
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   assert(pInst);
-   if (pInst)
+   if (pInst && szDevices)
    {
-      *numDevices = 0;
-
-      while (*numDevices < MAX_AUDIO_DEVICES &&
-             pInst->inputAudioDevices[*numDevices])
+      int i = 0;
+      for (; (i < *arraySize) && (i < pInst->nOutputAudioDevices); i++)
       {
-         (*numDevices)++;
+         szDevices[i] = pInst->outputAudioDevices[i];
       }
 
+      *arraySize = i;
       rc = SIPX_RESULT_SUCCESS;
    }
-
-   return rc;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
-                                                 const int index,
-                                                 const char** szDevice)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetInputDevice");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetInputDevice hInst=%p index=%d",
-      hInst, index);
-
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   assert(pInst);
-   if (pInst && (index >= 0) && (index < MAX_AUDIO_DEVICES) && szDevice)
+   else
    {
-      *szDevice = pInst->inputAudioDevices[index];
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   return rc;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(const SIPX_INST hInst,
-                                                      size_t* numDevices)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetNumOutputDevices");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetNumOutputDevices hInst=%p",
-      hInst);
-
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   assert(pInst);
-   if (pInst)
-   {
-      *numDevices = 0;
-
-      while (*numDevices < MAX_AUDIO_DEVICES &&
-             pInst->outputAudioDevices[*numDevices])
+      if (arraySize)
       {
-         (*numDevices)++;
-      }
-
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   return rc;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
-                                                  const int index,
-                                                  const char** szDevice)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetOutputDevice");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetOutputDevice hInst=%p index=%d",
-      hInst, index);
-
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   assert(pInst);
-   if (pInst && (index >= 0) && (index < MAX_AUDIO_DEVICES) && szDevice)
-   {
-      *szDevice = pInst->outputAudioDevices[index];
-      rc = SIPX_RESULT_SUCCESS;
+         *arraySize = 0;
+      }      
    }
 
    return rc;
