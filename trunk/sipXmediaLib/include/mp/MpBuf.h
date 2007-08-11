@@ -119,6 +119,7 @@ protected:
 
     MP_BUFFERS_TREE mType;     ///< Buffer class type. Used for type safety.
     int mRefCounter;           ///< Reference counter for use with MpBufPtr.
+    int mBufferId;             ///< Id of buffer assigned by pool for debugging
     MpBufPool* mpPool;         ///< Parent memory pool.
     void (*mpDestroy)(MpBuf*); ///< Pointer to deinitialization method. Used as
                                ///<  virtual destructor.
@@ -326,7 +327,7 @@ public:
         if (mpBuffer == NULL)
             return -1;
         else
-            return mpBuffer->mpPool->getBufferNumber(mpBuffer);
+            return mpBuffer->mBufferId;
     };
 
     /// Return pointer to MpBuf.

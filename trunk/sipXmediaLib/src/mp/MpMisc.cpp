@@ -431,8 +431,9 @@ int mpSetLowLatency()
 extern void doFrameLoop(int sampleRate, int frame_samples);
 extern STATUS netStartup();
 
+// audio buffer grows if there aren't enough buffers
 OsStatus mpStartUp(int sampleRate, int samplesPerFrame,
-                   int numAudioBuffers, OsConfigDb* pConfigDb)
+                   int numInitialAudioBuffers, OsConfigDb* pConfigDb)
 {
 #ifdef _VXWORKS
         int defSilenceSuppressLevel = 10000;
@@ -464,7 +465,7 @@ OsStatus mpStartUp(int sampleRate, int samplesPerFrame,
         // Create buffer for audio data in mediagraph
         MpMisc.RawAudioPool = new MpBufPool( samplesPerFrame*sizeof(MpAudioSample)
                                         +MpArrayBuf::getHeaderSize()
-                                      , numAudioBuffers);
+                                      , numInitialAudioBuffers);
         Nprintf( "mpStartUp: MpMisc.RawAudioPool = 0x%X\n"
                , (int) MpMisc.RawAudioPool, 0,0,0,0,0);
         if (NULL == MpMisc.RawAudioPool) {

@@ -36,7 +36,7 @@ public:
 //@{
 
     /// Creates pool with numBlocks in it. Each block have size blockSize.
-    MpBufPool(unsigned blockSize, unsigned numBlocks);
+    MpBufPool(unsigned blockSize, unsigned numInitialBlocks);
 
     /// Destroys pool.
     virtual
@@ -69,9 +69,6 @@ public:
     /// Return number of blocks in the pool.
     unsigned getNumBlocks() const {return mNumBlocks;};
 
-    /// Return number of the buffer in the pool. Use this for debug ouput.
-    int getBufferNumber(MpBuf *pBuf) const;
-
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -83,21 +80,20 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-    /// Return pointer to the byte after end of the pool data.
-    void *getPoolDataEnd() {return mpPoolData + mBlockSize*mNumBlocks;}
-
     /// Return pointer to the block, next to this.
     char *getNextBlock(char *pBlock) {return pBlock + mBlockSize;}
     
-    void appendFreeList(MpBuf *pBuf);
+    void appendBufToList(MpBuf *pBuf, MpBufList **pTargetList);
+
+    void attachNewPool(char* pNewPool);
 
     unsigned   mBlockSize;     ///< Size of one block in pool (in bytes).
     unsigned   mNumBlocks;     ///< Number of blocks in pool.
     unsigned   mPoolBytes;     ///< Size of all pool in bytes.
-    char      *mpPoolData;     ///< Pointer to allocated memory.
-                               ///<  May be padded to match align rules.
     MpBufList *mpFreeList;     ///< Begin of the free blocks list.
                                ///<  NULL if there are no free blocks availiable.
+    MpBufList *mpPoolList;     ///< List of all pools that were allocated
+    int mPoolListSize;         ///< Number of entries in pool list, for debugging
     OsMutex    mMutex;         ///< Mutex to avoid concurrent access to the pool.
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

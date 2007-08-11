@@ -43,7 +43,9 @@
 // GLOBAL FUNCTION
 
 #define CONFIG_PHONESET_SEND_INBAND_DTMF  "PHONESET_SEND_INBAND_DTMF"
-#define MAX_MANAGED_FLOW_GRAPHS           128
+// initial pool size for audio buffers, if we run out of them,
+// we allocate a new pool. They are deleted only during shutdown.
+#define DEFAULT_INITIAL_AUDIO_BUFFERS 256
 
 // Audio codecs number calculation:
 
@@ -146,30 +148,18 @@ extern "C" void sipxDestroyMediaFactoryFactory()
 // Constructor
 sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
 {    
-    int maxFlowGraph = -1 ; 
-    UtlString strInBandDTMF ;
+    UtlString strInBandDTMF;
     
     if (pConfigDb)
     {
-        pConfigDb->get("PHONESET_MAX_ACTIVE_CALLS_ALLOWED", maxFlowGraph) ;
-        pConfigDb->get(CONFIG_PHONESET_SEND_INBAND_DTMF, strInBandDTMF) ;
-        strInBandDTMF.toUpper() ;
-
-        OsSysLog::add(FAC_MP, PRI_DEBUG, 
-                      "sipXmediaFactoryImpl::sipXmediaFactoryImpl maxFlowGraph = %d",
-                      maxFlowGraph);
-    }
-
-    // Max Flow graphs
-    if (maxFlowGraph <=0 ) 
-    {
-        maxFlowGraph = MAX_MANAGED_FLOW_GRAPHS;
+        pConfigDb->get(CONFIG_PHONESET_SEND_INBAND_DTMF, strInBandDTMF);
+        strInBandDTMF.toUpper();
     }
 
     // Start audio subsystem if still not started.
     if (miInstanceCount == 0)
     {
-        mpStartUp(8000, 80, 16*maxFlowGraph, pConfigDb);
+        mpStartUp(8000, 80, DEFAULT_INITIAL_AUDIO_BUFFERS, pConfigDb);
     }
 
     // Should we send inband DTMF by default?    
