@@ -1575,7 +1575,7 @@ OsStatus CpTopologyGraphInterface::giveFocus()
     if(mpTopologyGraph)
     {
         // Set the flow graph to have the focus
-        MpMediaTask* mediaTask = MpMediaTask::getMediaTask(0);
+        MpMediaTask* mediaTask = MpMediaTask::getMediaTask();
         mediaTask->setFocus(mpTopologyGraph);
    }
 
@@ -1586,7 +1586,7 @@ OsStatus CpTopologyGraphInterface::defocus()
 {
    if(mpTopologyGraph)
    {
-      MpMediaTask* mediaTask = MpMediaTask::getMediaTask(0);
+      MpMediaTask* mediaTask = MpMediaTask::getMediaTask();
 
       // take focus away from the flow graph if it is focus
       if (mpTopologyGraph == (MpTopologyGraph*) mediaTask->getFocus())

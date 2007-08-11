@@ -43,7 +43,7 @@
 // GLOBAL FUNCTION
 
 #define CONFIG_PHONESET_SEND_INBAND_DTMF  "PHONESET_SEND_INBAND_DTMF"
-#define MAX_MANAGED_FLOW_GRAPHS           16
+#define MAX_MANAGED_FLOW_GRAPHS           128
 
 // Audio codecs number calculation:
 
@@ -183,7 +183,7 @@ sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
     }
 
     // init the media processing task
-    mpMediaTask = MpMediaTask::getMediaTask(maxFlowGraph); 
+    mpMediaTask = MpMediaTask::getMediaTask(); 
 
 #ifdef INCLUDE_RTCP /* [ */
     mpiRTCPControl = CRTCManager::getRTCPControl();

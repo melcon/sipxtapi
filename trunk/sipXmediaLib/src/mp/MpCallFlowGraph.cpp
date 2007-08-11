@@ -452,7 +452,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    assert(res == OS_SUCCESS);
 
    // ask the media processing task to manage the new flow graph
-   pMediaTask = MpMediaTask::getMediaTask(0);
+   pMediaTask = MpMediaTask::getMediaTask();
    res = pMediaTask->manageFlowGraph(*this);
    assert(res == OS_SUCCESS);
 
@@ -504,7 +504,7 @@ MpCallFlowGraph::~MpCallFlowGraph()
 #endif /* INCLUDE_RTCP ] */
 
    // unmanage the flow graph
-   pMediaTask = MpMediaTask::getMediaTask(0);
+   pMediaTask = MpMediaTask::getMediaTask();
    res = pMediaTask->unmanageFlowGraph(*this);
    assert(res == OS_SUCCESS);
 
@@ -781,7 +781,7 @@ int MpCallFlowGraph::closeRecorders(void)
    int i;
 
    if (NULL == this) {
-      MpMediaTask* pMT = MpMediaTask::getMediaTask(0);
+      MpMediaTask* pMT = MpMediaTask::getMediaTask();
       MpCallFlowGraph* pIF = (MpCallFlowGraph*) pMT->getFocus();
       if (NULL != pIF) return pIF->closeRecorders();
       return 0;
@@ -835,7 +835,7 @@ OsStatus MpCallFlowGraph::Record(int ms,
    OsStatus    res;
 
    if (NULL == this) {
-      MpMediaTask* pMT = MpMediaTask::getMediaTask(0);
+      MpMediaTask* pMT = MpMediaTask::getMediaTask();
       MpCallFlowGraph* pIF = (MpCallFlowGraph*) pMT->getFocus();
       if (NULL != pIF) {
          return pIF->Record(ms, playFilename, baseName, endName, recorderMask);
@@ -1103,7 +1103,7 @@ OsStatus MpCallFlowGraph::record(int timeMS,
                                  MprRecorder::RecordFileFormat format)
 {
    if (NULL == this) {
-      MpMediaTask* pMT = MpMediaTask::getMediaTask(0);
+      MpMediaTask* pMT = MpMediaTask::getMediaTask();
       MpCallFlowGraph* pIF = (MpCallFlowGraph*) pMT->getFocus();
       if (NULL != pIF) {
          return pIF-> record(timeMS, silenceLength, micName, echoOutName, spkrName,
@@ -2013,7 +2013,7 @@ UtlBoolean MpCallFlowGraph::handleStopToneOrPlay()
 #ifdef DOING_ECHO_CANCELATION /* [ */
    MpMediaTask* pMediaTask;
 
-   pMediaTask = MpMediaTask::getMediaTask(0);
+   pMediaTask = MpMediaTask::getMediaTask();
 #endif /* DOING_ECHO_CANCELATION ] */
 
    // Shut off the tone generator input to the Mixer resources

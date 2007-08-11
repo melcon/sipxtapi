@@ -33,6 +33,7 @@
 #   include <rtl_macro.h>
 #endif
 
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -634,11 +635,14 @@ OsStatus MpFlowGraphBase::stop(void)
 void MpFlowGraphBase::synchronize(const char* tag, int val1)
 {
    OsTask* val2 = OsTask::getCurrentTask();
-   if (val2 != MpMediaTask::getMediaTask(0)) {
+   if (val2 != MpMediaTask::getMediaTask()) {
       OsEvent event;
       MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_SYNCHRONIZE,
          NULL, NULL, (void*) tag, val1, (int) val2);
       OsStatus  res;
+
+      UtlBoolean isManaged = MpMediaTask::getMediaTask()->isManagedFlowGraph(this);
+      assert(isManaged);
 
       msg.setPtr1(&event);
       res = postMessage(msg);
@@ -659,7 +663,7 @@ void MpFlowGraphBase::flowGraphInfo(MpFlowGraphBase* pFlowGraph)
    MpResource* pResource;
 
    if (NULL == pFlowGraph) {
-      MpMediaTask* pMediaTask = MpMediaTask::getMediaTask(0);
+      MpMediaTask* pMediaTask = MpMediaTask::getMediaTask();
       pFlowGraph = pMediaTask->getFocus();
       if (NULL == pFlowGraph) {
          pMediaTask->getManagedFlowGraphs(&pFlowGraph, 1, i);
