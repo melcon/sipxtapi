@@ -18,6 +18,7 @@
 
 // APPLICATION INCLUDES
 #include "utl/UtlHistogram.h"
+#include "utl/UtlHashBag.h"
 #include "os/OsDefs.h"
 #include "os/OsRWMutex.h"
 #include "os/OsServerTask.h"
@@ -108,7 +109,7 @@ public:
 
      /// @brief Return a pointer to the media processing task, creating it if 
      /// necessary
-   static MpMediaTask* getMediaTask(int maxFlowGraph);
+   static MpMediaTask* getMediaTask();
 
 ///@name Creators
 //@{
@@ -289,10 +290,6 @@ public:
      /// Displays information on the console about the media processing task.
    static MpFlowGraphBase* mediaInfo(void);
 
-     /// @brief Returns the maximum number of flow graphs that can be managed by
-     /// the media processing task.
-   static int maxNumManagedFlowGraphs(void);
-
 /* ============================ INQUIRY =================================== */
 ///@name Inquiry
 //@{
@@ -315,7 +312,7 @@ public:
 protected:
 
      /// Default constructor
-   MpMediaTask(int maxFlowGraph);
+   MpMediaTask();
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -325,15 +322,14 @@ private:
 
    int       mTimeLimitCnt;  ///< Number of frames where time limit was exceeded
    unsigned  mProcessedCnt;  ///< Number of frames that have been processed
-   int       mManagedCnt;    ///< Number of flow graphs presently managed
    int       mStartedCnt;    ///< Number of flow graphs presently started
    OsTime    mSemTimeout;    ///< Timeout value for acquiring the start semaphore
    int       mSemTimeoutCnt; ///< Number of times the mSemTimeOut was exceeded 
    UtlBoolean mWaitForSignal;///< @brief If TRUE, then don't handle any incoming
                              ///< msgs until a FrameStart signal has been received
    MpFlowGraphBase* mpFocus; ///< FlowGraph that has the focus (may be NULL)
-   MpFlowGraphBase** mManagedFGs; ///< The set of flow graphs presently managed
-   static int mMaxFlowGraph;
+   UtlHashBag mManagedFlowGraphs;
+
    int       mLimitUsecs;    ///< Frame processing time limit (in usecs)
    int       mHandleMsgErrs; ///< @brief Number of message handling problems
                              ///< during the last frame processing interval

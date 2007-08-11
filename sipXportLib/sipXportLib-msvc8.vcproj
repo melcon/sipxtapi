@@ -1842,15 +1842,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\os\OsMsgDispatcher.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\os\OsMsgPool.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\src\os\OsMsgQ.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\os\OsMsgDispatcher.cpp"
 				>
 			</File>
 			<File
@@ -2507,15 +2507,15 @@
 				>
 			</File>
 			<File
+				RelativePath="include\os\OsMsgDispatcher.h"
+				>
+			</File>
+			<File
 				RelativePath="include\os\OsMsgPool.h"
 				>
 			</File>
 			<File
 				RelativePath="include\os\OsMsgQ.h"
-				>
-			</File>
-			<File
-				RelativePath="include\os\OsMsgDispatcher.h"
 				>
 			</File>
 			<File
@@ -2896,6 +2896,10 @@
 			</File>
 			<File
 				RelativePath=".\include\utl\UtlObservableImpl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\utl\UtlPtr.h"
 				>
 			</File>
 			<File

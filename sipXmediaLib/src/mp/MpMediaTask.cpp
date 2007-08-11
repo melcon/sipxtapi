@@ -15,6 +15,7 @@
 /* There used to be #ifdef's here to do the same thing on WIN32/VXWORKS, but I
 * took them out because we do the same thing on every OS. -Mike */
 #define PRINTF Zprintf
+#define MAX_MANAGED_FLOW_GRAPHS           128
 
 // SYSTEM INCLUDES
 #include <assert.h>
@@ -22,6 +23,8 @@
 // APPLICATION INCLUDES
 #include "os/OsLock.h"
 #include "os/OsMsgPool.h"
+#include "utl/UtlHashBagIterator.h"
+#include "utl/UtlPtr.h"
 #include "mp/MpFlowGraphBase.h"
 #include "mp/MpMisc.h"
 #include "mp/MpMediaTask.h"
@@ -53,7 +56,6 @@
 // STATIC VARIABLE INITIALIZATIONS
 MpMediaTask* MpMediaTask::spInstance = NULL;
 OsBSem       MpMediaTask::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
-int          MpMediaTask::mMaxFlowGraph = NULL;
 
 
 #ifdef _PROFILE /* [ */
@@ -68,7 +70,7 @@ int          MpMediaTask::mMaxFlowGraph = NULL;
 /* ============================ CREATORS ================================== */
 
 // Return a pointer to the media task, creating it if necessary
-MpMediaTask* MpMediaTask::getMediaTask(int maxFlowGraph)
+MpMediaTask* MpMediaTask::getMediaTask()
 {
    UtlBoolean isStarted;
 
@@ -77,17 +79,11 @@ MpMediaTask* MpMediaTask::getMediaTask(int maxFlowGraph)
    if (spInstance != NULL && spInstance->isStarted())
       return spInstance;
 
-   // If we can't find existing media task and maxFlowGraph is 0 then
-   // return NULL. We cannot proceed with creating new flowgraph, cause it
-   // asserts (mMaxFlowGraph > 0).
-   if (maxFlowGraph == 0)
-      return NULL;
-
    // If the task does not yet exist or hasn't been started, then acquire
    // the lock to ensure that only one instance of the task is started
    OsLock lock(sLock);
    if (spInstance == NULL)
-       spInstance = new MpMediaTask(maxFlowGraph);
+       spInstance = new MpMediaTask();
 
    isStarted = spInstance->isStarted();
    if (!isStarted)
@@ -105,7 +101,10 @@ MpMediaTask::~MpMediaTask()
    // $$$ need to figure out how to cleanly shut down this task after
    // $$$ unmanaging and destroying all of its flow graphs
 
-   delete[] mManagedFGs;
+   // there shouldn't be any flowgraphs here at this point
+   assert(mManagedFlowGraphs.entries() == 0);
+
+   mManagedFlowGraphs.destroyAll();
 
    if (mpBufferMsgPool != NULL)
       delete mpBufferMsgPool;
@@ -348,13 +347,17 @@ int MpMediaTask::getLimitExceededCnt(void) const
 OsStatus MpMediaTask::getManagedFlowGraphs(MpFlowGraphBase* flowGraphs[],
                                            const int size, int& numItems)
 {
-   int        i;
    OsLock lock(mMutex);
 
-   numItems = (mManagedCnt > size) ? size : mManagedCnt;
-   for (i=0; i < numItems; i++)
+   UtlHashBagIterator itor(mManagedFlowGraphs);
+   size_t nManagedFlowGraphs = mManagedFlowGraphs.entries();
+   UtlPtr<MpFlowGraphBase>* ptr;
+   
+   numItems = (nManagedFlowGraphs > (size_t)size) ? size : nManagedFlowGraphs;
+   for (int i = 0; i < numItems; i++)
    {
-      flowGraphs[i] = mManagedFGs[i];
+      ptr = (UtlPtr<MpFlowGraphBase>*)itor();
+      flowGraphs[i] = ptr->getValue();
    }
 
    return OS_SUCCESS;
@@ -396,7 +399,7 @@ MpFlowGraphBase* MpMediaTask::mediaInfo(void)
    MpFlowGraphBase* pFlowGraph;
    OsStatus         res;
 
-   pMediaTask = MpMediaTask::getMediaTask(0);
+   pMediaTask = MpMediaTask::getMediaTask();
 
    osPrintf("\nMedia processing task information\n");
    osPrintf("  Debug mode:                      %s\n",
@@ -440,17 +443,9 @@ MpFlowGraphBase* MpMediaTask::mediaInfo(void)
 // media processing task.
 int MpMediaTask::numManagedFlowGraphs(void) const
 {
-   return mManagedCnt;
+   // hashbag has a lock inside
+   return mManagedFlowGraphs.entries();
 }
-
-//:Returns the maximum number of flow graphs that can be managed by the 
-//:media processing task.
-int MpMediaTask::maxNumManagedFlowGraphs(void)
-{
-   /* return one less to allow for the "global flowgraph" ... someday */
-   return mMaxFlowGraph - 1;
-}
-
 
 // Returns the number of frames that the media processing task has 
 // processed. This count is maintained as an unsigned, 32-bit value.
@@ -492,14 +487,13 @@ void MpMediaTask::getQueueUsage(int& numMsgs, int& softLimit, int& hardLimit)
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 // Default constructor (called only indirectly via getMediaTask())
-MpMediaTask::MpMediaTask(int maxFlowGraph)
+MpMediaTask::MpMediaTask()
 :  OsServerTask("MpMedia", NULL, MPMEDIA_DEF_MAX_MSGS,
                 MEDIA_TASK_PRIORITY),
    mMutex(OsMutex::Q_PRIORITY),  // create mutex for protecting data
    mDebugEnabled(FALSE),
    mTimeLimitCnt(0),
    mProcessedCnt(0),
-   mManagedCnt(0),
    mStartedCnt(0),
    mSemTimeout(DEF_SEM_WAIT_MSECS / 1000, (DEF_SEM_WAIT_MSECS % 1000) * 1000),
    mSemTimeoutCnt(0),
@@ -507,6 +501,7 @@ MpMediaTask::MpMediaTask(int maxFlowGraph)
    mpFocus(NULL),
    mHandleMsgErrs(0),
    mpBufferMsgPool(NULL),
+   mManagedFlowGraphs(),
    // numQueuedMsgs(0),
    mpSignalMsgPool(NULL)
 #ifdef _PROFILE /* [ */
@@ -519,26 +514,11 @@ MpMediaTask::MpMediaTask(int maxFlowGraph)
    mOtherMessages(20, 0, 1000, " %4d", 5)
 #endif /* _PROFILE ] */
 {
-   mMaxFlowGraph = maxFlowGraph;
-
-   int      i;
    OsStatus res;
 
    res = setTimeLimit(DEF_TIME_LIMIT_USECS);
    assert(res == OS_SUCCESS);
 
-   assert(mMaxFlowGraph > 0); // mMaxFlowGraph must be greater than zero
-   if (mMaxFlowGraph > 0)
-   {
-      mManagedFGs = new MpFlowGraphBase*[mMaxFlowGraph];
-      if (mManagedFGs)
-      {
-         for (i=0; i < mMaxFlowGraph; i++)
-         {
-            mManagedFGs[i] = NULL;
-         }
-      }
-   }
    {
       int totalNumBufs = MpMisc.AudioHeadersPool->getNumBlocks()
                        + MpMisc.RtpHeadersPool->getNumBlocks()
@@ -561,7 +541,7 @@ MpMediaTask::MpMediaTask(int maxFlowGraph)
    {
       MpMediaTaskMsg msg(MpMediaTaskMsg::WAIT_FOR_SIGNAL);
       mpSignalMsgPool = new OsMsgPool("MediaSignals", msg,
-                          2, 2*mMaxFlowGraph, 4*mMaxFlowGraph, 1,
+                          2, 2*MAX_MANAGED_FLOW_GRAPHS, 4*MAX_MANAGED_FLOW_GRAPHS, 1,
                           OsMsgPool::MULTIPLE_CLIENTS);
    }
 
@@ -652,21 +632,18 @@ UtlBoolean MpMediaTask::handleManage(MpFlowGraphBase* pFlowGraph)
 {
    OsLock lock(mMutex);
 
-   if (mManagedCnt >= mMaxFlowGraph) {
-      // PRINTF("MpMediaTask::handleManage: ERROR: too many flow graphs!\n", 0,0,0,0,0,0);
-      return FALSE;
-   }
-
    if (isManagedFlowGraph(pFlowGraph)) { // we are already managing
       // PRINTF("MpMediaTask::handleManage: ERROR: flow graph already managed!\n", 0,0,0,0,0,0);
       return FALSE;                      // the flow graph, return FALSE
    }
 
    // PRINTF("MpMediaTask::handleManage: Adding flow graph # %d!\n", mManagedCnt, 0,0,0,0,0);
-   mManagedFGs[mManagedCnt] = pFlowGraph;
-   mManagedCnt++;
 
-   return TRUE;
+   // add flowgraph to hashbag
+   UtlContainable* pRes = mManagedFlowGraphs.insert(new UtlPtr<MpFlowGraphBase>(pFlowGraph));
+   assert(pRes);
+
+   return pRes != NULL;
 }
 
 // Handles the SET_FOCUS message.
@@ -759,7 +736,6 @@ UtlBoolean MpMediaTask::handleUnmanage(MpFlowGraphBase* pFlowGraph)
 {
    OsLock lock(mMutex);
    UtlBoolean   found;
-   int         i;
    OsStatus    res;
 
    if (pFlowGraph == mpFocus)
@@ -780,28 +756,11 @@ UtlBoolean MpMediaTask::handleUnmanage(MpFlowGraphBase* pFlowGraph)
       assert(res == OS_SUCCESS);
    }
 
-   found = FALSE;
-   for (i=0; i < mManagedCnt; i++)
-   {
-      if (found)
-      {                           // compact the managed flow graphs array
-         mManagedFGs[i-1] = mManagedFGs[i];
-      }
+   UtlPtr<MpFlowGraphBase> ptr(pFlowGraph);
+   // deletes the old UtlPtr we allocated earlier
+   found = mManagedFlowGraphs.destroy(&ptr);
 
-      if (mManagedFGs[i] == pFlowGraph)
-      {
-         // PRINTF("MpMediaTask::handleUnmanage: Removing flow graph # %d!\n", i, 0,0,0,0,0);
-         found = TRUE;
-         mManagedFGs[i] = NULL;
-      }
-   }
-
-   if (!found) {                  // we aren't managing this flow graph,
-      return FALSE;               //  return FALSE
-   }
-
-   mManagedCnt--;
-   return TRUE;
+   return found;
 }
 
 // Handles the WAIT_FOR_SIGNAL message.
@@ -809,8 +768,6 @@ UtlBoolean MpMediaTask::handleUnmanage(MpFlowGraphBase* pFlowGraph)
 // Returns TRUE if the message was handled, otherwise FALSE.
 UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
 {
-   int              i;
-   MpFlowGraphBase* pFlowGraph;
    OsStatus         res;
 
 #ifdef MEDIA_VERBOSE /* [ */
@@ -860,17 +817,21 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
    //    time the frame start signal occurred have been processed.
 
    // Call processNextFrame() for each of the "started" flow graphs
-   for (i=0; i < mManagedCnt; i++)
+   UtlHashBagIterator itor(mManagedFlowGraphs);
+   UtlPtr<MpFlowGraphBase>* ptr = NULL;
+   MpFlowGraphBase* pFlowGraph = NULL;
+
+   while(ptr = (UtlPtr<MpFlowGraphBase>*)itor())
    {
-#ifdef RTL_ENABLED
-    RTL_EVENT("MpMediaTask.handleWaitForSignal", i+1);
-#endif
-      pFlowGraph = mManagedFGs[i];
+      pFlowGraph = ptr->getValue();
+      assert(pFlowGraph);
+
       if (pFlowGraph->isStarted())
       {
          res = pFlowGraph->processNextFrame();
          assert(res == OS_SUCCESS);
       }
+      
    }
 
 #ifdef RTL_ENABLED
@@ -958,17 +919,8 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
 // by the media processing task, otherwise FALSE.
 UtlBoolean MpMediaTask::isManagedFlowGraph(MpFlowGraphBase* pFlowGraph)
 {
-   int i;
-   OsLock lock(mMutex);
-
-   for (i=0; i < mManagedCnt; i++)
-   {
-      if (mManagedFGs[i] == pFlowGraph) {
-         return TRUE;
-      }
-   }
-
-   return FALSE;
+   UtlPtr<MpFlowGraphBase> ptr(pFlowGraph);
+   return mManagedFlowGraphs.contains(&ptr);
 }
 
 /* ============================ FUNCTIONS ================================= */
