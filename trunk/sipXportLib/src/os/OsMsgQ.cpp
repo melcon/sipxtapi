@@ -27,7 +27,7 @@
 // CONSTANTS
 
 // STATIC VARIABLE INITIALIZATIONS
-const int OsMsgQBase::DEF_MAX_MSGS    = 100;
+const int OsMsgQBase::DEF_MAX_MSGS    = 500;
 const int OsMsgQBase::DEF_MAX_MSG_LEN = 32;
 const UtlString OsMsgQBase::MSGQ_PREFIX("MsgQ.");
 
