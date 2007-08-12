@@ -186,20 +186,83 @@ SipConnection::~SipConnection()
         OsSysLog::add(FAC_CP, PRI_DEBUG, "Entering SipConnection destructor: call is Null\n");
 #endif
 
-    delete mpRenegotiateCodecsTimer;
-    mpRenegotiateCodecsTimer = NULL;
-    delete mpReinviteTimer1;
-    mpReinviteTimer1 = NULL;
-    delete mpCancelTimer;
-    mpCancelTimer = NULL;
-    delete mpReinviteTimer2;
-    mpReinviteTimer2 = NULL;
-    delete mpReinviteTimer3;
-    mpReinviteTimer3 = NULL;
-    delete mpForceDropConnectionTimer1;
-    mpForceDropConnectionTimer1 = NULL;
-    delete mpForceDropConnectionTimer2;
-    mpForceDropConnectionTimer2 = NULL;
+    if (mpRenegotiateCodecsTimer)
+    {
+       mpRenegotiateCodecsTimer->stop();
+       if (!mpRenegotiateCodecsTimer->getWasFired())
+       {
+          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpRenegotiateCodecsTimer->getUserData();
+          delete pOldMsg;
+       }
+       delete mpRenegotiateCodecsTimer;
+       mpRenegotiateCodecsTimer = NULL;
+    }
+    if (mpReinviteTimer1)
+    {
+       mpReinviteTimer1->stop();
+       if (!mpReinviteTimer1->getWasFired())
+       {
+          SipMessageEvent* pOldEvent = (SipMessageEvent*)mpReinviteTimer1->getUserData();
+          delete pOldEvent;
+       }       
+       delete mpReinviteTimer1;
+       mpReinviteTimer1 = NULL;
+    }
+    if (mpCancelTimer)
+    {
+       mpCancelTimer->stop();
+       if (!mpCancelTimer->getWasFired())
+       {
+          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpCancelTimer->getUserData();
+          delete pOldMsg;
+       }       
+       delete mpCancelTimer;
+       mpCancelTimer = NULL;
+    }
+    if (mpReinviteTimer2)
+    {
+       mpReinviteTimer2->stop();
+       if (!mpReinviteTimer2->getWasFired())
+       {
+          SipMessageEvent* pOldEvent = (SipMessageEvent*)mpReinviteTimer2->getUserData();
+          delete pOldEvent;
+       }
+       delete mpReinviteTimer2;
+       mpReinviteTimer2 = NULL;
+    }
+    if (mpReinviteTimer3)
+    {
+       mpReinviteTimer3->stop();
+       if (!mpReinviteTimer3->getWasFired())
+       {
+          SipMessageEvent* pOldEvent = (SipMessageEvent*)mpReinviteTimer3->getUserData();
+          delete pOldEvent;
+       }
+       delete mpReinviteTimer3;
+       mpReinviteTimer3 = NULL;
+    }
+    if (mpForceDropConnectionTimer1)
+    {
+       mpForceDropConnectionTimer1->stop();
+       if (!mpForceDropConnectionTimer1->getWasFired())
+       {
+          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpForceDropConnectionTimer1->getUserData();
+          delete pOldMsg;
+       }
+       delete mpForceDropConnectionTimer1;
+       mpForceDropConnectionTimer1 = NULL;
+    }
+    if (mpForceDropConnectionTimer2)
+    {
+       mpForceDropConnectionTimer2->stop();
+       if (!mpForceDropConnectionTimer2->getWasFired())
+       {
+          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpForceDropConnectionTimer2->getUserData();
+          delete pOldMsg;
+       }
+       delete mpForceDropConnectionTimer2;
+       mpForceDropConnectionTimer2 = NULL;
+    }
 
     if(inviteMsg)
     {
@@ -1870,7 +1933,18 @@ UtlBoolean SipConnection::renegotiateCodecs()
         CpMultiStringMessage* retryTimerMessage =
                 new CpMultiStringMessage(CpCallManager::CP_RENEGOTIATE_CODECS_CONNECTION, callId, remoteAddress) ;
 
-        delete mpRenegotiateCodecsTimer;
+        if (mpRenegotiateCodecsTimer)
+        {
+           mpRenegotiateCodecsTimer->stop();
+           if (!mpRenegotiateCodecsTimer->getWasFired())
+           {
+              CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpRenegotiateCodecsTimer->getUserData();
+              delete pOldMsg;
+           }
+           delete mpRenegotiateCodecsTimer;
+           mpRenegotiateCodecsTimer = NULL;
+        }
+        
         mpRenegotiateCodecsTimer = new OsTimer(mpCallManager->getMessageQueue(),
            (int)retryTimerMessage);
 
@@ -2789,7 +2863,18 @@ UtlBoolean SipConnection::extendSessionReinvite()
                     new SipMessageEvent(new SipMessage(*inviteMsg),
                     SipMessageEvent::SESSION_REINVITE_TIMER);
 
-            delete mpReinviteTimer1;
+            if (mpReinviteTimer1)
+            {
+               mpReinviteTimer1->stop();
+               if (!mpReinviteTimer1->getWasFired())
+               {
+                  SipMessageEvent* pOldEvent = (SipMessageEvent*)mpReinviteTimer1->getUserData();
+                  delete pOldEvent;
+               }
+               delete mpReinviteTimer1;
+               mpReinviteTimer1 = NULL;
+            }
+            
             mpReinviteTimer1 = new OsTimer((mpCallManager->getMessageQueue()),
                     (int)sipMsgEvent);
 
@@ -4533,7 +4618,19 @@ UtlBoolean SipConnection::processResponse(const SipMessage* response,
                 getRemoteAddress(&remoteAddr);
                 CpMultiStringMessage* CancelTimerMessage =
                     new CpMultiStringMessage(CpCallManager::CP_CANCEL_TIMER, callId.data(), remoteAddr.data());
-                delete mpCancelTimer;
+
+                if (mpCancelTimer)
+                {
+                   mpCancelTimer->stop();
+                   if (!mpCancelTimer->getWasFired())
+                   {
+                      CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpCancelTimer->getUserData();
+                      delete pOldMsg;
+                   }
+                   delete mpCancelTimer;
+                   mpCancelTimer = NULL;
+                }
+                
                 mpCancelTimer = new OsTimer(mpCallManager->getMessageQueue(),
                    (int)CancelTimerMessage);
 
@@ -4784,7 +4881,19 @@ void SipConnection::processInviteResponseRequestPending(const SipMessage* respon
     SipMessageEvent* sipMsgEvent =
             new SipMessageEvent(new SipMessage(*response),
             SipMessageEvent::SESSION_REINVITE_TIMER);
-    delete mpReinviteTimer2;
+
+    if (mpReinviteTimer2)
+    {
+       mpReinviteTimer2->stop();
+       if (!mpReinviteTimer2->getWasFired())
+       {
+          SipMessageEvent* pOldEvent = (SipMessageEvent*)mpReinviteTimer2->getUserData();
+          delete pOldEvent;
+       }
+       delete mpReinviteTimer2;
+       mpReinviteTimer2 = NULL;
+    }
+    
     mpReinviteTimer2 = new OsTimer((mpCallManager->getMessageQueue()),
             (int)sipMsgEvent);
 
@@ -5088,7 +5197,19 @@ void SipConnection::processInviteResponseNormal(const SipMessage* response)
             SipMessageEvent* sipMsgEvent =
                 new SipMessageEvent(new SipMessage(sipRequest),
                 SipMessageEvent::SESSION_REINVITE_TIMER);
-            delete mpReinviteTimer3;
+
+            if (mpReinviteTimer3)
+            {
+               mpReinviteTimer3->stop();
+               if (!mpReinviteTimer3->getWasFired())
+               {
+                  SipMessageEvent* pOldEvent = (SipMessageEvent*)mpReinviteTimer3->getUserData();
+                  delete pOldEvent;
+               }
+               delete mpReinviteTimer3;
+               mpReinviteTimer3 = NULL;
+            }
+            
             mpReinviteTimer3 = new OsTimer((mpCallManager->getMessageQueue()),
                 (int)sipMsgEvent);
             // Convert from mSeconds to uSeconds
@@ -5844,7 +5965,19 @@ void SipConnection::processByeResponse(const SipMessage* response)
             CpMultiStringMessage* expiredBye =
                 new CpMultiStringMessage(CallManager::CP_FORCE_DROP_CONNECTION,
                 callId.data(), remoteAddress.data(), localAddress.data());
-            delete mpForceDropConnectionTimer1;
+
+            if (mpForceDropConnectionTimer1)
+            {
+               mpForceDropConnectionTimer1->stop();
+               if (!mpForceDropConnectionTimer1->getWasFired())
+               {
+                  CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpForceDropConnectionTimer1->getUserData();
+                  delete pOldMsg;
+               }
+               delete mpForceDropConnectionTimer1;
+               mpForceDropConnectionTimer1 = NULL;
+            }
+            
             mpForceDropConnectionTimer1 = new OsTimer((mpCallManager->getMessageQueue()),
                 (int)expiredBye);
 
@@ -5904,7 +6037,18 @@ void SipConnection::processCancelResponse(const SipMessage* response)
                 new CpMultiStringMessage(CallManager::CP_FORCE_DROP_CONNECTION,
                 callId.data(), remoteAddress.data(), localAddress.data());
 
-            delete mpForceDropConnectionTimer2;
+            if (mpForceDropConnectionTimer2)
+            {
+               mpForceDropConnectionTimer2->stop();
+               if (!mpForceDropConnectionTimer2->getWasFired())
+               {
+                  CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpForceDropConnectionTimer2->getUserData();
+                  delete pOldMsg;
+               }
+               delete mpForceDropConnectionTimer2;
+               mpForceDropConnectionTimer2 = NULL;
+            }
+            
             mpForceDropConnectionTimer2 = new OsTimer((mpCallManager->getMessageQueue()),
                 (int)expiredBye);
             // Convert from mSeconds to uSeconds
