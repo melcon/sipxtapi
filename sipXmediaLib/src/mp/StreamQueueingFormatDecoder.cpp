@@ -51,8 +51,7 @@ StreamQueueingFormatDecoder(StreamDataSource* pDataSource, int iQueueLength)
    : StreamFormatDecoder(pDataSource) 
    , mMsgqFrames(iQueueLength)
    , mMsgPool("StreamQueueingFormatDecoder", StreamQueueMsg(),
-         iQueueLength+1,iQueueLength+2, 
-         iQueueLength+2, 1, OsMsgPool::SINGLE_CLIENT)
+         iQueueLength+1, 10, OsMsgPool::SINGLE_CLIENT)
    , mbReportThrottle(TRUE)
 {
    
@@ -212,8 +211,7 @@ int StreamQueueingFormatDecoder::getNumQueuedFrames()
 StreamQueueingFormatDecoder::StreamQueueingFormatDecoder(
       const StreamQueueingFormatDecoder& rStreamQueueingFormatDecoder)
    : StreamFormatDecoder(NULL)
-   , mMsgPool("StreamQueueingFormatDecoder", StreamQueueMsg(), 1001, 1001,
-          1001, 1, OsMsgPool::SINGLE_CLIENT)
+   , mMsgPool("StreamQueueingFormatDecoder", StreamQueueMsg(), 1001, 10, OsMsgPool::SINGLE_CLIENT)
 {
     assert(FALSE) ;
 }

@@ -100,10 +100,8 @@ public:
 
    OsMsgPool(const char* name, // for identification
       const OsMsg& model,    // message to clone to populate pool
-      int initialCount,      // number of messages to create initially
-      int softLimit=0,       // number of message without complaining
-      int hardLimit=0,       // absolute maximum number of messages
-      int increment=1,       // number of messages to allocate when expanding
+      int initialCount = 10,      // number of messages to create initially
+      int increment = 20,    // number of messages to allocate when expanding
       OsMsgPoolSharing sharing=MULTIPLE_CLIENTS);
      //:Default constructor.  model is a message of the single type that
      //:will be contained in the pool, and its createCopy virtual method
@@ -126,12 +124,6 @@ public:
    int getNoInUse(void);
    //:Return the number of items in use.
 
-   int getSoftLimit(void);
-   //:Return the current soft limit.
-
-   int getHardLimit(void);
-   //:Return the current hard limit.
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -140,8 +132,6 @@ private:
 
    int      mInitialCount;   // initial number of items
    int      mCurrentCount;   // current number of items
-   int      mSoftLimit;      // soft limit, warn when expanding above this
-   int      mHardLimit;      // hard limit AND length of mpElts
    int      mIncrement;      // number to create when expanding
    int      mNext;           // index to next element to examine
    OsMutex* mpMutex;         // NULL if single client

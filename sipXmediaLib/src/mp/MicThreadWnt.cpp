@@ -543,7 +543,7 @@ unsigned int __stdcall MicThread(LPVOID Unused)
 
     MpBufferMsg *pBuffMsg = new MpBufferMsg(MpBufferMsg::AUD_RECORDED);
     DmaMsgPool = new OsMsgPool("DmaTask", (*(OsMsg*)pBuffMsg),
-       40, 60, 100, 5,
+       40, 10,
        OsMsgPool::SINGLE_CLIENT);
     delete pBuffMsg;
 

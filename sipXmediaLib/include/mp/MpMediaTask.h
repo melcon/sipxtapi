@@ -303,8 +303,7 @@ public:
      */
 
      /// Return usage information on the Media Task's message queue.
-   void getQueueUsage(int& numMsgs, int& softLimit,
-                      int& hardLimit);
+   void getQueueUsage(int& numMsgs);
 
 //@}
 

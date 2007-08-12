@@ -2955,14 +2955,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\winsock.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\winsock2.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\utl\XmlContent.h"
 				>
 			</File>
