@@ -641,9 +641,6 @@ void MpFlowGraphBase::synchronize(const char* tag, int val1)
          NULL, NULL, (void*) tag, val1, (int) val2);
       OsStatus  res;
 
-      UtlBoolean isManaged = MpMediaTask::getMediaTask()->isManagedFlowGraph(this);
-      assert(isManaged);
-
       msg.setPtr1(&event);
       res = postMessage(msg);
       // if (NULL == tag) osPrintf("MpFlowGraphBase::synchronize()\n");
