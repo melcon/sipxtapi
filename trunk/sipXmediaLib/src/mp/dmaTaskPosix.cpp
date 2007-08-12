@@ -489,7 +489,7 @@ static void startAudioSupport(void)
            /* OsMsgPool setup */
            MpBufferMsg msg(MpBufferMsg::AUD_RECORDED);
            DmaMsgPool = new OsMsgPool("DmaTask", msg,
-                 40, 60, 100, 5,
+                 40, 10,
                  OsMsgPool::SINGLE_CLIENT);
 
            /* let the read thread go first */

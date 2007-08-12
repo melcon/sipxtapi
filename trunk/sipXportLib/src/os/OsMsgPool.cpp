@@ -35,11 +35,10 @@
 OsMsgPool::OsMsgPool(const char* name,
    const OsMsg& model,
    int initialCount,
-   int softLimit,
-   int hardLimit,
    int increment,
    OsMsgPoolSharing sharing)
-: mIncrement(increment), mNext(0)
+: mIncrement(increment)
+, mNext(0)
 {
    int i;
    OsMsg* pMsg;
@@ -52,21 +51,16 @@ OsMsgPool::OsMsgPool(const char* name,
    mpName = new UtlString((NULL == name) ? "Unknown" : name);
 
    mInitialCount = (initialCount > 1) ? initialCount : 10;
-   mSoftLimit = (mInitialCount > softLimit) ? mInitialCount : softLimit;
-   mHardLimit = (mSoftLimit > hardLimit) ? mSoftLimit : hardLimit;
+   mIncrement = (mIncrement > 0) ? mIncrement : 1;
 
-   if (mHardLimit > mInitialCount) {
-      assert(mIncrement>0);
-      mIncrement = (mIncrement>0) ? mIncrement : 1;
-   }
+   mpElts = (OsMsg**)malloc(sizeof(OsMsg*)*mInitialCount);
 
-   mpElts = new OsMsg*[mHardLimit];
-
-   for (i=0; i<mHardLimit; i++) mpElts[i] = NULL;
-
-   for (i=0; i<mInitialCount; i++) {
+   for (i = 0; i < mInitialCount; i++)
+   {
       pMsg = mpModel->createCopy();
-      if (NULL != pMsg) {
+
+      if (pMsg)
+      {
          pMsg->setReusable(TRUE);
          pMsg->setInUse(FALSE);
          mpElts[i] = pMsg;
@@ -78,7 +72,7 @@ OsMsgPool::OsMsgPool(const char* name,
       mpMutex = new OsMutex(OsMutex::Q_PRIORITY |
                             OsMutex::DELETE_SAFE |
                             OsMutex::INVERSION_SAFE);
-      assert(NULL != mpMutex);
+      assert(mpMutex);
    }
 }
 
@@ -89,22 +83,29 @@ OsMsgPool::~OsMsgPool()
    int i;
    OsMsg* pMsg;
 
-   if (NULL != mpMutex) mpMutex->acquire();
-   for (i=0; i<mCurrentCount; i++) {
+   if (mpMutex) mpMutex->acquire();
+
+   for (i = 0; i < mCurrentCount; i++)
+   {
       pMsg = mpElts[i];
-      if (NULL != pMsg) {
+
+      if (pMsg)
+      {
          pMsg->setReusable(FALSE);
-         if (!pMsg->isMsgInUse()) {
+         if (!pMsg->isMsgInUse())
+         {
             mpElts[i] = NULL;
             delete pMsg;
          }
       }
    }
-   delete[] mpElts;
+
+   free(mpElts);
+
    mpModel->setReusable(FALSE);
    delete mpModel;
    delete mpName;
-   if (NULL != mpMutex) mpMutex->release();
+   if (mpMutex) mpMutex->release();
    delete mpMutex;
 }
 
@@ -116,22 +117,22 @@ OsMsgPool::~OsMsgPool()
 OsMsg* OsMsgPool::findFreeMsg()
 {
    int i;
-   OsMsg* pMsg;
+   OsMsg* pMsg = NULL;
    OsMsg* ret = NULL;
 
    // If there is a mutex for this pool, acquire it before doing any work.
-   if (NULL != mpMutex)
+   if (mpMutex)
    {
       mpMutex->acquire();
    }
 
    // Scan mNext through the table looking for a message that is
    // allocated and not in use.
-   for (i=0; ((i<mCurrentCount)&&(NULL==ret)); i++)
+   for (i = 0; ((i < mCurrentCount) && !ret); i++)
    {
       // Examine the element.
       pMsg = mpElts[mNext];
-      if ((NULL != pMsg) && !pMsg->isMsgInUse())
+      if (pMsg && !pMsg->isMsgInUse())
       {
          pMsg->setInUse(TRUE);
          ret = pMsg;
@@ -144,31 +145,23 @@ OsMsg* OsMsgPool::findFreeMsg()
       }
    }
 
-   // If no free message was found.
-   if (NULL == ret)
+   // If no free message was found, extend pool
+   if (!ret)
    {
-      if (mCurrentCount > mSoftLimit)
-      {
-         if (mSoftLimit <= mHardLimit)
-         {
-            OsSysLog::add(FAC_KERNEL, PRI_WARNING,
-                          "OsMsgPool::FindFreeMsg '%s' queue size (%d) exceeds soft limit (%d)\n",
-                          mpName->data(), mCurrentCount, mSoftLimit);
-         }
-      }
+      int limit;
 
-      if (mCurrentCount < mHardLimit)
-      {
-         int limit;
+      mNext = mCurrentCount;
+      limit = mCurrentCount + mIncrement;
 
-         mNext = mCurrentCount;
-         limit = mCurrentCount + mIncrement;
-         if (limit > mHardLimit) limit = mHardLimit;
+      mpElts = (OsMsg**)realloc(mpElts, sizeof(OsMsg*)*limit);
+
+      if (mpElts)
+      {
          // Create the new elements.
-         for (i=mCurrentCount; i<limit; i++)
+         for (i = mCurrentCount; i < limit; i++)
          {
             pMsg = mpModel->createCopy();
-            if (NULL != pMsg)
+            if (pMsg)
             {
                pMsg->setReusable(TRUE);
                pMsg->setInUse(FALSE);
@@ -177,10 +170,11 @@ OsMsg* OsMsgPool::findFreeMsg()
             }
          }
 
+         // take the 1st next message
          ret = mpElts[mNext];
-         assert(NULL!=ret);
+         assert(ret);
 
-         if ((NULL != ret) && !ret->isMsgInUse())
+         if (ret && !ret->isMsgInUse())
          {
             ret->setInUse(TRUE);
          }
@@ -191,21 +185,10 @@ OsMsg* OsMsgPool::findFreeMsg()
             mNext = 0;
          }
       }
-      else
-      {
-         if (mSoftLimit <= mHardLimit)
-         {
-            OsSysLog::add(FAC_KERNEL, PRI_CRIT,
-                          "OsMsgPool::FindFreeMsg '%s' queue size (%d) exceeds hard limit (%d)\n",
-                          mpName->data(), mCurrentCount, mHardLimit);
-         }
-
-         mSoftLimit = mHardLimit + 1;
-      }
    }
 
    // If there is a mutex for this pool, release it.
-   if (NULL != mpMutex)
+   if (mpMutex)
    {
       mpMutex->release();
    }
@@ -221,38 +204,26 @@ int OsMsgPool::getNoInUse(void)
 {
    int i, count;
 
-   if (NULL != mpMutex)
+   if (mpMutex)
    {
       mpMutex->acquire();
    }
 
    count = 0;
-   for (i=0; i < mCurrentCount; i++)
+   for (i = 0; i < mCurrentCount; i++)
    {
-      if (mpElts[i] != NULL && mpElts[i]->isMsgInUse())
+      if (mpElts[i] && mpElts[i]->isMsgInUse())
       {
          count++;
       }
    }
 
-   if (NULL != mpMutex)
+   if (mpMutex)
    {
       mpMutex->release();
    }
 
    return count;
-}
-
-// Return the current soft limit.
-int OsMsgPool::getSoftLimit(void)
-{
-   return mSoftLimit;
-}
-
-// Return the current hard limit.
-int OsMsgPool::getHardLimit(void)
-{
-   return mHardLimit;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

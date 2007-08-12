@@ -15,7 +15,6 @@
 /* There used to be #ifdef's here to do the same thing on WIN32/VXWORKS, but I
 * took them out because we do the same thing on every OS. -Mike */
 #define PRINTF Zprintf
-#define MAX_MANAGED_FLOW_GRAPHS           128
 
 // SYSTEM INCLUDES
 #include <assert.h>
@@ -473,15 +472,13 @@ OsMsgPool* MpMediaTask::getBufferMsgPool(void) const
 
 /* ============================ INQUIRY =================================== */
 
-void MpMediaTask::getQueueUsage(int& numMsgs, int& softLimit, int& hardLimit)
+void MpMediaTask::getQueueUsage(int& numMsgs)
 {
    numMsgs = mIncomingQ.numMsgs();
-   softLimit = mpSignalMsgPool->getSoftLimit();
-   hardLimit = mpSignalMsgPool->getHardLimit();
    OsSysLog::add(FAC_MP, PRI_DEBUG,
                  "MpMediaTask::getQueueUsage "
-                 "numMsgs = %d, softLimit = %d, hardLimit = %d",
-                 numMsgs, softLimit, hardLimit);
+                 "numMsgs = %d",
+                 numMsgs);
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -519,29 +516,25 @@ MpMediaTask::MpMediaTask()
    res = setTimeLimit(DEF_TIME_LIMIT_USECS);
    assert(res == OS_SUCCESS);
 
-   {
-      int totalNumBufs = MpMisc.AudioHeadersPool->getNumBlocks()
-                       + MpMisc.RtpHeadersPool->getNumBlocks()
+   int totalNumBufs = MpMisc.AudioHeadersPool->getNumBlocks()
+      + MpMisc.RtpHeadersPool->getNumBlocks()
 #ifdef REAL_RTCP // [
-                       + MpMisc.RtcpHeadersPool->getNumBlocks()
+      + MpMisc.RtcpHeadersPool->getNumBlocks()
 #endif // ] TINY_MEDIALIB
-                       ;
-      int soft;
-      int incr;
+      ;
+   int soft = totalNumBufs/20;
+   if (soft < 8) soft = 8;
+   {
       MpBufferMsg msg(MpBufferMsg::AUD_RECORDED);
-
-      soft = totalNumBufs/20;
-      if (soft < 8) soft = 8;
-      incr = soft / 2 + 1;
       mpBufferMsgPool = new OsMsgPool("MediaBuffers", msg,
-                          incr, soft, totalNumBufs, incr,
+                          soft, soft,
                           OsMsgPool::MULTIPLE_CLIENTS);
    }
 
    {
       MpMediaTaskMsg msg(MpMediaTaskMsg::WAIT_FOR_SIGNAL);
       mpSignalMsgPool = new OsMsgPool("MediaSignals", msg,
-                          2, 2*MAX_MANAGED_FLOW_GRAPHS, 4*MAX_MANAGED_FLOW_GRAPHS, 1,
+                          soft, soft, 
                           OsMsgPool::MULTIPLE_CLIENTS);
    }
 

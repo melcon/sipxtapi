@@ -208,10 +208,10 @@ OsStatus dmaStartup(int samplesPerFrame)
 
    OsIntPtrMsg msg(OsIntPtrMsg::MP_TASK_MSG, 0); // dummy message
    gMicStatusPool = new OsMsgPool("MicStatusPool", msg,
-         40, 60, 100, 5,
+         40, 10,
          OsMsgPool::SINGLE_CLIENT);
    gSpeakerStatusPool = new OsMsgPool("SpeakerStatusPool", msg,
-      40, 60, 100, 5,
+      40, 10,
       OsMsgPool::SINGLE_CLIENT);
 
    gMicStatusQueue = new OsMsgQ(40, OsMsgQBase::DEF_MAX_MSG_LEN,
