@@ -176,11 +176,29 @@ Connection::~Connection()
        mpDtmfQueuedEvent = NULL ;
    }
 
-   delete mpOfferingTimer;
-   mpOfferingTimer = NULL;
-
-   delete mpRingingTimer;
-   mpRingingTimer = NULL;
+   if (mpOfferingTimer)
+   {
+      mpOfferingTimer->stop();
+      if (!mpOfferingTimer->getWasFired())
+      {
+         CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpOfferingTimer->getUserData();
+         delete pOldMsg;
+      }
+      delete mpOfferingTimer;
+      mpOfferingTimer = NULL;
+   }
+   
+   if (mpRingingTimer)
+   {
+      mpRingingTimer->stop();
+      if (!mpRingingTimer->getWasFired())
+      {
+         CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpRingingTimer->getUserData();
+         delete pOldMsg;
+      }
+      delete mpRingingTimer;
+      mpRingingTimer = NULL;
+   }
 
 #ifdef TEST_PRINT
     if (!callId.isNull())
@@ -1129,7 +1147,17 @@ void Connection::setOfferingTimer(int milliSeconds)
                     callId.data(), remoteAddr.data());
 
     // stops and deletes timer
-    delete mpOfferingTimer;
+    if (mpOfferingTimer)
+    {
+       mpOfferingTimer->stop();
+       if (!mpOfferingTimer->getWasFired())
+       {
+          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpOfferingTimer->getUserData();
+          delete pOldMsg;
+       }
+       delete mpOfferingTimer;
+       mpOfferingTimer = NULL;
+    }
     mpOfferingTimer = new OsTimer((mpCallManager->getMessageQueue()),
             (int)offeringExpiredMessage);
     // Convert from mSeconds to uSeconds
@@ -1159,7 +1187,17 @@ void Connection::setRingingTimer(int seconds)
         new CpMultiStringMessage(CpCallManager::CP_RINGING_EXPIRED,
                     callId.data(), remoteAddr.data());
 
-    delete mpRingingTimer;
+    if (mpRingingTimer)
+    {
+       mpRingingTimer->stop();
+       if (!mpRingingTimer->getWasFired())
+       {
+          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpRingingTimer->getUserData();
+          delete pOldMsg;
+       }
+       delete mpRingingTimer;
+       mpRingingTimer = NULL;
+    }
     mpRingingTimer = new OsTimer((mpCallManager->getMessageQueue()),
             (int)offeringExpiredMessage);
 
