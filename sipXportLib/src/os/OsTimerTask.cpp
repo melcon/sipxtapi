@@ -15,6 +15,7 @@
 // SYSTEM INCLUDES
 #include <assert.h>
 
+#include "os/OsNameDbInit.h" 
 // APPLICATION INCLUDES
 #include "os/OsEvent.h"
 #include "os/OsTimer.h"
@@ -29,13 +30,9 @@
 
 // STATIC VARIABLE INITIALIZATIONS
 // spInstance can be tested and set asynchronously by different threads.
-volatile OsTimerTask* OsTimerTask::spInstance = 0;
-// Create a semaphore at run time rather than declaring a static semaphore,
-// so that the shut-down code does not try to destroy the semaphore,
-// which can lead to problems with the ordering of destructors.
-OsBSem*      OsTimerTask::sLock =
-                 new OsBSem(OsBSem::Q_PRIORITY, OsBSem::FULL);
-const int    OsTimerTask::TIMER_MAX_REQUEST_MSGS = 10000;
+OsTimerTask OsTimerTask::sInstance;
+
+const int OsTimerTask::TIMER_MAX_REQUEST_MSGS = 20000;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -46,29 +43,14 @@ OsTimerTask* OsTimerTask::getTimerTask(void)
 {
    // If the task object already exists, and the corresponding low-level task
    // has been started, then use it
-   if (spInstance == NULL)
+
+   if (!sInstance.isStarted())
    {
-   // If the task does not yet exist or hasn't been started, then acquire
-   // the lock to ensure that only one instance of the task is started
-      sLock->acquire();
-   
-      // Test again, as the previous test was not interlocked against other
-      // threads.
-      if (spInstance == NULL)
-      {
-         spInstance = new OsTimerTask();
-		   assert( spInstance );
-         // Have to cast spInstance to remove volatile, according to C++
-         // rules.
-         UtlBoolean isStarted = ((OsTimerTask*) spInstance)->start();
-         assert(isStarted);
-      }
-      sLock->release();
-      OsSysLog::add(FAC_KERNEL, PRI_DEBUG,
-                    "OsTimerTask::getTimerTask OsTimerTask started");
+      UtlBoolean isStarted = (&sInstance)->start();
+      assert(isStarted);
    }
 
-   return (OsTimerTask*) spInstance;
+   return &sInstance;
 }
 
 // Destroy the singleton instance of the timer task.
@@ -76,30 +58,33 @@ void OsTimerTask::destroyTimerTask(void)
 {
     OsSysLog::add(FAC_KERNEL, PRI_DEBUG,
                   "OsTimerTask::destroyTimerTask entered");
-    sLock->acquire();
-    if (spInstance)
+
+    if (sInstance.isStarted())
     {
-        delete spInstance ;
-        spInstance = NULL ;
+       OsEvent event;
+       OsTimerMsg msg(OsTimerMsg::OS_TIMER_SHUTDOWN, NULL, &event);
+       // Send the OS_TIMER_SHUTDOWN message.
+       OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
+       assert(res == OS_SUCCESS);
+       // Wait for the response.
+       event.wait();
     }
-    sLock->release();
 }
 
 // Destructor
 OsTimerTask::~OsTimerTask()
 {
-   // Shut down the task.
-   OsEvent event;
-   OsTimerMsg msg(OsTimerMsg::OS_TIMER_SHUTDOWN, NULL, &event);
-   // Send the OS_TIMER_SHUTDOWN message.
-   OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
-   assert(res == OS_SUCCESS);
-   // Wait for the response.
-   event.wait();
-   // Since this code is locked by sLock, no (few) messages will have
-   // been added to the incoming queue while we were waiting for the
-   // OS_TIMER_SHUTDOWN message to get through the queue, as getTimerTask would
-   // have waited for sLock.
+   if (sInstance.isStarted())
+   {
+      // Shut down the task.
+      OsEvent event;
+      OsTimerMsg msg(OsTimerMsg::OS_TIMER_SHUTDOWN, NULL, &event);
+      // Send the OS_TIMER_SHUTDOWN message.
+      OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
+      assert(res == OS_SUCCESS);
+      // Wait for the response.
+      event.wait();
+   }
 }
 
 /* ============================ MANIPULATORS ============================== */
