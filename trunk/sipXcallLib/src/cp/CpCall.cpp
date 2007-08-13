@@ -15,6 +15,7 @@
 #include <stdlib.h>
 
 // APPLICATION INCLUDES
+#include <utl/UtlInit.h>
 #include <os/OsReadLock.h>
 #include <os/OsWriteLock.h>
 #include <os/OsQueuedEvent.h>
@@ -39,11 +40,8 @@
 #define UI_TERMINAL_CONNECTION_STATE "TerminalConnectionState"
 #define UI_CONNECTION_STATE "ConnectionState"
 
-//#define debugNew(x)   osPrintf("new 0x%08x: %s/%d\n", (int)x, __FILE__, __LINE__);
-//#define debugDelete(x)        osPrintf("delete 0x%08x: %s/%d\n", (int)x, __FILE__, __LINE__);
-
 // STATIC VARIABLE INITIALIZATIONS
-OsLockingList *CpCall::spCallTrackingList = NULL;
+OsLockingList CpCall::sCallTrackingList;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -1671,11 +1669,8 @@ OsStatus CpCall::addToCallTrackingList(UtlString &rCallTaskName)
 {
     OsStatus retval = OS_FAILED;
 
-    if (!spCallTrackingList)
-        spCallTrackingList = new OsLockingList();
-
     UtlString *tmpTaskName = new UtlString(rCallTaskName);
-    spCallTrackingList->push((void *)tmpTaskName);
+    sCallTrackingList.push((void *)tmpTaskName);
     retval = OS_SUCCESS; //push doesn't have a return value
 
     return retval;
@@ -1693,23 +1688,23 @@ OsStatus CpCall::removeFromCallTrackingList(UtlString &rCallTaskName)
     UtlString *pStrFoundTaskName;
 
     //get an iterator handle for safe traversal
-    int iteratorHandle = spCallTrackingList->getIteratorHandle();
+    int iteratorHandle = sCallTrackingList.getIteratorHandle();
 
-    pStrFoundTaskName = (UtlString *)spCallTrackingList->next(iteratorHandle);
+    pStrFoundTaskName = (UtlString *)sCallTrackingList.next(iteratorHandle);
     while (pStrFoundTaskName)
     {
         // we found a Call task name that matched.  Lets remove it
         if (*pStrFoundTaskName == rCallTaskName)
         {
-            spCallTrackingList->remove(iteratorHandle);
+            sCallTrackingList.remove(iteratorHandle);
             delete pStrFoundTaskName;
             retval = OS_SUCCESS;
         }
 
-        pStrFoundTaskName = (UtlString *)spCallTrackingList->next(iteratorHandle);
+        pStrFoundTaskName = (UtlString *)sCallTrackingList.next(iteratorHandle);
     }
 
-    spCallTrackingList->releaseIteratorHandle(iteratorHandle);
+    sCallTrackingList.releaseIteratorHandle(iteratorHandle);
 
     return retval;
 }
@@ -1719,8 +1714,7 @@ int CpCall::getCallTrackingListCount()
 {
     int numCalls = 0;
 
-    if (spCallTrackingList)
-        numCalls = spCallTrackingList->getCount();
+    numCalls = sCallTrackingList.getCount();
 
     return numCalls;
 }
