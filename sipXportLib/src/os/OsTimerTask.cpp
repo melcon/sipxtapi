@@ -47,7 +47,6 @@ OsTimerTask* OsTimerTask::getTimerTask(void)
    if (!sInstance.isStarted())
    {
       UtlBoolean isStarted = (&sInstance)->start();
-      assert(isStarted);
    }
 
    return &sInstance;
