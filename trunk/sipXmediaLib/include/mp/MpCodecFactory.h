@@ -98,10 +98,7 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    // Static data members used to enforce Singleton behavior
-   static MpCodecFactory* spInstance; // pointer to the single instance of
-                                      //  the MpCodecFactory class
-   static OsBSem          sLock;      // semaphore used to ensure that there
-                                      //  is only one instance of this class
+   static MpCodecFactory sInstance;
 
    MpCodecFactory(const MpCodecFactory& rMpCodecFactory);
      //:Copy constructor (not supported)

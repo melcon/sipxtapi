@@ -12,43 +12,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////
-//  G.729 enabling controls.  Currently only on VxWorks and Windows
-//////////////////////////////////////////////////////////////////////////////
-
-#undef PLATFORM_SUPPORTS_G729
-
-#ifdef HAVE_G729
-#define PLATFORM_SUPPORTS_G729
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-
 #include "assert.h"
 #include "mp/MpCodecFactory.h"
 #include "os/OsSysLog.h"
 
 // all encoder child classes
 #include "mp/MpePtAVT.h"
-
-#ifdef HAVE_GIPS /* [ */
-#include "mp/MpeGIPSPCMA.h"
-#include "mp/MpeGIPSPCMU.h"
-#include "mp/MpeGIPSiPCMA.h"
-#include "mp/MpeGIPSiPCMU.h"
-#include "mp/MpeGIPSiPCMWB.h"
-
-#ifdef PLATFORM_SUPPORTS_G729 /* [ */
-#include "mp/MpeGIPSG729ab.h"
-#endif /* PLATFORM_SUPPORTS_G729 ] */
-
-#ifdef WIN32 /* [ */
-#include "mp/MpeGIPSiLBC.h"
-#endif /* WIN32 ] */
-#else /* HAVE_GIPS ] [ */
 #include "mp/MpeSipxPcma.h"
 #include "mp/MpeSipxPcmu.h"
-#endif /* HAVE_GIPS ] */
 
 #ifdef HAVE_SPEEX // [
 #include "mp/MpeSipxSpeex.h"
@@ -61,25 +32,8 @@
 
 // All decoder child classes
 #include "mp/MpdPtAVT.h"
-
-#ifdef HAVE_GIPS /* [ */
-#include "mp/MpdGIPSPCMA.h"
-#include "mp/MpdGIPSPCMU.h"
-#include "mp/MpdGIPSiPCMA.h"
-#include "mp/MpdGIPSiPCMU.h"
-#include "mp/MpdGIPSiPCMWB.h"
-
-#ifdef PLATFORM_SUPPORTS_G729 /* [ */
-#include "mp/MpdGIPSG729ab.h"
-#endif /* PLATFORM_SUPPORTS_G729 ] */
-
-#ifdef WIN32 /* [ */
-#include "mp/MpdGIPSiLBC.h"
-#endif /* WIN32 ] */
-#else /* HAVE_GIPS ] [ */
 #include "mp/MpdSipxPcma.h"
 #include "mp/MpdSipxPcmu.h"
-#endif /* HAVE_GIPS ] */
 
 #ifdef HAVE_SPEEX // [
 #include "mp/MpdSipxSpeex.h"
@@ -100,28 +54,13 @@
 #include "mp/MpdIPPG7231.h"
 #endif // HAVE_IPP ]
 
-MpCodecFactory* MpCodecFactory::spInstance = NULL;
-OsBSem MpCodecFactory::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
+MpCodecFactory MpCodecFactory::sInstance;
 
 /* ============================ CREATORS ================================== */
 
-// Return a pointer to the MpCodecFactory singleton object, creating 
-// it if necessary
-
 MpCodecFactory* MpCodecFactory::getMpCodecFactory(void)
 {
-   // If the object already exists, then use it
-   if (spInstance == NULL)
-   {
-      // If the object does not yet exist, then acquire
-      // the lock to ensure that only one instance of the object is 
-      // created
-      sLock.acquire();
-      if (spInstance == NULL)
-         spInstance = new MpCodecFactory();
-      sLock.release();
-   }
-   return spInstance;
+   return &sInstance;
 }
 
 MpCodecFactory::MpCodecFactory(void)
@@ -145,53 +84,12 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
 {
    rpDecoder=NULL;
 
-   switch (internalCodecId) {
+   switch (internalCodecId)
+   {
 
    case (SdpCodec::SDP_CODEC_TONES):
       rpDecoder = new MpdPtAVT(payloadType);
       break;
-
-#ifdef HAVE_GIPS /* [ */
-
-   case (SdpCodec::SDP_CODEC_GIPS_PCMA):
-      rpDecoder = new MpdGIPSPCMA(payloadType);
-      break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_PCMU):
-      rpDecoder = new MpdGIPSPCMU(payloadType);
-      break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_IPCMA):
-      rpDecoder = new MpdGIPSiPCMA(payloadType);
-      break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_IPCMU):
-      rpDecoder = new MpdGIPSiPCMU(payloadType);
-      break;
-
-#ifdef WIN32 /* [ */
-   case (SdpCodec::SDP_CODEC_ILBC):
-      rpDecoder = new MpdGIPSiLBC(payloadType);
-      break;
-#endif /* WIN32 ] */
-
-   case (SdpCodec::SDP_CODEC_GIPS_IPCMWB):
-      rpDecoder = new MpdGIPSiPCMWB(payloadType);
-      break;
-
-#ifdef PLATFORM_SUPPORTS_G729 /* [ */
-   case (SdpCodec::SDP_CODEC_G729A):
-      rpDecoder = new MpdGIPSG729ab(payloadType);
-      break;
-   case (SdpCodec::SDP_CODEC_G729AB):
-      rpDecoder = new MpdGIPSG729ab(payloadType);
-      break;
-   case (SdpCodec::SDP_CODEC_G729ACISCO7960):
-      rpDecoder = new MpdGIPSG729ab(payloadType);
-      break;
-#endif /* PLATFORM_SUPPORTS_G729 ] */
-
-#endif /* HAVE_GIPS ] */
 
    case (SdpCodec::SDP_CODEC_GIPS_PCMA):
       rpDecoder = new MpdSipxPcma(payloadType);
@@ -252,11 +150,8 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
    }
 
-   if (NULL != rpDecoder) {
-/*
-      osPrintf("MpCodecFactory::createDecoder(i:%d, x:%d, 0x%X)\n",
-         internalCodecId, payloadType, (int) rpDecoder);
-*/
+   if (rpDecoder)
+   {
       return OS_SUCCESS;
    }
 
@@ -278,44 +173,6 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
       rpEncoder = new MpePtAVT(payloadType);
       break;
 
-#ifdef HAVE_GIPS /* [ */
-   case (SdpCodec::SDP_CODEC_GIPS_PCMA):
-      rpEncoder = new MpeGIPSPCMA(payloadType);
-      break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_PCMU):
-      rpEncoder = new MpeGIPSPCMU(payloadType);
-      break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_IPCMA):
-      rpEncoder = new MpeGIPSiPCMA(payloadType);
-      break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_IPCMU):
-      rpEncoder = new MpeGIPSiPCMU(payloadType);
-      break;
-
-#ifdef WIN32 /* [ */
-   case (SdpCodec::SDP_CODEC_ILBC):
-      rpEncoder = new MpeGIPSiLBC(payloadType);
-      break;
-#endif /* WIN32 ] */
-
-   case (SdpCodec::SDP_CODEC_GIPS_IPCMWB):
-      rpEncoder = new MpeGIPSiPCMWB(payloadType);
-      break;
-
-#ifdef PLATFORM_SUPPORTS_G729 /* [ */
-   case (SdpCodec::SDP_CODEC_G729A):
-      rpEncoder = new MpeGIPSG729ab(payloadType);
-      ((MpeGIPSG729ab*) rpEncoder)->setVad(FALSE);
-      break;
-   case (SdpCodec::SDP_CODEC_G729AB):
-      rpEncoder = new MpeGIPSG729ab(payloadType);
-      ((MpeGIPSG729ab*) rpEncoder)->setVad(TRUE);
-      break;
-#endif /* PLATFORM_SUPPORTS_G729 ] */
-#else /* HAVE_GIPS ] [ */
    case (SdpCodec::SDP_CODEC_GIPS_PCMA):
       rpEncoder = new MpeSipxPcma(payloadType);
       break;
@@ -323,7 +180,6 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_GIPS_PCMU):
       rpEncoder = new MpeSipxPcmu(payloadType);
       break;
-#endif /* HAVE_GIPS*/
 
 #ifdef HAVE_SPEEX // [
    case (SdpCodec::SDP_CODEC_SPEEX):
@@ -371,12 +227,8 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
    }
 
-   if (NULL != rpEncoder) 
+   if (rpEncoder)
    {
-/*
-      osPrintf("MpCodecFactory::createEncoder(i:%d, x:%d, 0x%X)\n",
-         internalCodecId, payloadType, (int) rpEncoder);
-*/
       return OS_SUCCESS;
    }
 
