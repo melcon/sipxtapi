@@ -95,9 +95,7 @@ private:
     */
    virtual void fireTimer(OsTimer* timer);
 
-   /// Pointer to the single instance of the OsTimerTask class.
    static OsTimerTask sInstance;
-   ///< Declare as volatile because it is set and tested concurrently.
 
    /// The queue of timer requests, ordered by increasing firing time.
    OsTimer* mTimerQueue;
