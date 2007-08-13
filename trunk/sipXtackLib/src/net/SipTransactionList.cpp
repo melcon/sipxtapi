@@ -296,6 +296,7 @@ void SipTransactionList::removeOldTransactions(long oldTransaction,
             transactionFound->stopTimers();
         }
 */
+       delete [] transactionsToBeDeleted;
     }
 
 #   ifdef TIME_LOG
