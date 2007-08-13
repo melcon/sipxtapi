@@ -299,7 +299,7 @@ protected:
 
     /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-    static OsLockingList *spCallTrackingList;
+    static OsLockingList sCallTrackingList;
     //: maintains a list of the Call-nnn names
 
 
