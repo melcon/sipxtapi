@@ -96,11 +96,8 @@ private:
    virtual void fireTimer(OsTimer* timer);
 
    /// Pointer to the single instance of the OsTimerTask class.
-   static volatile OsTimerTask* spInstance;
+   static OsTimerTask sInstance;
    ///< Declare as volatile because it is set and tested concurrently.
-
-   /// Semaphore used to protect manipulations of spInstance.
-   static OsBSem *sLock;
 
    /// The queue of timer requests, ordered by increasing firing time.
    OsTimer* mTimerQueue;
