@@ -305,6 +305,8 @@ public:
      /// Return usage information on the Media Task's message queue.
    void getQueueUsage(int& numMsgs);
 
+   inline volatile int getFrameStartMsgs() const { return nFrameStartMsgs; }
+
 //@}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -336,6 +338,8 @@ private:
    OsMsgPool* mpSignalMsgPool; ///< Pool of reusable frame signal messages
 
    MpCodecFactory* mpCodecFactory; ///< our codec factory
+
+   volatile int nFrameStartMsgs; ///< Frame start messages in the queue, for dropping under load
 
    //  Static data members used to enforce Singleton behavior
    static MpMediaTask* spInstance;  ///< @brief pointer to the single instance

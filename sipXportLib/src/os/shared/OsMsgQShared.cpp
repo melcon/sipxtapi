@@ -150,9 +150,7 @@ OsStatus OsMsgQShared::receive(OsMsg*& rpMsg, const OsTime& rTimeout)
 // Return the number of messages in the queue
 int OsMsgQShared::numMsgs(void)
 {
-   OsLock lock(mGuard);
-
-   return(mDlist.entries());
+   return mQueueSize;
 }
 
 // Print information on the message queue to the console
@@ -293,6 +291,7 @@ OsStatus OsMsgQShared::doSend(const OsMsg& rMsg, const OsTime& rTimeout,
       }
       else
       {
+         mQueueSize++;
          // signal receivers that a msg is available
          ret = mFull.release();
          assert(ret == OS_SUCCESS);
@@ -362,11 +361,6 @@ OsStatus OsMsgQShared::doSend(const OsMsg& rMsg, const OsTime& rTimeout,
    rc = mGuard.release();         // exit critical section
    assert(rc == OS_SUCCESS);
 #endif /* MSGQ_IS_VALID_CHECK ] */
-
-   if (ret == OS_SUCCESS)
-   {
-      mQueueSize++;
-   }
    
    return ret;
 }
@@ -405,7 +399,6 @@ OsStatus OsMsgQShared::doReceive(OsMsg*& rpMsg, const OsTime& rTimeout)
       ret = mGuard.acquire();         // start critical section
       assert(ret == OS_SUCCESS);
 
-      assert(numMsgs() > 0);
       rpMsg = (OsMsg*) mDlist.get();  // get the first message
 
       if (rpMsg == NULL)              // was there a message?
@@ -415,6 +408,7 @@ OsStatus OsMsgQShared::doReceive(OsMsg*& rpMsg, const OsTime& rTimeout)
       }
       else
       {
+         mQueueSize--;
          ret = mEmpty.release();         // the remove operation succeeded, signal
          assert(ret == OS_SUCCESS);      //  senders that there is an available
                                          //  message slot.
@@ -437,11 +431,6 @@ OsStatus OsMsgQShared::doReceive(OsMsg*& rpMsg, const OsTime& rTimeout)
    rc = mGuard.release();         // exit critical section
    assert(rc == OS_SUCCESS);
 #endif /* MSGQ_IS_VALID_CHECK ] */
-
-   if (ret == OS_SUCCESS)
-   {
-      mQueueSize--;
-   }
 
    return ret;
 }
