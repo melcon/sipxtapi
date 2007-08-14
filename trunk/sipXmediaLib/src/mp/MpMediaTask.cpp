@@ -233,6 +233,12 @@ OsStatus MpMediaTask::signalFrameStart(void)
    OsStatus ret = OS_TASK_NOT_STARTED;
    MpMediaTaskMsg* pMsg;
 
+   if (spInstance && spInstance->getFrameStartMsgs() >= 2)
+   {
+      // don't post message, as we already have 2
+      return OS_SUCCESS;
+   }
+   
    // If the Media Task has been started
    if (spInstance != NULL) {
       pMsg = (MpMediaTaskMsg*) spInstance->mpSignalMsgPool->findFreeMsg();
@@ -262,6 +268,7 @@ OsStatus MpMediaTask::signalFrameStart(void)
 #endif /* _PROFILE, __pingtel_on_posix__ ] */
 
          ret = spInstance->postMessage(*pMsg, OsTime::NO_WAIT_TIME);
+         spInstance->nFrameStartMsgs++;
       }
    }
    return ret;
@@ -500,7 +507,8 @@ MpMediaTask::MpMediaTask()
    mpBufferMsgPool(NULL),
    mManagedFlowGraphs(),
    // numQueuedMsgs(0),
-   mpSignalMsgPool(NULL)
+   mpSignalMsgPool(NULL),
+   nFrameStartMsgs(0)
 #ifdef _PROFILE /* [ */
    ,
    mStartToEndTime(20, 0, 1000, " %4d", 5),
@@ -565,16 +573,13 @@ UtlBoolean MpMediaTask::handleMessage(OsMsg& rMsg)
    pFlowGraph = (MpFlowGraphBase*) pMsg->getPtr1();
 
    handled = TRUE;     // until proven otherwise, assume we'll handle the msg
-#ifdef _PROFILE /* [ */
-   // Log the time it takes to handle messages other than WAIT_FOR_SIGNAL.
-   long long start_time;
-   if (pMsg->getMsg() != MpMediaTaskMsg::WAIT_FOR_SIGNAL)
-   {
-      timeval t;
-      gettimeofday(&t, NULL);
-      start_time = (t.tv_sec * 1000000) + t.tv_usec;
-   }
-#endif /* _PROFILE ] */
+
+#ifdef _PROFILE
+   osPrintf("MpMediaTask queue size: %i, message type: %i\n", this->getMessageQueue()->numMsgs(), pMsg->getMsg());
+   OsTime start_time;
+   OsDateTime::getCurTime(start_time);
+#endif
+
    switch (pMsg->getMsg())
    {
    case MpMediaTaskMsg::MANAGE:
@@ -605,16 +610,13 @@ UtlBoolean MpMediaTask::handleMessage(OsMsg& rMsg)
       handled = FALSE; // we didn't handle the message after all
       break;
    }
-#ifdef _PROFILE /* [ */
-   // Log the time it takes to handle messages other than WAIT_FOR_SIGNAL.
-   if (pMsg->getMsg() != MpMediaTaskMsg::WAIT_FOR_SIGNAL)
-   {
-      timeval t;
-      gettimeofday(&t, NULL);
-      long long end_time = (t.tv_sec * 1000000) + t.tv_usec;
-      mOtherMessages.tally(end_time - start_time);
-   }
-#endif /* _PROFILE ] */
+
+#ifdef _PROFILE
+   OsTime end_time;
+   OsDateTime::getCurTime(end_time);
+   OsTime difference = end_time - start_time;
+   osPrintf("MpMediaTask: Execution took %is, %ius\n", difference.seconds(), difference.usecs());
+#endif
 
    return handled;
 }
@@ -905,6 +907,11 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
 #endif /* MEDIA_VERBOSE ] */
    mWaitForSignal = TRUE;
 
+   if (nFrameStartMsgs > 0)
+   {
+      nFrameStartMsgs--;
+   }
+   
    return TRUE;
 }
 
@@ -915,5 +922,6 @@ UtlBoolean MpMediaTask::isManagedFlowGraph(MpFlowGraphBase* pFlowGraph)
    UtlPtr<MpFlowGraphBase> ptr(pFlowGraph);
    return mManagedFlowGraphs.contains(&ptr);
 }
+
 
 /* ============================ FUNCTIONS ================================= */
