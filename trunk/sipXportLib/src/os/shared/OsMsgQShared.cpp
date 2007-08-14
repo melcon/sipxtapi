@@ -65,7 +65,8 @@ OsMsgQShared::OsMsgQShared(const int maxMsgs, const int maxMsgLen,
    mFull(OsCSem::Q_PRIORITY, maxMsgs, 0),
    mDlist(),
    mOptions(options),
-   mHighCnt(0)
+   mHighCnt(0),
+   mQueueSize(0)
 {
    mMaxMsgs = maxMsgs;
 
@@ -362,6 +363,11 @@ OsStatus OsMsgQShared::doSend(const OsMsg& rMsg, const OsTime& rTimeout,
    assert(rc == OS_SUCCESS);
 #endif /* MSGQ_IS_VALID_CHECK ] */
 
+   if (ret == OS_SUCCESS)
+   {
+      mQueueSize++;
+   }
+   
    return ret;
 }
 
@@ -432,6 +438,10 @@ OsStatus OsMsgQShared::doReceive(OsMsg*& rpMsg, const OsTime& rTimeout)
    assert(rc == OS_SUCCESS);
 #endif /* MSGQ_IS_VALID_CHECK ] */
 
+   if (ret == OS_SUCCESS)
+   {
+      mQueueSize--;
+   }
 
    return ret;
 }
