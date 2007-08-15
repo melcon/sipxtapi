@@ -725,24 +725,26 @@ void dumpInputOutputDevices()
 {
     size_t numDevices ;
 
-    if (sipxAudioGetNumInputDevices(g_hInst1, &numDevices) == SIPX_RESULT_SUCCESS)
+    if (sipxAudioGetNumInputDevices(&numDevices) == SIPX_RESULT_SUCCESS)
     {
         printf("Input Devices: %d\n", numDevices) ;
         for (size_t i=0; i<numDevices; i++)
         {
-            const char* szDevice ;
-            sipxAudioGetInputDevice(g_hInst1, i, &szDevice) ;
+            char szDevice[500];
+            memset(szDevice, 0, sizeof(szDevice));
+            sipxAudioGetInputDevice(i, szDevice, 499) ;
             printf("\t#%d: %s\n", i, szDevice) ;
         }
     }
 
-    if (sipxAudioGetNumOutputDevices(g_hInst1, &numDevices) == SIPX_RESULT_SUCCESS)
+    if (sipxAudioGetNumOutputDevices(&numDevices) == SIPX_RESULT_SUCCESS)
     {
         printf("Output Devices: %d\n", numDevices) ;
         for (size_t i=0; i<numDevices; i++)
         {
-            const char* szDevice ;
-            sipxAudioGetOutputDevice(g_hInst1, i, &szDevice) ;
+            char szDevice[500];
+            memset(szDevice, 0, sizeof(szDevice));
+            sipxAudioGetOutputDevice(i, szDevice, 499) ;
             printf("\t#%d: %s\n", i, szDevice) ;
         }
     }
