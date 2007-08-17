@@ -18,6 +18,7 @@
 // SYSTEM INCLUDES
 
 // APPLICATION INCLUDES
+#include <mp/MpTypes.h>
 
 // DEFINES
 // MACROS
@@ -29,62 +30,15 @@
 
 // FORWARD DECLARATIONS
 
-/// Class for managing dejitter/decode of incoming RTP.
-class MpSipxDecoder
-{
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
-public:
-
-/* ============================ CREATORS ================================== */
-///@name Creators
-//@{
-
-     /// Constructor
-   MpSipxDecoder(void);
-
-     /// Destructor
-   virtual
-   ~MpSipxDecoder(void);
-
-//@}
-
-/* ============================ MANIPULATORS ============================== */
-///@name Manipulators
-//@{
-
-//@}
-
-/* ============================ ACCESSORS ================================= */
-///@name Accessors
-//@{
-
-//@}
-
-/* ============================ INQUIRY =================================== */
-///@name Inquiry
-//@{
-
-//@}
-
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-private:
-
-     /// Copy constructor
-   MpSipxDecoder(const MpSipxDecoder& rMpSipxDecoder);
-
-     /// Assignment operator
-   MpSipxDecoder& operator=(const MpSipxDecoder& rhs);
-
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern int G711A_Decoder(int N, const JB_uchar* S, MpAudioSample* D);
-extern int G711U_Decoder(int N, const JB_uchar* S, MpAudioSample* D);
+extern int G711A_Decoder(int numSamples, const uint8_t* inBuff, MpAudioSample* outBuf);
+extern int G711U_Decoder(int numSamples, const uint8_t* inBuff, MpAudioSample* outBuf);
+
+extern int G711A_Encoder(int numSamples, const MpAudioSample* inBuff, uint8_t* outBuf);
+extern int G711U_Encoder(int numSamples, const MpAudioSample* inBuff, uint8_t* outBuf);
 
 #ifdef __cplusplus
 }
