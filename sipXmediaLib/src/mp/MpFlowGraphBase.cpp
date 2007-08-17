@@ -122,20 +122,12 @@ OsStatus MpFlowGraphBase::addLink(MpResource& rFrom, int outPortIdx,
       return OS_UNSPECIFIED;
 }
 
-OsStatus 
-MpFlowGraphBase::addNotificationDispatcher(OsMsgDispatcher* notifyDispatcher)
+OsMsgDispatcher* 
+MpFlowGraphBase::setNotificationDispatcher(OsMsgDispatcher* notifyDispatcher)
 {
-   OsStatus stat = OS_SUCCESS;
-   if(mNotifyDispatcher != NULL)
-   {
-      // We already have a notification dispatcher..
-      stat = OS_LIMIT_REACHED;
-   }
-   else
-   {
-      mNotifyDispatcher = notifyDispatcher;
-   }
-   return stat;
+   OsMsgDispatcher* oldDispatcher = mNotifyDispatcher;
+   mNotifyDispatcher = notifyDispatcher;
+   return oldDispatcher;
 }
 
 // Adds the indicated media processing object to the flow graph.  If 
@@ -489,17 +481,6 @@ OsStatus MpFlowGraphBase::removeLink(MpResource& rFrom, int outPortIdx)
       return OS_UNSPECIFIED;
 }
 
-OsStatus MpFlowGraphBase::removeNotificationDispatcher()
-{
-   OsStatus stat = OS_NOT_FOUND;
-   if(mNotifyDispatcher != NULL)
-   {
-      mNotifyDispatcher = NULL;
-      stat = OS_SUCCESS;
-   }
-   return stat;
-}
-
 // Removes the indicated media processing object from the flow graph.
 // If the flow graph is not "started", this call takes effect
 // immediately.  Otherwise, the call takes effect at the start of the
@@ -721,6 +702,11 @@ int MpFlowGraphBase::getSamplesPerSec(void) const
 int MpFlowGraphBase::getState(void) const
 {
    return mCurState;
+}
+
+OsMsgDispatcher* MpFlowGraphBase::getNotificationDispatcher(void) const
+{
+   return mNotifyDispatcher;
 }
 
 // Sets rpResource to point to the resource that corresponds to 
@@ -1523,4 +1509,5 @@ OsStatus MpFlowGraphBase::processMessages(void)
 }
 
 /* ============================ FUNCTIONS ================================= */
+
 

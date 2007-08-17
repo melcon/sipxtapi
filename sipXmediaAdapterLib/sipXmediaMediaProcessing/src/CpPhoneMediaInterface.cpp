@@ -634,6 +634,23 @@ OsStatus CpPhoneMediaInterface::getCapabilitiesEx(int connectionId,
     return rc ;
 }
 
+OsMsgDispatcher*  
+CpPhoneMediaInterface::setMediaNotificationDispatcher(OsMsgDispatcher* pNoteDisper)
+{
+   // If there is no flowgraph, return NULL, otherwise return result of setting
+   // notification disptacher on flowgraph.
+   return mpFlowGraph ? mpFlowGraph->setNotificationDispatcher(pNoteDisper) : NULL;
+}
+
+OsStatus
+CpPhoneMediaInterface::setMediaNotificationsEnabled(bool enabled, 
+                                                    const UtlString& resourceName)
+{
+   return mpFlowGraph ? 
+      mpFlowGraph->setNotificationsEnabled(enabled, resourceName) :
+      OS_FAILED;
+}
+
 CpPhoneMediaConnection* CpPhoneMediaInterface::getMediaConnection(int connectionId)
 {
    UtlInt matchConnectionId(connectionId);
@@ -1794,9 +1811,14 @@ int CpPhoneMediaInterface::getCodecCPULimit()
 }
 
 // Returns the flowgraph's message queue
-   OsMsgQ* CpPhoneMediaInterface::getMsgQ()
+OsMsgQ* CpPhoneMediaInterface::getMsgQ()
 {
    return mpFlowGraph->getMsgQ() ;
+}
+
+OsMsgDispatcher* CpPhoneMediaInterface::getMediaNotificationDispatcher()
+{
+   return mpFlowGraph ? mpFlowGraph->getNotificationDispatcher() : NULL;
 }
 
 OsStatus CpPhoneMediaInterface::getPrimaryCodec(int connectionId, 
@@ -2728,4 +2750,5 @@ OsStatus CpPhoneMediaInterface::createRtpSocketPair(UtlString localAddress,
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
+
 
