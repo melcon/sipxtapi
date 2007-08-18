@@ -24,7 +24,7 @@
 #include <os/OsMulticastSocket.h>
 #include <os/OsProtectEventMgr.h>
 #include "include/CpPhoneMediaInterface.h"
-#include "mi/CpMediaInterfaceFactoryImpl.h"
+#include "mi/CpMediaInterfaceFactory.h"
 #include <mp/MpMediaTask.h>
 #include <mp/MpCallFlowGraph.h>
 #include <mp/MpStreamPlayer.h>
@@ -146,7 +146,7 @@ public:
 /* ============================ CREATORS ================================== */
 
 // Constructor
-CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactoryImpl* pFactoryImpl,
+CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
                                              const char* publicAddress,
                                              const char* localAddress,
                                              int numCodecs,

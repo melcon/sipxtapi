@@ -94,24 +94,19 @@
 #define TOTAL_VIDEO_CODECS_NUM 0
 
 // STATIC VARIABLE INITIALIZATIONS
-int sipXmediaFactoryImpl::miInstanceCount=0;
+int sipXmediaFactoryImpl::miInstanceCount = 0;
 
 CpMediaInterfaceFactory* spFactory = NULL;
-int siInstanceCount=0;
+int siInstanceCount = 0;
 
 extern "C" CpMediaInterfaceFactory* cpDefaultMediaFactoryFactory(OsConfigDb* pConfigDb)
 {
-    // TODO: Add locking
-
-    if (spFactory == NULL)
+    if (!spFactory)
     {
-        spFactory = new CpMediaInterfaceFactory();
-        spFactory->setFactoryImplementation(new sipXmediaFactoryImpl(pConfigDb));
-    }    
-    siInstanceCount++ ;
+        spFactory = new sipXmediaFactoryImpl(pConfigDb);
+    }
+    siInstanceCount++;
     
-    // Assert some sane value
-    assert(siInstanceCount < 11) ;
     return spFactory;
 }
 
@@ -124,18 +119,13 @@ extern "C" CpMediaInterfaceFactory* sipXmediaFactoryFactory(OsConfigDb* pConfigD
 
 extern "C" void sipxDestroyMediaFactoryFactory()
 {
-    // TODO: Add locking
-
     if (siInstanceCount > 0)
     {
-        siInstanceCount-- ;
-        if (siInstanceCount == 0)
+        siInstanceCount--;
+        if (siInstanceCount == 0 && spFactory)
         {
-            if (spFactory)
-            {
-                delete spFactory ;
-                spFactory = NULL ;
-            }
+            delete spFactory;
+            spFactory = NULL;
         }
     }
 }

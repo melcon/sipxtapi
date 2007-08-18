@@ -22,7 +22,7 @@
 // APPLICATION INCLUDES
 #include <cp/CpCallManager.h>
 #include <cp/Connection.h>
-#include <mi/CpMediaInterfaceFactoryImpl.h>
+#include <mi/CpMediaInterfaceFactory.h>
 #include <net/QoS.h>
 
 #include <tao/TaoObjectMap.h>

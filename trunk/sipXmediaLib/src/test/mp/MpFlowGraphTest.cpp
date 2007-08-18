@@ -544,7 +544,7 @@ public:
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
        // Call getMediaTask() which causes the task to get instantiated
-       MpMediaTask* pMediaTask = MpMediaTask::getMediaTask(10);
+       MpMediaTask* pMediaTask = MpMediaTask::getMediaTask();
 
        res = mpStartTasks();
        CPPUNIT_ASSERT(res == OS_SUCCESS);

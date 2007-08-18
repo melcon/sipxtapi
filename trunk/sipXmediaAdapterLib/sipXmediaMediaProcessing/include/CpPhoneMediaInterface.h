@@ -57,7 +57,7 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   CpPhoneMediaInterface(CpMediaInterfaceFactoryImpl* pFactoryImpl,
+   CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
                          const char* publicAddress = NULL, 
                          const char* localAddress = NULL,
                          int numCodecs = 0, 

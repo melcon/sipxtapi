@@ -27,7 +27,6 @@
 #include "tapi/SipXAudio.h"
 #include "cp/CallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
-#include "mi/CpMediaInterfaceFactoryImpl.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 
 // DEFINES
@@ -128,8 +127,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetGain(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       // Validate gain is within range
       assert(iLevel >= GAIN_MIN);
@@ -175,8 +173,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetGain(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       OsStatus status = pInterface->getMicrophoneGain(*iLevel);
       assert(status == OS_SUCCESS);
@@ -204,8 +202,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       // Only process if uninitialized (first call) or the state has changed
       if (bMute != pInst->micSetting.bMuted)
@@ -301,8 +299,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioEnableSpeaker(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInst->enabledSpeaker != type)
       {
@@ -392,8 +390,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       // Validate Params
       if ((type == SPEAKER || type == RINGER) &&
@@ -449,8 +447,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetVolume(const SIPX_INST hInst,
          if (pInst->enabledSpeaker == type)
          {
             // this speaker is enabled, return real volume from getSpeakerVolume
-            CpMediaInterfaceFactoryImpl* pInterface = 
-               pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+            CpMediaInterfaceFactory* pInterface = 
+               pInst->pCallManager->getMediaInterfaceFactory();
 
             OsStatus status = pInterface->getSpeakerVolume(*iLevel);
             assert(status == OS_SUCCESS);
@@ -492,8 +490,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -527,8 +525,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAECMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -570,8 +568,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAGCMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation() ;
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -605,8 +603,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAGCMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -648,8 +646,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -683,8 +681,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -859,8 +857,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallInputDevice(const SIPX_INST hInst,
    {
       UtlString oldDevice;
 
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       // Get existing device
       OsStatus status = pInterface->getMicrophoneDevice(oldDevice);
@@ -936,8 +934,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetRingerOutputDevice(const SIPX_INST hInst,
       UtlString oldDevice;
       OsStatus status;
 
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       // Get existing device
       oldDevice = pInst->speakerSettings[RINGER].device;
@@ -1030,8 +1028,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallOutputDevice(const SIPX_INST hInst,
       UtlString oldDevice;
       OsStatus status;
 
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       // Get existing device
       oldDevice = pInst->speakerSettings[SPEAKER].device;

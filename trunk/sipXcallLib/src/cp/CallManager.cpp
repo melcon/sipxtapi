@@ -149,7 +149,7 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
     }
 
     // Instruct the factory to use the specified port range
-    mpMediaFactory->getFactoryImplementation()->setRtpPortRange(rtpPortStart, rtpPortEnd) ;
+    mpMediaFactory->setRtpPortRange(rtpPortStart, rtpPortEnd) ;
 
     mLineAvailableBehavior = availableBehavior;
     mOfferedTimeOut = offeringDelay;

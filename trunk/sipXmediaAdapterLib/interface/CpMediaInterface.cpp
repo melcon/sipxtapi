@@ -19,7 +19,7 @@
 
 // APPLICATION INCLUDES
 #include "mi/CpMediaInterface.h"
-#include "mi/CpMediaInterfaceFactoryImpl.h" 
+#include "mi/CpMediaInterfaceFactory.h" 
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -32,7 +32,7 @@ int CpMediaInterface::sInvalidConnectionId = -1;
 /* ============================ CREATORS ================================== */
 
 // Constructor
-CpMediaInterface::CpMediaInterface(CpMediaInterfaceFactoryImpl *pFactoryImpl)
+CpMediaInterface::CpMediaInterface(CpMediaInterfaceFactory *pFactoryImpl)
 {
     mpFactoryImpl = pFactoryImpl ; 
 }

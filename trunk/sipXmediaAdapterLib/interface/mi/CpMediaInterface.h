@@ -130,7 +130,7 @@ class SdpCodecFactory;
 class MpStreamPlaylistPlayer;
 class MpStreamPlayer;
 class MpStreamQueuePlayer;
-class CpMediaInterfaceFactoryImpl;
+class CpMediaInterfaceFactory;
 class OsMsgDispatcher;
 
 /** 
@@ -153,7 +153,7 @@ public:
 /* =========================== CREATORS =========================== */
 
      /// @brief Default constructor
-   CpMediaInterface(CpMediaInterfaceFactoryImpl *pFactoryImpl);
+   CpMediaInterface(CpMediaInterfaceFactory *pFactoryImpl);
 
 /* ========================= DESTRUCTORS ========================== */
 
@@ -854,7 +854,7 @@ public:
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-    CpMediaInterfaceFactoryImpl *mpFactoryImpl ;
+    CpMediaInterfaceFactory *mpFactoryImpl ;
     SdpSrtpParameters mSrtpParams;
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

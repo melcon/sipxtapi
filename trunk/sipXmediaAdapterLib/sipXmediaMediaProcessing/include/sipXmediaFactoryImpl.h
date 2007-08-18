@@ -16,7 +16,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "mi/CpMediaInterfaceFactoryImpl.h"
+#include "mi/CpMediaInterfaceFactory.h"
 #include <rtcp/RtcpConfig.h>
 
 // DEFINES
@@ -55,7 +55,7 @@ struct IRTCPControl ;
 /**
  *
  */
-class sipXmediaFactoryImpl : public CpMediaInterfaceFactoryImpl
+class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
   public:

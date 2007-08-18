@@ -14,7 +14,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "CpMediaInterfaceFactory.h"
-#include "CpMediaInterfaceFactoryImpl.h"
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -22,9 +22,9 @@
 class OsConfigDb; // forward declaration
 
 /**
- * Well known function that is called to create a CpMediaInterfaceFactory object,
- * which owns a CpMediaInterfaceFactoryImpl object, which this function also
- * creates.
+ * Well known function that is called to create a CpMediaInterfaceFactory object.
+ * This object is used to create media interfaces.
+ * 
  * This function must be implemented for all "plug-in" static sipx media processing
  * libraries. 
  */
@@ -33,7 +33,7 @@ extern "C" CpMediaInterfaceFactory* sipXmediaFactoryFactory(OsConfigDb* pConfigD
 /**
  * Destroy the singleton media factory
  */
-extern "C" void sipxDestroyMediaFactoryFactory() ;
+extern "C" void sipxDestroyMediaFactoryFactory();
 
 // EXTERNAL VARIABLES
 // CONSTANTS
