@@ -100,8 +100,7 @@ extern "C" CpMediaInterfaceFactory* cpTopologyGraphFactoryFactory(OsConfigDb* pC
 {
     if(spFactory == NULL)
     {
-        spFactory = new CpMediaInterfaceFactory();
-        spFactory->setFactoryImplementation(new CpTopologyGraphFactoryImpl(pConfigDb));
+        spFactory = new CpTopologyGraphFactoryImpl(pConfigDb);
     }    
     siInstanceCount++;
     return spFactory;

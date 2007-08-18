@@ -26,7 +26,6 @@
 #include "net/SipRefreshMgr.h"
 #include "cp/CallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
-#include "mi/CpMediaInterfaceFactoryImpl.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/sipXtapi.h"
 #include "tapi/SipXMessageObserver.h"
@@ -864,8 +863,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableOutOfBandDTMF(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -895,8 +893,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableInBandDTMF(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface =
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -922,8 +920,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigIsOutOfBandDTMFEnabled(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface && pInterface->isOutOfBandDTMFEnabled(*enabled) == OS_SUCCESS)
       {
@@ -950,8 +948,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigIsInBandDTMFEnabled(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface =
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface && pInterface->isInBandDTMFEnabled(*enabled) == OS_SUCCESS)
       {
@@ -982,8 +980,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRTCP(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface && (pInterface->enableRTCP(bEnable) == OS_SUCCESS))
       {
@@ -1163,8 +1161,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetConnectionIdleTimeout(const SIPX_INST hIns
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pInterface =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface =
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -1544,8 +1542,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hIns
       // Check if bandwidth is legal, do not allow variable bandwidth
       if (bandWidth >= AUDIO_CODEC_BW_LOW && bandWidth <= AUDIO_CODEC_BW_HIGH)
       {
-         CpMediaInterfaceFactoryImpl* pInterface = 
-            pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+         CpMediaInterfaceFactory* pInterface = 
+            pInst->pCallManager->getMediaInterfaceFactory();
 
          if (pInterface)
          {
@@ -1637,8 +1635,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
    {
       int iRejected;
 
-      CpMediaInterfaceFactoryImpl* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = 
+         pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -1754,8 +1752,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
 
       if (index >= 0 && index < pInst->audioCodecSetting.numCodecs)
       {
-         CpMediaInterfaceFactoryImpl* pInterface = 
-            pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+         CpMediaInterfaceFactory* pInterface = 
+            pInst->pCallManager->getMediaInterfaceFactory();
 
          // If a name is found for the codec type, copy name and bandwidth cost
          if (pInterface->getCodecNameByType(pInst->audioCodecSetting.sdpCodecArray[index]->getCodecType(),
@@ -1832,7 +1830,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst,
       // Check if bandwidth is legal, do not allow variable bandwidth
       if (bandWidth >= VIDEO_CODEC_BW_LOW && bandWidth <= VIDEO_CODEC_BW_HIGH)
       {
-         CpMediaInterfaceFactoryImpl* pImpl = 
+         CpMediaInterfaceFactory* pImpl = 
             pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
          if (pImpl)
@@ -1884,7 +1882,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
 
    if (pInst && pInst->pCallManager)
    {
-      CpMediaInterfaceFactoryImpl* pImpl = 
+      CpMediaInterfaceFactory* pImpl = 
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -1949,7 +1947,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
 
    if (pInst && pInst->pCallManager)
    {
-      CpMediaInterfaceFactoryImpl* pImpl =
+      CpMediaInterfaceFactory* pImpl =
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -1998,7 +1996,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
 
    if (pInst && pInst->pCallManager)
    {
-      CpMediaInterfaceFactoryImpl* pImpl = 
+      CpMediaInterfaceFactory* pImpl = 
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -2072,7 +2070,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst,
 
       if (index >= 0 && index < pInst->videoCodecSetting.numCodecs)
       {
-         CpMediaInterfaceFactoryImpl* pInterface = 
+         CpMediaInterfaceFactory* pInterface = 
             pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
          // If a name is found for the codec type, copy name and bandwidth cost
@@ -2117,7 +2115,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
    {
       int iRejected;
 
-      CpMediaInterfaceFactoryImpl* pInterface = 
+      CpMediaInterfaceFactory* pInterface = 
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pInterface)
@@ -2229,7 +2227,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoPreviewDisplay(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pImpl = 
+      CpMediaInterfaceFactory* pImpl = 
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -2328,7 +2326,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoQuality(const SIPX_INST hInst,
    {
       SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-      CpMediaInterfaceFactoryImpl* pImpl =
+      CpMediaInterfaceFactory* pImpl =
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -2382,7 +2380,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoParameters(const SIPX_INST hInst,
          localBitrate = MAX_VIDEO_BITRATE;
       }
 
-      CpMediaInterfaceFactoryImpl* pImpl = 
+      CpMediaInterfaceFactory* pImpl = 
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -2416,7 +2414,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pImpl =
+      CpMediaInterfaceFactory* pImpl =
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -2450,7 +2448,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBitrate(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pImpl =
+      CpMediaInterfaceFactory* pImpl =
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)
@@ -2499,7 +2497,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFramerate(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactoryImpl* pImpl =
+      CpMediaInterfaceFactory* pImpl =
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
       if (pImpl)

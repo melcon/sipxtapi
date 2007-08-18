@@ -51,7 +51,7 @@ public:
       CPPUNIT_ASSERT(mpFlowGraph != NULL);
 
       // Call getMediaTask() which causes the task to get instantiated
-      pMediaTask = MpMediaTask::getMediaTask(10);
+      pMediaTask = MpMediaTask::getMediaTask();
       CPPUNIT_ASSERT(pMediaTask != NULL);
    }
 

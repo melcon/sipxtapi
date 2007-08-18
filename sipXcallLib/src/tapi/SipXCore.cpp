@@ -527,8 +527,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pCallManager->setOutboundLine(localAddress);
    pInst->pCallManager->start();
 
-   CpMediaInterfaceFactoryImpl* pInterface = 
-      pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+   CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
    if (!pInterface)
    {
       OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Unable to create global media interface");

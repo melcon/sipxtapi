@@ -13,11 +13,12 @@
 
 
 // SYSTEM INCLUDES
-#include <stdlib.h>
 
 // APPLICATION INCLUDES
 #include "mi/CpMediaInterfaceFactory.h"
-#include "mi/CpMediaInterfaceFactoryImpl.h"
+#include "os/OsLock.h"
+#include "os/OsDatagramSocket.h"
+#include "os/OsServerSocket.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -30,79 +31,162 @@
 
 // Constructor
 CpMediaInterfaceFactory::CpMediaInterfaceFactory()
-    : mpFactoryImpl(NULL)
+    : mlockList(OsMutex::Q_FIFO)
 {
+    miStartRtpPort = 0 ;
+    miLastRtpPort = 0;
+    miNextRtpPort = miStartRtpPort ;
 }
 
 // Destructor
 CpMediaInterfaceFactory::~CpMediaInterfaceFactory()
 {
-    setFactoryImplementation(NULL) ;
+    OsLock lock(mlockList) ;
+    
+    mlistFreePorts.destroyAll() ;
+    mlistBusyPorts.destroyAll() ;
+}
+
+/* =========================== DESTRUCTORS ================================ */
+
+/**
+ * public interface for destroying this media interface
+ */ 
+void CpMediaInterfaceFactory::release()
+{
+   delete this;
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-// Set the actual factory implementation
-void CpMediaInterfaceFactory::setFactoryImplementation(CpMediaInterfaceFactoryImpl* pFactoryImpl) 
+
+void CpMediaInterfaceFactory::setRtpPortRange(int startRtpPort, int lastRtpPort) 
 {
-    // Only bother if the pointers are different
-    if (pFactoryImpl != mpFactoryImpl)
+    miStartRtpPort = startRtpPort ;
+    if (miStartRtpPort < 0)
     {
-        // Delete old version
-        if (mpFactoryImpl)
+        miStartRtpPort = 0 ;
+    }
+    miLastRtpPort = lastRtpPort ;
+    miNextRtpPort = miStartRtpPort ;
+}
+
+#define MAX_PORT_CHECK_ATTEMPTS     miLastRtpPort - miStartRtpPort
+#define MAX_PORT_CHECK_WAIT_MS      50
+OsStatus CpMediaInterfaceFactory::getNextRtpPort(int &rtpPort) 
+{
+    OsLock lock(mlockList) ;
+    bool bGoodPort = false ;
+    int iAttempts = 0 ;
+
+    // Re-add busy ports to end of free list
+    while (mlistBusyPorts.entries())
+    {
+        UtlInt* pInt = (UtlInt*) mlistBusyPorts.first() ;
+        mlistBusyPorts.remove(pInt) ;
+
+        mlistFreePorts.append(pInt) ;
+    }
+
+    while (!bGoodPort && (iAttempts < MAX_PORT_CHECK_ATTEMPTS))
+    {
+        iAttempts++ ;
+
+        // First attempt to get a free port for the free list, if that
+        // fails, return a new one. 
+        if (mlistFreePorts.entries())
         {
-            mpFactoryImpl->release() ;
-            mpFactoryImpl = NULL ;
+            UtlInt* pInt = (UtlInt*) mlistFreePorts.first() ;
+            mlistFreePorts.remove(pInt) ;
+            rtpPort = pInt->getValue() ;
+            delete pInt ;
+        }
+        else
+        {
+            rtpPort = miNextRtpPort ;
+
+            // Only allocate if the nextRtpPort is greater then 0 -- otherwise we
+            // are allowing the system to allocate ports.
+            if (miNextRtpPort > 0)
+            {
+                miNextRtpPort += 2 ; 
+            }
         }
 
-        // Set new version
-        mpFactoryImpl = pFactoryImpl;
+        bGoodPort = !isPortBusy(rtpPort, MAX_PORT_CHECK_WAIT_MS) ;
+        if (!bGoodPort)
+        {
+            mlistBusyPorts.insert(new UtlInt(rtpPort)) ;
+        }
     }
+
+    // If unable to find a usable port, let the system pick one.
+    if (!bGoodPort)
+    {
+        rtpPort = 0 ;
+    }
+    
+    return OS_SUCCESS ;
 }
 
 
-// Create a media interface via the specified factory
-CpMediaInterface* CpMediaInterfaceFactory::createMediaInterface(const char* publicAddress,
-                                                                const char* localAddress,
-                                                                int numCodecs,
-                                                                SdpCodec* sdpCodecArray[],
-                                                                const char* locale,
-                                                                int expeditedIpTos,
-                                                                const char* szStunServer,
-                                                                int iStunPort,
-                                                                int iStunKeepAlivePeriodSecs,
-                                                                const char* szTurnSever,
-                                                                int iTurnPort,
-                                                                const char* szTurnUsername,
-                                                                const char* szTurnPassword,
-                                                                int iTurnKeepAlivePeriodSecs,
-                                                                UtlBoolean bEnableICE) 
+OsStatus CpMediaInterfaceFactory::releaseRtpPort(const int rtpPort) 
 {
-    CpMediaInterface* pInterface = NULL ;
+    OsLock lock(mlockList) ;
 
-    if (mpFactoryImpl) 
+    // Only bother noting the free port if the next port isn't 0 (OS selects 
+    // port)
+    if (miNextRtpPort != 0)
     {
-        pInterface = mpFactoryImpl->createMediaInterface(publicAddress, 
-                localAddress, numCodecs, sdpCodecArray, locale, 
-                expeditedIpTos, szStunServer, iStunPort, iStunKeepAlivePeriodSecs,
-                szTurnSever, iTurnPort, szTurnUsername, szTurnPassword,
-                iTurnKeepAlivePeriodSecs, bEnableICE) ;
+        // if it is not already in the list...
+        if (!mlistFreePorts.find(&UtlInt(rtpPort)))
+        {
+            // Release port to head of list (generally want to reuse ports)
+            mlistFreePorts.insert(new UtlInt(rtpPort)) ;
+        }
     }
 
-    return pInterface ;
+    return OS_SUCCESS ;
 }
 
 /* ============================ ACCESSORS ================================= */
 
-CpMediaInterfaceFactoryImpl* 
-CpMediaInterfaceFactory::getFactoryImplementation()
-{
-    return mpFactoryImpl ;
-}
-
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+UtlBoolean CpMediaInterfaceFactory::isPortBusy(int iPort, int checkTimeMS) 
+{
+    UtlBoolean bBusy = FALSE ;
+
+    if (iPort > 0)
+    {
+        OsDatagramSocket* pSocket = new OsDatagramSocket(0, NULL, iPort, NULL) ;
+        if (pSocket != NULL)
+        {
+            if (!pSocket->isOk() || pSocket->isReadyToRead(checkTimeMS))
+            {
+                bBusy = true ;
+            }
+            pSocket->close() ;
+            delete pSocket ;
+        }
+        
+        // also check TCP port availability
+        OsServerSocket* pTcpSocket = new OsServerSocket(64, iPort, 0, 1);
+        if (pTcpSocket != NULL)
+        {
+            if (!pTcpSocket->isOk())
+            {
+                bBusy = TRUE;
+            }
+            pTcpSocket->close();
+            delete pTcpSocket;
+        }
+    }
+
+    return bBusy ;
+}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
