@@ -350,9 +350,6 @@ private:
     UtlHashMap mContextMap ;
     OsMutex mMapsLock ;                     /**< Lock for Notify and Connectiviy maps */
 
-    UtlSList mTimersToRelease;
-    OsMutex mTimersToReleaseLock;
-
     UtlSList  mExternalBindingsList ;
     OsRWMutex mExternalBindingMutex ;
     
