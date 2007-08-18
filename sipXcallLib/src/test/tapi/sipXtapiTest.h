@@ -184,7 +184,7 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
 #endif /* TEST_CALL_HOLD ] */
         
 #if TEST_CONF /* [ */
-    /*CPPUNIT_TEST(testConfBasic1);
+    CPPUNIT_TEST(testConfBasic1);
     CPPUNIT_TEST(testConfBasic2);
     CPPUNIT_TEST(testConfBasic3);
     CPPUNIT_TEST(testConfBasic4);
@@ -194,7 +194,7 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
     CPPUNIT_TEST(testConferenceLegBusy);
     CPPUNIT_TEST(testConfHoldIndividual);
     CPPUNIT_TEST(testConfJoin);
-    CPPUNIT_TEST(testConfHoldNoBridge);*/
+    CPPUNIT_TEST(testConfHoldNoBridge);
     CPPUNIT_TEST(testConfHoldBridge);
     CPPUNIT_TEST(testConfReAdd);
     

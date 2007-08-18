@@ -290,6 +290,29 @@ typedef enum SIPX_RESULT
 } SIPX_RESULT;
 
 /**
+* Various modes for sending DTMF.
+*
+* @NOTE: Keep in sync with MEDIA_OUTBOUND_DTMF_MODE 
+*/
+typedef enum SIPX_OUTBOUND_DTMF_MODE
+{
+	SIPX_OUTBOUND_DTMF_DISABLED,
+	SIPX_OUTBOUND_DTMF_INBAND,
+	SIPX_OUTBOUND_DTMF_RFC2833
+} SIPX_OUTBOUND_DTMF_MODE;
+
+/**
+* Various modes for receving DTMF.
+*
+* @NOTE: Keep in sync with MEDIA_INBOUND_DTMF_MODE 
+*/
+typedef enum SIPX_INBOUND_DTMF_MODE
+{
+	SIPX_INBOUND_DTMF_INBAND,
+	SIPX_INBOUND_DTMF_RFC2833
+} SIPX_INBOUND_DTMF_MODE;
+
+/**
  * DTMF/other tone ids used with sipxCallStartTone/sipxCallStopTone 
  */
 typedef enum SIPX_TONE_ID
@@ -3050,38 +3073,54 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST hInst,
 
 
 /**
- * Enable/disable sending of RFC 2833 DTMF tones. If disabled the tones
- * will be sent in-band (if in-band DTMF is enabled). RFC 2833 DTMF
- * is enabled by default.
+ * Set mode of sending DTMF tones. Tones can be sent in-band, via RFC2833
+ * and INFO. Currently only RFC2833 is supported.
  *
- * Generally, out-of-band DTMF should always be enabled.  In-band DTMF
+ * Generally, RFC2833 DTMF should always be enabled.  In-band DTMF
  * can be distorted and unrecognized by gateways/IVRs/ACDs when using
  * compressed codecs such as G729.  By nature, many compressed codecs
  * are lossy and cannot regenerate DTMF signals.  If you find that you 
  * need to disable out-of-band DTMF (due to duplicate DTMF signals) on 
  * another device, please consider reconfiguring that other device.
  *
- * This function is currently not implemented.
- *
  * @param hInst Instance pointer obtained by sipxInitialize
  * @param bEnable Enable or disable out-of-band DTMF tones.
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigEnableOutOfBandDTMF(const SIPX_INST hInst,
-                                                       const int bEnable);
+SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
+													   const SIPX_OUTBOUND_DTMF_MODE mode);
 
 /**
- * Enable/disable sending of in-band DTMF tones. In-band DTMF
- * is disabled by default.
- *
- * This function is currently not implemented.
+* Determines mode of sending DTMF tones.
+*
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param bEnable in-band DTMF tones enabled or disabled.
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
+													   SIPX_OUTBOUND_DTMF_MODE* mode);
+
+
+/**
+ * Enables reception of certain types of DTMF
  *
  * @param hInst Instance pointer obtained by sipxInitialize
- * @param bEnable Enable or disable in-band DTMF tones.
+ * @param mode Mode of DTMF to enable/disable
+ * @param bEnable Set to true to enable, false to disable
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigEnableInBandDTMF(const SIPX_INST hInst,
-                                                    const int bEnable);
-  	 
-  	 
+SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
+													 SIPX_INBOUND_DTMF_MODE mode,
+													 int bEnable);
+
+/**
+* Determines the state of reception of certain types of DTMF
+*
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param mode Mode of DTMF to inquire
+* @param bEnabled Returns state of reception
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigIsInboundDTMFEnabled(const SIPX_INST hInst,
+														SIPX_INBOUND_DTMF_MODE mode,
+														int* bEnabled);
+
 /**
  * Enable or disable sending RTCP reports.  By default, RTCP is enabled and
  * sends reports every ~5 seconds.  RTCP is enabled by default.
@@ -3100,24 +3139,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRTCP(const SIPX_INST hInst,
  * @param bEnable Enable or disable DNS SRV resolution.
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableDnsSrv(const int bEnable);
-
-/**
- * Determines if sending of out-of-band DTMF tones is enabled or disabled.
- *
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param bEnable Out-of-band DTMF tones enabled or disabled.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigIsOutOfBandDTMFEnabled(const SIPX_INST hInst,
-                                                          int* bEnable);
-
-/**
- * Determines if sending of in-band DTMF tones is enabled or disabled.
- *
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param bEnable in-band DTMF tones enabled or disabled.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigIsInBandDTMFEnabled(const SIPX_INST hInst,
-                                                       int* bEnable);
 
 
 /**

@@ -314,27 +314,6 @@ void sipXtapiTestSuite::testConfigExternalTransport()
     checkForLeaks() ;
 }
 
-void sipXtapiTestSuite::testConfigOutOfBand()
-{
-    for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
-    {
-        printf("\ntestConfigOutOfBand (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
-        //tests sipxConfigEnableOutOfBandDTMF and sipxConfigIsOutOfBandDTMFEnabled
-        CPPUNIT_ASSERT_EQUAL( sipxConfigEnableOutOfBandDTMF(g_hInst1,true), SIPX_RESULT_SUCCESS);
-        int test = FALSE;
-        CPPUNIT_ASSERT_EQUAL( sipxConfigIsOutOfBandDTMFEnabled(g_hInst1, &test), SIPX_RESULT_SUCCESS);
-        CPPUNIT_ASSERT_EQUAL(test, TRUE);
-        CPPUNIT_ASSERT_EQUAL( sipxConfigEnableOutOfBandDTMF(g_hInst1, false), SIPX_RESULT_SUCCESS);
-        CPPUNIT_ASSERT_EQUAL( sipxConfigIsOutOfBandDTMFEnabled(g_hInst1, &test), SIPX_RESULT_SUCCESS);
-        CPPUNIT_ASSERT_EQUAL(test, FALSE);
-
-    }
-
-    // Does not create a call -- no need to pause
-    // OsTask::delay(TEST_DELAY) ;    
-    checkForLeaks() ;
-}
-
 void sipXtapiTestSuite::testTeardown()
 {
     SIPX_INST hInst1 = NULL ;
