@@ -2286,21 +2286,6 @@ void OsNatAgentTask::dumpContext(UtlString* pResults, NAT_AGENT_CONTEXT* pBindin
     }
 }
 
-void OsNatAgentTask::releaseTimersToPool()
-{
-   OsLock lock(mTimersToReleaseLock);
-
-   UtlSListIterator itor(mTimersToRelease);
-   UtlVoidPtr *ptr = NULL;
-
-   while(ptr = (UtlVoidPtr*)itor())
-   {
-      OsTimer *pTimer = (OsTimer*)ptr->getValue();
-      releaseTimer(pTimer);
-   }
-}
-
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
