@@ -35,28 +35,51 @@
 // STRUCTS
 // TYPEDEFS
 
+/**
+ * Accoustic echo calcellation modes implementing factory might support
+ */
 typedef enum MEDIA_AEC_MODE
 {
     MEDIA_AEC_DISABLED, 
     MEDIA_AEC_SUPPRESS,
     MEDIA_AEC_CANCEL,
     MEDIA_AEC_CANCEL_AUTO
-} MEDIA_AEC_MODE ;
+} MEDIA_AEC_MODE;
 
+/**
+ * Noise reduction modes implementing factory might support
+ */
 typedef enum MEDIA_NOISE_REDUCTION_MODE
 {
     MEDIA_NOISE_REDUCTION_DISABLED,
     MEDIA_NOISE_REDUCTION_LOW,
     MEDIA_NOISE_REDUCTION_MEDIUM,
     MEDIA_NOISE_REDUCTION_HIGH
-} MEDIA_NOISE_REDUCTION_MODE ;
-
-// FORWARD DECLARATIONS
-class CpMediaInterface ;
-class SdpCodec ;
+} MEDIA_NOISE_REDUCTION_MODE;
 
 /**
- *
+ * DTMF modes implementing factory might support. In-band is mixed with audio and compressed
+ * using selected codec, RFC2833 is sent in special payload
+ */
+typedef enum MEDIA_OUTBOUND_DTMF_MODE
+{
+	MEDIA_OUTBOUND_DTMF_DISABLED,
+	MEDIA_OUTBOUND_DTMF_INBAND,
+	MEDIA_OUTBOUND_DTMF_RFC2833
+} MEDIA_OUTBOUND_DTMF_MODE;
+
+typedef enum MEDIA_INBOUND_DTMF_MODE
+{
+	MEDIA_INBOUND_DTMF_INBAND,
+	MEDIA_INBOUND_DTMF_RFC2833
+} MEDIA_INBOUND_DTMF_MODE;
+
+// FORWARD DECLARATIONS
+class CpMediaInterface;
+class SdpCodec;
+
+/**
+ * Interface for factory creating CpMediaInterface and setting audio/video parameters
  */
 class CpMediaInterfaceFactory
 {
@@ -103,41 +126,64 @@ public:
                                                     const char* szTurnPassword,
                                                     int iTurnKeepAliveSecs,
                                                     UtlBoolean bEnableICE
-                                                  ) = 0 ;
+                                                  ) = 0;
 
 
     /**
-     * Set the speaker volume.  Valid range includes 0 to 50.
+     * Set the speaker volume.  Valid range includes 0 to 100.
      */
-    virtual OsStatus setSpeakerVolume(int iVolume) = 0 ;
+    virtual OsStatus setSpeakerVolume(int iVolume)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
     /**
      * Set the speaker device.
      */
-    virtual OsStatus setSpeakerDevice(const UtlString& device) = 0 ;
+    virtual OsStatus setSpeakerDevice(const UtlString& device)
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Mute the speaker
+	*/
+	virtual OsStatus muteSpeaker(UtlBoolean bMute)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
     /**
-     * Set the microphone gain.  Valid range includes 0 to 10.
-     */ 
-    virtual OsStatus setMicrophoneGain(int iGain) = 0 ;
+     * Set the microphone gain.  Valid range includes 0 to 100.
+     */
+    virtual OsStatus setMicrophoneGain(int iGain)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
     /**
      * Set the Microphone device
      */
-    virtual OsStatus setMicrophoneDevice(const UtlString& device) = 0 ;    
+    virtual OsStatus setMicrophoneDevice(const UtlString& device)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
 
     /**
      * Mute the microphone
-     */ 
-    virtual OsStatus muteMicrophone(UtlBoolean bMute) = 0 ;
+     */
+    virtual OsStatus muteMicrophone(UtlBoolean bMute)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
     /**
      * Enable/Disable echo cancellation
      */
     virtual OsStatus setAudioAECMode(const MEDIA_AEC_MODE mode)
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
 
@@ -146,7 +192,7 @@ public:
      */
     virtual OsStatus setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode)
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
 
@@ -155,33 +201,32 @@ public:
      */
     virtual OsStatus enableAGC(UtlBoolean bEnable)
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
 
+	/**
+	 * Set mode how to send outbound DTMF
+	 */
+	virtual OsStatus setOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE mode)
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
     /**
-     * Enable/Disable sending DTMF tones inband
+     * Enable/Disable reception of DTMF
      */
-    virtual OsStatus enableOutOfBandDTMF(UtlBoolean enable) 
+    virtual OsStatus enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable) 
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
-    /**
-  	 * Enable/Disable sending DTMF tones inband
-  	 */
-  	virtual OsStatus enableInBandDTMF(UtlBoolean enable)
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-  	 
     /**
      * Enable/Disable RTCP reports
      */
     virtual OsStatus enableRTCP(UtlBoolean bEnable)
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
     /** 
@@ -189,7 +234,7 @@ public:
      */
     virtual OsStatus setRTCPName(const char* szName)
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
     /**
@@ -202,239 +247,244 @@ public:
                                        int* iRejected) = 0;
 
     /**
-     * Set the global video preview window 
-     */ 
-    virtual OsStatus setVideoPreviewDisplay(void* pDisplay) 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-
-    /**
-     * Set the global video quality 
-     */ 
-    virtual OsStatus setVideoQuality(int quality) 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-        
-    /**
-     * Set the global video parameters 
-     */ 
-    virtual OsStatus setVideoParameters(int bitRate, int frameRate) 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-    virtual OsStatus setVideoBitrate(int bitrate)
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-    virtual OsStatus setVideoFramerate(int framerate)
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-    /**
-    * Set the global CPU usage
-    */
-    virtual OsStatus setVideoCpuValue(int cpuValue) 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-    /**
-     * Update the video preview window given the specified display context.
-     */ 
-    virtual OsStatus updateVideoPreviewWindow(void* displayContext) 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-
-    /**
      * Sets the RTP port range for this factory
      */     
-    virtual void setRtpPortRange(int startRtpPort, int lastRtpPort) ;
+    virtual void setRtpPortRange(int startRtpPort, int lastRtpPort);
 
     /** 
      * Gets the next available rtp port
      */
-    virtual OsStatus getNextRtpPort(int &rtpPort) ;
+    virtual OsStatus getNextRtpPort(int &rtpPort);
 
     /**
      * Release the rtp port back to the pool of available RTP ports
      */
-    virtual OsStatus releaseRtpPort(const int rtpPort) ;
+    virtual OsStatus releaseRtpPort(const int rtpPort);
 
-    /*
+    /**
      * Set the connection idle timeout
      */
     virtual OsStatus setConnectionIdleTimeout(const int idleTimeout) 
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
+	/**
+	* Set the global video preview window 
+	*/ 
+	virtual OsStatus setVideoPreviewDisplay(void* pDisplay) 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Set the global video quality 
+	*/ 
+	virtual OsStatus setVideoQuality(int quality) 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Set the global video parameters 
+	*/ 
+	virtual OsStatus setVideoParameters(int bitRate, int frameRate) 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Sets video bitrate
+	*/
+	virtual OsStatus setVideoBitrate(int bitrate)
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Set the global CPU usage
+	*/
+	virtual OsStatus setVideoCpuValue(int cpuValue) 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Update the video preview window given the specified display context.
+	*/ 
+	virtual OsStatus updateVideoPreviewWindow(void* displayContext) 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/** 
+	* Sets the video capture device, given its string name.
+	*/
+	virtual OsStatus setVideoCaptureDevice(const UtlString& videoDevice) 
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
 /* ============================ ACCESSORS ================================= */
 
     /**
      * Get the speaker volume
      */ 
-    virtual OsStatus getSpeakerVolume(int& iVolume) const = 0 ;
+    virtual OsStatus getSpeakerVolume(int& iVolume)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
     /**
      * Get the speaker device
      */ 
-    virtual OsStatus getSpeakerDevice(UtlString& device) const = 0 ;
+    virtual OsStatus getSpeakerDevice(UtlString& device)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
     /**
      * Get the microphone gain
      */
-    virtual OsStatus getMicrophoneGain(int& iVolume) const = 0 ;
+    virtual OsStatus getMicrophoneGain(int& iVolume)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
     /**
      * Get the microphone device
      */
-    virtual OsStatus getMicrophoneDevice(UtlString& device) const = 0 ;
+    virtual OsStatus getMicrophoneDevice(UtlString& device)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
-    /* 
+    /** 
      * Get specific codec identified by iCodec
      */
     virtual OsStatus getCodecNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecName) const = 0;
 
-    /* 
+    /** 
      * Get the connection id for the local audio connection
      */
     virtual OsStatus getLocalAudioConnectionId(int& connectionId) const = 0;
 
-#ifdef VIDEO
-    /*
+	/**
+	* Gets mode how to send outbound DTMF
+	*/
+	virtual OsStatus getOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE& mode)
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Return status of echo cancellation
+	*/
+	virtual OsStatus getAudioAECMode(MEDIA_AEC_MODE& mode) const 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Return status of noise reduction
+	*/
+	virtual OsStatus getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_MODE& mode) const 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	* Get video quality
+	*/
+	virtual OsStatus getVideoQuality(int& quality) const 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/** 
+	* Gets video bit rate
+	*/
+	virtual OsStatus getVideoBitRate(int& bitRate) const 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/**
+	 * Sets video framerate
+	 */
+	virtual OsStatus setVideoFramerate(int framerate)
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/** 
+	* Gets video frame rate
+	*/
+	virtual OsStatus getVideoFrameRate(int& frameRate) const 
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+	/** 
+	* Get cpu usage
+	*/  
+	virtual OsStatus getVideoCpuValue(int& cpuValue)
+	{
+		return OS_NOT_SUPPORTED;
+	}
+
+    /**
      * Gets a list of UtlStrings representing available video capture devices.
      */
     virtual OsStatus getVideoCaptureDevices(UtlSList& videoDevices) const 
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
-
     
-    /*
+    /**
      * Gets the current video device string.
      */
     virtual OsStatus getVideoCaptureDevice(UtlString& videoDevice) 
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
-    
-    /* 
-     * Sets the video capture device, given its string name.
-     */
-    virtual OsStatus setVideoCaptureDevice(const UtlString& videoDevice) 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-    
-    /* 
-     * Get video quality
-     */
-    virtual OsStatus getVideoQuality(int& quality) const 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-
-    /* 
-     * Get video bit rate
-     */
-    virtual OsStatus getVideoBitRate(int& bitRate) const 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-
-    /* 
-     * Get video frame rate
-     */
-    virtual OsStatus getVideoFrameRate(int& frameRate) const 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-
-    /* 
-     * Get cpu usage
-     */  
-    virtual OsStatus getVideoCpuValue(int& cpuValue) const = 0;
-#endif // VIDEO
-    /*
+	/**
      * Get the connection idle timeout
      */
     virtual OsStatus getConnectionIdleTimeout(int& idleTimeout) const 
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
 
 /* ============================ INQUIRY =================================== */
 
     /**
-     * Return status of echo cancellation
-     */
-    virtual OsStatus getAudioAECMode(MEDIA_AEC_MODE& mode) const 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-        
-
-    /**
-     * Return status of noise reduction
-     */
-    virtual OsStatus getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_MODE& mode) const 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-
-    /**
      * Return status of AGC
      */ 
     virtual OsStatus isAGCEnabled(UtlBoolean& bEnable) const
     {
-        return OS_NOT_SUPPORTED ;
+        return OS_NOT_SUPPORTED;
     }
 
-
-    /**
-     * Return status of out-of-band DTMF
-     */
-    virtual OsStatus isOutOfBandDTMFEnabled(UtlBoolean& enabled) const 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
-
-    /**
-  	 * Return status of in band DTMF
-  	 */
-    virtual OsStatus isInBandDTMFEnabled(UtlBoolean& enabled) const 
-    {
-        return OS_NOT_SUPPORTED ;
-    }
-
+	/**
+	* Returns status of reception of DTMF
+	*/
+	virtual OsStatus isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled)
+	{
+		return OS_NOT_SUPPORTED;
+	}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
   protected:
-    int      miGain ;          /**< Gain value stored for unmuting */
-    int      miStartRtpPort ;  /**< Requested starting rtp port */
-    int      miLastRtpPort ;   /**< Requested ending rtp port */
-    int      miNextRtpPort ;   /**< Next available rtp port */
-    UtlSList mlistFreePorts ;  /**< List of recently freed ports */
-    UtlSList mlistBusyPorts ;  /**< List of busy ports */
-    OsMutex  mlockList ;       /**< Lock for port allocation */
+    int      miGain;          /**< Gain value stored for unmuting */
+    int      miStartRtpPort;  /**< Requested starting rtp port */
+    int      miLastRtpPort;   /**< Requested ending rtp port */
+    int      miNextRtpPort;   /**< Next available rtp port */
+    UtlSList mlistFreePorts;  /**< List of recently freed ports */
+    UtlSList mlistBusyPorts;  /**< List of busy ports */
+    OsMutex  mlockList;       /**< Lock for port allocation */
 
 
     /**
@@ -444,7 +494,7 @@ public:
      * @param iPort Port number to check
      * @param checkTimeMS Number of ms to wait for data.
      */
-    virtual UtlBoolean isPortBusy(int iPort, int checkTimeMS) ;
+    virtual UtlBoolean isPortBusy(int iPort, int checkTimeMS);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
   private:
@@ -452,14 +502,12 @@ public:
     /**
      * Disabled copy constructor
      */
-    CpMediaInterfaceFactory(const CpMediaInterfaceFactory& 
-            rCpMediaInterfaceFactoryImpl);
+    CpMediaInterfaceFactory(const CpMediaInterfaceFactory& rCpMediaInterfaceFactoryImpl);
 
    /** 
     * Disabled equals operator
     */
-   CpMediaInterfaceFactory& operator=(
-            const CpMediaInterfaceFactory& rhs);   
+   CpMediaInterfaceFactory& operator=(const CpMediaInterfaceFactory& rhs);   
 };
 
 /* ============================ INLINE METHODS ============================ */

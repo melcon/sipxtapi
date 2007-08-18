@@ -2021,10 +2021,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\interface\mi\IMediaSocket.h"
-				>
-			</File>
-			<File
 				RelativePath="sipXmediaMediaProcessing\include\sipXmediaFactoryImpl.h"
 				>
 			</File>

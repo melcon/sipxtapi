@@ -1434,16 +1434,23 @@ void sipXmgr::enableAEC(bool bEnable)
 
 bool sipXmgr::isOutOfBandDTMFEnabled()
 {
-    int rc = 0;
+	SIPX_OUTBOUND_DTMF_MODE mode = SIPX_OUTBOUND_DTMF_DISABLED;
 
-    sipxConfigIsOutOfBandDTMFEnabled(m_hInst, &rc);
+	sipxConfigGetOutboundDTMFMode(m_hInst, &mode);
 
-    return rc != 0;
+	return (mode == SIPX_OUTBOUND_DTMF_RFC2833);
 }
 
 void sipXmgr::enableOutOfBandDTMF(bool bEnable)
 {
-    sipxConfigEnableOutOfBandDTMF(m_hInst, bEnable);
+	if (bEnable)
+	{
+		sipxConfigSetOutboundDTMFMode(m_hInst, SIPX_OUTBOUND_DTMF_RFC2833);
+	}
+	else
+	{
+		sipxConfigSetOutboundDTMFMode(m_hInst, SIPX_OUTBOUND_DTMF_INBAND);
+	}
 }
 
 bool sipXmgr::isSRTPEnabled()

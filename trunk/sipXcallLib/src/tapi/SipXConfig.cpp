@@ -848,14 +848,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableDnsSrv(const int enable)
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigEnableOutOfBandDTMF(const SIPX_INST hInst,
-                                                       const int bEnable)
+// TODO: for INFO support in the future, we will need to remember setting in SIPX_INSTANCE_DATA
+SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
+                                                       const SIPX_OUTBOUND_DTMF_MODE mode)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigEnableOutOfBandDTMF");
-
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigEnableOutOfBandDTMF hInst=%p bEnbale=%d",
-      hInst, bEnable);
+      "sipxConfigSetOutboundDTMFMode hInst=%p bEnable=%d",
+      hInst, mode);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
@@ -867,10 +866,10 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableOutOfBandDTMF(const SIPX_INST hInst,
 
       if (pInterface)
       {
-         if (pInterface->enableOutOfBandDTMF(bEnable) == OS_SUCCESS)
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
+         if (pInterface->setOutboundDTMFMode((MEDIA_OUTBOUND_DTMF_MODE)mode))
+		 {
+			rc = SIPX_RESULT_SUCCESS;
+		 }
       }
    }
 
@@ -878,90 +877,89 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableOutOfBandDTMF(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigEnableInBandDTMF(const SIPX_INST hInst,
-                                                    const int bEnable)
+SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
+													   SIPX_OUTBOUND_DTMF_MODE* mode)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigEnableInBandDTMF");
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigEnableInBandDTMF hInst=%p bEnbale=%d",
-      hInst, bEnable);
-
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
    assert(pInst);
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface =
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
-      {
-         if (pInterface->enableInBandDTMF(bEnable) == OS_SUCCESS)
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
+	  {
+		 if (pInterface->getOutboundDTMFMode(*(MEDIA_OUTBOUND_DTMF_MODE*)mode) == OS_SUCCESS)
+		 {
+			 rc = SIPX_RESULT_SUCCESS;
+		 }
       }
    }
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConfigGetOutboundDTMFMode hInst=%p enabled=%d",
+      hInst, *mode);
 
    return rc;
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigIsOutOfBandDTMFEnabled(const SIPX_INST hInst,
-                                                          int* enabled)
+SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
+													 SIPX_INBOUND_DTMF_MODE mode,
+												     int bEnable)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigIsOutOfBandDTMFEnabled");
+	OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+		"sipxConfigEnableInboundDTMF hInst=%p bEnable=%d",
+		hInst, mode);
 
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-   assert(pInst);
+	SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+	SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+	assert(pInst);
 
-   if (pInst)
-   {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+	if (pInst)
+	{
+		CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-      if (pInterface && pInterface->isOutOfBandDTMFEnabled(*enabled) == OS_SUCCESS)
-      {
-         rc = SIPX_RESULT_SUCCESS;
-      }
-   }
+		if (pInterface)
+		{
+			if (pInterface->enableInboundDTMF((MEDIA_INBOUND_DTMF_MODE)mode, bEnable))
+			{
+				rc = SIPX_RESULT_SUCCESS;
+			}
+		}
+	}
 
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigIsOutOfBandDTMFEnabled hInst=%p enabled=%d",
-      hInst, enabled);
-
-   return rc;
+	return rc;
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigIsInBandDTMFEnabled(const SIPX_INST hInst,
-                                                       int* enabled)
+SIPXTAPI_API SIPX_RESULT sipxConfigIsInboundDTMFEnabled(const SIPX_INST hInst,
+		        									    SIPX_INBOUND_DTMF_MODE mode,
+													    int* bEnabled)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigIsInBandDTMFEnabled");
+	SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+	SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+	assert(pInst);
 
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-   assert(pInst);
+	if (pInst)
+	{
+		CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-   if (pInst)
-   {
-      CpMediaInterfaceFactory* pInterface =
-         pInst->pCallManager->getMediaInterfaceFactory();
+		if (pInterface)
+		{
+			if (pInterface->isInboundDTMFEnabled((MEDIA_INBOUND_DTMF_MODE)mode, *bEnabled) == OS_SUCCESS)
+			{
+				rc = SIPX_RESULT_SUCCESS;
+			}
+		}
+	}
 
-      if (pInterface && pInterface->isInBandDTMFEnabled(*enabled) == OS_SUCCESS)
-      {
-         rc = SIPX_RESULT_SUCCESS;
-      }
-   }
+	OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+		"sipxConfigIsInboundDTMFEnabled hInst=%p mode=%d enabled=%d",
+		hInst, mode, *bEnabled);
 
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigIsInBandDTMFEnabled hInst=%p enabled=%d",
-      hInst, enabled);
-
-   return rc;
+	return rc;
 }
 
 // CHECKED
@@ -980,8 +978,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRTCP(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface && (pInterface->enableRTCP(bEnable) == OS_SUCCESS))
       {
