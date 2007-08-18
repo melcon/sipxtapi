@@ -35,7 +35,9 @@
 #include <stddef.h>       // size_t
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
+  #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+  #endif
 #include <windows.h>
 #include <iphlpapi.h>
 #endif
