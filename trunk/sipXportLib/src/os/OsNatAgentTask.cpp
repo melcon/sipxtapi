@@ -53,7 +53,6 @@ OsNatAgentTask::OsNatAgentTask()
     : OsServerTask("OsNatAgentTask-%d")
     , mMapsLock(OsMutex::Q_FIFO)
     , mExternalBindingMutex(OsRWMutex::Q_FIFO)
-    , mTimersToReleaseLock(OsMutex::Q_FIFO)
 {
 
 }
