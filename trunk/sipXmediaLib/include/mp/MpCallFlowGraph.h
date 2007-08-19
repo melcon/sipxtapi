@@ -131,6 +131,7 @@ public:
 
      /// Default constructor
    MpCallFlowGraph(const char* pLocale = "",
+				   OsMsgQ* pInterfaceNotificationQueue = NULL,
                    int samplesPerFrame=DEF_SAMPLES_PER_FRAME,
                    int samplesPerSec=DEF_SAMPLES_PER_SEC);
 
@@ -310,6 +311,8 @@ public:
      /// Adds tone listener to receive the dtmf key events.
    OsStatus removeToneListener(MpConnectionID connectionId);
 
+   void setInterfaceEventQueue(OsMsgQ* pInterfaceNotificationQueue);
+
 //@}
 
      /// Enables/Disable the transmission of inband DTMF audio
@@ -469,6 +472,8 @@ private:
    static UtlBoolean sbEnableAEC ;
    static UtlBoolean sbEnableAGC ;
    static UtlBoolean sbEnableNoiseReduction ;
+
+   OsMsgQ* m_pInterfaceNotificationQueue;
 
    enum { MAX_CONNECTIONS = 10 };
 

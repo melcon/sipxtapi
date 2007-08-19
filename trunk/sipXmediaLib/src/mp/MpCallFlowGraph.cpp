@@ -118,9 +118,11 @@ int nwR() {return wantRecorders(1);}
 
 // Constructor
 MpCallFlowGraph::MpCallFlowGraph(const char* locale,
+								 OsMsgQ* pInterfaceNotificationQueue,
                                  int samplesPerFrame, int samplesPerSec)
 : MpFlowGraphBase(samplesPerFrame, samplesPerSec),
   mConnTableLock(OsBSem::Q_FIFO, OsBSem::FULL),
+  m_pInterfaceNotificationQueue(pInterfaceNotificationQueue),
   mToneIsGlobal(FALSE),
 #ifdef INCLUDE_RTCP /* [ */
   mulEventInterest(LOCAL_SSRC_COLLISION | REMOTE_SSRC_COLLISION),
@@ -1558,6 +1560,14 @@ OsStatus MpCallFlowGraph::removeToneListener(MpConnectionID connectionId)
 }
 
 
+void MpCallFlowGraph::setInterfaceEventQueue(OsMsgQ* pInterfaceNotificationQueue)
+{
+	if (!m_pInterfaceNotificationQueue)
+	{
+		m_pInterfaceNotificationQueue = pInterfaceNotificationQueue;
+	}
+}
+
 // Enables/Disable the transmission of inband DTMF audio
 UtlBoolean MpCallFlowGraph::setInbandDTMF(UtlBoolean bEnable)
 {
@@ -2309,6 +2319,7 @@ UtlBoolean MpCallFlowGraph::handleOnMprRecorderDisabled(MpFlowGraphMsg& rMsg)
 
    return TRUE;
 }
+
 
 /* ============================ FUNCTIONS ================================= */
 

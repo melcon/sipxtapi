@@ -19,6 +19,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
+#include "os/OsMsgQ.h"
 #include "os/OsStatus.h"
 #include "utl/UtlDefs.h"
 #include "utl/UtlString.h"
@@ -111,22 +112,23 @@ public:
     /**
      * Create a media interface given the designated parameters.
      */
-    virtual CpMediaInterface* createMediaInterface( const char* publicAddress,
-                                                    const char* localAddress,
-                                                    int numCodecs,
-                                                    SdpCodec* sdpCodecArray[],
-                                                    const char* locale,
-                                                    int expeditedIpTos,
-                                                    const char* szStunServer,
-                                                    int iStunPort,
-                                                    int iStunKeepAliveSecs,
-                                                    const char* szTurnServer,
-                                                    int iTurnPort,
-                                                    const char* szTurnUsername,
-                                                    const char* szTurnPassword,
-                                                    int iTurnKeepAliveSecs,
-                                                    UtlBoolean bEnableICE
-                                                  ) = 0;
+    virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
+												   const char* publicAddress,
+                                                   const char* localAddress,
+                                                   int numCodecs,
+                                                   SdpCodec* sdpCodecArray[],
+                                                   const char* locale,
+                                                   int expeditedIpTos,
+                                                   const char* szStunServer,
+                                                   int iStunPort,
+                                                   int iStunKeepAliveSecs,
+                                                   const char* szTurnServer,
+                                                   int iTurnPort,
+                                                   const char* szTurnUsername,
+                                                   const char* szTurnPassword,
+                                                   int iTurnKeepAliveSecs,
+                                                   UtlBoolean bEnableICE
+                                                   ) = 0;
 
 
     /**

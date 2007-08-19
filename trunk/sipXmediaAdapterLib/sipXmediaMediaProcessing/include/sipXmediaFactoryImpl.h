@@ -74,7 +74,8 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
    virtual ~sipXmediaFactoryImpl();
 
 /* ============================ MANIPULATORS ============================== */
-    virtual CpMediaInterface* createMediaInterface( const char* publicAddress,
+    virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
+													const char* publicAddress,
                                                     const char* localAddress,
                                                     int numCodecs,
                                                     SdpCodec* sdpCodecArray[],
