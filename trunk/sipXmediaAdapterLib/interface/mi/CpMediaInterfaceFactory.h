@@ -332,7 +332,7 @@ public:
     /**
      * Get the speaker volume
      */ 
-    virtual OsStatus getSpeakerVolume(int& iVolume)
+    virtual OsStatus getSpeakerVolume(int& iVolume) const
 	{
 		return OS_NOT_SUPPORTED;
 	}
@@ -340,7 +340,7 @@ public:
     /**
      * Get the speaker device
      */ 
-    virtual OsStatus getSpeakerDevice(UtlString& device)
+    virtual OsStatus getSpeakerDevice(UtlString& device) const
 	{
 		return OS_NOT_SUPPORTED;
 	}
@@ -348,15 +348,15 @@ public:
     /**
      * Get the microphone gain
      */
-    virtual OsStatus getMicrophoneGain(int& iVolume)
-	{
-		return OS_NOT_SUPPORTED;
-	}
+    virtual OsStatus getMicrophoneGain(int& iVolume) const
+    {
+       return OS_NOT_SUPPORTED;
+    }
 
     /**
      * Get the microphone device
      */
-    virtual OsStatus getMicrophoneDevice(UtlString& device)
+    virtual OsStatus getMicrophoneDevice(UtlString& device) const
 	{
 		return OS_NOT_SUPPORTED;
 	}

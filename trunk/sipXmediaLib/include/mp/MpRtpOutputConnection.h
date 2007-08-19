@@ -63,6 +63,7 @@ public:
      /// Constructor
    MpRtpOutputConnection(const UtlString& resourceName,
                          MpConnectionID myID, 
+                         OsMsgQ* pConnectionNotificationQueue,
                          IRTCPSession *piRTCPSession);
 
      /// Destructor
@@ -119,6 +120,7 @@ protected:
    MprToNet*          mpToNet;         ///< Outbound component: ToNet
    MpConnectionID     mMyID;           ///< ID within parent flowgraph
    UtlBoolean         mOutRtpStarted;  ///< Are we currently sending RTP stream?
+   OsMsgQ* m_pConnectionNotificationQueue;
 
 #ifdef INCLUDE_RTCP /* [ */
    IRTCPSession    *mpiRTCPSession;    ///< RTCP Session Interface pointer

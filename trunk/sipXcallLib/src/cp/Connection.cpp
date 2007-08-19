@@ -230,7 +230,8 @@ void Connection::prepareForJoin(CpCall* pNewCall, const char* szLocalAddress, Cp
     mpCall = pNewCall ;
     mpMediaInterface = pNewMediaInterface ;
 
-    mpMediaInterface->createConnection(mConnectionId, szLocalAddress) ;
+    // WTF is this???
+    mpMediaInterface->createConnection(mConnectionId, szLocalAddress, 0, NULL, NULL, NULL, pNewCall->getMessageQueue()) ;
 
     // VIDEO: Need to include window handle!
     // SECURITY:  What about the security attributes?

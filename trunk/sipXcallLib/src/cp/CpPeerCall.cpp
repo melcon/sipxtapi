@@ -2538,7 +2538,7 @@ UtlBoolean CpPeerCall::handleNotifyMessage(OsEventMsg& eventMsg)
 
 			pConnection->fireSipXMediaEvent(
 					MEDIA_REMOTE_DTMF,
-					bButtonUp ? MEDIA_CAUSE_DTMF_STOP : MEDIA_CAUSE_DTMF_START,
+					MEDIA_CAUSE_NORMAL,
 					MEDIA_TYPE_AUDIO,
 					(void*) id) ;
 
@@ -2565,10 +2565,43 @@ void CpPeerCall::forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
    }
 }
 
+void CpPeerCall::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
+                                    SIPX_MEDIA_CAUSE cause,
+                                    SIPX_MEDIA_TYPE type,
+                                    void* pEventData,
+                                    int mediaConnectionId)
+
+{
+   Connection* connection = NULL;
+   OsReadLock lock(mConnectionMutex);
+   UtlDListIterator iterator(mConnections);
+
+   while ((connection = (Connection*) iterator()))
+   {
+      if (connection->getConnectionId() == mediaConnectionId)
+      {
+         connection->fireSipXMediaEvent(event, cause, type, pEventData);
+      }
+   }
+}
+
 // we forward message handling to the corresponding SipMessage
 UtlBoolean CpPeerCall::handleConnectionNotfMessage(OsMsg& eventMessage)
 {
    OsIntPtrMsg* pMsg = (OsIntPtrMsg*)&eventMessage;
+   CpNotificationMsgMedia media = (CpNotificationMsgMedia)pMsg->getMsgSubType();
+   CpNotificationMsgType type = (CpNotificationMsgType)pMsg->getData1();
+   void* pData = (void*)pMsg->getData2();
+   int mediaConnectionId = pMsg->getData3();
+
+   switch(type)
+   {
+   case CP_NOTIFICATION_DTMF:
+      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData, mediaConnectionId);
+      break;
+   default:
+      assert(false);
+   }
 
    return TRUE;
 }

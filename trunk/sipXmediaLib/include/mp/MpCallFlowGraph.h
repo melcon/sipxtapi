@@ -279,7 +279,7 @@ public:
    OsStatus postNotification(const MpResNotificationMsg& msg);
 
      /// Creates a new MpAudioConnection; returns -1 if failure.
-   MpConnectionID createConnection(void);
+   MpConnectionID createConnection(OsMsgQ* pConnectionNotificationQueue);
 
      /// enables hearing audio data from a source
    UtlBoolean unmuteInput(MpConnectionID connID);

@@ -42,6 +42,7 @@
 // Constructor
 MpRtpInputConnection::MpRtpInputConnection(const UtlString& resourceName,
                                            MpConnectionID myID, 
+                                           OsMsgQ* pConnectionNotificationQueue,
                                            IRTCPSession *piRTCPSession)
 : MpResource(resourceName, 0, 0, 0, 1)
 , mpFromNet(NULL)
@@ -52,6 +53,7 @@ MpRtpInputConnection::MpRtpInputConnection(const UtlString& resourceName,
 #ifdef INCLUDE_RTCP /* [ */
 , mpiRTCPSession(piRTCPSession)
 , mpiRTCPConnection(NULL)
+, m_pConnectionNotificationQueue(pConnectionNotificationQueue)
 #endif /* INCLUDE_RTCP ] */
 {
    char         name[50];
