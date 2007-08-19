@@ -18,8 +18,8 @@
 #include <assert.h>
 
 // APPLICATION INCLUDES
-#include "CpMediaInterface.h"
-#include "CpMediaInterfaceFactory.h" 
+#include "mi/CpMediaInterface.h"
+#include "mi/CpMediaInterfaceFactory.h" 
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
