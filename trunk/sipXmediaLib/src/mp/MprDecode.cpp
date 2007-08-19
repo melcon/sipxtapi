@@ -42,10 +42,7 @@
 #include "mp/dmaTask.h"
 #include "mp/MpMediaTask.h"
 #include "mp/MpCodecFactory.h"
-#include "mp/JB/JB_API.h"
-#ifndef HAVE_GIPS
 #include "mp/MpJitterBuffer.h"
-#endif
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -62,6 +59,7 @@
 MprDecode::MprDecode(const UtlString& rName, MpRtpInputAudioConnection* pConn,
                      int samplesPerFrame, int samplesPerSec)
 :  MpAudioResource(rName, 0, 0, 1, 1, samplesPerFrame, samplesPerSec),
+   mpJB(NULL),
    mpMyDJ(NULL),
    mpCurrentCodecs(NULL),
    mNumCurrentCodecs(0),
@@ -77,7 +75,8 @@ MprDecode::~MprDecode()
    // Clean up decoder object
    int i;
 
-   // Release our codecs (if any), and the array of pointers to them
+   // Release our codecs (if any), and the array of pointers to them.
+   // Jitter buffer instance (mpJB) is also deleted here.
    handleDeselectCodecs();
 
    // Delete the list of codecs used in the past.
@@ -140,6 +139,15 @@ void MprDecode::setMyDejitter(MprDejitter* pDJ)
 }
 
 /* ============================ ACCESSORS ================================= */
+
+MpJitterBuffer* MprDecode::getJBinst(UtlBoolean optional)
+{
+   if ((NULL == mpJB) && (!optional)) {
+      mpJB = new MpJitterBuffer();
+      assert(NULL != mpJB);
+   }
+   return mpJB;
+}
 
 /* ============================ INQUIRY =================================== */
 
@@ -275,12 +283,12 @@ static int iFramesSinceLastReport=0;
             // in order to process properly (?)
             // THIS JitterBuffer is NOT the same as MprDejitter!
             // This is more of a Decode Buffer.
-            JB_inst* pJBState = mpConnection->getJBinst();
+            MpJitterBuffer* pJBState = getJBinst();
 
-            int res = JB_RecIn(pJBState, rtp);
+            int res = pJBState->pushPacket(rtp);
             if (res != 0) {
-               osPrintf("\n\n *** JB_RecIn(%p, %d) returned %d\n",
-                        pJBState, packetLen, res);
+               osPrintf("\n\n *** MpJitterBuffer::pushPacket(%d) returned %d\n",
+                        packetLen, res);
                osPrintf(" pt=%d, Ts=%d, Seq=%d\n\n",
                         rtp->getRtpPayloadType(),
                         rtp->getRtpTimestamp(), rtp->getRtpSequenceNumber());
@@ -316,7 +324,7 @@ static int iFramesSinceLastReport=0;
    out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
 
    // Decode one packet from Jitter Buffer
-   JB_inst* pJBState = mpConnection->getJBinst();
+   MpJitterBuffer* pJBState = getJBinst();
    int decodedAPacket = FALSE;
    if (pJBState) {
       // This should be a JB_something or other.  However the only
@@ -324,7 +332,7 @@ static int iFramesSinceLastReport=0;
       // to be a plain old int:
       int bufLength=samplesPerFrame;
       int res;
-      res = JB_RecOut(pJBState, pSamples, &bufLength);
+      res = pJBState->getSamples(pSamples, bufLength);
       assert(bufLength == (int)out->getSamplesNumber());
       out->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
       decodedAPacket = TRUE;
@@ -453,10 +461,8 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
       }
    }
 
-#ifndef HAVE_GIPS
-   JB_inst* pJBState = mpConnection->getJBinst();   
+   MpJitterBuffer* pJBState = getJBinst();   
    pJBState->setCodecList(mpCurrentCodecs,numCodecs);
-#endif
 
    // Delete the list pCodecs.
    for (i=0; i<numCodecs; i++) {
@@ -517,6 +523,10 @@ UtlBoolean MprDecode::handleDeselectCodecs(UtlBoolean shouldLock)
       mpPrevCodecs = pPrevCodecs;
       mNumPrevCodecs = newN;
    }
+
+   delete mpJB;
+   mpJB = NULL;
+
    if(shouldLock)
    {
        mLock.release();

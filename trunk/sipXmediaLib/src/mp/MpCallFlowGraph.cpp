@@ -121,14 +121,13 @@ int nwR() {return wantRecorders(1);}
 MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 								 OsMsgQ* pInterfaceNotificationQueue,
                                  int samplesPerFrame, int samplesPerSec)
-: MpFlowGraphBase(samplesPerFrame, samplesPerSec),
-  mConnTableLock(OsBSem::Q_FIFO, OsBSem::FULL),
-  m_pInterfaceNotificationQueue(pInterfaceNotificationQueue),
-  mToneIsGlobal(FALSE),
+: MpFlowGraphBase(samplesPerFrame, samplesPerSec)
+, mConnTableLock(OsBSem::Q_FIFO, OsBSem::FULL)
+, m_pInterfaceNotificationQueue(pInterfaceNotificationQueue)
+, mToneIsGlobal(FALSE)
 #ifdef INCLUDE_RTCP /* [ */
-  mulEventInterest(LOCAL_SSRC_COLLISION | REMOTE_SSRC_COLLISION),
+, mulEventInterest(LOCAL_SSRC_COLLISION | REMOTE_SSRC_COLLISION)
 #endif /* INCLUDE_RTCP ] */
-  mPremiumSoundEnabled(TRUE)
 {
    UtlBoolean    boolRes;
    MpMediaTask* pMediaTask;
@@ -1421,48 +1420,6 @@ OsStatus MpCallFlowGraph::deleteConnection(MpConnectionID connID)
       return OS_UNSPECIFIED;
 }
 
-void MpCallFlowGraph::setPremiumSound(UtlBoolean enablePremiumSound)
-{
-   OsStatus  res;
-   MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_SET_PREMIUM_SOUND,
-      NULL, NULL, NULL, enablePremiumSound);
-
-   res = postMessage(msg);
-}
-
-#define DEBUG_GIPS_PREMIUM_SOUND
-#undef  DEBUG_GIPS_PREMIUM_SOUND
-
-void MpCallFlowGraph::disablePremiumSound(void)
-{
-#ifdef _VXWORKS /* [ */
-#ifdef DEBUG_GIPS_PREMIUM_SOUND /* [ */
-   if (NULL == this) {
-      MpMediaTask* pMT = MpMediaTask::getMediaTask(0);
-      MpCallFlowGraph* pIF = (MpCallFlowGraph*) pMT->getFocus();
-      if (NULL != pIF) pIF->disablePremiumSound();
-      return;
-   }
-#endif /* DEBUG_GIPS_PREMIUM_SOUND ] */
-#endif /* _VXWORKS ] */
-   setPremiumSound(MpRtpInputAudioConnection::DisablePremiumSound);
-}
-
-void MpCallFlowGraph::enablePremiumSound(void)
-{
-#ifdef _VXWORKS /* [ */
-#ifdef DEBUG_GIPS_PREMIUM_SOUND /* [ */
-   if (NULL == this) {
-      MpMediaTask* pMT = MpMediaTask::getMediaTask(0);
-      MpCallFlowGraph* pIF = (MpCallFlowGraph*) pMT->getFocus();
-      if (NULL != pIF) pIF->enablePremiumSound();
-      return;
-   }
-#endif /* DEBUG_GIPS_PREMIUM_SOUND ] */
-#endif /* _VXWORKS ] */
-   setPremiumSound(MpRtpInputAudioConnection::EnablePremiumSound);
-}
-
 // Start sending RTP and RTCP packets.
 void MpCallFlowGraph::startSendRtp(OsSocket& rRtpSocket,
                                     OsSocket& rRtcpSocket,
@@ -1772,12 +1729,6 @@ UtlBoolean MpCallFlowGraph::isCodecSupported(SdpCodec& rCodec)
    return TRUE;
 }
 
-// Returns TRUE if the GIPS premium sound is enabled
-UtlBoolean MpCallFlowGraph::isPremiumSoundEnabled(void)
-{
-   return mPremiumSoundEnabled;
-}
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -1911,9 +1862,6 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
       case MpFlowGraphMsg::FLOWGRAPH_STOP_PLAY:
       case MpFlowGraphMsg::FLOWGRAPH_STOP_TONE:
          retCode = handleStopToneOrPlay();
-         break;
-      case MpFlowGraphMsg::FLOWGRAPH_SET_PREMIUM_SOUND:
-         retCode = handleSetPremiumSound(*pMsg);
          break;
       case MpFlowGraphMsg::FLOWGRAPH_SET_DTMF_NOTIFY:
          retCode = handleSetDtmfNotify(*pMsg);
@@ -2093,29 +2041,6 @@ UtlBoolean MpCallFlowGraph::handleStopToneOrPlay()
       // osPrintf("MpCallFlowGraph::postPone(%d)\n", ms);
    }
 #endif /* DEBUG_POSTPONE ] */
-
-UtlBoolean MpCallFlowGraph::handleSetPremiumSound(MpFlowGraphMsg& rMsg)
-{
-   UtlBoolean save = mPremiumSoundEnabled;
-   MpRtpInputAudioConnection::PremiumSoundOptions op =
-       (MpRtpInputAudioConnection::PremiumSoundOptions) rMsg.getInt1();
-   int i;
-
-   mPremiumSoundEnabled = (op == MpRtpInputAudioConnection::EnablePremiumSound);
-   if (save != mPremiumSoundEnabled) {
-/*
-      osPrintf("MpCallFlowGraph(%p): Premium sound %sABLED\n",
-         this, mPremiumSoundEnabled ? "EN" : "DIS");
-*/
-
-      for (i=0; i<MAX_CONNECTIONS; i++) {
-         if (NULL != mpInputConnections[i]) {
-            mpInputConnections[i]->setPremiumSound(op);
-         }
-      }
-   }
-   return TRUE;
-}
 
 UtlBoolean MpCallFlowGraph::handleSetDtmfNotify(MpFlowGraphMsg& rMsg)
 {
