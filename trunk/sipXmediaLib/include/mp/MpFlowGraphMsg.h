@@ -70,6 +70,7 @@ public:
       FLOWGRAPH_SET_PREMIUM_SOUND,
 
       FLOWGRAPH_SET_DTMF_NOTIFY,
+      FLOWGRAPH_INTERFACE_NOTF_MSG,
 
       // Resource notification messages using old flowgraph msg approach
       // NOTE: this is a temporary fix, and will be replaced by newer
@@ -88,7 +89,7 @@ public:
      /// Constructor
    MpFlowGraphMsg(int msg, MpResource* pMsgDest=NULL,
                   void* pPtr1=NULL, void* pPtr2=NULL,
-                  int int1=-1, int int2=-1);
+                  int int1=-1, int int2=-1, int int3 = -1);
 
      /// Copy constructor
    MpFlowGraphMsg(const MpFlowGraphMsg& rMpFlowGraphMsg);
@@ -129,6 +130,9 @@ public:
      /// Sets integer 2 of the media flow graph message
    void setInt2(int i);
 
+   /// Sets integer 3 of the media flow graph message
+   void setInt3(int i);
+
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -158,6 +162,9 @@ public:
      /// Return integer 2 of the media flow graph message
    int getInt2(void) const;
 
+   /// Return integer 3 of the media flow graph message
+   int getInt3(void) const;
+
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -176,6 +183,7 @@ private:
    void*       mpPtr2;    ///< Pointer to data 2
    int         mInt1;     ///< Integer data 1
    int         mInt2;     ///< Integer data 2
+   int         mInt3;     ///< Integer data 3
 
 };
 

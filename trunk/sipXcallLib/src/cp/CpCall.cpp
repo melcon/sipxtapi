@@ -731,7 +731,12 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             mpMediaInterface->getMsgQ()->send(eventMessage) ;
         }
         break ;
-
+    case OsMsg::MP_CONNECTION_NOTF_MSG:
+       handleConnectionNotfMessage(eventMessage);
+       break;
+    case OsMsg::MP_INTERFACE_NOTF_MSG:
+       handleInterfaceNotfMessage(eventMessage);
+       break;
     default:
         processedMessage = FALSE;
         osPrintf("Unknown TYPE %d of Call message subtype: %d\n", msgType, msgSubType);

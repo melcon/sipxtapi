@@ -167,6 +167,24 @@ public:
 protected:
     virtual UtlBoolean handleCallMessage(OsMsg& eventMessage);
     virtual UtlBoolean handleNotifyMessage(OsEventMsg& eventMsg) ;
+
+    void forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
+                            SIPX_MEDIA_CAUSE cause,
+                            SIPX_MEDIA_TYPE type,
+                            void* pEventData);
+
+    /**
+     * Handles MediaConnection notification messages from media subsystem.
+     * These are messages from encoders/decoders.
+     */
+    virtual UtlBoolean handleConnectionNotfMessage(OsMsg& eventMessage);
+
+    /**
+     * Handles MediaInterface notification messages from media subsystem.
+     * These are messages from flowgraph resources.
+     */
+    virtual UtlBoolean handleInterfaceNotfMessage(OsMsg& eventMessage);
+
     void addTaoListenerToConnection(Connection* connection);
     void addToneListenersToConnection(Connection* connection);
 

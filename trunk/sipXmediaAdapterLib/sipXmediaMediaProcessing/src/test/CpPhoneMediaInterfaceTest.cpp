@@ -154,7 +154,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
        MpResNotificationMsg* pNotfMsg = NULL;
        notfDispatcher.receive(pMsg, OsTime(delayPeriod));
        CPPUNIT_ASSERT(pMsg != NULL);
-       CPPUNIT_ASSERT_EQUAL(OsMsg::MP_RES_NOTF_MSG, 
+       CPPUNIT_ASSERT_EQUAL(OsMsg::MP_CONNECTION_NOTF_MSG, 
           (OsMsg::MsgTypes)pMsg->getMsgType());
        pNotfMsg = (MpResNotificationMsg*)pMsg;
        CPPUNIT_ASSERT_EQUAL(notfType, 

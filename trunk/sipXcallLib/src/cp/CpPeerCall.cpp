@@ -23,6 +23,7 @@
 #include <cp/CpStringMessage.h>
 #include <cp/CpIntMessage.h>
 #include <cp/CpMultiStringMessage.h>
+#include "cp/CpNotificationMsgDef.h"
 #include <net/SipMessageEvent.h>
 #include <cp/SipConnection.h>
 #include <cp/CpGhostConnection.h>
@@ -43,6 +44,7 @@
 #include "os/OsTime.h"
 #include "os/OsDateTime.h"
 #include "os/OsEventMsg.h"
+#include "os/OsIntPtrMsg.h"
 #include "tao/TaoProviderAdaptor.h"
 #include "net/SmimeBody.h"
 
@@ -2547,6 +2549,65 @@ UtlBoolean CpPeerCall::handleNotifyMessage(OsEventMsg& eventMsg)
 	return false ;
 }
 
+// fires given media event to all SipConnections
+void CpPeerCall::forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
+                                    SIPX_MEDIA_CAUSE cause,
+                                    SIPX_MEDIA_TYPE type,
+                                    void* pEventData)
+{
+   Connection* connection = NULL;
+   OsReadLock lock(mConnectionMutex);
+   UtlDListIterator iterator(mConnections);
+
+   while ((connection = (Connection*) iterator()))
+   {
+      connection->fireSipXMediaEvent(event, cause, type, pEventData);
+   }
+}
+
+// we forward message handling to the corresponding SipMessage
+UtlBoolean CpPeerCall::handleConnectionNotfMessage(OsMsg& eventMessage)
+{
+   OsIntPtrMsg* pMsg = (OsIntPtrMsg*)&eventMessage;
+
+   return TRUE;
+}
+
+
+UtlBoolean CpPeerCall::handleInterfaceNotfMessage(OsMsg& eventMessage)
+{
+   OsIntPtrMsg* pMsg = (OsIntPtrMsg*)&eventMessage;
+   CpNotificationMsgMedia media = (CpNotificationMsgMedia)pMsg->getMsgSubType();
+   CpNotificationMsgType type = (CpNotificationMsgType)pMsg->getData1();
+   void* pData = (void*)pMsg->getData2();
+
+   switch(type)
+   {
+   case CP_NOTIFICATION_START_PLAY_FILE:
+      forkSipXMediaEvent(MEDIA_PLAYFILE_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
+   case CP_NOTIFICATION_STOP_PLAY_FILE:
+      forkSipXMediaEvent(MEDIA_PLAYFILE_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
+   case CP_NOTIFICATION_START_PLAY_BUFFER:
+      forkSipXMediaEvent(MEDIA_PLAYBUFFER_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
+   case CP_NOTIFICATION_STOP_PLAY_BUFFER:
+      forkSipXMediaEvent(MEDIA_PLAYBUFFER_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
+   case CP_NOTIFICATION_RECORDING_STARTED:
+      forkSipXMediaEvent(MEDIA_RECORDING_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
+   case CP_NOTIFICATION_RECORDING_STOPPED:
+      forkSipXMediaEvent(MEDIA_RECORDING_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
+   default:
+      assert(false);
+   }
+
+   return TRUE;
+}
+
 UtlBoolean CpPeerCall::handleSendInfo(OsMsg* pEventMessage)
 {
     CpMultiStringMessage& infoMessage = (CpMultiStringMessage&) *pEventMessage;
@@ -4300,6 +4361,7 @@ UtlBoolean CpPeerCall::checkForTag(UtlString &address)
       return TRUE;
    }
 }
+
 
 /* ============================ FUNCTIONS ================================= */
 
