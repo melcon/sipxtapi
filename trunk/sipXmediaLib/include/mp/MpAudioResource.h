@@ -20,6 +20,7 @@
 // APPLICATION INCLUDES
 #include "mp/MpResource.h"
 #include "mp/MpAudioBuf.h"
+#include "mp/MpNotificationMsgDef.h"
 
 // DEFINES
 // MACROS
@@ -129,6 +130,12 @@ protected:
 
      /// return number of samples per second
    int getSamplesPerSec();
+
+   /**
+   * Sends MediaInterface notification message to flowgraph. This is used
+   * to notify medialib users of resource events like stop, start etc.
+   */
+   void sendInterfaceNotificationMsg(MpNotificationMsgType type, int data);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

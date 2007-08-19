@@ -232,6 +232,21 @@ int MpAudioResource::getSamplesPerSec()
    return mSamplesPerSec;
 }
 
+void MpAudioResource::sendInterfaceNotificationMsg(MpNotificationMsgType type, int data)
+{
+   if (mpFlowGraph)
+   {
+      MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_INTERFACE_NOTF_MSG,
+         NULL, // set NULL to send it to flowgraph
+         NULL, // 1st pointer is unused
+         NULL, // 2nd poiner is unused
+         type, // 1st int is message type
+         MP_NOTIFICATION_AUDIO, // 2nd int is media type
+         data); // 3rd int is user data
+      postMessage(msg);
+   }
+}
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 
