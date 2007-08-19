@@ -2278,10 +2278,10 @@ UtlBoolean MpCallFlowGraph::handleInterfaceNotificationMsg(MpFlowGraphMsg& rMsg)
       // media type - audio, video
       int msgMedia = rMsg.getInt2();
       // additional data
-      int msgContent = rMsg.getInt3();
+      int msgData = rMsg.getInt3();
 
       // create message and send it to interface notification queue
-      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, msgSubType, msgContent);
+      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, msgSubType, msgData);
       m_pInterfaceNotificationQueue->send(interfaceMsg, OsTime::NO_WAIT_TIME);
    }
    
