@@ -135,7 +135,7 @@ protected:
    * Sends MediaInterface notification message to flowgraph. This is used
    * to notify medialib users of resource events like stop, start etc.
    */
-   void sendInterfaceNotificationMsg(MpNotificationMsgType type, int data);
+   void sendInterfaceNotification(MpNotificationMsgType type, int data);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
