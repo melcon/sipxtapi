@@ -345,7 +345,7 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
    OsStatus retValue = OS_SUCCESS;
    CpPhoneMediaConnection* mediaConnection=NULL;
 
-   connectionId = mpFlowGraph->createConnection();
+   connectionId = mpFlowGraph->createConnection(pConnectionNotificationQueue);
    if (connectionId == -1)
    {
       return OS_LIMIT_REACHED;

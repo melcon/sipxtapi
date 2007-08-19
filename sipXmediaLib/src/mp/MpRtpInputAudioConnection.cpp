@@ -26,6 +26,7 @@
 #include <mp/MprRtpStartReceiveMsg.h>
 #include <sdp/SdpCodec.h>
 #include <os/OsLock.h>
+#include "os/OsIntPtrMsg.h"
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
 #endif
@@ -42,10 +43,12 @@
 // Constructor
 MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceName,
                                                      MpConnectionID myID, 
+                                                     OsMsgQ* pConnectionNotificationQueue,
                                                      int samplesPerFrame, 
                                                      int samplesPerSec)
 : MpRtpInputConnection(resourceName,
-                       myID, 
+                       myID,
+                       pConnectionNotificationQueue,
 #ifdef INCLUDE_RTCP // [
                        NULL // TODO: pParent->getRTCPSessionPtr()
 #else // INCLUDE_RTCP ][
@@ -454,6 +457,21 @@ UtlBoolean MpRtpInputAudioConnection::handleSetDtmfNotify(OsNotification* pNotif
 UtlBoolean MpRtpInputAudioConnection::setDtmfTerm(MprRecorder *pRecorders)
 {
    return mpDecode->setDtmfTerm(pRecorders);
+}
+
+void MpRtpInputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, int data)
+{
+   if (m_pConnectionNotificationQueue)
+   {
+      // create message and send it to connection notification queue
+      OsIntPtrMsg connectionMsg(OsMsg::MP_CONNECTION_NOTF_MSG,
+               (unsigned char)MP_NOTIFICATION_AUDIO,
+               (int)type,
+               data,
+               mMyID);
+
+      m_pConnectionNotificationQueue->send(connectionMsg, OsTime::NO_WAIT_TIME);
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

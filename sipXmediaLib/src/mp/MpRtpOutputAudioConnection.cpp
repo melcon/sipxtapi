@@ -24,6 +24,7 @@
 #include <mp/MpResourceMsg.h>
 #include <sdp/SdpCodec.h>
 #include <os/OsLock.h>
+#include "os/OsIntPtrMsg.h"
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
 #endif
@@ -40,10 +41,12 @@
 // Constructor
 MpRtpOutputAudioConnection::MpRtpOutputAudioConnection(const UtlString& resourceName,
                                                        MpConnectionID myID, 
+                                                       OsMsgQ* pConnectionNotificationQueue,
                                                        int samplesPerFrame, 
                                                        int samplesPerSec)
 : MpRtpOutputConnection(resourceName,
                         myID, 
+                        pConnectionNotificationQueue,
 #ifdef INCLUDE_RTCP // [
                         NULL // TODO: pParent->getRTCPSessionPtr()
 #else // INCLUDE_RTCP ][
@@ -198,9 +201,23 @@ UtlBoolean MpRtpOutputAudioConnection::handleEnable()
    return(MpResource::handleEnable());
 }
 
-// Start sending RTP and RTCP packets.
+void MpRtpOutputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, int data)
+{
+   if (m_pConnectionNotificationQueue)
+   {
+      // create message and send it to connection notification queue
+      OsIntPtrMsg connectionMsg(OsMsg::MP_CONNECTION_NOTF_MSG,
+         (unsigned char)MP_NOTIFICATION_AUDIO,
+         (int)type,
+         data,
+         mMyID);
 
-     /// Queues a message to start sending RTP and RTCP packets.
+      m_pConnectionNotificationQueue->send(connectionMsg, OsTime::NO_WAIT_TIME);
+   }
+}
+
+// Start sending RTP and RTCP packets.
+/// Queues a message to start sending RTP and RTCP packets.
 OsStatus MpRtpOutputAudioConnection::startSendRtp(OsMsgQ& messageQueue,
                                                   const UtlString& resourceName,
                                                   OsSocket& rRtpSocket, 
@@ -311,6 +328,7 @@ void MpRtpOutputAudioConnection::stopTone(void)
 {
    mpEncode->stopTone();
 }
+
 
 /* ============================ ACCESSORS ================================= */
 

@@ -27,6 +27,7 @@ class SdpCodec;
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpRtpInputConnection.h"
+#include "mp/MpNotificationMsgDef.h"
 #include "mp/JB/jb_typedefs.h"
 
 // DEFINES
@@ -57,7 +58,8 @@ public:
 
      /// Constructor
    MpRtpInputAudioConnection(const UtlString& resourceName,
-                             MpConnectionID myID, 
+                             MpConnectionID myID,
+                             OsMsgQ* pConnectionNotificationQueue,
                              int samplesPerFrame, 
                              int samplesPerSec);
 
@@ -152,6 +154,8 @@ protected:
                                      UtlBoolean isEnabled,
                                      int samplesPerFrame=80,
                                      int samplesPerSecond=8000);
+
+   void sendConnectionNotification(MpNotificationMsgType type, int data);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

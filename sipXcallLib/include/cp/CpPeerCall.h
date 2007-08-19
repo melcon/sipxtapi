@@ -168,10 +168,23 @@ protected:
     virtual UtlBoolean handleCallMessage(OsMsg& eventMessage);
     virtual UtlBoolean handleNotifyMessage(OsEventMsg& eventMsg) ;
 
+    /**
+     * Fires given event to all SipConnections.
+     */
     void forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
                             SIPX_MEDIA_CAUSE cause,
                             SIPX_MEDIA_TYPE type,
                             void* pEventData);
+
+    /**
+     * Finds the correct SipConnection by mediaConnectionId and fires
+     * media event for it.
+     */
+    void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
+                            SIPX_MEDIA_CAUSE cause,
+                            SIPX_MEDIA_TYPE type,
+                            void* pEventData,
+                            int mediaConnectionId);
 
     /**
      * Handles MediaConnection notification messages from media subsystem.

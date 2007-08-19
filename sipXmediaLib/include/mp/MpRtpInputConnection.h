@@ -60,7 +60,8 @@ public:
 
      /// Constructor
    MpRtpInputConnection(const UtlString& resourceName,
-                        MpConnectionID myID, 
+                        MpConnectionID myID,
+                        OsMsgQ* pConnectionNotificationQueue,
                         IRTCPSession *piRTCPSession);
 
      /// Destructor
@@ -114,6 +115,7 @@ protected:
    MprDejitter*       mpDejitter;      ///< Inbound component: Dejitter
    MpConnectionID     mMyID;           ///< ID within parent flowgraph
    UtlBoolean         mInRtpStarted;   ///< Are we currently receiving RTP stream?
+   OsMsgQ* m_pConnectionNotificationQueue;
    OsMutex            mLock;
 
 #ifdef INCLUDE_RTCP /* [ */

@@ -366,12 +366,6 @@ SIPXTAPI_API const char* sipxMediaCauseToString(SIPX_MEDIA_CAUSE cause)
    case MEDIA_CAUSE_INCOMPATIBLE:
       str = MAKESTR(MEDIA_CAUSE_INCOMPATIBLE);
       break;
-   case MEDIA_CAUSE_DTMF_START:
-      str = MAKESTR(MEDIA_CAUSE_DTMF_START);
-      break;
-   case MEDIA_CAUSE_DTMF_STOP:
-      str = MAKESTR(MEDIA_CAUSE_DTMF_STOP);
-      break;
    default:
       break;
    }

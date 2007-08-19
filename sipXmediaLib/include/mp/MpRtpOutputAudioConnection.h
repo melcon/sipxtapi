@@ -23,6 +23,7 @@ class MprEncode;
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpRtpOutputConnection.h"
+#include "mp/MpNotificationMsgDef.h"
 
 // DEFINES
 // MACROS
@@ -47,6 +48,7 @@ public:
      /// Constructor
    MpRtpOutputAudioConnection(const UtlString& resourceName,
                               MpConnectionID myID, 
+                              OsMsgQ* pConnectionNotificationQueue,
                               int samplesPerFrame, 
                               int samplesPerSec);
 
@@ -117,6 +119,8 @@ protected:
                                      UtlBoolean isEnabled,
                                      int samplesPerFrame=80,
                                      int samplesPerSecond=8000);
+
+   void sendConnectionNotification(MpNotificationMsgType type, int data);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

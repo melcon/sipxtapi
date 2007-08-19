@@ -1305,7 +1305,7 @@ void MpCallFlowGraph::stopFile(UtlBoolean closeFile)
    // boolRes = mpTFsBridgeMixer->enable();   assert(boolRes);
 }
 
-MpConnectionID MpCallFlowGraph::createConnection()
+MpConnectionID MpCallFlowGraph::createConnection(OsMsgQ* pConnectionNotificationQueue)
 {
    int            i;
    MpConnectionID found = -1;
@@ -1338,12 +1338,14 @@ MpConnectionID MpCallFlowGraph::createConnection()
    outConnectionName.append(numBuf);
    mpInputConnections[found] = 
        new MpRtpInputAudioConnection(inConnectionName,
-                                     found, 
+                                     found,
+                                     pConnectionNotificationQueue,
                                      getSamplesPerFrame(), 
                                      getSamplesPerSec());
    mpOutputConnections[found] = 
        new MpRtpOutputAudioConnection(outConnectionName,
                                       found, 
+                                      pConnectionNotificationQueue,
                                       getSamplesPerFrame(), 
                                       getSamplesPerSec());
 
