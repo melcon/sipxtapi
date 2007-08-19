@@ -20,15 +20,14 @@ class MpFlowGraphBase;
 class MpDecoderBase;
 class MpResource;
 class MprDecode;
-class OsNotification;
 class MprRecorder;
 class SdpCodec;
+class OsNotification;
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpRtpInputConnection.h"
 #include "mp/MpNotificationMsgDef.h"
-#include "mp/JB/jb_typedefs.h"
 
 // DEFINES
 // MACROS
@@ -45,12 +44,6 @@ class MpRtpInputAudioConnection : public MpRtpInputConnection
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-
-   typedef enum
-   {
-      DisablePremiumSound = FALSE,
-      EnablePremiumSound = TRUE
-   } PremiumSoundOptions;
 
 /* ============================ CREATORS ================================== */
 ///@name Creators
@@ -87,18 +80,8 @@ public:
 ///@name Accessors
 //@{
 
-     /// Returns a pointer to the JB instance, creating it if necessary
-   JB_inst* getJBinst(UtlBoolean optional = FALSE);
-     /**<
-     *  If the instance has not been created, but the argument "optional" is
-     *  TRUE, then do not create it, just return NULL.
-     */
-
      /// Get decoder for this payload type
    MpDecoderBase* mapPayloadType(int payloadType);
-
-     /// Disables or enables the premium sound.
-   void setPremiumSound(PremiumSoundOptions op);
 
    // TODO:  this should become a resource message handled by the resource:
      /// Handle the FLOWGRAPH_SET_DTMF_NOTIFY message.
@@ -178,7 +161,6 @@ private:
 
 //   MpFlowGraphBase*   mpFlowGraph;     ///< Parent flowgraph
    MprDecode*         mpDecode;        ///< Inbound component: Decoder
-   JB_inst*           mpJB_inst;       ///< Pointer to JitterBuffer instance
 
    MpDecoderBase*     mpPayloadMap[NUM_PAYLOAD_TYPES];
                                        ///< Map RTP payload types to our decoders

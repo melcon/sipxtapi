@@ -17,7 +17,6 @@
 
 // APPLICATION INCLUDES
 #include "mp/MpDecoderBase.h"
-#include "mp/JB/jb_typedefs.h"
 
 // DEFINES
 // MACROS
@@ -96,7 +95,6 @@ public:
 
 private:
    static const MpCodecInfo smCodecInfo;  ///< static information about the codec
-   JB_inst     *mpJBState;
    gsm_state   *mpGsmState;
 };
 

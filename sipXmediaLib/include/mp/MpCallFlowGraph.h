@@ -296,15 +296,6 @@ public:
      /// Removes an MpAudioConnection and deletes it and all its resources.
    OsStatus deleteConnection(MpConnectionID connID);
 
-     /// Disables or enables the GIPS premium sound.
-   void setPremiumSound(UtlBoolean enablePremiumSound);
-
-     /// Disables the GIPS premium sound.
-   void disablePremiumSound(void);
-
-     /// Enables the GIPS premium sound.
-   void enablePremiumSound(void);
-
      /// Adds tone listener to receive the dtmf key events.
    OsStatus addToneListener(OsNotification* pNotify, MpConnectionID connectionId);
 
@@ -355,9 +346,6 @@ public:
 
      /// Returns TRUE if the indicated codec is supported.
    UtlBoolean isCodecSupported(SdpCodec& rCodec);
-
-     /// Returns TRUE if GIPS premium sound is currently enabled.
-   UtlBoolean isPremiumSoundEnabled(void);
 
 /* ============================ CALLBACKS ================================= */
 #ifdef INCLUDE_RTCP /* [ */
@@ -518,8 +506,6 @@ private:
    ///  D.W.
    MprRecorder* mpRecorders[MAX_RECORDERS];
 
-   UtlBoolean mPremiumSoundEnabled;
-
      ///  Write out standard 16bit 8k sampled WAV Header
    UtlBoolean writeWAVHeader(int handle);
 
@@ -596,12 +582,6 @@ private:
      /// sends a message requesting a delay for race condition detection...
    void postPone(int ms);
 #endif /* DEBUG_POSTPONE ] */
-
-     /// Handle the FLOWGRAPH_SET_PREMIUM_SOUND message.
-   UtlBoolean handleSetPremiumSound(MpFlowGraphMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b>
-     */
 
      /// Handle the FLOWGRAPH_SET_DTMF_NOTIFY message.
    UtlBoolean handleSetDtmfNotify(MpFlowGraphMsg& rMsg);

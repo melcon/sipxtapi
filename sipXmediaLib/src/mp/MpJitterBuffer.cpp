@@ -12,12 +12,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef HAVE_GIPS /* [ */
-
 #include "assert.h"
 #include "string.h"
 
-#include "mp/JB/JB_API.h"
 #include "mp/MpJitterBuffer.h"
 #include "mp/MpDecoderBase.h"
 #include "mp/MpMisc.h"
@@ -88,7 +85,7 @@ int MpJitterBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
    return 0;
 }
 
-int MpJitterBuffer::getSamples(MpAudioSample *samplesBuffer, JB_size samplesNumber)
+int MpJitterBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
 {
    // Check does we have available decoded data
    if (JbQCount != 0) {
@@ -120,38 +117,3 @@ int MpJitterBuffer::setCodecList(MpDecoderBase** codecList, int codecCount)
 
    return 0;
 }
-
-/* ===================== Jitter Buffer API Functions ====================== */
-
-
-JB_ret JB_RecIn(JB_inst *JB_inst,
-                MpRtpBufPtr &rtpPacket)
-{
-   return JB_inst->pushPacket(rtpPacket);
-}
-
-JB_ret JB_RecOut(JB_inst *JB_inst,
-                 MpAudioSample *voiceSamples,
-                 JB_size *pLength)
-{
-   *pLength = JB_inst->getSamples(voiceSamples, *pLength);
-   return 0;
-}
-
-JB_ret JB_create(JB_inst **pJB)
-{
-   *pJB = new MpJitterBuffer();
-   return 0;
-}
-
-JB_ret JB_init(JB_inst *pJB, int fs)
-{
-   return 0;
-}
-
-JB_ret JB_free(JB_inst *pJB)
-{
-   delete pJB;
-   return 0;
-}
-#endif /* NOT(HAVE_GIPS) ] */

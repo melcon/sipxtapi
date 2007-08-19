@@ -12,8 +12,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef HAVE_GIPS /* [ */
-
 #include "assert.h"
 
 #include "mp/MpSipxDecoders.h"
@@ -53,7 +51,7 @@ LOCAL MpAudioSample hzm_ULaw2linear(uint8_t u)
    return L;
 }
 
-LOCAL int ULawToLinear(MpAudioSample *Dest, const unsigned char *Source, int samples)
+LOCAL int ULawToLinear(MpAudioSample *Dest, const uint8_t *Source, int samples)
 {
    int i;
 
@@ -94,7 +92,7 @@ LOCAL MpAudioSample ALaw2Linear(uint8_t a_val)
    return ((a_val & SIGN_BIT) ? t : -t);
 }
 
-LOCAL int ALawToLinear(MpAudioSample *Dest, const unsigned char *src, int samples)
+LOCAL int ALawToLinear(MpAudioSample *Dest, const uint8_t *src, int samples)
 {
    int i;
 
@@ -265,4 +263,3 @@ int G711U_Encoder(int numSamples,
    LinearToULaw(outBuf, inBuff, numSamples);
    return 0;
 }
-#endif /* NOT(HAVE_GIPS) ] */
