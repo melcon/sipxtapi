@@ -15,7 +15,7 @@
 // SYSTEM INCLUDES
 
 // APPLICATION INCLUDES
-#include "mi/CpMediaInterfaceFactory.h"
+#include "CpMediaInterfaceFactory.h"
 #include "os/OsLock.h"
 #include "os/OsDatagramSocket.h"
 #include "os/OsServerSocket.h"
