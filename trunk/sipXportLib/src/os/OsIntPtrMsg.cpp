@@ -17,7 +17,7 @@
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
-const UtlContainableType OsIntPtrMsg::TYPE = "OsIntPtrMsg" ;
+const UtlContainableType OsIntPtrMsg::TYPE = "OsIntPtrMsg";
 
 // STATIC VARIABLE INITIALIZATIONS
 
@@ -27,12 +27,14 @@ const UtlContainableType OsIntPtrMsg::TYPE = "OsIntPtrMsg" ;
 
 // Constructor
 OsIntPtrMsg::OsIntPtrMsg(const unsigned char msgType, 
-                   const unsigned char msgSubType, 
-                   intptr_t pData1, 
-                   intptr_t pData2)
-                   : OsMsg(msgType, msgSubType),
-                   mpData1(pData1),
-                   mpData2(pData2)
+                         const unsigned char msgSubType, 
+                         intptr_t pData1, 
+                         intptr_t pData2,
+                         intptr_t pData3)
+ : OsMsg(msgType, msgSubType),
+ mpData1(pData1),
+ mpData2(pData2),
+ mpData3(pData3)
 {
    // all of the required work is done by the initializers
 }
@@ -41,7 +43,8 @@ OsIntPtrMsg::OsIntPtrMsg(const unsigned char msgType,
 OsIntPtrMsg::OsIntPtrMsg(const OsIntPtrMsg& rOsMsg) :
       OsMsg(rOsMsg),
       mpData1(rOsMsg.mpData1),
-      mpData2(rOsMsg.mpData2)
+      mpData2(rOsMsg.mpData2),
+      mpData3(rOsMsg.mpData3)
 {
 }
 
@@ -62,6 +65,7 @@ OsIntPtrMsg& OsIntPtrMsg::operator=(const OsIntPtrMsg& rhs)
       OsMsg::operator=(rhs);
       mpData1 = rhs.mpData1;
       mpData2 = rhs.mpData2;
+      mpData3 = rhs.mpData3;
    }
 
    return *this;
