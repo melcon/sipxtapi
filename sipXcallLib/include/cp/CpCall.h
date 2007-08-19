@@ -240,6 +240,8 @@ public:
 protected:
     virtual UtlBoolean handleMessage(OsMsg& eventMessage);
     virtual UtlBoolean handleCallMessage(OsMsg& eventMessage) = 0;
+    virtual UtlBoolean handleConnectionNotfMessage(OsMsg& eventMessage) = 0;
+    virtual UtlBoolean handleInterfaceNotfMessage(OsMsg& eventMessage) = 0;
     virtual UtlBoolean handleNotifyMessage(OsEventMsg& eventMsg) = 0 ;
     virtual void onHook() = 0;
 

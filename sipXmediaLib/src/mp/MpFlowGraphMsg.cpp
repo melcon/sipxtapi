@@ -30,13 +30,14 @@
 // Constructor
 MpFlowGraphMsg::MpFlowGraphMsg(int msg, MpResource* pMsgDest,
                                void* pPtr1, void* pPtr2,
-                               int int1, int int2)
+                               int int1, int int2, int int3)
 :  OsMsg(OsMsg::MP_FLOWGRAPH_MSG, msg),
    mpMsgDest(pMsgDest),
    mpPtr1(pPtr1),
    mpPtr2(pPtr2),
    mInt1(int1),
-   mInt2(int2)
+   mInt2(int2),
+   mInt3(int3)
 {
 }
 
@@ -79,6 +80,7 @@ MpFlowGraphMsg::operator=(const MpFlowGraphMsg& rhs)
    mpPtr2    = rhs.mpPtr2;
    mInt1     = rhs.mInt1;
    mInt2     = rhs.mInt2;
+   mInt3     = rhs.mInt3;
 
    return *this;
 }
@@ -114,6 +116,12 @@ void MpFlowGraphMsg::setInt1(int i)
 void MpFlowGraphMsg::setInt2(int i)
 {
    mInt2 = i;
+}
+
+// Set integer 3 of the media flow graph message
+void MpFlowGraphMsg::setInt3(int i)
+{
+   mInt3 = i;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -155,7 +163,13 @@ int MpFlowGraphMsg::getInt2(void) const
 {
    return mInt2;
 }
-    
+
+// Return integer 3 of the media flow graph message
+int MpFlowGraphMsg::getInt3(void) const
+{
+   return mInt3;
+}
+
 
 /* ============================ INQUIRY =================================== */
 

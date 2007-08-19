@@ -35,6 +35,7 @@
 #include "os/OsProtectEventMgr.h"
 #include "os/OsProtectEvent.h"
 #include "os/OsFS.h"
+#include "os/OsIntPtrMsg.h"
 #include "mp/MpRtpInputAudioConnection.h"
 #include "mp/MpRtpOutputAudioConnection.h"
 #include "mp/MpCallFlowGraph.h"
@@ -1915,6 +1916,9 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
       case MpFlowGraphMsg::FLOWGRAPH_SET_DTMF_NOTIFY:
          retCode = handleSetDtmfNotify(*pMsg);
          break;
+      case MpFlowGraphMsg::FLOWGRAPH_INTERFACE_NOTF_MSG:
+         retCode = handleInterfaceNotificationMsg(*pMsg);
+         break;
       case MpFlowGraphMsg::ON_MPRRECORDER_ENABLED:
          retCode = handleOnMprRecorderEnabled(*pMsg);
          break;
@@ -2263,6 +2267,25 @@ UtlBoolean MpCallFlowGraph::handleStreamDestroy(MpStreamMsg& rMsg)
    mpFromStream->destroy(handle) ;
 
    return TRUE ;
+}
+
+UtlBoolean MpCallFlowGraph::handleInterfaceNotificationMsg(MpFlowGraphMsg& rMsg)
+{
+   if (m_pInterfaceNotificationQueue)
+   {
+      // file stop, file start, buffer stop etc...
+      int msgSubType = rMsg.getInt1();
+      // media type - audio, video
+      int msgMedia = rMsg.getInt2();
+      // additional data
+      int msgContent = rMsg.getInt3();
+
+      // create message and send it to interface notification queue
+      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, msgSubType, msgContent);
+      m_pInterfaceNotificationQueue->send(interfaceMsg, OsTime::NO_WAIT_TIME);
+   }
+   
+   return TRUE;
 }
 
 UtlBoolean MpCallFlowGraph::handleOnMprRecorderEnabled(MpFlowGraphMsg& rMsg)

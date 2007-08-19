@@ -535,6 +535,10 @@ typedef enum
                                      already in use. */
     MEDIA_REMOTE_ACTIVE,        /**< Media has been received */
 
+    MEDIA_RECORDING_START,      /**< Call recording started */
+
+    MEDIA_RECORDING_STOP        /**< Call recording stopped */
+
 } SIPX_MEDIA_EVENT;
 
 
@@ -543,7 +547,7 @@ typedef enum
  */
 typedef enum
 {
-    KEEPALIVE_START,        /**< A keepalive attempt has been started.  The
+    KEEPALIVE_START = 0,        /**< A keepalive attempt has been started.  The
                                  developer is responsible for stopping all
                                  keepalives.  In some cases, keepalives will
                                  be automatically stopped -- however do not 
@@ -625,7 +629,7 @@ typedef struct
  */
 typedef enum
 {
-    MEDIA_CAUSE_NORMAL,             /**< Normal cause; the call was likely torn down.*/
+    MEDIA_CAUSE_NORMAL = 0,             /**< Normal cause; the call was likely torn down.*/
     MEDIA_CAUSE_HOLD,               /**< Media state changed due to a local or remote
                                          hold operation */
     MEDIA_CAUSE_UNHOLD,             /**< Media state changed due to a local or remote
@@ -646,7 +650,7 @@ typedef enum
  */
 typedef enum
 {
-    MEDIA_TYPE_AUDIO,   /**< Audio media event type */
+    MEDIA_TYPE_AUDIO = 0,   /**< Audio media event type */
     MEDIA_TYPE_VIDEO,   /**< Video media event type */
 
 } SIPX_MEDIA_TYPE;

@@ -665,6 +665,12 @@ private:
      *  @returns <b>FALSE</b> otherwise.
      */
 
+   /**
+    * Handles MediaInterface notification messages. These are messages sent
+    * from flowgraph resources to the user of media library
+    */
+   UtlBoolean MpCallFlowGraph::handleInterfaceNotificationMsg(MpFlowGraphMsg& rMsg);
+
      /// Copy constructor (not implemented for this class)
    MpCallFlowGraph(const MpCallFlowGraph& rMpCallFlowGraph);
 

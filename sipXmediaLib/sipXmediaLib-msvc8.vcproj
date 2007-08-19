@@ -2171,6 +2171,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpNotificationMsgDef.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpodBufferRecorder.h"
 					>
 				</File>
