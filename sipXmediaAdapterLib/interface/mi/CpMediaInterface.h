@@ -207,10 +207,8 @@ public:
      *              failure codes to expect, etc. -- kkyzivat 20070801 >>
      */ 
 
+   virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue) = 0;
 
-     /// @brief Add or replace the media notification dispatcher held by the MI.
-   virtual OsMsgDispatcher* 
-   setMediaNotificationDispatcher(OsMsgDispatcher* pNoteDisper) = 0;
      /**<
      *  Gives the Media Interface an object to help in the dispatching of 
      *  notification messages to users of the media interface.  Users

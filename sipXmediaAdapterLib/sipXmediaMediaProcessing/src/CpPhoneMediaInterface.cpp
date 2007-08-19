@@ -147,6 +147,7 @@ public:
 
 // Constructor
 CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
+											 OsMsgQ* pInterfaceNotificationQueue,
                                              const char* publicAddress,
                                              const char* localAddress,
                                              int numCodecs,
@@ -163,11 +164,12 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
                                              int iTurnKeepAlivePeriodSecs,
                                              UtlBoolean bEnableICE)
     : CpMediaInterface(pFactoryImpl)
+	, m_pInterfaceNotificationQueue(pInterfaceNotificationQueue)
 {
    OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::CpPhoneMediaInterface creating a new CpMediaInterface %p",
                  this);
 
-   mpFlowGraph = new MpCallFlowGraph(locale);
+   mpFlowGraph = new MpCallFlowGraph(locale, pInterfaceNotificationQueue);
    OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::CpPhoneMediaInterface creating a new MpCallFlowGraph %p",
                  mpFlowGraph);
    
@@ -409,6 +411,14 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
     return retValue;
 }
 
+void CpPhoneMediaInterface::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
+{
+	if (!m_pInterfaceNotificationQueue)
+	{
+		m_pInterfaceNotificationQueue = pInterfaceNotificationQueue;
+	}	
+}
+
 
 OsStatus CpPhoneMediaInterface::getCapabilities(int connectionId,
                                                 UtlString& rtpHostAddress,
@@ -632,14 +642,6 @@ OsStatus CpPhoneMediaInterface::getCapabilitiesEx(int connectionId,
     }
 
     return rc ;
-}
-
-OsMsgDispatcher*  
-CpPhoneMediaInterface::setMediaNotificationDispatcher(OsMsgDispatcher* pNoteDisper)
-{
-   // If there is no flowgraph, return NULL, otherwise return result of setting
-   // notification disptacher on flowgraph.
-   return mpFlowGraph ? mpFlowGraph->setNotificationDispatcher(pNoteDisper) : NULL;
 }
 
 OsStatus
@@ -2746,6 +2748,7 @@ OsStatus CpPhoneMediaInterface::createRtpSocketPair(UtlString localAddress,
 
    return OS_SUCCESS;
 }
+
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

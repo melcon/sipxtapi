@@ -58,6 +58,7 @@ public:
 /* ============================ CREATORS ================================== */
 
    CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
+						 OsMsgQ* pInterfaceNotificationQueue,
                          const char* publicAddress = NULL, 
                          const char* localAddress = NULL,
                          int numCodecs = 0, 
@@ -98,6 +99,8 @@ public:
                                      IMediaEventListener* pMediaEventListener = NULL,
                                      const RtpTransportOptions rtpTransportOptions=RTP_TRANSPORT_UDP);
    
+   virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
+
    virtual OsStatus getCapabilities(int connectionId, 
                                     UtlString& rtpHostAddress, 
                                     int& rtpAudioPort,
@@ -124,9 +127,6 @@ public:
                                       int bandWidth,
                                       int& videoBandwidth,
                                       int& videoFramerate);
-
-   virtual OsMsgDispatcher*
-   setMediaNotificationDispatcher(OsMsgDispatcher* pNoteDisper);
 
    virtual OsStatus setMediaNotificationsEnabled(bool enabled, 
                                                  const UtlString& resourceName);
@@ -456,6 +456,7 @@ private:
    UtlString mTurnPassword ;
    UtlBoolean mEnableIce ;
    UtlHashMap mInterfaceProperties;
+   OsMsgQ* m_pInterfaceNotificationQueue;
 
    // Disabled copy constructor
    CpPhoneMediaInterface(const CpPhoneMediaInterface& rCpPhoneMediaInterface);

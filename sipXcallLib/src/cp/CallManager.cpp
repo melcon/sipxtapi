@@ -574,6 +574,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                 port = contact.iPort;
 
                                 pMediaInterface = mpMediaFactory->createMediaInterface(
+									NULL,
                                     NULL, 
                                     localAddress, numCodecs, codecArray, 
                                     mLocale.data(), mExpeditedIpTos, mStunServer, 
@@ -612,6 +613,8 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     mNoAnswerTimeout,
                                     mForwardOnNoAnswer.data(),
                                     inviteExpireSeconds);
+								// temporary
+								pMediaInterface->setInterfaceNotificationQueue(handlingCall->getMessageQueue());
 
                                 for (int i = 0; i < numCodecs; i++)
                                 {
@@ -4033,6 +4036,7 @@ void CallManager::doCreateCall(const char* callId,
             
             sipUserAgent->getLocalAddress(&localAddress, &dummyPort, TRANSPORT_UDP);
             CpMediaInterface* mediaInterface = mpMediaFactory->createMediaInterface(
+				NULL,
                 publicAddress.data(), localAddress.data(),
                 numCodecs, codecArray, mLocale.data(), mExpeditedIpTos,
                 mStunServer, mStunPort, mStunKeepAlivePeriodSecs, 
@@ -4060,6 +4064,8 @@ void CallManager::doCreateCall(const char* callId,
                 mSipForwardOnBusy.data(),
                 mNoAnswerTimeout,
                 mForwardOnNoAnswer.data());
+			// temporary
+			mediaInterface->setInterfaceNotificationQueue(call->getMessageQueue());
             // Short term kludge: createCall invoked, this
             // implys the phone is off hook
             call->enableDtmf();
