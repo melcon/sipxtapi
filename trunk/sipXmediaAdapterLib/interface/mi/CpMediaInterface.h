@@ -107,23 +107,6 @@ typedef enum IMediaEvent_DeviceTypes
    IDevice_Video
 } IMediaEvent_DeviceTypes;
 
-/**
-*  @brief Interface declaration for receiving device error 
-*  notifications/audio events
-*/
-class IMediaEventListener
-{
-public:    
-   virtual void onFileStart(IMediaEvent_DeviceTypes type) = 0 ;
-   virtual void onFileStop(IMediaEvent_DeviceTypes type) = 0 ;
-   virtual void onBufferStart(IMediaEvent_DeviceTypes type) = 0 ;
-   virtual void onBufferStop(IMediaEvent_DeviceTypes type) = 0 ;
-   virtual void onDeviceError(IMediaEvent_DeviceTypes type, IMediaEvent_DeviceErrors errCode) = 0;
-   virtual void onListenerAddedToEmitter(IMediaEventEmitter* pEmitter) = 0;
-
-   virtual ~IMediaEventListener() { } ;
-};
-
 // FORWARD DECLARATIONS
 class SdpCodec;
 class SdpCodecFactory;
@@ -168,16 +151,15 @@ public:
 
 /* ========================= MANIPULATORS ========================= */
      /// @brief Create a media connection in the media processing subsystem.
-   virtual 
-   OsStatus createConnection(
+   virtual OsStatus createConnection(
                int& connectionId,
                const char* szLocalAddress,
                int localPort = 0,
                void* videoWindowHandle = NULL,
                void* const pSecurityAttributes = NULL,
                ISocketEvent* pSocketIdleSink = NULL,
-               IMediaEventListener* pMediaEventListener = NULL,
-               const RtpTransportOptions rtpTransportOptions=RTP_TRANSPORT_UDP) = 0 ;
+               OsMsgQ* pConnectionNotificationQueue = NULL,
+               const RtpTransportOptions rtpTransportOptions = RTP_TRANSPORT_UDP) = 0 ;
      /**<
      *  One instance of the CpMediaInterface exists for each call, however, 
      *  each leg of the call requires in individual connection.

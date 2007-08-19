@@ -40,7 +40,7 @@ class SdpCodecFactory;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
-class SipConnection : public Connection, public ISocketEvent, public IMediaEventListener, public UtlObservable
+class SipConnection : public Connection, public ISocketEvent, public UtlObservable
 {
     /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:

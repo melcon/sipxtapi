@@ -339,7 +339,7 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
                                                  void* videoWindowHandle, 
                                                  void* const pSecurityAttributes,
                                                  ISocketEvent* pIdleEvent,
-                                                 IMediaEventListener* pMediaEventListener,
+                                                 OsMsgQ* pConnectionNotificationQueue,
                                                  const RtpTransportOptions rtpTransportOptions)
 {
    OsStatus retValue = OS_SUCCESS;

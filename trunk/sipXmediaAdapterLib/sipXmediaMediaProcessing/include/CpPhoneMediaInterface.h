@@ -96,7 +96,7 @@ public:
                                      void* videoWindowHandle = NULL,
                                      void* const pSecurityAttributes = NULL,
                                      ISocketEvent* pIdleEvent = NULL,
-                                     IMediaEventListener* pMediaEventListener = NULL,
+                                     OsMsgQ* pConnectionNotificationQueue = NULL,
                                      const RtpTransportOptions rtpTransportOptions=RTP_TRANSPORT_UDP);
    
    virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
