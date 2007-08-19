@@ -41,7 +41,8 @@ public:
    OsIntPtrMsg(const unsigned char msgType, 
       const unsigned char msgSubType, 
       intptr_t pData1 = 0,
-      intptr_t pData2 = 0);
+      intptr_t pData2 = 0,
+      intptr_t pData3 = 0);
    //:Constructor
 
    OsIntPtrMsg(const OsIntPtrMsg& rOsMsg);
@@ -58,9 +59,11 @@ public:
    /* ============================ ACCESSORS ================================= */
    intptr_t getData1() const { return mpData1; }
    intptr_t getData2() const { return mpData2; }
+   intptr_t getData3() const { return mpData3; }
 
    void setData1(intptr_t val) { mpData1 = val; }
    void setData2(intptr_t val) { mpData2 = val; }
+   void setData3(intptr_t val) { mpData3 = val; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -68,6 +71,7 @@ public:
 protected:
    intptr_t mpData1;
    intptr_t mpData2;
+   intptr_t mpData3;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
