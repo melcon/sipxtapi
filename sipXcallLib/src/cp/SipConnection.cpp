@@ -918,7 +918,7 @@ UtlBoolean SipConnection::dial(const char* dialString,
                                                (void*)pDisplay,
                                                (void*)pSecurity,
                                                this,
-                                               dynamic_cast<IMediaEventListener*>(this),
+                                               mpCall->getMessageQueue(),
                                                rtpTransportOptions) != OS_SUCCESS)
         {
             setCallId(callId);
@@ -3610,7 +3610,7 @@ void SipConnection::processInviteRequest(const SipMessage* request)
                 NULL /* VIDEO: WINDOW HANDLE */,
                 mpSecurity,
                 (ISocketEvent*)this,
-                (IMediaEventListener*) this,
+                mpCall->getMessageQueue(),
                 rtpTransportFlags);
     }
 
