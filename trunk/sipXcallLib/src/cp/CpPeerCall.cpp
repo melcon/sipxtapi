@@ -18,24 +18,6 @@
 
 // APPLICATION INCLUDES
 #include "utl/UtlRegex.h"
-#include <cp/CpPeerCall.h>
-#include <cp/CpCallManager.h>
-#include <cp/CpStringMessage.h>
-#include <cp/CpIntMessage.h>
-#include <cp/CpMultiStringMessage.h>
-#include "cp/CpNotificationMsgDef.h"
-#include <net/SipMessageEvent.h>
-#include <cp/SipConnection.h>
-#include <cp/CpGhostConnection.h>
-#include <mi/CpMediaInterface.h>
-#include <net/SipUserAgent.h>
-#include <net/NameValueTokenizer.h>
-#include <net/Url.h>
-#include <net/SipSession.h>
-#include <ptapi/PtConnection.h>
-#include "ptapi/PtCall.h"
-#include "ptapi/PtEvent.h"
-#include <ptapi/PtTerminalConnection.h>
 #include <os/OsReadLock.h>
 #include <os/OsWriteLock.h>
 #include <os/OsProtectEvent.h>
@@ -45,8 +27,22 @@
 #include "os/OsDateTime.h"
 #include "os/OsEventMsg.h"
 #include "os/OsIntPtrMsg.h"
-#include "tao/TaoProviderAdaptor.h"
+#include <cp/CpPeerCall.h>
+#include <cp/CpCallManager.h>
+#include <cp/CpIntMessage.h>
+#include <cp/CpMultiStringMessage.h>
+#include "cp/CpNotificationMsgDef.h"
+#include <cp/SipConnection.h>
+#include <cp/CpGhostConnection.h>
+#include <mi/CpMediaInterface.h>
+#include <net/SipMessageEvent.h>
+#include <net/SipUserAgent.h>
+#include <net/NameValueTokenizer.h>
+#include <net/Url.h>
+#include <net/SipSession.h>
 #include "net/SmimeBody.h"
+#include "ptapi/PtCall.h"
+#include "tao/TaoProviderAdaptor.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

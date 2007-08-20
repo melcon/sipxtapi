@@ -29,7 +29,6 @@
 #include <net/SipDialog.h>
 #include <net/SipLineMgr.h>
 #include <cp/CpIntMessage.h>
-#include <cp/CpStringMessage.h>
 #include <cp/CpMultiStringMessage.h>
 #include <cp/Connection.h>
 #include <mi/CpMediaInterfaceFactory.h>
@@ -44,12 +43,6 @@
 #include <os/OsWriteLock.h>
 #include <net/NameValueTokenizer.h>
 #include <cp/CpPeerCall.h>
-#include "tao/TaoMessage.h"
-#include "tao/TaoProviderAdaptor.h"
-#include "tao/TaoString.h"
-#include "tao/TaoPhoneComponentAdaptor.h"
-#include "ptapi/PtCall.h"
-#include "ptapi/PtEvent.h"
 #include "tapi/SipXTransport.h"
 
 // TO_BE_REMOVED
@@ -1135,13 +1128,6 @@ void CallManager::addTaoListenerToCall(CpCall* pCall)
             pCall->addTaoListener((OsServerTask*) mpListeners[i]->mpListenerPtr);
         }
     }
-}
-
-
-void CallManager::unhold(const char* callId)
-{
-    CpStringMessage unholdMessage(CP_OFF_HOLD_CALL, callId);
-    postMessage(unholdMessage);
 }
 
 void CallManager::createCall(UtlString* callId,
@@ -3395,115 +3381,6 @@ void CallManager::clearCallStateLog()
     mCallStateLog.remove(0);
 }
 
-void CallManager::logCallState(const char* message,
-                               const char* eventId,
-                               const char* cause)
-{
-
-    if(mCallStateLogEnabled)
-    {
-        if (!message || !eventId || !cause)
-            return;
-
-        int len = strlen(message) + strlen(eventId) + strlen(cause);
-        if ((mCallStateLog.length() + len + 100) > MAXIMUM_CALLSTATE_LOG_SIZE)
-        {
-            if (mCallStateLogAutoWrite)
-            {
-                // If auto-write is enabled, write the previous log messages
-                // to the mediaserver log.
-                OsSysLog::add(FAC_CP, PRI_DEBUG,
-                    "CallManager::logCallState: %s",
-                    mCallStateLog.data());
-            }
-            else
-            {
-                // Otherwise, report that information was lost.
-                // (Don't make this conditional, as it can only be printed
-                // if the user has set mCallStateLogEnabled.)
-                OsSysLog::add(FAC_CP, PRI_DEBUG,
-                    "Call State message cleared because it reached "
-                    "max size (%d)", MAXIMUM_CALLSTATE_LOG_SIZE);
-            }
-            // Clear the call state log.
-            mCallStateLog.remove(0);
-        }
-
-        // Start the log item with the time in the same timestamp
-        // format as the log files.
-        {
-            OsDateTime now;
-            OsDateTime::getCurTime(now);
-            UtlString time_string;
-            now.getIsoTimeStringZus(time_string);
-            mCallStateLog.append(time_string);
-        }
-
-        mCallStateLog.append(eventId);
-
-        mCallStateLog.append("\nCause: ");
-        mCallStateLog.append(cause);
-
-        TaoString arg(message, TAOMESSAGE_DELIMITER);
-        mCallStateLog.append("\nCallId: ");
-        mCallStateLog.append(arg[0]);
-
-        mCallStateLog.append("\nLocal Address: ");
-        mCallStateLog.append(arg[1]);
-
-        mCallStateLog.append("\nRemote Address: ");
-        mCallStateLog.append(arg[2]);
-
-        mCallStateLog.append("\nTerminal Name: ");
-        mCallStateLog.append(arg[5]);
-
-        mCallStateLog.append("\nRemote is Callee: ");
-        mCallStateLog.append(arg[3]);
-
-        int argCnt = arg.getCnt();
-        if (argCnt > 6)
-        {
-            mCallStateLog.append("\nTerminal Connection local: ");
-            mCallStateLog.append(arg[6]);
-        }
-
-        if (argCnt > 7)
-        {
-            mCallStateLog.append("\nSIP Response Code: ");
-            mCallStateLog.append(arg[7]);
-            mCallStateLog.append("\nSIP Response Text: ");
-            mCallStateLog.append(arg[8]);
-        }
-
-        if (argCnt > 9)
-        {
-            mCallStateLog.append("\nMetaEvent Id: ");
-            mCallStateLog.append(arg[9]);
-
-            mCallStateLog.append("\nMetaEvent Code: ");
-            mCallStateLog.append(arg[10]);
-
-            if (argCnt > 11)
-            {
-                mCallStateLog.append("\nMeta Event CallId: ");
-                for (int i = 11; i < argCnt; i++)
-                {
-                    mCallStateLog.append("\n\t") ;
-                    mCallStateLog.append(arg[i]) ;
-                }
-            }
-        }
-
-        mCallStateLog.append("\n--------------------END--------------------\n");
-    }
-#ifdef TEST_PRINT
-    else
-    {
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "Call State LOGGING DISABLED\n");
-    }
-#endif
-}
-
 void CallManager::getCallStateLog(UtlString& logData)
 {
     logData = mCallStateLog;
@@ -3829,160 +3706,6 @@ CpMediaInterfaceFactory* CallManager::getMediaInterfaceFactory()
 
 /* ============================ INQUIRY =================================== */
 
-#if 0 // TO_BE_REMOVED
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-void CallManager::postTaoListenerMessage(int eventId,
-                                         int type,
-                                         int cause,
-                                         CpMultiStringMessage* pEventMessage)
-{
-    if (type != CpCall::CALL_STATE)
-        return;
-
-    if (mListenerCnt > 0 && pEventMessage)
-    {
-        char    buf[128];
-        UtlString arg;
-        UtlString callId;
-        UtlString address;
-        UtlString terminal;
-        int data1 = pEventMessage->getInt1Data();
-        int data2 = pEventMessage->getInt2Data();
-        int data3 = pEventMessage->getInt3Data();
-
-        sprintf(buf, "%d", cause);
-        pEventMessage->getString1Data(callId);
-        pEventMessage->getString2Data(address);
-        pEventMessage->getString3Data(terminal);
-
-        arg = callId + TAOMESSAGE_DELIMITER +
-            address + TAOMESSAGE_DELIMITER +
-            terminal + TAOMESSAGE_DELIMITER +
-            buf  + TAOMESSAGE_DELIMITER;
-
-        if (data1 != 0)
-        {
-            sprintf(buf, "%d", data1);
-            arg.append(buf);
-        }
-        else
-        {
-            arg += "0";
-        }
-        arg.append(TAOMESSAGE_DELIMITER);
-        if (data2 != 0)
-        {
-            sprintf(buf, "%d", data2);
-            arg.append(buf);
-        }
-        else
-        {
-            arg += "0";
-        }
-        arg.append(TAOMESSAGE_DELIMITER);
-        if (data3 != 0)
-        {
-            sprintf(buf, "%d", data3);
-            arg.append(buf);
-        }
-        else
-        {
-            arg += "0";
-        }
-
-        int argCnt = 7;
-
-        TaoMessage msg(TaoMessage::EVENT,
-            0,
-            0,
-            eventId,
-            0,
-            argCnt,
-            arg);
-
-        for (int i = 0; i < mListenerCnt; i++)
-        {
-            if (mpListeners[i] && mpListeners[i]->mpListenerPtr)
-                ((OsServerTask*) (mpListeners[i]->mpListenerPtr))->postMessage((OsMsg&)msg);
-#ifdef TEST_PRINT
-            OsSysLog::add(FAC_CP, PRI_DEBUG, "<===\ncall manager listener 0x%08x Message type: %d event id %d args: %s\n\n",
-                mpListeners[i]->mpListenerPtr, TaoMessage::EVENT, eventId, arg.data());
-#endif
-        }
-
-        UtlString eventLog;
-        CpCall::getStateString(eventId, &eventLog);
-        UtlString causeStr;
-
-        switch(cause)
-        {
-        case PtEvent::CAUSE_UNHOLD:
-            causeStr.append("CAUSE_UNHOLD");
-            break;
-        case PtEvent::CAUSE_UNKNOWN:
-            causeStr.append("CAUSE_UNKNOWN");
-            break;
-        case PtEvent::CAUSE_REDIRECTED:
-            causeStr.append("CAUSE_REDIRECTED");
-            break ;
-
-        case PtEvent::CAUSE_NETWORK_CONGESTION:
-            causeStr.append("CAUSE_NETWORK_CONGESTION");
-            break;
-
-        case PtEvent::CAUSE_NETWORK_NOT_OBTAINABLE:
-            causeStr.append("CAUSE_NETWORK_NOT_OBTAINABLE");
-            break;
-
-        case PtEvent::CAUSE_DESTINATION_NOT_OBTAINABLE:
-            causeStr.append("CAUSE_DESTINATION_NOT_OBTAINABLE");
-            break;
-
-        case PtEvent::CAUSE_INCOMPATIBLE_DESTINATION:
-            causeStr.append("CAUSE_INCOMPATIBLE_DESTINATION");
-            break;
-
-        case PtEvent::CAUSE_NOT_ALLOWED:
-            causeStr.append("CAUSE_NOT_ALLOWED");
-            break;
-
-        case PtEvent::CAUSE_NETWORK_NOT_ALLOWED:
-            causeStr.append("CAUSE_NETWORK_NOT_ALLOWED");
-            break;
-
-        case PtEvent::CAUSE_BUSY:
-            causeStr.append("CAUSE_BUSY");
-            break ;
-
-        case PtEvent::CAUSE_CALL_CANCELLED:
-            causeStr.append("CAUSE_CALL_CANCELLED");
-            break ;
-
-        case PtEvent::CAUSE_TRANSFER:
-            causeStr.append("CAUSE_TRANSFER");
-            break;
-
-        case PtEvent::CAUSE_NEW_CALL:
-            causeStr.append("CAUSE_NEW_CALL");
-            break;
-
-        default:
-        case PtEvent::CAUSE_NORMAL:
-            causeStr.append("CAUSE_NORMAL");
-            break;
-        }
-
-        logCallState(arg.data(), eventLog.data(), causeStr.data());
-
-        arg = OsUtil::NULL_OS_STRING;
-        callId = OsUtil::NULL_OS_STRING;
-        address = OsUtil::NULL_OS_STRING;
-        terminal = OsUtil::NULL_OS_STRING;
-        eventLog = OsUtil::NULL_OS_STRING;
-        causeStr = OsUtil::NULL_OS_STRING;
-    }
-}
-#endif
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

@@ -244,7 +244,6 @@ public:
                                   SipDialog& dialog);
 
     // Stimulus based operations DEPRICATED DO NOT USE
-    virtual void unhold(const char* callId);
     virtual void dialString(const char* url);
 
     virtual UtlBoolean disconnectConnection(const char* callId, const char* addressUrl);
@@ -364,11 +363,6 @@ public:
     virtual void setCallStateLogAutoWrite(UtlBoolean);
 
     virtual void clearCallStateLog();
-
-    virtual void logCallState(const char* message,
-                              const char* eventId,
-                              const char* cause);
-
 
     // Get the contents of the call state log.
     virtual void getCallStateLog(UtlString& logData);

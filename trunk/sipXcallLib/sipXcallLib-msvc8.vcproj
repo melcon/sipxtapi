@@ -763,10 +763,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpGatewayManager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\cp\CpGhostConnection.cpp"
 				>
 			</File>
@@ -780,10 +776,6 @@
 			</File>
 			<File
 				RelativePath=".\src\cp\CpPeerCall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpStringMessage.cpp"
 				>
 			</File>
 			<File
@@ -848,10 +840,6 @@
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpGatewayManager.h"
-				>
-			</File>
-			<File
 				RelativePath="include\cp\CpGhostConnection.h"
 				>
 			</File>
@@ -873,10 +861,6 @@
 			</File>
 			<File
 				RelativePath="include\cp\CpPeerCall.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpStringMessage.h"
 				>
 			</File>
 			<File

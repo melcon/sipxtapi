@@ -9,7 +9,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-
 // SYSTEM INCLUDES
 #include <assert.h>
 #include <stdlib.h>
@@ -25,11 +24,7 @@
 #include <mi/CpMediaInterface.h>
 #include <cp/CpMultiStringMessage.h>
 #include <cp/CpIntMessage.h>
-#include "ptapi/PtConnection.h"
 #include "ptapi/PtCall.h"
-#include "ptapi/PtTerminalConnection.h"
-#include "tao/TaoProviderAdaptor.h"
-#include "tao/TaoListenerEventMessage.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

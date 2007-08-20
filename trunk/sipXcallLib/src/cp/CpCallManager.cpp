@@ -18,15 +18,15 @@
 #include <assert.h>
 
 // APPLICATION INCLUDES
-#include <cp/CpCallManager.h>
-#include <cp/CpCall.h>
-#include <net/NetMd5Codec.h>
 #include <os/OsLock.h>
 #include <os/OsDateTime.h>
 #include <os/OsSocket.h>
 #include <os/OsReadLock.h>
 #include <os/OsWriteLock.h>
 #include <os/OsProcess.h>
+#include <cp/CpCallManager.h>
+#include <cp/CpCall.h>
+#include <net/NetMd5Codec.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

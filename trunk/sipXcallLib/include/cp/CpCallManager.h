@@ -666,18 +666,6 @@ public:
                                   SipDialog& dialog) = 0;
     //@}
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-    /** @name Stimulus based operations DEPRECATED DO NOT USE
-     */
-    //@{
-    //! Deprecated, use holdAllTerminalConnections
-    virtual void unhold(const char* callId) = 0;
-
-    //! Deprecated, use connect
-    virtual void dialString(const char* url) = 0;
-    //@}
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
         //! do-not-disturb flag
         virtual void setDoNotDisturb(int flag);
 
