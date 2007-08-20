@@ -795,24 +795,6 @@ void CpCall::hangUp(UtlString callId, int metaEventId)
     onHook();
 }
 
-
-OsStatus CpCall::addTaoListener(OsServerTask* pListener,
-                                char* callId,
-                                int connectId,
-                                int mask,
-                                int pEv)
-{
-    return addListener(pListener,
-        &mpListeners,
-        mListenerCnt,
-        mMaxNumListeners,
-        callId,
-        connectId,
-        mask,
-        pEv);
-
-}
-
 void CpCall::setLocalConnectionState(int newState)
 {
     mLocalConnectionState = newState;
