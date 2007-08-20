@@ -234,7 +234,7 @@ int MpAudioResource::getSamplesPerSec()
 
 void MpAudioResource::sendInterfaceNotification(MpNotificationMsgType type, int data)
 {
-   if (mpFlowGraph)
+   if (mpFlowGraph && areNotificationsEnabled())
    {
       MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_INTERFACE_NOTF_MSG,
          NULL, // set NULL to send it to flowgraph

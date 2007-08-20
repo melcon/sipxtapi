@@ -49,7 +49,7 @@ MpResource::MpResource(const UtlString& rName, int minInputs, int maxInputs,
 , mNumActualInputs(0)
 , mNumActualOutputs(0)
 , mVisitState(NOT_VISITED)
-, mNotificationsEnabled(FALSE)
+, mNotificationsEnabled(TRUE)
 , mLock(OsBSem::Q_FIFO, OsBSem::FULL)
 {
    int i;   

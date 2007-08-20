@@ -379,7 +379,7 @@ UtlBoolean MpRtpInputAudioConnection::setDtmfTerm(MprRecorder *pRecorders)
 
 void MpRtpInputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, int data)
 {
-   if (m_pConnectionNotificationQueue)
+   if (m_pConnectionNotificationQueue && areNotificationsEnabled())
    {
       // create message and send it to connection notification queue
       OsIntPtrMsg connectionMsg(OsMsg::MP_CONNECTION_NOTF_MSG,
