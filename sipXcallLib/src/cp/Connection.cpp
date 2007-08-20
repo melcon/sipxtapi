@@ -1103,7 +1103,6 @@ void Connection::postTaoListenerMessage(int state, int newCause, int isLocal)
                 ((OsServerTask*) pListeners[i])->postMessage((OsMsg&)msg);
             }
             mpCall->getStateString(eventId, &eventIdStr);
-            mpCallManager->logCallState(callId.data(), eventIdStr.data(), causeStr);
         }
 
         if (termEventId != PtEvent::EVENT_INVALID)    // post terminal connection events
@@ -1115,7 +1114,6 @@ void Connection::postTaoListenerMessage(int state, int newCause, int isLocal)
             }
 
             mpCall->getStateString(termEventId, &eventIdStr);
-            mpCallManager->logCallState(callId.data(), eventIdStr.data(), causeStr);
 
         }
 

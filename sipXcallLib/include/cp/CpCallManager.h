@@ -744,10 +744,6 @@ public:
 
     virtual void clearCallStateLog() = 0;
 
-    virtual void logCallState(const char* message,
-                                                                const char* eventId,
-                                                                const char* cause) = 0;
-
     virtual void getCallStateLog(UtlString& logData) = 0;
     //@}
 

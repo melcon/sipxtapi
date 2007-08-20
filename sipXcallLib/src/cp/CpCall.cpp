@@ -1573,7 +1573,6 @@ void CpCall::postTaoListenerMessage(int responseCode,
             causeStr.append("CAUSE_NORMAL");
             break;
         }
-        mpManager->logCallState(arg.data(), eventLog.data(), causeStr.data());
 
         arg.remove(0);
         callId.remove(0);
