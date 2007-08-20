@@ -51,14 +51,7 @@
 
 #define GENERIC_AUDIO_CODECS_NUM 3
 
-#define GIPS_CODECS_BEGIN  GENERIC_AUDIO_CODECS_NUM
-#ifdef HAVE_GIPS /* [ */
-#define GIPS_AUDIO_CODECS_NUM 3
-#else /* HAVE_GIPS ] [ */
-#define GIPS_AUDIO_CODECS_NUM 0
-#endif /* HAVE_GIPS ] */
-
-#define SPEEX_AUDIO_CODECS_BEGIN  (GIPS_CODECS_BEGIN+GIPS_AUDIO_CODECS_NUM)
+#define SPEEX_AUDIO_CODECS_BEGIN  GENERIC_AUDIO_CODECS_NUM
 #ifdef HAVE_SPEEX /* [ */
 #define SPEEX_AUDIO_CODECS_NUM 4
 #else /* HAVE_SPEEX ] [ */
@@ -333,12 +326,6 @@ OsStatus sipXmediaFactoryImpl::buildCodecFactory(SdpCodecFactory *pFactory,
     codecs[1] = SdpCodec::SDP_CODEC_GIPS_PCMA;
     codecs[2] = SdpCodec::SDP_CODEC_TONES;
 
-#ifdef HAVE_GIPS /* [ */
-    codecs[GIPS_CODECS_BEGIN+0] = SdpCodec::SDP_CODEC_GIPS_IPCMU;
-    codecs[GIPS_CODECS_BEGIN+1] = SdpCodec::SDP_CODEC_GIPS_IPCMA;
-    codecs[GIPS_CODECS_BEGIN+2] = SdpCodec::SDP_CODEC_GIPS_IPCMWB;
-#endif /* HAVE_GIPS ] */
-
 #ifdef HAVE_SPEEX /* [ */
     codecs[SPEEX_AUDIO_CODECS_BEGIN+0] = SdpCodec::SDP_CODEC_SPEEX;
     codecs[SPEEX_AUDIO_CODECS_BEGIN+1] = SdpCodec::SDP_CODEC_SPEEX_5;
@@ -530,15 +517,6 @@ OsStatus sipXmediaFactoryImpl::getCodec(int iCodec, UtlString& codec, int &bandW
         break;
     case 2: codec = (const char*) SdpCodec::SDP_CODEC_TONES;
         break;
-
-#ifdef HAVE_GIPS /* [ */
-    case GIPS_CODECS_BEGIN+0: codec = (const char*) SdpCodec::SDP_CODEC_GIPS_IPCMU;
-        break;
-    case GIPS_CODECS_BEGIN+1: codec = (const char*) SdpCodec::SDP_CODEC_GIPS_IPCMA;
-        break;
-    case GIPS_CODECS_BEGIN+2: codec = (const char*) SdpCodec::SDP_CODEC_GIPS_IPCMWB;
-        break;
-#endif /* HAVE_GIPS ] */
 
 #ifdef HAVE_SPEEX /* [ */
     case SPEEX_AUDIO_CODECS_BEGIN+0: codec = (const char*) SdpCodec::SDP_CODEC_SPEEX;
