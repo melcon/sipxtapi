@@ -669,7 +669,6 @@ void sipXtapiTestSuite::testCallDestroyRinging()
 
         sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100");
 
-
         // Validate Calling Side
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -691,6 +690,7 @@ void sipXtapiTestSuite::testCallDestroyRinging()
         CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
         CPPUNIT_ASSERT(connectionId != -1);
 
+        OsTask::delay(50); // small delay before destroying call
         SIPX_CALL hDestroyedCall = hCall;
         destroyCall(hCall);
 
@@ -711,9 +711,9 @@ void sipXtapiTestSuite::testCallDestroyRinging()
 
         CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
         CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hReceivingLine), SIPX_RESULT_SUCCESS);
-    }
 
-    OsTask::delay(TEST_DELAY);
+        OsTask::delay(TEST_DELAY);
+    }
 
     checkForLeaks();
 }
