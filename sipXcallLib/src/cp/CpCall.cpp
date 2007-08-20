@@ -78,17 +78,8 @@ mDtmfQMutex(OsMutex::Q_FIFO)
     }
 
     mDtmfQLen = 0;
-    mListenerCnt = 0;
     mToneListenerCnt = 0;
-    mMaxNumListeners = 20;
     nMaxNumToneListeners = MAX_NUM_TONE_LISTENERS;
-    mpListeners = (TaoListenerDb**) malloc(sizeof(TaoListenerDb *)*mMaxNumListeners);
-
-    if (!mpListeners)
-    {
-        osPrintf("***** ERROR ALLOCATING mpListeners IN CPCALL **** \n");
-        return;
-    }
 
     mpToneListeners = (TaoListenerDb**) malloc(sizeof(TaoListenerDb *)*nMaxNumToneListeners);
 
@@ -99,10 +90,6 @@ mDtmfQMutex(OsMutex::Q_FIFO)
     }
 
     int i;
-
-    for ( i = 0; i < mMaxNumListeners; i++)
-        mpListeners[i] = 0;
-
 
     for (i = 0; i < MAX_NUM_TONE_LISTENERS; i++)
         mpToneListeners[i] = 0;
@@ -143,24 +130,6 @@ CpCall::~CpCall()
     {
         mpMediaInterface->release();
         mpMediaInterface = NULL;
-    }
-
-    if (mListenerCnt > 0)  // check if listener exists.
-    {
-        for (int i = 0; i < mListenerCnt; i++)
-        {
-            if (mpListeners[i])
-            {
-                delete mpListeners[i];
-                mpListeners[i] = 0;
-            }
-        }
-        
-    }
-    if (mpListeners)
-    {
-        free(mpListeners);
-        mpListeners = NULL;
     }
 
     if (mToneListenerCnt > 0)  // check if listener exists.
@@ -1149,7 +1118,6 @@ void CpCall::startMetaEvent(int metaEventId,
                             int remoteIsCallee)
 {
     setMetaEvent(metaEventId, metaEventType, numCalls, metaEventCallIds);
-    postMetaEvent(METAEVENT_START, remoteIsCallee);
 }
 
 void CpCall::getMetaEvent(int& metaEventId, int& metaEventType,
@@ -1163,8 +1131,6 @@ void CpCall::getMetaEvent(int& metaEventId, int& metaEventType,
 
 void CpCall::stopMetaEvent(int remoteIsCallee)
 {
-    postMetaEvent(METAEVENT_END, remoteIsCallee);
-
     // Clear the event info
     mMetaEventId = 0;
     mMetaEventType = PtEvent::META_EVENT_NONE;
@@ -1299,89 +1265,6 @@ OsStatus CpCall::addListener(OsServerTask* pListener,
     return OS_SUCCESS;
 }
 
-void CpCall::postMetaEvent(int state, int remoteIsCallee)
-{
-    if (mMetaEventType != PtEvent::META_EVENT_NONE && mListenerCnt > 0)
-    {
-        int eventId = PtEvent::META_UNKNOWN;
-
-        switch (mMetaEventType)
-        {
-        case PtEvent::META_CALL_STARTING:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::CALL_META_CALL_STARTING_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::CALL_META_CALL_STARTING_ENDED;
-            break;
-
-        case PtEvent::META_CALL_PROGRESS:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::SINGLECALL_META_PROGRESS_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::SINGLECALL_META_PROGRESS_ENDED;
-            break;
-
-        case PtEvent::META_CALL_ADDITIONAL_PARTY:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::CALL_META_ADD_PARTY_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::CALL_META_ADD_PARTY_ENDED;
-            break;
-
-        case PtEvent::META_CALL_REMOVING_PARTY:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::CALL_META_REMOVE_PARTY_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::CALL_META_REMOVE_PARTY_ENDED;
-            break;
-
-        case PtEvent::META_CALL_ENDING:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::CALL_META_CALL_ENDING_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::CALL_META_CALL_ENDING_ENDED;
-            break;
-
-        case PtEvent::META_CALL_MERGING:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::MULTICALL_META_MERGE_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::MULTICALL_META_MERGE_ENDED;
-            break;
-
-        case PtEvent::META_CALL_TRANSFERRING:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::MULTICALL_META_TRANSFER_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::MULTICALL_META_TRANSFER_ENDED;
-            break;
-
-        case PtEvent::META_SNAPSHOT:
-            if (state == METAEVENT_START)
-                eventId = PtEvent::SINGLECALL_META_SNAPSHOT_STARTED;
-            else if (state == METAEVENT_END)
-                eventId = PtEvent::SINGLECALL_META_SNAPSHOT_ENDED;
-            break;
-
-        default:
-        case PtEvent::META_UNKNOWN:
-            osPrintf("CpCall::postMetaEvent - UNKNOWN_EVENT 0x%3x\n", mMetaEventId);
-            eventId = PtEvent::META_UNKNOWN;
-            break;
-        }
-
-        if (remoteIsCallee != -1)
-        {
-            postTaoListenerMessage(0, "", eventId, CALL_STATE, PtEvent::CAUSE_UNKNOWN, remoteIsCallee);
-        }
-        else
-        {
-            postTaoListenerMessage(0, "", eventId, CALL_STATE, PtEvent::CAUSE_UNKNOWN);
-        }
-    }
-
-}
-
 void CpCall::postTaoListenerMessage(int responseCode,
                                     UtlString responseText,
                                     int eventId,
@@ -1403,164 +1286,6 @@ void CpCall::postTaoListenerMessage(int responseCode,
     else if (type == TERMINAL_CONNECTION_STATE)
         mLocalTermConnectionState = tcStateFromEventId(eventId);
 
-    if (mListenerCnt > 0 && eventId != PtEvent::EVENT_INVALID)
-    {
-        char    buf[128];
-        UtlString arg;
-        UtlString callId;
-        if (targetCallId == OsUtil::NULL_OS_STRING)
-            getCallId(callId);
-        else
-            callId.append(targetCallId.data());
-
-        getLocalAddress(buf, 127);
-        arg = callId;                                                                   // arg[0]
-        arg.append(TAOMESSAGE_DELIMITER);
-        arg.append(buf); // call id, local address              // arg[1]
-        if (remoteAddress.isNull())
-        {
-            arg.append(TAOMESSAGE_DELIMITER);                       // arg[2]
-            arg.append("UNKNOWN");  // remote address not available yet
-        }
-        else
-        {
-            arg.append(TAOMESSAGE_DELIMITER);                       // arg[2]
-            arg.append(remoteAddress);      // remote address
-        }
-
-        arg.append(TAOMESSAGE_DELIMITER);                               // arg[3]
-        if (remoteIsCallee)                             // remoteiscallee?
-            arg.append("1");
-        else
-            arg.append("0");
-
-        sprintf(buf, "%d", cause);
-        arg.append(TAOMESSAGE_DELIMITER);
-        arg.append(buf);        // cause                                        // arg[4]
-
-        int argCnt = 9;
-        //              if (type == TERMINAL_CONNECTION_STATE)  // local terminal name
-        //              {
-        getLocalTerminalId(buf, 127);
-        arg.append(TAOMESSAGE_DELIMITER);
-        arg.append(buf);                                                        // arg[5]
-        //                      argCnt = 7;
-        //              }
-
-        arg.append(TAOMESSAGE_DELIMITER);                               // arg[6]
-        if (isRemote)                                           // isLocal
-            arg.append("0");
-        else
-            arg.append("1");
-
-        sprintf(buf, "%d", responseCode);                               // arg[7]
-        arg += TAOMESSAGE_DELIMITER + UtlString(buf);   // SIP response code
-
-        arg += TAOMESSAGE_DELIMITER + responseText;             // arg[8] SIP response text
-
-        if (mMetaEventId > 0)
-        {
-            arg.append(TAOMESSAGE_DELIMITER);
-            sprintf(buf, "%d", mMetaEventId);                       // arg[9]
-            arg.append(buf);
-
-            arg.append(TAOMESSAGE_DELIMITER);
-            sprintf(buf, "%d", mMetaEventType);                     // arg[10]
-            arg.append(buf);
-
-            if(mpMetaEventCallIds)
-            {
-                for (int i = 0; i < mNumMetaEventCalls; i++)
-                {
-                    arg.append(TAOMESSAGE_DELIMITER);
-                    arg.append(mpMetaEventCallIds[i]);
-                }
-            }
-
-            argCnt += (mNumMetaEventCalls + 2);
-        }
-
-        TaoMessage msg(TaoMessage::EVENT,
-            0,
-            0,
-            eventId,
-            0,
-            argCnt,
-            arg);
-
-        for (int i = 0; i < mListenerCnt; i++)
-        {
-            if (mpListeners[i] && mpListeners[i]->mpListenerPtr)
-                ((OsServerTask*) (mpListeners[i]->mpListenerPtr))->postMessage((OsMsg&)msg);
-        }
-
-        UtlString eventLog;
-        getStateString(eventId, &eventLog);
-        UtlString causeStr;
-
-        switch(cause)
-        {
-        case PtEvent::CAUSE_UNHOLD:
-            causeStr.append("CAUSE_UNHOLD");
-            break;
-        case PtEvent::CAUSE_UNKNOWN:
-            causeStr.append("CAUSE_UNKNOWN");
-            break;
-        case PtEvent::CAUSE_REDIRECTED:
-            causeStr.append("CAUSE_REDIRECTED");
-            break ;
-
-        case PtEvent::CAUSE_NETWORK_CONGESTION:
-            causeStr.append("CAUSE_NETWORK_CONGESTION");
-            break;
-
-        case PtEvent::CAUSE_NETWORK_NOT_OBTAINABLE:
-            causeStr.append("CAUSE_NETWORK_NOT_OBTAINABLE");
-            break;
-
-        case PtEvent::CAUSE_DESTINATION_NOT_OBTAINABLE:
-            causeStr.append("CAUSE_DESTINATION_NOT_OBTAINABLE");
-            break;
-
-        case PtEvent::CAUSE_INCOMPATIBLE_DESTINATION:
-            causeStr.append("CAUSE_INCOMPATIBLE_DESTINATION");
-            break;
-
-        case PtEvent::CAUSE_NOT_ALLOWED:
-            causeStr.append("CAUSE_NOT_ALLOWED");
-            break;
-
-        case PtEvent::CAUSE_NETWORK_NOT_ALLOWED:
-            causeStr.append("CAUSE_NETWORK_NOT_ALLOWED");
-            break;
-
-        case PtEvent::CAUSE_BUSY:
-            causeStr.append("CAUSE_BUSY");
-            break ;
-
-        case PtEvent::CAUSE_CALL_CANCELLED:
-            causeStr.append("CAUSE_CALL_CANCELLED");
-            break ;
-
-        case PtEvent::CAUSE_TRANSFER:
-            causeStr.append("CAUSE_TRANSFER");
-            break;
-
-        case PtEvent::CAUSE_NEW_CALL:
-            causeStr.append("CAUSE_NEW_CALL");
-            break;
-
-        default:
-        case PtEvent::CAUSE_NORMAL:
-            causeStr.append("CAUSE_NORMAL");
-            break;
-        }
-
-        arg.remove(0);
-        callId.remove(0);
-        eventLog.remove(0);
-        causeStr.remove(0);
-    }
 }
 
 int CpCall::tcStateFromEventId(int eventId)
