@@ -17,8 +17,6 @@
 #define _CpCallManager_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
 #include <os/OsServerTask.h>
 #include <os/OsRWMutex.h>
@@ -26,7 +24,6 @@
 #include "os/OsQueuedEvent.h"
 
 #include "ptapi/PtEvent.h"
-#include "ptapi/PtDefs.h"
 #include "net/SipMessage.h"
 #include "net/SipContactDb.h"
 #include "net/SipDialog.h"

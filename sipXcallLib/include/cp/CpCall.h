@@ -138,13 +138,6 @@ public:
         int isRemote = 0,
         UtlString targetCallId = OsUtil::NULL_OS_STRING);
 
-    virtual OsStatus addTaoListener(OsServerTask* pListener,
-        char* callId = NULL,
-        int ConnectId = 0,
-        int mask = 0,
-        int pEv = 0);
-    //:Register as a listener for call and connection events.
-
     void setCallState(int responseCode, UtlString responseText, int state, int cause = PtEvent::CAUSE_NORMAL);
 
     virtual void inFocus(int talking = 1);

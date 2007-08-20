@@ -497,7 +497,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                     if(handlingCall)
                     {
                         handlingCall->start();
-                        addTaoListenerToCall(handlingCall);
                         // addToneListener(callId.data(), 0);
 
                         //if(infocusCall == NULL)
@@ -990,10 +989,6 @@ void CallManager::requestShutdown()
     OsServerTask::requestShutdown();
     yield();
 
-}
-
-void CallManager::addTaoListenerToCall(CpCall* pCall)
-{
 }
 
 void CallManager::createCall(UtlString* callId,
@@ -3650,7 +3645,6 @@ void CallManager::doCreateCall(const char* callId,
             // implys the phone is off hook
             call->enableDtmf();
             call->start();
-            addTaoListenerToCall(call);
             //          addToneListener(callId, 0); // add dtmf tone listener to mp
 
             if(metaEventId > 0)
