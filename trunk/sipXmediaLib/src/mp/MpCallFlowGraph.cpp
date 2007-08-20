@@ -1520,7 +1520,7 @@ OsStatus MpCallFlowGraph::removeToneListener(MpConnectionID connectionId)
 }
 
 
-void MpCallFlowGraph::setInterfaceEventQueue(OsMsgQ* pInterfaceNotificationQueue)
+void MpCallFlowGraph::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
 {
 	if (!m_pInterfaceNotificationQueue)
 	{

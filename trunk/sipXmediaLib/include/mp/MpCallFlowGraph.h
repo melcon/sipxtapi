@@ -302,7 +302,7 @@ public:
      /// Adds tone listener to receive the dtmf key events.
    OsStatus removeToneListener(MpConnectionID connectionId);
 
-   void setInterfaceEventQueue(OsMsgQ* pInterfaceNotificationQueue);
+   void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
 
 //@}
 

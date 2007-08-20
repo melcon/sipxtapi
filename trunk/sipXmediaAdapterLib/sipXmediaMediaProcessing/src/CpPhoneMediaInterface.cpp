@@ -359,6 +359,7 @@ void CpPhoneMediaInterface::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNoti
 	if (!m_pInterfaceNotificationQueue)
 	{
 		m_pInterfaceNotificationQueue = pInterfaceNotificationQueue;
+      mpFlowGraph->setInterfaceNotificationQueue(pInterfaceNotificationQueue);
 	}	
 }
 
