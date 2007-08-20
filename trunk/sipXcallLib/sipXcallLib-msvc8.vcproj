@@ -868,10 +868,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\cp\DialogEventPublisher.h"
-				>
-			</File>
-			<File
 				RelativePath="include\cp\SipConnection.h"
 				>
 			</File>
