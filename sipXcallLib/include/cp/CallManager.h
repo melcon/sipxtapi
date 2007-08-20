@@ -25,7 +25,6 @@
 #include <mi/CpMediaInterfaceFactory.h>
 #include <net/QoS.h>
 
-#include <tao/TaoObjectMap.h>
 #include <os/OsProtectEventMgr.h>
 
 // DEFINES
@@ -108,11 +107,6 @@ public:
      //:Destructor
 
 /* ============================ MANIPULATORS ============================== */
-   virtual OsStatus addTaoListener(OsServerTask* pListener,
-                                   char* callId = NULL,
-                                   int ConnectId = 0,
-                                   int mask = 0);
-     //:Register as a listener for call and connection events.
 
     virtual UtlBoolean handleMessage(OsMsg& eventMessage);
 
@@ -445,15 +439,7 @@ public:
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-        TaoListenerDb**                 mpListeners;
-        int                                             mListenerCnt;
-        int                                             mMaxNumListeners;
-
         void addTaoListenerToCall(CpCall* pCall);
-
-        OsStatus addThisListener(OsServerTask* pListener,
-                                 char* callId,
-                                 int mask);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

@@ -19,20 +19,6 @@
 #include <assert.h>
 
 // APPLICATION INCLUDES
-#include <cp/CallManager.h>
-#include <net/SipMessageEvent.h>
-#include <net/SipUserAgent.h>
-#include <sdp/SdpCodec.h>
-#include <net/SdpCodecFactory.h>
-#include <net/Url.h>
-#include <net/SipSession.h>
-#include <net/SipDialog.h>
-#include <net/SipLineMgr.h>
-#include <cp/CpIntMessage.h>
-#include <cp/CpMultiStringMessage.h>
-#include <cp/Connection.h>
-#include <mi/CpMediaInterfaceFactory.h>
-#include <utl/UtlRegex.h>
 #include <os/OsUtil.h>
 #include <os/OsConfigDb.h>
 #include <os/OsEventMsg.h>
@@ -41,8 +27,22 @@
 #include <os/OsEvent.h>
 #include <os/OsReadLock.h>
 #include <os/OsWriteLock.h>
+#include <cp/CallManager.h>
+#include <utl/UtlRegex.h>
+#include <net/SipMessageEvent.h>
+#include <net/SipUserAgent.h>
+#include <net/SdpCodecFactory.h>
+#include <net/Url.h>
+#include <net/SipSession.h>
+#include <net/SipDialog.h>
+#include <net/SipLineMgr.h>
 #include <net/NameValueTokenizer.h>
+#include <sdp/SdpCodec.h>
+#include <cp/CpIntMessage.h>
+#include <cp/CpMultiStringMessage.h>
+#include <cp/Connection.h>
 #include <cp/CpPeerCall.h>
+#include <mi/CpMediaInterfaceFactory.h>
 #include "tapi/SipXTransport.h"
 
 // TO_BE_REMOVED
@@ -268,19 +268,6 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
     stopCallStateLog();
 #endif
 
-    mListenerCnt = 0;
-    mMaxNumListeners = 20;
-    mpListeners = (TaoListenerDb**)malloc(sizeof(TaoListenerDb *)*mMaxNumListeners);
-
-    if (!mpListeners)
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "Unable to allocate listeners\n");
-        return;
-    }
-
-    for (int i = 0; i < mMaxNumListeners; i++)
-        mpListeners[i] = 0;
-
     // Pre-allocate all of the history memory to minimze fragmentation
     for(int h = 0; h < CP_CALL_HISTORY_LENGTH ; h++)
         mCallManagerHistory[h].capacity(256);
@@ -310,21 +297,7 @@ CallManager::~CallManager()
 
     waitUntilShutDown();   
 
-    if (mMaxNumListeners > 0)  // check if listener exists.
-    {
-        for (int i = 0; i < mListenerCnt; i++)
-        {
-            if (mpListeners[i])
-            {
-                delete mpListeners[i];
-                mpListeners[i] = 0;
-            }
-        }
-        free(mpListeners);
-    }
-
     // do not delete the codecFactory it is not owned here
-
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -332,104 +305,6 @@ CallManager::~CallManager()
 void CallManager::setOutboundLine(const char* lineUrl)
 {
     mOutboundLine = lineUrl ? lineUrl : "";
-}
-
-OsStatus CallManager::addTaoListener(OsServerTask* pListener,
-                                     char* callId,
-                                     int ConnectId,
-                                     int mask)
-{
-    OsReadLock lock(mCallListMutex);
-    OsStatus rc = OS_UNSPECIFIED;
-    if (callId)
-    {
-        CpCall* handlingCall = findHandlingCall(callId);
-        if (handlingCall)
-        {
-            handlingCall->addTaoListener(pListener, callId, ConnectId, mask);
-            rc = OS_SUCCESS;
-        }
-    }
-    else
-    {
-        if (infocusCall)
-        {
-            infocusCall->addTaoListener(pListener, callId, ConnectId, mask);
-            rc = OS_SUCCESS;
-        }
-
-        if (!callStack.isEmpty())
-        {
-            // Create an iterator to sequence through callStack.
-            UtlSListIterator iterator(callStack);
-            UtlInt* callCollectable;
-            CpCall* call;
-            callCollectable = (UtlInt*)iterator();
-            while (callCollectable)
-            {
-                call = (CpCall*)callCollectable->getValue();
-                if (call)
-                {
-                    // Add the listener to it.
-                    call->addTaoListener(pListener, callId, ConnectId, mask);
-                    rc = OS_SUCCESS;
-                }
-                callCollectable = (UtlInt*)iterator();
-            }
-        }
-    }
-
-    rc = addThisListener(pListener, callId, mask);
-
-    return rc;
-}
-
-
-OsStatus CallManager::addThisListener(OsServerTask* pListener,
-                                      char* callId,
-                                      int mask)
-{
-    // Check if listener is already added.
-    for (int i = 0; i < mListenerCnt; i++)
-    {
-        // Check whether this listener (defined by PListener and callId) is
-        // already in mpListners[].
-        if (mpListeners[i] &&
-            mpListeners[i]->mpListenerPtr == (int) pListener &&
-            (!callId || mpListeners[i]->mName.compareTo(callId) == 0))
-        {
-            // If so, increment the count for this listener.
-            mpListeners[i]->mRef++;
-            return OS_SUCCESS;
-        }
-    }
-
-    // If there is no room for more listeners in mpListeners[]:
-    if (mListenerCnt == mMaxNumListeners)
-    {
-        // Reallocate a larger mpListeners[].
-        mMaxNumListeners += 20;
-        mpListeners = (TaoListenerDb **)realloc(mpListeners,sizeof(TaoListenerDb *)*mMaxNumListeners);
-        for (int loop = mListenerCnt; loop < mMaxNumListeners; loop++)
-        {
-            mpListeners[loop] = 0 ;
-        }
-    }
-
-    // Construct a new TaoListenerDb to hold the information about the new
-    // listener.
-    TaoListenerDb *pListenerDb = new TaoListenerDb();
-    // Insert pListener and callId.
-    if (callId)
-    {
-        pListenerDb->mName.append(callId);
-    }
-    pListenerDb->mpListenerPtr = (int) pListener;
-    pListenerDb->mRef = 1;
-    // Add it to mpListeners[].
-    mpListeners[mListenerCnt++] = pListenerDb;
-
-    return OS_SUCCESS;
 }
 
 
@@ -1119,15 +994,6 @@ void CallManager::requestShutdown()
 
 void CallManager::addTaoListenerToCall(CpCall* pCall)
 {
-    // Check if listener is already added.
-    for (int i = 0; i < mListenerCnt; i++)
-    {
-        if (mpListeners[i] &&
-            mpListeners[i]->mpListenerPtr)
-        {
-            pCall->addTaoListener((OsServerTask*) mpListeners[i]->mpListenerPtr);
-        }
-    }
 }
 
 void CallManager::createCall(UtlString* callId,
