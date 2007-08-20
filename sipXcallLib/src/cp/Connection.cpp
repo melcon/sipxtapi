@@ -16,13 +16,6 @@
 // SYSTEM INCLUDES
 
 // APPLICATION INCLUDES
-#include <cp/Connection.h>
-#include <cp/CpGhostConnection.h>
-#include <mi/CpMediaInterface.h>
-#include <cp/CpMultiStringMessage.h>
-#include <cp/CpCall.h>
-#include <sdp/SdpCodec.h>
-#include <net/SipSession.h>
 #include <os/OsLock.h>
 #include <os/OsMsg.h>
 #include <os/OsDatagramSocket.h>
@@ -31,10 +24,14 @@
 #include <os/OsTimer.h>
 #include "os/OsDateTime.h"
 #include "os/OsUtil.h"
-#include <tao/TaoObjectMap.h>
+#include <cp/Connection.h>
+#include <cp/CpGhostConnection.h>
+#include <cp/CpMultiStringMessage.h>
+#include <cp/CpCall.h>
+#include <mi/CpMediaInterface.h>
+#include <sdp/SdpCodec.h>
+#include <net/SipSession.h>
 #include <tao/TaoReference.h>
-#include <tao/TaoListenerEventMessage.h>
-#include <ptapi/PtConnection.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

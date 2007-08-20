@@ -9,12 +9,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-
 // SYSTEM INCLUDES
-
 // APPLICATION INCLUDES
 #include <cp/CpIntMessage.h>
-#include <cp/CallManager.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
