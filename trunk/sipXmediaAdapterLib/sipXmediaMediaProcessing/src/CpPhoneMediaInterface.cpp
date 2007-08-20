@@ -356,7 +356,7 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
 
 void CpPhoneMediaInterface::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
 {
-	if (!m_pInterfaceNotificationQueue)
+	if (!m_pInterfaceNotificationQueue && mpFlowGraph)
 	{
 		m_pInterfaceNotificationQueue = pInterfaceNotificationQueue;
       mpFlowGraph->setInterfaceNotificationQueue(pInterfaceNotificationQueue);
