@@ -1,0 +1,16 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+This is the homepage of customized sipXtapi library originally developed on SIP Foundry. The goal of this project is to produce a stable, commercially usable SDK for client side SIP applications. API is designed to be simple but usable to enable rapid development. It is distributed under GNU LGPL license.
+
+= Stability =
+It was reported by a user of customized sipXtapi that revision 28 can handle over 200000 calls without a crash or noticable memory leak.
+
+= Differences =
+
+Main differences between customized and SIP Foundry version:
+  * sipXtapi was heavily refactored, many bugs and memory leaks have been fixed, safer locking, fixed problems with conferences
+  * slightly different API, more C like, C++ code is almost gone from header files
+  * GIPS (Global IP Sound) remnants have been removed
+  * removed many hard limits from underlying libraries
