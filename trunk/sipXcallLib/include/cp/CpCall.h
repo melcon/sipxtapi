@@ -13,8 +13,6 @@
 #define _CpCall_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
 #include <os/OsServerTask.h>
 #include <os/OsRWMutex.h>
@@ -125,8 +123,6 @@ public:
     /* ============================ MANIPULATORS ============================== */
 
     void setDropState(UtlBoolean state);
-
-    void postMetaEvent(int state, int remoteIsCallee = -1);  // remoteIsCallee = -1 means not set
 
     void postTaoListenerMessage(int responseCode,
         UtlString responseText,
@@ -276,10 +272,6 @@ protected:
     int mMetaEventType;
     int mNumMetaEventCalls;
     UtlString* mpMetaEventCallIds;
-
-    TaoListenerDb**                 mpListeners;
-    int                             mListenerCnt;
-    int                             mMaxNumListeners;
 
     TaoListenerDb**                 mpToneListeners;
     int                             mToneListenerCnt;

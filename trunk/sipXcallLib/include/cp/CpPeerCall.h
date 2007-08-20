@@ -198,7 +198,6 @@ protected:
      */
     virtual UtlBoolean handleInterfaceNotfMessage(OsMsg& eventMessage);
 
-    void addTaoListenerToConnection(Connection* connection);
     void addToneListenersToConnection(Connection* connection);
 
 

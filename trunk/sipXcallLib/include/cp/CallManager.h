@@ -17,8 +17,6 @@
 #define _CallManager_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
 #include <cp/CpCallManager.h>
 #include <cp/Connection.h>
