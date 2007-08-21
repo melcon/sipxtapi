@@ -1650,6 +1650,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MprDecodeInbandDtmf.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MprDejitter.cpp"
 					>
 				</File>
@@ -2232,6 +2236,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprDecode.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MprDecodeInbandDtmf.h"
 					>
 				</File>
 				<File

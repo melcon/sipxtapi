@@ -639,6 +639,9 @@ typedef enum
                                         (device was removed, already in use, etc). */
     MEDIA_CAUSE_INCOMPATIBLE,        /**< Incompatible destination -- We were unable
                                         to negotiate a codec */
+    MEDIA_CAUSE_DTMF_INBAND,		    /** Inband DTMF detected **/
+    MEDIA_CAUSE_DTMF_RFC2833,        /** RFC2833 DTMF detected **/
+    MEDIA_CAUSE_DTMF_SIPINFO	       /** SIP INFO DTMF detected **/
 } SIPX_MEDIA_CAUSE;
 
 /**

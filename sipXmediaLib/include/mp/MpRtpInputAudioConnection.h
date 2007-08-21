@@ -23,6 +23,7 @@ class MprDecode;
 class MprRecorder;
 class SdpCodec;
 class OsNotification;
+class MprDecodeInBandDtmf;
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -44,6 +45,8 @@ class MpRtpInputAudioConnection : public MpRtpInputConnection
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+	friend class MprDecodeInBandDtmf;
+
 
 /* ============================ CREATORS ================================== */
 ///@name Creators
@@ -89,10 +92,6 @@ public:
      /**<
      *  @Returns <b>TRUE</b>
      */
-
-   // TODO: this is butt ugly.  The connection should not know anything
-   // about a recorder.  This should be and event or something like that.
-   UtlBoolean setDtmfTerm(MprRecorder *pRecorder);
 
    /// Queue a message to start receiving RTP and RTCP packets.
    static OsStatus startReceiveRtp(OsMsgQ& messageQueue,
@@ -161,6 +160,7 @@ private:
 
 //   MpFlowGraphBase*   mpFlowGraph;     ///< Parent flowgraph
    MprDecode*         mpDecode;        ///< Inbound component: Decoder
+   MprDecodeInBandDtmf* mpDecodeInBandDtmf; // InBand DTMF decoder
 
    MpDecoderBase*     mpPayloadMap[NUM_PAYLOAD_TYPES];
                                        ///< Map RTP payload types to our decoders
