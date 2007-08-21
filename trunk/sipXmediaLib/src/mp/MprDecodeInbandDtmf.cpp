@@ -1,12 +1,6 @@
 //
 // Copyright (C) 2007 stipus@stipus.com
 //
-// Copyright (C) 2004-2006 SIPfoundry Inc.
-// Licensed by SIPfoundry under the LGPL license.
-//
-// Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
-// Licensed to SIPfoundry under a Contributor Agreement.
-//
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -213,7 +207,9 @@ double MprDecodeInBandDtmf::Goertzel(const MpAudioSample *input, int numsamples,
 
 UtlBoolean MprDecodeInBandDtmf::handleMessage(MpFlowGraphMsg& rMsg)
 {
-   switch (rMsg.getMsg()) {
+   switch (rMsg.getMsg())
+   {
+   case 0: // to make compiler stop complaining
    default:
       return MpAudioResource::handleMessage(rMsg);
       break;

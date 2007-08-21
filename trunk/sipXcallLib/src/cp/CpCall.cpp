@@ -49,8 +49,7 @@ CpCall::CpCall(CpCallManager* manager,
                const char* callId,
                int holdType) :
 OsServerTask("Call-%d", NULL, DEF_MAX_MSGS, DEF_PRIO, DEF_OPTIONS, CALL_STACK_SIZE),
-mCallIdMutex(OsMutex::Q_FIFO),
-mDtmfQMutex(OsMutex::Q_FIFO)
+mCallIdMutex(OsMutex::Q_FIFO)
 {
     // add the call task name to a list so we can track leaked calls.
     UtlString strCallTaskName = getName();
@@ -77,7 +76,6 @@ mDtmfQMutex(OsMutex::Q_FIFO)
         mHoldType = CallManager::NEAR_END_HOLD;
     }
 
-    mDtmfQLen = 0;
     mToneListenerCnt = 0;
     nMaxNumToneListeners = MAX_NUM_TONE_LISTENERS;
 
@@ -469,62 +467,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             }
             break;
 
-        case CallManager::CP_ENABLE_DTMF_EVENT:
-            addHistoryEvent(msgSubType, multiStringMessage);
-            {
-                OsWriteLock lock(mDtmfQMutex);
-                int ev = ((CpMultiStringMessage&)eventMessage).getInt1Data();
-
-                assert(mDtmfQLen < MAX_NUM_TONE_LISTENERS);
-
-                int found = dtmfEventExists(ev);
-                if (found == -1)
-                {
-                    mDtmfEvents[mDtmfQLen].event = ev;
-                    mDtmfEvents[mDtmfQLen].interdigitSecs = ((CpMultiStringMessage&)eventMessage).getInt2Data();
-                    mDtmfEvents[mDtmfQLen].ignoreKeyUp = ((CpMultiStringMessage&)eventMessage).getInt3Data();
-                    mDtmfEvents[mDtmfQLen].enabled = TRUE;
-                    mDtmfQLen++;
-                }
-                else
-                {
-                    mDtmfEvents[found].enabled = TRUE;
-                }
-
-            }
-            break;
-        case CallManager::CP_DISABLE_DTMF_EVENT:
-            addHistoryEvent(msgSubType, multiStringMessage);
-            {
-                OsWriteLock lock(mDtmfQMutex);
-
-                // Temporarily remove the event from list, do not delete it.
-                // removeDtmfEvent will/has to/ be called to delete it.
-                int ev = ((CpMultiStringMessage&)eventMessage).getInt1Data();
-                int found = dtmfEventExists(ev);
-                if (found >= 0)
-                    mDtmfEvents[found].enabled = FALSE;
-            }
-            break;
-
-        case CallManager::CP_REMOVE_DTMF_EVENT:
-            addHistoryEvent(msgSubType, multiStringMessage);
-            {
-                OsWriteLock lock(mDtmfQMutex);
-
-                int ev = ((CpMultiStringMessage&)eventMessage).getInt1Data();
-                removeFromDtmfEventList(ev);
-
-                // 08/19/03 (rschaaf):
-                // The entity requesting the CP_REMOVE_DTMF_EVENT can't delete
-                // the event because it might still be in use.  Instead,
-                // the recipient of the CP_REMOVE_DTMF_EVENT message must take
-                // responsibility for deleting the event.
-                OsQueuedEvent* pEvent = (OsQueuedEvent*) ev;
-                delete pEvent;
-            }
-            break;
-
         case CallManager::CP_EZRECORD:
             addHistoryEvent(msgSubType, multiStringMessage);
             {
@@ -569,8 +511,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             {
             case OsEventMsg::NOTIFY:
                 {
-                    if (!handleNotifyMessage((OsEventMsg&)eventMessage))
-                    {
                         int eventData;
                         int pListener;
                         ((OsEventMsg&)eventMessage).getEventData(eventData);
@@ -609,66 +549,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                                     ((OsServerTask*)pListener)->postMessage((OsMsg&)msg);
                                 }
                             }
-
-                            // respond to the waitforDtmfTone event
-                            {
-                                OsWriteLock lock(mDtmfQMutex);
-
-                                //#ifdef TEST_PRINT
-                                OsSysLog::add(FAC_CP, PRI_INFO, "CpCall %s - received dtmf event 0x%08x QLen=%d\n",
-                                    mCallId.data(), eventData, mDtmfQLen);
-                                //#endif
-
-                                for (i = 0; i < mDtmfQLen; i++)
-                                {
-                                    if (mDtmfEvents[i].enabled == FALSE)
-                                    {
-                                        OsSysLog::add(FAC_CP, PRI_INFO, "CpCall %s - event %p is disabled\n",
-                                            mCallId.data(), &mDtmfEvents[i]);
-                                        continue;
-                                    }
-
-                                    if (mDtmfEvents[i].ignoreKeyUp && (eventData & 0x80000000))
-                                    {
-                                        //#ifdef TEST_PRINT
-                                        OsSysLog::add(FAC_CP, PRI_INFO, "CpCall %s - ignore KEYUP event 0x%08x\n",
-                                            mCallId.data(), eventData);
-                                        //#endif
-                                        continue; // ignore keyup event
-                                    }
-
-                                    if (eventData & 0x0000ffff)
-                                    {
-                                        //#ifdef TEST_PRINT
-                                        OsSysLog::add(FAC_CP, PRI_INFO, "CpCall %s - ignore KEYDOWN event 0x%08x\n",
-                                            mCallId.data(), eventData);
-                                        //#endif
-                                        continue; // previous key still down, ignore long key event
-                                    }
-                                    OsQueuedEvent* dtmfEvent = (OsQueuedEvent*)(mDtmfEvents[i].event);
-                                    if (dtmfEvent)
-                                    {
-                                        OsStatus res = dtmfEvent->signal((eventData & 0xfffffff0));
-                                        // There could be a race condition in media server
-                                        // where the receiving msgq can be processing an event from the
-                                        // playerlistener and this event is signaled before the q is reset,
-                                        // so we'll try to send a few more times until success.
-                                        int tries = 0;
-                                        while ((tries++ < 10) && (res != OS_SUCCESS))
-                                        {
-                                            res = dtmfEvent->signal((eventData & 0xfffffff0));
-                                            OsSysLog::add(FAC_CP, PRI_INFO, "CpCall %s - resend dtmfEvent event 0x%08x to %p, res=%d\n",
-                                                mCallId.data(), eventData, dtmfEvent, res);
-                                        }
-                                        if (res != OS_SUCCESS && tries >= 10)
-                                        {
-                                            OsSysLog::add(FAC_CP, PRI_ERR, "CpCall %s - failed to notify DTMF event 0x%08x to %p, res=%d\n",
-                                                mCallId.data(), eventData, dtmfEvent, res);
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
                 break;
@@ -782,34 +662,6 @@ OsStatus CpCall::ezRecord(int ms, int silenceLength, const char* fileName, doubl
 {
     return mpMediaInterface->ezRecord(ms, silenceLength, fileName, duration, dtmfterm);
 }
-
-void CpCall::addToneListenerToFlowGraph(int pListener, Connection* connection)
-{
-    OsQueuedEvent *pEv;
-    pEv = new OsQueuedEvent(mIncomingQ, pListener);
-
-    UtlString remoteAddress;
-    connection->getRemoteAddress(&remoteAddress);
-
-    addListener((OsServerTask*) pListener,
-        &mpToneListeners,
-        mToneListenerCnt,
-        nMaxNumToneListeners,
-        (char*)remoteAddress.data(),
-        connection->getConnectionId(),
-        0,
-        (int)pEv);
-
-    mpMediaInterface->addToneListener(pEv, connection->getConnectionId());
-}
-
-
-void CpCall::removeToneListenerFromFlowGraph(int pListener, Connection* connection)
-{
-    mpMediaInterface->removeToneListener(connection->getConnectionId()) ;
-}
-
-
 
 /* ============================ ACCESSORS ================================= */
 
@@ -1222,49 +1074,6 @@ void CpCall::addHistoryEvent(const int msgSubType,
     addHistoryEvent(subTypeString + eventDescription + msgDump);
 }
 
-OsStatus CpCall::addListener(OsServerTask* pListener,
-                             TaoListenerDb*** pListeners,
-                             int& listenerCnt,
-                             int& maxNumListeners,
-                             char* callId /*= NULL*/,
-                             int connectId /*= 0*/,
-                             int mask /*= 0*/,
-                             int pEv /*= 0*/)
-{
-    for (int i = 0; i < listenerCnt; i++)
-    {
-        if ((*pListeners)[i] &&
-            (*pListeners)[i]->mpListenerPtr == (int) pListener &&
-            (!callId || (*pListeners)[i]->mName.compareTo(callId) == 0) &&
-            ((*pListeners)[i]->mId == connectId))
-        {
-            (*pListeners)[i]->mRef++;
-            return OS_SUCCESS;
-        }
-    }
-
-    if (listenerCnt == maxNumListeners)
-    {
-        //make more of em.
-        maxNumListeners += 20;
-        *pListeners = (TaoListenerDb **)realloc((*pListeners),sizeof(TaoListenerDb *)*maxNumListeners);
-        for (int loop = listenerCnt;loop < maxNumListeners;loop++)
-            (*pListeners)[loop] = 0 ;
-    }
-
-    // add to listenerDb
-    TaoListenerDb *pListenerDb = new TaoListenerDb();
-    if (callId)
-        pListenerDb->mName.append(callId);
-    pListenerDb->mpListenerPtr = (int) pListener;
-    pListenerDb->mRef = 1;
-    pListenerDb->mId = connectId;
-    pListenerDb->mIntData = pEv;
-    (*pListeners)[listenerCnt++] = pListenerDb;
-
-    return OS_SUCCESS;
-}
-
 void CpCall::postTaoListenerMessage(int responseCode,
                                     UtlString responseText,
                                     int eventId,
@@ -1328,38 +1137,6 @@ int CpCall::tcStateFromEventId(int eventId)
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
-
-void CpCall::removeFromDtmfEventList(int ev)
-{
-    for (int i = 0; i < mDtmfQLen; i++)
-    {
-        if (mDtmfEvents[i].event == ev)
-        {
-            for (int j = i; j < (mDtmfQLen - 1); j++)
-            {
-                mDtmfEvents[j].event = mDtmfEvents[j + 1].event;
-                mDtmfEvents[j].interdigitSecs = mDtmfEvents[j + 1].interdigitSecs;
-                mDtmfEvents[j].timeoutSecs = mDtmfEvents[j + 1].timeoutSecs;
-                mDtmfEvents[j].ignoreKeyUp = mDtmfEvents[j + 1].ignoreKeyUp;
-            }
-            mDtmfQLen--;
-        }
-    }
-}
-
-int CpCall::dtmfEventExists(int ev)
-{
-    int found = -1;
-    for (int i = 0; i < mDtmfQLen; i++)
-    {
-        if (mDtmfEvents[i].event == ev)
-        {
-            found = i;
-            break;
-        }
-    }
-    return found;
-}
 
 /* ============================ FUNCTIONS ================================= */
 

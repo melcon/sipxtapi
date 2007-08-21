@@ -576,14 +576,6 @@ public:
     */
    virtual void setCodecCPULimit(int iLimit) = 0 ;
 
-   //! Add a listener event to this call that will receive callback 
-   //! or queued event notifications upon receipt of DTMF tone events 
-   //! (RFC 2833).
-   virtual void addToneListener(OsNotification *pListener, int connectionId) = 0;
-
-   //! Remove the specified DTMF listener from this call.
-   virtual void removeToneListener(int connectionId) = 0;
-
    //! Start recording audio for this call.
    virtual OsStatus ezRecord(int ms, 
                              int silenceLength, 

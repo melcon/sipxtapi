@@ -153,15 +153,10 @@ public:
         CP_UNHOLD_ALL_TERM_CONNECTIONS,//50
         CP_CANCEL_TIMER,
         CP_GET_NEXT_CSEQ,
-        CP_ADD_TONE_LISTENER,
-        CP_REMOVE_TONE_LISTENER,
-        CP_ENABLE_DTMF_EVENT,
-        CP_DISABLE_DTMF_EVENT,
-        CP_REMOVE_DTMF_EVENT,
         CP_EZRECORD,                   
-        CP_PLAY_BUFFER_TERM_CONNECTION, //60
+        CP_PLAY_BUFFER_TERM_CONNECTION,
         CP_CREATE_PLAYER,
-        CP_DESTROY_PLAYER,
+        CP_DESTROY_PLAYER, //60
         CP_CREATE_PLAYLIST_PLAYER,
         CP_DESTROY_PLAYLIST_PLAYER,
         CP_CREATE_QUEUE_PLAYER,
@@ -169,9 +164,9 @@ public:
         CP_RENEGOTIATE_CODECS_CONNECTION,
         CP_RENEGOTIATE_CODECS_ALL_CONNECTIONS,
         CP_SET_CODEC_CPU_LIMIT,  
-        CP_GET_CODEC_CPU_COST,//70
+        CP_GET_CODEC_CPU_COST,
         CP_GET_CODEC_CPU_LIMIT,
-        CP_SET_INBOUND_CODEC_CPU_LIMIT,
+        CP_SET_INBOUND_CODEC_CPU_LIMIT,//70
         CP_STOPRECORD,
         CP_SET_OUTBOUND_LINE,
         CP_GET_LOCAL_CONTACTS,
@@ -179,9 +174,9 @@ public:
         CP_GET_MEDIA_CONNECTION_ID,
         CP_ENABLE_STUN,
         CP_ENABLE_TURN,         
-        CP_GET_CAN_ADD_PARTY, //80
+        CP_GET_CAN_ADD_PARTY,
         CP_SPLIT_CONNECTION,
-        CP_JOIN_CONNECTION,
+        CP_JOIN_CONNECTION, //80
         CP_CONSULT_TRANSFER_ADDRESS,
         CP_START_TONE_CONNECTION,
         CP_STOP_TONE_CONNECTION,
@@ -766,10 +761,6 @@ public:
      */
     virtual OsStatus getCodecCPULimitCall(const char* callId,
                                           int& cost) = 0;
-
-    //! Deprecated, use getDtmfEvent
-        virtual void addToneListener(const char* callId,
-                                 int pListener) = 0;
 
     virtual UtlBoolean isIceEnabled() const ;
 

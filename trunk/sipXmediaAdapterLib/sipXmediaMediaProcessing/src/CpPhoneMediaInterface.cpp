@@ -1565,22 +1565,6 @@ OsStatus CpPhoneMediaInterface::ezRecord(int ms,
    return ret;
 }
 
-void CpPhoneMediaInterface::addToneListener(OsNotification *pListener, int connectionId)
-{
-    if ((mpFlowGraph) && (connectionId >= 0))
-    {
-        mpFlowGraph->addToneListener(pListener, (MpConnectionID) connectionId);
-    }
-}
-
-void CpPhoneMediaInterface::removeToneListener(int connectionId)
-{
-    if ((mpFlowGraph) && (connectionId >= 0))
-    {
-        mpFlowGraph->removeToneListener((MpConnectionID) connectionId) ;
-    }
-}
-
 void CpPhoneMediaInterface::setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) 
 {
     CpPhoneMediaConnection* pMediaConn = getMediaConnection(connectionId);

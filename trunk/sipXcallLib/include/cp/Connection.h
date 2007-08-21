@@ -419,8 +419,6 @@ public:
 
     virtual UtlBoolean isLocallyInitiatedRemoteHold() const ;
 
-	OsQueuedEvent* getDtmfQueuedEvent() const { return mpDtmfQueuedEvent ;} ;
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
  
@@ -498,8 +496,6 @@ protected:
     UtlString mOriginalCallConnectionAddress;
     UtlString mTargetCallConnectionAddress;
     UtlString mTargetCallId;   
-
-	OsQueuedEvent* mpDtmfQueuedEvent;
 
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener;

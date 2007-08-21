@@ -232,7 +232,7 @@ int MpAudioResource::getSamplesPerSec()
    return mSamplesPerSec;
 }
 
-void MpAudioResource::sendInterfaceNotification(MpNotificationMsgType type, int data)
+void MpAudioResource::sendInterfaceNotification(MpNotificationMsgType type, intptr_t data)
 {
    if (mpFlowGraph && areNotificationsEnabled())
    {

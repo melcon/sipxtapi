@@ -97,11 +97,7 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-     /// Handle the FLOWGRAPH_SET_DTMF_NOTIFY message.
-   UtlBoolean handleSetDtmfNotify(OsNotification* n);
-     /**<
-     *  @returns <b>TRUE</b>
-     */
+   virtual OsStatus notify(MpResNotification::MpResNotificationType type, const intptr_t eventData);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -126,6 +122,7 @@ private:
    MpJitterBuffer* mpJB;            ///< Pointer to JitterBuffer instance
 
    MprDejitter* mpMyDJ;
+   MpResNotification* m_pRFC2833DTMFNotif;
 
    /// List of the codecs to be used to decode media.
    /**

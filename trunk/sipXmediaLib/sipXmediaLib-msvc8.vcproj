@@ -1666,6 +1666,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpResNotification.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpResNotificationMsg.cpp"
 					>
 				</File>
@@ -2252,6 +2256,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprEncode.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpResNotification.h"
 					>
 				</File>
 				<File

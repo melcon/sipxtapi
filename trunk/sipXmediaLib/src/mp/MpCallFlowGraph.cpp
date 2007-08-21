@@ -1471,24 +1471,6 @@ void MpCallFlowGraph::stopReceiveRtp(MpConnectionID connID)
     }
 }
 
-OsStatus MpCallFlowGraph::addToneListener(OsNotification* pNotify,
-                                             MpConnectionID connectionId)
-{
-   MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_SET_DTMF_NOTIFY,
-      NULL, pNotify, NULL, connectionId);
-
-   return postMessage(msg);
-}
-
-OsStatus MpCallFlowGraph::removeToneListener(MpConnectionID connectionId)
-{
-   MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_SET_DTMF_NOTIFY,
-      NULL, NULL, NULL, connectionId);
-
-   return postMessage(msg);
-}
-
-
 void MpCallFlowGraph::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
 {
 	if (!m_pInterfaceNotificationQueue)
@@ -1832,9 +1814,6 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
       case MpFlowGraphMsg::FLOWGRAPH_STOP_TONE:
          retCode = handleStopToneOrPlay();
          break;
-      case MpFlowGraphMsg::FLOWGRAPH_SET_DTMF_NOTIFY:
-         retCode = handleSetDtmfNotify(*pMsg);
-         break;
       case MpFlowGraphMsg::FLOWGRAPH_INTERFACE_NOTF_MSG:
          retCode = handleInterfaceNotificationMsg(*pMsg);
          break;
@@ -2011,14 +1990,6 @@ UtlBoolean MpCallFlowGraph::handleStopToneOrPlay()
    }
 #endif /* DEBUG_POSTPONE ] */
 
-UtlBoolean MpCallFlowGraph::handleSetDtmfNotify(MpFlowGraphMsg& rMsg)
-{
-   OsNotification* pNotify = (OsNotification*) rMsg.getPtr1();
-   MpConnectionID  connId  = rMsg.getInt1();
-
-   return mpInputConnections[connId]->handleSetDtmfNotify(pNotify);
-}
-
 
 UtlBoolean MpCallFlowGraph::handleStreamRealizeUrl(MpStreamMsg& rMsg)
 { 
@@ -2167,7 +2138,7 @@ UtlBoolean MpCallFlowGraph::handleStreamDestroy(MpStreamMsg& rMsg)
 
 void MpCallFlowGraph::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
                                                 MpNotificationMsgType msgSubType,
-                                                int msgData)
+                                                intptr_t msgData)
 {
    if (m_pInterfaceNotificationQueue)
    {

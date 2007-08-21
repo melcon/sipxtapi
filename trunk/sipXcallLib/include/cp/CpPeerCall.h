@@ -166,7 +166,6 @@ public:
     /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
     virtual UtlBoolean handleCallMessage(OsMsg& eventMessage);
-    virtual UtlBoolean handleNotifyMessage(OsEventMsg& eventMsg) ;
 
     /**
      * Fires given event to all SipConnections.
@@ -197,9 +196,6 @@ protected:
      * These are messages from flowgraph resources.
      */
     virtual UtlBoolean handleInterfaceNotfMessage(OsMsg& eventMessage);
-
-    void addToneListenersToConnection(Connection* connection);
-
 
     UtlBoolean handleRenegotiateCodecsConnection(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_RENEGOTIATE_CODECS_CONNECTION
@@ -264,12 +260,6 @@ protected:
     //: message
     UtlBoolean handleUnholdTermConnection(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_UNHOLD_TERM_CONNECTION
-    //: message
-    UtlBoolean handleAddToneListener(OsMsg* pEventMessage);
-    //: Handles the processing of a CallManager::CP_ADD_TONE_LISTENER
-    //: message
-    UtlBoolean handleRemoveToneListener(OsMsg* pEventMessage);
-    //: Handles the processing of a CallManager::CP_REMOVE_TONE_LISTENER
     //: message
     UtlBoolean handleTransferConnectionStatus(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_TRANSFER_CONNECTION_STATUS
@@ -416,7 +406,6 @@ private:
     //UtlString extension;
     int mSipSessionReinviteTimer;
     UtlDList mConnections;
-    UtlDList mToneListeners;
     OsRWMutex mConnectionMutex;
     int mDialMode;
     UtlString mLocalAddress;

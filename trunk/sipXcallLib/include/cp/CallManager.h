@@ -242,35 +242,6 @@ public:
 
     virtual void setTransferType(int type);
 
-    virtual void addToneListener(const char* callId, int pListener);
-
-    virtual void removeToneListener(const char* callId, int pListener);
-
-         // Change the function name from getDtmfTone to enableDtmfEvent, to better
-         // reflect what it does.
-         // There are three functions used to process dtmf events for a client:
-         //             -- enableDtmfEvent: registers a dtmfEvent in CpCall (adding it to
-         //                     CpCall's mDtmfEvents list, set 'enabled' flag to TRUE.  When a dtmf
-         //                     notification by MprRecoreder to the CpCall is recieved, CpCall
-         //                     will signal     it to this event.
-         //             -- disableDtmfEvent: temporarily remove the event from the CpCall's
-         //                     mDtmfEvents list so that this client is not going to receive any
-         //                     dtmf notification until enableDtmfEvent is called again. this
-         //                     function does not delete the event object, it just sets the 'enabled'
-         //                     flag to FALSE.
-         //             -- removeDtmfEvent: pernmanently remove the dtmf event object from
-         //                     CpCall's mDtmfEvents list and delete the event object.
-
-    virtual OsStatus enableDtmfEvent(const char* callId,
-                                                                           int interDigitSecs,
-                     OsQueuedEvent* dtmfEvent,
-                     UtlBoolean ignoreKeyUp);
-
-    virtual void disableDtmfEvent(const char* callId, int dtmfEvent);
-
-    virtual void removeDtmfEvent(const char* callId, int dtmfEvent);
-
-
     virtual OsStatus ezRecord(const char* callId,
                         int ms,
                         int silenceLength,
@@ -528,10 +499,6 @@ private:
                       const UtlString& szTurnPassword,
                       int              iKeepAlivePeriodSecs) ;
     //:Enable TURN for NAT/Firewall traversal                           
-
-    void releaseEvent(const char* callId, 
-                     OsProtectEventMgr* eventMgr, 
-                     OsProtectedEvent* dtmfEvent);
 
            CallManager(const CallManager& rCallManager);
      //:Copy constructor (disabled)

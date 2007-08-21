@@ -67,6 +67,7 @@ MprDecode::MprDecode(const UtlString& rName, MpRtpInputAudioConnection* pConn,
    mNumPrevCodecs(0),
    mpConnection(pConn)
 {
+   m_pRFC2833DTMFNotif = new MpResNotification(this, MpResNotification::MP_RES_DTMF_2833_NOTIFICATION);
 }
 
 // Destructor
@@ -90,6 +91,9 @@ MprDecode::~MprDecode()
          delete[] mpPrevCodecs;
       }
    }
+
+   delete m_pRFC2833DTMFNotif;
+   m_pRFC2833DTMFNotif = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -153,21 +157,24 @@ MpJitterBuffer* MprDecode::getJBinst(UtlBoolean optional)
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean MprDecode::handleSetDtmfNotify(OsNotification* pNotify)
+OsStatus MprDecode::notify(MpResNotification::MpResNotificationType type, const intptr_t eventData)
 {
-   MpDecoderBase** pMDB;
-   UtlBoolean ret = TRUE;
-   int i;
-   OsLock lock(mLock);
-
-   pMDB = mpCurrentCodecs;
-   for (i=0; i<mNumCurrentCodecs; i++) {
-      if (((*pMDB)->getInfo())->isSignalingCodec()) {
-         (*pMDB)->handleSetDtmfNotify(pNotify);
-      }
-      pMDB++;
+   switch(type)
+   {
+   case MpResNotification::MP_RES_DTMF_2833_NOTIFICATION:
+      // DTMF notification received from MpdPtAVT
+      if (mpConnection)
+      {
+         // tell audio connection to send connection notification
+         mpConnection->sendConnectionNotification(MP_NOTIFICATION_DTMF_RFC2833, eventData);
+         return OS_SUCCESS;
+      }      
+      break;
+   default:
+      assert(false);
    }
-   return ret;
+
+   return OS_FAILED;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -440,6 +447,8 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
       for (i=0; i<numCodecs; i++) {
          if (mpCurrentCodecs[i]->getInfo()->isSignalingCodec()) {
             mpCurrentCodecs[i]->initDecode();
+            // set notification object, used for DTMF
+            mpCurrentCodecs[i]->setNotification(m_pRFC2833DTMFNotif);
          }
       }
    }
@@ -516,5 +525,6 @@ UtlBoolean MprDecode::handleDeselectCodecs(UtlBoolean shouldLock)
    }
    return TRUE;
 }
+
 
 /* ============================ FUNCTIONS ================================= */
