@@ -711,6 +711,13 @@ void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
          break;
       case MEDIA_REMOTE_ACTIVE:
          m_pMediaEventListener->OnMediaRemoteActive(mediaEvent);
+         break;
+      case MEDIA_RECORDING_START:
+         m_pMediaEventListener->OnMediaRecordingStart(mediaEvent);
+         break;
+      case MEDIA_RECORDING_STOP:
+         m_pMediaEventListener->OnMediaRecordingStop(mediaEvent);
+         break;
       default:
          ;
       }

@@ -72,6 +72,9 @@ public:
 
    virtual void OnMediaRemoteActive(const CpMediaEvent& event);
 
+   virtual void OnMediaRecordingStart(const CpMediaEvent& event);
+
+   virtual void OnMediaRecordingStop(const CpMediaEvent& event);
 
    /* ============================ ACCESSORS ================================= */
 

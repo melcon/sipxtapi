@@ -2188,20 +2188,30 @@ UtlBoolean MpCallFlowGraph::handleStreamDestroy(MpStreamMsg& rMsg)
    return TRUE ;
 }
 
+void MpCallFlowGraph::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
+                                                MpNotificationMsgType msgSubType,
+                                                int msgData)
+{
+   if (m_pInterfaceNotificationQueue)
+   {
+      // create message and send it to interface notification queue
+      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, (intptr_t)msgSubType, msgData);
+      m_pInterfaceNotificationQueue->send(interfaceMsg, OsTime::NO_WAIT_TIME);
+   }
+}
+
 UtlBoolean MpCallFlowGraph::handleInterfaceNotificationMsg(MpFlowGraphMsg& rMsg)
 {
    if (m_pInterfaceNotificationQueue)
    {
       // file stop, file start, buffer stop etc...
-      int msgSubType = rMsg.getInt1();
+      MpNotificationMsgType msgSubType = (MpNotificationMsgType)rMsg.getInt1();
       // media type - audio, video
-      int msgMedia = rMsg.getInt2();
+      MpNotificationMsgMedia msgMedia = (MpNotificationMsgMedia)rMsg.getInt2();
       // additional data
       int msgData = rMsg.getInt3();
 
-      // create message and send it to interface notification queue
-      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, msgSubType, msgData);
-      m_pInterfaceNotificationQueue->send(interfaceMsg, OsTime::NO_WAIT_TIME);
+      sendInterfaceNotification(msgMedia, msgSubType, msgData);
    }
    
    return TRUE;
@@ -2224,6 +2234,8 @@ UtlBoolean MpCallFlowGraph::handleOnMprRecorderEnabled(MpFlowGraphMsg& rMsg)
 
       boolRes = mpSpeakerCallrecSplitter->enable();
       assert(boolRes);
+
+      sendInterfaceNotification(MP_NOTIFICATION_AUDIO, MP_NOTIFICATION_RECORDING_STARTED, 0);
    }
 
    return TRUE;
@@ -2257,6 +2269,8 @@ UtlBoolean MpCallFlowGraph::handleOnMprRecorderDisabled(MpFlowGraphMsg& rMsg)
          boolRes = mpSpeakerCallrecSplitter->disable();
          assert(boolRes);
       }
+
+      sendInterfaceNotification(MP_NOTIFICATION_AUDIO, MP_NOTIFICATION_RECORDING_STOPPED, 0);
    }
 
    return TRUE;
