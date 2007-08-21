@@ -72,9 +72,3 @@ UtlBoolean MpDecoderBase::handleSetDtmfNotify(OsNotification* pNotify)
    assert(FALSE);
    return TRUE;
 }
-
-UtlBoolean MpDecoderBase::setDtmfTerm(MprRecorder *pRecorder)
-{
-   assert(FALSE);
-   return TRUE;
-}
