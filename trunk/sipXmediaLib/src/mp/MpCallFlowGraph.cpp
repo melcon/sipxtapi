@@ -980,18 +980,6 @@ OsStatus MpCallFlowGraph::mediaRecord(int ms,
                     dtmfTerm,
                     format);
 
-  // nonblocking version
-   if (dtmfTerm)
-   {
-     for (int i=0; i<MAX_CONNECTIONS; i++) 
-     {
-         if (NULL != mpInputConnections[i]) 
-         {
-           mpInputConnections[i]->setDtmfTerm(mpRecorders[RECORDER_SPKR]);
-         }
-     }
-   }
-
   return record(ms, silenceLength, NULL, NULL, fileName,
                  NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, recordEvent, format);
 
@@ -1074,17 +1062,6 @@ OsStatus MpCallFlowGraph::ezRecord(int ms,
    record(ms, silenceLength, NULL, NULL, fileName,
                  NULL, NULL, NULL, NULL, NULL, NULL, 0, 
                  0, recordEvent,format);
-
-   if (dtmfTerm)
-   {
-     for (int i=0; i<MAX_CONNECTIONS; i++) 
-     {
-         if (NULL != mpInputConnections[i]) 
-         {
-           mpInputConnections[i]->setDtmfTerm(mpRecorders[RECORDER_SPKR]);
-         }
-     }
-   }
 
    // Wait until the call sets the number of connections
    while(recordEvent->wait(0, maxEventTime) == OS_SUCCESS)

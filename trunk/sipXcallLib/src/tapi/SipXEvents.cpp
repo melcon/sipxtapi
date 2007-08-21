@@ -372,6 +372,15 @@ SIPXTAPI_API const char* sipxMediaCauseToString(SIPX_MEDIA_CAUSE cause)
    case MEDIA_CAUSE_INCOMPATIBLE:
       str = MAKESTR(MEDIA_CAUSE_INCOMPATIBLE);
       break;
+   case MEDIA_CAUSE_DTMF_INBAND:
+      str = MAKESTR(MEDIA_CAUSE_DTMF_INBAND);
+      break;
+   case MEDIA_CAUSE_DTMF_RFC2833:
+      str = MAKESTR(MEDIA_CAUSE_DTMF_RFC2833);
+      break;
+   case MEDIA_CAUSE_DTMF_SIPINFO:
+      str = MAKESTR(MEDIA_CAUSE_DTMF_SIPINFO);
+      break;
    default:
       break;
    }

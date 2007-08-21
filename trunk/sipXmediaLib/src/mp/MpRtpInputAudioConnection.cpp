@@ -24,6 +24,7 @@
 #include <mp/MprDecode.h>
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
+#include "mp/MprDecodeInbandDtmf.h"
 #include <sdp/SdpCodec.h>
 #include <os/OsLock.h>
 #include "os/OsIntPtrMsg.h"
@@ -62,6 +63,8 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 
    sprintf(name, "Decode-%d", myID);
    mpDecode    = new MprDecode(name, this, samplesPerFrame, samplesPerSec);
+   sprintf(name, "DecodeInBandDtmf-%d", myID);
+   mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, this, samplesPerFrame, samplesPerSec);
 
  //memset((char*)mpPayloadMap, 0, (NUM_PAYLOAD_TYPES*sizeof(MpDecoderBase*)));
    for (i=0; i<NUM_PAYLOAD_TYPES; i++) {
@@ -86,6 +89,7 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 MpRtpInputAudioConnection::~MpRtpInputAudioConnection()
 {
    delete mpDecode;
+   delete mpDecodeInBandDtmf;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -109,8 +113,19 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
                                           mpDecode->mIsEnabled,
                                           mpDecode->getSamplesPerFrame(), 
                                           mpDecode->getSamplesPerSec());
-    }
-
+    
+		assert(mpDecodeInBandDtmf);
+		if( mpDecodeInBandDtmf )
+		{
+			result &= mpDecodeInBandDtmf->doProcessFrame(mpOutBufs, // OutBufs from mpDecoder = InBuf for InBand
+											  NULL,					// No outBufs needed
+											  mMaxOutputs,			// Again MaxOutputs from decoder = maxInput for InBand 
+											  0,					// 0 output 
+											  mpDecodeInBandDtmf->mIsEnabled,
+											  mpDecodeInBandDtmf->getSamplesPerFrame(), 
+											  mpDecodeInBandDtmf->getSamplesPerSec());
+		}
+	}
 
 
     // No input buffers to release
@@ -138,18 +153,6 @@ UtlBoolean MpRtpInputAudioConnection::doProcessFrame(MpBufPtr inBufs[],
     assert(0);
 
     UtlBoolean result = FALSE;
-    assert(mpDecode);
-    if(mpDecode)
-    {
-        result = mpDecode->doProcessFrame(inBufs,
-                                          outBufs,
-                                          inBufsSize,
-                                          outBufsSize,
-                                          isEnabled,
-                                          samplesPerFrame,
-                                          samplesPerSecond);
-    }
-
     return(result);
 }
 
@@ -196,6 +199,7 @@ UtlBoolean MpRtpInputAudioConnection::handleMessage(MpResourceMsg& rMsg)
 UtlBoolean MpRtpInputAudioConnection::handleDisable()
 {
    mpDecode->disable();
+   mpDecodeInBandDtmf->disable();
    return(MpResource::handleDisable());
 }
 
@@ -213,6 +217,7 @@ UtlBoolean MpRtpInputAudioConnection::handleDisable()
 UtlBoolean MpRtpInputAudioConnection::handleEnable()
 {
    mpDecode->enable();
+   mpDecodeInBandDtmf->enable();
    return(MpResource::handleEnable());
 }
 
@@ -260,6 +265,7 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[],
    if (numCodecs)
    {
        mpDecode->enable();
+	   mpDecodeInBandDtmf->enable();
    }
 }
 
@@ -290,6 +296,7 @@ void MpRtpInputAudioConnection::handleStopReceiveRtp()
    //mpFlowGraph->synchronize();
 
    mpDecode->disable();
+   mpDecodeInBandDtmf->disable();
 }
 
 void MpRtpInputAudioConnection::addPayloadType(int payloadType, MpDecoderBase* decoder)
@@ -370,11 +377,6 @@ MpDecoderBase* MpRtpInputAudioConnection::mapPayloadType(int payloadType)
 UtlBoolean MpRtpInputAudioConnection::handleSetDtmfNotify(OsNotification* pNotify)
 {
    return mpDecode->handleSetDtmfNotify(pNotify);
-}
-
-UtlBoolean MpRtpInputAudioConnection::setDtmfTerm(MprRecorder *pRecorders)
-{
-   return mpDecode->setDtmfTerm(pRecorders);
 }
 
 void MpRtpInputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, int data)
