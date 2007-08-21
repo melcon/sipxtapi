@@ -2528,15 +2528,18 @@ UtlBoolean CpPeerCall::handleNotifyMessage(OsEventMsg& eventMsg)
     {
 		if (((Connection*) pListener) == pConnection)
 		{	
-            bool bButtonUp = ((eventData & 0x80000000) == 0x80000000) ;
+         bool bButtonUp = ((eventData & 0x80000000) == 0x80000000) ;
 			SIPX_TONE_ID id = (SIPX_TONE_ID) (eventData  >> 16) ;
             // int iDuration = (eventData & 0xFFFF) ;	// not used
 
-			pConnection->fireSipXMediaEvent(
-					MEDIA_REMOTE_DTMF,
-					MEDIA_CAUSE_NORMAL,
-					MEDIA_TYPE_AUDIO,
-					(void*) id) ;
+         if (!bButtonUp)
+         {
+            pConnection->fireSipXMediaEvent(
+               MEDIA_REMOTE_DTMF,
+               MEDIA_CAUSE_NORMAL,
+               MEDIA_TYPE_AUDIO,
+               (void*) id) ;
+         }         
 
 			break ;
 		}
