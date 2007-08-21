@@ -316,6 +316,12 @@ SIPXTAPI_API const char* sipxMediaEventToString(SIPX_MEDIA_EVENT event)
    case MEDIA_REMOTE_ACTIVE:
       str = MAKESTR(MEDIA_REMOTE_ACTIVE);
       break;
+   case MEDIA_RECORDING_START:
+      str = MAKESTR(MEDIA_RECORDING_START);
+      break;
+   case MEDIA_RECORDING_STOP:
+      str = MAKESTR(MEDIA_RECORDING_STOP);
+      break;
    default:
       break;
    }

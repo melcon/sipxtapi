@@ -651,6 +651,11 @@ private:
     */
    UtlBoolean MpCallFlowGraph::handleInterfaceNotificationMsg(MpFlowGraphMsg& rMsg);
 
+   /**
+    * Sends interface notification to interface notification queue if it was supplied
+    */
+   void sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, int msgData = 0);
+
      /// Copy constructor (not implemented for this class)
    MpCallFlowGraph(const MpCallFlowGraph& rMpCallFlowGraph);
 

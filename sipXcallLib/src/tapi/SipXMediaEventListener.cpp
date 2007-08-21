@@ -189,6 +189,29 @@ void SipXMediaEventListener::OnMediaRemoteActive( const CpMediaEvent& event )
                       event.m_pEventData);
 }
 
+void SipXMediaEventListener::OnMediaRecordingStart(const CpMediaEvent& event)
+{
+   sipxFireMediaEvent(m_pInst,
+                     event.m_sCallId,
+                     event.m_sSessionCallId,
+                     event.m_sRemoteAddress,
+                     MEDIA_RECORDING_START,
+                     event.m_Cause,
+                     event.m_MediaType,
+                     event.m_pEventData);
+}
+
+void SipXMediaEventListener::OnMediaRecordingStop(const CpMediaEvent& event)
+{
+   sipxFireMediaEvent(m_pInst,
+                     event.m_sCallId,
+                     event.m_sSessionCallId,
+                     event.m_sRemoteAddress,
+                     MEDIA_RECORDING_STOP,
+                     event.m_Cause,
+                     event.m_MediaType,
+                     event.m_pEventData);
+}
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
