@@ -2577,6 +2577,7 @@ void CpPeerCall::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
       if (connection->getConnectionId() == mediaConnectionId)
       {
          connection->fireSipXMediaEvent(event, cause, type, pEventData);
+         break;
       }
    }
 }
