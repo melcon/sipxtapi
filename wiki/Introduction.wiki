@@ -12,5 +12,6 @@ Main differences between customized and SIP Foundry version:
   * removed many hard limits from underlying libraries
 
 = Communication =
+
 * for developers, users - http://groups.google.com/group/sipxtapi
-* for commit messages -
+* for commit messages - http://groups.google.com/group/sipxtapi-commits
