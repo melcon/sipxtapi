@@ -64,7 +64,7 @@ MprFromFile::MprFromFile(const UtlString& rName,
 :  MpAudioResource(rName, 0, 1, 1, 1, samplesPerFrame, samplesPerSec),
    mpFileBuffer(NULL),
    mFileRepeat(FALSE),
-   mpNotify(NULL)
+   m_playingFromFile(false)
 {
 }
 
@@ -94,10 +94,12 @@ OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize,
          eventMgr->release(notify);
       }
 
+      m_playingFromFile = false;
+
       // Don't pass the event in the PLAY_FILE message.
       // That means that the file-play process can't pass signals
       // back.  But we have already released the OsProtectedEvent.
-      MpFlowGraphMsg msg(PLAY_FILE, this, NULL, fgAudBuffer,
+      MpFlowGraphMsg msg(PLAY_BUFFER, this, NULL, fgAudBuffer,
                          repeat ? PLAY_REPEAT : PLAY_ONCE, 0);
       res = postMessage(msg);
    }
@@ -139,7 +141,9 @@ OsStatus MprFromFile::playFile(const char* audioFileName,
    //create a msg from the buffer
    if (audioBuffer && audioBuffer->length())
    {
-      MpFlowGraphMsg msg(PLAY_FILE, this, notify, audioBuffer,
+      m_playingFromFile = true;
+
+	  MpFlowGraphMsg msg(PLAY_FILE, this, notify, audioBuffer,
                          repeat ? PLAY_REPEAT : PLAY_ONCE, 0);
 
       //now post the msg (with the audio data) to be played
@@ -168,7 +172,7 @@ OsStatus MprFromFile::playFile(const UtlString& namedResource,
 // stop file play
 OsStatus MprFromFile::stopFile(void)
 {
-   MpFlowGraphMsg msg(STOP_FILE, this, NULL, NULL, 0, 0);
+   MpFlowGraphMsg msg((m_playingFromFile ? STOP_FILE : STOP_BUFFER), this, NULL, NULL, 0, 0);
    return postMessage(msg);
 }
 
@@ -193,19 +197,11 @@ OsStatus MprFromFile::pauseFile(const UtlString& namedResource,
 
 UtlBoolean MprFromFile::enable(void) //$$$
 {
-   if (mpNotify) {
-      mpNotify->signal(PLAYING);
-   }
    return MpResource::enable();
 }
 
 UtlBoolean MprFromFile::disable(void) //$$$
 {
-   if (mpNotify) {
-      mpNotify->signal(PLAY_STOPPED);
-      mpNotify->signal(PLAY_FINISHED);
-      mpNotify = NULL;
-   }
    return MpResource::disable();
 }
 
@@ -378,10 +374,6 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                if (ratePreferred > 8000)
                   filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
             }
-            else
-            {
-               if (notify) notify->signal(INVALID_SETUP);
-            }
             break;
 
          case MpAudioWaveFileRead::DePcm16LsbSigned: // 16
@@ -399,10 +391,6 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                // Resample if needed
                if (ratePreferred > 8000)
                   filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
-            }
-            else
-            {
-               if (notify) notify->signal(INVALID_SETUP);
             }
             break;
          }
@@ -437,10 +425,6 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                   if (ratePreferred > 8000)
                      filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
                }
-               else
-               {
-                  if (notify) notify->signal(INVALID_SETUP);
-               }
                break;
 
             case MpAuRead::DePcm16MsbSigned:
@@ -458,10 +442,6 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                   // Resample if needed
                   if (ratePreferred > 8000)
                      filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
-               }
-               else
-               {
-                  if (notify) notify->signal(INVALID_SETUP);
                }
                break;
             }
@@ -498,10 +478,6 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
 
             samplesReaded = audioFile->getSamples((AudioSample*)charBuffer,
                                                   filesize/sizeof(AudioSample));
-            if (!samplesReaded) 
-            {
-               if (notify) notify->signal(INVALID_SETUP);
-            }
          }
       }
       else // the file extension is not .ulaw ... 
@@ -621,9 +597,7 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
 
                // Send a message to tell this resource to stop playing the file
                // this resets some state, and sends a notification.
-               OsMsgQ* fgQ = getFlowGraph()->getMsgQ();
-               assert(fgQ != NULL);
-               MprFromFile::stopFile(getName(), *fgQ);
+               stopFile();
             }
          }
       }
@@ -641,6 +615,17 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
 }
 
 // Handle messages for this resource.
+
+UtlBoolean MprFromFile::handleSetup(MpFlowGraphMsg& rMsg)
+{
+   if(mpFileBuffer) delete mpFileBuffer;
+   mpFileBuffer = (UtlString*) rMsg.getPtr2();
+   if(mpFileBuffer) {
+      mFileBufferIndex = 0;
+      mFileRepeat = (rMsg.getInt1() == PLAY_ONCE) ? FALSE : TRUE;
+   }
+   return TRUE;
+}
 
 // this is used in both old and new messaging schemes to do reset state
 // and send notification when stop is requested.
@@ -665,25 +650,23 @@ UtlBoolean MprFromFile::handleMessage(MpFlowGraphMsg& rMsg)
    switch (rMsg.getMsg()) 
    {
    case PLAY_FILE:
-      if(mpFileBuffer) delete mpFileBuffer;
-      if (mpNotify) 
-      {
-         mpNotify->signal(PLAY_FINISHED);
-      }
-      mpNotify = (OsNotification*) rMsg.getPtr1();
-      mpFileBuffer = (UtlString*) rMsg.getPtr2();      
-      if(mpFileBuffer) 
-      {
-         mFileBufferIndex = 0;
-         mFileRepeat = (rMsg.getInt1() == PLAY_ONCE) ? FALSE : TRUE;
-      }
-      
-      return TRUE;
+      sendInterfaceNotification(MP_NOTIFICATION_START_PLAY_FILE, 0);
+      return handleSetup(rMsg);
       break;
 
    case STOP_FILE:
+      sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_FILE, 0);
       return handleStop();
       break;
+
+   case PLAY_BUFFER:
+      sendInterfaceNotification(MP_NOTIFICATION_START_PLAY_BUFFER, 0);
+      return handleSetup(rMsg);
+      break;
+
+   case STOP_BUFFER:
+      sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_BUFFER, 0);
+      return handleStop();
 
    default:
       return MpAudioResource::handleMessage(rMsg);
@@ -708,11 +691,6 @@ UtlBoolean MprFromFile::handleMessage(MpResourceMsg& rMsg)
       // Enable this resource - as it's disabled automatically when the last file ends.
       enable();
       if(mpFileBuffer) delete mpFileBuffer;
-      if (mpNotify) 
-      {
-         mpNotify->signal(PLAY_FINISHED);
-      }
-      mpNotify = (OsNotification*) ffsRMsg->getOsNotification();
       mpFileBuffer = (UtlString*) ffsRMsg->getAudioBuffer();
       if(mpFileBuffer) 
       {

@@ -1190,14 +1190,6 @@ OsStatus MpCallFlowGraph::startRecording(const char* audioFileName,
    MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_START_RECORD, NULL,
                    NULL, NULL, toneOptions, START_PLAY_NONE);
 
-   if (NULL != audioFileName) {
-      res = mpFromFile->playFile(audioFileName, repeat, event);
-      if (res == OS_SUCCESS) {
-         msg.setInt1(toneOptions);
-         msg.setInt2(START_PLAY_FILE);
-      }
-   }
-
    res = postMessage(msg);
    return(res);
 }

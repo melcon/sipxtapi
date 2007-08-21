@@ -48,16 +48,6 @@ public:
    virtual
    ~MprFromFile();
 
-   typedef enum /// $$$ These need more thought and clarification...
-   {
-      PLAY_FINISHED,
-      PLAY_STOPPED,
-      PLAYING,
-      READ_ERROR,
-      PLAY_IDLE,
-      INVALID_SETUP
-   } Completion;
-
 //@}
 
 /* ============================ MANIPULATORS ============================== */
@@ -206,7 +196,9 @@ private:
    typedef enum
    {
       PLAY_FILE = MpFlowGraphMsg::RESOURCE_SPECIFIC_START,
-      STOP_FILE
+      STOP_FILE,
+  	   PLAY_BUFFER,
+	   STOP_BUFFER
    } AddlMsgTypes;
 
    typedef enum
@@ -220,7 +212,7 @@ private:
    UtlString* mpFileBuffer;
    int mFileBufferIndex;
    UtlBoolean mFileRepeat;
-   OsNotification* mpNotify;
+   bool m_playingFromFile;
 
      /// @brief Convert generic audio data into flowgraph audio data.
    static OsStatus genericAudioBufToFGAudioBuf(
@@ -276,6 +268,8 @@ private:
 
      /// Perform resetting of state, etc. upon receiving request to stop playing.
    virtual UtlBoolean handleStop(void);
+
+   virtual UtlBoolean handleSetup(MpFlowGraphMsg& rMsg);
 
      /// Handle flowgraph messages for this resource (old messaging model).
    virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
