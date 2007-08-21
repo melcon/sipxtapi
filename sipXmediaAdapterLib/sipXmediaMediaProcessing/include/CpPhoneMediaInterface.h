@@ -219,10 +219,6 @@ public:
      //:Limits the available codecs to only those within the designated
      //:limit.
 
-   virtual void addToneListener(OsNotification *pListener, int connectionId);
-
-   virtual void removeToneListener(int connectionId);
-
    virtual OsStatus stopRecording();
    virtual OsStatus ezRecord(int ms, 
            int silenceLength, 

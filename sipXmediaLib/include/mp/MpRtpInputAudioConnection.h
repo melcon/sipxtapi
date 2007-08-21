@@ -46,6 +46,7 @@ class MpRtpInputAudioConnection : public MpRtpInputConnection
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 	friend class MprDecodeInBandDtmf;
+   friend class MprDecode;
 
 
 /* ============================ CREATORS ================================== */
@@ -86,12 +87,6 @@ public:
      /// Get decoder for this payload type
    MpDecoderBase* mapPayloadType(int payloadType);
 
-   // TODO:  this should become a resource message handled by the resource:
-     /// Handle the FLOWGRAPH_SET_DTMF_NOTIFY message.
-   UtlBoolean handleSetDtmfNotify(OsNotification* n);
-     /**<
-     *  @Returns <b>TRUE</b>
-     */
 
    /// Queue a message to start receiving RTP and RTCP packets.
    static OsStatus startReceiveRtp(OsMsgQ& messageQueue,
@@ -137,7 +132,7 @@ protected:
                                      int samplesPerFrame=80,
                                      int samplesPerSecond=8000);
 
-   void sendConnectionNotification(MpNotificationMsgType type, int data);
+   void sendConnectionNotification(MpNotificationMsgType type, intptr_t data);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

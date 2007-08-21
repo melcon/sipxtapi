@@ -584,6 +584,14 @@ UtlBoolean MpResource::pushBufferDownsream(int outPortIdx, const MpBufPtr &pBuf)
    return TRUE;
 }
 
+OsStatus MpResource::notify(MpResNotification::MpResNotificationType type, const intptr_t eventData)
+{
+   // not implemented here, override to use it
+   assert(false);
+   return OS_FAILED;
+}
+
+
 // Post a message to this resource.
 // If this resource is not part of a flow graph, then rMsg is
 // immediately passed to the handleMessage() method for this
@@ -706,6 +714,7 @@ void MpResource::setName(const UtlString& rName)
 {
    *((UtlString*)this) = rName;
 }
+
 
 /* ============================ FUNCTIONS ================================= */
 

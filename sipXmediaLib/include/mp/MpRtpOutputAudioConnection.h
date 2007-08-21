@@ -120,7 +120,7 @@ protected:
                                      int samplesPerFrame=80,
                                      int samplesPerSecond=8000);
 
-   void sendConnectionNotification(MpNotificationMsgType type, int data);
+   void sendConnectionNotification(MpNotificationMsgType type, intptr_t data);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

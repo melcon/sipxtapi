@@ -67,7 +67,7 @@ int MpDecoderBase::getPayloadType(void)
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean MpDecoderBase::handleSetDtmfNotify(OsNotification* pNotify)
+UtlBoolean MpDecoderBase::setNotification(OsNotification* pNotify)
 {
    assert(FALSE);
    return TRUE;

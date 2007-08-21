@@ -105,13 +105,15 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-     //:Handle the FLOWGRAPH_SET_DTMF_NOTIFY message.
-   virtual UtlBoolean handleSetDtmfNotify(OsNotification* n);
+   /**
+    * Sets notification object for DTMF decoder. This object is not owned
+    * by this decoder, but the function that passed it. It is therefore
+    * not deleted here.
+    */
+   virtual UtlBoolean setNotification(OsNotification* pNotify);
      /**<
      *  @returns <b>TRUE</b>
      */
-
-   virtual UtlBoolean setDtmfTerm(MprRecorder* pRecorder);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -122,7 +124,6 @@ private:
    unsigned int mCurrentToneSignature; ///< The starting timestamp
    unsigned int mToneDuration;         ///< last reported duration
    OsNotification* mpNotify;     ///< Object to signal on key-down/key-up events
-   MprRecorder* mpRecorder;
 
    void signalKeyDown(const MpRtpBufPtr &pPacket);
    void signalKeyUp(const MpRtpBufPtr &pPacket);

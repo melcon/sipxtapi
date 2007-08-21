@@ -1471,8 +1471,6 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
                             {
                                 mpMediaInterface->startRtpSend(mConnectionId,
                                     numMatchingCodecs, encoderCodecs);
-                                mpMediaInterface->addToneListener(getDtmfQueuedEvent(),
-                                    mConnectionId);
                             }
                             fireAudioStartEvents() ;
                         }
@@ -1691,8 +1689,6 @@ UtlBoolean SipConnection::accept(int ringingTimeOutSeconds,
                         mpMediaInterface->startRtpSend(mConnectionId,
                                                        numMatchingCodecs, 
                                                        encoderCodecs);
-                        mpMediaInterface->addToneListener(getDtmfQueuedEvent(),
-                                                          mConnectionId);
                     }
                     fireAudioStartEvents();
                 }
@@ -2529,7 +2525,6 @@ UtlBoolean SipConnection::doHangUp(const char* dialString,
             {
                 fireAudioStopEvents() ;
             }
-            mpMediaInterface->removeToneListener(mConnectionId);
             mpMediaInterface->deleteConnection(mConnectionId);
             mpMediaInterface = NULL ;
             mConnectionId = CpMediaInterface::getInvalidConnectionId();
@@ -3351,9 +3346,6 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
                     mpMediaInterface->startRtpSend(mConnectionId,
                         numMatchingCodecs, encoderCodecs);
                     mRemoteRequestedHold = FALSE;
-                    mpMediaInterface->addToneListener(getDtmfQueuedEvent(),
-                        mConnectionId);
-
 
                     mHoldState = TERMCONNECTION_TALKING ;
 
@@ -4131,8 +4123,6 @@ void SipConnection::processAckRequest(const SipMessage* request)
 
             mpMediaInterface->startRtpSend(mConnectionId,
                 numMatchingCodecs, encoderCodecs);
-            mpMediaInterface->addToneListener(getDtmfQueuedEvent(),
-                mConnectionId);
             fireAudioStartEvents() ;
         }
 #ifdef TEST_PRINT
@@ -4811,8 +4801,6 @@ void SipConnection::processInviteResponseRinging(const SipMessage* response)
                     mpMediaInterface->startRtpSend(mConnectionId,
                         numMatchingCodecs,
                         encoderCodecs);
-                    mpMediaInterface->addToneListener(getDtmfQueuedEvent(),
-                        mConnectionId);
 
                     fireAudioStartEvents() ;
                 }
@@ -5385,9 +5373,6 @@ void SipConnection::processInviteResponseNormal(const SipMessage* response)
                 mpMediaInterface->startRtpSend(mConnectionId,
                         numMatchingCodecs,
                         encoderCodecs);
-                mpMediaInterface->addToneListener(getDtmfQueuedEvent(),
-                        mConnectionId);
-
 
                 if (mpCall->isInFocus())
                 {

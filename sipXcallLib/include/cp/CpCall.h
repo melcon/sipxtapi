@@ -164,9 +164,6 @@ public:
     int getLocalConnectionState() { return mLocalConnectionState; };
     //: Sets the local connection state for this call
 
-    void addToneListenerToFlowGraph(int pListener, Connection* connection);
-    void removeToneListenerFromFlowGraph(int pListener, Connection* connection);
-
     OsStatus ezRecord(int ms, int silenceLength, const char* fileName, double& duration, int& dtmfterm);
     virtual OsStatus stopRecord();
     /* ============================ ACCESSORS ================================= */
@@ -231,7 +228,6 @@ protected:
     virtual UtlBoolean handleCallMessage(OsMsg& eventMessage) = 0;
     virtual UtlBoolean handleConnectionNotfMessage(OsMsg& eventMessage) = 0;
     virtual UtlBoolean handleInterfaceNotfMessage(OsMsg& eventMessage) = 0;
-    virtual UtlBoolean handleNotifyMessage(OsEventMsg& eventMsg) = 0 ;
     virtual void onHook() = 0;
 
     virtual UtlBoolean getConnectionState(const char* remoteAddress, int& state) = 0;
@@ -243,15 +239,6 @@ protected:
     void addHistoryEvent(const char* messageLogString);
     void addHistoryEvent(const int msgSubType,
         const CpMultiStringMessage* multiStringMessage);
-
-    OsStatus addListener(OsServerTask* pListener,
-                         TaoListenerDb*** pListeners,
-                         int& listenerCnt,
-                         int& maxNumListeners,
-                         char* callId = NULL,
-                         int connectId = 0,
-                         int mask = 0,
-                         int pEv = 0);
 
     CpCallManager* mpManager;
     UtlString mCallId;
@@ -280,10 +267,6 @@ protected:
     int mMessageEventCount;
     UtlString mCallHistory[CP_CALL_HISTORY_LENGTH];
 
-    OsRWMutex                           mDtmfQMutex;
-    int                                             mDtmfQLen;
-    DtmfEvent                               mDtmfEvents[MAX_NUM_TONE_LISTENERS];
-
     /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
     static OsLockingList sCallTrackingList;
@@ -306,12 +289,6 @@ private:
     //:Copy constructor (disabled)
 
     int tcStateFromEventId(int eventId);
-
-    // utility function used to remove ev from mDtmfEvents.
-    void removeFromDtmfEventList(int ev);
-
-    // utility function used to check if ev exists in mDtmfEvents.
-    int dtmfEventExists(int ev);
 
 };
 

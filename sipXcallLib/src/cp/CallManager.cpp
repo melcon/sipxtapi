@@ -756,11 +756,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_GET_SESSION:
         case CP_CANCEL_TIMER:
         case CP_GET_NEXT_CSEQ:
-        case CP_ADD_TONE_LISTENER:
-        case CP_REMOVE_TONE_LISTENER:
-        case CP_ENABLE_DTMF_EVENT:
-        case CP_DISABLE_DTMF_EVENT:
-        case CP_REMOVE_DTMF_EVENT:
         case CP_EZRECORD:
         case CP_SET_OUTBOUND_LINE:
         case CP_STOPRECORD:
@@ -848,18 +843,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                             OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::handleMessage Received a message subtype %d request on invalid callId '%s'; no event to signal\n",
                                 msgSubType, callId.data());
                         }
-                    }
-                    else if (msgSubType == CP_REMOVE_DTMF_EVENT)
-                    {
-                        // 08/19/03 (rschaaf):
-                        // The entity requesting the CP_REMOVE_DTMF_EVENT can't delete
-                        // the event because it might still be in use.  Instead,
-                        // the recipient of the CP_REMOVE_DTMF_EVENT message must take
-                        // responsibility for deleting the event.  If the recipient no
-                        // longer exists, the CallManager must do the deed.
-                        OsQueuedEvent* pEvent = (OsQueuedEvent*)
-                            ((CpMultiStringMessage&)eventMessage).getInt1Data();
-                        delete pEvent;
                     }
                 }
                 else
@@ -2666,49 +2649,8 @@ OsStatus CallManager::ezRecord(const char* callId,
     return OS_SUCCESS;
 }
 
-
-OsStatus CallManager::enableDtmfEvent(const char* callId,
-                                      int interDigitSecs,
-                                      OsQueuedEvent* dtmfEvent,
-                                      UtlBoolean ignoreKeyUp)
-{
-    CpMultiStringMessage dtmfMessage(CP_ENABLE_DTMF_EVENT, callId,
-        NULL, NULL, NULL, NULL,
-        (int)dtmfEvent, interDigitSecs, ignoreKeyUp);
-    postMessage(dtmfMessage);
-    return OS_SUCCESS;
-}
-
-void CallManager::disableDtmfEvent(const char* callId, int dtmfEvent)
-{
-    CpMultiStringMessage msg(CP_DISABLE_DTMF_EVENT, callId, NULL, NULL, NULL, NULL, dtmfEvent);
-    postMessage(msg);
-}
-
-void CallManager::removeDtmfEvent(const char* callId, int dtmfEvent)
-{
-    CpMultiStringMessage msg(CP_REMOVE_DTMF_EVENT, callId, NULL, NULL, NULL, NULL, dtmfEvent);
-    postMessage(msg);
-}
-
-
-void CallManager::addToneListener(const char* callId, int pListener)
-{
-    CpMultiStringMessage toneMessage(CP_ADD_TONE_LISTENER, callId, NULL, NULL, NULL, NULL, (int)pListener);
-    postMessage(toneMessage);
-}
-
-
-void CallManager::removeToneListener(const char* callId, int pListener)
-{
-    CpMultiStringMessage toneMessage(CP_REMOVE_TONE_LISTENER, callId, NULL, NULL, NULL, NULL, (int)pListener);
-    postMessage(toneMessage);
-}
-
-
 // Assignment operator
-CallManager&
-CallManager::operator=(const CallManager& rhs)
+CallManager& CallManager::operator=(const CallManager& rhs)
 {
     if (this == &rhs)            // handle the assignment to self case
         return *this;
@@ -3768,19 +3710,6 @@ void CallManager::getCodecs(int& numCodecs, SdpCodec**& codecArray)
     mpCodecFactory->getCodecs(numCodecs,
         codecArray);
 
-}
-
-void CallManager::releaseEvent(const char* callId,
-                               OsProtectEventMgr* eventMgr,
-                               OsProtectedEvent* dtmfEvent)
-{
-    removeDtmfEvent(callId, (int)dtmfEvent);
-
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == dtmfEvent->signal(0))
-    {
-        eventMgr->release(dtmfEvent);
-    }
 }
 
 void CallManager::doGetFocus(CpCall* call)

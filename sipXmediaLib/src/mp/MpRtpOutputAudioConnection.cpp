@@ -201,7 +201,7 @@ UtlBoolean MpRtpOutputAudioConnection::handleEnable()
    return(MpResource::handleEnable());
 }
 
-void MpRtpOutputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, int data)
+void MpRtpOutputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, intptr_t data)
 {
    if (m_pConnectionNotificationQueue  && areNotificationsEnabled())
    {

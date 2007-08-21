@@ -130,8 +130,7 @@ public:
 protected:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-     /// Handle the FLOWGRAPH_SET_DTMF_NOTIFY message.
-   virtual UtlBoolean handleSetDtmfNotify(OsNotification* pNotify);
+   virtual UtlBoolean setNotification(OsNotification* pNotify);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

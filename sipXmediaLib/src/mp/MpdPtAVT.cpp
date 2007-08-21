@@ -44,8 +44,7 @@ MpdPtAVT::MpdPtAVT(int payloadType)
      mPrevToneSignature(0),
      mCurrentToneSignature(0),
      mToneDuration(0),
-     mpNotify(NULL),
-     mpRecorder(NULL)
+     mpNotify(NULL)
 {
    OsSysLog::add(FAC_MP, PRI_INFO, "MpdPtAVT(0x%X)::MpdPtAVT(%d)\n",
       (int) this, payloadType);
@@ -181,15 +180,9 @@ int MpdPtAVT::decode(const MpRtpBufPtr &pPacket,
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean MpdPtAVT::handleSetDtmfNotify(OsNotification* pNotify)
+UtlBoolean MpdPtAVT::setNotification(OsNotification* pNotify)
 {
    mpNotify = pNotify;
-   return TRUE;
-}
-
-UtlBoolean MpdPtAVT::setDtmfTerm(MprRecorder* pRecorder)
-{
-   mpRecorder = pRecorder;
    return TRUE;
 }
 
@@ -204,9 +197,11 @@ void MpdPtAVT::signalKeyDown(const MpRtpBufPtr &pPacket)
    pAvt = (const struct AvtPacket*) pPacket->getDataPtr();
 
    ts = pPacket->getRtpTimestamp();
-   if (mCurrentToneSignature != ts) {
+   if (mCurrentToneSignature != ts)
+   {
       // must have missed a KeyUp
-      if (mCurrentToneKey != -1) {
+      if (mCurrentToneKey != -1)
+      {
          OsSysLog::add(FAC_MP, PRI_INFO, "++++ MpdPtAvt(0x%X) SYNTHESIZING KEYUP for old key (%d)"
             " duration=%d ++++\n", (int) this, mCurrentToneKey, mToneDuration);
          signalKeyUp(pPacket);
@@ -214,24 +209,10 @@ void MpdPtAVT::signalKeyDown(const MpRtpBufPtr &pPacket)
    }
    OsSysLog::add(FAC_MP, PRI_INFO, "MpdPtAvt(0x%X) Start Rcv Tone key=%d"
       " dB=%d TS=0x%08x\n", (int) this, pAvt->key, pAvt->dB, ts);
-   if (mpRecorder) 
-         mpRecorder->termDtmf(pAvt->key);
    
-   if (NULL != mpNotify) {
-      ret = mpNotify->signal((pAvt->key) << 16 | (mToneDuration & 0xffff));
-         if (OS_SUCCESS != ret) {
-            if (OS_ALREADY_SIGNALED == ret) {
-               OsSysLog::add(FAC_MP, PRI_ERR,
-                  "MpdPtAvt(%p) Signal Start returned OS_ALREADY_SIGNALED",
-                  this);
-            } else {
-               OsSysLog::add(FAC_MP, PRI_ERR,
-                  "MpdPtAvt(%p) Signal Start returned %d", this, ret);
-            }
-         } else {
-            OsSysLog::add(FAC_MP, PRI_DEBUG,
-               "MpdPtAvt(%p) Signal Start sent successfully", this);
-         }
+   if (mpNotify)
+   {
+      ret = mpNotify->signal(pAvt->key);
    }
    else
    {
@@ -261,30 +242,6 @@ void MpdPtAVT::signalKeyUp(const MpRtpBufPtr &pPacket)
          " dB=%d TS=0x%08x+%d last key=%d\n", (int) this, pAvt->key, pAvt->dB,
          mCurrentToneSignature, mToneDuration, mCurrentToneKey);
       mPrevToneSignature = mCurrentToneSignature;
-      if (NULL != mpNotify) {
-         ret = mpNotify->signal(0x80000000 |
-                       (0x3fff0000 & (mCurrentToneKey << 16)) |
-                       (mToneDuration & 0xffff));
-         if (OS_SUCCESS != ret) {
-            if (OS_ALREADY_SIGNALED == ret) {
-               OsSysLog::add(FAC_MP, PRI_ERR,
-                  "MpdPtAvt(%p) Signal Stop returned OS_ALREADY_SIGNALED",
-                  this);
-            } else {
-               OsSysLog::add(FAC_MP, PRI_ERR,
-                  "MpdPtAvt(%p) Signal Stop returned %d", this, ret);
-            }
-         } else {
-            OsSysLog::add(FAC_MP, PRI_DEBUG,
-               "MpdPtAvt(%p) Signal Stop sent successfully", this);
-         }
-      } else {
-         OsSysLog::add(FAC_MP, PRI_DEBUG,
-                       "MpdPtAvt(%p) No application registered to receive Signal KeyUp", this);
-      }
-      if (mpRecorder) {
-        mpRecorder->termDtmf(-1);
-      }
    }
    mCurrentToneKey = -1;
    mCurrentToneSignature = 0;

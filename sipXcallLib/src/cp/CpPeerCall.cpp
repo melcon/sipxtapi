@@ -514,7 +514,6 @@ UtlBoolean CpPeerCall::handleTransferConnection(OsMsg* pEventMessage)
                 thisCallId.data());
             addConnection(connection);
             connection->targetCallBlindTransfer(connectionAddress, NULL);
-            addToneListenersToConnection(connection) ;
         }
         else
         {
@@ -730,9 +729,6 @@ UtlBoolean CpPeerCall::handleSipMessage(OsMsg* pEventMessage)
             connection->getCallId(&callId);
             setCallId(callId.data());
         }
-
-        if (bAddedConnection)
-            addToneListenersToConnection(connection) ;
 
     } // End if we created a new connection or used and existing one            
 
@@ -1312,56 +1308,6 @@ UtlBoolean CpPeerCall::handleGetCodecCPULimit(OsMsg& eventMessage)
 
     return bRC ;
 }
-
-
-// Handles the processing of a CallManager::CP_ADD_TONE_LISTENER 
-// message
-UtlBoolean CpPeerCall::handleAddToneListener(OsMsg* pEventMessage)
-{
-    // add tone listener to all connecitons
-    Connection* connection = NULL;
-    int pListener = ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-
-    OsReadLock lock(mConnectionMutex);
-    UtlDListIterator iterator(mConnections);
-
-    while ((connection = (Connection*) iterator()))
-    {
-        addToneListenerToFlowGraph(pListener, connection);
-    }
-
-    // add tone listener to a local list
-    if (!mToneListeners.containsReference((UtlContainable*) pListener))
-        mToneListeners.append((UtlContainable*) pListener);
-
-    return TRUE ;
-}
-
-
-// Handles the processing of a CallManager::CP_REMOVE_TONE_LISTENER 
-// message
-UtlBoolean CpPeerCall::handleRemoveToneListener(OsMsg* pEventMessage)
-{
-    // remove tone listener from all connecitons
-    Connection* connection = NULL;
-    int pListener = ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-
-    OsReadLock lock(mConnectionMutex);
-    UtlDListIterator iterator(mConnections);
-
-    while ((connection = (Connection*) iterator()))
-    {
-        removeToneListenerFromFlowGraph(pListener, connection);
-    }
-
-    // remove tone listener from local list
-    if (!mToneListeners.containsReference((UtlContainable*)  pListener))
-        mToneListeners.removeReference((UtlContainable*) pListener);
-
-
-    return TRUE ;
-}
-
 
 // Handles the processing of a CallManager::CP_TRANSFER_CONNECTION_STATUS 
 // message
@@ -2310,14 +2256,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
         handleRingingExpired(&eventMessage);
         break ;
 
-    case CallManager::CP_ADD_TONE_LISTENER:
-        handleAddToneListener(&eventMessage);
-        break;
-
-    case CallManager::CP_REMOVE_TONE_LISTENER:
-        handleRemoveToneListener(&eventMessage);
-        break;
-
     case CallManager::CP_UNHOLD_ALL_TERM_CONNECTIONS:
         handleUnholdAllTermConnections(&eventMessage);
         break ;
@@ -2512,40 +2450,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
     }
 
     return(processedMessage);
-}
-
-UtlBoolean CpPeerCall::handleNotifyMessage(OsEventMsg& eventMsg)
-{
-	Connection* pConnection ;
-	int eventData;
-	int pListener;
-	eventMsg.getEventData(eventData);
-	eventMsg.getUserData(pListener);
-
-    OsReadLock lock(mConnectionMutex);
-    UtlDListIterator iterator(mConnections);
-    while ((pConnection = (Connection*) iterator()))
-    {
-		if (((Connection*) pListener) == pConnection)
-		{	
-         bool bButtonUp = ((eventData & 0x80000000) == 0x80000000) ;
-			SIPX_TONE_ID id = (SIPX_TONE_ID) (eventData  >> 16) ;
-            // int iDuration = (eventData & 0xFFFF) ;	// not used
-
-         if (!bButtonUp)
-         {
-            pConnection->fireSipXMediaEvent(
-               MEDIA_REMOTE_DTMF,
-               MEDIA_CAUSE_NORMAL,
-               MEDIA_TYPE_AUDIO,
-               (void*) id) ;
-         }         
-
-			break ;
-		}
-	}
-
-	return false ;
 }
 
 // fires given media event to all SipConnections
@@ -3335,8 +3239,6 @@ Connection* CpPeerCall::addParty(const char* transferTargetAddress,
         bOnHold,
         originalCallId,
         rtpTransportOptions); 
-
-    addToneListenersToConnection(connection) ;
 
     return connection;
 }
@@ -4335,24 +4237,6 @@ void CpPeerCall::removeConnection(Connection* connection)
 {
 	// OsWriteLock lock(mConnectionMutex);
 	mConnections.remove(connection);
-
-	if (mpMediaInterface)
-	{
-		mpMediaInterface->removeToneListener(connection->getConnectionId());
-	}
-}
-
-void CpPeerCall::addToneListenersToConnection(Connection* connection)
-{
-    OsReadLock lock(mConnectionMutex);
-
-    // Add tone listeners to each/every new connection
-    UtlDListIterator iterator(mToneListeners);
-    void* pListener ;
-    while ((pListener = (void*) iterator()))
-    {
-        addToneListenerToFlowGraph((int) pListener, connection);
-    }
 }
 
 Connection* CpPeerCall::findQueuedConnection()

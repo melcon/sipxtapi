@@ -374,12 +374,7 @@ MpDecoderBase* MpRtpInputAudioConnection::mapPayloadType(int payloadType)
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean MpRtpInputAudioConnection::handleSetDtmfNotify(OsNotification* pNotify)
-{
-   return mpDecode->handleSetDtmfNotify(pNotify);
-}
-
-void MpRtpInputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, int data)
+void MpRtpInputAudioConnection::sendConnectionNotification(MpNotificationMsgType type, intptr_t data)
 {
    if (m_pConnectionNotificationQueue && areNotificationsEnabled())
    {
