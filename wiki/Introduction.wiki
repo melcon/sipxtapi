@@ -10,3 +10,7 @@ Main differences between customized and SIP Foundry version:
   * slightly different API, more C like, C++ code is almost gone from header files
   * GIPS (Global IP Sound) remnants have been removed
   * removed many hard limits from underlying libraries
+
+= Communication =
+* for developers, users - http://groups.google.com/group/sipxtapi
+* for commit messages -
