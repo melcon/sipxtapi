@@ -103,9 +103,6 @@ public:
      /// DOCME
    virtual void frameIncrement();
 
-     /// Always assert(FALSE) for now.
-   virtual UtlBoolean setDtmfTerm(MprRecorder *pRecorder);
-
 //@}
 
 /* ============================ ACCESSORS ================================= */
