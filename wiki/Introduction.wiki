@@ -13,5 +13,5 @@ Main differences between customized and SIP Foundry version:
 
 = Communication =
 There are several mailinglists available:
-* for developers, users - http://groups.google.com/group/sipxtapi
-* for commit messages - http://groups.google.com/group/sipxtapi-commits
+  * for developers, users - http://groups.google.com/group/sipxtapi
+  * for commit messages - http://groups.google.com/group/sipxtapi-commits
