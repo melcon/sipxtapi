@@ -14,7 +14,6 @@
 
 // APPLICATION INCLUDES
 #include "mp/MpdSipxPcmu.h"
-#include "mp/MprDejitter.h"
 #include "mp/MpSipxDecoders.h"
 #include "mp/MpMisc.h"
 #include "mp/MpDspUtils.h"
