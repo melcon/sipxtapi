@@ -78,6 +78,10 @@ public:
      /// Remove an RTP payload type from decoder instance map
    void deletePayloadType(int payloadId);
 
+   /**
+    * Observer notification callback.
+    */
+   virtual void onNotify(UtlObservable* subject, int code, intptr_t userData);
 //@}
 
 /* ============================ ACCESSORS ================================= */

@@ -23,6 +23,7 @@
 #include "os/OsMsgQ.h"
 #include "utl/UtlContainable.h"
 #include "utl/UtlObservable.h"
+#include "utl/UtlObservableImpl.h"
 #include "utl/UtlString.h"
 #include "mp/MpBuf.h"
 
@@ -54,7 +55,7 @@ class MpResourceMsg;
 *
 *  @nosubgrouping
 */
-class MpResource : public UtlString, public UtlObserver
+class MpResource : public UtlString, public UtlObserver, public UtlObservableImpl
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:

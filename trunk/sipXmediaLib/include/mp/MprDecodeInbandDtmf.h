@@ -38,7 +38,6 @@ public:
 
      //:Constructor
    MprDecodeInBandDtmf(const UtlString& rName, 
-                       MpRtpInputAudioConnection* pConn, 
                        int samplesPerFrame,
                        int samplesPerSec);
 
@@ -71,7 +70,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   MpRtpInputAudioConnection* m_pConnection;   // Link to the parent Connection.
    int m_dtmfLastDigit;
    int m_sameDtmfDigitCount;
    double Mk697;

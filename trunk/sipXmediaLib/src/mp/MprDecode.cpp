@@ -147,11 +147,8 @@ void MprDecode::onNotify(UtlObservable* subject, int code, intptr_t userData)
    {
    case MP_RES_DTMF_2833_NOTIFICATION:
       // DTMF notification received from MpdPtAVT
-      if (mpConnection)
-      {
-         // tell audio connection to send connection notification
-         mpConnection->sendConnectionNotification(MP_NOTIFICATION_DTMF_RFC2833, userData);
-      }
+      // send notification up to parent
+      notify(MP_RES_DTMF_2833_NOTIFICATION, userData);
       break;
    default:
       ;

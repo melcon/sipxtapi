@@ -16,6 +16,7 @@
 // APPLICATION INCLUDES
 #include "mp/MprDecodeInBandDtmf.h"
 #include "mp/MpRtpInputAudioConnection.h"
+#include "mp/MpResNotification.h"
 #include "mp/MprRecorder.h"
 #include "os/OsSysLog.h"
 
@@ -36,13 +37,11 @@
 
 // Constructor
 MprDecodeInBandDtmf::MprDecodeInBandDtmf(const UtlString& rName,
-                                         MpRtpInputAudioConnection* pConn,
                                          int samplesPerFrame,
                                          int samplesPerSec)
 : MpAudioResource(rName, 0, 1, 1, 1, samplesPerFrame, samplesPerSec),
   m_dtmfLastDigit(1000), 
-  m_sameDtmfDigitCount(0),
-  m_pConnection(pConn)
+  m_sameDtmfDigitCount(0)
 {
    Mk697 = 2 * cos(TwoPI * 697 / samplesPerSec);
    Mk770 = 2 * cos(TwoPI * 770 / samplesPerSec);
@@ -153,10 +152,7 @@ UtlBoolean MprDecodeInBandDtmf::doProcessFrame(MpBufPtr inBufs[],
 
       if (m_sameDtmfDigitCount == 4 && dtmfDigit != 1000)
       {
-         if (m_pConnection)
-         {
-            m_pConnection->sendConnectionNotification(MP_NOTIFICATION_DTMF_INBAND, dtmfDigit);
-         }
+         notify(MP_RES_DTMF_INBAND_NOTIFICATION, dtmfDigit);
       }
    }
    else
