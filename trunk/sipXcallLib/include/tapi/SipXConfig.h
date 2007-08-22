@@ -33,7 +33,7 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
-void initLogger();
+OsStatus initLogger();
 void freeAudioCodecs(SIPX_INSTANCE_DATA& pInst);
 void freeVideoCodecs(SIPX_INSTANCE_DATA& pInst);
 

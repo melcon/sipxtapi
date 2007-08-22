@@ -49,10 +49,10 @@ static bool gbHibernated = false;
 // GLOBAL FUNCTIONS
 
 // CHECKED
-void initLogger()
+OsStatus initLogger()
 {
-   OsSysLog::initialize(0, // do not cache any log messages in memory
-      "sipXtapi"); // name for messages from this program
+   return OsSysLog::initialize(0, // do not cache any log messages in memory
+                               "sipXtapi"); // name for messages from this program
 }
 
 // CHECKED
@@ -78,6 +78,7 @@ void freeAudioCodecs(SIPX_INSTANCE_DATA& pInst)
       // Free up the previously allocated codecs and the array
       for (int codecIndex = 0; codecIndex < pInst.audioCodecSetting.numCodecs; codecIndex++)
       {
+
          delete pInst.audioCodecSetting.sdpCodecArray[codecIndex];
          pInst.audioCodecSetting.sdpCodecArray[codecIndex] = NULL;
       }
@@ -113,27 +114,54 @@ void freeVideoCodecs(SIPX_INSTANCE_DATA& pInst)
 ***************************************************************************/
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigSetLogLevel(SIPX_LOG_LEVEL logLevel) 
+SIPXTAPI_API SIPX_RESULT sipxConfigInitLogging(const char* szFilename, SIPX_LOG_LEVEL logLevel) 
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetLogLevel");
+   SIPX_RESULT res = SIPX_RESULT_FAILURE;
 
 #ifdef LOG_TO_FILE
    // Start up logger thread
-   initLogger();
+   if (initLogger() == OS_SUCCESS)
+   {
+      if (OsSysLog::setLoggingPriority((OsSysLogPriority)logLevel) == OS_SUCCESS)
+      {
+         if (OsSysLog::setOutputFile(0, szFilename) == OS_SUCCESS)
+         {
+            res = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+#endif 
 
-   OsSysLog::setLoggingPriority((OsSysLogPriority)logLevel);
+   return res;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxConfigSetLogLevel(SIPX_LOG_LEVEL logLevel) 
+{
+   SIPX_RESULT res = SIPX_RESULT_FAILURE;
+
+#ifdef LOG_TO_FILE
+   if (OsSysLog::setLoggingPriority((OsSysLogPriority)logLevel) == OS_SUCCESS)
+   {
+      res = SIPX_RESULT_SUCCESS;
+   }
 #endif    
 
-   return SIPX_RESULT_SUCCESS;
+   return res;
 }
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxConfigSetLogFile(const char* szFilename)
 {
+   SIPX_RESULT res = SIPX_RESULT_FAILURE;
+
 #ifdef LOG_TO_FILE
-   OsSysLog::setOutputFile(0, szFilename);
+   if (OsSysLog::setOutputFile(0, szFilename) == OS_SUCCESS)
+   {
+      res = SIPX_RESULT_SUCCESS;
+   }
 #endif   
-   return SIPX_RESULT_SUCCESS;
+   return res;
 }
 
 // CHECKED

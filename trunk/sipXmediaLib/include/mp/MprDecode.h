@@ -73,6 +73,8 @@ public:
 
    void setMyDejitter(MprDejitter* newDJ);
 
+   virtual void onNotify(UtlObservable* subject, int code, intptr_t userData);
+
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -97,8 +99,6 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   virtual OsStatus notify(MpResNotification::MpResNotificationType type, const intptr_t eventData);
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    typedef enum
@@ -122,7 +122,6 @@ private:
    MpJitterBuffer* mpJB;            ///< Pointer to JitterBuffer instance
 
    MprDejitter* mpMyDJ;
-   MpResNotification* m_pRFC2833DTMFNotif;
 
    /// List of the codecs to be used to decode media.
    /**

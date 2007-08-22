@@ -21,6 +21,7 @@
 #include "mp/MprDejitter.h"
 #include "mp/NetInTask.h"
 #include "mp/MprRecorder.h"
+#include "mp/MpResNotification.h"
 #include "os/OsNotification.h"
 #ifdef _VXWORKS /* [ */
 #include <inetlib.h>
@@ -43,8 +44,7 @@ MpdPtAVT::MpdPtAVT(int payloadType)
      mCurrentToneKey(-1),
      mPrevToneSignature(0),
      mCurrentToneSignature(0),
-     mToneDuration(0),
-     mpNotify(NULL)
+     mToneDuration(0)
 {
    OsSysLog::add(FAC_MP, PRI_INFO, "MpdPtAVT(0x%X)::MpdPtAVT(%d)\n",
       (int) this, payloadType);
@@ -180,19 +180,12 @@ int MpdPtAVT::decode(const MpRtpBufPtr &pPacket,
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean MpdPtAVT::setNotification(OsNotification* pNotify)
-{
-   mpNotify = pNotify;
-   return TRUE;
-}
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 void MpdPtAVT::signalKeyDown(const MpRtpBufPtr &pPacket)
 {
    const struct AvtPacket* pAvt;
    unsigned int ts;
-   OsStatus ret;
 
    pAvt = (const struct AvtPacket*) pPacket->getDataPtr();
 
@@ -210,15 +203,8 @@ void MpdPtAVT::signalKeyDown(const MpRtpBufPtr &pPacket)
    OsSysLog::add(FAC_MP, PRI_INFO, "MpdPtAvt(0x%X) Start Rcv Tone key=%d"
       " dB=%d TS=0x%08x\n", (int) this, pAvt->key, pAvt->dB, ts);
    
-   if (mpNotify)
-   {
-      ret = mpNotify->signal(pAvt->key);
-   }
-   else
-   {
-      OsSysLog::add(FAC_MP, PRI_DEBUG,
-                    "MpdPtAvt(%p) No application registered to receive Signal KeyDown", this);
-   }
+   notify(MP_RES_DTMF_2833_NOTIFICATION, pAvt->key);
+
    mCurrentToneKey = pAvt->key;
    mCurrentToneSignature = ts;
    mToneDuration = 0;
@@ -230,7 +216,6 @@ void MpdPtAVT::signalKeyUp(const MpRtpBufPtr &pPacket)
    const struct AvtPacket* pAvt;
    unsigned int samples;
    unsigned int ts;
-   OsStatus ret;
 
    pAvt = (const struct AvtPacket*) pPacket->getDataPtr();
    ts = pPacket->getRtpTimestamp();

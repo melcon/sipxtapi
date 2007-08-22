@@ -2761,6 +2761,23 @@ SIPXTAPI_API SIPX_RESULT sipxLineFindByURI(const SIPX_INST hInst,
 /** @name Configuration Methods*/
 //@{
 
+/**
+ * Initializes sipxtapi logging. Must be called before initializing sipxtapi
+ * if it is desired to log to a custom file. If it is not called, sipxtapi
+ * logging is initialized by sipxInitialize. Logging priority and filename
+ * can later be changed by sipxConfigSetLogLevel and sipxConfigSetLogFile.
+ *
+ * NOTE: At this time no validation is performed on the specified filename.  
+ * Please make sure the directories exist and the appropriate permissions
+ * are available.
+ *
+ * @param logLevel Designates the amount of detail includes in the log.  See
+ *        SIPX_LOG_LEVEL for more details.
+ * @param szFilename The filename for the log file.  Designated a NULL 
+ *        filename will disable logging, however, threads/resources will not
+ *        be deallocated.
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigInitLogging(const char* szFilename, SIPX_LOG_LEVEL logLevel);
 
 /**
  * The sipxConfigEnableLog method enables logging for the sipXtapi API,

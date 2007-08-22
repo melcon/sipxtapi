@@ -21,68 +21,13 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-// FORWARD DECLARATIONS
-class MpResource;
 
-/**
- * Generic notification for sending synchronous notifications to resources.
- * Should be used where direct knowledge of parent object is not desired.
- */
-class MpResNotification : public OsNotification
+typedef enum
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
-public:
+   MP_RES_DTMF_2833_NOTIFICATION = 0, // used to notify decoder from MpdPtAVT
+   MP_RES_DTMF_INBAND_NOTIFICATION
+}MpResNotificationType;
 
-   typedef enum
-   {
-      MP_RES_DTMF_2833_NOTIFICATION = 0 // used to notify decoder from MpdPtAVT
-   }MpResNotificationType;
+// FORWARD DECLARATIONS
 
-/* ============================ CREATORS ================================== */
-
-   MpResNotification(MpResource* pResource, MpResNotificationType type);;
-     //:Default constructor
-
-   virtual ~MpResNotification();;
-     //:Destructor
-
-/* ============================ MANIPULATORS ============================== */
-
-   virtual OsStatus signal(const intptr_t eventData);
-     //:Signal the occurrence of the event
-
-   /**
-    * Disable sending notifications.
-    */
-   void enable();
-
-   /**
-    * Enable sending notifications. On by default.
-    */
-   void disable();
-
-/* ============================ ACCESSORS ================================= */
-
-/* ============================ INQUIRY =================================== */
-
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-protected:
-
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-private:
-   MpResNotificationType m_type;
-   MpResource* m_pResource;
-   volatile bool m_bEnabled;
-
-   MpResNotification(const MpResNotification& rOsNotification);
-     //:Copy constructor (not implemented for this class)
-
-   MpResNotification& operator=(const MpResNotification& rhs);
-     //:Assignment operator (not implemented for this class)
-
-};
-
-/* ============================ INLINE METHODS ============================ */
-
-#endif  // _MpResNotification_h_
-
+#endif _MpResNotification_h_

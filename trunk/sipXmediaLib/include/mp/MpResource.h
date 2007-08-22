@@ -22,9 +22,9 @@
 #include "os/OsStatus.h"
 #include "os/OsMsgQ.h"
 #include "utl/UtlContainable.h"
+#include "utl/UtlObservable.h"
 #include "utl/UtlString.h"
 #include "mp/MpBuf.h"
-#include "mp/MpResNotification.h"
 
 // DEFINES
 // MACROS
@@ -54,7 +54,7 @@ class MpResourceMsg;
 *
 *  @nosubgrouping
 */
-class MpResource : public UtlString
+class MpResource : public UtlString, public UtlObserver
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -230,6 +230,11 @@ static const UtlContainableType TYPE;
      *  a flow graph.
      */
 
+   /**
+    * Default notification callback, does nothing. Override for custom
+    * behaviour.
+    */
+   virtual void onNotify(UtlObservable* subject, int code, intptr_t userData);
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -446,14 +451,6 @@ protected:
      *  @returns TRUE if there is a resource connected to the specified output
      *  port, FALSE otherwise.
      */
-
-   /**
-   * This method is used to receive synchronous notifications in this resource.
-   * Override it for custom behaviour. setAllNotificationsEnabled will not
-   * have any effect on whether this method gets called, as its used for outbound
-   * notifications.
-   */
-   virtual OsStatus notify(MpResNotification::MpResNotificationType type, const intptr_t eventData);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

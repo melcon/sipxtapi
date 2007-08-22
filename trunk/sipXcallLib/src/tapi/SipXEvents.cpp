@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
 #ifndef _WIN32
 #include <stddef.h>
@@ -47,8 +46,6 @@
 #include "cp/CallManager.h"
 
 // DEFINES
-// #define DEBUG_SIPXTAPI_EVENTS
-
 // GLOBAL VARIABLES
 // EXTERNAL VARIABLES
 extern SipXHandleMap gCallHandleMap;   // sipXtapiInternal.cpp

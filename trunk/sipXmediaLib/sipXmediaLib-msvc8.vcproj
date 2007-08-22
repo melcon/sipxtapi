@@ -1666,10 +1666,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResNotification.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpResNotificationMsg.cpp"
 					>
 				</File>

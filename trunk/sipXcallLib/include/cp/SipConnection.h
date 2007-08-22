@@ -40,7 +40,7 @@ class SdpCodecFactory;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
-class SipConnection : public Connection, public ISocketEvent, public UtlObservable
+class SipConnection : public Connection, public ISocketEvent
 {
     /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -218,26 +218,12 @@ public:
 
     virtual UtlBoolean isLocallyInitiatedRemoteHold() const ;
 
-    virtual void registerObserver(UtlObserver* observer);
-
-    /**
-     * Removes a listener of this observable.
-     */
-    virtual void removeObserver(UtlObserver* observer);
-
-
 private:
     UtlSList mObservers;
 
 
     /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-
-    /**
-     * The observable calls this to notify its
-     * observers of a change.
-     */
-    virtual void notify(int code, void *pUserData);
 
     UtlBoolean prepareInviteSdpForSend(SipMessage* pMsg, int connectionId, const void* pSecurityAttribute) ;
 

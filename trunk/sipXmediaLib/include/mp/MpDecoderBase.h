@@ -18,6 +18,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsStatus.h"
+#include "utl/UtlObservableImpl.h"
 #include "mp/MpCodecInfo.h"
 #include "mp/MpRtpBuf.h"
 
@@ -34,7 +35,7 @@ class OsNotification;
 class MprRecorder;
 
 /// Base class for all media processing decoders.
-class MpDecoderBase
+class MpDecoderBase : public UtlObservableImpl
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -129,8 +130,6 @@ public:
 
 protected:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
-
-   virtual UtlBoolean setNotification(OsNotification* pNotify);
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
