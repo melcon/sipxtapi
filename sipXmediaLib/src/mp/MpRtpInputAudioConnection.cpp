@@ -25,6 +25,7 @@
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
 #include "mp/MprDecodeInbandDtmf.h"
+#include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
 #include <os/OsLock.h>
 #include "os/OsIntPtrMsg.h"
@@ -63,8 +64,10 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 
    sprintf(name, "Decode-%d", myID);
    mpDecode    = new MprDecode(name, this, samplesPerFrame, samplesPerSec);
+   mpDecode->registerObserver(this);
    sprintf(name, "DecodeInBandDtmf-%d", myID);
-   mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, this, samplesPerFrame, samplesPerSec);
+   mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, samplesPerFrame, samplesPerSec);
+   mpDecodeInBandDtmf->registerObserver(this);
 
  //memset((char*)mpPayloadMap, 0, (NUM_PAYLOAD_TYPES*sizeof(MpDecoderBase*)));
    for (i=0; i<NUM_PAYLOAD_TYPES; i++) {
@@ -350,6 +353,26 @@ void MpRtpInputAudioConnection::deletePayloadType(int payloadType)
    else
    {
       mpPayloadMap[payloadType] = NULL;
+   }
+}
+
+void MpRtpInputAudioConnection::onNotify(UtlObservable* subject, int code, intptr_t userData)
+{
+   MpResNotificationType type = (MpResNotificationType)code;
+
+   switch(type)
+   {
+   case MP_RES_DTMF_2833_NOTIFICATION:
+      // DTMF notification received from MprDecode
+      // tell audio connection to send connection notification
+      sendConnectionNotification(MP_NOTIFICATION_DTMF_RFC2833, userData);
+      break;
+   case MP_RES_DTMF_INBAND_NOTIFICATION:
+      // DTMF notification received from MprDecodeInBandDtmf
+      sendConnectionNotification(MP_NOTIFICATION_DTMF_INBAND, userData);
+      break;
+   default:
+      ;
    }
 }
 
