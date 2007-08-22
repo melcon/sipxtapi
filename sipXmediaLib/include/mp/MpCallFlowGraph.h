@@ -323,6 +323,9 @@ public:
      *  @warning Only available when Speex is enabled!
      */
 
+   static UtlBoolean enableInboundInBandDTMF(UtlBoolean enable);
+   static UtlBoolean enableInboundRFC2833DTMF(UtlBoolean enable);
+
 /* ============================ ACCESSORS ================================= */
 ///@name Accessors
 //@{
@@ -340,6 +343,9 @@ public:
 
      /// Returns TRUE if the indicated codec is supported.
    UtlBoolean isCodecSupported(SdpCodec& rCodec);
+
+   static UtlBoolean isInboundInBandDTMFEnabled();
+   static UtlBoolean isInboundRFC2833DTMFEnabled();
 
 /* ============================ CALLBACKS ================================= */
 #ifdef INCLUDE_RTCP /* [ */
@@ -454,6 +460,8 @@ private:
    static UtlBoolean sbEnableAEC ;
    static UtlBoolean sbEnableAGC ;
    static UtlBoolean sbEnableNoiseReduction ;
+   static UtlBoolean ms_bEnableInboundInBandDTMF;
+   static UtlBoolean ms_bEnableInboundRFC2833DTMF;
 
    OsMsgQ* m_pInterfaceNotificationQueue;
 

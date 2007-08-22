@@ -302,6 +302,23 @@ OsStatus sipXmediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDU
   return OS_NOT_SUPPORTED;
 }
 
+OsStatus sipXmediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable)
+{
+   switch(mode)
+   {
+   case MEDIA_INBOUND_DTMF_INBAND:
+      MpCallFlowGraph::enableInboundInBandDTMF(enable);
+      break;
+   case MEDIA_INBOUND_DTMF_RFC2833:
+      MpCallFlowGraph::enableInboundRFC2833DTMF(enable);
+      break;
+   default:
+      return OS_FAILED;
+   }
+
+   return OS_SUCCESS;
+}
+
 OsStatus sipXmediaFactoryImpl::buildCodecFactory(SdpCodecFactory *pFactory, 
                                                  const UtlString& sAudioPreferences,
                                                  const UtlString& sVideoPreferences,
@@ -659,7 +676,25 @@ OsStatus sipXmediaFactoryImpl::getLocalAudioConnectionId(int& connectionId) cons
 
 }
 
+
 /* ============================ INQUIRY =================================== */
+
+OsStatus sipXmediaFactoryImpl::isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled)
+{
+   switch(mode)
+   {
+   case MEDIA_INBOUND_DTMF_INBAND:
+      enabled = MpCallFlowGraph::isInboundInBandDTMFEnabled();
+      break;
+   case MEDIA_INBOUND_DTMF_RFC2833:
+      enabled = MpCallFlowGraph::isInboundRFC2833DTMFEnabled();
+      break;
+   default:
+      return OS_FAILED;
+   }
+
+   return OS_SUCCESS;  
+}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 

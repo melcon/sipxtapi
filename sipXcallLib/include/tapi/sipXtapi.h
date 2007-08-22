@@ -3106,7 +3106,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST hInst,
  * @param bEnable Enable or disable out-of-band DTMF tones.
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
-													   const SIPX_OUTBOUND_DTMF_MODE mode);
+                                                       const SIPX_OUTBOUND_DTMF_MODE mode);
 
 /**
 * Determines mode of sending DTMF tones.
@@ -3115,30 +3115,32 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
 * @param bEnable in-band DTMF tones enabled or disabled.
 */
 SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
-													   SIPX_OUTBOUND_DTMF_MODE* mode);
+                                                       SIPX_OUTBOUND_DTMF_MODE* mode);
 
 
 /**
- * Enables reception of certain types of DTMF
+ * Enables reception of certain types of DTMF. Setting will be in effect
+ * for all new calls for all sipxtapi instances. Old calls will not be affected. 
  *
  * @param hInst Instance pointer obtained by sipxInitialize
  * @param mode Mode of DTMF to enable/disable
  * @param bEnable Set to true to enable, false to disable
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
-													 SIPX_INBOUND_DTMF_MODE mode,
-													 int bEnable);
+                                                     SIPX_INBOUND_DTMF_MODE mode,
+                                                     int bEnable);
 
 /**
-* Determines the state of reception of certain types of DTMF
+* Determines the state of reception of certain types of DTMF. This setting
+* is global for all sipxtapi instances.
 *
 * @param hInst Instance pointer obtained by sipxInitialize
 * @param mode Mode of DTMF to inquire
 * @param bEnabled Returns state of reception
 */
 SIPXTAPI_API SIPX_RESULT sipxConfigIsInboundDTMFEnabled(const SIPX_INST hInst,
-														SIPX_INBOUND_DTMF_MODE mode,
-														int* bEnabled);
+                                                        SIPX_INBOUND_DTMF_MODE mode,
+                                                        int* bEnabled);
 
 /**
  * Enable or disable sending RTCP reports.  By default, RTCP is enabled and
