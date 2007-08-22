@@ -40,6 +40,22 @@
 #define snprintf _snprintf
 #endif
 
+#ifdef _WIN32
+#define SNPRINTF _snprintf
+#else
+#define SNPRINTF snprintf
+#endif 
+
+#ifdef _WIN32
+#define SAFE_STRDUP(X) (((X) == NULL) ? NULL : _strdup((X)))
+#else
+#define SAFE_STRDUP(X) (((X) == NULL) ? NULL : strdup((X)))
+#endif
+
+#define SAFE_STRLEN(X) (((X) == NULL) ? 0 : strlen((X)))
+
+#define MAKESTR(X) #X 
+
 /* Handle the case-insensitive string comparison functions, by making the Posix names
  * strcasecmp and strncasecmp available on all platforms.
  * (On newer Windows environments, str(n)casecmp are built-in, along with the older

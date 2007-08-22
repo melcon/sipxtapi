@@ -32,7 +32,7 @@
 #include "tapi/SipXLine.h"
 #include "tapi/SipXCall.h"
 #include "tapi/SipXConference.h"
-#include "tapi/SafeStrDefs.h"
+#include "os/OsDefs.h"
 #include "utl/UtlSList.h"
 #include "utl/UtlSListIterator.h"
 #include "utl/UtlVoidPtr.h"
