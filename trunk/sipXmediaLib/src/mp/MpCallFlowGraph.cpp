@@ -95,6 +95,9 @@ UtlBoolean MpCallFlowGraph::sbEnableAGC = false ;
 UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = false ;
 #endif // HAVE_SPEEX ]
 
+UtlBoolean MpCallFlowGraph::ms_bEnableInboundInBandDTMF = true;
+UtlBoolean MpCallFlowGraph::ms_bEnableInboundRFC2833DTMF = true;
+
 #define INSERT_RECORDERS // splices recorders into flowgraph
 // #undef INSERT_RECORDERS 
 
@@ -1308,6 +1311,8 @@ MpConnectionID MpCallFlowGraph::createConnection(OsMsgQ* pConnectionNotification
        new MpRtpInputAudioConnection(inConnectionName,
                                      found,
                                      pConnectionNotificationQueue,
+                                     ms_bEnableInboundInBandDTMF,
+                                     ms_bEnableInboundRFC2833DTMF,
                                      getSamplesPerFrame(), 
                                      getSamplesPerSec());
    mpOutputConnections[found] = 
@@ -1541,7 +1546,18 @@ UtlBoolean MpCallFlowGraph::setAudioNoiseReduction(UtlBoolean bEnable)
    return bReturn;
 }
 
- 
+UtlBoolean MpCallFlowGraph::enableInboundInBandDTMF(UtlBoolean enable)
+{
+   ms_bEnableInboundInBandDTMF = enable;
+   return TRUE;
+}
+
+UtlBoolean MpCallFlowGraph::enableInboundRFC2833DTMF(UtlBoolean enable)
+{
+   ms_bEnableInboundRFC2833DTMF = enable;
+   return TRUE;
+}
+
 #ifdef INCLUDE_RTCP /* [ */
 
 /* ======================== CALLBACK METHODS ============================= */
@@ -1678,6 +1694,16 @@ UtlBoolean MpCallFlowGraph::isCodecSupported(SdpCodec& rCodec)
 {
    // $$$ For now always return TRUE
    return TRUE;
+}
+
+UtlBoolean MpCallFlowGraph::isInboundInBandDTMFEnabled()
+{
+   return ms_bEnableInboundInBandDTMF;
+}
+
+UtlBoolean MpCallFlowGraph::isInboundRFC2833DTMFEnabled()
+{
+   return ms_bEnableInboundRFC2833DTMF;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -2223,7 +2249,6 @@ UtlBoolean MpCallFlowGraph::handleOnMprRecorderDisabled(MpFlowGraphMsg& rMsg)
 
    return TRUE;
 }
-
 
 /* ============================ FUNCTIONS ================================= */
 

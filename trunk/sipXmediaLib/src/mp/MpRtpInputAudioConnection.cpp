@@ -46,6 +46,8 @@
 MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceName,
                                                      MpConnectionID myID, 
                                                      OsMsgQ* pConnectionNotificationQueue,
+                                                     UtlBoolean bInBandDTMFEnabled,
+                                                     UtlBoolean bRFC2833DTMFEnabled,
                                                      int samplesPerFrame, 
                                                      int samplesPerSec)
 : MpRtpInputConnection(resourceName,
@@ -58,6 +60,9 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 #endif // INCLUDE_RTCP ]
                        )
 , mpDecode(NULL)
+, mpDecodeInBandDtmf(NULL)
+, m_bInBandDTMFEnabled(bInBandDTMFEnabled)
+, m_bRFC2833DTMFEnabled(bRFC2833DTMFEnabled)
 {
    char         name[50];
    int          i;
@@ -65,9 +70,13 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
    sprintf(name, "Decode-%d", myID);
    mpDecode    = new MprDecode(name, this, samplesPerFrame, samplesPerSec);
    mpDecode->registerObserver(this);
-   sprintf(name, "DecodeInBandDtmf-%d", myID);
-   mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, samplesPerFrame, samplesPerSec);
-   mpDecodeInBandDtmf->registerObserver(this);
+
+   if (m_bInBandDTMFEnabled)
+   {
+      sprintf(name, "DecodeInBandDtmf-%d", myID);
+      mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, samplesPerFrame, samplesPerSec);
+      mpDecodeInBandDtmf->registerObserver(this);
+   }   
 
  //memset((char*)mpPayloadMap, 0, (NUM_PAYLOAD_TYPES*sizeof(MpDecoderBase*)));
    for (i=0; i<NUM_PAYLOAD_TYPES; i++) {
@@ -119,8 +128,7 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
                                           mpDecode->getSamplesPerFrame(), 
                                           mpDecode->getSamplesPerSec());
     
-		assert(mpDecodeInBandDtmf);
-		if( mpDecodeInBandDtmf )
+		if(mpDecodeInBandDtmf)
 		{
 			result &= mpDecodeInBandDtmf->doProcessFrame(mpOutBufs, // OutBufs from mpDecoder = InBuf for InBand
 											  NULL,					// No outBufs needed
@@ -204,7 +212,11 @@ UtlBoolean MpRtpInputAudioConnection::handleMessage(MpResourceMsg& rMsg)
 UtlBoolean MpRtpInputAudioConnection::handleDisable()
 {
    mpDecode->disable();
-   mpDecodeInBandDtmf->disable();
+   if (mpDecodeInBandDtmf)
+   {
+      mpDecodeInBandDtmf->disable();
+   }
+   
    return(MpResource::handleDisable());
 }
 
@@ -222,7 +234,11 @@ UtlBoolean MpRtpInputAudioConnection::handleDisable()
 UtlBoolean MpRtpInputAudioConnection::handleEnable()
 {
    mpDecode->enable();
-   mpDecodeInBandDtmf->enable();
+   if (mpDecodeInBandDtmf)
+   {
+      mpDecodeInBandDtmf->enable();
+   }
+   
    return(MpResource::handleEnable());
 }
 
@@ -258,7 +274,41 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[],
 {
    if (numCodecs)
    {
-       mpDecode->selectCodecs(pCodecs, numCodecs);       
+      // if RFC2833 DTMF is disabled
+      if (!m_bRFC2833DTMFEnabled)
+      {
+         // go through all codecs, if you find telephone event, remove it
+         for (int i = 0; i < numCodecs; i++)
+         {
+            if (pCodecs[i]->getCodecType() == SdpCodec::SDP_CODEC_TONES)
+            {
+               if (i == (numCodecs - 1))
+               {
+                  // this is the last codec, lie that we have numCodecs-1
+                  numCodecs = numCodecs - 1;
+               }
+               else
+               {
+                  SdpCodec* tmp;
+                  // swap rfc2833 codec with the last one, and lie that we have one
+                  // less codec than we actually have. It is safe to do, as codecs
+                  // are owned by start RTP message.
+                  tmp = pCodecs[i];
+                  pCodecs[i] = pCodecs[numCodecs - 1];
+                  pCodecs[numCodecs - 1] = tmp;
+
+                  numCodecs = numCodecs - 1;
+               }
+               break;
+            }
+         }
+      }
+
+      // continue only if numCodecs is still greater than 0
+      if (numCodecs > 0)
+      {
+         mpDecode->selectCodecs(pCodecs, numCodecs);
+      }      
    }
    // No need to synchronize as the decoder is not part of the
    // flowgraph.  It is part of this connection/resource
@@ -269,8 +319,11 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[],
    //mpFlowGraph->synchronize();
    if (numCodecs)
    {
-       mpDecode->enable();
-	   mpDecodeInBandDtmf->enable();
+      mpDecode->enable();
+      if (mpDecodeInBandDtmf)
+      {
+         mpDecodeInBandDtmf->enable();
+      }
    }
 }
 
@@ -301,7 +354,11 @@ void MpRtpInputAudioConnection::handleStopReceiveRtp()
    //mpFlowGraph->synchronize();
 
    mpDecode->disable();
-   mpDecodeInBandDtmf->disable();
+
+   if (mpDecodeInBandDtmf)
+   {
+      mpDecodeInBandDtmf->disable();
+   }   
 }
 
 void MpRtpInputAudioConnection::addPayloadType(int payloadType, MpDecoderBase* decoder)

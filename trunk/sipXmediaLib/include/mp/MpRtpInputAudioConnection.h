@@ -57,6 +57,8 @@ public:
    MpRtpInputAudioConnection(const UtlString& resourceName,
                              MpConnectionID myID,
                              OsMsgQ* pConnectionNotificationQueue,
+                             UtlBoolean bInBandDTMFEnabled,
+                             UtlBoolean bRFC2833DTMFEnabled,
                              int samplesPerFrame, 
                              int samplesPerSec);
 
@@ -163,6 +165,9 @@ private:
 
    MpDecoderBase*     mpPayloadMap[NUM_PAYLOAD_TYPES];
                                        ///< Map RTP payload types to our decoders
+
+   UtlBoolean m_bInBandDTMFEnabled;
+   UtlBoolean m_bRFC2833DTMFEnabled;
 };
 
 /* ============================ INLINE METHODS ============================ */

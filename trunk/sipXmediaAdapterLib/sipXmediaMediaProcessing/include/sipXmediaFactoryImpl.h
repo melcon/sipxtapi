@@ -101,6 +101,8 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus enableAGC(UtlBoolean bEnable) ;
     virtual OsStatus setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) ;
 
+    virtual OsStatus enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable);
+
     virtual OsStatus buildCodecFactory(SdpCodecFactory *pFactory, 
                                        const UtlString& sPreferences,
                                        const UtlString& sVideoPreferences,
@@ -138,6 +140,8 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus getVideoFrameRate(int& frameRate) const;
 
 /* ============================ INQUIRY =================================== */
+
+    virtual OsStatus isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled);
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
   protected:
