@@ -906,7 +906,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
-													   SIPX_OUTBOUND_DTMF_MODE* mode)
+                                                       SIPX_OUTBOUND_DTMF_MODE* mode)
 {
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
@@ -934,8 +934,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
-													 SIPX_INBOUND_DTMF_MODE mode,
-												     int bEnable)
+                                                     SIPX_INBOUND_DTMF_MODE mode,
+                                                     int bEnable)
 {
 	OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
 		"sipxConfigEnableInboundDTMF hInst=%p bEnable=%d",
@@ -963,8 +963,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxConfigIsInboundDTMFEnabled(const SIPX_INST hInst,
-		        									    SIPX_INBOUND_DTMF_MODE mode,
-													    int* bEnabled)
+                                                        SIPX_INBOUND_DTMF_MODE mode,
+                                                        int* bEnabled)
 {
 	SIPX_RESULT rc = SIPX_RESULT_FAILURE;
 	SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
