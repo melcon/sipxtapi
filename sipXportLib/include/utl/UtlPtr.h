@@ -22,10 +22,6 @@
 #include "utl/UtlContainable.h"
 
 // DEFINES
-
-#define STR(arg) #arg
-#define MAKESTR(arg) STR(arg)
-
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

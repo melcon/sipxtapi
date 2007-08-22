@@ -23,7 +23,7 @@
 #include "tapi/SipXPim.h"
 #include "tapi/sipXtapi.h"
 #include "tapi/SipXCore.h"
-#include "tapi/SafeStrDefs.h"
+#include "os/OsDefs.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS

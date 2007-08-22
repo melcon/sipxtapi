@@ -24,7 +24,7 @@
 #include "tapi/SipXInfo.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXCall.h"
-#include "tapi/SafeStrDefs.h"
+#include "os/OsDefs.h"
 #include "tapi/SipXMessageObserver.h"
 #include "cp/CallManager.h"
 

@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <tapi/SafeStrDefs.h>
+#include <os/OsDefs.h>
 #include "tapi/SipXCore.h"
 
 // DEFINES
