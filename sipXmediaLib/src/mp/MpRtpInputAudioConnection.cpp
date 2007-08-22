@@ -89,7 +89,9 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 MpRtpInputAudioConnection::~MpRtpInputAudioConnection()
 {
    delete mpDecode;
+   mpDecode = NULL;
    delete mpDecodeInBandDtmf;
+   mpDecodeInBandDtmf = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */

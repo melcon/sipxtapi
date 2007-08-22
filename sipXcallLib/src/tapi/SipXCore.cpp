@@ -322,9 +322,11 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
 #ifdef LOG_TO_FILE
    // Start up logger thread if logging is on
-   initLogger();
-   OsSysLog::setLoggingPriority(PRI_DEBUG);
-   OsSysLog::setOutputFile(0, "sipXtapi.log");
+   if (initLogger() == OS_SUCCESS)
+   {
+      OsSysLog::setLoggingPriority(PRI_DEBUG);
+      OsSysLog::setOutputFile(0, "sipXtapi.log");
+   }
 #endif
 
    int iActualTLSPort = tlsPort;

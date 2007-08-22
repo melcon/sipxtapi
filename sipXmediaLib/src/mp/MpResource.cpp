@@ -176,6 +176,11 @@ void MpResource::setVisitState(int newState)
    mVisitState = newState;
 }
 
+void MpResource::onNotify(UtlObservable* subject, int code, intptr_t userData)
+{
+   // nothing to do here
+}
+
 /* ============================ ACCESSORS ================================= */
 
 // (static) Displays information on the console about the specified flow
@@ -583,14 +588,6 @@ UtlBoolean MpResource::pushBufferDownsream(int outPortIdx, const MpBufPtr &pBuf)
    pDownstreamInput->setInputBuffer(downstreamPortIdx, pBuf);
    return TRUE;
 }
-
-OsStatus MpResource::notify(MpResNotification::MpResNotificationType type, const intptr_t eventData)
-{
-   // not implemented here, override to use it
-   assert(false);
-   return OS_FAILED;
-}
-
 
 // Post a message to this resource.
 // If this resource is not part of a flow graph, then rMsg is

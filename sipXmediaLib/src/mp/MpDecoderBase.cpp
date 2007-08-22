@@ -66,9 +66,3 @@ int MpDecoderBase::getPayloadType(void)
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
-
-UtlBoolean MpDecoderBase::setNotification(OsNotification* pNotify)
-{
-   assert(FALSE);
-   return TRUE;
-}

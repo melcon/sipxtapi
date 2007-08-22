@@ -8,6 +8,9 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef UtlObservable_h__
+#define UtlObservable_h__
+
 class UtlObservable;
 
 /**
@@ -19,17 +22,17 @@ class UtlObserver
 public:
     /**
      * Notification method which the observer must implement.  The 
-     * observable's (also, subject) resposibility is to notify 
+     * observable's (also, subject) responsibility is to notify 
      * the observers of state changes.  The observable will notify
      * the observers by invoking this onNotify method.
      *
      * @param subject The observable which invoked this method.
      * @param code An integer notification value.  For example, it
      *                  can be used to indicate the observable's state.
-     * @param pUserData A reference to any object that the observable may
+     * @param userData A reference to any object that the observable may
      *                  pass to the observer.
      */
-    virtual void onNotify(UtlObservable* subject, int code, void *pUserData) = 0;
+    virtual void onNotify(UtlObservable* subject, int code, intptr_t userData) = 0;
 };
 
 /**
@@ -59,6 +62,12 @@ public:
      *                 this observable's state changes.
      */ 
     virtual void removeObserver(UtlObserver* observer) = 0;
+
+    /**
+     * Removes all listeners. Derived classes of UtlObservable
+     * should remove all observers from its collection.
+     */
+    virtual void removeAllObservers() = 0;
 protected:
     
     /**
@@ -69,11 +78,12 @@ protected:
      * 
      * @param code An integer notification value.  For example, it
      *                  can be used to indicate the observable's state.
-     * @param pUserData A reference to any object that the observable may
+     * @param userData A reference to any object that the observable may
      *                  pass to the observer.
      */ 
-    virtual void notify(int code, void *pUserData) = 0;
+    virtual void notify(int code, intptr_t userData) = 0;
 
 };
 
+#endif // UtlObservable_h__
 

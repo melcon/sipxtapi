@@ -32,6 +32,7 @@
 #include "os/OsDefs.h"
 #include "os/OsSysLog.h"
 #include "os/OsLock.h"
+#include "mp/MpResNotification.h"
 #include "mp/MpMisc.h"
 #include "mp/MpBuf.h"
 #include "mp/MpRtpInputAudioConnection.h"
@@ -67,7 +68,6 @@ MprDecode::MprDecode(const UtlString& rName, MpRtpInputAudioConnection* pConn,
    mNumPrevCodecs(0),
    mpConnection(pConn)
 {
-   m_pRFC2833DTMFNotif = new MpResNotification(this, MpResNotification::MP_RES_DTMF_2833_NOTIFICATION);
 }
 
 // Destructor
@@ -91,9 +91,6 @@ MprDecode::~MprDecode()
          delete[] mpPrevCodecs;
       }
    }
-
-   delete m_pRFC2833DTMFNotif;
-   m_pRFC2833DTMFNotif = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -142,6 +139,25 @@ void MprDecode::setMyDejitter(MprDejitter* pDJ)
    mpMyDJ = pDJ;
 }
 
+void MprDecode::onNotify(UtlObservable* subject, int code, intptr_t userData)
+{
+   MpResNotificationType type = (MpResNotificationType)code;
+
+   switch(type)
+   {
+   case MP_RES_DTMF_2833_NOTIFICATION:
+      // DTMF notification received from MpdPtAVT
+      if (mpConnection)
+      {
+         // tell audio connection to send connection notification
+         mpConnection->sendConnectionNotification(MP_NOTIFICATION_DTMF_RFC2833, userData);
+      }
+      break;
+   default:
+      ;
+   }
+}
+
 /* ============================ ACCESSORS ================================= */
 
 MpJitterBuffer* MprDecode::getJBinst(UtlBoolean optional)
@@ -156,26 +172,6 @@ MpJitterBuffer* MprDecode::getJBinst(UtlBoolean optional)
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
-
-OsStatus MprDecode::notify(MpResNotification::MpResNotificationType type, const intptr_t eventData)
-{
-   switch(type)
-   {
-   case MpResNotification::MP_RES_DTMF_2833_NOTIFICATION:
-      // DTMF notification received from MpdPtAVT
-      if (mpConnection)
-      {
-         // tell audio connection to send connection notification
-         mpConnection->sendConnectionNotification(MP_NOTIFICATION_DTMF_RFC2833, eventData);
-         return OS_SUCCESS;
-      }      
-      break;
-   default:
-      assert(false);
-   }
-
-   return OS_FAILED;
-}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
@@ -447,8 +443,8 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
       for (i=0; i<numCodecs; i++) {
          if (mpCurrentCodecs[i]->getInfo()->isSignalingCodec()) {
             mpCurrentCodecs[i]->initDecode();
-            // set notification object, used for DTMF
-            mpCurrentCodecs[i]->setNotification(m_pRFC2833DTMFNotif);
+            // start observing this decoder, used for DTMF notifications
+            mpCurrentCodecs[i]->registerObserver(this);
          }
       }
    }

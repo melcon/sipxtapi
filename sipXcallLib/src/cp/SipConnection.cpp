@@ -281,9 +281,6 @@ SipConnection::~SipConnection()
         OsSysLog::add(FAC_CP, PRI_DEBUG, "Leaving SipConnection destructor: call is Null\n");
 #endif
 
-    // Notify UtlObservers of this UtlObservable
-    notify(0, (void*)dynamic_cast<ISocketEvent*>(this));
-
     // tell all media event emitters that we are going away
     UtlSListIterator iterator(mMediaEventEmitters);
     UtlInt* pEmitterContainer;
@@ -7257,43 +7254,6 @@ void SipConnection::onListenerAddedToEmitter(IMediaEventEmitter *pEmitter)
     UtlInt value((int) pEmitter) ;
     mMediaEventEmitters.insert(&value);
 }
-
-
-/**
-* Registers a listener of this observable.
-*/
-void SipConnection::registerObserver(UtlObserver* observer)
-{
-    mObservers.insert(new UtlInt((int) observer));
-}
-
-/**
-* Removes a listener of this observable.
-*/
-void SipConnection::removeObserver(UtlObserver* observer)
-{
-    UtlInt value((int) observer) ;
-    mObservers.destroy(&value);
-}
-
-/**
-* The observable calls this to notify its
-* observers of a change.
-*/
-void SipConnection::notify(int code, void *pUserData)
-{
-    UtlSListIterator iterator(mObservers);
-    UtlObserver* pObserver = NULL;
-    UtlInt* pContainer = NULL;
-    while ((pContainer = (UtlInt*)iterator()))
-    {
-        pObserver = (UtlObserver*)pContainer->getValue();
-        pObserver->onNotify(this, code, pUserData);
-    }
-}
-
-
-
 
 /* ============================ FUNCTIONS ================================= */
 

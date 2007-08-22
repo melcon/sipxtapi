@@ -105,16 +105,6 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   /**
-    * Sets notification object for DTMF decoder. This object is not owned
-    * by this decoder, but the function that passed it. It is therefore
-    * not deleted here.
-    */
-   virtual UtlBoolean setNotification(OsNotification* pNotify);
-     /**<
-     *  @returns <b>TRUE</b>
-     */
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    static const MpCodecInfo smCodecInfo; ///< static information about the codec
@@ -123,7 +113,6 @@ private:
    unsigned int mPrevToneSignature;    ///< The timestamp for last KEYUP event
    unsigned int mCurrentToneSignature; ///< The starting timestamp
    unsigned int mToneDuration;         ///< last reported duration
-   OsNotification* mpNotify;     ///< Object to signal on key-down/key-up events
 
    void signalKeyDown(const MpRtpBufPtr &pPacket);
    void signalKeyUp(const MpRtpBufPtr &pPacket);
