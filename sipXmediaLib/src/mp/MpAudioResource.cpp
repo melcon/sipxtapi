@@ -236,14 +236,7 @@ void MpAudioResource::sendInterfaceNotification(MpNotificationMsgType type, intp
 {
    if (mpFlowGraph && areNotificationsEnabled())
    {
-      MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_INTERFACE_NOTF_MSG,
-         NULL, // set NULL to send it to flowgraph
-         NULL, // 1st pointer is unused
-         NULL, // 2nd poiner is unused
-         type, // 1st int is message type
-         MP_NOTIFICATION_AUDIO, // 2nd int is media type
-         data); // 3rd int is user data
-      postMessage(msg);
+      mpFlowGraph->sendInterfaceNotification(MP_NOTIFICATION_AUDIO, type, data);
    }
 }
 

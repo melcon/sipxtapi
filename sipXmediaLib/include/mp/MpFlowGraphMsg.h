@@ -67,8 +67,6 @@ public:
       
       FLOWGRAPH_SYNCHRONIZE,
 
-      FLOWGRAPH_INTERFACE_NOTF_MSG,
-
       // Resource notification messages using old flowgraph msg approach
       // NOTE: this is a temporary fix, and will be replaced by newer
       //       notification messaging.  (see MpResourceNotificationMsg.h and 

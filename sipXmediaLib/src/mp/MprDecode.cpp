@@ -203,7 +203,7 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
                                      int samplesPerFrame,
                                      int samplesPerSecond)
 {
-static int iFramesSinceLastReport=0;
+   static int iFramesSinceLastReport=0;
 
    MpAudioBufPtr out;
    MpAudioSample* pSamples;
