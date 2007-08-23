@@ -1469,6 +1469,18 @@ void MpCallFlowGraph::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificati
 	}
 }
 
+void MpCallFlowGraph::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
+                                                MpNotificationMsgType msgSubType,
+                                                intptr_t msgData)
+{
+   if (m_pInterfaceNotificationQueue)
+   {
+      // create message and send it to interface notification queue
+      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, (intptr_t)msgSubType, msgData);
+      m_pInterfaceNotificationQueue->send(interfaceMsg, OsTime::NO_WAIT_TIME);
+   }
+}
+
 // Enables/Disable the transmission of inband DTMF audio
 UtlBoolean MpCallFlowGraph::setInbandDTMF(UtlBoolean bEnable)
 {
@@ -1825,9 +1837,6 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
       case MpFlowGraphMsg::FLOWGRAPH_STOP_TONE:
          retCode = handleStopToneOrPlay();
          break;
-      case MpFlowGraphMsg::FLOWGRAPH_INTERFACE_NOTF_MSG:
-         retCode = handleInterfaceNotificationMsg(*pMsg);
-         break;
       case MpFlowGraphMsg::ON_MPRRECORDER_ENABLED:
          retCode = handleOnMprRecorderEnabled(*pMsg);
          break;
@@ -2146,35 +2155,6 @@ UtlBoolean MpCallFlowGraph::handleStreamDestroy(MpStreamMsg& rMsg)
    mpFromStream->destroy(handle) ;
 
    return TRUE ;
-}
-
-void MpCallFlowGraph::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
-                                                MpNotificationMsgType msgSubType,
-                                                intptr_t msgData)
-{
-   if (m_pInterfaceNotificationQueue)
-   {
-      // create message and send it to interface notification queue
-      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, (intptr_t)msgSubType, msgData);
-      m_pInterfaceNotificationQueue->send(interfaceMsg, OsTime::NO_WAIT_TIME);
-   }
-}
-
-UtlBoolean MpCallFlowGraph::handleInterfaceNotificationMsg(MpFlowGraphMsg& rMsg)
-{
-   if (m_pInterfaceNotificationQueue)
-   {
-      // file stop, file start, buffer stop etc...
-      MpNotificationMsgType msgSubType = (MpNotificationMsgType)rMsg.getInt1();
-      // media type - audio, video
-      MpNotificationMsgMedia msgMedia = (MpNotificationMsgMedia)rMsg.getInt2();
-      // additional data
-      int msgData = rMsg.getInt3();
-
-      sendInterfaceNotification(msgMedia, msgSubType, msgData);
-   }
-   
-   return TRUE;
 }
 
 UtlBoolean MpCallFlowGraph::handleOnMprRecorderEnabled(MpFlowGraphMsg& rMsg)

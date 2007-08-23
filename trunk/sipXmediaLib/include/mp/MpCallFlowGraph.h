@@ -296,7 +296,12 @@ public:
      /// Removes an MpAudioConnection and deletes it and all its resources.
    OsStatus deleteConnection(MpConnectionID connID);
 
-   void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
+   virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
+
+   /**
+   * Sends interface notification to interface notification queue if it was supplied
+   */
+   virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, intptr_t msgData = 0);
 
 //@}
 
@@ -640,17 +645,6 @@ private:
      *  @returns <b>TRUE</b> if the message was handled
      *  @returns <b>FALSE</b> otherwise.
      */
-
-   /**
-    * Handles MediaInterface notification messages. These are messages sent
-    * from flowgraph resources to the user of media library
-    */
-   UtlBoolean MpCallFlowGraph::handleInterfaceNotificationMsg(MpFlowGraphMsg& rMsg);
-
-   /**
-    * Sends interface notification to interface notification queue if it was supplied
-    */
-   void sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, intptr_t msgData = 0);
 
      /// Copy constructor (not implemented for this class)
    MpCallFlowGraph(const MpCallFlowGraph& rMpCallFlowGraph);
