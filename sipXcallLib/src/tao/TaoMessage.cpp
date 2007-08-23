@@ -478,7 +478,7 @@ void TaoMessage::deSerialize()
         setMsgSubType(subType);
 
         mArgList = (const char*) pArg ;
-        delete pArg;
+        delete [] pArg;
 
    mbDirty = FALSE ;
 }

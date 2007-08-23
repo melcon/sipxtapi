@@ -51,7 +51,7 @@ public:
    {
       if (mpContributorVector)
       {
-         delete mpContributorVector;
+         delete [] mpContributorVector;
          mpContributorVector = NULL;
       }
    };

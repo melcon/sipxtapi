@@ -103,7 +103,7 @@ OsSysLogTask::~OsSysLogTask()
    // Free Ring Buffer
    if (mpRingBuffer != NULL)
    {
-      delete mpRingBuffer ;
+      delete [] mpRingBuffer ;
       mpRingBuffer = NULL ;
    }
 
