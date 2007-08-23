@@ -103,8 +103,8 @@ OsStatus MpodBufferRecorder::disableDevice()
       OsDateTime::getCurTime(now);
       char fileName[1024];
 
-      snprintf(fileName,
-               1024, "MpodBufferRecorder-%4d.%02d.%02d.%02d-%02d-%02d.%03d.s16",
+      SNPRINTF(fileName,
+               sizeof(fileName), "MpodBufferRecorder-%4d.%02d.%02d.%02d-%02d-%02d.%03d.s16",
                now.getYear(), now.getMonth(), now.getDay(),
                now.getHour(), now.getMinute(), now.getSecond(),
                now.getMicrosecond()/1000);

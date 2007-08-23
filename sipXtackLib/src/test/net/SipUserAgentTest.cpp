@@ -50,7 +50,7 @@ public:
        // /proc parsing stolen from OsProcessIteratorLinux.cpp
        OsStatus retval = OS_FAILED;
        char pidString[20];
-       snprintf(pidString, 20, "%d", PID);
+       SNPRINTF(pidString, sizeof(pidString), "%d", PID);
 
        OsPath fullProcName = "/proc/";
        fullProcName += pidString;

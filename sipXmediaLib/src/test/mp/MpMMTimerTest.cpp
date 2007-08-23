@@ -102,7 +102,7 @@ public:
 
       // Assert when single value outside error range specified above.
       char errStrBuf[256];
-      snprintf(errStrBuf, 256, 
+      SNPRINTF(errStrBuf, sizeof(errStrBuf), 
                "Single timer value %ld falls outside threshold of %ld to %ld us",
                valOutsideThreshs, lowerThresh, upperThresh);
 
@@ -129,7 +129,7 @@ public:
 
       // Assert when mean is outside error range specified above.
       char errStrBuf[256];
-      snprintf(errStrBuf, 256, 
+      SNPRINTF(errStrBuf, sizeof(errStrBuf), 
          "Mean timer value %.2f falls outside threshold of %ld to %ld us",
          meanAvg, lowerMeanThresh, upperMeanThresh);
 

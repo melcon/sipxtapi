@@ -104,7 +104,7 @@
                                              signaling or audio when passed to 
                                              sipXinitialize */
 
-#define SIPXTAPI_VERSION_STRING "sipXtapi SDK %s.%s %s (built %s)" /**< Version string format string */
+#define SIPXTAPI_VERSION_STRING "sipXtapi SDK %s.%s (built %s)" /**< Version string format string */
 #define SIPXTAPI_VERSION        "3.1.0"      /**< sipXtapi API version -- automatically filled in 
                                                   during release process */   
 #define SIPXTAPI_BUILDNUMBER "0"             /**< Default build number -- automatically filled in 

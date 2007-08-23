@@ -476,10 +476,10 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    if (!utlIdentity.contains("@"))
    {
       OsSocket::getHostIp(&localAddress);
-      char szBuf[501]; // 1 byte longer, for \0 character
-      SNPRINTF(szBuf, 500, "sip:%s@%s:%d", szIdentity,
-                                           localAddress.data(),
-                                           pInst->pSipUserAgent->getUdpPort());
+      char szBuf[500];
+      SNPRINTF(szBuf, sizeof(szBuf), "sip:%s@%s:%d", szIdentity,
+                localAddress.data(),
+                pInst->pSipUserAgent->getUdpPort());
       localAddress = szBuf;
    }
    else
