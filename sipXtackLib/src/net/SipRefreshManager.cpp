@@ -79,34 +79,34 @@ void RefreshDialogState::toString(UtlString& dumpString)
     dumpString.append(*this);
     dumpString.append("\n\tmpApplicationData: ");
     char numBuf[20];
-    sprintf(numBuf, "%p", mpApplicationData);
+    SNPRINTF(numBuf, sizeof(numBuf), "%p", mpApplicationData);
     dumpString.append(numBuf);
     dumpString.append("\n\tmpStateCallback: ");
-    sprintf(numBuf, "%p", mpStateCallback);
+    SNPRINTF(numBuf, sizeof(numBuf), "%p", mpStateCallback);
     dumpString.append(numBuf);
     dumpString.append("\n\tmExpirationPeriodSeconds: ");
-    sprintf(numBuf, "%d", mExpirationPeriodSeconds);
+    SNPRINTF(numBuf, sizeof(numBuf), "%d", mExpirationPeriodSeconds);
     dumpString.append(numBuf);
     dumpString.append("\n\tmPendingStartTime: ");
-    sprintf(numBuf, "%ld", mPendingStartTime);
+    SNPRINTF(numBuf, sizeof(numBuf), "%ld", mPendingStartTime);
     dumpString.append(numBuf);
     dumpString.append("\n\tmExpiration: ");
-    sprintf(numBuf, "%ld", mExpiration);
+    SNPRINTF(numBuf, sizeof(numBuf), "%ld", mExpiration);
     dumpString.append(numBuf);
     dumpString.append("\n\tmpLastRequest: ");
-    sprintf(numBuf, "%p", mpLastRequest);
+    SNPRINTF(numBuf, sizeof(numBuf), "%p", mpLastRequest);
     dumpString.append(numBuf);
     dumpString.append("\n\tmRequestState: ");
     UtlString stateString;
     SipRefreshManager::refreshState2String(mRequestState, stateString);
     dumpString.append(stateString);
     dumpString.append("\n\tmFailedResponseCode: ");
-    sprintf(numBuf, "%d", mFailedResponseCode);
+    SNPRINTF(numBuf, sizeof(numBuf), "%d", mFailedResponseCode);
     dumpString.append(numBuf);
     dumpString.append("\n\tmFailedResponseText: ");
     dumpString.append(mFailedResponseText ? mFailedResponseText : "");
     dumpString.append("\n\tmpRefreshTimer: ");
-    sprintf(numBuf, "%p", mpRefreshTimer);
+    SNPRINTF(numBuf, sizeof(numBuf), "%p", mpRefreshTimer);
     dumpString.append(numBuf);
 }
 
@@ -829,7 +829,7 @@ void SipRefreshManager::refreshState2String(RefreshRequestState state,
         {
             stateString = "unknown: ";
             char numBuf[20];
-            sprintf(numBuf, "%d", state);
+            SNPRINTF(numBuf, sizeof(numBuf), "%d", state);
             stateString.append(numBuf);
         }
         break;

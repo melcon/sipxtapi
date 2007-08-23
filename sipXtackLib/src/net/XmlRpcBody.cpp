@@ -91,7 +91,7 @@ bool XmlRpcBody::addValue(UtlContainable* value)
       UtlInt* pValue = (UtlInt *)value;
       // allow room for the widest possible value, INT_MIN = -2147483648
       char temp[11];
-      sprintf(temp, "%d", pValue->getValue());
+      SNPRINTF(temp, sizeof(temp), "%d", pValue->getValue());
       paramValue.append(BEGIN_INT);
       paramValue.append(temp);
       paramValue.append(END_INT);
@@ -103,7 +103,7 @@ bool XmlRpcBody::addValue(UtlContainable* value)
       UtlLongLongInt* pValue = (UtlLongLongInt *)value;
       // always encode these in hex - more readable for values this big
       char temp[19];
-      sprintf(temp, "%0#16llx", static_cast<UInt64>(pValue->getValue()));
+      SNPRINTF(temp, sizeof(temp), "%0#16llx", static_cast<UInt64>(pValue->getValue()));
       paramValue.append(BEGIN_I8);
       paramValue.append(temp);
       paramValue.append(END_I8);

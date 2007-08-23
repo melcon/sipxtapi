@@ -82,9 +82,9 @@ MpRtpInputConnection::MpRtpInputConnection(const UtlString& resourceName,
 #endif /* INCLUDE_RTCP ] */
 
    // Create our resources
-   sprintf(name, "Dejitter-%d", myID);
+   SNPRINTF(name, sizeof(name), "Dejitter-%d", myID);
    mpDejitter  = new MprDejitter();
-   sprintf(name, "FromNet-%d", myID);
+   SNPRINTF(name, sizeof(name), "FromNet-%d", myID);
    mpFromNet   = new MprFromNet();
 
 #ifdef INCLUDE_RTCP /* [ */

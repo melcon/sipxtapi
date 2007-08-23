@@ -67,13 +67,13 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
    char         name[50];
    int          i;
 
-   sprintf(name, "Decode-%d", myID);
+   SNPRINTF(name, sizeof(name), "Decode-%d", myID);
    mpDecode    = new MprDecode(name, this, samplesPerFrame, samplesPerSec);
    mpDecode->registerObserver(this);
 
    if (m_bInBandDTMFEnabled)
    {
-      sprintf(name, "DecodeInBandDtmf-%d", myID);
+      SNPRINTF(name, sizeof(name), "DecodeInBandDtmf-%d", myID);
       mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, samplesPerFrame, samplesPerSec);
       mpDecodeInBandDtmf->registerObserver(this);
    }   

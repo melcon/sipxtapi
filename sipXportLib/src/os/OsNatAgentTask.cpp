@@ -2247,7 +2247,7 @@ void OsNatAgentTask::dumpContext(UtlString* pResults, NAT_AGENT_CONTEXT* pBindin
             socketPort = pBinding->pSocket->getSocket()->getLocalHostPort() ;
         }
 
-        sprintf(cBuf, 
+        SNPRINTF(cBuf, sizeof(cBuf), 
                 " BindingType: %s\n"
                 " Status     : %s\n"
                 " Server Addr: %s\n"

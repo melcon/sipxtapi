@@ -48,7 +48,7 @@ RegEx::RegEx(const char * regex, int options, unsigned long int maxDepth)
       errorMsg.append(pcre_error);
       errorMsg.append(" at offset ");
       char offsetStr[10];
-      sprintf(offsetStr, "%9d", erroffset);
+      SNPRINTF(offsetStr, sizeof(offsetStr), "%9d", erroffset);
       errorMsg.append(offsetStr);
       errorMsg.append(" in expression '");
       errorMsg.append(regex);

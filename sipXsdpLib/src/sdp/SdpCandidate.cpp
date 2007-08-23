@@ -180,7 +180,7 @@ void SdpCandidate::toString(UtlString& sdpCandidateString) const
       extensionAttributesString += attribute->getName() + UtlString("=") + attribute->getValue() + UtlString(", ");
    }
    
-   sprintf(stringBuffer, "SdpCandidate: foundation=\'%s\', id=%d, transport=%s, priority=%" FORMAT_INTLL "d, addr=\'%s\', port=%d, type=%s\n"
+   SNPRINTF(stringBuffer, sizeof(stringBuffer), "SdpCandidate: foundation=\'%s\', id=%d, transport=%s, priority=%" FORMAT_INTLL "d, addr=\'%s\', port=%d, type=%s\n"
                          "              relatedAddr=%s, relatedPort=%d, %sinUse=%d\n",
       mFoundation.data(),
       mId,

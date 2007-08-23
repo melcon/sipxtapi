@@ -111,7 +111,7 @@ bool XmlEscape(UtlString& destination, const UtlString& source)
                {
                   // outside the valid range; escape as numeric entity
                   char hexval[7];
-                  sprintf(hexval, "&#x%02x;", *escapeChar.data());
+                  SNPRINTF(hexval, sizeof(hexval), "&#x%02x;", *escapeChar.data());
                   destination.append(hexval);
                }
                break;
@@ -271,7 +271,7 @@ bool XmlDecimal(UtlString& destination,
    char buffer[20 + 1];
 
    // Build the decimal string.
-   sprintf(buffer,
+   SNPRINTF(buffer, sizeof(buffer),
            format != NULL ? format : "%d",
            source);
 

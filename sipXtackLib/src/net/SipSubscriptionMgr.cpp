@@ -180,7 +180,7 @@ UtlBoolean SipSubscriptionMgr::updateDialogInfo(const SipMessage& subscribeReque
         char numBuffer[20];
         lock();
         mEstablishedDialogCount++;
-        sprintf(numBuffer, "%d", mEstablishedDialogCount);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%d", mEstablishedDialogCount);
         unlock();
         toTagClearText.append(numBuffer);
         UtlString toTag;
@@ -472,7 +472,7 @@ UtlBoolean SipSubscriptionMgr::getNotifyDialogInfo(const UtlString& subscribeDia
         long expires =
            state->mExpirationDate - OsDateTime::getSecsSinceEpoch();
         char buffer[30];
-        sprintf(buffer,
+        SNPRINTF(buffer, sizeof(buffer),
                 (expires > 0 ? "active;expires=%ld" : "terminated;reason=timeout"),
                 expires);
         notifyRequest.setHeaderValue(SIP_SUBSCRIPTION_STATE_FIELD, buffer, 0);
@@ -558,7 +558,7 @@ UtlBoolean SipSubscriptionMgr::createNotifiesDialogInfo(const char* resourceId,
 
                 // Set the subscription-state header.
                 char buffer[30];
-                sprintf(buffer, "active;expires=%ld",
+                SNPRINTF(buffer, sizeof(buffer), "active;expires=%ld",
                         contentTypeIndex->mpState->mExpirationDate - now);
                 notifyArray[index]->setHeaderValue(SIP_SUBSCRIPTION_STATE_FIELD,
                                                    buffer, 0);

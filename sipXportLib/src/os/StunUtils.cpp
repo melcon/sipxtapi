@@ -488,7 +488,7 @@ void StunUtils::debugDump(char* pPacket, size_t nPacket, UtlString& output)
         memcpy(&msgHeader, pPacket, sizeof(msgHeader)) ;
         pTraverse += sizeof(msgHeader) ;
 
-        sprintf(cTemp, "Msg t=0x%04X/%s, l=%d, id=%08X/", 
+        SNPRINTF(cTemp, sizeof(cTemp), "Msg t=0x%04X/%s, l=%d, id=%08X/", 
             ntohs(msgHeader.type), 
             convertRequestToString(ntohs(msgHeader.type)),
             ntohs(msgHeader.length),
@@ -498,7 +498,7 @@ void StunUtils::debugDump(char* pPacket, size_t nPacket, UtlString& output)
 
         for (int i=0; i<12; i++)
         {           
-            sprintf(cTemp, "%02X", msgHeader.transactionId.id[i]) ;
+            SNPRINTF(cTemp, sizeof(cTemp), "%02X", msgHeader.transactionId.id[i]) ;
             cTemp[2] = 0 ;
             output.append(cTemp) ;
         }
@@ -512,7 +512,7 @@ void StunUtils::debugDump(char* pPacket, size_t nPacket, UtlString& output)
                 memcpy(&attrHeader, pTraverse, sizeof(attrHeader)) ;
                 pTraverse += sizeof(attrHeader) ;            
                 
-                sprintf(cTemp, "attr t=0x%04X/%s, l=%d\n  v=", 
+                SNPRINTF(cTemp, sizeof(cTemp), "attr t=0x%04X/%s, l=%d\n  v=", 
                     ntohs(attrHeader.type), 
                     convertAttributeToString(ntohs(attrHeader.type)),
                     ntohs(attrHeader.length)) ;
@@ -523,7 +523,7 @@ void StunUtils::debugDump(char* pPacket, size_t nPacket, UtlString& output)
                     for (int i=0; i<ntohs(attrHeader.length); i++)
                     {
                         unsigned char ch = *pTraverse ;
-                        sprintf(cTemp, "%02X", ch) ;
+                        SNPRINTF(cTemp, sizeof(cTemp), "%02X", ch) ;
                         cTemp[2] = 0 ;
                         *pTraverse++ ;
                         output.append(cTemp) ;

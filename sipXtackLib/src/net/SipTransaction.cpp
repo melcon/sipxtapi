@@ -277,7 +277,7 @@ void SipTransaction::getNewBranchId(SipMessage& request,
 
     int transNum = (smTransactionNum++);
     char buf[32];
-    sprintf(buf, "%d", transNum);
+    SNPRINTF(buf, sizeof(buf), "%d", transNum);
     branchSeed.append(buf);
 
     NetMd5Codec::encode(branchSeed.data(), branchUniqCode);
@@ -4182,7 +4182,7 @@ void SipTransaction::toString(UtlString& dumpString,
     char numBuffer[64];
 
     dumpString.append("  SipTransaction dump:\n\tthis: ");
-    sprintf(numBuffer, "%p", this);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%p", this);
     dumpString.append(numBuffer);
 
     dumpString.append("\n\thash: ");
@@ -4196,7 +4196,7 @@ void SipTransaction::toString(UtlString& dumpString,
     dumpString.append("\n\tmSendToAddress: ");
     dumpString.append(mSendToAddress);
     dumpString.append("\n\tmSendToPort: ");
-    sprintf(numBuffer, "%d", mSendToPort);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%d", mSendToPort);
     dumpString.append(numBuffer);
     dumpString.append("\n\tmSendToProtocol: ");
     UtlString protocolString;
@@ -4216,7 +4216,7 @@ void SipTransaction::toString(UtlString& dumpString,
         {
             mpDnsSrvRecords[i].getHostNameFromServerT(srvName);
             mpDnsSrvRecords[i].getIpAddressFromServerT(srvIp);
-            sprintf(srvRecordNums, "\n\t\t%d\t%d\t%d\t",
+            SNPRINTF(srvRecordNums, sizeof(srvRecordNums), "\n\t\t%d\t%d\t%d\t",
                 mpDnsSrvRecords[i].getPriorityFromServerT(),
                 mpDnsSrvRecords[i].getWeightFromServerT(),
                 mpDnsSrvRecords[i].getProtocolFromServerT());
@@ -4224,7 +4224,7 @@ void SipTransaction::toString(UtlString& dumpString,
             dumpString.append(srvName);
             dumpString.append("(");
             dumpString.append(srvIp);
-            sprintf(srvRecordNums, "):%d",
+            SNPRINTF(srvRecordNums, sizeof(srvRecordNums), "):%d",
                 mpDnsSrvRecords[i].getPortFromServerT());
             dumpString.append(srvRecordNums);
         }
@@ -4241,7 +4241,7 @@ void SipTransaction::toString(UtlString& dumpString,
     dumpString.append("\n\tmRequestMethod: ");
     dumpString.append(mRequestMethod);
     dumpString.append("\n\tmCseq: ");
-    sprintf(numBuffer, "%d", mCseq);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%d", mCseq);
     dumpString.append(numBuffer);
     dumpString.append("\n\tmIsServerTransaction: ");
     dumpString.append(mIsServerTransaction ? "TRUE" : " FALSE");
@@ -4261,7 +4261,7 @@ void SipTransaction::toString(UtlString& dumpString,
     }
     else
     {
-        sprintf(numBuffer, "%p", mpRequest);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%p", mpRequest);
         dumpString.append(numBuffer);
     }
 
@@ -4277,10 +4277,10 @@ void SipTransaction::toString(UtlString& dumpString,
     {
         if (mpLastProvisionalResponse)
         {
-            sprintf(numBuffer, "%d ", mpLastProvisionalResponse->getResponseStatusCode());
+            SNPRINTF(numBuffer, sizeof(numBuffer), "%d ", mpLastProvisionalResponse->getResponseStatusCode());
             dumpString.append(numBuffer);
         }
-        sprintf(numBuffer, "%p", mpLastProvisionalResponse);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%p", mpLastProvisionalResponse);
         dumpString.append(numBuffer);
     }
 
@@ -4296,10 +4296,10 @@ void SipTransaction::toString(UtlString& dumpString,
     {
         if (mpLastFinalResponse)
         {
-            sprintf(numBuffer, "%d ", mpLastFinalResponse->getResponseStatusCode());
+            SNPRINTF(numBuffer, sizeof(numBuffer), "%d ", mpLastFinalResponse->getResponseStatusCode());
             dumpString.append(numBuffer);
         }
-        sprintf(numBuffer, "%p", mpLastFinalResponse);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%p", mpLastFinalResponse);
         dumpString.append(numBuffer);
     }
 
@@ -4313,7 +4313,7 @@ void SipTransaction::toString(UtlString& dumpString,
     }
     else
     {
-        sprintf(numBuffer, "%p", mpAck);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%p", mpAck);
         dumpString.append(numBuffer);
     }
 
@@ -4327,7 +4327,7 @@ void SipTransaction::toString(UtlString& dumpString,
     }
     else
     {
-        sprintf(numBuffer, "%p", mpCancel);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%p", mpCancel);
         dumpString.append(numBuffer);
     }
 
@@ -4343,15 +4343,15 @@ void SipTransaction::toString(UtlString& dumpString,
     {
         if (mpCancelResponse)
         {
-            sprintf(numBuffer, "%d", mpCancelResponse->getResponseStatusCode());
+            SNPRINTF(numBuffer, sizeof(numBuffer), "%d", mpCancelResponse->getResponseStatusCode());
             dumpString.append(numBuffer);
         }
-        sprintf(numBuffer, "%p", mpCancelResponse);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%p", mpCancelResponse);
         dumpString.append(numBuffer);
     }
 
     dumpString.append("\n\tmpParentTransaction: ");
-    sprintf(numBuffer, "%p", mpParentTransaction);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%p", mpParentTransaction);
     dumpString.append(numBuffer);
 
     UtlSListIterator iterator(mChildTransactions);
@@ -4360,7 +4360,7 @@ void SipTransaction::toString(UtlString& dumpString,
     while ((childTransaction = (SipTransaction*) iterator()))
     {
         dumpString.append("\n\tmChildTransactions[");
-        sprintf(numBuffer, "%d]: %p", childCount, childTransaction);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "%d]: %p", childCount, childTransaction);
         dumpString.append(numBuffer);
         childCount++;
     }
@@ -4370,15 +4370,15 @@ void SipTransaction::toString(UtlString& dumpString,
     }
 
     dumpString.append("\n\tmTransactionCreateTime: ");
-    sprintf(numBuffer, "%ld", mTransactionCreateTime);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%ld", mTransactionCreateTime);
     dumpString.append(numBuffer);
 
     dumpString.append("\n\tmTransactionStartTime: ");
-    sprintf(numBuffer, "%ld", mTransactionStartTime);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%ld", mTransactionStartTime);
     dumpString.append(numBuffer);
 
     dumpString.append("\n\tmTimeStamp: ");
-    sprintf(numBuffer, "%ld", mTimeStamp);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%ld", mTimeStamp);
     dumpString.append(numBuffer);
 
     UtlString state;
@@ -4399,26 +4399,26 @@ void SipTransaction::toString(UtlString& dumpString,
     dumpString.append(mProvisionalSdp ? "TRUE" : " FALSE");
 
     dumpString.append("\n\tmQvalue: ");
-    sprintf(numBuffer, "%lf", mQvalue);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%lf", mQvalue);
     dumpString.append(numBuffer);
 
     dumpString.append("\n\tmExpires: ");
-    sprintf(numBuffer, "%d", mExpires);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%d", mExpires);
     dumpString.append(numBuffer);
 
     dumpString.append("\n\tmIsBusy: ");
-    sprintf(numBuffer, "%d", mIsBusy);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%d", mIsBusy);
     dumpString.append(numBuffer);
 
     dumpString.append("\n\tmBusyTaskName: ");
     dumpString.append(mBusyTaskName);
 
     dumpString.append("\n\tmWaitingList: ");
-    sprintf(numBuffer, "%p ", mWaitingList);
+    SNPRINTF(numBuffer, sizeof(numBuffer), "%p ", mWaitingList);
     dumpString.append(numBuffer);
     if(mWaitingList)
     {
-        sprintf(numBuffer, "(%d)", mWaitingList->entries());
+        SNPRINTF(numBuffer, sizeof(numBuffer), "(%d)", mWaitingList->entries());
         dumpString.append(numBuffer);
     }
 
@@ -4560,7 +4560,7 @@ void SipTransaction::getStateString(enum transactionStates state,
 
     default:
         char numBuffer[128];
-        sprintf(numBuffer, "UKNOWN Transaction state: %d", state);
+        SNPRINTF(numBuffer, sizeof(numBuffer), "UKNOWN Transaction state: %d", state);
         stateString = numBuffer;
         break;
     }
@@ -4621,7 +4621,7 @@ void SipTransaction::getRelationshipString(enum messageRelationship relationship
 
         default:
         char buffer[128];
-        sprintf(buffer, "UKNOWN transaction relationship: %d",
+        SNPRINTF(buffer, sizeof(buffer), "UKNOWN transaction relationship: %d",
             relationship);
         relationshipString = buffer;
         break;
@@ -4642,7 +4642,7 @@ void SipTransaction::buildHash(const SipMessage& message,
     //UtlString method;
     message.getCSeqField(&cSeq, NULL /*&method*/);
     char cSeqString[20];
-    sprintf(cSeqString, "%d", cSeq);
+    SNPRINTF(cSeqString, sizeof(cSeqString), "%d", cSeq);
     hash.append(cSeqString);
 }
 

@@ -465,7 +465,7 @@ void Url::getHostWithPort(UtlString& domain) const
    if (mHostPort != PORT_NONE)
    {
       char portNum[7];
-      sprintf(portNum, ":%d", mHostPort);
+      SNPRINTF(portNum, sizeof(portNum), ":%d", mHostPort);
       domain.append(portNum);
    }
 }
@@ -781,7 +781,7 @@ void Url::getUri(UtlString& urlString)
     if(mHostPort > 0)
     {
        char portBuffer[20];
-       sprintf(portBuffer, ":%d", mHostPort);
+       SNPRINTF(portBuffer, sizeof(portBuffer), ":%d", mHostPort);
        urlString.append(portBuffer);
     }
 

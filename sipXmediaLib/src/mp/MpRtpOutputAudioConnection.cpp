@@ -57,7 +57,7 @@ MpRtpOutputAudioConnection::MpRtpOutputAudioConnection(const UtlString& resource
 {
    char         name[50];
 
-   sprintf(name, "Encode-%d", myID);
+   SNPRINTF(name, sizeof(name), "Encode-%d", myID);
    mpEncode    = new MprEncode(name, samplesPerFrame, samplesPerSec);
 
    // encoder does not get added to the flowgraph, this connection

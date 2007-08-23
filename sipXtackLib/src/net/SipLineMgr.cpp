@@ -1521,7 +1521,7 @@ SipLineMgr::loadLine(
                     strKey = strSubKey ;
                     strKey.append(LINE_PARAM_CREDENTIAL) ;
                     char szTempBuf[32] ;
-                    sprintf(szTempBuf, "%d", i+1) ;
+                    SNPRINTF(szTempBuf, sizeof(szTempBuf), "%d", i+1) ;
                     strKey.append(szTempBuf) ;
                     strKey.append(".") ;
 
@@ -1589,7 +1589,7 @@ void SipLineMgr::storeLine(OsConfigDb* pConfigDb, UtlString strSubKey, SipLine l
                                         UtlString strCredentialKey(strSubKey) ;
                                         strCredentialKey.append(LINE_PARAM_CREDENTIAL) ;
                                         char szTempBuf[32] ;
-                                        sprintf(szTempBuf, "%d", i+1) ;
+                                        SNPRINTF(szTempBuf, sizeof(szTempBuf), "%d", i+1) ;
                                         strCredentialKey.append(szTempBuf) ;
                                         strCredentialKey.append(".") ;
 

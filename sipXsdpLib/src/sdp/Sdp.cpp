@@ -333,7 +333,7 @@ void Sdp::toString(UtlString& sdpString) const
       SdpBandwidth* sdpBandwidth;
       while((sdpBandwidth = (SdpBandwidth*) it()))
       {
-         sprintf(stringBuffer, "Bandwidth: type=%s, bandwidth=%d\n", SdpBandwidthTypeString[sdpBandwidth->getType()], sdpBandwidth->getBandwidth());
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "Bandwidth: type=%s, bandwidth=%d\n", SdpBandwidthTypeString[sdpBandwidth->getType()], sdpBandwidth->getBandwidth());
          bandwidthsString += stringBuffer;
       }
    }
@@ -344,7 +344,7 @@ void Sdp::toString(UtlString& sdpString) const
       SdpTime* sdpTime;
       while((sdpTime = (SdpTime*) it()))
       {
-         sprintf(stringBuffer, "Time: start=%" FORMAT_INTLL "d, stop=%" FORMAT_INTLL "d\n", sdpTime->getStartTime(), sdpTime->getStopTime());
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "Time: start=%" FORMAT_INTLL "d, stop=%" FORMAT_INTLL "d\n", sdpTime->getStartTime(), sdpTime->getStopTime());
          timesString += stringBuffer;
 
          // Add repeats
@@ -353,14 +353,14 @@ void Sdp::toString(UtlString& sdpString) const
          SdpTime::SdpTimeRepeat *timeRepeat;
          while((timeRepeat = (SdpTime::SdpTimeRepeat*) it2()))
          {
-            sprintf(stringBuffer, "TimeRepeat: interval=%d, duration=%d", timeRepeat->getRepeatInterval(), timeRepeat->getActiveDuration());
+            SNPRINTF(stringBuffer, sizeof(stringBuffer), "TimeRepeat: interval=%d, duration=%d", timeRepeat->getRepeatInterval(), timeRepeat->getActiveDuration());
             timesString += stringBuffer;
             const UtlSList& offsetsFromStartTime = timeRepeat->getOffsetsFromStartTime();
             UtlSListIterator it3(offsetsFromStartTime);
             UtlInt *offset;
             while((offset = (UtlInt*)it3()))
             {
-               sprintf(stringBuffer, ", offset=%d", offset->getValue());
+               SNPRINTF(stringBuffer, sizeof(stringBuffer), ", offset=%d", offset->getValue());
                timesString += stringBuffer;
             }
             timesString += UtlString("\n");
@@ -374,7 +374,7 @@ void Sdp::toString(UtlString& sdpString) const
       SdpTimeZone* sdpTimeZone;
       while((sdpTimeZone = (SdpTimeZone*) it()))
       {
-         sprintf(stringBuffer, "TimeZone: adjustment time=%" FORMAT_INTLL "d, offset=%" FORMAT_INTLL "d\n", sdpTimeZone->getAdjustmentTime(), sdpTimeZone->getOffset());
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "TimeZone: adjustment time=%" FORMAT_INTLL "d, offset=%" FORMAT_INTLL "d\n", sdpTimeZone->getAdjustmentTime(), sdpTimeZone->getOffset());
          timeZonesString += stringBuffer;
       }
    }
@@ -385,7 +385,7 @@ void Sdp::toString(UtlString& sdpString) const
       SdpGroup* sdpGroup;
       while((sdpGroup = (SdpGroup*) it()))
       {
-         sprintf(stringBuffer, "Group: semantics=%s", SdpGroupSemanticsString[sdpGroup->getSemantics()]);
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "Group: semantics=%s", SdpGroupSemanticsString[sdpGroup->getSemantics()]);
          groupsString += stringBuffer;
 
          // Get id tags
@@ -400,7 +400,7 @@ void Sdp::toString(UtlString& sdpString) const
       }
    }
 
-   sprintf(stringBuffer,"Sdp:\n"
+   SNPRINTF(stringBuffer, sizeof(stringBuffer), "Sdp:\n"
       "SdpVersion: %d\n"
       "OrigUserName: \'%s'\n"
       "OrigSessionId: %" FORMAT_INTLL "d\n"
@@ -487,7 +487,7 @@ UtlString Sdp::getLocalFoundationId(SdpCandidate::SdpCandidateType candidateType
    else
    {
       char foundationId[15];
-      sprintf(foundationId, "%d", mFoundationIds.entries() + 1);
+      SNPRINTF(foundationId, sizeof(foundationId), "%d", mFoundationIds.entries() + 1);
       UtlString* ret = new UtlString(foundationId);
       mFoundationIds.insertKeyAndValue(sdpFoundation, ret);
       return *ret;

@@ -795,7 +795,7 @@ void SipMessage::setInviteBadCodecs(const SipMessage* inviteRequest,
 
    // Add a media not available warning
    // The text message must be a quoted string
-   sprintf(warningCodeString, "%d ", SIP_WARN_MEDIA_INCOMPAT_CODE);
+   SNPRINTF(warningCodeString, sizeof(warningCodeString), "%d ", SIP_WARN_MEDIA_INCOMPAT_CODE);
    warningField.append(warningCodeString);
 
    // Construct the agent field from information extracted from the
@@ -814,7 +814,7 @@ void SipMessage::setInviteBadCodecs(const SipMessage* inviteRequest,
 
    if ((port != 5060) && (port > 0))      // Port 5060 is treated as default port
    {
-      sprintf(warningCodeString, ":%d", port);
+      SNPRINTF(warningCodeString, sizeof(warningCodeString), ":%d", port);
       warningField.append(warningCodeString);
    }
 
@@ -1218,42 +1218,42 @@ void SipMessage::setMessageSummaryData(
     char integerString[255];
 	
     // Adding  Message-summary information
-    sprintf(integerString,"\r\n");
+    SNPRINTF(integerString, sizeof(integerString), "\r\n");
     msgSummaryData.append(integerString);
 
     if(NULL != msgAccountUri)
     {
-        sprintf(integerString,"Message-Account: %s\r\n",msgAccountUri);
+        SNPRINTF(integerString, sizeof(integerString), "Message-Account: %s\r\n",msgAccountUri);
         msgSummaryData.append(integerString);
     }
 	
     if (TRUE == bNewMsgs)
     {
          // Adding Messages-waiting Yes  
-         sprintf(integerString,"Messages-Waiting: yes\r\n");
+         SNPRINTF(integerString, sizeof(integerString), "Messages-Waiting: yes\r\n");
     }
     else
     {
          // Adding Messages-waiting No
-        sprintf(integerString,"Messages-Waiting: no\r\n");
+        SNPRINTF(integerString, sizeof(integerString), "Messages-Waiting: no\r\n");
     }
     msgSummaryData.append(integerString);	
 
     if (bVoiceMsgs)
     {
-        sprintf(integerString,"Voice-Message: %d/%d\r\n",numNewMsgs,numOldMsgs);
+        SNPRINTF(integerString, sizeof(integerString), "Voice-Message: %d/%d\r\n",numNewMsgs,numOldMsgs);
         msgSummaryData.append(integerString);
     }
 
     if (bFaxMsgs)
     {
-        sprintf(integerString,"Fax-Message: %d/%d\r\n",numFaxNewMsgs,numFaxOldMsgs);
+        SNPRINTF(integerString, sizeof(integerString), "Fax-Message: %d/%d\r\n",numFaxNewMsgs,numFaxOldMsgs);
         msgSummaryData.append(integerString);
     }
 
     if (bEmailMsgs)
     {
-        sprintf(integerString,"Email-Message: %d/%d\r\n",numEmailNewMsgs,numEmailOldMsgs);
+        SNPRINTF(integerString, sizeof(integerString), "Email-Message: %d/%d\r\n",numEmailNewMsgs,numEmailOldMsgs);
         msgSummaryData.append(integerString);
     }
 	
@@ -2082,7 +2082,7 @@ void SipMessage::addVia(const char* domainName,
         viaField.append(domainName);
         if(portIsValid(port))
         {
-            sprintf(portString, ":%d", port);
+            SNPRINTF(portString, sizeof(portString), ":%d", port);
             viaField.append(portString);
         }        
     }
@@ -2281,7 +2281,7 @@ void SipMessage::setReceivedViaParams(const UtlString& fromIpAddress,
    if (receivedPortSet)
    {
       char portString[20];
-      sprintf(portString, "%d", fromPort);
+      SNPRINTF(portString, sizeof(portString), "%d", fromPort);
       setLastViaTag(portString, "rport");
    }
 }
@@ -2296,7 +2296,7 @@ void SipMessage::setCSeqField(int sequenceNumber, const char* method)
    UtlString value;
    char numString[HTTP_LONG_INT_CHARS];
 
-   sprintf(numString, "%d", sequenceNumber);
+   SNPRINTF(numString, sizeof(numString), "%d", sequenceNumber);
 
    value.append(numString);
    value.append(SIP_SUBFIELD_SEPARATOR);
@@ -2361,7 +2361,7 @@ void SipMessage::buildSipUrl(UtlString* url, const char* address, int port,
 
    if (portIsValid(port))
    {
-      sprintf(portString, ":%d", port);
+      SNPRINTF(portString, sizeof(portString), ":%d", port);
       url->append(portString);
    }
 
@@ -2442,7 +2442,7 @@ void SipMessage::setExpiresField(int expiresInSeconds)
    if (expiresInSeconds >= 0)
    {
       char secondsString[MAXIMUM_INTEGER_STRING_LENGTH];
-      sprintf(secondsString, "%d", expiresInSeconds);
+      SNPRINTF(secondsString, sizeof(secondsString), "%d", expiresInSeconds);
 
        // If the field exists change it, if does not exist create it
        setHeaderValue(SIP_EXPIRES_FIELD, secondsString, 0);
@@ -2452,7 +2452,7 @@ void SipMessage::setExpiresField(int expiresInSeconds)
 void SipMessage::setMinExpiresField(int minimumExpiresInSeconds)
 {
    char secondsString[MAXIMUM_INTEGER_STRING_LENGTH];
-   sprintf(secondsString, "%d", minimumExpiresInSeconds);
+   SNPRINTF(secondsString, sizeof(secondsString), "%d", minimumExpiresInSeconds);
 
    // If the field exists change it, if does not exist create it
    setHeaderValue(SIP_MIN_EXPIRES_FIELD, secondsString, 0);
@@ -2492,7 +2492,7 @@ void SipMessage::setWarningField(int code, const char* hostname, const char* tex
 
    if (allocated >= sizeNeeded)
    {
-      sprintf((char*)warningContent.data(), "%3d %s %s", code, hostname, text);
+      SNPRINTF((char*)warningContent.data(), allocated, "%3d %s %s", code, hostname, text);
       
       setHeaderValue(SIP_WARNING_FIELD, warningContent.data());
    }
@@ -2530,7 +2530,7 @@ UtlBoolean SipMessage::getMaxForwards(int& maxForwards) const
 void SipMessage::setMaxForwards(int maxForwards)
 {
     char buf[64];
-    sprintf(buf, "%d", maxForwards);
+    SNPRINTF(buf, sizeof(buf), "%d", maxForwards);
     setHeaderValue(SIP_MAX_FORWARDS_FIELD,buf, 0);
 }
 
@@ -2814,7 +2814,7 @@ void SipMessage::setToFieldTag(const char* tagValue)
 void SipMessage::setToFieldTag(int tagValue)
 {
     char tagString[MAXIMUM_INTEGER_STRING_LENGTH];
-    sprintf(tagString, "%d", tagValue);
+    SNPRINTF(tagString, sizeof(tagString), "%d", tagValue);
     setToFieldTag(tagString);
 }
 
@@ -4147,7 +4147,7 @@ void SipMessage::setSessionExpires(int sessionExpiresSeconds)
 {
    char numString[HTTP_LONG_INT_CHARS];
 
-   sprintf(numString, "%d", sessionExpiresSeconds);
+   SNPRINTF(numString, sizeof(numString), "%d", sessionExpiresSeconds);
    setHeaderValue(SIP_SESSION_EXPIRES_FIELD, numString);
 }
 
@@ -4438,7 +4438,7 @@ void SipMessage::addDiversionField(const char* addr, const char* reasonParam, Ut
    }
 
    char diversionString[255];
-   sprintf(diversionString,"%s;reason=%s",addr,reasonParam);
+   SNPRINTF(diversionString, sizeof(diversionString), "%s;reason=%s",addr,reasonParam);
    
    addDiversionField(diversionString,afterOtherDiversions);
 }

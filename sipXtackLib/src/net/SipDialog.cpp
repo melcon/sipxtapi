@@ -837,7 +837,7 @@ void SipDialog::toString(UtlString& dialogDumpString)
     // Serialize all the members into the dumpString
     char numberString[20];
     dialogDumpString="SipDialog: ";
-    sprintf(numberString, "%p", this);
+    SNPRINTF(numberString, sizeof(numberString), "%p", this);
     dialogDumpString.append(numberString);
     dialogDumpString.append("\nCall-Id:");
     // The callId is stored in the UtlString base class data element
@@ -869,19 +869,19 @@ void SipDialog::toString(UtlString& dialogDumpString)
     dialogDumpString.append(msRemoteRequestUri);
     dialogDumpString.append("\nmLocalInitatedDialog:");
     dialogDumpString.append(mLocalInitatedDialog);
-    sprintf(numberString, "%d", mInitialLocalCseq);
+    SNPRINTF(numberString, sizeof(numberString), "%d", mInitialLocalCseq);
     dialogDumpString.append("\nmInitialLocalCseq:");
     dialogDumpString.append(numberString);
-    sprintf(numberString, "%d", mInitialRemoteCseq);
+    SNPRINTF(numberString, sizeof(numberString), "%d", mInitialRemoteCseq);
     dialogDumpString.append("\nmInitialRemoteCseq:");
     dialogDumpString.append(numberString);
-    sprintf(numberString, "%d", mLastLocalCseq);
+    SNPRINTF(numberString, sizeof(numberString), "%d", mLastLocalCseq);
     dialogDumpString.append("\nmLastLocalCseq:");
     dialogDumpString.append(numberString);
-    sprintf(numberString, "%d", mLastRemoteCseq);
+    SNPRINTF(numberString, sizeof(numberString), "%d", mLastRemoteCseq);
     dialogDumpString.append("\nmLastRemoteCseq:");
     dialogDumpString.append(numberString);
-    sprintf(numberString, "%d", mDialogState);
+    SNPRINTF(numberString, sizeof(numberString), "%d", mDialogState);
     dialogDumpString.append("\nmDialogState:");
     dialogDumpString.append(numberString);
 }
@@ -911,7 +911,7 @@ void SipDialog::getStateString(DialogState state,
     default:
         stateString = "DIALOG_????: ";
         char stateCode[20];
-        sprintf(stateCode, "%d", state);
+        SNPRINTF(stateCode, sizeof(stateCode), "%d", state);
         stateString.append(stateCode);
         break;
     }

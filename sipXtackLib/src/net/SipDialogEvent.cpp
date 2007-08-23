@@ -600,7 +600,7 @@ void SipDialogEvent::buildBody() const
    dialogEvent.append(BEGIN_DIALOG_INFO);
 
    Url entityUri(mEntity);
-   sprintf(version, "%d", mVersion);
+   SNPRINTF(version, sizeof(version), "%d", mVersion);
 
    dialogEvent.append(VERSION_EQUAL);
    singleLine = DOUBLE_QUOTE + UtlString(version) + DOUBLE_QUOTE;
@@ -687,7 +687,7 @@ void SipDialogEvent::buildBody() const
       if (duration !=0)
       {
          duration = OsDateTime::getSecsSinceEpoch() - pDialog->getDuration();
-         sprintf(durationBuffer, "%d", duration);
+         SNPRINTF(durationBuffer, sizeof(durationBuffer), "%d", duration);
          dialogEvent += BEGIN_DURATION + UtlString(durationBuffer) + END_DURATION;     
       }
       

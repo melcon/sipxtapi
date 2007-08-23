@@ -348,7 +348,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       SdpConnection* sdpConnection;
       while((sdpConnection = (SdpConnection*) it()))
       {
-         sprintf(stringBuffer, "Connection: netType=%s, addrType=%s, addr=%s, port=%d, ttl=%d\n", 
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "Connection: netType=%s, addrType=%s, addr=%s, port=%d, ttl=%d\n", 
             Sdp::SdpNetTypeString[sdpConnection->getNetType()], 
             Sdp::SdpAddressTypeString[sdpConnection->getAddressType()], 
             sdpConnection->getAddress().data(), 
@@ -365,7 +365,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       SdpConnection* sdpConnection;
       while((sdpConnection = (SdpConnection*) it()))
       {
-         sprintf(stringBuffer, "RTCP Connection: netType=%s, addrType=%s, addr=%s, port=%d, ttl=%d\n", 
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "RTCP Connection: netType=%s, addrType=%s, addr=%s, port=%d, ttl=%d\n", 
             Sdp::SdpNetTypeString[sdpConnection->getNetType()], 
             Sdp::SdpAddressTypeString[sdpConnection->getAddressType()], 
             sdpConnection->getAddress().data(), 
@@ -381,7 +381,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       Sdp::SdpBandwidth* sdpBandwidth;
       while((sdpBandwidth = (Sdp::SdpBandwidth*) it()))
       {
-         sprintf(stringBuffer, "Bandwidth: type=%s, bandwidth=%d\n", Sdp::SdpBandwidthTypeString[sdpBandwidth->getType()], sdpBandwidth->getBandwidth());
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "Bandwidth: type=%s, bandwidth=%d\n", Sdp::SdpBandwidthTypeString[sdpBandwidth->getType()], sdpBandwidth->getBandwidth());
          bandwidthsString += stringBuffer;
       }
    }
@@ -392,7 +392,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       SdpCrypto* sdpCrypto;
       while((sdpCrypto = (SdpCrypto*) it()))
       {
-         sprintf(stringBuffer, "Crypto: tag=%d, suite=%s", 
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "Crypto: tag=%d, suite=%s", 
             sdpCrypto->getTag(), 
             SdpCryptoSuiteTypeString[sdpCrypto->getSuite()]);
          cryptosString += stringBuffer;
@@ -402,7 +402,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
          SdpCrypto::SdpCryptoKeyParam* keyParam;
          while((keyParam = (SdpCrypto::SdpCryptoKeyParam*)it2()))
          {
-            sprintf(stringBuffer, "\n        Key Param: method=%s, key=%s, srtpLifetime=%d, srtpMkiValue=%d, srtpMkiLength=%d",
+            SNPRINTF(stringBuffer, sizeof(stringBuffer), "\n        Key Param: method=%s, key=%s, srtpLifetime=%d, srtpMkiValue=%d, srtpMkiLength=%d",
                SdpCryptoKeyMethodString[keyParam->getKeyMethod()], 
                keyParam->getKeyValue().data(),
                keyParam->getSrtpLifetime(),
@@ -411,7 +411,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
             cryptosString += stringBuffer;
          }
 
-         sprintf(stringBuffer, "\n        kdr=%d, encryptSrtp=%d, encryptSrtcp=%d, authSrtp=%d, fecOrder=%s, wsh=%d",
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "\n        kdr=%d, encryptSrtp=%d, encryptSrtcp=%d, authSrtp=%d, fecOrder=%s, wsh=%d",
             sdpCrypto->getSrtpKdr(), 
             sdpCrypto->getEncryptedSrtp(),
             sdpCrypto->getEncryptedSrtcp(),
@@ -422,7 +422,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
          
          if(sdpCrypto->getSrtpFecKey().getKeyMethod() != SdpMediaLine::CRYPTO_KEY_METHOD_NONE)
          {
-            sprintf(stringBuffer, "\n        fecKeyMethod=%s, fecKey=%s, fecLifetime=%d, fecMkiValue=%d, fecMkiLength=%d",
+            SNPRINTF(stringBuffer, sizeof(stringBuffer), "\n        fecKeyMethod=%s, fecKey=%s, fecLifetime=%d, fecMkiValue=%d, fecMkiLength=%d",
                SdpCryptoKeyMethodString[sdpCrypto->getSrtpFecKey().getKeyMethod()],
                sdpCrypto->getSrtpFecKey().getKeyValue().data(),
                sdpCrypto->getSrtpFecKey().getSrtpLifetime(),
@@ -448,7 +448,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       SdpPreCondition* sdpPreCondition;
       while((sdpPreCondition = (SdpPreCondition*) it()))
       {
-         sprintf(stringBuffer, "PreConditionCurrentStatus: type=%s, status=%s, direction=%s\n", 
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "PreConditionCurrentStatus: type=%s, status=%s, direction=%s\n", 
             SdpPreConditionTypeString[sdpPreCondition->getType()], 
             SdpPreConditionStatusTypeString[sdpPreCondition->getStatus()], 
             SdpPreConditionDirectionTypeString[sdpPreCondition->getDirection()]);
@@ -462,7 +462,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       SdpPreCondition* sdpPreCondition;
       while((sdpPreCondition = (SdpPreCondition*) it()))
       {
-         sprintf(stringBuffer, "PreConditionConfirmStatus: type=%s, status=%s, direction=%s\n", 
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "PreConditionConfirmStatus: type=%s, status=%s, direction=%s\n", 
             SdpPreConditionTypeString[sdpPreCondition->getType()], 
             SdpPreConditionStatusTypeString[sdpPreCondition->getStatus()], 
             SdpPreConditionDirectionTypeString[sdpPreCondition->getDirection()]);
@@ -476,7 +476,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       SdpPreConditionDesiredStatus* sdpPreConditionDesiredStatus;
       while((sdpPreConditionDesiredStatus = (SdpPreConditionDesiredStatus*) it()))
       {
-         sprintf(stringBuffer, "PreConditionDesiredStatus: type=%s, strength=%s, status=%s, direction=%s\n", 
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "PreConditionDesiredStatus: type=%s, strength=%s, status=%s, direction=%s\n", 
             SdpPreConditionTypeString[sdpPreConditionDesiredStatus->getType()], 
             SdpPreConditionStrengthTypeString[sdpPreConditionDesiredStatus->getStrength()], 
             SdpPreConditionStatusTypeString[sdpPreConditionDesiredStatus->getStatus()], 
@@ -503,7 +503,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       SdpRemoteCandidate* sdpRemoteCandidate;
       while((sdpRemoteCandidate = (SdpRemoteCandidate*) it()))
       {
-         sprintf(stringBuffer, "Remote Candidate: componentId=%d, addr=%s, port=%d\n", 
+         SNPRINTF(stringBuffer, sizeof(stringBuffer), "Remote Candidate: componentId=%d, addr=%s, port=%d\n", 
             sdpRemoteCandidate->getComponentId(), 
             sdpRemoteCandidate->getConnectionAddress().data(), 
             sdpRemoteCandidate->getPort());
@@ -523,7 +523,7 @@ void SdpMediaLine::toString(UtlString& sdpMediaLineString) const
       }
    }
 
-   sprintf(stringBuffer, 
+   SNPRINTF(stringBuffer, sizeof(stringBuffer),
       "MediaLine:\n"
       "Type: %s\n"
       "TransportProtocol: %s\n"

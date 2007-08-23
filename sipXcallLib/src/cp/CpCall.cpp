@@ -524,7 +524,7 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
 
                             getCallId(arg);
                             arg.append(TAOMESSAGE_DELIMITER);
-                            sprintf(buf, "%d", eventData);
+                            SNPRINTF(buf, sizeof(buf), "%d", eventData);
                             arg.append(buf);
 
                             for (i = 0; i < mToneListenerCnt; i++)
@@ -1070,7 +1070,7 @@ void CpCall::addHistoryEvent(const int msgSubType,
         subTypeString);
     UtlString msgDump;
     if(multiStringMessage) multiStringMessage->toString(msgDump, ", ");
-    sprintf(eventDescription, " (%d) \n\t", msgSubType);
+    SNPRINTF(eventDescription, sizeof(eventDescription), " (%d) \n\t", msgSubType);
     addHistoryEvent(subTypeString + eventDescription + msgDump);
 }
 

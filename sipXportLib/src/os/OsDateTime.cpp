@@ -394,7 +394,7 @@ void OsDateTimeBase::getHttpTimeString(UtlString& dateString)
     getDayOfWeek(dayOfTheWeek);
 
     // Wed, 06 Mar 2002 05:51:44 GMT
-    sprintf(dateBuffer, "%s, %.2d %s %d %.2d:%.2d:%.2d GMT", 
+    SNPRINTF(dateBuffer, sizeof(dateBuffer), "%s, %.2d %s %d %.2d:%.2d:%.2d GMT", 
             spDayStrings[dayOfTheWeek],
             mDay, spMonthStrings[mMonth], mYear,
             mHour, mMinute, mSecond);
@@ -407,7 +407,7 @@ void OsDateTimeBase::getHttpTimeString(UtlString& dateString)
 void OsDateTimeBase::getSqlTimeStringZ(UtlString& dateString)
 {
    dateString.resize(24);
-   sprintf(const_cast<char*>(dateString.data()), "%4d-%02d-%02d %02d:%02d:%02d.%03d", 
+   SNPRINTF(const_cast<char*>(dateString.data()), 24, "%4d-%02d-%02d %02d:%02d:%02d.%03d", 
            mYear, mMonth+1, mDay, 
            mHour, mMinute, mSecond, mMicrosecond/MICROSECS_PER_MILLISEC
            );
@@ -418,7 +418,7 @@ void OsDateTimeBase::getSqlTimeStringZ(UtlString& dateString)
 void OsDateTimeBase::getIsoTimeStringZ(UtlString& dateString)
 {
    dateString.resize(24);
-   sprintf(const_cast<char*>(dateString.data()), "%4d-%02d-%02dT%02d:%02d:%02d.%03dZ", 
+   SNPRINTF(const_cast<char*>(dateString.data()), 24, "%4d-%02d-%02dT%02d:%02d:%02d.%03dZ", 
            mYear, mMonth+1, mDay, 
            mHour, mMinute, mSecond, mMicrosecond/MICROSECS_PER_MILLISEC
            );
@@ -429,7 +429,7 @@ void OsDateTimeBase::getIsoTimeStringZ(UtlString& dateString)
 void OsDateTimeBase::getIsoTimeStringZus(UtlString& dateString)
 {
    dateString.resize(27);
-   sprintf(const_cast<char*>(dateString.data()), "%4d-%02d-%02dT%02d:%02d:%02d.%06dZ", 
+   SNPRINTF(const_cast<char*>(dateString.data()), 27, "%4d-%02d-%02dT%02d:%02d:%02d.%06dZ", 
            mYear, mMonth+1, mDay, 
            mHour, mMinute, mSecond, mMicrosecond
            );
@@ -491,7 +491,7 @@ void OsDateTimeBase::getLocalTimeString(UtlString& dateString)
     tz[3] = 0;
 
     // Mon, 25-Sep-2002 05:51:44 EST
-    sprintf(dateBuffer, "%s, %d-%s-%d %.2d:%.2d:%.2d %s %s", 
+    SNPRINTF(dateBuffer, sizeof(dateBuffer), "%s, %d-%s-%d %.2d:%.2d:%.2d %s %s", 
             spDayStrings[today->tm_wday], 
             today->tm_mday, spMonthStrings[today->tm_mon], (today->tm_year + 1900), 
             today->tm_hour, today->tm_min, today->tm_sec, 

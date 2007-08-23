@@ -124,7 +124,7 @@ void HttpServer::loadValidIpAddrList()
    while(true)
    {
       char szTempBuf[32] ;
-      sprintf(szTempBuf, "%d", i) ;
+      SNPRINTF(szTempBuf, sizeof(szTempBuf), "%d", i) ;
       UtlString ipAddress;
 
       if( mpValidIpAddressDB->get(szTempBuf, ipAddress) && !ipAddress.isNull())
@@ -409,11 +409,11 @@ UtlBoolean HttpServer::isRequestAuthorized(const HttpMessage& request,
             // Create the nonce
             request.getRequestUri(&nonceKey);
             nonceKey.insert(0, ':');
-            sprintf(nonceSecret, "%d", rand());
+            SNPRINTF(nonceSecret, sizeof(nonceSecret), "%d", rand());
             nonceKey.insert(0, nonceSecret);
 
             UtlString nonceSeed;
-            sprintf(nonceSecret, "%d",rand());
+            SNPRINTF(nonceSecret, sizeof(nonceSecret), "%d",rand());
             nonceSeed = nonceKey;
             nonceSeed.append(nonceSecret);
             NetMd5Codec::encode(nonceSeed.data(), nonce);
@@ -969,7 +969,7 @@ void HttpServer::constructFileList(UtlString & indexText, UtlString uri, UtlStri
         }
         else
         {
-            sprintf(sizeBuffer, "%lu", fileInfo.nFileSizeLow);
+            SNPRINTF(sizeBuffer, sizeof(sizeBuffer), "%lu", fileInfo.nFileSizeLow);
 
             indexText.append(sizeBuffer);
                 }
@@ -979,7 +979,7 @@ void HttpServer::constructFileList(UtlString & indexText, UtlString uri, UtlStri
 
                 FileTimeToSystemTime(&ft,&sysTime);
                 char tmpDateBuf[80];
-        sprintf(tmpDateBuf, "  %02d/%02d/%d  %02d:%02d",
+                SNPRINTF(tmpDateBuf, sizeof(tmpDateBuf), "  %02d/%02d/%d  %02d:%02d",
                 sysTime.wMonth,sysTime.wDay,sysTime.wYear,
                 sysTime.wHour,sysTime.wMinute);
                 strcat(sizeBuffer,tmpDateBuf);
@@ -1145,7 +1145,7 @@ int HttpServer::doPostFile(const HttpRequestContext& requestContext,
 
                                                                                         htmlMessage.append("<H3>Upload Successful</H3>\n");
                                                                                         char buffer[20];
-                                                                                        sprintf(buffer, "%d", bytesWritten);
+                                                                                        SNPRINTF(buffer, sizeof(buffer), "%d", bytesWritten);
                                                                                         status = UtlString(buffer);
                                                                                         status.append(" bytes saved as file: ");
                                                                                         status.append(tokenValue.data());
@@ -1159,7 +1159,7 @@ int HttpServer::doPostFile(const HttpRequestContext& requestContext,
                                                                                         htmlMessage.append("<H3>Upload Failed</H3>\n");
                                                                                         htmlMessage.append("Insufficient file space\n");
                                                                                         char buffer[100];
-                                                                                        sprintf(buffer, "<BR>Bytes available: %d\n<BR>Bytes needed: %d for file: ",
+                                                                                        SNPRINTF(buffer, sizeof(buffer), "<BR>Bytes available: %d\n<BR>Bytes needed: %d for file: ",
                                                                                                 bytesWritten, fileDataLength);
                                                                                         htmlMessage.append(buffer);
                                                                                         htmlMessage.append(tokenValue.data());

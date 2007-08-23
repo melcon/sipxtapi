@@ -78,7 +78,7 @@ MpRtpOutputConnection::MpRtpOutputConnection(const UtlString& resourceName,
 #endif /* INCLUDE_RTCP ] */
 
    // Create our resources
-   sprintf(name, "ToNet-%d", myID);
+   SNPRINTF(name, sizeof(name), "ToNet-%d", myID);
    mpToNet     = new MprToNet();
 
 #ifdef INCLUDE_RTCP /* [ */

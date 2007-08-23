@@ -571,7 +571,7 @@ OsStatus HttpMessage::get(Url& httpUrl,
 
       hostPort.append(":");
       char tmpportbuf[10];
-      sprintf(tmpportbuf,"%d",httpPort);
+      SNPRINTF(tmpportbuf, sizeof(tmpportbuf), "%d",httpPort);
       hostPort += tmpportbuf;
    }
 
@@ -710,7 +710,7 @@ int HttpMessage::get(Url& httpUrl,
 
             hostPort.append(":");
             char tmpportbuf[10];
-            sprintf(tmpportbuf,"%d",httpPort);
+            SNPRINTF(tmpportbuf, sizeof(tmpportbuf), "%d",httpPort);
             hostPort += tmpportbuf;
         }
         request.addHeaderField(HTTP_HOST_FIELD, hostPort.data());
@@ -1672,7 +1672,7 @@ void HttpMessage::escape(UtlString& unEscapedText)
         }
         else
         {
-            sprintf(escapedChar, "%%%02X", (int)(unEscapedChar & 0xff));
+            SNPRINTF(escapedChar, sizeof(escapedChar), "%%%02X", (int)(unEscapedChar & 0xff));
 #ifdef TEST_PRINT
             osPrintf("%d escaped: %s\n", (int) unEscapedChar,
                 escapedChar);
@@ -1703,7 +1703,7 @@ void HttpMessage::escapeOneChar(UtlString& unEscapedText, char tobeEscapedChar)
             }
             else
             {
-                sprintf(escapedChar, "%%%02X", (int) (unEscapedChar & 0xff));
+                SNPRINTF(escapedChar, sizeof(escapedChar), "%%%02X", (int) (unEscapedChar & 0xff));
             }
 #ifdef TEST_PRINT
             osPrintf("%d escaped: %s\n", (int) unEscapedChar,
@@ -2159,7 +2159,7 @@ int HttpMessage::getContentLength() const
 void HttpMessage::setContentLength(int contentLength)
 {
         char contentLengthString[HTTP_LONG_INT_CHARS];
-        sprintf(contentLengthString, "%d", contentLength);
+        SNPRINTF(contentLengthString, sizeof(contentLengthString), "%d", contentLength);
         setHeaderValue(HTTP_CONTENT_LENGTH_FIELD, contentLengthString);
 }
 
@@ -2181,7 +2181,7 @@ void HttpMessage::setUserAgentField(const char* userAgentField)
 void HttpMessage::setRefresh(int seconds, const char* refreshUrl)
 {
     char refreshLenString[HTTP_LONG_INT_CHARS];
-    sprintf(refreshLenString, "%d", seconds);
+    SNPRINTF(refreshLenString, sizeof(refreshLenString), "%d", seconds);
     UtlString refreshField(refreshLenString);
     refreshField.append(" ");
     if(refreshUrl && refreshUrl[0])
@@ -2312,7 +2312,7 @@ void HttpMessage::getBytes(UtlString* bufferString, int* length) const
             if(fieldBodyLengthValue != bodyLen)
             {
                 char bodyLengthString[40];
-                sprintf(bodyLengthString, "%d", bodyLen);
+                SNPRINTF(bodyLengthString, sizeof(bodyLengthString), "%d", bodyLen);
                 OsSysLog::add(FAC_SIP, PRI_WARNING, "HttpMessage::getBytes content-length: %s wrong setting to: %s",
                     value ? value : "", bodyLengthString);
                 headerField->setValue(bodyLengthString);
@@ -2341,9 +2341,9 @@ void HttpMessage::getBytes(UtlString* bufferString, int* length) const
             bufferString->append(HTTP_NAME_VALUE_DELIMITER);
             char bodyLengthString[40];
             if (pBody)
-                sprintf(bodyLengthString, " %d", pBody->getLength());
+                SNPRINTF(bodyLengthString, sizeof(bodyLengthString), " %d", pBody->getLength())
             else
-                sprintf(bodyLengthString, " %d", bodyLen);
+                SNPRINTF(bodyLengthString, sizeof(bodyLengthString), " %d", bodyLen)
             
             bufferString->append(bodyLengthString);
             bufferString->append(END_OF_LINE_DELIMITOR);
@@ -2410,7 +2410,7 @@ void HttpMessage::getFirstHeaderLinePart(int partIndex, UtlString* part, char se
            int statusCode, const char* statusText)
    {
            char codeBuffer[HTTP_LONG_INT_CHARS];
-           sprintf(codeBuffer, "%d", statusCode);
+           SNPRINTF(codeBuffer, sizeof(codeBuffer), "%d", statusCode);
 
            setFirstHeaderLine(protocol, codeBuffer, statusText);
    }
@@ -2939,7 +2939,7 @@ void HttpMessage::setDigestAuthorizationData(const char* user,
        qop && strlen(qop))
     {
         char nonceCountBuffer[20];
-        sprintf(nonceCountBuffer, "%.8x", nonceCount);
+        SNPRINTF(nonceCountBuffer, sizeof(nonceCountBuffer), "%.8x", nonceCount);
         UtlString nonceCountString(nonceCountBuffer);
         nonceCountString.toLower();
 
@@ -3054,7 +3054,7 @@ void HttpMessage::buildMd5Digest(const char* userPasswordDigest,
     if(qopIndex >= 0)
     {
         char nonceCountBuffer[20];
-        sprintf(nonceCountBuffer, "%.8x", nonceCount);
+        SNPRINTF(nonceCountBuffer, sizeof(nonceCountBuffer), "%.8x", nonceCount);
         UtlString nonceCountString(nonceCountBuffer);
         nonceCountString.toLower();
 

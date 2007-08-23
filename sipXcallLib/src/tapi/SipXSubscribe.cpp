@@ -106,7 +106,7 @@ void sipxSubscribeClientSubCallback(SipSubscribeClient::SubscriptionState newSta
             pInfo.state = SIPX_SUBSCRIPTION_FAILED;
             errorState ="unknown: ";
             char numBuf[20];
-            sprintf(numBuf, "%d", newState);
+            SNPRINTF(numBuf, sizeof(numBuf), "%d", newState);
             errorState.append(numBuf);
          }
          break;
@@ -616,7 +616,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                contactField.append("@");
                contactField.append(pContact->cIpAddress);
                char szPort[32];
-               sprintf(szPort, ":%d", pContact->iPort);
+               SNPRINTF(szPort, sizeof(szPort), ":%d", pContact->iPort);
                contactField.append(szPort);
 
                if (pContact->cCustomTransportName && pContact->cCustomTransportName[0])

@@ -268,7 +268,7 @@ OsStatus OsFileBase::open(const int mode)
 #endif
         //first test to see if we have a local file lock on that file
         char* pLockName = new char[mFilename.length() + 1];
-        sprintf(pLockName, "%s", mFilename.data());
+        SNPRINTF(pLockName, mFilename.length() + 1, "%s", mFilename.data());
 
         UtlString rValue;
         if (getFileLocks()->get(pLockName,rValue) == OS_SUCCESS)
@@ -759,7 +759,7 @@ UtlBoolean OsFileBase::close()
         if ((mMode & FSLOCK) || (mMode & FSLOCK_WAIT))
         {
             char* pLockName = new char[mFilename.length() + 1];
-            sprintf(pLockName, "%s", mFilename.data());
+            SNPRINTF(pLockName, mFilename.length() + 1, "%s", mFilename.data());
 
             // remove any local process locks
             getFileLocks()->remove(pLockName);

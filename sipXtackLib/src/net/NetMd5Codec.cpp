@@ -70,7 +70,7 @@ void NetMd5Codec::encode(const char* text, UtlString& encodedText)
 
   for (i = 0; i < 16; i++)
     {
-      sprintf(szTmp, "%02x", digest[i]);
+      SNPRINTF(szTmp, sizeof(szTmp), "%02x", digest[i]);
       encodedText.append(szTmp);
     }
 }
