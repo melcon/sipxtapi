@@ -268,7 +268,7 @@ bool XmlRpcResponse::setFault(int faultCode, const char* faultString)
    mpResponseBody->append(FAULT_CODE);
    
    char temp[10];
-   sprintf(temp, "%d", mFaultCode);
+   SNPRINTF(temp, sizeof(temp), "%d", mFaultCode);
    UtlString paramValue = BEGIN_INT + UtlString(temp) + END_INT;
    mpResponseBody->append(paramValue);
    

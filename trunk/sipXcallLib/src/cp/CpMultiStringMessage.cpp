@@ -211,37 +211,37 @@ void CpMultiStringMessage::toString(UtlString& dumpString, const char* term) con
     char intDataString[100];
     if(mInt1)
     {
-        sprintf(intDataString, "Int1: %d", mInt1);
+        SNPRINTF(intDataString, sizeof(intDataString), "Int1: %d", mInt1);
         dumpString += intDataString;
         dumpString += terminator;
     }
     if(mInt2)
     {
-        sprintf(intDataString, "Int2: %d", mInt2);
+        SNPRINTF(intDataString, sizeof(intDataString), "Int2: %d", mInt2);
         dumpString += intDataString;
         dumpString += terminator;
     }
     if(mInt3)
     {
-        sprintf(intDataString, "Int3: %d", mInt3);
+        SNPRINTF(intDataString, sizeof(intDataString), "Int3: %d", mInt3);
         dumpString += intDataString;
         dumpString += terminator;
     }
     if(mInt4)
     {
-        sprintf(intDataString, "Int4: %d", mInt4);
+        SNPRINTF(intDataString, sizeof(intDataString), "Int4: %d", mInt4);
         dumpString += intDataString;
         dumpString += terminator;
     }
     if(mInt5)
     {
-        sprintf(intDataString, "Int5: %d", mInt5);
+        SNPRINTF(intDataString, sizeof(intDataString), "Int5: %d", mInt5);
         dumpString += intDataString;
         dumpString += terminator;
     }
     if(mInt6)
     {
-        sprintf(intDataString, "Int6: %d", mInt6);
+        SNPRINTF(intDataString, sizeof(intDataString), "Int6: %d", mInt6);
         dumpString += intDataString;
         dumpString += terminator;
     }

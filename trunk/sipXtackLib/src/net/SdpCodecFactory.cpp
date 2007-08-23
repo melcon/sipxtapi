@@ -1470,7 +1470,7 @@ void SdpCodecFactory::toString(UtlString& serializedFactory)
     {
         UtlString codecString;
         char codecLabel[256];
-        sprintf(codecLabel, "Codec[%d] cost=%d\n", index, codecFound->getCPUCost());
+        SNPRINTF(codecLabel, sizeof(codecLabel), "Codec[%d] cost=%d\n", index, codecFound->getCPUCost());
         serializedFactory.append(codecLabel);
         codecFound->toString(codecString);
         serializedFactory.append(codecString);

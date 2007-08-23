@@ -673,7 +673,7 @@ void SipContactDb::dump(UtlString& output)
         pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
 
         char cFoo[512] ;
-        sprintf(cFoo, "   %d %d %d %s/%s:%d %s %s\n",
+        SNPRINTF(cFoo, sizeof(cFoo), "   %d %d %d %s/%s:%d %s %s\n",
                 pContact->id,
                 pContact->eContactType,
                 pContact->eTransportType,

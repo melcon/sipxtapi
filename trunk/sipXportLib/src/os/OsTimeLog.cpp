@@ -236,14 +236,14 @@ void OsTimeLog::getLogString(UtlString& log) const
         if(mpaEventTimes[index])
         {
             time = *mpaEventTimes[index] - tZero;;
-            sprintf(timeString, "\t%ld.%.6ld", time.seconds(),
+            SNPRINTF(timeString, sizeof(timeString), "\t%ld.%.6ld", time.seconds(),
                 time.usecs());
             log.append(timeString);
 
             if(index > 0)
             {
                 deltaTime = time - previousTime;
-                sprintf(timeString, "\t%ld.%.6ld", deltaTime.seconds(),
+                SNPRINTF(timeString, sizeof(timeString), "\t%ld.%.6ld", deltaTime.seconds(),
                 deltaTime.usecs());
                 log.append(timeString);
             }

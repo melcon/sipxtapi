@@ -1022,7 +1022,7 @@ UtlBoolean SipUserAgent::sendUdp(SipMessage* message,
   else
     {
       char buffer[20];
-      sprintf(buffer, "%d", timesSent);
+      SNPRINTF(buffer, sizeof(buffer), "%d", timesSent);
       messageStatusString.append("resend ");
       messageStatusString.append(buffer);
       messageStatusString.append(" of UDP message\n");
@@ -1074,7 +1074,7 @@ UtlBoolean SipUserAgent::sendUdp(SipMessage* message,
       messageStatusString.append(serverAddress);
       messageStatusString.append("---- Port: ");
       char buff[10];
-      sprintf(buff, "%d", !portIsValid(port) ? 5060 : port);
+      SNPRINTF(buff, sizeof(buff), "%d", !portIsValid(port) ? 5060 : port);
       messageStatusString.append(buff);
       messageStatusString.append("----\n");
 
@@ -1089,7 +1089,7 @@ UtlBoolean SipUserAgent::sendUdp(SipMessage* message,
       messageStatusString.append(serverAddress);
       messageStatusString.append("---- Port: ");
       char buff[10];
-      sprintf(buff, "%d", !portIsValid(port) ? 5060 : port);
+      SNPRINTF(buff, sizeof(buff), "%d", !portIsValid(port) ? 5060 : port);
       messageStatusString.append(buff);
       messageStatusString.append("----\n");
       message->logTimeEvent("FAILED");
@@ -1148,7 +1148,7 @@ UtlBoolean SipUserAgent::sendSymmetricUdp(SipMessage& message,
         message.getBytes(&msgBytes, &msgLen);
         UtlString outcomeMsg;
         char portString[20];
-        sprintf(portString, "%d", !portIsValid(port) ? 5060 : port);
+        SNPRINTF(portString, sizeof(portString), "%d", !portIsValid(port) ? 5060 : port);
 
         if(sentOk)
         {
@@ -1451,7 +1451,7 @@ UtlBoolean SipUserAgent::sendTcp(SipMessage* message,
             messageStatusString.append(serverAddress);
             messageStatusString.append("---- Port: ");
             char buff[10];
-            sprintf(buff, "%d", !portIsValid(port) ? 5060 : port);
+            SNPRINTF(buff, sizeof(buff), "%d", !portIsValid(port) ? 5060 : port);
             messageStatusString.append(buff);
             messageStatusString.append("----\n");
 
@@ -1527,7 +1527,7 @@ UtlBoolean SipUserAgent::sendTls(SipMessage* message,
       messageStatusString.append(serverAddress);
       messageStatusString.append("---- Port: ");
       char buff[10];
-      sprintf(buff, "%d", !portIsValid(port) ? 5060 : port);
+      SNPRINTF(buff, sizeof(buff), "%d", !portIsValid(port) ? 5060 : port);
       messageStatusString.append(buff);
       messageStatusString.append("----\n");
 
@@ -3844,7 +3844,7 @@ UtlBoolean SipUserAgent::isMyHostAlias(Url& route) const
     else
     {
         char portString[20];
-        sprintf(portString, ":%d", port);
+        SNPRINTF(portString, sizeof(portString), ":%d", port);
         hostAlias.append(portString);
     }
 

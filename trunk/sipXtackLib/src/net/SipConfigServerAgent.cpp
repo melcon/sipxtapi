@@ -183,7 +183,7 @@ UtlBoolean SipConfigServerAgent::handleMessage(OsMsg& eventMessage)
                   int epochTime = OsDateTime::getSecsSinceEpoch();
                   // Build a to tag
                   char tagBuffer[100];
-                  sprintf(tagBuffer, "%dasd", epochTime);
+                  SNPRINTF(tagBuffer, sizeof(tagBuffer), "%dasd", epochTime);
                   copyOfRequest.setToFieldTag(tagBuffer);
                }
 

@@ -109,7 +109,7 @@ void TiXmlBase::PutString( const TIXML_STRING& str, TIXML_STRING* outString )
 			// Easy pass at non-alpha/numeric/symbol
 			// Below 32 is symbolic.
 			char buf[ 32 ];
-			sprintf( buf, "&#x%02X;", (unsigned) ( c & 0xff ) );
+			SNPRINTF( buf, sizeof(buf), "&#x%02X;", (unsigned) ( c & 0xff ) );
 			//*ME:	warning C4267: convert 'size_t' to 'int'
 			//*ME:	Int-Cast to make compiler happy ...
 			outString->append( buf, (int)strlen( buf ) );
@@ -724,7 +724,7 @@ int TiXmlElement::QueryDoubleAttribute( const char* name, double* dval ) const
 void TiXmlElement::SetAttribute( const char * name, int val )
 {	
 	char buf[64];
-	sprintf( buf, "%d", val );
+	SNPRINTF( buf, sizeof(buf), "%d", val );
 	SetAttribute( name, buf );
 }
 
@@ -732,7 +732,7 @@ void TiXmlElement::SetAttribute( const char * name, int val )
 void TiXmlElement::SetDoubleAttribute( const char * name, double val )
 {	
 	char buf[256];
-	sprintf( buf, "%f", val );
+	SNPRINTF( buf, sizeof(buf), "%f", val );
 	SetAttribute( name, buf );
 }
 

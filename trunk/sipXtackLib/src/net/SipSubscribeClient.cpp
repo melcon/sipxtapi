@@ -104,13 +104,13 @@ void SubscribeClientState::toString(UtlString& dumpString)
     dumpString.append(subStateString);
     dumpString.append("\nmpApplicationData: ");
     char pointerString[20];
-    sprintf(pointerString, "%p", mpApplicationData);
+    SNPRINTF(pointerString, sizeof(pointerString), "%p", mpApplicationData);
     dumpString.append(pointerString);
     dumpString.append("\nmpStateCallback: ");
-    sprintf(pointerString, "%p", mpStateCallback);
+    SNPRINTF(pointerString, sizeof(pointerString), "%p", mpStateCallback);
     dumpString.append(pointerString);
     dumpString.append("\nmpNotifyCallback: ");
-    sprintf(pointerString, "%p", mpNotifyCallback);
+    SNPRINTF(pointerString, sizeof(pointerString), "%p", mpNotifyCallback);
     dumpString.append(pointerString);
     dumpString.append('\n');
 }
@@ -534,7 +534,7 @@ void SipSubscribeClient::getSubscriptionStateEnumString(enum SubscriptionState s
     default:
         {
             char stateNum[20];
-            sprintf(stateNum, "%d", stateValue);
+            SNPRINTF(stateNum, sizeof(stateNum), "%d", stateValue);
             stateString = "INVALID: ";
             stateString.append(stateNum);
         }
@@ -913,7 +913,7 @@ void SipSubscribeClient::getNextCallId(const char* resourceId,
     lock();
     mCallIdCount++;
     long epochTime = OsDateTime::getSecsSinceEpoch();
-    sprintf(callidCountString, "%ld%d", epochTime, mCallIdCount);
+    SNPRINTF(callidCountString, sizeof(callidCountString), "%ld%d", epochTime, mCallIdCount);
     unlock();
     
     UtlString left(callidCountString);
@@ -944,11 +944,11 @@ void SipSubscribeClient::getNextFromTag(const char* resourceId,
     char numString[20];
     lock();
     mTagCount++;
-    sprintf(numString, "%d", mTagCount);
+    SNPRINTF(numString, sizeof(numString), "%d", mTagCount);
     unlock();
     UtlString tagToEncode(numString);
     int tagRandomness = rand();
-    sprintf(numString, "%d", tagRandomness);
+    SNPRINTF(numString, sizeof(numString), "%d", tagRandomness);
     tagToEncode.append(numString);
     tagToEncode.append(resourceId);
     tagToEncode.append(eventHeaderValue);

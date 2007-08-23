@@ -561,11 +561,11 @@ void lookup_SRV(server_t*& list,
    // Construct buffer to hold the key string for the lookup:
    //    _service._protocol.domain
    // 5 bytes suffices for the added components and the ending NUL.
-   char* lookup_name = (char*) malloc(strlen(service) + strlen(proto_string) +
-                                      strlen(domain) + 5);
+   size_t sizeNeeded = strlen(service) + strlen(proto_string) + strlen(domain) + 5;
+   char* lookup_name = (char*) malloc( sizeNeeded );
 
    // Construct the domain name to search on.
-   sprintf(lookup_name, "_%s._%s.%s", service, proto_string, domain);
+   SNPRINTF(lookup_name, sizeNeeded, "_%s._%s.%s", service, proto_string, domain);
 
 #if defined(_WIN32)
    // set the srcIp, and populate the DNS server list

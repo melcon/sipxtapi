@@ -341,11 +341,11 @@ void SipPimClient::getNextCallId(UtlString& callId)
     char num[20];
 
     int epochTime = OsDateTime::getSecsSinceEpoch();
-    sprintf(num, "%d", epochTime);
+    SNPRINTF(num, sizeof(num), "%d", epochTime);
     callIdSeed.append(num);
 
     mCallIdIndex++;
-    sprintf(num, "%d", mCallIdIndex);
+    SNPRINTF(num, sizeof(num), "%d", mCallIdIndex);
     callIdSeed.append(num);
 
     callIdSeed.append(mFromField);

@@ -352,7 +352,7 @@ int SipClient::run(void* runArg)
                        logMessage.append(fromIpAddress);
                        logMessage.append("---- Port: ");
                        char buff[10];
-                       sprintf(buff, "%d",
+                       SNPRINTF(buff, sizeof(buff), "%d",
                                !portIsValid(fromPort) ? 5060 : fromPort);
                        logMessage.append(buff);
                        logMessage.append("----\n");
@@ -769,7 +769,7 @@ void SipClient::getClientNames(UtlString& clientNames) const
     char portString[40];
 
     // host DNS name
-    sprintf(portString, "%d", mRemoteHostPort);
+    SNPRINTF(portString, sizeof(portString), "%d", mRemoteHostPort);
     clientNames = "\tremote host: ";
     clientNames.append(mRemoteHostName);
     clientNames.append(":");
@@ -782,14 +782,14 @@ void SipClient::getClientNames(UtlString& clientNames) const
     clientNames.append(portString);
 
     // via address
-    sprintf(portString, "%d", mRemoteViaPort);
+    SNPRINTF(portString, sizeof(portString), "%d", mRemoteViaPort);
     clientNames.append("\n\tremote Via address: ");
     clientNames.append(mRemoteViaAddress);
     clientNames.append(":");
     clientNames.append(portString);
 
     // recieved address
-    sprintf(portString, "%d", mRemoteReceivedPort);
+    SNPRINTF(portString, sizeof(portString), "%d", mRemoteReceivedPort);
     clientNames.append("\n\treceived address: ");
     clientNames.append(mReceivedAddress);
     clientNames.append(":");

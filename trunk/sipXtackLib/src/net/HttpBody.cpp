@@ -589,7 +589,7 @@ void HttpBody::nextBoundary(UtlString& boundary)
    char buffer[BOUNDARY_STRING_LENGTH + 1];
    // Need to trim boundary counter to the needed length, as
    // "unsigned" may be longer.
-   sprintf(buffer, "%0*x",
+   SNPRINTF(buffer, sizeof(buffer), "%0*x",
            BOUNDARY_STRING_LENGTH, boundaryCounter & BOUNDARY_COUNTER_MASK);
    boundary = buffer;
 }

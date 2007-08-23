@@ -337,7 +337,7 @@ void OsConfigDb::set(const UtlString& rKey, const int iNewValue)
 
     // Convert to String
     char cTemp[64] ;
-    sprintf(cTemp, "%d", iNewValue);
+    SNPRINTF(cTemp, sizeof(cTemp), "%d", iNewValue);
 
     // Set
     newValue = cTemp ;    
@@ -546,7 +546,7 @@ void OsConfigDb::addList(const UtlString& rPrefix,
         char cTemp[64] ;
         while ((pValue = (UtlString*) itor()))
         {
-            sprintf(cTemp, "%d", iCount++);   
+            SNPRINTF(cTemp, sizeof(cTemp), "%d", iCount++);   
             key = rPrefix ;
             key.append(".") ;
             key.append(cTemp) ;
@@ -576,7 +576,7 @@ int OsConfigDb::loadList(const UtlString& rPrefix,
     {
         for (int i = 0; i < iNumEntries; i++)
         {            
-            sprintf(cTemp, "%d", i+1);
+            SNPRINTF(cTemp, sizeof(cTemp), "%d", i+1);
             key = rPrefix ;
             key.append(".") ;
             key.append(cTemp) ;

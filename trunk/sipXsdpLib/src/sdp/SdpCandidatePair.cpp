@@ -178,7 +178,7 @@ void SdpCandidatePair::toString(UtlString& sdpCandidatePairString) const
    mLocalCandidate.toString(localCandidateString);
    mRemoteCandidate.toString(remoteCandidateString);
 
-   sprintf(stringBuffer, "SdpCandidatePair:\n"
+   SNPRINTF(stringBuffer, sizeof(stringBuffer), "SdpCandidatePair:\n"
       "Priority: %" FORMAT_INTLL "d\n"
       "State: %s\n"
       "Offerer: %s\n"

@@ -338,7 +338,7 @@ void SipResourceList::buildBody() const
    singleLine = DOUBLE_QUOTE + listUri.toString() + DOUBLE_QUOTE;
    resourceList += singleLine;
 
-   sprintf(version, "%d", mVersion);
+   SNPRINTF(version, sizeof(version), "%d", mVersion);
 
    resourceList.append(VERSION_EQUAL);
    singleLine = DOUBLE_QUOTE + UtlString(version) + DOUBLE_QUOTE;

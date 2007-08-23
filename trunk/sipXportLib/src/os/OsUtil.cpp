@@ -394,14 +394,14 @@ void OsUtil::getCurTime(UtlString& timeStr, const struct tm* pCurTime,
 
    if (maxLen >= 9)
    {
-      sprintf(str, "%d:%02d:%02d%s", hour,
+      SNPRINTF(str, sizeof(str), "%d:%02d:%02d%s", hour,
                    pCurTime->tm_min,
                    pCurTime->tm_sec,
                    isAm ? "A" : "P");
    }
    else if (maxLen >= 6)
    {
-      sprintf(str, "%d:%02d%s", hour,
+      SNPRINTF(str, sizeof(str), "%d:%02d%s", hour,
               pCurTime->tm_min,
                    isAm ? "A" : "P");
    }

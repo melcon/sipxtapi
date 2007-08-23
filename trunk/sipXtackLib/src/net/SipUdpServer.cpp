@@ -1006,7 +1006,7 @@ void SipUdpServer::sendSipKeepAlive(OsTimer* pTimer)
                 UtlString from;
                 mSipUserAgent->getContactUri(&from);
                 char fromTag[80];
-                sprintf(fromTag, ";tag=%d%d", rand(), rand());
+                SNPRINTF(fromTag, sizeof(fromTag), ";tag=%d%d", rand(), rand());
                 from.append(fromTag);
 
                 // Setup To Field
@@ -1055,7 +1055,7 @@ void SipUdpServer::sendSipKeepAlive(OsTimer* pTimer)
                 UtlString callId(mDefaultIp) ;
                 long epochTime = OsDateTime::getSecsSinceEpoch();
                 char callIdPrefix[80];
-                sprintf(callIdPrefix, "%ld%d-ping-", epochTime, rand());
+                SNPRINTF(callIdPrefix, sizeof(callIdPrefix), "%ld%d-ping-", epochTime, rand());
                 callId.insert(0,callIdPrefix);                
 
                 pBinding->m_pSipMessage->setRequestData(pBinding->m_method, 

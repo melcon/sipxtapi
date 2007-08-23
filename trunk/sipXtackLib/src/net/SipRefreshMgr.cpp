@@ -153,7 +153,7 @@ SipRefreshMgr::init(
 
         mRestartCount = restartCount;
         char strCount[64];
-        sprintf( strCount, "%d", mRestartCount );
+        SNPRINTF( strCount, sizeof(strCount), "%d", mRestartCount );
         mRestartCountStr.append( strCount );
         return true;
     } else
@@ -1920,7 +1920,7 @@ SipRefreshMgr::generateCallId(
         {
             int previousCount = mRestartCount -1;
             char strCount[64];
-            sprintf(strCount, "%d", previousCount);
+            SNPRINTF(strCount, sizeof(strCount), "%d", previousCount);
 
             //use previous restart count to get the previous call id
             HttpMessage::buildMd5UserPasswordDigest(mMacAddress, strCount, identity, callId);
@@ -1930,7 +1930,7 @@ SipRefreshMgr::generateCallId(
             // call id is a hash of fromUrl, ipaddress+rnd, method
             int randomInt = mRandomNumGenerator.rand();
             char randomString[60];
-            sprintf (randomString, "-%d", randomInt);
+            SNPRINTF(randomString, sizeof(randomString), "-%d", randomInt);
 
             UtlString randomizedHostIP;
             OsSocket::getHostIp( &randomizedHostIP );
@@ -1945,7 +1945,7 @@ SipRefreshMgr::generateCallId(
         // call id is a hash of fromUrl, ipaddress+rnd, method
         int randomInt = mRandomNumGenerator.rand();
         char randomString[60];
-        sprintf (randomString, "-%d", randomInt);
+        SNPRINTF(randomString, sizeof(randomString), "-%d", randomInt);
 
         UtlString randomizedHostIP;
         OsSocket::getHostIp( &randomizedHostIP );
@@ -2126,7 +2126,7 @@ SipRefreshMgr::createTagNameValuePair( UtlString& tagNamevaluePair )
 {
     // Build a from tag
     char fromTagBuffer[24];
-    sprintf(fromTagBuffer, "%0x%0x", mRandomNumGenerator.rand(), mRandomNumGenerator.rand());
+    SNPRINTF(fromTagBuffer, sizeof(fromTagBuffer), "%0x%0x", mRandomNumGenerator.rand(), mRandomNumGenerator.rand());
     tagNamevaluePair = "tag=" ;
     tagNamevaluePair.append(fromTagBuffer);
 }
@@ -2159,7 +2159,7 @@ SipRefreshMgr::getContactField(
             if ((port != 5060) && (port != PORT_NONE))
             {
                 char cPort[32] ;
-                sprintf(cPort, "%d", port) ;
+                SNPRINTF(cPort, sizeof(cPort), "%d", port) ;
 
                 tempContact.append(':') ;
                 tempContact.append(cPort) ;

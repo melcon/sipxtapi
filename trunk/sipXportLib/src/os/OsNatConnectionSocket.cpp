@@ -780,7 +780,7 @@ void OsNatConnectionSocket::handleFramedStream(       char* pData,
 void OsNatConnectionSocket::addClientConnection(const char* ipAddress, const int port, OsNatConnectionSocket* pClient)
 {
     char szPort[16];
-    sprintf(szPort, "%d", port);
+    SNPRINTF(szPort, sizeof(szPort), "%d", port);
     UtlString* key = new UtlString();;
     *key = UtlString(ipAddress) + UtlString(":") + UtlString(szPort);
     UtlInt* container = new UtlInt((int) pClient);
@@ -819,7 +819,7 @@ OsNatConnectionSocket* OsNatConnectionSocket::getClientConnection(const char* sz
     UtlString key(szServer);
     key += ":";
     char szPort[16];
-    sprintf(szPort, "%d", port);
+    SNPRINTF(szPort, sizeof(szPort), "%d", port);
     key += szPort;
     pSocketContainer = (UtlInt*)mClientConnectionSockets.findValue(&key);
     if (pSocketContainer)

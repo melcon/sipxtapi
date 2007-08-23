@@ -1032,10 +1032,10 @@ void Connection::postTaoListenerMessage(int state, int newCause, int isLocal)
             callId += TAOMESSAGE_DELIMITER + remoteAddress;
 
         char buff[128];
-        sprintf(buff, "%d", (int)mRemoteIsCallee);
+        SNPRINTF(buff, sizeof(buff), "%d", (int)mRemoteIsCallee);
         callId += TAOMESSAGE_DELIMITER + UtlString(buff);    // arg[3], remoteIsCallee
 
-        sprintf(buff, "%d", cause);
+        SNPRINTF(buff, sizeof(buff), "%d", cause);
         callId += TAOMESSAGE_DELIMITER + UtlString(buff);    // arg[4], cause
 
         if (mRemoteIsCallee)
@@ -1054,7 +1054,7 @@ void Connection::postTaoListenerMessage(int state, int newCause, int isLocal)
         else
             callId += TAOMESSAGE_DELIMITER + "0";            // isLocal
 
-        sprintf(buff, "%d", mResponseCode);
+        SNPRINTF(buff, sizeof(buff), "%d", mResponseCode);
         callId += TAOMESSAGE_DELIMITER + UtlString(buff);    // arg[7], SIP response code
 
         callId += TAOMESSAGE_DELIMITER + mResponseText;        // arg[8], SIP response text
@@ -1070,9 +1070,9 @@ void Connection::postTaoListenerMessage(int state, int newCause, int isLocal)
                 &metaEventCallIds);
             if (metaEventId != PtEvent::META_EVENT_NONE)
             {
-                sprintf(buff, "%d", metaEventId);
+                SNPRINTF(buff, sizeof(buff), "%d", metaEventId);
                 callId += TAOMESSAGE_DELIMITER + UtlString(buff);    // arg[9], meta event id
-                sprintf(buff, "%d", metaEventType);
+                SNPRINTF(buff, sizeof(buff), "%d", metaEventType);
                 callId += TAOMESSAGE_DELIMITER + UtlString(buff);    // arg[10], meta code
                 argCnt += 2;
                 for (int i = 0; i < numCalls; i++)

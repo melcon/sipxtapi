@@ -889,69 +889,48 @@ OsStatus MpCallFlowGraph::Record(int ms,
       endName = saved_endName;
 
    
-   char *created_micNamePtr      = new char[MAXUNIXPATH]; 
-   char *created_echoOutNamePtr  = new char[MAXUNIXPATH]; 
-   char *created_spkrNamePtr     = new char[MAXUNIXPATH]; 
-   char *created_mic32NamePtr    = new char[MAXUNIXPATH]; 
-   char *created_spkr32NamePtr   = new char[MAXUNIXPATH]; 
-   char *created_echoIn8NamePtr  = new char[MAXUNIXPATH]; 
-   char *created_echoIn32NamePtr = new char[MAXUNIXPATH]; 
+   char created_micNamePtr[MAXUNIXPATH];
+   memset(created_micNamePtr, 0, sizeof(created_micNamePtr));
+   char created_echoOutNamePtr[MAXUNIXPATH]; 
+   memset(created_echoOutNamePtr, 0, sizeof(created_echoOutNamePtr));
+   char created_spkrNamePtr[MAXUNIXPATH]; 
+   memset(created_spkrNamePtr, 0, sizeof(created_spkrNamePtr));
+   char created_mic32NamePtr[MAXUNIXPATH]; 
+   memset(created_mic32NamePtr, 0, sizeof(created_mic32NamePtr));
+   char created_spkr32NamePtr[MAXUNIXPATH]; 
+   memset(created_spkr32NamePtr, 0, sizeof(created_spkr32NamePtr));
+   char created_echoIn8NamePtr[MAXUNIXPATH]; 
+   memset(created_echoIn8NamePtr, 0, sizeof(created_echoIn8NamePtr));
+   char created_echoIn32NamePtr[MAXUNIXPATH]; 
+   memset(created_echoIn32NamePtr, 0, sizeof(created_echoIn32NamePtr));
    
    if (recorderMask & 1)
-      sprintf(created_micNamePtr,
+      SNPRINTF(created_micNamePtr, sizeof(created_micNamePtr),
                         "%sm%d_%s_8k.raw", baseName, playIndex, endName);
-   else {
-      delete [] created_micNamePtr;
-      created_micNamePtr = NULL;
-   }
 
    if (recorderMask & 2)
-      sprintf(created_echoOutNamePtr,
+      SNPRINTF(created_echoOutNamePtr, sizeof(created_echoOutNamePtr),
                         "%so%d_%s_8k.raw", baseName, playIndex, endName);
-   else {
-      delete [] created_echoOutNamePtr;
-      created_echoOutNamePtr = NULL;
-   }
 
    if (recorderMask & 4)
-      sprintf(created_spkrNamePtr,
+      SNPRINTF(created_spkrNamePtr, sizeof(created_spkrNamePtr),
                         "%ss%d_%s_8k.raw", baseName, playIndex,  endName);
-   else {
-      delete [] created_spkrNamePtr;
-      created_spkrNamePtr = NULL;
-   }
 
    if (recorderMask & 8)
-      sprintf(created_mic32NamePtr,
+      SNPRINTF(created_mic32NamePtr, sizeof(created_mic32NamePtr),
                         "%sm%d_%s_32k.raw", baseName, playIndex, endName);
-   else {
-      delete [] created_mic32NamePtr;
-      created_mic32NamePtr = NULL;
-   }
 
    if (recorderMask & 16)
-      sprintf(created_spkr32NamePtr,
+      SNPRINTF(created_spkr32NamePtr, sizeof(created_spkr32NamePtr),
                         "%ss%d_%s_32k.raw", baseName, playIndex, endName);
-   else {
-      delete [] created_spkr32NamePtr;
-      created_spkr32NamePtr = NULL;
-   }
 
    if (recorderMask & 32)
-      sprintf(created_echoIn8NamePtr,
+      SNPRINTF(created_echoIn8NamePtr, sizeof(created_echoIn8NamePtr),
                         "%se%d_%s_8k.raw", baseName, playIndex, endName);
-   else {
-      delete [] created_echoIn8NamePtr;
-      created_echoIn8NamePtr = NULL;
-   }
 
    if (recorderMask & 64)
-      sprintf(created_echoIn32NamePtr,
+      SNPRINTF(created_echoIn32NamePtr, sizeof(created_echoIn32NamePtr),
                         "%se%d_%s_32k.raw", baseName, playIndex, endName);
-   else {
-      delete [] created_echoIn32NamePtr;
-      created_echoIn32NamePtr = NULL;
-   }
 
    res = record(ms, 999999, created_micNamePtr, created_echoOutNamePtr,
               created_spkrNamePtr, created_mic32NamePtr, created_spkr32NamePtr,
@@ -991,9 +970,12 @@ OsStatus MpCallFlowGraph::mediaRecord(int ms,
 OsStatus MpCallFlowGraph::recordMic(UtlString* pAudioBuffer)
 {
    OsStatus stat = OS_FAILED;
+
+#ifndef DISABLE_LOCAL_AUDIO
    stat = MprBufferRecorder::startRecording(
              mpBufferRecorder->getName(),
              *getMsgQ(), pAudioBuffer);
+#endif
    return stat;
 }
 
@@ -1116,7 +1098,7 @@ OsStatus MpCallFlowGraph::record(int timeMS,
       MpMediaTask* pMT = MpMediaTask::getMediaTask();
       MpCallFlowGraph* pIF = (MpCallFlowGraph*) pMT->getFocus();
       if (NULL != pIF) {
-         return pIF-> record(timeMS, silenceLength, micName, echoOutName, spkrName,
+         return pIF->record(timeMS, silenceLength, micName, echoOutName, spkrName,
             mic32Name, spkr32Name, echoIn8Name, echoIn32Name,
             playName, callName, toneOptions, repeat, completion);
       }
@@ -1124,39 +1106,39 @@ OsStatus MpCallFlowGraph::record(int timeMS,
    }
 
 #ifndef DISABLE_LOCAL_AUDIO // [
-   if (NULL != micName) {
+   if (micName && *micName) {
       setupRecorder(RECORDER_MIC, micName,
                     timeMS, silenceLength, completion, format);
    }
-   if (NULL != echoOutName) {
+   if (echoOutName && *echoOutName) {
       setupRecorder(RECORDER_ECHO_OUT, echoOutName,
                     timeMS, silenceLength, completion, format);
    }
-   if (NULL != echoIn8Name) {
+   if (echoIn8Name && *echoIn8Name) {
       setupRecorder(RECORDER_ECHO_IN8, echoIn8Name,
                     timeMS, silenceLength, completion, format);
    }
 #ifdef HIGH_SAMPLERATE_AUDIO // [
-   if (NULL != mic32Name) {
+   if (mic32Name && *mic32Name) {
       setupRecorder(RECORDER_MIC32K, mic32Name,
                     timeMS, silenceLength, completion, format);
    }
-   if (NULL != spkr32Name) {
+   if (spkr32Name && *spkr32Name) {
       setupRecorder(RECORDER_SPKR32K,spkr32Name,
                     timeMS, silenceLength, completion, format);
    }
-   if (NULL != echoIn32Name) {
+   if (echoIn32Name && *echoIn32Name) {
       setupRecorder(RECORDER_ECHO_IN32,
                     echoIn32Name, timeMS, silenceLength, completion, format);
    }
 #endif // HIGH_SAMPLERATE_AUDIO ]
 #endif // DISABLE_LOCAL_AUDIO ]
-   if (NULL != spkrName) {
+   if (spkrName && *spkrName) {
       setupRecorder(RECORDER_SPKR, spkrName,
                     timeMS, silenceLength, completion, format);
    }
    // set up call recorder
-   if (NULL != callName) {
+   if (callName && *callName) {
       setupRecorder(RECORDER_CALL, callName,
                     timeMS, silenceLength, completion, format);
    }
@@ -1304,7 +1286,7 @@ MpConnectionID MpCallFlowGraph::createConnection(OsMsgQ* pConnectionNotification
    UtlString inConnectionName("InputConnection-");
    UtlString outConnectionName("OutputConnection-");
    char numBuf[20];
-   sprintf(numBuf, "%d", found);
+   SNPRINTF(numBuf, sizeof(numBuf), "%d", found);
    inConnectionName.append(numBuf);
    outConnectionName.append(numBuf);
    mpInputConnections[found] = 
@@ -1378,20 +1360,23 @@ OsStatus MpCallFlowGraph::deleteConnection(MpConnectionID connID)
    MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_REMOVE_CONNECTION, NULL,
                       NULL, NULL, connID);
 
-   if (isStarted()) {
-      // postPone(1000); // testing...
+   if (isStarted())
+   {
       ret = postMessage(msg);
-      // if (OS_SUCCESS == ret) {
-         // synchronize();
-      // }
+      if (OS_SUCCESS != ret)
+	  {
+         	  OsSysLog::add(FAC_CP, PRI_DEBUG, "MpCallFlowGraph::deleteConnection COULD NOT POST MESSAGE !" );
+      }
       return ret;
    }
-
-   handled = handleMessage(msg);
-   if (handled)
-      return OS_SUCCESS;
    else
-      return OS_UNSPECIFIED;
+   {
+      handled = handleMessage(msg);
+      if (handled)
+          return OS_SUCCESS;
+      else
+          return OS_UNSPECIFIED;
+   }
 }
 
 // Start sending RTP and RTCP packets.
@@ -1890,7 +1875,8 @@ UtlBoolean MpCallFlowGraph::handleRemoveConnection(MpFlowGraphMsg& rMsg)
        res = handleRemoveResource(pOutputConnection);
        assert(res);
        delete pOutputConnection;
-   }   
+   }
+
    return TRUE;
 }
 

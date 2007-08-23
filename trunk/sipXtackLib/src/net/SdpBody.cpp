@@ -1487,7 +1487,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
     {
         setConnectionAddress(mediaAddresses[0]);
         char timeString[100];
-        sprintf(timeString, "%d %d", 0, //OsDateTime::getSecsSinceEpoch(),
+        SNPRINTF(timeString, sizeof(timeString), "%d %d", 0, //OsDateTime::getSecsSinceEpoch(),
             0);
         addValue("t", timeString);
     }
@@ -1552,7 +1552,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
             || (rtcpAudioPorts[0] % 2) == 0))
         {
             char cRtcpBuf[32] ;
-            sprintf(cRtcpBuf, "rtcp:%d", rtcpAudioPorts[0]) ;
+            SNPRINTF(cRtcpBuf, sizeof(cRtcpBuf), "rtcp:%d", rtcpAudioPorts[0]) ;
             addValue("a", cRtcpBuf) ;
         }
 
@@ -1676,7 +1676,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
             || (rtcpVideoPorts[0] % 2) == 0))
         {
             char cRtcpBuf[32] ;
-            sprintf(cRtcpBuf, "rtcp:%d", rtcpVideoPorts[0]) ;
+            SNPRINTF(cRtcpBuf, sizeof(cRtcpBuf), "rtcp:%d", rtcpVideoPorts[0]) ;
 
             addValue("a", cRtcpBuf) ;
         }
@@ -1719,7 +1719,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
         if (totalBandwidth != 0)
         {
             char ct[16];
-            sprintf(ct, "CT:%d", totalBandwidth);
+            SNPRINTF(ct, sizeof(ct), "CT:%d", totalBandwidth);
             setValue("b", ct);
         }
     }
@@ -1806,7 +1806,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
             }
             if (codec->getCodecType() == SdpCodec::SDP_CODEC_ILBC)
             {
-                sprintf(valueBuf, "mode=%d", codec->getPacketLength()/1000);
+                SNPRINTF(valueBuf, sizeof(valueBuf), "mode=%d", codec->getPacketLength()/1000);
                 formatParameters = valueBuf;
             }
             // Add the format specific parameters if present
@@ -1885,7 +1885,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
    {
       setConnectionAddress(hostAddresses[0]);
       char timeString[100];
-      sprintf(timeString, "%d %d", 0, //OsDateTime::getSecsSinceEpoch(),
+      SNPRINTF(timeString, sizeof(timeString), "%d %d", 0, //OsDateTime::getSecsSinceEpoch(),
               0);
       addValue("t", timeString);
    }
@@ -2027,7 +2027,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                     || (rtcpAudioPorts[0] % 2) == 0))
             {
                 char cRtcpBuf[32] ;
-                sprintf(cRtcpBuf, "rtcp:%d", rtcpAudioPorts[0]) ;
+                SNPRINTF(cRtcpBuf, sizeof(cRtcpBuf), "rtcp:%d", rtcpAudioPorts[0]) ;
                 addValue("a", cRtcpBuf) ;
             }
             
@@ -2123,7 +2123,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                         || (rtcpVideoPorts[0] % 2) == 0))
                 {
                     char cRtcpBuf[32] ;
-                    sprintf(cRtcpBuf, "rtcp:%d", rtcpVideoPorts[0]) ;
+                    SNPRINTF(cRtcpBuf, sizeof(cRtcpBuf), "rtcp:%d", rtcpVideoPorts[0]) ;
                     addValue("a", cRtcpBuf) ;
                 }
             }
@@ -2188,7 +2188,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
     if (matchingBandwidth != 0 && matchingBandwidth <= 64)
     {
         char ct[16];
-        sprintf(ct, "CT:%d", matchingBandwidth);
+        SNPRINTF(ct, sizeof(ct), "CT:%d", matchingBandwidth);
         setValue("b", ct);
     }
 
@@ -2204,14 +2204,14 @@ void SdpBody::addRtpmap(int payloadType,
 {
    UtlString fieldValue("rtpmap:");
    char buffer[256];
-   sprintf(buffer, "%d %s/%d", payloadType, mimeSubtype,
+   SNPRINTF(buffer, sizeof(buffer), "%d %s/%d", payloadType, mimeSubtype,
            sampleRate);
 
    fieldValue.append(buffer);
 
    if(numChannels > 0)
    {
-      sprintf(buffer, "/%d", numChannels);
+      SNPRINTF(buffer, sizeof(buffer), "/%d", numChannels);
       fieldValue.append(buffer);
    }
 
@@ -2271,7 +2271,7 @@ void SdpBody::addFormatParameters(int payloadType,
    // "a=fmtp <payloadFormat> <formatParameters>"
    UtlString fieldValue("fmtp:");
    char buffer[100];
-   sprintf(buffer, "%d ", payloadType);
+   SNPRINTF(buffer, sizeof(buffer), "%d ", payloadType);
    fieldValue.append(buffer);
    fieldValue.append(formatParameters);
 
@@ -2286,7 +2286,7 @@ void SdpBody::addPtime(int pTime)
     // a=ptime: <milliseconds>
     UtlString fieldValue("ptime:");
     char buffer[100];
-    sprintf(buffer, "%d", pTime);
+    SNPRINTF(buffer, sizeof(buffer), "%d", pTime);
     fieldValue.append(buffer);
 
     // Add the "a" field
@@ -2305,7 +2305,7 @@ void SdpBody::addCandidateAttribute(int         candidateId,
     
     attributeData.append("candidate:") ;
 
-    sprintf(buffer, "%d", candidateId) ;
+    SNPRINTF(buffer, sizeof(buffer), "%d", candidateId) ;
     attributeData.append(buffer) ;
     attributeData.append(" ") ;
 
@@ -2315,14 +2315,14 @@ void SdpBody::addCandidateAttribute(int         candidateId,
     attributeData.append(transportType) ;
     attributeData.append(" ") ;
     
-    sprintf(buffer, "%.1f", qValue) ;
+    SNPRINTF(buffer, sizeof(buffer), "%.1f", qValue) ;
     attributeData.append(buffer) ;
     attributeData.append(" ") ;
 
     attributeData.append(candidateIp) ;
     attributeData.append(" ") ;
 
-    sprintf(buffer, "%d", candidatePort) ;
+    SNPRINTF(buffer, sizeof(buffer), "%d", candidatePort) ;
     attributeData.append(buffer) ;
 
     addValue("a", attributeData) ;
@@ -2457,11 +2457,11 @@ void SdpBody::addMediaData(const char* mediaType,
    value.append(SDP_SUBFIELD_SEPARATOR);
 
    // Port and optional number of port pairs
-   sprintf(integerString, "%d", portNumber);
+   SNPRINTF(integerString, sizeof(integerString), "%d", portNumber);
    value.append(integerString);
    if(portPairCount > 1)
    {
-      sprintf(integerString, "%d", portPairCount);
+      SNPRINTF(integerString, sizeof(integerString), "%d", portPairCount);
       value.append("/");
       value.append(integerString);
    }
@@ -2474,7 +2474,7 @@ void SdpBody::addMediaData(const char* mediaType,
    for(codecIndex = 0; codecIndex < numPayloadTypes; codecIndex++)
    {
       // Media payload type (i.e. alaw, mlaw, etc.)
-      sprintf(integerString, "%c%d", SDP_SUBFIELD_SEPARATOR,
+      SNPRINTF(integerString, sizeof(integerString), "%c%d", SDP_SUBFIELD_SEPARATOR,
               payloadTypes[codecIndex]);
       value.append(integerString);
    }
@@ -2554,10 +2554,10 @@ void SdpBody::addNtpTime(unsigned long ntpStartTime, unsigned long ntpEndTime)
    char integerString[MAXIMUM_LONG_INT_CHARS];
    UtlString value;
 
-   sprintf(integerString, "%lu", ntpStartTime);
+   SNPRINTF(integerString, sizeof(integerString), "%lu", ntpStartTime);
    value.append(integerString);
    value.append(SDP_SUBFIELD_SEPARATOR);
-   sprintf(integerString, "%lu", ntpEndTime);
+   SNPRINTF(integerString, sizeof(integerString), "%lu", ntpEndTime);
    value.append(integerString);
 
    size_t timeLocation = findFirstOf("zkam");
@@ -2577,10 +2577,10 @@ void SdpBody::setOriginator(const char* userId, int sessionId, int sessionVersio
 
    value.append(userId);
    value.append(SDP_SUBFIELD_SEPARATOR);
-   sprintf(integerString, "%d", sessionId);
+   SNPRINTF(integerString, sizeof(integerString), "%d", sessionId);
    value.append(integerString);
    value.append(SDP_SUBFIELD_SEPARATOR);
-   sprintf(integerString, "%d", sessionVersion);
+   SNPRINTF(integerString, sizeof(integerString), "%d", sessionVersion);
    value.append(integerString);
    value.append(SDP_SUBFIELD_SEPARATOR);
    value.append(networkType);

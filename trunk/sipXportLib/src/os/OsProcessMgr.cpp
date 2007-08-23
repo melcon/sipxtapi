@@ -642,7 +642,7 @@ OsStatus OsProcessMgr::addEntry(UtlString &rAlias, int pid)
 {               
     OsStatus retval = OS_FAILED;
     char buf[20];
-    sprintf(buf,"%d",pid);
+    SNPRINTF(buf, sizeof(buf), "%d", pid);
 
     lockAliasFile();
 

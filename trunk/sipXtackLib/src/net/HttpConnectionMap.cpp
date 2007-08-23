@@ -159,7 +159,7 @@ void HttpConnectionMap::getPersistentUriKey(const Url& url, UtlString& key)
     else
     {
         char t[10];
-        sprintf(t, "%d", tempPort);
+        SNPRINTF(t, sizeof(t), "%d", tempPort);
         httpPort = t;
     }
     key = httpType + ":" + httpHost + ":" + httpPort;
@@ -187,7 +187,7 @@ HttpConnectionMapEntry::HttpConnectionMapEntry(const UtlString& name) :
                                  mbInUse(true)
 {
     char nameBuffer[256];
-    sprintf(nameBuffer, name.data(), count++);
+    SNPRINTF(nameBuffer, sizeof(nameBuffer), name.data(), count++);
     this->append(nameBuffer);
     mpSocket = NULL;
 }
