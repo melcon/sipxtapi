@@ -190,7 +190,7 @@ public:
             char tmpBuf[NUMSTRSZ];
 
             // Add derivative to our big-long string that can be used for plotting.
-            snprintf(tmpBuf, NUMSTRSZ, "%.2f", derivs[i]);
+            SNPRINTF(tmpBuf, NUMSTRSZ, "%.2f", derivs[i]);
             derivPlotStr.append(tmpBuf);
             if(i < derivBufSz-1) // While there's still one more, put a comma
                derivPlotStr.append(", ");
@@ -202,7 +202,7 @@ public:
                derivWeightedAverage = derivWeightedAverage / derivWAvgPeriod;
 
                // Now append this to our weighted average string.
-               snprintf(tmpBuf, NUMSTRSZ, "%.2f", derivWeightedAverage);
+               SNPRINTF(tmpBuf, NUMSTRSZ, "%.2f", derivWeightedAverage);
                derivWAvgStr.append(tmpBuf);
                derivWAvgStr.append(", ");
 

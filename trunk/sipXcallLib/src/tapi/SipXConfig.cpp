@@ -753,23 +753,15 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVersion(char* szVersion,
                                               const size_t nBuffer)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetVersion");
-   SIPX_RESULT rc = SIPX_RESULT_INSUFFICIENT_BUFFER;
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
 
    if (szVersion)
    {
-      int res = SNPRINTF(szVersion, nBuffer, SIPXTAPI_VERSION_STRING,
-                     SIPXTAPI_VERSION, SIPXTAPI_BUILDNUMBER,
-#ifdef _DEBUG
-                     "Dbg",
-#else
-                     "Rls",
-#endif
-                     __DATE__);
+      SNPRINTF(szVersion, nBuffer, SIPXTAPI_VERSION_STRING,
+               SIPXTAPI_VERSION, SIPXTAPI_BUILDNUMBER,
+               __DATE__);
 
-      if (res >= 0)
-      {
-         rc = SIPX_RESULT_SUCCESS;
-      }
+      rc = SIPX_RESULT_SUCCESS;
    }
    return rc;
 }

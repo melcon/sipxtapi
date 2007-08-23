@@ -35,15 +35,17 @@
 #  define IS_INET_RETURN_OK( x )    (x > 0)
 #endif
 
-
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
-
 #ifdef _WIN32
-#define SNPRINTF _snprintf
+#define SNPRINTF(buff, buffsize, ...) {_snprintf_s((buff), (buffsize), _TRUNCATE, __VA_ARGS__);}
 #else
-#define SNPRINTF snprintf
+#define SNPRINTF(buff, buffsize, ...)                   \
+   {                                                    \
+      if ((buff) && ((buffsize) > 0))                   \
+      {                                                 \
+         snprintf((buff), (buffsize) - 1, __VA_ARGS__); \
+         (buff)[(buffsize) - 1] = 0;                    \
+      }                                                 \
+   }
 #endif 
 
 #ifdef _WIN32
