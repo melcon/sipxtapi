@@ -821,7 +821,7 @@ void HttpServer::processFileRequest(const HttpRequestContext& requestContext,
             // If the URI is a file get it
             if(fileDescToGet >= 0)
             {
-                char* buffer = new char[HTTP_DEFAULT_SOCKET_BUFFER_SIZE + 1];
+                char buffer[HTTP_DEFAULT_SOCKET_BUFFER_SIZE + 1];
                 int numBytesRead;
                 UtlString fileContents;
                 while((numBytesRead = read(fileDescToGet,
@@ -840,8 +840,6 @@ void HttpServer::processFileRequest(const HttpRequestContext& requestContext,
 
                if(fileDescToGet != fileDesc) close(fileDescToGet);
 
-               if(buffer) delete buffer;
-               buffer = NULL;
                fileContents.remove(0);
             }
 
