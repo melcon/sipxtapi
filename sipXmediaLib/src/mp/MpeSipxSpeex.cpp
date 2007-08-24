@@ -16,7 +16,11 @@
 
 // WIN32: Add libspeex to linker input.
 #ifdef WIN32 // [
-#   pragma comment(lib, "libspeex.lib")
+#   ifdef _DEBUG // [
+#      pragma comment(lib, "libspeexd.lib")
+#   else // _DEBUG ][
+#      pragma comment(lib, "libspeex.lib")
+#   endif // _DEBUG ]
 #endif // WIN32 ]
 
 
