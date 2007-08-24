@@ -10,6 +10,15 @@
 
 #ifdef HAVE_ILBC // [
 
+// WIN32: Add libilbc to linker input.
+#ifdef WIN32 // [
+#   ifdef _DEBUG // [
+#      pragma comment(lib, "libilbcd.lib")
+#   else // _DEBUG ][
+#      pragma comment(lib, "libilbc.lib")
+#   endif // _DEBUG ]
+#endif // WIN32 ]
+
 // SYSTEM INCLUDES
 #include <limits.h>
 
