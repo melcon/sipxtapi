@@ -8,7 +8,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
 #include <assert.h>
 #include <stdlib.h>
@@ -20,23 +19,19 @@
 #include <os/OsQueuedEvent.h>
 #include <os/OsEventMsg.h>
 #include "os/OsSysLog.h"
-#include <cp/CpCall.h>
 #include <mi/CpMediaInterface.h>
+#include <cp/CpCall.h>
 #include <cp/CpMultiStringMessage.h>
 #include <cp/CpIntMessage.h>
-#include "ptapi/PtCall.h"
+#include <ptapi/PtCall.h>
+#include <ptapi/PtTerminalConnection.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 #define CALL_STACK_SIZE (24*1024)    // 24K stack for the call task
-#       define LOCAL_ONLY 0
-#       define LOCAL_AND_REMOTE 1
-#define UI_TERMINAL_CONNECTION_STATE "TerminalConnectionState"
-#define UI_CONNECTION_STATE "ConnectionState"
 
 // STATIC VARIABLE INITIALIZATIONS
-OsLockingList CpCall::sCallTrackingList;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -46,18 +41,14 @@ OsLockingList CpCall::sCallTrackingList;
 CpCall::CpCall(CpCallManager* manager,
                CpMediaInterface* callMediaInterface,
                int callIndex,
-               const char* callId,
-               int holdType) :
-OsServerTask("Call-%d", NULL, DEF_MAX_MSGS, DEF_PRIO, DEF_OPTIONS, CALL_STACK_SIZE),
-mCallIdMutex(OsMutex::Q_FIFO)
+               const char* callId)
+: OsServerTask("Call-%d", NULL, DEF_MAX_MSGS, DEF_PRIO, DEF_OPTIONS, CALL_STACK_SIZE)
+, mCallIdMutex(OsMutex::Q_FIFO)
 {
     // add the call task name to a list so we can track leaked calls.
     UtlString strCallTaskName = getName();
-    addToCallTrackingList(strCallTaskName);
 
     mCallInFocus = FALSE;
-    mRemoteDtmf = FALSE;
-
     mpManager = manager;
 
     mDropping = FALSE;
@@ -68,28 +59,6 @@ mCallIdMutex(OsMutex::Q_FIFO)
     {
         setCallId(callId);
     }
-    mHoldType = holdType;
-    if(mHoldType < CallManager::NEAR_END_HOLD ||
-        mHoldType > CallManager::FAR_END_HOLD)
-    {
-        mHoldType = CallManager::NEAR_END_HOLD;
-    }
-
-    mToneListenerCnt = 0;
-    nMaxNumToneListeners = MAX_NUM_TONE_LISTENERS;
-
-    mpToneListeners = (TaoListenerDb**) malloc(sizeof(TaoListenerDb *)*nMaxNumToneListeners);
-
-    if (!mpToneListeners)
-    {
-       osPrintf("***** ERROR ALLOCATING mpToneListeners IN CPCALL **** \n");
-       return;
-    }
-
-    int i;
-
-    for (i = 0; i < MAX_NUM_TONE_LISTENERS; i++)
-        mpToneListeners[i] = 0;
 
     // Create the media processing channel
     mpMediaInterface = callMediaInterface;
@@ -103,7 +72,6 @@ mCallIdMutex(OsMutex::Q_FIFO)
     mMetaEventType = PtEvent::META_EVENT_NONE;
     mNumMetaEventCalls = 0;
     mpMetaEventCallIds = NULL;
-    mMessageEventCount = -1;
 
     UtlString name = getName();
 #ifdef TEST_PRINT
@@ -121,7 +89,6 @@ CpCall::~CpCall()
     }
     // remove the call task name from the list (for tracking leaked calls)
     UtlString strCallTaskName = getName();
-    removeFromCallTrackingList(strCallTaskName);
 
     if(mpMediaInterface)
     {
@@ -129,34 +96,8 @@ CpCall::~CpCall()
         mpMediaInterface = NULL;
     }
 
-    if (mToneListenerCnt > 0)  // check if listener exists.
-    {
-        for (int i = 0; i < mToneListenerCnt; i++)
-        {
-            if (mpToneListeners[i])
-            {
-                OsQueuedEvent *pEv = (OsQueuedEvent *) mpToneListeners[i]->mIntData;
-                if (pEv)
-                    delete pEv;
-                delete mpToneListeners[i];
-                mpToneListeners[i] = 0;
-            }
-        }
-    }
-
-    if (mpToneListeners)
-    {
-       free(mpToneListeners);
-       mpToneListeners = NULL;
-    }
-
     if(mpMetaEventCallIds)
     {
-        //for(int i = 0; i < mNumMetaEventCalls; i++)
-        //{
-        //    if(mpMetaEventCallIds[i]) delete mpMetaEventCallIds[i];
-        //    mpMetaEventCallIds[1] = NULL;
-        //}
         delete[] mpMetaEventCallIds;
         mpMetaEventCallIds = NULL;
     }
@@ -220,7 +161,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
         switch(msgSubType)
         {
         case CallManager::CP_PLAY_AUDIO_TERM_CONNECTION:
-            addHistoryEvent(msgSubType, multiStringMessage);
             {
                 int repeat = ((CpMultiStringMessage&)eventMessage).getInt1Data();
                 UtlBoolean local = ((CpMultiStringMessage&)eventMessage).getInt2Data();
@@ -239,7 +179,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             break;
 
         case CallManager::CP_PLAY_BUFFER_TERM_CONNECTION:
-            addHistoryEvent(msgSubType, multiStringMessage);
             {
                 int repeat = ((CpMultiStringMessage&)eventMessage).getInt2Data();
                 UtlBoolean local = ((CpMultiStringMessage&)eventMessage).getInt3Data();
@@ -258,7 +197,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             break;
 
         case CallManager::CP_STOP_AUDIO_TERM_CONNECTION:
-            addHistoryEvent(msgSubType, multiStringMessage);
             if(mpMediaInterface)
             {
                 mpMediaInterface->stopAudio();
@@ -277,8 +215,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                     "CpCall::handle creating MpStreamPlaylistPlayer ppPlayer 0x%08x ev 0x%08x",
                     (int)ppPlayer, (int)ev);
 #endif
-
-                addHistoryEvent(msgSubType, multiStringMessage);
 
                 getCallId(callId);
 
@@ -312,8 +248,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                     (int)ppPlayer, (int)ev, flags);
 #endif
 
-                addHistoryEvent(msgSubType, multiStringMessage);
-
                 ((CpMultiStringMessage&)eventMessage).getString2Data(streamId);
                 getCallId(callId);
 
@@ -344,8 +278,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                     (int)ppPlayer, (int)ev);
 #endif
 
-                addHistoryEvent(msgSubType, multiStringMessage);
-
                 getCallId(callId);
 
                 if (mpMediaInterface)
@@ -364,8 +296,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
         case CallManager::CP_DESTROY_PLAYLIST_PLAYER:
             {
                 MpStreamPlaylistPlayer* pPlayer ;
-
-                addHistoryEvent(msgSubType, multiStringMessage);
 
                 // Redispatch Request to flowgraph
                 if(mpMediaInterface)
@@ -388,8 +318,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             {
                 MpStreamPlayer* pPlayer ;
 
-                addHistoryEvent(msgSubType, multiStringMessage);
-
                 // Redispatch Request to flowgraph
                 if(mpMediaInterface)
                 {
@@ -411,8 +339,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             {
                 MpStreamPlayer* pPlayer ;
 
-                addHistoryEvent(msgSubType, multiStringMessage);
-
                 // Redispatch Request to flowgraph
                 if(mpMediaInterface)
                 {
@@ -431,7 +357,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             break;
 
         case CallManager::CP_DROP:
-            addHistoryEvent(msgSubType, multiStringMessage);
             {
                 UtlString callId;
                 int metaEventId = ((CpMultiStringMessage&)eventMessage).getInt1Data();
@@ -447,62 +372,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
         }
 
         break;
-
-    case OsMsg::OS_EVENT:
-        {
-            switch(msgSubType)
-            {
-            case OsEventMsg::NOTIFY:
-                {
-                        int eventData;
-                        int pListener;
-                        ((OsEventMsg&)eventMessage).getEventData(eventData);
-                        ((OsEventMsg&)eventMessage).getUserData(pListener);
-                        if (pListener)
-                        {
-                            char    buf[128];
-                            UtlString arg;
-                            int argCnt = 2;
-                            int i;
-
-                            getCallId(arg);
-                            arg.append(TAOMESSAGE_DELIMITER);
-                            SNPRINTF(buf, sizeof(buf), "%d", eventData);
-                            arg.append(buf);
-
-                            for (i = 0; i < mToneListenerCnt; i++)
-                            {
-                                if (mpToneListeners[i] && (mpToneListeners[i]->mpListenerPtr == pListener))
-                                {
-                                    arg.append(TAOMESSAGE_DELIMITER);
-                                    arg.append(mpToneListeners[i]->mName);
-                                    argCnt = 3;
-
-                                    // post the dtmf event
-                                    int eventId = TaoMessage::BUTTON_PRESS;
-
-                                    TaoMessage msg(TaoMessage::EVENT,
-                                        0,
-                                        0,
-                                        eventId,
-                                        0,
-                                        argCnt,
-                                        arg);
-
-                                    ((OsServerTask*)pListener)->postMessage((OsMsg&)msg);
-                                }
-                            }
-                    }
-                }
-                break;
-
-            default:
-                processedMessage = FALSE;
-                osPrintf("Unknown TYPE %d of Call message subtype: %d\n", msgType, msgSubType);
-                break;
-            }
-        }
-        break ;
 
     case OsMsg::STREAMING_MSG:
         if (mpMediaInterface)
@@ -959,26 +828,6 @@ UtlBoolean CpCall::isLocalHeld()
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-void CpCall::addHistoryEvent(const char* messageLogString)
-{
-    mMessageEventCount++;
-    mCallHistory[mMessageEventCount % CP_CALL_HISTORY_LENGTH] =
-        messageLogString;
-}
-
-void CpCall::addHistoryEvent(const int msgSubType,
-                             const CpMultiStringMessage* multiStringMessage)
-{
-    char eventDescription[100];
-    UtlString subTypeString;
-    CpCallManager::getEventSubTypeString((enum CpCallManager::EventSubTypes)msgSubType,
-        subTypeString);
-    UtlString msgDump;
-    if(multiStringMessage) multiStringMessage->toString(msgDump, ", ");
-    SNPRINTF(eventDescription, sizeof(eventDescription), " (%d) \n\t", msgSubType);
-    addHistoryEvent(subTypeString + eventDescription + msgDump);
-}
-
 void CpCall::postTaoListenerMessage(int responseCode,
                                     UtlString responseText,
                                     int eventId,
@@ -1044,58 +893,4 @@ int CpCall::tcStateFromEventId(int eventId)
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
-
-OsStatus CpCall::addToCallTrackingList(UtlString &rCallTaskName)
-{
-    OsStatus retval = OS_FAILED;
-
-    UtlString *tmpTaskName = new UtlString(rCallTaskName);
-    sCallTrackingList.push((void *)tmpTaskName);
-    retval = OS_SUCCESS; //push doesn't have a return value
-
-    return retval;
-}
-
-
-
-//Removes a call task from the tracking list, then deletes it.
-//
-OsStatus CpCall::removeFromCallTrackingList(UtlString &rCallTaskName)
-{
-    OsStatus retval = OS_FAILED;
-
-
-    UtlString *pStrFoundTaskName;
-
-    //get an iterator handle for safe traversal
-    int iteratorHandle = sCallTrackingList.getIteratorHandle();
-
-    pStrFoundTaskName = (UtlString *)sCallTrackingList.next(iteratorHandle);
-    while (pStrFoundTaskName)
-    {
-        // we found a Call task name that matched.  Lets remove it
-        if (*pStrFoundTaskName == rCallTaskName)
-        {
-            sCallTrackingList.remove(iteratorHandle);
-            delete pStrFoundTaskName;
-            retval = OS_SUCCESS;
-        }
-
-        pStrFoundTaskName = (UtlString *)sCallTrackingList.next(iteratorHandle);
-    }
-
-    sCallTrackingList.releaseIteratorHandle(iteratorHandle);
-
-    return retval;
-}
-
-//returns number of call tasks being tracked
-int CpCall::getCallTrackingListCount()
-{
-    int numCalls = 0;
-
-    numCalls = sCallTrackingList.getCount();
-
-    return numCalls;
-}
 

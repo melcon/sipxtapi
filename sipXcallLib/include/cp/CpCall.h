@@ -16,14 +16,7 @@
 // APPLICATION INCLUDES
 #include <os/OsServerTask.h>
 #include <os/OsRWMutex.h>
-#include "os/OsUtil.h"
-#include "os/OsLockingList.h"
-#include <sdp/SdpCodec.h>
 #include <ptapi/PtEvent.h>
-#include <ptapi/PtConnection.h>
-#include <ptapi/PtTerminalConnection.h>
-#include <cp/CallManager.h>
-#include "tao/TaoObjectMap.h"
 
 // DEFINES
 // MACROS
@@ -36,6 +29,7 @@
 class CpCallManager;
 class CpMediaInterface;
 class OsEventMsg;
+class Connection;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
@@ -93,12 +87,10 @@ public:
     CpCall(CpCallManager* manager = NULL,
            CpMediaInterface* callMediaInterface = NULL,
            int callIndex = -1,
-           const char* callId = NULL,
-           int holdType = CallManager::NEAR_END_HOLD);
+           const char* callId = NULL);
     //:Default constructor
 
-    virtual
-        ~CpCall();
+    virtual ~CpCall();
     //:Destructor
 
     /* ============================ MANIPULATORS ============================== */
@@ -113,7 +105,7 @@ public:
         int remoteIsCallee = 1,
         UtlString remoteAddress = "",
         int isRemote = 0,
-        UtlString targetCallId = OsUtil::NULL_OS_STRING);
+        UtlString targetCallId = NULL);
 
     void setCallState(int responseCode, UtlString responseText, int state, int cause = PtEvent::CAUSE_NORMAL);
 
@@ -141,8 +133,6 @@ public:
     //: Sets the local connection state for this call
 
     /* ============================ ACCESSORS ================================= */
-    static int getCallTrackingListCount();
-    //returns the number of call tasks currently outstanding.
 
     int getCallIndex();
     int getCallState();
@@ -200,23 +190,13 @@ protected:
 
     virtual UtlBoolean getConnectionState(const char* remoteAddress, int& state) = 0;
 
-    virtual UtlBoolean getTermConnectionState(const char* address,
-        const char* terminal,
-        int& state) = 0;
-
-    void addHistoryEvent(const char* messageLogString);
-    void addHistoryEvent(const int msgSubType,
-        const CpMultiStringMessage* multiStringMessage);
-
     CpCallManager* mpManager;
     UtlString mCallId;
     volatile UtlBoolean mCallInFocus;
-    UtlBoolean mRemoteDtmf;
     OsRWMutex mCallIdMutex;
-    CpMediaInterface*   mpMediaInterface;
+    CpMediaInterface* mpMediaInterface;
     int mCallIndex;
     int mCallState;
-    int mHoldType;
     int mLocalConnectionState;
     int mLocalTermConnectionState;
     UtlBoolean mLocalHeld;
@@ -227,25 +207,8 @@ protected:
     int mNumMetaEventCalls;
     UtlString* mpMetaEventCallIds;
 
-    TaoListenerDb**                 mpToneListeners;
-    int                             mToneListenerCnt;
-    int                             nMaxNumToneListeners;
-
-    int mMessageEventCount;
-    UtlString mCallHistory[CP_CALL_HISTORY_LENGTH];
-
     /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-    static OsLockingList sCallTrackingList;
-    //: maintains a list of the Call-nnn names
-
-
-    static OsStatus addToCallTrackingList(UtlString &rCallTaskName);
-    //: function used to add call names to the tracking list
-
-    static OsStatus removeFromCallTrackingList(UtlString &rCallTaskName);
-    //: function used to remove call names from the tracking list
-
     int mCallType;
     UtlString mOriginalCallId;
     UtlString mTargetCallId;

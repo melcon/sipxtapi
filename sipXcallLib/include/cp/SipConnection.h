@@ -17,13 +17,9 @@
 #define _SipConnection_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
 #include "cp/Connection.h"
 #include "cp/CSeqManager.h"
-#include "net/SipContactDb.h"
-#include "utl/UtlObservable.h"
 
 // DEFINES
 // MACROS
@@ -40,7 +36,7 @@ class SdpCodecFactory;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
-class SipConnection : public Connection, public ISocketEvent
+class SipConnection : public Connection
 {
     /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -164,16 +160,6 @@ public:
 
     void setExternalTransport(SIPX_TRANSPORT_DATA* pTransport) { if (pTransport) { mTransport = *pTransport; }}
 
-    // ISocketEvent::onIdleNotify method
-    void onIdleNotify(IStunSocket* const pSocket,
-                                 SocketPurpose purpose,
-                                 const int millisecondsIdle);
-
-    // ISocketEvent::onReadData method
-    virtual void onReadData(IStunSocket* const pSocket,
-                            SocketPurpose purpose);
-
-    // IMediaEventListener::methods
     virtual void onFileStart(IMediaEvent_DeviceTypes type);
     virtual void onFileStop(IMediaEvent_DeviceTypes type);
     virtual void onBufferStart(IMediaEvent_DeviceTypes type);

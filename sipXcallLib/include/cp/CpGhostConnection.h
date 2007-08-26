@@ -17,11 +17,8 @@
 #define _CpGhostConnection_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
 #include <cp/Connection.h>
-#include <net/SipContactDb.h>
 
 // DEFINES
 // MACROS

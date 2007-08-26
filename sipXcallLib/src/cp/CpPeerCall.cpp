@@ -34,6 +34,7 @@
 #include "cp/CpNotificationMsgDef.h"
 #include <cp/SipConnection.h>
 #include <cp/CpGhostConnection.h>
+#include <cp/CpCallStateEventListener.h>
 #include <mi/CpMediaInterface.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipUserAgent.h>
@@ -42,7 +43,8 @@
 #include <net/SipSession.h>
 #include "net/SmimeBody.h"
 #include "ptapi/PtCall.h"
-#include "tao/TaoProviderAdaptor.h"
+#include <ptapi/PtConnection.h>
+#include <ptapi/PtTerminalConnection.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -77,7 +79,6 @@ CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
                        SipUserAgent* sipUA, 
                        int sipSessionReinviteTimer,
                        const char* defaultCallExtension,
-                       int holdType,
                        int offeringDelayMilliSeconds,
                        int availableBehavior, 
                        const char* forwardUnconditionalUrl,
@@ -85,16 +86,15 @@ CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
                        const char* forwardOnBusyUrl,
                        int forwardOnNoAnswerMilliSeconds, 
                        const char* forwardOnNoAnswerUrl,
-                       int ringingExpireSeconds) :
-CpCall(callManager, callMediaInterface, callIndex, callId,
-       holdType),
-       mConnectionMutex(OsRWMutex::Q_PRIORITY),
-       mIsEarlyMediaFor180(TRUE),
-       mpSecurity(NULL),
-       m_pCallEventListener(pCallEventListener),
-       m_pInfoStatusEventListener(pInfoStatusEventListener),
-       m_pSecurityEventListener(pSecurityEventListener),
-       m_pMediaEventListener(pMediaEventListener)
+                       int ringingExpireSeconds)
+: CpCall(callManager, callMediaInterface, callIndex, callId)
+, mConnectionMutex(OsRWMutex::Q_PRIORITY)
+, mIsEarlyMediaFor180(TRUE)
+, mpSecurity(NULL)
+, m_pCallEventListener(pCallEventListener)
+, m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pSecurityEventListener(pSecurityEventListener)
+, m_pMediaEventListener(pMediaEventListener)
 {
 #ifdef TEST_PRINT
     if (callId)
@@ -271,8 +271,6 @@ UtlBoolean CpPeerCall::handleDialString(OsMsg* pEventMessage)
     osPrintf("%s-CpPeerCall: dialing string: \'%s\' length: %d\n", 
         mName.data(), dialString.data(), dialString.length());
 #endif
-
-    addHistoryEvent("CP_DIAL_STRING (3) \n\tDialString: \"" + dialString + "\"");
 
     // If all digits or * assume this is a userid not a server address
     RegEx allDigits("^[0-9*]+$");
@@ -603,8 +601,6 @@ UtlBoolean CpPeerCall::handleTransfereeConnection(OsMsg* pEventMessage)
 UtlBoolean CpPeerCall::handleSipMessage(OsMsg* pEventMessage)
 {
     UtlBoolean bAddedConnection = FALSE ;
-
-    addHistoryEvent("CP_SIP_MESSAGE (1)");
 
     // There are of course small windows between:
     // findHandlingConnection, addConnection and the
@@ -1666,7 +1662,7 @@ UtlBoolean CpPeerCall::handleOfferingExpired(OsMsg* pEventMessage)
                         mName.data(), forwardUnconditional.data());
                 }
 #endif
-                forwardAddressUrl = OsUtil::NULL_OS_STRING;
+                forwardAddressUrl = NULL;
             }
 
             // Otherwise accept the call
@@ -1701,7 +1697,7 @@ UtlBoolean CpPeerCall::handleOfferingExpired(OsMsg* pEventMessage)
                         mName.data(), forwardOnBusy.data());
                 }
 #endif
-                forwardAddressUrl = OsUtil::NULL_OS_STRING;
+                forwardAddressUrl = NULL;
             }
 
             // Otherwise reject the call
@@ -1760,7 +1756,7 @@ UtlBoolean CpPeerCall::handleRingingExpired(OsMsg* pEventMessage)
                     mName.data(), forwardOnNoAnswer.data());
             }
 #endif
-            forwardAddressUrl = OsUtil::NULL_OS_STRING;
+            forwardAddressUrl = NULL;
         }
 
         // We now drop the call if no one picks up this call after so long
@@ -1841,14 +1837,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
     int msgSubType = eventMessage.getMsgSubType();
     UtlBoolean processedMessage = TRUE;
     CpMultiStringMessage* multiStringMessage = (CpMultiStringMessage*)&eventMessage;
-
-    if(msgSubType != CallManager::CP_SIP_MESSAGE &&
-        msgSubType != CallManager::CP_DIAL_STRING)
-        CpCall::addHistoryEvent(msgSubType, multiStringMessage);
-
-    // Either we are the caller and are done dialing at this point
-    // Or we are the callee, turn off local only DTMF tone 
-    mRemoteDtmf = TRUE;
 
     switch(msgSubType)
     {
@@ -3412,32 +3400,6 @@ UtlBoolean CpPeerCall::getConnectionState(const char* remoteAddress, int& state)
     }
     else
         return FALSE;
-}
-
-UtlBoolean CpPeerCall::getTermConnectionState(const char* address, 
-                                              const char* terminal, 
-                                              int& state)
-{
-    UtlBoolean rc = TRUE;
-    state = PtTerminalConnection::UNKNOWN;
-
-    OsReadLock lock(mConnectionMutex);
-    Connection* pConnection = findHandlingConnection((UtlString&) address);
-
-    if (pConnection)
-    {
-        state = pConnection->getTerminalState(0);
-    }
-    else if (!strcmp(mLocalAddress, address))
-    {
-        state = mLocalTermConnectionState;
-    }
-    else
-    {
-        rc = FALSE;
-    }
-
-    return rc;
 }
 
 void CpPeerCall::getLocalAddress(char* address, int maxLen)

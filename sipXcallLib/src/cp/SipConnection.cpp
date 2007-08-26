@@ -40,7 +40,9 @@
 #include <cp/CpMultiStringMessage.h>
 #include <cp/CpIntMessage.h>
 #include <os/OsNatAgentTask.h>
-#include "ptapi/PtCall.h"
+#include <ptapi/PtCall.h>
+#include <ptapi/PtTerminalConnection.h>
+
 #ifdef HAVE_NSS
 #include "net/pk12wrapper.h"
 #endif
@@ -914,7 +916,6 @@ UtlBoolean SipConnection::dial(const char* dialString,
                                                0,
                                                (void*)pDisplay,
                                                (void*)pSecurity,
-                                               this,
                                                mpCall->getMessageQueue(),
                                                rtpTransportOptions) != OS_SUCCESS)
         {
@@ -3594,7 +3595,6 @@ void SipConnection::processInviteRequest(const SipMessage* request)
                 0,
                 NULL /* VIDEO: WINDOW HANDLE */,
                 mpSecurity,
-                (ISocketEvent*)this,
                 mpCall->getMessageQueue(),
                 rtpTransportFlags);
     }
@@ -4432,13 +4432,6 @@ UtlBoolean SipConnection::processResponse(const SipMessage* response,
     else if(strcmp(sequenceMethod.data(), SIP_INVITE_METHOD) == 0)
     {
         processInviteResponse(response);
-        if (mTerminalConnState == PtTerminalConnection::HELD)
-        {
-            UtlString remoteAddress;
-            getRemoteAddress(&remoteAddress);
-            postTaoListenerMessage(PtEvent::TERMINAL_CONNECTION_HELD, PtEvent::CAUSE_NEW_CALL);
-        }
-
     } // End INVITE responses
 
     // REFER responses:
@@ -5003,7 +4996,6 @@ void SipConnection::processInviteResponseFailed(const SipMessage* response)
         // fire off a new event to application layer indicating that the
         // reinvite failed -- or make hold/unhold blocking. (Bob 8/14/02)
 
-        postTaoListenerMessage(CONNECTION_FAILED, CONNECTION_CAUSE_INCOMPATIBLE_DESTINATION, false);
         fireSipXCallEvent(CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_RESOURCE_LIMIT) ;
     }
     else if (reinviteState == REINVITING &&
@@ -7141,32 +7133,6 @@ UtlBoolean SipConnection::send(SipMessage& message,
     }
 
     return sipUserAgent->send(message, responseListener, responseListenerData, pTransport);
-}
-
-void SipConnection::onIdleNotify(IStunSocket* const pSocket,
-                                 SocketPurpose purpose,
-                                 const int millisecondsIdle)
-{
-    SIPX_MEDIA_TYPE mediaType = (purpose == RTP_AUDIO ||
-                                    purpose == UNKNOWN ||
-                                    purpose == RTCP_AUDIO) ?
-                                    MEDIA_TYPE_AUDIO : MEDIA_TYPE_VIDEO;
-
-    // only fire it if we are connected
-    if (mHoldState == TERMCONNECTION_TALKING)
-    {
-        fireSipXMediaEvent(MEDIA_REMOTE_SILENT, MEDIA_CAUSE_NORMAL, mediaType, (void*)millisecondsIdle) ;
-    }
-}
-
-void SipConnection::onReadData(IStunSocket* const pSocket,
-                               SocketPurpose purpose)
-{
-    SIPX_MEDIA_TYPE mediaType = (purpose == RTP_AUDIO ||
-                                    purpose == UNKNOWN ||
-                                    purpose == RTCP_AUDIO) ?
-                                    MEDIA_TYPE_AUDIO : MEDIA_TYPE_VIDEO;
-    fireSipXMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, mediaType) ;
 }
 
 void SipConnection::onFileStart(IMediaEvent_DeviceTypes type)

@@ -22,19 +22,11 @@
 #include <cp/Connection.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <net/QoS.h>
+#include <cp/CpDefs.h>
 
 #include <os/OsProtectEventMgr.h>
 
 // DEFINES
-#ifdef LONG_EVENT_RESPONSE_TIMEOUTS
-#  define CP_MAX_EVENT_WAIT_SECONDS    2592000    // 30 days in seconds
-#else
-#  define CP_MAX_EVENT_WAIT_SECONDS    30         // time out, seconds
-#endif
-
-#define CP_CALL_HISTORY_LENGTH 50
-
-#define CP_MAXIMUM_RINGING_EXPIRE_SECONDS 180
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -92,7 +84,6 @@ public:
                OsConfigDb* speedNums,                     // Suggested value: NULL
                CallTypes phonesetOutgoingCallProtocol,    // Suggested value: CallManager::SIP_CALL
                int numDialPlanDigits,                     // Suggested value: 4
-               int holdType,                              // Suggested value: CallManager::NEAR_END_HOLD
                int offeringDelay,                         // Suggested value: Connection::IMMEDIATE
                const char* pLocal,                        // Suggested value: ""
                int inviteExpireSeconds,                   // Suggested value: CP_MAXIMUM_RINGING_EXPIRE_SECONDS
@@ -320,7 +311,6 @@ private:
     int mOutGoingCallType;
     PtMGCP* mpMgcpStackTask;
     int mNumDialPlanDigits;
-    int mHoldType;
     SdpCodecFactory* mpCodecFactory;
     UtlString mLocale;
     int mMessageEventCount;

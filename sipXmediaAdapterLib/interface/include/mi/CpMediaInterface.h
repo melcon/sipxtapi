@@ -73,23 +73,6 @@ typedef enum SIPXMI_AUDIO_BANDWIDTH_ID
 
 } SIPXMI_AUDIO_BANDWIDTH_ID;
 
-
-/**
-*  @brief Interface declaration for receiving socket idle notifications.
-*/
-class ISocketEvent
-{
-public:
-   virtual void onIdleNotify(IStunSocket* const pSocket,
-                             SocketPurpose purpose,
-                             const int millisecondsIdle) = 0;
-
-   virtual void onReadData(IStunSocket* const pSocket,
-                           SocketPurpose purpose) = 0;
-
-   virtual ~ISocketEvent() { } ;
-};
-
 class IMediaEventEmitter
 {
 public:
@@ -157,7 +140,6 @@ public:
                int localPort = 0,
                void* videoWindowHandle = NULL,
                void* const pSecurityAttributes = NULL,
-               ISocketEvent* pSocketIdleSink = NULL,
                OsMsgQ* pConnectionNotificationQueue = NULL,
                const RtpTransportOptions rtpTransportOptions = RTP_TRANSPORT_UDP) = 0 ;
      /**<

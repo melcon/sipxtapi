@@ -20,7 +20,6 @@
 // APPLICATION INCLUDES
 #include <cp/CpGhostConnection.h>
 #include <net/Url.h>
-#include <net/SipContactDb.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
