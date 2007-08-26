@@ -283,8 +283,7 @@ public:
 
    virtual UtlBoolean redirect(const char* forwardAddress) = 0;
 
-   virtual UtlBoolean processMessage(OsMsg& eventMessage,
-                                    UtlBoolean callInFocus, UtlBoolean onHook) = 0;
+   virtual UtlBoolean processMessage(OsMsg& eventMessage, UtlBoolean callInFocus) = 0;
 
    virtual UtlBoolean canSendInfo() { return false; }
    //:Virtual method signature and default implementation for sendInfo - this should be overridden by

@@ -649,7 +649,6 @@ UtlBoolean CpPeerCall::handleSipMessage(OsMsg* pEventMessage)
             }
             addConnection(connection);
             bAddedConnection = TRUE ;
-            mDtmfEnabled = TRUE ;
         }
         else
         {
@@ -681,9 +680,7 @@ UtlBoolean CpPeerCall::handleSipMessage(OsMsg* pEventMessage)
         //                                    0);
         //                }
 
-        connection->processMessage(*pEventMessage, mCallInFocus, 
-            !mDtmfEnabled); // mDtmfEnabled is the same as offHook state
-        //mNumCodecs, mpaCodecArray);
+        connection->processMessage(*pEventMessage, mCallInFocus);
 
         int currentConnectionState = connection->getState();    
         if ( ((previousConnectionState != currentConnectionState) || 
@@ -3146,7 +3143,6 @@ void CpPeerCall::dropIfDead()
         }
 
         setCallState(0, "", PtCall::INVALID);          
-        mDtmfEnabled = FALSE;
 
         // Signal the manager to Shutdown the task
         // Do this at the very last opportunity
@@ -3315,8 +3311,6 @@ void CpPeerCall::offHook(const void* pDisplay)
             mLocalConnectionState = PtEvent::CONNECTION_ESTABLISHED;
         }
     }
-
-    mDtmfEnabled = TRUE;
 }
 
 
@@ -3444,32 +3438,6 @@ UtlBoolean CpPeerCall::getTermConnectionState(const char* address,
     }
 
     return rc;
-}
-
-void CpPeerCall::printCall()
-{
-    Connection* connection = NULL;
-    OsReadLock lock(mConnectionMutex);
-    UtlDListIterator iterator(mConnections);
-    UtlString connectionAddress;
-    UtlString connectionState;
-    UtlString connectionCallId;
-    int connectionIndex = 0;
-    int cause = 0;
-
-    CpCall::printCall();
-
-    while ((connection = (Connection*) iterator()))
-    {
-        connection->getRemoteAddress(&connectionAddress);
-        Connection::getStateString(connection->getState(cause), 
-            &connectionState);
-        connection->getCallId(&connectionCallId);
-        osPrintf("%s-\tconnection[%d]: %s callId: %s\n\t\tstate: %s cause: %d\n",
-            mName.data(), connectionIndex, connectionAddress.data(),
-            connectionCallId.data(), connectionState.data(), cause);
-        connectionIndex++;
-    }
 }
 
 void CpPeerCall::getLocalAddress(char* address, int maxLen)

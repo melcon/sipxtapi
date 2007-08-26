@@ -57,7 +57,6 @@ mCallIdMutex(OsMutex::Q_FIFO)
 
     mCallInFocus = FALSE;
     mRemoteDtmf = FALSE;
-    mDtmfEnabled = FALSE;
 
     mpManager = manager;
 
@@ -593,20 +592,6 @@ void CpCall::setLocalConnectionState(int newState)
     mLocalConnectionState = newState;
 }
 
-OsStatus CpCall::stopRecord()
-{
-#ifdef TEST_PRINT
-    osPrintf("Calling mpMediaInterface->stopRecording()\n");
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "Calling mpMediaInterface->stopRecording()");
-#endif
-    return mpMediaInterface->stopRecording();
-}
-
-OsStatus CpCall::ezRecord(int ms, int silenceLength, const char* fileName, double& duration, int& dtmfterm)
-{
-    return mpMediaInterface->ezRecord(ms, silenceLength, fileName, duration, dtmfterm);
-}
-
 /* ============================ ACCESSORS ================================= */
 
 int CpCall::getCallIndex()
@@ -617,25 +602,6 @@ int CpCall::getCallIndex()
 int CpCall::getCallState()
 {
     return(mCallState);
-}
-
-void CpCall::printCall()
-{
-    UtlString callId;
-    getCallId(callId);
-    osPrintf("call[%d] id: %s state: %d%s\n", mCallIndex,
-        callId.data(), getCallState(), mDropping ? ", Dropping" : "");
-
-    osPrintf("Call message history:\n");
-    for(int historyIndex = 0; historyIndex < CP_CALL_HISTORY_LENGTH; historyIndex++)
-    {
-        if(mMessageEventCount - historyIndex >= 0)
-        {
-            osPrintf("%d) %s\n", mMessageEventCount - historyIndex,
-                (mCallHistory[(mMessageEventCount - historyIndex) % CP_CALL_HISTORY_LENGTH]).data());
-        }
-    }
-    osPrintf("=====================\n");
 }
 
 void CpCall::getCallId(UtlString& callId)
@@ -649,11 +615,6 @@ void CpCall::setCallId(const char* callId)
     OsWriteLock lock(mCallIdMutex);
     mCallId.remove(0);
     if(callId) mCallId.append(callId);
-}
-
-void CpCall::enableDtmf()
-{
-    mDtmfEnabled = TRUE;
 }
 
 int CpCall::getLocalConnectionState(int state)

@@ -2619,9 +2619,7 @@ void CallManager::doCreateCall(const char* callId,
 			mediaInterface->setInterfaceNotificationQueue(call->getMessageQueue());
             // Short term kludge: createCall invoked, this
             // implys the phone is off hook
-            call->enableDtmf();
             call->start();
-            //          addToneListener(callId, 0); // add dtmf tone listener to mp
 
             if(metaEventId > 0)
             {

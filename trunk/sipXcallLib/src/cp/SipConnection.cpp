@@ -2592,8 +2592,7 @@ void SipConnection::buildFromToAddresses(const char* dialString,
 }
 
 UtlBoolean SipConnection::processMessage(OsMsg& eventMessage,
-                                         UtlBoolean callInFocus,
-                                         UtlBoolean onHook)
+                                         UtlBoolean callInFocus)
 {
     int msgType = eventMessage.getMsgType();
     int msgSubType = eventMessage.getMsgSubType();
@@ -2778,16 +2777,14 @@ UtlBoolean SipConnection::processMessage(OsMsg& eventMessage,
 #ifdef TEST_PRINT
             ((SipMessage*)sipMsg)->logTimeEvent("PROCESSING");
 #endif
-            processedOk = processResponse(sipMsg, callInFocus, onHook);
-            //numCodecs, rtpCodecs);
+            processedOk = processResponse(sipMsg, callInFocus);
         }
         else
         {
 #ifdef TEST_PRINT
             ((SipMessage*)sipMsg)->logTimeEvent("PROCESSING");
 #endif
-            processedOk = processRequest(sipMsg, callInFocus, onHook);
-            //numCodecs, rtpCodecs);
+            processedOk = processRequest(sipMsg, callInFocus);
         }
 
 #ifdef TEST_PRINT
@@ -2887,8 +2884,7 @@ UtlBoolean SipConnection::extendSessionReinvite()
 }
 
 UtlBoolean SipConnection::processRequest(const SipMessage* request,
-                                         UtlBoolean callInFocus,
-                                         UtlBoolean onHook)
+                                         UtlBoolean callInFocus)
 {
     UtlString sipMethod;
     UtlBoolean processedOk = TRUE;
@@ -4412,8 +4408,7 @@ UtlBoolean SipConnection::getInitialSdpCodecs(const SipMessage* sdpMessage,
 }
 
 UtlBoolean SipConnection::processResponse(const SipMessage* response,
-                                          UtlBoolean callInFocus,
-                                          UtlBoolean onHook)
+                                          UtlBoolean callInFocus)
 {
     int sequenceNum;
     UtlString sequenceMethod;

@@ -197,8 +197,7 @@ UtlBoolean CpGhostConnection::accept(int forwardOnNoAnswerSeconds,
     return(FALSE);
 }
 
-UtlBoolean CpGhostConnection::processMessage(OsMsg& eventMessage,
-                                    UtlBoolean callInFocus, UtlBoolean onHook)
+UtlBoolean CpGhostConnection::processMessage(OsMsg& eventMessage, UtlBoolean callInFocus)
 {
     return(FALSE);
 }

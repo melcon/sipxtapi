@@ -118,8 +118,6 @@ public:
 
     /* ============================ ACCESSORS ================================= */
 
-    virtual void printCall();
-
     virtual void getLocalAddress(char* address, int len);
 
     virtual void getLocalTerminalId(char* terminal, int len);
