@@ -786,34 +786,6 @@
 				RelativePath=".\src\cp\SipConnection.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\src\tao\TaoEvent.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\tao\TaoEventListener.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\tao\TaoListenerEventMessage.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\tao\TaoMessage.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\tao\TaoObjectMap.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\tao\TaoReference.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\tao\TaoString.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -837,6 +809,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpCallStateEventListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpDefs.h"
 				>
 			</File>
 			<File

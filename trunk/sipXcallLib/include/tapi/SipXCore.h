@@ -19,6 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include "utl/UtlString.h"
 #include "tapi/sipXtapi.h"
 #include "utl/UtlDefs.h"
 #include "utl/UtlContainable.h"

@@ -21,6 +21,7 @@
 #include <utl/UtlInit.h>
 
 #include <net/SipUserAgent.h>
+#include <net/SipSession.h>
 #include "tapi/SipXInfo.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXCall.h"

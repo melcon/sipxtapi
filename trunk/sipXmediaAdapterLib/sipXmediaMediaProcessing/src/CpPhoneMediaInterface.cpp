@@ -281,7 +281,6 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
                                                  int localPort,
                                                  void* videoWindowHandle, 
                                                  void* const pSecurityAttributes,
-                                                 ISocketEvent* pIdleEvent,
                                                  OsMsgQ* pConnectionNotificationQueue,
                                                  const RtpTransportOptions rtpTransportOptions)
 {

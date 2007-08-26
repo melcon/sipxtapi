@@ -24,6 +24,7 @@
 #include <utl/UtlHashMapIterator.h>
 #include "cp/CallManager.h"
 #include <net/SipUserAgent.h>
+#include <net/SipSession.h>
 #include "tapi/SipXSubscribe.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXCall.h"

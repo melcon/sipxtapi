@@ -13,16 +13,11 @@
 #define _CpPeerCall_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
-//#include <cp/PhoneApplication.h>
+#include <os/OsRWMutex.h>
 #include <cp/CpCall.h>
 #include <cp/Connection.h>
-
-#include <os/OsRWMutex.h>
-#include <cp/CallManager.h>
-
+#include <cp/CpDefs.h>
 #include "tapi/sipXtapiEvents.h"
 
 // DEFINES
@@ -35,6 +30,7 @@
 // FORWARD DECLARATIONS
 class Connection;
 class SipUserAgent;
+class SIPXTACK_SECURITY_ATTRIBUTES;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
@@ -65,7 +61,6 @@ public:
         SipUserAgent* sipUA = NULL,
         int sipSessionReinviteTimer = 0,
         const char* defaultCallExtension = NULL,
-        int holdType = CallManager::NEAR_END_HOLD,
         int offeringDelayMilliSeconds = Connection::IMMEDIATE,
         int availableBehavior = Connection::RING,
         const char* forwardUnconditionalUrl = NULL,
@@ -320,10 +315,6 @@ protected:
 
     virtual UtlBoolean getConnectionState(const char* remoteAddress, int& state);
 
-    virtual UtlBoolean getTermConnectionState(const char* address,
-        const char* terminal,
-        int& state);
-
     virtual void onHook();
     virtual void offHook(const void* hWnd = NULL);
 
@@ -358,9 +349,6 @@ private:
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
 
-    //void doHold();
-    //void doOffHold();
-
     int offeringDelay;
     int lineAvailableBehavior;
     UtlString forwardUnconditional;
@@ -369,8 +357,7 @@ private:
     int noAnswerTimeout;
     UtlString forwardOnNoAnswer;
     SipUserAgent* sipUserAgent;
-    //Connection* connection;
-    //UtlString extension;
+
     int mSipSessionReinviteTimer;
     UtlDList mConnections;
     OsRWMutex mConnectionMutex;

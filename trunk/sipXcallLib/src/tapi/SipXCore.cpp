@@ -517,7 +517,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       NULL, // speedNums
       CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
       4, // numDialPlanDigits
-      CallManager::NEAR_END_HOLD, // holdType
       5000, // offeringDelay
       "",
       CP_MAXIMUM_RINGING_EXPIRE_SECONDS,

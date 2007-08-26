@@ -95,7 +95,6 @@ public:
                                      int localPort = 0,
                                      void* videoWindowHandle = NULL,
                                      void* const pSecurityAttributes = NULL,
-                                     ISocketEvent* pIdleEvent = NULL,
                                      OsMsgQ* pConnectionNotificationQueue = NULL,
                                      const RtpTransportOptions rtpTransportOptions=RTP_TRANSPORT_UDP);
    

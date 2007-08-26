@@ -17,25 +17,13 @@
 #define _Connection_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
-#include <utl/UtlString.h>
 #include <os/OsMutex.h>
-#include "cp/CpCallStateEventListener.h"
-#include "net/SipInfoStatusEventListener.h"
-#include "net/SipSecurityEventListener.h"
-#include "cp/CpMediaEventListener.h"
 #include <tapi/sipXtapiEvents.h>
-#include "tapi/SipXTransport.h"
-#include <net/SipContactDb.h>
+#include <tapi/SipXTransport.h>
 #include <mi/CpMediaInterface.h>
 
-
 // DEFINES
-#	define LOCAL_ONLY 0
-#	define LOCAL_AND_REMOTE 1
-
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -51,11 +39,15 @@ class OsDatagramSocket;
 class SdpCodec;
 class SipSession;
 class OsMsg;
-class TaoObjectMap;
-class TaoReference;
 class OsServerTask;
 class Url;
 class OsQueuedEvent;
+class CpCallStateEventListener;
+class CpCallStateEvent;
+class SipInfoStatusEventListener;
+class SipSecurityEventListener;
+class CpMediaEventListener;
+class CpMediaEvent;
 
 //:logical Connection within a call
 // The Connection encapsulates the call setup protocol and state
@@ -292,11 +284,6 @@ public:
    //:Virtual method signature and default implementation for sendInfo - this should be overridden by
    //:SipConnection.
 
-	OsStatus addTaoListener(OsServerTask* pListener,
-									char* callId = NULL,
-									int ConnectId = 0,
-									int mask = 0);
-
 	void setLocalAddress(const char* address);
 
     void unimplemented(const char* methodName) const;
@@ -433,8 +420,6 @@ protected:
     virtual void setOfferingTimer(int milliSeconds);
     virtual void setRingingTimer(int seconds);
 
-	void postTaoListenerMessage(int state, int newCause, int isLocal = 0);
-
 	//: Behavior of progression from Offering to next state
 	// The connections will:
 	// IMMEDIATE, PAUSE, NEVER go to Alerting
@@ -479,17 +464,11 @@ protected:
 	int mRemoteConnectionState;
     int mConnectionStateCause;
 	int mTerminalConnState;
-//	int mLocalTerminalConnState;
-//	int mRemoteTerminalConnState;
-	// int mFarEndHoldState;
 
     int mHoldState ;
 
 	int mResponseCode;		// response code obtained at processResponse, passed through events to upper layer
 	UtlString mResponseText;	// response text obtained at processResponse
-
-	TaoObjectMap*		mpListeners;		
-	TaoReference*		mpListenerCnt;
 
 	UtlString mLocalAddress;
     UtlString mOriginalCallConnectionAddress;

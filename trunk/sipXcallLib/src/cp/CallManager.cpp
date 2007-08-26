@@ -42,8 +42,10 @@
 #include <cp/CpMultiStringMessage.h>
 #include <cp/Connection.h>
 #include <cp/CpPeerCall.h>
+#include <cp/CpCallStateEventListener.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include "tapi/SipXTransport.h"
+
 
 // TO_BE_REMOVED
 #ifndef EXCLUDE_STREAMING
@@ -103,7 +105,6 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
                          OsConfigDb* pConfigDb,
                          CallTypes phonesetOutgoingCallProtocol,
                          int numDialPlanDigits,
-                         int holdType,
                          int offeringDelay,
                          const char* locale,
                          int inviteExpireSeconds,
@@ -127,7 +128,6 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
     flashPending = FALSE;
     mIsEarlyMediaFor180 = isEarlyMediaFor180Enabled;
     mNumDialPlanDigits = numDialPlanDigits;
-    mHoldType = holdType;
     mnTotalIncomingCalls = 0;
     mnTotalOutgoingCalls = 0;
     mMaxCalls = maxCalls ;
@@ -447,7 +447,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     sipUserAgent,
                                     mSipSessionReinviteTimer,
                                     mOutboundLine.data(),
-                                    mHoldType,
                                     mOfferedTimeOut,
                                     mLineAvailableBehavior,
                                     mForwardUnconditional.data(),
@@ -2607,7 +2606,6 @@ void CallManager::doCreateCall(const char* callId,
                 sipUserAgent,
                 mSipSessionReinviteTimer,
                 mOutboundLine.data(),
-                mHoldType,
                 mOfferedTimeOut,
                 mLineAvailableBehavior,
                 mForwardUnconditional.data(),
