@@ -26,22 +26,11 @@
 #include "tao/TaoObjectMap.h"
 
 // DEFINES
-#define MINIMUM_DTMF_LENGTH 50
-#define MINIMUM_DTMF_SILENCE 50
-
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STRUCTS
-struct DtmfEvent {
-    int     event;
-    int interdigitSecs;
-    int timeoutSecs;
-    int ignoreKeyUp;
-    UtlBoolean enabled;
-};
-
 // TYPEDEFS
 // FORWARD DECLARATIONS
 class CpCallManager;
@@ -62,13 +51,6 @@ public:
         CALL_STATE
     };
 
-    enum metaEventState
-    {
-        METAEVENT_START = 0,
-        METAEVENT_INPROGRESS,
-        METAEVENT_END
-    };
-
     enum callTypes
     {
         CP_NORMAL_CALL,
@@ -87,7 +69,6 @@ public:
         CP_TRANSFER_CONTROLLER_TARGET_CALL,
         CP_TRANSFEREE_ORIGINAL_CALL,
         CP_TRANSFEREE_TARGET_CALL,
-        //CP_TRANSFER_TARGET_ORIGINAL_CALL,  // do not know if this is needed
         CP_TRANSFER_TARGET_TARGET_CALL
     };
 
@@ -110,10 +91,10 @@ public:
     /* ============================ CREATORS ================================== */
 
     CpCall(CpCallManager* manager = NULL,
-        CpMediaInterface* callMediaInterface = NULL,
-        int callIndex = -1,
-        const char* callId = NULL,
-        int holdType = CallManager::NEAR_END_HOLD);
+           CpMediaInterface* callMediaInterface = NULL,
+           int callIndex = -1,
+           const char* callId = NULL,
+           int holdType = CallManager::NEAR_END_HOLD);
     //:Default constructor
 
     virtual
@@ -139,15 +120,10 @@ public:
     virtual void inFocus(int talking = 1);
     virtual void outOfFocus();
 
-    //virtual void hold();
-    //virtual void offHold();
     virtual void localHold();
     virtual void hangUp(UtlString callId, int metaEventId);
-    //virtual void blindTransfer() = 0;
-    //virtual void conferenceAddParty() = 0;
 
     virtual void getLocalAddress(char* address, int len);
-
     virtual void getLocalTerminalId(char* terminal, int len);
 
     virtual void getCallId(UtlString& callId);
@@ -164,20 +140,12 @@ public:
     int getLocalConnectionState() { return mLocalConnectionState; };
     //: Sets the local connection state for this call
 
-    OsStatus ezRecord(int ms, int silenceLength, const char* fileName, double& duration, int& dtmfterm);
-    virtual OsStatus stopRecord();
     /* ============================ ACCESSORS ================================= */
     static int getCallTrackingListCount();
     //returns the number of call tasks currently outstanding.
 
     int getCallIndex();
-
     int getCallState();
-
-    virtual void printCall();
-
-    // This should go away
-    void enableDtmf();
 
     static void getStateString(int state, UtlString* stateLabel);
 
@@ -244,7 +212,6 @@ protected:
     UtlString mCallId;
     volatile UtlBoolean mCallInFocus;
     UtlBoolean mRemoteDtmf;
-    UtlBoolean mDtmfEnabled;
     OsRWMutex mCallIdMutex;
     CpMediaInterface*   mpMediaInterface;
     int mCallIndex;
