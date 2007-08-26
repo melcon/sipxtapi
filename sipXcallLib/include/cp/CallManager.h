@@ -134,21 +134,10 @@ public:
                              SIPX_TRANSPORT_DATA* pTransportData = NULL,
                              const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP) ;
 
-    virtual PtStatus consult(const char* idleTargetCallId,
-        const char* activeOriginalCallId, const char* originalCallControllerAddress,
-        const char* originalCallControllerTerminalId, const char* consultAddressUrl,
-        UtlString& targetCallControllerAddress, UtlString& targetCallConsultAddress);
     virtual void drop(const char* callId);
     virtual PtStatus transfer_blind(const char* callId, const char* transferToUrl,
                           UtlString* targetCallId,
                           UtlString* targetConnectionAddress = NULL);
-    // Blind transfer
-
-    virtual PtStatus transfer(const char* targetCallId, const char* originalCallId);
-    // Consultative transfer
-    // The couple targetCallId & targetConnectionAddress return/define
-    // the transfer target connection in the resulting new transfer
-    // target call
 
     PtStatus transfer(const char* sourceCallId, 
                       const char* sourceAddress, 
@@ -166,8 +155,6 @@ public:
     //: to initiating the split/join.
 
 
-    virtual void toneStart(const char* callId, int toneId, UtlBoolean local, UtlBoolean remote);
-    virtual void toneStop(const char* callId);
     virtual void toneChannelStart(const char* callId, const char* szRemoteAddress, int toneId, UtlBoolean local, UtlBoolean remote);
     virtual void toneChannelStop(const char* callId, const char* szRemoteAddress);    
     virtual void audioPlay(const char* callId, const char* audioUrl, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, UtlBoolean mixWithMic = false, int downScaling = 100);
@@ -199,8 +186,9 @@ public:
     virtual void rejectConnection(const char* callId, const char* address);
     virtual PtStatus redirectConnection(const char* callId, const char* address, const char* forwardAddressUrl);
     virtual void dropConnection(const char* callId, const char* address);
+
     virtual void getNumConnections(const char* callId, int& numConnections);
-        virtual OsStatus getConnections(const char* callId, int maxConnections,
+    virtual OsStatus getConnections(const char* callId, int maxConnections,
                 int& numConnections, UtlString addresses[]);
     virtual OsStatus getCalledAddresses(const char* callId, int maxConnections,
                 int& numConnections, UtlString addresses[]);
@@ -221,10 +209,6 @@ public:
     virtual void silentRemoteHold(const char* callId) ;
     virtual void renegotiateCodecsTerminalConnection(const char* callId, const char* addresss, const char* terminalId);
     virtual void renegotiateCodecsAllTerminalConnections(const char* callId);
-         virtual void getNumTerminalConnections(const char* callId, const char* address, int& numTerminalConnections);
-         virtual OsStatus getTerminalConnections(const char* callId, const char* address,
-                int maxTerminalConnections, int& numTerminalConnections, UtlString terminalNames[]);
-    virtual UtlBoolean isTerminalConnectionLocal(const char* callId, const char* address, const char* terminalId);
     virtual void doGetFocus(CpCall* call);
     
     virtual OsStatus getSession(const char* callId,
@@ -234,31 +218,6 @@ public:
     virtual OsStatus getSipDialog(const char* callId,
                                   const char* address,
                                   SipDialog& dialog);
-
-    // Stimulus based operations DEPRICATED DO NOT USE
-    virtual void dialString(const char* url);
-
-    virtual UtlBoolean disconnectConnection(const char* callId, const char* addressUrl);
-
-    virtual void setTransferType(int type);
-
-    virtual OsStatus ezRecord(const char* callId,
-                        int ms,
-                        int silenceLength,
-                        int& duration,
-                        const char* fileName,
-                        int& dtmfterm,
-                        OsProtectedEvent* recordEvent = NULL);
-
-    virtual OsStatus setCodecCPULimitCall(const char* callId, int limit, UtlBoolean bRenegotiate) ;
-      //:Sets the CPU codec limit for a call.  Each connection within the call
-      //:may only use a codec of the specified CPU intensity (or lesser).
-
-    virtual OsStatus setInboundCodecCPULimit(int limit)  ;
-      //:Sets the inbound call CPU limit for codecs
-
-    virtual OsStatus stopRecording(const char* callId);
-    //: tells media system stop stop a curretn recording
 
     virtual void setMaxCalls(int maxCalls);
     //:Set the maximum number of calls to admit to the system.
@@ -284,38 +243,6 @@ public:
    //: Sends an INFO message to the other party(s) on the call
 
 /* ============================ ACCESSORS ================================= */
-   /**
-    * Gets the number of lines made available by line manager.
-    */
-   virtual int getNumLines();
-
-  /**
-   * maxAddressesRequested is the number of addresses requested if available
-   * numAddressesAvailable is the actual number of addresses available.
-   * "addresses" is a pre-allocated array of size maxAddressesRequested
-   */
-   virtual OsStatus getOutboundAddresses(size_t maxAddressesRequested,
-                                         size_t& numAddressesAvailable, UtlString** addresses);
-
-   virtual UtlBoolean getCallState(const char* callId, int& state);
-        virtual UtlBoolean getConnectionState(const char* callId, const char* remoteAddress, int& state);
-
-        virtual UtlBoolean getTermConnectionState(const char* callId,
-                                                                                        const char* address,
-                                                                                        const char* terminal,
-                                                                                        int& state);
-
-    UtlBoolean getNextSipCseq(const char* callId,
-                             const char* remoteAddress,
-                             int& nextCseq);
-    //:provides the next csequence number for a given call session (leg) if it exists.
-    // Note: this does not protect against transaction
-
-    void printCalls();
-
-    void setOutGoingCallType(int callType);
-
-    int getTransferType();
 
     virtual PtStatus validateAddress(UtlString& address);
 
@@ -323,43 +250,12 @@ public:
 
     virtual void stopCallStateLog();
 
-    virtual void setCallStateLogAutoWrite(UtlBoolean);
-
-    virtual void clearCallStateLog();
-
-    // Get the contents of the call state log.
-    virtual void getCallStateLog(UtlString& logData);
-    // Get the contents of the call state log and clear it.
-    // (Avoids the race condition of calling getCallStateLog then
-    // clearCallStateLog.)
-    virtual void getAndClearCallStateLog(UtlString& logData);
-    // Flush the CallStateLog in the same way that auto-writing does
-    // (by writing it to the log file).
-    virtual void flushCallStateLogAutoWrite();
-
     // Soon to be removed:
-        virtual OsStatus getFromField(const char* callId, const char* remoteAddress,  UtlString& fromField);
-        virtual OsStatus getToField(const char* callId, const char* remoteAddress,  UtlString& toField);
-
-   virtual OsStatus getCodecCPUCostCall(const char* callId, int& cost);
-     //:Gets the CPU cost for an individual connection within the specified
-     //:call.
-
-   virtual OsStatus getCodecCPULimitCall(const char* callId, int& cost);
-     //:Gets the CPU cost for an individual connection within the specified
-     //:call.
-     // It is assumed that each connection is at worst this level; however,
-     // may actually use less resources.
+   virtual OsStatus getFromField(const char* callId, const char* remoteAddress,  UtlString& fromField);
 
    virtual void getCalls(int& currentCalls, int& maxCalls);
      //:Get the current number of calls in the system and the maximum number of
      //:calls to be admitted to the system.
-
-   virtual OsStatus getLocalContactAddresses(const char* callid,
-                                             SIPX_CONTACT_ADDRESS addresses[],
-                                             size_t  nMaxAddresses,
-                                             size_t& nActaulAddresses) ;
-     //:The available local contact addresses
 
    virtual CpMediaInterfaceFactory* getMediaInterfaceFactory() ;
      //: Gets the media interface factory used by the call manager
@@ -381,11 +277,6 @@ public:
    virtual UtlBoolean getAudioEnergyLevels(const char*   szCallId,                                            
                                            int&          iInputEnergyLevel,
                                            int&          iOutputEnergyLevel) ;
-
-    virtual UtlBoolean getAudioRtpSourceIDs(const char*   szCallId, 
-                                            const char*   szRemoteAddress,
-                                            unsigned int& uiSendingSSRC,
-                                            unsigned int& uiReceivingSSRC) ;
 
     virtual void getRemoteUserAgent(const char* callId, 
                                     const char* remoteAddress,
@@ -431,7 +322,6 @@ private:
     int mNumDialPlanDigits;
     int mHoldType;
     SdpCodecFactory* mpCodecFactory;
-    int mTransferType;
     UtlString mLocale;
     int mMessageEventCount;
     int mnTotalIncomingCalls;
@@ -461,11 +351,8 @@ private:
     int getCallStackSize();
     UtlBoolean changeCallFocus(CpCall* callToTakeFocus);
     CpCall* findHandlingCall(const char* callId);
-    CpCall* findHandlingCall(int callIndex);
     CpCall* findHandlingCall(const OsMsg& eventMessage);
-    CpCall* findFirstQueuedCall();
     void getCodecs(int& numCodecs, SdpCodec**& codecArray);
-    void addHistoryEvent(const char* messageLogString);
 
     void doHold();
 
@@ -506,9 +393,6 @@ private:
            CallManager& operator=(const CallManager& rhs);
      //:Assignment operator (disabled)
 
-#ifdef _WIN32
-    UtlBoolean IsTroubleShootingModeEnabled();
-#endif
 };
 
 /* ============================ INLINE METHODS ============================ */

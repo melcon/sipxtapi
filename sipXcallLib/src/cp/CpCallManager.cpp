@@ -134,30 +134,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
         typeString = "CP_DIAL_STRING";
         break;
 
-      case CP_FOCUS_CALL:
-        typeString = "CP_FOCUS_CALL";
-        break;
-
-      case CP_HOLD_CALL:
-        typeString = "CP_HOLD_CALL";
-        break;
-
-      case CP_OFF_HOLD_CALL:
-        typeString = "CP_OFF_HOLD_CALL";
-        break;
-
-      case CP_DEQUEUED_CALL:
-        typeString = "CP_DEQUEUED_CALL";
-        break;
-
-      case CP_MGCP_MESSAGE:
-        typeString = "CP_MGCP_MESSAGE";
-        break;
-
-      case CP_MGCP_CAPS_MESSAGE:
-        typeString = "CP_MGCP_CAPS_MESSAGE";
-        break;
-
       case CP_YIELD_FOCUS:
         typeString = "CP_YIELD_FOCUS";
         break;
@@ -172,10 +148,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
 
       case CP_CONNECT:
         typeString = "CP_CONNECT";
-        break;
-
-      case CP_SINGLE_CALL_TRANSFER:
-        typeString = "CP_SINGLE_CALL_TRANSFER";
         break;
 
       case CP_BLIND_TRANSFER:
@@ -250,14 +222,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
         typeString = "CP_GET_CALLING_ADDRESSES";
         break;
 
-      case CP_START_TONE_TERM_CONNECTION:
-        typeString = "CP_START_TONE_TERM_CONNECTION";
-        break;
-
-      case CP_STOP_TONE_TERM_CONNECTION:
-        typeString = "CP_STOP_TONE_TERM_CONNECTION";
-        break;
-
       case CP_PLAY_AUDIO_TERM_CONNECTION:
         typeString = "CP_PLAY_AUDIO_TERM_CONNECTION";
         break;
@@ -280,14 +244,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
 
       case CP_DESTROY_PLAYLIST_PLAYER:
         typeString = "CP_DESTROY_PLAYLIST_PLAYER";
-        break;
-
-      case CP_GET_NUM_TERM_CONNECTIONS:
-        typeString = "CP_GET_NUM_TERM_CONNECTIONS";
-        break;
-
-      case CP_GET_TERM_CONNECTIONS:
-        typeString = "CP_GET_TERM_CONNECTIONS";
         break;
 
       case CP_IS_LOCAL_TERM_CONNECTION:
@@ -318,18 +274,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
         typeString = "CP_RINGING_EXPIRED";
         break;
 
-      case CP_GET_CALLSTATE:
-        typeString = "CP_GET_CALLSTATE";
-        break;
-
-      case CP_GET_CONNECTIONSTATE:
-        typeString = "CP_GET_CONNECTIONSTATE";
-        break;
-
-      case CP_GET_TERMINALCONNECTIONSTATE:
-        typeString = "CP_GET_TERMINALCONNECTIONSTATE";
-        break;
-
       case CP_GET_SESSION:
         typeString = "CP_GET_SESSION";
         break;
@@ -346,10 +290,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
         typeString = "CP_CANCEL_TIMER";
         break;
  
-      case CP_GET_NEXT_CSEQ:
-        typeString = "CP_GET_NEXT_CSEQ";
-        break;
-
       default:
         typeString = "?";
         break;
@@ -507,27 +447,6 @@ void CpCallManager::getNewCallId(const char* callIdPrefix, UtlString* callId)
 
    // Copy it to the destination.
    *callId = buffer;
-}
-
-CpCall* CpCallManager::findCall(const char* callId)
-{
-    OsReadLock lock(mCallListMutex);
-    UtlDListIterator callIterator(mCallList);
-    CpCall* call = NULL;
-    UtlInt* callCollectable = NULL;
-
-    while ((callCollectable = (UtlInt*) callIterator()))
-    {
-        call = (CpCall*) callCollectable->getValue();
-        if(call && call->hasCallId(callId))
-        {
-            break;
-        }
-
-        call = NULL;
-    }
-
-    return(call);
 }
 
 void CpCallManager::appendCall(CpCall* call)

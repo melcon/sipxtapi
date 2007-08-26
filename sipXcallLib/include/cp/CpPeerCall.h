@@ -206,20 +206,8 @@ protected:
     UtlBoolean handleSilentRemoteHold(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_SILENT_REMOTE_HOLD
     //: message
-    UtlBoolean handleGetCodecCPULimit(OsMsg& eventMessage);
-    //: Handles the processing of a CallManager::CP_GET_CODEC_CPU_LIMIT
-    //: message
-    UtlBoolean handleSetCodecCPULimit(OsMsg& eventMessage);
-    //: Handles the processing of a CallManager::CP_SET_CODEC_CPU_LIMIT
-    //: message
-    UtlBoolean handleGetCodecCPUCost(OsMsg& eventMessage);
-    //: Handles the processing of a CallManager::CP_GET_CODEC_CPU_COST
-    //: message
-
     UtlBoolean handleDialString(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_DIAL_STRING message
-    UtlBoolean handleDequeueCall(OsMsg* pEventMessage);
-    //: Handles the processing of a CallManager::CP_DEQUEUED_CALL message
     UtlBoolean handleTransfer(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_BLIND_TRANSFER and
     //: CallManager::CP_CONSULT_TRANSFER messages
@@ -276,18 +264,6 @@ protected:
     UtlBoolean handleGetSession(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_GET_SESSION
     //: message
-    UtlBoolean handleGetCallState(OsMsg* pEventMessage);
-    //: Handles the processing of a CallManager::CP_GET_CALLSTATE
-    //: message
-    UtlBoolean handleGetConnectionState(OsMsg* pEventMessage);
-    //: Handles the processing of a CallManager::CP_GET_CONNECTIONSTATE
-    //: message
-    UtlBoolean handleGetNextCseq(OsMsg* pEventMessage);
-    //: Handles the processing of a CallManager::CP_GET_NEXT_CSEQ
-    //: message
-    UtlBoolean handleGetTerminalConnectionState(OsMsg* pEventMessage);
-    //: Handles the processing of a
-    //: CallManager::CP_GET_TERMINALCONNECTIONSTATE message
     UtlBoolean handleIsLocalTerminalConnection(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_IS_LOCAL_TERM_CONNECTION
     //: message
@@ -309,9 +285,6 @@ protected:
     UtlBoolean handleHoldLocalTermConnection(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_HOLD_LOCAL_TERM_CONNECTION
     //: message
-    UtlBoolean handleGetLocalContacts(OsMsg* pEventMessage);
-    //: Handles the procesing of a CP_GET_LOCAL_CONTACTS message
-
     UtlBoolean handleSendInfo(OsMsg* pEventMessage);
     //: Handles the processing of a CP_INFO message, and sends an INFO message
     
@@ -326,9 +299,6 @@ protected:
 
     UtlBoolean handleGetCallMediaEnergyLevels(OsMsg* pEventMessage);
     //: Handles the processing of a CP_GET_CALL_MEDIA_ENERGY_LEVELS message
-
-    UtlBoolean handleGetMediaRtpSourceIDs(OsMsg* pEventMessage);
-    //: Handles the processing of a CP_GET_MEDIA_RTP_SOURCE_IDS message
 
     UtlBoolean handleGetCanAddParty(OsMsg* pEventMessage);
     //: Handles the processing of a CP_GET_CAN_ADD_PARTY message
@@ -376,7 +346,6 @@ protected:
     void dropIfDead();
     void dropDeadConnections();
 
-    void handleGetTermConnections(OsMsg* pEventMessage);
     void handleSetOutboundLine(OsMsg* pEventMessage);
 
     void getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
