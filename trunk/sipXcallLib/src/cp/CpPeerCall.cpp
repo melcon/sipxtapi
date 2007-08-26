@@ -313,22 +313,6 @@ UtlBoolean CpPeerCall::handleDialString(OsMsg* pEventMessage)
     return TRUE ;
 }
 
-// Handles the processing of a CallManager::CP_DEQUEUED_CALL message
-UtlBoolean CpPeerCall::handleDequeueCall(OsMsg* pEventMessage)
-{
-    Connection* connection = findQueuedConnection();
-    if(connection)
-    {
-#ifdef TEST_PRINT
-        osPrintf("%s-About to dequeue connection: %X\n", mName.data(), connection);
-#endif
-        connection->dequeue(mCallInFocus);
-    }
-
-    return TRUE ;
-}
-
-
 // Handles the processing of a CallManager::CP_BLIND_TRANSFER and
 // CallManager::CP_CONSULT_TRANSFER messages
 UtlBoolean CpPeerCall::handleTransfer(OsMsg* pEventMessage)
@@ -1241,74 +1225,6 @@ UtlBoolean CpPeerCall::handleSilentRemoteHold(OsMsg* pEventMessage)
     return TRUE ;
 }
 
-
-// Handles the processing of a CallManager::CP_SET_CODEC_CPU_LIMIT message
-UtlBoolean CpPeerCall::handleSetCodecCPULimit(OsMsg& eventMessage)
-{
-    UtlBoolean bRC = FALSE ;
-
-    int iLevel = ((CpMultiStringMessage&)eventMessage).getInt1Data();
-    if (mpMediaInterface)
-    {
-        mpMediaInterface->setCodecCPULimit(iLevel) ;
-        bRC = TRUE ;
-    }
-
-    return bRC ;
-}
-
-
-// Handles the processing of a CallManager::CP_GET_CODEC_CPU_COST message
-UtlBoolean CpPeerCall::handleGetCodecCPUCost(OsMsg& eventMessage)
-{
-    UtlBoolean bRC = FALSE ;
-    int iCost = -1 ; 
-
-    if (mpMediaInterface)
-    {
-        iCost = mpMediaInterface->getCodecCPUCost();
-        bRC = TRUE ;
-    }
-
-    OsProtectedEvent* getNumEvent = (OsProtectedEvent*) ((CpMultiStringMessage&)eventMessage).getInt1Data();
-
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getNumEvent->signal(iCost))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getNumEvent);
-    }
-
-    return bRC ;
-}
-
-
-// Handles the processing of a CallManager::CP_GET_CODEC_CPU_LIMIT message
-UtlBoolean CpPeerCall::handleGetCodecCPULimit(OsMsg& eventMessage)
-{
-    UtlBoolean bRC = FALSE  ;
-    int iCost = -1 ;
-
-    if (mpMediaInterface)
-    {
-        iCost = mpMediaInterface->getCodecCPULimit();
-        bRC = TRUE ;
-    }
-
-    OsProtectedEvent* getNumEvent = (OsProtectedEvent*) ((CpMultiStringMessage&)eventMessage).getInt1Data();
-
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getNumEvent->signal(iCost))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getNumEvent);
-    }
-
-    return bRC ;
-}
-
 // Handles the processing of a CallManager::CP_TRANSFER_CONNECTION_STATUS 
 // message
 UtlBoolean CpPeerCall::handleTransferConnectionStatus(OsMsg* pEventMessage)
@@ -1533,26 +1449,6 @@ UtlBoolean CpPeerCall::handleGetSession(OsMsg* pEventMessage)
     return TRUE ;
 }
 
-
-// Handles the processing of a CallManager::CP_GET_CALLSTATE 
-// message
-UtlBoolean CpPeerCall::handleGetCallState(OsMsg* pEventMessage)
-{
-    OsProtectedEvent* getStateEvent = (OsProtectedEvent*) 
-        ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-
-    // Signal the caller that we are done.
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getStateEvent->signal(mCallState))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getStateEvent);
-    }
-
-    return TRUE ;
-}
-
 // Handles the processing of a CallManager::CP_GET_USERAGENT 
 // message
 UtlBoolean CpPeerCall::handleGetUserAgent(OsMsg* pEventMessage)
@@ -1588,63 +1484,6 @@ UtlBoolean CpPeerCall::handleGetUserAgent(OsMsg* pEventMessage)
         // The other end must have timed out on the wait
         OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
         eventMgr->release(getAgentEvent);
-    }
-
-    return TRUE ;
-}
-
-
-// Handles the processing of a CallManager::CP_GET_CONNECTIONSTATE 
-// message
-UtlBoolean CpPeerCall::handleGetConnectionState(OsMsg* pEventMessage)
-{
-    UtlString remoteAddress;
-    ((CpMultiStringMessage*)pEventMessage)->getString2Data(remoteAddress);
-    OsProtectedEvent* getStateEvent = (OsProtectedEvent*) 
-        ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-
-    int state;
-    if (!getConnectionState(remoteAddress, state))
-        state = PtConnection::UNKNOWN;
-
-    // Signal the caller that we are done.
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getStateEvent->signal(state))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getStateEvent);
-    }
-
-    return TRUE ;
-}
-
-
-// Handles the processing of a CallManager::CP_GET_NEXT_CSEQ 
-// message
-UtlBoolean CpPeerCall::handleGetNextCseq(OsMsg* pEventMessage)
-{
-    UtlString remoteAddress;
-    ((CpMultiStringMessage*)pEventMessage)->getString2Data(remoteAddress);
-    OsProtectedEvent* getStateEvent = (OsProtectedEvent*) 
-        ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-    Connection* connection = findHandlingConnection(remoteAddress);
-
-    int nextCseq = -1;
-    if(connection)
-    {
-        // Bad bad assumption on the connection type
-        // This suppose to be a short term solution
-        nextCseq = ((SipConnection*)connection)->getNextCseq();
-    }
-
-    // Signal the caller that we are done.
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getStateEvent->signal(nextCseq))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getStateEvent);
     }
 
     return TRUE ;
@@ -1711,59 +1550,6 @@ void CpPeerCall::getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
         nActualContacts++ ;
     }
 }
-
-
-UtlBoolean CpPeerCall::handleGetLocalContacts(OsMsg* pEventMessage)
-{
-    OsProtectedEvent* pProtectedEvent = (OsProtectedEvent*) 
-        ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-
-    SIPX_CONTACT_ADDRESS* addresses = (SIPX_CONTACT_ADDRESS*) ((CpMultiStringMessage*)pEventMessage)->getInt2Data();
-    size_t nMaxAddresses = (size_t) ((CpMultiStringMessage*)pEventMessage)->getInt3Data();
-    size_t* nActualAddresses = (size_t*) ((CpMultiStringMessage*)pEventMessage)->getInt4Data();
-
-    getLocalContactAddresses(addresses, nMaxAddresses, *nActualAddresses) ;
-
-    // Signal the caller that we are done.
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == pProtectedEvent->signal(0))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(pProtectedEvent);
-    }
-
-    return TRUE ;
-}
-
-
-// Handles the processing of a 
-// CallManager::CP_GET_TERMINALCONNECTIONSTATE message    
-UtlBoolean CpPeerCall::handleGetTerminalConnectionState(OsMsg* pEventMessage)
-{
-    UtlString remoteAddress;
-    UtlString terminal;
-    ((CpMultiStringMessage*)pEventMessage)->getString2Data(remoteAddress);
-    ((CpMultiStringMessage*)pEventMessage)->getString3Data(terminal);
-    OsProtectedEvent* getStateEvent = (OsProtectedEvent*) 
-        ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-
-    int state;
-    if (!getTermConnectionState(remoteAddress, terminal, state))
-        state = PtTerminalConnection::UNKNOWN;
-
-    // Signal the caller that we are done.
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getStateEvent->signal(state))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getStateEvent);
-    }
-
-    return TRUE ;
-}
-
 
 // Handles the processing of a CallManager::CP_IS_LOCAL_TERM_CONNECTION 
 // message
@@ -2089,10 +1875,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
         handleSendInfo(&eventMessage);
         break;
 
-    case CallManager::CP_DEQUEUED_CALL:
-        handleDequeueCall(&eventMessage) ;
-        break;
-
     case CallManager::CP_ANSWER_CONNECTION:
     {
         CpMultiStringMessage* pMessage = (CpMultiStringMessage*)&eventMessage;
@@ -2127,7 +1909,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
         break ;
 
     case CallManager::CP_GET_NUM_CONNECTIONS:
-    case CallManager::CP_GET_NUM_TERM_CONNECTIONS:
         handleGetNumConnections(&eventMessage);
         break ;
         
@@ -2145,10 +1926,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
 
     case CallManager::CP_GET_CALL_MEDIA_ENERGY_LEVELS:
         handleGetCallMediaEnergyLevels(&eventMessage) ;
-        break ;
-
-    case CallManager::CP_GET_MEDIA_RTP_SOURCE_IDS:
-        handleGetMediaRtpSourceIDs(&eventMessage) ;
         break ;
 
     case CallManager::CP_GET_CAN_ADD_PARTY:
@@ -2174,26 +1951,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
 
     case CallManager::CP_GET_SESSION:
         handleGetSession(&eventMessage);
-        break ;
-
-    case CallManager::CP_GET_TERM_CONNECTIONS:
-        handleGetTermConnections(&eventMessage);
-        break;
-
-    case CallManager::CP_GET_CALLSTATE:
-        handleGetCallState(&eventMessage);
-        break ;
-
-    case CallManager::CP_GET_CONNECTIONSTATE:
-        handleGetConnectionState(&eventMessage);
-        break ;
-
-    case CallManager::CP_GET_NEXT_CSEQ:
-        handleGetNextCseq(&eventMessage);
-        break ;
-
-    case CallManager::CP_GET_TERMINALCONNECTIONSTATE:
-        handleGetTerminalConnectionState(&eventMessage);
         break ;
 
     case CallManager::CP_IS_LOCAL_TERM_CONNECTION:
@@ -2232,18 +1989,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
         handleRenegotiateCodecsAllConnections(&eventMessage);
         break ;
 
-    case CallManager::CP_SET_CODEC_CPU_LIMIT:
-        handleSetCodecCPULimit(eventMessage);
-        break ;
-
-    case CallManager::CP_GET_CODEC_CPU_COST:
-        handleGetCodecCPUCost(eventMessage);
-        break ;
-
-    case CallManager::CP_GET_CODEC_CPU_LIMIT:
-        handleGetCodecCPULimit(eventMessage);
-        break ;
-
     case CallManager::CP_CANCEL_TIMER:
         handleCancelTimer(&eventMessage);
         break ;
@@ -2271,10 +2016,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
     case CallManager::CP_SET_OUTBOUND_LINE:
         handleSetOutboundLine( &eventMessage );   
         break;
-
-    case CallManager::CP_GET_LOCAL_CONTACTS:
-        handleGetLocalContacts(&eventMessage) ;
-        break ;
 
     case CallManager::CP_GET_USERAGENT:
         handleGetUserAgent( &eventMessage );
@@ -2784,57 +2525,6 @@ UtlBoolean CpPeerCall::handleGetCallMediaEnergyLevels(OsMsg* pEventMessage)
     return true;
 }
 
-// Handles the processing of a CP_GET_MEDIA_RTP_SOURCE_IDS message
-UtlBoolean CpPeerCall::handleGetMediaRtpSourceIDs(OsMsg* pEventMessage)
-{
-    CpMultiStringMessage* pMultiMessage = (CpMultiStringMessage*) pEventMessage;
-    UtlString callId;
-    UtlString remoteAddress;
-    OsProtectedEvent* event ;
-    unsigned int* piSendingSSRC;
-    unsigned int* piReceivingSSRC;
-    UtlBoolean bSuccess = false ;
-    
-    pMultiMessage->getString1Data(callId);
-    pMultiMessage->getString2Data(remoteAddress);       
-    event = (OsProtectedEvent*) pMultiMessage->getInt1Data();
-    piSendingSSRC = (unsigned int*) pMultiMessage->getInt2Data();
-    piReceivingSSRC = (unsigned int*) pMultiMessage->getInt3Data();
-                    
-    Connection* connection = NULL;
-    OsReadLock lock(mConnectionMutex);
-    UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
-    {
-        UtlString connectionRemoteAddress;        
-        connection->getRemoteAddress(&connectionRemoteAddress);
-        if (connectionRemoteAddress == remoteAddress)
-        {
-            int connectionId = connection->getConnectionId() ;
-            CpMediaInterface* pInterface = connection->getMediaInterfacePtr() ;
-            if ((pInterface != NULL) && (connectionId >= 0))
-            {
-                if (pInterface->getAudioRtpSourceIDs(connectionId, *piSendingSSRC, *piReceivingSSRC) == OS_SUCCESS)
-                {
-                    bSuccess = true ;
-                }
-            }
-            break;
-        }
-    }
-        
-    // If the event has already been signalled, clean up
-    if(event && OS_ALREADY_SIGNALED == event->signal(bSuccess))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(event);
-    }
-
-    return true;
-}
-    
-
 UtlBoolean CpPeerCall::handleGetCanAddParty(OsMsg* pEventMessage)
 {
     UtlBoolean bCanAdd = FALSE ;
@@ -2962,77 +2652,6 @@ void CpPeerCall::handleSetOutboundLine(OsMsg* pEventMessage)
     outboundLine.toString(mLocalTerminalId);
     mLocalAddress = mLocalTerminalId;
 }  
-
-void CpPeerCall::handleGetTermConnections(OsMsg* pEventMessage)
-{
-    int numConnections = 0;
-    UtlSList* connectionList;
-    UtlString connectionAddress;
-    ((CpMultiStringMessage*)pEventMessage)->getString2Data(connectionAddress);
-    OsProtectedEvent* getConnEvent = (OsProtectedEvent*) ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-    getConnEvent->getIntData((int&)connectionList);
-
-    if (connectionAddress.compareTo(mLocalAddress) == 0)
-    {
-        // Add the local terminalConnection/terminalName
-        connectionList->append(new UtlString(mLocalTerminalId));
-        numConnections++;
-    }
-    else
-        // Get the remote terminalConnection(s)/terminalName(es)
-    { // scope for lock
-        OsReadLock lock(mConnectionMutex);
-        Connection* connection = NULL;
-        UtlString address;
-        int found = 0;
-        UtlDListIterator iterator(mConnections);
-        while ((connection = (Connection*) iterator()))
-        {
-            Url remoteUrl(connectionAddress);
-
-            if (connection->isSameRemoteAddress(remoteUrl))
-            {
-                connection->getRemoteAddress(&address);
-
-                address.insert(0, "foreign-terminal-");
-                found = 1; 
-#ifdef TEST_PRINT
-                osPrintf("%s-set terminal: %s\n", mName.data(), address.data());
-#endif
-
-                connectionList->append(new UtlString(address));
-                numConnections++;
-            }
-        }
-        if (!found)    // didn't find match, tags differ?
-        {            
-            connection = findHandlingConnection(connectionAddress);
-            if (connection)
-            {
-                connection->getRemoteAddress(&address);
-
-                address.insert(0, "foreign-terminal-");
-#ifdef TEST_PRINT
-                osPrintf("%s-CpPeerCall::getTerminalConnections MISSED in first pass found: %s\n", 
-                    mName.data(), address.data());
-#endif
-                connectionList->append(new UtlString(address));
-                numConnections++;
-            }
-        }
-    }
-    // Signal the caller that we are done.
-    ;
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getConnEvent->signal(numConnections))
-    {
-        // The other end must have timed out on the wait
-        connectionList->destroyAll();
-        delete connectionList;
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getConnEvent);
-    }
-}
 
 // Handles the processing of a CP_TRANSFER_OTHER_PARTY_HOLD message
 UtlBoolean CpPeerCall::handleTransferOtherPartyHold(OsMsg* pEventMessage) 

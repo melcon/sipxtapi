@@ -104,17 +104,10 @@ public:
         CP_SIP_MESSAGE = SipMessage::NET_SIP_MESSAGE,
         CP_CALL_EXITED,
         CP_DIAL_STRING,
-        CP_FOCUS_CALL,
-        CP_HOLD_CALL,
-        CP_OFF_HOLD_CALL,
-        CP_DEQUEUED_CALL,
-        CP_MGCP_MESSAGE,
-        CP_MGCP_CAPS_MESSAGE,
         CP_YIELD_FOCUS,  //10
         CP_GET_FOCUS,
         CP_CREATE_CALL,
         CP_CONNECT,
-        CP_SINGLE_CALL_TRANSFER,
         CP_BLIND_TRANSFER,
         CP_CONSULT_TRANSFER,
         CP_TRANSFER_CONNECTION,
@@ -132,12 +125,8 @@ public:
         CP_GET_CONNECTIONS, 
         CP_GET_CALLED_ADDRESSES, //30
         CP_GET_CALLING_ADDRESSES,
-        CP_START_TONE_TERM_CONNECTION,
-        CP_STOP_TONE_TERM_CONNECTION,
         CP_PLAY_AUDIO_TERM_CONNECTION,
         CP_STOP_AUDIO_TERM_CONNECTION,
-        CP_GET_NUM_TERM_CONNECTIONS,
-        CP_GET_TERM_CONNECTIONS,
         CP_IS_LOCAL_TERM_CONNECTION,
         CP_HOLD_TERM_CONNECTION, 
         CP_UNHOLD_TERM_CONNECTION, //40
@@ -145,15 +134,10 @@ public:
         CP_HOLD_LOCAL_TERM_CONNECTION,
         CP_OFFERING_EXPIRED,
         CP_RINGING_EXPIRED,
-        CP_GET_CALLSTATE,
-        CP_GET_CONNECTIONSTATE,
-        CP_GET_TERMINALCONNECTIONSTATE,
         CP_GET_SESSION,
         CP_HOLD_ALL_TERM_CONNECTIONS,  
         CP_UNHOLD_ALL_TERM_CONNECTIONS,//50
         CP_CANCEL_TIMER,
-        CP_GET_NEXT_CSEQ,
-        CP_EZRECORD,                   
         CP_PLAY_BUFFER_TERM_CONNECTION,
         CP_CREATE_PLAYER,
         CP_DESTROY_PLAYER, //60
@@ -163,13 +147,7 @@ public:
         CP_DESTROY_QUEUE_PLAYER,
         CP_RENEGOTIATE_CODECS_CONNECTION,
         CP_RENEGOTIATE_CODECS_ALL_CONNECTIONS,
-        CP_SET_CODEC_CPU_LIMIT,  
-        CP_GET_CODEC_CPU_COST,
-        CP_GET_CODEC_CPU_LIMIT,
-        CP_SET_INBOUND_CODEC_CPU_LIMIT,//70
-        CP_STOPRECORD,
         CP_SET_OUTBOUND_LINE,
-        CP_GET_LOCAL_CONTACTS,
         CP_OUTGOING_INFO,
         CP_GET_MEDIA_CONNECTION_ID,
         CP_ENABLE_STUN,
@@ -187,7 +165,6 @@ public:
         CP_TRANSFER_OTHER_PARTY_UNHOLD,
         CP_GET_MEDIA_ENERGY_LEVELS,
         CP_GET_CALL_MEDIA_ENERGY_LEVELS,
-        CP_GET_MEDIA_RTP_SOURCE_IDS,
         CP_RECORD_AUDIO_CONNECTION_START,
         CP_RECORD_AUDIO_CONNECTION_STOP,
         CP_REFIRE_MEDIA_EVENT,
@@ -321,46 +298,14 @@ public:
                              SIPX_TRANSPORT_DATA* pTransportData = NULL,
                              const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP) = 0;
 
-    //! Create a new call and associate it with an existing call.
-    /*! This is usually done to create the consultative call as a
-     * precursor to performing a transfer.
-     */
-    virtual PtStatus consult(const char* idleTargetCallId,
-                             const char* activeOriginalCallId,
-                             const char* originalCallControllerAddress,
-                             const char* originalCallControllerTerminalId,
-                             const char* consultAddressUrl,
-                             UtlString& targetCallControllerAddress,
-                             UtlString& targetCallConsultAddress) = 0;
-
     //! Blind transfer
     virtual PtStatus transfer_blind(const char* callId,
                               const char* transferToUrl,
                               UtlString* targetCallId,
                               UtlString* targetConnectionAddress = NULL) = 0;
 
-    //! Consultative transfer
-    /*! This transfer method is used to perform the transfer after
-     * completing a consultative call. The consultative call must
-     * be created using the \e consult() method
-     * The couple \a targetCallId & \a targetConnectionAddress define
-     * the transfer target connection in the resulting new transfer
-     * target call
-     */
-    virtual PtStatus transfer(const char* targetCallId,
-                              const char* originalCallId) = 0;
-
     //! Drop this call and disconnect all connections associated with it.
     virtual void drop(const char* callId) = 0;
-
-    //! Direct the media subsystem to begin playing a DTMF or progress tone.
-    virtual void toneStart(const char* callId,
-                           int toneId,
-                           UtlBoolean local,
-                           UtlBoolean remote) = 0;
-
-    //! Direct the media subsystem to stop playing a DTMF or progress tone.
-    virtual void toneStop(const char* callId) = 0;
 
     //! Direct the media subsystem to begin playing a DTMF or progress tone.
     virtual void toneChannelStart(const char* callId,
@@ -466,18 +411,6 @@ public:
                                MpStreamPlayer* pPlayer) = 0 ;
 
 
-    //!Sets the CPU codec limit for a call.
-    /*! Each connection within the call
-     * may only use codecs whose CPU requirements are less than or
-     * equal to the specified limit.
-     */
-    virtual OsStatus setCodecCPULimitCall(const char* callId,
-                                          int limit,
-                                          UtlBoolean bRenegotiate) = 0 ;
-
-    //! Set the call codec CPU limit for inbound connections in a call.
-    virtual OsStatus setInboundCodecCPULimit(int limit) = 0 ;
-
     //@{
 
     //! Accept the incoming connection
@@ -525,7 +458,9 @@ public:
     virtual void dropConnection(const char* callId,
                                 const char* address) = 0;
 
-    //! Query the number of connections in the specified call.
+    /**
+     *  Query the number of connections in the specified call.
+     */
     virtual void getNumConnections(const char* callId,
                                     int& numConnections) = 0;
 
@@ -622,22 +557,6 @@ public:
     //! connections in the specified call.
     virtual void renegotiateCodecsAllTerminalConnections(const char* callId) = 0 ;
 
-    //! Query the number of terminal connections in the specified call.
-        virtual void getNumTerminalConnections(const char* callId,
-                                           const char* address,
-                                           int& numTerminalConnections) = 0;
-
-    //! Get the list of terminal connection identifiers for the specified call.
-        virtual OsStatus getTerminalConnections(const char* callId,
-                                            const char* address,
-                                            int maxTerminalConnections,
-                                            int& numTerminalConnections,
-                                            UtlString terminalNames[]) = 0;
-
-    //! Query whether the specified terminal connection is a local or remote connection.
-    virtual UtlBoolean isTerminalConnectionLocal(const char* callId,
-                                                const char* address,
-                                                const char* terminalId) = 0;
     virtual void doGetFocus(CpCall* call) = 0;
 
     //! Get the SIP session information for the specified terminal connection.
@@ -663,12 +582,6 @@ public:
      */
         virtual void setOfferedTimeout(int millisec);
 
-        virtual UtlBoolean disconnectConnection(const char* callId,
-                                           const char* addressUrl) = 0;
-
-    //! Deprecated
-    virtual void setTransferType(int type) = 0;
-
     virtual void enableIce(UtlBoolean bEnable) ;
     virtual void getRemoteUserAgent(const char* callId, 
                                     const char* remoteAddress,
@@ -682,44 +595,6 @@ public:
 
 /* ============================ ACCESSORS ================================= */
 
-   /**
-    * Gets the number of lines made available by line manager.
-    */
-   virtual int getNumLines() = 0;
-
-  /**
-   * maxAddressesRequested is the number of addresses requested if available
-   * numAddressesAvailable is the actual number of addresses available.
-   * "addresses" is a pre-allocated array of size maxAddressesRequested
-   */
-   virtual OsStatus getOutboundAddresses(size_t maxAddressesRequested,
-                                         size_t& numAddressesAvailable, UtlString** addresses) = 0;
-
-    //! Get the state of the identified call.
-        virtual UtlBoolean getCallState(const char* callId,
-                                   int& state) = 0;
-
-    //! Get the connection state for the specified connection.
-    /*! Note: one should generally avoid polling of the state as
-     * many race conditions occur.  The best way to get the state
-     * is to create a listener that recieves state change notification
-     * events.
-     */
-        virtual UtlBoolean getConnectionState(const char* callId,
-                                                                                const char* remoteAddress,
-                                                                                int& state) = 0;
-
-    //! Get the terminal connection state for the specified terminal connection.
-    /*! Note: one should generally avoid polling of the state as
-     * many race conditions occur.  The best way to get the state
-     * is to create a listener that recieves state change notification
-     * events.
-     */
-        virtual UtlBoolean getTermConnectionState(const char* callId,
-                                                                                        const char* address,
-                                                                                        const char* terminal,
-                                                                                        int& state) = 0;
-
     /** @name Diagnostic methods for internal use
      */
     //@{
@@ -727,40 +602,12 @@ public:
 
     virtual void stopCallStateLog() = 0;
 
-    virtual void clearCallStateLog() = 0;
-
-    virtual void getCallStateLog(UtlString& logData) = 0;
-    //@}
-
     virtual PtStatus validateAddress(UtlString& address) = 0;
 
     //! Deprecated, use getSession
         virtual OsStatus getFromField(const char* callId,
                                   const char* remoteAddress,
                                   UtlString& fromField) = 0;
-
-    //! Deprecated, use getSession
-        virtual OsStatus getToField(const char* callId,
-                                const char* remoteAddress,
-                                UtlString& toField) = 0;
-
-    //! Gets the CPU cost for an individual connection within the specified
-    //! call.
-    /*! This cost represents the current CPU cost for codec processing
-     * for the connection. However, the actual CPU usage may be less depending
-     * on whether the connection is on hold, the other party is silent, etc.
-     */
-    virtual OsStatus getCodecCPUCostCall(const char* callId,
-                                         int& cost) = 0;
-
-    //! Gets the CPU cost for an individual connection within the specified
-    //! call.
-    /*! This cost represents the maximum expected CPU cost for codec processing
-     * for the connection. However, the actual CPU usage may be less depending
-     * on whether the connection is on hold, the other party is silent, etc.
-     */
-    virtual OsStatus getCodecCPULimitCall(const char* callId,
-                                          int& cost) = 0;
 
     virtual UtlBoolean isIceEnabled() const ;
 
@@ -787,12 +634,6 @@ public:
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-
-    /*! Note: you better put a lock with the mCallListMutex around what ever
-     * you do with call as this method only locks to retrieve.  There is
-     * nothing that prevents the call from being deleted out from under you.
-     */
-    virtual CpCall* findCall(const char* callId);
 
     int aquireCallIndex();
     void releaseCallIndex(int callIndex);
@@ -829,7 +670,6 @@ protected:
         UtlBoolean mCallStateLogEnabled;
         // If true, the call state log is written to the log file
         // automatically whenever it gets too large.
-        UtlBoolean mCallStateLogAutoWrite;
     UtlString mCallStateLog;
 
 

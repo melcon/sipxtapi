@@ -220,31 +220,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
 
         switch(msgSubType)
         {
-            // If these cases need to be overrided,  they should
-            // be broken out into virutal methods
-        case CallManager::CP_START_TONE_TERM_CONNECTION:
-            addHistoryEvent(msgSubType, multiStringMessage);
-            {
-                int toneId = ((CpMultiStringMessage&)eventMessage).getInt1Data();
-                UtlBoolean local = ((CpMultiStringMessage&)eventMessage).getInt2Data();
-                UtlBoolean remote = ((CpMultiStringMessage&)eventMessage).getInt3Data();
-
-                if(mpMediaInterface)
-                {
-                    mpMediaInterface->startTone(toneId,
-                    local, remote);
-                }
-            }
-            break;
-
-        case CallManager::CP_STOP_TONE_TERM_CONNECTION:
-            addHistoryEvent(msgSubType, multiStringMessage);
-            if(mpMediaInterface)
-            {
-                mpMediaInterface->stopTone();
-            }
-            break;
-
         case CallManager::CP_PLAY_AUDIO_TERM_CONNECTION:
             addHistoryEvent(msgSubType, multiStringMessage);
             {
@@ -467,37 +442,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
             }
             break;
 
-        case CallManager::CP_EZRECORD:
-            addHistoryEvent(msgSubType, multiStringMessage);
-            {
-                UtlString fileName;
-                ((CpMultiStringMessage&)eventMessage).getString2Data(fileName);
-                OsProtectedEvent* ev = (OsProtectedEvent*) ((CpMultiStringMessage&)eventMessage).getInt1Data();
-                int ms = ((CpMultiStringMessage&)eventMessage).getInt2Data();
-                int silenceLength = ((CpMultiStringMessage&)eventMessage).getInt3Data();
-                int dtmfterm = ((CpMultiStringMessage&)eventMessage).getInt4Data();
-
-                double duration;
-                if (mpMediaInterface)
-                {
-                    mpMediaInterface->ezRecord(ms, silenceLength, fileName.data(), duration, dtmfterm, ev);
-                }
-
-            }
-            break;
-
-        case CallManager::CP_STOPRECORD:
-            {
-                stopRecord();
-
-                OsProtectedEvent* ev = (OsProtectedEvent*) ((CpMultiStringMessage&)eventMessage).getInt1Data();
-                if(OS_ALREADY_SIGNALED == ev->signal(0))
-                {
-                    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-                    eventMgr->release(ev);
-                }
-            }
-            break;
         default:
             processedMessage = handleCallMessage(eventMessage);
             break;
