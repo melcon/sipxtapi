@@ -185,7 +185,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
             contact.iPort = port;
             contact.eContactType = CONTACT_LOCAL;
             UtlString szAdapterName;
-            memset((void*)szAdapterName, 0, sizeof(szAdapterName)); // null out the string
+            memset((void*)szAdapterName.data(), 0, sizeof(szAdapterName)); // null out the string
             
 
             getContactAdapterName(szAdapterName, contact.cIpAddress);
