@@ -16,6 +16,16 @@
 // SYSTEM INCLUDES
 //#include <...>
 #ifdef HAVE_NSS
+
+// hack to define int32 for nss-3.9.1 as they have a bug
+#ifdef _WIN32
+#include <winsock2.h>
+   #ifndef int32
+   #include <os/msinttypes/stdint.h>
+   typedef int32_t int32;
+   #endif
+#endif
+
 #include <nspr.h>
 #include <nss.h>
 #include <secutil.h>
