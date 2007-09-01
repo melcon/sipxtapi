@@ -15,8 +15,6 @@
 #include <sipxunit/TestUtilities.h>
 
 #include <cp/CallManager.h>
-#include <ps/PsMsg.h>
-#include <ps/PsHookswTask.h>
 #include <net/SipUserAgent.h>
 #include <cp/CpTestSupport.h>
 #include <net/SipMessage.h>
