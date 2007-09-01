@@ -353,9 +353,9 @@ public:
      /// Sends a message to self, and waits for reply.
    void synchronize(const char* tag=NULL, int val=0);
 
-   virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue) = 0;
+   virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
 
-   virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, intptr_t msgData = 0) = 0;
+   virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, intptr_t msgData = 0);
 
 /* ============================ ACCESSORS ================================= */
 

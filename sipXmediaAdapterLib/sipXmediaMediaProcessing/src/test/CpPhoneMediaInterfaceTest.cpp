@@ -108,7 +108,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
     {
         CPPUNIT_ASSERT(mpMediaFactory);
         CpMediaInterface* mediaInterface = 
-            mpMediaFactory->createMediaInterface(NULL, "", 0, NULL, 
+            mpMediaFactory->createMediaInterface(NULL, NULL, "", 0, NULL, 
                                                  "", 0, "", 0, 0, "",
                                                  0, "", "", 0, false);
         UtlString miType = mediaInterface->getType();
@@ -189,7 +189,8 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
 
         CpMediaInterface* mediaInterface = 
-            mpMediaFactory->createMediaInterface(NULL, // public mapped RTP IP address
+            mpMediaFactory->createMediaInterface(NULL, // notification queue
+                                                 NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  numCodecs, 
                                                  codecArray, 
@@ -292,7 +293,8 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         //enableConsoleOutput(1);
 
         CpMediaInterface* mediaInterface = 
-            mpMediaFactory->createMediaInterface(NULL, // public mapped RTP IP address
+            mpMediaFactory->createMediaInterface(NULL,
+                                                 NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  numCodecs, 
                                                  codecArray, 
@@ -312,10 +314,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         int connectionId = -1;
         CPPUNIT_ASSERT(mediaInterface->createConnection(connectionId, NULL) == OS_SUCCESS);
         CPPUNIT_ASSERT(connectionId > 0);
-
-        // Create a Media notification dispatcher and give it to the media interface.
-        OsMsgDispatcher notfDispatcher;
-        mediaInterface->setMediaNotificationDispatcher(&notfDispatcher);
 
         mediaInterface->giveFocus() ;
 
@@ -346,13 +344,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
                                   100,
                                   &playAudNote);
 #endif
-        // Wait for a maximum of 5000 msecs to receive a stop playing message
-        OsStatus stat = waitForNotf(notfDispatcher,
-                                    MpResNotificationMsg::MPRNM_FROMFILE_STOP, 
-                                    5000);
-        CPPUNIT_ASSERT_MESSAGE("No FromFile Stop notification was sent while playing record prompt!",
-                               stat == OS_SUCCESS);
-
         //enableConsoleOutput(0);
 
         // Check via old OsNotification mechanism if the file finished playing.
@@ -383,14 +374,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         mediaInterface->recordMic(&audioBuffer);
 
-        // Wait for a maximum of the size of the buffer (10secs), plus an additional
-        // 10 seconds to receive a recording stopped message
-        stat = waitForNotf(notfDispatcher,
-                           MpResNotificationMsg::MPRNM_BUFRECORDER_STOP, 
-                           nSecsToRecord*1000 + 10000);
-        CPPUNIT_ASSERT_MESSAGE("No BufferRecorder Stop notification was sent while recording!",
-                               stat == OS_SUCCESS);
-
 #endif
         OsTask::delay(100) ;
         mediaInterface->startTone(0, true, false) ;
@@ -411,12 +394,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         printf("Play playback_prompt.wav\n");
         mediaInterface->playAudio("playback_prompt.wav", false, true, false) ;
 #endif
-        stat = waitForNotf(notfDispatcher,
-                           MpResNotificationMsg::MPRNM_FROMFILE_STOP,
-                           3500);
-        CPPUNIT_ASSERT_MESSAGE("No FromFile Stop notification was sent while playing playback prompt!",
-                               stat == OS_SUCCESS);
-
 
 #ifdef DISABLE_RECORDING
         printf("record disabled so no play back of recorded message\n");
@@ -429,11 +406,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
                                    true,   // local
                                    false); // remote
 
-        stat = waitForNotf(notfDispatcher,
-                           MpResNotificationMsg::MPRNM_FROMFILE_STOP,
-                           15000);
-        CPPUNIT_ASSERT_MESSAGE("No FromFile Stop notification was sent while playing record buffer!",
-                               stat == OS_SUCCESS);
 #endif
 
         mediaInterface->startTone(0, true, false) ;
@@ -490,7 +462,8 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
 
         CpMediaInterface* mediaInterface = 
-            mpMediaFactory->createMediaInterface(NULL, // public mapped RTP IP address
+            mpMediaFactory->createMediaInterface(NULL,
+                                                 NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  numCodecs, 
                                                  codecArray, 
@@ -602,7 +575,8 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         // Create a flowgraph (sink) to receive and mix 2 sources
         CpMediaInterface* mixedInterface = 
-            mpMediaFactory->createMediaInterface(NULL, // public mapped RTP IP address
+            mpMediaFactory->createMediaInterface(NULL,
+                                                 NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  numCodecs, 
                                                  codecArray, 
@@ -714,7 +688,8 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         // Second flowgraph to be one of two sources
         CpMediaInterface* source1Interface = 
-            mpMediaFactory->createMediaInterface(NULL, // public mapped RTP IP address
+            mpMediaFactory->createMediaInterface(NULL,
+                                                 NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  numCodecs, 
                                                  codecArray, 
@@ -763,7 +738,8 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         // Second flowgraph to be one of two sources
         CpMediaInterface* source2Interface = 
-            mpMediaFactory->createMediaInterface(NULL, // public mapped RTP IP address
+            mpMediaFactory->createMediaInterface(NULL,
+                                                 NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  numCodecs, 
                                                  codecArray, 

@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\sipXmediaAdapterLib\interface;include;src\test;..\sipXportLib\include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXportLib\src\test;..\CPPUnit\include"
+				AdditionalIncludeDirectories="..\sipXmediaAdapterLib\interface\include;include;src\test;..\sipXportLib\include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXportLib\src\test;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

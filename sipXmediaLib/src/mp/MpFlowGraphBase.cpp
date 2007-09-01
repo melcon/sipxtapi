@@ -631,6 +631,18 @@ void MpFlowGraphBase::synchronize(const char* tag, int val1)
    }
 }
 
+void MpFlowGraphBase::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
+{
+   // not implemented here
+   assert(FALSE);
+}
+
+void MpFlowGraphBase::sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, intptr_t msgData /*= 0*/)
+{
+   // not implemented here
+   assert(FALSE);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 // (static) Displays information on the console about the specified flow
