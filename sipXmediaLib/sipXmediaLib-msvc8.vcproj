@@ -1586,6 +1586,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpJitterBufferBase.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpMediaTask.cpp"
 					>
 				</File>
@@ -2152,6 +2156,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpJitterBuffer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpJitterBufferBase.h"
 					>
 				</File>
 				<File
