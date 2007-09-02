@@ -12,8 +12,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef _MpJitterBuffer_h_
-#define _MpJitterBuffer_h_
+#ifndef _MpDecodeBuffer_h_
+#define _MpDecodeBuffer_h_
 
 // SYSTEM INCLUDES
 
@@ -35,7 +35,7 @@ static const int JbQueueSize = (9 * (2 * 80)); // 9 packets, 20 mS each
 class MpDecoderBase;
 
 /// Class for managing dejitter/decode of incoming RTP.
-class MpJitterBuffer
+class MpDecodeBuffer
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -45,11 +45,11 @@ public:
 //@{
 
      /// Constructor
-   MpJitterBuffer();
+   MpDecodeBuffer();
 
      /// Destructor
    virtual
-   ~MpJitterBuffer();
+   ~MpDecodeBuffer();
 
 //@}
 
@@ -107,10 +107,10 @@ public:
 private:
 
      /// Copy constructor
-   MpJitterBuffer(const MpJitterBuffer& rMpJitterBuffer);
+   MpDecodeBuffer(const MpDecodeBuffer& rMpJitterBuffer);
 
      /// Assignment operator
-   MpJitterBuffer& operator=(const MpJitterBuffer& rhs);
+   MpDecodeBuffer& operator=(const MpDecodeBuffer& rhs);
 
    int JbQCount;
    int JbQIn;
@@ -122,4 +122,4 @@ private:
 
 /* ============================ INLINE METHODS ============================ */
 
-#endif  // _MpJitterBuffer_h_
+#endif  // _MpDecodeBuffer_h_

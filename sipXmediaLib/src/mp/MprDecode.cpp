@@ -43,7 +43,7 @@
 #include "mp/dmaTask.h"
 #include "mp/MpMediaTask.h"
 #include "mp/MpCodecFactory.h"
-#include "mp/MpJitterBuffer.h"
+#include "mp/MpDecodeBuffer.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -157,10 +157,10 @@ void MprDecode::onNotify(UtlObservable* subject, int code, intptr_t userData)
 
 /* ============================ ACCESSORS ================================= */
 
-MpJitterBuffer* MprDecode::getJBinst(UtlBoolean optional)
+MpDecodeBuffer* MprDecode::getJBinst(UtlBoolean optional)
 {
    if ((NULL == mpJB) && (!optional)) {
-      mpJB = new MpJitterBuffer();
+      mpJB = new MpDecodeBuffer();
       assert(NULL != mpJB);
    }
    return mpJB;
@@ -266,7 +266,7 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
             // in order to process properly (?)
             // THIS JitterBuffer is NOT the same as MprDejitter!
             // This is more of a Decode Buffer.
-            MpJitterBuffer* pJBState = getJBinst();
+            MpDecodeBuffer* pJBState = getJBinst();
 
             int res = pJBState->pushPacket(rtp);
             if (res != 0) {
@@ -307,7 +307,7 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
    out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
 
    // Decode one packet from Jitter Buffer
-   MpJitterBuffer* pJBState = getJBinst();
+   MpDecodeBuffer* pJBState = getJBinst();
    int decodedAPacket = FALSE;
    if (pJBState) {
       // This should be a JB_something or other.  However the only
@@ -446,7 +446,7 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
       }
    }
 
-   MpJitterBuffer* pJBState = getJBinst();   
+   MpDecodeBuffer* pJBState = getJBinst();   
    pJBState->setCodecList(mpCurrentCodecs,numCodecs);
 
    // Delete the list pCodecs.

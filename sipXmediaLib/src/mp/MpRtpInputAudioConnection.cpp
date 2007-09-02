@@ -15,20 +15,18 @@
 #include <assert.h>
 
 // APPLICATION INCLUDES
-#include <mp/MpMediaTask.h>
+#include <os/OsLock.h>
+#include "os/OsIntPtrMsg.h"
+#include <os/OsSysLog.h>
 #include <mp/MpRtpInputAudioConnection.h>
 #include <mp/MpFlowGraphBase.h>
-#include <mp/MprFromNet.h>
 #include <mp/MprDejitter.h>
-#include <mp/MpJitterBuffer.h>
 #include <mp/MprDecode.h>
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
 #include "mp/MprDecodeInbandDtmf.h"
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
-#include <os/OsLock.h>
-#include "os/OsIntPtrMsg.h"
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
 #endif
