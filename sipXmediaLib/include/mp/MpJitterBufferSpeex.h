@@ -4,40 +4,31 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef MpJitterBufferBase_h__
-#define MpJitterBufferBase_h__
+#ifndef MpJitterBufferSpeex_h__
+#define MpJitterBufferSpeex_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <utl/UtlString.h>
-#include <os/OsIntTypes.h>
+#include <os/OsMutex.h>
+#include <mp/MpJitterBufferBase.h>
+#include <mp/MpRtpBuf.h>
+#include <speex/speex_jitter.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
-class MpRtpBufPtr;
-
 // STRUCTS
 // TYPEDEFS
-
-typedef enum JitterBufferResult
-{
-   MP_JITTER_BUFFER_OK = 0,
-   MP_JITTER_BUFFER_MISSING,
-   MP_JITTER_BUFFER_INCOMPLETE,
-   MP_JITTER_BUFFER_ERROR
-} JitterBufferResult;
-
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
 /**
- * Common class for all jitter buffers.
+ * Wrapper for speex generic jitter buffer.
  */
-class MpJitterBufferBase
+class MpJitterBufferSpeex : public MpJitterBufferBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -47,7 +38,7 @@ public:
 //@{
 
    /**
-    * Jitter buffer constructor
+    * Speex jitter buffer constructor
     *
     * @param name Name of codec this jitter buffer is used for i.e "GSM".
     *        Mainly for debugging.
@@ -57,11 +48,14 @@ public:
     *        not internal frame size in sipxmedialib. Will be probably
     *        80, 160, 240...
     */
-   MpJitterBufferBase(const UtlString& name,
-                      uint8_t payloadType,
-                      unsigned int frameSize);
+   MpJitterBufferSpeex(const UtlString& name,
+                       uint8_t payloadType,
+                       unsigned int frameSize);
 
-   virtual ~MpJitterBufferBase();
+   /**
+    * Speex jitter buffer destructor. Will free internal resources.
+    */
+   virtual ~MpJitterBufferSpeex();
 
 //@}
 
@@ -70,38 +64,35 @@ public:
 //@{
 
    /**
-    * Resets jitter buffer.
+    * Resets speex jitter buffer.
     */
-   virtual void reset() = 0;
+   virtual void reset();
 
    /**
-    * Notifies jitter buffer of frame incrementation. Should be
+    * Notifies speex jitter buffer of frame incrementation. Should be
     * done every time we pull a packet.
     */
-   virtual void frameIncrement() = 0;
+   virtual void frameIncrement();
 
    /**
     * Pulls one frame from jitter buffer and stores it into supplied MpRtpBufPtr.
     *
     * @param pOutRtp MpRtpBufPtr supplied by caller where we store the frame. Only
-    *        payload, payload size, payload type and timestamp can be relied upon.
+    *        payload, payload size, payload type and timestamp are initialized.
     */
-   virtual JitterBufferResult pull(MpRtpBufPtr &pOutRtp) = 0;
+   virtual JitterBufferResult pull(MpRtpBufPtr &pOutRtp);
 
    /**
     * Pushes an RTP frame into jitter buffer. Jitter buffer will throw out
     * a frame with incorrect payload type.
     */
-   virtual void push(const MpRtpBufPtr &pRtp) = 0;
+   virtual void push(const MpRtpBufPtr &pRtp);
 
 //@}
 
 /* ============================ ACCESSORS ================================= */
 ///@name Accessors
 //@{
-
-   uint8_t getPayloadType();
-
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -112,13 +103,15 @@ public:
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   UtlString m_name;
-   uint8_t m_payloadType;
-   unsigned int m_frameSize;
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   JitterBuffer* m_pJitterBuffer; ///< pointer to speex jitter buffer
+   RtpSRC m_lastSSRC;   ///< last SSRC, if it changes we need to reset jitter buffer
+   bool m_bFirstFrame;  ///< whether we have yet to receive the 1st frame
+
+   OsMutex m_speexLock;   ///< lock for push/pull, as speex is not thread safe
 };
 
-#endif // MpJitterBufferBase_h__
+#endif // MpJitterBufferSpeex_h__
