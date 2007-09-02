@@ -1498,6 +1498,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpDecodeBuffer.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpDecoderBase.cpp"
 					>
 				</File>
@@ -1579,10 +1583,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpInputDeviceManager.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpJitterBuffer.cpp"
 					>
 				</File>
 				<File
@@ -2059,6 +2059,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpDecodeBuffer.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpDecoderBase.h"
 					>
 				</File>
@@ -2152,10 +2156,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpInputDeviceManager.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpJitterBuffer.h"
 					>
 				</File>
 				<File

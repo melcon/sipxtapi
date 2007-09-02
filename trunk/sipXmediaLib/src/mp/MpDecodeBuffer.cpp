@@ -15,7 +15,7 @@
 #include "assert.h"
 #include "string.h"
 
-#include "mp/MpJitterBuffer.h"
+#include "mp/MpDecodeBuffer.h"
 #include "mp/MpDecoderBase.h"
 #include "mp/MpMisc.h"
 
@@ -23,7 +23,7 @@ static int debugCount = 0;
 
 /* ============================ CREATORS ================================== */
 
-MpJitterBuffer::MpJitterBuffer()
+MpDecodeBuffer::MpDecodeBuffer()
 {
    for (int i=0; i<JbPayloadMapSize; i++)
       payloadMap[i] = NULL;
@@ -36,13 +36,13 @@ MpJitterBuffer::MpJitterBuffer()
 }
 
 // Destructor
-MpJitterBuffer::~MpJitterBuffer()
+MpDecodeBuffer::~MpDecodeBuffer()
 {
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-int MpJitterBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
+int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
 {
    int bufferSize;          // number of samples could be written to decoded buffer
    unsigned decodedSamples; // number of samples, returned from decoder
@@ -85,7 +85,7 @@ int MpJitterBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
    return 0;
 }
 
-int MpJitterBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
+int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
 {
    // Check does we have available decoded data
    if (JbQCount != 0) {
@@ -104,7 +104,7 @@ int MpJitterBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
 }
 
 
-int MpJitterBuffer::setCodecList(MpDecoderBase** codecList, int codecCount)
+int MpDecodeBuffer::setCodecList(MpDecoderBase** codecList, int codecCount)
 {
 	// For every payload type, load in a codec pointer, or a NULL if it isn't there
 	for(int i=0; i<codecCount; i++)
