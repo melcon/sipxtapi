@@ -33,6 +33,7 @@ static const int JbQueueSize = (9 * (2 * 80)); // 9 packets, 20 mS each
 // TYPEDEFS
 // FORWARD DECLARATIONS
 class MpDecoderBase;
+class MprDejitter;
 
 /// Class for managing dejitter/decode of incoming RTP.
 class MpDecodeBuffer
@@ -45,7 +46,7 @@ public:
 //@{
 
      /// Constructor
-   MpDecodeBuffer();
+   MpDecodeBuffer(MprDejitter* pDejitter);
 
      /// Destructor
    virtual
@@ -118,6 +119,8 @@ private:
    MpAudioSample JbQ[JbQueueSize];
 
    MpDecoderBase* payloadMap[JbPayloadMapSize];
+   MpDecoderBase* m_pDecoderList[JbPayloadMapSize];
+   MprDejitter* m_pMyDejitter;
 };
 
 /* ============================ INLINE METHODS ============================ */

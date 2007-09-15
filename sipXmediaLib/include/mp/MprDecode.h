@@ -121,7 +121,7 @@ private:
 //   MpRtpBufPtr  mSavedRtp[MAX_PAYLOAD_TYPES];
    MpDecodeBuffer* mpJB;            ///< Pointer to JitterBuffer instance
 
-   MprDejitter* mpMyDJ;
+   MprDejitter* m_pMyDejitter;
 
    /// List of the codecs to be used to decode media.
    /**
