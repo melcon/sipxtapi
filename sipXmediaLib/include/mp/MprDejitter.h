@@ -37,16 +37,9 @@ class MprDejitter
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-   enum {
-      MAX_RTP_PACKETS = 64,  ///< MUST BE A POWER OF 2, AND SHOULD BE >3
-        // 20 Apr 2001 (HZM): Increased from 16 to 64 for debugging purposes.
-        // 15 Dec 2004: This isn't the actual amount of buffer used, just the size of the container
-
-      MAX_CODECS = 10, ///< Maximum number of codecs in incoming RTP streams.
-
+   enum
+   {
       MAX_PAYLOADS = 256,
-
-      GET_ALL = 1    ///< get all packets, ignoring timestamps.  For NetEQ
    };
 
 /* ============================ CREATORS ================================== */
@@ -79,7 +72,7 @@ public:
      */
 
      /// Get next RTP packet, or NULL if none is available.
-   MpRtpBufPtr pullPacket(int payloadType);
+   MpRtpBufPtr pullPacket(int rtpPayloadType);
      /**<
      *  @note Significant change is that the downstream puller may NOT pull all
      *        the available packets at once. Instead it is paced according to
@@ -101,15 +94,6 @@ public:
      *  used.
      */
 
-     /// Get next RTP packet with given timestamp, or NULL if none is available.
-   MpRtpBufPtr pullPacket(int payloadType, RtpTimestamp timestamp, bool lockTimestamp=true);
-     /**<
-     *  This version of pullPacket() works exactly the same as above version
-     *  of pullPacket() with one exception: if (lockTimestamp == true) it checks 
-     *  every found packet's timestamp. And return NULL if there are no packets
-     *  with timestamp less or equal then passed timestamp.
-     */
-
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -117,7 +101,7 @@ public:
 //@{
 
      // Return number of packets in buffer for given payload type.
-   int getBufferLength(int payload);
+   int getBufferLength(int rtpPayloadType);
 
 //@}
 
@@ -134,36 +118,9 @@ protected:
 private:
 
                   /// Mutual exclusion lock for internal data
-   OsBSem        mRtpLock;
+   OsBSem        m_rtpLock;
 
-   MpJitterBufferBase* m_JitterBufferArray[MAX_PAYLOADS];
-
-                  /// Buffer for incoming RTP packets
-   MpRtpBufPtr   mpPackets[MAX_CODECS][MAX_RTP_PACKETS];
-
-                  /// Mapping of payload type to internal codec index
-   int           mBufferLookup[256];
-
-                  /// Number of packets in buffer
-   int           mNumPackets[MAX_CODECS];
-
-                  /// Number of packets overwritten with newly came packets.
-   int           mNumDiscarded[MAX_CODECS];
-                  /**<
-                  *  If this value is not zero, then jitter buffer length
-                  *  is not enough, or there are clock skew.
-                  *   
-                  *  Used for only debug purposes for now.
-                  */
-
-                  /// Index of the last inserted packet.
-   int           mLastPushed[MAX_CODECS];
-                  /**<
-                  *  As packets are added, we change this value to indicate
-                  *  where the buffer is wrapping.
-                  */
-
-   /* end of Dejitter handling variables */
+   MpJitterBufferBase* m_jitterBufferArray[MAX_PAYLOADS];
 
      /// Copy constructor (not implemented for this class)
    MprDejitter(const MprDejitter& rMprDejitter);

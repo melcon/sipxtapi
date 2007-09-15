@@ -99,6 +99,8 @@ public:
 ///@name Inquiry
 //@{
 
+   virtual int getBufferLength();
+
 //@}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -110,6 +112,8 @@ private:
    JitterBuffer* m_pJitterBuffer; ///< pointer to speex jitter buffer
    RtpSRC m_lastSSRC;   ///< last SSRC, if it changes we need to reset jitter buffer
    bool m_bFirstFrame;  ///< whether we have yet to receive the 1st frame
+
+   int m_bufferLength;  ///< length of speex jitter buffer, this is very inaccurate!!
 
    OsMutex m_speexLock;   ///< lock for push/pull, as speex is not thread safe
 };

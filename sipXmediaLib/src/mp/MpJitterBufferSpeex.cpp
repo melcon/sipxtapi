@@ -72,9 +72,6 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
 
    if (m_pJitterBuffer)
    {
-      // assign fresh buffer to pOutRtp
-      pOutRtp = MpMisc.RtpPool->getBuffer();
-
       OsLock lock(m_speexLock); // lock speex jitter buffer
 
       // TODO: replace this with char* pool!
@@ -92,8 +89,15 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
 
       // set correct payload size
       pOutRtp->setPayloadSize(packet.len);
-      // Copy payload to RTP buffer.
-      memcpy(pOutRtp->getDataWritePtr(), packet.data, packet.len);
+
+      if (result == JITTER_BUFFER_OK)
+      {
+         // assign fresh buffer to pOutRtp
+         pOutRtp = MpMisc.RtpPool->getBuffer();
+
+         // Copy payload to RTP buffer.
+         memcpy(pOutRtp->getDataWritePtr(), packet.data, packet.len);
+      }
       // set some additional properties
       pOutRtp->setRtpPayloadType(m_payloadType);
       pOutRtp->setRtpTimestamp(packet.timestamp);
@@ -102,6 +106,10 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
    switch(result)
    {
    case JITTER_BUFFER_OK:
+      if (m_bufferLength > 0)
+      {
+         m_bufferLength--;
+      }      
       return MP_JITTER_BUFFER_OK;
    case JITTER_BUFFER_MISSING:
       return MP_JITTER_BUFFER_MISSING;
@@ -141,12 +149,18 @@ void MpJitterBufferSpeex::push(const MpRtpBufPtr &pRtp)
 
       // speex copies data content of const packet
       jitter_buffer_put(m_pJitterBuffer, &packet);
+      m_bufferLength++;
    }
 }
 
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
+
+int MpJitterBufferSpeex::getBufferLength()
+{
+   return m_bufferLength;
+}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 

@@ -1,5 +1,13 @@
-//
 // Copyright (C) 2007 Jaroslav Libak
+//  
+// Copyright (C) 2006-2007 SIPez LLC. 
+// Licensed to SIPfoundry under a Contributor Agreement. 
+//
+// Copyright (C) 2004-2007 SIPfoundry Inc.
+// Licensed by SIPfoundry under the LGPL license.
+//
+// Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
+// Licensed to SIPfoundry under a Contributor Agreement.
 //
 // $$
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,6 +39,11 @@ class MpJitterBufferDefault : public MpJitterBufferBase
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+
+   enum
+   {
+      MAX_RTP_PACKETS = 64,  ///< MUST BE A POWER OF 2, AND SHOULD BE >3
+   };
 
    /* ============================ CREATORS ================================== */
    ///@name Creators
@@ -80,6 +93,8 @@ public:
    ///@name Inquiry
    //@{
 
+      virtual int getBufferLength();
+
    //@}
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -90,6 +105,17 @@ private:
 
    RtpSRC m_lastSSRC;   ///< last SSRC, if it changes we need to reset jitter buffer
    bool m_bFirstFrame;  ///< whether we have yet to receive the 1st frame
+   int m_bufferLength;  ///< length of jitter buffer
+
+   /// Buffer for incoming RTP packets
+   MpRtpBufPtr m_pPackets[MAX_RTP_PACKETS];
+
+   /// Index of the last inserted packet.
+   int m_lastPushed;
+   /**<
+   *  As packets are added, we change this value to indicate
+   *  where the buffer is wrapping.
+   */
 
    OsMutex m_mutex;
 };
