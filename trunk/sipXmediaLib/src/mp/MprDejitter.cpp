@@ -29,6 +29,9 @@
 #include "mp/MprDejitter.h"
 #include "mp/MpMisc.h"
 #include "mp/MpDspUtils.h"
+#include <mp/MpJitterBufferBase.h>
+#include <mp/MpJitterBufferDefault.h>
+#include <sdp/SdpCodec.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -46,14 +49,43 @@ MprDejitter::MprDejitter()
    memset(mBufferLookup, -1, 256 * sizeof(int));
    memset(mNumPackets, 0, MAX_CODECS * sizeof(int));
    memset(mNumDiscarded, 0, MAX_CODECS * sizeof(int));
+   memset(m_JitterBufferArray, 0, sizeof(m_JitterBufferArray));
 }
 
 // Destructor
 MprDejitter::~MprDejitter()
 {
+   // free jitter buffers
+   for (int i = 0; (i < MAX_CODECS) && m_JitterBufferArray[i]; i++)
+   {
+      delete m_JitterBufferArray[i];
+      m_JitterBufferArray[i] = NULL;
+   }
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+OsStatus MprDejitter::initJitterBuffers(SdpCodec* codecs[], int numCodecs)
+{
+   OsLock lock(mRtpLock);
+
+   // free old jitter buffers
+   for (int i = 0; (i < MAX_CODECS) && m_JitterBufferArray[i]; i++)
+   {
+      delete m_JitterBufferArray[i];
+      m_JitterBufferArray[i] = NULL;
+   }
+
+   // now add new jitter buffers
+   for (int i = 0; (i < numCodecs) && (i < MAX_CODECS); i++)
+   {
+      UtlString encodingName;
+      codecs[i]->getEncodingName(encodingName);
+      m_JitterBufferArray[i] = new MpJitterBufferDefault(encodingName, codecs[i]->getCodecPayloadFormat(), 80);
+   }
+
+   return OS_SUCCESS;
+}
 
 // Add a buffer containing an incoming RTP packet to the dejitter pool.
 // This method places the packet to the pool depending the modulo division value.

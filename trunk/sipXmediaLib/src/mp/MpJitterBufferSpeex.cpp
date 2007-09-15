@@ -25,7 +25,7 @@
 /* ============================ CREATORS ================================== */
 
 MpJitterBufferSpeex::MpJitterBufferSpeex(const UtlString& name,
-                                         uint8_t payloadType,
+                                         int payloadType,
                                          unsigned int frameSize)
 : MpJitterBufferBase(name, payloadType, frameSize)
 , m_pJitterBuffer(NULL)

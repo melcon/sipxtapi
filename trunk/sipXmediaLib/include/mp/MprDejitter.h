@@ -28,6 +28,8 @@
 // STRUCTS
 // TYPEDEFS
 // FORWARD DECLARATIONS
+class SdpCodec;
+class MpJitterBufferBase;
 
 /// The "Dejitter" media processing resource
 class MprDejitter
@@ -61,6 +63,8 @@ public:
 /* ============================ MANIPULATORS ============================== */
 ///@name Manipulators
 //@{
+
+   OsStatus initJitterBuffers(SdpCodec* codecs[], int numCodecs);
 
      /// Add a buffer containing an incoming RTP packet to the dejitter pool
    OsStatus pushPacket(const MpRtpBufPtr &pRtp);
@@ -130,6 +134,8 @@ private:
                   /// Mutual exclusion lock for internal data
    OsBSem        mRtpLock;
 
+   MpJitterBufferBase* m_JitterBufferArray[MAX_CODECS];
+
                   /// Buffer for incoming RTP packets
    MpRtpBufPtr   mpPackets[MAX_CODECS][MAX_RTP_PACKETS];
 
@@ -162,7 +168,7 @@ private:
 
      /// Assignment operator (not implemented for this class)
    MprDejitter& operator=(const MprDejitter& rhs);
-
+ 
 };
 
 /* ============================ INLINE METHODS ============================ */

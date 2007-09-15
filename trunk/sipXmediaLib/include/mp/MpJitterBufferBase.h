@@ -58,7 +58,7 @@ public:
     *        80, 160, 240...
     */
    MpJitterBufferBase(const UtlString& name,
-                      uint8_t payloadType,
+                      int payloadType,
                       unsigned int frameSize);
 
    virtual ~MpJitterBufferBase();
@@ -100,7 +100,7 @@ public:
 ///@name Accessors
 //@{
 
-   uint8_t getPayloadType();
+   int getPayloadType();
 
 //@}
 
@@ -113,7 +113,7 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
    UtlString m_name;
-   uint8_t m_payloadType;
+   int m_payloadType;
    unsigned int m_frameSize;
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

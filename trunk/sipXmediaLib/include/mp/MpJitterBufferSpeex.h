@@ -49,7 +49,7 @@ public:
     *        80, 160, 240...
     */
    MpJitterBufferSpeex(const UtlString& name,
-                       uint8_t payloadType,
+                       int payloadType,
                        unsigned int frameSize);
 
    /**
