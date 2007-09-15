@@ -1590,6 +1590,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpJitterBufferDefault.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpJitterBufferSpeex.cpp"
 					>
 				</File>
@@ -2164,6 +2168,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpJitterBufferBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpJitterBufferDefault.h"
 					>
 				</File>
 				<File

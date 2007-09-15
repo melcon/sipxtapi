@@ -7,6 +7,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
+#include <mp/MpMisc.h>
 #include <mp/MpJitterBufferSpeex.h>
 #include <mp/MpRtpBuf.h>
 
@@ -71,6 +72,9 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
 
    if (m_pJitterBuffer)
    {
+      // assign fresh buffer to pOutRtp
+      pOutRtp = MpMisc.RtpPool->getBuffer();
+
       OsLock lock(m_speexLock); // lock speex jitter buffer
 
       // TODO: replace this with char* pool!
