@@ -44,6 +44,8 @@ public:
 
       MAX_CODECS = 10, ///< Maximum number of codecs in incoming RTP streams.
 
+      MAX_PAYLOADS = 256,
+
       GET_ALL = 1    ///< get all packets, ignoring timestamps.  For NetEQ
    };
 
@@ -134,7 +136,7 @@ private:
                   /// Mutual exclusion lock for internal data
    OsBSem        mRtpLock;
 
-   MpJitterBufferBase* m_JitterBufferArray[MAX_CODECS];
+   MpJitterBufferBase* m_JitterBufferArray[MAX_PAYLOADS];
 
                   /// Buffer for incoming RTP packets
    MpRtpBufPtr   mpPackets[MAX_CODECS][MAX_RTP_PACKETS];

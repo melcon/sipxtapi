@@ -56,7 +56,7 @@ MprDejitter::MprDejitter()
 MprDejitter::~MprDejitter()
 {
    // free jitter buffers
-   for (int i = 0; (i < MAX_CODECS) && m_JitterBufferArray[i]; i++)
+   for (int i = 0; i < MAX_PAYLOADS; i++)
    {
       delete m_JitterBufferArray[i];
       m_JitterBufferArray[i] = NULL;
@@ -70,18 +70,25 @@ OsStatus MprDejitter::initJitterBuffers(SdpCodec* codecs[], int numCodecs)
    OsLock lock(mRtpLock);
 
    // free old jitter buffers
-   for (int i = 0; (i < MAX_CODECS) && m_JitterBufferArray[i]; i++)
+   for (int i = 0; i < MAX_PAYLOADS; i++)
    {
       delete m_JitterBufferArray[i];
       m_JitterBufferArray[i] = NULL;
    }
 
    // now add new jitter buffers
-   for (int i = 0; (i < numCodecs) && (i < MAX_CODECS); i++)
+   for (int i = 0; i < numCodecs; i++)
    {
       UtlString encodingName;
       codecs[i]->getEncodingName(encodingName);
-      m_JitterBufferArray[i] = new MpJitterBufferDefault(encodingName, codecs[i]->getCodecPayloadFormat(), 80);
+      int codecPayloadType = codecs[i]->getCodecPayloadFormat();
+
+      if (codecPayloadType >=0 && codecPayloadType < MAX_PAYLOADS
+          && !m_JitterBufferArray[codecPayloadType])
+      {
+         // index is valid and there is no jitter buffer for it
+         m_JitterBufferArray[codecPayloadType] = new MpJitterBufferDefault(encodingName, codecPayloadType, 80);
+      }
    }
 
    return OS_SUCCESS;
