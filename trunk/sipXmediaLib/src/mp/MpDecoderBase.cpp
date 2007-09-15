@@ -31,11 +31,6 @@ MpDecoderBase::~MpDecoderBase()
 
 /* ============================ MANIPULATORS ============================== */
 
-int MpDecoderBase::decodeIn(const MpRtpBufPtr &pPacket)
-{
-   return pPacket->getPayloadSize();
-}
-
 int MpDecoderBase::reportBufferLength(int iAvePackets)
 {
 	return 0;

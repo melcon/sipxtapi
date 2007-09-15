@@ -95,6 +95,11 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
          // assign fresh buffer to pOutRtp
          pOutRtp = MpMisc.RtpPool->getBuffer();
 
+         if (!pOutRtp.isValid())
+         {
+            return MP_JITTER_BUFFER_ERROR;
+         }
+         
          // Copy payload to RTP buffer.
          memcpy(pOutRtp->getDataWritePtr(), packet.data, packet.len);
       }

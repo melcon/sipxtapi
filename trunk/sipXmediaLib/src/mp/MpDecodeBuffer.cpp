@@ -18,6 +18,7 @@
 #include "mp/MpDecodeBuffer.h"
 #include "mp/MpDecoderBase.h"
 #include "mp/MpMisc.h"
+#include <mp/MprDejitter.h>
 
 static int debugCount = 0;
 
@@ -44,6 +45,82 @@ MpDecodeBuffer::~MpDecodeBuffer()
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
+{
+   if (m_pMyDejitter)
+   {
+      // first do actions that need to be done regardless of whether we have enough
+      // samples
+      for (int i = 0; m_pDecoderList[i]; i++)
+      {
+         m_pDecoderList[i]->frameIncrement();
+      }
+
+      // now get more samples if we don't have enough of them
+      if (JbQCount < samplesNumber)
+      {
+         // we don't have enough samples. pull some from jitter buffer
+         for (int i = 0; m_pDecoderList[i]; i++)
+         {
+            // loop through all decoders and pull frames for them
+            int payloadType = m_pDecoderList[i]->getPayloadType();
+            MpRtpBufPtr rtp = m_pMyDejitter->pullPacket(payloadType);
+
+            while (rtp.isValid())
+            {
+               // if buffer is valid, then there is undecoded data, we decode it
+               // until we have enough samples here or jitter buffer has no more data
+               pushPacket(rtp);
+
+               if (JbQCount < samplesNumber)
+               {
+                  // still don't have enough, pull more data
+                  rtp = m_pMyDejitter->pullPacket(payloadType);
+               }
+               else
+               {
+                  break;
+                  // we cant break out of for loop, as we need to process rfc2833 too
+               }
+            }  
+         }  
+      }
+   }
+      
+   // Check we have some available decoded data
+   if (JbQCount != 0)
+   {
+      // We could not return more then we have
+      samplesNumber = min(samplesNumber, JbQCount);
+
+      memcpy(samplesBuffer, JbQ + JbQOut, samplesNumber * sizeof(MpAudioSample));
+
+      JbQCount -= samplesNumber;
+      JbQOut += samplesNumber;
+
+      if (JbQOut >= JbQueueSize)
+         JbQOut -= JbQueueSize;
+   }
+
+   return samplesNumber;
+}
+
+
+int MpDecodeBuffer::setCodecList(MpDecoderBase** codecList, int codecCount)
+{
+   memset(m_pDecoderList, 0, sizeof(m_pDecoderList));
+
+   // For every payload type, load in a codec pointer, or a NULL if it isn't there
+	for(int i = 0; (i < codecCount) && (i < JbPayloadMapSize); i++)
+   {
+		int payloadType = codecList[i]->getPayloadType();
+   	payloadMap[payloadType] = codecList[i];
+      m_pDecoderList[i] = codecList[i];
+	}
+
+   return 0;
+}
 
 int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
 {
@@ -84,41 +161,6 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
    // Reset write pointer if we reach end of buffer
    if (JbQIn >= JbQueueSize)
       JbQIn = 0;
-
-   return 0;
-}
-
-int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
-{
-   // Check does we have available decoded data
-   if (JbQCount != 0)
-   {
-      // We could not return more then we have
-      samplesNumber = min(samplesNumber,JbQCount);
-
-      memcpy(samplesBuffer, JbQ+JbQOut, samplesNumber * sizeof(MpAudioSample));
-
-      JbQCount -= samplesNumber;
-      JbQOut += samplesNumber;
-      if (JbQOut >= JbQueueSize)
-         JbQOut -= JbQueueSize;
-   }
-
-   return samplesNumber;
-}
-
-
-int MpDecodeBuffer::setCodecList(MpDecoderBase** codecList, int codecCount)
-{
-   memset(m_pDecoderList, 0, sizeof(m_pDecoderList));
-
-   // For every payload type, load in a codec pointer, or a NULL if it isn't there
-	for(int i = 0; (i < codecCount) && (i < JbPayloadMapSize); i++)
-   {
-		int payloadType = codecList[i]->getPayloadType();
-   	payloadMap[payloadType] = codecList[i];
-      m_pDecoderList[i] = codecList[i];
-	}
 
    return 0;
 }

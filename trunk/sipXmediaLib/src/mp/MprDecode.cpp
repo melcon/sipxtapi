@@ -204,122 +204,41 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
                                      int samplesPerFrame,
                                      int samplesPerSecond)
 {
-   static int iFramesSinceLastReport=0;
-
-   MpAudioBufPtr out;
-   MpAudioSample* pSamples;
-
    if (outBufsSize == 0)
       return FALSE;
 
-   if (!isEnabled) {
+   if (!isEnabled)
+   {
       return TRUE;
    }
-
-   MprDejitter* pDej = getMyDejitter();
-   int packetLen;
-   int i;
 
    // Not sure this is a good idea to do in doProcessFrame, 
    // but the use of this lock is meaningless
    // unless we lock all access of the mpCurrentCodecs
    OsLock lock(mLock);
 
-   int pulledPacketCount = 0;
-   // Cycle through all decoders and process frames for them.
-   for (i = 0; i < mNumCurrentCodecs; i++) 
-   {
-      int pt = mpCurrentCodecs[i]->getPayloadType();
-      MpDecoderBase* pCurDec=mpConnection->mapPayloadType(pt);
-      MpRtpBufPtr rtp;
-
-      // The codec is null. Do not continue.
-      // TODO:: NEED ERROR HANDLING HERE.
-      if (pCurDec==NULL)
-         continue;
-
-      // Inform the decoder that the next frame has happened. 
-      pCurDec->frameIncrement();
-
-      while ((rtp = pDej->pullPacket(pt)).isValid()) 
-      {
-         pulledPacketCount++;
-
-         if (iFramesSinceLastReport >= samplesPerSecond/samplesPerFrame) {
-            // One second has passed since time we reported the average number of packets
-            // in the jitter buffer
-
-            int iAveLen = pDej->getBufferLength(pt);
-            int doAgain =  pCurDec->reportBufferLength(iAveLen);
-            if (doAgain <= 0) {
-               iFramesSinceLastReport = 0;
-            }
-         }
-
-         // This call lets the codec decide if it wants this packet or not. If
-         // the codec rejects out-of-order packets, it will return a negative value.
-         // It may also (someday) dynamically adjust the size of the jitter buffer.
-         packetLen = pCurDec->decodeIn(rtp);
-         if (packetLen > 0) 
-         {
-            // For internal codecs there really isn't any jitter buffering,
-            // although some codecs may need to hold on to a packet or two
-            // in order to process properly (?)
-            // THIS JitterBuffer is NOT the same as MprDejitter!
-            // This is more of a Decode Buffer.
-            MpDecodeBuffer* pJBState = getJBinst();
-
-            int res = pJBState->pushPacket(rtp);
-            if (res != 0) {
-               osPrintf("\n\n *** MpJitterBuffer::pushPacket(%d) returned %d\n",
-                        packetLen, res);
-               osPrintf(" pt=%d, Ts=%d, Seq=%d\n\n",
-                        rtp->getRtpPayloadType(),
-                        rtp->getRtpTimestamp(), rtp->getRtpSequenceNumber());
-            }
-         } else if (packetLen == 0) {
-            OsStatus pushResult = pDej->pushPacket(rtp);
-            if (pushResult != OS_SUCCESS) {
-               osPrintf("\n\n *** pDej->pushPacket returned %d\n",
-                     pushResult);
-               osPrintf(" pt=%d, Ts=%d, Seq=%d\n\n",
-                     rtp->getRtpPayloadType(),
-                     rtp->getRtpTimestamp(), rtp->getRtpSequenceNumber());
-            }
-            break;  // The packet was not eaten by the codec, don't get any more now
-            // TKTK What would GIPS return for out-of-order packets? This or nothing? 
-         } else if (packetLen == -1) {
-            // packetLen < 0, this means that the codec wants us to discard
-            // the packet. Out of order packet.
-         }
-      }
-   }
-   iFramesSinceLastReport++;
-
    // Get new audio buffer for decoded sound
-   out = MpMisc.RawAudioPool->getBuffer();
+   MpAudioBufPtr out = MpMisc.RawAudioPool->getBuffer();
    if (!out.isValid())
    {
       return FALSE;
    }
+
    out->setSamplesNumber(samplesPerFrame);
-   pSamples = out->getSamplesWritePtr();
+   MpAudioSample* pSamples = out->getSamplesWritePtr();
    memset(pSamples, 0, out->getSamplesNumber() * sizeof(MpAudioSample));
    out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
 
    // Decode one packet from Jitter Buffer
    MpDecodeBuffer* pJBState = getJBinst();
-   int decodedAPacket = FALSE;
-   if (pJBState) {
+   if (pJBState)
+   {
       // This should be a JB_something or other.  However the only
       // current choices is a short or long equivalent and this needs
       // to be a plain old int:
-      int bufLength=samplesPerFrame;
-      int res;
-      res = pJBState->getSamples(pSamples, bufLength);
-      assert(bufLength == (int)out->getSamplesNumber());
+      pJBState->getSamples(pSamples, samplesPerFrame);
+      assert(samplesPerFrame == (int)out->getSamplesNumber());
       out->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
-      decodedAPacket = TRUE;
    }
    
    // Push decoded audio packet downstream

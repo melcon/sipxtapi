@@ -58,18 +58,6 @@ public:
 ///@name Manipulators
 //@{
 
-     /// Push packet into jitter buffer.
-   int pushPacket(MpRtpBufPtr &rtpPacket);
-     /**<
-     *  Packet will be decoded and decoded data will be copied to internal buffer.
-     *  If no decoder is available for this packet's payload type packet will be
-     *  ignored.
-     *
-     *  @note This implementation does not check packets sequence number in any
-     *  manner. So it behave very bad if packets come reordered or if some
-     *  packets are missed.
-     */
-
      /// Get samples from jitter buffer
    int getSamples(MpAudioSample *samplesBuffer, int samplesNumber);
      /**<
@@ -107,6 +95,18 @@ public:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   /// Push packet into jitter buffer.
+   int pushPacket(MpRtpBufPtr &rtpPacket);
+   /**<
+   *  Packet will be decoded and decoded data will be copied to internal buffer.
+   *  If no decoder is available for this packet's payload type packet will be
+   *  ignored.
+   *
+   *  @note This implementation does not check packets sequence number in any
+   *  manner. So it behave very bad if packets come reordered or if some
+   *  packets are missed.
+   */
+
      /// Copy constructor
    MpDecodeBuffer(const MpDecodeBuffer& rMpJitterBuffer);
 
@@ -119,7 +119,7 @@ private:
    MpAudioSample JbQ[JbQueueSize];
 
    MpDecoderBase* payloadMap[JbPayloadMapSize];
-   MpDecoderBase* m_pDecoderList[JbPayloadMapSize];
+   MpDecoderBase* m_pDecoderList[JbPayloadMapSize + 1];
    MprDejitter* m_pMyDejitter;
 };
 
