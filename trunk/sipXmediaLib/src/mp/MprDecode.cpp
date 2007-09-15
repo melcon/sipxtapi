@@ -61,7 +61,7 @@ MprDecode::MprDecode(const UtlString& rName, MpRtpInputAudioConnection* pConn,
                      int samplesPerFrame, int samplesPerSec)
 :  MpAudioResource(rName, 0, 0, 1, 1, samplesPerFrame, samplesPerSec),
    mpJB(NULL),
-   mpMyDJ(NULL),
+   m_pMyDejitter(NULL),
    mpCurrentCodecs(NULL),
    mNumCurrentCodecs(0),
    mpPrevCodecs(NULL),
@@ -136,7 +136,7 @@ OsStatus MprDecode::deselectCodec()
 
 void MprDecode::setMyDejitter(MprDejitter* pDJ)
 {
-   mpMyDJ = pDJ;
+   m_pMyDejitter = pDJ;
 }
 
 void MprDecode::onNotify(UtlObservable* subject, int code, intptr_t userData)
@@ -159,8 +159,9 @@ void MprDecode::onNotify(UtlObservable* subject, int code, intptr_t userData)
 
 MpDecodeBuffer* MprDecode::getJBinst(UtlBoolean optional)
 {
-   if ((NULL == mpJB) && (!optional)) {
-      mpJB = new MpDecodeBuffer();
+   if ((NULL == mpJB) && (!optional))
+   {
+      mpJB = new MpDecodeBuffer(m_pMyDejitter);
       assert(NULL != mpJB);
    }
    return mpJB;
@@ -174,8 +175,8 @@ MpDecodeBuffer* MprDecode::getJBinst(UtlBoolean optional)
 
 MprDejitter* MprDecode::getMyDejitter(void)
 {
-   assert(NULL != mpMyDJ);
-   return mpMyDJ;
+   assert(NULL != m_pMyDejitter);
+   return m_pMyDejitter;
 }
 
 #ifdef SIPX_DEBUG /* [ */

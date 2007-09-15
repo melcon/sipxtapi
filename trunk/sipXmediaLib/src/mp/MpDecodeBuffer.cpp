@@ -23,10 +23,13 @@ static int debugCount = 0;
 
 /* ============================ CREATORS ================================== */
 
-MpDecodeBuffer::MpDecodeBuffer()
+MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter)
+: m_pMyDejitter(pDejitter)
 {
    for (int i=0; i<JbPayloadMapSize; i++)
       payloadMap[i] = NULL;
+
+   memset(m_pDecoderList, 0, sizeof(m_pDecoderList));
 
    JbQCount = 0;
    JbQIn = 0;
@@ -88,7 +91,8 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
 int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
 {
    // Check does we have available decoded data
-   if (JbQCount != 0) {
+   if (JbQCount != 0)
+   {
       // We could not return more then we have
       samplesNumber = min(samplesNumber,JbQCount);
 
@@ -106,13 +110,14 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
 
 int MpDecodeBuffer::setCodecList(MpDecoderBase** codecList, int codecCount)
 {
-	// For every payload type, load in a codec pointer, or a NULL if it isn't there
-	for(int i=0; i<codecCount; i++)
+   memset(m_pDecoderList, 0, sizeof(m_pDecoderList));
+
+   // For every payload type, load in a codec pointer, or a NULL if it isn't there
+	for(int i = 0; (i < codecCount) && (i < JbPayloadMapSize); i++)
    {
 		int payloadType = codecList[i]->getPayloadType();
-		if(payloadType < JbPayloadMapSize) {
-			payloadMap[payloadType] = codecList[i];
-		}
+   	payloadMap[payloadType] = codecList[i];
+      m_pDecoderList[i] = codecList[i];
 	}
 
    return 0;
