@@ -22,7 +22,7 @@
 /* ============================ CREATORS ================================== */
 
 MpJitterBufferBase::MpJitterBufferBase(const UtlString& name,
-                                       uint8_t payloadType,
+                                       int payloadType,
                                        unsigned int frameSize)
 : m_name(name)
 , m_payloadType(payloadType)
@@ -40,7 +40,7 @@ MpJitterBufferBase::~MpJitterBufferBase()
 
 /* ============================ ACCESSORS ================================= */
 
-uint8_t MpJitterBufferBase::getPayloadType()
+int MpJitterBufferBase::getPayloadType()
 {
    return m_payloadType;
 }

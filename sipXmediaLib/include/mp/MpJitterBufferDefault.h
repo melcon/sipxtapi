@@ -37,7 +37,7 @@ public:
    //@{
 
    MpJitterBufferDefault(const UtlString& name,
-      uint8_t payloadType,
+      int payloadType,
       unsigned int frameSize);
 
    /**

@@ -305,8 +305,10 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[],
       // continue only if numCodecs is still greater than 0
       if (numCodecs > 0)
       {
+         // initialize jitter buffers for all codecs
+         mpDejitter->initJitterBuffers(pCodecs, numCodecs);
          mpDecode->selectCodecs(pCodecs, numCodecs);
-      }      
+      }
    }
    // No need to synchronize as the decoder is not part of the
    // flowgraph.  It is part of this connection/resource

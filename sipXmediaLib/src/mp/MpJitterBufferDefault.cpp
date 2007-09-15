@@ -24,7 +24,7 @@
 /* ============================ CREATORS ================================== */
 
 MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
-                                         uint8_t payloadType,
+                                         int payloadType,
                                          unsigned int frameSize)
 : MpJitterBufferBase(name, payloadType, frameSize)
 , m_lastSSRC(0)
