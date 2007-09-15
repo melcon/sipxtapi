@@ -108,6 +108,8 @@ public:
 ///@name Inquiry
 //@{
 
+   virtual int getBufferLength() = 0;
+
 //@}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
