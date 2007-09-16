@@ -13,6 +13,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // SYSTEM INCLUDES
+#include <math.h>
+
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
 #include "os/OsIntTypes.h"
@@ -21,7 +23,7 @@
 #include <mp/MpDspUtils.h>
 
 // DEFINES
-#define PRINT_STATISTICS
+//#define PRINT_STATISTICS
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -61,7 +63,8 @@ static void appendToFile(const char* fileName, const char* text)
 MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
                                          int payloadType,
                                          unsigned int frameSize,
-                                         bool bUsePrefetch)
+                                         bool bUsePrefetch,
+                                         unsigned int initialPrefetchCount)
 : MpJitterBufferBase(name, payloadType, frameSize)
 , m_bUsePrefetch(bUsePrefetch)
 , m_lastSSRC(0)
@@ -71,12 +74,17 @@ MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
 , m_lastPushed(0)
 , m_lastPulled(0)
 , m_expectedTimestamp(0)
-, m_prefetchCount(5)
+, m_prefetchCount(initialPrefetchCount)
 , m_bPrefetchMode(true)
+, m_internalClock(0)
 {
 #ifdef PRINT_STATISTICS
    enableConsoleOutput(TRUE);
 #endif
+   if (m_prefetchCount < MIN_PREFETCH_COUNT)
+   {
+      m_prefetchCount = MIN_PREFETCH_COUNT;
+   }   
 }
 
 MpJitterBufferDefault::~MpJitterBufferDefault()
@@ -97,6 +105,7 @@ void MpJitterBufferDefault::reset()
    m_lastPulled = 0;
    m_bufferLength = 0;
    m_expectedTimestamp = 0;
+   m_internalClock = 0;
    m_bPrefetchMode = true;
 }
 
@@ -109,6 +118,9 @@ void MpJitterBufferDefault::frameIncrement()
    }
    // if in prefetch mode, we can't increment timestamp, as it could cause us to skip
    // whole prefetch buffer. If prefetch is disabled, always increment
+
+   // always advance internal clock
+   m_internalClock = m_internalClock + m_frameSize;
 }
 
 JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
@@ -150,6 +162,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
    if (m_bufferLength == 0)
    {
       m_bPrefetchMode = true;
+      setOptimalPrefetchCount();
       // jitter buffer is empty
       m_statistics.m_totalNormalUnderflows++;
       return MP_JITTER_BUFFER_MISSING;
@@ -230,6 +243,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
    
    // we didn't find any suitable frame :(
    m_bPrefetchMode = true;
+   setOptimalPrefetchCount();
    m_statistics.m_totalNormalUnderflows++;
    return MP_JITTER_BUFFER_MISSING;
 }
@@ -264,13 +278,6 @@ void MpJitterBufferDefault::push(const MpRtpBufPtr &pRtp)
             initJitterBuffer(pRtp);
          }
       }
-/*      else
-      if (MpDspUtils::compareSerials(inRtpSeq, m_lastSeqNumber) < 0)
-      {
-         // this is for safety
-         // if we are getting totally wrong sequence numbers for some reason
-
-      }*/
 
       // Find place for incoming packet
       int index = (inRtpSeq % MAX_RTP_PACKETS);
@@ -291,6 +298,12 @@ void MpJitterBufferDefault::push(const MpRtpBufPtr &pRtp)
             m_pPackets[index] = pRtp;
             m_lastPushed = index;  
             // m_bufferLength remains unchanged, since we discarded a packet, and added one
+
+            if (m_bUsePrefetch)
+            {
+               // add sample to statistics
+               updateArrivalDiffs(pRtp);
+            }
          }
          else
          {
@@ -305,20 +318,26 @@ void MpJitterBufferDefault::push(const MpRtpBufPtr &pRtp)
          m_pPackets[index] = pRtp;
          m_bufferLength++;
 
-         if (m_bUsePrefetch && m_bPrefetchMode)
+         if (m_bUsePrefetch)
          {
-            if (m_bufferLength == 1)
+            if (m_bPrefetchMode)
             {
-               // first frame in prefetch mode was received, init jitter buffer variables
-               // so that it can catch up at the correct index during pull
-               initJitterBuffer(pRtp);
+               if (m_bufferLength == 1)
+               {
+                  // first frame in prefetch mode was received, init jitter buffer variables
+                  // so that it can catch up at the correct index during pull
+                  initJitterBuffer(pRtp);
+               }
+               else
+               if (m_bufferLength >= m_prefetchCount)
+               {
+                  m_bPrefetchMode = false; // turn off prefetch mode, so that we can start pulling
+               }
             }
-            else
-            if (m_bufferLength >= m_prefetchCount)
-            {
-               m_bPrefetchMode = false; // turn off prefetch mode, so that we can start pulling
-            }
-         }         
+
+            // add sample to statistics
+            updateArrivalDiffs(pRtp);
+         }
       }
    }
 }
@@ -336,6 +355,76 @@ int MpJitterBufferDefault::getBufferLength()
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
+void MpJitterBufferDefault::setOptimalPrefetchCount()
+{
+   if (m_statistics.m_frameDiffsCount > 0)
+   {
+      int shortPrefetch = getOptimalPrefetchCount(FEW_STATISTICS_SAMPLES);
+      int longPrefetch = getOptimalPrefetchCount(MAX_STATISTICS_SAMPLES);
+
+      m_prefetchCount = max(shortPrefetch, longPrefetch);
+#ifdef PRINT_STATISTICS
+      osPrintf("Changing m_prefetchCount to %u\n", m_prefetchCount);
+#endif
+   }  
+}
+
+int MpJitterBufferDefault::getOptimalPrefetchCount(unsigned int maxAnalyzeFrames)
+{
+   unsigned int framesToAnalyze = min(m_statistics.m_frameDiffsCount, maxAnalyzeFrames);
+
+   if (framesToAnalyze > 0)
+   {
+      // calculate optimal prefetch count by chebyshev's inequality
+      double fEX = 0.0f;
+
+      int startIndex = m_statistics.m_frameDiffsNextIndex - framesToAnalyze;
+      WRAP_NUMBER(startIndex, MAX_STATISTICS_SAMPLES);
+      // now startIndex points to the first sample
+
+      int index = startIndex;
+      // compute sum of all arrival diffs
+      for (unsigned int i = 0; i < framesToAnalyze; i++)
+      {
+         fEX += m_statistics.m_frameArrivalDiffs[index++];
+      }
+      // now compute EX
+      fEX = fEX / framesToAnalyze;
+      int iEX = (int)fEX;
+
+      double varX = 0.0f;
+      int tmp;
+      index = startIndex; // set index to start index again
+      // compute (X - EX)^2 values
+      for (unsigned int i = 0; i < framesToAnalyze; i++)
+      {
+         tmp = m_statistics.m_frameArrivalDiffs[index] - iEX;
+         varX += (tmp * tmp);
+         index++;
+      }
+      varX = varX / framesToAnalyze;
+
+      double maxProbability = 0.09f;
+      int epsilon = (int)ceil(sqrt(varX / maxProbability) / m_frameSize); // round up
+
+      // now probability that we need higher prefetch count than epsilon is lower than maxProbability
+      return min(max(epsilon, MIN_PREFETCH_COUNT), MAX_PREFETCH_COUNT);
+   }
+   else
+   return MIN_PREFETCH_COUNT;
+}
+
+void MpJitterBufferDefault::updateArrivalDiffs(const MpRtpBufPtr &pRtp)
+{
+   int diff = abs((int)(pRtp->getRtpTimestamp() - m_internalClock));
+   m_statistics.m_frameArrivalDiffs[m_statistics.m_frameDiffsNextIndex] = diff;
+   m_statistics.m_frameDiffsNextIndex = (m_statistics.m_frameDiffsNextIndex + 1) % MAX_STATISTICS_SAMPLES;
+   if (m_statistics.m_frameDiffsCount < MAX_STATISTICS_SAMPLES)
+   {
+      m_statistics.m_frameDiffsCount++;
+   }   
+}
+
 void MpJitterBufferDefault::initJitterBuffer(const MpRtpBufPtr &pRtp)
 {
    int index = pRtp->getRtpSequenceNumber() % MAX_RTP_PACKETS;
@@ -348,6 +437,7 @@ void MpJitterBufferDefault::initJitterBuffer(const MpRtpBufPtr &pRtp)
    // these 2 wrap around correctly automatically, since they are unsigned
    m_lastSeqNumber = pRtp->getRtpSequenceNumber() - 1;
    m_expectedTimestamp = pRtp->getRtpTimestamp() - m_frameSize;
+   m_internalClock = pRtp->getRtpTimestamp();
 }
 
 /* ============================ FUNCTIONS ================================= */

@@ -43,6 +43,10 @@ public:
    enum
    {
       MAX_RTP_PACKETS = 64,  ///< MUST BE A POWER OF 2, AND SHOULD BE >3
+      MAX_STATISTICS_SAMPLES = 500,
+      FEW_STATISTICS_SAMPLES = 10,
+      MIN_PREFETCH_COUNT = 4,
+      MAX_PREFETCH_COUNT = 24
    };
 
    /* ============================ CREATORS ================================== */
@@ -52,10 +56,11 @@ public:
    MpJitterBufferDefault(const UtlString& name,
       int payloadType,
       unsigned int frameSize,
-      bool bUsePrefetch = true);
+      bool bUsePrefetch = true,
+      unsigned int initialPrefetchCount = 4);
 
    /**
-   * Speex jitter buffer destructor. Will free internal resources.
+   * Jitter buffer destructor. Will free internal resources.
    */
    virtual ~MpJitterBufferDefault();
 
@@ -116,6 +121,10 @@ private:
       unsigned int m_totalPushReplacements;
       unsigned int m_totalPushInserts;
       
+      int m_frameArrivalDiffs[MAX_STATISTICS_SAMPLES];
+      unsigned int m_frameDiffsCount;
+      int m_frameDiffsNextIndex;
+
       JitterBufferStatistics()
       : m_totalPulls(0)
       , m_totalHits(0)
@@ -125,12 +134,17 @@ private:
       , m_totalPushCollisions(0)
       , m_totalPushReplacements(0)
       , m_totalPushInserts(0)
+      , m_frameDiffsCount(0)
+      , m_frameDiffsNextIndex(0)
       {
-
+         memset(m_frameArrivalDiffs, 0, sizeof(m_frameArrivalDiffs));
       }
    } JitterBufferStatistics;
 
    void initJitterBuffer(const MpRtpBufPtr &pOutRtp);
+   void updateArrivalDiffs(const MpRtpBufPtr &pRtp);
+   void setOptimalPrefetchCount();
+   int getOptimalPrefetchCount(unsigned int maxAnalyzeFrames);
 
    RtpSRC m_lastSSRC;   ///< last SSRC, if it changes we need to reset jitter buffer
    bool m_bFirstFrame;  ///< whether we have yet to receive the 1st frame
@@ -147,6 +161,7 @@ private:
 
    MpRtpBufPtr m_pPackets[MAX_RTP_PACKETS];   ///< Buffer for incoming RTP packets
    JitterBufferStatistics m_statistics; ///< jitter buffer statistics
+   RtpTimestamp m_internalClock;
    OsMutex m_mutex;
 };
 
