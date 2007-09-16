@@ -103,20 +103,44 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   typedef struct JitterBufferStatistics
+   {
+      unsigned int m_totalHits;
+      unsigned int m_total2ndHits;
+      unsigned int m_totalUnderflows;
+      unsigned int m_totalPulls;
+
+      unsigned int m_totalPushCollisions;
+      unsigned int m_totalPushReplacements;
+      unsigned int m_totalPushInserts;
+      
+      JitterBufferStatistics()
+      : m_totalPulls(0)
+      , m_totalHits(0)
+      , m_total2ndHits(0)
+      , m_totalUnderflows(0)
+      , m_totalPushCollisions(0)
+      , m_totalPushReplacements(0)
+      , m_totalPushInserts(0)
+      {
+
+      }
+   } JitterBufferStatistics;
+
+   void initJitterBuffer(const MpRtpBufPtr &pOutRtp);
+
    RtpSRC m_lastSSRC;   ///< last SSRC, if it changes we need to reset jitter buffer
    bool m_bFirstFrame;  ///< whether we have yet to receive the 1st frame
    int m_bufferLength;  ///< length of jitter buffer
 
-   /// Buffer for incoming RTP packets
-   MpRtpBufPtr m_pPackets[MAX_RTP_PACKETS];
+   RtpTimestamp m_expectedTimestamp;   ///< expected timestamp for pull
+   RtpSeq m_lastSeqNumber; ///< sequence number of last pulled frame
+   int m_lastPulled; ///< index of last pulled frame
 
-   /// Index of the last inserted packet.
-   int m_lastPushed;
-   /**<
-   *  As packets are added, we change this value to indicate
-   *  where the buffer is wrapping.
-   */
+   int m_lastPushed;   ///< Index of the last inserted packet.
 
+   MpRtpBufPtr m_pPackets[MAX_RTP_PACKETS];   ///< Buffer for incoming RTP packets
+   JitterBufferStatistics m_statistics;
    OsMutex m_mutex;
 };
 

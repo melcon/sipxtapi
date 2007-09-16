@@ -31,16 +31,6 @@ MpDecoderBase::~MpDecoderBase()
 
 /* ============================ MANIPULATORS ============================== */
 
-int MpDecoderBase::reportBufferLength(int iAvePackets)
-{
-	return 0;
-}
-
-void MpDecoderBase::frameIncrement()
-{
-	return;
-}
-
 /* ============================ ACCESSORS ================================= */
 
 // Get static information about the decoder
