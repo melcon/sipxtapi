@@ -47,6 +47,7 @@ MprDejitter::MprDejitter()
 : m_rtpLock(OsBSem::Q_FIFO, OsBSem::FULL)
 {
    memset(m_jitterBufferArray, 0, sizeof(m_jitterBufferArray));
+   memset(m_jitterBufferList, 0, sizeof(m_jitterBufferList));
 }
 
 // Destructor
@@ -57,6 +58,7 @@ MprDejitter::~MprDejitter()
    {
       delete m_jitterBufferArray[i];
       m_jitterBufferArray[i] = NULL;
+      m_jitterBufferList[i] = NULL;
    }
 }
 
@@ -71,8 +73,10 @@ OsStatus MprDejitter::initJitterBuffers(SdpCodec* codecs[], int numCodecs)
    {
       delete m_jitterBufferArray[i];
       m_jitterBufferArray[i] = NULL;
+      m_jitterBufferList[i] = NULL;
    }
 
+   int listCounter = 0;
    // now add new jitter buffers
    for (int i = 0; i < numCodecs; i++)
    {
@@ -86,6 +90,7 @@ OsStatus MprDejitter::initJitterBuffers(SdpCodec* codecs[], int numCodecs)
          // index is valid and there is no jitter buffer for it
          // TODO: 80 has to be replaced with ptime from SDP
          m_jitterBufferArray[codecPayloadType] = new MpJitterBufferDefault(encodingName, codecPayloadType, 80);
+         m_jitterBufferList[listCounter++] = m_jitterBufferArray[codecPayloadType];
       }
    }
 
@@ -131,6 +136,15 @@ MpRtpBufPtr MprDejitter::pullPacket(int rtpPayloadType)
       // we don't have jitter buffer for this payload type
       return MpRtpBufPtr(); // return ptr without buffer (invalid one)
    }
+}
+
+void MprDejitter::frameIncrement()
+{
+   // notify all jitter buffers about frame increment
+   for (int i = 0; m_jitterBufferList[i]; i++)
+   {
+      m_jitterBufferList[i]->frameIncrement();
+   }   
 }
 
 /* ============================ ACCESSORS ================================= */

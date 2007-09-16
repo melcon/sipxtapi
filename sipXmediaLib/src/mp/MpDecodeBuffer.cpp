@@ -52,10 +52,7 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
    {
       // first do actions that need to be done regardless of whether we have enough
       // samples
-      for (int i = 0; m_pDecoderList[i]; i++)
-      {
-         m_pDecoderList[i]->frameIncrement();
-      }
+      m_pMyDejitter->frameIncrement();
 
       // now get more samples if we don't have enough of them
       if (JbQCount < samplesNumber)

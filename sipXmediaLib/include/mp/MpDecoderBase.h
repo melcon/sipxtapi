@@ -86,13 +86,6 @@ public:
      *  @return Number of decoded samples.
      */
 
-     /// @brief This method allows a codec to take action based on the length of
-     /// the jitter buffer since last asked.
-   virtual int reportBufferLength(int iAvePackets);
-
-     /// DOCME
-   virtual void frameIncrement();
-
 //@}
 
 /* ============================ ACCESSORS ================================= */

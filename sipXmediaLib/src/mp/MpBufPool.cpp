@@ -112,7 +112,7 @@ MpBufPool::~MpBufPool()
          MpBuf *pBuf = (MpBuf *)pBlock;
          if (pBuf->mRefCounter > 0 || pBuf->mpPool == this)
          {
-            osPrintf( "Buffer %d from pool %x did not correctly freed!!!\n"
+            osPrintf( "Buffer %d from pool %x was not correctly freed!!!\n"
                , (pBlock-(char*)pPoolListTmp)/mBlockSize
                , this);
          }

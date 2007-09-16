@@ -94,6 +94,10 @@ public:
      *  used.
      */
 
+   /**
+    * Notify all jitter buffers about new frame tick.
+    */   
+   void frameIncrement();
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -120,7 +124,8 @@ private:
                   /// Mutual exclusion lock for internal data
    OsBSem        m_rtpLock;
 
-   MpJitterBufferBase* m_jitterBufferArray[MAX_PAYLOADS];
+   MpJitterBufferBase* m_jitterBufferArray[MAX_PAYLOADS]; ///< stores jitter buffers by payload type
+   MpJitterBufferBase* m_jitterBufferList[MAX_PAYLOADS]; ///< stores jitter buffers incrementally
 
      /// Copy constructor (not implemented for this class)
    MprDejitter(const MprDejitter& rMprDejitter);
