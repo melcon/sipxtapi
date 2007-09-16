@@ -191,7 +191,7 @@ void MpBufPool::appendBufToList(MpBuf *pBuffer, MpBufList **pTargetList)
 void MpBufPool::attachNewPool(char* pNewPool)
 {
    assert(pNewPool);
-   memset(pNewPool, 0, sizeof(pNewPool));
+   memset(pNewPool, 0, mPoolBytes);
    int bufferId = mPoolListSize*mNumBlocks;
 
    // put first buffer to the list of all pools for easy deletion
