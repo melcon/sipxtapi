@@ -51,7 +51,8 @@ public:
 
    MpJitterBufferDefault(const UtlString& name,
       int payloadType,
-      unsigned int frameSize);
+      unsigned int frameSize,
+      bool bUsePrefetch = true);
 
    /**
    * Speex jitter buffer destructor. Will free internal resources.
@@ -107,7 +108,8 @@ private:
    {
       unsigned int m_totalHits;
       unsigned int m_total2ndHits;
-      unsigned int m_totalUnderflows;
+      unsigned int m_totalNormalUnderflows;
+      unsigned int m_totalPrefetchUnderflows;
       unsigned int m_totalPulls;
 
       unsigned int m_totalPushCollisions;
@@ -118,7 +120,8 @@ private:
       : m_totalPulls(0)
       , m_totalHits(0)
       , m_total2ndHits(0)
-      , m_totalUnderflows(0)
+      , m_totalNormalUnderflows(0)
+      , m_totalPrefetchUnderflows(0)
       , m_totalPushCollisions(0)
       , m_totalPushReplacements(0)
       , m_totalPushInserts(0)
@@ -132,6 +135,9 @@ private:
    RtpSRC m_lastSSRC;   ///< last SSRC, if it changes we need to reset jitter buffer
    bool m_bFirstFrame;  ///< whether we have yet to receive the 1st frame
    int m_bufferLength;  ///< length of jitter buffer
+   int m_prefetchCount; ///< how many RTP frames we need to have before we allow pulling
+   bool m_bPrefetchMode; ///< whether we allow pulling frames from jitter buffer, if true we don't
+   bool m_bUsePrefetch; ///< whether prefetching is enabled. If disabled, we allow pulling at any time, used for DTMF
 
    RtpTimestamp m_expectedTimestamp;   ///< expected timestamp for pull
    RtpSeq m_lastSeqNumber; ///< sequence number of last pulled frame
@@ -140,7 +146,7 @@ private:
    int m_lastPushed;   ///< Index of the last inserted packet.
 
    MpRtpBufPtr m_pPackets[MAX_RTP_PACKETS];   ///< Buffer for incoming RTP packets
-   JitterBufferStatistics m_statistics;
+   JitterBufferStatistics m_statistics; ///< jitter buffer statistics
    OsMutex m_mutex;
 };
 

@@ -21,7 +21,7 @@
 #include <mp/MpDspUtils.h>
 
 // DEFINES
-//#define PRINT_STATISTICS
+#define PRINT_STATISTICS
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -45,14 +45,25 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
+/*
+static void appendToFile(const char* fileName, const char* text)
+{
+   FILE* f = fopen(fileName, "a");
+   fprintf(f, text);
+   fclose(f);
+}
+*/
+
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
 
 MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
                                          int payloadType,
-                                         unsigned int frameSize)
+                                         unsigned int frameSize,
+                                         bool bUsePrefetch)
 : MpJitterBufferBase(name, payloadType, frameSize)
+, m_bUsePrefetch(bUsePrefetch)
 , m_lastSSRC(0)
 , m_bFirstFrame(true)
 , m_mutex(OsMutex::Q_FIFO)
@@ -60,6 +71,8 @@ MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
 , m_lastPushed(0)
 , m_lastPulled(0)
 , m_expectedTimestamp(0)
+, m_prefetchCount(5)
+, m_bPrefetchMode(true)
 {
 #ifdef PRINT_STATISTICS
    enableConsoleOutput(TRUE);
@@ -84,12 +97,18 @@ void MpJitterBufferDefault::reset()
    m_lastPulled = 0;
    m_bufferLength = 0;
    m_expectedTimestamp = 0;
+   m_bPrefetchMode = true;
 }
 
 void MpJitterBufferDefault::frameIncrement()
 {
-   // wrap around is done automatically for unsigned
-   m_expectedTimestamp = m_expectedTimestamp + m_frameSize;
+   if (!m_bPrefetchMode || !m_bUsePrefetch)
+   {
+      // wrap around is done automatically for unsigned
+      m_expectedTimestamp = m_expectedTimestamp + m_frameSize;
+   }
+   // if in prefetch mode, we can't increment timestamp, as it could cause us to skip
+   // whole prefetch buffer. If prefetch is disabled, always increment
 }
 
 JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
@@ -109,26 +128,37 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
       osPrintf("---- Jitter Buffer Statistics for %s ----\n", m_name.data());
       osPrintf("m_totalHits: %u\n", m_statistics.m_totalHits);
       osPrintf("m_total2ndHits: %u\n", m_statistics.m_total2ndHits);
-      osPrintf("m_totalUnderflows: %u\n", m_statistics.m_totalUnderflows);
+      osPrintf("m_totalNormalUnderflows: %u\n", m_statistics.m_totalNormalUnderflows);
+      osPrintf("m_totalPrefetchUnderflows: %u\n", m_statistics.m_totalPrefetchUnderflows);
       osPrintf("m_totalPulls: %u\n", m_statistics.m_totalPulls);
       osPrintf("m_totalPushCollisions: %u\n", m_statistics.m_totalPushCollisions);
       osPrintf("m_totalPushReplacements: %u\n", m_statistics.m_totalPushReplacements);
       osPrintf("m_totalPushInserts: %u\n", m_statistics.m_totalPushInserts);
-      osPrintf("-----------------------------------------\n");
+      osPrintf("m_bufferLength: %u\n", m_bufferLength);      
+      osPrintf("m_lastSeqNumber: %u\n", m_lastSeqNumber);      
+      osPrintf("-------------------------------------------\n");
    }
 #endif
 
+   if (m_bUsePrefetch && m_bPrefetchMode)
+   {
+      m_statistics.m_totalPrefetchUnderflows++;
+      // we are in prefetch mode - waiting to fill buffer
+      return MP_JITTER_BUFFER_MISSING;
+   }
+   
    if (m_bufferLength == 0)
    {
+      m_bPrefetchMode = true;
       // jitter buffer is empty
-      m_statistics.m_totalUnderflows++;
+      m_statistics.m_totalNormalUnderflows++;
       return MP_JITTER_BUFFER_MISSING;
    }
    
    // we will start pulling just after the last pull
    int iNextPull = (m_lastPulled + 1) % MAX_RTP_PACKETS;
    int secondCandidate = -1;
-   int frameSizeHalf = m_frameSize / 2;
+   RtpTimestamp frameSizeHalf = m_frameSize / 2;
 
    for (int i = 0; i < MAX_RTP_PACKETS; i++)
    {
@@ -161,10 +191,10 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
             && MpDspUtils::compareSerials(iTimestamp, lowerBound) > 0)
          {
             // we found the expected frame, use it
-
             pOutRtp.swap(m_pPackets[iNextPull]);
             // Make sure we does not have copy of this buffer left in other threads.
             pOutRtp.requestWrite();
+            assert(!m_pPackets[iNextPull].isValid());
 
             m_lastSeqNumber = iSeqNo;
             m_lastPulled = iNextPull;
@@ -199,7 +229,8 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
    }
    
    // we didn't find any suitable frame :(
-   m_statistics.m_totalUnderflows++;
+   m_bPrefetchMode = true;
+   m_statistics.m_totalNormalUnderflows++;
    return MP_JITTER_BUFFER_MISSING;
 }
 
@@ -213,7 +244,12 @@ void MpJitterBufferDefault::push(const MpRtpBufPtr &pRtp)
       // for first frame, setup SSRC
       if (m_bFirstFrame)
       {
-         initJitterBuffer(pRtp);
+         if (!m_bUsePrefetch)
+         {
+            // init jitter buffer variables
+            // so that it can catch up at the correct index during pull
+            initJitterBuffer(pRtp);
+         }
          m_bFirstFrame = false;
       }
       else
@@ -221,7 +257,12 @@ void MpJitterBufferDefault::push(const MpRtpBufPtr &pRtp)
       {
          // SSRC changed, reset jitter buffer
          reset();
-         initJitterBuffer(pRtp);
+         if (!m_bUsePrefetch)
+         {
+            // init jitter buffer variables
+            // so that it can catch up at the correct index during pull
+            initJitterBuffer(pRtp);
+         }
       }
 /*      else
       if (MpDspUtils::compareSerials(inRtpSeq, m_lastSeqNumber) < 0)
@@ -263,6 +304,21 @@ void MpJitterBufferDefault::push(const MpRtpBufPtr &pRtp)
          m_lastPushed = index;
          m_pPackets[index] = pRtp;
          m_bufferLength++;
+
+         if (m_bUsePrefetch && m_bPrefetchMode)
+         {
+            if (m_bufferLength == 1)
+            {
+               // first frame in prefetch mode was received, init jitter buffer variables
+               // so that it can catch up at the correct index during pull
+               initJitterBuffer(pRtp);
+            }
+            else
+            if (m_bufferLength >= m_prefetchCount)
+            {
+               m_bPrefetchMode = false; // turn off prefetch mode, so that we can start pulling
+            }
+         }         
       }
    }
 }
