@@ -89,7 +89,14 @@ OsStatus MprDejitter::initJitterBuffers(SdpCodec* codecs[], int numCodecs)
       {
          // index is valid and there is no jitter buffer for it
          // TODO: 80 has to be replaced with ptime from SDP
-         m_jitterBufferArray[codecPayloadType] = new MpJitterBufferDefault(encodingName, codecPayloadType, 80);
+         if (codecs[i]->getCodecType() == SdpCodec::SDP_CODEC_TONES)
+         {
+            m_jitterBufferArray[codecPayloadType] = new MpJitterBufferDefault(encodingName, codecPayloadType, 80, false);
+         }
+         else
+         {
+            m_jitterBufferArray[codecPayloadType] = new MpJitterBufferDefault(encodingName, codecPayloadType, 80, true);
+         }
          m_jitterBufferList[listCounter++] = m_jitterBufferArray[codecPayloadType];
       }
    }
