@@ -145,52 +145,6 @@ static void server_insert(
    unsigned int weight);
 
 /**
- * Look up SRV records for a domain name, and from them find server
- * addresses to insert into the list of servers.
- */
-static void lookup_SRV(server_t*& list,
-                       int& list_length_allocated,
-                       int& list_length_used,
-                       const char *domain,
-                       ///< domain name
-                       const char *service,
-                       ///< "sip" or "sips"
-                       const char *proto_string,
-                       ///< protocol string for DNS lookup
-                       OsSocket::IpProtocolSocketType proto_code,
-                       ///< protocol code for result list
-                       const char* srcIp
-   );
-
-/**
- * Look up A records for a domain name, and insert them into the list
- * of servers.
- */
-static void lookup_A(server_t*& list,
-                     int& list_length_allocated,
-                     int& list_length_used,
-                     const char *domain,
-                     ///< domain name
-                     OsSocket::IpProtocolSocketType proto_code,
-                     /**< protocol code for result list
-                      *   UNKNOWN means both UDP and TCP are acceptable
-                      *   SSL must be set explicitly. */
-                     res_response* in_response,
-                     ///< current DNS response, or NULL
-                     int port,
-                     ///< port
-                     unsigned int priority,
-                     ///< priority
-                     unsigned int weight
-                     ///< weight
-   );
-/**<
- * If in_response is non-NULL, use it as an initial source of A records.
- *
- * @returns TRUE if one or more addresses were added to the list.
- */
-
-/**
  * Search for an RR with 'name' and 'type' in the answer and additional
  * sections of a DNS response.
  *
@@ -339,7 +293,7 @@ server_t* SipSrvLookup::servers(const char* domain,
       // produce any addresses.  This includes if an explicit port was given.)
       if (list_length_used == 0)
       {
-         lookup_A(list, list_length_allocated, list_length_used,
+         SipSrvLookup::lookup_A(list, list_length_allocated, list_length_used,
                   domain,
                   // Default the transport for "sips".
                   (socketType == OsSocket::UNKNOWN &&
@@ -540,19 +494,18 @@ void server_insert(server_t*& list,
  * Look up SRV records for a domain name, and from them find server
  * addresses to insert into the list of servers.
  */
-void lookup_SRV(server_t*& list,
-                int& list_length_allocated,
-                int& list_length_used,
-                const char* domain,
-                ///< domain name
-                const char* service,
-                ///< "sip" or "sips"
-                const char* proto_string,
-                ///< protocol string for DNS lookup
-                OsSocket::IpProtocolSocketType proto_code,
-                ///< protocol code for result list
-                const char* srcIp
-   )
+void SipSrvLookup::lookup_SRV(server_t*& list,
+                              int& list_length_allocated,
+                              int& list_length_used,
+                              const char* domain,
+                              ///< domain name
+                              const char* service,
+                              ///< "sip" or "sips"
+                              const char* proto_string,
+                              ///< protocol string for DNS lookup
+                              OsSocket::IpProtocolSocketType proto_code,
+                              ///< protocol code for result list
+                              const char* srcIp)
 {
    // To hold the return of res_query_and_parse.
    res_response* response;
@@ -594,7 +547,7 @@ void lookup_SRV(server_t*& list,
             // name.  Give it the pointer to our current response,
             // because it might have the A records.  If not, lookup_A
             // will do a DNS lookup to get them.
-            lookup_A(list, list_length_allocated, list_length_used,
+            SipSrvLookup::lookup_A(list, list_length_allocated, list_length_used,
                      response->answer[i]->rdata.srv.target, proto_code,
                      response,
                      response->answer[i]->rdata.srv.port,
@@ -614,7 +567,7 @@ void lookup_SRV(server_t*& list,
             // name.  Give it the pointer to our current response,
             // because it might have the A records.  If not, lookup_A
             // will do a DNS lookup to get them.
-            lookup_A(list, list_length_allocated, list_length_used,
+            SipSrvLookup::lookup_A(list, list_length_allocated, list_length_used,
                      response->additional[i]->rdata.srv.target, proto_code,
                      response,
                      response->additional[i]->rdata.srv.port,
@@ -640,22 +593,22 @@ void lookup_SRV(server_t*& list,
  * Look up A records for a domain name, and insert them into the list
  * of servers.
  */
-void lookup_A(server_t*& list,
-              int& list_length_allocated,
-              int& list_length_used,
-              const char* domain,
-              ///< domain name
-              OsSocket::IpProtocolSocketType proto_code,
-              ///< protocol code for result list
-              res_response* in_response,
-              ///< current DNS response, or NULL
-              int port,
-              ///< port
-              unsigned int priority,
-              ///< priority
-              unsigned int weight
-              ///< weight
-   )
+void SipSrvLookup::lookup_A(server_t*& list,
+                            int& list_length_allocated,
+                            int& list_length_used,
+                            const char* domain,
+                            ///< domain name
+                            OsSocket::IpProtocolSocketType proto_code,
+                            ///< protocol code for result list
+                            res_response* in_response,
+                            ///< current DNS response, or NULL
+                            int port,
+                            ///< port
+                            unsigned int priority,
+                            ///< priority
+                            unsigned int weight
+                            ///< weight
+                            )
 {
    // To hold the return of res_query_and_parse.
    res_response* response;
