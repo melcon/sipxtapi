@@ -157,40 +157,76 @@ public:
       );
    ///< Defaults are: timeout = 5, retries = 4.
 
-   /// Perform a DNS query and parse the results.  Follows CNAME records.
-   static void res_query_and_parse(const char* in_name,
-                                   ///< domain name to look up
-                                   int type,
-                                   ///< RR type to look up
-                                   res_response* in_response,
-                                   /**< response structure to
-                                    *   look in before calling
-                                    *   res_query, or NULL */
-                                   const char*& out_name,
-                                   ///< canonical name for in_name
-                                   res_response*& out_response
-                                   ///< response structure containing RRs
-      );
-   /**<
-    * Performs a DNS query for a particular type of RR on a given name,
-    * doing all the work to follow CNAMEs.  The 'in_name' and 'type'
-    * arguments specify the RRs to look for.  If 'in_response' is not NULL,
-    * it is the results of some previous search for the same name, for
-    * a different type of RR, which might contain RRs for this search.
-    *
-    * @return out_response is a pointer to a response structure, or NULL.
-    * If non-NULL, the RRs of the required type (if any) are in out_response
-    * (in either the answer section or the additional section), under the name
-    * out_name.
-    *
-    * The caller is responsible for freeing out_name if it is non-NULL
-    * and != in_name.  The caller is responsible for freeing out_response if it
-    * is non-NULL and != in_response.
-    */
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+   /// Perform a DNS query and parse the results.  Follows CNAME records.
+   static void res_query_and_parse(const char* in_name,
+      ///< domain name to look up
+      int type,
+      ///< RR type to look up
+      res_response* in_response,
+      /**< response structure to
+      *   look in before calling
+      *   res_query, or NULL */
+      const char*& out_name,
+      ///< canonical name for in_name
+      res_response*& out_response
+      ///< response structure containing RRs
+      );
+   /**<
+   * Performs a DNS query for a particular type of RR on a given name,
+   * doing all the work to follow CNAMEs.  The 'in_name' and 'type'
+   * arguments specify the RRs to look for.  If 'in_response' is not NULL,
+   * it is the results of some previous search for the same name, for
+   * a different type of RR, which might contain RRs for this search.
+   *
+   * @return out_response is a pointer to a response structure, or NULL.
+   * If non-NULL, the RRs of the required type (if any) are in out_response
+   * (in either the answer section or the additional section), under the name
+   * out_name.
+   *
+   * The caller is responsible for freeing out_name if it is non-NULL
+   * and != in_name.  The caller is responsible for freeing out_response if it
+   * is non-NULL and != in_response.
+   */
+
+   /**
+   * Look up SRV records for a domain name, and from them find server
+   * addresses to insert into the list of servers.
+   */
+   static void lookup_SRV(server_t*& list,
+                          int& list_length_allocated,
+                          int& list_length_used,
+                          const char* domain,
+                          const char* service,
+                          const char* proto_string,
+                          OsSocket::IpProtocolSocketType proto_code,
+                          const char* srcIp);
+  
+   /**
+   * Look up A records for a domain name, and insert them into the list
+   * of servers.
+   */
+   static void lookup_A(server_t*& list,
+                       int& list_length_allocated,
+                       int& list_length_used,
+                       const char* domain,  ///< domain name
+                       OsSocket::IpProtocolSocketType proto_code,
+                       /**< protocol code for result list
+                       *   UNKNOWN means both UDP and TCP are acceptable
+                       *   SSL must be set explicitly. */
+                       res_response* in_response, ///< current DNS response, or NULL
+                       int port, ///< port
+                       unsigned int priority, ///< priority
+                       unsigned int weight); ///< weight
+   /**<
+   * If in_response is non-NULL, use it as an initial source of A records.
+   *
+   * @returns TRUE if one or more addresses were added to the list.
+   */
+
+                 
    /// Mutex to keep the routines thread-safe.
    static OsMutex sMutex;
 
