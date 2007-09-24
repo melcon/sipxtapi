@@ -15,13 +15,15 @@ Main differences between customized and SIP Foundry version:
   * in-band DTMF and RFC2833 DTMF decoders, separate play buffer/file notifications
   * adaptive jitter buffer, refactored jitter handling
   * very easy to build, no dependencies are required, everything is included
-  * more secure code, usage of snprintf (_snprintf_s in windows) where possible, all old      code was checked
+  * more secure code, usage of snprintf, _snprintf_s in windows where possible, all old      code was checked
   * refactored event handling in sipxmedialib and sipxcalllib
+  * based on revision 9963
 
 
 = Communication =
 There are several mailinglists available:
   * for developers, users - http://groups.google.com/group/sipxtapi
   * for commit messages - http://groups.google.com/group/sipxtapi-commits
+ 
  
  
