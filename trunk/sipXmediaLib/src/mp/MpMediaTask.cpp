@@ -100,6 +100,16 @@ MpMediaTask::~MpMediaTask()
    // $$$ need to figure out how to cleanly shut down this task after
    // $$$ unmanaging and destroying all of its flow graphs
 
+#if FRAME_PROCESSING_THREADS > 0
+   for (int i = 0; i < FRAME_PROCESSING_THREADS; i++)
+   {
+      // shutdown threads
+      m_processingThreads[i]->requestShutdown();
+      delete m_processingThreads[i];
+      m_processingThreads[i] = NULL;
+   }
+#endif
+   
    // there shouldn't be any flowgraphs here at this point
    assert(mManagedFlowGraphs.entries() == 0);
 
@@ -521,6 +531,16 @@ MpMediaTask::MpMediaTask()
 {
    OsStatus res;
 
+#if FRAME_PROCESSING_THREADS > 0
+   for (int i = 0; i < FRAME_PROCESSING_THREADS; i++)
+   {
+      m_processingThreads[i] = new MpMediaTaskHelper("frameProcessor", NULL, MEDIA_TASK_PRIORITY);
+      // start threads
+      UtlBoolean res = m_processingThreads[i]->start();
+      assert(res);
+   }
+#endif
+
    res = setTimeLimit(DEF_TIME_LIMIT_USECS);
    assert(res == OS_SUCCESS);
 
@@ -816,6 +836,35 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
    UtlPtr<MpFlowGraphBase>* ptr = NULL;
    MpFlowGraphBase* pFlowGraph = NULL;
 
+#if FRAME_PROCESSING_THREADS > 0
+   // let worker threads process frames
+   int counter = 0;
+
+   while(ptr = (UtlPtr<MpFlowGraphBase>*)itor())
+   {
+      pFlowGraph = ptr->getValue();
+      assert(pFlowGraph);
+
+      if (pFlowGraph && pFlowGraph->isStarted())
+      {
+         m_processingThreads[counter]->addFlowgraphForProcessing(pFlowGraph);
+         counter = (counter + 1) % FRAME_PROCESSING_THREADS;
+      }
+   }
+
+   // process all frames in threads
+   for (int i = 0; i < FRAME_PROCESSING_THREADS; i++)
+   {
+      m_processingThreads[i]->processWork();
+   }
+
+   // now synchronize all threads - a barrier
+   for (int i = 0; i < FRAME_PROCESSING_THREADS; i++)
+   {
+      m_processingThreads[i]->waitUntilDone();
+   }
+#else
+   // let MpMediaTask process all frames
    while(ptr = (UtlPtr<MpFlowGraphBase>*)itor())
    {
       pFlowGraph = ptr->getValue();
@@ -826,8 +875,9 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
          res = pFlowGraph->processNextFrame();
          assert(res == OS_SUCCESS);
       }
-      
+
    }
+#endif
 
 #ifdef RTL_ENABLED
     RTL_EVENT("MpMediaTask.handleWaitForSignal", 0);
