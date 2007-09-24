@@ -24,8 +24,17 @@
 #include "os/OsServerTask.h"
 #include "os/OsMsgPool.h"
 #include "mp/MpMediaTaskMsg.h"
+#include "mp/MpMediaTaskHelper.h"
 
 // DEFINES
+
+/**
+ *  how many additional threads will process frames. If set to 1
+ *  frames wont be processed in MpMediaTask but in MpMediaTaskHelper.
+ *  If set to 2, 2 threads will process frames in parallel. Set to total
+ *  number of cores in your server.
+ */
+#define FRAME_PROCESSING_THREADS 0
 
 // #define _PROFILE
 
@@ -346,6 +355,10 @@ private:
                                     ///< of the MpMediaTask class
    static OsBSem       sLock;       ///< @brief semaphore used to ensure that
                                     ///< there is only one instance of this class
+
+#if FRAME_PROCESSING_THREADS > 0
+   MpMediaTaskHelper* m_processingThreads[FRAME_PROCESSING_THREADS]; ///< how many additional threads will process frames
+#endif
 
 #ifdef _PROFILE /* [ */
    /// Start time (in microseconds) for the current frame processing interval
