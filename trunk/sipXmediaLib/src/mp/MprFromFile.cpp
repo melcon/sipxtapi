@@ -523,7 +523,8 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
                totalBytesRead += bytesLeft;
                mFileBufferIndex += bytesLeft;
             }
-         } else 
+         }
+         else 
          {
             if (mFileBufferIndex >= bufferLength) 
             {
@@ -539,10 +540,16 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
             }
          }
       }
+      else
+      {
+         // No audio buffer, pass through input data. It could occur if somebody wants to play file
+         // but supplies wrong filename. Then resource would be enabled but buffer would be NULL.
+         out.swap(inBufs[0]);
+      }
    }
    else
    {
-      // Resource is disabled. Passthrough input data
+      // Resource is disabled. Pass through input data
       out.swap(inBufs[0]);
    }
 
