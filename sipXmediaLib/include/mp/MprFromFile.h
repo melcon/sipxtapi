@@ -93,7 +93,7 @@ public:
      */
 
      /// Stop playing from file
-   OsStatus stopFile(void);
+   OsStatus stopPlayback(void);
      /**<
      *  Sends a STOP_FILE message to this resource to stop playing audio
      *  from file
@@ -117,9 +117,6 @@ public:
     *
     *  @returns the result of attempting to queue the message to this resource.
     */
-
-   virtual UtlBoolean enable(void);
-   virtual UtlBoolean disable(void);
 
 //@}
 
