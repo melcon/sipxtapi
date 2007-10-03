@@ -110,6 +110,14 @@ public:
      *  @returns the result of attempting to queue the message to this resource.
      */
 
+    /// @brief Sends an RESUME_PLAYBACK message to this resource to resume playing audio
+    OsStatus resumePlayback(void);
+    /**<
+    *  Sends an RESUME_PLAYBACK message to this resource to resume playing audio
+    *
+    *  @returns the result of attempting to queue the message to this resource.
+    */
+
    virtual UtlBoolean enable(void);
    virtual UtlBoolean disable(void);
 
@@ -138,7 +146,8 @@ private:
       STOP_FILE,
   	   PLAY_BUFFER,
 	   STOP_BUFFER,
-      PAUSE_PLAYBACK
+      PAUSE_PLAYBACK,
+      RESUME_PLAYBACK
    } AddlMsgTypes;
 
    typedef enum
@@ -207,6 +216,10 @@ private:
 
      /// Perform resetting of state, etc. upon receiving request to stop playing.
    virtual UtlBoolean handleStop(void);
+
+   virtual UtlBoolean handlePause(void);
+
+   virtual UtlBoolean handleResume(void);
 
    virtual UtlBoolean handleSetup(MpFlowGraphMsg& rMsg);
 

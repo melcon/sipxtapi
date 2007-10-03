@@ -529,6 +529,8 @@ typedef enum
                                      finished playing. */
     MEDIA_PLAYBUFFER_STOP,      /**< A buffer has completed playing or was
                                      aborted.*/
+    MEDIA_PLAYBACK_PAUSED,      /**< Playback of buffer/file has been paused */
+    MEDIA_PLAYBACK_RESUMED,      /**< Playback of buffer/file has been resumed */
     MEDIA_REMOTE_DTMF,          /**< A DTMF tone was started/stopped, see the
                                      cause codes for exact status */
     MEDIA_DEVICE_FAILURE,       /**< Fired if the media device is not present or
