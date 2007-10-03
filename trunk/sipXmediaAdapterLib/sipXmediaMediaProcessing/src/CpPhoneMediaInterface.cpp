@@ -1157,8 +1157,7 @@ OsStatus CpPhoneMediaInterface::playAudio(const char* url,
                                           UtlBoolean local,
                                           UtlBoolean remote,
                                           UtlBoolean mixWithMic,
-                                          int downScaling,
-                                          OsNotification *event)
+                                          int downScaling)
 {
     OsStatus returnCode = OS_NOT_FOUND;
     UtlString urlString;
@@ -1181,7 +1180,7 @@ OsStatus CpPhoneMediaInterface::playAudio(const char* url,
          }
 
         // Start playing the audio file
-        returnCode = mpFlowGraph->playFile(urlString.data(), repeat, toneOptions, event);
+        returnCode = mpFlowGraph->playFile(urlString.data(), repeat, toneOptions);
     }
 
     if(returnCode != OS_SUCCESS)
@@ -1244,7 +1243,7 @@ OsStatus CpPhoneMediaInterface::stopAudio()
     OsStatus returnCode = OS_NOT_FOUND;
     if(mpFlowGraph)
     {
-        mpFlowGraph->stopFile(TRUE);
+        mpFlowGraph->stopFile();
         returnCode = OS_SUCCESS;
     }
     return(returnCode);
@@ -1257,13 +1256,12 @@ OsStatus CpPhoneMediaInterface::playChannelAudio(int connectionId,
                                                  UtlBoolean local,
                                                  UtlBoolean remote,
                                                  UtlBoolean mixWithMic,
-                                                 int downScaling,
-                                                 OsNotification *event) 
+                                                 int downScaling) 
 {
     // TODO:: This API is designed to record the audio from a single channel.  
     // If the connectionId is -1, record all.
 
-    return playAudio(url, repeat, local, remote, mixWithMic, downScaling, event) ;
+    return playAudio(url, repeat, local, remote, mixWithMic, downScaling) ;
 }
 
 
