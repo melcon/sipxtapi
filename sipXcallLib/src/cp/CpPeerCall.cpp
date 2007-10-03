@@ -2264,6 +2264,12 @@ UtlBoolean CpPeerCall::handleInterfaceNotfMessage(OsMsg& eventMessage)
    case CP_NOTIFICATION_STOP_PLAY_BUFFER:
       forkSipXMediaEvent(MEDIA_PLAYBUFFER_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
       break;
+   case CP_NOTIFICATION_PAUSE_PLAYBACK:
+      forkSipXMediaEvent(MEDIA_PLAYBACK_PAUSED, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
+   case CP_NOTIFICATION_RESUME_PLAYBACK:
+      forkSipXMediaEvent(MEDIA_PLAYBACK_RESUMED, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
+      break;
    case CP_NOTIFICATION_RECORDING_STARTED:
       forkSipXMediaEvent(MEDIA_RECORDING_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData);
       break;

@@ -304,6 +304,12 @@ SIPXTAPI_API const char* sipxMediaEventToString(SIPX_MEDIA_EVENT event)
    case MEDIA_PLAYBUFFER_STOP:
       str = MAKESTR(MEDIA_PLAYBUFFER_STOP);
       break;
+   case MEDIA_PLAYBACK_PAUSED:
+      str = MAKESTR(MEDIA_PLAYBACK_PAUSED);
+      break;
+   case MEDIA_PLAYBACK_RESUMED:
+      str = MAKESTR(MEDIA_PLAYBACK_RESUMED);
+      break;
    case MEDIA_REMOTE_DTMF:
       str = MAKESTR(MEDIA_REMOTE_DTMF);
       break;

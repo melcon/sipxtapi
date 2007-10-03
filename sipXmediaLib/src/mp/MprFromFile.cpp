@@ -138,6 +138,12 @@ OsStatus MprFromFile::pausePlayback(void)
    return postMessage(msg);
 }
 
+OsStatus MprFromFile::resumePlayback(void)
+{
+   MpFlowGraphMsg msg(RESUME_PLAYBACK, this, NULL, NULL, 0, 0);
+   return postMessage(msg);
+}
+
 UtlBoolean MprFromFile::enable(void) //$$$
 {
    return MpResource::enable();
@@ -588,6 +594,28 @@ UtlBoolean MprFromFile::handleStop()
    return TRUE;
 }
 
+UtlBoolean MprFromFile::handlePause()
+{
+   if (mpFileBuffer && mIsEnabled)
+   {
+      sendInterfaceNotification(MP_NOTIFICATION_PAUSE_PLAYBACK, 0);
+      disable();
+   }
+
+   return TRUE;
+}
+
+UtlBoolean MprFromFile::handleResume()
+{
+   if (mpFileBuffer && !mIsEnabled)
+   {
+      sendInterfaceNotification(MP_NOTIFICATION_RESUME_PLAYBACK, 0);
+      enable();
+   }
+
+   return TRUE;
+}
+
 // Old flowgraph message approach to sending messages
 // DEPRECATED.  This will be removed once new messaging infrastructure
 // is solid.
@@ -613,6 +641,12 @@ UtlBoolean MprFromFile::handleMessage(MpFlowGraphMsg& rMsg)
    case STOP_BUFFER:
       sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_BUFFER, 0);
       return handleStop();
+
+   case PAUSE_PLAYBACK:
+      return handlePause();
+
+   case RESUME_PLAYBACK:
+      return handleResume();
 
    default:
       return MpAudioResource::handleMessage(rMsg);
