@@ -417,8 +417,7 @@ public:
                               UtlBoolean local, 
                               UtlBoolean remote,
                               UtlBoolean mixWithMic = false,
-                              int downScaling = 100,
-                              OsNotification *event = NULL) = 0 ;
+                              int downScaling = 100) = 0 ;
      /**<
      *
      *  @param[in] url - Audio url to be played -- The sipX implementation is limited 
@@ -441,8 +440,7 @@ public:
                                      UtlBoolean local, 
                                      UtlBoolean remote,
                                      UtlBoolean mixWithMic = false,
-                                     int downScaling = 100,
-                                     OsNotification *event = NULL) = 0 ;
+                                     int downScaling = 100) = 0 ;
 
      /// @brief Play the specified audio buffer to the call. 
    virtual OsStatus playBuffer(char* buf, 

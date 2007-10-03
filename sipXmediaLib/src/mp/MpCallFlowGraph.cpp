@@ -1192,8 +1192,9 @@ UtlBoolean MpCallFlowGraph::setupRecorder(RecorderChoice which,
 }
 
 // Start playing the indicated audio file.
-OsStatus MpCallFlowGraph::playFile(const char* audioFileName, UtlBoolean repeat,
-                                int toneOptions, OsNotification* event)
+OsStatus MpCallFlowGraph::playFile(const char* audioFileName,
+                                   UtlBoolean repeat,
+                                   int toneOptions)
 {
    OsStatus  res;
 
@@ -1203,7 +1204,7 @@ OsStatus MpCallFlowGraph::playFile(const char* audioFileName, UtlBoolean repeat,
    // call stuff in the CallFlowGraph -- a big nono in terms of separation)
    MpResource::setAllNotificationsEnabled(TRUE, mpFromFile->getName(), *getMsgQ());
 
-   res = mpFromFile->playFile(audioFileName, repeat, event);
+   res = mpFromFile->playFile(audioFileName, repeat);
 
    if (res == OS_SUCCESS)
    {
@@ -1242,15 +1243,17 @@ OsStatus MpCallFlowGraph::playBuffer(char* audioBuf,
 }
 
 // Stop playing the audio file.
-void MpCallFlowGraph::stopFile(UtlBoolean closeFile)
+void MpCallFlowGraph::stopFile()
 {
    OsStatus  res;
-   MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_STOP_PLAY, NULL,
-                   NULL, NULL, 0, 0);
 
    // mpFromFile->disable();
 
-   res = mpFromFile->stopFile();       assert(res == OS_SUCCESS);
+   res = mpFromFile->stopFile();
+   assert(res == OS_SUCCESS);
+
+   MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_STOP_PLAY, NULL,
+      NULL, NULL, 0, 0);
    res = postMessage(msg);
 
    // Shut off the tone generator/play sound input to the Mixer resource

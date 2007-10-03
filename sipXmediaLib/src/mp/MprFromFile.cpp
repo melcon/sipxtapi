@@ -48,9 +48,6 @@ const unsigned int MprFromFile::sFromFileReadBufferSize = 8000;
 
 static const unsigned int MAXFILESIZE = 50000000;
 static const unsigned int MINFILESIZE = 8000;
-extern int      samplesPerSecond;
-extern int      bitsPerSample;
-extern int      samplesPerFrame;
 
 // STATIC VARIABLE INITIALIZATIONS
 
@@ -96,9 +93,8 @@ OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize,
 
       m_playingFromFile = false;
 
-      // Don't pass the event in the PLAY_FILE message.
-      // That means that the file-play process can't pass signals
-      // back.  But we have already released the OsProtectedEvent.
+      // send message to this resource to start playing
+      // message will be processed in audio thread at the start of next audio frame
       MpFlowGraphMsg msg(PLAY_BUFFER, this, NULL, fgAudBuffer,
                          repeat ? PLAY_REPEAT : PLAY_ONCE, 0);
       res = postMessage(msg);
@@ -107,65 +103,25 @@ OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize,
    return res;
 }
 
-
-OsStatus MprFromFile::playBuffer(const UtlString& namedResource, 
-                                 OsMsgQ& fgQ, 
-                                 const char* audioBuffer, 
-                                 unsigned long bufSize, int type, 
-                                 UtlBoolean repeat, 
-                                 OsNotification* evt)
-{
-   UtlString* fgAudBuffer = NULL;
-   OsStatus stat = genericAudioBufToFGAudioBuf(fgAudBuffer, audioBuffer,
-                                               bufSize, type);
-
-   if(stat == OS_SUCCESS)
-   {
-      MpFromFileStartResourceMsg msg(namedResource, fgAudBuffer, repeat, evt);
-      stat = fgQ.send(msg, sOperationQueueTimeout);
-   }
-   return stat;
-}
-
-
-
-// old play file w/ file name & repeat option
 OsStatus MprFromFile::playFile(const char* audioFileName, 
-                               UtlBoolean repeat,
-                               OsNotification* notify)
+                               UtlBoolean repeat)
 {
    OsStatus stat;
    UtlString* audioBuffer = NULL;
-   stat = readAudioFile(audioBuffer, audioFileName, notify);
+   stat = readAudioFile(audioBuffer, audioFileName);
 
    //create a msg from the buffer
    if (audioBuffer && audioBuffer->length())
    {
       m_playingFromFile = true;
 
-	  MpFlowGraphMsg msg(PLAY_FILE, this, notify, audioBuffer,
+	   MpFlowGraphMsg msg(PLAY_FILE, this, NULL, audioBuffer,
                          repeat ? PLAY_REPEAT : PLAY_ONCE, 0);
 
       //now post the msg (with the audio data) to be played
       stat = postMessage(msg);
    }
 
-   return stat;
-}
-
-OsStatus MprFromFile::playFile(const UtlString& namedResource, 
-                               OsMsgQ& fgQ, 
-                               const UtlString& filename, 
-                               const UtlBoolean& repeat,
-                               OsNotification* evt)
-{
-   UtlString* audioBuffer = NULL;
-   OsStatus stat = readAudioFile(audioBuffer, filename, evt);
-   if(stat == OS_SUCCESS)
-   {
-      MpFromFileStartResourceMsg msg(namedResource, audioBuffer, repeat, evt);
-      stat = fgQ.send(msg, sOperationQueueTimeout);
-   }
    return stat;
 }
 
@@ -176,24 +132,11 @@ OsStatus MprFromFile::stopFile(void)
    return postMessage(msg);
 }
 
-// $$$ These enable and disable routines need more thought, as part of
-// $$$ the entire notification scheme.
-
-OsStatus MprFromFile::stopFile(const UtlString& namedResource, 
-                               OsMsgQ& fgQ)
+OsStatus MprFromFile::pausePlayback(void)
 {
-   MpResourceMsg msg(MpResourceMsg::MPRM_FROMFILE_STOP, namedResource);
-   return fgQ.send(msg, sOperationQueueTimeout);
+   MpFlowGraphMsg msg(PAUSE_PLAYBACK, this, NULL, NULL, 0, 0);
+   return postMessage(msg);
 }
-
-OsStatus MprFromFile::pauseFile(const UtlString& namedResource, 
-                                OsMsgQ& fgQ)
-{
-   MpResourceMsg msg(MpResourceMsg::MPRM_FROMFILE_PAUSE, namedResource);
-   return fgQ.send(msg, sOperationQueueTimeout);
-}
-
-
 
 UtlBoolean MprFromFile::enable(void) //$$$
 {
@@ -249,8 +192,7 @@ OsStatus MprFromFile::genericAudioBufToFGAudioBuf(UtlString*& fgAudioBuf,
 }
 
 OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
-                                    const char* audioFileName,
-                                    OsNotification* notify)
+                                    const char* audioFileName)
 {
    char* charBuffer = NULL;
    FILE* audioFilePtr = NULL;
@@ -618,12 +560,16 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
 
 UtlBoolean MprFromFile::handleSetup(MpFlowGraphMsg& rMsg)
 {
+   // replace internal buffer
    if(mpFileBuffer) delete mpFileBuffer;
    mpFileBuffer = (UtlString*) rMsg.getPtr2();
-   if(mpFileBuffer) {
+
+   if(mpFileBuffer)
+   {
       mFileBufferIndex = 0;
       mFileRepeat = (rMsg.getInt1() == PLAY_ONCE) ? FALSE : TRUE;
    }
+
    return TRUE;
 }
 
