@@ -386,7 +386,8 @@ int MpJitterBufferDefault::getOptimalPrefetchCount(unsigned int maxAnalyzeFrames
       // compute sum of all arrival diffs
       for (unsigned int i = 0; i < framesToAnalyze; i++)
       {
-         fEX += m_statistics.m_frameArrivalDiffs[index++];
+         fEX += m_statistics.m_frameArrivalDiffs[index];
+         index = (index + 1) % MAX_STATISTICS_SAMPLES;
       }
       // now compute EX
       fEX = fEX / framesToAnalyze;
@@ -400,7 +401,7 @@ int MpJitterBufferDefault::getOptimalPrefetchCount(unsigned int maxAnalyzeFrames
       {
          tmp = m_statistics.m_frameArrivalDiffs[index] - iEX;
          varX += (tmp * tmp);
-         index++;
+         index = (index + 1) % MAX_STATISTICS_SAMPLES;
       }
       varX = varX / framesToAnalyze;
 
