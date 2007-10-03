@@ -126,7 +126,7 @@ OsStatus MprFromFile::playFile(const char* audioFileName,
 }
 
 // stop file play
-OsStatus MprFromFile::stopFile(void)
+OsStatus MprFromFile::stopPlayback(void)
 {
    MpFlowGraphMsg msg((m_playingFromFile ? STOP_FILE : STOP_BUFFER), this, NULL, NULL, 0, 0);
    return postMessage(msg);
@@ -142,16 +142,6 @@ OsStatus MprFromFile::resumePlayback(void)
 {
    MpFlowGraphMsg msg(RESUME_PLAYBACK, this, NULL, NULL, 0, 0);
    return postMessage(msg);
-}
-
-UtlBoolean MprFromFile::enable(void) //$$$
-{
-   return MpResource::enable();
-}
-
-UtlBoolean MprFromFile::disable(void) //$$$
-{
-   return MpResource::disable();
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -545,7 +535,7 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
 
                // Send a message to tell this resource to stop playing the file
                // this resets some state, and sends a notification.
-               stopFile();
+               stopPlayback();
             }
          }
       }
@@ -616,9 +606,6 @@ UtlBoolean MprFromFile::handleResume()
    return TRUE;
 }
 
-// Old flowgraph message approach to sending messages
-// DEPRECATED.  This will be removed once new messaging infrastructure
-// is solid.
 UtlBoolean MprFromFile::handleMessage(MpFlowGraphMsg& rMsg)
 {
    switch (rMsg.getMsg()) 
@@ -629,7 +616,10 @@ UtlBoolean MprFromFile::handleMessage(MpFlowGraphMsg& rMsg)
       break;
 
    case STOP_FILE:
-      sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_FILE, 0);
+      if (mpFileBuffer && mIsEnabled)
+      {
+         sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_FILE, 0);
+      }
       return handleStop();
       break;
 
@@ -639,7 +629,10 @@ UtlBoolean MprFromFile::handleMessage(MpFlowGraphMsg& rMsg)
       break;
 
    case STOP_BUFFER:
-      sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_BUFFER, 0);
+      if (mpFileBuffer && mIsEnabled)
+      {
+         sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_BUFFER, 0);
+      }
       return handleStop();
 
    case PAUSE_PLAYBACK:

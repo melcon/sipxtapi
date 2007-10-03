@@ -1249,7 +1249,7 @@ void MpCallFlowGraph::stopFile()
 
    // mpFromFile->disable();
 
-   res = mpFromFile->stopFile();
+   res = mpFromFile->stopPlayback();
    assert(res == OS_SUCCESS);
 
    MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_STOP_PLAY, NULL,
