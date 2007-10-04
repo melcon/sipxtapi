@@ -1537,6 +1537,31 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStart(const SIPX_CALL hCall,
  */
 SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStop(const SIPX_CALL hCall); 
 
+/**
+ * Pause playing file or buffer on given call. Prior to attempting pause,
+ * playback on call must be started by sipxCallAudioPlayFileStart or
+ * sipxCallPlayBufferStart. SipXtapi can play only 1 buffer/file at time
+ * on a call. MEDIA_PLAYBACK_PAUSED event will be received if pause was
+ * successful.
+ *
+ * @param hCall Handle to a call.  Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackPause(const SIPX_CALL hCall);
+
+/**
+ * Resume playing file or buffer on given call. Prior to attempting resume,
+ * playback on call must be started by sipxCallAudioPlayFileStart or
+ * sipxCallPlayBufferStart and paused. SipXtapi can play only 1 buffer/file
+ * at time on a call. MEDIA_PLAYBACK_RESUMED event will be received if resume
+ * was successful.
+ *
+ * @param hCall Handle to a call.  Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackResume(const SIPX_CALL hCall);
 
 /**
  * Record a call session (including other parties if this is a multi-party 

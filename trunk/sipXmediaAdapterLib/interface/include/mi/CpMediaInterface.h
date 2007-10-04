@@ -452,6 +452,17 @@ public:
                                OsProtectedEvent* event = NULL,
                                UtlBoolean mixWithMic = false,
                                int downScaling = 100) = 0 ;
+
+   /**
+    * Pause playback of file or buffer.
+    */
+   virtual OsStatus pausePlayback() = 0;
+
+   /**
+    * Resume playback of file or buffer.
+    */
+   virtual OsStatus resumePlayback() = 0;
+
      /**<
      *
      *  @TODO This method should also specify the audio format (e.g. samples/per 

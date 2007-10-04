@@ -1249,6 +1249,27 @@ OsStatus CpPhoneMediaInterface::stopAudio()
     return(returnCode);
 }
 
+OsStatus CpPhoneMediaInterface::pausePlayback()
+{
+   OsStatus returnCode = OS_FAILED;
+
+   if(mpFlowGraph)
+   {
+      returnCode = mpFlowGraph->pausePlayback();
+   }
+   return(returnCode);
+}
+
+OsStatus CpPhoneMediaInterface::resumePlayback()
+{
+   OsStatus returnCode = OS_FAILED;
+
+   if(mpFlowGraph)
+   {
+      returnCode = mpFlowGraph->resumePlayback();
+   }
+   return(returnCode);
+}
 
 OsStatus CpPhoneMediaInterface::playChannelAudio(int connectionId,
                                                  const char* url,

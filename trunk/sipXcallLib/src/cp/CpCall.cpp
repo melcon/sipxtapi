@@ -195,7 +195,22 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                 }
             }
             break;
-
+        case CallManager::CP_PAUSE_AUDIO_PLAYBACK_CONNECTION:
+           {
+              if(mpMediaInterface)
+              {
+                 mpMediaInterface->pausePlayback();
+              }
+           }
+           break;
+        case CallManager::CP_RESUME_AUDIO_PLAYBACK_CONNECTION:
+           {
+              if(mpMediaInterface)
+              {
+                 mpMediaInterface->resumePlayback();
+              }
+           }
+           break;
         case CallManager::CP_STOP_AUDIO_TERM_CONNECTION:
             if(mpMediaInterface)
             {

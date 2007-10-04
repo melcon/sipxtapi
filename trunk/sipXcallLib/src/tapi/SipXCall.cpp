@@ -1851,6 +1851,57 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStop(const SIPX_CALL hCall)
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackPause(const SIPX_CALL hCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAudioPlaybackPause");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxCallAudioPlaybackPause hCall=%d", hCall);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
+
+   if (pData)
+   {
+      if (pData->nFilesPlaying)
+      {
+         // posts a message
+         pData->pInst->pCallManager->pauseAudioPlayback(pData->callId, pData->remoteAddress);
+         sr = SIPX_RESULT_SUCCESS;
+      }
+
+      sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackResume(const SIPX_CALL hCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAudioPlaybackResume");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxCallAudioPlaybackResume hCall=%d", hCall);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
+
+   if (pData)
+   {
+      if (pData->nFilesPlaying)
+      {
+         // posts a message
+         pData->pInst->pCallManager->resumeAudioPlayback(pData->callId, pData->remoteAddress);
+         sr = SIPX_RESULT_SUCCESS;
+      }
+
+      sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
+   }
+
+   return sr;
+}
+
+
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStart(const SIPX_CALL hCall,
                                                       const char* szFile) 

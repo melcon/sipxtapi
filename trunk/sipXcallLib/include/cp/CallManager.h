@@ -150,6 +150,8 @@ public:
     virtual void toneChannelStop(const char* callId, const char* szRemoteAddress);    
     virtual void audioPlay(const char* callId, const char* audioUrl, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, UtlBoolean mixWithMic = false, int downScaling = 100);
     virtual void audioStop(const char* callId);
+    virtual void pauseAudioPlayback(const UtlString& callId, const UtlString& szRemoteAddress);
+    virtual void resumeAudioPlayback(const UtlString& callId, const UtlString& szRemoteAddress);
     virtual void audioChannelPlay(const char* callId, const char* szRemoteAddress, const char* audioUrl, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, UtlBoolean mixWithMic = false, int downScaling = 100);
     virtual void audioChannelStop(const char* callId, const char* szRemoteAddress);
     virtual OsStatus audioChannelRecordStart(const char* callId, const char* szRemoteAddress, const char* szFile) ;
