@@ -1261,6 +1261,32 @@ void MpCallFlowGraph::stopFile()
    // boolRes = mpTFsBridgeMixer->enable();   assert(boolRes);
 }
 
+OsStatus MpCallFlowGraph::pausePlayback()
+{
+   OsStatus returnCode = OS_FAILED;
+
+   if (mpFromFile)
+   {
+      returnCode = mpFromFile->pausePlayback();
+      assert(returnCode == OS_SUCCESS);
+   }
+   
+   return returnCode;
+}
+
+OsStatus MpCallFlowGraph::resumePlayback()
+{
+   OsStatus returnCode = OS_FAILED;
+
+   if (mpFromFile)
+   {
+      returnCode = mpFromFile->resumePlayback();
+      assert(returnCode == OS_SUCCESS);
+   }
+
+   return returnCode;
+}
+
 MpConnectionID MpCallFlowGraph::createConnection(OsMsgQ* pConnectionNotificationQueue)
 {
    int            i;

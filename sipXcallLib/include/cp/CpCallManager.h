@@ -127,6 +127,8 @@ public:
         CP_GET_CALLING_ADDRESSES,
         CP_PLAY_AUDIO_TERM_CONNECTION,
         CP_STOP_AUDIO_TERM_CONNECTION,
+        CP_PAUSE_AUDIO_PLAYBACK_CONNECTION,
+        CP_RESUME_AUDIO_PLAYBACK_CONNECTION,
         CP_IS_LOCAL_TERM_CONNECTION,
         CP_HOLD_TERM_CONNECTION, 
         CP_UNHOLD_TERM_CONNECTION, //40
@@ -353,6 +355,10 @@ public:
     /*! Direct the media subsystem to stop playing audio.
      */
     virtual void audioStop(const char* callId) = 0;
+
+    virtual void pauseAudioPlayback(const UtlString& callId, const UtlString& szRemoteAddress) = 0;
+
+    virtual void resumeAudioPlayback(const UtlString& callId, const UtlString& szRemoteAddress) = 0;
 
     //! Deprecated, use the player controls
     /*! Direct the media subsystem to play audio from a data buffer.

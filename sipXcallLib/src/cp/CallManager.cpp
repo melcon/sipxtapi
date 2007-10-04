@@ -685,6 +685,8 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_STOP_TONE_CONNECTION:
         case CP_PLAY_AUDIO_TERM_CONNECTION:        
         case CP_STOP_AUDIO_TERM_CONNECTION:
+        case CP_PAUSE_AUDIO_PLAYBACK_CONNECTION:
+        case CP_RESUME_AUDIO_PLAYBACK_CONNECTION:
         case CP_PLAY_AUDIO_CONNECTION:        
         case CP_STOP_AUDIO_CONNECTION:
         case CP_RECORD_AUDIO_CONNECTION_START:
@@ -1239,6 +1241,17 @@ void CallManager::audioStop(const char* callId)
     postMessage(stopAudioMessage);
 }
 
+void CallManager::pauseAudioPlayback(const UtlString& callId, const UtlString& szRemoteAddress)
+{
+   CpMultiStringMessage stopAudioMessage(CP_PAUSE_AUDIO_PLAYBACK_CONNECTION, callId, szRemoteAddress);
+   postMessage(stopAudioMessage);
+}
+
+void CallManager::resumeAudioPlayback(const UtlString& callId, const UtlString& szRemoteAddress)
+{
+   CpMultiStringMessage stopAudioMessage(CP_RESUME_AUDIO_PLAYBACK_CONNECTION, callId, szRemoteAddress);
+   postMessage(stopAudioMessage);
+}
 
 void CallManager::toneChannelStart(const char* callId, const char* szRemoteAddress, int toneId, UtlBoolean local, UtlBoolean remote)
 {

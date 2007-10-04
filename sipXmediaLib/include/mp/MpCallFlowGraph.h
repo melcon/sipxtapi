@@ -233,6 +233,17 @@ public:
      *  @param closeFile - TRUE/FALSE whether to close the audio file.
      */
 
+   /**
+    * Pause playback of buffer or file.
+    */
+   OsStatus pausePlayback();
+
+   /**
+    * Resume playback of buffer or file.
+    */
+   OsStatus resumePlayback();
+
+
      /// Starts sending RTP and RTCP packets.
    void startSendRtp(OsSocket& rRtpSocket, OsSocket& rRtcpSocket,
                      MpConnectionID connID=1, SdpCodec* pPrimaryCodec = NULL,

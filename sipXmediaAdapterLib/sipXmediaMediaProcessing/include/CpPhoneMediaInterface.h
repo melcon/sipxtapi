@@ -176,6 +176,10 @@ public:
 
     virtual OsStatus stopAudio();
 
+    virtual OsStatus pausePlayback();
+
+    virtual OsStatus resumePlayback();
+
     virtual OsStatus playChannelAudio(int connectionId,
                                      const char* url,
                                      UtlBoolean repeat,
