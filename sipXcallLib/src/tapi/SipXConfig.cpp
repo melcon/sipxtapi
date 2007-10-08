@@ -118,7 +118,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigInitLogging(const char* szFilename, SIPX_LOG_
 {
    SIPX_RESULT res = SIPX_RESULT_FAILURE;
 
-#ifdef LOG_TO_FILE
+#ifdef ENABLE_LOGGING
    // Start up logger thread
    if (initLogger() == OS_SUCCESS)
    {
@@ -140,7 +140,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogLevel(SIPX_LOG_LEVEL logLevel)
 {
    SIPX_RESULT res = SIPX_RESULT_FAILURE;
 
-#ifdef LOG_TO_FILE
+#ifdef ENABLE_LOGGING
    if (OsSysLog::setLoggingPriority((OsSysLogPriority)logLevel) == OS_SUCCESS)
    {
       res = SIPX_RESULT_SUCCESS;
@@ -155,7 +155,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogFile(const char* szFilename)
 {
    SIPX_RESULT res = SIPX_RESULT_FAILURE;
 
-#ifdef LOG_TO_FILE
+#ifdef ENABLE_LOGGING
    if (OsSysLog::setOutputFile(0, szFilename) == OS_SUCCESS)
    {
       res = SIPX_RESULT_SUCCESS;
@@ -169,7 +169,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogCallback(sipxLogCallback pCallback)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetLogCallback");
 
-#ifdef LOG_TO_FILE
+#ifdef ENABLE_LOGGING
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
 
    if (OsSysLog::setCallbackFunction(pCallback) == OS_SUCCESS)

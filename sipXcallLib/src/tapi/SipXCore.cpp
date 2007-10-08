@@ -320,7 +320,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxInitialize");
 
-#ifdef LOG_TO_FILE
+#ifdef ENABLE_LOGGING
    // Start up logger thread if logging is on
    if (initLogger() == OS_SUCCESS)
    {
