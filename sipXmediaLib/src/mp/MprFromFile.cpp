@@ -94,6 +94,7 @@ OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize,
       }
 
       m_playingFromFile = false;
+      m_pCookie = pCookie;
 
       // send message to this resource to start playing
       // message will be processed in audio thread at the start of next audio frame
@@ -117,6 +118,7 @@ OsStatus MprFromFile::playFile(const char* audioFileName,
    if (audioBuffer && audioBuffer->length())
    {
       m_playingFromFile = true;
+      m_pCookie = pCookie;
 
 	   MpFlowGraphMsg msg(PLAY_FILE, this, NULL, audioBuffer,
                          repeat ? PLAY_REPEAT : PLAY_ONCE, 0);
@@ -574,6 +576,16 @@ UtlBoolean MprFromFile::handleSetup(MpFlowGraphMsg& rMsg)
    {
       mFileBufferIndex = 0;
       mFileRepeat = (rMsg.getInt1() == PLAY_ONCE) ? FALSE : TRUE;
+
+      switch (rMsg.getMsg()) 
+      {
+      case PLAY_BUFFER:
+         sendInterfaceNotification(MP_NOTIFICATION_START_PLAY_BUFFER, (intptr_t)m_pCookie, mFileBufferIndex);
+         break;
+      case PLAY_FILE:
+         sendInterfaceNotification(MP_NOTIFICATION_START_PLAY_FILE, (intptr_t)m_pCookie, mFileBufferIndex);
+         break;
+      }
    }
 
    return TRUE;
@@ -581,11 +593,22 @@ UtlBoolean MprFromFile::handleSetup(MpFlowGraphMsg& rMsg)
 
 // this is used in both old and new messaging schemes to do reset state
 // and send notification when stop is requested.
-UtlBoolean MprFromFile::handleStop()
+UtlBoolean MprFromFile::handleStop(MpFlowGraphMsg& rMsg)
 {
    // Send a notification -- we don't really care at this level if
    // it succeeded or not.
-   sendFileDoneNotification();
+   if (mpFileBuffer && mIsEnabled)
+   {
+      switch (rMsg.getMsg()) 
+      {
+      case STOP_FILE:
+         sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_FILE, (intptr_t)m_pCookie, mFileBufferIndex);
+         break;
+      case STOP_BUFFER:
+         sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_BUFFER, (intptr_t)m_pCookie, mFileBufferIndex);
+         break;
+      }
+   }
 
    delete mpFileBuffer;
    mpFileBuffer = NULL;
@@ -598,7 +621,7 @@ UtlBoolean MprFromFile::handlePause()
 {
    if (mpFileBuffer && mIsEnabled)
    {
-      sendInterfaceNotification(MP_NOTIFICATION_PAUSE_PLAYBACK, 0);
+      sendInterfaceNotification(MP_NOTIFICATION_PAUSE_PLAYBACK, (intptr_t)m_pCookie, mFileBufferIndex);
       disable();
    }
 
@@ -609,7 +632,7 @@ UtlBoolean MprFromFile::handleResume()
 {
    if (mpFileBuffer && !mIsEnabled)
    {
-      sendInterfaceNotification(MP_NOTIFICATION_RESUME_PLAYBACK, 0);
+      sendInterfaceNotification(MP_NOTIFICATION_RESUME_PLAYBACK, (intptr_t)m_pCookie, mFileBufferIndex);
       enable();
    }
 
@@ -620,31 +643,14 @@ UtlBoolean MprFromFile::handleMessage(MpFlowGraphMsg& rMsg)
 {
    switch (rMsg.getMsg()) 
    {
-   case PLAY_FILE:
-      sendInterfaceNotification(MP_NOTIFICATION_START_PLAY_FILE, 0);
-      return handleSetup(rMsg);
-      break;
-
-   case STOP_FILE:
-      if (mpFileBuffer && mIsEnabled)
-      {
-         sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_FILE, 0);
-      }
-      return handleStop();
-      break;
-
    case PLAY_BUFFER:
-      sendInterfaceNotification(MP_NOTIFICATION_START_PLAY_BUFFER, 0);
+   case PLAY_FILE:
       return handleSetup(rMsg);
       break;
-
    case STOP_BUFFER:
-      if (mpFileBuffer && mIsEnabled)
-      {
-         sendInterfaceNotification(MP_NOTIFICATION_STOP_PLAY_BUFFER, 0);
-      }
-      return handleStop();
-
+   case STOP_FILE:
+      return handleStop(rMsg);
+      break;
    case PAUSE_PLAYBACK:
       return handlePause();
 
@@ -683,10 +689,10 @@ UtlBoolean MprFromFile::handleMessage(MpResourceMsg& rMsg)
       msgHandled = TRUE;
       break;
 
-   case MpResourceMsg::MPRM_FROMFILE_STOP:
-      handleStop();
+   /*case MpResourceMsg::MPRM_FROMFILE_STOP:
+      handleStop(); // this will never be called as this msg handling is disabled
       msgHandled = TRUE;
-      break;
+      break;*/
 
    default:
       // If we don't handle the message here, let our parent try.
@@ -694,15 +700,6 @@ UtlBoolean MprFromFile::handleMessage(MpResourceMsg& rMsg)
       break;
    }
    return msgHandled;
-}
-
-OsStatus MprFromFile::sendFileDoneNotification()
-{
-   MpFlowGraphBase* pFg = getFlowGraph();
-   assert(pFg != NULL);
-
-   MpResNotificationMsg msg(MpResNotificationMsg::MPRNM_FROMFILE_STOP, getName());
-   return pFg->postNotification(msg);
 }
 
 /* ============================ FUNCTIONS ================================= */

@@ -637,7 +637,10 @@ void MpFlowGraphBase::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificati
    assert(FALSE);
 }
 
-void MpFlowGraphBase::sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, intptr_t msgData /*= 0*/)
+void MpFlowGraphBase::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
+                                                MpNotificationMsgType msgSubType,
+                                                intptr_t msgData1 /*= 0*/,
+                                                intptr_t msgData2)
 {
    // not implemented here
    assert(FALSE);

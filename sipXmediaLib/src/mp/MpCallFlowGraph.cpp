@@ -1502,12 +1502,14 @@ void MpCallFlowGraph::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificati
 
 void MpCallFlowGraph::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
                                                 MpNotificationMsgType msgSubType,
-                                                intptr_t msgData)
+                                                intptr_t msgData1,
+                                                intptr_t msgData2)
 {
    if (m_pInterfaceNotificationQueue)
    {
       // create message and send it to interface notification queue
-      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia, (intptr_t)msgSubType, msgData);
+      OsIntPtrMsg interfaceMsg(OsMsg::MP_INTERFACE_NOTF_MSG, (unsigned char)msgMedia,
+                              (intptr_t)msgSubType, msgData1, msgData2);
       m_pInterfaceNotificationQueue->send(interfaceMsg, OsTime::NO_WAIT_TIME);
    }
 }
