@@ -312,7 +312,10 @@ public:
    /**
    * Sends interface notification to interface notification queue if it was supplied
    */
-   virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia, MpNotificationMsgType msgSubType, intptr_t msgData = 0);
+   virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
+                                          MpNotificationMsgType msgSubType,
+                                          intptr_t msgData1 = 0,
+                                          intptr_t msgData2 = 0);
 
 //@}
 

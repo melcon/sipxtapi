@@ -210,7 +210,7 @@ private:
                                     int samplesPerSecond=8000);
 
      /// Perform resetting of state, etc. upon receiving request to stop playing.
-   virtual UtlBoolean handleStop(void);
+   virtual UtlBoolean handleStop(MpFlowGraphMsg& rMsg);
 
    virtual UtlBoolean handlePause(void);
 
@@ -223,9 +223,6 @@ private:
 
      /// Handle resource messages for this resource (new messaging model - 2007).
    virtual UtlBoolean handleMessage(MpResourceMsg& rMsg);
-
-     /// Send a Resource Notification message indicating file is done playing.
-   OsStatus sendFileDoneNotification();
 
      /// Copy constructor (not implemented for this class)
    MprFromFile(const MprFromFile& rMprFromFile);
