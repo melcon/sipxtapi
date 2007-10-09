@@ -56,7 +56,7 @@ public:
 
       /// Play sound from buffer w/repeat option
     OsStatus playBuffer(const char* audioBuffer, unsigned long bufSize, 
-                        int type, UtlBoolean repeat, OsProtectedEvent* notify);
+                        int type, UtlBoolean repeat, OsProtectedEvent* notify, void* pCookie = NULL);
       /**<
       *  @param type - can be one of following:  (need a OsSoundType)<br>
       *  0 = RAW<br>
@@ -73,7 +73,7 @@ public:
       /// Play sound from buffer w/repeat option
 
      /// Old Play from file w/file name and repeat option
-   OsStatus playFile(const char* fileName, UtlBoolean repeat);
+   OsStatus playFile(const char* fileName, UtlBoolean repeat, void* pCookie = NULL);
      /**<
      *  Note: if this resource is deleted before <I>stopFile</I> is called, it
      *  will close the file.
@@ -84,9 +84,6 @@ public:
      *  @param repeat - TRUE/FALSE after the fromFile reaches the end of
      *   the file, go back to the beginning and continue to play.  Note this
      *   assumes that the file was opened for read.
-     *
-     *  @param event - an event to signal when state changes.  If NULL,
-     *  nothing will be signaled.
      *
      *  @returns the result of attempting to queue the message to this
      *  resource and/or opening the named file.
@@ -156,6 +153,7 @@ private:
    static const unsigned int sFromFileReadBufferSize;
 
    UtlString* mpFileBuffer;
+   void* m_pCookie;
    int mFileBufferIndex;
    UtlBoolean mFileRepeat;
    bool m_playingFromFile;

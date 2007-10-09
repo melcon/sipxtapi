@@ -161,7 +161,8 @@ public:
                               UtlBoolean local, 
                               UtlBoolean remote,
                               UtlBoolean mixWithMic = false,
-                              int downScaling = 100);
+                              int downScaling = 100,
+                              void* pCookie = NULL);
 
 
     virtual OsStatus playBuffer(char* buf, 
@@ -172,7 +173,8 @@ public:
                               UtlBoolean remote,
                               OsProtectedEvent* event = NULL,
                               UtlBoolean mixWithMic = false,
-                              int downScaling = 100);
+                              int downScaling = 100,
+                              void* pCookie = NULL);
 
     virtual OsStatus stopAudio();
 
@@ -186,7 +188,8 @@ public:
                                      UtlBoolean local,
                                      UtlBoolean remote,
                                      UtlBoolean mixWithMic = false,
-                                     int downScaling = 100) ;
+                                     int downScaling = 100,
+                                     void* pCookie = NULL) ;
 
 
    virtual OsStatus stopChannelAudio(int connectionId) ;

@@ -417,7 +417,8 @@ public:
                               UtlBoolean local, 
                               UtlBoolean remote,
                               UtlBoolean mixWithMic = false,
-                              int downScaling = 100) = 0 ;
+                              int downScaling = 100,
+                              void* pCookie = NULL) = 0 ;
      /**<
      *
      *  @param[in] url - Audio url to be played -- The sipX implementation is limited 
@@ -440,7 +441,8 @@ public:
                                      UtlBoolean local, 
                                      UtlBoolean remote,
                                      UtlBoolean mixWithMic = false,
-                                     int downScaling = 100) = 0 ;
+                                     int downScaling = 100,
+                                     void* pCookie = NULL) = 0 ;
 
      /// @brief Play the specified audio buffer to the call. 
    virtual OsStatus playBuffer(char* buf, 
@@ -451,7 +453,8 @@ public:
                                UtlBoolean remote,
                                OsProtectedEvent* event = NULL,
                                UtlBoolean mixWithMic = false,
-                               int downScaling = 100) = 0 ;
+                               int downScaling = 100,
+                               void* pCookie = NULL) = 0 ;
 
    /**
     * Pause playback of file or buffer.
