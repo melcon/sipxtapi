@@ -114,7 +114,9 @@ void SipXMediaEventListener::OnMediaPlayfileStart( const CpMediaEvent& event )
                       MEDIA_PLAYFILE_START,
                       event.m_Cause,
                       event.m_MediaType,
-                      event.m_pEventData);
+                      event.m_pEventData,
+                      event.m_pCookie,
+                      event.m_playBufferIndex);
 }
 
 void SipXMediaEventListener::OnMediaPlayfileStop( const CpMediaEvent& event )
@@ -126,7 +128,9 @@ void SipXMediaEventListener::OnMediaPlayfileStop( const CpMediaEvent& event )
                       MEDIA_PLAYFILE_STOP,
                       event.m_Cause,
                       event.m_MediaType,
-                      event.m_pEventData);
+                      event.m_pEventData,
+                      event.m_pCookie,
+                      event.m_playBufferIndex);
 }
 
 void SipXMediaEventListener::OnMediaPlaybufferStart( const CpMediaEvent& event )
@@ -138,7 +142,9 @@ void SipXMediaEventListener::OnMediaPlaybufferStart( const CpMediaEvent& event )
                       MEDIA_PLAYBUFFER_START,
                       event.m_Cause,
                       event.m_MediaType,
-                      event.m_pEventData);
+                      event.m_pEventData,
+                      event.m_pCookie,
+                      event.m_playBufferIndex);
 }
 
 void SipXMediaEventListener::OnMediaPlaybufferStop( const CpMediaEvent& event )
@@ -150,7 +156,9 @@ void SipXMediaEventListener::OnMediaPlaybufferStop( const CpMediaEvent& event )
                       MEDIA_PLAYBUFFER_STOP,
                       event.m_Cause,
                       event.m_MediaType,
-                      event.m_pEventData);
+                      event.m_pEventData,
+                      event.m_pCookie,
+                      event.m_playBufferIndex);
 }
 
 void SipXMediaEventListener::OnMediaPlaybackPaused( const CpMediaEvent& event )
@@ -162,7 +170,9 @@ void SipXMediaEventListener::OnMediaPlaybackPaused( const CpMediaEvent& event )
       MEDIA_PLAYBACK_PAUSED,
       event.m_Cause,
       event.m_MediaType,
-      event.m_pEventData);
+      event.m_pEventData,
+      event.m_pCookie,
+      event.m_playBufferIndex);
 }
 
 void SipXMediaEventListener::OnMediaPlaybackResumed( const CpMediaEvent& event )
@@ -174,7 +184,9 @@ void SipXMediaEventListener::OnMediaPlaybackResumed( const CpMediaEvent& event )
       MEDIA_PLAYBACK_RESUMED,
       event.m_Cause,
       event.m_MediaType,
-      event.m_pEventData);
+      event.m_pEventData,
+      event.m_pCookie,
+      event.m_playBufferIndex);
 }
 
 void SipXMediaEventListener::OnMediaRemoteDTMF( const CpMediaEvent& event )

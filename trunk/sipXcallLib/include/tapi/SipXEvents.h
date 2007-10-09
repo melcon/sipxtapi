@@ -75,7 +75,9 @@ void sipxFireMediaEvent(SIPX_INST pInst,
                         SIPX_MEDIA_EVENT event,
                         SIPX_MEDIA_CAUSE cause,
                         SIPX_MEDIA_TYPE type,
-                        void* pEventData);
+                        void* pEventData = NULL,
+                        void* pCookie = NULL,
+                        int playBufferIndex = 0);
 
 /**
 * Fires SipPimClient events

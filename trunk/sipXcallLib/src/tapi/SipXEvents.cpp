@@ -1881,7 +1881,9 @@ void sipxFireMediaEvent(SIPX_INST pInst,
                         SIPX_MEDIA_EVENT event,
                         SIPX_MEDIA_CAUSE cause,
                         SIPX_MEDIA_TYPE type,
-                        void* pEventData) 
+                        void* pEventData,
+                        void* pCookie,
+                        int playBufferIndex)
 {
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxFireMediaEvent Src=%p CallId=%s RemoteAddress=%s Event=%s:%s type=%d",
@@ -2002,6 +2004,8 @@ void sipxFireMediaEvent(SIPX_INST pInst,
          mediaInfo.cause = cause;
          mediaInfo.mediaType = type;
          mediaInfo.hCall = hCall;
+         mediaInfo.pCookie = pCookie;
+         mediaInfo.playBufferIndex = playBufferIndex;
 
          switch (event)
          {

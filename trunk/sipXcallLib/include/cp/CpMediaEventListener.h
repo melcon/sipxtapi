@@ -40,8 +40,21 @@ public:
    UtlString m_sSessionCallId;
    UtlString m_sRemoteAddress;
    void* m_pEventData;
+   void* m_pCookie;
+   int m_playBufferIndex;
    SIPX_MEDIA_CAUSE m_Cause;
    SIPX_MEDIA_TYPE m_MediaType;
+
+   CpMediaEvent() : m_sCallId(NULL)
+   , m_sSessionCallId(NULL)
+   , m_sRemoteAddress(NULL)
+   , m_pEventData(NULL)
+   , m_pCookie(NULL)
+   , m_playBufferIndex(0)
+   , m_Cause(MEDIA_CAUSE_NORMAL)
+   , m_MediaType(MEDIA_TYPE_AUDIO)
+   {
+   }
 };
 
 
