@@ -153,6 +153,30 @@ void SipXMediaEventListener::OnMediaPlaybufferStop( const CpMediaEvent& event )
                       event.m_pEventData);
 }
 
+void SipXMediaEventListener::OnMediaPlaybackPaused( const CpMediaEvent& event )
+{
+   sipxFireMediaEvent(m_pInst,
+      event.m_sCallId,
+      event.m_sSessionCallId,
+      event.m_sRemoteAddress,
+      MEDIA_PLAYBACK_PAUSED,
+      event.m_Cause,
+      event.m_MediaType,
+      event.m_pEventData);
+}
+
+void SipXMediaEventListener::OnMediaPlaybackResumed( const CpMediaEvent& event )
+{
+   sipxFireMediaEvent(m_pInst,
+      event.m_sCallId,
+      event.m_sSessionCallId,
+      event.m_sRemoteAddress,
+      MEDIA_PLAYBACK_RESUMED,
+      event.m_Cause,
+      event.m_MediaType,
+      event.m_pEventData);
+}
+
 void SipXMediaEventListener::OnMediaRemoteDTMF( const CpMediaEvent& event )
 {
    sipxFireMediaEvent(m_pInst,

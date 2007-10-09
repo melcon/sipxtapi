@@ -678,6 +678,12 @@ void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
       case MEDIA_PLAYBUFFER_STOP:
          m_pMediaEventListener->OnMediaPlaybufferStop(mediaEvent);
          break;
+      case MEDIA_PLAYBACK_PAUSED:
+         m_pMediaEventListener->OnMediaPlaybackPaused(mediaEvent);
+         break;
+      case MEDIA_PLAYBACK_RESUMED:
+         m_pMediaEventListener->OnMediaPlaybackResumed(mediaEvent);
+         break;
       case MEDIA_REMOTE_DTMF:
          m_pMediaEventListener->OnMediaRemoteDTMF(mediaEvent);
          break;

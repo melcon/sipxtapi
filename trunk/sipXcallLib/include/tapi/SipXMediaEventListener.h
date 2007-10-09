@@ -66,6 +66,10 @@ public:
 
    virtual void OnMediaPlaybufferStop(const CpMediaEvent& event);
 
+   virtual void OnMediaPlaybackPaused(const CpMediaEvent& event);
+
+   virtual void OnMediaPlaybackResumed(const CpMediaEvent& event);
+
    virtual void OnMediaRemoteDTMF(const CpMediaEvent& event);
 
    virtual void OnMediaDeviceFailure(const CpMediaEvent& event);
