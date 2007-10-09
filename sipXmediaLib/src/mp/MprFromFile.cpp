@@ -61,7 +61,8 @@ MprFromFile::MprFromFile(const UtlString& rName,
 :  MpAudioResource(rName, 0, 1, 1, 1, samplesPerFrame, samplesPerSec),
    mpFileBuffer(NULL),
    mFileRepeat(FALSE),
-   m_playingFromFile(false)
+   m_playingFromFile(false),
+   m_pCookie(NULL)
 {
 }
 
@@ -75,7 +76,8 @@ MprFromFile::~MprFromFile()
 /* ============================ MANIPULATORS ============================== */
 
 OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize, 
-                                 int type, UtlBoolean repeat, OsProtectedEvent* notify)
+                                 int type, UtlBoolean repeat, OsProtectedEvent* notify,
+                                 void* pCookie)
 {
    UtlString* fgAudBuffer = NULL;
    OsStatus res = genericAudioBufToFGAudioBuf(fgAudBuffer, audioBuffer, 
@@ -104,7 +106,8 @@ OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize,
 }
 
 OsStatus MprFromFile::playFile(const char* audioFileName, 
-                               UtlBoolean repeat)
+                               UtlBoolean repeat,
+                               void* pCookie)
 {
    OsStatus stat;
    UtlString* audioBuffer = NULL;

@@ -2046,19 +2046,19 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
             int remote =  ((CpMultiStringMessage&)eventMessage).getInt3Data();
             UtlBoolean mixWithMic = ((CpMultiStringMessage&)eventMessage).getInt4Data();
             int downScaling = ((CpMultiStringMessage&)eventMessage).getInt5Data();
-
+            void* pCookie = (void*)((CpMultiStringMessage&)eventMessage).getInt6Data();
 
             Connection* connection = findHandlingConnection(remoteAddress);
             if (connection && mpMediaInterface)
             {   
                 int connectionId = connection->getConnectionId() ;
                 mpMediaInterface->playChannelAudio(connectionId, url, repeat, 
-                                                   local, remote, mixWithMic, downScaling) ;
+                                                   local, remote, mixWithMic, downScaling, pCookie) ;
             }     
             else if (mpMediaInterface)
             {
                 mpMediaInterface->playAudio(url, repeat, local, remote, 
-                        mixWithMic, downScaling);
+                        mixWithMic, downScaling, pCookie);
             }
 
         }

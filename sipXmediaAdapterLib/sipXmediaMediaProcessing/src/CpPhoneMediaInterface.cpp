@@ -1157,7 +1157,8 @@ OsStatus CpPhoneMediaInterface::playAudio(const char* url,
                                           UtlBoolean local,
                                           UtlBoolean remote,
                                           UtlBoolean mixWithMic,
-                                          int downScaling)
+                                          int downScaling,
+                                          void* pCookie)
 {
     OsStatus returnCode = OS_NOT_FOUND;
     UtlString urlString;
@@ -1180,7 +1181,7 @@ OsStatus CpPhoneMediaInterface::playAudio(const char* url,
          }
 
         // Start playing the audio file
-        returnCode = mpFlowGraph->playFile(urlString.data(), repeat, toneOptions);
+        returnCode = mpFlowGraph->playFile(urlString.data(), repeat, toneOptions, pCookie);
     }
 
     if(returnCode != OS_SUCCESS)
@@ -1199,7 +1200,8 @@ OsStatus CpPhoneMediaInterface::playBuffer(char* buf,
                                            UtlBoolean remote, 
                                            OsProtectedEvent* pEvent,
                                            UtlBoolean mixWithMic,
-                                           int downScaling)
+                                           int downScaling,
+                                           void* pCookie)
 {
     OsStatus returnCode = OS_NOT_FOUND;
     if(mpFlowGraph && buf)
@@ -1217,7 +1219,7 @@ OsStatus CpPhoneMediaInterface::playBuffer(char* buf,
          }
 
         // Start playing the audio file
-        returnCode = mpFlowGraph->playBuffer(buf, bufSize, type, repeat, toneOptions, NULL);
+        returnCode = mpFlowGraph->playBuffer(buf, bufSize, type, repeat, toneOptions, NULL, pCookie);
     }
 
     if(returnCode != OS_SUCCESS)
@@ -1277,12 +1279,13 @@ OsStatus CpPhoneMediaInterface::playChannelAudio(int connectionId,
                                                  UtlBoolean local,
                                                  UtlBoolean remote,
                                                  UtlBoolean mixWithMic,
-                                                 int downScaling) 
+                                                 int downScaling,
+                                                 void* pCookie) 
 {
     // TODO:: This API is designed to record the audio from a single channel.  
     // If the connectionId is -1, record all.
 
-    return playAudio(url, repeat, local, remote, mixWithMic, downScaling) ;
+    return playAudio(url, repeat, local, remote, mixWithMic, downScaling, pCookie) ;
 }
 
 

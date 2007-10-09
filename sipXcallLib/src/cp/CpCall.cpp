@@ -186,12 +186,13 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                 int buffer = ((CpMultiStringMessage&)eventMessage).getInt5Data();
                 int bufSize = ((CpMultiStringMessage&)eventMessage).getInt6Data();
                 int type = ((CpMultiStringMessage&)eventMessage).getInt7Data();
+                void* pCookie = (void*)((CpMultiStringMessage&)eventMessage).getInt8Data();
                 OsProtectedEvent* ev = (OsProtectedEvent*) ((CpMultiStringMessage&)eventMessage).getInt1Data();
 
                 if(mpMediaInterface)
                 {
                     mpMediaInterface->playBuffer((char*)buffer,
-                    bufSize, type, repeat, local, remote, ev);
+                    bufSize, type, repeat, local, remote, ev, false, 100, pCookie);
                 }
             }
             break;

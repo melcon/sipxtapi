@@ -211,7 +211,8 @@ public:
                   int type,
                   UtlBoolean repeat,
                   int toneOptions,
-                  OsProtectedEvent* event = NULL);
+                  OsProtectedEvent* event = NULL,
+                  void* pCookie = NULL);
 
      /// Start playing audio from a file
    OsStatus playFile( const char* audioFileName ///< name of the audio file
@@ -221,7 +222,7 @@ public:
                     , int toneOptions   ///< TONE_TO_SPKR/TONE_TO_NET file audio
                                         ///< played locally or both locally and
                                         ///< remotely.
-                    );
+                    , void* pCookie = NULL);
      /**<
      *  @returns <b>OS_INVALID_ARGUMENT</b> - if open on the given file name
      *                                        failed.

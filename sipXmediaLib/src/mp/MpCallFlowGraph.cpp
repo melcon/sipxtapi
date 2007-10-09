@@ -1194,7 +1194,8 @@ UtlBoolean MpCallFlowGraph::setupRecorder(RecorderChoice which,
 // Start playing the indicated audio file.
 OsStatus MpCallFlowGraph::playFile(const char* audioFileName,
                                    UtlBoolean repeat,
-                                   int toneOptions)
+                                   int toneOptions,
+                                   void* pCookie)
 {
    OsStatus  res;
 
@@ -1204,7 +1205,7 @@ OsStatus MpCallFlowGraph::playFile(const char* audioFileName,
    // call stuff in the CallFlowGraph -- a big nono in terms of separation)
    MpResource::setAllNotificationsEnabled(TRUE, mpFromFile->getName(), *getMsgQ());
 
-   res = mpFromFile->playFile(audioFileName, repeat);
+   res = mpFromFile->playFile(audioFileName, repeat, pCookie);
 
    if (res == OS_SUCCESS)
    {
@@ -1221,7 +1222,8 @@ OsStatus MpCallFlowGraph::playBuffer(char* audioBuf,
                                      int type, 
                                      UtlBoolean repeat,
                                      int toneOptions, 
-                                     OsProtectedEvent* event)
+                                     OsProtectedEvent* event,
+                                     void* pCookie)
 {
    OsStatus  res;
 
@@ -1231,7 +1233,7 @@ OsStatus MpCallFlowGraph::playBuffer(char* audioBuf,
    // call stuff in the CallFlowGraph -- a big nono in terms of separation)
    MpResource::setAllNotificationsEnabled(TRUE, mpFromFile->getName(), *getMsgQ());
 
-   res = mpFromFile->playBuffer(audioBuf, bufSize, type, repeat, event);
+   res = mpFromFile->playBuffer(audioBuf, bufSize, type, repeat, event, pCookie);
 
    if (res == OS_SUCCESS)
    {
