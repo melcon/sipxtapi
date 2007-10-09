@@ -1148,6 +1148,8 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->codec = pSourceInfo->codec;
             pInfo->idleTime = pSourceInfo->idleTime;
             pInfo->toneId = pSourceInfo->toneId;
+            pInfo->pCookie = pSourceInfo->pCookie;
+            pInfo->playBufferIndex = pSourceInfo->playBufferIndex;
 
             *pEventCopy = pInfo;
 

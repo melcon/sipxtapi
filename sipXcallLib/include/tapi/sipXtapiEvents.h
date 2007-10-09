@@ -689,6 +689,13 @@ typedef struct
                                          Note: Only RFC 2833 DTMF detection is supported
                                          (not in-band DTMF or dialtone detection, 
                                          etc.)*/
+    void* pCookie;                  /**< A cookie passed in MEDIA_PLAYFILE_STOP,
+                                         MEDIA_PLAYBUFFER_STOP, MEDIA_PLAYFILE_START,
+                                         MEDIA_PLAYBUFFER_START, MEDIA_PLAYBACK_PAUSED,
+                                         MEDIA_PLAYBACK_RESUMED events. It is supplied
+                                         when starting playback via file or buffer. */
+    int playBufferIndex;            /**< Index of byte where playback stopped/started.
+                                         Passed in the same events as pCookie. */
 } SIPX_MEDIA_INFO;
 
 
