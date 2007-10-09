@@ -99,7 +99,7 @@ void MpJitterBufferDefault::reset()
 
    for (int i = 0; i < MAX_RTP_PACKETS; i++)
    {
-      m_pPackets[i] = NULL; // assign NULL to MpRtpBufPtr
+      m_pPackets[i].release(); // assign NULL to MpRtpBufPtr by release(), as = NULL doesnt work
    }
    m_lastPushed = 0;
    m_lastPulled = 0;
