@@ -349,7 +349,8 @@ public:
                                   UtlBoolean local,
                                   UtlBoolean remote,
                                   UtlBoolean mixWithMic = false, 
-                                  int downScaling = 100) = 0;
+                                  int downScaling = 100,
+                                  void* pCookie = NULL) = 0;
 
     //! Deprecated, use the player controls
     /*! Direct the media subsystem to stop playing audio.
@@ -369,7 +370,8 @@ public:
                             int type,
                             UtlBoolean repeat,
                             UtlBoolean local,
-                            UtlBoolean remote) = 0;
+                            UtlBoolean remote,
+                            void* pCookie = NULL) = 0;
 
     //! Create a MpStreamPlaylistPlayer media player associated with
     /*! the specified call. The media player can subsequently be used

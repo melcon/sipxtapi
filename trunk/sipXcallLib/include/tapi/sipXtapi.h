@@ -1514,14 +1514,18 @@ SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall);
  *        values are between 0 and 1.0, where 1.0 is the no down-scaling.
  *        This option is only supported when sipXtapi is bundled with GIPS
  *        VoiceEngine.
- */
+ * @param pCookie Custom parameter passed in playback events to help resolving
+ *               problem with identifying correct file when
+ *               sipxCallAudioPlayFileStart is called multiple times very fast.
+*/
 SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStart(const SIPX_CALL hCall, 
                                                     const char* szFile,
                                                     const int bRepeat,
                                                     const int bLocal,
                                                     const int bRemote,
                                                     const int bMixWithMicrophone = 0,
-                                                    const float fVolumeScaling = 1.0);
+                                                    const float fVolumeScaling = 1.0,
+                                                    void* pCookie = NULL);
 
 /**
  * Stop playing a file started with sipxCallPlayFileStart
@@ -1615,6 +1619,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
  * @param bRepeat True if the audio is supposed to be played repeatedly
  * @param bLocal True if the audio is to be rendered locally.
  * @param bRemote True if the audio is to be rendered by the remote endpoint.
+ * @param pCookie Custom parameter passed in playback events to help resolving
+ *               problem with identifying correct buffer when
+ *               sipxCallPlayBufferStart is called multiple times very fast.
  */
 SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
                                                  const char* szBuffer,
@@ -1622,7 +1629,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
                                                  const int bufType,
                                                  const int bRepeat,
                                                  const int bLocal,
-                                                 const int bRemote);
+                                                 const int bRemote,
+                                                 void* pCookie = NULL);
 
 
 /**

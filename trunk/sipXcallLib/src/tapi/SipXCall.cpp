@@ -1781,7 +1781,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStart(const SIPX_CALL hCall,
                                                     const int bLocal,
                                                     const int bRemote,
                                                     const int bMixWithMicrophone,
-                                                    const float fVolumeScaling) 
+                                                    const float fVolumeScaling,
+                                                    void* pCookie) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAudioPlayFileStart");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1809,7 +1810,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStart(const SIPX_CALL hCall,
       {
          pData->nFilesPlaying++;
          // posts a message
-         pData->pInst->pCallManager->audioChannelPlay(pData->callId, pData->remoteAddress, szFile, bRepeat, bLocal, bRemote, bMixWithMicrophone, (int)(fDownScaling * 100.0));
+         pData->pInst->pCallManager->audioChannelPlay(pData->callId, pData->remoteAddress, szFile, bRepeat, bLocal, bRemote, bMixWithMicrophone, (int)(fDownScaling * 100.0), pCookie);
 
          sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 
@@ -1964,7 +1965,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
                                                  const int bufType,
                                                  const int bRepeat,
                                                  const int bLocal,
-                                                 const int bRemote)
+                                                 const int bRemote,
+                                                 void* pCookie)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallPlayBufferStart");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1986,7 +1988,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
 
          if (pInst)
          {
-            pInst->pCallManager->bufferPlay(callId, (int)szBuffer, bufSize, bufType, bRepeat, bLocal, bRemote);
+            pInst->pCallManager->bufferPlay(callId, (int)szBuffer, bufSize, bufType, bRepeat, bLocal, bRemote, pCookie);
             sr = SIPX_RESULT_SUCCESS;
          }         
       }

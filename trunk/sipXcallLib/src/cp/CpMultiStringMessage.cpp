@@ -27,8 +27,8 @@ CpMultiStringMessage::CpMultiStringMessage(unsigned char messageSubtype,
                                  const char* str1, const char* str2,
                                  const char* str3, const char* str4,
                                  const char* str5,
-                                 int int1, int int2, int int3, int int4,
-                                 int int5, int int6, int int7) :
+                                 intptr_t int1, intptr_t int2, intptr_t int3, intptr_t int4,
+                                 intptr_t int5, intptr_t int6, intptr_t int7, intptr_t int8) :
 OsMsg(OsMsg::PHONE_APP, messageSubtype)
 {
    mInt1 = int1;
@@ -38,6 +38,7 @@ OsMsg(OsMsg::PHONE_APP, messageSubtype)
    mInt5 = int5;
    mInt6 = int6;
    mInt7 = int7;
+   mInt8 = int8;
 
    if (str1)
                 mString1Data.append(str1);
@@ -67,6 +68,7 @@ OsMsg(OsMsg::PHONE_APP, rCpMultiStringMessage.getMsgType())
     mInt5 = rCpMultiStringMessage.mInt5;
     mInt6 = rCpMultiStringMessage.mInt6;
     mInt7 = rCpMultiStringMessage.mInt7;
+    mInt8 = rCpMultiStringMessage.mInt8;
 }
 
 // Destructor
@@ -85,7 +87,7 @@ OsMsg* CpMultiStringMessage::createCopy(void) const
         mString1Data.data(), mString2Data.data(),
         mString3Data.data(), mString4Data.data(),
         mString5Data.data(),
-                mInt1, mInt2,mInt3, mInt4, mInt5, mInt6, mInt7));
+                mInt1, mInt2,mInt3, mInt4, mInt5, mInt6, mInt7, mInt8));
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -110,6 +112,7 @@ CpMultiStringMessage::operator=(const CpMultiStringMessage& rhs)
     mInt5 = rhs.mInt5;
     mInt6 = rhs.mInt6;
     mInt7 = rhs.mInt7;
+    mInt8 = rhs.mInt8;
 
    return *this;
 }
@@ -141,39 +144,44 @@ void CpMultiStringMessage::getString5Data(UtlString& str5) const
         str5 = mString5Data;
 }
 
-int CpMultiStringMessage::getInt1Data() const
+intptr_t CpMultiStringMessage::getInt1Data() const
 {
         return(mInt1);
 }
 
-int CpMultiStringMessage::getInt2Data() const
+intptr_t CpMultiStringMessage::getInt2Data() const
 {
         return(mInt2);
 }
 
-int CpMultiStringMessage::getInt3Data() const
+intptr_t CpMultiStringMessage::getInt3Data() const
 {
         return(mInt3);
 }
 
-int CpMultiStringMessage::getInt4Data() const
+intptr_t CpMultiStringMessage::getInt4Data() const
 {
         return(mInt4);
 }
 
-int CpMultiStringMessage::getInt5Data() const
+intptr_t CpMultiStringMessage::getInt5Data() const
 {
         return(mInt5);
 }
 
-int CpMultiStringMessage::getInt6Data() const
+intptr_t CpMultiStringMessage::getInt6Data() const
 {
         return(mInt6);
 }
 
-int CpMultiStringMessage::getInt7Data() const
+intptr_t CpMultiStringMessage::getInt7Data() const
 {
         return(mInt7);
+}
+
+intptr_t CpMultiStringMessage::getInt8Data() const
+{
+   return(mInt8);
 }
 
 void CpMultiStringMessage::toString(UtlString& dumpString, const char* term) const
@@ -245,6 +253,19 @@ void CpMultiStringMessage::toString(UtlString& dumpString, const char* term) con
         dumpString += intDataString;
         dumpString += terminator;
     }
+    if(mInt7)
+    {
+       SNPRINTF(intDataString, sizeof(intDataString), "Int7: %d", mInt7);
+       dumpString += intDataString;
+       dumpString += terminator;
+    }
+    if(mInt8)
+    {
+       SNPRINTF(intDataString, sizeof(intDataString), "Int8: %d", mInt8);
+       dumpString += intDataString;
+       dumpString += terminator;
+    }
+
 }
 
 /* ============================ INQUIRY =================================== */

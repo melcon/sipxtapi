@@ -1269,11 +1269,11 @@ void CallManager::toneChannelStop(const char* callId, const char* szRemoteAddres
     postMessage(stopToneMessage);
 }
 
-void CallManager::audioChannelPlay(const char* callId, const char* szRemoteAddress, const char* audioUrl, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, UtlBoolean mixWithMic, int downScaling)
+void CallManager::audioChannelPlay(const char* callId, const char* szRemoteAddress, const char* audioUrl, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, UtlBoolean mixWithMic, int downScaling, void* pCookie)
 {
     CpMultiStringMessage startPlayMessage(CP_PLAY_AUDIO_CONNECTION,
         callId, szRemoteAddress, audioUrl, NULL, NULL,
-        repeat, local, remote, mixWithMic, downScaling);
+        repeat, local, remote, mixWithMic, downScaling, (intptr_t)pCookie);
 
     postMessage(startPlayMessage);
 }
@@ -1373,7 +1373,7 @@ OsStatus CallManager::audioChannelRecordStop(const char* callId, const char* szR
 }
 
 
-void CallManager::bufferPlay(const char* callId, int audioBuf, int bufSize, int type, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote)
+void CallManager::bufferPlay(const char* callId, int audioBuf, int bufSize, int type, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, void* pCookie)
 {
     OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
     OsProtectedEvent* pEvent = eventMgr->alloc();
@@ -1385,7 +1385,7 @@ void CallManager::bufferPlay(const char* callId, int audioBuf, int bufSize, int 
 
     CpMultiStringMessage startToneMessage(CP_PLAY_BUFFER_TERM_CONNECTION,
        callId, NULL, NULL, NULL, NULL,
-       (int)pEvent, repeat, local, remote, audioBuf, bufSize, type);
+       (intptr_t)pEvent, repeat, local, remote, audioBuf, bufSize, type, (intptr_t)pCookie);
 
     postMessage(startToneMessage);
 
