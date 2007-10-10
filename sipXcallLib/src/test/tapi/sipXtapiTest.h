@@ -134,12 +134,11 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
     CPPUNIT_TEST(testCallBasicTCP);
     CPPUNIT_TEST(testCallBasicNoRtcp);
 
-#if 0
-    // Per Mike Cohen on May/2006 -- doesn't pass because 
-    // audio file isn't available -- remove ifdef when 
-    // available
-    CPPUNIT_TEST(testCallPlayAudioFile);
-#endif
+    CPPUNIT_TEST(testCallPlayAudioFileFast);
+    CPPUNIT_TEST(testCallPlayAudioFileSlow);
+    CPPUNIT_TEST(testCallPlaybackFastPauseResume);
+    CPPUNIT_TEST(testCallPlaybackSlowPauseResume);
+
     CPPUNIT_TEST(testCallBusy);
 #ifdef _WIN32
     CPPUNIT_TEST(testCallMute);
@@ -408,7 +407,10 @@ public:
     void testCallBasicNoRtcp() ;
     void testCallBasic2() ;
     void testCallDestroyRinging();
-    void testCallPlayAudioFile();
+    void testCallPlayAudioFileFast();
+    void testCallPlayAudioFileSlow();
+    void testCallPlaybackFastPauseResume();
+    void testCallPlaybackSlowPauseResume();
     
     void testCallBusy() ;
     void testCallHold() ;
