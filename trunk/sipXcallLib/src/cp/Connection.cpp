@@ -642,19 +642,22 @@ void Connection::prepareMediaEvent( CpMediaEvent& event, SIPX_MEDIA_CAUSE cause,
 void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
                                     SIPX_MEDIA_CAUSE cause,
                                     SIPX_MEDIA_TYPE  type,
-                                    void*            pEventData)
+                                    intptr_t pEventData1,
+                                    intptr_t pEventData2)
 {
    if (m_pMediaEventListener)
    {
       CpMediaEvent mediaEvent;
-      prepareMediaEvent(mediaEvent, cause, type, pEventData);
+      prepareMediaEvent(mediaEvent, cause, type);
 
       switch(event)
       {
       case MEDIA_LOCAL_START:
+         mediaEvent.m_pEventData = (void*)pEventData1;
          m_pMediaEventListener->OnMediaLocalStart(mediaEvent);
          break;
       case MEDIA_LOCAL_STOP:
+         mediaEvent.m_pEventData = (void*)pEventData1;
          m_pMediaEventListener->OnMediaLocalStop(mediaEvent);
          break;
       case MEDIA_REMOTE_START:
@@ -664,27 +667,41 @@ void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
          m_pMediaEventListener->OnMediaRemoteStop(mediaEvent);
          break;
       case MEDIA_REMOTE_SILENT:
+         mediaEvent.m_pEventData = (void*)pEventData1;
          m_pMediaEventListener->OnMediaRemoteSilent(mediaEvent);
          break;
       case MEDIA_PLAYFILE_START:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlayfileStart(mediaEvent);
          break;
       case MEDIA_PLAYFILE_STOP:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlayfileStop(mediaEvent);
          break;
       case MEDIA_PLAYBUFFER_START:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlaybufferStart(mediaEvent);
          break;
       case MEDIA_PLAYBUFFER_STOP:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlaybufferStop(mediaEvent);
          break;
       case MEDIA_PLAYBACK_PAUSED:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlaybackPaused(mediaEvent);
          break;
       case MEDIA_PLAYBACK_RESUMED:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlaybackResumed(mediaEvent);
          break;
       case MEDIA_REMOTE_DTMF:
+         mediaEvent.m_pEventData = (void*)pEventData1;
          m_pMediaEventListener->OnMediaRemoteDTMF(mediaEvent);
          break;
       case MEDIA_DEVICE_FAILURE:

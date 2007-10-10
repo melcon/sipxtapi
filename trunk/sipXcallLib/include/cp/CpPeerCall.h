@@ -166,7 +166,8 @@ protected:
     void forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
                             SIPX_MEDIA_CAUSE cause,
                             SIPX_MEDIA_TYPE type,
-                            void* pEventData);
+                            intptr_t pEventData1,
+                            intptr_t pEventData2);
 
     /**
      * Finds the correct SipConnection by mediaConnectionId and fires
@@ -175,8 +176,9 @@ protected:
     void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
                             SIPX_MEDIA_CAUSE cause,
                             SIPX_MEDIA_TYPE type,
-                            void* pEventData,
-                            int mediaConnectionId);
+                            int mediaConnectionId,
+                            intptr_t pEventData1,
+                            intptr_t pEventData2);
 
     /**
      * Handles MediaConnection notification messages from media subsystem.

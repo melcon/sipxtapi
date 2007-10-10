@@ -309,7 +309,8 @@ public:
     void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
                             SIPX_MEDIA_CAUSE cause,
                             SIPX_MEDIA_TYPE  type,
-                            void*            pEventData = NULL);
+                            intptr_t pEventData1 = 0,
+                            intptr_t pEventData2 = 0);
 
     void fireSipXInfoStatusEvent(SIPX_INFOSTATUS_EVENT event,
                                  SIPX_MESSAGE_STATUS status,
