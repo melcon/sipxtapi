@@ -13,15 +13,15 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(sipXtapiTestAudio);
 
-sipXtapiTestAudio::sipXtapiTestAudio()
+sipXtapiTestAudio::sipXtapiTestAudio() : m_hInst1(NULL)
+, m_hInst2(NULL)
 {
 
 }
 
 void sipXtapiTestAudio::setUp()
 {
-   CPPUNIT_ASSERT_EQUAL(sipxConfigSetLogLevel(LOG_LEVEL_DEBUG), SIPX_RESULT_SUCCESS);
-   CPPUNIT_ASSERT_EQUAL(sipxConfigSetLogFile("sipXtapiTests.txt"), SIPX_RESULT_SUCCESS);
+   CPPUNIT_ASSERT_EQUAL(sipxConfigInitLogging("sipXtapiTests.txt", LOG_LEVEL_DEBUG), SIPX_RESULT_SUCCESS);
 
    CPPUNIT_ASSERT_EQUAL(sipxInitialize(&m_hInst1, 8000, 8000, 8001, 8050, 32, HINST_ADDRESS, "127.0.0.1"), SIPX_RESULT_SUCCESS);
    sipxConfigSetConnectionIdleTimeout(m_hInst1, 7);

@@ -48,18 +48,18 @@
 
 #ifdef _WIN32
   #define TEST_AUDIO              1 // tested
-  #define TEST_LINE               1 // tested
-  #define TEST_CALL               1 // tested
-  #define TEST_CALL_HOLD          1 // tested, 1 fails, not supported functionality, disabled
-  #define TEST_CONF               1 // tested
-  #define TEST_REG                1 // tested
-  #define TEST_TRANSFER           1 // tested
-  #define TEST_TRANSFER_ADVANCED  1 // tested
-  #define TEST_CONFIG             1 // tested
-  #define TEST_SUBSCRIBE          1 // tested
-  #define TEST_NAT                1 // tested
-  #define TEST_UTILS              1 // tested
-  #define TEST_PROBLEMATIC_CASES  1 // tested
+  #define TEST_LINE               0 // tested
+  #define TEST_CALL               0 // tested
+  #define TEST_CALL_HOLD          0 // tested, 1 fails, not supported functionality, disabled
+  #define TEST_CONF               0 // tested
+  #define TEST_REG                0 // tested
+  #define TEST_TRANSFER           0 // tested
+  #define TEST_TRANSFER_ADVANCED  0 // tested
+  #define TEST_CONFIG             0 // tested
+  #define TEST_SUBSCRIBE          0 // tested
+  #define TEST_NAT                0 // tested
+  #define TEST_UTILS              0 // tested
+  #define TEST_PROBLEMATIC_CASES  0 // tested
 #else
   #define TEST_AUDIO              1
   #define TEST_LINE               1

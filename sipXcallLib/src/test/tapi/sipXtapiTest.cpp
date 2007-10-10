@@ -105,8 +105,8 @@ void sipXtapiTestSuite::setUp()
 #endif
 
     suiteLock.acquire();
-    sipxConfigSetLogLevel(LOG_LEVEL_DEBUG);
-    sipxConfigSetLogFile("sipXtapiTests.txt") ;
+
+    sipxConfigInitLogging("sipXtapiTests.txt", LOG_LEVEL_DEBUG);
 
     if (g_hInst1 == NULL)
     {
