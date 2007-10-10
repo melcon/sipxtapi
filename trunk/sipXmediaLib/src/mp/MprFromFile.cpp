@@ -597,7 +597,7 @@ UtlBoolean MprFromFile::handleStop(MpFlowGraphMsg& rMsg)
 {
    // Send a notification -- we don't really care at this level if
    // it succeeded or not.
-   if (mpFileBuffer && mIsEnabled)
+   if (mpFileBuffer)
    {
       switch (rMsg.getMsg()) 
       {
@@ -619,7 +619,7 @@ UtlBoolean MprFromFile::handleStop(MpFlowGraphMsg& rMsg)
 
 UtlBoolean MprFromFile::handlePause()
 {
-   if (mpFileBuffer && mIsEnabled)
+   if (mpFileBuffer)
    {
       sendInterfaceNotification(MP_NOTIFICATION_PAUSE_PLAYBACK, (intptr_t)m_pCookie, mFileBufferIndex);
       disable();
@@ -630,7 +630,7 @@ UtlBoolean MprFromFile::handlePause()
 
 UtlBoolean MprFromFile::handleResume()
 {
-   if (mpFileBuffer && !mIsEnabled)
+   if (mpFileBuffer)
    {
       sendInterfaceNotification(MP_NOTIFICATION_RESUME_PLAYBACK, (intptr_t)m_pCookie, mFileBufferIndex);
       enable();
