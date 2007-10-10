@@ -782,7 +782,6 @@ void sipXtapiTestSuite::testCallPlayAudioFile()
         CPPUNIT_ASSERT(bRC);
 
         sipxConfigEnableRTCP(g_hInst2, false);
-        sipxConfigSetAudioCodecByName(g_hInst2, "PCMU G729");
 
         createCall(&hLine, &hCall);
         bRC = validatorCalling.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
@@ -796,13 +795,13 @@ void sipXtapiTestSuite::testCallPlayAudioFile()
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called Side
@@ -810,26 +809,20 @@ void sipXtapiTestSuite::testCallPlayAudioFile()
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-
-        int connectionId = -1;
-
-        CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
-        CPPUNIT_ASSERT(connectionId != -1);
 
         // loop 100 times
         for (int i = 0; i < 100; i++)
         {
-            sipxConfigSetConnectionIdleTimeout(g_hInst2, 1);
             sipxCallAudioPlayFileStop(g_hAutoAnswerCallbackCall);
-            CPPUNIT_ASSERT_EQUAL(sipxCallAudioPlayFileStart(g_hAutoAnswerCallbackCall, "busy.wav",  true, true, false ), SIPX_RESULT_SUCCESS);
+            CPPUNIT_ASSERT_EQUAL(sipxCallAudioPlayFileStart(g_hAutoAnswerCallbackCall, "crash.wav",  true, true, false ), SIPX_RESULT_SUCCESS);
             sipxCallAudioPlayFileStop(g_hAutoAnswerCallbackCall);
             bRC = validatorCalled.waitForMediaEvent(MEDIA_PLAYFILE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
             bRC = validatorCalled.waitForMediaEvent(MEDIA_PLAYFILE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
@@ -839,7 +832,7 @@ void sipXtapiTestSuite::testCallPlayAudioFile()
             sipxCallAudioPlayFileStop(g_hAutoAnswerCallbackCall);
             sipxCallAudioPlayFileStop(g_hAutoAnswerCallbackCall);
             sipxCallAudioPlayFileStop(hCall);
-            CPPUNIT_ASSERT_EQUAL(sipxCallAudioPlayFileStart(hCall, "busy.wav",  true, true, false ), SIPX_RESULT_SUCCESS);
+            CPPUNIT_ASSERT_EQUAL(sipxCallAudioPlayFileStart(hCall, "crash.wav",  true, true, false ), SIPX_RESULT_SUCCESS);
             sipxCallAudioPlayFileStop(g_hAutoAnswerCallbackCall);
             sipxCallAudioPlayFileStop(hCall);
             bRC = validatorCalling.waitForMediaEvent(MEDIA_PLAYFILE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
