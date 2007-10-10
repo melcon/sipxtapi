@@ -6923,19 +6923,19 @@ void SipConnection::fireAudioStartEvents(SIPX_MEDIA_CAUSE cause)
 
             if (mpMediaInterface->isSendingRtpAudio(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_LOCAL_START, cause, MEDIA_TYPE_AUDIO, &tapiCodec) ;
+                fireSipXMediaEvent(MEDIA_LOCAL_START, cause, MEDIA_TYPE_AUDIO, (intptr_t)&tapiCodec) ;
             }
             if (mpMediaInterface->isSendingRtpVideo(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_LOCAL_START, cause, MEDIA_TYPE_VIDEO, &tapiCodec) ;
+                fireSipXMediaEvent(MEDIA_LOCAL_START, cause, MEDIA_TYPE_VIDEO, (intptr_t)&tapiCodec) ;
             }
             if (mpMediaInterface->isReceivingRtpAudio(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_REMOTE_START, cause, MEDIA_TYPE_AUDIO, &tapiCodec) ;
+                fireSipXMediaEvent(MEDIA_REMOTE_START, cause, MEDIA_TYPE_AUDIO, (intptr_t)&tapiCodec) ;
             }
             if (mpMediaInterface->isReceivingRtpVideo(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_REMOTE_START, cause, MEDIA_TYPE_VIDEO, &tapiCodec) ;
+                fireSipXMediaEvent(MEDIA_REMOTE_START, cause, MEDIA_TYPE_VIDEO, (intptr_t)&tapiCodec) ;
             }
         }
     }

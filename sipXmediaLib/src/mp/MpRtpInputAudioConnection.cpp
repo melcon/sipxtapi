@@ -464,8 +464,8 @@ void MpRtpInputAudioConnection::sendConnectionNotification(MpNotificationMsgType
       OsIntPtrMsg connectionMsg(OsMsg::MP_CONNECTION_NOTF_MSG,
                (unsigned char)MP_NOTIFICATION_AUDIO,
                (int)type,
-               data,
-               mMyID);
+               mMyID,
+               data);
 
       m_pConnectionNotificationQueue->send(connectionMsg, OsTime::NO_WAIT_TIME);
    }
