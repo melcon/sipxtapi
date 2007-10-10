@@ -22,8 +22,6 @@ class OsConfigDb;
 #include "mp/MpBufPool.h"
 #include "mp/MpAudioBuf.h"
 
-#define FRAME_SAMPS  320
-
 #ifndef max
 #define max(x,y) (((x)>(y))?(x):(y))
 #endif
