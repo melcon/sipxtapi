@@ -1,3 +1,6 @@
+// 
+// Copyright (C) 2007 SIPez LLC.
+// Licensed to SIPfoundry under a Contributor Agreement.
 //
 // Copyright (C) 2007 Plantronics
 // Licensed to SIPfoundry under a Contributor Agreement.
@@ -10,8 +13,6 @@
 // Author: Scott Godin (sgodin AT SipSpectrum DOT com)
 
 // SYSTEM INCLUDES
-#include <limits.h>
-
 // APPLICATION INCLUDES
 #include <sdp/SdpCandidatePair.h>
 
@@ -41,8 +42,12 @@ const char* SdpCandidatePair::SdpCandidatePairOffererTypeString[] =
 /* ============================ CREATORS ================================== */
 
 // Constructor
-SdpCandidatePair::SdpCandidatePair(const SdpCandidate& localCandidate, const SdpCandidate& remoteCandidate, SdpCandidatePairOffererType offerer) :
-   mLocalCandidate(localCandidate), mRemoteCandidate(remoteCandidate), mOfferer(offerer)
+SdpCandidatePair::SdpCandidatePair(const SdpCandidate& localCandidate,
+                                   const SdpCandidate& remoteCandidate,
+                                   SdpCandidatePairOffererType offerer)
+: mLocalCandidate(localCandidate)
+, mRemoteCandidate(remoteCandidate)
+, mOfferer(offerer)
 {
    resetPriority();
    mCheckState = CHECK_STATE_FROZEN;
@@ -135,8 +140,9 @@ UtlContainableType SdpCandidatePair::getContainableType() const
 }
 
 unsigned SdpCandidatePair::hash() const 
-{ 
-   return unsigned(mPriority) ^ unsigned(mPriority << 32);  // Priority is to be unique per candidate - draft-ieft-mmusic-ice-12
+{
+   // Priority is to be unique per candidate - draft-ieft-mmusic-ice-12
+   return unsigned(mPriority) ^ unsigned(mPriority >> 32);
 }
 
 int SdpCandidatePair::compareTo(UtlContainable const *rhs) const 
@@ -146,7 +152,8 @@ int SdpCandidatePair::compareTo(UtlContainable const *rhs) const
    const SdpCandidatePair* pCandidatePair = dynamic_cast<const SdpCandidatePair*>(rhs);
    if (rhs->isInstanceOf(SdpCandidatePair::TYPE) && pCandidatePair)
    {
-      result = compareNumber(mPriority, pCandidatePair->mPriority, true /* reverse */);  // We want to order a list of these from highest priority to lowest
+      // We want to order a list of these from highest priority to lowest
+      result = compareNumber(mPriority, pCandidatePair->mPriority, true /* reverse */);
       if(0 == result) 
       {
          result = compareNumber(mCheckState, pCandidatePair->mCheckState);
@@ -200,18 +207,16 @@ void SdpCandidatePair::toString(UtlString& sdpCandidatePairString) const
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
-#define sdpMin(a,b) (a < b ? a : a > b ? b : a)
-#define sdpMax(a,b) (a > b ? a : a < b ? b : a)
 void SdpCandidatePair::resetPriority()
 {
-   UInt64 offererPriority = mOfferer == OFFERER_LOCAL ? mLocalCandidate.getPriority() : mRemoteCandidate.getPriority();
-   UInt64 answererPriority = mOfferer == OFFERER_LOCAL ? mRemoteCandidate.getPriority() : mLocalCandidate.getPriority();
-   mPriority = 2^32*sdpMin(offererPriority, answererPriority) + 
-               2*sdpMax(offererPriority, answererPriority) + 
+   uint64_t offererPriority = mOfferer == OFFERER_LOCAL ? mLocalCandidate.getPriority() : mRemoteCandidate.getPriority();
+   uint64_t answererPriority = mOfferer == OFFERER_LOCAL ? mRemoteCandidate.getPriority() : mLocalCandidate.getPriority();
+   mPriority = (sipx_min(offererPriority, answererPriority) << 32) |
+               (sipx_max(offererPriority, answererPriority) << 1) |
                (offererPriority > answererPriority ? 1 : 0);
 }
 
-const int SdpCandidatePair::compareNumber(const UInt64 first, const UInt64 second, bool reverse) const
+int SdpCandidatePair::compareNumber(uint64_t first, uint64_t second, bool reverse) const
 {
     int ret;
     if (first == second)
