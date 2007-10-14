@@ -66,7 +66,9 @@ void sipxFireCallEvent(const SIPX_INST pInst,
                        const UtlString& szRemoteAddress,
                        SIPX_CALLSTATE_EVENT event,
                        SIPX_CALLSTATE_CAUSE cause,
-                       const void* pEventData = NULL);
+                       const void* pEventData = NULL,
+                       int sipResponseCode = 0,
+                       const UtlString& sResponseText = NULL);
 
 void sipxFireMediaEvent(SIPX_INST pInst,
                         const UtlString& sCallId,

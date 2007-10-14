@@ -725,6 +725,8 @@ typedef struct
                                          a new call is created as part of a consultative 
                                          transfer, this handle contains the handle of the 
                                          original call. */
+    int sipResponseCode;           ///< SIP response text if available
+    const char* szSipResponseText; ///< SIP response text if available
 } SIPX_CALLSTATE_INFO; 
 
 

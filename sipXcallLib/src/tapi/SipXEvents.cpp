@@ -941,6 +941,8 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->event = pSourceInfo->event;
             pInfo->cause = pSourceInfo->cause;
             pInfo->hAssociatedCall = pSourceInfo->hAssociatedCall;
+            pInfo->sipResponseCode = pSourceInfo->sipResponseCode;
+            pInfo->szSipResponseText = SAFE_STRDUP(pSourceInfo->szSipResponseText);
 
             *pEventCopy = pInfo;
 
@@ -1238,6 +1240,7 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
          {
             SIPX_CALLSTATE_INFO* pSourceInfo = (SIPX_CALLSTATE_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_CALLSTATE_INFO));
+            free((void*)pSourceInfo->szSipResponseText);
             delete pSourceInfo;
 
             rc = SIPX_RESULT_SUCCESS;
@@ -1544,7 +1547,9 @@ void sipxFireCallEvent(const SIPX_INST pInst,
                        const UtlString& szRemoteAddress, 
                        SIPX_CALLSTATE_EVENT event, 
                        SIPX_CALLSTATE_CAUSE cause, 
-                       const void* pEventData /*= NULL*/)
+                       const void* pEventData,
+                       int sipResponseCode,
+                       const UtlString& sResponseText)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxFireCallEvent");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1770,6 +1775,8 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       callInfo.hLine = hLine;
       callInfo.hAssociatedCall = hAssociatedCall;
       callInfo.nSize = sizeof(SIPX_CALLSTATE_INFO);
+      callInfo.sipResponseCode = sipResponseCode;
+      callInfo.szSipResponseText = sResponseText.data(); // safe to do as SipXEventDispatcher makes a copy
 
       // fire event
       SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CALLSTATE, &callInfo);
@@ -1801,7 +1808,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
       if (pCallData)
       {
-         // ju posts message
+         // just posts message
          pCallData->pInst->pCallManager->dropConnection(sSessionCallId, szRemoteAddress);
          sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
       }
