@@ -300,8 +300,17 @@ public:
     UtlBoolean validStateTransition(SIPX_CALLSTATE_EVENT eFrom, SIPX_CALLSTATE_EVENT eTo) ;
 
     // call events
-    void prepareCallStateEvent(CpCallStateEvent& event, SIPX_CALLSTATE_CAUSE eMinor, void *pEventData);
-    void fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode, SIPX_CALLSTATE_CAUSE causeCode, void* pEventData = NULL);
+    void prepareCallStateEvent(CpCallStateEvent& event,
+                               SIPX_CALLSTATE_CAUSE eMinor,
+                               void *pEventData = NULL,
+                               int sipResponseCode = 0,
+                               const UtlString& sResponseText = NULL);
+
+    void fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
+                           SIPX_CALLSTATE_CAUSE causeCode,
+                           void* pEventData = NULL,
+                           int sipResponseCode = 0,
+                           const UtlString& sResponseText = NULL);
 
     // media events
     void prepareMediaEvent(CpMediaEvent& event, SIPX_MEDIA_CAUSE cause, SIPX_MEDIA_TYPE type, void* pEventData = NULL);
