@@ -509,7 +509,11 @@ UtlBoolean Connection::validStateTransition(SIPX_CALLSTATE_EVENT eFrom, SIPX_CAL
 }
 
 // call events
-void Connection::prepareCallStateEvent(CpCallStateEvent& event, SIPX_CALLSTATE_CAUSE eMinor, void *pEventData)
+void Connection::prepareCallStateEvent(CpCallStateEvent& event,
+                                       SIPX_CALLSTATE_CAUSE eMinor,
+                                       void *pEventData,
+                                       int sipResponseCode,
+                                       const UtlString& sResponseText)
 {
    getCallId(&event.m_sSessionCallId);
    getRemoteAddress(&event.m_sRemoteAddress);
@@ -520,9 +524,15 @@ void Connection::prepareCallStateEvent(CpCallStateEvent& event, SIPX_CALLSTATE_C
    }
    event.m_cause = eMinor;
    event.m_pEventData = pEventData;
+   event.m_sipResponseCode = sipResponseCode;
+   event.m_sResponseText = sResponseText;
 }
 
-void Connection::fireSipXCallEvent( SIPX_CALLSTATE_EVENT eventCode, SIPX_CALLSTATE_CAUSE causeCode, void* pEventData /*= NULL*/ )
+void Connection::fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
+                                   SIPX_CALLSTATE_CAUSE causeCode,
+                                   void* pEventData,
+                                   int sipResponseCode,
+                                   const UtlString& sResponseText)
 {
    // skip event if transition is not valid
    if (!validStateTransition(m_eLastMajor, eventCode))
@@ -533,7 +543,7 @@ void Connection::fireSipXCallEvent( SIPX_CALLSTATE_EVENT eventCode, SIPX_CALLSTA
    if (m_pCallEventListener)
    {
       CpCallStateEvent event;
-      prepareCallStateEvent(event, causeCode, pEventData);
+      prepareCallStateEvent(event, causeCode, pEventData, sipResponseCode, sResponseText);
 
       switch(eventCode)
       {
