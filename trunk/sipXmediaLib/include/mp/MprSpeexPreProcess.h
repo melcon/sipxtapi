@@ -29,6 +29,9 @@
 struct SpeexPreprocessState_;
 typedef struct SpeexPreprocessState_ SpeexPreprocessState;
 
+struct SpeexEchoState_;
+typedef struct SpeexEchoState_ SpeexEchoState;
+
 /// The "Speex Audio Preprocessor" media processing resource
 /**
 *  This resource is a wrapper over Speex's audio preprocessor. It is used
@@ -62,6 +65,10 @@ public:
 
      /// Enable or disable noise reduction
    UtlBoolean setNoiseReduction(UtlBoolean enable);
+
+   /// Attach echo canceller to preprocessor. Should only be called
+   /// once, before flowgraph is started. Not thread safe.
+   UtlBoolean attachEchoCanceller(SpeexEchoState* pEchoState);
 
 /* ============================ ACCESSORS ================================= */
 

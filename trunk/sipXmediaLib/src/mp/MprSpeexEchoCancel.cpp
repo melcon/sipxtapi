@@ -64,6 +64,11 @@ MprSpeexEchoCancel::~MprSpeexEchoCancel()
 
 /* ============================ ACCESSORS ================================= */
 
+SpeexEchoState* MprSpeexEchoCancel::getSpeexEchoState()
+{
+   return mpEchoState;
+}
+
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
