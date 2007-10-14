@@ -54,7 +54,9 @@ void SipXCallEventListener::OnNewCall( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_NEWCALL,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 }
 
 void SipXCallEventListener::OnDialTone( const CpCallStateEvent& event )
@@ -66,7 +68,9 @@ void SipXCallEventListener::OnDialTone( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_DIALTONE,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 }
 
 void SipXCallEventListener::OnRemoteOffering( const CpCallStateEvent& event )
@@ -78,7 +82,9 @@ void SipXCallEventListener::OnRemoteOffering( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_REMOTE_OFFERING,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 }
 
 void SipXCallEventListener::OnRemoteAlerting( const CpCallStateEvent& event )
@@ -90,7 +96,9 @@ void SipXCallEventListener::OnRemoteAlerting( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_REMOTE_ALERTING,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 }
 
 void SipXCallEventListener::OnConnected( const CpCallStateEvent& event )
@@ -102,7 +110,9 @@ void SipXCallEventListener::OnConnected( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_CONNECTED,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 }
 
 void SipXCallEventListener::OnBridged( const CpCallStateEvent& event )
@@ -114,7 +124,9 @@ void SipXCallEventListener::OnBridged( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_BRIDGED,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 }
 
 void SipXCallEventListener::OnHeld( const CpCallStateEvent& event )
@@ -126,7 +138,9 @@ void SipXCallEventListener::OnHeld( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_HELD,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 }
 
 void SipXCallEventListener::OnRemoteHeld( const CpCallStateEvent& event )
@@ -138,7 +152,9 @@ void SipXCallEventListener::OnRemoteHeld( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_REMOTE_HELD,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 
 }
 
@@ -151,7 +167,9 @@ void SipXCallEventListener::OnDisconnected( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_DISCONNECTED,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 
 }
 
@@ -164,7 +182,9 @@ void SipXCallEventListener::OnOffering( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_OFFERING,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 
 }
 
@@ -177,7 +197,9 @@ void SipXCallEventListener::OnAlerting( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_ALERTING,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 
 }
 
@@ -190,7 +212,9 @@ void SipXCallEventListener::OnDestroyed( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_DESTROYED,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 
 }
 
@@ -203,7 +227,9 @@ void SipXCallEventListener::OnTransferEvent( const CpCallStateEvent& event )
                      event.m_sRemoteAddress,
                      CALLSTATE_TRANSFER_EVENT,
                      event.m_cause,
-                     event.m_pEventData);
+                     event.m_pEventData,
+                     event.m_sipResponseCode,
+                     event.m_sResponseText);
 
 }
 
