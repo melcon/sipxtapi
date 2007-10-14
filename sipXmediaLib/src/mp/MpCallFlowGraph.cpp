@@ -165,6 +165,10 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 #ifdef HAVE_SPEEX // [
    mpSpeexPreProcess  = new MprSpeexPreprocess("SpeexPreProcess",
                                  samplesPerFrame, samplesPerSec);
+#  ifdef SPEEX_ECHO_CANCELATION
+   // we have speex and use speex echo canceller, interconnect them
+   mpSpeexPreProcess->attachEchoCanceller(mpEchoCancel->getSpeexEchoState());
+#  endif
 #endif // HAVE_SPEEX ]
 #endif // DISABLE_LOCAL_AUDIO ]
    mpTFsMicMixer      = new MprMixer("TFsMicMixer", 2,
@@ -565,6 +569,11 @@ MpCallFlowGraph::~MpCallFlowGraph()
    delete mpBufferRecorder;
    mpBufferRecorder = NULL;
 
+#ifdef HAVE_SPEEX // [
+   res = removeResource(*mpSpeexPreProcess);
+   assert(res == OS_SUCCESS);
+   delete mpSpeexPreProcess;
+#endif // HAVE_SPEEX ]
 #ifdef DOING_ECHO_CANCELATION // [
    res = removeResource(*mpEchoCancel);
    assert(res == OS_SUCCESS);

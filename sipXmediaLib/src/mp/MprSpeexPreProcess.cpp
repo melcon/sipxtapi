@@ -14,6 +14,7 @@
 #ifdef HAVE_SPEEX // [
 
 // SYSTEM INCLUDES
+#include <speex/speex_echo.h>
 #include <speex/speex_preprocess.h>
 #include <speex/speex_types.h>
 
@@ -43,7 +44,11 @@ MprSpeexPreprocess::MprSpeexPreprocess(const UtlString& rName,
 // Destructor
 MprSpeexPreprocess::~MprSpeexPreprocess()
 {
-   if (mpPreprocessState != NULL) {
+   if (mpPreprocessState)
+   {
+      // detach echo canceller
+      speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_ECHO_STATE, NULL);
+      // free mpPreprocessState
       speex_preprocess_state_destroy(mpPreprocessState);
       mpPreprocessState = NULL;
    }
@@ -61,6 +66,17 @@ UtlBoolean MprSpeexPreprocess::setNoiseReduction (UtlBoolean enable)
 {
    MpFlowGraphMsg msg(SET_NOISE_REDUCTION, this, NULL, NULL, enable);
    return (postMessage(msg) == OS_SUCCESS);
+}
+
+UtlBoolean MprSpeexPreprocess::attachEchoCanceller(SpeexEchoState* pEchoState)
+{
+   if (pEchoState && mpPreprocessState)
+   {
+      // attach echo canceller
+      speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_ECHO_STATE, pEchoState);
+   }
+   
+   return FALSE;
 }
 
 /* ============================ ACCESSORS ================================= */

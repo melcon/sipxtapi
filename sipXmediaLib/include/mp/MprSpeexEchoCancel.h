@@ -14,8 +14,6 @@
 #define _MprSpeexEchoCancel_h_
 
 // SYSTEM INCLUDES
-#include <speex/speex_echo.h>
-
 // APPLICATION INCLUDES
 #include "mp/MpAudioResource.h"
 #include "mp/MpBufPool.h"
@@ -38,6 +36,8 @@
 // STRUCTS
 // TYPEDEFS
 // FORWARD DECLARATIONS
+struct SpeexEchoState_;
+typedef struct SpeexEchoState_ SpeexEchoState;
 
 /// The "Speex Echo Canceler" media processing resource.
 /**
@@ -93,6 +93,8 @@ public:
 /* ============================ MANIPULATORS ============================== */
 
 /* ============================ ACCESSORS ================================= */
+
+   SpeexEchoState* getSpeexEchoState();
 
 /* ============================ INQUIRY =================================== */
 
