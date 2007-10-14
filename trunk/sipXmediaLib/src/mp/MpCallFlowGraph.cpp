@@ -251,12 +251,6 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 #ifdef HAVE_SPEEX // [
    res = addLink(*pLastResource, 0, *mpSpeexPreProcess, 0);
    assert(res == OS_SUCCESS);
-
-#ifdef DOING_ECHO_CANCELATION /* [ */
-   res = addLink(*pLastResource, 1, *mpSpeexPreProcess, 1);
-   assert(res == OS_SUCCESS);
-#endif /* DOING_ECHO_CANCELATION ] */
-
    pLastResource = mpSpeexPreProcess;
 #endif // HAVE_SPEEX ]
 

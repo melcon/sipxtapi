@@ -124,8 +124,10 @@ OsStatus MpeSipxSpeex::initEncode(void)
 
 OsStatus MpeSipxSpeex::freeEncode(void)
 {
-   speex_encoder_destroy(mpEncoderState);
    speex_bits_destroy(&mBits);
+   speex_encoder_destroy(mpEncoderState);
+   mpEncoderState = NULL;
+
    return OS_SUCCESS;
 }
 

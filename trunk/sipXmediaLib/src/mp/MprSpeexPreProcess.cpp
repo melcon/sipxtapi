@@ -100,10 +100,7 @@ UtlBoolean MprSpeexPreprocess::doProcessFrame(MpBufPtr inBufs[],
       assert(res);
 
       // Get Echo residue if we have any
-      if (inBufs[1].isValid()) {
-         echoResidue = (spx_int32_t*)((MpArrayBufPtr)inBufs[1])->getDataPtr();
-      }
-      speex_preprocess(mpPreprocessState, (spx_int16_t*)inputBuffer->getSamplesPtr(), echoResidue);
+      speex_preprocess_run(mpPreprocessState, (spx_int16_t*)inputBuffer->getSamplesPtr());
    }
 
    outBufs[0].swap(inputBuffer);

@@ -914,7 +914,7 @@ typedef enum SIPX_AEC_MODE
                              If you are speaking, the speaker will be silenced
                              to avoid echo.  Echo cancellation is consider a 
                              better approach/experience, however, requires more
-                             CPU consumption.  */
+                             CPU consumption.  Not supported with Speex.*/
     SIPX_AEC_CANCEL,     /**<Full echo cancellation; attempt to cancel echo 
                              between the the speaker and microphone.  Depending
                              on the quality of your speaker/microphone, this 
@@ -926,7 +926,8 @@ typedef enum SIPX_AEC_MODE
     SIPX_AEC_CANCEL_AUTO,/**<Full echo cancellation; attempt to cancel echo 
                              between the the speaker and microphone; however,
                              automatically disable echo cancellation if it
-                             appears not needed.  */
+                             appears not needed. With Speex has the same effect
+                             as SIPX_AEC_CANCEL */
 
 } SIPX_AEC_MODE;
 
@@ -2497,9 +2498,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
 
 /**
  * Get the mode of Acoustic Echo Cancellation (AEC).
- *
- * Note: This API is only supported when bundled with VoiceEngine from 
- * Global IP Sound or Speex library.
+ * This setting comes into effect for new calls.
+*
+ * Note: This API is only supported when bundled with Speex library.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param mode AEC mode.
@@ -2512,9 +2513,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAECMode(const SIPX_INST hInst,
 
 /**
  * Enable/Disable Automatic Gain Control (AGC).  By default, AGC is disabled.
+ * This setting comes into effect for new calls.
  *
- * Note: This API is only supported when bundled with VoiceEngine from 
- * Global IP Sound or Speex library.
+ * Note: This API is only supported when bundled with Speex library.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param bEnable true to enable AGC or false to disable
@@ -2524,8 +2525,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAGCMode(const SIPX_INST hInst,
 
 /**
  * Get the enable/disable state of Automatic Gain Control (AGC).
- * Note: This API is only supported when bundled with VoiceEngine from 
- * Global IP Sound or Speex library.
+ * This setting comes into effect for new calls.
+ *
+ * Note: This API is only supported when bundled with Speex library.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param bEnabled true if AGC is enabled; otherwise false.
