@@ -11,8 +11,8 @@ Main differences between customized and SIP Foundry version:
   * sipxcalllib was stripped of most unused code
   * GIPS (Global IP Sound) remnants have been removed from sipxtapi
   * removed many hard limits from underlying libraries, unlimited number of calls
-  * support for multiple core processors in media processing library
-  * in-band DTMF and RFC2833 DTMF decoders, separate play buffer/file notifications
+  * support for multiple core processors in media processing library. Multiple audio encoding/decoding threads are supported.
+  * in-band DTMF and RFC2833 DTMF decoders, separate play buffer/file notifications, pause/resume playback
   * adaptive jitter buffer, refactored jitter handling
   * very easy to build, no dependencies are required, everything is included
   * more secure code, usage of snprintf, snprintf_s in windows where possible, all old      code was checked and replaced
