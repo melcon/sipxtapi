@@ -35,6 +35,7 @@
 extern "C" {
 #endif
 
+#if(_WIN32_WINNT < 0x0600)
 /*
  * This file is intended to be compatible with the traditional poll.h.
  */
@@ -92,6 +93,7 @@ struct pollfd {
  * by poll.h.
  */
 #define INFTIM          (-1)
+#endif /* !_WIN32_WINNT */
 
 #ifndef KERNEL
 
