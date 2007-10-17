@@ -2767,10 +2767,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\sipXtapi.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\test\os\StunMessageTest.h"
 				>
 			</File>

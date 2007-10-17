@@ -13,7 +13,6 @@
 extern "C" {
 #endif
 
-extern const char * res_error_str(void);
 extern const char * res_opcode(int i);
 extern const char * res_rcode(int i);
 extern const char * res_wks(int i);
@@ -21,7 +20,7 @@ extern const char * res_proto(int i);
 extern const char * res_type(int i);
 extern int    which_res_type(const char* s);
 extern const char * res_class(int i);
-extern const char * res_time(int i);
+void res_time(char* retbuf, int bufferSize, int value);
 
 #ifdef __cplusplus
 }

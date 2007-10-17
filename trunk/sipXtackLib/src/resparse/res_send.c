@@ -137,12 +137,6 @@ extern struct __res_state _sip_res ;
 /*defined in OsSocket*/
 unsigned long osSocketGetDefaultBindAddress();
 
-
-/* Here we define NOPOLL */
-/* So we don't need to consider the poll() and sigaction() function */
-
-#define NOPOLL
-
 #if defined(_WIN32) /* only needed for win32 --GAT */
 int poll(struct pollfd *_pfd, unsigned _nfds, int _timeout)
 {
@@ -157,17 +151,14 @@ int sigaction(int sig, const struct sigaction *act, struct sigaction *oact)
 
 /* We defined NOPOLL */
 
-#ifndef NOPOLL                  /* libc_r doesn't wrap poll yet() */
-static int use_poll = 1;        /* adapt to poll() syscall availability */
-/* 0 = not present, 1 = try it, 2 = exists */
-#endif
+#undef NOPOLL
 
-static int s = -1;              /* socket used for communications */
-static int connected = 0;       /* is the socket connected */
-static int vc = 0;              /* is the socket a virtual circuit? */
-static res_send_qhook Qhook = NULL;
-static res_send_rhook Rhook = NULL;
-
+typedef struct res_send_state
+{
+   int s;              /* socket used for communications */
+   int connected;      /* is the socket connected */
+   int vc;             /* is the socket a virtual circuit? */
+} res_send_state;
 
 #define CAN_RECONNECT 1
 
@@ -185,12 +176,7 @@ static res_send_rhook Rhook = NULL;
 fprintf args;\
 __fp_nquery(query, size, stdout);\
 } else {} */
-static void
-Aerror(file, string, error, address)
-FILE *file;
-char *string;
-int error;
-struct sockaddr_in address;
+static void Aerror(FILE *file, char *string, int error, struct sockaddr_in address)
 {
    int save = errno;
 #ifndef WINCE
@@ -204,11 +190,7 @@ struct sockaddr_in address;
 #endif
    errno = save;
 }
-static void
-Perror(file, string, error)
-FILE *file;
-char *string;
-int error;
+static void Perror(FILE *file, char *string, int error)
 {
    int save = errno;
 #ifndef WINCE
@@ -221,6 +203,12 @@ int error;
 }
 #endif
 
+void init_res_send_state(res_send_state *state)
+{
+   state->s = -1;
+   state->connected = 0;
+   state->vc = 0;
+}
 
 /*
 * This routine is for closing the socket if a virtual circuit is used and
@@ -229,31 +217,23 @@ int error;
 *
 * This routine is not expected to be user visible.
 */
-void res_close()
+void res_close(res_send_state *state)
 {
-   if (s >= 0)
+   if (state)
    {
+      if (state->s >= 0)
+      {
 #if defined(_WIN32)
-      (void) closesocket(s);
+         (void) closesocket(state->s);
 #else
-      (void) close(s);
+         (void) close(state->s);
 #endif
 
-      s = -1;
-      connected = 0;
-      vc = 0;
-   }
-}
-
-
-void res_send_setqhook(res_send_qhook hook)
-{
-   Qhook = hook;
-}
-
-void res_send_setrhook(res_send_rhook hook)
-{
-   Rhook = hook;
+         state->s = -1;
+         state->connected = 0;
+         state->vc = 0;
+      }
+   }   
 }
 
 /* int
@@ -386,6 +366,12 @@ int res_send(const u_char *buf,
              u_char *ans,
              int anssiz)
 {
+   res_send_state send_state;
+
+#ifndef NOPOLL                  /* libc_r doesn't wrap poll yet() */
+   int use_poll = 1;        /* adapt to poll() syscall availability */
+   /* 0 = not present, 1 = try it, 2 = exists */
+#endif
 
 #if defined(_WIN32)  /* Added for debugging --GAT */
    int socket_error = 0;
@@ -399,6 +385,8 @@ int res_send(const u_char *buf,
    int gotsomewhere, connreset, terrno, itry, v_circuit, resplen, ns, n;
    int nstimeout = 0;
    u_int badns; /* XXX NSMAX can't exceed #/bits in this variable */
+
+   init_res_send_state(&send_state);
 
    if ((_sip_res.options & RES_INIT) == 0 && res_init() == -1)
    {
@@ -429,41 +417,8 @@ int res_send(const u_char *buf,
 same_ns:
          if (badns & (1 << ns))
          {
-            res_close();
+            res_close(&send_state);
             goto next_ns;
-         }
-
-         if (Qhook)
-         {
-            int done = 0, loops = 0;
-
-            do
-            {
-               res_sendhookact act;
-
-               act = (*Qhook)(&nsap, &buf, &buflen,
-                  ans, anssiz, &resplen);
-               switch (act)
-               {
-                  case res_goahead:
-                     done = 1;
-                     break;
-                  case res_nextns:
-                     res_close();
-                     goto next_ns;
-                  case res_done:
-                     return (resplen);
-                  case res_modified:
-                     /* give the hook another try */
-                     if (++loops < 42) /*doug adams*/
-                        break;
-                     /*FALLTHROUGH*/
-                  case res_error:
-                     /*FALLTHROUGH*/
-                  default:
-                     return (-1);
-               }
-            } while (!done);
          }
 
          Dprint(_sip_res.options & RES_DEBUG,
@@ -483,30 +438,30 @@ same_ns:
             */
             itry = _sip_res.retry;
             truncated = 0;
-            if (s < 0 || !vc || hp->opcode == ns_o_update)
+            if (send_state.s < 0 || !send_state.vc || hp->opcode == ns_o_update)
             {
-               if (s >= 0)
-                  res_close();
+               if (send_state.s >= 0)
+                  res_close(&send_state);
 
-               s = socket(PF_INET, SOCK_STREAM, 0);
-               if (s < 0)
+               send_state.s = socket(PF_INET, SOCK_STREAM, 0);
+               if (send_state.s < 0)
                {
                   terrno = errno;
                   Perror(stderr, "socket(vc)", errno);
                   return (-1);
                }
                errno = 0;
-               if (connect(s, (struct sockaddr *)nsap,
+               if (connect(send_state.s, (struct sockaddr *)nsap,
                   sizeof *nsap) < 0)
                {
                      terrno = errno;
                      Aerror(stderr, "connect/vc",
                         errno, *nsap);
                      badns |= (1 << ns);
-                     res_close();
+                     res_close(&send_state);
                      goto next_ns;
                }
-               vc = 1;
+               send_state.vc = 1;
             }
             /*
             * Send length & message
@@ -516,12 +471,12 @@ same_ns:
             iov[0].iov_len = INT16SZ;
             iov[1].iov_base = (caddr_t)buf;
             iov[1].iov_len = buflen;
-            if (writev(s, iov, 2) != (INT16SZ + buflen))
+            if (writev(send_state.s, iov, 2) != (INT16SZ + buflen))
             {
                terrno = errno;
                Perror(stderr, "write failed", errno);
                badns |= (1 << ns);
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
             /*
@@ -530,7 +485,7 @@ same_ns:
 read_len:
             cp = ans;
             len = INT16SZ;
-            while ((n = recv(s, (char *)cp, (int)len, 0)) > 0)
+            while ((n = recv(send_state.s, (char *)cp, (int)len, 0)) > 0)
             {
                cp += n;
                if ((len -= n) <= 0)
@@ -540,7 +495,7 @@ read_len:
             {
                terrno = errno;
                Perror(stderr, "read failed", errno);
-               res_close();
+               res_close(&send_state);
                /*
                * A long running process might get its TCP
                * connection reset if the remote server was
@@ -553,10 +508,10 @@ read_len:
                if (terrno == ECONNRESET && !connreset)
                {
                   connreset = 1;
-                  res_close();
+                  res_close(&send_state);
                   goto same_ns;
                }
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
             resplen = ns_get16(ans);
@@ -578,12 +533,12 @@ read_len:
                   (stdout, ";; undersized: %d\n", len));
                terrno = EMSGSIZE;
                badns |= (1 << ns);
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
             cp = ans;
             while (len != 0 &&
-               (n = recv(s, (char *)cp, (int)len, 0)) > 0)
+               (n = recv(send_state.s, (char *)cp, (int)len, 0)) > 0)
             {
                   cp += n;
                   len -= n;
@@ -592,7 +547,7 @@ read_len:
             {
                terrno = errno;
                Perror(stderr, "read(vc)", errno);
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
             if (truncated)
@@ -610,7 +565,7 @@ read_len:
                   n = (len > sizeof(junk)
                      ? sizeof(junk)
                      : len);
-                  if ((n = recv(s, junk, n, 0)) > 0)
+                  if ((n = recv(send_state.s, junk, n, 0)) > 0)
                      len -= n;
                   else
                      break;
@@ -648,14 +603,14 @@ read_len:
             int fromlen;
 
             // if no socket exists, create one
-            if ((s < 0) || vc)
+            if ((send_state.s < 0) || send_state.vc)
             {
-               if (vc)
-                  res_close();
+               if (send_state.vc)
+                  res_close(&send_state);
 
-               s = socket(PF_INET, SOCK_DGRAM, 0);
+               send_state.s = socket(PF_INET, SOCK_DGRAM, 0);
 #if defined(_WIN32)  /* Added for debugging --GAT */
-               if (s == INVALID_SOCKET)
+               if (send_state.s == INVALID_SOCKET)
                {
                   socket_error = WSAGetLastError();
                   Dprint(_sip_res.options & RES_DEBUG,
@@ -664,7 +619,7 @@ read_len:
                   return (-1);
                }
 #endif
-               if (s < 0)
+               if (send_state.s < 0)
                {
 #ifndef CAN_RECONNECT
 bad_dg_sock:
@@ -673,7 +628,7 @@ bad_dg_sock:
                   Perror(stderr, "socket(dg)", errno);
                   return (-1);
                }
-               connected = 0;
+               send_state.connected = 0;
             }
 
 #ifndef CANNOT_CONNECT_DGRAM
@@ -698,20 +653,20 @@ bad_dg_sock:
                * Connect only if we are sure we won't
                * receive a response from another server.
                */
-               if (!connected)
+               if (!send_state.connected)
                {
-                  if (connect(s, (struct sockaddr *)nsap, sizeof *nsap) < 0)
+                  if (connect(send_state.s, (struct sockaddr *)nsap, sizeof *nsap) < 0)
                   {
                         Aerror(stderr,
                            "connect(dg)",
                            errno, *nsap);
                         badns |= (1 << ns);
-                        res_close();
+                        res_close(&send_state);
                         goto next_ns;
                   }
-                  connected = 1;
+                  send_state.connected = 1;
                }
-               if ( (send(s, (char*)buf, buflen, 0) ) != buflen)
+               if ( (send(send_state.s, (char*)buf, buflen, 0) ) != buflen)
                {
 #if defined(_WIN32)  /* Added for debugging --GAT */
                   send_error = WSAGetLastError();
@@ -721,7 +676,7 @@ bad_dg_sock:
 #endif
                   Perror(stderr, "send", errno);
                   badns |= (1 << ns);
-                  res_close();
+                  res_close(&send_state);
                   goto next_ns;
                }
             }
@@ -731,7 +686,7 @@ bad_dg_sock:
                * Disconnect if we want to listen
                * for responses from more than one server.
                */
-               if (connected)
+               if (send_state.connected)
                {
 #ifdef CAN_RECONNECT
                   struct sockaddr_in no_addr;
@@ -739,7 +694,7 @@ bad_dg_sock:
                   no_addr.sin_addr.s_addr = osSocketGetDefaultBindAddress();
                   /*					no_addr.sin_addr.s_addr = INADDR_ANY;*/
                   no_addr.sin_port = 0;
-                  connect(s, (struct sockaddr *)&no_addr, sizeof no_addr);
+                  connect(send_state.s, (struct sockaddr *)&no_addr, sizeof no_addr);
 #else
                   int s1 = socket(PF_INET, SOCK_DGRAM,0);
                   if (s1 < 0)
@@ -749,17 +704,17 @@ bad_dg_sock:
                   Dprint(_sip_res.options & RES_DEBUG,
                      (stdout, ";; new DG socket\n"))
 #endif /* CAN_RECONNECT */
-                     connected = 0;
+                     send_state.connected = 0;
                   errno = 0;
                }
 #endif /* !CANNOT_CONNECT_DGRAM */
-               if (sendto(s, (char*)buf, buflen, 0,
+               if (sendto(send_state.s, (char*)buf, buflen, 0,
                   (struct sockaddr *)nsap,
                   sizeof *nsap)
                   != buflen) {
                      Aerror(stderr, "sendto", errno, *nsap);
                      badns |= (1 << ns);
-                     res_close();
+                     res_close(&send_state);
                      goto next_ns;
                }
 #ifndef CANNOT_CONNECT_DGRAM
@@ -789,9 +744,9 @@ othersyscall:
             }
 #endif
 wait:
-            if (s < 0) {
+            if (send_state.s < 0) {
                Perror(stderr, "s out-of-bounds", EMFILE);
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
 #ifndef NOPOLL
@@ -799,7 +754,7 @@ wait:
                struct sigaction sa, osa;
                int sigsys_installed = 0;
 
-               pfd.fd = s;
+               pfd.fd = send_state.s;
                pfd.events = POLLIN;
                if (use_poll == 1) {
                   bzero_local(&sa, sizeof(sa));
@@ -824,25 +779,25 @@ wait:
                   if (errno == EINTR)
                      goto wait;
                   Perror(stderr, "poll", errno);
-                  res_close();
+                  res_close(&send_state);
                   goto next_ns;
                }
             } else {
 #endif
-               dsmasklen = howmany(s + 1, NFDBITS) *
+               dsmasklen = howmany(send_state.s + 1, NFDBITS) *
                   sizeof(fd_mask);
                if (dsmasklen > (int) (sizeof(fd_set))) {
                   dsmaskp = (fd_set *)malloc(dsmasklen);
                   if (dsmaskp == NULL) {
-                     res_close();
+                     res_close(&send_state);
                      goto next_ns;
                   }
                } else
                   dsmaskp = &dsmask;
                /* only zero what we need */
                bzero_local((char *)dsmaskp, dsmasklen);
-               FD_SET((u_int)s, dsmaskp);
-               n = select(s + 1, dsmaskp, (fd_set *)NULL,
+               FD_SET((u_int)send_state.s, dsmaskp);
+               n = select(send_state.s + 1, dsmaskp, (fd_set *)NULL,
                   (fd_set *)NULL, &timeout);
                if (dsmaskp != &dsmask)
                   free(dsmaskp);
@@ -850,7 +805,7 @@ wait:
                   if (errno == EINTR)
                      goto wait;
                   Perror(stderr, "select", errno);
-                  res_close();
+                  res_close(&send_state);
                   goto next_ns;
                }
 #ifndef NOPOLL
@@ -865,16 +820,16 @@ wait:
                Dprint(_sip_res.options & RES_DEBUG,
                   (stdout, ";; timeout\n"));
                gotsomewhere = 1;
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
             errno = 0;
             fromlen = sizeof(struct sockaddr_in);
-            resplen = recvfrom(s, (char*)ans, anssiz, 0,
+            resplen = recvfrom(send_state.s, (char*)ans, anssiz, 0,
                (struct sockaddr *)&from, &fromlen);
             if (resplen <= 0) {
                Perror(stderr, "recvfrom", errno);
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
 #if defined(_VXWORKS)
@@ -896,7 +851,7 @@ wait:
                   resplen));
                terrno = EMSGSIZE;
                badns |= (1 << ns);
-               res_close();
+               res_close(&send_state);
                goto next_ns;
             }
             if (hp->id != anhp->id) {
@@ -947,7 +902,7 @@ wait:
                      (stdout, "server rejected query:\n"),
                      ans, (resplen>anssiz)?anssiz:resplen);
                   badns |= (1 << ns);
-                  res_close();
+                  res_close(&send_state);
                   /* don't retry if called from dig */
                   if (!_sip_res.pfcode)
                      goto next_ns;
@@ -960,7 +915,7 @@ wait:
                Dprint(_sip_res.options & RES_DEBUG,
                   (stdout, ";; truncated answer\n"));
                v_circuit = 1;
-               res_close();
+               res_close(&send_state);
                goto same_ns;
             }
          } /*if vc/dg*/
@@ -982,36 +937,7 @@ wait:
          */
          if ((v_circuit && (!(_sip_res.options & RES_USEVC) || ns != 0)) ||
             !(_sip_res.options & RES_STAYOPEN)) {
-               res_close();
-         }
-         if (Rhook) {
-            int done = 0, loops = 0;
-
-            do {
-               res_sendhookact act;
-
-               act = (*Rhook)(nsap, buf, buflen,
-                  ans, anssiz, &resplen);
-               switch (act) {
-                  case res_goahead:
-                  case res_done:
-                     done = 1;
-                     break;
-                  case res_nextns:
-                     res_close();
-                     goto next_ns;
-                  case res_modified:
-                     /* give the hook another try */
-                     if (++loops < 42) /*doug adams*/
-                        break;
-                     /*FALLTHROUGH*/
-                  case res_error:
-                     /*FALLTHROUGH*/
-                  default:
-                     return (-1);
-               }
-            } while (!done);
-
+               res_close(&send_state);
          }
          if (resplen > 0 && nstimeout && ns > 0)
          {
@@ -1026,7 +952,7 @@ wait:
 next_ns: ;
       } /*foreach ns*/
    } /*foreach retry*/
-   res_close();
+   res_close(&send_state);
    if (!v_circuit) {
       if (!gotsomewhere)
          errno = ECONNREFUSED;  /* no nameservers found */

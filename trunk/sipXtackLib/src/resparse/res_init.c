@@ -153,8 +153,6 @@ struct __res_state _sip_res /* Changed to avoiding clash with previoud defn*/
 # endif
 ;
 
-int h_reserrno; /* moved from res_info.c to res_init.c */
-
 u_int res_random_id()
 {
    struct timeval now;
@@ -177,8 +175,7 @@ u_int res_random_id()
 * coded, from being used in VxWorks. --GAT
 */
 #if defined(_VXWORKS)
-int
-res_init()
+int res_init()
 {
    printf("Should already be initialized by resolvInit in kernel.\n");
    return (-1);
@@ -554,9 +551,7 @@ int res_init_ip(const char* localIp)
 #endif
 
 #ifndef _VXWORKS /* [ */
-static void
-res_setoptions(options, source)
-char *options, *source;
+static void res_setoptions(char *options, char *source)
 {
    char *cp = options;
    int i;

@@ -200,7 +200,6 @@ extern struct __res_state _sip_res;
 #define	dn_skipname	__dn_skipname
 #define	fp_query	__fp_query
 #define	fp_nquery	__fp_nquery
-#define	hostalias	__hostalias
 #define	putlong		__putlong
 #define	putshort	__putshort
 #define p_class		__p_class
