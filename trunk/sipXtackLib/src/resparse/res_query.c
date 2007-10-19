@@ -84,6 +84,8 @@ static char rcsid[] = "";
 #include <errno.h>
 #endif
 
+#include <os/OsMutexC.h>
+
 /* Reordered includes and separated into win/vx --GAT */
 #if defined(_WIN32)
 #   include <resparse/wnt/sys/param.h>
@@ -125,6 +127,8 @@ static char rcsid[] = "";
 #define MAXPACKET 1024
 #endif
 
+extern OsMutexC resGlobalLock;
+
 /*
  * Formulate a normal query, send, and await answer.
  * Returned answer is placed in supplied buffer "answer".
@@ -146,9 +150,13 @@ int res_query(const char *name,       /* domain name */
 
     hp->rcode = NOERROR;    /* default */
 
+    acquireMutex(resGlobalLock);
     if ((_sip_res.options & RES_INIT) == 0 && res_init() == -1) {
-        return (-1);
+      releaseMutex(resGlobalLock);
+      return (-1);
 	}
+   releaseMutex(resGlobalLock);
+
 #ifdef DEBUG
     if (_sip_res.options & RES_DEBUG)
         printf(";; res_query(%s, %d, %d)\n", name, class, type);
@@ -210,9 +218,13 @@ int res_local_querydomain(const char *name,
     const char *longname = nbuf;
     int n, d;
 
+    acquireMutex(resGlobalLock);
     if ((_sip_res.options & RES_INIT) == 0 && res_init() == -1) {
-        return (-1);
+       releaseMutex(resGlobalLock);
+       return (-1);
     }
+    releaseMutex(resGlobalLock);
+
 #ifdef DEBUG
     if (_sip_res.options & RES_DEBUG)
         printf(";; res_local_querydomain(%s, %s, %d, %d)\n",

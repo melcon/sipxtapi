@@ -92,6 +92,8 @@ static char rcsid[] = "";
 #include "resparse/types.h" /* added to pick up NFDBITS and fd_mask --GAT */
 #include <time.h>
 
+#include <os/OsMutexC.h>
+
 /* Reordered includes and separated into win/vx --GAT */
 #if defined(_WIN32)
 #   include <resparse/wnt/sys/param.h>
@@ -134,8 +136,14 @@ static char rcsid[] = "";
 #include "resparse/res_config.h"
 #include <os/OsDefs.h>
 extern struct __res_state _sip_res ;
+extern OsMutexC resGlobalLock;
+
 /*defined in OsSocket*/
 unsigned long osSocketGetDefaultBindAddress();
+
+/* We defined NOPOLL */
+
+#define NOPOLL
 
 #if defined(_WIN32) /* only needed for win32 --GAT */
 int poll(struct pollfd *_pfd, unsigned _nfds, int _timeout)
@@ -149,9 +157,6 @@ int sigaction(int sig, const struct sigaction *act, struct sigaction *oact)
 }
 #endif
 
-/* We defined NOPOLL */
-
-#undef NOPOLL
 
 typedef struct res_send_state
 {
@@ -252,6 +257,8 @@ int res_isourserver_local(const struct sockaddr_in *inp)   /* name conflict: app
 
    ina = *inp;
    ret = 0;
+
+   acquireMutex(resGlobalLock);
    for (ns = 0;  ns < _sip_res.nscount;  ns++)
    {
       const struct sockaddr_in *srv = &_sip_res.nsaddr_list[ns];
@@ -265,6 +272,8 @@ int res_isourserver_local(const struct sockaddr_in *inp)   /* name conflict: app
             break;
       }
    }
+
+   releaseMutex(resGlobalLock);
    return (ret);
 }
 
@@ -385,22 +394,46 @@ int res_send(const u_char *buf,
    int gotsomewhere, connreset, terrno, itry, v_circuit, resplen, ns, n;
    int nstimeout = 0;
    u_int badns; /* XXX NSMAX can't exceed #/bits in this variable */
+   int sip_res_retry;
+   int sip_res_nscount;
+   int sip_res_retrans;
+   int sip_res_pfcode;
+   int sip_res_options;
+   int i = 0;
+
+   struct sockaddr_in nsaddr_list[MAXNS];
 
    init_res_send_state(&send_state);
 
-   if ((_sip_res.options & RES_INIT) == 0 && res_init() == -1)
+   acquireMutex(resGlobalLock);
+   sip_res_retry = _sip_res.retry;
+   sip_res_nscount = _sip_res.nscount;
+   sip_res_retrans = _sip_res.retrans;
+   sip_res_pfcode = _sip_res.pfcode;
+   sip_res_options = _sip_res.options;
+
+   for (i = 0; (i < MAXNS) && (i < sip_res_nscount); i++)
+   {
+      nsaddr_list[i] = _sip_res.nsaddr_list[i];
+   }
+   sip_res_nscount = i;
+
+   if ((sip_res_options & RES_INIT) == 0 && res_init() == -1)
    {
       /* errno should have been set by res_init() in this case. */
+      releaseMutex(resGlobalLock);
       return (-1);
    }
+   releaseMutex(resGlobalLock);
+
    if (anssiz < HFIXEDSZ)
    {
       errno = EINVAL;
       return (-1);
    }
-   DprintQ((_sip_res.options & RES_DEBUG) || (_sip_res.pfcode & RES_PRF_QUERY),
+   DprintQ((sip_res_options & RES_DEBUG) || (sip_res_pfcode & RES_PRF_QUERY),
       (stdout, ";; res_send()\n"), buf, buflen);
-   v_circuit = (_sip_res.options & RES_USEVC) || buflen > PACKETSZ;
+   v_circuit = (sip_res_options & RES_USEVC) || buflen > PACKETSZ;
    gotsomewhere = 0;
    connreset = 0;
    terrno = ETIMEDOUT;
@@ -409,11 +442,11 @@ int res_send(const u_char *buf,
    /*
    * Send request, RETRY times, or until successful
    */
-   for (itry = 0; itry < _sip_res.retry; itry++)
+   for (itry = 0; itry < sip_res_retry; itry++)
    {
-      for (ns = 0; ns < _sip_res.nscount; ns++)
+      for (ns = 0; ns < sip_res_nscount; ns++)
       {
-         struct sockaddr_in *nsap = &_sip_res.nsaddr_list[ns];
+         struct sockaddr_in *nsap = &nsaddr_list[ns];
 same_ns:
          if (badns & (1 << ns))
          {
@@ -421,7 +454,7 @@ same_ns:
             goto next_ns;
          }
 
-         Dprint(_sip_res.options & RES_DEBUG,
+         Dprint(sip_res_options & RES_DEBUG,
             (stdout, ";; Querying server (# %d) address = %s\n",
             ns + 1, inet_ntoa(nsap->sin_addr)));
 
@@ -436,7 +469,7 @@ same_ns:
             * Use virtual circuit;
             * at most one attempt per server.
             */
-            itry = _sip_res.retry;
+            itry = sip_res_retry;
             truncated = 0;
             if (send_state.s < 0 || !send_state.vc || hp->opcode == ns_o_update)
             {
@@ -517,7 +550,7 @@ read_len:
             resplen = ns_get16(ans);
             if (resplen > anssiz)
             {
-               Dprint(_sip_res.options & RES_DEBUG,
+               Dprint(sip_res_options & RES_DEBUG,
                   (stdout, ";; response truncated\n")
                   );
                truncated = 1;
@@ -529,7 +562,7 @@ read_len:
                /*
                * Undersized message.
                */
-               Dprint(_sip_res.options & RES_DEBUG,
+               Dprint(sip_res_options & RES_DEBUG,
                   (stdout, ";; undersized: %d\n", len));
                terrno = EMSGSIZE;
                badns |= (1 << ns);
@@ -580,8 +613,8 @@ read_len:
             */
             if (hp->id != anhp->id)
             {
-               DprintQ((_sip_res.options & RES_DEBUG) ||
-                  (_sip_res.pfcode & RES_PRF_REPLY),
+               DprintQ((sip_res_options & RES_DEBUG) ||
+                  (sip_res_pfcode & RES_PRF_REPLY),
                   (stdout, ";; old answer (unexpected):\n"),
                   ans, (resplen>anssiz)?anssiz:resplen);
                goto read_len;
@@ -613,7 +646,7 @@ read_len:
                if (send_state.s == INVALID_SOCKET)
                {
                   socket_error = WSAGetLastError();
-                  Dprint(_sip_res.options & RES_DEBUG,
+                  Dprint(sip_res_options & RES_DEBUG,
                      (stdout, "socket() call failed with error: %d\n",
                      socket_error));
                   return (-1);
@@ -647,7 +680,7 @@ bad_dg_sock:
             * as we wish to receive answers from the first
             * server to respond.
             */
-            if (_sip_res.nscount == 1 || (itry == 0 && ns == 0))
+            if (sip_res_nscount == 1 || (itry == 0 && ns == 0))
             {
                /*
                * Connect only if we are sure we won't
@@ -670,7 +703,7 @@ bad_dg_sock:
                {
 #if defined(_WIN32)  /* Added for debugging --GAT */
                   send_error = WSAGetLastError();
-                  Dprint(_sip_res.options & RES_DEBUG,
+                  Dprint(sip_res_options & RES_DEBUG,
                      (stdout, "send() call failed with error: %d\n",
                      send_error));
 #endif
@@ -701,7 +734,7 @@ bad_dg_sock:
                      goto bad_dg_sock;
                   (void) dup2(s1, s);
                   (void) close(s1);
-                  Dprint(_sip_res.options & RES_DEBUG,
+                  Dprint(sip_res_options & RES_DEBUG,
                      (stdout, ";; new DG socket\n"))
 #endif /* CAN_RECONNECT */
                      send_state.connected = 0;
@@ -727,16 +760,16 @@ bad_dg_sock:
 #ifndef NOPOLL
 othersyscall:
             if (use_poll) {
-               msec = (_sip_res.retrans << itry) * 1000;
+               msec = (sip_res_retrans << itry) * 1000;
                if (itry > 0)
-                  msec /= _sip_res.nscount;
+                  msec /= sip_res_nscount;
                if (msec <= 0)
                   msec = 1000;
             } else {
 #endif
-               timeout.tv_sec = (_sip_res.retrans << itry);
+               timeout.tv_sec = (sip_res_retrans << itry);
                if (itry > 0)
-                  timeout.tv_sec /= _sip_res.nscount;
+                  timeout.tv_sec /= sip_res_nscount;
                if ((long) timeout.tv_sec <= 0)
                   timeout.tv_sec = 1;
                timeout.tv_usec = 0;
@@ -817,7 +850,7 @@ wait:
                * timeout
                */
                nstimeout = 1;
-               Dprint(_sip_res.options & RES_DEBUG,
+               Dprint(sip_res_options & RES_DEBUG,
                   (stdout, ";; timeout\n"));
                gotsomewhere = 1;
                res_close(&send_state);
@@ -846,7 +879,7 @@ wait:
                /*
                * Undersized message.
                */
-               Dprint(_sip_res.options & RES_DEBUG,
+               Dprint(sip_res_options & RES_DEBUG,
                   (stdout, ";; undersized: %d\n",
                   resplen));
                terrno = EMSGSIZE;
@@ -860,28 +893,28 @@ wait:
                * XXX - potential security hazard could
                *	 be detected here.
                */
-               DprintQ((_sip_res.options & RES_DEBUG) ||
-                  (_sip_res.pfcode & RES_PRF_REPLY),
+               DprintQ((sip_res_options & RES_DEBUG) ||
+                  (sip_res_pfcode & RES_PRF_REPLY),
                   (stdout, ";; old answer:\n"),
                   ans, (resplen>anssiz)?anssiz:resplen);
                goto wait;
             }
 #ifdef CHECK_SRVR_ADDR
-            if (!(_sip_res.options & RES_INSECURE1) &&
+            if (!(sip_res_options & RES_INSECURE1) &&
                !res_isourserver_local(&from)) {
                   /*
                   * response from wrong server? ignore it.
                   * XXX - potential security hazard could
                   *	 be detected here.
                   */
-                  DprintQ((_sip_res.options & RES_DEBUG) ||
-                     (_sip_res.pfcode & RES_PRF_REPLY),
+                  DprintQ((sip_res_options & RES_DEBUG) ||
+                     (sip_res_pfcode & RES_PRF_REPLY),
                      (stdout, ";; not our server:\n"),
                      ans, (resplen>anssiz)?anssiz:resplen);
                   goto wait;
             }
 #endif
-            if (!(_sip_res.options & RES_INSECURE2) &&
+            if (!(sip_res_options & RES_INSECURE2) &&
                !res_queriesmatch_local(buf, buf + buflen,  /* wdn - _local */
                ans, ans + anssiz)) {
                   /*
@@ -889,8 +922,8 @@ wait:
                   * XXX - potential security hazard could
                   *	 be detected here.
                   */
-                  DprintQ((_sip_res.options & RES_DEBUG) ||
-                     (_sip_res.pfcode & RES_PRF_REPLY),
+                  DprintQ((sip_res_options & RES_DEBUG) ||
+                     (sip_res_pfcode & RES_PRF_REPLY),
                      (stdout, ";; wrong query name:\n"),
                      ans, (resplen>anssiz)?anssiz:resplen);
                   goto wait;
@@ -898,33 +931,33 @@ wait:
             if (anhp->rcode == SERVFAIL ||
                anhp->rcode == NOTIMP ||
                anhp->rcode == REFUSED) {
-                  DprintQ(_sip_res.options & RES_DEBUG,
+                  DprintQ(sip_res_options & RES_DEBUG,
                      (stdout, "server rejected query:\n"),
                      ans, (resplen>anssiz)?anssiz:resplen);
                   badns |= (1 << ns);
                   res_close(&send_state);
                   /* don't retry if called from dig */
-                  if (!_sip_res.pfcode)
+                  if (!sip_res_pfcode)
                      goto next_ns;
             }
-            if (!(_sip_res.options & RES_IGNTC) && anhp->tc) {
+            if (!(sip_res_options & RES_IGNTC) && anhp->tc) {
                /*
                * get rest of answer;
                * use TCP with same server.
                */
-               Dprint(_sip_res.options & RES_DEBUG,
+               Dprint(sip_res_options & RES_DEBUG,
                   (stdout, ";; truncated answer\n"));
                v_circuit = 1;
                res_close(&send_state);
                goto same_ns;
             }
          } /*if vc/dg*/
-         Dprint((_sip_res.options & RES_DEBUG) ||
-            ((_sip_res.pfcode & RES_PRF_REPLY) &&
-            (_sip_res.pfcode & RES_PRF_HEAD1)),
+         Dprint((sip_res_options & RES_DEBUG) ||
+            ((sip_res_pfcode & RES_PRF_REPLY) &&
+            (sip_res_pfcode & RES_PRF_HEAD1)),
             (stdout, ";; got answer:\n"));
-         DprintQ((_sip_res.options & RES_DEBUG) ||
-            (_sip_res.pfcode & RES_PRF_REPLY),
+         DprintQ((sip_res_options & RES_DEBUG) ||
+            (sip_res_pfcode & RES_PRF_REPLY),
             (stdout, ""),
             ans, (resplen>anssiz)?anssiz:resplen);
          /*
@@ -935,18 +968,33 @@ wait:
          * or if we haven't been asked to keep a socket open,
          * close the socket.
          */
-         if ((v_circuit && (!(_sip_res.options & RES_USEVC) || ns != 0)) ||
-            !(_sip_res.options & RES_STAYOPEN)) {
+         if ((v_circuit && (!(sip_res_options & RES_USEVC) || ns != 0)) ||
+            !(sip_res_options & RES_STAYOPEN)) {
                res_close(&send_state);
          }
          if (resplen > 0 && nstimeout && ns > 0)
          {
+            int k = 0;
+            acquireMutex(resGlobalLock);
             // if we got a valid response, and there was a timeout, swap items in nsaddr_list
             // to prevent timeout in the future
-            struct sockaddr_in tmp = _sip_res.nsaddr_list[ns];
-            _sip_res.nsaddr_list[ns] = _sip_res.nsaddr_list[0];
-            _sip_res.nsaddr_list[0] = tmp;
+
+            // this is a bit tricky, we have to find the address in real array, not in our copy
+            // the position might have already changed from another thread
+            for (k = 0; k < _sip_res.nscount; k++)
+            {
+               if (nsap->sin_addr.S_un.S_addr == _sip_res.nsaddr_list[k].sin_addr.S_un.S_addr)
+               {
+                  // we found the correct index, now swap
+                  struct sockaddr_in tmp = _sip_res.nsaddr_list[k];
+                  _sip_res.nsaddr_list[k] = _sip_res.nsaddr_list[0];
+                  _sip_res.nsaddr_list[0] = tmp;
+
+                  break;
+               }
+            }
             // now working DNS address will be 1st
+            releaseMutex(resGlobalLock);
          }
          return (resplen);
 next_ns: ;
