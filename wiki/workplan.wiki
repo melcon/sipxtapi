@@ -1,9 +1,9 @@
 ==== DONE: ====
   * Finish progress report events about playback - pause/resume/stop/start is done including cookie & buffer index. Realtime progress report is unnecessary.
   * Check speex audio resources and speex codecs. There seems to be a problem when call is put on hold and unheld. Audio becomes quieter. I'm also not convinced speex echo canceller works. - Some problems in speex resources were detected and fixed. Speex resources were updated to use the latest API.
+  * Fix DNS resolver, support multiple parallel DNS lookups. - Done for Windows, for Linux the API used has to be checked whether parallel DNS lookups are thread safe.
 
 ==== REMAINING: ====
-  * Fix DNS resolver, support multiple parallel DNS lookups.
   * Replace audio driver in sipxmedialib with a more stable one. Either with portaudio or other driver. Old audio driver has high latency and causes jitter buffer starvation. Although new adaptive jitter buffer can compensate this, there are still rare problems with crashes when chaging volume very quickly.
   * Refactor sipxcalllib. Throw out even more unused code, go through all code and check it line by line. Remove blocking in main call manager thread on OsNotifications.
   * Finish speex jitter buffer. Wrapper is 90% done, minor tweaks are necessary, currently its probably not working. Speex jitter buffer is not a high priority now, since I made an adaptive jitter buffer that is superior to what was in sipxmedialib before. Ptime from SDP needs to be properly supplied to jitter buffer, currently its not done.
