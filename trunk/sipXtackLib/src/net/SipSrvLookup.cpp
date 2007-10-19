@@ -56,6 +56,7 @@ extern "C" {
 extern struct __res_state _sip_res;
 
 #ifdef _WIN32
+#define ENABLE_PARALLEL_LOOKUPS
 extern "C" {
 extern OsMutexC resGlobalLock;
 }
@@ -232,8 +233,10 @@ server_t* SipSrvLookup::servers(const char* domain,
    // Initialize the list of servers.
    server_list_initialize(list, list_length_allocated, list_length_used);
 
+#ifndef ENABLE_PARALLEL_LOOKUPS
    // Seize the lock.
    OsLock lock(sMutex);
+#endif
 
    // Case 0: Eliminate contradictory combinations of service and type.
    
@@ -362,9 +365,7 @@ server_t* SipSrvLookup::servers(const char* domain,
 /// Set an option value.
 void SipSrvLookup::setOption(OptionCode option, int value)
 {
-   // Seize the lock, to ensure atomic effect.
-   OsLock lock(sMutex);
-
+   // lock is not needed, int is written to atomatically
    options[option] = value;
 }
 
