@@ -75,6 +75,8 @@ static char orig_rcsid[] = "From: Id: res_mkquery.c,v 8.9 1997/04/24 22:22:36 vi
 static char rcsid[] = "";
 #endif /* LIBC_SCCS and not lint */
 
+#include <os/OsMutexC.h>
+
 #ifdef WINCE
 #   include <types.h>
 #else
@@ -106,6 +108,7 @@ static char rcsid[] = "";
 #include "resparse/res_config.h"
 
 extern struct __res_state _sip_res ;
+extern OsMutexC resGlobalLock;
 
 /* Copied define from res_query, NETDB_INTERNAL not defined for win32 --GAT */
 #define NETDB_INTERNAL  -1      /* see errno, in netdb.h */
@@ -128,9 +131,12 @@ int res_mkquery(int op,                 /* opcode of query */
    register int n;
    u_char *dnptrs[20], **dpp, **lastdnptr;
 
+   acquireMutex(resGlobalLock);
    if ((_sip_res.options & RES_INIT) == 0 && res_init() == -1) {
+      releaseMutex(resGlobalLock);
       return (-1);
    }
+   releaseMutex(resGlobalLock);
 #ifdef DEBUG
    if (_sip_res.options & RES_DEBUG)
       printf(";; res_mkquery(%d, %s, %d, %d)\n",
@@ -143,7 +149,9 @@ int res_mkquery(int op,                 /* opcode of query */
       return (-1);
    res_memset(buf, 0, HFIXEDSZ);
    hp = (HEADER *) buf;
+   acquireMutex(resGlobalLock);
    hp->id = htons(++_sip_res.id);
+   releaseMutex(resGlobalLock);
    hp->opcode = op;
    hp->rd = (_sip_res.options & RES_RECURSE) != 0;
    hp->rcode = NOERROR;

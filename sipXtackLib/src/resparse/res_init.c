@@ -82,6 +82,7 @@ static char rcsid[] = "";
 #endif
 
 #include <time.h>
+#include <os/OsMutexC.h>
 
 /* Reordered includes and separated into win/vx --GAT */
 #if defined(_WIN32)
@@ -147,7 +148,9 @@ static uint32_t net_mask __P((struct in_addr));
 * Resolver state default settings.
 */
 
+OsMutexC resGlobalLock = 0;
 struct __res_state _sip_res /* Changed to avoiding clash with previoud defn*/
+
 # if defined(__BIND_RES_TEXT)
    = { RES_TIMEOUT, }      /* Motorola, et al. */
 # endif
@@ -167,10 +170,28 @@ u_int res_random_id()
 }
 
 /*
+ * Must be called in a thread safe manner to initialize global mutex
+ */
+void res_init_threadsafe_mode()
+{
+   resGlobalLock = createMutex();
+}
+
+/*
+ * Must be called in a thread safe manner to uninitialize global mutex
+ */
+void res_uninit_threadsafe_mode()
+{
+   destroyMutex(resGlobalLock);
+   resGlobalLock = 0;
+}
+
+
+/*
 * Added default VxWorks version of res_init to return an error, since
-* resolvInit is currently being called by the kernal.  If that call is
+* resolvInit is currently being called by the kernel.  If that call is
 * ever removed, must modify the res_init function to work within VxWorks
-* to initialize the namesevers, domain, search and other parameters.
+* to initialize the name severs, domain, search and other parameters.
 * This default routine only supplied to prevent res_init, as currently
 * coded, from being used in VxWorks. --GAT
 */
@@ -181,6 +202,7 @@ int res_init()
    return (-1);
 }
 #elif defined(_WIN32)
+
 /*
 * Set up default settings.  If the configuration file exist, the values
 * there will have precedence.  Otherwise, the server address is set to
@@ -240,6 +262,7 @@ int res_init_ip(const char* localIp)
    unsigned long defaultAddr = osSocketGetDefaultBindAddress();
    struct in_addr naddr;
 
+   acquireMutex(resGlobalLock);
    if (localIp == NULL || localIp[0] == 0)
    {
       // localIp Not specified - use default
@@ -251,6 +274,7 @@ int res_init_ip(const char* localIp)
    {
       if (strcmp(szLocalIp, localIp) == 0)
       {
+         releaseMutex(resGlobalLock);
          return 0; // no need to init again if the ip address is the same
          // as the last call to this function.
       }
@@ -546,6 +570,7 @@ int res_init_ip(const char* localIp)
       res_setoptions(cp, "env");
 #endif
    _sip_res.options |= RES_INIT;
+   releaseMutex(resGlobalLock);
    return (0);
 }
 #endif
@@ -556,6 +581,7 @@ static void res_setoptions(char *options, char *source)
    char *cp = options;
    int i;
 
+   acquireMutex(resGlobalLock);
 #ifdef DEBUG
    if (_sip_res.options & RES_DEBUG)
       printf(";; res_setoptions(\"%s\", \"%s\")...\n",
@@ -596,6 +622,8 @@ static void res_setoptions(char *options, char *source)
       while (*cp && *cp != ' ' && *cp != '\t')
          cp++;
    }
+
+   releaseMutex(resGlobalLock);
 }
 
 #ifdef RESOLVSORT

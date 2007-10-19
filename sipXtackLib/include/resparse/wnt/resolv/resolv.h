@@ -103,7 +103,7 @@ extern "C" {
 #define	LOCALDOMAINPARTS	2	/* min levels in name that is "local" */
 #define	MAXDNSLUS		4	/* max # of host lookup types */
 
-#define	RES_TIMEOUT		5	/* min. seconds between retries */
+#define	RES_TIMEOUT		3	/* min. seconds between retries */
 #define	MAXRESOLVSORT		10	/* number of net to sort on */
 #define	RES_MAXNDOTS		15	/* should reflect bit field size */
 
@@ -234,6 +234,8 @@ const char *__p_option(u_long option);
 int	 dn_comp(const char *, u_char *, int, u_char **, u_char **);
 int	 dn_expand(const u_char *, const u_char *, const u_char *,
 			char *, int);
+void res_init_threadsafe_mode();
+void res_uninit_threadsafe_mode();
 int	 res_init(void);
 int  res_init_ip(const char* szIp);
 u_int16 res_randomid(void);

@@ -15,6 +15,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #if defined(_WIN32)
+extern "C" {
+#       include <os/OsMutexC.h>
+}
 #       include "resparse/wnt/sysdep.h"
 #       include <resparse/wnt/netinet/in.h>
 #       include <resparse/wnt/arpa/nameser.h>
@@ -51,6 +54,13 @@ extern "C" {
 
 #ifndef __pingtel_on_posix__
 extern struct __res_state _sip_res;
+
+#ifdef _WIN32
+extern "C" {
+extern OsMutexC resGlobalLock;
+}
+#endif
+
 #endif
 #ifdef WINCE
 #   include <types.h>
@@ -80,6 +90,8 @@ extern struct __res_state _sip_res;
 
 // The initial value of OptionCodeCNAMELImit.
 #define DEFAULT_CNAME_LIMIT 5
+
+SipSrvLookup SipSrvLookup::instance;
 
 // Forward references
 
@@ -364,7 +376,9 @@ void SipSrvLookup::setDnsSrvTimeouts(int initialTimeoutInSecs, int retries)
 #if defined(__pingtel_on_posix__)
       _res.retrans = initialTimeoutInSecs;
 #else
+      acquireMutex(resGlobalLock);
       _sip_res.retrans = initialTimeoutInSecs;
+      releaseMutex(resGlobalLock);
 #endif
    }
 
@@ -373,12 +387,28 @@ void SipSrvLookup::setDnsSrvTimeouts(int initialTimeoutInSecs, int retries)
 #if defined(__pingtel_on_posix__)
       _res.retry = retries;
 #else
+      acquireMutex(resGlobalLock);
       _sip_res.retry = retries;
+      releaseMutex(resGlobalLock);
 #endif
    }
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+SipSrvLookup::SipSrvLookup()
+{
+#ifdef _WIN32
+   res_init_threadsafe_mode();
+#endif
+}
+
+SipSrvLookup::~SipSrvLookup()
+{
+#ifdef _WIN32
+   res_uninit_threadsafe_mode();
+#endif
+}
 
 /*
  * Lock to protect the resolver routines, which cannot tolerate multithreaded

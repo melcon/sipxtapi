@@ -160,6 +160,10 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+   SipSrvLookup();
+
+   ~SipSrvLookup();
+
    /// Perform a DNS query and parse the results.  Follows CNAME records.
    static void res_query_and_parse(const char* in_name,
       ///< domain name to look up
@@ -235,6 +239,8 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   static SipSrvLookup instance;
 };
 
 
