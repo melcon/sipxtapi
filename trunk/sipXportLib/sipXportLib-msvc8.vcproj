@@ -1866,6 +1866,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\os\Wnt\OsMutexWntC.c"
+				>
+			</File>
+			<File
 				RelativePath=".\src\os\OsNameDb.cpp"
 				>
 			</File>
@@ -2528,6 +2532,10 @@
 			</File>
 			<File
 				RelativePath="include\os\OsMutex.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsMutexC.h"
 				>
 			</File>
 			<File
