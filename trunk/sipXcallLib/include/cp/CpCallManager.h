@@ -141,10 +141,6 @@ public:
         CP_UNHOLD_ALL_TERM_CONNECTIONS,//50
         CP_CANCEL_TIMER,
         CP_PLAY_BUFFER_TERM_CONNECTION,
-        CP_CREATE_PLAYER,
-        CP_DESTROY_PLAYER, //60
-        CP_CREATE_QUEUE_PLAYER,
-        CP_DESTROY_QUEUE_PLAYER,
         CP_RENEGOTIATE_CODECS_CONNECTION,
         CP_RENEGOTIATE_CODECS_ALL_CONNECTIONS,
         CP_SET_OUTBOUND_LINE,
@@ -370,38 +366,6 @@ public:
                             UtlBoolean local,
                             UtlBoolean remote,
                             void* pCookie = NULL) = 0;
-
-    //! Create a media player associated with the specified call.
-    /*! The media player can subsequently be used to play media
-     * such as streamed audio to the connections (local and remote)
-     * in this call. The streamed audio source can be a single
-     * audio URL or a set of URLs that correspond to audio
-     * snippets that the player will stream in a concatenated
-     * set. Currently two types of media players are supported:
-     * \par
-     * 1) A simple player that buffers some of the media and then
-     * starts playing a single media source (URL or stream).
-     * \par
-     * 2) A queued player that supports two buffered play lists
-     * where there is one active play list that can be played,
-     * paused or stopped. The active buffer list can be changed
-     * on the fly and sources can be added to either buffer list.
-     * The effect of this player is similar to graphical double
-     * buffering where one buffer can be filling while the other
-     * is playing.
-     */
-    virtual void createPlayer(int type,
-                              const char* callid,
-                              const char* szStream,
-                              int flags,
-                              MpStreamPlayer** ppPlayer) = 0 ;
-
-
-    //! Destroy the media player associated with a call.
-    virtual void destroyPlayer(int type,
-                               const char* callid,
-                               MpStreamPlayer* pPlayer) = 0 ;
-
 
     //@{
 
