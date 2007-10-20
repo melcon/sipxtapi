@@ -123,23 +123,6 @@ void CpCall::setDropState(UtlBoolean state)
 
 void CpCall::setCallState(int responseCode, UtlString responseText, int state, int casue)
 {
-    if (state != mCallState)
-    {
-        switch(state)
-        {
-        case PtCall::INVALID:
-            postTaoListenerMessage(responseCode, responseText, PtEvent::CALL_INVALID, CALL_STATE, casue);
-            break;
-
-        case PtCall::ACTIVE:
-            postTaoListenerMessage(responseCode, responseText, PtEvent::CALL_ACTIVE, CALL_STATE, casue);
-            break;
-
-        default:
-            break;
-        }
-    }
-
     mCallState = state;
 }
 
@@ -557,172 +540,6 @@ int CpCall::getLocalConnectionState(int state)
     return newState;
 }
 
-void CpCall::getStateString(int state, UtlString* stateLabel)
-{
-    stateLabel->remove(0);
-
-    switch(state)
-    {
-    case PtEvent::CONNECTION_CREATED:
-        stateLabel->append("CONNECTION_CREATED");
-        break;
-
-    case PtEvent::CONNECTION_ALERTING:
-        stateLabel->append("CONNECTION_ALERTING");
-        break;
-
-    case PtEvent::CONNECTION_DISCONNECTED:
-        stateLabel->append("CONNECTION_DISCONNECTED");
-        break;
-
-    case PtEvent::CONNECTION_FAILED:
-        stateLabel->append("CONNECTION_FAILED");
-        break;
-
-    case PtEvent::CONNECTION_DIALING:
-        stateLabel->append("CONNECTION_DIALING");
-        break;
-
-    case PtEvent::CONNECTION_ESTABLISHED:
-        stateLabel->append("CONNECTION_ESTABLISHED");
-        break;
-
-    case PtEvent::CONNECTION_INITIATED:
-        stateLabel->append("CONNECTION_INITIATED");
-        break;
-
-    case PtEvent::CONNECTION_NETWORK_ALERTING:
-        stateLabel->append("CONNECTION_NETWORK_ALERTING");
-        break;
-
-    case PtEvent::CONNECTION_NETWORK_REACHED:
-        stateLabel->append("CONNECTION_NETWORK_REACHED");
-        break;
-
-    case PtEvent::CONNECTION_OFFERED:
-        stateLabel->append("CONNECTION_OFFERED");
-        break;
-
-    case PtEvent::CONNECTION_QUEUED:
-        stateLabel->append("CONNECTION_QUEUED");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_CREATED:
-        stateLabel->append("TERMINAL_CONNECTION_CREATED");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_RINGING:
-        stateLabel->append("TERMINAL_CONNECTION_RINGING");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_DROPPED:
-        stateLabel->append("TERMINAL_CONNECTION_DROPPED");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_UNKNOWN:
-        stateLabel->append("TERMINAL_CONNECTION_UNKNOWN");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_HELD:
-        stateLabel->append("TERMINAL_CONNECTION_HELD");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_IDLE:
-        stateLabel->append("TERMINAL_CONNECTION_IDLE");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_IN_USE:
-        stateLabel->append("TERMINAL_CONNECTION_IN_USE");
-        break;
-
-    case PtEvent::TERMINAL_CONNECTION_TALKING:
-        stateLabel->append("TERMINAL_CONNECTION_TALKING");
-        break;
-
-    case PtEvent::CALL_ACTIVE:
-        stateLabel->append("CALL_ACTIVE");
-        break;
-
-    case PtEvent::CALL_INVALID:
-        stateLabel->append("CALL_INVALID");
-        break;
-
-    case PtEvent::EVENT_INVALID:
-        stateLabel->append("!! INVALID_STATE !!");
-        break;
-
-    case PtEvent::CALL_META_CALL_STARTING_STARTED:
-        stateLabel->append("CALL_META_CALL_STARTING_STARTED");
-        break;
-
-    case PtEvent::CALL_META_CALL_STARTING_ENDED:
-        stateLabel->append("CALL_META_CALL_STARTING_ENDED");
-        break;
-
-    case PtEvent::SINGLECALL_META_PROGRESS_STARTED:
-        stateLabel->append("SINGLECALL_META_PROGRESS_STARTED");
-        break;
-
-    case PtEvent::SINGLECALL_META_PROGRESS_ENDED:
-        stateLabel->append("SINGLECALL_META_PROGRESS_ENDED");
-        break;
-
-    case PtEvent::CALL_META_ADD_PARTY_STARTED:
-        stateLabel->append("CALL_META_ADD_PARTY_STARTED");
-        break;
-
-    case PtEvent::CALL_META_ADD_PARTY_ENDED:
-        stateLabel->append("CALL_META_ADD_PARTY_ENDED");
-        break;
-
-    case PtEvent::CALL_META_REMOVE_PARTY_STARTED:
-        stateLabel->append("CALL_META_REMOVE_PARTY_STARTED");
-        break;
-
-    case PtEvent::CALL_META_REMOVE_PARTY_ENDED:
-        stateLabel->append("CALL_META_REMOVE_PARTY_ENDED");
-        break;
-
-    case PtEvent::CALL_META_CALL_ENDING_STARTED:
-        stateLabel->append("CALL_META_CALL_ENDING_STARTED");
-        break;
-
-    case PtEvent::CALL_META_CALL_ENDING_ENDED:
-        stateLabel->append("CALL_META_CALL_ENDING_ENDED");
-        break;
-
-    case PtEvent::MULTICALL_META_MERGE_STARTED:
-        stateLabel->append("MULTICALL_META_MERGE_STARTED");
-        break;
-
-    case PtEvent::MULTICALL_META_MERGE_ENDED:
-        stateLabel->append("MULTICALL_META_MERGE_ENDED");
-        break;
-
-    case PtEvent::MULTICALL_META_TRANSFER_STARTED:
-        stateLabel->append("MULTICALL_META_TRANSFER_STARTED");
-        break;
-
-    case PtEvent::MULTICALL_META_TRANSFER_ENDED:
-        stateLabel->append("MULTICALL_META_TRANSFER_ENDED");
-        break;
-
-    case PtEvent::SINGLECALL_META_SNAPSHOT_STARTED:
-        stateLabel->append("SINGLECALL_META_SNAPSHOT_STARTED");
-        break;
-
-    case PtEvent::SINGLECALL_META_SNAPSHOT_ENDED:
-        stateLabel->append("SINGLECALL_META_SNAPSHOT_ENDED");
-        break;
-
-    default:
-        stateLabel->append("STATE_UNKNOWN");
-        break;
-
-    }
-
-}
-
 void CpCall::setMetaEvent(int metaEventId, int metaEventType,
                           int numCalls, const char* metaEventCallIds[])
 {
@@ -813,32 +630,11 @@ void CpCall::getOriginalCallId(UtlString& originalCallId) const
     originalCallId = mOriginalCallId;
 }
 /* ============================ INQUIRY =================================== */
-UtlBoolean CpCall::isQueued()
-{
-    return(FALSE);
-}
-
-void CpCall::getLocalAddress(char* address, int maxLen)
-{
-   // :TODO: Not yet implemented.
-   assert(FALSE);
-}
-
-void CpCall::getLocalTerminalId(char* terminal, int maxLen)
-{
-   // :TODO: Not yet implemented.
-   assert(FALSE);
-}
 
 UtlBoolean CpCall::isCallIdSet()
 {
     OsReadLock lock(mCallIdMutex);
     return(!mCallId.isNull());
-}
-
-UtlBoolean CpCall::isLocalHeld()
-{
-    return mLocalHeld;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -853,17 +649,8 @@ void CpCall::postTaoListenerMessage(int responseCode,
                                     int isRemote,
                                     UtlString targetCallId)
 {
-    if (type == CONNECTION_STATE /* && !PtEvent::isStateTransitionAllowed(eventId, mLocalConnectionState) */)
-    {
-        osPrintf("Connection state change from %d to %d is illegal\n", mLocalConnectionState, eventId);
-        return;
-    }
-
-    if (type == CONNECTION_STATE)
-        mLocalConnectionState = eventId;
-    else if (type == TERMINAL_CONNECTION_STATE)
+    if (type == TERMINAL_CONNECTION_STATE)
         mLocalTermConnectionState = tcStateFromEventId(eventId);
-
 }
 
 int CpCall::tcStateFromEventId(int eventId)

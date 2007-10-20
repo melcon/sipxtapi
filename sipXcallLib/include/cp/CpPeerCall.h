@@ -113,10 +113,6 @@ public:
 
     /* ============================ ACCESSORS ================================= */
 
-    virtual void getLocalAddress(char* address, int len);
-
-    virtual void getLocalTerminalId(char* terminal, int len);
-
     void hangUp(const char* callId, const char* toTag,
         const char* fromTag);
 
@@ -141,8 +137,6 @@ public:
     virtual OsStatus getConnectionCallIds(UtlSList& pCallIdList);
 
     virtual enum handleWillingness willHandleMessage(const OsMsg& eventMessage);
-
-    virtual UtlBoolean isQueued();
 
     virtual UtlBoolean isLocalTerminal(const char* terminalId);
 

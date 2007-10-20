@@ -371,13 +371,6 @@ UtlBoolean CpPeerCall::handleTransfer(OsMsg* pEventMessage)
 
             if (!isOk)
             {
-                UtlString targetCallId;
-                getTargetCallId(targetCallId);
-                UtlString remoteAddress;
-                connection->getRemoteAddress(&remoteAddress);
-                UtlString responseText;
-                connection->getResponseText(responseText);
-                postTaoListenerMessage(connection->getResponseCode(), responseText, PtEvent::CONNECTION_FAILED, CONNECTION_STATE, PtEvent::CAUSE_TRANSFER, connection->isRemoteCallee(), remoteAddress, 1, targetCallId);
                 /** SIPXTAPI: TBD **/
 #ifdef TEST_PRINT
                 osPrintf("%s-CpPeerCall::CP_BLIND_TRANSFER posting CONNECTION_FAILED to call: %s\n",
@@ -2941,7 +2934,6 @@ void CpPeerCall::inFocus(int talking)
         {
             setCallState(responseCode, responseText, PtCall::ACTIVE, PtEvent::CAUSE_NEW_CALL);
         }
-        postTaoListenerMessage(responseCode, responseText, PtEvent::CONNECTION_INITIATED, CONNECTION_STATE, PtEvent::CAUSE_NEW_CALL, remoteIsCallee, remoteAddress);
 
         if (mLocalTermConnectionState == PtTerminalConnection::IDLE)
         {
@@ -3240,7 +3232,6 @@ void CpPeerCall::dropDeadConnections()
                 {
                     UtlString responseText;
                     connection->getResponseText(responseText);
-                    postTaoListenerMessage(connection->getResponseCode(), responseText, PtEvent::CONNECTION_DISCONNECTED, CONNECTION_STATE);
 
                     // do not fire the taip event if it is a ghost connection
                     CpGhostConnection* pGhost = NULL;
@@ -3256,7 +3247,6 @@ void CpPeerCall::dropDeadConnections()
                 {
                     UtlString responseText;
                     connection->getResponseText(responseText);
-                    postTaoListenerMessage(connection->getResponseCode(), responseText, PtEvent::CONNECTION_FAILED, CONNECTION_STATE);               
                     postTaoListenerMessage(connection->getResponseCode(), responseText, PtEvent::TERMINAL_CONNECTION_DROPPED, TERMINAL_CONNECTION_STATE);
 
                     CpGhostConnection* pGhost = NULL;
@@ -3412,36 +3402,6 @@ UtlBoolean CpPeerCall::getConnectionState(const char* remoteAddress, int& state)
         return FALSE;
 }
 
-void CpPeerCall::getLocalAddress(char* address, int maxLen)
-{
-    int len = mLocalAddress.length();
-
-    len = (maxLen <= len) ? (maxLen - 1) : len;
-
-    if (!mLocalAddress.isNull())
-    {
-        strncpy(address, mLocalAddress.data(), len);
-    }
-    address[len] = 0;
-#ifdef TEST_PRINT
-    osPrintf("%s-CpPeerCall::getLocalAddress %s\n", 
-        mName.data(), address);
-#endif
-}
-
-void CpPeerCall::getLocalTerminalId(char* terminal, int maxLen)
-{
-    int len = mLocalTerminalId.length();
-
-    len = (maxLen <= len) ? (maxLen - 1) : len;
-
-    if (!mLocalTerminalId.isNull())
-    {
-        strncpy(terminal, mLocalTerminalId.data(), len);
-    }
-    terminal[len] = 0;
-}
-
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean CpPeerCall::shouldCreateCall(SipUserAgent& sipUa, OsMsg& eventMessage,
@@ -3535,12 +3495,6 @@ CpCall::handleWillingness CpPeerCall::willHandleMessage(const OsMsg& eventMessag
     }
 
     return(takeTheMessage);
-}
-
-UtlBoolean CpPeerCall::isQueued()
-{
-
-    return(findQueuedConnection() != NULL);
 }
 
 UtlBoolean CpPeerCall::isConnectionLive(int* localConnectionState)
