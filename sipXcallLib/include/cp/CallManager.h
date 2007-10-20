@@ -158,12 +158,6 @@ public:
     virtual OsStatus audioChannelRecordStop(const char* callId, const char* szRemoteAddress) ;
     virtual void bufferPlay(const char* callId, int audiobuf, int bufSize, int type, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, void* pCookie = NULL);
 
-#ifndef EXCLUDE_STREAMING
-    virtual void createPlayer(int type, const char* callid, const char* szStream, int flags, MpStreamPlayer** ppPlayer) ;
-    virtual void destroyPlayer(int type, const char* callid, MpStreamPlayer* pPlayer)  ;
-#endif
-
-
     // Operations for calls & connections
     virtual void acceptConnection(const char* callId,
                                   const char* address,

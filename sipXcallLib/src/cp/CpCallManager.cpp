@@ -230,14 +230,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
         typeString = "CP_STOP_AUDIO_TERM_CONNECTION";
         break;
 
-      case CP_CREATE_PLAYER:
-        typeString = "CP_CREATE_PLAYER";
-        break;
-
-      case CP_DESTROY_PLAYER:
-        typeString = "CP_DESTROY_PLAYER";
-        break;
-
       case CP_IS_LOCAL_TERM_CONNECTION:
         typeString = "CP_IS_LOCAL_TERM_CONNECTION";
         break;

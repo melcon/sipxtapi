@@ -199,17 +199,6 @@ public:
 
    virtual OsStatus stopRecordChannelAudio(int connectionId) ;
 
-   virtual OsStatus createPlayer(MpStreamPlayer** ppPlayer, 
-                                 const char* szStream, 
-                                 int flags, 
-                                 OsMsgQ *pMsgQ = NULL, 
-                                 const char* szTarget = NULL) ;
-   virtual OsStatus destroyPlayer(MpStreamPlayer* pPlayer);
-   virtual OsStatus createQueuePlayer(MpStreamQueuePlayer** ppPlayer, 
-                                      OsMsgQ *pMsgQ = NULL, 
-                                      const char* szTarget = NULL);
-   virtual OsStatus destroyQueuePlayer(MpStreamQueuePlayer* pPlayer);
-
    virtual OsStatus giveFocus();
    virtual OsStatus defocus();
 

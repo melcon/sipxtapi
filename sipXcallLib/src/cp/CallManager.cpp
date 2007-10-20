@@ -693,10 +693,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_RECORD_AUDIO_CONNECTION_STOP:
         case CP_REFIRE_MEDIA_EVENT:
         case CP_PLAY_BUFFER_TERM_CONNECTION:
-        case CP_CREATE_PLAYER:
-        case CP_DESTROY_PLAYER:
-        case CP_DESTROY_QUEUE_PLAYER:
-        case CP_CREATE_QUEUE_PLAYER:
         case CP_GET_NUM_CONNECTIONS:
         case CP_GET_CONNECTIONS:
         case CP_GET_CALLED_ADDRESSES:
@@ -743,11 +739,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                         msgSubType == CP_GET_CALLING_ADDRESSES ||
                         msgSubType == CP_IS_LOCAL_TERM_CONNECTION ||
                         msgSubType == CP_GET_SESSION ||
-                        msgSubType == CP_CREATE_PLAYER ||
-                        msgSubType == CP_CREATE_QUEUE_PLAYER ||
-                        msgSubType == CP_DESTROY_PLAYER ||
-                        msgSubType == CP_DESTROY_QUEUE_PLAYER ||
-                        msgSubType == CP_PLAY_BUFFER_TERM_CONNECTION ||
                         msgSubType == CP_GET_MEDIA_CONNECTION_ID ||
                         msgSubType == CP_GET_MEDIA_ENERGY_LEVELS ||
                         msgSubType == CP_GET_CALL_MEDIA_ENERGY_LEVELS ||
@@ -1379,117 +1370,6 @@ void CallManager::bufferPlay(const char* callId, int audioBuf, int bufSize, int 
 }
 
 
-#ifndef EXCLUDE_STREAMING
-
-void CallManager::createPlayer(int type,
-                               const char* callId,
-                               const char* szStream,
-                               int flags,
-                               MpStreamPlayer** ppPlayer)
-{
-    // TO_BE_REMOVED
-    int msgtype;
-
-    switch (type)
-    {
-    case MpPlayer::STREAM_QUEUE_PLAYER:
-        msgtype = CP_CREATE_QUEUE_PLAYER;
-        break;
-
-    case MpPlayer::STREAM_PLAYER:
-    default:
-        msgtype = CP_CREATE_PLAYER;
-        break;
-    }
-
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    OsProtectedEvent* ev = eventMgr->alloc();
-    OsTime maxEventTime(CP_MAX_EVENT_WAIT_SECONDS, 0);
-    CpMultiStringMessage msg(msgtype,
-        callId, szStream, NULL, NULL, NULL, // strings
-        (int)ev, (int) ppPlayer, flags);   // ints
-
-    postMessage(msg);
-
-    // Wait until the player is created by CpCall
-    if(ev->wait(0, maxEventTime) != OS_SUCCESS)
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::createPlayer TIMED OUT\n");
-
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == ev->signal(0))
-        {
-            eventMgr->release(ev);
-        }
-    }
-    else
-    {
-        eventMgr->release(ev);
-    }
-    
-    //assert(false);
-}
-
-
-void CallManager::destroyPlayer(int type, const char* callId, MpStreamPlayer* pPlayer)
-{
-    // TO_BE_REMOVED
-    int msgtype;
-    switch (type)
-    {
-    case MpPlayer::STREAM_QUEUE_PLAYER:
-        msgtype = CP_DESTROY_QUEUE_PLAYER;
-        break;
-
-    case MpPlayer::STREAM_PLAYER:
-    default:
-        msgtype = CP_DESTROY_PLAYER;
-        break;
-    }
-
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    OsProtectedEvent* ev = eventMgr->alloc();
-    OsTime maxEventTime(CP_MAX_EVENT_WAIT_SECONDS, 0);
-
-    CpMultiStringMessage msg(msgtype,
-        callId, NULL, NULL, NULL, NULL, // strings
-        (int) ev, (int) pPlayer);   // ints
-
-    postMessage(msg);
-
-    // Wait until the player is created by CpCall
-    if(ev->wait(0, maxEventTime) != OS_SUCCESS)
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::destroyPlayer TIMED OUT\n");
-
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == ev->signal(0))
-        {
-            eventMgr->release(ev);
-        }
-    }
-    else
-    {
-        eventMgr->release(ev);
-    }
-
-    // Delete the object
-    switch (type)
-    {
-    case MpPlayer::STREAM_QUEUE_PLAYER:
-        delete (MpStreamQueuePlayer*) pPlayer ;
-        break;
-    case MpPlayer::STREAM_PLAYER:
-    default:
-        pPlayer->waitForDestruction() ;
-        delete pPlayer ;
-        break;
-    }
-    
-    //assert(false);
-}
-#endif
-
 void CallManager::setOutboundLineForCall(const char* callId, const char* address, SIPX_CONTACT_TYPE eType)
 {
     CpMultiStringMessage outboundLineMessage(CP_SET_OUTBOUND_LINE, callId, 
@@ -1511,8 +1391,6 @@ void CallManager::acceptConnection(const char* callId,
                                        (int) hWnd, (int) security, (int)bandWidth, sendEarlyMedia);
     postMessage(acceptMessage);
 }
-
-
 
 void CallManager::rejectConnection(const char* callId, const char* address)
 {

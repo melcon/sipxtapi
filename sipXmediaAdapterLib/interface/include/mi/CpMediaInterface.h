@@ -506,43 +506,6 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
 
-     /// @brief Create a simple player for this call to play a single stream
-   virtual OsStatus createPlayer(MpStreamPlayer** ppPlayer, 
-                                 const char* szStream, 
-                                 int flags, 
-                                 OsMsgQ *pMsgQ = NULL, 
-                                 const char* szTarget = NULL) = 0;
-     /**<
-     *
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070802 >>
-     * 
-     *  @see CpCallManager::createPlayer
-     */
-
-     /// @brief Destroy a simple player in this call.
-   virtual OsStatus destroyPlayer(MpStreamPlayer* pPlayer) = 0;
-     /**<
-     *
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070802 >>
-     */
-
-     /// @brief Create a double-buffered list player for this call 
-   virtual OsStatus createQueuePlayer(MpStreamQueuePlayer** ppPlayer, 
-                                      OsMsgQ *pMsgQ = NULL, 
-                                      const char* szTarget = NULL) = 0;
-     /**<
-     *
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070802 >>
-     *  
-     *  @see CpCallManager::createPlayer
-     */
-
-   //! Destroy a double-buffered list player in this call.
-   virtual OsStatus destroyQueuePlayer(MpStreamQueuePlayer* pPlayer) = 0;
-
    //! Set the CPU resource limit for the media connections in this call. 
    /*! This is used to limit the available codecs to only those within 
     * the designated CPU cost limit. 
