@@ -693,8 +693,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_RECORD_AUDIO_CONNECTION_STOP:
         case CP_REFIRE_MEDIA_EVENT:
         case CP_PLAY_BUFFER_TERM_CONNECTION:
-        case CP_GET_NUM_CONNECTIONS:
-        case CP_GET_CONNECTIONS:
         case CP_GET_CALLED_ADDRESSES:
         case CP_GET_CALLING_ADDRESSES:
         case CP_IS_LOCAL_TERM_CONNECTION:
@@ -733,9 +731,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                     // to see that the CallId was valid in the past.
                     OsSysLog::add(FAC_CP, PRI_DEBUG, "Cannot find CallId: %s to post message: %d\n",
                         callId.data(), msgSubType);
-                    if( msgSubType == CP_GET_NUM_CONNECTIONS ||
-                        msgSubType == CP_GET_CONNECTIONS ||
-                        msgSubType == CP_GET_CALLED_ADDRESSES ||
+                    if( msgSubType == CP_GET_CALLED_ADDRESSES ||
                         msgSubType == CP_GET_CALLING_ADDRESSES ||
                         msgSubType == CP_IS_LOCAL_TERM_CONNECTION ||
                         msgSubType == CP_GET_SESSION ||
@@ -1384,70 +1380,6 @@ void CallManager::dropConnection(const char* callId, const char* address)
 {
     CpMultiStringMessage acceptMessage(CP_DROP_CONNECTION, callId, address);
     postMessage(acceptMessage);
-}
-
-OsStatus CallManager::getConnections(const char* callId, int maxConnections,
-                                     int& numConnections, UtlString addresses[])
-{
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    UtlSList* addressList = new UtlSList;
-    OsProtectedEvent* numConnectionsSet = eventMgr->alloc();
-    numConnectionsSet->setIntData((int) addressList);
-    OsTime maxEventTime(CP_MAX_EVENT_WAIT_SECONDS, 0);
-    OsStatus returnCode = OS_WAIT_TIMEOUT;
-    CpMultiStringMessage getNumMessage(CP_GET_CONNECTIONS, callId, NULL, NULL,
-        NULL, NULL,
-        (int)numConnectionsSet);
-    postMessage(getNumMessage);
-
-    // Wait until the call sets the number of connections
-    if(numConnectionsSet->wait(0, maxEventTime) == OS_SUCCESS)
-    {
-        {
-            int addressIndex = 0;
-            UtlSListIterator iterator(*addressList);
-            UtlString* addressCollectable;
-            addressCollectable = (UtlString*)iterator();
-            returnCode = OS_SUCCESS;
-
-            while (addressCollectable)
-            {
-                if(addressIndex >= maxConnections)
-                {
-                    returnCode = OS_LIMIT_REACHED;
-                    break;
-                }
-                addresses[addressIndex] = *addressCollectable;
-                addressIndex++;
-                addressCollectable = (UtlString*)iterator();
-            }
-            numConnections = addressIndex;
-        }
-
-#ifdef TEST_PRINT_EVENT
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getConnections %d connections\n",
-            numConnections);
-#endif
-
-        addressList->destroyAll();
-        delete addressList;
-        eventMgr->release(numConnectionsSet);
-    }
-    else
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::getConnections TIMED OUT\n");
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == numConnectionsSet->signal(0))
-        {
-            addressList->destroyAll();
-            delete addressList;
-            eventMgr->release(numConnectionsSet);
-        }
-        numConnections = 0;
-
-    }
-
-    return(returnCode);
 }
 
 OsStatus CallManager::getCalledAddresses(const char* callId, int maxConnections,

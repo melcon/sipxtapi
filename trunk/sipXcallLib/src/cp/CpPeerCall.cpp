@@ -1300,72 +1300,6 @@ UtlBoolean CpPeerCall::handleTransfereeConnectionStatus(OsMsg* pEventMessage)
     return TRUE ;
 }
 
-
-// Handles the processing of CallManager::CP_GET_NUM_CONNECTIONS 
-// and CallManager::CP_GET_NUM_TERM_CONNECTIONS messages       
-UtlBoolean CpPeerCall::handleGetNumConnections(OsMsg* pEventMessage)
-{
-    int numConnections = mConnections.entries() + 1;
-    OsProtectedEvent* getNumEvent = (OsProtectedEvent*) 
-        ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-
-    // If the event has already been signalled, clean up
-    if(OS_ALREADY_SIGNALED == getNumEvent->signal(numConnections))
-    {
-        // The other end must have timed out on the wait
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        eventMgr->release(getNumEvent);
-    }
-
-    return TRUE ;
-}
-
-
-// Handles the processing of a CallManager::CP_GET_CONNECTIONS 
-// message
-UtlBoolean CpPeerCall::handleGetConnections(OsMsg* pEventMessage)
-{
-    int numConnections = 0;
-    UtlSList* connectionList = 0;
-    OsProtectedEvent* getConnEvent = (OsProtectedEvent*) 
-        ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-    getConnEvent->getIntData((int&)connectionList);
-
-    if(getConnEvent && connectionList)
-    {
-        // Add the local connection/address
-        connectionList->append(new UtlString(mLocalAddress));
-        numConnections++;
-
-        // Get the remote connection(s)/address(es)
-        { // scope for lock
-            Connection* connection = NULL;
-            UtlString address;
-            OsReadLock lock(mConnectionMutex);
-            UtlDListIterator iterator(mConnections);
-            while ((connection = (Connection*) iterator()))
-            {
-                connection->getRemoteAddress(&address);
-                connectionList->append(new UtlString(address));
-                numConnections++;
-            }
-        }
-        // Signal the caller that we are done.
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == getConnEvent->signal(numConnections))
-        {
-            // The other end must have timed out on the wait
-            connectionList->destroyAll();
-            delete connectionList;
-            OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-            eventMgr->release(getConnEvent);
-        }
-    }
-
-    return TRUE ;
-}
-
-
 // Handles the processing of a CallManager::CP_GET_SESSION 
 // message
 UtlBoolean CpPeerCall::handleGetSession(OsMsg* pEventMessage)
@@ -1885,11 +1819,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
     case CallManager::CP_TRANSFEREE_CONNECTION_STATUS:
         handleTransfereeConnectionStatus(&eventMessage);
         break ;
-
-    case CallManager::CP_GET_NUM_CONNECTIONS:
-        handleGetNumConnections(&eventMessage);
-        break ;
-        
+       
     case CallManager::CP_GET_MEDIA_CONNECTION_ID:
         handleGetMediaConnectionId(&eventMessage);
         break;
@@ -1916,10 +1846,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
 
     case CallManager::CP_JOIN_CONNECTION:
         handleJoinConnection(&eventMessage);
-        break ;
-
-    case CallManager::CP_GET_CONNECTIONS:
-        handleGetConnections(&eventMessage);
         break ;
 
     case CallManager::CP_GET_CALLED_ADDRESSES:
