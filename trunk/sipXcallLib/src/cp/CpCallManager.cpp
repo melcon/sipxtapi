@@ -238,14 +238,6 @@ void CpCallManager::getEventSubTypeString(EventSubTypes type,
         typeString = "CP_DESTROY_PLAYER";
         break;
 
-      case CP_CREATE_PLAYLIST_PLAYER:
-        typeString = "CP_CREATE_PLAYLIST_PLAYER";
-        break;
-
-      case CP_DESTROY_PLAYLIST_PLAYER:
-        typeString = "CP_DESTROY_PLAYLIST_PLAYER";
-        break;
-
       case CP_IS_LOCAL_TERM_CONNECTION:
         typeString = "CP_IS_LOCAL_TERM_CONNECTION";
         break;

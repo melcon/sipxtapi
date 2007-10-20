@@ -205,11 +205,6 @@ public:
                                  OsMsgQ *pMsgQ = NULL, 
                                  const char* szTarget = NULL) ;
    virtual OsStatus destroyPlayer(MpStreamPlayer* pPlayer);
-   virtual OsStatus createPlaylistPlayer(MpStreamPlaylistPlayer** 
-                                         ppPlayer, 
-                                         OsMsgQ *pMsgQ = NULL, 
-                                         const char* szTarget = NULL);
-   virtual OsStatus destroyPlaylistPlayer(MpStreamPlaylistPlayer* pPlayer);
    virtual OsStatus createQueuePlayer(MpStreamQueuePlayer** ppPlayer, 
                                       OsMsgQ *pMsgQ = NULL, 
                                       const char* szTarget = NULL);
