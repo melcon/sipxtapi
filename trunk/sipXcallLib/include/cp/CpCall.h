@@ -115,9 +115,6 @@ public:
     virtual void localHold();
     virtual void hangUp(UtlString callId, int metaEventId);
 
-    virtual void getLocalAddress(char* address, int len);
-    virtual void getLocalTerminalId(char* terminal, int len);
-
     virtual void getCallId(UtlString& callId);
     //: Gets the main call Id for this call
     // Note: a call may have many callIds (i.e. one for each connection)
@@ -136,8 +133,6 @@ public:
 
     int getCallIndex();
     int getCallState();
-
-    static void getStateString(int state, UtlString* stateLabel);
 
     // Meta Event Utilities
     // For the meta events, the first callId (index=0) is the new
@@ -170,11 +165,7 @@ public:
 
     virtual enum handleWillingness willHandleMessage(const OsMsg& eventMessage) = 0;
 
-    virtual UtlBoolean isQueued();
-
     virtual UtlBoolean isCallIdSet();
-
-    virtual UtlBoolean isLocalHeld();
 
     virtual UtlBoolean canDisconnectConnection(Connection* pConnection) = 0;
 
