@@ -172,7 +172,6 @@ public:
     virtual PtStatus redirectConnection(const char* callId, const char* address, const char* forwardAddressUrl);
     virtual void dropConnection(const char* callId, const char* address);
 
-    virtual void getNumConnections(const char* callId, int& numConnections);
     virtual OsStatus getConnections(const char* callId, int maxConnections,
                 int& numConnections, UtlString addresses[]);
     virtual OsStatus getCalledAddresses(const char* callId, int maxConnections,

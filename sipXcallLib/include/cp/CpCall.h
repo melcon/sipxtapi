@@ -126,9 +126,6 @@ public:
     void setLocalConnectionState(int newState);
     //: Sets the local connection state for this call
 
-    int getLocalConnectionState() { return mLocalConnectionState; };
-    //: Sets the local connection state for this call
-
     /* ============================ ACCESSORS ================================= */
 
     int getCallIndex();
@@ -157,7 +154,7 @@ public:
     void setOriginalCallId(const char* targetCallId);
     void getOriginalCallId(UtlString& targetCallId) const;
 
-    int getLocalConnectionState(int state);
+    int getLocalConnectionStateFromPt(int state);
 
     /* ============================ INQUIRY =================================== */
 
