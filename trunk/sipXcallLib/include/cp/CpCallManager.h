@@ -208,9 +208,6 @@ public:
 
 /* ============================ MANIPULATORS ============================== */
 
-    static void getEventSubTypeString(EventSubTypes type,
-                                      UtlString& typeString);
-
     //! Set the default address for the local connection.
     /*! This is used to set the calling ID information when
      * making an outbound call.
@@ -398,11 +395,6 @@ public:
     virtual void dropConnection(const char* callId,
                                 const char* address) = 0;
 
-    /**
-     *  Query the number of connections in the specified call.
-     */
-    virtual void getNumConnections(const char* callId,
-                                    int& numConnections) = 0;
 
     //! Query the list of addresses or handles for the connections
     //! in the specified call.

@@ -217,13 +217,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
         }
 
         break;
-
-    case OsMsg::STREAMING_MSG:
-        if (mpMediaInterface)
-        {
-            mpMediaInterface->getMsgQ()->send(eventMessage) ;
-        }
-        break ;
     case OsMsg::MP_CONNECTION_NOTF_MSG:
        handleConnectionNotfMessage(eventMessage);
        break;
@@ -331,7 +324,7 @@ void CpCall::setCallId(const char* callId)
     if(callId) mCallId.append(callId);
 }
 
-int CpCall::getLocalConnectionState(int state)
+int CpCall::getLocalConnectionStateFromPt(int state)
 {
     int newState;
 

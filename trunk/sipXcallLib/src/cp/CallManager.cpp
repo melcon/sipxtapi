@@ -824,39 +824,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         }
         messageProcessed = TRUE;
         break;
-#ifndef EXCLUDE_STREAMING
-    case OsMsg::STREAMING_MSG:
-        {
-            // TO_BE_REMOVED
-            MpStreamMsg* pMsg = (MpStreamMsg*) &eventMessage ;
-            UtlString callId = pMsg->getTarget() ;
-
-            OsReadLock lock(mCallListMutex);
-            CpCall* call = findHandlingCall(callId);
-            if(!call)
-            {
-                // If we cannot find the call, then we must clean up
-                // and unblock the caller.
-                if (  (msgSubType == MpStreamMsg::STREAM_REALIZE_URL) ||
-                    (msgSubType == MpStreamMsg::STREAM_REALIZE_BUFFER))
-                {
-                    OsNotification* pNotifyHandle = (OsNotification*) pMsg->getPtr1() ;
-                    Url* pUrl = (Url*) pMsg->getInt2() ;
-                    delete pUrl ;
-                    pNotifyHandle->signal(0) ;
-                }
-
-            }
-            else
-            {
-                call->postMessage(eventMessage);
-            }
-            
-            //assert(false);
-            break;
-        }
-#endif 
-
     default:
         {
             OsSysLog::add(FAC_CP, PRI_ERR, "Unknown TYPE %d of CallManager message subtype: %d\n", msgType, msgSubType);
@@ -1417,39 +1384,6 @@ void CallManager::dropConnection(const char* callId, const char* address)
 {
     CpMultiStringMessage acceptMessage(CP_DROP_CONNECTION, callId, address);
     postMessage(acceptMessage);
-}
-
-void CallManager::getNumConnections(const char* callId, int& numConnections)
-{
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    OsProtectedEvent* numConnectionsSet = eventMgr->alloc();
-    OsTime maxEventTime(CP_MAX_EVENT_WAIT_SECONDS, 0);
-    CpMultiStringMessage getNumMessage(CP_GET_NUM_CONNECTIONS, callId, NULL,
-        NULL, NULL, NULL,
-        (int)numConnectionsSet);
-    postMessage(getNumMessage);
-
-    // Wait until the call sets the number of connections
-    if(numConnectionsSet->wait(0, maxEventTime) == OS_SUCCESS)
-    {
-        numConnectionsSet->getEventData(numConnections);
-        eventMgr->release(numConnectionsSet);
-
-#ifdef TEST_PRINT_EVENT
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getNumConnections %d connections\n",
-            numConnections);
-#endif
-    }
-    else
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::getNumConnections TIMED OUT\n");
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == numConnectionsSet->signal(0))
-        {
-            eventMgr->release(numConnectionsSet);
-        }
-        numConnections = 0;
-    }
 }
 
 OsStatus CallManager::getConnections(const char* callId, int maxConnections,

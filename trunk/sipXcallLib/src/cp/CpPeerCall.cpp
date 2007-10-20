@@ -3506,7 +3506,7 @@ UtlBoolean CpPeerCall::isConnectionLive(int* localConnectionState)
     int connectionState;
     if(localConnectionState) 
     {
-        *localConnectionState = getLocalConnectionState(mLocalConnectionState);
+        *localConnectionState = getLocalConnectionStateFromPt(mLocalConnectionState);
     }
 
 
@@ -3547,13 +3547,6 @@ UtlBoolean CpPeerCall::isConnectionLive(int* localConnectionState)
         mName.data(), liveConnections);
 #endif
 
-    /*    if (*localConnectionState != Connection::CONNECTION_DISCONNECTED &&
-    *localConnectionState != Connection::CONNECTION_FAILED &&
-    *localConnectionState != Connection::CONNECTION_UNKNOWN)
-    {
-    liveConnections = 1;    // connection may be in hold state, as in consultative transfer (trasferee)
-    }
-    */
     return(liveConnections);
 }
 
