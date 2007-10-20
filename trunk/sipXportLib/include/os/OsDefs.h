@@ -49,6 +49,13 @@
 #endif 
 
 #ifdef _WIN32
+#define SAFE_STRCHR(X, Y) (((X) == NULL) ? NULL : strchr((X), (Y)))
+#else
+#define SAFE_STRCHR(X, Y) (((X) == NULL) ? NULL : strchr((X), (Y)))
+#endif
+
+
+#ifdef _WIN32
 #define SAFE_STRDUP(X) (((X) == NULL) ? NULL : _strdup((X)))
 #else
 #define SAFE_STRDUP(X) (((X) == NULL) ? NULL : strdup((X)))
