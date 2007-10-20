@@ -1119,10 +1119,6 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath=".\include\tapi\SafeStrDefs.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\tapi\SecurityHelper.h"
 				>
 			</File>

@@ -1463,10 +1463,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
 /**
  * Play a tone (DTMF, dialtone, ring back, etc) to the local and/or
  * remote party.  See the DTMF_ constants for built-in tones.
- * If a sipxCallDestroy is attempted while a tone is playing,
- * sipxCallDestroy will fail with a SIPX_RESULT_BUSY return code.
- * Call sipxCallStopTone before making the call to
- * sipxConferenceDestroy. DTMF is sent via RFC 2833 method.
+ * DTMF is sent via RFC 2833 method. sipxCallDestroy stops tones automatically.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1482,11 +1479,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall,
 
 /**
  * Stop playing a tone (DTMF, dialtone, ring back, etc). to local
- * and remote parties.
- * If a sipxCallDestroy is attempted while a tone is playing,
- * sipxCallDestroy will fail with a SIPX_RESULT_BUSY return code.
- * Call sipxCallStopTone before making the call to
- * sipxConferenceDestroy.
+ * and remote parties. sipxCallDestroy stops tones automatically.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
