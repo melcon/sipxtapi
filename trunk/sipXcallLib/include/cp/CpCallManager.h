@@ -169,22 +169,6 @@ public:
         CP_GET_USERAGENT
     };
 
-/*
-        enum metaEventType
-    {
-        META_EVENT_NONE = 0,
-                META_EVENT_TRANSFER,
-        META_EVENT_CONFERENCE,
-        META_EVENT_MERGE,
-                META_EVENT_CALL_START,
-                META_EVENT_CALL_END,
-                META_EVENT_CALL_PROGRESS,
-                META_EVENT_CALL_ADDITIONAL_PARTY,
-                META_EVENT_CALL_REMOVING_PARTY,
-                META_EVENT_SNAPSHOT,
-                META_EVENT_UNKNOWN
-    };
-*/
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
     enum CallTypes
