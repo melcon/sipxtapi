@@ -76,8 +76,7 @@ MprFromFile::~MprFromFile()
 /* ============================ MANIPULATORS ============================== */
 
 OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize, 
-                                 int type, UtlBoolean repeat, OsProtectedEvent* notify,
-                                 void* pCookie)
+                                 int type, UtlBoolean repeat, void* pCookie)
 {
    UtlString* fgAudBuffer = NULL;
    OsStatus res = genericAudioBufToFGAudioBuf(fgAudBuffer, audioBuffer, 
@@ -85,14 +84,6 @@ OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize,
 
    if(res == OS_SUCCESS)
    {
-      // Tell CpCall that we've copied the data out of the buffer, so it
-      // can continue processing.
-      if (notify && OS_ALREADY_SIGNALED == notify->signal(0))
-      {
-         OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-         eventMgr->release(notify);
-      }
-
       m_playingFromFile = false;
       m_pCookie = pCookie;
 

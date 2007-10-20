@@ -669,7 +669,7 @@ SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall)
       assert(pData->hConf == SIPX_CONF_NULL);
       if (pData->state != SIPX_INTERNAL_CALLSTATE_DESTROYING)
       {
-         if (!pData->bTonePlaying && pData->nFilesPlaying <= 0)
+         if (!pData->bTonePlaying)
          {
             pData->state = SIPX_INTERNAL_CALLSTATE_DESTROYING;
 
@@ -1808,7 +1808,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStart(const SIPX_CALL hCall,
 
       if (pData)
       {
-         pData->nFilesPlaying++;
          // posts a message
          pData->pInst->pCallManager->audioChannelPlay(pData->callId, pData->remoteAddress, szFile, bRepeat, bLocal, bRemote, bMixWithMicrophone, (int)(fDownScaling * 100.0), pCookie);
 
@@ -1838,13 +1837,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStop(const SIPX_CALL hCall)
 
    if (pData)
    {
-      if (pData->nFilesPlaying)
-      {
-         // posts a message
-         pData->pInst->pCallManager->audioChannelStop(pData->callId, pData->remoteAddress);
-         pData->nFilesPlaying--;
-         sr = SIPX_RESULT_SUCCESS;
-      }
+      // posts a message
+      pData->pInst->pCallManager->audioChannelStop(pData->callId, pData->remoteAddress);
+      sr = SIPX_RESULT_SUCCESS;
 
       sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
    }
@@ -1864,12 +1859,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackPause(const SIPX_CALL hCall)
 
    if (pData)
    {
-      if (pData->nFilesPlaying)
-      {
-         // posts a message
-         pData->pInst->pCallManager->pauseAudioPlayback(pData->callId, pData->remoteAddress);
-         sr = SIPX_RESULT_SUCCESS;
-      }
+      // posts a message
+      pData->pInst->pCallManager->pauseAudioPlayback(pData->callId, pData->remoteAddress);
+      sr = SIPX_RESULT_SUCCESS;
 
       sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
    }
@@ -1889,12 +1881,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackResume(const SIPX_CALL hCall)
 
    if (pData)
    {
-      if (pData->nFilesPlaying)
-      {
-         // posts a message
-         pData->pInst->pCallManager->resumeAudioPlayback(pData->callId, pData->remoteAddress);
-         sr = SIPX_RESULT_SUCCESS;
-      }
+      // posts a message
+      pData->pInst->pCallManager->resumeAudioPlayback(pData->callId, pData->remoteAddress);
+      sr = SIPX_RESULT_SUCCESS;
 
       sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
    }
@@ -1983,14 +1972,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
       {
          SIPX_INSTANCE_DATA* pInst = pData->pInst;
          UtlString callId(pData->callId);
-         pData->nFilesPlaying++;
          sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 
          if (pInst)
          {
             pInst->pCallManager->bufferPlay(callId, (int)szBuffer, bufSize, bufType, bRepeat, bLocal, bRemote, pCookie);
             sr = SIPX_RESULT_SUCCESS;
-         }         
+         }
       }
       else
       {
@@ -2015,13 +2003,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall)
 
    if (pData)
    {
-      if (pData->nFilesPlaying > 0)
-      {
-         pData->nFilesPlaying--;
-         // just posts a message
-         pData->pInst->pCallManager->audioStop(pData->callId);
-         sr = SIPX_RESULT_SUCCESS;
-      }
+      // just posts a message
+      pData->pInst->pCallManager->audioStop(pData->callId);
+      sr = SIPX_RESULT_SUCCESS;
 
       sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
    }
