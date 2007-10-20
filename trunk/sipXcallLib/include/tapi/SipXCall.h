@@ -73,8 +73,6 @@ public:
                                       is established. */
    UtlBoolean bCallHoldInvoked;             /** Set to true if sipxCallHold has been invoked.
                                       Set to fales if sipxCallUnhold has been invoked. */                                          
-   bool bTonePlaying;
-
    SIPX_CALL_DATA()
       : pMutex(OsMutex::Q_FIFO),
       callId(NULL),
@@ -100,8 +98,7 @@ public:
       connectionId(0),
       hTransport(0),
       bHoldAfterConnect(false),
-      bCallHoldInvoked(false),
-      bTonePlaying(false)
+      bCallHoldInvoked(false)
    {
 
    }

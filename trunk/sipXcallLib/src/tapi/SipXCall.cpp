@@ -669,33 +669,26 @@ SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall)
       assert(pData->hConf == SIPX_CONF_NULL);
       if (pData->state != SIPX_INTERNAL_CALLSTATE_DESTROYING)
       {
-         if (!pData->bTonePlaying)
+         pData->state = SIPX_INTERNAL_CALLSTATE_DESTROYING;
+
+         if (pData->bRemoveInsteadOfDrop)
          {
-            pData->state = SIPX_INTERNAL_CALLSTATE_DESTROYING;
-
-            if (pData->bRemoveInsteadOfDrop)
-            {
-               // just posts message
-               pData->pInst->pCallManager->dropConnection(pData->sessionCallId, pData->remoteAddress);
-            }
-            else
-            {
-               // just posts message
-               pData->pInst->pCallManager->drop(pData->callId);
-
-               if (pData->ghostCallId.length() > 0)
-               {
-                  // just posts message
-                  pData->pInst->pCallManager->drop(pData->ghostCallId);
-               }
-
-               hCall = SIPX_CALL_NULL;
-               sr = SIPX_RESULT_SUCCESS;
-            }
+            // just posts message
+            pData->pInst->pCallManager->dropConnection(pData->sessionCallId, pData->remoteAddress);
          }
          else
          {
-            sr = SIPX_RESULT_BUSY;
+            // just posts message
+            pData->pInst->pCallManager->drop(pData->callId);
+
+            if (pData->ghostCallId.length() > 0)
+            {
+               // just posts message
+               pData->pInst->pCallManager->drop(pData->ghostCallId);
+            }
+
+            hCall = SIPX_CALL_NULL;
+            sr = SIPX_RESULT_SUCCESS;
          }
       }
 
@@ -1732,8 +1725,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall,
 
    if (pData)
    {
-      pData->bTonePlaying = true;
-
       // posts a message
       pData->pInst->pCallManager->toneChannelStart(pData->callId, pData->remoteAddress, toneId, bLocal, bRemote);
 
@@ -1760,13 +1751,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall)
 
    if (pData)
    {
-      if (pData->bTonePlaying)
-      {
-         // posts a message
-         pData->pInst->pCallManager->toneChannelStop(pData->callId, pData->remoteAddress);
-         sr = SIPX_RESULT_SUCCESS;
-         pData->bTonePlaying = false;
-      }
+      // posts a message
+      pData->pInst->pCallManager->toneChannelStop(pData->callId, pData->remoteAddress);
+      sr = SIPX_RESULT_SUCCESS;
 
       sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
    }
