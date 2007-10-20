@@ -1351,37 +1351,6 @@ OsStatus CpPhoneMediaInterface::destroyPlayer(MpStreamPlayer* pPlayer)
    return OS_SUCCESS;   
 }
 
-
-OsStatus CpPhoneMediaInterface::createPlaylistPlayer(MpStreamPlaylistPlayer** ppPlayer, 
-                                                     OsMsgQ *pMsgQ, 
-                                                     const char* szTarget)
-{
-   OsStatus returnCode = OS_NOT_FOUND;
-
-   if ((pMsgQ == NULL) && (mpFlowGraph != NULL))
-      pMsgQ = mpFlowGraph->getMsgQ() ;
-
-   if(pMsgQ != NULL)   
-   {
-      *ppPlayer = new MpStreamPlaylistPlayer(pMsgQ, szTarget) ;
-      returnCode = OS_SUCCESS;
-   }
-
-   return(returnCode);
-}
-
-
-OsStatus CpPhoneMediaInterface::destroyPlaylistPlayer(MpStreamPlaylistPlayer* pPlayer)
-{
-   if (pPlayer != NULL)
-   {
-      pPlayer->destroy() ;
-   }
-
-   return OS_SUCCESS;   
-}
-
-
 OsStatus CpPhoneMediaInterface::createQueuePlayer(MpStreamQueuePlayer** ppPlayer, 
                                                   OsMsgQ *pMsgQ, 
                                                   const char* szTarget)

@@ -695,8 +695,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_PLAY_BUFFER_TERM_CONNECTION:
         case CP_CREATE_PLAYER:
         case CP_DESTROY_PLAYER:
-        case CP_CREATE_PLAYLIST_PLAYER:
-        case CP_DESTROY_PLAYLIST_PLAYER:
         case CP_DESTROY_QUEUE_PLAYER:
         case CP_CREATE_QUEUE_PLAYER:
         case CP_GET_NUM_CONNECTIONS:
@@ -746,10 +744,8 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                         msgSubType == CP_IS_LOCAL_TERM_CONNECTION ||
                         msgSubType == CP_GET_SESSION ||
                         msgSubType == CP_CREATE_PLAYER ||
-                        msgSubType == CP_CREATE_PLAYLIST_PLAYER ||
                         msgSubType == CP_CREATE_QUEUE_PLAYER ||
                         msgSubType == CP_DESTROY_PLAYER ||
-                        msgSubType == CP_DESTROY_PLAYLIST_PLAYER ||
                         msgSubType == CP_DESTROY_QUEUE_PLAYER ||
                         msgSubType == CP_PLAY_BUFFER_TERM_CONNECTION ||
                         msgSubType == CP_GET_MEDIA_CONNECTION_ID ||
@@ -1384,40 +1380,6 @@ void CallManager::bufferPlay(const char* callId, int audioBuf, int bufSize, int 
 
 
 #ifndef EXCLUDE_STREAMING
-void CallManager::createPlayer(const char* callId,
-                               MpStreamPlaylistPlayer** ppPlayer)
-{
-    // TO_BE_REMOVED
-    int msgtype = CP_CREATE_PLAYLIST_PLAYER;;
-
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    OsProtectedEvent* ev = eventMgr->alloc();
-    OsTime maxEventTime(CP_MAX_EVENT_WAIT_SECONDS, 0);
-
-    CpMultiStringMessage msg(msgtype,
-        callId, NULL, NULL, NULL, NULL, // strings
-        (int)ev, (int) ppPlayer, 0); // ints
-
-    postMessage(msg);
-
-    // Wait until the player is created by CpCall
-    if(ev->wait(0, maxEventTime) != OS_SUCCESS)
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::createPlayer(MpStreamPlaylistPlayer) TIMED OUT\n");
-
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == ev->signal(0))
-        {
-            eventMgr->release(ev);
-        }
-    }
-    else
-    {
-        eventMgr->release(ev);
-    }
-    
-    //assert(false);
-}
 
 void CallManager::createPlayer(int type,
                                const char* callId,
@@ -1464,44 +1426,6 @@ void CallManager::createPlayer(int type,
     {
         eventMgr->release(ev);
     }
-    
-    //assert(false);
-}
-
-
-void CallManager::destroyPlayer(const char* callId, MpStreamPlaylistPlayer* pPlayer)
-{
-    // TO_BE_REMOVED
-    int msgtype = CP_DESTROY_PLAYLIST_PLAYER;
-
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    OsProtectedEvent* ev = eventMgr->alloc();
-    OsTime maxEventTime(CP_MAX_EVENT_WAIT_SECONDS, 0);
-
-    CpMultiStringMessage msg(msgtype,
-        callId, NULL, NULL, NULL, NULL, // strings
-        (int) ev, (int) pPlayer);   // ints
-
-    postMessage(msg);
-
-    // Wait until the player is created by CpCall
-    if(ev->wait(0, maxEventTime) != OS_SUCCESS)
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::destroyPlayer(MpStreamPlaylistPlayer) TIMED OUT\n");
-
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == ev->signal(0))
-        {
-            eventMgr->release(ev);
-        }
-    }
-    else
-    {
-        eventMgr->release(ev);
-    }
-
-    // Delete the object
-    delete pPlayer;
     
     //assert(false);
 }

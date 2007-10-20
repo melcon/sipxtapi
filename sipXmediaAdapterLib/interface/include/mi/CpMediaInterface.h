@@ -528,26 +528,6 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
 
-     /// @brief Create a single-buffered play list player for this call 
-   virtual OsStatus createPlaylistPlayer(MpStreamPlaylistPlayer** ppPlayer, 
-                                         OsMsgQ *pMsgQ = NULL, 
-                                         const char* szTarget = NULL) = 0;
-     /**<
-     *
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070802 >>
-     *
-     *  @see CpCallManager::createPlayer
-     */
-
-     /// @brief Destroy a single-buffered play list player in this call.
-   virtual OsStatus destroyPlaylistPlayer(MpStreamPlaylistPlayer* pPlayer) = 0;
-     /**
-     *
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070802 >>
-     */
-
      /// @brief Create a double-buffered list player for this call 
    virtual OsStatus createQueuePlayer(MpStreamQueuePlayer** ppPlayer, 
                                       OsMsgQ *pMsgQ = NULL, 

@@ -143,8 +143,6 @@ public:
         CP_PLAY_BUFFER_TERM_CONNECTION,
         CP_CREATE_PLAYER,
         CP_DESTROY_PLAYER, //60
-        CP_CREATE_PLAYLIST_PLAYER,
-        CP_DESTROY_PLAYLIST_PLAYER,
         CP_CREATE_QUEUE_PLAYER,
         CP_DESTROY_QUEUE_PLAYER,
         CP_RENEGOTIATE_CODECS_CONNECTION,
@@ -373,16 +371,6 @@ public:
                             UtlBoolean remote,
                             void* pCookie = NULL) = 0;
 
-    //! Create a MpStreamPlaylistPlayer media player associated with
-    /*! the specified call. The media player can subsequently be used
-     * to play media such as streamed audio to the connections
-     * (local and remote) in this call. The streamed audio source can
-     * be a set on one or more audio URLs that correspond to audio
-     * snippets that the player will stream in a concatenated set.
-     */
-    virtual void createPlayer(const char* callid,
-                              MpStreamPlaylistPlayer** ppPlayer) = 0 ;
-
     //! Create a media player associated with the specified call.
     /*! The media player can subsequently be used to play media
      * such as streamed audio to the connections (local and remote)
@@ -407,10 +395,6 @@ public:
                               const char* szStream,
                               int flags,
                               MpStreamPlayer** ppPlayer) = 0 ;
-
-    //! Destroy the media player associated with a call.
-    virtual void destroyPlayer(const char* callid,
-                               MpStreamPlaylistPlayer* pPlayer) = 0 ;
 
 
     //! Destroy the media player associated with a call.

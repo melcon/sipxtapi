@@ -200,34 +200,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                 mpMediaInterface->stopAudio();
             }
             break;
-        case CallManager::CP_CREATE_PLAYLIST_PLAYER:
-            {
-                UtlString callId;
-
-                MpStreamPlaylistPlayer** ppPlayer = (MpStreamPlaylistPlayer **) ((CpMultiStringMessage&)eventMessage).getInt2Data();
-                assert(ppPlayer != NULL);
-
-                OsProtectedEvent* ev = (OsProtectedEvent*) ((CpMultiStringMessage&)eventMessage).getInt1Data();
-#ifdef TEST_PRINT
-                OsSysLog::add(FAC_CP, PRI_DEBUG,
-                    "CpCall::handle creating MpStreamPlaylistPlayer ppPlayer 0x%08x ev 0x%08x",
-                    (int)ppPlayer, (int)ev);
-#endif
-
-                getCallId(callId);
-
-                if (mpMediaInterface)
-                {
-                    mpMediaInterface->createPlaylistPlayer(ppPlayer, mpManager->getMessageQueue(), callId.data()) ;
-                }
-
-                if(OS_ALREADY_SIGNALED == ev->signal(0))
-                {
-                    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-                    eventMgr->release(ev);
-                }
-            }
-            break;
 
         case CallManager::CP_CREATE_PLAYER:
             {
@@ -283,27 +255,6 @@ UtlBoolean CpCall::handleMessage(OsMsg& eventMessage)
                     mpMediaInterface->createQueuePlayer((MpStreamQueuePlayer**)ppPlayer, mpManager->getMessageQueue(), callId.data()) ;
                 }
 
-                if(OS_ALREADY_SIGNALED == ev->signal(0))
-                {
-                    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-                    eventMgr->release(ev);
-                }
-            }
-            break;
-
-        case CallManager::CP_DESTROY_PLAYLIST_PLAYER:
-            {
-                MpStreamPlaylistPlayer* pPlayer ;
-
-                // Redispatch Request to flowgraph
-                if(mpMediaInterface)
-                {
-                    pPlayer = (MpStreamPlaylistPlayer*) ((CpMultiStringMessage&)eventMessage).getInt2Data();
-                    mpMediaInterface->destroyPlaylistPlayer(pPlayer) ;
-                }
-
-                // Signal Event so that the caller knows the work is done
-                OsProtectedEvent* ev = (OsProtectedEvent*) ((CpMultiStringMessage&)eventMessage).getInt1Data();
                 if(OS_ALREADY_SIGNALED == ev->signal(0))
                 {
                     OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
