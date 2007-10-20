@@ -1232,6 +1232,17 @@ UtlBoolean UtlString::contains(const char* searchStr) const
     return containFlag;
 }
 
+UtlBoolean UtlString::contains(int character) const
+{
+   UtlBoolean containFlag = FALSE;
+
+   if (SAFE_STRCHR(mpData, character) != NULL)
+   {
+      containFlag = TRUE;
+   }
+
+   return containFlag;
+}
 
 // Return true if this is a empty (or null) string.
 UtlBoolean UtlString::isNull() const

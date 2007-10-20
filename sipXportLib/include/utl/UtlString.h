@@ -239,6 +239,9 @@ public:
      * @return true if this string contains the specified string.
      */
 
+    /// Check for a character in this string.
+    UtlBoolean contains(int character) const;
+
     friend UtlBoolean operator!=(const char *, const UtlString& );
 
     friend UtlBoolean operator!=(const char , const UtlString& );
