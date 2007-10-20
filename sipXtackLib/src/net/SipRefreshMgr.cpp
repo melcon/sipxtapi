@@ -1107,11 +1107,9 @@ SipRefreshMgr::processOKResponse(
         } 
         else
         {
-            // copying from response (this is why we set the To Field
-            if ( !toTag.isNull() )
-            {
-                request->setToFieldTag(toTag);
-            }
+           // we don't set to tag even if it arrives in 200 response to REGISTER.
+           // to,from to tags with callid uniquely identify a sip dialog. But REGISTER
+           // doesn't create a sip dialog. Out of dialog requests must not have to tag.
 
             Url url;
             UtlString lineId;
