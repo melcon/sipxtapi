@@ -65,6 +65,10 @@ mCallIndices()
    {
        mCallIdPrefix.append(callIdPrefix);
    }
+   else
+   {
+      mCallIdPrefix.append('c');
+   }
 
    mRtpPortStart = rtpPortStart;
    mRtpPortEnd = rtpPortEnd;
@@ -192,7 +196,7 @@ void CpCallManager::getNewSessionId(UtlString* callId)
 // Ideally, Call-IDs would have crypto-quality randomness (as
 // recommended in RFC 3261 section 8.1.1.4), but the previous version
 // did not either.
-void CpCallManager::getNewCallId(const char* callIdPrefix, UtlString* callId)
+void CpCallManager::getNewCallId(const UtlString& callIdPrefix, UtlString* callId)
 {
    // Lock to protect mCallNum.
    OsLock lock(mCallNumMutex);
@@ -213,14 +217,6 @@ void CpCallManager::getNewCallId(const char* callIdPrefix, UtlString* callId)
    mCallNum += 1201;
 #endif
     
-   // callID prefix shouldn't contain an @.
-   if (strchr(callIdPrefix, '@') != NULL)
-   {
-      OsSysLog::add(FAC_CP, PRI_ERR,
-                    "CpCallManager::getNewCallId callIdPrefix='%s' contains '@'",
-                    callIdPrefix);
-   }
-
    // If we haven't initialized yet, do so.
    if (!initialized)
    {
@@ -231,8 +227,7 @@ void CpCallManager::getNewCallId(const char* callIdPrefix, UtlString* callId)
          ((Int64) current_time.seconds()) * 1000000 + current_time.usecs();
 
       // Get the process ID.
-      int process_id;
-      process_id = OsProcess::getCurrentPID();
+      int process_id = OsProcess::getCurrentPID();
 
       // Get the host identity.
       UtlString thisHost;
@@ -241,16 +236,17 @@ void CpCallManager::getNewCallId(const char* callIdPrefix, UtlString* callId)
       thisHost.replace('@','*');
 
       // Compose the static fields.
-      sprintf(buffer, "%d_%" FORMAT_INTLL "d_%s",
+      SNPRINTF(buffer, sizeof(buffer), "%d_%" FORMAT_INTLL "d_%s",
               process_id, start_time, thisHost.data());
-      // Hash them.
+
+      // Hash them to 32 character md5
       NetMd5Codec encoder;
       encoder.encode(buffer, suffix);
 #ifdef USE_LONG_CALL_IDS
       // Truncate the hash to 16 characters.
       suffix.remove(16);
 #else
-      // Truncate the hash to 16 characters.
+      // Truncate the hash to 20 characters.
       suffix.remove(12);
 #endif
 
@@ -259,8 +255,8 @@ void CpCallManager::getNewCallId(const char* callIdPrefix, UtlString* callId)
    }
 
    // Compose the new Call-Id.
-   sprintf(buffer, "%s_%" FORMAT_INTLL "d_%s",
-           callIdPrefix, mCallNum, suffix.data());
+   SNPRINTF(buffer, sizeof(buffer), "%s_%" FORMAT_INTLL "d_%s",
+           callIdPrefix.data(), mCallNum, suffix.data());
 
    // Copy it to the destination.
    *callId = buffer;

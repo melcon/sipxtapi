@@ -225,7 +225,7 @@ public:
     virtual void getNewCallId(UtlString* callId);
 
     //! Generate a new Call-Id with the specified prefix.
-    static void getNewCallId(const char* callIdPrefix, UtlString* callId);
+    static void getNewCallId(const UtlString& callIdPrefix, UtlString* callId);
 
     //! For internal use only
     void getNewSessionId(UtlString* sessionId);
