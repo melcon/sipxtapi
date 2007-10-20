@@ -244,12 +244,6 @@ protected:
     UtlBoolean handleTransfereeConnectionStatus(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_TRANSFEREE_CONNECTION_STATUS
     //: message
-    UtlBoolean handleGetNumConnections(OsMsg* pEventMessage);
-    //: Handles the processing of CallManager::CP_GET_NUM_CONNECTIONS
-    //: and CallManager::CP_GET_NUM_TERM_CONNECTIONS messages
-    UtlBoolean handleGetConnections(OsMsg* pEventMessage);
-    //: Handles the processing of a CallManager::CP_GET_CONNECTIONS
-    //: message
     UtlBoolean handleGetSession(OsMsg* pEventMessage);
     //: Handles the processing of a CallManager::CP_GET_SESSION
     //: message

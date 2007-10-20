@@ -121,8 +121,6 @@ public:
         CP_ACCEPT_CONNECTION,
         CP_REJECT_CONNECTION,
         CP_REDIRECT_CONNECTION,
-        CP_GET_NUM_CONNECTIONS,
-        CP_GET_CONNECTIONS, 
         CP_GET_CALLED_ADDRESSES, //30
         CP_GET_CALLING_ADDRESSES,
         CP_PLAY_AUDIO_TERM_CONNECTION,
@@ -395,13 +393,6 @@ public:
     virtual void dropConnection(const char* callId,
                                 const char* address) = 0;
 
-
-    //! Query the list of addresses or handles for the connections
-    //! in the specified call.
-    virtual OsStatus getConnections(const char* callId,
-                                     int maxConnections,
-                                     int& numConnections,
-                                     UtlString addresses[]) = 0;
 
     //! Query the list of addresses or handles for the connections
     //! in the specified call that were set up as outbound connections.
