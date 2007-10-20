@@ -1197,8 +1197,7 @@ OsStatus CpPhoneMediaInterface::playBuffer(char* buf,
                                            int type, 
                                            UtlBoolean repeat,
                                            UtlBoolean local,
-                                           UtlBoolean remote, 
-                                           OsProtectedEvent* pEvent,
+                                           UtlBoolean remote,
                                            UtlBoolean mixWithMic,
                                            int downScaling,
                                            void* pCookie)
@@ -1219,21 +1218,12 @@ OsStatus CpPhoneMediaInterface::playBuffer(char* buf,
          }
 
         // Start playing the audio file
-        returnCode = mpFlowGraph->playBuffer(buf, bufSize, type, repeat, toneOptions, NULL, pCookie);
+        returnCode = mpFlowGraph->playBuffer(buf, bufSize, type, repeat, toneOptions, pCookie);
     }
 
     if(returnCode != OS_SUCCESS)
     {
         osPrintf("Cannot play audio buffer: %10p\n", buf);
-    }
-
-    if (pEvent)
-    {
-        OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-        if(OS_ALREADY_SIGNALED == pEvent->signal(true))
-        {
-            eventMgr->release((OsProtectedEvent*) pEvent);
-        }
     }
 
     return(returnCode);

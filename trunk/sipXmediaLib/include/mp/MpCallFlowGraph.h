@@ -211,7 +211,6 @@ public:
                   int type,
                   UtlBoolean repeat,
                   int toneOptions,
-                  OsProtectedEvent* event = NULL,
                   void* pCookie = NULL);
 
      /// Start playing audio from a file

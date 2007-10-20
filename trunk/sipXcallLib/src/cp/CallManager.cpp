@@ -1375,41 +1375,11 @@ OsStatus CallManager::audioChannelRecordStop(const char* callId, const char* szR
 
 void CallManager::bufferPlay(const char* callId, int audioBuf, int bufSize, int type, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, void* pCookie)
 {
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    OsProtectedEvent* pEvent = eventMgr->alloc();
-    int sTimeout = bufSize / 8000;
-    if (sTimeout < CP_MAX_EVENT_WAIT_SECONDS)
-      sTimeout = CP_MAX_EVENT_WAIT_SECONDS;
-
-    OsTime maxEventTime(sTimeout, 0);
-
     CpMultiStringMessage startToneMessage(CP_PLAY_BUFFER_TERM_CONNECTION,
        callId, NULL, NULL, NULL, NULL,
-       (intptr_t)pEvent, repeat, local, remote, audioBuf, bufSize, type, (intptr_t)pCookie);
+       NULL, repeat, local, remote, audioBuf, bufSize, type, (intptr_t)pCookie);
 
     postMessage(startToneMessage);
-
-    // Wait for error response
-    if(pEvent->wait(0, maxEventTime) == OS_SUCCESS)
-    {
-        int success ;
-        pEvent->getEventData(success);
-        eventMgr->release(pEvent);
-
-        if (success)
-        {
-            // Do something with this success?
-        } 
-    }
-    else
-    {
-        OsSysLog::add(FAC_CP, PRI_ERR, "CallManager::bufferPlay TIMED OUT\n");
-        // If the event has already been signalled, clean up
-        if(OS_ALREADY_SIGNALED == pEvent->signal(0))
-        {
-            eventMgr->release(pEvent);
-        }
-    }
 }
 
 

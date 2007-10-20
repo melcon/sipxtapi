@@ -451,7 +451,6 @@ public:
                                UtlBoolean repeat,
                                UtlBoolean local, 
                                UtlBoolean remote,
-                               OsProtectedEvent* event = NULL,
                                UtlBoolean mixWithMic = false,
                                int downScaling = 100,
                                void* pCookie = NULL) = 0 ;

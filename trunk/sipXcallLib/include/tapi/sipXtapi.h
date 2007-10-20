@@ -1316,6 +1316,10 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall,
 /**
  * Drop/Destroy the specified call.
  *
+ * If a sipxCallDestroy is invoked while an audio buffer is playing,
+ * playback will stop automatically. In that case MEDIA_PLAYBUFFER_STOP
+ * is not fired.
+ *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
@@ -1603,10 +1607,20 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
  * Play the specified audio data.  Currently the only data format that
  * is supported is raw 16 bit signed PCM at 8000 samples/sec, mono,
  * little endian.
- * If a sipxCallDestroy is attempted while an audio buffer is playing,
- * sipxCallDestroy will fail with a SIPX_RESULT_BUSY return code.
- * Call sipxCallPlayBufferStop before making the call to
- * sipxCallDestroy.
+ *
+ * If a sipxCallDestroy is invoked while an audio buffer is playing,
+ * playback will stop automatically.
+ * If call is destroyed but sipxCallPlayBufferStop is not called, MEDIA_PLAYBUFFER_STOP
+ * will be missing.
+ * Supplied buffer can be freed or reused only after it has been copied
+ * internally. This will occur when MEDIA_PLAYBUFFER_START event is fired
+ * or call is destroyed. If MEDIA_PLAYBUFFER_START is not received within
+ * a reasonable time, playback start probably failed and user can attempt
+ * to invoke sipxCallPlayBufferStop. This should fire MEDIA_PLAYBUFFER_STOP
+ * event, after which it is safe to dispose the supplied buffer.
+ * If MEDIA_PLAYBUFFER_STOP is not fired either, pointer to supplied buffer
+ * is not kept anywhere and it is safe to delete.
+ * If attention is not paid to this problem, it can result in illegal memory access.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by
  *        invoking sipxCallCreate or passed to your application through
@@ -1636,10 +1650,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
 
 /**
  * Stop playing the audio started with sipxCallPlayBufferStart
- * If a sipxCallDestroy is attempted while an audio buffer is playing,
- * sipxCallDestroy will fail with a SIPX_RESULT_BUSY return code.
- * Call sipxCallPlayBufferStop before making the call to
- * sipxCallDestroy.
+ * If a sipxCallDestroy is invoked while an audio buffer is playing,
+ * playback will stop automatically. In that case MEDIA_PLAYBUFFER_STOP
+ * is not fired.
  * 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through

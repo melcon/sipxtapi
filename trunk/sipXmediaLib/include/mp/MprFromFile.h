@@ -56,7 +56,7 @@ public:
 
       /// Play sound from buffer w/repeat option
     OsStatus playBuffer(const char* audioBuffer, unsigned long bufSize, 
-                        int type, UtlBoolean repeat, OsProtectedEvent* notify, void* pCookie = NULL);
+                        int type, UtlBoolean repeat, void* pCookie = NULL);
       /**<
       *  @param type - can be one of following:  (need a OsSoundType)<br>
       *  0 = RAW<br>

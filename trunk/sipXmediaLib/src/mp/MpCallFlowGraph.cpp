@@ -1224,8 +1224,7 @@ OsStatus MpCallFlowGraph::playBuffer(char* audioBuf,
                                      unsigned long bufSize,
                                      int type, 
                                      UtlBoolean repeat,
-                                     int toneOptions, 
-                                     OsProtectedEvent* event,
+                                     int toneOptions,
                                      void* pCookie)
 {
    OsStatus  res;
@@ -1236,7 +1235,7 @@ OsStatus MpCallFlowGraph::playBuffer(char* audioBuf,
    // call stuff in the CallFlowGraph -- a big nono in terms of separation)
    MpResource::setAllNotificationsEnabled(TRUE, mpFromFile->getName(), *getMsgQ());
 
-   res = mpFromFile->playBuffer(audioBuf, bufSize, type, repeat, event, pCookie);
+   res = mpFromFile->playBuffer(audioBuf, bufSize, type, repeat, pCookie);
 
    if (res == OS_SUCCESS)
    {
