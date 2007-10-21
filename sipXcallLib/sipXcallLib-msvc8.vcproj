@@ -759,6 +759,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CpCallIdGenerator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CpCallManager.cpp"
 				>
 			</File>
@@ -801,6 +805,10 @@
 			</File>
 			<File
 				RelativePath="include\cp\CpCall.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpCallIdGenerator.h"
 				>
 			</File>
 			<File

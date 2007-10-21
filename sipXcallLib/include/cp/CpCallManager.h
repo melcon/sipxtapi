@@ -28,6 +28,7 @@
 #include "net/SipContactDb.h"
 #include "net/SipDialog.h"
 #include "cp/Connection.h"
+#include "cp/CpCallIdGenerator.h"
 
 // DEFINES
 // MACROS
@@ -223,9 +224,6 @@ public:
 
     //! For internal use only
     virtual void getNewCallId(UtlString* callId);
-
-    //! Generate a new Call-Id with the specified prefix.
-    static void getNewCallId(const UtlString& callIdPrefix, UtlString* callId);
 
     //! For internal use only
     void getNewSessionId(UtlString* sessionId);
@@ -564,10 +562,7 @@ protected:
     virtual void pushCall(CpCall* call);
     virtual void appendCall(CpCall* call);
 
-    OsMutex mManagerMutex;
     OsRWMutex mCallListMutex;
-    // Mutex to protect mCallNum.
-    static OsMutex mCallNumMutex;
     UtlHashBag mCallIndices;
     UtlString mLocalAddress;
     UtlString mPublicAddress;
@@ -602,21 +597,19 @@ private:
     //! Maximum number of request messages
     static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
-    //! Copy constructor
+    //! Copy constructor undefined
     CpCallManager(const CpCallManager& rCpCallManager);
 
-    //! Assignment operator
+    //! Assignment operator undefined
     CpCallManager& operator=(const CpCallManager& rhs);
 
-    UtlString mCallIdPrefix;    
+    CpCallIdGenerator m_callIdGenerator;
+    CpCallIdGenerator m_sipCallIdGenerator;
     UtlDList mCallList;
     int mLastMetaEventId;
     UtlBoolean mbEnableICE ;
     UtlString mVoiceQualityReportTarget ;
 
-    // Every CallManager shares the same call counter for generating Call-IDs.
-    static Int64 mCallNum;
- 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 };
