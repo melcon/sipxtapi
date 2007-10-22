@@ -6934,8 +6934,8 @@ void SipConnection::fireAudioStartEvents(SIPX_MEDIA_CAUSE cause)
                 bIsEncrypted) == OS_SUCCESS)
         {
             tapiCodec.bIsEncrypted = bIsEncrypted;
-            strncpy(tapiCodec.audioCodec.cName, audioCodecName.data(), SIPXTAPI_CODEC_NAMELEN-1);
-            strncpy(tapiCodec.videoCodec.cName, videoCodecName.data(), SIPXTAPI_CODEC_NAMELEN-1);
+            SAFE_STRNCPY(tapiCodec.audioCodec.cName, audioCodecName.data(), SIPXTAPI_CODEC_NAMELEN-1);
+            SAFE_STRNCPY(tapiCodec.videoCodec.cName, videoCodecName.data(), SIPXTAPI_CODEC_NAMELEN-1);
 
             if (mpMediaInterface->isSendingRtpAudio(mConnectionId))
             {

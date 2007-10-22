@@ -145,7 +145,7 @@ OsStatus OsSysLog::setOutputFile(const int minFlushPeriod,
 
 	  if (logfile)
 	  {
-	     OsSysLogMsg msgSetFile(OsSysLogMsg::SET_FILE, strdup(logfile)) ;
+	     OsSysLogMsg msgSetFile(OsSysLogMsg::SET_FILE, SAFE_STRDUP(logfile)) ;
          spOsSysLogTask->postMessage(msgSetFile) ;
 	  }
 	  else
@@ -186,7 +186,7 @@ OsStatus OsSysLog::addOutputSocket(const char* remoteHost)
 
    if (spOsSysLogTask != NULL)
    {
-      OsSysLogMsg msg(OsSysLogMsg::ADD_SOCKET, (void*) strdup(remoteHost)) ;
+      OsSysLogMsg msg(OsSysLogMsg::ADD_SOCKET, (void*) SAFE_STRDUP(remoteHost)) ;
       spOsSysLogTask->postMessage(msg) ;
    }
    else
@@ -394,7 +394,7 @@ OsStatus OsSysLog::vadd(const char*            taskName,
          }
          else
          {
-             char* szPtr = strdup(logEntry.data()) ;
+             char* szPtr = SAFE_STRDUP(logEntry.data()) ;
              OsSysLogMsg msg(OsSysLogMsg::LOG, szPtr) ;
              OsTime timeout(1000) ;
              if (spOsSysLogTask->postMessage(msg, timeout) != OS_SUCCESS)

@@ -522,7 +522,7 @@ void StunMessage::setUsername(const char* szUsername)
 {
     if (szUsername && strlen(szUsername))
     {
-        strncpy(mUsername, szUsername, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(mUsername, szUsername, STUN_MAX_STRING_LENGTH) ;
         mbUsernameValid = true ;
     }
 }
@@ -531,7 +531,7 @@ void StunMessage::setPassword(const char* szPassword)
 {
     if (szPassword && strlen(szPassword))
     {
-        strncpy(mPassword, szPassword, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(mPassword, szPassword, STUN_MAX_STRING_LENGTH) ;
         mbPasswordValid = true ;
     }
 }
@@ -540,7 +540,7 @@ void StunMessage::setRealm(const char* szRealm)
 {
     if (szRealm && strlen(szRealm))
     {
-        strncpy(mRealm, szRealm, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(mRealm, szRealm, STUN_MAX_STRING_LENGTH) ;
         mbRealmValid = true ;
     }
 }
@@ -549,7 +549,7 @@ void StunMessage::setNonce(const char* szNonce)
 {
     if (szNonce && strlen(szNonce))
     {
-        strncpy(mNonce, szNonce, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(mNonce, szNonce, STUN_MAX_STRING_LENGTH) ;
         mbNonceValid = true ;
     }
 }
@@ -558,7 +558,7 @@ void StunMessage::setError(const unsigned short code, const char* szReason)
 {
     mError.errorClass = code / 100 ;
     mError.errorNumber = code % 100 ;
-    strncpy(mError.szReasonPhrase, szReason, STUN_MAX_STRING_LENGTH) ;
+    SAFE_STRNCPY(mError.szReasonPhrase, szReason, STUN_MAX_STRING_LENGTH) ;
 
     mbErrorValid = true ;
 }
@@ -584,7 +584,7 @@ void StunMessage::setServer(const char* szServer)
 {
     if (szServer && strlen(szServer))
     {
-        strncpy(mServer, szServer, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(mServer, szServer, STUN_MAX_STRING_LENGTH) ;
         mbServerValid = true ;
     }    
 }
@@ -720,7 +720,7 @@ bool StunMessage::getUsername(char* szUsername)
 {
     if (mbUsernameValid)
     {
-        strncpy(szUsername, mUsername, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(szUsername, mUsername, STUN_MAX_STRING_LENGTH) ;
     }
 
     return mbUsernameValid ;
@@ -730,7 +730,7 @@ bool StunMessage::getPassword(char* szPassword)
 {
     if (mbPasswordValid)
     {
-        strncpy(szPassword, mPassword, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(szPassword, mPassword, STUN_MAX_STRING_LENGTH) ;
     }
 
     return mbPasswordValid ;
@@ -740,7 +740,7 @@ bool StunMessage::getRealm(char* szRealm)
 {
     if (mbRealmValid)
     {
-        strncpy(szRealm, mRealm, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(szRealm, mRealm, STUN_MAX_STRING_LENGTH) ;
     }
 
     return mbRealmValid ;
@@ -750,7 +750,7 @@ bool StunMessage::getNonce(char* szNone)
 {
     if (mbNonceValid)
     {
-        strncpy(szNone, mNonce, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(szNone, mNonce, STUN_MAX_STRING_LENGTH) ;
     }
 
     return mbNonceValid ;
@@ -770,7 +770,7 @@ bool StunMessage::getError(unsigned short& rCode, char* szReason)
     if (mbErrorValid)
     {
         rCode = mError.errorClass * 100 + mError.errorNumber ;
-        strncpy(szReason, mError.szReasonPhrase, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(szReason, mError.szReasonPhrase, STUN_MAX_STRING_LENGTH) ;
     }
 
     return mbErrorValid ;
@@ -808,7 +808,7 @@ bool StunMessage::getServer(char* szServer)
 {
     if (mbServerValid)
     {
-        strncpy(szServer, mServer, STUN_MAX_STRING_LENGTH) ;
+        SAFE_STRNCPY(szServer, mServer, STUN_MAX_STRING_LENGTH) ;
     }
 
     return mbServerValid ;

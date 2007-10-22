@@ -278,7 +278,7 @@ static int getIPHelperDNSEntries(char DNSServers[][MAXIPLEN], int max, const cha
                // loop through all DNS IPs
                while (pDns && ipHelperDNSServerCount < max)
                {
-                  strncpy(DNSServers[ipHelperDNSServerCount++], pDns->IpAddress.String,
+                  SAFE_STRNCPY(DNSServers[ipHelperDNSServerCount++], pDns->IpAddress.String,
                      sizeof(DNSServers[ipHelperDNSServerCount]));
 
                   pDns = pDns->Next;
@@ -400,7 +400,7 @@ static int getDNSEntriesFromRegistry(char regDNSServers[][MAXIPLEN], int max)
 
          while (token && retRegDNSServerCount < max)
          {
-            strncpy(regDNSServers[retRegDNSServerCount++], token, sizeof(regDNSServers[retRegDNSServerCount]));
+            SAFE_STRNCPY(regDNSServers[retRegDNSServerCount++], token, sizeof(regDNSServers[retRegDNSServerCount]));
 
             // sarch for the next one
             token = strtok_s(NULL, seps, &nexttoken);

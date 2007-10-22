@@ -362,7 +362,7 @@ OsStatus OsProcessWnt::launch(UtlString &rAppName, UtlString parameters[],OsPath
         }
 
         mPID = ProcessInformation.dwProcessId;
-        mParentPID = getpid();
+        mParentPID = _getpid();
 #else
         mPID = ProcessInformation.dwProcessId;
         mParentPID = NULL;

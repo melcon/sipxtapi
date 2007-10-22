@@ -44,6 +44,7 @@
 #endif
 
 // APPLICATION INCLUDES
+#include <os/OsDefs.h>
 #include <net/HttpBody.h>
 #include <tapi/sipXtapiEvents.h>
 
@@ -128,7 +129,7 @@ class SIPXTACK_SECURITY_ATTRIBUTES
      */
     void setSrtpKey(const char* szKey, const int length)
     {
-        strncpy(szSrtpKey, szKey, length);
+        SAFE_STRNCPY(szSrtpKey, szKey, length);
         nSrtpKeyLength = length;
     }    
     /**
@@ -190,11 +191,11 @@ class SIPXTACK_SECURITY_ATTRIBUTES
         nSrtpLevel = ref.nSrtpLevel;
         nSrtpKeyLength = ref.nSrtpKeyLength;
         nSmimeKeyLength = ref.nSmimeKeyLength;
-        strcpy(szSrtpKey, ref.szSrtpKey);
+        SAFE_STRNCPY(szSrtpKey, ref.szSrtpKey, sizeof(szSrtpKey));
         memcpy((void*)szSmimeKeyDer, (void*)ref.szSmimeKeyDer, ref.nSmimeKeyLength);
-        strncpy(dbLocation, ref.dbLocation, sizeof(dbLocation) - 1);
-        strncpy(szMyCertNickname, ref.szMyCertNickname, sizeof(szMyCertNickname) - 1);
-        strncpy(szCertDbPassword, ref.szCertDbPassword, sizeof(szCertDbPassword) - 1);
+        SAFE_STRNCPY(dbLocation, ref.dbLocation, sizeof(dbLocation) - 1);
+        SAFE_STRNCPY(szMyCertNickname, ref.szMyCertNickname, sizeof(szMyCertNickname) - 1);
+        SAFE_STRNCPY(szCertDbPassword, ref.szCertDbPassword, sizeof(szCertDbPassword) - 1);
         return;
     }
 };

@@ -93,7 +93,7 @@ SIPXTAPI_API SIPX_RESULT sipxUtilUrlGetDisplayName(const char* szUrl,
       {
          url.getDisplayName(temp);
          temp.strip(UtlString::both, '\"');
-         strncpy(szDisplayName, temp, nDisplayName);
+         SAFE_STRNCPY(szDisplayName, temp, nDisplayName);
       }
 
       rc = SIPX_RESULT_SUCCESS;
@@ -167,7 +167,7 @@ static bool findUrlParameter(Url* pUrl,
          if (index == 0)
          {
             bRC = true;
-            strncpy(szValue, value.data(), nValue);
+            SAFE_STRNCPY(szValue, value.data(), nValue);
          }
          else
          {

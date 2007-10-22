@@ -102,7 +102,7 @@ int fnSplit(char *spec,             /* Original file spec         */
       if (':' == spec[1])
       {
             if (drive)
-                  strncpy(drive, spec, 2);
+                  SAFE_STRNCPY(drive, spec, 2);
             drive[2] = 0;
             d += 2;
             ret_code |= Drive_;

@@ -409,7 +409,6 @@ UtlString& UtlString::replace(size_t pos, size_t N, const UtlString& replaceStr)
 
 // Replace N characters starting at the designated position with a subset
 // of the designated replacement string.
-// use strncpy() to realize.
 UtlString& UtlString::replace(size_t pos, size_t N, const char* replaceStr, size_t L)
 {
     // FIX: need to avoid the allocation and extra copy if possible

@@ -1424,7 +1424,7 @@ void CpPeerCall::getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
         (sipUserAgent->getLocalAddress(&ipAddress, &port, TRANSPORT_UDP)))
     {
         contacts[nActualContacts].eContactType = CONTACT_LOCAL ;
-        strncpy(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
+        SAFE_STRNCPY(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
         contacts[nActualContacts].iPort = port ;
         contacts[nActualContacts].eTransportType = TRANSPORT_UDP;
         nActualContacts++ ;
@@ -1434,7 +1434,7 @@ void CpPeerCall::getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
         (sipUserAgent->getLocalAddress(&ipAddress, &port, TRANSPORT_TCP)))
     {
         contacts[nActualContacts].eContactType = CONTACT_LOCAL ;
-        strncpy(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
+        SAFE_STRNCPY(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
         contacts[nActualContacts].iPort = port ;
         contacts[nActualContacts].eTransportType = TRANSPORT_TCP;
         nActualContacts++ ;
@@ -1444,7 +1444,7 @@ void CpPeerCall::getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
         (sipUserAgent->getLocalAddress(&ipAddress, &port, TRANSPORT_TLS)))
     {
         contacts[nActualContacts].eContactType = CONTACT_LOCAL ;
-        strncpy(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
+        SAFE_STRNCPY(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
         contacts[nActualContacts].iPort = port ;
         contacts[nActualContacts].eTransportType = TRANSPORT_TLS;
         nActualContacts++ ;
@@ -1454,7 +1454,7 @@ void CpPeerCall::getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
         (sipUserAgent->getNatMappedAddress(&ipAddress, &port)))
     {
         contacts[nActualContacts].eContactType = CONTACT_NAT_MAPPED ;
-        strncpy(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
+        SAFE_STRNCPY(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
         contacts[nActualContacts].iPort = port ;
         contacts[nActualContacts].eTransportType = TRANSPORT_UDP;
         nActualContacts++ ;
@@ -1464,7 +1464,7 @@ void CpPeerCall::getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
         (sipUserAgent->getConfiguredPublicAddress(&ipAddress, &port)))
     {
         contacts[nActualContacts].eContactType = CONTACT_CONFIG ;
-        strncpy(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
+        SAFE_STRNCPY(contacts[nActualContacts].cIpAddress, ipAddress.data(), 32) ;
         contacts[nActualContacts].iPort = port ;
         contacts[nActualContacts].eTransportType = TRANSPORT_UDP;
         nActualContacts++ ;

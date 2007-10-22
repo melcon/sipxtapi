@@ -233,7 +233,7 @@ void CByeReport::SetReason(unsigned char *puchReason, unsigned long ulLength)
         // Make sure length is less than MAX_SOURCE_LENGTH
         m_ulReasonLength = (ulLength >= MAX_SOURCE_LENGTH) ?
                                             MAX_SOURCE_LENGTH - 1 : ulLength;
-        strncpy((char *)m_uchReason, (char *)puchReason, m_ulReasonLength);
+        SAFE_STRNCPY((char *)m_uchReason, (char *)puchReason, m_ulReasonLength);
         m_uchReason[m_ulReasonLength] = 0; //NULL
     }
     else if(puchReason != NULL)

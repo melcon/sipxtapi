@@ -316,7 +316,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
 
         if (getContactAdapterName(adapterName, defaultSipAddress))
         {
-            strncpy(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
+            SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
         }
         else
         {
@@ -324,7 +324,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
            OsSysLog::add(FAC_SIP, PRI_WARNING,
                          "SipUserAgent::_ no adapter found for address '%s'",
                          defaultSipAddress.data());
-           strncpy(contact.cInterface, "(unknown)", sizeof(contact.cInterface));
+           SAFE_STRNCPY(contact.cInterface, "(unknown)", sizeof(contact.cInterface));
         }
         contact.iPort = mUdpPort; // what about the TCP port?
         contact.eTransportType = TRANSPORT_UDP;  // what about TCP transport?        

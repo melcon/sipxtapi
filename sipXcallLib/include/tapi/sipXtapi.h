@@ -51,6 +51,8 @@
 #endif
 
 // APPLICATION INCLUDES
+#include <os/OsDefs.h>
+
 // DEFINES
 
 /**
@@ -488,9 +490,9 @@ class SIPX_SECURITY_ATTRIBUTES
         nSmimeKeyLength = ref.nSmimeKeyLength;
         memcpy(szSrtpKey, ref.szSrtpKey, ref.nSrtpKeyLength);
         memcpy(szSmimeKeyDer, ref.szSmimeKeyDer, ref.nSmimeKeyLength);
-        strncpy(dbLocation, ref.dbLocation, sizeof(dbLocation) - 1);
-        strncpy(szMyCertNickname, ref.szMyCertNickname, sizeof(szMyCertNickname) - 1);
-        strncpy(szCertDbPassword, ref.szCertDbPassword, sizeof(szCertDbPassword) - 1);
+        SAFE_STRNCPY(dbLocation, ref.dbLocation, sizeof(dbLocation) - 1);
+        SAFE_STRNCPY(szMyCertNickname, ref.szMyCertNickname, sizeof(szMyCertNickname) - 1);
+        SAFE_STRNCPY(szCertDbPassword, ref.szCertDbPassword, sizeof(szCertDbPassword) - 1);
     }
 };
 

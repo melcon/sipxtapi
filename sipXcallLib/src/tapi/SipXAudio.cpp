@@ -745,7 +745,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const int index,
       result = waveInGetDevCaps(index, &incaps, sizeof(WAVEINCAPS));
       if (result == MMSYSERR_NOERROR)
       {
-         strncpy(szDevice, incaps.szPname, (size_t)bufferSize);
+         SAFE_STRNCPY(szDevice, incaps.szPname, (size_t)bufferSize);
          rc = SIPX_RESULT_SUCCESS;
       }
 #else
@@ -796,7 +796,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const int index,
       result = waveOutGetDevCaps(index, &outcaps, sizeof(WAVEOUTCAPS));
       if (result == MMSYSERR_NOERROR)
       {
-         strncpy(szDevice, outcaps.szPname, (size_t)bufferSize);
+         SAFE_STRNCPY(szDevice, outcaps.szPname, (size_t)bufferSize);
          rc = SIPX_RESULT_SUCCESS;
       }
 #else

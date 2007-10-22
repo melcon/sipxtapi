@@ -351,7 +351,7 @@ void OsConfigDb::setIdentityLabel(const char *idLabel)
     if (idLabel != NULL)
     {
         mIdentityLabel = idLabel;
-        //strncpy(mIdentityLabel, idLabel, sizeof(mIdentityLabel));
+        //SAFE_STRNCPY(mIdentityLabel, idLabel, sizeof(mIdentityLabel));
     }
     else
     {
@@ -944,7 +944,7 @@ OsStatus OsConfigDb::loadFromUnencryptedBuffer(const char *buf)
              size = MAX_FILELINE_SIZE;
          }
 
-         strncpy(configLine, config.data(), size) ;
+         SAFE_STRNCPY(configLine, config.data(), size) ;
          configLine[size] = 0 ;
 
          start = pos + 1;
