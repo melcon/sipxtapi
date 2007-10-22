@@ -123,7 +123,7 @@ OsTLSServerSocket::OsTLSServerSocket(int connectionQueueSize,
         }
             
         unsigned char* szPwd = (unsigned char*) PR_Malloc(certPassword.length()+ 1);
-        strncpy((char*)szPwd, certPassword.data(), certPassword.length()+1);
+        SAFE_STRNCPY((char*)szPwd, certPassword.data(), certPassword.length()+1);
         mpPrivKey = PK11_FindKeyByAnyCert(mpCert, (void*)szPwd);
         if (mpPrivKey == NULL)
         {

@@ -443,7 +443,7 @@ bool CSourceDescription::SetCName(unsigned char *puchCName,
         // Make sure length is no greater than MAX_SOURCE_LENGTH
         m_ulCNameLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchCName, (char *)puchCName, m_ulCNameLength);
+        SAFE_STRNCPY((char *)m_uchCName, (char *)puchCName, m_ulCNameLength);
         m_uchCName[m_ulCNameLength] = 0;
     }
     else
@@ -527,7 +527,7 @@ bool CSourceDescription::SetName(unsigned char *puchName,
         // Make sure length is no greater than MAX_LENGTH
         m_ulNameLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchName, (char *)puchName, m_ulNameLength);
+        SAFE_STRNCPY((char *)m_uchName, (char *)puchName, m_ulNameLength);
         m_uchName[m_ulNameLength] = 0;
     }
     else if(puchName != NULL)
@@ -617,7 +617,7 @@ bool CSourceDescription::SetEmail(unsigned char *puchEmail,
         // Make sure length is no greater than MAX_LENGTH
         m_ulEmailLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchEmail, (char *)puchEmail, m_ulEmailLength);
+        SAFE_STRNCPY((char *)m_uchEmail, (char *)puchEmail, m_ulEmailLength);
         m_uchEmail[m_ulEmailLength] = 0;
     }
     else if(puchEmail != NULL)
@@ -704,7 +704,7 @@ bool CSourceDescription::SetPhone(unsigned char *puchPhone,
         // Make sure length is no greater than MAX_LENGTH
         m_ulPhoneLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchPhone, (char *)puchPhone, m_ulPhoneLength);
+        SAFE_STRNCPY((char *)m_uchPhone, (char *)puchPhone, m_ulPhoneLength);
         m_uchPhone[m_ulPhoneLength] = 0;
     }
     else if(puchPhone != NULL)
@@ -790,7 +790,7 @@ bool CSourceDescription::SetAppName(unsigned char *puchAppName,
         // Make sure length is no greater than MAX_LENGTH
         m_ulAppNameLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchAppName, (char *)puchAppName, m_ulAppNameLength);
+        SAFE_STRNCPY((char *)m_uchAppName, (char *)puchAppName, m_ulAppNameLength);
         m_uchAppName[m_ulAppNameLength] = 0;
     }
     else if(puchAppName != NULL)
@@ -879,7 +879,7 @@ bool CSourceDescription::SetLocation(unsigned char *puchLocation,
         // Make sure length is no greater than MAX_LENGTH
         m_ulLocationLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchLocation,
+        SAFE_STRNCPY((char *)m_uchLocation,
                                     (char *)puchLocation, m_ulLocationLength);
         m_uchLocation[m_ulLocationLength] = 0;
     }
@@ -967,7 +967,7 @@ bool CSourceDescription::SetNotes(unsigned char *puchNotes,
         // Make sure length is no greater than MAX_LENGTH
         m_ulNotesLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchNotes, (char *)puchNotes, m_ulNotesLength);
+        SAFE_STRNCPY((char *)m_uchNotes, (char *)puchNotes, m_ulNotesLength);
         m_uchNotes[m_ulNotesLength] = 0;
     }
     else if(puchNotes != NULL)
@@ -1057,7 +1057,7 @@ bool CSourceDescription::SetPrivate(unsigned char *puchPrivate,
         // Make sure length is no greater than MAX_LENGTH
         m_ulPrivateLength =
                 ulLength < MAX_SOURCE_LENGTH ? ulLength : MAX_SOURCE_LENGTH-1;
-        strncpy((char *)m_uchPrivate, (char *)puchPrivate, m_ulPrivateLength);
+        SAFE_STRNCPY((char *)m_uchPrivate, (char *)puchPrivate, m_ulPrivateLength);
         m_uchPrivate[m_ulPrivateLength] = 0;
     }
     else if(puchPrivate != NULL)
@@ -1604,7 +1604,7 @@ unsigned long CSourceDescription::LoadFieldInfo(unsigned char *puchReportBuffer,
     *puchPayloadBuffer++ = (unsigned char)CNAME_ID;
     ulEntryLength = GetCName(uchFieldBuffer);
     *puchPayloadBuffer++ = (unsigned char)ulEntryLength;
-    strncpy((char *)puchPayloadBuffer, (char *)uchFieldBuffer, ulEntryLength);
+    SAFE_STRNCPY((char *)puchPayloadBuffer, (char *)uchFieldBuffer, ulEntryLength);
     puchPayloadBuffer += ulEntryLength;
     m_ulChangeMask = (1 << (CNAME_ID - 1));
 
@@ -1669,7 +1669,7 @@ unsigned long CSourceDescription::LoadFieldInfo(unsigned char *puchReportBuffer,
 
         // Load the field item in payload buffer
         *puchPayloadBuffer++ = (unsigned char)ulEntryLength;
-        strncpy((char *)puchPayloadBuffer,
+        SAFE_STRNCPY((char *)puchPayloadBuffer,
                                        (char *)uchFieldBuffer, ulEntryLength);
         puchPayloadBuffer += ulEntryLength;
 
@@ -1716,7 +1716,7 @@ unsigned long
     *puchPayloadBuffer++ = (unsigned char)CNAME_ID;
     ulEntryLength = GetCName(uchFieldBuffer);
     *puchPayloadBuffer++ = (unsigned char)ulEntryLength;
-    strncpy((char *)puchPayloadBuffer, (char *)uchFieldBuffer, ulEntryLength);
+    SAFE_STRNCPY((char *)puchPayloadBuffer, (char *)uchFieldBuffer, ulEntryLength);
     puchPayloadBuffer += ulEntryLength;
 
     // Let's use the content mask to determine whether we should add
@@ -1779,7 +1779,7 @@ unsigned long
 
         // Load the field item in payload buffer
         *puchPayloadBuffer++ = (unsigned char)ulEntryLength;
-        strncpy((char *)puchPayloadBuffer,
+        SAFE_STRNCPY((char *)puchPayloadBuffer,
                                        (char *)uchFieldBuffer, ulEntryLength);
         puchPayloadBuffer += ulEntryLength;
 

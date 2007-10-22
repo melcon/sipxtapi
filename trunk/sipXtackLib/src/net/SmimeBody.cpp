@@ -1252,7 +1252,7 @@ void SmimeBody::getSubjAltName(char* szSubjAltName,
             SECOidTag oidtag = SECOID_FindOIDTag(ext_oid);
             if (oidtag == SEC_OID_X509_SUBJECT_ALT_NAME) // this is the subject alt name
             {
-                strncpy(szSubjAltName, (const char*)ext_value->data, min(ext_value->len, length));
+                SAFE_STRNCPY(szSubjAltName, (const char*)ext_value->data, min(ext_value->len, length));
                 break;
             }
 
@@ -1550,7 +1550,7 @@ UtlString SmimeBody::createSignedData(CERTCertificate *cert,
     
     char* prPass = (char*)PR_Malloc(1024);
   
-    strncpy(prPass, szCertDbPassword, 256);
+    SAFE_STRNCPY(prPass, szCertDbPassword, 256);
     NSSCMSEncoderContext* encoderContext = 
         NSS_CMSEncoder_Start(cmsg, nssSignedDataToUtlString, &signedData, NULL, NULL, pk11Passwordcallback, 
                             (void*)prPass, NULL, NULL, NULL, NULL);
@@ -1607,7 +1607,7 @@ UtlBoolean SmimeBody::nssSmimeDecrypt(const char* derPkcs12,
     //errorCode = SMIME_DECRYPT_FAILURE_INVALID_PARAMETER;
 
     szDbPassword = (char*)PR_Malloc(256);
-    strncpy(szDbPassword, certDbPassword, 255);
+    SAFE_STRNCPY(szDbPassword, certDbPassword, 255);
     
     SECItem decryptedEnvelope;
     decryptedEnvelope.data = NULL;

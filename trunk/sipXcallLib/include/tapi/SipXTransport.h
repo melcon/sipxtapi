@@ -71,11 +71,11 @@ public:
       pInst = ref.pInst;
       bIsReliable = ref.bIsReliable;
       memset(szTransport, 0, sizeof(szTransport)) ;
-      strncpy(szTransport, ref.szTransport, MAX_TRANSPORT_NAME - 1);
+      SAFE_STRNCPY(szTransport, ref.szTransport, MAX_TRANSPORT_NAME - 1);
       memset(szLocalIp, 0, sizeof(szLocalIp));
-      strncpy(szLocalIp, ref.szLocalIp, sizeof(szLocalIp)-1);
+      SAFE_STRNCPY(szLocalIp, ref.szLocalIp, sizeof(szLocalIp)-1);
       memset(cRoutingId, 0, sizeof(cRoutingId));
-      strncpy(cRoutingId, ref.cRoutingId, sizeof(cRoutingId)-1);
+      SAFE_STRNCPY(cRoutingId, ref.cRoutingId, sizeof(cRoutingId)-1);
       iLocalPort = ref.iLocalPort;
       pFnWriteProc = ref.pFnWriteProc;
       pUserData = ref.pUserData;        

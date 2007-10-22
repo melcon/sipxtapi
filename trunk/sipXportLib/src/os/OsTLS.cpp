@@ -282,7 +282,7 @@ char* OsTLS::PasswordCallback(PK11SlotInfo *slot, PRBool retry, void *arg)
     }
     char* szPass = (char*)PR_Malloc(strlen((char*)arg) + 1);
     memset(szPass, 0, strlen((char*)arg)+1);
-    strncpy(szPass, (char*)arg, strlen((char*)arg));
+    SAFE_STRNCPY(szPass, (char*)arg, strlen((char*)arg));
     return (char*)szPass;
 }
 

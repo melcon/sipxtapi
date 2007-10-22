@@ -492,8 +492,7 @@ void server_insert(server_t*& list,
    }
 
    // Copy the element into the list.
-   list[list_length_used].host =
-      host != NULL ? strdup(host) : NULL;
+   list[list_length_used].host = SAFE_STRDUP(host);
    list[list_length_used].type = type;
    list[list_length_used].sin = sin;
    list[list_length_used].priority = priority;
@@ -750,7 +749,7 @@ void SipSrvLookup::res_query_and_parse(const char* in_name,
          }
          // Copy the canonical name from the CNAME record into 'name', so
          // we can still use it after freeing 'response'.
-         name = strdup(p->string);
+         name = SAFE_STRDUP(p->string);
          // Remember that we are now looking for a name that was not the one
          // that we searched for to produce this response.  Hence, if we don't
          // find any RRs for it, that is not authoritative and we have to do
@@ -903,7 +902,7 @@ server_t::server_t() :
 
 // Copy constructor for server_t
 server_t::server_t(const server_t& rserver_t) :
-   host(rserver_t.host != NULL ? strdup(rserver_t.host) : NULL),
+   host(SAFE_STRDUP(rserver_t.host)),
    type(rserver_t.type),
    sin(rserver_t.sin),
    priority(rserver_t.priority),
@@ -922,7 +921,7 @@ server_t& server_t::operator=(const server_t& rhs)
    }
 
    // Copy the host strign, if present.
-   host = rhs.host != NULL ? strdup(rhs.host) : NULL;
+   host = SAFE_STRDUP(rhs.host);
    // Copy the other fields.
    type = rhs.type;
    sin = rhs.sin;

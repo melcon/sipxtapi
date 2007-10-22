@@ -293,7 +293,7 @@ OsStatus SipUdpServer::createServerSocket(const char* szBoundIp,
         
         getContactAdapterName(adapterName, contact.cIpAddress);
 
-        strncpy(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
+        SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
         contact.eTransportType = TRANSPORT_UDP;
         mSipUserAgent->addContactAddress(contact);
    

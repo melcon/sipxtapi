@@ -298,7 +298,7 @@ UtlBoolean SipXMessageObserver::handleStunOutcome(OsEventMsg* pMsg)
             pExtContact = new SIPX_CONTACT_ADDRESS(externalTransportContact);
             pExtContact->eContactType = CONTACT_NAT_MAPPED;
             pExtContact->id = 0;
-            strcpy(pExtContact->cIpAddress, pStunContact->cIpAddress);
+            SAFE_STRNCPY(pExtContact->cIpAddress, pStunContact->cIpAddress, sizeof(pExtContact->cIpAddress));
             pExtContact->iPort = pStunContact->iPort;
             pInst->pSipUserAgent->addContactAddress(*pExtContact);
             sipxFireConfigEvent(pInst, CONFIG_STUN_SUCCESS, pExtContact);

@@ -208,7 +208,7 @@ OsStatus OsSysLogTask::getLogEntries(  const int maxEntries,
       // Copy data
       if (mpRingBuffer[iIndex] != NULL)
       {
-         entries[i] = strdup(mpRingBuffer[iIndex]) ;
+         entries[i] = SAFE_STRDUP(mpRingBuffer[iIndex]) ;
       }
       else
       {
@@ -666,7 +666,7 @@ OsStatus OsSysLogTask::processSetFile(const char* szFile)
             UtlString line ;
             while (file.readLine(line) == OS_SUCCESS)
             {
-               if (processAddTail(strdup(line.data())) != OS_SUCCESS)
+               if (processAddTail(SAFE_STRDUP(line.data())) != OS_SUCCESS)
                   break ;
             }
          }
@@ -731,7 +731,7 @@ OsStatus OsSysLogTask::processAddSocket(const char* remoteHost)
 
    OsStatus status = OS_SUCCESS;
    UtlBoolean bFoundSpace = FALSE;
-   char* host = strdup(remoteHost);
+   char* host = SAFE_STRDUP(remoteHost);
    int port = PORT_NONE;
 
    // Parse remoteHost into a host and port

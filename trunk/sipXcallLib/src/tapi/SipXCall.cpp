@@ -1190,8 +1190,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
       {
          if (iMaxLength > 0)
          {
-            strncpy(szId, sessionCallId, iMaxLength);
-            szId[iMaxLength - 1] = 0;
+            SAFE_STRNCPY(szId, sessionCallId, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }// no pCallData = call not found
@@ -1220,8 +1219,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
       {
          if (iMaxLength > 0)
          {
-            strncpy(szLineUri, lineUri, iMaxLength);
-            szLineUri[iMaxLength - 1] = 0;
+            SAFE_STRNCPY(szLineUri, lineUri, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1250,8 +1248,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
       {
          if (iMaxLength > 0)
          {
-            strncpy(szRemoteAddress, remoteAddress, iMaxLength);
-            szRemoteAddress[iMaxLength - 1] = 0;
+            SAFE_STRNCPY(szRemoteAddress, remoteAddress, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1279,8 +1276,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
       {
          if (iMaxLength > 0)
          {
-            strncpy(szContactAddress, contactAddress, iMaxLength);
-            szContactAddress[iMaxLength - 1] = 0;
+            SAFE_STRNCPY(szContactAddress, contactAddress, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1601,8 +1597,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
 
          if (iMaxLength)
          {
-            strncpy(szUri, uri.data(), iMaxLength);
-            szUri[iMaxLength - 1] = 0;
+            SAFE_STRNCPY(szUri, uri.data(), iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1649,8 +1644,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
 
          if (iMaxLength)
          {
-            strncpy(szContact, contact.toString().data(), iMaxLength);
-            szContact[iMaxLength - 1] = 0;
+            SAFE_STRNCPY(szContact, contact.toString().data(), iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1694,8 +1688,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
 
          if (iMaxLength)
          {
-            strncpy(szAgent, userAgent.data(), iMaxLength);
-            szAgent[iMaxLength - 1] = 0;
+            SAFE_STRNCPY(szAgent, userAgent.data(), iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }

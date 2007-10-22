@@ -1025,9 +1025,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetSecurityParameters(const SIPX_INST hInst,
 
    if (pInst)
    {
-      strncpy(pInst->dbLocation, szDbLocation, sizeof(pInst->dbLocation));
-      strncpy(pInst->myCertNickname, szMyCertNickname, sizeof(pInst->myCertNickname));
-      strncpy(pInst->dbPassword, szDbPassword, sizeof(pInst->dbPassword));
+      SAFE_STRNCPY(pInst->dbLocation, szDbLocation, sizeof(pInst->dbLocation));
+      SAFE_STRNCPY(pInst->myCertNickname, szMyCertNickname, sizeof(pInst->myCertNickname));
+      SAFE_STRNCPY(pInst->dbPassword, szDbPassword, sizeof(pInst->dbPassword));
       rc = SIPX_RESULT_SUCCESS;
    }
 
@@ -1130,7 +1130,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst,
 
    if (pInst)
    {
-      strncpy(pInst->szAcceptLanguage, szLanguage, sizeof(pInst->szAcceptLanguage));
+      SAFE_STRNCPY(pInst->szAcceptLanguage, szLanguage, sizeof(pInst->szAcceptLanguage));
 
       if (pInst->pSipUserAgent)
       {
@@ -1157,7 +1157,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLocationHeader(const SIPX_INST hInst,
 
    if (pInst && szHeader)
    {
-      strncpy(pInst->szLocationHeader, szHeader, sizeof(pInst->szLocationHeader));
+      SAFE_STRNCPY(pInst->szLocationHeader, szHeader, sizeof(pInst->szLocationHeader));
    }
 
    return rc;
@@ -1236,13 +1236,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportAdd(SIPX_INST const hInst,
       {
          pData->pInst = pInst;
          pData->bIsReliable = bIsReliable;
-         strncpy(pData->szTransport, szTransport, sizeof(pData->szTransport) - 1);
-         strncpy(pData->szLocalIp, szLocalIp, sizeof(pData->szLocalIp) - 1);
+         SAFE_STRNCPY(pData->szTransport, szTransport, sizeof(pData->szTransport));
+         SAFE_STRNCPY(pData->szLocalIp, szLocalIp, sizeof(pData->szLocalIp));
          pData->iLocalPort = iLocalPort;
          pData->pFnWriteProc = writeProc;
          pData->pUserData = pUserData;
          pData->hTransport = *hTransport;
-         strncpy(pData->cRoutingId, szLocalRoutingId, sizeof(pData->cRoutingId) - 1);
+         SAFE_STRNCPY(pData->cRoutingId, szLocalRoutingId, sizeof(pData->cRoutingId));
 
          pData->pInst->pSipUserAgent->addExternalTransport(pData->szTransport, pData);
 
@@ -1776,7 +1776,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
          if (pInterface->getCodecNameByType(pInst->audioCodecSetting.sdpCodecArray[index]->getCodecType(),
             codecName))
          {
-            strncpy(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN - 1);
+            SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
             pCodec->iBandWidth = 
                (SIPX_AUDIO_BANDWIDTH_ID)pInst->audioCodecSetting.sdpCodecArray[index]->getBWCost();
             pCodec->iPayloadType = pInst->audioCodecSetting.sdpCodecArray[index]->getCodecPayloadFormat();
@@ -1926,7 +1926,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
                      bytesToCopy = pDevice->length();
                   }
 
-                  strncpy(pTemp, pDevice->data(), bytesToCopy);
+                  SAFE_STRNCPY(pTemp, pDevice->data(), bytesToCopy);
 
                   index++;
                   pTemp += nDeviceStringLength;
@@ -1984,7 +1984,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
                bytesToCopy = captureDevice.length();
             }
 
-            strncpy(szCaptureDevice, captureDevice.data(), bytesToCopy);
+            SAFE_STRNCPY(szCaptureDevice, captureDevice.data(), bytesToCopy);
 
             rc = SIPX_RESULT_SUCCESS;
          }
@@ -2094,7 +2094,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst,
          if (pInterface->getCodecNameByType(pInst->videoCodecSetting.sdpCodecArray[index]->getCodecType(),
             codecName))
          {
-            strncpy(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN - 1);
+            SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
             pCodec->iBandWidth = 
                (SIPX_VIDEO_BANDWIDTH_ID)pInst->videoCodecSetting.sdpCodecArray[index]->getBWCost();
             pCodec->iPayloadType = pInst->videoCodecSetting.sdpCodecArray[index]->getCodecPayloadFormat();
@@ -2617,7 +2617,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalFeedbackAddress(const SIPX_INST hInst
       if (OsNatAgentTask::getInstance()->findContactAddress(
                szRemoteIp, iRemotePort, &contactAddress, &contactPort, iTimeoutMs))
       {
-         strncpy(szContactIp, contactAddress, nContactIpLength);
+         SAFE_STRNCPY(szContactIp, contactAddress, nContactIpLength);
          *iContactPort = contactPort;
          rc = SIPX_RESULT_SUCCESS;
       }

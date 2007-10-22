@@ -536,9 +536,9 @@ void OsNatConnectionSocket::markStunSuccess(bool bAddressChanged)
 
         SIPX_CONTACT_ADDRESS* pContact = new SIPX_CONTACT_ADDRESS();
         
-        strncpy(pContact->cIpAddress, mStunState.mappedAddress, sizeof(pContact->cIpAddress));
+        SAFE_STRNCPY(pContact->cIpAddress, mStunState.mappedAddress, sizeof(pContact->cIpAddress));
         pContact->iPort = mStunState.mappedPort;
-        strncpy(pContact->cInterface, adapterName.data(), sizeof(pContact->cInterface));
+        SAFE_STRNCPY(pContact->cInterface, adapterName.data(), sizeof(pContact->cInterface));
         pContact->eContactType = CONTACT_NAT_MAPPED;
         pContact->eTransportType = TRANSPORT_UDP ;
                 

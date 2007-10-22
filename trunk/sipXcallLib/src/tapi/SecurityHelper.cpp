@@ -21,6 +21,7 @@
 #endif /* _WIN32 */
 
 // APPLICATION INCLUDES
+#include <os/OsDefs.h>
 #include <utl/UtlRandom.h>
 #include "tapi/SecurityHelper.h"
 #include "tapi/sipXtapi.h"
@@ -66,19 +67,19 @@ void SecurityHelper::generateSrtpKey(SIPX_SECURITY_ATTRIBUTES& securityAttrib)
 
 void SecurityHelper::setDbLocation(SIPX_SECURITY_ATTRIBUTES& securityAttrib, const char* dbLocation)
 {
-   strncpy(securityAttrib.dbLocation, dbLocation, sizeof(securityAttrib.dbLocation));
+   SAFE_STRNCPY(securityAttrib.dbLocation, dbLocation, sizeof(securityAttrib.dbLocation));
    return;
 }
 
 void SecurityHelper::setDbPassword(SIPX_SECURITY_ATTRIBUTES& securityAttrib, const char* dbPassword)
 {
-   strncpy(securityAttrib.szCertDbPassword, dbPassword, sizeof(securityAttrib.szCertDbPassword));
+   SAFE_STRNCPY(securityAttrib.szCertDbPassword, dbPassword, sizeof(securityAttrib.szCertDbPassword));
    return;
 }
 
 void SecurityHelper::setMyCertNickname(SIPX_SECURITY_ATTRIBUTES& securityAttrib, const char* szMyCertNickname)
 {
-   strncpy(securityAttrib.szMyCertNickname, szMyCertNickname, sizeof(securityAttrib.szMyCertNickname));
+   SAFE_STRNCPY(securityAttrib.szMyCertNickname, szMyCertNickname, sizeof(securityAttrib.szMyCertNickname));
    return;
 }
 

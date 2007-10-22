@@ -646,10 +646,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
    {
       if (szBuffer)
       {
-         strncpy(szBuffer, pData->lineURI.toString(), nBuffer);
-
-         // Make sure it is null terminated
-         szBuffer[nBuffer - 1] = 0;
+         SAFE_STRNCPY(szBuffer, pData->lineURI.toString(), nBuffer);
 
          *nActual = strlen(szBuffer) + 1;
          sr = SIPX_RESULT_SUCCESS;

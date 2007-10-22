@@ -54,6 +54,13 @@
 #define SAFE_STRCHR(X, Y) (((X) == NULL) ? NULL : strchr((X), (Y)))
 #endif
 
+#ifdef _WIN32
+#define SAFE_STRNCPY(X, Y, Z) if ((X)) {strncpy_s((X), (Z), (Y), _TRUNCATE); }
+#else
+#define SAFE_STRNCPY(X, Y, Z) if ((X)) {strncpy((X), (Y), (Z)); if ((Z) > 0) (X)[(Z) - 1] = 0; }
+                                
+#endif
+
 
 #ifdef _WIN32
 #define SAFE_STRDUP(X) (((X) == NULL) ? NULL : _strdup((X)))

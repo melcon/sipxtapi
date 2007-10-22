@@ -22,11 +22,6 @@
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 // MACROS
-#if defined(WIN32) && !defined(WINCE)
-#  define strcasecmp stricmp
-#  define strncasecmp strnicmp
-#endif
-
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -616,10 +611,10 @@ void SipContactDb::replicateForTransport(const SIPX_TRANSPORT_TYPE originalTrans
             newContact->eTransportType = newTransport;
             memset(newContact->cCustomTransportName, 0, sizeof(newContact->cCustomTransportName)) ;
             if (szTransport)
-                strncpy(newContact->cCustomTransportName, szTransport, sizeof(newContact->cCustomTransportName));                
+                SAFE_STRNCPY(newContact->cCustomTransportName, szTransport, sizeof(newContact->cCustomTransportName));                
             memset(newContact->cCustomRouteID, 0, sizeof(newContact->cCustomRouteID)) ;
             if (szRoutingID)
-                strncpy(newContact->cCustomRouteID, szRoutingID, sizeof(newContact->cCustomRouteID));
+                SAFE_STRNCPY(newContact->cCustomRouteID, szRoutingID, sizeof(newContact->cCustomRouteID));
 
             addContact(*newContact);
         }

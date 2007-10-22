@@ -124,7 +124,7 @@ void OsTLSClientConnectionSocket::NSSInitSocket(int socket, long timeoutInSecs, 
             if (mpCert)
             {
                 szPwd = (unsigned char*) PR_Malloc(mCertPassword.length()+ 1);
-                strncpy((char*)szPwd, mCertPassword.data(), mCertPassword.length()+1);
+                SAFE_STRNCPY((char*)szPwd, mCertPassword.data(), mCertPassword.length()+1);
                 mpPrivKey = PK11_FindKeyByAnyCert(mpCert, (unsigned char*) szPwd);
                 if (mpPrivKey == NULL)
                 {
