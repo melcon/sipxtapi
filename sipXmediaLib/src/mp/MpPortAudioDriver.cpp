@@ -6,8 +6,10 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <os/OsLock.h>
 #include "mp/MpPortAudioDriver.h"
+#include <portaudio.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -72,6 +74,13 @@ MpPortAudioDriver::~MpPortAudioDriver(void)
 
    // decrease counter in thread safe manner
    ms_instanceCounter--;
+
+   PaError err = Pa_Terminate();
+   if (err != paNoError)
+   {
+      UtlString error(Pa_GetErrorText(err));
+      OsSysLog::add(FAC_AUDIO, PRI_ERR, "Pa_Terminate failed, error: %s", error.data());
+   }
 }
 
 MpPortAudioDriver* MpPortAudioDriver::createInstance()
@@ -80,14 +89,23 @@ MpPortAudioDriver* MpPortAudioDriver::createInstance()
 
    if (ms_instanceCounter == 0)
    {
-      ms_instanceCounter++;
-      return new MpPortAudioDriver();
+      // we init portaudio here to avoid throwing exception in constructor
+      PaError err = Pa_Initialize();
+
+      if (err == paNoError)
+      {
+         ms_instanceCounter++;
+         return new MpPortAudioDriver();
+      }
+      else
+      {
+         UtlString error(Pa_GetErrorText(err));
+         OsSysLog::add(FAC_AUDIO, PRI_ERR, "Pa_Initialize failed, error: %s", error.data());
+      }
    }
-   else
-   {
-      // only 1 instance of this driver is allowed
-      return NULL;
-   }   
+
+   // only 1 instance of this driver is allowed, or error occurred
+   return NULL;
 }
 
 /* ============================ FUNCTIONS ================================= */

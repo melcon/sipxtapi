@@ -58,17 +58,18 @@ public:
    virtual void pullFrame();
 
    /**
-   * Returns name of driver.
+   * Returns name of driver. Threadsafe.
    */
    virtual const UtlString& getDriverName() const;
 
    /**
-   * Returns driver version string.
+   * Returns driver version string. Threadsafe.
    */
    virtual const UtlString& getDriverVersion() const;
 
    /**
    * Deletes audio driver. Use instead of deleting it directly.
+   * Not threadsafe.
    */
    virtual void release();
 
@@ -103,6 +104,7 @@ private:
 
    /**
     * Creates instance of this class. To be used only by MpAudioDriverFactory.
+    * Threadsafe.
     *
     * @returns instance if it can be created or NULL if no more instances are allowed.
     */
