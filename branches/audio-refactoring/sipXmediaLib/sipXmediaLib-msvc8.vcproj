@@ -1438,6 +1438,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpAudioDriverBase.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpAudioDriverFactory.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpAudioFileDecompress.cpp"
 					>
 				</File>
@@ -1578,6 +1586,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpInputAudioStream.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpInputDeviceDriver.cpp"
 					>
 				</File>
@@ -1643,6 +1655,18 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpPlayerEvent.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpPortAudioDriver.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpPortAudioInputStream.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpPortAudioOutputStream.cpp"
 					>
 				</File>
 				<File
@@ -2003,6 +2027,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpAudioDriverBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAudioDriverFactory.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpAudioFileDecompress.h"
 					>
 				</File>
@@ -2163,6 +2195,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpInputAudioStream.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpInputDeviceDriver.h"
 					>
 				</File>
@@ -2219,6 +2255,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpOutputAudioStream.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpOutputDeviceDriver.h"
 					>
 				</File>
@@ -2236,6 +2276,18 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpPlayerListener.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpPortAudioDriver.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpPortAudioInputStream.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpPortAudioOutputStream.h"
 					>
 				</File>
 				<File
