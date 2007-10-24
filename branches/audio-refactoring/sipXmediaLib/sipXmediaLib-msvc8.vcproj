@@ -54,7 +54,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2beta2\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;C:\work\IPP\5.1\ia32\include;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\codec\include&quot;;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\include&quot;;..\sipXportLib\contrib\pcre\include"
+				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2beta2\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;C:\work\IPP\5.1\ia32\include;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\codec\include&quot;;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\include&quot;;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include"
 				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048"
 				StringPooling="true"
 				BasicRuntimeChecks="3"
