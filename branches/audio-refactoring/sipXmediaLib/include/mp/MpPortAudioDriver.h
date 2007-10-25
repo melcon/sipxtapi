@@ -13,6 +13,7 @@
 #include <utl/UtlString.h>
 #include "mp/MpAudioDriverBase.h"
 #include "mp/MpHostAudioApiInfo.h"
+#include "mp/MpAudioDeviceInfo.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -140,6 +141,16 @@ public:
    * @returns OS_SUCCESS if successful
    */
    virtual OsStatus getDefaultOutputDevice(MpAudioDeviceIndex& deviceIndex) const;
+
+   /**
+    * Returns information about given audio device.
+    *
+    * @param deviceIndex Index of audio device.
+    * @param deviceInfo Information about audio device.
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus getDeviceInfo(MpAudioDeviceIndex deviceIndex,
+                                  MpAudioDeviceInfo& deviceInfo) const;
 
    /**
    * Deletes audio driver. Use instead of deleting it directly.

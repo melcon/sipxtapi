@@ -187,6 +187,30 @@ OsStatus MpPortAudioDriver::getDefaultOutputDevice(MpAudioDeviceIndex& deviceInd
    return status;
 }
 
+OsStatus MpPortAudioDriver::getDeviceInfo(MpAudioDeviceIndex deviceIndex, MpAudioDeviceInfo& deviceInfo) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   const PaDeviceInfo* paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
+
+   if (paDeviceInfo)
+   {
+      status = OS_SUCCESS;
+      deviceInfo.setName(paDeviceInfo->name);
+      deviceInfo.setMaxOutputChannels(paDeviceInfo->maxOutputChannels);
+      deviceInfo.setMaxInputChannels(paDeviceInfo->maxInputChannels);
+      deviceInfo.setHostApi(paDeviceInfo->hostApi);
+      deviceInfo.setDefaultSampleRate(paDeviceInfo->defaultSampleRate);
+      deviceInfo.setDefaultLowOutputLatency(paDeviceInfo->defaultLowOutputLatency);
+      deviceInfo.setDefaultLowInputLatency(paDeviceInfo->defaultLowInputLatency);
+      deviceInfo.setDefaultHighOutputLatency(paDeviceInfo->defaultHighOutputLatency);
+      deviceInfo.setDefaultHighInputLatency(paDeviceInfo->defaultHighInputLatency);
+   }
+
+   return status;
+}
+
 void MpPortAudioDriver::release()
 {
    delete this;
@@ -243,6 +267,7 @@ MpPortAudioDriver* MpPortAudioDriver::createInstance()
    // only 1 instance of this driver is allowed, or error occurred
    return NULL;
 }
+
 
 
 

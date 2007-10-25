@@ -18,6 +18,8 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
+class MpAudioDeviceInfo;
+
 // STRUCTS
 // TYPEDEFS
 // MACROS
@@ -134,6 +136,16 @@ public:
    * @returns OS_SUCCESS if successful
    */
    virtual OsStatus getDefaultOutputDevice(MpAudioDeviceIndex& deviceIndex) const = 0;
+
+   /**
+   * Returns information about given audio device.
+   *
+   * @param deviceIndex Index of audio device.
+   * @param deviceInfo Information about audio device.
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus getDeviceInfo(MpAudioDeviceIndex deviceIndex,
+                                  MpAudioDeviceInfo& deviceInfo) const = 0;
 
    /**
     * Deletes audio driver. Use instead of deleting it directly. Implemented

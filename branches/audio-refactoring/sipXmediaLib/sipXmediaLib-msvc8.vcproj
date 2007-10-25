@@ -1438,6 +1438,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpAudioDeviceInfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpAudioDriverBase.cpp"
 					>
 				</File>
@@ -1463,6 +1467,14 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpAudioResource.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpAudioStreamInfo.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpAudioStreamParameters.cpp"
 					>
 				</File>
 				<File
@@ -2031,7 +2043,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpAudioDeviceInfo.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpAudioDriverBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAudioDriverDefs.h"
 					>
 				</File>
 				<File
@@ -2060,6 +2080,14 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpAudioResourceConstructor.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAudioStreamInfo.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAudioStreamParameters.h"
 					>
 				</File>
 				<File
