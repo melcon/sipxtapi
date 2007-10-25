@@ -9,6 +9,7 @@
 #include <os/OsSysLog.h>
 #include <os/OsLock.h>
 #include "mp/MpPortAudioDriver.h"
+#include "mp/MpAudioStreamParameters.h"
 #include <portaudio.h>
 
 // DEFINES
@@ -211,6 +212,51 @@ OsStatus MpPortAudioDriver::getDeviceInfo(MpAudioDeviceIndex deviceIndex, MpAudi
    return status;
 }
 
+OsStatus MpPortAudioDriver::isFormatSupported(const MpAudioStreamParameters* inputParameters,
+                                              const MpAudioStreamParameters* outputParameters,
+                                              double sampleRate) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaStreamParameters *paInputParameters = NULL;
+   PaStreamParameters *paOutputParameters = NULL;
+
+   if (inputParameters)
+   {
+      paInputParameters = new PaStreamParameters();
+      paInputParameters->channelCount = inputParameters->getChannelCount();
+      paInputParameters->device = inputParameters->getDeviceIndex();
+      paInputParameters->hostApiSpecificStreamInfo = NULL;
+      paInputParameters->sampleFormat = inputParameters->getSampleFormat();
+      paInputParameters->suggestedLatency = inputParameters->getSuggestedLatency();
+   }
+
+   if (outputParameters)
+   {
+      paOutputParameters = new PaStreamParameters();
+      paOutputParameters->channelCount = outputParameters->getChannelCount();
+      paOutputParameters->device = outputParameters->getDeviceIndex();
+      paOutputParameters->hostApiSpecificStreamInfo = NULL;
+      paOutputParameters->sampleFormat = outputParameters->getSampleFormat();
+      paOutputParameters->suggestedLatency = outputParameters->getSuggestedLatency();
+   }
+   
+   PaError paError = Pa_IsFormatSupported(paInputParameters,
+                                          paOutputParameters,
+                                          sampleRate);
+
+   if (paError == paFormatIsSupported)
+   {
+      status = OS_SUCCESS;
+   }
+
+   delete paInputParameters;
+   delete paOutputParameters;
+   
+   return status;
+}
+
 void MpPortAudioDriver::release()
 {
    delete this;
@@ -267,8 +313,6 @@ MpPortAudioDriver* MpPortAudioDriver::createInstance()
    // only 1 instance of this driver is allowed, or error occurred
    return NULL;
 }
-
-
 
 
 /* ============================ FUNCTIONS ================================= */
