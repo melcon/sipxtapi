@@ -10,6 +10,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include "mp/MpAudioDriverDefs.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -19,25 +20,24 @@
 // STRUCTS
 // TYPEDEFS
 
-typedef int MpAudioDeviceIndex;
 typedef int MpHostAudioApiIndex;
 
 typedef enum MpHostAudioApiTypeId
 {
-   MP_INDEVELOPMENT = 0,
-   MP_DIRECTSOUND = 1,
-   MP_MME = 2,
-   MP_ASIO = 3,
-   MP_SOUNDMANAGER = 4,
-   MP_COREAUDIO = 5,
-   MP_OSS = 7,
-   MP_ALSA = 8,
-   MP_AL = 9,
-   MP_BEOS = 10,
-   MP_WDMKS = 11,
-   MP_JACK = 12,
-   MP_WASAPI = 13,
-   MP_AUDIOSCIENCEHPI = 14
+   MP_AUDIOAPI_INDEVELOPMENT = 0,
+   MP_AUDIOAPI_DIRECTSOUND = 1,
+   MP_AUDIOAPI_MME = 2,
+   MP_AUDIOAPI_ASIO = 3,
+   MP_AUDIOAPI_SOUNDMANAGER = 4,
+   MP_AUDIOAPI_COREAUDIO = 5,
+   MP_AUDIOAPI_OSS = 7,
+   MP_AUDIOAPI_ALSA = 8,
+   MP_AUDIOAPI_AL = 9,
+   MP_AUDIOAPI_BEOS = 10,
+   MP_AUDIOAPI_WDMKS = 11,
+   MP_AUDIOAPI_JACK = 12,
+   MP_AUDIOAPI_WASAPI = 13,
+   MP_AUDIOAPI_AUDIOSCIENCEHPI = 14
 } MpHostAudioApiTypeId;
 
 // MACROS
@@ -54,15 +54,26 @@ public:
    /* ============================ CREATORS ================================== */
    ///@name Creators
    //@{
-   /**
-   * Constructor.
-   */
+
+   /// Constructor.
    MpHostAudioApiInfo();
 
-   /**
-   * Destructor.
-   */
+   /// Constructor.
+   MpHostAudioApiInfo(MpHostAudioApiTypeId typeId,
+                      const UtlString& name,
+                      int deviceCount,
+                      MpAudioDeviceIndex defaultInputDevice,
+                      MpAudioDeviceIndex defaultOutputDevice);
+
+   /// Destructor.
    virtual ~MpHostAudioApiInfo(void);
+
+   /// Copy constructor
+   MpHostAudioApiInfo(const MpHostAudioApiInfo& rMpHostAudioApiInfo);
+
+   /// Assignment operator
+   MpHostAudioApiInfo& operator=(const MpHostAudioApiInfo& rhs);
+
    //@}
 
    /* ============================ MANIPULATORS ============================== */
@@ -74,8 +85,8 @@ public:
    ///@name Accessors
    //@{
 
-   MpHostAudioApiTypeId getTypeId() const { return m_TypeId; }
-   void setTypeId(MpHostAudioApiTypeId val) { m_TypeId = val; }
+   MpHostAudioApiTypeId getTypeId() const { return m_typeId; }
+   void setTypeId(MpHostAudioApiTypeId val) { m_typeId = val; }
 
    UtlString getName() const { return m_name; }
    void setName(const UtlString& val) { m_name = val; }
@@ -101,7 +112,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   MpHostAudioApiTypeId m_TypeId; ///< unique identifier of host API
+   MpHostAudioApiTypeId m_typeId; ///< unique identifier of host API
    UtlString m_name; ///< textual description of host api
    int m_deviceCount; ///< number of devices that are available to this host API
    MpAudioDeviceIndex m_defaultInputDevice; ///< index of default input device
