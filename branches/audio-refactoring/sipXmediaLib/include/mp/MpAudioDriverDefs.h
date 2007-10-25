@@ -32,6 +32,7 @@
 
 typedef unsigned long MpAudioDriverSampleFormat;
 typedef int MpAudioDeviceIndex;
+typedef void* MpAudioStreamId;
 
 // MACROS
 // GLOBAL VARIABLES
