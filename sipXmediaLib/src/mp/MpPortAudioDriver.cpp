@@ -17,7 +17,7 @@
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 unsigned int MpPortAudioDriver::ms_instanceCounter = 0;
-OsMutex MpPortAudioDriver::ms_counterMutex(OsMutex::Q_FIFO);
+OsMutex MpPortAudioDriver::ms_driverMutex(OsMutex::Q_FIFO);
 UtlString MpPortAudioDriver::ms_driverName("Portaudio");
 UtlString MpPortAudioDriver::ms_driverVersion("V19");
 
@@ -51,6 +51,142 @@ const UtlString& MpPortAudioDriver::getDriverVersion() const
    return ms_driverVersion;
 }
 
+OsStatus MpPortAudioDriver::getHostApiCount(int& count) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaHostApiIndex paCount = Pa_GetHostApiCount();
+
+   if (paCount >= 0)
+   {
+      status = OS_SUCCESS;
+      count = paCount;
+   }
+   
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getDefaultHostApi(MpHostAudioApiIndex& apiIndex) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaHostApiIndex paDefault = Pa_GetDefaultHostApi();
+
+   if (apiIndex >= 0)
+   {
+      status = OS_SUCCESS;
+      apiIndex = paDefault;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getHostApiInfo(MpHostAudioApiIndex hostApiIndex,
+                                           MpHostAudioApiInfo& apiInfo) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   const PaHostApiInfo* paApiInfo = Pa_GetHostApiInfo(hostApiIndex);
+
+   if (paApiInfo)
+   {
+      status = OS_SUCCESS;
+      apiInfo.setTypeId((MpHostAudioApiTypeId)paApiInfo->type);
+      apiInfo.setName(paApiInfo->name);
+      apiInfo.setDeviceCount(paApiInfo->deviceCount);
+      apiInfo.setDefaultInputDevice(paApiInfo->defaultInputDevice);
+      apiInfo.setDefaultOutputDevice(paApiInfo->defaultOutputDevice);
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::hostApiTypeIdToHostApiIndex(MpHostAudioApiTypeId hostApiTypeId,
+                                                        MpHostAudioApiIndex& hostApiIndex) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaHostApiIndex paIndex = Pa_HostApiTypeIdToHostApiIndex((PaHostApiTypeId)hostApiTypeId);
+
+   if (paIndex >= 0)
+   {
+      status = OS_SUCCESS;
+      hostApiIndex = paIndex;
+   }
+   
+   return status;
+}
+
+OsStatus MpPortAudioDriver::hostApiDeviceIndexToDeviceIndex(MpHostAudioApiIndex hostApiIndex,
+                                                            int hostApiDeviceIndex,
+                                                            MpAudioDeviceIndex& deviceIndex) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   MpAudioDeviceIndex paDeviceIndex = Pa_HostApiDeviceIndexToDeviceIndex(hostApiIndex, hostApiDeviceIndex);
+
+   if (paDeviceIndex >= 0)
+   {
+      status = OS_SUCCESS;
+      deviceIndex = paDeviceIndex;
+   }
+   
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getDeviceCount(MpAudioDeviceIndex& deviceCount) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   MpAudioDeviceIndex paCount = Pa_GetDeviceCount();
+
+   if (paCount >= 0)
+   {
+      status = OS_SUCCESS;
+      deviceCount = paCount;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getDefaultInputDevice(MpAudioDeviceIndex& deviceIndex) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   MpAudioDeviceIndex paDeviceIndex = Pa_GetDefaultInputDevice();
+
+   if (paDeviceIndex >= 0)
+   {
+      status = OS_SUCCESS;
+      deviceIndex = paDeviceIndex;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getDefaultOutputDevice(MpAudioDeviceIndex& deviceIndex) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   MpAudioDeviceIndex paDeviceIndex = Pa_GetDefaultOutputDevice();
+
+   if (paDeviceIndex >= 0)
+   {
+      status = OS_SUCCESS;
+      deviceIndex = paDeviceIndex;
+   }
+
+   return status;
+}
+
 void MpPortAudioDriver::release()
 {
    delete this;
@@ -70,7 +206,7 @@ MpPortAudioDriver::MpPortAudioDriver() : m_memberMutex(OsMutex::Q_FIFO)
 
 MpPortAudioDriver::~MpPortAudioDriver(void)
 {
-   OsLock lock(ms_counterMutex);
+   OsLock lock(ms_driverMutex);
 
    // decrease counter in thread safe manner
    ms_instanceCounter--;
@@ -85,7 +221,7 @@ MpPortAudioDriver::~MpPortAudioDriver(void)
 
 MpPortAudioDriver* MpPortAudioDriver::createInstance()
 {
-   OsLock lock(ms_counterMutex);
+   OsLock lock(ms_driverMutex);
 
    if (ms_instanceCounter == 0)
    {
@@ -107,6 +243,8 @@ MpPortAudioDriver* MpPortAudioDriver::createInstance()
    // only 1 instance of this driver is allowed, or error occurred
    return NULL;
 }
+
+
 
 /* ============================ FUNCTIONS ================================= */
 

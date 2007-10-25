@@ -9,7 +9,9 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsStatus.h>
 #include <utl/UtlString.h>
+#include "mp/MpHostAudioApiInfo.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -59,6 +61,79 @@ public:
     * Returns driver version string.
     */
    virtual const UtlString& getDriverVersion() const = 0;
+
+   /**
+    * Returns number of host apis available for this driver.
+    * Some drivers will have only 1 host API. Portaudio is an
+    * exception.
+    *
+    * @param count Number of host apis if successful
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus getHostApiCount(int& count) const = 0;
+
+   /**
+   * Returns index of default driver host API.
+   *
+   * @param apiIndex Index of default host api if successful
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus getDefaultHostApi(MpHostAudioApiIndex& apiIndex) const = 0;
+
+   /**
+   * Gets information about given host API.
+   *
+   * @param hostApiIndex Index of host api to get information for.
+   * @param apiInfo
+   */
+   virtual OsStatus getHostApiInfo(MpHostAudioApiIndex hostApiIndex,
+                                   MpHostAudioApiInfo& apiInfo) const = 0;
+
+   /**
+   * Converts host type id to host api index. 
+   *
+   * @param hostApiTypeId Id of host api belonging to MpHostAudioApiTypeId enum
+   * @param hostApiIndex Index of host api
+   */
+   virtual OsStatus hostApiTypeIdToHostApiIndex(MpHostAudioApiTypeId hostApiTypeId,
+                                                MpHostAudioApiIndex& hostApiIndex) const = 0;
+
+
+   /**
+   * Converts host api device index to driver device index. These indexes can differ.
+   *
+   * @param hostApiIndex Index of host api
+   * @param hostApiDeviceIndex Index of device for certain host api
+   * @param deviceIndex Global index of audio device
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus hostApiDeviceIndexToDeviceIndex(MpHostAudioApiIndex hostApiIndex,
+                                                    int hostApiDeviceIndex,
+                                                    MpAudioDeviceIndex& deviceIndex) const = 0;
+
+   /**
+   * Returns the number of available devices.
+   * 
+   * @param deviceCount Number of available devices
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus getDeviceCount(MpAudioDeviceIndex& deviceCount) const = 0;
+
+   /**
+   * Returns index of default input device
+   *
+   * @param deviceIndex Index of default input device
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus getDefaultInputDevice(MpAudioDeviceIndex& deviceIndex) const = 0;
+
+   /**
+   * Returns index of default output device
+   *
+   * @param deviceIndex Index of default output device
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus getDefaultOutputDevice(MpAudioDeviceIndex& deviceIndex) const = 0;
 
    /**
     * Deletes audio driver. Use instead of deleting it directly. Implemented

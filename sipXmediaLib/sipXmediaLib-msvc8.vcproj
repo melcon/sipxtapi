@@ -1582,6 +1582,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpHostAudioApiInfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpidWinMM.cpp"
 					>
 				</File>
@@ -2188,6 +2192,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpFromFileStartResourceMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpHostAudioApiInfo.h"
 					>
 				</File>
 				<File
