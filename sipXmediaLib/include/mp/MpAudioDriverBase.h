@@ -19,6 +19,7 @@
 // CONSTANTS
 // FORWARD DECLARATIONS
 class MpAudioDeviceInfo;
+class MpAudioStreamParameters;
 
 // STRUCTS
 // TYPEDEFS
@@ -146,6 +147,21 @@ public:
    */
    virtual OsStatus getDeviceInfo(MpAudioDeviceIndex deviceIndex,
                                   MpAudioDeviceInfo& deviceInfo) const = 0;
+
+
+   /**
+   * Inquire whether given format is supported.
+   *
+   * @param inputParameters MpAudioStreamParameters instance with required parameters.
+   *                        NULL if audio stream should be output only
+   * @param outputParameters MpAudioStreamParameters instance with required parameters.
+   *                         NULL if audio stream should be input only
+   * @param sampleRate Requested sample rate
+   * @return OS_SUCCESS if the stream can be created
+   */
+   virtual OsStatus isFormatSupported(const MpAudioStreamParameters* inputParameters,
+                                      const MpAudioStreamParameters* outputParameters,
+                                      double sampleRate) const = 0;
 
    /**
     * Deletes audio driver. Use instead of deleting it directly. Implemented

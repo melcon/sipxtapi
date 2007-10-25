@@ -167,6 +167,21 @@ public:
    /* ============================ INQUIRY =================================== */
    ///@name Inquiry
    //@{
+
+   /**
+    * Inquire whether given format is supported.
+    *
+    * @param inputParameters MpAudioStreamParameters instance with required parameters.
+    *                        NULL if audio stream should be output only
+    * @param outputParameters MpAudioStreamParameters instance with required parameters.
+    *                         NULL if audio stream should be input only
+    * @param sampleRate Requested sample rate
+    * @return OS_SUCCESS if the stream can be created
+    */
+   virtual OsStatus isFormatSupported(const MpAudioStreamParameters* inputParameters,
+                                      const MpAudioStreamParameters* outputParameters,
+                                      double sampleRate) const;
+
    //@}
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
