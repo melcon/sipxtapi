@@ -9,6 +9,7 @@
 #include <os/OsSysLog.h>
 #include <os/OsLock.h>
 #include "mp/MpPortAudioDriver.h"
+#include "mp/MpAudioStreamInfo.h"
 #include "mp/MpAudioStreamParameters.h"
 #include <portaudio.h>
 
@@ -31,16 +32,6 @@ UtlString MpPortAudioDriver::ms_driverVersion("V19");
 /* ============================ CREATORS ================================== */
 
 /* ============================ MANIPULATORS ============================== */
-
-void MpPortAudioDriver::pushFrame()
-{
-
-}
-
-void MpPortAudioDriver::pullFrame()
-{
-
-}
 
 const UtlString& MpPortAudioDriver::getDriverName() const
 {
@@ -254,6 +245,360 @@ OsStatus MpPortAudioDriver::isFormatSupported(const MpAudioStreamParameters* inp
    delete paInputParameters;
    delete paOutputParameters;
    
+   return status;
+}
+
+OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
+                                       const MpAudioStreamParameters *inputParameters,
+                                       const MpAudioStreamParameters *outputParameters,
+                                       double sampleRate,
+                                       unsigned long framesPerBuffer,
+                                       MpAudioStreamFlags streamFlags,
+                                       UtlBoolean synchronous)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaStreamParameters *paInputParameters = NULL;
+   PaStreamParameters *paOutputParameters = NULL;
+
+   if (inputParameters)
+   {
+      paInputParameters = new PaStreamParameters();
+      paInputParameters->channelCount = inputParameters->getChannelCount();
+      paInputParameters->device = inputParameters->getDeviceIndex();
+      paInputParameters->hostApiSpecificStreamInfo = NULL;
+      paInputParameters->sampleFormat = inputParameters->getSampleFormat();
+      paInputParameters->suggestedLatency = inputParameters->getSuggestedLatency();
+   }
+
+   if (outputParameters)
+   {
+      paOutputParameters = new PaStreamParameters();
+      paOutputParameters->channelCount = outputParameters->getChannelCount();
+      paOutputParameters->device = outputParameters->getDeviceIndex();
+      paOutputParameters->hostApiSpecificStreamInfo = NULL;
+      paOutputParameters->sampleFormat = outputParameters->getSampleFormat();
+      paOutputParameters->suggestedLatency = outputParameters->getSuggestedLatency();
+   }
+
+   PaError paError = Pa_OpenStream(stream,
+      paInputParameters,
+      paOutputParameters,
+      sampleRate,
+      framesPerBuffer,
+      streamFlags,
+      NULL, // TODO: fill callback
+      NULL); // TODO: fill userdata
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+
+   delete paInputParameters;
+   delete paOutputParameters;
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
+                                              int numInputChannels,
+                                              int numOutputChannels,
+                                              MpAudioDriverSampleFormat sampleFormat,
+                                              double sampleRate,
+                                              unsigned long framesPerBuffer,
+                                              UtlBoolean synchronous)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_OpenDefaultStream(stream,
+      numInputChannels,
+      numOutputChannels,
+      sampleFormat,
+      sampleRate,
+      framesPerBuffer,
+      NULL, // TODO: fill callback
+      NULL); // TODO: fill userdata
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+   
+   return status;
+}
+
+OsStatus MpPortAudioDriver::closeStream(MpAudioStreamId stream)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_CloseStream(stream);
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+   
+   return status;
+}
+
+OsStatus MpPortAudioDriver::startStream(MpAudioStreamId stream)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_StartStream(stream);
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::stopStream(MpAudioStreamId stream)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_StopStream(stream);
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::abortStream(MpAudioStreamId stream)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_AbortStream(stream);
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::isStreamStopped(MpAudioStreamId stream,
+                                            UtlBoolean& isStopped) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_IsStreamStopped(stream);
+
+   if (paError >= 0)
+   {
+      if (paError == 0)
+      {
+         isStopped = FALSE;
+      }
+      else
+      {
+         isStopped = TRUE;
+      }
+      
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::isStreamActive(MpAudioStreamId stream,
+                                           UtlBoolean& isActive) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_IsStreamActive(stream);
+
+   if (paError >= 0)
+   {
+      if (paError == 0)
+      {
+         isActive = FALSE;
+      }
+      else
+      {
+         isActive = TRUE;
+      }
+
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getStreamInfo(MpAudioStreamId stream,
+                                          MpAudioStreamInfo& streamInfo) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   const PaStreamInfo* paStreamInfo = Pa_GetStreamInfo(stream);
+
+   if (paStreamInfo)
+   {
+      streamInfo.setSampleRate(paStreamInfo->sampleRate);
+      streamInfo.setOutputLatency(paStreamInfo->outputLatency);
+      streamInfo.setInputLatency(paStreamInfo->inputLatency);
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getStreamTime(MpAudioStreamId stream,
+                                          double& streamTime) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   double paTime = Pa_GetStreamTime(stream);
+
+   if (paTime > 0)
+   {
+      streamTime = paTime;
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getStreamCpuLoad(MpAudioStreamId stream,
+                                             double& cpuLoad) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_SUCCESS;
+
+   cpuLoad = Pa_GetStreamCpuLoad(stream);
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::readStreamSync(MpAudioStreamId stream,
+                                           void *buffer,
+                                           unsigned long frames)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_ReadStream(stream, buffer, frames);
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+   else if (paError == paInputOverflowed)
+   {
+      status = OS_OVERFLOW;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::writeStreamSync(MpAudioStreamId stream,
+                                            const void *buffer,
+                                            unsigned long frames)
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paError = Pa_WriteStream(stream, buffer, frames);
+
+   if (paError == paNoError)
+   {
+      status = OS_SUCCESS;
+   }
+   else if (paError == paOutputUnderflowed)
+   {
+      status = OS_OVERFLOW;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::readStreamAsync(MpAudioStreamId stream,
+                                            void *buffer,
+                                            unsigned long frames)
+{
+   OsStatus status = OS_FAILED;
+
+   // TODO: do actual reading
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::writeStreamAsync(MpAudioStreamId stream,
+                                             const void *buffer,
+                                             unsigned long frames)
+{
+   OsStatus status = OS_FAILED;
+
+   // TODO: do actual writing
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getStreamReadAvailable(MpAudioStreamId stream,
+                                                   long& framesAvailable) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   signed long paFramesAvailable = Pa_GetStreamReadAvailable(stream);
+
+   if (paFramesAvailable >= 0)
+   {
+      framesAvailable = paFramesAvailable;
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getStreamWriteAvailable(MpAudioStreamId stream,
+                                                    long& framesAvailable) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   signed long paFramesAvailable = Pa_GetStreamWriteAvailable(stream);
+
+   if (paFramesAvailable >= 0)
+   {
+      framesAvailable = paFramesAvailable;
+      status = OS_SUCCESS;
+   }
+
+   return status;
+}
+
+OsStatus MpPortAudioDriver::getSampleSize(MpAudioDriverSampleFormat format,
+                                          int& sampleSize) const
+{
+   OsLock lock(ms_driverMutex);
+   OsStatus status = OS_FAILED;
+
+   PaError paSampleSize = Pa_GetSampleSize(format);
+
+   if (paSampleSize != paSampleFormatNotSupported)
+   {
+      sampleSize = paSampleSize;
+      status = OS_SUCCESS;
+   }
+
    return status;
 }
 

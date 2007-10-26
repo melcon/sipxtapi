@@ -31,6 +31,7 @@
 // TYPEDEFS
 
 typedef unsigned long MpAudioDriverSampleFormat;
+typedef unsigned long MpAudioStreamFlags;
 typedef int MpAudioDeviceIndex;
 typedef void* MpAudioStreamId;
 
