@@ -50,16 +50,6 @@ public:
    //@{
 
    /**
-   * Pushes frame to given output audio stream. Signature not finished.
-   */
-   virtual void pushFrame();
-
-   /**
-   * Pulls frame from given input audio stream. Signature not finished.
-   */
-   virtual void pullFrame();
-
-   /**
    * Returns name of driver. Threadsafe.
    */
    virtual const UtlString& getDriverName() const;
@@ -153,6 +143,205 @@ public:
                                   MpAudioDeviceInfo& deviceInfo) const;
 
    /**
+    * Opens new stream with requested parameters. Stream can be output, input
+    * or full duplex.
+    * 
+    * @param stream Id of stream that will be returned if stream is created. Needs
+    *               to be used when pushing or pulling frames from driver.
+    * @param inputParameters Parameters of input stream or NULL.
+    * @param outputParameters Parameters of output stream or NULL.
+    * @param sampleRate Sample rate for stream
+    * @param framesPerBuffer How many frames will be pushed/pulled in buffer
+    * @param streamFlags Various stream flags.
+    * @param synchronous Whether stream is synchronous (blocking)
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus openStream(MpAudioStreamId* stream,
+                               const MpAudioStreamParameters *inputParameters,
+                               const MpAudioStreamParameters *outputParameters,
+                               double sampleRate,
+                               unsigned long framesPerBuffer,
+                               MpAudioStreamFlags streamFlags,
+                               UtlBoolean synchronous);
+
+
+   /**
+    * Opens stream for default output/input device. 
+    *
+    * @param stream Id of stream that will be returned if stream is created. Needs
+    *               to be used when pushing or pulling frames from driver.
+    * @param numInputChannels Number of input channels requested or 0.
+    * @param numOutputChannels Number of output channels requested or 0.
+    * @param sampleFormat Sample format, @see MpAudioDriverDefs.h
+    * @param sampleRate Sample rate for stream
+    * @param framesPerBuffer How many frames will be pushed/pulled in buffer
+    * @param synchronous Whether stream is synchronous (blocking)
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus openDefaultStream(MpAudioStreamId* stream,
+                                      int numInputChannels,
+                                      int numOutputChannels,
+                                      MpAudioDriverSampleFormat sampleFormat,
+                                      double sampleRate,
+                                      unsigned long framesPerBuffer,
+                                      UtlBoolean synchronous);
+
+   /**
+    * Stops and closes audio stream. After this call, stream is no longer valid.
+    *
+    * @param stream Id of stream we want to stop and close.
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus closeStream(MpAudioStreamId stream);
+
+   /**
+    * Starts given stream. Stream must be started before
+    * user can push/pull data into/from it.
+    *
+    * @param stream Id of audio stream
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus startStream(MpAudioStreamId stream);
+
+   /**
+    * Stops given stream after all current audio is played.
+    *
+    * @param stream Id of audio stream
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus stopStream(MpAudioStreamId stream);
+
+   /**
+    * Aborts given stream prematurely. Audio will be stopped immediately.
+    *
+    * @param stream Id of audio stream
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus abortStream(MpAudioStreamId stream);
+
+   /**
+    * Gets information about given audio stream.
+    *
+    * @param stream Id of audio stream
+    * @param streamInfo Information about requested audio stream
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus getStreamInfo(MpAudioStreamId stream, MpAudioStreamInfo& streamInfo) const;
+
+   /**
+    * Gets real stream time. It can be used to synchronize different
+    * streams.
+    *
+    * @param stream Id of audio stream
+    * @param streamTime Real time of stream.
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus getStreamTime(MpAudioStreamId stream, double& streamTime) const;
+
+   /**
+    * Returns CPU load for given audio stream.
+    *
+    * @param stream Id of audio stream
+    * @param cpuLoad Returned CPU load
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus getStreamCpuLoad(MpAudioStreamId stream, double& cpuLoad) const;
+
+   /**
+    * Read from a given synchronous stream given number of frames. Only 1 thread
+    * can call this function at time, as thread safety of portaudio streams
+    * is uncertain.
+    *
+    * @param stream Id of audio stream
+    * @param buffer Buffer to read into. Note that different sample sizes can be set
+    *               on stream.
+    * @param frames Number of frames to read into buffer. The actual number of bytes
+    *               copied depends on sample size.
+    * @returns OS_SUCCESS if successful, OS_OVERFLOW if successful but some data
+    *          was lost before
+    */
+   virtual OsStatus readStreamSync(MpAudioStreamId stream,
+                                   void *buffer,
+                                   unsigned long frames);
+
+   /**
+   * Write into a given synchronous stream given number of frames. Only 1 thread
+   * can call this function at time, as thread safety of portaudio streams
+   * is uncertain.
+   *
+   * @param stream Id of audio stream
+   * @param buffer Buffer to write from. Note that different sample sizes can be set
+   *               on stream.
+   * @param frames Number of frames to written from buffer. The actual number of bytes
+   *               copied depends on sample size.
+   * @returns OS_SUCCESS if successful, OS_UNDERFLOW if successful but some data
+   *          had to be inserted before
+   */
+   virtual OsStatus writeStreamSync(MpAudioStreamId stream,
+                                    const void *buffer,
+                                    unsigned long frames);
+
+   /**
+   * Read from a given asynchronous stream given number of frames. Cannot be used
+   * with synchronous streams.
+   *
+   * @param stream Id of audio stream
+   * @param buffer Buffer to read into. Note that different sample sizes can be set
+   *               on stream.
+   * @param frames Number of frames to read into buffer. The actual number of bytes
+   *               copied depends on sample size.
+   * @returns OS_SUCCESS if successful, OS_OVERFLOW if successful but some data
+   *          was lost before
+   */
+   virtual OsStatus readStreamAsync(MpAudioStreamId stream,
+                                    void *buffer,
+                                    unsigned long frames);
+
+   /**
+   * Write into a given asynchronous stream given number of frames. Cannot be used
+   * with synchronous streams.
+   *
+   * @param stream Id of audio stream
+   * @param buffer Buffer to write from. Note that different sample sizes can be set
+   *               on stream.
+   * @param frames Number of frames to written from buffer. The actual number of bytes
+   *               copied depends on sample size.
+   * @returns OS_SUCCESS if successful
+   */   
+   virtual OsStatus writeStreamAsync(MpAudioStreamId stream,
+                                     const void *buffer,
+                                     unsigned long frames);
+
+   /**
+   * Gets number of frames that can be read from a synchronous audio stream without
+   * blocking.
+   *
+   * @param stream Id of audio stream
+   * @param framesAvailable Number of frames that can be read without blocking
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus getStreamReadAvailable(MpAudioStreamId stream, long& framesAvailable) const;
+
+   /**
+    * Gets number of frames that can be written to a synchronous audio stream without
+    * blocking.
+    *
+    * @param stream Id of audio stream
+    * @param framesAvailable Number of frames that can be written without blocking
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus getStreamWriteAvailable(MpAudioStreamId stream, long& framesAvailable) const;
+
+   /**
+    * Gets size of sample in bytes for given sample format.
+    *
+    * @param format Sample format. See @MpAudioDriverDefs.h
+    * @param sampleSize Returned size of sample
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus getSampleSize(MpAudioDriverSampleFormat format, int& sampleSize) const;
+
+   /**
    * Deletes audio driver. Use instead of deleting it directly.
    * Not threadsafe.
    */
@@ -181,6 +370,25 @@ public:
    virtual OsStatus isFormatSupported(const MpAudioStreamParameters* inputParameters,
                                       const MpAudioStreamParameters* outputParameters,
                                       double sampleRate) const;
+
+   /**
+   * Whether stream is stopped. Stream is stopped after stopStream or abortStream
+   * 
+   * @param stream Id of audio stream
+   * @param isStopped Whether stream is stopped
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus isStreamStopped(MpAudioStreamId stream, UtlBoolean& isStopped) const;
+
+   /**
+   * Whether stream is active. Stream is active after startStream and before 
+   * stopStream or abortStream.
+   *
+   * @param stream Id of audio stream
+   * @param isActive Whether stream is active
+   * @returns OS_SUCCESS if successful
+   */
+   virtual OsStatus isStreamActive(MpAudioStreamId stream, UtlBoolean& isActive) const;
 
    //@}
 
