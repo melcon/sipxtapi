@@ -1602,10 +1602,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpInputAudioStream.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpInputDeviceDriver.cpp"
 					>
 				</File>
@@ -1678,11 +1674,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPortAudioInputStream.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpPortAudioOutputStream.cpp"
+					RelativePath=".\src\mp\MpPortAudioStream.cpp"
 					>
 				</File>
 				<File
@@ -2231,10 +2223,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpInputAudioStream.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpInputDeviceDriver.h"
 					>
 				</File>
@@ -2319,11 +2307,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPortAudioInputStream.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpPortAudioOutputStream.h"
+					RelativePath=".\include\mp\MpPortAudioStream.h"
 					>
 				</File>
 				<File
