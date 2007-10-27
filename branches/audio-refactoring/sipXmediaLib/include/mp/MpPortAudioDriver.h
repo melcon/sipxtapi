@@ -10,6 +10,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsMutex.h>
+#include <utl/UtlHashMap.h>
 #include <utl/UtlString.h>
 #include "mp/MpAudioDriverBase.h"
 #include "mp/MpHostAudioApiInfo.h"
@@ -312,6 +313,7 @@ public:
                                      const void *buffer,
                                      unsigned long frames);
 
+
    /**
    * Gets number of frames that can be read from a synchronous audio stream without
    * blocking.
@@ -423,7 +425,7 @@ private:
    static UtlString ms_driverName; ///< name of driver
    static UtlString ms_driverVersion; ///< version of driver
 
-   mutable OsMutex m_memberMutex; ///< mutex for protection of members
+   UtlHashMap m_audioStreamMap; ///< stream callbacks map
 };
 
 #endif // MpPortAudioDriver_h__

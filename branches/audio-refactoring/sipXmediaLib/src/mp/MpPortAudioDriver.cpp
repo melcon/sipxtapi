@@ -8,7 +8,11 @@
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
 #include <os/OsLock.h>
+#include <utl/UtlPtr.h>
+#include <utl/UtlTypedValue.h>
+#include <utl/UtlHashMapIterator.h>
 #include "mp/MpPortAudioDriver.h"
+#include "mp/MpPortAudioStream.h"
 #include "mp/MpAudioStreamInfo.h"
 #include "mp/MpAudioStreamParameters.h"
 #include <portaudio.h>
@@ -261,6 +265,8 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
 
    PaStreamParameters *paInputParameters = NULL;
    PaStreamParameters *paOutputParameters = NULL;
+   UtlBoolean isOutput = FALSE;
+   UtlBoolean isInput = FALSE;
 
    if (inputParameters)
    {
@@ -270,6 +276,7 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
       paInputParameters->hostApiSpecificStreamInfo = NULL;
       paInputParameters->sampleFormat = inputParameters->getSampleFormat();
       paInputParameters->suggestedLatency = inputParameters->getSuggestedLatency();
+      isInput = TRUE;
    }
 
    if (outputParameters)
@@ -280,22 +287,35 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
       paOutputParameters->hostApiSpecificStreamInfo = NULL;
       paOutputParameters->sampleFormat = outputParameters->getSampleFormat();
       paOutputParameters->suggestedLatency = outputParameters->getSuggestedLatency();
+      isOutput = TRUE;
    }
 
-   PaError paError = Pa_OpenStream(stream,
-      paInputParameters,
-      paOutputParameters,
-      sampleRate,
-      framesPerBuffer,
-      streamFlags,
-      NULL, // TODO: fill callback
-      NULL); // TODO: fill userdata
-
-   if (paError == paNoError)
+   if (isInput || isOutput)
    {
-      status = OS_SUCCESS;
-   }
+      MpPortAudioStream* strm = new MpPortAudioStream(isOutput, isInput);
 
+      PaError paError = Pa_OpenStream(stream,
+            paInputParameters,
+            paOutputParameters,
+            sampleRate,
+            framesPerBuffer,
+            streamFlags,
+            MpPortAudioStream::streamCallback,
+            strm);
+
+      if (paError == paNoError)
+      {
+         m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
+                                            new UtlPtr<MpPortAudioStream>(strm, TRUE));
+
+         status = OS_SUCCESS;
+      }
+      else
+      {
+         delete strm;
+      }
+   }
+   
    delete paInputParameters;
    delete paOutputParameters;
 
@@ -312,21 +332,41 @@ OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
 {
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
+   UtlBoolean isOutput = FALSE;
+   UtlBoolean isInput = FALSE;
 
-   PaError paError = Pa_OpenDefaultStream(stream,
-      numInputChannels,
-      numOutputChannels,
-      sampleFormat,
-      sampleRate,
-      framesPerBuffer,
-      NULL, // TODO: fill callback
-      NULL); // TODO: fill userdata
-
-   if (paError == paNoError)
+   if (numInputChannels > 0)
    {
-      status = OS_SUCCESS;
+      isInput = TRUE;
    }
-   
+
+   if (numOutputChannels > 0)
+   {
+      isOutput = TRUE;
+   }
+
+   if ((numInputChannels > 0) || (numOutputChannels > 0))
+   {
+      MpPortAudioStream* strm = new MpPortAudioStream(isOutput, isInput);
+
+      PaError paError = Pa_OpenDefaultStream(stream,
+         numInputChannels,
+         numOutputChannels,
+         sampleFormat,
+         sampleRate,
+         framesPerBuffer,
+         MpPortAudioStream::streamCallback,
+         strm);
+
+      if (paError == paNoError)
+      {
+         m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
+                                            new UtlPtr<MpPortAudioStream>(strm, TRUE));
+
+         status = OS_SUCCESS;
+      }
+   }
+      
    return status;
 }
 
@@ -339,6 +379,10 @@ OsStatus MpPortAudioDriver::closeStream(MpAudioStreamId stream)
 
    if (paError == paNoError)
    {
+      UtlTypedValue<MpAudioStreamId> key(stream);
+      UtlBoolean res = m_audioStreamMap.destroy(&key);
+      assert(res);
+
       status = OS_SUCCESS;
    }
    
@@ -615,7 +659,7 @@ void MpPortAudioDriver::release()
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-MpPortAudioDriver::MpPortAudioDriver() : m_memberMutex(OsMutex::Q_FIFO)
+MpPortAudioDriver::MpPortAudioDriver()
 {
 }
 
@@ -626,11 +670,20 @@ MpPortAudioDriver::~MpPortAudioDriver(void)
    // decrease counter in thread safe manner
    ms_instanceCounter--;
 
+   if (m_audioStreamMap.entries() > 0)
+   {
+      OsSysLog::add(FAC_AUDIO, PRI_ERR, "There are some unclosed streams!!\n");
+
+      // MpPortAudioStream will be deleted as well as it uses special UtlPtr<MpPortAudioStream*>
+      // with delete content flag TRUE
+      m_audioStreamMap.destroyAll();
+   }
+
    PaError err = Pa_Terminate();
    if (err != paNoError)
    {
       UtlString error(Pa_GetErrorText(err));
-      OsSysLog::add(FAC_AUDIO, PRI_ERR, "Pa_Terminate failed, error: %s", error.data());
+      OsSysLog::add(FAC_AUDIO, PRI_ERR, "Pa_Terminate failed, error: %s\n", error.data());
    }
 }
 
@@ -651,7 +704,7 @@ MpPortAudioDriver* MpPortAudioDriver::createInstance()
       else
       {
          UtlString error(Pa_GetErrorText(err));
-         OsSysLog::add(FAC_AUDIO, PRI_ERR, "Pa_Initialize failed, error: %s", error.data());
+         OsSysLog::add(FAC_AUDIO, PRI_ERR, "Pa_Initialize failed, error: %s\n", error.data());
       }
    }
 
