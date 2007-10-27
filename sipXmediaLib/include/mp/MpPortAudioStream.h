@@ -10,6 +10,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlBool.h>
+#include "mp/MpAudioDriverDefs.h"
 #include "portaudio.h"
 
 // DEFINES
@@ -36,7 +37,12 @@ public:
    //@{
 
    /// Constructor.
-   MpPortAudioStream(UtlBoolean isOutput, UtlBoolean isInput);
+   MpPortAudioStream(int outputChannelCount,
+                     int inputChannelCount,
+                     MpAudioDriverSampleFormat outputSampleFormat,
+                     MpAudioDriverSampleFormat inputSampleFormat,
+                     double sampleRate,
+                     unsigned long framesPerBuffer);
 
    /// Destructor.
    virtual ~MpPortAudioStream(void);
@@ -74,6 +80,12 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   /// Copy constructor (not implemented for this class)
+   MpPortAudioStream(const MpPortAudioStream& rMpPortAudioStream);
+
+   /// Assignment operator (not implemented for this class)
+   MpPortAudioStream& operator=(const MpPortAudioStream& rhs);
+
    /**
     * Stream callback of this instance to support multiple streams.
     */
@@ -83,8 +95,12 @@ private:
                               const PaStreamCallbackTimeInfo* timeInfo,
                               PaStreamCallbackFlags statusFlags);
 
-   UtlBoolean m_isOutput; ///< whether this stream is output
-   UtlBoolean m_isInput; ///< whether this stream is input
+   int m_outputChannelCount; ///< number of output channels
+   int m_inputChannelCount; ///< number of input channels
+   MpAudioDriverSampleFormat m_outputSampleFormat; ///< sample format of output
+   MpAudioDriverSampleFormat m_inputSampleFormat; ///< sample format of input
+   double m_sampleRate; ///< sample rate for stream
+   unsigned long m_framesPerBuffer; ///< frames per buffer for stream
 };
 
 #endif // MpPortAudioStream_h__

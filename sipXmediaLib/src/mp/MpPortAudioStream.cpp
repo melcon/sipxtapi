@@ -22,9 +22,18 @@
 
 /* ============================ CREATORS ================================== */
 
-MpPortAudioStream::MpPortAudioStream(UtlBoolean isOutput, UtlBoolean isInput)
-: m_isOutput(isOutput)
-, m_isInput(isInput)
+MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
+                                     int inputChannelCount,
+                                     MpAudioDriverSampleFormat outputSampleFormat,
+                                     MpAudioDriverSampleFormat inputSampleFormat,
+                                     double sampleRate,
+                                     unsigned long framesPerBuffer)
+: m_outputChannelCount(outputChannelCount)
+, m_inputChannelCount(inputChannelCount)
+, m_outputSampleFormat(outputSampleFormat)
+, m_inputSampleFormat(inputSampleFormat)
+, m_sampleRate(sampleRate)
+, m_framesPerBuffer(framesPerBuffer)
 {
 
 }
@@ -65,12 +74,12 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
 {
    // portaudio supplied us pointers to its input and output buffers
 
-   if (m_isOutput && output)
+   if (m_outputChannelCount > 0 && output)
    {
       // TODO: copy something into output buffer
    }
 
-   if (m_isInput && input)
+   if (m_inputChannelCount > 0 && input)
    {
       // TODO: copy something from input buffer
    }
