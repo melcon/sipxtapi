@@ -265,35 +265,45 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
 
    PaStreamParameters *paInputParameters = NULL;
    PaStreamParameters *paOutputParameters = NULL;
-   UtlBoolean isOutput = FALSE;
-   UtlBoolean isInput = FALSE;
+   int numInputChannels = 0;
+   int numOutputChannels = 0;
+   MpAudioDriverSampleFormat outputSampleFormat = 0;
+   MpAudioDriverSampleFormat inputSampleFormat = 0;
 
    if (inputParameters)
    {
       paInputParameters = new PaStreamParameters();
-      paInputParameters->channelCount = inputParameters->getChannelCount();
+      numInputChannels = paInputParameters->channelCount = inputParameters->getChannelCount();
       paInputParameters->device = inputParameters->getDeviceIndex();
       paInputParameters->hostApiSpecificStreamInfo = NULL;
-      paInputParameters->sampleFormat = inputParameters->getSampleFormat();
+      inputSampleFormat = paInputParameters->sampleFormat = inputParameters->getSampleFormat();
       paInputParameters->suggestedLatency = inputParameters->getSuggestedLatency();
-      isInput = TRUE;
    }
 
    if (outputParameters)
    {
       paOutputParameters = new PaStreamParameters();
-      paOutputParameters->channelCount = outputParameters->getChannelCount();
+      numOutputChannels = paOutputParameters->channelCount = outputParameters->getChannelCount();
       paOutputParameters->device = outputParameters->getDeviceIndex();
       paOutputParameters->hostApiSpecificStreamInfo = NULL;
-      paOutputParameters->sampleFormat = outputParameters->getSampleFormat();
+      outputSampleFormat = paOutputParameters->sampleFormat = outputParameters->getSampleFormat();
       paOutputParameters->suggestedLatency = outputParameters->getSuggestedLatency();
-      isOutput = TRUE;
    }
 
-   if (isInput || isOutput)
+   if (numInputChannels > 0 || numOutputChannels > 0)
    {
-      MpPortAudioStream* strm = new MpPortAudioStream(isOutput, isInput);
+      MpPortAudioStream* strm = NULL;
 
+      if (!synchronous)
+      {
+         strm = new MpPortAudioStream(numOutputChannels,
+                                      numInputChannels,
+                                      outputSampleFormat,
+                                      inputSampleFormat,
+                                      sampleRate,
+                                      framesPerBuffer);
+      }
+      
       PaError paError = Pa_OpenStream(stream,
             paInputParameters,
             paOutputParameters,
@@ -305,13 +315,17 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
 
       if (paError == paNoError)
       {
-         m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
-                                            new UtlPtr<MpPortAudioStream>(strm, TRUE));
+         if (!synchronous)
+         {
+            m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
+                                               new UtlPtr<MpPortAudioStream>(strm, TRUE));
+         }
 
          status = OS_SUCCESS;
       }
       else
       {
+         // delete doesnt mind NULL
          delete strm;
       }
    }
@@ -332,23 +346,22 @@ OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
 {
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
-   UtlBoolean isOutput = FALSE;
-   UtlBoolean isInput = FALSE;
-
-   if (numInputChannels > 0)
-   {
-      isInput = TRUE;
-   }
-
-   if (numOutputChannels > 0)
-   {
-      isOutput = TRUE;
-   }
 
    if ((numInputChannels > 0) || (numOutputChannels > 0))
    {
-      MpPortAudioStream* strm = new MpPortAudioStream(isOutput, isInput);
+      MpPortAudioStream* strm = NULL; 
 
+      if (!synchronous)
+      {
+         // we only create representation for asynchronous streams
+         strm = new MpPortAudioStream(numOutputChannels,
+                                      numInputChannels,
+                                      sampleFormat,
+                                      sampleFormat,
+                                      sampleRate,
+                                      framesPerBuffer);
+      }
+      
       PaError paError = Pa_OpenDefaultStream(stream,
          numInputChannels,
          numOutputChannels,
@@ -360,10 +373,18 @@ OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
 
       if (paError == paNoError)
       {
-         m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
-                                            new UtlPtr<MpPortAudioStream>(strm, TRUE));
+         if (!synchronous)
+         {
+            m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
+                                               new UtlPtr<MpPortAudioStream>(strm, TRUE));
+         }
 
          status = OS_SUCCESS;
+      }
+      else
+      {
+         // delete doesnt mind NULL
+         delete strm;
       }
    }
       
@@ -538,15 +559,23 @@ OsStatus MpPortAudioDriver::readStreamSync(MpAudioStreamId stream,
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   PaError paError = Pa_ReadStream(stream, buffer, frames);
+   // first verify that stream is synchronous
+   UtlTypedValue<MpAudioStreamId> strm(stream);
+   UtlContainable* res = m_audioStreamMap.find(&strm);
 
-   if (paError == paNoError)
+   if (!res)
    {
-      status = OS_SUCCESS;
-   }
-   else if (paError == paInputOverflowed)
-   {
-      status = OS_OVERFLOW;
+      // if not found, stream is synchronous...
+      PaError paError = Pa_ReadStream(stream, buffer, frames);
+
+      if (paError == paNoError)
+      {
+         status = OS_SUCCESS;
+      }
+      else if (paError == paInputOverflowed)
+      {
+         status = OS_OVERFLOW;
+      }
    }
 
    return status;
@@ -559,15 +588,23 @@ OsStatus MpPortAudioDriver::writeStreamSync(MpAudioStreamId stream,
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   PaError paError = Pa_WriteStream(stream, buffer, frames);
+   // first verify that stream is synchronous
+   UtlTypedValue<MpAudioStreamId> strm(stream);
+   UtlContainable* res = m_audioStreamMap.find(&strm);
 
-   if (paError == paNoError)
+   if (!res)
    {
-      status = OS_SUCCESS;
-   }
-   else if (paError == paOutputUnderflowed)
-   {
-      status = OS_OVERFLOW;
+      // if not found, stream is synchronous...
+      PaError paError = Pa_WriteStream(stream, buffer, frames);
+
+      if (paError == paNoError)
+      {
+         status = OS_SUCCESS;
+      }
+      else if (paError == paOutputUnderflowed)
+      {
+         status = OS_OVERFLOW;
+      }
    }
 
    return status;
