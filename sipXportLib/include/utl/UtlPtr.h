@@ -19,6 +19,7 @@
 
 // APPLICATION INCLUDES
 #include "utl/UtlDefs.h"
+#include "utl/UtlBool.h"
 #include "utl/UtlContainable.h"
 
 // DEFINES
@@ -43,9 +44,10 @@ public:
    /**
    * Constructor accepting an optional default value.
    */
-   UtlPtr(T* pValue = NULL)
+   UtlPtr(T* pValue = NULL, UtlBoolean deleteContent = FALSE)
    {
       mpValue = pValue;
+      m_deleteContent = deleteContent;
    }
 
    /**
@@ -53,7 +55,11 @@ public:
    */
    virtual ~UtlPtr()
    {
-
+      if (m_deleteContent)
+      {
+         delete mpValue;
+         mpValue = NULL;
+      }
    }
 
    /* ============================ MANIPULATORS ============================== */
@@ -129,6 +135,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    T* mpValue;  /** < The void ptr wrapped by this object */
+   UtlBoolean m_deleteContent; ///< whether to delete content when being deleted
 };
 
 template <class T>
