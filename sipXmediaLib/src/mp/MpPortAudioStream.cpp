@@ -40,6 +40,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_inputSampleFormat(inputSampleFormat)
 , m_sampleRate(sampleRate)
 , m_framesPerBuffer(framesPerBuffer)
+, m_virtualFramesPerBuffer(0)
 , m_pInputBuffer(NULL)
 , m_pOutputBuffer(NULL)
 , m_inputBufferSize(0)
@@ -54,6 +55,8 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_outputBufferUnderflow(0)
 , m_inputBufferOverflow(0)
 , m_inputBufferUnderflow(0)
+, m_bFrameRecorded(false)
+, m_bFramePushed(false)
 {   
    switch(m_inputSampleFormat & 32)
    {
@@ -115,24 +118,24 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
       m_sampleRate = MIN_SAMPLE_RATE;
    }
 
-   int useFramesPerBuffer = m_framesPerBuffer;
+   m_virtualFramesPerBuffer = m_framesPerBuffer;
 
-   if (useFramesPerBuffer == 0)
+   if (m_virtualFramesPerBuffer == 0)
    {
       // callback will accept frames of any size anyway...
       // use 80 for now, we need to create buffers of certain size, but will accept any number of frames
-      useFramesPerBuffer = 80;
+      m_virtualFramesPerBuffer = 80;
    }
    
    // allocate input buffer
    if (m_inputSampleFormat > 0 && m_inputChannelCount > 0)
    {
-      m_inputBufferSize = (m_inputSampleSize * useFramesPerBuffer * m_inputChannelCount) * ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 1);
+      m_inputBufferSize = (m_inputSampleSize * m_virtualFramesPerBuffer * m_inputChannelCount) * ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 1);
       m_pInputBuffer = malloc(m_inputBufferSize);
 
       if (!m_pInputBuffer)
       {
-         // allocation error, dont use buffer
+         // allocation error, don't use buffer
          m_inputBufferSize = 0;
       }
       else
@@ -140,19 +143,19 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
          // zero buffer
          memset(m_pInputBuffer, 0, m_inputBufferSize);
          // start writing at the next sample position
-         m_inputWritePos = m_inputSampleSize * useFramesPerBuffer * m_inputChannelCount;
+         m_inputWritePos = m_inputSampleSize * m_virtualFramesPerBuffer * m_inputChannelCount;
       }      
    }
    
    // allocate output buffer
    if (m_outputSampleSize > 0 && m_outputChannelCount > 0)
    {
-      m_outputBufferSize = (m_outputSampleSize * useFramesPerBuffer * m_outputChannelCount) * ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 1);
+      m_outputBufferSize = (m_outputSampleSize * m_virtualFramesPerBuffer * m_outputChannelCount) * ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 1);
       m_pOutputBuffer = malloc(m_outputBufferSize);
 
       if (!m_pOutputBuffer)
       {
-         // allocation error, dont use buffer
+         // allocation error, don't use buffer
          m_outputBufferSize = 0;
       }      
       else
@@ -160,7 +163,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
          // zero buffer
          memset(m_pOutputBuffer, 0, m_outputBufferSize);
          // start writing at the next sample position
-         m_outputWritePos = m_outputSampleSize * useFramesPerBuffer * m_outputChannelCount;
+         m_outputWritePos = m_outputSampleSize * m_virtualFramesPerBuffer * m_outputChannelCount;
       }
    }
 }
@@ -214,7 +217,11 @@ OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
          if (framesToCopy < frames)
          {
             // we are out of buffer
-            m_inputBufferUnderflow++;
+            if (m_bFrameRecorded)
+            {
+               // record underflows only since the 1st frame was recorded
+               m_inputBufferUnderflow++;
+            }
             status = OS_UNDERFLOW;
          }
          else if (framesToCopy == frames)
@@ -224,7 +231,7 @@ OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
 
          if (framesToCopy > 0)
          {
-            unsigned int realBytesToCopy = framesToCopy * m_outputSampleSize * m_outputChannelCount;
+            unsigned int realBytesToCopy = framesToCopy * m_inputSampleSize * m_inputChannelCount;
 
             // count1 is number of bytes to copy before wrapping occurs
             int count1 = min(realBytesToCopy, m_inputBufferSize - m_inputReadPos);
@@ -275,6 +282,7 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
 
          if (framesToCopy > 0)
          {
+            m_bFramePushed = true;
             unsigned int realBytesToCopy = framesToCopy * m_outputSampleSize * m_outputChannelCount;
 
             // count1 is number of bytes to copy before wrapping occurs
@@ -296,6 +304,45 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
    return status;
 }
 
+void MpPortAudioStream::printStatistics()
+{
+   osPrintf("--------- MpPortAudioStream::printStatistics ---------");
+   osPrintf("m_outputBufferOverflow = %d\n", m_outputBufferOverflow);
+   osPrintf("m_outputBufferUnderflow = %d\n", m_outputBufferUnderflow);
+   osPrintf("m_inputBufferOverflow = %d\n", m_inputBufferOverflow);
+   osPrintf("m_inputBufferUnderflow = %d\n", m_inputBufferUnderflow);
+   osPrintf("------------------------------------------------------");
+}
+
+void MpPortAudioStream::resetStream()
+{
+   m_inputWritePos = 0;
+   m_inputReadPos = 0;
+   m_outputWritePos = 0;
+   m_outputReadPos = 0;
+
+   // zero buffers
+   if (m_pInputBuffer)
+   {
+      memset(m_pInputBuffer, 0, m_inputBufferSize);
+      m_inputWritePos = m_inputSampleSize * m_virtualFramesPerBuffer * m_inputChannelCount;
+   }
+
+   if (m_pOutputBuffer)
+   {
+      memset(m_pOutputBuffer, 0, m_outputBufferSize);
+      m_outputWritePos = m_outputSampleSize * m_virtualFramesPerBuffer * m_outputChannelCount;
+   }
+
+   // reset statistics
+   m_outputBufferOverflow = 0;
+   m_outputBufferUnderflow = 0;
+   m_inputBufferOverflow = 0;
+   m_inputBufferUnderflow = 0;
+   m_bFrameRecorded = false;
+   m_bFramePushed = false;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
@@ -312,16 +359,101 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
 {
    // portaudio supplied us pointers to its input and output buffers
 
-   if (m_outputChannelCount > 0 && output)
+   if (frameCount > 0)
    {
-      // TODO: copy something into output buffer
-   }
+      // handle output frames
+      if (m_outputChannelCount > 0 && output)
+      {
+         // count number of required bytes in buffer
+         unsigned int bytesRequired = m_outputSampleSize * m_outputChannelCount * frameCount;
 
-   if (m_inputChannelCount > 0 && input)
-   {
-      // TODO: copy something from input buffer
-   }
-   
+         unsigned int copyable = getCopyableBytes(m_outputReadPos, m_outputWritePos, m_outputBufferSize);
+         unsigned int bytesToCopy = min(bytesRequired, copyable);
+         unsigned int framesToCopy = bytesToCopy / (m_outputSampleSize * m_outputChannelCount);
+         unsigned int zeroFrames = 0;
+
+         if (framesToCopy < frameCount)
+         {
+            // we are out of buffer
+            if (m_bFramePushed)
+            {
+               // record only underflows since the first push
+               m_outputBufferUnderflow++;
+            }
+            // we will have to copy zeroFrames filled with 0s, as we don't have enough data
+            zeroFrames = frameCount - framesToCopy;
+         }
+
+         if (framesToCopy > 0)
+         {
+            unsigned int realBytesToCopy = framesToCopy * m_outputSampleSize * m_outputChannelCount;
+
+            // count1 is number of bytes to copy before wrapping occurs
+            int count1 = min(realBytesToCopy, m_outputBufferSize - m_outputReadPos);
+            // count 2 is number of bytes to copy after wrapping
+            int count2 = realBytesToCopy - count1;
+            // now copy some frames
+            memcpy(output, (char*)m_pOutputBuffer + m_outputReadPos, count1);
+            if (count2 > 0)
+            {
+               // handle wrap around
+               memcpy((char*)output + count1, m_pOutputBuffer, count2);
+            }
+
+            // fill zeroFrames with 0s
+            if (zeroFrames > 0)
+            {
+               char* outputBuff = (char*)output + count1 + count2;
+               unsigned int zeroBytesToCopy = zeroFrames * m_outputSampleSize * m_outputChannelCount;
+               for (unsigned int i = 0; i < zeroBytesToCopy; i++)
+               {
+                  *outputBuff++ = 0;
+               }
+            }
+
+            // we always increment by frameCount
+            m_outputReadPos = (m_outputReadPos + frameCount) % m_outputBufferSize;
+         }
+      }
+
+      // handle input frames
+      if (m_inputChannelCount > 0 && input)
+      {
+         // count number of required bytes in buffer
+         unsigned int bytesRequired = m_inputSampleSize * m_inputChannelCount * frameCount;
+
+         unsigned int copyable = getCopyableBytes(m_inputWritePos, m_inputReadPos, m_inputBufferSize);
+         unsigned int bytesToCopy = min(bytesRequired, copyable);
+         unsigned int framesToCopy = bytesToCopy / (m_inputSampleSize * m_inputChannelCount);
+
+         if (framesToCopy < frameCount)
+         {
+            // we are out of buffer
+            m_inputBufferOverflow++;
+         }
+
+         if (framesToCopy > 0)
+         {
+            m_bFrameRecorded = true;
+            unsigned int realBytesToCopy = framesToCopy * m_inputSampleSize * m_inputChannelCount;
+
+            // count1 is number of bytes to copy before wrapping occurs
+            int count1 = min(realBytesToCopy, m_inputBufferSize - m_inputWritePos);
+            // count 2 is number of bytes to copy after wrapping
+            int count2 = realBytesToCopy - count1;
+            // now copy some frames
+            memcpy((char*)m_pInputBuffer + m_inputWritePos, input, count1);
+            if (count2 > 0)
+            {
+               // handle wrap around
+               memcpy(m_pInputBuffer, (char*)input + count1, count2);
+            }
+
+            // advance m_inputWritePos by realBytesToCopy
+            m_inputWritePos = (m_inputWritePos + realBytesToCopy) % m_inputBufferSize;
+         }
+      }
+   }   
    
    return paContinue;
 }

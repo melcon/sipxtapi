@@ -420,6 +420,11 @@ private:
     */
    static MpPortAudioDriver* createInstance();
 
+   /**
+    * Resets stream if its asynchronous.
+    */
+   void resetAsyncStream(MpAudioStreamId stream);
+
    static unsigned int ms_instanceCounter; ///< counter of MpPortAudioDriver instances
    static OsMutex ms_driverMutex; ///< mutex for protection of audio driver calls
    static UtlString ms_driverName; ///< name of driver

@@ -26,7 +26,13 @@
 
 /**
 * Representation of asynchronous portlib audio stream. For synchronous streams, it is not
-* needed. Stream can be output/input/full duplex. It is only used for callback.
+* needed. Stream can be output/input/full duplex. It is only used for callback. Callback
+* and main thread share the same buffer using lockless algorithm. The basis of the algorithm
+* is that each thread writes to its own volatile variable, and reads from other threads variable.
+* No 2 threads write to the same variable. When writing to buffer, writing pointer can never
+* exceed or equal reading pointer, and when reading, reading pointer cannot exceed or equal
+* to writing pointer. Thus threads will always use disjoint memory blocks.
+* Statistics about input/output underflows and overflows are computed and can be printed if needed.
 */
 class MpPortAudioStream
 {
@@ -45,7 +51,7 @@ public:
                      unsigned long framesPerBuffer);
 
    /// Destructor.
-   virtual ~MpPortAudioStream(void);
+   ~MpPortAudioStream(void);
    //@}
 
    /* ============================ MANIPULATORS ============================== */
@@ -70,8 +76,8 @@ public:
     * @param frames Number of frames to read
     * @returns OS_SUCCESS if successful
     */
-   virtual OsStatus readStreamAsync(void *buffer,
-                                    unsigned long frames);
+   OsStatus readStreamAsync(void *buffer,
+                            unsigned long frames);
 
    /**
     * Writes given number of frames into stream from buffer.
@@ -80,8 +86,19 @@ public:
     * @param frames Number of frames to write to stream
     * @returns OS_SUCCESS if successful
     */
-   virtual OsStatus writeStreamAsync(const void *buffer,
-                                     unsigned long frames);
+   OsStatus writeStreamAsync(const void *buffer,
+                             unsigned long frames);
+
+   /**
+    * Prints overflow/underflow statistics.
+    */
+   void printStatistics();
+
+   /**
+    * Resets internal stream buffers to 0 and resets statistics. Needs to be done
+    * after stream is stopped or aborted. Not thread safe.
+    */
+   void resetStream();
 
    //@}
 
@@ -115,6 +132,10 @@ private:
                               const PaStreamCallbackTimeInfo* timeInfo,
                               PaStreamCallbackFlags statusFlags);
 
+   /**
+    * Gets maximum bytes that can be copied from input to output pos without exceeding it.
+    * It is useful when preventing inputPos exceeding outputPos.
+    */
    int getCopyableBytes(unsigned int inputPos, unsigned int outputPos, unsigned int maxPos) const;
 
    int m_outputChannelCount; ///< number of output channels
@@ -123,6 +144,7 @@ private:
    MpAudioDriverSampleFormat m_inputSampleFormat; ///< sample format of input
    double m_sampleRate; ///< sample rate for stream
    unsigned long m_framesPerBuffer; ///< frames per buffer for stream
+   unsigned long m_virtualFramesPerBuffer; ///< only used for initializing m_inputWritePos and m_outputWritePos
 
    void* m_pInputBuffer; ///< buffer for storing recorded samples
    void* m_pOutputBuffer; ///< buffer for storing frames going to speaker
@@ -139,6 +161,9 @@ private:
    unsigned int m_outputBufferUnderflow;
    unsigned int m_inputBufferOverflow;
    unsigned int m_inputBufferUnderflow;
+
+   bool m_bFrameRecorded;
+   bool m_bFramePushed;
 };
 
 #endif // MpPortAudioStream_h__
