@@ -434,6 +434,7 @@ OsStatus MpPortAudioDriver::stopStream(MpAudioStreamId stream)
 
    if (paError == paNoError)
    {
+      resetAsyncStream(stream);
       status = OS_SUCCESS;
    }
 
@@ -449,6 +450,7 @@ OsStatus MpPortAudioDriver::abortStream(MpAudioStreamId stream)
 
    if (paError == paNoError)
    {
+      resetAsyncStream(stream);
       status = OS_SUCCESS;
    }
 
@@ -779,6 +781,24 @@ MpPortAudioDriver* MpPortAudioDriver::createInstance()
    return NULL;
 }
 
+void MpPortAudioDriver::resetAsyncStream(MpAudioStreamId stream)
+{
+   // external lock is assumed
+
+   // first verify that stream is asynchronous
+   UtlTypedValue<MpAudioStreamId> strm(stream);
+   UtlContainable* res = m_audioStreamMap.findValue(&strm);
+
+   if (res)
+   {
+      // cast to UtlPtr
+      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
+      // get pointer to MpPortAudioStream
+      MpPortAudioStream* pStrm = pStrmPtr->getValue();
+      // asynchronous stream needs to be reset after abort
+      return pStrm->resetStream();
+   }
+}
 
 /* ============================ FUNCTIONS ================================= */
 
