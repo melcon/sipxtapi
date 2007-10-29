@@ -614,10 +614,25 @@ OsStatus MpPortAudioDriver::readStreamAsync(MpAudioStreamId stream,
                                             void *buffer,
                                             unsigned long frames)
 {
+   OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   // TODO: do actual reading
+   if (frames > 0)
+   {
+      // first verify that stream is asynchronous
+      UtlTypedValue<MpAudioStreamId> strm(stream);
+      UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
+      if (res)
+      {
+         // cast to UtlPtr
+         UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
+         // get pointer to MpPortAudioStream
+         MpPortAudioStream* pStrm = pStrmPtr->getValue();
+         return pStrm->readStreamAsync(buffer, frames);
+      }
+   }   
+   
    return status;
 }
 
@@ -625,9 +640,24 @@ OsStatus MpPortAudioDriver::writeStreamAsync(MpAudioStreamId stream,
                                              const void *buffer,
                                              unsigned long frames)
 {
+   OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   // TODO: do actual writing
+   if (frames > 0)
+   {
+      // first verify that stream is asynchronous
+      UtlTypedValue<MpAudioStreamId> strm(stream);
+      UtlContainable* res = m_audioStreamMap.findValue(&strm);
+
+      if (res)
+      {
+         // cast to UtlPtr
+         UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
+         // get pointer to MpPortAudioStream
+         MpPortAudioStream* pStrm = pStrmPtr->getValue();
+         return pStrm->writeStreamAsync(buffer, frames);
+      }
+   }   
 
    return status;
 }

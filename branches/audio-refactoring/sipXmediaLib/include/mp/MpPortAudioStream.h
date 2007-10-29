@@ -63,6 +63,26 @@ public:
                              PaStreamCallbackFlags statusFlags,
                              void *userData );
 
+   /**
+    * Reads given number of frames into buffer. Buffer must be allocated memory.
+    *
+    * @param buffer Allocated memory to read data into
+    * @param frames Number of frames to read
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus readStreamAsync(void *buffer,
+                                    unsigned long frames);
+
+   /**
+    * Writes given number of frames into stream from buffer.
+    *
+    * @param buffer Buffer with samples
+    * @param frames Number of frames to write to stream
+    * @returns OS_SUCCESS if successful
+    */
+   virtual OsStatus writeStreamAsync(const void *buffer,
+                                     unsigned long frames);
+
    //@}
 
    /* ============================ ACCESSORS ================================= */
@@ -101,6 +121,17 @@ private:
    MpAudioDriverSampleFormat m_inputSampleFormat; ///< sample format of input
    double m_sampleRate; ///< sample rate for stream
    unsigned long m_framesPerBuffer; ///< frames per buffer for stream
+
+   void* m_pInputBuffer; ///< buffer for storing recorded samples
+   void* m_pOutputBuffer; ///< buffer for storing frames going to speaker
+   unsigned int m_inputBufferSize; ///< size of input buffer
+   unsigned int m_outputBufferSize; ///< size of output buffer
+   unsigned int m_inputSampleSize; ///< size of input sample in bytes per channel
+   unsigned int m_outputSampleSize; ///< size of output sample in bytes per channel
+   volatile unsigned int m_inputWritePos; ///< position in input buffer for writing
+   volatile unsigned int m_inputReadPos; ///< position in input buffer for reading
+   volatile unsigned int m_outputWritePos; ///< position in output buffer for writing
+   volatile unsigned int m_outputReadPos; ///< position in output buffer for reading
 };
 
 #endif // MpPortAudioStream_h__
