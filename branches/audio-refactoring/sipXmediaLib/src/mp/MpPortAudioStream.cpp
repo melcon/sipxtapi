@@ -19,6 +19,8 @@
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 // MACROS
+
+// return positive if val2 < val1, negative if val2 > val1, values must be unsigned
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
@@ -48,6 +50,10 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_inputReadPos(0)
 , m_outputWritePos(0)
 , m_outputReadPos(0)
+, m_outputBufferOverflow(0)
+, m_outputBufferUnderflow(0)
+, m_inputBufferOverflow(0)
+, m_inputBufferUnderflow(0)
 {   
    switch(m_inputSampleFormat & 32)
    {
@@ -198,8 +204,42 @@ OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
       {
-         // we received expected number of frames
-      }      
+         // count number of required bytes in buffer
+         unsigned int bytesRequired = m_inputSampleSize * m_inputChannelCount * frames;
+
+         unsigned int copyable = getCopyableBytes(m_inputReadPos, m_inputWritePos, m_inputBufferSize);
+         unsigned int bytesToCopy = min(bytesRequired, copyable);
+         unsigned int framesToCopy = bytesToCopy / (m_inputSampleSize * m_inputChannelCount);
+
+         if (framesToCopy < frames)
+         {
+            // we are out of buffer
+            m_inputBufferUnderflow++;
+            status = OS_UNDERFLOW;
+         }
+         else if (framesToCopy == frames)
+         {
+            status = OS_SUCCESS;
+         }
+
+         if (framesToCopy > 0)
+         {
+            unsigned int realBytesToCopy = framesToCopy * m_outputSampleSize * m_outputChannelCount;
+
+            // count1 is number of bytes to copy before wrapping occurs
+            int count1 = min(realBytesToCopy, m_inputBufferSize - m_inputReadPos);
+            // count 2 is number of bytes to copy after wrapping
+            int count2 = realBytesToCopy - count1;
+            // now copy some frames
+            memcpy(buffer, (char*)m_pInputBuffer + m_inputReadPos, count1);
+            if (count2 > 0)
+            {
+               // handle wrap around
+               memcpy((char*)buffer + count1, m_pInputBuffer, count2);
+            }
+            m_inputReadPos = (m_inputReadPos + realBytesToCopy) % m_inputBufferSize;
+         }
+      }         
    }
 
    return status;
@@ -214,8 +254,43 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
       {
-         // we received expected number of frames
-      }      
+         // count number of required bytes in buffer
+         unsigned int bytesRequired = m_outputSampleSize * m_outputChannelCount * frames;
+
+         unsigned int copyable = getCopyableBytes(m_outputWritePos, m_outputReadPos, m_outputBufferSize);
+         unsigned int bytesToCopy = min(bytesRequired, copyable);
+         unsigned int framesToCopy = bytesToCopy / (m_outputSampleSize * m_outputChannelCount);
+
+         if (framesToCopy < frames)
+         {
+            // we are out of buffer
+            OsSysLog::add(FAC_AUDIO, PRI_WARNING, "Output stream buffer overflow!\n");
+            m_outputBufferOverflow++;
+            status = OS_OVERFLOW;
+         }
+         else if (framesToCopy == frames)
+         {
+            status = OS_SUCCESS;
+         }
+
+         if (framesToCopy > 0)
+         {
+            unsigned int realBytesToCopy = framesToCopy * m_outputSampleSize * m_outputChannelCount;
+
+            // count1 is number of bytes to copy before wrapping occurs
+            int count1 = min(realBytesToCopy, m_outputBufferSize - m_outputWritePos);
+            // count 2 is number of bytes to copy after wrapping
+            int count2 = realBytesToCopy - count1;
+            // now copy some frames
+            memcpy((char*)m_pOutputBuffer + m_outputWritePos, buffer, count1);
+            if (count2 > 0)
+            {
+               // handle wrap around
+               memcpy(m_pOutputBuffer, (char*)buffer + count1, count2);
+            }
+            m_outputWritePos = (m_outputWritePos + realBytesToCopy) % m_outputBufferSize;
+         }
+      }         
    }
    
    return status;
@@ -249,6 +324,22 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
    
    
    return paContinue;
+}
+
+int MpPortAudioStream::getCopyableBytes(unsigned int inputPos,
+                                        unsigned int outputPos,
+                                        unsigned int maxPos) const
+{
+   if (inputPos < outputPos)
+   {
+      return outputPos - inputPos - 1;
+   }
+   else if (inputPos > outputPos)
+   {
+      return maxPos - inputPos + outputPos - 1;
+   }
+   
+   return 0;
 }
 
 /* ============================ FUNCTIONS ================================= */
