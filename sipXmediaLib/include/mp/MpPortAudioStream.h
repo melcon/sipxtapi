@@ -115,6 +115,8 @@ private:
                               const PaStreamCallbackTimeInfo* timeInfo,
                               PaStreamCallbackFlags statusFlags);
 
+   int getCopyableBytes(unsigned int inputPos, unsigned int outputPos, unsigned int maxPos) const;
+
    int m_outputChannelCount; ///< number of output channels
    int m_inputChannelCount; ///< number of input channels
    MpAudioDriverSampleFormat m_outputSampleFormat; ///< sample format of output
@@ -132,6 +134,11 @@ private:
    volatile unsigned int m_inputReadPos; ///< position in input buffer for reading
    volatile unsigned int m_outputWritePos; ///< position in output buffer for writing
    volatile unsigned int m_outputReadPos; ///< position in output buffer for reading
+
+   unsigned int m_outputBufferOverflow;
+   unsigned int m_outputBufferUnderflow;
+   unsigned int m_inputBufferOverflow;
+   unsigned int m_inputBufferUnderflow;
 };
 
 #endif // MpPortAudioStream_h__
