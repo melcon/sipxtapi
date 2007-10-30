@@ -689,6 +689,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\test\mp\MpPortAudioDriverTest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\test\mp\MprBridgeTest.cpp"
 				>
 			</File>

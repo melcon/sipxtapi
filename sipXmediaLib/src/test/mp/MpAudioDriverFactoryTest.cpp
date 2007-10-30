@@ -34,6 +34,9 @@ public:
       // create portaudio driver
       MpAudioDriverBase* gooddriver = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_PORTAUDIO);
       CPPUNIT_ASSERT(gooddriver);
+      MpAudioDriverBase* gooddriver2 = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_PORTAUDIO);
+      // we only allow creation of single instance, to prevent problems with deletion
+      CPPUNIT_ASSERT(!gooddriver2);
       gooddriver->release();
 
       MpAudioDriverBase* baddriver = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_LAST);
