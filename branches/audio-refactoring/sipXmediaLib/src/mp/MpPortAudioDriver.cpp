@@ -52,7 +52,8 @@ OsStatus MpPortAudioDriver::getHostApiCount(int& count) const
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   PaHostApiIndex paCount = Pa_GetHostApiCount();
+   // one api in list is always "skeleton implementation" and it is the last api
+   PaHostApiIndex paCount = Pa_GetHostApiCount() - 1;
 
    if (paCount >= 0)
    {

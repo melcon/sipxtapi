@@ -34,7 +34,7 @@ MpAudioDriverBase* MpAudioDriverFactory::createAudioDriver(AudioDriverImplementa
    switch(implementation)
    {
    case AUDIO_DRIVER_PORTAUDIO:
-      return new MpPortAudioDriver();
+      return MpPortAudioDriver::createInstance();
    default:
       // illegal implementation type
       return NULL;
