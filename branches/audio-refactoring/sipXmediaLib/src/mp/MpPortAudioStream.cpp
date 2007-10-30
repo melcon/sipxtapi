@@ -79,7 +79,6 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    case MP_AUDIO_FORMAT_UINT8:
       m_inputSampleSize = sizeof(uint8_t);
       break;
-   case MP_AUDIO_FORMAT_CUSTOMFORMAT:
    default:
       // don't create buffers, unsupported sample format
       break;
@@ -106,7 +105,6 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    case MP_AUDIO_FORMAT_UINT8:
       m_outputSampleSize = sizeof(uint8_t);
       break;
-   case MP_AUDIO_FORMAT_CUSTOMFORMAT:
    default:
       // don't create buffers, unsupported sample format
       break;
