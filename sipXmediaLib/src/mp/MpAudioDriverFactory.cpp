@@ -27,7 +27,7 @@
 
 /* ============================ MANIPULATORS ============================== */
 
-MpAudioDriverBase* MpAudioDriverFactory::createAudioDriver(enum AudioDriverImplementation implementation)
+MpAudioDriverBase* MpAudioDriverFactory::createAudioDriver(AudioDriverImplementation implementation)
 {
    OsSysLog::add(FAC_AUDIO, PRI_DEBUG, "createAudioDriver implementation=%d", (int)implementation);
 
@@ -41,7 +41,7 @@ MpAudioDriverBase* MpAudioDriverFactory::createAudioDriver(enum AudioDriverImple
    }
 }
 
-UtlString MpAudioDriverFactory::getDriverNameVersion(enum AudioDriverImplementation implementation)
+UtlString MpAudioDriverFactory::getDriverNameVersion(AudioDriverImplementation implementation)
 {
    switch(implementation)
    {
