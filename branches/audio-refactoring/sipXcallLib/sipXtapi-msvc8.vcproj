@@ -283,6 +283,7 @@
 				IgnoreDefaultLibraryNames=""
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="false"
+				ProgramDatabaseFile="bin\sipXtapi.pdb"
 				GenerateMapFile="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
