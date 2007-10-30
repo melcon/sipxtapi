@@ -83,7 +83,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib"
+				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib ksuser.lib"
 				OutputFile=".\Debug/sipXmediaLibTest.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -608,6 +608,10 @@
 			>
 			<File
 				RelativePath=".\src\test\mp\MpAudioBufTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\test\mp\MpAudioDriverFactoryTest.cpp"
 				>
 			</File>
 			<File
