@@ -650,14 +650,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\test\mp\MpInputDeviceDriverTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\test\mp\MpInputDeviceManagerTest.cpp"
-				>
-			</File>
-			<File
 				RelativePath="src\test\mp\MpMediaTaskTest.cpp"
 				>
 				<FileConfiguration
@@ -690,14 +682,6 @@
 			</File>
 			<File
 				RelativePath=".\src\test\mp\MpMMTimerTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\test\mp\MpOutputDriverTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\test\mp\MpOutputManagerTest.cpp"
 				>
 			</File>
 			<File
@@ -734,10 +718,6 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\src\test\mp\MpResourceTopologyTest.cpp"
-				>
 			</File>
 			<File
 				RelativePath=".\src\test\mp\MprFromMicTest.cpp"
