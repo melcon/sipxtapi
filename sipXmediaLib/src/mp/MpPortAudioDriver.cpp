@@ -403,7 +403,6 @@ OsStatus MpPortAudioDriver::closeStream(MpAudioStreamId stream)
    {
       UtlTypedValue<MpAudioStreamId> key(stream);
       UtlBoolean res = m_audioStreamMap.destroy(&key);
-      assert(res);
 
       status = OS_SUCCESS;
    }

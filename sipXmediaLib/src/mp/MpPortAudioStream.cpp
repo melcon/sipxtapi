@@ -58,7 +58,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_bFrameRecorded(false)
 , m_bFramePushed(false)
 {   
-   switch(m_inputSampleFormat & 32)
+   switch(m_inputSampleFormat & 0x3f)
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_inputSampleSize = sizeof(float);
@@ -84,7 +84,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
       break;
    }
 
-   switch(m_outputSampleSize & 32)
+   switch(m_outputSampleFormat & 0x3f)
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_outputSampleSize = sizeof(float);
@@ -201,7 +201,7 @@ OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
 {
    OsStatus status = OS_FAILED;
 
-   if (frames > 0)
+   if (frames > 0 && m_inputSampleSize > 0)
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
       {
@@ -255,7 +255,7 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
 {
    OsStatus status = OS_FAILED;
 
-   if (frames > 0)
+   if (frames > 0 && m_outputSampleSize > 0)
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
       {
@@ -360,7 +360,7 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
    if (frameCount > 0)
    {
       // handle output frames
-      if (m_outputChannelCount > 0 && output)
+      if (m_outputChannelCount > 0 && output && m_outputSampleSize > 0)
       {
          // count number of required bytes in buffer
          unsigned int bytesRequired = m_outputSampleSize * m_outputChannelCount * frameCount;
@@ -415,7 +415,7 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
       }
 
       // handle input frames
-      if (m_inputChannelCount > 0 && input)
+      if (m_inputChannelCount > 0 && input && m_inputSampleSize > 0)
       {
          // count number of required bytes in buffer
          unsigned int bytesRequired = m_inputSampleSize * m_inputChannelCount * frameCount;
@@ -462,11 +462,17 @@ int MpPortAudioStream::getCopyableBytes(unsigned int inputPos,
 {
    if (inputPos < outputPos)
    {
-      return outputPos - inputPos - 1;
+      if (inputPos < maxPos && outputPos < maxPos)
+      {
+         return outputPos - inputPos - 1;
+      }      
    }
    else if (inputPos > outputPos)
    {
-      return maxPos - inputPos + outputPos - 1;
+      if (outputPos < maxPos)
+      {
+         return maxPos - inputPos + outputPos - 1;
+      }      
    }
    
    return 0;
