@@ -259,7 +259,7 @@
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
 			<Tool
@@ -282,7 +282,7 @@
 				AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Release&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Release&quot;;..\sipXportLib\contrib\pcre\lib"
 				IgnoreDefaultLibraryNames=""
 				ModuleDefinitionFile=""
-				GenerateDebugInformation="false"
+				GenerateDebugInformation="true"
 				ProgramDatabaseFile="bin\sipXtapi.pdb"
 				GenerateMapFile="true"
 				OptimizeReferences="2"
