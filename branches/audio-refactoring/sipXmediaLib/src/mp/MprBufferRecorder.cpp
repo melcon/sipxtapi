@@ -284,8 +284,6 @@ OsStatus MprBufferRecorder::sendNotification(MpResNotificationMsg::RNMsgType typ
    MpFlowGraphBase* pFg = getFlowGraph();
    if (pFg)
    {
-      assert(pFg != NULL);
-
       MpResNotificationMsg msg(type, getName());
       return pFg->postNotification(msg);
    }
