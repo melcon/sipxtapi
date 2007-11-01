@@ -134,7 +134,8 @@ enum OsStatus
    OS_UNSPECIFIED,            // unspecified error
    OS_UNAUTHORIZED,            // "unauthorized" error
    OS_OVERFLOW,
-   OS_UNDERFLOW
+   OS_UNDERFLOW,
+   OS_PREFETCH
 };
      //!enumcode: OS_INVALID=0 - invalid status (not yet set)
      //!enumcode: OS_SUCCESS - success

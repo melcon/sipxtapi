@@ -10,6 +10,10 @@
 #include <sipxunit/TestUtilities.h>
 #include <os/OsStatus.h>
 #include <os/OsTask.h>
+#include <os/OsTimerTask.h>
+#include <os/OsTimer.h>
+#include <os/OsTime.h>
+#include <os/OsEvent.h>
 #include <mp/MpAudioDriverFactory.h>
 #include <mp/MpAudioDriverBase.h>
 #include <mp/MpAudioDriverDefs.h>
@@ -51,6 +55,8 @@ class MpPortAudioDriverTest : public CppUnit::TestCase
    CPPUNIT_TEST(syncMonoRecordingFixedFrames);
    CPPUNIT_TEST(syncMonoPlaybackAnyFrames);
    CPPUNIT_TEST(syncMonoRecordingAnyFrames);
+   CPPUNIT_TEST(asyncMonoPlaybackFixedFrames);
+   CPPUNIT_TEST(asyncMonoPlaybackAnyFrames);
 
    CPPUNIT_TEST_SUITE_END();
 
@@ -660,7 +666,8 @@ public:
       CPPUNIT_ASSERT(res == OS_SUCCESS);
       res = m_pDriver->startStream(stream);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
-      OsTask::delay(100);
+      // wait for some data
+      OsTask::delay(200);
 
       // now it should be possible to read some data without blocking
       long framesAvailable = 0;
@@ -689,7 +696,8 @@ public:
       CPPUNIT_ASSERT(res == OS_SUCCESS);
       res = m_pDriver->startStream(stream);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
-      OsTask::delay(100);
+      // wait until stream becomes writable
+      OsTask::delay(200);
 
       // now it should be possible to read some data without blocking
       long framesAvailable = 0;
@@ -1157,6 +1165,206 @@ public:
       CPPUNIT_ASSERT(res == OS_SUCCESS);
    }
 
+   void asyncMonoPlaybackFixedFrames()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 160;
+
+      outputParameters.setChannelCount(1);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      // open asynchronous output stream
+      res = m_pDriver->openStream(&stream,
+         NULL,
+         &outputParameters,
+         8000,
+         frames,
+         MP_AUDIO_STREAM_CLIPOFF,
+         FALSE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      // now start supplying sound frames
+      FILE* file = fopen("./oriental_gong.snd", "rb");
+
+      if (file)
+      {
+         int fileLength = getFileLength(file);
+         int sampleSize = 0;
+         int bytesRead = 0;
+
+         m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+         char* buffer = (char*)malloc(fileLength);
+         memset(buffer, 0, fileLength);
+
+         bytesRead = fread(buffer, 1, fileLength, file);
+
+         // get timer task to start it
+         OsTimerTask::getTimerTask();
+         OsEvent event(0);
+         OsTimer timer(event);
+         // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
+         timer.periodicEvery(OsTime(100), OsTime(20));
+         char* pBuffer = buffer;
+         char* bufferEnd = buffer + fileLength;
+
+         while ((pBuffer + frames * sampleSize) < bufferEnd)
+         {
+            // wait until timer signals us
+            event.wait();
+            event.reset();
+            
+            // now copy data to stream
+            m_pDriver->writeStreamAsync(stream, pBuffer, frames);
+
+            // repeat until we run out of buffer
+            pBuffer += sampleSize * frames;
+         }
+         
+         // stop timer
+         timer.stop();
+         OsTask::delay(200);
+
+         // destroy timer task
+         OsTimerTask::destroyTimerTask();
+
+         fclose(file);
+         free(buffer);
+      }
+
+      // stop stream
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+   }
+
+   void asyncMonoPlaybackAnyFrames()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 160;
+
+      outputParameters.setChannelCount(1);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      // open asynchronous output stream
+      res = m_pDriver->openStream(&stream,
+         NULL,
+         &outputParameters,
+         8000,
+         MP_AUDIO_STREAM_FRAMESPERBUFFERUNSPECIFIED,
+         MP_AUDIO_STREAM_CLIPOFF,
+         FALSE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      // now start supplying sound frames
+      FILE* file = fopen("./oriental_gong.snd", "rb");
+
+      if (file)
+      {
+         int fileLength = getFileLength(file);
+         int sampleSize = 0;
+         int bytesRead = 0;
+
+         m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+         char* buffer = (char*)malloc(fileLength);
+         memset(buffer, 0, fileLength);
+
+         bytesRead = fread(buffer, 1, fileLength, file);
+
+         // get timer task to start it
+         OsTimerTask::getTimerTask();
+         OsEvent event(0);
+         OsTimer timer(event);
+         // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
+         timer.periodicEvery(OsTime(100), OsTime(20));
+         char* pBuffer = buffer;
+         char* bufferEnd = buffer + fileLength;
+         int realFrames = (int)(frames * 1.33333);
+         int cnt = 0;
+
+         while ((pBuffer + realFrames * sampleSize) < bufferEnd)
+         {
+            // wait until timer signals us
+            event.wait();
+            event.reset();
+
+            // now copy data to stream
+            m_pDriver->writeStreamAsync(stream, pBuffer, realFrames);
+          
+            // repeat until we run out of buffer
+            pBuffer += sampleSize * realFrames;
+
+            if (cnt % 2 == 0)
+            {
+               // change realFrames
+               realFrames /= 2;
+            }
+            else
+            {
+               realFrames *= 2;
+            }
+            cnt++;
+         }
+
+         // stop timer
+         timer.stop();
+         OsTask::delay(200);
+
+         // destroy timer task
+         OsTimerTask::destroyTimerTask();
+
+         fclose(file);
+         free(buffer);
+      }
+
+      // stop stream
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+   }
+
+   int getFileLength(FILE *f)
+   {
+      int pos = 0;
+      int end = 0;
+
+      if (f)
+      {
+         pos = ftell(f);
+         fseek(f, 0, SEEK_END);
+         end = ftell (f);
+         fseek(f, pos, SEEK_SET);
+      }
+
+      return end;
+   }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(MpPortAudioDriverTest);

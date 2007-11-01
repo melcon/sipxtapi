@@ -138,6 +138,16 @@ private:
     */
    int getCopyableBytes(unsigned int inputPos, unsigned int outputPos, unsigned int maxPos) const;
 
+   /**
+    * Gets actual number of frames in input buffer
+    */
+   int getInputBufferFrameCount();
+
+   /**
+    * Gets actual number of frames in output buffer
+    */
+   int getOutputBufferFrameCount();
+
    int m_outputChannelCount; ///< number of output channels
    int m_inputChannelCount; ///< number of input channels
    MpAudioDriverSampleFormat m_outputSampleFormat; ///< sample format of output
@@ -162,8 +172,13 @@ private:
    unsigned int m_inputBufferOverflow;
    unsigned int m_inputBufferUnderflow;
 
-   bool m_bFrameRecorded;
-   bool m_bFramePushed;
+   volatile bool m_inputBufferPrefetchMode; ///< whether input buffer is in prefetch mode
+   volatile bool m_outputBufferPrefetchMode; ///< whether output buffer is in prefetch mode
+   unsigned int m_inputPrefetchCount; ///< input buffer latency in frames
+   unsigned int m_outputPrefetchCount; ///< output buffer latency in frames
+
+   bool m_bFrameRecorded; ///< whether at least one frame has been recorded
+   bool m_bFramePushed; ///< whether at least one frame has been pushed
 };
 
 #endif // MpPortAudioStream_h__
