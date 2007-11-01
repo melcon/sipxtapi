@@ -311,7 +311,7 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
             sampleRate,
             framesPerBuffer,
             streamFlags,
-            MpPortAudioStream::streamCallback,
+            synchronous ? NULL : MpPortAudioStream::streamCallback,
             strm);
 
       if (paError == paNoError)
@@ -369,7 +369,7 @@ OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
          sampleFormat,
          sampleRate,
          framesPerBuffer,
-         MpPortAudioStream::streamCallback,
+         synchronous ? NULL : MpPortAudioStream::streamCallback,
          strm);
 
       if (paError == paNoError)
