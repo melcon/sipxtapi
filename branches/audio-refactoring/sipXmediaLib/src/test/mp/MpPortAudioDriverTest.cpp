@@ -4,6 +4,7 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
 #include <sipxunit/TestUtilities.h>
@@ -40,12 +41,16 @@ class MpPortAudioDriverTest : public CppUnit::TestCase
    CPPUNIT_TEST(getStreamInfo);
    CPPUNIT_TEST(getStreamTime);
    CPPUNIT_TEST(getStreamCpuLoad);
-//   CPPUNIT_TEST(getStreamReadAvailable); // currently fails, portaudio doesnt seem to support this function for all drivers
-//   CPPUNIT_TEST(getStreamWriteAvailable); // currently fails, portaudio doesnt seem to support this function for all drivers
+   CPPUNIT_TEST(getStreamReadAvailable);
+   CPPUNIT_TEST(getStreamWriteAvailable);
    CPPUNIT_TEST(isFormatSupported);
    CPPUNIT_TEST(isStreamStopped);
    CPPUNIT_TEST(isStreamActive);
    CPPUNIT_TEST(openStream);
+   CPPUNIT_TEST(syncMonoPlaybackFixedFrames);
+   CPPUNIT_TEST(syncMonoRecordingFixedFrames);
+   CPPUNIT_TEST(syncMonoPlaybackAnyFrames);
+   CPPUNIT_TEST(syncMonoRecordingAnyFrames);
 
    CPPUNIT_TEST_SUITE_END();
 
@@ -667,9 +672,6 @@ public:
       CPPUNIT_ASSERT(res == OS_SUCCESS);
       res = m_pDriver->closeStream(stream);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
-
-      res = m_pDriver->getStreamReadAvailable(NULL, framesAvailable);
-      CPPUNIT_ASSERT(res == OS_FAILED);
    }
 
    void getStreamWriteAvailable()
@@ -699,9 +701,6 @@ public:
       CPPUNIT_ASSERT(res == OS_SUCCESS);
       res = m_pDriver->closeStream(stream);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
-
-      res = m_pDriver->getStreamReadAvailable(NULL, framesAvailable);
-      CPPUNIT_ASSERT(res == OS_FAILED);
    }
 
    void isFormatSupported()
@@ -858,6 +857,304 @@ public:
             }
          }
       }
+   }
+
+   void syncMonoPlaybackFixedFrames()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 160;
+
+      outputParameters.setChannelCount(1);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      res = m_pDriver->openStream(&stream,
+         NULL,
+         &outputParameters,
+         8000,
+         frames,
+         MP_AUDIO_STREAM_CLIPOFF,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      // now start supplying sound frames
+      FILE* file = fopen("./oriental_gong.snd", "rb");
+      
+      if (file)
+      {
+         int sampleSize = 0;
+         int bytesRead = 1;
+
+         m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+         void* buffer = malloc(sampleSize * frames);
+
+         while (bytesRead > 0)
+         {
+            memset(buffer, 0, sampleSize * frames);
+
+            bytesRead = fread(buffer, 1, sampleSize * frames, file);
+
+            res = m_pDriver->writeStreamSync(stream, buffer, frames);
+//            CPPUNIT_ASSERT(res == OS_SUCCESS);
+         }
+         fclose(file);
+         free(buffer);
+      }
+      
+      // stop stream
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+   }
+
+   void syncMonoRecordingFixedFrames()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters inputParameters;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex inputDeviceIndex = 0;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 160;
+
+      inputParameters.setChannelCount(1);
+      outputParameters.setChannelCount(1);
+      inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      inputParameters.setSuggestedLatency(0.1);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultInputDevice(inputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      inputParameters.setDeviceIndex(inputDeviceIndex);
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      res = m_pDriver->openStream(&stream,
+         &inputParameters,
+         &outputParameters,
+         8000,
+         frames,
+         MP_AUDIO_STREAM_CLIPOFF,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      printf("Starting recording...\n");
+      // now start recording
+      int sampleSize = 0;
+      m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+      int duration = 200;
+      void* buffer = malloc(sampleSize * frames * duration);
+      char* pBuffer = (char*)buffer;
+
+      for (int i = 0; i < duration; i++)
+      {
+         res = m_pDriver->readStreamSync(stream, pBuffer, frames);
+         pBuffer += (sampleSize * frames);
+      }
+      
+      printf("Playing back recorded sound...\n");
+      pBuffer = (char*)buffer;
+      // now play back what we recorded
+      for (int i = 0; i < duration; i++)
+      {
+         res = m_pDriver->writeStreamSync(stream, pBuffer, frames);
+         pBuffer += (sampleSize * frames);
+      }
+
+      free(buffer);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+   }
+
+   void syncMonoPlaybackAnyFrames()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 320;
+
+      outputParameters.setChannelCount(1);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      res = m_pDriver->openStream(&stream,
+         NULL,
+         &outputParameters,
+         8000,
+         MP_AUDIO_STREAM_FRAMESPERBUFFERUNSPECIFIED,
+         MP_AUDIO_STREAM_CLIPOFF,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      // now start supplying sound frames
+      FILE* file = fopen("./oriental_gong.snd", "rb");
+
+      if (file)
+      {
+         int sampleSize = 0;
+         int bytesRead = 1;
+
+         m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+         void* buffer = malloc(sampleSize * frames);
+         int realFrames = frames;
+         int cnt = 0;
+
+         while (bytesRead > 0)
+         {
+            memset(buffer, 0, sampleSize * frames);
+
+            // change realFrames
+            if (cnt % 2 == 0)
+            {
+               realFrames = realFrames / 2;
+            }
+            else
+            {
+               realFrames = realFrames * 2;
+            }
+
+            bytesRead = fread(buffer, 1, sampleSize * realFrames, file);
+
+            res = m_pDriver->writeStreamSync(stream, buffer, realFrames);
+            cnt++;
+         }
+         fclose(file);
+         free(buffer);
+      }
+
+      // stop stream
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+   }
+
+   void syncMonoRecordingAnyFrames()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters inputParameters;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex inputDeviceIndex = 0;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 160;
+
+      inputParameters.setChannelCount(1);
+      outputParameters.setChannelCount(1);
+      inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      inputParameters.setSuggestedLatency(0.1);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultInputDevice(inputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      inputParameters.setDeviceIndex(inputDeviceIndex);
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      res = m_pDriver->openStream(&stream,
+         &inputParameters,
+         &outputParameters,
+         8000,
+         MP_AUDIO_STREAM_FRAMESPERBUFFERUNSPECIFIED,
+         MP_AUDIO_STREAM_CLIPOFF,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      printf("Starting recording...\n");
+      // now start recording
+      int sampleSize = 0;
+      m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+      int duration = 200;
+      void* buffer = malloc(sampleSize * frames * duration);
+      memset(buffer, 0, sampleSize * frames * duration);
+      char* pBuffer = (char*)buffer;
+      int cnt = 0;
+      int realFrames = frames;
+
+      for (int i = 0; i < duration; i++)
+      {
+         // change realFrames
+         if (cnt % 2 == 0)
+         {
+            realFrames = realFrames / 2;
+         }
+         else
+         {
+            realFrames = realFrames * 2;
+         }
+
+         res = m_pDriver->readStreamSync(stream, pBuffer, realFrames);
+         pBuffer += (sampleSize * realFrames);
+         cnt++;
+      }
+
+      printf("Playing back recorded sound...\n");
+      pBuffer = (char*)buffer;
+      cnt = 0;
+      // now play back what we recorded
+      for (int i = 0; i < duration; i++)
+      {
+         // change realFrames
+         if (cnt % 2 == 0)
+         {
+            realFrames = realFrames / 2;
+         }
+         else
+         {
+            realFrames = realFrames * 2;
+         }
+
+         res = m_pDriver->writeStreamSync(stream, pBuffer, realFrames);
+         pBuffer += (sampleSize * realFrames);
+         cnt++;
+      }
+
+      free(buffer);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
    }
 
 };
