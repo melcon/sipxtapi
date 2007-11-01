@@ -13,6 +13,8 @@
 #include <mp/MpAudioDriverBase.h>
 #include <mp/MpAudioDriverDefs.h>
 #include <mp/MpAudioDeviceInfo.h>
+#include <mp/MpAudioStreamInfo.h>
+#include <mp/MpAudioStreamParameters.h>
 
 class MpPortAudioDriverTest : public CppUnit::TestCase
 {
@@ -38,6 +40,12 @@ class MpPortAudioDriverTest : public CppUnit::TestCase
    CPPUNIT_TEST(getStreamInfo);
    CPPUNIT_TEST(getStreamTime);
    CPPUNIT_TEST(getStreamCpuLoad);
+//   CPPUNIT_TEST(getStreamReadAvailable); // currently fails, portaudio doesnt seem to support this function for all drivers
+//   CPPUNIT_TEST(getStreamWriteAvailable); // currently fails, portaudio doesnt seem to support this function for all drivers
+   CPPUNIT_TEST(isFormatSupported);
+   CPPUNIT_TEST(isStreamStopped);
+   CPPUNIT_TEST(isStreamActive);
+   CPPUNIT_TEST(openStream);
 
    CPPUNIT_TEST_SUITE_END();
 
@@ -258,15 +266,15 @@ public:
 
    void openDefaultStream()
    {
-      OsStatus res = OS_FAILED;
-      MpAudioStreamId stream;
-
       for (int i = 0; i < 2; i++)
       {
          // first try asynchronous, then synchronous
 
          for (int channel = 1; channel < 3; channel++)
          {
+            OsStatus res = OS_FAILED;
+            MpAudioStreamId stream;
+
             // first try 1 channel, then 2 channel
             res = m_pDriver->openDefaultStream(&stream,
                1,
@@ -542,17 +550,314 @@ public:
 
    void getStreamInfo()
    {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
 
+      res = m_pDriver->openDefaultStream(&stream,
+         1,
+         1,
+         MP_AUDIO_FORMAT_INT16,
+         8000,
+         160,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      OsTask::delay(50);
+
+      MpAudioStreamInfo streamInfo;
+      res = m_pDriver->getStreamInfo(stream, streamInfo);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      CPPUNIT_ASSERT(streamInfo.getInputLatency() >= 0);
+      CPPUNIT_ASSERT(streamInfo.getOutputLatency() >= 0);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->getStreamInfo(NULL, streamInfo);
+      CPPUNIT_ASSERT(res == OS_FAILED);
    }
 
    void getStreamTime()
    {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
 
+      res = m_pDriver->openDefaultStream(&stream,
+         1,
+         1,
+         MP_AUDIO_FORMAT_INT16,
+         8000,
+         160,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      OsTask::delay(50);
+
+      double streamTime;
+      res = m_pDriver->getStreamTime(stream, streamTime);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->getStreamTime(NULL, streamTime);
+      CPPUNIT_ASSERT(res == OS_FAILED);
    }
 
    void getStreamCpuLoad()
    {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
 
+      res = m_pDriver->openDefaultStream(&stream,
+         1,
+         1,
+         MP_AUDIO_FORMAT_INT16,
+         8000,
+         160,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      OsTask::delay(50);
+
+      double cpuLoad;
+      res = m_pDriver->getStreamCpuLoad(stream, cpuLoad);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->getStreamTime(NULL, cpuLoad);
+      CPPUNIT_ASSERT(res == OS_FAILED);
+   }
+
+   void getStreamReadAvailable()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+
+      res = m_pDriver->openDefaultStream(&stream,
+         1,
+         1,
+         MP_AUDIO_FORMAT_INT16,
+         8000,
+         160,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      OsTask::delay(100);
+
+      // now it should be possible to read some data without blocking
+      long framesAvailable = 0;
+      res = m_pDriver->getStreamReadAvailable(stream, framesAvailable);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      CPPUNIT_ASSERT(framesAvailable > 0);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->getStreamReadAvailable(NULL, framesAvailable);
+      CPPUNIT_ASSERT(res == OS_FAILED);
+   }
+
+   void getStreamWriteAvailable()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+
+      res = m_pDriver->openDefaultStream(&stream,
+         1,
+         1,
+         MP_AUDIO_FORMAT_INT16,
+         8000,
+         160,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      OsTask::delay(100);
+
+      // now it should be possible to read some data without blocking
+      long framesAvailable = 0;
+      res = m_pDriver->getStreamWriteAvailable(stream, framesAvailable);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      CPPUNIT_ASSERT(framesAvailable > 0);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->getStreamReadAvailable(NULL, framesAvailable);
+      CPPUNIT_ASSERT(res == OS_FAILED);
+   }
+
+   void isFormatSupported()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamParameters inputParameters;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex inputDeviceIndex = 0;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+
+      inputParameters.setChannelCount(1);
+      outputParameters.setChannelCount(1);
+      inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      inputParameters.setSuggestedLatency(0.1);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultInputDevice(inputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      inputParameters.setDeviceIndex(inputDeviceIndex);
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      res = m_pDriver->isFormatSupported(&inputParameters, &outputParameters, 8000);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->isFormatSupported(&inputParameters, &outputParameters, 44100);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+   }
+
+   void isStreamStopped()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+
+      res = m_pDriver->openDefaultStream(&stream,
+         1,
+         1,
+         MP_AUDIO_FORMAT_INT16,
+         8000,
+         160,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      OsTask::delay(100);
+
+      UtlBoolean isStopped = FALSE;
+      res = m_pDriver->isStreamStopped(stream, isStopped);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      CPPUNIT_ASSERT(isStopped == FALSE);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->isStreamStopped(stream, isStopped);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      CPPUNIT_ASSERT(isStopped == TRUE);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->isStreamStopped(NULL, isStopped);
+      CPPUNIT_ASSERT(res == OS_FAILED);
+   }
+
+   void isStreamActive()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+
+      res = m_pDriver->openDefaultStream(&stream,
+         1,
+         1,
+         MP_AUDIO_FORMAT_INT16,
+         8000,
+         160,
+         TRUE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      OsTask::delay(100);
+
+      UtlBoolean isActive = FALSE;
+      res = m_pDriver->isStreamActive(stream, isActive);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      CPPUNIT_ASSERT(isActive == TRUE);
+
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->isStreamActive(stream, isActive);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      CPPUNIT_ASSERT(isActive == FALSE);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->isStreamActive(NULL, isActive);
+      CPPUNIT_ASSERT(res == OS_FAILED);
+   }
+
+   void openStream()
+   {
+      for (int frames = 0; frames < 2; frames++)
+      {
+         // try fixed number of frames per buffer, and MP_AUDIO_STREAM_FRAMESPERBUFFERUNSPECIFIED
+         for (int i = 0; i < 2; i++)
+         {
+            // first try asynchronous, then synchronous
+            for (int channel = 1; channel < 3; channel++)
+            {
+               OsStatus res = OS_FAILED;
+               MpAudioStreamId stream = 0;
+               MpAudioStreamParameters inputParameters;
+               MpAudioStreamParameters outputParameters;
+               MpAudioDeviceIndex inputDeviceIndex = 0;
+               MpAudioDeviceIndex outputDeviceIndex = 0;
+
+               inputParameters.setChannelCount(1);
+               outputParameters.setChannelCount(channel);
+               inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+               outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+               inputParameters.setSuggestedLatency(0.1);
+               outputParameters.setSuggestedLatency(0.1);
+
+               res = m_pDriver->getDefaultInputDevice(inputDeviceIndex);
+               CPPUNIT_ASSERT(res == OS_SUCCESS);
+               res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+               CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+               inputParameters.setDeviceIndex(inputDeviceIndex);
+               outputParameters.setDeviceIndex(outputDeviceIndex);
+
+               res = m_pDriver->openStream(&stream,
+                  &inputParameters,
+                  &outputParameters,
+                  8000,
+                  frames == 0 ? MP_AUDIO_STREAM_FRAMESPERBUFFERUNSPECIFIED : 160,
+                  MP_AUDIO_STREAM_NOFLAG,
+                  i);
+               CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+               res = m_pDriver->startStream(stream);
+               CPPUNIT_ASSERT(res == OS_SUCCESS);
+               OsTask::delay(100);
+
+               res = m_pDriver->stopStream(stream);
+               CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+               res = m_pDriver->closeStream(stream);
+               CPPUNIT_ASSERT(res == OS_SUCCESS);
+            }
+         }
+      }
    }
 
 };
