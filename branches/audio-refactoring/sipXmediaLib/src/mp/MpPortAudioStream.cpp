@@ -190,10 +190,14 @@ int MpPortAudioStream::streamCallback(const void *input,
                                       PaStreamCallbackFlags statusFlags,
                                       void *userData)
 {
-   assert(userData);
-   MpPortAudioStream* instance = (MpPortAudioStream*)userData;
+   if (userData)
+   {
+      MpPortAudioStream* instance = (MpPortAudioStream*)userData;
 
-   return instance->instanceStreamCallback(input, output, frameCount, timeInfo, statusFlags);
+      return instance->instanceStreamCallback(input, output, frameCount, timeInfo, statusFlags);
+   }
+
+   return paContinue;
 }
 
 OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
