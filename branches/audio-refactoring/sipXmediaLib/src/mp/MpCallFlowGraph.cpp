@@ -150,7 +150,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
                                  samplesPerFrame, samplesPerSec);
 #ifndef DISABLE_LOCAL_AUDIO // [
    mpFromMic          = new MprFromMic("FromMic",
-                                 samplesPerFrame, samplesPerSec, MpMisc.pMicQ);
+                                 samplesPerFrame, samplesPerSec);
    mpMicSplitter      = new MprSplitter("MicSplitter", 2, 
                                  samplesPerFrame, samplesPerSec);
    mpBufferRecorder   = new MprBufferRecorder("BufferRecorder",
@@ -185,8 +185,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
                                  samplesPerFrame, samplesPerSec);
 #ifndef DISABLE_LOCAL_AUDIO // [
    mpToSpkr           = new MprToSpkr("ToSpkr",
-                                 samplesPerFrame, samplesPerSec,
-                                 MpMisc.pSpkQ, MpMisc.pEchoQ);
+                                 samplesPerFrame, samplesPerSec, MpMisc.m_pEchoQ);
 #endif // DISABLE_LOCAL_AUDIO ]
    mpToneGen          = new MprToneGen("ToneGen",
                                  samplesPerFrame, samplesPerSec, 

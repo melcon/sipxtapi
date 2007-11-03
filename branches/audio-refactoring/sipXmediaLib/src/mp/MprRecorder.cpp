@@ -390,7 +390,7 @@ UtlBoolean MprRecorder::doProcessFrame(MpBufPtr inBufs[],
       // Write silence if no input
       if (!in.isValid()) 
       {
-         in = MpMisc.mpFgSilence;
+         in = MpMisc.m_fgSilence;
       }
 
       if (in->isActiveAudio()) 

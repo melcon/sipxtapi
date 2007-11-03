@@ -45,8 +45,6 @@
 #define CONFIG_PHONESET_SEND_INBAND_DTMF  "PHONESET_SEND_INBAND_DTMF"
 // initial pool size for audio buffers, if we run out of them,
 // we allocate a new pool. They are deleted only during shutdown.
-#define DEFAULT_INITIAL_AUDIO_BUFFERS 256
-
 // Audio codecs number calculation:
 
 #define GENERIC_AUDIO_CODECS_NUM 3
@@ -142,7 +140,7 @@ sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
     // Start audio subsystem if still not started.
     if (miInstanceCount == 0)
     {
-        mpStartUp(8000, 80, DEFAULT_INITIAL_AUDIO_BUFFERS, pConfigDb);
+        mpStartUp(8000, 80);
     }
 
     // Should we send inband DTMF by default?    
@@ -155,24 +153,9 @@ sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
         MpCallFlowGraph::setInbandDTMF(true) ;
     }
 
-    // init the media processing task
-    mpMediaTask = MpMediaTask::getMediaTask(); 
-
 #ifdef INCLUDE_RTCP /* [ */
     mpiRTCPControl = CRTCManager::getRTCPControl();
 #endif /* INCLUDE_RTCP ] */
-
-    if (miInstanceCount == 0)
-    {
-#ifndef ENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY
-        mpStartTasks();  
-#else
-        if (OS_SUCCESS != startNetInTask()) {
-           OsSysLog::add(FAC_MP, PRI_ERR,
-                         "Could not start NetInTask!!");
-        }
-#endif
-    }
 
     miGain = 7 ;
     ++miInstanceCount;
@@ -189,11 +172,6 @@ sipXmediaFactoryImpl::~sipXmediaFactoryImpl()
     --miInstanceCount;
     if (miInstanceCount == 0)
     {
-#ifndef ENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY
-        mpStopTasks();
-#else
-        shutdownNetInTask();
-#endif
         mpShutdown();
     }
 }

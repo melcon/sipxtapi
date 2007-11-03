@@ -46,10 +46,8 @@ MICDATAHOOK MprFromMic::s_fnMicDataHook = 0 ;
 // Constructor
 MprFromMic::MprFromMic(const UtlString& rName,
                        int samplesPerFrame,
-                       int samplesPerSec,
-                       OsMsgQ *pMicQ)
+                       int samplesPerSec)
 : MpAudioResource(rName, 0, 1, 1, 1, samplesPerFrame, samplesPerSec)
-, mpMicQ(pMicQ)
 , mNumFrames(0)
 #ifndef REAL_SILENCE_DETECTION
 , MinVoiceEnergy(0)
@@ -104,7 +102,7 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
    {
       // If the microphone queue (holds unprocessed mic data) has more then
       // the max_mic_buffers threshold, drain the queue until in range)
-      while (mpMicQ && mpMicQ->numMsgs() > MpMisc.max_mic_buffers) 
+      while (mpMicQ && mpMicQ->numMsgs() > 20) 
       {
          if (mpMicQ->receive((OsMsg*&)pMsg, OsTime::NO_WAIT_TIME) == OS_SUCCESS) 
          {
@@ -133,10 +131,10 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
 #ifdef INSERT_SAWTOOTH /* [ */
       if (!out.isValid())
       {
-         out = MpMisc.RawAudioPool->getBuffer();
+         out = MpMisc.m_pRawAudioPool->getBuffer();
             if (!out.isValid())
                return FALSE;
-         out->setSamplesNumber(MpMisc.frameSamples);
+         out->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
       }
       MpBuf_insertSawTooth(out);
       out->setSpeechType(MpAudioBuf::MP_SPEECH_ACTIVE);
@@ -152,10 +150,10 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
 
          if (!out.isValid())
          {
-            out = MpMisc.RawAudioPool->getBuffer();
+            out = MpMisc.m_pRawAudioPool->getBuffer();
             if (!out.isValid())
                return FALSE;
-            out->setSamplesNumber(MpMisc.frameSamples);
+            out->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
          }
          
          if (out.isValid()) 
@@ -190,7 +188,7 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
                   int n = out->getSamplesNumber();
                   shpSamples = out->getSamplesWritePtr();
 
-                  tpBuf = MpMisc.RawAudioPool->getBuffer();
+                  tpBuf = MpMisc.m_pRawAudioPool->getBuffer();
                   if (!out.isValid())
                      return FALSE;
                   tpBuf->setSamplesNumber(n);

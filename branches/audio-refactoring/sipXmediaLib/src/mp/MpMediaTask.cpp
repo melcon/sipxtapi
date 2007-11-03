@@ -69,13 +69,13 @@ OsBSem       MpMediaTask::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
 /* ============================ CREATORS ================================== */
 
 // Return a pointer to the media task, creating it if necessary
-MpMediaTask* MpMediaTask::getMediaTask()
+MpMediaTask* MpMediaTask::getMediaTask(UtlBoolean bCreate)
 {
    UtlBoolean isStarted;
 
    // If the task object already exists, and the corresponding low-level task
-   // has been started, then use it
-   if (spInstance != NULL && spInstance->isStarted())
+   // has been started, then use it. If we do not request creation, also return NULL
+   if ((spInstance != NULL && spInstance->isStarted()) || (!bCreate))
       return spInstance;
 
    // If the task does not yet exist or hasn't been started, then acquire
@@ -544,12 +544,7 @@ MpMediaTask::MpMediaTask()
    res = setTimeLimit(DEF_TIME_LIMIT_USECS);
    assert(res == OS_SUCCESS);
 
-   int totalNumBufs = MpMisc.AudioHeadersPool->getNumBlocks()
-      + MpMisc.RtpHeadersPool->getNumBlocks()
-#ifdef REAL_RTCP // [
-      + MpMisc.RtcpHeadersPool->getNumBlocks()
-#endif // ] TINY_MEDIALIB
-      ;
+   int totalNumBufs = MpMisc.m_pRtpHeadersPool->getNumBlocks() * 2;
    int soft = totalNumBufs/20;
    if (soft < 8) soft = 8;
    {

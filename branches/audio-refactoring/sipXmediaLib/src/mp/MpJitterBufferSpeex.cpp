@@ -93,7 +93,7 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
       if (result == JITTER_BUFFER_OK)
       {
          // assign fresh buffer to pOutRtp
-         pOutRtp = MpMisc.RtpPool->getBuffer();
+         pOutRtp = MpMisc.m_pRtpPool->getBuffer();
 
          if (!pOutRtp.isValid())
          {

@@ -46,8 +46,6 @@ public:
         MP_SPEECH_TONE            ///< filled with active (not silent) tone data
     } SpeechType;
 
-    static MpBufPool *smpDefaultPool; ///< Default pool for this type of buffer
-
 /* ============================ CREATORS ================================== */
 ///@name Creators
 //@{

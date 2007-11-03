@@ -43,8 +43,6 @@ struct MpUdpBuf : public MpDataBuf
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-   static MpBufPool *smpDefaultPool; ///< Default pool for this type of buffer
-
 /* ============================ CREATORS ================================== */
 ///@name Creators
 //@{

@@ -1390,14 +1390,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\dmaTaskPosix.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\dmaTaskWnt.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\DSPlib.cpp"
 					>
 				</File>
@@ -1415,10 +1407,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\HandsetFilterBank.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MicThreadWnt.cpp"
 					>
 				</File>
 				<File
@@ -1863,10 +1851,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\resamplingby2.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\SpeakerThreadWnt.cpp"
 					>
 				</File>
 				<File

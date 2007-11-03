@@ -213,12 +213,12 @@ void MprEchoSuppress::frame_match(const MpAudioBufPtr &in)
 #endif /* DEBUG_TC ] */
         }
     }
-    while ((!mpPrev.isValid()) && (0 < MpMisc.pEchoQ->numMsgs())) {
-        if (OS_SUCCESS == MpMisc.pEchoQ->receive((OsMsg*&) pMsg,
+    while ((!mpPrev.isValid()) && (0 < MpMisc.m_pEchoQ->numMsgs())) {
+        if (OS_SUCCESS == MpMisc.m_pEchoQ->receive((OsMsg*&) pMsg,
                                                           OsTime::NO_WAIT_TIME)) {
             mpPrev = pMsg->getBuffer();
             pMsg->releaseMsg();
-            if (mpPrev == MpMisc.mpFgSilence) { // $$$ !
+            if (mpPrev == MpMisc.m_fgSilence) { // $$$ !
                 mpPrev.release();
             }
             if (mpPrev.isValid()) {
@@ -328,7 +328,7 @@ UtlBoolean MprEchoSuppress::doProcessFrame(MpBufPtr inBufs[],
 
    if (in32 == NULL)
    {
-      out = MpMisc.mpFgSilence;
+      out = MpMisc.m_fgSilence;
       outBufs[0] = out;
       return TRUE;
    }
@@ -347,7 +347,7 @@ UtlBoolean MprEchoSuppress::doProcessFrame(MpBufPtr inBufs[],
    MpAudioBufPtr   out2;           /* To point to 8k speaker buffer */
    if(mpPrev == NULL) 
    {
-      out2 = MpMisc.mpFgSilence;
+      out2 = MpMisc.m_fgSilence;
    }
    else
    {
@@ -421,7 +421,7 @@ UtlBoolean MprEchoSuppress::doProcessFrame(MpBufPtr inBufs[],
    }
 
    if (!out.isValid()) {
-      out = MpMisc.mpFgSilence;
+      out = MpMisc.m_fgSilence;
    }
 
    *outBufs = out;

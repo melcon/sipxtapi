@@ -43,7 +43,6 @@ public:
         CPPUNIT_ASSERT(mpHeadersPool != NULL);
 
         // Set mpHeadersPool as default pool for audio and data pools.
-        MpAudioBuf::smpDefaultPool = mpHeadersPool;
         MpDataBuf::smpDefaultPool = mpHeadersPool;
     }
 

@@ -48,12 +48,8 @@ public:
       OsStatus          res;
 
       // Setup media task
-      res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME, 6*10, 0);
+      res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
-
-      // Call getMediaTask() which causes the task to get instantiated
-      mpMediaTask = MpMediaTask::getMediaTask();
-      CPPUNIT_ASSERT(mpMediaTask != NULL);
    }
 
    // Clean up after test is done.

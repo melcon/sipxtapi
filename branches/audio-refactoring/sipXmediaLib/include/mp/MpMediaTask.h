@@ -19,6 +19,7 @@
 // APPLICATION INCLUDES
 #include "utl/UtlHistogram.h"
 #include "utl/UtlHashBag.h"
+#include <utl/UtlBool.h>
 #include "os/OsDefs.h"
 #include "os/OsRWMutex.h"
 #include "os/OsServerTask.h"
@@ -118,7 +119,7 @@ public:
 
      /// @brief Return a pointer to the media processing task, creating it if 
      /// necessary
-   static MpMediaTask* getMediaTask();
+   static MpMediaTask* getMediaTask(UtlBoolean bCreate = TRUE);
 
 ///@name Creators
 //@{

@@ -64,7 +64,6 @@ enum OsStatus
    // Task Management
    OS_TASK_NOT_STARTED,       // task has not yet been started (or has been
                               //  shut down)
-
    OS_PORT_IN_USE,            // task failed while trying to bind to port
 
    // Network status

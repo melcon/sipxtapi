@@ -73,9 +73,6 @@ struct MpRtpBuf : public MpDataBuf
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-    /// Default pool for MpDataBuf objects.
-    static MpBufPool *smpDefaultPool;
-
 /* ============================ CREATORS ================================== */
 ///@name Creators
 //@{
