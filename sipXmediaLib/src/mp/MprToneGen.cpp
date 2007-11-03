@@ -163,7 +163,7 @@ UtlBoolean MprToneGen::doProcessFrame(MpBufPtr inBufs[],
 
    if (isEnabled) {
       // Get new buffer
-      out = MpMisc.RawAudioPool->getBuffer();
+      out = MpMisc.m_pRawAudioPool->getBuffer();
       if (!out.isValid())
          return FALSE;
       out->setSamplesNumber(samplesPerFrame);

@@ -16,7 +16,6 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-MpBufPool *MpRtpBuf::smpDefaultPool = NULL;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 

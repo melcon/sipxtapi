@@ -139,7 +139,7 @@ UtlBoolean MprMixer::doProcessFrame(MpBufPtr inBufs[],
    }
 
    // Get new buffer for our output
-   out = MpMisc.RawAudioPool->getBuffer();
+   out = MpMisc.m_pRawAudioPool->getBuffer();
    if (!out.isValid())
       return FALSE;
    out->setSamplesNumber(samplesPerFrame);

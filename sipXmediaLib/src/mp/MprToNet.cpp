@@ -182,7 +182,7 @@ int MprToNet::writeRtp(int payloadType, UtlBoolean markerState,
       return 0;
 
    // Allocate new RTP packet.
-   pRtpPacket = MpMisc.RtpPool->getBuffer();
+   pRtpPacket = MpMisc.m_pRtpPool->getBuffer();
 
    // Get rid of packet sequence number.
    mSeqNum++;
@@ -228,7 +228,7 @@ int MprToNet::writeRtp(int payloadType, UtlBoolean markerState,
    MpUdpBufPtr pUdpPacket;
 
    // Allocate UDP packet
-   pUdpPacket = MpMisc.UdpPool->getBuffer();
+   pUdpPacket = MpMisc.m_pUdpPool->getBuffer();
    pBuf = pUdpPacket->getDataWritePtr();
 
    // Set size of data to send

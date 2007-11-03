@@ -218,7 +218,7 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
    OsLock lock(mLock);
 
    // Get new audio buffer for decoded sound
-   MpAudioBufPtr out = MpMisc.RawAudioPool->getBuffer();
+   MpAudioBufPtr out = MpMisc.m_pRawAudioPool->getBuffer();
    if (!out.isValid())
    {
       return FALSE;

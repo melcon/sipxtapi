@@ -90,10 +90,8 @@ int MprToSpkr::smClarisisHandsetSpeakerEq[EqFilterLen_ix] =  {
 MprToSpkr::MprToSpkr(const UtlString& rName,
                      int samplesPerFrame,
                      int samplesPerSec,
-                     OsMsgQ *pSpkQ,
                      OsMsgQ *pEchoQ)
 :  MpAudioResource(rName, 1, 1, 0, 1, samplesPerFrame, samplesPerSec)
-,  mpSpkQ(pSpkQ)
 ,  mpEchoQ(pEchoQ)
 ,  mulNoiseLevel(1000L)
 #ifdef DETECT_SPKR_OVERFLOW /* [ */
