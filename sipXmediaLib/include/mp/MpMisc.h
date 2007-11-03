@@ -50,6 +50,7 @@ struct MpGlobals
    int m_audioSamplesPerFrame;       ///< Number of samples in one audio frame
    int m_audioFrameBytes;         ///< Size of one audio frame 
    int m_audioSampleSize;        ///< Size of one audio sample (in bytes)
+   int m_audioSampleRate;        ///< Sample rate per sec
 
    MpBufPool *m_pRawAudioPool;     ///< Memory pool for raw audio data buffers
    MpBufPool *m_pRtpPool;          ///< Memory pool for RTP data buffers
@@ -65,8 +66,6 @@ struct MpGlobals
    MpAudioBufPtr m_comfortNoise;  ///< Buffer filled with comfort noise. You
                                 ///<  should not modify this buffer, cause
                                 ///<  it is used many times.
-   MpAudioStreamId m_inputAudioStream; ///< ID if input audio stream
-   MpAudioStreamId m_outputAudioStream; ///< ID of output audio stream
 };
 
 extern struct MpGlobals MpMisc;

@@ -33,6 +33,7 @@
 #include "mp/MprFromMic.h"
 #include "mp/MprToSpkr.h"
 #include "mp/MpMediaTask.h"
+#include "mp/MpAudioDriverManager.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -57,6 +58,7 @@ OsStatus mpStartUp(int sampleRate,
       return OS_FAILED;
    }
    
+   MpMisc.m_audioSampleRate = sampleRate;
    MpMisc.m_audioSampleSize = sizeof(MpAudioSample);
    MpMisc.m_audioSamplesPerFrame = samplesPerFrame;
    MpMisc.m_audioFrameBytes = MpMisc.m_audioSampleSize * MpMisc.m_audioSamplesPerFrame;
@@ -120,6 +122,14 @@ OsStatus mpStartUp(int sampleRate,
    // create queue for echo canceller
    MpMisc.m_pEchoQ = new OsMsgQ(ECHO_BUFFER_Q_LEN);
 
+#ifndef DISABLE_LOCAL_AUDIO
+   // create audio driver manager, which creates audio driver
+   if (!MpAudioDriverManager::getInstance(TRUE))
+   {
+      return OS_FAILED;
+   }
+#endif
+
    // start media task
    if (!MpMediaTask::getMediaTask())
    {
@@ -141,12 +151,20 @@ OsStatus mpShutdown(void)
    {
       return OS_FAILED;
    }
-
+  
    if (MpMediaTask::getMediaTask(FALSE))
    {
       // This will MpMediaTask::spInstance to NULL
-      delete MpMediaTask::getMediaTask();
+      delete MpMediaTask::getMediaTask(FALSE);
    }
+
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+   if (pAudioManager)
+   {
+      pAudioManager->release();
+   }
+#endif
 
    if (MpMisc.m_pEchoQ)
    {
