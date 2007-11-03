@@ -1438,6 +1438,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpAudioDriverManager.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpAudioFileDecompress.cpp"
 					>
 				</File>
@@ -2032,6 +2036,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpAudioDriverFactory.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAudioDriverManager.h"
 					>
 				</File>
 				<File
