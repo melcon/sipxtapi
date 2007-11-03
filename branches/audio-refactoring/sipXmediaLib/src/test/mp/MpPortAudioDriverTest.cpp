@@ -21,6 +21,22 @@
 #include <mp/MpAudioStreamInfo.h>
 #include <mp/MpAudioStreamParameters.h>
 
+int getFileLength(FILE *f)
+{
+   int pos = 0;
+   int end = 0;
+
+   if (f)
+   {
+      pos = ftell(f);
+      fseek(f, 0, SEEK_END);
+      end = ftell (f);
+      fseek(f, pos, SEEK_SET);
+   }
+
+   return end;
+}
+
 class MpPortAudioDriverTest : public CppUnit::TestCase
 {
    CPPUNIT_TEST_SUITE(MpPortAudioDriverTest);
@@ -57,6 +73,8 @@ class MpPortAudioDriverTest : public CppUnit::TestCase
    CPPUNIT_TEST(syncMonoRecordingAnyFrames);
    CPPUNIT_TEST(asyncMonoPlaybackFixedFrames);
    CPPUNIT_TEST(asyncMonoPlaybackAnyFrames);
+   CPPUNIT_TEST(asyncMonoRecordingFixedFrames);
+   CPPUNIT_TEST(asyncMonoRecordingAnyFrames);
 
    CPPUNIT_TEST_SUITE_END();
 
@@ -1350,21 +1368,251 @@ public:
       CPPUNIT_ASSERT(res == OS_SUCCESS);
    }
 
-   int getFileLength(FILE *f)
+   void asyncMonoRecordingFixedFrames()
    {
-      int pos = 0;
-      int end = 0;
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters inputParameters;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex inputDeviceIndex = 0;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 160;
 
-      if (f)
+      inputParameters.setChannelCount(1);
+      inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      inputParameters.setSuggestedLatency(0.1);
+      outputParameters.setChannelCount(1);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultInputDevice(inputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      inputParameters.setDeviceIndex(inputDeviceIndex);
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      // open asynchronous output stream
+      res = m_pDriver->openStream(&stream,
+         &inputParameters,
+         &outputParameters,
+         8000,
+         frames,
+         MP_AUDIO_STREAM_CLIPOFF,
+         FALSE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      printf("Starting recording...\n");
+      // now start recording
+      int sampleSize = 0;
+      res = m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      int duration = 200;
+      int bufferSize = sampleSize * frames * duration;
+      char* buffer = (char*)malloc(bufferSize);
+      memset(buffer, 0, bufferSize);
+      char* pBuffer = (char*)buffer;
+
+      // get timer task to start it
+      OsTimerTask::getTimerTask();
+      OsEvent event(0);
+      OsTimer timer(event);
+      // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
+      timer.periodicEvery(OsTime(100), OsTime(20));
+      char* bufferEnd = buffer + bufferSize;
+
+      while ((pBuffer + frames * sampleSize) < bufferEnd)
       {
-         pos = ftell(f);
-         fseek(f, 0, SEEK_END);
-         end = ftell (f);
-         fseek(f, pos, SEEK_SET);
+         // wait until timer signals us
+         event.wait();
+         event.reset();
+
+         // now copy data to stream
+         res = m_pDriver->readStreamAsync(stream, pBuffer, frames);
+         CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_UNDERFLOW || res == OS_PREFETCH);
+
+         if (res == OS_SUCCESS || res == OS_UNDERFLOW)
+         {
+            pBuffer += sampleSize * frames;
+         }
+         // repeat until we run out of buffer
       }
 
-      return end;
+      printf("Playing back recorded sound...\n");
+      pBuffer = (char*)buffer;
+
+      // now play back what we recorded
+      while ((pBuffer + frames * sampleSize) < bufferEnd)
+      {
+         // wait until timer signals us
+         event.wait();
+         event.reset();
+
+         // now copy data to stream
+         res = m_pDriver->writeStreamAsync(stream, pBuffer, frames);
+         CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_OVERFLOW);
+
+         pBuffer += sampleSize * frames;
+         // repeat until we run out of buffer
+      }
+
+      // stop timer
+      timer.stop();
+      OsTask::delay(200);
+
+      // destroy timer task
+      OsTimerTask::destroyTimerTask();
+
+      free(buffer);
+
+      // stop stream
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
    }
+
+   void asyncMonoRecordingAnyFrames()
+   {
+      OsStatus res = OS_FAILED;
+      MpAudioStreamId stream = 0;
+      MpAudioStreamParameters inputParameters;
+      MpAudioStreamParameters outputParameters;
+      MpAudioDeviceIndex inputDeviceIndex = 0;
+      MpAudioDeviceIndex outputDeviceIndex = 0;
+      int frames = 160;
+
+      inputParameters.setChannelCount(1);
+      inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      inputParameters.setSuggestedLatency(0.1);
+      outputParameters.setChannelCount(1);
+      outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+      outputParameters.setSuggestedLatency(0.1);
+
+      res = m_pDriver->getDefaultInputDevice(inputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      res = m_pDriver->getDefaultOutputDevice(outputDeviceIndex);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      inputParameters.setDeviceIndex(inputDeviceIndex);
+      outputParameters.setDeviceIndex(outputDeviceIndex);
+
+      // open asynchronous output stream
+      res = m_pDriver->openStream(&stream,
+         &inputParameters,
+         &outputParameters,
+         8000,
+         MP_AUDIO_STREAM_FRAMESPERBUFFERUNSPECIFIED,
+         MP_AUDIO_STREAM_CLIPOFF,
+         FALSE);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->startStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      printf("Starting recording...\n");
+      // now start recording
+      int sampleSize = 0;
+      res = m_pDriver->getSampleSize(MP_AUDIO_FORMAT_INT16, sampleSize);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+      int duration = 200;
+      int bufferSize = sampleSize * frames * duration;
+      char* buffer = (char*)malloc(bufferSize);
+      memset(buffer, 0, bufferSize);
+      char* pBuffer = (char*)buffer;
+
+      // get timer task to start it
+      OsTimerTask::getTimerTask();
+      OsEvent event(0);
+      OsTimer timer(event);
+      // for 8000 samples per sec, 160 frames per buffer, we need to signal every 20ms
+      timer.periodicEvery(OsTime(100), OsTime(20));
+      char* bufferEnd = buffer + bufferSize;
+      int realFrames = (int)(frames * 1.33333);
+      int cnt = 0;
+
+      while ((pBuffer + realFrames * sampleSize) < bufferEnd)
+      {
+         // wait until timer signals us
+         event.wait();
+         event.reset();
+
+         // now copy data to stream
+         res = m_pDriver->readStreamAsync(stream, pBuffer, realFrames);
+         CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_UNDERFLOW || res == OS_PREFETCH);
+
+         if (res == OS_SUCCESS || res == OS_UNDERFLOW)
+         {
+            pBuffer += sampleSize * realFrames;
+
+            if (cnt % 2 == 0)
+            {
+               // change realFrames
+               realFrames /= 2;
+            }
+            else
+            {
+               realFrames *= 2;
+            }
+
+            cnt++;
+         }
+         // repeat until we run out of buffer
+      }
+
+      printf("Playing back recorded sound...\n");
+      pBuffer = (char*)buffer;
+      realFrames = (int)(frames * 1.33333);
+
+      // now play back what we recorded
+      while ((pBuffer + realFrames * sampleSize) < bufferEnd)
+      {
+         // wait until timer signals us
+         event.wait();
+         event.reset();
+
+         // now copy data to stream
+         res = m_pDriver->writeStreamAsync(stream, pBuffer, realFrames);
+         CPPUNIT_ASSERT(res == OS_SUCCESS || res == OS_OVERFLOW);
+
+         pBuffer += sampleSize * realFrames;
+
+         if (cnt % 2 == 0)
+         {
+            // change realFrames
+            realFrames /= 2;
+         }
+         else
+         {
+            realFrames *= 2;
+         }
+
+         cnt++;
+         // repeat until we run out of buffer
+      }
+
+      // stop timer
+      timer.stop();
+      OsTask::delay(200);
+
+      // destroy timer task
+      OsTimerTask::destroyTimerTask();
+
+      free(buffer);
+
+      // stop stream
+      res = m_pDriver->stopStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+
+      res = m_pDriver->closeStream(stream);
+      CPPUNIT_ASSERT(res == OS_SUCCESS);
+   }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(MpPortAudioDriverTest);
