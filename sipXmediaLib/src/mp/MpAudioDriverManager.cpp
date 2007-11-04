@@ -49,7 +49,7 @@ MpAudioDriverManager* MpAudioDriverManager::getInstance(UtlBoolean bCreate /*= T
    }
 }
 
-OsStatus MpAudioDriverManager::getCurrentOutputDevice(UtlString& device, UtlString& driverName)
+OsStatus MpAudioDriverManager::getCurrentOutputDevice(UtlString& device, UtlString& driverName) const
 {
    if (m_pAudioDriver)
    {
@@ -85,7 +85,7 @@ OsStatus MpAudioDriverManager::getCurrentOutputDevice(UtlString& device, UtlStri
    return OS_FAILED;
 }
 
-OsStatus MpAudioDriverManager::getCurrentInputDevice(UtlString& device, UtlString& driverName)
+OsStatus MpAudioDriverManager::getCurrentInputDevice(UtlString& device, UtlString& driverName) const
 {
    if (m_pAudioDriver)
    {
@@ -121,7 +121,19 @@ OsStatus MpAudioDriverManager::getCurrentInputDevice(UtlString& device, UtlStrin
    return OS_FAILED;
 }
 
-OsStatus MpAudioDriverManager::startInputStream()
+OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
+                                                      const UtlString& driverName)
+{
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
+                                                     const UtlString& driverName)
+{
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::startInputStream() const
 {
    if (m_inputAudioStream && m_pAudioDriver)
    {
@@ -136,7 +148,7 @@ OsStatus MpAudioDriverManager::startInputStream()
    return OS_FAILED;
 }
 
-OsStatus MpAudioDriverManager::startOutputStream()
+OsStatus MpAudioDriverManager::startOutputStream() const
 {
    if (m_outputAudioStream && m_pAudioDriver)
    {
@@ -151,7 +163,7 @@ OsStatus MpAudioDriverManager::startOutputStream()
    return OS_FAILED;
 }
 
-OsStatus MpAudioDriverManager::abortInputStream()
+OsStatus MpAudioDriverManager::abortInputStream() const
 {
    if (m_inputAudioStream && m_pAudioDriver)
    {
@@ -166,7 +178,7 @@ OsStatus MpAudioDriverManager::abortInputStream()
    return OS_FAILED;
 }
 
-OsStatus MpAudioDriverManager::abortOutputStream()
+OsStatus MpAudioDriverManager::abortOutputStream() const
 {
    if (m_outputAudioStream && m_pAudioDriver)
    {
@@ -325,7 +337,6 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
       m_pAudioDriver = NULL;
    }
 }
-
 
 /* ============================ FUNCTIONS ================================= */
 

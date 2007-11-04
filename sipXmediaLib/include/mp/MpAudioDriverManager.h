@@ -55,32 +55,44 @@ public:
    /**
     * Returns name of current output device and driver name.
     */
-   OsStatus getCurrentOutputDevice(UtlString& device, UtlString& driverName);
+   OsStatus getCurrentOutputDevice(UtlString& device, UtlString& driverName) const;
 
    /**
     * Returns name of current input device and driver name.
     */
-   OsStatus getCurrentInputDevice(UtlString& device, UtlString& driverName);
+   OsStatus getCurrentInputDevice(UtlString& device, UtlString& driverName) const;
+
+   /**
+   * Sets current output device. NONE disables it, "Default" will select
+   * default one. If it fails, it will try not to disable current stream.
+   */
+   OsStatus setCurrentOutputDevice(const UtlString& device, const UtlString& driverName);
+
+   /**
+   * Sets current input device. NONE disables it, "Default" will select
+   * default one. If it fails, it will try not to disable current stream.
+   */
+   OsStatus setCurrentInputDevice(const UtlString& device, const UtlString& driverName);
 
    /**
    * Starts input stream.
    */
-   OsStatus startInputStream();
+   OsStatus startInputStream() const;
 
    /**
    * Starts output stream.
    */
-   OsStatus startOutputStream();
+   OsStatus startOutputStream() const;
 
    /**
     * Aborts input stream.
     */
-   OsStatus abortInputStream();
+   OsStatus abortInputStream() const;
 
    /**
     * Aborts output stream.
     */
-   OsStatus abortOutputStream();
+   OsStatus abortOutputStream() const;
 
    /**
     * Closes input stream.
@@ -104,16 +116,10 @@ public:
    //@{
 
    MpAudioStreamId getInputAudioStream() const { return m_inputAudioStream; }
-   void setInputAudioStream(MpAudioStreamId val) { m_inputAudioStream = val; }
-
    MpAudioStreamId getOutputAudioStream() const { return m_outputAudioStream; }
-   void setOutputAudioStream(MpAudioStreamId val) { m_outputAudioStream = val; }
 
    MpAudioDeviceIndex getInputDeviceIndex() const { return m_inputDeviceIndex; }
-   void setInputDeviceIndex(MpAudioDeviceIndex val) { m_inputDeviceIndex = val; }
-
    MpAudioDeviceIndex getOutputDeviceIndex() const { return m_outputDeviceIndex; }
-   void setOutputDeviceIndex(MpAudioDeviceIndex val) { m_outputDeviceIndex = val; }
 
    MpAudioDriverBase* getAudioDriver() const { return m_pAudioDriver; }
 
