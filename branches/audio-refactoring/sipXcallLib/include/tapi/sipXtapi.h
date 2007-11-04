@@ -836,31 +836,6 @@ typedef int (SIPX_CALLING_CONVENTION *SIPX_TRANSPORT_WRITE_PROC)(
         const size_t   nData,
         const void*    pUserData);
 
-/** 
- * Typedef for audio source (microphone) hook procedure.  This typedef 
- * coupled with the sipxConfigSetMicAudioHook API allows developers to 
- * view, modify or substitute microphone data.
- * 
- * @param nSamples number of 16 bit unsigned PCM samples
- * @param pSamples pointer to array of samples.
- *
- * NOTE: Keep in sync MICDATAHOOK with fnMicAudioHook
- */
-typedef void (*fnMicAudioHook)(const int nSamples, short* pSamples);
-
-/** 
- * Typedef for audio target(speaker) hook procedure.  This typedef 
- * coupled with the sipxConfigSetSpkrAudioHook API allows developers to 
- * intercept and modify audio headed for the speaker.
- *
- * @param nSamples number of 16 bit unsigned samples
- * @param pSamples pointer to array of samples
- *
- * NOTE: Keep in sync TOSPEAKERHOOK with fnSpkrAudioHook
- */
-typedef void (*fnSpkrAudioHook)(const int nSamples, short* pSamples);
-
-
 /**
  * SIPX_KEEPALIVE_TYPEs define different methods of keeping NAT/firewall
  * port open.   These approaches are used for the signaling path of a call
@@ -2882,37 +2857,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogFile(const char *szFilename);
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigSetLogCallback(sipxLogCallback pCallback);
 
-
-/**
- * Designate a callback routine as a microphone replacement or supplement.  
- * The callback is invoked with microphone data and the data can be reviewed,
- * modified, replaced, or discarded.
- * 
- * This callback proc must *NOT* block and must return data quickly.  
- * Additionally, the method should not call any blocking function (i.e. IO 
- * operations, malloc, new, etc).
- *
- * Data must be formatted as mono 16-bit signed PCM, little endian, 8000 
- * samples per second. The callback is handed 80 samples (10ms) of data at 
- * a time.
- *
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetMicAudioHook(fnMicAudioHook hookProc);
-
-
-/**
- * Designate a callback routine for post-mixing audio data (e.g. to speaker 
- * data).  The hook may review, modify, replace, or discard data.
- *
- * This callback proc must *NOT* block and must return data quickly.  
- * Additionally, the method should not call any blocking function (i.e. IO 
- * operations, malloc, new, etc).
- *
- * Data must be formatted as mono 16-bit signed PCM, little endian, 8000 
- * samples per second. The callback is handed 80 samples (10ms) of data at 
- * a time.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSpkrAudioHook(fnSpkrAudioHook hookProc);
 
 /**
  * Sets the User-Agent name to be used with outgoing SIP messages.
