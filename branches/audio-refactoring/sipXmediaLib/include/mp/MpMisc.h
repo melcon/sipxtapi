@@ -53,6 +53,7 @@ struct MpGlobals
    int m_audioSampleRate;        ///< Sample rate per sec
 
    MpBufPool *m_pRawAudioPool;     ///< Memory pool for raw audio data buffers
+   MpBufPool *m_pAudioHeadersPool;
    MpBufPool *m_pRtpPool;          ///< Memory pool for RTP data buffers
    MpBufPool *m_pRtcpPool;         ///< Memory pool for RTCP data buffers
    MpBufPool *m_pRtpHeadersPool;   ///< Memory pool for headers of RTP and
