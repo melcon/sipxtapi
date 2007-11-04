@@ -706,20 +706,10 @@ UtlBoolean MpMediaTask::handleSetFocus(MpFlowGraphBase* pFlowGraph)
    {
 #ifndef DISABLE_LOCAL_AUDIO
       // stop input stream
-      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
       if (pAudioManager)
       {
-         MpAudioStreamId streamId = pAudioManager->getInputAudioStream();
-         MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
-         if (streamId && pAudioDriver)
-         {
-            UtlBoolean isActive = FALSE;
-            pAudioDriver->isStreamActive(streamId, isActive);
-            if (isActive)
-            {
-               pAudioDriver->abortStream(streamId);
-            }            
-         }
+         pAudioManager->abortInputStream();
       }
 #endif
       
@@ -743,20 +733,10 @@ UtlBoolean MpMediaTask::handleSetFocus(MpFlowGraphBase* pFlowGraph)
 
 #ifndef DISABLE_LOCAL_AUDIO
       // start input stream
-      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
       if (pAudioManager)
       {
-         MpAudioStreamId streamId = pAudioManager->getInputAudioStream();
-         MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
-         if (streamId && pAudioDriver)
-         {
-            UtlBoolean isStopped = FALSE;
-            pAudioDriver->isStreamStopped(streamId, isStopped);
-            if (isStopped)
-            {
-               pAudioDriver->startStream(streamId);
-            }            
-         }
+         pAudioManager->startInputStream();
       }
 #endif
       Nprintf("MpMT::handleSetFocus(0x%X): attempt to give focus SUCCEEDED\n",

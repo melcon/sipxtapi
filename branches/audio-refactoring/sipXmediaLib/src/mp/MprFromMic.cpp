@@ -96,7 +96,7 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
 
    if (isEnabled) 
    {
-      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
       if (pAudioManager)
       {
          MpAudioStreamId streamId = pAudioManager->getInputAudioStream();
