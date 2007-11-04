@@ -18,7 +18,6 @@
 // APPLICATION INCLUDES
 #include "mp/MpBuf.h"
 #include "mp/MprFromMic.h"
-#include "mp/MpBufferMsg.h"
 #include "mp/MpAudioDriverManager.h"
 #include "mp/MpAudioDriverBase.h"
 #include "mp/MpAudioDriverDefs.h"

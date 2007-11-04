@@ -93,8 +93,6 @@ private:
                           ///< This queue should be connected to Echo
                           ///< Cancelation resource.
 
-   uint32_t mulNoiseLevel; ///< Used in comfort noise generation.
-
    virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
                                      MpBufPtr outBufs[],
                                      int inBufsSize,
