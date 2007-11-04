@@ -871,14 +871,14 @@ int local_main(int argc, char* argv[])
         }
         if (szOutDevice)
         {
-            if (sipxAudioSetCallOutputDevice(g_hInst1, szOutDevice) != SIPX_RESULT_SUCCESS)
+            if (sipxAudioSetOutputDevice(g_hInst1, szOutDevice) != SIPX_RESULT_SUCCESS)
             {
                 printf("!! Setting output device %s failed !!\n", szOutDevice);
             }
         }
         if (szInDevice)
         {
-            if (sipxAudioSetCallInputDevice(g_hInst1, szInDevice) != SIPX_RESULT_SUCCESS)
+            if (sipxAudioSetInputDevice(g_hInst1, szInDevice) != SIPX_RESULT_SUCCESS)
             { 
                 printf("!! Setting input device %s failed !!\n", szOutDevice);
             }

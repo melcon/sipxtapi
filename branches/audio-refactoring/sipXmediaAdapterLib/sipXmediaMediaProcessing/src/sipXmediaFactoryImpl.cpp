@@ -27,6 +27,9 @@
 #include "mp/dmaTask.h"
 #include "net/SdpCodecFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
+#include "mp/MpAudioDriverManager.h"
+#include "mp/MpAudioDriverBase.h"
+#include "mp/MpAudioDeviceInfo.h"
 
 #ifdef INCLUDE_RTCP /* [ */
 #include "rtcp/RTCManager.h"
@@ -208,7 +211,7 @@ OsStatus sipXmediaFactoryImpl::setSpeakerVolume(int iVolume)
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setSpeakerDevice(const UtlString& device) 
+OsStatus sipXmediaFactoryImpl::setSpeakerDevice(const UtlString& device, const UtlString& driverName) 
 {
    return OS_NOT_SUPPORTED;
 }
@@ -218,7 +221,7 @@ OsStatus sipXmediaFactoryImpl::setMicrophoneGain(int iGain)
     return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setMicrophoneDevice(const UtlString& device) 
+OsStatus sipXmediaFactoryImpl::setMicrophoneDevice(const UtlString& device, const UtlString& driverName) 
 {
    return OS_NOT_SUPPORTED;
 }
@@ -437,8 +440,50 @@ OsStatus sipXmediaFactoryImpl::getSpeakerVolume(int& iVolume) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getSpeakerDevice(UtlString& device) const
+OsStatus sipXmediaFactoryImpl::getSpeakerDevice(UtlString& device, UtlString& driverName) const
 {
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+   if (pAudioManager)
+   {
+      MpAudioDeviceIndex deviceIndex = pAudioManager->getOutputDeviceIndex();
+      MpAudioStreamId streamId = pAudioManager->getOutputAudioStream();
+      MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
+      if (pAudioDriver)
+      {
+         OsStatus res = OS_FAILED;
+         if (streamId)
+         {
+            // stream exists, then audio device is selected
+            MpAudioDeviceInfo deviceInfo;
+            res = pAudioDriver->getDeviceInfo(deviceIndex, deviceInfo);
+            if (res == OS_SUCCESS)
+            {
+               device = deviceInfo.getName();
+               MpHostAudioApiInfo apiInfo;
+               MpHostAudioApiIndex apiIndex = deviceInfo.getHostApi();
+               res = pAudioDriver->getHostApiInfo(apiIndex, apiInfo);
+               if (res == OS_SUCCESS)
+               {
+                  driverName = apiInfo.getName();
+               }
+            }         
+         }
+         else
+         {
+            // stream doesn't exist, audio device is disabled
+            device = "NONE";
+            driverName.remove(0);
+            res = OS_SUCCESS;
+         }
+
+         return res;
+      }
+   }
+
+   return OS_FAILED;
+#endif
+
    return OS_NOT_SUPPORTED;
 }
 
@@ -449,8 +494,50 @@ OsStatus sipXmediaFactoryImpl::getMicrophoneGain(int& iGain) const
 }
 
 
-OsStatus sipXmediaFactoryImpl::getMicrophoneDevice(UtlString& device) const
+OsStatus sipXmediaFactoryImpl::getMicrophoneDevice(UtlString& device, UtlString& driverName) const
 {
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+   if (pAudioManager)
+   {
+      MpAudioDeviceIndex deviceIndex = pAudioManager->getInputDeviceIndex();
+      MpAudioStreamId streamId = pAudioManager->getInputAudioStream();
+      MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
+      if (pAudioDriver)
+      {
+         OsStatus res = OS_FAILED;
+         if (streamId)
+         {
+            // stream exists, then audio device is selected
+            MpAudioDeviceInfo deviceInfo;
+            res = pAudioDriver->getDeviceInfo(deviceIndex, deviceInfo);
+            if (res == OS_SUCCESS)
+            {
+               device = deviceInfo.getName();
+               MpHostAudioApiInfo apiInfo;
+               MpHostAudioApiIndex apiIndex = deviceInfo.getHostApi();
+               res = pAudioDriver->getHostApiInfo(apiIndex, apiInfo);
+               if (res == OS_SUCCESS)
+               {
+                  driverName = apiInfo.getName();
+               }
+            }         
+         }
+         else
+         {
+            // stream doesn't exist, audio device is disabled
+            device = "NONE";
+            driverName.remove(0);
+            res = OS_SUCCESS;
+         }
+
+         return res;
+      }
+   }
+
+   return OS_FAILED;
+#endif
+
    return OS_NOT_SUPPORTED;
 }
 

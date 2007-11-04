@@ -544,9 +544,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    sipxConfigSetVideoBandwidth(pInst, VIDEO_CODEC_BW_NORMAL); // also resets video codecs
 
    initAudioDevices(*pInst);
-   initMicSettings(pInst->micSetting);
-   initSpeakerSettings(pInst->speakerSettings[SPEAKER]);
-   initSpeakerSettings(pInst->speakerSettings[RINGER]);
 
    // Setup listener delegation
    SipXEventDispatcher::initDispatcher();
