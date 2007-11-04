@@ -7,9 +7,11 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
+#include <utl/UtlString.h>
 #include "mp/MpAudioDriverManager.h"
 #include "mp/MpAudioDriverFactory.h"
 #include "mp/MpAudioDriverBase.h"
+#include "mp/MpAudioDeviceInfo.h"
 #include "mp/MpAudioStreamParameters.h"
 #include "mp/MpMisc.h"
 
@@ -47,6 +49,185 @@ MpAudioDriverManager* MpAudioDriverManager::getInstance(UtlBoolean bCreate /*= T
    }
 }
 
+OsStatus MpAudioDriverManager::getCurrentOutputDevice(UtlString& device, UtlString& driverName)
+{
+   if (m_pAudioDriver)
+   {
+      OsStatus res = OS_FAILED;
+      if (m_outputAudioStream)
+      {
+         // stream exists, then audio device is selected
+         MpAudioDeviceInfo deviceInfo;
+         res = m_pAudioDriver->getDeviceInfo(m_outputDeviceIndex, deviceInfo);
+         if (res == OS_SUCCESS)
+         {
+            device = deviceInfo.getName();
+            MpHostAudioApiInfo apiInfo;
+            MpHostAudioApiIndex apiIndex = deviceInfo.getHostApi();
+            res = m_pAudioDriver->getHostApiInfo(apiIndex, apiInfo);
+            if (res == OS_SUCCESS)
+            {
+               driverName = apiInfo.getName();
+            }
+         }         
+      }
+      else
+      {
+         // stream doesn't exist, audio device is disabled
+         device = "NONE";
+         driverName.remove(0);
+         res = OS_SUCCESS;
+      }
+
+      return res;
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::getCurrentInputDevice(UtlString& device, UtlString& driverName)
+{
+   if (m_pAudioDriver)
+   {
+      OsStatus res = OS_FAILED;
+      if (m_inputAudioStream)
+      {
+         // stream exists, then audio device is selected
+         MpAudioDeviceInfo deviceInfo;
+         res = m_pAudioDriver->getDeviceInfo(m_inputDeviceIndex, deviceInfo);
+         if (res == OS_SUCCESS)
+         {
+            device = deviceInfo.getName();
+            MpHostAudioApiInfo apiInfo;
+            MpHostAudioApiIndex apiIndex = deviceInfo.getHostApi();
+            res = m_pAudioDriver->getHostApiInfo(apiIndex, apiInfo);
+            if (res == OS_SUCCESS)
+            {
+               driverName = apiInfo.getName();
+            }
+         }         
+      }
+      else
+      {
+         // stream doesn't exist, audio device is disabled
+         device = "NONE";
+         driverName.remove(0);
+         res = OS_SUCCESS;
+      }
+
+      return res;
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::startInputStream()
+{
+   if (m_inputAudioStream && m_pAudioDriver)
+   {
+      UtlBoolean isStopped = FALSE;
+      m_pAudioDriver->isStreamStopped(m_inputAudioStream, isStopped);
+      if (isStopped)
+      {
+         return m_pAudioDriver->startStream(m_inputAudioStream);
+      }
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::startOutputStream()
+{
+   if (m_outputAudioStream && m_pAudioDriver)
+   {
+      UtlBoolean isStopped = FALSE;
+      m_pAudioDriver->isStreamStopped(m_outputAudioStream, isStopped);
+      if (isStopped)
+      {
+         return m_pAudioDriver->startStream(m_outputAudioStream);
+      }
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::abortInputStream()
+{
+   if (m_inputAudioStream && m_pAudioDriver)
+   {
+      UtlBoolean isActive = FALSE;
+      m_pAudioDriver->isStreamActive(m_inputAudioStream, isActive);
+      if (isActive)
+      {
+         return m_pAudioDriver->abortStream(m_inputAudioStream);
+      }
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::abortOutputStream()
+{
+   if (m_outputAudioStream && m_pAudioDriver)
+   {
+      UtlBoolean isActive = FALSE;
+      m_pAudioDriver->isStreamActive(m_outputAudioStream, isActive);
+      if (isActive)
+      {
+         return m_pAudioDriver->abortStream(m_outputAudioStream);
+      }
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::closeInputStream()
+{
+   if (m_inputAudioStream && m_pAudioDriver)
+   {
+      UtlBoolean isActive = FALSE;
+      m_pAudioDriver->isStreamActive(m_inputAudioStream, isActive);
+      if (isActive)
+      {
+         m_pAudioDriver->abortStream(m_inputAudioStream);
+      }
+
+      OsStatus res = m_pAudioDriver->closeStream(m_inputAudioStream);
+      if (res == OS_SUCCESS)
+      {
+         m_inputAudioStream = 0;
+         m_inputDeviceIndex = 0;
+      }
+
+      return res;
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::closeOutputStream()
+{
+   if (m_outputAudioStream && m_pAudioDriver)
+   {
+      UtlBoolean isActive = FALSE;
+      m_pAudioDriver->isStreamActive(m_outputAudioStream, isActive);
+      if (isActive)
+      {
+         m_pAudioDriver->abortStream(m_outputAudioStream);
+      }
+
+      OsStatus res = m_pAudioDriver->closeStream(m_outputAudioStream);
+      if (res == OS_SUCCESS)
+      {
+         m_outputAudioStream = 0;
+         m_outputDeviceIndex = 0;
+      }
+
+      return res;
+   }
+
+   return OS_FAILED;
+}
 
 void MpAudioDriverManager::release()
 {
@@ -144,6 +325,7 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
       m_pAudioDriver = NULL;
    }
 }
+
 
 /* ============================ FUNCTIONS ================================= */
 

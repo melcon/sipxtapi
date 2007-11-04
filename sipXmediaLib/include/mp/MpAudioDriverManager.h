@@ -19,6 +19,8 @@
 // CONSTANTS
 // FORWARD DECLARATIONS
 class MpAudioDriverBase;
+class UtlString;
+
 // STRUCTS
 // TYPEDEFS
 // MACROS
@@ -49,6 +51,46 @@ public:
     * it doesn't exist
     */
    static MpAudioDriverManager* getInstance(UtlBoolean bCreate = TRUE);
+
+   /**
+    * Returns name of current output device and driver name.
+    */
+   OsStatus getCurrentOutputDevice(UtlString& device, UtlString& driverName);
+
+   /**
+    * Returns name of current input device and driver name.
+    */
+   OsStatus getCurrentInputDevice(UtlString& device, UtlString& driverName);
+
+   /**
+   * Starts input stream.
+   */
+   OsStatus startInputStream();
+
+   /**
+   * Starts output stream.
+   */
+   OsStatus startOutputStream();
+
+   /**
+    * Aborts input stream.
+    */
+   OsStatus abortInputStream();
+
+   /**
+    * Aborts output stream.
+    */
+   OsStatus abortOutputStream();
+
+   /**
+    * Closes input stream.
+    */
+   OsStatus closeInputStream();
+
+   /**
+    * Closes output stream.
+    */
+   OsStatus closeOutputStream();
 
    /**
     * Deletes singleton manager. Not threadsafe.
