@@ -211,6 +211,16 @@ OsStatus sipXmediaFactoryImpl::setSpeakerVolume(int iVolume)
 
 OsStatus sipXmediaFactoryImpl::setSpeakerDevice(const UtlString& device, const UtlString& driverName) 
 {
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      return pAudioManager->setCurrentOutputDevice(device, driverName);
+   }
+
+   return OS_FAILED;
+#endif
+
    return OS_NOT_SUPPORTED;
 }
 
@@ -221,6 +231,16 @@ OsStatus sipXmediaFactoryImpl::setMicrophoneGain(int iGain)
 
 OsStatus sipXmediaFactoryImpl::setMicrophoneDevice(const UtlString& device, const UtlString& driverName) 
 {
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      return pAudioManager->setCurrentInputDevice(device, driverName);
+   }
+
+   return OS_FAILED;
+#endif
+
    return OS_NOT_SUPPORTED;
 }
 
