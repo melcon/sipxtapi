@@ -205,49 +205,27 @@ CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceN
 
 OsStatus sipXmediaFactoryImpl::setSpeakerVolume(int iVolume) 
 {
-    OsStatus rc = OS_SUCCESS ;
-    MpCodec_setVolume(iVolume) ;
-
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setSpeakerDevice(const UtlString& device) 
 {
-    OsStatus rc = OS_SUCCESS ;
-    DmaTask::setCallDevice(device.data()) ;
-    return rc ;    
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setMicrophoneGain(int iGain) 
 {
-    OsStatus rc ;
-
-    miGain = iGain ;
-    rc = MpCodec_setGain(miGain) ;
-    return rc ;
+    return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setMicrophoneDevice(const UtlString& device) 
 {
-    OsStatus rc = OS_SUCCESS ;
-    DmaTask::setInputDevice(device.data()) ;
-#ifdef WIN32
-    dmaSignalMicDeviceChange();
-#endif
-    return rc ;    
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::muteMicrophone(UtlBoolean bMute) 
 {
-    if (bMute)
-    {
-        MpCodec_setGain(0) ;
-    }
-    else
-    {
-        MpCodec_setGain(miGain) ;
-    }
-    return OS_SUCCESS ;
+    return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setAudioAECMode(const MEDIA_AEC_MODE mode)
@@ -456,40 +434,24 @@ OsStatus sipXmediaFactoryImpl::updateVideoPreviewWindow(void* displayContext)
 
 OsStatus sipXmediaFactoryImpl::getSpeakerVolume(int& iVolume) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    iVolume = MpCodec_getVolume() ;
-    if (iVolume==-1) {
-        rc = OS_FAILED;
-        iVolume = 0;
-    }
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::getSpeakerDevice(UtlString& device) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    device = DmaTask::getCallDevice() ;
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 
 OsStatus sipXmediaFactoryImpl::getMicrophoneGain(int& iGain) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    iGain = MpCodec_getGain() ;
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 
 OsStatus sipXmediaFactoryImpl::getMicrophoneDevice(UtlString& device) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    device = DmaTask::getMicDevice() ;
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 
