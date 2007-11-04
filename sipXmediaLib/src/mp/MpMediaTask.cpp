@@ -33,6 +33,8 @@
 #include "mp/MpBufferMsg.h"
 #include "mp/MpCodecFactory.h"
 #include "mp/MpCodec.h"
+#include "mp/MpAudioDriverManager.h"
+#include "mp/MpAudioDriverBase.h"
 
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
@@ -702,6 +704,25 @@ UtlBoolean MpMediaTask::handleSetFocus(MpFlowGraphBase* pFlowGraph)
 
    if (mpFocus != NULL)
    {
+#ifndef DISABLE_LOCAL_AUDIO
+      // stop input stream
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+      if (pAudioManager)
+      {
+         MpAudioStreamId streamId = pAudioManager->getInputAudioStream();
+         MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
+         if (streamId && pAudioDriver)
+         {
+            UtlBoolean isActive = FALSE;
+            pAudioDriver->isStreamActive(streamId, isActive);
+            if (isActive)
+            {
+               pAudioDriver->abortStream(streamId);
+            }            
+         }
+      }
+#endif
+      
       // remove focus from the flow graph that currently has it
       Nprintf("MpMT::handleSetFocus(0x%X): removing old focus (0x%X)\n",
          (int) pFlowGraph, (int) mpFocus, 0,0,0,0);
@@ -719,6 +740,25 @@ UtlBoolean MpMediaTask::handleSetFocus(MpFlowGraphBase* pFlowGraph)
          mpFocus = NULL;
          return FALSE; // the flow graph did not accept focus.
       }
+
+#ifndef DISABLE_LOCAL_AUDIO
+      // start input stream
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+      if (pAudioManager)
+      {
+         MpAudioStreamId streamId = pAudioManager->getInputAudioStream();
+         MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
+         if (streamId && pAudioDriver)
+         {
+            UtlBoolean isStopped = FALSE;
+            pAudioDriver->isStreamStopped(streamId, isStopped);
+            if (isStopped)
+            {
+               pAudioDriver->startStream(streamId);
+            }            
+         }
+      }
+#endif
       Nprintf("MpMT::handleSetFocus(0x%X): attempt to give focus SUCCEEDED\n",
          (int) pFlowGraph, 0,0,0,0,0);
    }
