@@ -1494,10 +1494,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpCodec.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpCodecFactory.cpp"
 					>
 				</File>
