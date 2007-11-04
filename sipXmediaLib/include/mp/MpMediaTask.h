@@ -49,6 +49,8 @@
 // FORWARD DECLARATIONS
 class MpFlowGraphBase;
 class MpCodecFactory;
+class OsCallback;
+class OsTimer;
 
 /**
 *  @brief Object responsible for coordinating the execution of media processing
@@ -227,6 +229,14 @@ public:
      *  to send the signal.
      */
 
+   /**
+    * Callback for signaling frame via timer. Userdata will be sample rate
+    * this callback is meant for. In the future, there could be multiple
+    * timers with different periods used for flowgraphs with different
+    * sample rates
+    */
+   static void signalFrameCallback(const intptr_t userData, const intptr_t eventData);
+
 /* ============================ ACCESSORS ================================= */
 ///@name Accessors
 //@{
@@ -341,6 +351,9 @@ private:
    MpFlowGraphBase* mpFocus; ///< FlowGraph that has the focus (may be NULL)
    UtlHashBag mManagedFlowGraphs;
 
+   OsCallback* m_pFrameStartCallback; ///< callback for signal frame start timer
+   OsTimer* m_pFrameStartTimer; ///< timer that will signal frame start
+
    int       mLimitUsecs;    ///< Frame processing time limit (in usecs)
    int       mHandleMsgErrs; ///< @brief Number of message handling problems
                              ///< during the last frame processing interval
@@ -432,6 +445,8 @@ private:
      *  @returns <b>TRUE</b> - if the message was handled,
      *  @returns <b>FALSE</b> - otherwise.
      */
+
+   void startFrameStartTimer();
 
      /// Copy constructor (not implemented for this task)
    MpMediaTask(const MpMediaTask& rMpMediaTask);
