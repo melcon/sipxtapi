@@ -23,7 +23,6 @@ class MprFromMicTest : public MpGenericResourceTest
     CPPUNIT_TEST_SUB_SUITE(MprFromMicTest, MpGenericResourceTest);
     CPPUNIT_TEST(testCreators);
     CPPUNIT_TEST(testDisabled);
-    CPPUNIT_TEST(testEnabledNoQueue);
     CPPUNIT_TEST(testEnabledEmptyQueue);
     CPPUNIT_TEST(testEnabledWithData);
     CPPUNIT_TEST_SUITE_END();
@@ -83,43 +82,6 @@ public:
        CPPUNIT_ASSERT(  mpSourceResource->mLastDoProcessArgs.outBufs[0].isValid()
                      && (  mpSourceResource->mLastDoProcessArgs.outBufs[0]
                         == mpSinkResource->mLastDoProcessArgs.inBufs[0]));
-
-       // Stop flowgraph
-       haltFramework();
-   }
-
-   void testEnabledNoQueue()
-   {
-       MprFromMic*       pFromMic   = NULL;
-       OsStatus          res;
-
-       pFromMic = new MprFromMic("MprFromMic",
-                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC);
-       CPPUNIT_ASSERT(pFromMic != NULL);
-
-       setupFramework(pFromMic);
-
-       // pFromMic enabled, there are no buffers on the input 0.
-       CPPUNIT_ASSERT(mpSourceResource->disable());
-       CPPUNIT_ASSERT(pFromMic->enable());
-
-       res = mpFlowGraph->processNextFrame();
-       CPPUNIT_ASSERT(res == OS_SUCCESS);
-
-       // We did not generated any buffers
-       CPPUNIT_ASSERT(  !mpSourceResource->mLastDoProcessArgs.outBufs[0].isValid()
-                     && !mpSinkResource->mLastDoProcessArgs.inBufs[0].isValid());
-
-       // pFromMic enabled, there are buffers on the input 0.
-       CPPUNIT_ASSERT(mpSourceResource->enable());
-       CPPUNIT_ASSERT(pFromMic->enable());
-
-       res = mpFlowGraph->processNextFrame();
-       CPPUNIT_ASSERT(res == OS_SUCCESS);
-
-       // We should discard incoming packet
-       CPPUNIT_ASSERT(  mpSourceResource->mLastDoProcessArgs.outBufs[0].isValid()
-                     && !mpSinkResource->mLastDoProcessArgs.inBufs[0].isValid());
 
        // Stop flowgraph
        haltFramework();
