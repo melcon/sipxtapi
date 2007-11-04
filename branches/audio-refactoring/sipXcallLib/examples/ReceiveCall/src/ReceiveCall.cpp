@@ -89,7 +89,6 @@ void usage(const char* szExecutable)
     printf("   -f play file (default = none)\n") ;
     printf("   -p SIP port (default = 5060)\n") ;
     printf("   -r RTP port start (default = 9000)\n") ;
-    printf("   -l loopback audio (2 second delay)\n") ;
     printf("   -i line identity (e.g. sip:122@pingtel.com)\n") ;
     printf("   -u username (for authentication)\n") ;
     printf("   -a password  (for authentication)\n") ;
