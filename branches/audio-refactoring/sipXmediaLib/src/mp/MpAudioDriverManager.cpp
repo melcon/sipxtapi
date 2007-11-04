@@ -124,12 +124,288 @@ OsStatus MpAudioDriverManager::getCurrentInputDevice(UtlString& device, UtlStrin
 OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                                                       const UtlString& driverName)
 {
+   if (m_pAudioDriver)
+   {
+      if (device.compareTo("NONE", UtlString::ignoreCase) == 0)
+      {
+         // we want to disable current output device
+         return closeOutputStream();
+      }
+      else if (device.compareTo("Default", UtlString::ignoreCase) == 0)
+      {
+         MpAudioDeviceIndex defaultOutputDeviceIndex;
+         // we want to set default output device
+         OsStatus res = m_pAudioDriver->getDefaultOutputDevice(defaultOutputDeviceIndex);
+         if (res != OS_SUCCESS)
+         {
+            return OS_FAILED;
+         }
+
+         if (defaultOutputDeviceIndex != m_outputDeviceIndex)
+         {
+            // we want to change active output device
+            // first close current stream
+            closeOutputStream();
+
+            MpAudioStreamParameters outputParameters;
+            outputParameters.setChannelCount(1);
+            outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+            outputParameters.setSuggestedLatency(0.05);
+            outputParameters.setDeviceIndex(defaultOutputDeviceIndex);
+
+            // open asynchronous output stream
+            res = m_pAudioDriver->openStream(&m_outputAudioStream,
+               NULL,
+               &outputParameters,
+               MpMisc.m_audioSampleRate,
+               MpMisc.m_audioSamplesPerFrame,
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+
+            res = m_pAudioDriver->startStream(m_outputAudioStream);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+            m_outputDeviceIndex = defaultOutputDeviceIndex;
+            return OS_SUCCESS;
+         }
+         else
+         {
+            // new and old device are the same, no need to change
+            return OS_SUCCESS;
+         }
+      }
+      else
+      {
+         // user wants to select a particular device
+         OsStatus res = OS_FAILED;
+         UtlBoolean bDeviceFound = FALSE;
+         UtlBoolean bDriverReq = !driverName.isNull();
+         MpAudioDeviceIndex deviceCount = 0;
+         MpAudioDeviceIndex i = 0;
+         m_pAudioDriver->getDeviceCount(deviceCount);
+
+         // loop through all devices, and find matching one
+         for (i = 0; i < deviceCount; i++)
+         {
+            MpAudioDeviceInfo deviceInfo;
+            m_pAudioDriver->getDeviceInfo(i, deviceInfo);
+
+            if (!bDriverReq)
+            {
+               // driver match is not required, match by name only
+               if (deviceInfo.getName().compareTo(device.data(), UtlString::matchCase) == 0 &&
+                   deviceInfo.getMaxOutputChannels() > 0)
+               {
+                  // we found match, we will select this device
+                  bDeviceFound = TRUE;
+                  break;
+               }
+            }
+            else
+            {
+               // we have to match by driver name as well
+               MpHostAudioApiInfo apiInfo;
+               m_pAudioDriver->getHostApiInfo(deviceInfo.getHostApi(), apiInfo);
+
+               // now try to match by driver name, device name
+               if (deviceInfo.getName().compareTo(device.data(), UtlString::matchCase) == 0 &&
+                   apiInfo.getName().compareTo(driverName.data(), UtlString::matchCase) == 0 &&
+                   deviceInfo.getMaxOutputChannels() > 0)
+               {
+                  // we found match, we will select this device
+                  bDeviceFound = TRUE;
+                  break;
+               }
+            }
+         }
+         
+         if (bDeviceFound && i != m_outputDeviceIndex)
+         {
+            // we found a matching device
+            // first close current stream
+            closeOutputStream();
+
+            MpAudioStreamParameters outputParameters;
+            outputParameters.setChannelCount(1);
+            outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+            outputParameters.setSuggestedLatency(0.05);
+            outputParameters.setDeviceIndex(i);
+
+            // open asynchronous output stream
+            res = m_pAudioDriver->openStream(&m_outputAudioStream,
+               NULL,
+               &outputParameters,
+               MpMisc.m_audioSampleRate,
+               MpMisc.m_audioSamplesPerFrame,
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+
+            res = m_pAudioDriver->startStream(m_outputAudioStream);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+
+            m_outputDeviceIndex = i;
+            return OS_SUCCESS;
+         }
+      }
+   }   
+   
    return OS_FAILED;
 }
 
 OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                                                      const UtlString& driverName)
 {
+   if (m_pAudioDriver)
+   {
+      if (device.compareTo("NONE", UtlString::ignoreCase) == 0)
+      {
+         // we want to disable current input device
+         return closeInputStream();
+      }
+      else if (device.compareTo("Default", UtlString::ignoreCase) == 0)
+      {
+         MpAudioDeviceIndex defaultInputDeviceIndex;
+         // we want to set default input device
+         OsStatus res = m_pAudioDriver->getDefaultInputDevice(defaultInputDeviceIndex);
+         if (res != OS_SUCCESS)
+         {
+            return OS_FAILED;
+         }
+
+         if (defaultInputDeviceIndex != m_inputDeviceIndex)
+         {
+            // we want to change active input device
+            // first close current stream
+            closeInputStream();
+
+            MpAudioStreamParameters inputParameters;
+            inputParameters.setChannelCount(1);
+            inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+            inputParameters.setSuggestedLatency(0.05);
+            inputParameters.setDeviceIndex(defaultInputDeviceIndex);
+
+            // open asynchronous input stream
+            res = m_pAudioDriver->openStream(&m_inputAudioStream,
+               &inputParameters,
+               NULL,
+               MpMisc.m_audioSampleRate,
+               MpMisc.m_audioSamplesPerFrame,
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+
+            res = m_pAudioDriver->startStream(m_inputAudioStream);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+            m_inputDeviceIndex = defaultInputDeviceIndex;
+            return OS_SUCCESS;
+         }
+         else
+         {
+            // new and old device are the same, no need to change
+            return OS_SUCCESS;
+         }
+      }
+      else
+      {
+         // user wants to select a particular device
+         OsStatus res = OS_FAILED;
+         UtlBoolean bDeviceFound = FALSE;
+         UtlBoolean bDriverReq = !driverName.isNull();
+         MpAudioDeviceIndex deviceCount = 0;
+         MpAudioDeviceIndex i = 0;
+         m_pAudioDriver->getDeviceCount(deviceCount);
+
+         // loop through all devices, and find matching one
+         for (i = 0; i < deviceCount; i++)
+         {
+            MpAudioDeviceInfo deviceInfo;
+            m_pAudioDriver->getDeviceInfo(i, deviceInfo);
+
+            if (!bDriverReq)
+            {
+               // driver match is not required, match by name only
+               if (deviceInfo.getName().compareTo(device.data(), UtlString::matchCase) == 0 &&
+                  deviceInfo.getMaxInputChannels() > 0)
+               {
+                  // we found match, we will select this device
+                  bDeviceFound = TRUE;
+                  break;
+               }
+            }
+            else
+            {
+               // we have to match by driver name as well
+               MpHostAudioApiInfo apiInfo;
+               m_pAudioDriver->getHostApiInfo(deviceInfo.getHostApi(), apiInfo);
+
+               // now try to match by driver name, device name
+               if (deviceInfo.getName().compareTo(device.data(), UtlString::matchCase) == 0 &&
+                  apiInfo.getName().compareTo(driverName.data(), UtlString::matchCase) == 0 &&
+                  deviceInfo.getMaxInputChannels() > 0)
+               {
+                  // we found match, we will select this device
+                  bDeviceFound = TRUE;
+                  break;
+               }
+            }
+         }
+
+         if (bDeviceFound && i != m_inputDeviceIndex)
+         {
+            // we found a matching device
+            // first close current stream
+            closeInputStream();
+
+            MpAudioStreamParameters inputParameters;
+            inputParameters.setChannelCount(1);
+            inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
+            inputParameters.setSuggestedLatency(0.05);
+            inputParameters.setDeviceIndex(i);
+
+            // open asynchronous input stream
+            res = m_pAudioDriver->openStream(&m_inputAudioStream,
+               &inputParameters,
+               NULL,
+               MpMisc.m_audioSampleRate,
+               MpMisc.m_audioSamplesPerFrame,
+               MP_AUDIO_STREAM_CLIPOFF,
+               FALSE);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+
+            res = m_pAudioDriver->startStream(m_inputAudioStream);
+            if (res != OS_SUCCESS)
+            {
+               return OS_FAILED;
+            }
+
+            m_inputDeviceIndex = i;
+            return OS_SUCCESS;
+         }
+      }
+   }   
+
    return OS_FAILED;
 }
 
