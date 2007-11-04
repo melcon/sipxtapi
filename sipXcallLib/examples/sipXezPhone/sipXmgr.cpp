@@ -154,7 +154,6 @@ UtlBoolean sipXmgr::Initialize(const int iSipPort, const int iRtpPort, const boo
     }
     if (sipXezPhoneSettings::getInstance().getAudioOutputDevice().length())
     {
-        sipxAudioSetRingerOutputDevice(m_hInst, sipXezPhoneSettings::getInstance().getAudioOutputDevice()) ;
         sipxAudioSetOutputDevice(m_hInst, sipXezPhoneSettings::getInstance().getAudioOutputDevice()) ;
     }
 #ifdef VIDEO
@@ -899,7 +898,7 @@ const int sipXmgr::getSpeakerVolume() const
 {
    int volume;
    
-   sipxAudioGetVolume(m_hInst, SPEAKER, &volume);
+   sipxAudioGetVolume(m_hInst, &volume);
    
    return volume;
 }
@@ -909,7 +908,7 @@ const int sipXmgr::getRingerVolume() const
 {
    int volume;
    
-   sipxAudioGetVolume(m_hInst, RINGER, &volume);
+   sipxAudioGetVolume(m_hInst, &volume);
    
    return volume;
 }
@@ -935,20 +934,8 @@ void sipXmgr::setSpeakerVolume(const int volume)
    }
    // not yet implemented in the Linux
    #ifdef _WIN32
-       sipxAudioSetVolume(m_hInst, SPEAKER, myVol);
+       sipxAudioSetVolume(m_hInst, myVol);
    #endif
-}
-
-// sets the Ringer volume
-void sipXmgr::setRingerVolume(const int volume)
-{
-   int myVol = volume;
-   
-   if (volume > VOLUME_MAX)
-   {
-      myVol = VOLUME_MAX;
-   }
-   sipxAudioSetVolume(m_hInst, RINGER, myVol);
 }
 
 // sets the Mic gain

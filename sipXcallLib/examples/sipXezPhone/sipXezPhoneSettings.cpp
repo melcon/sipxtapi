@@ -22,6 +22,9 @@
 // STATIC VARIABLE INITIALIZATIONS
 sipXezPhoneSettings* sipXezPhoneSettings::spSipXezPhoneSettings = NULL;
 
+#define VOLUME_DEFAULT 70
+#define GAIN_DEFAULT 70
+
 // Constructor - private, this is a singleton
 sipXezPhoneSettings::sipXezPhoneSettings() :
    mIdentity(""),
