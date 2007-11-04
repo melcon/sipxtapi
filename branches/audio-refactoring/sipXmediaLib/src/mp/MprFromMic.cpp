@@ -108,19 +108,17 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
             {
                micFrame->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
 
-               pAudioDriver->readStreamAsync(streamId,
-                  micFrame->getSamplesWritePtr(),
-                  MpMisc.m_audioSamplesPerFrame);
+               OsStatus res = pAudioDriver->readStreamAsync(streamId,
+                                    micFrame->getSamplesWritePtr(),
+                                    MpMisc.m_audioSamplesPerFrame);
 
-               out.swap(micFrame);
+               if (res == OS_SUCCESS || res == OS_UNDERFLOW)
+               {
+                  // if we are totally out of data, OS_PREFETCH will be returned
+                  out.swap(micFrame);
+               }
             }
          }
-      }
-
-      if (!out.isValid())
-      {
-         // if buffer is not valid, use comfort noise
-         out = MpMisc.m_comfortNoise;
       }
 
       if (out.isValid())
