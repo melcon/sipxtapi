@@ -732,7 +732,7 @@ void dumpInputOutputDevices()
         {
             char szDevice[500];
             memset(szDevice, 0, sizeof(szDevice));
-            sipxAudioGetInputDevice(i, szDevice, 499) ;
+            sipxAudioGetInputDeviceInfo(i, szDevice, 499) ;
             printf("\t#%d: %s\n", i, szDevice) ;
         }
     }
@@ -744,7 +744,7 @@ void dumpInputOutputDevices()
         {
             char szDevice[500];
             memset(szDevice, 0, sizeof(szDevice));
-            sipxAudioGetOutputDevice(i, szDevice, 499) ;
+            sipxAudioGetOutputDeviceInfo(i, szDevice, 499) ;
             printf("\t#%d: %s\n", i, szDevice) ;
         }
     }
