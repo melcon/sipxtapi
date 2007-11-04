@@ -67,6 +67,12 @@ public:
    MpAudioStreamId getOutputAudioStream() const { return m_outputAudioStream; }
    void setOutputAudioStream(MpAudioStreamId val) { m_outputAudioStream = val; }
 
+   MpAudioDeviceIndex getInputDeviceIndex() const { return m_inputDeviceIndex; }
+   void setInputDeviceIndex(MpAudioDeviceIndex val) { m_inputDeviceIndex = val; }
+
+   MpAudioDeviceIndex getOutputDeviceIndex() const { return m_outputDeviceIndex; }
+   void setOutputDeviceIndex(MpAudioDeviceIndex val) { m_outputDeviceIndex = val; }
+
    MpAudioDriverBase* getAudioDriver() const { return m_pAudioDriver; }
 
    //@}
@@ -98,7 +104,9 @@ private:
 
    MpAudioDriverBase* m_pAudioDriver; ///< pointer to audio driver
    MpAudioStreamId m_inputAudioStream; ///< ID if input audio stream
+   MpAudioDeviceIndex m_inputDeviceIndex; ///< index of current input device
    MpAudioStreamId m_outputAudioStream; ///< ID of output audio stream
+   MpAudioDeviceIndex m_outputDeviceIndex; ///< index of current output device
 };
 
 #endif // MpAudioDriverManager_h__

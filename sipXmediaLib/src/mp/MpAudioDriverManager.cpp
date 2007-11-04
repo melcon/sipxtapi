@@ -64,14 +64,14 @@ void MpAudioDriverManager::release()
 MpAudioDriverManager::MpAudioDriverManager()
 : m_pAudioDriver(NULL)
 , m_inputAudioStream(0)
+, m_inputDeviceIndex(0)
 , m_outputAudioStream(0)
+, m_outputDeviceIndex(0)
 {
    m_pAudioDriver = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_PORTAUDIO);
 
    MpAudioStreamParameters inputParameters;
    MpAudioStreamParameters outputParameters;
-   MpAudioDeviceIndex inputDeviceIndex = 0;
-   MpAudioDeviceIndex outputDeviceIndex = 0;
 
    inputParameters.setChannelCount(1);
    inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
@@ -80,11 +80,11 @@ MpAudioDriverManager::MpAudioDriverManager()
    outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
    outputParameters.setSuggestedLatency(0.05);
 
-   m_pAudioDriver->getDefaultInputDevice(inputDeviceIndex);
-   m_pAudioDriver->getDefaultOutputDevice(outputDeviceIndex);
+   m_pAudioDriver->getDefaultInputDevice(m_inputDeviceIndex);
+   m_pAudioDriver->getDefaultOutputDevice(m_outputDeviceIndex);
 
-   inputParameters.setDeviceIndex(inputDeviceIndex);
-   outputParameters.setDeviceIndex(outputDeviceIndex);
+   inputParameters.setDeviceIndex(m_inputDeviceIndex);
+   outputParameters.setDeviceIndex(m_outputDeviceIndex);
 
    // open asynchronous input stream
    m_pAudioDriver->openStream(&m_inputAudioStream,

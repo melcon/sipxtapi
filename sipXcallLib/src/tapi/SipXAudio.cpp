@@ -91,29 +91,6 @@ void freeAudioDevices(SIPX_INSTANCE_DATA& pInst)
 }
 
 // CHECKED
-void initMicSettings(MIC_SETTING& pMicSetting)
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "initMicSettings micSettings=%p",
-      &pMicSetting);
-
-   pMicSetting.bMuted = FALSE;
-   pMicSetting.iGain = GAIN_DEFAULT;
-   memset(&pMicSetting.device, 0, sizeof(pMicSetting.device));
-}
-
-// CHECKED
-void initSpeakerSettings(SPEAKER_SETTING& pSpeakerSetting)
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "initSpeakerSettings speakerSettings=%p",
-      &pSpeakerSetting);
-
-   pSpeakerSetting.iVol = VOLUME_DEFAULT;
-   memset(&pSpeakerSetting.device, 0, sizeof(pSpeakerSetting.device));
-}
-
-// CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioSetGain(const SIPX_INST hInst,
                                           const int iLevel)
 {
@@ -129,30 +106,21 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetGain(const SIPX_INST hInst,
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-      // Validate gain is within range
-      assert(iLevel >= GAIN_MIN);
-      assert(iLevel <= GAIN_MAX);
-
-      if (iLevel >= GAIN_MIN && iLevel <= GAIN_MAX)
+      if (pInterface)
       {
-         OsStatus rc = OS_SUCCESS;
-
-         // Record Gain
-         pInst->micSetting.iGain = iLevel;
-
-         // Set Gain if not muted
-         if (!pInst->micSetting.bMuted)
+         // Validate gain is within range
+         if (iLevel >= GAIN_MIN && iLevel <= GAIN_MAX)
          {
-            int iAdjustedGain = (int) ((double)((double)iLevel / (double)GAIN_MAX) * 100.0);
-            rc = pInterface->setMicrophoneGain(iAdjustedGain);
-         }
+            OsStatus rc = OS_FAILED;
+            rc = pInterface->setMicrophoneGain(iLevel);
 
-         sr = SIPX_RESULT_SUCCESS;
-      }
-      else
-      {
-         sr = SIPX_RESULT_INVALID_ARGS;
-      }
+            sr = SIPX_RESULT_SUCCESS;
+         }
+         else
+         {
+            sr = SIPX_RESULT_INVALID_ARGS;
+         }
+      }      
    }
 
    return sr;
@@ -187,12 +155,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetGain(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
-                                       const int bMute)
+SIPXTAPI_API SIPX_RESULT sipxAudioMuteMic(const SIPX_INST hInst,
+                                          const int bMute)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioMute");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioMuteMic");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioMute hInst=%p bMute=%d",
+      "sipxAudioMuteMic hInst=%p bMute=%d",
       hInst, bMute);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
@@ -200,71 +168,61 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-      // Only process if uninitialized (first call) or the state has changed
-      if (bMute != pInst->micSetting.bMuted)
+      if (pInterface)
       {
-         if (bMute)
+         // Mute or unmute gain
+         OsStatus rc = pInterface->muteMicrophone(bMute);
+
+         if (rc == OS_SUCCESS)
          {
-            // get gain for storing
-            int iLevel;
-            if (sipxAudioGetGain(hInst, &iLevel) == SIPX_RESULT_SUCCESS)
-            {
-               // remember gain
-               pInst->micSetting.iGain = iLevel;
-            }
-
-            // Mute gain
-            OsStatus rc = pInterface->muteMicrophone(bMute);
-
-            if (rc == OS_SUCCESS)
-            {
-               // Store setting
-               pInst->micSetting.bMuted = bMute;
-
-               sr = SIPX_RESULT_SUCCESS;
-            }
+            sr = SIPX_RESULT_SUCCESS;
          }
-         else
-         {
-            // UnMute mic
-            OsStatus rc = pInterface->muteMicrophone(bMute);
-
-            if (rc == OS_SUCCESS)
-            {
-               // Store setting
-               pInst->micSetting.bMuted = bMute;
-
-               // Restore gain
-               // convert from sipXtapi scale to 100 scale
-               int iAdjustedGain = (int) (double)((((double)pInst->micSetting.iGain / (double)GAIN_MAX)) * 100.0);
-               rc = pInterface->setMicrophoneGain(iAdjustedGain);
-
-               if (rc == OS_SUCCESS)
-               {
-                  sr = SIPX_RESULT_SUCCESS;
-               }
-            }
-         }
-      }
-      else
-      {
-         sr = SIPX_RESULT_SUCCESS;
-      }
+      }     
    }
 
    return sr;
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioIsMuted(const SIPX_INST hInst,
-                                          int* bMuted)
+SIPXTAPI_API SIPX_RESULT sipxAudioMuteSpeaker(const SIPX_INST hInst,
+                                              const int bMute)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioIsMuted");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioMuteSpeaker");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxAudioMuteSpeaker hInst=%p bMute=%d",
+      hInst, bMute);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         // Mute or unmute speaker
+         OsStatus rc = pInterface->muteSpeaker(bMute);
+
+         if (rc == OS_SUCCESS)
+         {
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }     
+   }
+
+   return sr;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioIsMicMuted(const SIPX_INST hInst,
+                                             int* bMuted)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioIsMicMuted");
    OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
-      "sipxAudioIsMuted hInst=%p",
+      "sipxAudioIsMicMuted hInst=%p",
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
@@ -272,71 +230,16 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsMuted(const SIPX_INST hInst,
 
    if (pInst)
    {
-      *bMuted = pInst->micSetting.bMuted;
-
-      sr = SIPX_RESULT_SUCCESS;
-   }
-
-   return sr;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioEnableSpeaker(const SIPX_INST hInst,
-                                                const SPEAKER_TYPE type)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioEnableSpeaker");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioEnableSpeaker hInst=%p type=%d",
-      hInst, type);
-
-   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst)
-   {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
-
-      if (pInst->enabledSpeaker != type)
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      if (pInterface)
       {
-         OsStatus status;
-
-         pInst->enabledSpeaker = type;
-
-         // Lower Volume
-         status = pInterface->setSpeakerVolume(0);
-
-         if (status == OS_SUCCESS)
+         UtlBoolean bIsMuted;
+         OsStatus res = pInterface->isMicrophoneMuted(bIsMuted);
+         if (res == OS_SUCCESS)
          {
-            // Enable Speaker
-            switch (type)
-            {
-            case SPEAKER:
-            case RINGER:
-               pInterface->setSpeakerDevice(pInst->speakerSettings[type].device);
-               pInterface->getSpeakerDevice(pInst->speakerSettings[type].device);
-               break;
-            default:
-               assert(false);
-               break;
-            }
-         }
-
-         if (status == OS_SUCCESS)
-         {
-            // Reset Volume
-            SIPX_RESULT rc;
-            rc = sipxAudioSetVolume(hInst, type, pInst->speakerSettings[type].iVol);
-
-            if (rc == SIPX_RESULT_SUCCESS)
-            {
-               sr = SIPX_RESULT_SUCCESS;
-            }
-         }
-      }
-      else
-      {
-         sr = SIPX_RESULT_SUCCESS;
+            *bMuted = bIsMuted;
+            sr = SIPX_RESULT_SUCCESS;
+         }         
       }
    }
 
@@ -344,21 +247,28 @@ SIPXTAPI_API SIPX_RESULT sipxAudioEnableSpeaker(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetEnabledSpeaker(const SIPX_INST hInst,
-                                                    SPEAKER_TYPE* type)
+SIPXTAPI_API SIPX_RESULT sipxAudioIsSpeakerMuted(const SIPX_INST hInst,
+                                                 int* bMuted)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetEnabledSpeaker");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetEnabledSpeaker hInst=%p",
-      hInst);
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioIsSpeakerMuted");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioIsSpeakerMuted hInst=%p", hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
    if (pInst)
    {
-      *type = pInst->enabledSpeaker;
-      sr = SIPX_RESULT_SUCCESS;
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      if (pInterface)
+      {
+         UtlBoolean bIsMuted;
+         OsStatus res = pInterface->isSpeakerMuted(bIsMuted);
+         if (res == OS_SUCCESS)
+         {
+            *bMuted = bIsMuted;
+            sr = SIPX_RESULT_SUCCESS;
+         }         
+      }
    }
 
    return sr;
@@ -366,51 +276,33 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetEnabledSpeaker(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
-                                            const SPEAKER_TYPE type,
                                             const int iLevel)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetVolume");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioSetVolume hInst=%p type=%d iLevel=%d",
-      hInst, type, iLevel);
+      "sipxAudioSetVolume hInst=%p iLevel=%d",
+      hInst, iLevel);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   assert(type == SPEAKER || type == RINGER);
-   assert(iLevel >= VOLUME_MIN);
-   assert(iLevel <= VOLUME_MAX);
-
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-      // Validate Params
-      if ((type == SPEAKER || type == RINGER) &&
-         (iLevel >= VOLUME_MIN) &&
-         (iLevel <= VOLUME_MAX))
+      if (pInterface)
       {
-         // Store value
-         pInst->speakerSettings[type].iVol = iLevel;
-         sr = SIPX_RESULT_SUCCESS;
-
-         // Set value if this type is enabled
-         if (pInst->enabledSpeaker == type)
+         // Validate Params
+         if (iLevel >= VOLUME_MIN && iLevel <= VOLUME_MAX)
          {
             // the CpMediaInterfaceFactoryImpl always uses a scale of 0 - 100
             OsStatus status = pInterface->setSpeakerVolume(iLevel);
-
-            if (status != OS_SUCCESS)
+            if (status == OS_SUCCESS)
             {
-               sr = SIPX_RESULT_FAILURE;
+               sr = SIPX_RESULT_SUCCESS;
             }
          }
-      }
-      else
-      {
-         sr = SIPX_RESULT_INVALID_ARGS;
-      }
+      }      
    }
 
    return sr;
@@ -418,48 +310,25 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioGetVolume(const SIPX_INST hInst,
-                                            const SPEAKER_TYPE type,
                                             int* iLevel)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetVolume");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetVolume hInst=%p type=%d",
-      hInst, type);
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxAudioGetVolume hInst=%p", hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   assert(type == SPEAKER || type == RINGER);
-
    if (pInst)
    {
-      // Validate Params
-      if (type == SPEAKER || type == RINGER)
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
       {
-         if (pInst->enabledSpeaker == type)
+         OsStatus status = pInterface->getSpeakerVolume(*iLevel);
+         if (status == OS_SUCCESS)
          {
-            // this speaker is enabled, return real volume from getSpeakerVolume
-            CpMediaInterfaceFactory* pInterface = 
-               pInst->pCallManager->getMediaInterfaceFactory();
-
-            OsStatus status = pInterface->getSpeakerVolume(*iLevel);
-
-            if (status == OS_SUCCESS)
-            {
-               pInst->speakerSettings[type].iVol = *iLevel;
-               sr = SIPX_RESULT_SUCCESS;
-            }
-         }
-         else
-         {
-            // this speaker is not enabled, just return stored value
-            *iLevel = pInst->speakerSettings[type].iVol;
             sr = SIPX_RESULT_SUCCESS;
          }
-      }
-      else
-      {
-         sr = SIPX_RESULT_INVALID_ARGS;
       }
    }
 
@@ -720,9 +589,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(size_t* numDevices)
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const int index,
-                                                 char* szDevice,
-                                                 unsigned int bufferSize)
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const int index,
+                                                     char* szDevice,
+                                                     unsigned int bufferSize)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
 
@@ -771,9 +640,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(size_t* numDevices)
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const int index,
-                                                  char* szDevice,
-                                                  unsigned int bufferSize)
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const int index,
+                                                      char* szDevice,
+                                                      unsigned int bufferSize)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
 
@@ -803,42 +672,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const int index,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetAllOutputDevices(const SIPX_INST hInst,
-                                                      const char* szDevices[],
-                                                      unsigned int* arraySize)
+SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
+                                                 const char* szDevice)
 {
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst && szDevices)
-   {
-      int i = 0;
-      for (; (i < *arraySize) && (i < pInst->nOutputAudioDevices); i++)
-      {
-         szDevices[i] = pInst->outputAudioDevices[i];
-      }
-
-      *arraySize = i;
-      rc = SIPX_RESULT_SUCCESS;
-   }
-   else
-   {
-      if (arraySize)
-      {
-         *arraySize = 0;
-      }      
-   }
-
-   return rc;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioSetCallInputDevice(const SIPX_INST hInst,
-                                                     const char* szDevice)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetCallInputDevice");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetInputDevice");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioSetCallInputDevice hInst=%p device=%s",
+      "sipxAudioSetInputDevice hInst=%p device=%s",
       hInst, szDevice);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
@@ -846,58 +685,15 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallInputDevice(const SIPX_INST hInst,
 
    if (pInst)
    {
-      UtlString oldDevice;
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
-
-      // Get existing device
-      OsStatus status = pInterface->getMicrophoneDevice(oldDevice);
-
-      if (strcasecmp(szDevice, "NONE") == 0)
+      if (pInterface)
       {
-         // "NONE" = special device??
-         pInst->micSetting.device = szDevice;
-         status = pInterface->setMicrophoneDevice(pInst->micSetting.device);
-
-         if (status == OS_SUCCESS)
+         OsStatus res = pInterface->setMicrophoneDevice(szDevice);
+         if (res == OS_SUCCESS)
          {
             rc = SIPX_RESULT_SUCCESS;
          }
-      }
-      else
-      {
-         if (strcmp(szDevice, oldDevice) != 0)
-         {
-            for (int i = 0; i < MAX_AUDIO_DEVICES; i++)
-            {
-               if (pInst->inputAudioDevices[i])
-               {
-                  if (strcmp(szDevice, pInst->inputAudioDevices[i]) == 0)
-                  {
-                     // Match
-                     pInst->micSetting.device = szDevice;
-                     status = pInterface->setMicrophoneDevice(pInst->micSetting.device);
-
-                     if (status == OS_SUCCESS)
-                     {
-                        rc = SIPX_RESULT_SUCCESS;
-                     }
-
-                     break;
-                  }
-               }
-               else
-               {
-                  break;
-               }
-            }
-         }
-         else
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-
       }
    }
 
@@ -905,104 +701,48 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallInputDevice(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioSetRingerOutputDevice(const SIPX_INST hInst,
-                                                        const char* szDevice)
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
+                                                 char* szDevice,
+                                                 unsigned int devBufSize,
+                                                 char* szDriver,
+                                                 unsigned int drivBufSize)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetRingerOutputDevice");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetInputDevice");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioSetRingerOutputDevice hInst=%p device=%s",
-      hInst, szDevice);
+      "sipxAudioGetInputDevice hInst=%p devBufSize=%d drivBufSize=%d",
+      hInst, devBufSize, drivBufSize);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst)
+   if (pInst && szDevice && szDriver && devBufSize > 0 && drivBufSize > 0)
    {
-      UtlString oldDevice;
-      OsStatus status;
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
-
-      // Get existing device
-      oldDevice = pInst->speakerSettings[RINGER].device;
-
-      if (strcasecmp(szDevice, "NONE") == 0)
+      if (pInterface)
       {
-         pInst->speakerSettings[RINGER].device = szDevice;
-
-         if (pInst->enabledSpeaker == RINGER)
+         UtlString sDeviceName;
+         UtlString sDriverName;
+         OsStatus res = pInterface->getMicrophoneDevice(sDeviceName, sDriverName);
+         if (res == OS_SUCCESS)
          {
-            status = pInterface->setSpeakerDevice(pInst->speakerSettings[RINGER].device);
-
-            if (status == OS_SUCCESS)
-            {
-               rc = SIPX_RESULT_SUCCESS;
-            }
-         }
-         else
-         {
+            SAFE_STRNCPY(szDevice, sDeviceName.data(), (size_t)devBufSize);
+            SAFE_STRNCPY(szDriver, sDriverName.data(), (size_t)drivBufSize);
             rc = SIPX_RESULT_SUCCESS;
          }
-      }
-      else
-      {
-         if (strcmp(szDevice, oldDevice) != 0)
-         {
-            // device name differs
-            for (int i = 0; i < MAX_AUDIO_DEVICES; i++)
-            {
-               if (pInst->outputAudioDevices[i])
-               {
-                  if (strcmp(szDevice, pInst->outputAudioDevices[i]) == 0)
-                  {
-                     // Match
-                     pInst->speakerSettings[RINGER].device = szDevice;
-
-                     if (pInst->enabledSpeaker == RINGER)
-                     {
-                        status = pInterface->setSpeakerDevice(pInst->speakerSettings[RINGER].device);
-
-                        if (status == OS_SUCCESS)
-                        {
-                           rc = SIPX_RESULT_SUCCESS;
-                        }
-                     }
-                     else
-                     {
-                        rc = SIPX_RESULT_SUCCESS;
-                     }
-
-                     break;
-                  }
-               }
-               else
-               {
-                  // the last element, break
-                  break;
-               }
-            }
-         }
-         else
-         {
-            // device name is the same like old one
-            rc = SIPX_RESULT_SUCCESS;
-         }
-
       }
    }
 
    return rc;
 }
-
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioSetCallOutputDevice(const SIPX_INST hInst,
-                                                      const char* szDevice)
+SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
+                                                  const char* szDevice)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetCallOutputDevice");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetOutputDevice");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioSetCallOutputDevice hInst=%p device=%s",
+      "sipxAudioSetOutputDevice hInst=%p device=%s",
       hInst, szDevice);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
@@ -1010,77 +750,53 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallOutputDevice(const SIPX_INST hInst,
 
    if (pInst)
    {
-      UtlString oldDevice;
-      OsStatus status;
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
-
-      // Get existing device
-      oldDevice = pInst->speakerSettings[SPEAKER].device;
-
-      if (strcasecmp(szDevice, "NONE") == 0)
+      if (pInterface)
       {
-         pInst->speakerSettings[SPEAKER].device = szDevice;
-
-         if (pInst->enabledSpeaker == SPEAKER)
-         {
-            status = pInterface->setSpeakerDevice(pInst->speakerSettings[SPEAKER].device);
-
-            if (status == OS_SUCCESS)
-            {
-               rc = SIPX_RESULT_SUCCESS;
-            }
-         }
-         else
+         OsStatus res = pInterface->setSpeakerDevice(szDevice);
+         if (res == OS_SUCCESS)
          {
             rc = SIPX_RESULT_SUCCESS;
          }
-      }
-      else
-      {
-         if (strcmp(szDevice, oldDevice) != 0)
-         {
-            for (int i = 0; i < MAX_AUDIO_DEVICES; i++)
-            {
-               if (pInst->outputAudioDevices[i])
-               {
-                  if (strcmp(szDevice, pInst->outputAudioDevices[i]) == 0)
-                  {
-                     // Match
-                     pInst->speakerSettings[SPEAKER].device = szDevice;
-
-                     if (pInst->enabledSpeaker == SPEAKER)
-                     {
-                        status = pInterface->setSpeakerDevice(pInst->speakerSettings[SPEAKER].device);
-
-                        if (status == OS_SUCCESS)
-                        {
-                           rc = SIPX_RESULT_SUCCESS;
-                        }
-                     }
-                     else
-                     {
-                        rc = SIPX_RESULT_SUCCESS;
-                     }
-
-                     break;
-                  }
-               }
-               else
-               {
-                  break;
-               }
-            }
-         }
-         else
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-
       }
    }
 
    return rc;
 }
 
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
+                                                  char* szDevice,
+                                                  unsigned int devBufSize,
+                                                  char* szDriver,
+                                                  unsigned int drivBufSize)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetOutputDevice");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxAudioGetOutputDevice hInst=%p devBufSize=%d drivBufSize=%d",
+      hInst, devBufSize, drivBufSize);
+
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst && szDevice && szDriver && devBufSize > 0 && drivBufSize > 0)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         UtlString sDeviceName;
+         UtlString sDriverName;
+         OsStatus res = pInterface->getSpeakerDevice(sDeviceName, sDriverName);
+         if (res == OS_SUCCESS)
+         {
+            SAFE_STRNCPY(szDevice, sDeviceName.data(), (size_t)devBufSize);
+            SAFE_STRNCPY(szDriver, sDriverName.data(), (size_t)drivBufSize);
+            rc = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+
+   return rc;
+}

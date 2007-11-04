@@ -83,11 +83,9 @@
 
 #define GAIN_MIN                0       /**< Min acceptable gain value. This gain will mute mic. */
 #define GAIN_MAX                100     /**< Max acceptable gain value */
-#define GAIN_DEFAULT            70      /**< Nominal gain value */
 
-#define VOLUME_MIN              1       /**< Min acceptable volume value */
+#define VOLUME_MIN              0       /**< Min acceptable volume value */
 #define VOLUME_MAX              100     /**< Max acceptable volume value */
-#define VOLUME_DEFAULT          70      /**< Nominal volume value */
 
 #define MAX_AUDIO_DEVICES       16      /**< Max number of input/output audio devices */
 #define MAX_VIDEO_DEVICES       8       /**< Max number of video capture devices. */
@@ -142,15 +140,6 @@ class securityHelper;
 
 // STRUCTS
 // TYPEDEFS
-/**
- * Speaker output types are used to differentiate between the logical ringer 
- * (used to alert user of in inbound call) and speaker (in call audio device).
- */
-typedef enum SPEAKER_TYPE
-{
-    SPEAKER,    /**< Speaker / in call device */
-    RINGER      /**< Ringer / alerting device */
-} SPEAKER_TYPE;
 
 /**
  * Codec bandwidth ids are used to select a group of codecs with equal or lower
@@ -2419,9 +2408,19 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetGain(const SIPX_INST hInst,
  * @param bMute True if the microphone is to be muted and false if it 
  *        is not to be muted
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
-                                       const int bMute);
+SIPXTAPI_API SIPX_RESULT sipxAudioMuteMic(const SIPX_INST hInst,
+                                          const int bMute);
 
+
+/**
+* Mute or unmute the speaker.
+*
+* @param hInst Instance pointer obtained by sipxInitialize.
+* @param bMute True if the speaker is to be muted and false if it 
+*        is not to be muted
+*/
+SIPXTAPI_API SIPX_RESULT sipxAudioMuteSpeaker(const SIPX_INST hInst,
+                                              const int bMute);
 
 /**
  * Gets the mute state of the microphone.
@@ -2430,32 +2429,18 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
  * @param bMuted True if the microphone has been muted and false if it 
  *        is not mute
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioIsMuted(const SIPX_INST hInst,
-                                          int* bMuted);
-
-
-/**
- * Enables one of the speaker outputs.
- *
- * @param hInst Instance pointer obtained by sipxInitialize.
- * @param type The type of the speaker either the logical ringer 
- *		  (used to alert user of in inbound call) or speaker 
- *        (in call audio device).
- */
-SIPXTAPI_API SIPX_RESULT sipxAudioEnableSpeaker(const SIPX_INST hInst,
-                                                const SPEAKER_TYPE type);
-
+SIPXTAPI_API SIPX_RESULT sipxAudioIsMicMuted(const SIPX_INST hInst,
+                                             int* bMuted);
 
 /**
- * Gets the enabled speaker selection.
- *
- * @param hInst Instance pointer obtained by sipxInitialize.
- * @param type The type of the speaker either the logical ringer 
- *	      (used to alert user of in inbound call) or speaker 
- *        (in call audio device).
- */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetEnabledSpeaker(const SIPX_INST hInst,
-                                                    SPEAKER_TYPE* type);
+* Gets the mute state of the speaker.
+*
+* @param hInst Instance pointer obtained by sipxInitialize.
+* @param bMuted True if the speaker has been muted and false if it 
+*        is not mute
+*/
+SIPXTAPI_API SIPX_RESULT sipxAudioIsSpeakerMuted(const SIPX_INST hInst,
+                                                 int* bMuted);
 
 
 /**
@@ -2463,13 +2448,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetEnabledSpeaker(const SIPX_INST hInst,
  * is enabled, the change it audio will be heard instantly.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param type The type of the speaker either the logical ringer 
- *	      (used to alert user of in inbound call) or speaker 
- *        (in call audio device).
  * @param iLevel The level of the gain of the microphone
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
-                                            const SPEAKER_TYPE type, 
                                             const int iLevel);
 
 
@@ -2477,13 +2458,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
  * Gets the audio level for the designated speaker type
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param type The type of the speaker either the logical ringer 
- *		  (used to alert user of in inbound call) or speaker 
- *        (in call audio device).
  * @param iLevel The level of the gain of the microphone
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetVolume(const SIPX_INST hInst,
-                                            const SPEAKER_TYPE type, 
                                             int* iLevel);
 
 
@@ -2591,9 +2568,9 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(size_t* numDevices);
  *        device name. It may not include \0 if it is not big enough.
  * @param bufferSize Size of szDevice buffer
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const int index,
-                                                 char* szDevice,
-                                                 unsigned int bufferSize);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const int index,
+                                                     char* szDevice,
+                                                     unsigned int bufferSize);
 
 /**
  * Get the number of output devices available on this system
@@ -2611,37 +2588,67 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(size_t* numDevices);
  *        device name. It may not include \0 if it is not big enough.
  * @param bufferSize Size of szDevice buffer
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const int index,
-                                                  char* szDevice,
-                                                  unsigned int bufferSize);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const int index,
+                                                      char* szDevice,
+                                                      unsigned int bufferSize);
 
 /**
  * Set the call input device (in-call microphone).  
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param szDevice Character string pointer to be set to
- *                 a string name of the output device. 
+ * @param szDevice Character string pointer to be set to a string
+ *        name of the output device. Pass "NONE" to completely disable
+ *        audio input device. Pass "Default" to select platform
+ *        independent audio input device.
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioSetCallInputDevice(const SIPX_INST hInst,
-                                                     const char* szDevice);
+SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
+                                                 const char* szDevice);
+
 
 /**
- * Set the call ringer/alerting device.
+ * Returns current active input audio device and its driver.
+ *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param szDevice The call ringer/alerting device.
+ * @param szDevice Pointer to char array that will receive name of device.
+ *        "NONE" will be returned if device is disabled. "Default" will never
+ *        be returned, instead a real default device name will be.
+ * @param devBufSize length of szDevice array
+ * @param szDriver Name of driver for szDevice. Empty for "NONE" device.
+ * @param drivBufSize length of szDriver array
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioSetRingerOutputDevice(const SIPX_INST hInst,
-                                                        const char* szDevice);
-
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
+                                                 char* szDevice,
+                                                 unsigned int devBufSize,
+                                                 char* szDriver,
+                                                 unsigned int drivBufSize);
 
 /**
  * Set the call output device (in-call speaker).
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param szDevice The call output device.
+ * @param szDevice The call output device. Pass "NONE" to completely disable
+ *        audio output device. Pass "Default" to select platform
+ *        independent audio output device.
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioSetCallOutputDevice(const SIPX_INST hInst,
-                                                      const char* szDevice);
+SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
+                                                  const char* szDevice);
 
+
+/**
+* Returns current active output audio device and its driver.
+*
+* @param hInst Instance pointer obtained by sipxInitialize.
+* @param szDevice Pointer to char array that will receive name of device.
+*        "NONE" will be returned if device is disabled. "Default" will never
+*        be returned, instead a real default device name will be.
+* @param devBufSize length of szDevice array
+* @param szDriver Name of driver for szDevice. Empty for "NONE" device.
+* @param drivBufSize length of szDriver array
+*/
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
+                                                  char* szDevice,
+                                                  unsigned int devBufSize,
+                                                  char* szDriver,
+                                                  unsigned int drivBufSize);
 
 //@}
 /** @name Line / Identity Methods*/

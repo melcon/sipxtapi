@@ -150,12 +150,12 @@ UtlBoolean sipXmgr::Initialize(const int iSipPort, const int iRtpPort, const boo
 
     if (sipXezPhoneSettings::getInstance().getAudioInputDevice().length())
     {
-        sipxAudioSetCallInputDevice(m_hInst, sipXezPhoneSettings::getInstance().getAudioInputDevice()) ;
+        sipxAudioSetInputDevice(m_hInst, sipXezPhoneSettings::getInstance().getAudioInputDevice()) ;
     }
     if (sipXezPhoneSettings::getInstance().getAudioOutputDevice().length())
     {
         sipxAudioSetRingerOutputDevice(m_hInst, sipXezPhoneSettings::getInstance().getAudioOutputDevice()) ;
-        sipxAudioSetCallOutputDevice(m_hInst, sipXezPhoneSettings::getInstance().getAudioOutputDevice()) ;
+        sipxAudioSetOutputDevice(m_hInst, sipXezPhoneSettings::getInstance().getAudioOutputDevice()) ;
     }
 #ifdef VIDEO
     if (sipXezPhoneSettings::getInstance().getVideoCaptureDevice().length())
@@ -1468,8 +1468,8 @@ void sipXmgr::toggleMute()
 {
     int rc = 0;
 
-    sipxAudioIsMuted(m_hInst, &rc);
-    sipxAudioMute(m_hInst, !rc);
+    sipxAudioIsMicMuted(m_hInst, &rc);
+    sipxAudioMuteMic(m_hInst, !rc);
     return;
 }
 
