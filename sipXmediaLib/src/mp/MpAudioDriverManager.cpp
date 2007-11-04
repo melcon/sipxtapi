@@ -104,7 +104,8 @@ MpAudioDriverManager::MpAudioDriverManager()
       MP_AUDIO_STREAM_CLIPOFF,
       FALSE);
 
-   // do not start streams yet
+   m_pAudioDriver->startStream(m_inputAudioStream);
+   m_pAudioDriver->startStream(m_outputAudioStream);
 }
 
 MpAudioDriverManager::~MpAudioDriverManager(void)
