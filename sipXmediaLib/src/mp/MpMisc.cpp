@@ -67,6 +67,11 @@ OsStatus mpStartUp(int sampleRate,
    MpMisc.m_pRawAudioPool = new MpBufPool(samplesPerFrame*sizeof(MpAudioSample) + MpArrayBuf::getHeaderSize(),
                                           DEFAULT_INITIAL_AUDIO_BUFFERS);
 
+   // Create buffer for audio headers
+   int audioBuffers  = MpMisc.m_pRawAudioPool->getNumBlocks();
+   MpMisc.m_pAudioHeadersPool = new MpBufPool(sizeof(MpAudioBuf), audioBuffers);
+   MpAudioBuf::smpDefaultPool = MpMisc.m_pAudioHeadersPool;
+
    /*
    * Go get a buffer and fill with silence.  We will use this for muting
    * either or both of input and output, and whenever we are starved for
@@ -118,6 +123,7 @@ OsStatus mpStartUp(int sampleRate,
 
    // Create buffer for UDP packet headers
    MpMisc.m_pUdpHeadersPool = new MpBufPool(sizeof(MpUdpBuf), MpMisc.m_pUdpPool->getNumBlocks());
+   MpUdpBuf::smpDefaultPool = MpMisc.m_pUdpHeadersPool;
 
    // create queue for echo canceller
    MpMisc.m_pEchoQ = new OsMsgQ(ECHO_BUFFER_Q_LEN);
@@ -179,6 +185,7 @@ OsStatus mpShutdown(void)
    {
       delete MpMisc.m_pUdpHeadersPool;
       MpMisc.m_pUdpHeadersPool = NULL;
+      MpUdpBuf::smpDefaultPool = NULL;
    }
 
    if (MpMisc.m_pUdpPool)
@@ -206,6 +213,13 @@ OsStatus mpShutdown(void)
       MpMisc.m_pRtcpPool = NULL;
    }
 
+   if (MpMisc.m_pAudioHeadersPool)
+   {
+      delete MpMisc.m_pAudioHeadersPool;
+      MpMisc.m_pAudioHeadersPool = NULL;
+      MpAudioBuf::smpDefaultPool = NULL;
+   }
+   
    if (MpMisc.m_pRawAudioPool)
    {
       delete MpMisc.m_pRawAudioPool;
