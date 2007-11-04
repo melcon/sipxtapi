@@ -2583,7 +2583,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const int index,
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
                                                  const char* szDevice,
-                                                 const char* szDriver);
+                                                 const char* szDriver = NULL);
 
 
 /**
@@ -2617,7 +2617,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
 */
 SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
                                                   const char* szDevice,
-                                                  const char* szDriver);
+                                                  const char* szDriver = NULL);
 
 
 /**
