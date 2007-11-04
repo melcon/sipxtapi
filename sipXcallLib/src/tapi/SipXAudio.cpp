@@ -673,12 +673,13 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const int index,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
-                                                 const char* szDevice)
+                                                 const char* szDevice,
+                                                 const char* szDriver)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetInputDevice");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxAudioSetInputDevice hInst=%p device=%s",
-      hInst, szDevice);
+      hInst, szDevice ? szDevice : "null");
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
@@ -689,7 +690,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
 
       if (pInterface)
       {
-         OsStatus res = pInterface->setMicrophoneDevice(szDevice);
+         OsStatus res = pInterface->setMicrophoneDevice(szDevice, szDriver);
          if (res == OS_SUCCESS)
          {
             rc = SIPX_RESULT_SUCCESS;
@@ -738,12 +739,13 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
-                                                  const char* szDevice)
+                                                  const char* szDevice,
+                                                  const char* szDriver)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioSetOutputDevice");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxAudioSetOutputDevice hInst=%p device=%s",
-      hInst, szDevice);
+      hInst, szDevice ? szDevice : "null");
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
@@ -754,7 +756,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
 
       if (pInterface)
       {
-         OsStatus res = pInterface->setSpeakerDevice(szDevice);
+         OsStatus res = pInterface->setSpeakerDevice(szDevice, szDriver);
          if (res == OS_SUCCESS)
          {
             rc = SIPX_RESULT_SUCCESS;
