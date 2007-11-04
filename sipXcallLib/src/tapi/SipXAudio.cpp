@@ -145,7 +145,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetGain(const SIPX_INST hInst,
          {
             int iAdjustedGain = (int) ((double)((double)iLevel / (double)GAIN_MAX) * 100.0);
             rc = pInterface->setMicrophoneGain(iAdjustedGain);
-            assert(rc == OS_SUCCESS);
          }
 
          sr = SIPX_RESULT_SUCCESS;
@@ -177,7 +176,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetGain(const SIPX_INST hInst,
          pInst->pCallManager->getMediaInterfaceFactory();
 
       OsStatus status = pInterface->getMicrophoneGain(*iLevel);
-      assert(status == OS_SUCCESS);
 
       if (status == OS_SUCCESS)
       {
@@ -220,7 +218,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
 
             // Mute gain
             OsStatus rc = pInterface->muteMicrophone(bMute);
-            assert(rc == OS_SUCCESS);
 
             if (rc == OS_SUCCESS)
             {
@@ -234,7 +231,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
          {
             // UnMute mic
             OsStatus rc = pInterface->muteMicrophone(bMute);
-            assert(rc == OS_SUCCESS);
 
             if (rc == OS_SUCCESS)
             {
@@ -245,7 +241,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMute(const SIPX_INST hInst,
                // convert from sipXtapi scale to 100 scale
                int iAdjustedGain = (int) (double)((((double)pInst->micSetting.iGain / (double)GAIN_MAX)) * 100.0);
                rc = pInterface->setMicrophoneGain(iAdjustedGain);
-               assert(rc == OS_SUCCESS);
 
                if (rc == OS_SUCCESS)
                {
@@ -310,7 +305,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioEnableSpeaker(const SIPX_INST hInst,
 
          // Lower Volume
          status = pInterface->setSpeakerVolume(0);
-         assert(status == OS_SUCCESS);
 
          if (status == OS_SUCCESS)
          {
@@ -333,7 +327,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioEnableSpeaker(const SIPX_INST hInst,
             // Reset Volume
             SIPX_RESULT rc;
             rc = sipxAudioSetVolume(hInst, type, pInst->speakerSettings[type].iVol);
-            assert(rc == SIPX_RESULT_SUCCESS);
 
             if (rc == SIPX_RESULT_SUCCESS)
             {
@@ -407,7 +400,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
          {
             // the CpMediaInterfaceFactoryImpl always uses a scale of 0 - 100
             OsStatus status = pInterface->setSpeakerVolume(iLevel);
-            assert(status == OS_SUCCESS);
 
             if (status != OS_SUCCESS)
             {
@@ -451,7 +443,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetVolume(const SIPX_INST hInst,
                pInst->pCallManager->getMediaInterfaceFactory();
 
             OsStatus status = pInterface->getSpeakerVolume(*iLevel);
-            assert(status == OS_SUCCESS);
 
             if (status == OS_SUCCESS)
             {
@@ -862,14 +853,12 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallInputDevice(const SIPX_INST hInst,
 
       // Get existing device
       OsStatus status = pInterface->getMicrophoneDevice(oldDevice);
-      assert(status == OS_SUCCESS);
 
       if (strcasecmp(szDevice, "NONE") == 0)
       {
          // "NONE" = special device??
          pInst->micSetting.device = szDevice;
          status = pInterface->setMicrophoneDevice(pInst->micSetting.device);
-         assert(status == OS_SUCCESS);
 
          if (status == OS_SUCCESS)
          {
@@ -889,8 +878,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallInputDevice(const SIPX_INST hInst,
                      // Match
                      pInst->micSetting.device = szDevice;
                      status = pInterface->setMicrophoneDevice(pInst->micSetting.device);
-
-                     assert(status == OS_SUCCESS);
 
                      if (status == OS_SUCCESS)
                      {
@@ -947,7 +934,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetRingerOutputDevice(const SIPX_INST hInst,
          if (pInst->enabledSpeaker == RINGER)
          {
             status = pInterface->setSpeakerDevice(pInst->speakerSettings[RINGER].device);
-            assert(status == OS_SUCCESS);
 
             if (status == OS_SUCCESS)
             {
@@ -976,7 +962,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetRingerOutputDevice(const SIPX_INST hInst,
                      if (pInst->enabledSpeaker == RINGER)
                      {
                         status = pInterface->setSpeakerDevice(pInst->speakerSettings[RINGER].device);
-                        assert(status == OS_SUCCESS);
 
                         if (status == OS_SUCCESS)
                         {
@@ -1041,7 +1026,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallOutputDevice(const SIPX_INST hInst,
          if (pInst->enabledSpeaker == SPEAKER)
          {
             status = pInterface->setSpeakerDevice(pInst->speakerSettings[SPEAKER].device);
-            assert(status == OS_SUCCESS);
 
             if (status == OS_SUCCESS)
             {
@@ -1069,7 +1053,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetCallOutputDevice(const SIPX_INST hInst,
                      if (pInst->enabledSpeaker == SPEAKER)
                      {
                         status = pInterface->setSpeakerDevice(pInst->speakerSettings[SPEAKER].device);
-                        assert(status == OS_SUCCESS);
 
                         if (status == OS_SUCCESS)
                         {
