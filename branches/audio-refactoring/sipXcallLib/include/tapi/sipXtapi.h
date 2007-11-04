@@ -2600,9 +2600,15 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const int index,
  *        name of the output device. Pass "NONE" to completely disable
  *        audio input device. Pass "Default" to select platform
  *        independent audio input device.
+ * @param Name of driver of use for device. Should be NULL for "NONE"
+ *        or "Default" device. Otherwise it should be non NULL.
+ *        Application can pass NULL if it doesn't care which driver
+ *        should be selected. Then the first driver which has given
+ *        device available will be selected.
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
-                                                 const char* szDevice);
+                                                 const char* szDevice,
+                                                 const char* szDriver);
 
 
 /**
@@ -2628,9 +2634,15 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
  * @param szDevice The call output device. Pass "NONE" to completely disable
  *        audio output device. Pass "Default" to select platform
  *        independent audio output device.
- */
+ * @param Name of driver of use for device. Should be NULL for "NONE"
+ *        or "Default" device. Otherwise it should be non NULL.
+ *        Application can pass NULL if it doesn't care which driver
+ *        should be selected. Then the first driver which has given
+ *        device available will be selected.
+*/
 SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
-                                                  const char* szDevice);
+                                                  const char* szDevice,
+                                                  const char* szDriver);
 
 
 /**
