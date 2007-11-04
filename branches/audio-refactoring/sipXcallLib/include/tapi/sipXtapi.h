@@ -2419,8 +2419,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsSpeakerMuted(const SIPX_INST hInst,
 
 
 /**
- * Sets the audio level for the designated speaker type.  If the speaker type
- * is enabled, the change it audio will be heard instantly.
+ * Sets the audio level for speaker.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param iLevel The level of the gain of the microphone
@@ -2430,7 +2429,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
 
 
 /**
- * Gets the audio level for the designated speaker type
+ * Gets the audio level for speaker.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param iLevel The level of the gain of the microphone
