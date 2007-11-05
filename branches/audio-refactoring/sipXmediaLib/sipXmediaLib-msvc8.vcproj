@@ -2159,18 +2159,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpidWinMM.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpInputDeviceDriver.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpInputDeviceManager.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpJitterBufferBase.h"
 					>
 				</File>

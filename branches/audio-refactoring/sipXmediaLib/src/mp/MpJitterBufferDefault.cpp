@@ -1,5 +1,6 @@
 // Copyright (C) 2007 Jaroslav Libak
-//  
+// Licensed under the LGPL license.
+//
 // Copyright (C) 2006-2007 SIPez LLC. 
 // Licensed to SIPfoundry under a Contributor Agreement. 
 //
