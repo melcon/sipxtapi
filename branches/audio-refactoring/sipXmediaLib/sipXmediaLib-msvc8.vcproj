@@ -1454,10 +1454,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioOutputConnection.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpAudioResource.cpp"
 					>
 				</File>
@@ -1586,18 +1582,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpidWinMM.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpInputDeviceDriver.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpInputDeviceManager.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpJitterBufferBase.cpp"
 					>
 				</File>
@@ -1631,22 +1615,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpMMTimerWnt.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpodBufferRecorder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpodWinMM.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpOutputDeviceDriver.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpOutputDeviceManager.cpp"
 					>
 				</File>
 				<File
@@ -1730,10 +1698,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprFromInputDevice.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprFromMic.cpp"
 					>
 				</File>
@@ -1782,10 +1746,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprToOutputDevice.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprToSpkr.cpp"
 					>
 				</File>
@@ -1807,10 +1767,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpRtpOutputConnection.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpSineWaveGeneratorDeviceDriver.cpp"
 					>
 				</File>
 				<File
@@ -2051,10 +2007,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioOutputConnection.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpAudioResource.h"
 					>
 				</File>
@@ -2259,26 +2211,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpodBufferRecorder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpodWinMM.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpOutputAudioStream.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpOutputDeviceDriver.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpOutputDeviceManager.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpPlayer.h"
 					>
 				</File>
@@ -2387,14 +2319,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprFromInputDevice.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprFromInputDeviceConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprFromMic.h"
 					>
 				</File>
@@ -2475,14 +2399,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprToOutputDevice.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprToOutputDeviceConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprToSpkr.h"
 					>
 				</File>
@@ -2504,10 +2420,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpRtpOutputConnection.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpSineWaveGeneratorDeviceDriver.h"
 					>
 				</File>
 				<File

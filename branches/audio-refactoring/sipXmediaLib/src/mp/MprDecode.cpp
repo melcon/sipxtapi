@@ -40,7 +40,6 @@
 #include "mp/MprDejitter.h"
 #include "mp/MpDecoderBase.h"
 #include "mp/NetInTask.h"
-#include "mp/dmaTask.h"
 #include "mp/MpMediaTask.h"
 #include "mp/MpCodecFactory.h"
 #include "mp/MpDecodeBuffer.h"

@@ -53,7 +53,6 @@
 #include "mp/MpUdpBuf.h"
 #include "mp/MprFromNet.h"
 #include "mp/MpBufferMsg.h"
-#include "mp/dmaTask.h"
 #ifdef _VXWORKS /* [ */
 #ifdef CPU_XSCALE /* [ */
 #include "mp/pxa255.h"

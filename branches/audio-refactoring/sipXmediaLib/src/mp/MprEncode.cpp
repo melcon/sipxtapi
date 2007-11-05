@@ -33,7 +33,6 @@
 #include "mp/MprEncode.h"
 #include "mp/MprToNet.h"
 #include "mp/MpEncoderBase.h"
-#include "mp/dmaTask.h"
 #include "mp/MpMediaTask.h"
 #include "mp/MpCodecFactory.h"
 

@@ -44,7 +44,6 @@
 #include "mp/MprToNet.h"
 #include "mp/NetInTask.h"
 #include "mp/MprFromNet.h"
-#include "mp/dmaTask.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
