@@ -1,9 +1,7 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portaudio", "portaudio.vcproj", "{0A18A071-125E-442F-AFF7-A3F68ABECF99}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portaudio4sipx", "portaudio4sipx.vcproj", "{DB1BC583-1802-4E5E-B186-457B84229244}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,14 +19,6 @@ Global
 		{0A18A071-125E-442F-AFF7-A3F68ABECF99}.Release|Win32.Build.0 = Release|Win32
 		{0A18A071-125E-442F-AFF7-A3F68ABECF99}.Release|x64.ActiveCfg = Release|x64
 		{0A18A071-125E-442F-AFF7-A3F68ABECF99}.Release|x64.Build.0 = Release|x64
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Debug|Win32.ActiveCfg = Debug|Win32
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Debug|Win32.Build.0 = Debug|Win32
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Debug|x64.ActiveCfg = Debug|x64
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Debug|x64.Build.0 = Debug|x64
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Release|Win32.ActiveCfg = Release|Win32
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Release|Win32.Build.0 = Release|Win32
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Release|x64.ActiveCfg = Release|x64
-		{DB1BC583-1802-4E5E-B186-457B84229244}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
