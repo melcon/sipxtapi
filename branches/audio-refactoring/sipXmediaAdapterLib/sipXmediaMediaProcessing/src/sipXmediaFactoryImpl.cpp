@@ -24,10 +24,10 @@
 #include "mp/MpMisc.h"
 #include "mp/MpCodec.h"
 #include "mp/MpCallFlowGraph.h"
-#include "mp/dmaTask.h"
 #include "net/SdpCodecFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "mp/MpAudioDriverManager.h"
+#include "mi/CpAudioDeviceInfo.h"
 
 #ifdef INCLUDE_RTCP /* [ */
 #include "rtcp/RTCManager.h"
@@ -203,6 +203,91 @@ CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceN
             bEnableICE) ;
 }
 
+OsStatus sipXmediaFactoryImpl::getAudioInputDeviceCount(int& count) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      count = pAudioManager->getInputDeviceCount();
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioOutputDeviceCount(int& count) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      count = pAudioManager->getOutputDeviceCount();
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioInputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      MpAudioDeviceInfo mDeviceInfo;
+      OsStatus res = pAudioManager->getInputDeviceInfo(deviceIndex, mDeviceInfo);
+
+      if (res == OS_SUCCESS)
+      {
+         deviceInfo.m_bIsInput = TRUE;
+         deviceInfo.m_defaultSampleRate = mDeviceInfo.getDefaultSampleRate();
+         deviceInfo.m_deviceName = mDeviceInfo.getName();
+         deviceInfo.m_driverName = mDeviceInfo.getHostApiName();
+         deviceInfo.m_maxChannels = mDeviceInfo.getMaxInputChannels();
+      }
+      
+      return res;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioOutputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      MpAudioDeviceInfo mDeviceInfo;
+      OsStatus res = pAudioManager->getOutputDeviceInfo(deviceIndex, mDeviceInfo);
+
+      if (res == OS_SUCCESS)
+      {
+         deviceInfo.m_bIsInput = FALSE;
+         deviceInfo.m_defaultSampleRate = mDeviceInfo.getDefaultSampleRate();
+         deviceInfo.m_deviceName = mDeviceInfo.getName();
+         deviceInfo.m_driverName = mDeviceInfo.getHostApiName();
+         deviceInfo.m_maxChannels = mDeviceInfo.getMaxOutputChannels();
+      }
+
+      return res;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
 
 OsStatus sipXmediaFactoryImpl::setSpeakerVolume(int iVolume) 
 {
@@ -458,13 +543,24 @@ OsStatus sipXmediaFactoryImpl::getSpeakerVolume(int& iVolume) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getSpeakerDevice(UtlString& device, UtlString& driverName) const
+OsStatus sipXmediaFactoryImpl::getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
    if (pAudioManager)
    {
-      return pAudioManager->getCurrentOutputDevice(device, driverName);
+      MpAudioDeviceInfo mDeviceInfo;
+      OsStatus res = pAudioManager->getCurrentOutputDevice(mDeviceInfo);
+      if (res == OS_SUCCESS)
+      {
+         deviceInfo.m_bIsInput = FALSE;
+         deviceInfo.m_defaultSampleRate = mDeviceInfo.getDefaultSampleRate();
+         deviceInfo.m_deviceName = mDeviceInfo.getName();
+         deviceInfo.m_driverName = mDeviceInfo.getHostApiName();
+         deviceInfo.m_maxChannels = mDeviceInfo.getMaxOutputChannels();
+      }
+      
+      return res;
    }
 
    return OS_FAILED;
@@ -480,13 +576,24 @@ OsStatus sipXmediaFactoryImpl::getMicrophoneGain(int& iGain) const
 }
 
 
-OsStatus sipXmediaFactoryImpl::getMicrophoneDevice(UtlString& device, UtlString& driverName) const
+OsStatus sipXmediaFactoryImpl::getMicrophoneDevice(CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
    if (pAudioManager)
    {
-      return pAudioManager->getCurrentInputDevice(device, driverName);
+      MpAudioDeviceInfo mDeviceInfo;
+      OsStatus res = pAudioManager->getCurrentInputDevice(mDeviceInfo);
+      if (res == OS_SUCCESS)
+      {
+         deviceInfo.m_bIsInput = TRUE;
+         deviceInfo.m_defaultSampleRate = mDeviceInfo.getDefaultSampleRate();
+         deviceInfo.m_deviceName = mDeviceInfo.getName();
+         deviceInfo.m_driverName = mDeviceInfo.getHostApiName();
+         deviceInfo.m_maxChannels = mDeviceInfo.getMaxInputChannels();
+      }
+
+      return res;
    }
 
    return OS_FAILED;

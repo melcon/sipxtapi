@@ -11,7 +11,6 @@
 #include "mp/MpAudioDriverManager.h"
 #include "mp/MpAudioDriverFactory.h"
 #include "mp/MpAudioDriverBase.h"
-#include "mp/MpAudioDeviceInfo.h"
 #include "mp/MpAudioStreamParameters.h"
 #include "mp/MpMisc.h"
 
@@ -49,33 +48,31 @@ MpAudioDriverManager* MpAudioDriverManager::getInstance(UtlBoolean bCreate /*= T
    }
 }
 
-OsStatus MpAudioDriverManager::getCurrentOutputDevice(UtlString& device, UtlString& driverName) const
+OsStatus MpAudioDriverManager::getCurrentOutputDevice(MpAudioDeviceInfo& deviceInfo) const
 {
+   OsLock lock(ms_mutex);
+
    if (m_pAudioDriver)
    {
       OsStatus res = OS_FAILED;
       if (m_outputAudioStream)
       {
          // stream exists, then audio device is selected
-         MpAudioDeviceInfo deviceInfo;
          res = m_pAudioDriver->getDeviceInfo(m_outputDeviceIndex, deviceInfo);
-         if (res == OS_SUCCESS)
-         {
-            device = deviceInfo.getName();
-            MpHostAudioApiInfo apiInfo;
-            MpHostAudioApiIndex apiIndex = deviceInfo.getHostApi();
-            res = m_pAudioDriver->getHostApiInfo(apiIndex, apiInfo);
-            if (res == OS_SUCCESS)
-            {
-               driverName = apiInfo.getName();
-            }
-         }         
       }
       else
       {
          // stream doesn't exist, audio device is disabled
-         device = "NONE";
-         driverName.remove(0);
+         deviceInfo.setName("None");
+         deviceInfo.setHostApiName(NULL);
+         deviceInfo.setHostApi(0);
+         deviceInfo.setMaxInputChannels(0);
+         deviceInfo.setMaxOutputChannels(0);
+         deviceInfo.setDefaultHighInputLatency(0.0);
+         deviceInfo.setDefaultHighOutputLatency(0.0);
+         deviceInfo.setDefaultLowInputLatency(0.0);
+         deviceInfo.setDefaultLowOutputLatency(0.0);
+         deviceInfo.setDefaultSampleRate(0.0);
          res = OS_SUCCESS;
       }
 
@@ -85,33 +82,31 @@ OsStatus MpAudioDriverManager::getCurrentOutputDevice(UtlString& device, UtlStri
    return OS_FAILED;
 }
 
-OsStatus MpAudioDriverManager::getCurrentInputDevice(UtlString& device, UtlString& driverName) const
+OsStatus MpAudioDriverManager::getCurrentInputDevice(MpAudioDeviceInfo& deviceInfo) const
 {
+   OsLock lock(ms_mutex);
+
    if (m_pAudioDriver)
    {
       OsStatus res = OS_FAILED;
       if (m_inputAudioStream)
       {
          // stream exists, then audio device is selected
-         MpAudioDeviceInfo deviceInfo;
          res = m_pAudioDriver->getDeviceInfo(m_inputDeviceIndex, deviceInfo);
-         if (res == OS_SUCCESS)
-         {
-            device = deviceInfo.getName();
-            MpHostAudioApiInfo apiInfo;
-            MpHostAudioApiIndex apiIndex = deviceInfo.getHostApi();
-            res = m_pAudioDriver->getHostApiInfo(apiIndex, apiInfo);
-            if (res == OS_SUCCESS)
-            {
-               driverName = apiInfo.getName();
-            }
-         }         
       }
       else
       {
          // stream doesn't exist, audio device is disabled
-         device = "NONE";
-         driverName.remove(0);
+         deviceInfo.setName("None");
+         deviceInfo.setHostApiName(NULL);
+         deviceInfo.setHostApi(0);
+         deviceInfo.setMaxInputChannels(0);
+         deviceInfo.setMaxOutputChannels(0);
+         deviceInfo.setDefaultHighInputLatency(0.0);
+         deviceInfo.setDefaultHighOutputLatency(0.0);
+         deviceInfo.setDefaultLowInputLatency(0.0);
+         deviceInfo.setDefaultLowOutputLatency(0.0);
+         deviceInfo.setDefaultSampleRate(0.0);
          res = OS_SUCCESS;
       }
 
@@ -124,9 +119,11 @@ OsStatus MpAudioDriverManager::getCurrentInputDevice(UtlString& device, UtlStrin
 OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                                                       const UtlString& driverName)
 {
+   OsLock lock(ms_mutex);
+
    if (m_pAudioDriver)
    {
-      if (device.compareTo("NONE", UtlString::ignoreCase) == 0)
+      if (device.compareTo("None", UtlString::ignoreCase) == 0)
       {
          // we want to disable current output device
          return closeOutputStream();
@@ -209,13 +206,9 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             }
             else
             {
-               // we have to match by driver name as well
-               MpHostAudioApiInfo apiInfo;
-               m_pAudioDriver->getHostApiInfo(deviceInfo.getHostApi(), apiInfo);
-
                // now try to match by driver name, device name
                if (deviceInfo.getName().compareTo(device.data(), UtlString::matchCase) == 0 &&
-                   apiInfo.getName().compareTo(driverName.data(), UtlString::matchCase) == 0 &&
+                   deviceInfo.getHostApiName().compareTo(driverName.data(), UtlString::matchCase) == 0 &&
                    deviceInfo.getMaxOutputChannels() > 0)
                {
                   // we found match, we will select this device
@@ -268,9 +261,11 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
 OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                                                      const UtlString& driverName)
 {
+   OsLock lock(ms_mutex);
+
    if (m_pAudioDriver)
    {
-      if (device.compareTo("NONE", UtlString::ignoreCase) == 0)
+      if (device.compareTo("None", UtlString::ignoreCase) == 0)
       {
          // we want to disable current input device
          return closeInputStream();
@@ -353,13 +348,9 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             }
             else
             {
-               // we have to match by driver name as well
-               MpHostAudioApiInfo apiInfo;
-               m_pAudioDriver->getHostApiInfo(deviceInfo.getHostApi(), apiInfo);
-
                // now try to match by driver name, device name
                if (deviceInfo.getName().compareTo(device.data(), UtlString::matchCase) == 0 &&
-                  apiInfo.getName().compareTo(driverName.data(), UtlString::matchCase) == 0 &&
+                  deviceInfo.getHostApiName().compareTo(driverName.data(), UtlString::matchCase) == 0 &&
                   deviceInfo.getMaxInputChannels() > 0)
                {
                   // we found match, we will select this device
@@ -409,8 +400,54 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
    return OS_FAILED;
 }
 
+int MpAudioDriverManager::getInputDeviceCount() const
+{
+   OsLock lock(ms_mutex);
+
+   return (int)m_inputAudioDevices.size();
+}
+
+int MpAudioDriverManager::getOutputDeviceCount() const
+{
+   OsLock lock(ms_mutex);
+
+   return (int)m_outputAudioDevices.size();
+}
+
+OsStatus MpAudioDriverManager::getInputDeviceInfo(int deviceIndex, MpAudioDeviceInfo& deviceInfo)
+{
+   OsLock lock(ms_mutex);
+
+   OsStatus res = OS_FAILED;
+
+   if (deviceIndex < (int)m_inputAudioDevices.size())
+   {
+      deviceInfo = m_inputAudioDevices.at(deviceIndex);
+      res = OS_SUCCESS;
+   }
+   
+   return res;
+}
+
+OsStatus MpAudioDriverManager::getOutputDeviceInfo(int deviceIndex, MpAudioDeviceInfo& deviceInfo)
+{
+   OsLock lock(ms_mutex);
+
+   OsStatus res = OS_FAILED;
+
+   if (deviceIndex < (int)m_outputAudioDevices.size())
+   {
+      deviceInfo = m_outputAudioDevices.at(deviceIndex);
+      res = OS_SUCCESS;
+   }
+
+   return res;
+}
+
 OsStatus MpAudioDriverManager::startInputStream() const
 {
+   OsLock lock(ms_mutex);
+
    if (m_inputAudioStream && m_pAudioDriver)
    {
       UtlBoolean isStopped = FALSE;
@@ -426,6 +463,8 @@ OsStatus MpAudioDriverManager::startInputStream() const
 
 OsStatus MpAudioDriverManager::startOutputStream() const
 {
+   OsLock lock(ms_mutex);
+
    if (m_outputAudioStream && m_pAudioDriver)
    {
       UtlBoolean isStopped = FALSE;
@@ -441,6 +480,8 @@ OsStatus MpAudioDriverManager::startOutputStream() const
 
 OsStatus MpAudioDriverManager::abortInputStream() const
 {
+   OsLock lock(ms_mutex);
+
    if (m_inputAudioStream && m_pAudioDriver)
    {
       UtlBoolean isActive = FALSE;
@@ -456,6 +497,8 @@ OsStatus MpAudioDriverManager::abortInputStream() const
 
 OsStatus MpAudioDriverManager::abortOutputStream() const
 {
+   OsLock lock(ms_mutex);
+
    if (m_outputAudioStream && m_pAudioDriver)
    {
       UtlBoolean isActive = FALSE;
@@ -471,6 +514,8 @@ OsStatus MpAudioDriverManager::abortOutputStream() const
 
 OsStatus MpAudioDriverManager::closeInputStream()
 {
+   OsLock lock(ms_mutex);
+
    if (m_inputAudioStream && m_pAudioDriver)
    {
       UtlBoolean isActive = FALSE;
@@ -495,6 +540,8 @@ OsStatus MpAudioDriverManager::closeInputStream()
 
 OsStatus MpAudioDriverManager::closeOutputStream()
 {
+   OsLock lock(ms_mutex);
+
    if (m_outputAudioStream && m_pAudioDriver)
    {
       UtlBoolean isActive = FALSE;
@@ -536,8 +583,43 @@ MpAudioDriverManager::MpAudioDriverManager()
 , m_inputDeviceIndex(0)
 , m_outputAudioStream(0)
 , m_outputDeviceIndex(0)
+, m_outputAudioDevices()
+, m_inputAudioDevices()
 {
    m_pAudioDriver = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_PORTAUDIO);
+
+   MpAudioDeviceIndex deviceCount = 0;
+   m_pAudioDriver->getDeviceCount(deviceCount);
+
+   // first append "NONE" and "Default" devices
+   MpAudioDeviceInfo device;
+   device.setName("None");
+   m_outputAudioDevices.push_back(device);
+   m_inputAudioDevices.push_back(device);
+   device.setName("Default");
+   device.setMaxOutputChannels(2);
+   m_outputAudioDevices.push_back(device);
+   device.setMaxOutputChannels(0);
+   device.setMaxInputChannels(2);
+   m_inputAudioDevices.push_back(device);
+   device.setMaxInputChannels(0);
+
+   for (int i = 0; i < deviceCount; i++)
+   {
+      MpAudioDeviceInfo deviceInfo;
+      m_pAudioDriver->getDeviceInfo(i, deviceInfo);
+
+      if (deviceInfo.getMaxInputChannels() > 0)
+      {
+         // device is input
+         m_inputAudioDevices.push_back(deviceInfo);
+      }
+      if (deviceInfo.getMaxOutputChannels() > 0)
+      {
+         // device is output
+         m_outputAudioDevices.push_back(deviceInfo);
+      }
+   }
 
    MpAudioStreamParameters inputParameters;
    MpAudioStreamParameters outputParameters;
@@ -613,6 +695,7 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
       m_pAudioDriver = NULL;
    }
 }
+
 
 /* ============================ FUNCTIONS ================================= */
 

@@ -63,6 +63,9 @@ public:
    MpHostAudioApiIndex getHostApi() const { return m_hostApi; }
    void setHostApi(MpHostAudioApiIndex val) { m_hostApi = val; }
 
+   UtlString getHostApiName() const { return m_hostApiName; }
+   void setHostApiName(const UtlString& val) { m_hostApiName = val; }
+
    int getMaxInputChannels() const { return m_maxInputChannels; }
    void setMaxInputChannels(int val) { m_maxInputChannels = val; }
 
@@ -98,6 +101,7 @@ private:
 
    UtlString m_name; ///< device name
    MpHostAudioApiIndex m_hostApi; ///< host api index this device belongs to (not type id)
+   UtlString m_hostApiName; ///< textual description of host api
 
    int m_maxInputChannels; ///< maximum input channels supported
    int m_maxOutputChannels; ///< maximum output channels supported

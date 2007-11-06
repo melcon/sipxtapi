@@ -723,29 +723,29 @@ bool playFileBuffer(char* szFile)
 // Display the list of input & output devices
 void dumpInputOutputDevices()
 {
-    size_t numDevices ;
+    int numDevices ;
 
-    if (sipxAudioGetNumInputDevices(&numDevices) == SIPX_RESULT_SUCCESS)
+    if (sipxAudioGetNumInputDevices(g_hInst1, &numDevices) == SIPX_RESULT_SUCCESS)
     {
         printf("Input Devices: %d\n", numDevices) ;
         for (size_t i=0; i<numDevices; i++)
         {
-            char szDevice[500];
-            memset(szDevice, 0, sizeof(szDevice));
-            sipxAudioGetInputDeviceInfo(i, szDevice, 499) ;
-            printf("\t#%d: %s\n", i, szDevice) ;
+           SIPX_AUDIO_DEVICE audioDevice;
+           memset(&audioDevice, 0, sizeof(audioDevice));
+           sipxAudioGetInputDeviceInfo(g_hInst1, i, &audioDevice);
+           printf("\t#%d: %s\n", i, audioDevice.deviceName) ;
         }
     }
 
-    if (sipxAudioGetNumOutputDevices(&numDevices) == SIPX_RESULT_SUCCESS)
+    if (sipxAudioGetNumOutputDevices(g_hInst1, &numDevices) == SIPX_RESULT_SUCCESS)
     {
         printf("Output Devices: %d\n", numDevices) ;
         for (size_t i=0; i<numDevices; i++)
         {
-            char szDevice[500];
-            memset(szDevice, 0, sizeof(szDevice));
-            sipxAudioGetOutputDeviceInfo(i, szDevice, 499) ;
-            printf("\t#%d: %s\n", i, szDevice) ;
+           SIPX_AUDIO_DEVICE audioDevice;
+           memset(&audioDevice, 0, sizeof(audioDevice));
+           sipxAudioGetOutputDeviceInfo(g_hInst1, i, &audioDevice);
+           printf("\t#%d: %s\n", i, audioDevice.deviceName) ;
         }
     }
 

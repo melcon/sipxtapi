@@ -12,6 +12,9 @@
 #include <os/OsMutex.h>
 #include <utl/UtlBool.h>
 #include "mp/MpAudioDriverDefs.h"
+#include "mp/MpAudioDeviceInfo.h"
+// use STL vector
+#include <vector>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -55,12 +58,12 @@ public:
    /**
     * Returns name of current output device and driver name.
     */
-   OsStatus getCurrentOutputDevice(UtlString& device, UtlString& driverName) const;
+   OsStatus getCurrentOutputDevice(MpAudioDeviceInfo& deviceInfo) const;
 
    /**
     * Returns name of current input device and driver name.
     */
-   OsStatus getCurrentInputDevice(UtlString& device, UtlString& driverName) const;
+   OsStatus getCurrentInputDevice(MpAudioDeviceInfo& deviceInfo) const;
 
    /**
    * Sets current output device. NONE disables it, "Default" will select
@@ -73,6 +76,26 @@ public:
    * default one. If it fails, it will try not to disable current stream.
    */
    OsStatus setCurrentInputDevice(const UtlString& device, const UtlString& driverName);
+
+   /**
+    * Returns number of input devices
+    */
+   int getInputDeviceCount() const;
+
+   /**
+    * Returns number of output devices
+    */
+   int getOutputDeviceCount() const;
+
+   /**
+    * Gets information about given input device
+    */
+   OsStatus getInputDeviceInfo(int deviceIndex, MpAudioDeviceInfo& deviceInfo);
+
+   /**
+    * Gets information about given output device
+    */
+   OsStatus getOutputDeviceInfo(int deviceIndex, MpAudioDeviceInfo& deviceInfo);
 
    /**
    * Starts input stream.
@@ -155,6 +178,9 @@ private:
    MpAudioDeviceIndex m_inputDeviceIndex; ///< index of current input device
    MpAudioStreamId m_outputAudioStream; ///< ID of output audio stream
    MpAudioDeviceIndex m_outputDeviceIndex; ///< index of current output device
+   
+   std::vector<MpAudioDeviceInfo> m_outputAudioDevices;
+   std::vector<MpAudioDeviceInfo> m_inputAudioDevices;
 };
 
 #endif // MpAudioDriverManager_h__

@@ -1396,6 +1396,10 @@
 				Name="mi"
 				>
 				<File
+					RelativePath=".\interface\src\mi\CpAudioDeviceInfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\interface\src\mi\CpMediaInterface.cpp"
 					>
 				</File>
@@ -1424,6 +1428,10 @@
 			<Filter
 				Name="mi"
 				>
+				<File
+					RelativePath=".\interface\include\mi\CpAudioDeviceInfo.h"
+					>
+				</File>
 				<File
 					RelativePath=".\interface\include\mi\CpMediaInterface.h"
 					>
