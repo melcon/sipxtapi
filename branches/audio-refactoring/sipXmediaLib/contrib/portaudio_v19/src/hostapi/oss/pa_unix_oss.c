@@ -1,5 +1,5 @@
 /*
- * $Id: pa_unix_oss.c 1278 2007-09-12 17:39:48Z aknudsen $
+ * $Id: pa_unix_oss.c 1296 2007-10-28 22:43:50Z aknudsen $
  * PortAudio Portable Real-Time Audio Library
  * Latest Version at: http://www.portaudio.com
  * OSS implementation by:
@@ -1227,9 +1227,12 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
     }
 
     /* Round framesPerBuffer to the next power-of-two to make OSS happy. */
-    framesPerBuffer &= INT_MAX;
-    for (i = 1; framesPerBuffer > i; i <<= 1) ;
-    framesPerBuffer = i;
+    if( framesPerBuffer != paFramesPerBufferUnspecified )
+    {
+        framesPerBuffer &= INT_MAX;
+        for (i = 1; framesPerBuffer > i; i <<= 1) ;
+        framesPerBuffer = i;
+    }
 
     /* allocate and do basic initialization of the stream structure */
     PA_UNLESS( stream = (PaOssStream*)PaUtil_AllocateMemory( sizeof(PaOssStream) ), paInsufficientMemory );
