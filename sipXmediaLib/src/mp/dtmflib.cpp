@@ -130,19 +130,19 @@ void MpToneGen_startTone(MpToneGenPtr p, int toneID)
             case '1': case  1 : pNew = &(p->key1); break;
             case '2': case  2 : pNew = &(p->key2); break;
             case '3': case  3 : pNew = &(p->key3); break;
-            case 'a': case 'A': pNew = &(p->keya); break;
+            case 'a': case 'A': case 12: pNew = &(p->keya); break;
             case '4': case  4 : pNew = &(p->key4); break;
             case '5': case  5 : pNew = &(p->key5); break;
             case '6': case  6 : pNew = &(p->key6); break;
-            case 'b': case 'B': pNew = &(p->keyb); break;
+            case 'b': case 'B': case 13: pNew = &(p->keyb); break;
             case '7': case  7 : pNew = &(p->key7); break;
             case '8': case  8 : pNew = &(p->key8); break;
             case '9': case  9 : pNew = &(p->key9); break;
-            case 'c': case 'C': pNew = &(p->keyc); break;
-            case '*':           pNew = &(p->keystar); break;
+            case 'c': case 'C': case 14: pNew = &(p->keyc); break;
+            case '*': case 10 : pNew = &(p->keystar); break;
             case '0': case  0 : pNew = &(p->key0); break;
-            case '#':           pNew = &(p->keysharp); break;
-            case 'd': case 'D': pNew = &(p->keyd); break;
+            case '#': case 11 : pNew = &(p->keysharp); break;
+            case 'd': case 'D': case 15: pNew = &(p->keyd); break;
 
             case DTMF_TONE_DIALTONE: pNew = &(p->dial); break;
             case DTMF_TONE_SILENCE: pNew = &(p->silence); break;
