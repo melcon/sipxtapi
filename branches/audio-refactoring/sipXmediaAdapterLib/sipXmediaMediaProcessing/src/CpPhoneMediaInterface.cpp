@@ -1335,9 +1335,6 @@ OsStatus CpPhoneMediaInterface::startTone(int toneId,
       }
      
       mpFlowGraph->startTone(toneId, toneDestination);
-
-      // Make sure the DTMF tone is on the minimum length
-      OsTask::delay(MINIMUM_DTMF_LENGTH);
    } 
 
    return(returnCode);

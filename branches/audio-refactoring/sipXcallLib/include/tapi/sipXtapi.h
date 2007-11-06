@@ -1442,6 +1442,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
  * Play a tone (DTMF, dialtone, ring back, etc) to the local and/or
  * remote party.  See the DTMF_ constants for built-in tones.
  * DTMF is sent via RFC 2833 method. sipxCallDestroy stops tones automatically.
+ * Minimum DTMF length must be 60msec. It is not enforced by sipxtapi.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
