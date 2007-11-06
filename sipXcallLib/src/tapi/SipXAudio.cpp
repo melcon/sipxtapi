@@ -28,6 +28,7 @@
 #include "cp/CallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
+#include <mi/CpAudioDeviceInfo.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -570,102 +571,110 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(size_t* numDevices)
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(const SIPX_INST hInst,
+                                                     int* numDevices)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (numDevices)
+   if (pInst)
    {
-#ifdef _WIN32
-      // TODO: this should be in sipxmedialib
-      *numDevices = waveInGetNumDevs();
-#else
-      *numDevices = 1; // the "default" device
-#endif
-      rc = SIPX_RESULT_SUCCESS;
-   }
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-   return rc;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const int index,
-                                                     char* szDevice,
-                                                     unsigned int bufferSize)
-{
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-
-   if (index >= 0 && szDevice && bufferSize > 0)
-   {
-#ifdef _WIN32
-      // TODO: this should be in sipxmedialib
-      MMRESULT result;
-      WAVEINCAPS incaps;
-
-      result = waveInGetDevCaps(index, &incaps, sizeof(WAVEINCAPS));
-      if (result == MMSYSERR_NOERROR)
+      if (pInterface)
       {
-         SAFE_STRNCPY(szDevice, incaps.szPname, (size_t)bufferSize);
-         rc = SIPX_RESULT_SUCCESS;
+         OsStatus res = pInterface->getAudioInputDeviceCount(*numDevices);
+         if (res == OS_SUCCESS)
+         {
+            rc = SIPX_RESULT_SUCCESS;
+         }
       }
-#else
-      if (index == 0)
-      {
-         strcpy(szDevice, "default");
-         rc = SIPX_RESULT_SUCCESS;
-      }      
-#endif
    }
 
    return rc;
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(size_t* numDevices)
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const SIPX_INST hInst,
+                                                     const int index,
+                                                     SIPX_AUDIO_DEVICE* deviceInfo)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (numDevices)
+   if (pInst && deviceInfo && index >= 0)
    {
-#ifdef _WIN32
-      // TODO: this should be in sipxmedialib
-      *numDevices = waveOutGetNumDevs();
-#else
-      *numDevices = 1; // the "default" device
-#endif
-      rc = SIPX_RESULT_SUCCESS;
-   }
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
-   return rc;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const int index,
-                                                      char* szDevice,
-                                                      unsigned int bufferSize)
-{
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-
-   if (index >= 0 && szDevice && bufferSize > 0)
-   {
-#ifdef _WIN32
-      // TODO: this should be in sipxmedialib
-      MMRESULT result;
-      WAVEOUTCAPS outcaps;
-
-      result = waveOutGetDevCaps(index, &outcaps, sizeof(WAVEOUTCAPS));
-      if (result == MMSYSERR_NOERROR)
+      if (pInterface)
       {
-         SAFE_STRNCPY(szDevice, outcaps.szPname, (size_t)bufferSize);
-         rc = SIPX_RESULT_SUCCESS;
+         CpAudioDeviceInfo cpDeviceInfo;
+         OsStatus res = pInterface->getAudioInputDeviceInfo(index, cpDeviceInfo);
+         if (res == OS_SUCCESS)
+         {
+            SAFE_STRNCPY(deviceInfo->deviceName, cpDeviceInfo.m_deviceName, sizeof(deviceInfo->deviceName));
+            SAFE_STRNCPY(deviceInfo->driverName, cpDeviceInfo.m_driverName, sizeof(deviceInfo->deviceName));
+            deviceInfo->bIsInput = cpDeviceInfo.m_bIsInput;
+            deviceInfo->defaultSampleRate = cpDeviceInfo.m_defaultSampleRate;
+            deviceInfo->maxChannels = cpDeviceInfo.m_maxChannels;
+            rc = SIPX_RESULT_SUCCESS;
+         }
       }
-#else
-      if (index == 0)
+   }
+
+   return rc;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(const SIPX_INST hInst,
+                                                      int* numDevices)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
       {
-         strcpy(szDevice, "default");
-         rc = SIPX_RESULT_SUCCESS;
-      }      
-#endif
+         OsStatus res = pInterface->getAudioOutputDeviceCount(*numDevices);
+         if (res == OS_SUCCESS)
+         {
+            rc = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+
+   return rc;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const SIPX_INST hInst,
+                                                      const int index,
+                                                      SIPX_AUDIO_DEVICE* deviceInfo)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst && deviceInfo && index >= 0)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         CpAudioDeviceInfo cpDeviceInfo;
+         OsStatus res = pInterface->getAudioOutputDeviceInfo(index, cpDeviceInfo);
+         if (res == OS_SUCCESS)
+         {
+            SAFE_STRNCPY(deviceInfo->deviceName, cpDeviceInfo.m_deviceName, sizeof(deviceInfo->deviceName));
+            SAFE_STRNCPY(deviceInfo->driverName, cpDeviceInfo.m_driverName, sizeof(deviceInfo->deviceName));
+            deviceInfo->bIsInput = cpDeviceInfo.m_bIsInput;
+            deviceInfo->defaultSampleRate = cpDeviceInfo.m_defaultSampleRate;
+            deviceInfo->maxChannels = cpDeviceInfo.m_maxChannels;
+            rc = SIPX_RESULT_SUCCESS;
+         }
+      }
    }
 
    return rc;
@@ -703,32 +712,30 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
-                                                 char* szDevice,
-                                                 unsigned int devBufSize,
-                                                 char* szDriver,
-                                                 unsigned int drivBufSize)
+                                                 SIPX_AUDIO_DEVICE* deviceInfo)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetInputDevice");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetInputDevice hInst=%p devBufSize=%d drivBufSize=%d",
-      hInst, devBufSize, drivBufSize);
+      "sipxAudioGetInputDevice hInst=%p", hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && szDevice && szDriver && devBufSize > 0 && drivBufSize > 0)
+   if (pInst && deviceInfo)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
-         UtlString sDeviceName;
-         UtlString sDriverName;
-         OsStatus res = pInterface->getMicrophoneDevice(sDeviceName, sDriverName);
+         CpAudioDeviceInfo cpDeviceInfo;
+         OsStatus res = pInterface->getMicrophoneDevice(cpDeviceInfo);
          if (res == OS_SUCCESS)
          {
-            SAFE_STRNCPY(szDevice, sDeviceName.data(), (size_t)devBufSize);
-            SAFE_STRNCPY(szDriver, sDriverName.data(), (size_t)drivBufSize);
+            SAFE_STRNCPY(deviceInfo->deviceName, cpDeviceInfo.m_deviceName, sizeof(deviceInfo->deviceName));
+            SAFE_STRNCPY(deviceInfo->driverName, cpDeviceInfo.m_driverName, sizeof(deviceInfo->deviceName));
+            deviceInfo->bIsInput = cpDeviceInfo.m_bIsInput;
+            deviceInfo->defaultSampleRate = cpDeviceInfo.m_defaultSampleRate;
+            deviceInfo->maxChannels = cpDeviceInfo.m_maxChannels;
             rc = SIPX_RESULT_SUCCESS;
          }
       }
@@ -769,32 +776,30 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
-                                                  char* szDevice,
-                                                  unsigned int devBufSize,
-                                                  char* szDriver,
-                                                  unsigned int drivBufSize)
+                                                  SIPX_AUDIO_DEVICE* deviceInfo)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxAudioGetOutputDevice");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxAudioGetOutputDevice hInst=%p devBufSize=%d drivBufSize=%d",
-      hInst, devBufSize, drivBufSize);
+      "sipxAudioGetOutputDevice hInst=%p", hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst && szDevice && szDriver && devBufSize > 0 && drivBufSize > 0)
+   if (pInst && deviceInfo)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
-         UtlString sDeviceName;
-         UtlString sDriverName;
-         OsStatus res = pInterface->getSpeakerDevice(sDeviceName, sDriverName);
+         CpAudioDeviceInfo cpDeviceInfo;
+         OsStatus res = pInterface->getSpeakerDevice(cpDeviceInfo);
          if (res == OS_SUCCESS)
          {
-            SAFE_STRNCPY(szDevice, sDeviceName.data(), (size_t)devBufSize);
-            SAFE_STRNCPY(szDriver, sDriverName.data(), (size_t)drivBufSize);
+            SAFE_STRNCPY(deviceInfo->deviceName, cpDeviceInfo.m_deviceName, sizeof(deviceInfo->deviceName));
+            SAFE_STRNCPY(deviceInfo->driverName, cpDeviceInfo.m_driverName, sizeof(deviceInfo->deviceName));
+            deviceInfo->bIsInput = cpDeviceInfo.m_bIsInput;
+            deviceInfo->defaultSampleRate = cpDeviceInfo.m_defaultSampleRate;
+            deviceInfo->maxChannels = cpDeviceInfo.m_maxChannels;
             rc = SIPX_RESULT_SUCCESS;
          }
       }

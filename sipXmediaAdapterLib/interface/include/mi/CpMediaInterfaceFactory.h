@@ -78,6 +78,7 @@ typedef enum MEDIA_INBOUND_DTMF_MODE
 // FORWARD DECLARATIONS
 class CpMediaInterface;
 class SdpCodec;
+class CpAudioDeviceInfo;
 
 /**
 * Interface for factory creating CpMediaInterface and setting audio/video parameters
@@ -130,6 +131,37 @@ public:
       UtlBoolean bEnableICE
       ) = 0;
 
+   /**
+    * Gets number of input audio devices
+    */
+   virtual OsStatus getAudioInputDeviceCount(int& count) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   /**
+    * Gets number of output audio devices
+    */
+   virtual OsStatus getAudioOutputDeviceCount(int& count) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   /**
+    * Returns information about given input audio device.
+    */
+   virtual OsStatus getAudioInputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   /**
+    * Returns information about given output audio device.
+    */
+   virtual OsStatus getAudioOutputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
 
    /**
    * Set the speaker volume.  Valid range includes 0 to 100.
@@ -340,7 +372,7 @@ public:
    /**
    * Get the speaker device
    */ 
-   virtual OsStatus getSpeakerDevice(UtlString& device, UtlString& driverName) const
+   virtual OsStatus getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const
    {
       return OS_NOT_SUPPORTED;
    }
@@ -361,7 +393,7 @@ public:
    /**
    * Get the microphone device
    */
-   virtual OsStatus getMicrophoneDevice(UtlString& device, UtlString& driverName) const
+   virtual OsStatus getMicrophoneDevice(CpAudioDeviceInfo& deviceInfo) const
    {
       return OS_NOT_SUPPORTED;
    }

@@ -229,6 +229,7 @@ public:
          printf("deviceIndex = %d\n", i);
          printf("m_name = %s\n", deviceInfo.getName().data());
          printf("m_hostApi = %d\n", deviceInfo.getHostApi());
+         printf("m_hostApiName = %s\n", deviceInfo.getHostApiName().data());
          printf("m_maxInputChannels = %d\n", deviceInfo.getMaxInputChannels());
          printf("m_maxOutputChannels = %d\n", deviceInfo.getMaxOutputChannels());
          printf("m_defaultLowInputLatency = %f\n", deviceInfo.getDefaultLowInputLatency());

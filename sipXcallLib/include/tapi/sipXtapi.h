@@ -647,6 +647,18 @@ typedef struct
     int               iPayloadType;     /**< Payload type          */
 } SIPX_AUDIO_CODEC;
 
+/**
+ * The SIPX_AUDIO_DEVICE structure holds information about audio device.
+ */
+typedef struct  
+{
+#define SIPXTAPI_AUDIO_DEVICE_STRLEN 80
+   char deviceName[SIPXTAPI_AUDIO_DEVICE_STRLEN]; ///< device name
+   char driverName[SIPXTAPI_AUDIO_DEVICE_STRLEN]; ///< name of driver for this device
+   int maxChannels; ///< maximum channels supported
+   double defaultSampleRate; ///< default sample rate
+   int bIsInput; ///< whether it is input device
+} SIPX_AUDIO_DEVICE;
 
 /**
  * RTCP statistics computed according to RFC 3550
@@ -2529,52 +2541,58 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
 /**
  * Get the number of input devices available on this system.
  *
+ * @param hInst Instance pointer obtained by sipxInitialize.
  * @param numDevices The number of input devices available
  *        on this system. 
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(size_t* numDevices);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(const SIPX_INST hInst,
+                                                     int* numDevices);
 
 /**
  * Get the name/identifier for input device at position index.
  *
+ * @param hInst Instance pointer obtained by sipxInitialize.
  * @param index Zero based index of the input device to be queried.
- * @param szDevice Preallocated array of chars that will receive the
- *        device name. It may not include \0 if it is not big enough.
- * @param bufferSize Size of szDevice buffer
+ * @param deviceInfo SIPX_AUDIO_DEVICE structure that will receive
+ *        information about audio device. There are always 2 special
+ *        devices - "None" and "Default".
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const int index,
-                                                     char* szDevice,
-                                                     unsigned int bufferSize);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const SIPX_INST hInst,
+                                                     const int index,
+                                                     SIPX_AUDIO_DEVICE* deviceInfo);
 
 /**
  * Get the number of output devices available on this system
  *
+ * @param hInst Instance pointer obtained by sipxInitialize.
  * @param numDevices The number of output devices available
  *        on this system. 
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(size_t* numDevices);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(const SIPX_INST hInst,
+                                                      int* numDevices);
 
 /**
  * Get the name/identifier for output device at position index
  *
+ * @param hInst Instance pointer obtained by sipxInitialize.
  * @param index Zero based index of the output device to be queried.
- * @param szDevice Preallocated array of chars that will receive the
- *        device name. It may not include \0 if it is not big enough.
- * @param bufferSize Size of szDevice buffer
+ * @param deviceInfo SIPX_AUDIO_DEVICE structure that will receive
+ *        information about audio device. There are always 2 special
+ *        devices - "None" and "Default".
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const int index,
-                                                      char* szDevice,
-                                                      unsigned int bufferSize);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const SIPX_INST hInst,
+                                                      const int index,
+                                                      SIPX_AUDIO_DEVICE* deviceInfo);
 
 /**
  * Set the call input device (in-call microphone).  
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param szDevice Character string pointer to be set to a string
- *        name of the output device. Pass "NONE" to completely disable
+ *        name of the output device. Pass "None" to completely disable
  *        audio input device. Pass "Default" to select platform
  *        independent audio input device.
- * @param Name of driver of use for device. Should be NULL for "NONE"
+ * @param Name of driver of use for device. Should be NULL for "None"
  *        or "Default" device. Otherwise it should be non NULL.
  *        Application can pass NULL if it doesn't care which driver
  *        should be selected. Then the first driver which has given
@@ -2589,26 +2607,21 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
  * Returns current active input audio device and its driver.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param szDevice Pointer to char array that will receive name of device.
- *        "NONE" will be returned if device is disabled. "Default" will never
- *        be returned, instead a real default device name will be.
- * @param devBufSize length of szDevice array
- * @param szDriver Name of driver for szDevice. Empty for "NONE" device.
- * @param drivBufSize length of szDriver array
+ * @param deviceInfo Pointer to structure which will receive information
+ *        about active input audio device. "None" will be returned as name
+ *        if device is disabled. "Default" will never be returned, instead
+ *        a real default device name will be.
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
-                                                 char* szDevice,
-                                                 unsigned int devBufSize,
-                                                 char* szDriver,
-                                                 unsigned int drivBufSize);
+                                                 SIPX_AUDIO_DEVICE* deviceInfo);
 
 /**
  * Set the call output device (in-call speaker).
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param szDevice The call output device. Pass "NONE" to completely disable
+ * @param szDevice The call output device. Pass "None" to completely disable
  *        audio output device. Pass "Default" to select platform
  *        independent audio output device.
- * @param Name of driver of use for device. Should be NULL for "NONE"
+ * @param Name of driver of use for device. Should be NULL for "None"
  *        or "Default" device. Otherwise it should be non NULL.
  *        Application can pass NULL if it doesn't care which driver
  *        should be selected. Then the first driver which has given
@@ -2623,18 +2636,13 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
 * Returns current active output audio device and its driver.
 *
 * @param hInst Instance pointer obtained by sipxInitialize.
-* @param szDevice Pointer to char array that will receive name of device.
-*        "NONE" will be returned if device is disabled. "Default" will never
-*        be returned, instead a real default device name will be.
-* @param devBufSize length of szDevice array
-* @param szDriver Name of driver for szDevice. Empty for "NONE" device.
-* @param drivBufSize length of szDriver array
+* @param deviceInfo Pointer to structure which will receive information
+*        about active output audio device. "None" will be returned as name
+*        if device is disabled. "Default" will never be returned, instead
+*        a real default device name will be.
 */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
-                                                  char* szDevice,
-                                                  unsigned int devBufSize,
-                                                  char* szDriver,
-                                                  unsigned int drivBufSize);
+                                                  SIPX_AUDIO_DEVICE* deviceInfo);
 
 //@}
 /** @name Line / Identity Methods*/

@@ -6,7 +6,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "mp/MpAudioDeviceInfo.h"
+#include "mi/CpAudioDeviceInfo.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -21,47 +21,38 @@
 
 /* ============================ CREATORS ================================== */
 
-MpAudioDeviceInfo::MpAudioDeviceInfo() : m_name(NULL)
-, m_hostApi(0)
-, m_hostApiName(0)
-, m_maxInputChannels(0)
-, m_maxOutputChannels(0)
-, m_defaultLowInputLatency(0.0)
-, m_defaultLowOutputLatency(0.0)
-, m_defaultHighInputLatency(0.0)
-, m_defaultHighOutputLatency(0.0)
-, m_defaultSampleRate(0)
+CpAudioDeviceInfo::CpAudioDeviceInfo()
+: m_deviceName(0)
+, m_driverName(0)
+, m_maxChannels(0)
+, m_defaultSampleRate(0.0)
+, m_bIsInput(FALSE)
 {
 
 }
 
-MpAudioDeviceInfo::~MpAudioDeviceInfo(void)
+CpAudioDeviceInfo::~CpAudioDeviceInfo(void)
 {
 
 }
 
-MpAudioDeviceInfo::MpAudioDeviceInfo(const MpAudioDeviceInfo& rMpAudioDeviceInfo)
+CpAudioDeviceInfo::CpAudioDeviceInfo(const CpAudioDeviceInfo& rCpAudioDeviceInfo)
 {
-   *this = rMpAudioDeviceInfo;
+   *this = rCpAudioDeviceInfo;
 }
 
-MpAudioDeviceInfo& MpAudioDeviceInfo::operator=(const MpAudioDeviceInfo& rhs)
+CpAudioDeviceInfo& CpAudioDeviceInfo::operator=(const CpAudioDeviceInfo& rhs)
 {
    if (&rhs == this)
    {
       return *this;
    }
 
-   m_name = rhs.getName();
-   m_hostApi = rhs.getHostApi();
-   m_hostApiName = rhs.getHostApiName();
-   m_maxInputChannels = rhs.getMaxInputChannels();
-   m_maxOutputChannels = rhs.getMaxOutputChannels();
-   m_defaultLowInputLatency = rhs.getDefaultLowInputLatency();
-   m_defaultLowOutputLatency = rhs.getDefaultLowOutputLatency();
-   m_defaultHighInputLatency = rhs.getDefaultHighInputLatency();
-   m_defaultHighOutputLatency = rhs.getDefaultHighOutputLatency();
-   m_defaultSampleRate = rhs.getDefaultSampleRate();
+   m_deviceName = rhs.m_deviceName;
+   m_driverName = rhs.m_driverName;
+   m_maxChannels = rhs.m_maxChannels;
+   m_defaultSampleRate = rhs.m_defaultSampleRate;
+   m_bIsInput = rhs.m_bIsInput;
 
    return *this;
 }
