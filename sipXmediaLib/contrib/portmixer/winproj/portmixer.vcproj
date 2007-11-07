@@ -60,7 +60,7 @@
 				SuppressStartupBanner="true"
 				CompileAs="0"
 				DisableSpecificWarnings="4996"
-				ForcedIncludeFiles="$(ProjectDir)\$(ConfigurationName)\config.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -139,7 +139,7 @@
 				DebugInformationFormat="4"
 				CompileAs="0"
 				DisableSpecificWarnings="4996"
-				ForcedIncludeFiles="$(ProjectDir)\$(ConfigurationName)\config.h"
+				ForcedIncludeFiles=""
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -211,7 +211,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

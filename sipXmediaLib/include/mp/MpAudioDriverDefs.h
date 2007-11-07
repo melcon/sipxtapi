@@ -45,6 +45,9 @@ typedef unsigned long MpAudioStreamFlags;
 typedef int MpAudioDeviceIndex;
 typedef void* MpAudioStreamId;
 
+typedef float MpAudioVolume; ///< 0.0 (min) --> 1.0 (max)
+typedef float MpAudioBalance; ///< -1.0 (left) --> 1.0 (right)
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
