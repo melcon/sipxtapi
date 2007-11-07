@@ -221,6 +221,7 @@ typedef struct PaWinDsStream
 /* DirectSound specific data. */
 
 /* Output */
+    LPGUID               pOutputGuid;
     LPDIRECTSOUND        pDirectSound;
     LPDIRECTSOUNDBUFFER  pDirectSoundOutputBuffer;
     DWORD                outputBufferWriteOffsetBytes;     /* last write position */
@@ -236,6 +237,7 @@ typedef struct PaWinDsStream
     double               dsw_framesWritten;
     double               framesPlayed;
 /* Input */
+    LPGUID               pInputGuid;
     LPDIRECTSOUNDCAPTURE pDirectSoundCapture;
     LPDIRECTSOUNDCAPTUREBUFFER   pDirectSoundInputBuffer;
     INT                  bytesPerInputFrame;
@@ -1544,8 +1546,8 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
     PaWinDsDeviceInfo *inputWinDsDeviceInfo, *outputWinDsDeviceInfo;
     PaDeviceInfo *inputDeviceInfo, *outputDeviceInfo;
     int inputChannelCount, outputChannelCount;
-    PaSampleFormat inputSampleFormat, outputSampleFormat;
-    PaSampleFormat hostInputSampleFormat, hostOutputSampleFormat;
+    PaSampleFormat inputSampleFormat = 0, outputSampleFormat = 0;
+    PaSampleFormat hostInputSampleFormat = 0, hostOutputSampleFormat = 0;
     unsigned long suggestedInputLatencyFrames, suggestedOutputLatencyFrames;
     PaWinDirectSoundStreamInfo *inputStreamInfo, *outputStreamInfo;
     PaWinWaveFormatChannelMask inputChannelMask, outputChannelMask;
@@ -1770,7 +1772,6 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
             PRINT(("PortAudio on DirectSound - Latency = %d frames, %d msec\n", stream->framesPerDSBuffer, msecLatency ));
         }
 
-
         /* ------------------ OUTPUT */
         if( outputParameters )
         {
@@ -1780,6 +1781,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
             */
             
             int bytesPerSample = Pa_GetSampleSize(hostOutputSampleFormat);
+
             bytesPerDirectSoundBuffer = stream->framesPerDSBuffer * outputParameters->channelCount * bytesPerSample;
             if( bytesPerDirectSoundBuffer < DSBSIZE_MIN )
             {
@@ -1790,6 +1792,12 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
             {
                 result = paBufferTooBig;
                 goto error;
+            }
+
+            stream->pOutputGuid = ((PaWinDsDeviceInfo*)hostApi->deviceInfos[outputParameters->device])->lpGUID;
+            if(stream->pOutputGuid == NULL)
+            {
+               stream->pOutputGuid = (GUID *) &DSDEVID_DefaultPlayback;
             }
 
             hr = paWinDsDSoundEntryPoints.DirectSoundCreate( 
@@ -1841,6 +1849,12 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
                 result = paBufferTooBig;
                 goto error;
             }
+
+            stream->pInputGuid = ((PaWinDsDeviceInfo*)hostApi->deviceInfos[inputParameters->device])->lpGUID;
+            if( stream->pInputGuid == NULL )
+            {
+               stream->pInputGuid = (GUID *)&DSDEVID_DefaultCapture;
+            } 
 
             hr = paWinDsDSoundEntryPoints.DirectSoundCaptureCreate( 
                     ((PaWinDsDeviceInfo*)hostApi->deviceInfos[inputParameters->device])->lpGUID,
@@ -2507,4 +2521,19 @@ static signed long GetStreamWriteAvailable( PaStream* s )
 }
 
 
+/***********************************************************************************/
+LPGUID PaWinDS_GetStreamInputGUID( PaStream* s )
+{
+    PaWinDsStream *stream = (PaWinDsStream*)s;
 
+   return stream->pInputGuid;
+}
+
+
+/***********************************************************************************/
+LPGUID PaWinDS_GetStreamOutputGUID( PaStream* s )
+{
+    PaWinDsStream *stream = (PaWinDsStream*)s;
+
+    return stream->pOutputGuid;
+}
