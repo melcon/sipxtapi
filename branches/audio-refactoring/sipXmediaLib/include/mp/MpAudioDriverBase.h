@@ -21,6 +21,7 @@
 class MpAudioDeviceInfo;
 class MpAudioStreamInfo;
 class MpAudioStreamParameters;
+class MpAudioMixerBase;
 
 // STRUCTS
 // TYPEDEFS
@@ -154,6 +155,21 @@ public:
                                       const MpAudioStreamParameters* outputParameters,
                                       double sampleRate) const = 0;
 
+   /**
+    * Returns mixer for given audio stream. This mixer can then be used
+    * to set volume on the stream. For half-duplex streams, create only
+    * 1 mixer with mixerIndex 0. For full-duplex streams, it might be
+    * necessary to create more mixers, depending on the sound card.
+    * In such case, create a mixer and use its methods to find out
+    * whether more mixers can be created.
+    *
+    * @param stream Audio stream to create mixer for
+    * @param mixerIndex Index of mixer. Some sound cards might have more than 1.
+    *        default is 0.
+    * @returns Returned audio mixer implementation
+    */
+   virtual MpAudioMixerBase* getMixerForStream(MpAudioStreamId stream,
+                                               int mixerIndex) const = 0;
 
    /**
    * Opens new stream with requested parameters. Stream can be output, input

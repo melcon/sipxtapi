@@ -15,6 +15,7 @@
 #include "mp/MpPortAudioStream.h"
 #include "mp/MpAudioStreamInfo.h"
 #include "mp/MpAudioStreamParameters.h"
+#include "mp/MpPortAudioMixer.h"
 #include <portaudio.h>
 
 // DEFINES
@@ -259,6 +260,19 @@ OsStatus MpPortAudioDriver::isFormatSupported(const MpAudioStreamParameters* inp
    delete paOutputParameters;
    
    return status;
+}
+
+MpAudioMixerBase* MpPortAudioDriver::getMixerForStream(MpAudioStreamId stream,
+                                                       int mixerIndex) const
+{
+   OsLock lock(ms_driverMutex);
+
+   if (stream && mixerIndex >= 0)
+   {
+      return MpPortAudioMixer::createMixer(stream, mixerIndex);
+   }
+   
+   return NULL;
 }
 
 OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
@@ -821,6 +835,7 @@ void MpPortAudioDriver::resetAsyncStream(MpAudioStreamId stream)
       return pStrm->resetStream();
    }
 }
+
 
 /* ============================ FUNCTIONS ================================= */
 
