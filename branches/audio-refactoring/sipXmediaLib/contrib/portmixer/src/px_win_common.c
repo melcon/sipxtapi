@@ -93,7 +93,7 @@ int open_mixers(px_mixer *Px, UINT deviceIn, UINT deviceOut)
                       deviceIn,
                       0,
                       0,
-                      MIXER_OBJECTF_WAVEIN);
+                      MIXER_OBJECTF_MIXER);
       if (res != MMSYSERR_NOERROR) {
          return cleanup(Px);
       }
