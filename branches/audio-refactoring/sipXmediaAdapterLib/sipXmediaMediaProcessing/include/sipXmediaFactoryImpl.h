@@ -96,11 +96,11 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus getAudioInputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const;
     virtual OsStatus getAudioOutputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const;
 
-    virtual OsStatus setSpeakerDevice(const UtlString& device, const UtlString& driverName = "");
-    virtual OsStatus setMicrophoneDevice(const UtlString& device, const UtlString& driverName = "");
+    virtual OsStatus setAudioOutputDevice(const UtlString& device, const UtlString& driverName = "");
+    virtual OsStatus setAudioInputDevice(const UtlString& device, const UtlString& driverName = "");
 
-    virtual OsStatus muteSpeaker(UtlBoolean bMute);
-    virtual OsStatus muteMic(UtlBoolean bMute);
+    virtual OsStatus muteAudioOutput(UtlBoolean bMute);
+    virtual OsStatus muteAudioInput(UtlBoolean bMute);
 
     virtual OsStatus setAudioAECMode(const MEDIA_AEC_MODE mode);
     virtual OsStatus enableAGC(UtlBoolean bEnable) ;
@@ -128,8 +128,8 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
 /* ============================ ACCESSORS ================================= */
 
-    virtual OsStatus getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const;
-    virtual OsStatus getMicrophoneDevice(CpAudioDeviceInfo& deviceInfo) const;
+    virtual OsStatus getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const;
+    virtual OsStatus getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const;
 
     virtual OsStatus getNumOfCodecs(int& iCodecs) const;
     virtual OsStatus getCodec(int iCodec, UtlString& codec, int& bandWidth) const;
@@ -138,16 +138,16 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
     virtual OsStatus getLocalAudioConnectionId(int& connectionId) const ;
 
-    virtual OsStatus getInputMixerName(UtlString& name) const;
-    virtual OsStatus getOutputMixerName(UtlString& name) const;
-    virtual OsStatus getMasterVolume(int& volume) const;
-    virtual OsStatus setMasterVolume(int volume);
-    virtual OsStatus getPCMOutputVolume(int& volume) const;
-    virtual OsStatus setPCMOutputVolume(int volume);
-    virtual OsStatus getInputVolume(int& volume) const;
-    virtual OsStatus setInputVolume(int volume);
-    virtual OsStatus getOutputBalance(int& balance) const;
-    virtual OsStatus setOutputBalance(int balance);
+    virtual OsStatus getAudioInputMixerName(UtlString& name) const;
+    virtual OsStatus getAudioOutputMixerName(UtlString& name) const;
+    virtual OsStatus getAudioMasterVolume(int& volume) const;
+    virtual OsStatus setAudioMasterVolume(int volume);
+    virtual OsStatus getAudioPCMOutputVolume(int& volume) const;
+    virtual OsStatus setAudioPCMOutputVolume(int volume);
+    virtual OsStatus getAudioInputVolume(int& volume) const;
+    virtual OsStatus setAudioInputVolume(int volume);
+    virtual OsStatus getAudioOutputBalance(int& balance) const;
+    virtual OsStatus setAudioOutputBalance(int balance);
 
     virtual OsStatus getVideoQuality(int& quality) const;
     virtual OsStatus getVideoBitRate(int& bitRate) const;
@@ -155,8 +155,8 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
 /* ============================ INQUIRY =================================== */
 
-    virtual OsStatus isSpeakerMuted(UtlBoolean& bIsMuted) const;
-    virtual OsStatus isMicMuted(UtlBoolean& bIsMuted) const;
+    virtual OsStatus isAudioOutputMuted(UtlBoolean& bIsMuted) const;
+    virtual OsStatus isAudioInputMuted(UtlBoolean& bIsMuted) const;
 
     virtual OsStatus isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled);
 
@@ -172,10 +172,10 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
   private:
     static int miInstanceCount;
 
-    UtlBoolean m_bIsSpeakerMuted;
-    UtlBoolean m_bIsMicMuted;
-    float m_bMutedSpeakerVolume;
-    float m_bMutedMicVolume;
+    UtlBoolean m_bIsAudioOutputMuted;
+    UtlBoolean m_bIsAudioInputMuted;
+    float m_fMutedAudioOutputVolume;
+    float m_fMutedAudioInputVolume;
 };
 
 /* ============================ INLINE METHODS ============================ */

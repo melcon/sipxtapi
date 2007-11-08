@@ -75,24 +75,24 @@ void sipXtapiTestAudio::testGainAPI()
          int iGainLevel = 0;    
 
          // Set to min
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetGain(m_hInst1, GAIN_MIN), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_MIN);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, INPUT_VOLUME_MIN), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(iGainLevel, INPUT_VOLUME_MIN);
 
          // Set to default
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetGain(m_hInst1, GAIN_DEFAULT), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, GAIN_DEFAULT), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_DEFAULT);
 
          // set to max
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetGain(m_hInst1, GAIN_MAX), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_MAX);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, OUTPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(iGainLevel, OUTPUT_VOLUME_MAX);
 
          // set to max again
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetGain(m_hInst1, GAIN_MAX), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_MAX);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, OUTPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(iGainLevel, OUTPUT_VOLUME_MAX);
       }
    }
 }
@@ -112,29 +112,29 @@ void sipXtapiTestAudio::testMuteAPI()
       for (int i = 0; i < 5; i++)
       {
          // Set gain to known value
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetGain(m_hInst1, GAIN_DEFAULT), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, GAIN_DEFAULT), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_DEFAULT);
 
          // Test Mute API
-         CPPUNIT_ASSERT_EQUAL(sipxAudioMuteMic(m_hInst1, true), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioIsMicMuted(m_hInst1, &bMuted), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioMuteInput(m_hInst1, true), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioIsInputMuted(m_hInst1, &bMuted), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(bMuted, TRUE);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(iGainLevel, 0); // when muted gain is 0
 
          // Test Unmute API, gain should be restored
-         CPPUNIT_ASSERT_EQUAL(sipxAudioMuteMic(m_hInst1, false), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioIsMicMuted(m_hInst1, &bMuted), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioMuteInput(m_hInst1, false), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioIsInputMuted(m_hInst1, &bMuted), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(bMuted, FALSE);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_DEFAULT);
 
          // Test Unmute again
-         CPPUNIT_ASSERT_EQUAL(sipxAudioMuteMic(m_hInst1, false), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioIsMicMuted(m_hInst1, &bMuted), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioMuteInput(m_hInst1, false), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioIsInputMuted(m_hInst1, &bMuted), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(bMuted, FALSE);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetGain(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_DEFAULT);
       }
    }

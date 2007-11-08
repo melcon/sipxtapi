@@ -164,9 +164,17 @@ public:
    }
 
    /**
+   * Set the Microphone device
+   */
+   virtual OsStatus setAudioInputDevice(const UtlString& device, const UtlString& driverName = "")
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   /**
    * Set the speaker device.
    */
-   virtual OsStatus setSpeakerDevice(const UtlString& device, const UtlString& driverName = "")
+   virtual OsStatus setAudioOutputDevice(const UtlString& device, const UtlString& driverName = "")
    {
       return OS_NOT_SUPPORTED;
    }
@@ -174,7 +182,7 @@ public:
    /**
    * Mute the speaker
    */
-   virtual OsStatus muteSpeaker(UtlBoolean bMute)
+   virtual OsStatus muteAudioOutput(UtlBoolean bMute)
    {
       return OS_NOT_SUPPORTED;
    }
@@ -182,15 +190,7 @@ public:
    /**
    * Mute the microphone
    */
-   virtual OsStatus muteMic(UtlBoolean bMute)
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   /**
-   * Set the Microphone device
-   */
-   virtual OsStatus setMicrophoneDevice(const UtlString& device, const UtlString& driverName = "")
+   virtual OsStatus muteAudioInput(UtlBoolean bMute)
    {
       return OS_NOT_SUPPORTED;
    }
@@ -347,7 +347,7 @@ public:
    /**
    * Get the speaker device
    */ 
-   virtual OsStatus getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const
+   virtual OsStatus getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const
    {
       return OS_NOT_SUPPORTED;
    }
@@ -355,57 +355,57 @@ public:
    /**
    * Get the microphone device
    */
-   virtual OsStatus getMicrophoneDevice(CpAudioDeviceInfo& deviceInfo) const
+   virtual OsStatus getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus getInputMixerName(UtlString& name) const
+   virtual OsStatus getAudioInputMixerName(UtlString& name) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus getOutputMixerName(UtlString& name) const
+   virtual OsStatus getAudioOutputMixerName(UtlString& name) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus getMasterVolume(int& volume) const
+   virtual OsStatus getAudioMasterVolume(int& volume) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus setMasterVolume(int volume)
+   virtual OsStatus setAudioMasterVolume(int volume)
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus getPCMOutputVolume(int& volume) const
+   virtual OsStatus getAudioPCMOutputVolume(int& volume) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus setPCMOutputVolume(int volume)
+   virtual OsStatus setAudioPCMOutputVolume(int volume)
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus getInputVolume(int& volume) const
+   virtual OsStatus getAudioInputVolume(int& volume) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus setInputVolume(int volume)
+   virtual OsStatus setAudioInputVolume(int volume)
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus getOutputBalance(int& balance) const
+   virtual OsStatus getAudioOutputBalance(int& balance) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus setOutputBalance(int balance)
+   virtual OsStatus setAudioOutputBalance(int balance)
    {
       return OS_NOT_SUPPORTED;
    }
@@ -527,12 +527,12 @@ public:
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus isSpeakerMuted(UtlBoolean& bIsMuted) const
+   virtual OsStatus isAudioOutputMuted(UtlBoolean& bIsMuted) const
    {
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus isMicMuted(UtlBoolean& bIsMuted) const
+   virtual OsStatus isAudioInputMuted(UtlBoolean& bIsMuted) const
    {
       return OS_NOT_SUPPORTED;
    }
