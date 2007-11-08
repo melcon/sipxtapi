@@ -81,11 +81,11 @@
                                              the userid portion of the SIP url. */
 #define DEFAULT_BIND_ADDRESS    "0.0.0.0" /**< Bind to the first physical interface discovered */
 
-#define GAIN_MIN                0       /**< Min acceptable gain value. This gain will mute mic. */
-#define GAIN_MAX                100     /**< Max acceptable gain value */
+#define INPUT_VOLUME_MIN                0       /**< Min acceptable gain value. This gain will mute mic. */
+#define OUTPUT_VOLUME_MAX                100     /**< Max acceptable gain value */
 
-#define VOLUME_MIN              0       /**< Min acceptable volume value */
-#define VOLUME_MAX              100     /**< Max acceptable volume value */
+#define OUTPUT_VOLUME_MIN              0       /**< Min acceptable volume value */
+#define OUTPUT_VOLUME_MAX              100     /**< Max acceptable volume value */
 
 #define MAX_AUDIO_DEVICES       16      /**< Max number of input/output audio devices */
 #define MAX_VIDEO_DEVICES       8       /**< Max number of video capture devices. */
@@ -2368,25 +2368,25 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
 //@{
 
 /**
- * Set the local microphone gain.  If the microphone is muted, 
- * resetting the gain will not enable audio -- you must unmute
+ * Set the local microphone volume.  If the microphone is muted, 
+ * resetting the volume will not enable audio -- you must unmute
  * the microphone.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param iLevel The level of the local microphone gain
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioSetGain(const SIPX_INST hInst,
-                                          const int iLevel);
+SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
+                                                 const int iLevel);
 
 
 /**
- * Get the current microphone gain.
+ * Get the current microphone volume.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param iLevel The level of the gain of the microphone
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetGain(const SIPX_INST hInst,
-                                          int* iLevel);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputVolume(const SIPX_INST hInst,
+                                                 int* iLevel);
 
 
 /**
@@ -2396,8 +2396,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetGain(const SIPX_INST hInst,
  * @param bMute True if the microphone is to be muted and false if it 
  *        is not to be muted
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioMuteMic(const SIPX_INST hInst,
-                                          const int bMute);
+SIPXTAPI_API SIPX_RESULT sipxAudioMuteInput(const SIPX_INST hInst,
+                                            const int bMute);
 
 
 /**
@@ -2407,8 +2407,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMuteMic(const SIPX_INST hInst,
 * @param bMute True if the speaker is to be muted and false if it 
 *        is not to be muted
 */
-SIPXTAPI_API SIPX_RESULT sipxAudioMuteSpeaker(const SIPX_INST hInst,
-                                              const int bMute);
+SIPXTAPI_API SIPX_RESULT sipxAudioMuteOutput(const SIPX_INST hInst,
+                                             const int bMute);
 
 /**
  * Gets the mute state of the microphone.
@@ -2417,8 +2417,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMuteSpeaker(const SIPX_INST hInst,
  * @param bMuted True if the microphone has been muted and false if it 
  *        is not mute
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioIsMicMuted(const SIPX_INST hInst,
-                                             int* bMuted);
+SIPXTAPI_API SIPX_RESULT sipxAudioIsInputMuted(const SIPX_INST hInst,
+                                               int* bMuted);
 
 /**
 * Gets the mute state of the speaker.
@@ -2427,8 +2427,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsMicMuted(const SIPX_INST hInst,
 * @param bMuted True if the speaker has been muted and false if it 
 *        is not mute
 */
-SIPXTAPI_API SIPX_RESULT sipxAudioIsSpeakerMuted(const SIPX_INST hInst,
-                                                 int* bMuted);
+SIPXTAPI_API SIPX_RESULT sipxAudioIsOutputMuted(const SIPX_INST hInst,
+                                                int* bMuted);
 
 
 /**
@@ -2437,8 +2437,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsSpeakerMuted(const SIPX_INST hInst,
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param iLevel The level of the gain of the microphone
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
-                                            const int iLevel);
+SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputVolume(const SIPX_INST hInst,
+                                                  const int iLevel);
 
 
 /**
@@ -2447,8 +2447,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVolume(const SIPX_INST hInst,
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param iLevel The level of the gain of the microphone
  */
-SIPXTAPI_API SIPX_RESULT sipxAudioGetVolume(const SIPX_INST hInst,
-                                            int* iLevel);
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputVolume(const SIPX_INST hInst,
+                                                  int* iLevel);
 
 
 /**
