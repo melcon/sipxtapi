@@ -162,7 +162,6 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
   protected:
-    MpMediaTask*    mpMediaTask ;     /**< Media task instance */
 #ifdef INCLUDE_RTCP /* [ */
     IRTCPControl*   mpiRTCPControl;   /**< Realtime Control Interface */
 #endif /* INCLUDE_RTCP ] */
