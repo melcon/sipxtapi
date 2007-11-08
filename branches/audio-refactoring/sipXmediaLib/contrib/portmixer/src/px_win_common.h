@@ -67,7 +67,11 @@ typedef struct PxInfo
    DWORD       waveID;
 } PxInfo;
 
-int open_mixers(px_mixer *Px, UINT deviceIn, UINT deviceOut);
+UINT get_ctrls(HMIXEROBJ mixer, DWORD lineID, PxCtrl **pctrls);
+DWORD find_ctrl(HMIXEROBJ mixer, DWORD lineID, DWORD ctrlID);
+
+int initialize(px_mixer *Px);
+int cleanup(px_mixer *Px);
 
 #ifdef __cplusplus
 }
