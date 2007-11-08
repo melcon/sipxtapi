@@ -162,8 +162,11 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
    
    if (m_bufferLength == 0)
    {
+      if (m_bUsePrefetch)
+      {
+         setOptimalPrefetchCount();
+      }
       m_bPrefetchMode = true;
-      setOptimalPrefetchCount();
       // jitter buffer is empty
       m_statistics.m_totalNormalUnderflows++;
       return MP_JITTER_BUFFER_MISSING;
