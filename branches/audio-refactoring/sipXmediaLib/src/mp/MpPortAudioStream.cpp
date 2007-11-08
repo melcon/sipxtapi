@@ -328,12 +328,12 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
 
 void MpPortAudioStream::printStatistics()
 {
-   osPrintf("--------- MpPortAudioStream::printStatistics ---------");
+   osPrintf("--------- MpPortAudioStream::printStatistics ---------\n");
    osPrintf("m_outputBufferOverflow = %d\n", m_outputBufferOverflow);
    osPrintf("m_outputBufferUnderflow = %d\n", m_outputBufferUnderflow);
    osPrintf("m_inputBufferOverflow = %d\n", m_inputBufferOverflow);
    osPrintf("m_inputBufferUnderflow = %d\n", m_inputBufferUnderflow);
-   osPrintf("------------------------------------------------------");
+   osPrintf("------------------------------------------------------\n");
 }
 
 void MpPortAudioStream::resetStream()
