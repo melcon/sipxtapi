@@ -164,14 +164,6 @@ public:
    }
 
    /**
-   * Set the speaker volume.  Valid range includes 0 to 100.
-   */
-   virtual OsStatus setSpeakerVolume(int iVolume)
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   /**
    * Set the speaker device.
    */
    virtual OsStatus setSpeakerDevice(const UtlString& device, const UtlString& driverName = "")
@@ -188,9 +180,9 @@ public:
    }
 
    /**
-   * Set the microphone gain.  Valid range includes 0 to 100.
+   * Mute the microphone
    */
-   virtual OsStatus setMicrophoneGain(int iGain)
+   virtual OsStatus muteMic(UtlBoolean bMute)
    {
       return OS_NOT_SUPPORTED;
    }
@@ -199,15 +191,6 @@ public:
    * Set the Microphone device
    */
    virtual OsStatus setMicrophoneDevice(const UtlString& device, const UtlString& driverName = "")
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-
-   /**
-   * Mute the microphone
-   */
-   virtual OsStatus muteMicrophone(UtlBoolean bMute)
    {
       return OS_NOT_SUPPORTED;
    }
@@ -362,30 +345,9 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    /**
-   * Get the speaker volume
-   */ 
-   virtual OsStatus getSpeakerVolume(int& iVolume) const
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   /**
    * Get the speaker device
    */ 
    virtual OsStatus getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   virtual OsStatus isSpeakerMuted(UtlBoolean& bIsMuted) const
-   {
-      return OS_NOT_SUPPORTED;
-   }
-
-   /**
-   * Get the microphone gain
-   */
-   virtual OsStatus getMicrophoneGain(int& iVolume) const
    {
       return OS_NOT_SUPPORTED;
    }
@@ -398,7 +360,52 @@ public:
       return OS_NOT_SUPPORTED;
    }
 
-   virtual OsStatus isMicrophoneMuted(UtlBoolean& bIsMuted) const
+   virtual OsStatus getInputMixerName(UtlString& name) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus getOutputMixerName(UtlString& name) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus getMasterVolume(int& volume) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus setMasterVolume(int volume)
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus getPCMOutputVolume(int& volume) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus setPCMOutputVolume(int volume)
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus getInputVolume(int& volume) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus setInputVolume(int volume)
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus getOutputBalance(int& balance) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus setOutputBalance(int balance)
    {
       return OS_NOT_SUPPORTED;
    }
@@ -516,6 +523,16 @@ public:
    * Returns status of reception of DTMF
    */
    virtual OsStatus isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled)
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus isSpeakerMuted(UtlBoolean& bIsMuted) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus isMicMuted(UtlBoolean& bIsMuted) const
    {
       return OS_NOT_SUPPORTED;
    }
