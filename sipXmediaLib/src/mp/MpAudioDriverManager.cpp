@@ -841,6 +841,9 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
          m_outputAudioStream = 0;
       }
 
+      m_outputAudioDevices.clear();
+      m_inputAudioDevices.clear();
+
       m_pAudioDriver->release();
       m_pAudioDriver = NULL;
    }

@@ -129,6 +129,10 @@ extern "C" void sipxDestroyMediaFactoryFactory()
 
 // Constructor
 sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
+: m_bIsAudioOutputMuted(FALSE)
+, m_bIsAudioInputMuted(FALSE)
+, m_fMutedAudioOutputVolume(0.0)
+, m_fMutedAudioInputVolume(0.0)
 {    
     UtlString strInBandDTMF;
     
@@ -908,7 +912,17 @@ OsStatus sipXmediaFactoryImpl::setAudioPCMOutputVolume(int volume)
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
    if (pAudioManager)
    {
-      pAudioManager->setPCMOutputVolume((float)volume / 100);
+      if (!m_bIsAudioOutputMuted)
+      {
+         // output is not muted, set volume
+         pAudioManager->setPCMOutputVolume((float)volume / 100);
+      }
+      else
+      {
+         // output is muted, just update internal variable
+         m_fMutedAudioOutputVolume = (float)volume / 100;
+      }
+      
       return OS_SUCCESS;
    }
 
@@ -941,7 +955,17 @@ OsStatus sipXmediaFactoryImpl::setAudioInputVolume(int volume)
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
    if (pAudioManager)
    {
-      pAudioManager->setInputVolume((float)volume / 100);
+      if (!m_bIsAudioInputMuted)
+      {
+         // input is not muted, set volume
+         pAudioManager->setInputVolume((float)volume / 100);
+      }
+      else
+      {
+         // input is muted, just update internal variable
+         m_fMutedAudioInputVolume = (float)volume / 100;
+      }
+      
       return OS_SUCCESS;
    }
 
