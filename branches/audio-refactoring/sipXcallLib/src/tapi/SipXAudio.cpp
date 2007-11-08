@@ -91,6 +91,176 @@ void freeAudioDevices(SIPX_INSTANCE_DATA& pInst)
    }
 }
 
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputMixerName(const SIPX_INST hInst, char* name, int buffSize)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst && name && buffSize > 0)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      memset(name, 0, buffSize);
+
+      if (pInterface)
+      {
+         OsStatus rc = OS_FAILED;
+         UtlString sName;
+         rc = pInterface->getAudioInputMixerName(sName);
+
+         if (rc == OS_SUCCESS)
+         {
+            SAFE_STRNCPY(name, sName.data(), buffSize);
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }      
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputMixerName(const SIPX_INST hInst, char* name, int buffSize)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst && name && buffSize > 0)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+      memset(name, 0, buffSize);
+
+      if (pInterface)
+      {
+         OsStatus rc = OS_FAILED;
+         UtlString sName;
+         rc = pInterface->getAudioOutputMixerName(sName);
+
+         if (rc == OS_SUCCESS)
+         {
+            SAFE_STRNCPY(name, sName.data(), buffSize);
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }      
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxAudioGetMasterVolume(const SIPX_INST hInst,
+                                                  int* iLevel)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst && iLevel)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         OsStatus rc = OS_FAILED;
+         rc = pInterface->getAudioMasterVolume(*iLevel);
+
+         if (rc == OS_SUCCESS)
+         {
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }      
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxAudioSetMasterVolume(const SIPX_INST hInst,
+                                                  int iLevel)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         // Validate volume is within range
+         if (iLevel >= OUTPUT_VOLUME_MIN && iLevel <= OUTPUT_VOLUME_MAX)
+         {
+            OsStatus rc = OS_FAILED;
+            rc = pInterface->setAudioMasterVolume(iLevel);
+
+            if (rc == OS_SUCCESS)
+            {
+               sr = SIPX_RESULT_SUCCESS;
+            }
+         }
+         else
+         {
+            sr = SIPX_RESULT_INVALID_ARGS;
+         }
+      }      
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputBalance(const SIPX_INST hInst,
+                                                   int* iBalance)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst && iBalance)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         OsStatus rc = OS_FAILED;
+         rc = pInterface->getAudioOutputBalance(*iBalance);
+
+         if (rc == OS_SUCCESS)
+         {
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }      
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputBalance(const SIPX_INST hInst,
+                                                   int iBalance)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         // Validate volume is within range
+         if (iBalance >= BALANCE_MIN && iBalance <= BALANCE_MAX)
+         {
+            OsStatus rc = OS_FAILED;
+            rc = pInterface->setAudioOutputBalance(iBalance);
+
+            if (rc == OS_SUCCESS)
+            {
+               sr = SIPX_RESULT_SUCCESS;
+            }
+         }
+         else
+         {
+            sr = SIPX_RESULT_INVALID_ARGS;
+         }
+      }      
+   }
+
+   return sr;
+}
+
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
                                                  const int iLevel)
