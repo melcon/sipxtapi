@@ -84,6 +84,9 @@
 #define INPUT_VOLUME_MIN                0       /**< Min acceptable gain value. This gain will mute mic. */
 #define OUTPUT_VOLUME_MAX                100     /**< Max acceptable gain value */
 
+#define BALANCE_MIN -100
+#define BALANCE_MAX 100
+
 #define OUTPUT_VOLUME_MIN              0       /**< Min acceptable volume value */
 #define OUTPUT_VOLUME_MAX              100     /**< Max acceptable volume value */
 
@@ -2368,12 +2371,76 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
 //@{
 
 /**
+ * Returns name of input mixer for the active input device. If no input
+ * device is selected, it will be empty. Function guarantees to terminate
+ * string with 0.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param name Buffer where name of mixer should be copied.
+ * @param buffSize Size of buffer in bytes.
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputMixerName(const SIPX_INST hInst,
+                                                    char* name,
+                                                    int buffSize);
+
+/**
+ * Returns name of output mixer for the active input device. If no output
+ * device is selected, it will be empty. Function guarantees to terminate
+ * string with 0.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param name Buffer where name of mixer should be copied.
+ * @param buffSize Size of buffer in bytes.
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputMixerName(const SIPX_INST hInst,
+                                                     char* name,
+                                                     int buffSize);
+
+/**
+ * Gets master audio volume. This volume is common for all audio output
+ * devices.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param iLevel The level of the master volume
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioGetMasterVolume(const SIPX_INST hInst,
+                                                  int* iLevel);
+
+/**
+ * Sets master audio volume. This volume is common for all audio output
+ * devices.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param iLevel The level of the master volume
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioSetMasterVolume(const SIPX_INST hInst,
+                                                  int iLevel);
+
+/**
+ * Gets balance for output device. Balance is in range -100..100
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param iBalance The value of balance
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputBalance(const SIPX_INST hInst,
+                                                   int* iBalance);
+
+/**
+ * Sets balance for output device. Balance is in range -100..100
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param iBalance The value of balance
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputBalance(const SIPX_INST hInst,
+                                                   int iBalance);
+
+/**
  * Set the local microphone volume.  If the microphone is muted, 
  * resetting the volume will not enable audio -- you must unmute
  * the microphone.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param iLevel The level of the local microphone gain
+ * @param iLevel The level of the local microphone volume 0-100
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
                                                  const int iLevel);
@@ -2383,7 +2450,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
  * Get the current microphone volume.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param iLevel The level of the gain of the microphone
+ * @param iLevel The level of the volume of the microphone 0-100
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputVolume(const SIPX_INST hInst,
                                                  int* iLevel);
@@ -2435,7 +2502,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsOutputMuted(const SIPX_INST hInst,
  * Sets the audio level for speaker.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param iLevel The level of the gain of the microphone
+ * @param iLevel The level of the volume of the speaker 0-100
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputVolume(const SIPX_INST hInst,
                                                   const int iLevel);
@@ -2445,7 +2512,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputVolume(const SIPX_INST hInst,
  * Gets the audio level for speaker.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param iLevel The level of the gain of the microphone
+ * @param iLevel The level of the volume of the speaker 0-100
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputVolume(const SIPX_INST hInst,
                                                   int* iLevel);
