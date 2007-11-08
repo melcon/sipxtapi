@@ -78,6 +78,85 @@ static void dprintf(const char *format, ...)
 }
 #endif
 
+static int open_mixers(px_mixer *Px, UINT deviceIn, UINT deviceOut)
+{
+   PxInfo*info;
+   MMRESULT res;
+
+   if (deviceIn == UINT_MAX && deviceOut == UINT_MAX) {
+      return FALSE;
+   }
+
+   if (!initialize(Px)) {
+      return FALSE;
+   }
+
+   info = (PxInfo *) Px->info;
+   info->hInputMixer = NULL;
+   info->hOutputMixer = NULL;
+   info->numInputs = 0;
+   info->muxID = 0;
+   info->speakerID = 0;
+   info->waveID = 0;
+
+   if (deviceIn != UINT_MAX) {
+      res = mixerOpen((LPHMIXER) &info->hInputMixer,
+                      deviceIn,
+                      0,
+                      0,
+                      MIXER_OBJECTF_WAVEIN);
+      if (res != MMSYSERR_NOERROR) {
+         return cleanup(Px);
+      }
+
+      info->muxID = find_ctrl(info->hInputMixer,
+                              MIXERLINE_COMPONENTTYPE_DST_WAVEIN,
+                              MIXERCONTROL_CONTROLTYPE_MUX);
+      if (info->muxID == -1) {
+         info->muxID = find_ctrl(info->hInputMixer,
+                                 MIXERLINE_COMPONENTTYPE_DST_WAVEIN,
+                                 MIXERCONTROL_CONTROLTYPE_MIXER);
+      }
+
+      info->numInputs = get_ctrls(info->hInputMixer,
+                                  MIXERLINE_COMPONENTTYPE_DST_WAVEIN,
+                                  &info->src);
+
+      if (info->numInputs == 0) {
+         return cleanup(Px);
+      }
+   }
+
+   if (deviceOut != UINT_MAX) {
+      res = mixerOpen((LPHMIXER) &info->hOutputMixer,
+                      deviceOut,
+                      0,
+                      0,
+                      MIXER_OBJECTF_WAVEOUT);
+      if (res != MMSYSERR_NOERROR) {
+         return cleanup(Px);
+      }
+
+      info->speakerID = find_ctrl(info->hOutputMixer,
+                                  MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+                                  MIXERCONTROL_CONTROLTYPE_VOLUME);
+
+      info->waveID = find_ctrl(info->hOutputMixer,
+                               MIXERLINE_COMPONENTTYPE_SRC_WAVEOUT,
+                               MIXERCONTROL_CONTROLTYPE_VOLUME);
+
+      info->numOutputs = get_ctrls(info->hOutputMixer,
+                                   MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+                                   &info->dst);
+
+      if (info->numOutputs == 0) {
+         return cleanup(Px);
+      }
+   }
+
+   return TRUE;
+}
+
 int OpenMixer_Win_DirectSound(px_mixer *Px, int index)
 {
    DSPROPERTY_DIRECTSOUNDDEVICE_DESCRIPTION_DATA desc;

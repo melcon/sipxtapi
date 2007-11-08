@@ -79,6 +79,87 @@ typedef struct PxInfo
    PxDev playback;
 } PxInfo;
 
+static int initialize(px_mixer *Px)
+{
+   Px->info = calloc(1, sizeof(PxInfo));
+   if (Px->info == NULL) {
+      return FALSE;
+   }
+
+   Px->CloseMixer = close_mixer;
+   Px->GetNumMixers = get_num_mixers;
+   Px->GetMixerName = get_mixer_name;
+   Px->GetMasterVolume = get_master_volume;
+   Px->SetMasterVolume = set_master_volume;
+   Px->SupportsPCMOutputVolume = supports_pcm_output_volume;
+   Px->GetPCMOutputVolume = get_pcm_output_volume;
+   Px->SetPCMOutputVolume = set_pcm_output_volume;
+   Px->GetNumOutputVolumes = get_num_output_volumes;
+   Px->GetOutputVolumeName = get_output_volume_name;
+   Px->GetOutputVolume = get_output_volume;
+   Px->SetOutputVolume = set_output_volume;
+   Px->GetNumInputSources = get_num_input_sources;
+   Px->GetInputSourceName = get_input_source_name;
+   Px->GetCurrentInputSource = get_current_input_source;
+   Px->SetCurrentInputSource = set_current_input_source;
+   Px->GetInputVolume = get_input_volume;
+   Px->SetInputVolume = set_input_volume;
+   
+//   Px->SupportsOutputBalance = supports_output_balance;
+//   Px->GetOutputBalance = get_output_balance;
+//   Px->SetOutputBalance = set_output_balance; 
+//   Px->SupportsPlaythrough = supports_play_through;
+//   Px->GetPlaythrough = get_play_through;
+//   Px->SetPlaythrough = set_play_through;
+   
+   return TRUE;
+}
+
+static int cleanup(px_mixer *Px)
+{
+   PxInfo *info = (PxInfo *)Px->info;
+   int i;
+
+   if (info->capture.selems) {
+      for (i = 0; i < info->capture.numselems; i++) {
+         if (info->capture.selems[i].sid) {
+            snd_mixer_selem_id_free(info->capture.selems[i].sid);
+         }
+         if (info->capture.selems[i].name) {
+            free(info->capture.selems[i].name);
+         }
+      }
+      free(info->capture.selems);
+   }
+
+   if (info->capture.handle) {
+      snd_mixer_close(info->capture.handle);
+   }
+
+   if (info->playback.selems) {
+      for (i = 0; i < info->playback.numselems; i++) {
+         if (info->playback.selems[i].sid) {
+            snd_mixer_selem_id_free(info->playback.selems[i].sid);
+         }
+         if (info->playback.selems[i].name) {
+            free(info->playback.selems[i].name);
+         }
+      }
+      free(info->playback.selems);
+   }
+
+  if (info->playback.handle) {
+      snd_mixer_close(info->playback.handle);
+   }
+
+   if (info) {
+      free(info);
+      Px->info = NULL;
+   }
+
+   return FALSE;
+}
+
 static int open_mixer(PxDev *dev, int card, int playback)
 {
    snd_mixer_elem_t *elem;
@@ -229,87 +310,6 @@ int OpenMixer_Linux_ALSA(px_mixer *Px, int index)
    }
 
    return TRUE;
-}
-
-static int initialize(px_mixer *Px)
-{
-   Px->info = calloc(1, sizeof(PxInfo));
-   if (Px->info == NULL) {
-      return FALSE;
-   }
-
-   Px->CloseMixer = close_mixer;
-   Px->GetNumMixers = get_num_mixers;
-   Px->GetMixerName = get_mixer_name;
-   Px->GetMasterVolume = get_master_volume;
-   Px->SetMasterVolume = set_master_volume;
-   Px->SupportsPCMOutputVolume = supports_pcm_output_volume;
-   Px->GetPCMOutputVolume = get_pcm_output_volume;
-   Px->SetPCMOutputVolume = set_pcm_output_volume;
-   Px->GetNumOutputVolumes = get_num_output_volumes;
-   Px->GetOutputVolumeName = get_output_volume_name;
-   Px->GetOutputVolume = get_output_volume;
-   Px->SetOutputVolume = set_output_volume;
-   Px->GetNumInputSources = get_num_input_sources;
-   Px->GetInputSourceName = get_input_source_name;
-   Px->GetCurrentInputSource = get_current_input_source;
-   Px->SetCurrentInputSource = set_current_input_source;
-   Px->GetInputVolume = get_input_volume;
-   Px->SetInputVolume = set_input_volume;
-   
-//   Px->SupportsOutputBalance = supports_output_balance;
-//   Px->GetOutputBalance = get_output_balance;
-//   Px->SetOutputBalance = set_output_balance; 
-//   Px->SupportsPlaythrough = supports_play_through;
-//   Px->GetPlaythrough = get_play_through;
-//   Px->SetPlaythrough = set_play_through;
-   
-   return TRUE;
-}
-
-static int cleanup(px_mixer *Px)
-{
-   PxInfo *info = (PxInfo *)Px->info;
-   int i;
-
-   if (info->capture.selems) {
-      for (i = 0; i < info->capture.numselems; i++) {
-         if (info->capture.selems[i].sid) {
-            snd_mixer_selem_id_free(info->capture.selems[i].sid);
-         }
-         if (info->capture.selems[i].name) {
-            free(info->capture.selems[i].name);
-         }
-      }
-      free(info->capture.selems);
-   }
-
-   if (info->capture.handle) {
-      snd_mixer_close(info->capture.handle);
-   }
-
-   if (info->playback.selems) {
-      for (i = 0; i < info->playback.numselems; i++) {
-         if (info->playback.selems[i].sid) {
-            snd_mixer_selem_id_free(info->playback.selems[i].sid);
-         }
-         if (info->playback.selems[i].name) {
-            free(info->playback.selems[i].name);
-         }
-      }
-      free(info->playback.selems);
-   }
-
-  if (info->playback.handle) {
-      snd_mixer_close(info->playback.handle);
-   }
-
-   if (info) {
-      free(info);
-      Px->info = NULL;
-   }
-
-   return FALSE;
 }
 
 static PxVolume get_volume_indexed(PxDev *dev, int i, int playback)
