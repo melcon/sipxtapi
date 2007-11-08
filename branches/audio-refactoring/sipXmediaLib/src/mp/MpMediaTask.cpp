@@ -36,6 +36,11 @@
 #include "mp/MpAudioDriverManager.h"
 #include "mp/MpAudioDriverBase.h"
 
+#ifdef _WIN32
+#include "mp/MpMMTimer.h"
+#include "mp/MpMMTimerWnt.h"
+#endif
+
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
 #endif
@@ -117,7 +122,7 @@ MpMediaTask::~MpMediaTask()
 
    if (m_pFrameStartTimer)
    {
-      m_pFrameStartTimer->stop(TRUE);
+      m_pFrameStartTimer->stop();
       delete m_pFrameStartTimer;
       m_pFrameStartTimer = NULL;
    }
@@ -1018,11 +1023,19 @@ UtlBoolean MpMediaTask::isManagedFlowGraph(MpFlowGraphBase* pFlowGraph)
 void MpMediaTask::startFrameStartTimer()
 {
    m_pFrameStartCallback = new OsCallback(0, &signalFrameCallback);
+#ifdef _WIN32
+   m_pFrameStartTimer = new MpMMTimerWnt(MpMMTimer::Notification);
+   // calculate timer period is microseconds
+   double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000000;
+   m_pFrameStartTimer->setNotification(m_pFrameStartCallback);
+   m_pFrameStartTimer->run((unsigned)timerPeriod);
+#else
    m_pFrameStartTimer = new OsTimer(*m_pFrameStartCallback);
    // calculate timer period is milliseconds
    double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000;
 
    m_pFrameStartTimer->periodicEvery(OsTime(0), OsTime((long)timerPeriod));
+#endif
 }
 
 
