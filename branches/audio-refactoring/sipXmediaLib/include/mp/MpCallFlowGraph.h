@@ -564,13 +564,6 @@ private:
      *  @returns <b>FALSE</b> otherwise.
      */
 
-     /// Handle the FLOWGRAPH_START_TONE message.
-   UtlBoolean handleStartTone(MpFlowGraphMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
      /// Handle the FLOWGRAPH_STOP_TONE and FLOWGRAPH_STOP_PLAY messages.
    UtlBoolean handleStopToneOrPlay(void);
      /**<

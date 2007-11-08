@@ -271,7 +271,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    //////////////////////////////////////////////////////////////////////////
    // connect Bridge[0] -> [1]TFsBridgeMixer[0] -> [0]SpeakerCallrecSplitter[0] -> [0]ToSpkr
 
-   res = addLink(*mpBridge, 0, *mpTFsBridgeMixer, 1);
+   res = addLink(*mpBridge, 0, *mpTFsBridgeMixer, 0);
    assert(res == OS_SUCCESS);
 
    res = addLink(*mpTFsBridgeMixer, 0, *mpSpeakerCallrecSplitter, 0);
@@ -304,7 +304,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    res = addLink(*mpFromFile, 0, *mpToneFileSplitter, 0);
    assert(res == OS_SUCCESS);
 
-   res = addLink(*mpToneFileSplitter, 0, *mpTFsBridgeMixer, 0);
+   res = addLink(*mpToneFileSplitter, 0, *mpTFsBridgeMixer, 1);
    assert(res == OS_SUCCESS);
 
    res = addLink(*mpToneFileSplitter, 1, *mpTFsMicMixer, 0);
@@ -348,7 +348,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    boolRes = mpTFsMicMixer->setWeight(0, 0);      assert(boolRes);
    boolRes = mpTFsMicMixer->setWeight(1, 1);      assert(boolRes);
 
-   boolRes = mpTFsBridgeMixer->setWeight(0, 0);   assert(boolRes);
+   boolRes = mpTFsBridgeMixer->setWeight(1, 0);   assert(boolRes);
    boolRes = mpTFsBridgeMixer->setWeight(1, 1);   assert(boolRes);
 
    // set up weights for callrec mixer as they are zeroed in constructor
@@ -674,6 +674,7 @@ OsStatus MpCallFlowGraph::gainFocus(void)
       mpToneGen->enable();
       mToneGenDefocused = FALSE;
    }
+  
 
 #ifdef DOING_ECHO_CANCELATION // [
    if (!mpTFsMicMixer->isEnabled())  
@@ -714,7 +715,7 @@ OsStatus MpCallFlowGraph::loseFocus(void)
    // If the tone gen is not needed while we are out of focus disable it
    // as it is using resources while it is not being heard.
    if(mpToneGen->isEnabled() && 
-      mpTFsBridgeMixer->isEnabled()) // Local tone only
+      mpTFsBridgeMixer->isEnabled()) // Local tone too
       // Should also disable when remote tone and no connections
       // || (!mp???Mixer->isEnabled() && noConnections)) 
    {
@@ -760,28 +761,47 @@ void MpCallFlowGraph::startTone(int toneId, int toneOptions)
 {
    UtlBoolean boolRes;
    OsStatus  res;
-   int i;
-   MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_START_TONE, NULL,
-                   NULL, NULL, toneOptions, 0);
 
+   // enable tone gen
    res = mpToneGen->startTone(toneId);        assert(res == OS_SUCCESS);
 
-   res = postMessage(msg);
-
-   // Only play locally if requested
+   // Also play locally if requested
    if (toneOptions & TONE_TO_SPKR)
    {
-      boolRes = mpTFsBridgeMixer->disable();   assert(boolRes);
+      boolRes = mpTFsBridgeMixer->enable();   assert(boolRes);
    }
 
-   if (toneOptions & TONE_TO_NET) { // "mToneIsGlobal"
+   mToneIsGlobal = (toneOptions & TONE_TO_NET);
+   if (mToneIsGlobal)
+   {
       // Notify outbound leg of all connections that we are playing a tone
-      for (i=0; i<MAX_CONNECTIONS; i++) {
-         if (NULL != mpOutputConnections[i]) 
-             mpOutputConnections[i]->startTone(toneId);
+      for (int i = 0; i < MAX_CONNECTIONS; i++)
+      {
+         if (mpOutputConnections[i]) 
+         {
+            mpOutputConnections[i]->startTone(toneId);
+         }
+      }
+
+      // Play the file audio through the Mixer resource,
+      // shutting off the other audio input
+      boolRes = mpTFsMicMixer->disable();   assert(boolRes);
+
+      // We may be asked NOT to send inband DTMF to the remote
+      // party.  This is accomplished by setting the tone gen
+      // weight to zero.  At which point, the mixer will send
+      // silence.
+      if (!sbSendInBandDTMF)
+      {
+         boolRes = mpTFsMicMixer->setWeight(0, 1);      assert(boolRes);
       }
    }
-   // mpToneGen->enable();
+
+#ifndef DISABLE_LOCAL_AUDIO // [
+#ifdef DOING_ECHO_CANCELATION // [
+   boolRes = mpEchoCancel->disable();  assert(boolRes);
+#endif // DOING_ECHO_CANCELATION ]
+#endif // DISABLE_LOCAL_AUDIO ]
 }
 
 // Stop playing the tone (applies to all tone destinations).
@@ -1864,9 +1884,6 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
          // osPrintf("\n++++++ recording stopped\n");
          // retCode = handleStopRecord(rMsg);
          break;
-      case MpFlowGraphMsg::FLOWGRAPH_START_TONE:
-         retCode = handleStartTone(*pMsg);
-         break;
       case MpFlowGraphMsg::FLOWGRAPH_STOP_PLAY:
       case MpFlowGraphMsg::FLOWGRAPH_STOP_TONE:
          retCode = handleStopToneOrPlay();
@@ -1930,10 +1947,10 @@ UtlBoolean MpCallFlowGraph::handleStartPlay(MpFlowGraphMsg& rMsg)
 
    boolRes = mpFromFile->enable();          assert(boolRes);
 
-   // Only play locally if requested
+   // Also play locally if requested
    if (toneOptions & TONE_TO_SPKR)
    {
-      boolRes = mpTFsBridgeMixer->disable();   assert(boolRes);
+      boolRes = mpTFsBridgeMixer->enable();   assert(boolRes);
    }
 
    if (toneOptions & TONE_TO_NET)
@@ -1941,43 +1958,6 @@ UtlBoolean MpCallFlowGraph::handleStartPlay(MpFlowGraphMsg& rMsg)
       // Play the file audio through the Mixer resource,
       // shutting off the other audio input
       boolRes = mpTFsMicMixer->disable();   assert(boolRes);
-   }
-#ifndef DISABLE_LOCAL_AUDIO // [
-#ifdef DOING_ECHO_CANCELATION // [
-   boolRes = mpEchoCancel->disable();  assert(boolRes);
-#endif // DOING_ECHO_CANCELATION ]
-#endif // DISABLE_LOCAL_AUDIO ]
-   return TRUE;
-}
-
-UtlBoolean MpCallFlowGraph::handleStartTone(MpFlowGraphMsg& rMsg)
-{
-   UtlBoolean boolRes;
-   int toneOptions = rMsg.getInt1();
-
-   // boolRes = mpToneGen->enable();          assert(boolRes);
-
-   // Only play locally if requested
-   if (toneOptions & TONE_TO_SPKR)
-   {
-      boolRes = mpTFsBridgeMixer->disable();   assert(boolRes);
-   }
-
-   mToneIsGlobal = (toneOptions & TONE_TO_NET);
-   if (mToneIsGlobal)
-   {
-      // Play the file audio through the Mixer resource,
-      // shutting off the other audio input
-      boolRes = mpTFsMicMixer->disable();   assert(boolRes);
-
-      // We may be asked NOT to send inband DTMF to the remote
-      // party.  This is accomplished by setting the tone gen
-      // weight to zero.  At which point, the mixer will send
-      // silence.
-      if (!sbSendInBandDTMF)
-      {
-         boolRes = mpTFsMicMixer->setWeight(0, 1);      assert(boolRes);
-      }
    }
 #ifndef DISABLE_LOCAL_AUDIO // [
 #ifdef DOING_ECHO_CANCELATION // [
@@ -2012,7 +1992,7 @@ UtlBoolean MpCallFlowGraph::handleStopToneOrPlay()
 #endif /* DOING_ECHO_CANCELATION ] */
 
    // Shut off the tone generator input to the Mixer resources
-   boolRes = mpTFsBridgeMixer->enable();     assert(boolRes);
+   boolRes = mpTFsBridgeMixer->disable();     assert(boolRes);
    boolRes = mpTFsMicMixer->enable();        assert(boolRes);
 
    // The weight of the tone gen / from file resource may have
@@ -2114,12 +2094,12 @@ UtlBoolean MpCallFlowGraph::handleStreamPlay(MpStreamMsg& rMsg)
       // Should we play locally?
       if (iFlags & STREAM_SOUND_LOCAL)
       {
-         boolRes = mpTFsBridgeMixer->disable();
+         boolRes = mpTFsBridgeMixer->enable();
          assert(boolRes);
       }
       else
       {
-         boolRes = mpTFsBridgeMixer->enable();
+         boolRes = mpTFsBridgeMixer->disable();
          assert(boolRes);
       }
 
@@ -2167,7 +2147,7 @@ UtlBoolean MpCallFlowGraph::handleStreamStop(MpStreamMsg& rMsg)
       // did we play locally?
       if (iFlags & STREAM_SOUND_LOCAL)
       {
-         boolRes = mpTFsBridgeMixer->enable();
+         boolRes = mpTFsBridgeMixer->disable();
          assert(boolRes);
       }
       
