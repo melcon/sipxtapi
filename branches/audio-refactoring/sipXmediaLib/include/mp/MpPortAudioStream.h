@@ -9,6 +9,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsTime.h>
 #include <utl/UtlBool.h>
 #include "mp/MpAudioDriverDefs.h"
 #include "portaudio.h"
@@ -179,6 +180,9 @@ private:
 
    bool m_bFrameRecorded; ///< whether at least one frame has been recorded
    bool m_bFramePushed; ///< whether at least one frame has been pushed
+
+   int m_streamReadWriteCount;
+   int m_callbackCallCount;
 };
 
 #endif // MpPortAudioStream_h__
