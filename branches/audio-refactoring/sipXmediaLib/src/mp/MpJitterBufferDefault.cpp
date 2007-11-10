@@ -66,7 +66,11 @@ MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
                                          int payloadType,
                                          unsigned int frameSize,
                                          bool bUsePrefetch,
-                                         unsigned int initialPrefetchCount)
+                                         unsigned int initialPrefetchCount,
+                                         bool bDoPLC,
+                                         unsigned int maxConcealedFrames,
+                                         bool bAutodetectPtime,
+                                         unsigned int ptime)
 : MpJitterBufferBase(name, payloadType, frameSize)
 , m_bUsePrefetch(bUsePrefetch)
 , m_lastSSRC(0)
@@ -79,6 +83,12 @@ MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
 , m_prefetchCount(initialPrefetchCount)
 , m_bPrefetchMode(true)
 , m_internalClock(0)
+, m_iPLCCounter(0)
+, m_bDoPLC(bDoPLC)
+, m_iMaxConcealedFrames(maxConcealedFrames)
+, m_pTime(ptime)
+, m_initialPTime(ptime)
+, m_bAutodetectPtime(bAutodetectPtime)
 {
 #ifdef PRINT_STATISTICS
    enableConsoleOutput(TRUE);
@@ -86,7 +96,16 @@ MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
    if (m_prefetchCount < MIN_PREFETCH_COUNT)
    {
       m_prefetchCount = MIN_PREFETCH_COUNT;
-   }   
+   }
+   if (!bDoPLC && bAutodetectPtime)
+   {
+      // if PLC is not enabled, disable ptime autodetection and assume ptime is equal to
+      // sipxmedialib internal audio frame size
+      bAutodetectPtime = false;
+      m_pTime = frameSize;
+      m_initialPTime = frameSize;
+   }
+   
 }
 
 MpJitterBufferDefault::~MpJitterBufferDefault()
@@ -109,6 +128,18 @@ void MpJitterBufferDefault::reset()
    m_expectedTimestamp = 0;
    m_internalClock = 0;
    m_bPrefetchMode = true;
+
+   if (m_bDoPLC)
+   {
+      m_iPLCCounter = 0;
+      m_pPLC.release();
+   }
+
+   if (m_bAutodetectPtime)
+   {
+      // autodetect ptime
+      m_pTime = m_initialPTime;
+   }
 }
 
 void MpJitterBufferDefault::frameIncrement()
@@ -142,6 +173,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
       OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"---- Jitter Buffer Statistics for %s ----\n", m_name.data());
       OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalHits: %u\n", m_statistics.m_totalHits);
       OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_total2ndHits: %u\n", m_statistics.m_total2ndHits);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPLCHits: %u\n", m_statistics.m_totalPLCHits);
       OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalNormalUnderflows: %u\n", m_statistics.m_totalNormalUnderflows);
       OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPrefetchUnderflows: %u\n", m_statistics.m_totalPrefetchUnderflows);
       OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPulls: %u\n", m_statistics.m_totalPulls);
@@ -208,10 +240,22 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
          if (MpDspUtils::compareSerials(iTimestamp, upperBound) < 0
             && MpDspUtils::compareSerials(iTimestamp, lowerBound) > 0)
          {
+            if (m_bAutodetectPtime && m_bDoPLC && m_pPLC.isValid())
+            {
+               // autodetect ptime, we can currently do it only if PLC is also enabled
+               m_pTime = min(m_pTime, iTimestamp - m_pPLC->getRtpTimestamp());
+            }
+            
             // we found the expected frame, use it
             pOutRtp.swap(m_pPackets[iNextPull]);
             // Make sure we does not have copy of this buffer left in other threads.
             pOutRtp.requestWrite();
+
+            if (m_bDoPLC)
+            {
+               m_pPLC = pOutRtp.clone(); // clone the frame for PLC purpose
+               m_iPLCCounter = 0;
+            }
             assert(!m_pPackets[iNextPull].isValid());
 
             m_lastSeqNumber = iSeqNo;
@@ -232,8 +276,41 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
    if (secondCandidate != -1)
    {
       assert(m_pPackets[secondCandidate].isValid());
+      RtpSeq secCandSeq = m_pPackets[secondCandidate]->getRtpSequenceNumber();
 
-      m_lastSeqNumber = m_pPackets[secondCandidate]->getRtpSequenceNumber();
+      if (m_bDoPLC)
+      {
+         // PLC is enabled
+         RtpSeq seqDiff = abs(m_lastSeqNumber - secCandSeq);
+
+         if (seqDiff > 1 && m_pPLC.isValid())
+         {
+            // packet loss detected, play back last frame if available
+            if (m_iPLCCounter < m_iMaxConcealedFrames)
+            {
+               // PLC frame is valid, use it
+               m_lastSeqNumber = m_pPLC->getRtpSequenceNumber() + (m_iPLCCounter + 1);
+               m_lastPulled = (m_lastPulled + 1) % MAX_RTP_PACKETS;
+               // estimate timestamp of the "lost" frame
+               m_expectedTimestamp = m_pPLC->getRtpTimestamp() + m_pTime*(m_iPLCCounter + 1);
+               m_statistics.m_totalPLCHits++;
+               m_iPLCCounter++;
+
+               pOutRtp = m_pPLC.clone();
+               // Make sure we does not have copy of this buffer left in other threads.
+               pOutRtp.requestWrite();
+               return MP_JITTER_BUFFER_OK;
+            }
+            else
+            {
+               // discard PLC frame
+               m_pPLC.release();
+            }
+         }
+         // we probably experienced packet loss, but can't conceal it, so we will actually skip a few frames
+      }      
+      
+      m_lastSeqNumber = secCandSeq;
       m_lastPulled = secondCandidate;
       m_expectedTimestamp = m_pPackets[secondCandidate]->getRtpTimestamp(); // next time it will be incremented in frameIncrement
       m_statistics.m_total2ndHits++;
@@ -254,7 +331,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
 }
 
 void MpJitterBufferDefault::push(const MpRtpBufPtr &pRtp)
-{
+{  
    if (pRtp.isValid() && pRtp->getRtpPayloadType() == m_payloadType)
    {
       OsLock lock(m_mutex);
