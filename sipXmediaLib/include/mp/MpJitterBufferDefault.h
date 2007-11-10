@@ -46,8 +46,8 @@ public:
       MAX_RTP_PACKETS = 64,  ///< MUST BE A POWER OF 2, AND SHOULD BE >3
       MAX_STATISTICS_SAMPLES = 500,
       FEW_STATISTICS_SAMPLES = 10,
-      MIN_PREFETCH_COUNT = 6,
-      MAX_PREFETCH_COUNT = 28
+      MIN_PREFETCH_COUNT = 8,
+      MAX_PREFETCH_COUNT = 30
    };
 
    /* ============================ CREATORS ================================== */
