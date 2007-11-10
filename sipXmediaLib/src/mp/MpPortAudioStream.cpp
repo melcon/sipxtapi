@@ -9,20 +9,20 @@
 #include <assert.h>
 #include <os/OsIntTypes.h> 
 #include <os/OsSysLog.h>
+#include <os/OsDateTime.h>
 #include "mp/MpPortAudioStream.h"
 
 // DEFINES
 #define MIN_SAMPLE_RATE 200
-#define INPUT_PREFETCH_BUFFERS_COUNT 2
-#define OUTPUT_PREFETCH_BUFFERS_COUNT 2
+//#define DEBUG_AUDIO_STREAM
+#define INPUT_PREFETCH_BUFFERS_COUNT 8
+#define OUTPUT_PREFETCH_BUFFERS_COUNT 8
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 // MACROS
-
-// return positive if val2 < val1, negative if val2 > val1, values must be unsigned
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
@@ -63,6 +63,8 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_outputPrefetchCount(0)
 , m_bFrameRecorded(false)
 , m_bFramePushed(false)
+, m_streamReadWriteCount(0)
+, m_callbackCallCount(0)
 {   
    switch(m_inputSampleFormat & 0x3f)
    {
@@ -216,7 +218,14 @@ OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
                                             unsigned long frames)
 {
    OsStatus status = OS_FAILED;
-
+  
+#ifdef DEBUG_AUDIO_STREAM
+   if (m_bFrameRecorded && m_streamReadWriteCount++ % 200 == 0)
+   {
+      this->printStatistics();
+   }
+#endif
+   
    if (frames > 0 && m_inputSampleSize > 0)
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
@@ -279,6 +288,13 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
 {
    OsStatus status = OS_FAILED;
 
+#ifdef DEBUG_AUDIO_STREAM
+   if (m_bFramePushed && m_streamReadWriteCount++ % 200 == 0)
+   {
+      this->printStatistics();
+   }
+#endif
+
    if (frames > 0 && m_outputSampleSize > 0)
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
@@ -328,12 +344,14 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
 
 void MpPortAudioStream::printStatistics()
 {
-   osPrintf("--------- MpPortAudioStream::printStatistics ---------\n");
-   osPrintf("m_outputBufferOverflow = %d\n", m_outputBufferOverflow);
-   osPrintf("m_outputBufferUnderflow = %d\n", m_outputBufferUnderflow);
-   osPrintf("m_inputBufferOverflow = %d\n", m_inputBufferOverflow);
-   osPrintf("m_inputBufferUnderflow = %d\n", m_inputBufferUnderflow);
-   osPrintf("------------------------------------------------------\n");
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"--------- MpPortAudioStream::printStatistics ---------\n");
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_outputBufferOverflow = %d\n", m_outputBufferOverflow);
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_outputBufferUnderflow = %d\n", m_outputBufferUnderflow);
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_inputBufferOverflow = %d\n", m_inputBufferOverflow);
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_inputBufferUnderflow = %d\n", m_inputBufferUnderflow);
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_streamReadWriteCount = %d\n", m_streamReadWriteCount);
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_callbackCallCount = %d\n", m_callbackCallCount);
+   OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"------------------------------------------------------\n");
 }
 
 void MpPortAudioStream::resetStream()
@@ -382,6 +400,13 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
                                               PaStreamCallbackFlags statusFlags)
 {
    // portaudio supplied us pointers to its input and output buffers
+
+#ifdef DEBUG_AUDIO_STREAM
+   if (m_bFrameRecorded || m_bFramePushed)
+   {
+      m_callbackCallCount++;
+   }   
+#endif
 
    if (frameCount > 0)
    {
