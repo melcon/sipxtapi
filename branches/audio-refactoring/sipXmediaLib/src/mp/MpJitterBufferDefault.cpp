@@ -19,6 +19,7 @@
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
 #include "os/OsIntTypes.h"
+#include <os/OsSysLog.h>
 #include <mp/MpJitterBufferDefault.h>
 #include <mp/MpRtpBuf.h>
 #include <mp/MpDspUtils.h>
@@ -138,18 +139,18 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
    if (m_statistics.m_totalPulls % 100 == 1)
    {
       // print them
-      osPrintf("---- Jitter Buffer Statistics for %s ----\n", m_name.data());
-      osPrintf("m_totalHits: %u\n", m_statistics.m_totalHits);
-      osPrintf("m_total2ndHits: %u\n", m_statistics.m_total2ndHits);
-      osPrintf("m_totalNormalUnderflows: %u\n", m_statistics.m_totalNormalUnderflows);
-      osPrintf("m_totalPrefetchUnderflows: %u\n", m_statistics.m_totalPrefetchUnderflows);
-      osPrintf("m_totalPulls: %u\n", m_statistics.m_totalPulls);
-      osPrintf("m_totalPushCollisions: %u\n", m_statistics.m_totalPushCollisions);
-      osPrintf("m_totalPushReplacements: %u\n", m_statistics.m_totalPushReplacements);
-      osPrintf("m_totalPushInserts: %u\n", m_statistics.m_totalPushInserts);
-      osPrintf("m_bufferLength: %u\n", m_bufferLength);      
-      osPrintf("m_lastSeqNumber: %u\n", m_lastSeqNumber);      
-      osPrintf("-------------------------------------------\n");
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"---- Jitter Buffer Statistics for %s ----\n", m_name.data());
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalHits: %u\n", m_statistics.m_totalHits);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_total2ndHits: %u\n", m_statistics.m_total2ndHits);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalNormalUnderflows: %u\n", m_statistics.m_totalNormalUnderflows);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPrefetchUnderflows: %u\n", m_statistics.m_totalPrefetchUnderflows);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPulls: %u\n", m_statistics.m_totalPulls);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPushCollisions: %u\n", m_statistics.m_totalPushCollisions);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPushReplacements: %u\n", m_statistics.m_totalPushReplacements);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_totalPushInserts: %u\n", m_statistics.m_totalPushInserts);
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_bufferLength: %u\n", m_bufferLength);      
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_lastSeqNumber: %u\n", m_lastSeqNumber);      
+      OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"-------------------------------------------\n");
    }
 #endif
 
