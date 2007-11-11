@@ -11,6 +11,8 @@
 #include <os/OsSysLog.h>
 #include <os/OsDateTime.h>
 #include "mp/MpPortAudioStream.h"
+#include "mp/MpVolumeMeter.h"
+
 
 // DEFINES
 #define MIN_SAMPLE_RATE 200
@@ -70,22 +72,28 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_inputSampleSize = sizeof(float);
+      m_inputVolumeMeter = new MpVolumeMeter<float>(inputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT32:
       m_inputSampleSize = sizeof(int32_t);
+      m_inputVolumeMeter = new MpVolumeMeter<int32_t>(inputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT24:
       m_inputSampleSize = sizeof(char)*3;
+      m_inputVolumeMeter = NULL;
       OsSysLog::add(FAC_AUDIO, PRI_WARNING, "Dangerous input sample format selected, check MpPortAudioStream.cpp\n");
       break;
    case MP_AUDIO_FORMAT_INT16:
       m_inputSampleSize = sizeof(int16_t);
+      m_inputVolumeMeter = new MpVolumeMeter<int16_t>(inputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT8:
       m_inputSampleSize = sizeof(int8_t);
+      m_inputVolumeMeter = new MpVolumeMeter<int8_t>(inputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_UINT8:
       m_inputSampleSize = sizeof(uint8_t);
+      m_inputVolumeMeter = new MpVolumeMeter<uint8_t>(inputChannelCount, sampleRate);
       break;
    default:
       // don't create buffers, unsupported sample format
@@ -96,22 +104,28 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_outputSampleSize = sizeof(float);
+      m_outputVolumeMeter = new MpVolumeMeter<float>(outputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT32:
       m_outputSampleSize = sizeof(int32_t);
+      m_outputVolumeMeter = new MpVolumeMeter<int32_t>(outputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT24:
       m_outputSampleSize = sizeof(char)*3;
+      m_outputVolumeMeter = NULL;
       OsSysLog::add(FAC_AUDIO, PRI_WARNING, "Dangerous output sample format selected, check MpPortAudioStream.cpp\n");
       break;
    case MP_AUDIO_FORMAT_INT16:
       m_outputSampleSize = sizeof(int16_t);
+      m_outputVolumeMeter = new MpVolumeMeter<int16_t>(outputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT8:
       m_outputSampleSize = sizeof(int8_t);
+      m_outputVolumeMeter = new MpVolumeMeter<int8_t>(outputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_UINT8:
       m_outputSampleSize = sizeof(uint8_t);
+      m_outputVolumeMeter = new MpVolumeMeter<uint8_t>(outputChannelCount, sampleRate);
       break;
    default:
       // don't create buffers, unsupported sample format
@@ -193,6 +207,12 @@ MpPortAudioStream::~MpPortAudioStream(void)
       free(m_pOutputBuffer);
       m_pOutputBuffer = NULL;
    }
+
+   // delete volume meters if they exist
+   delete m_inputVolumeMeter;
+   m_inputVolumeMeter = NULL;
+   delete m_outputVolumeMeter;
+   m_outputVolumeMeter = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -342,6 +362,42 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
    return status;
 }
 
+unsigned int MpPortAudioStream::getInputStreamVolume(MP_VOLUME_METER_TYPE type) const
+{
+   if (m_inputVolumeMeter)
+   {
+      switch(type)
+      {
+      case MP_VOLUME_METER_VU:
+         return m_inputVolumeMeter->getVUVolume();
+      case MP_VOLUME_METER_PPM:
+         return m_inputVolumeMeter->getPPMVolume();
+      default:
+         return 0;
+      }
+   }
+   
+   return 0;
+}
+
+unsigned int MpPortAudioStream::getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const
+{
+   if (m_outputVolumeMeter)
+   {
+      switch(type)
+      {
+      case MP_VOLUME_METER_VU:
+         return m_outputVolumeMeter->getVUVolume();
+      case MP_VOLUME_METER_PPM:
+         return m_outputVolumeMeter->getPPMVolume();
+      default:
+         return 0;
+      }
+   }
+
+   return 0;
+}
+
 void MpPortAudioStream::printStatistics()
 {
    OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"--------- MpPortAudioStream::printStatistics ---------\n");
@@ -383,6 +439,16 @@ void MpPortAudioStream::resetStream()
    m_bFramePushed = false;
    m_inputBufferPrefetchMode = true;
    m_outputBufferPrefetchMode = true;
+
+   if (m_inputVolumeMeter)
+   {
+      m_inputVolumeMeter->resetMeter();
+   }
+
+   if (m_outputVolumeMeter)
+   {
+      m_outputVolumeMeter->resetMeter();
+   }
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -413,6 +479,12 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
       // handle output frames
       if (m_outputChannelCount > 0 && output && m_outputSampleSize > 0)
       {
+         // copy output frames to meter
+         if (m_outputVolumeMeter)
+         {
+            m_outputVolumeMeter->pushBuffer(output, frameCount);
+         }
+
          unsigned int outputFrameCount = getOutputBufferFrameCount();
 
          if (m_outputBufferPrefetchMode)
@@ -498,6 +570,12 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
       // handle input frames
       if (m_inputChannelCount > 0 && input && m_inputSampleSize > 0)
       {
+         // copy input frames to meter
+         if (m_inputVolumeMeter)
+         {
+            m_inputVolumeMeter->pushBuffer(input, frameCount);
+         }
+
          unsigned int inputFrameCount = getInputBufferFrameCount();
 
          if (m_inputBufferPrefetchMode)

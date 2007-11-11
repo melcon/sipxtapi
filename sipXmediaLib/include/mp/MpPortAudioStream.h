@@ -19,6 +19,7 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
+class MpVolumeMeterBase;
 // STRUCTS
 // TYPEDEFS
 // MACROS
@@ -89,6 +90,16 @@ public:
     */
    OsStatus writeStreamAsync(const void *buffer,
                              unsigned long frames);
+
+   /**
+    * Gets volume for input stream calculated from samples.
+    */
+   unsigned int getInputStreamVolume(MP_VOLUME_METER_TYPE type) const;
+
+   /**
+   * Gets volume for output stream calculated from samples.
+   */
+   unsigned int getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const;
 
    /**
     * Prints overflow/underflow statistics.
@@ -167,6 +178,9 @@ private:
    volatile unsigned int m_inputReadPos; ///< position in input buffer for reading
    volatile unsigned int m_outputWritePos; ///< position in output buffer for writing
    volatile unsigned int m_outputReadPos; ///< position in output buffer for reading
+
+   MpVolumeMeterBase* m_inputVolumeMeter; ///< volume meter for input
+   MpVolumeMeterBase* m_outputVolumeMeter; ///< volume meter for output
 
    unsigned int m_outputBufferOverflow;
    unsigned int m_outputBufferUnderflow;
