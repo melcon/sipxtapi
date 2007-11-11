@@ -51,6 +51,7 @@ public:
       if (m_samplesBufferSize > 0)
       {
          m_pSamplesBuffer = new SampleType[m_samplesBufferSize];
+         memset(m_pSamplesBuffer, 0, m_samplesBufferSize * sizeof(SampleType));
       }
    }
 
