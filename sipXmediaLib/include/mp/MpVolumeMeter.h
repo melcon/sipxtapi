@@ -12,6 +12,10 @@
 #include "mp/MpVolumeMeterBase.h"
 
 // DEFINES
+#ifndef ABS
+#define ABS(x) ((x) < 0 ? (-(x)) : (x))
+#endif
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -26,7 +30,7 @@
 * Class for calculating volume level from samples of different sample size.
 * It uses either VU or PPM algorithm.
 */
-template <class SampleType>
+template <class SampleType, int maxSampleValue>
 class MpVolumeMeter : public MpVolumeMeterBase
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -44,7 +48,10 @@ public:
       // use buffer for 40ms of data
       int samplesPerChannel = (int)((40 / 1000) * sampleRate);
       m_samplesBufferSize = channelCount * samplesPerChannel;
-      m_pSamplesBuffer = new SampleType[m_samplesBufferSize];
+      if (m_samplesBufferSize > 0)
+      {
+         m_pSamplesBuffer = new SampleType[m_samplesBufferSize];
+      }
    }
 
    /// Destructor.
@@ -64,12 +71,15 @@ public:
     */
    virtual void pushBuffer(const void* pBuffer, unsigned int frameCount)
    {
-      SampleType* ptr = (SampleType*)pBuffer;
-      unsigned int topIndex = m_channelCount * frameCount;
-      for (unsigned int i = 0; i < topIndex; i++)
+      if (m_pSamplesBuffer)
       {
-         m_pSamplesBuffer[m_samplesBufferPos] = ptr[i];
-         m_samplesBufferPos = (m_samplesBufferPos + 1) % m_samplesBufferSize;
+         SampleType* ptr = (SampleType*)pBuffer;
+         unsigned int topIndex = m_channelCount * frameCount;
+         for (unsigned int i = 0; i < topIndex; i++)
+         {
+            m_pSamplesBuffer[m_samplesBufferPos] = ptr[i];
+            m_samplesBufferPos = (m_samplesBufferPos + 1) % m_samplesBufferSize;
+         }
       }
    }
 
@@ -78,8 +88,11 @@ public:
     */
    virtual void resetMeter()
    {
-      m_samplesBufferPos = 0;
-      memset(m_pSamplesBuffer, 0, m_samplesBufferSize * sizeof(SampleType));
+      if (m_pSamplesBuffer)
+      {
+         m_samplesBufferPos = 0;
+         memset(m_pSamplesBuffer, 0, m_samplesBufferSize * sizeof(SampleType));
+      }
    }
 
    /**
@@ -87,6 +100,19 @@ public:
     */
    virtual unsigned int getVUVolume() const
    {
+      if (m_pSamplesBuffer)
+      {
+         // count sum of all sample values divided by buffer size
+         double volume = 0.0;
+         for (int i = 0; i < m_samplesBufferSize; i++)
+         {
+            volume+= ABS(m_pSamplesBuffer[i]);
+         }
+         volume = volume / m_samplesBufferSize;
+
+         return (unsigned int)((volume / maxSampleValue) * 100);
+      }
+
       return 0;
    }
 
@@ -95,6 +121,21 @@ public:
     */
    virtual unsigned int getPPMVolume() const
    {
+      if (m_pSamplesBuffer)
+      {
+         // find maximum from all samples
+         SampleType max = 0;
+         for (int i = 0; i < m_samplesBufferSize; i++)
+         {
+            if (max < ABS(m_pSamplesBuffer[i]))
+            {
+               max = ABS(m_pSamplesBuffer[i]);
+            }
+         }
+
+         return (unsigned int)(((double)max / maxSampleValue) * 100);
+      }
+
       return 0;
    }
 

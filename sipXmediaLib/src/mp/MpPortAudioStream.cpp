@@ -72,11 +72,11 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_inputSampleSize = sizeof(float);
-      m_inputVolumeMeter = new MpVolumeMeter<float>(inputChannelCount, sampleRate);
+      m_inputVolumeMeter = NULL;
       break;
    case MP_AUDIO_FORMAT_INT32:
       m_inputSampleSize = sizeof(int32_t);
-      m_inputVolumeMeter = new MpVolumeMeter<int32_t>(inputChannelCount, sampleRate);
+      m_inputVolumeMeter = new MpVolumeMeter<int32_t, INT32_MAX>(inputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT24:
       m_inputSampleSize = sizeof(char)*3;
@@ -85,15 +85,15 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
       break;
    case MP_AUDIO_FORMAT_INT16:
       m_inputSampleSize = sizeof(int16_t);
-      m_inputVolumeMeter = new MpVolumeMeter<int16_t>(inputChannelCount, sampleRate);
+      m_inputVolumeMeter = new MpVolumeMeter<int16_t, INT16_MAX>(inputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT8:
       m_inputSampleSize = sizeof(int8_t);
-      m_inputVolumeMeter = new MpVolumeMeter<int8_t>(inputChannelCount, sampleRate);
+      m_inputVolumeMeter = new MpVolumeMeter<int8_t, INT8_MAX>(inputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_UINT8:
       m_inputSampleSize = sizeof(uint8_t);
-      m_inputVolumeMeter = new MpVolumeMeter<uint8_t>(inputChannelCount, sampleRate);
+      m_inputVolumeMeter = NULL;
       break;
    default:
       // don't create buffers, unsupported sample format
@@ -104,11 +104,11 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_outputSampleSize = sizeof(float);
-      m_outputVolumeMeter = new MpVolumeMeter<float>(outputChannelCount, sampleRate);
+      m_outputVolumeMeter = NULL;
       break;
    case MP_AUDIO_FORMAT_INT32:
       m_outputSampleSize = sizeof(int32_t);
-      m_outputVolumeMeter = new MpVolumeMeter<int32_t>(outputChannelCount, sampleRate);
+      m_outputVolumeMeter = new MpVolumeMeter<int32_t, INT32_MAX>(outputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT24:
       m_outputSampleSize = sizeof(char)*3;
@@ -117,15 +117,15 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
       break;
    case MP_AUDIO_FORMAT_INT16:
       m_outputSampleSize = sizeof(int16_t);
-      m_outputVolumeMeter = new MpVolumeMeter<int16_t>(outputChannelCount, sampleRate);
+      m_outputVolumeMeter = new MpVolumeMeter<int16_t, INT16_MAX>(outputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_INT8:
       m_outputSampleSize = sizeof(int8_t);
-      m_outputVolumeMeter = new MpVolumeMeter<int8_t>(outputChannelCount, sampleRate);
+      m_outputVolumeMeter = new MpVolumeMeter<int8_t, INT8_MAX>(outputChannelCount, sampleRate);
       break;
    case MP_AUDIO_FORMAT_UINT8:
       m_outputSampleSize = sizeof(uint8_t);
-      m_outputVolumeMeter = new MpVolumeMeter<uint8_t>(outputChannelCount, sampleRate);
+      m_outputVolumeMeter = NULL;
       break;
    default:
       // don't create buffers, unsupported sample format
