@@ -44,9 +44,11 @@ public:
    : m_channelCount(channelCount)
    , m_sampleRate(sampleRate)
    , m_samplesBufferPos(0)
+   , m_samplesBufferSize(0)
+   , m_pSamplesBuffer(NULL)
    {
       // use buffer for 40ms of data
-      int samplesPerChannel = (int)((40 / 1000) * sampleRate);
+      int samplesPerChannel = (int)(((double)40 / 1000) * sampleRate);
       m_samplesBufferSize = channelCount * samplesPerChannel;
       if (m_samplesBufferSize > 0)
       {
