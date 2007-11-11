@@ -67,6 +67,8 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_bFramePushed(false)
 , m_streamReadWriteCount(0)
 , m_callbackCallCount(0)
+, m_inputVolumeMeter(NULL)
+, m_outputVolumeMeter(NULL)
 {   
    switch(m_inputSampleFormat & 0x3f)
    {
