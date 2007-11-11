@@ -385,6 +385,20 @@ public:
    virtual OsStatus getSampleSize(MpAudioDriverSampleFormat format, int& sampleSize) const  = 0;
 
    /**
+    * Gets volume meter reading for input of given stream.
+    */
+   virtual OsStatus getInputVolumeMeterReading(MpAudioStreamId stream,
+                                               unsigned int& volume,
+                                               MP_VOLUME_METER_TYPE type) const = 0;
+
+   /**
+   * Gets volume meter reading for output of given stream.
+   */
+   virtual OsStatus getOutputVolumeMeterReading(MpAudioStreamId stream,
+                                                unsigned int& volume,
+                                                MP_VOLUME_METER_TYPE type) const = 0;
+
+   /**
     * Deletes audio driver. Use instead of deleting it directly. Implemented
     * by subclass.
     */

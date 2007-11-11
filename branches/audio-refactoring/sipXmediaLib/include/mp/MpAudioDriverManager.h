@@ -141,42 +141,52 @@ public:
    /**
     * Gets master output volume
     */
-   virtual MpAudioVolume getMasterVolume() const;
+   MpAudioVolume getMasterVolume() const;
 
    /**
     * Sets master output volume
     */
-   virtual void setMasterVolume(MpAudioVolume volume);
+   void setMasterVolume(MpAudioVolume volume);
 
    /**
     * Gets main output volume
     */
-   virtual MpAudioVolume getPCMOutputVolume() const;
+   MpAudioVolume getPCMOutputVolume() const;
 
    /**
     * Sets main output volume
     */
-   virtual void setPCMOutputVolume(MpAudioVolume volume);
+   void setPCMOutputVolume(MpAudioVolume volume);
 
    /**
     * Gets input volume
     */
-   virtual MpAudioVolume getInputVolume() const;
+   MpAudioVolume getInputVolume() const;
 
    /**
     * Sets input volume
     */
-   virtual void setInputVolume(MpAudioVolume volume);
+   void setInputVolume(MpAudioVolume volume);
 
    /**
     * Gets output balance (right, left)
     */
-   virtual MpAudioBalance getOutputBalance() const;
+   MpAudioBalance getOutputBalance() const;
 
    /**
     * Sets output balance
     */
-   virtual void setOutputBalance(MpAudioBalance balance);
+   void setOutputBalance(MpAudioBalance balance);
+
+   /**
+    * Gets current input volume from volume meter calculated from samples.
+    */
+   OsStatus getInputVolumeMeterReading(MP_VOLUME_METER_TYPE type, unsigned int& volume) const;
+
+   /**
+   * Gets current output volume from volume meter calculated from samples.
+   */
+   OsStatus getOutputVolumeMeterReading(MP_VOLUME_METER_TYPE type, unsigned int& volume) const;
 
    /**
     * Deletes singleton manager. Not threadsafe.

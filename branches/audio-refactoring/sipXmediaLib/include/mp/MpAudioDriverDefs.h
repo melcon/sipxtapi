@@ -40,6 +40,12 @@
 // STRUCTS
 // TYPEDEFS
 
+typedef enum
+{
+   MP_VOLUME_METER_VU = 0,
+   MP_VOLUME_METER_PPM
+} MP_VOLUME_METER_TYPE;
+
 typedef unsigned long MpAudioDriverSampleFormat;
 typedef unsigned long MpAudioStreamFlags;
 typedef int MpAudioDeviceIndex;

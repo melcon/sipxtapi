@@ -751,6 +751,52 @@ OsStatus MpPortAudioDriver::getSampleSize(MpAudioDriverSampleFormat format,
    return status;
 }
 
+OsStatus MpPortAudioDriver::getInputVolumeMeterReading(MpAudioStreamId stream,
+                                                       unsigned int& volume,
+                                                       MP_VOLUME_METER_TYPE type) const
+{
+   OsLock lock(ms_driverMutex);
+
+   // first verify that stream is asynchronous
+   UtlTypedValue<MpAudioStreamId> strm(stream);
+   UtlContainable* res = m_audioStreamMap.findValue(&strm);
+
+   if (res)
+   {
+      // cast to UtlPtr
+      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
+      // get pointer to MpPortAudioStream
+      MpPortAudioStream* pStrm = pStrmPtr->getValue();
+      volume = pStrm->getInputStreamVolume(type);
+      return OS_SUCCESS;
+   }
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus MpPortAudioDriver::getOutputVolumeMeterReading(MpAudioStreamId stream,
+                                                        unsigned int& volume,
+                                                        MP_VOLUME_METER_TYPE type) const
+{
+   OsLock lock(ms_driverMutex);
+
+   // first verify that stream is asynchronous
+   UtlTypedValue<MpAudioStreamId> strm(stream);
+   UtlContainable* res = m_audioStreamMap.findValue(&strm);
+
+   if (res)
+   {
+      // cast to UtlPtr
+      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
+      // get pointer to MpPortAudioStream
+      MpPortAudioStream* pStrm = pStrmPtr->getValue();
+      volume = pStrm->getOutputStreamVolume(type);
+      return OS_SUCCESS;
+   }
+
+   return OS_NOT_SUPPORTED;
+}
+
 void MpPortAudioDriver::release()
 {
    delete this;

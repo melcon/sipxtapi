@@ -2467,6 +2467,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpVolumeMeter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpVolumeMeterBase.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\NetInTask.h"
 					>
 				</File>

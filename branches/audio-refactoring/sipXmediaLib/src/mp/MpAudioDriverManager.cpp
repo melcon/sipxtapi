@@ -696,6 +696,32 @@ void MpAudioDriverManager::setOutputBalance(MpAudioBalance balance)
    }
 }
 
+OsStatus MpAudioDriverManager::getInputVolumeMeterReading(MP_VOLUME_METER_TYPE type,
+                                                          unsigned int& volume) const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_pAudioDriver)
+   {
+      return m_pAudioDriver->getInputVolumeMeterReading(m_inputAudioStream, volume, type);
+   }
+   
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::getOutputVolumeMeterReading(MP_VOLUME_METER_TYPE type,
+                                                           unsigned int& volume) const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_pAudioDriver)
+   {
+      return m_pAudioDriver->getOutputVolumeMeterReading(m_outputAudioStream, volume, type);
+   }
+
+   return OS_FAILED;
+}
+
 void MpAudioDriverManager::release()
 {
    delete this;
@@ -848,8 +874,6 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
       m_pAudioDriver = NULL;
    }
 }
-
-
 
 /* ============================ FUNCTIONS ================================= */
 
