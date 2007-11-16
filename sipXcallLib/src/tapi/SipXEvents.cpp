@@ -1169,9 +1169,8 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->nSize = pSourceInfo->nSize;                    
             pInfo->event = pSourceInfo->event;
             pInfo->fromAddress = SAFE_STRDUP(pSourceInfo->fromAddress);
-            pInfo->textMessage = SAFE_STRDUP(pSourceInfo->textMessage);
 
-            if (pInfo->textLength > 0 && pInfo->textMessage)
+            if (pSourceInfo->textLength > 0 && pSourceInfo->textMessage)
             {
                pInfo->textMessage = (char*)malloc(pSourceInfo->textLength);
                assert(pInfo->textMessage);
