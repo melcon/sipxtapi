@@ -1186,8 +1186,8 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
     int numAddresses = 0;
     int totalBandwidth = 0;
     int videoFramerate = 0;
-    int matchingBandwidth;
-    int matchingVideoFramerate;
+    int matchingBandwidth = 0;
+    int matchingVideoFramerate = 0;
     SdpCodecFactory supportedCodecs;
     SdpSrtpParameters srtpParams;
     SdpSrtpParameters matchingSrtpParams;
@@ -1260,7 +1260,12 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
                                 videoFramerate,
                                 matchingVideoFramerate);
 
-            fireIncompatibleCodecsEvent(&supportedCodecs, encoderCodecs, numMatchingCodecs) ;
+            if (sdpBody)
+            {
+               // fire incompatible codecs only if sdp body was present, if not it will be sent
+               // in 200 OK and ACK
+               fireIncompatibleCodecsEvent(&supportedCodecs, encoderCodecs, numMatchingCodecs) ;
+            }            
 
             if (matchingBandwidth != 0)
             {
@@ -1485,15 +1490,26 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
             }
         }
 
-        // Free up the codec copies and array
-        for(int codecIndex = 0; codecIndex < numMatchingCodecs; codecIndex++)
+        if (encoderCodecs || decoderCodecs)
         {
-            delete encoderCodecs[codecIndex];
-            encoderCodecs[codecIndex] = NULL;
+           // Free up the codec copies and array
+           for(int codecIndex = 0; codecIndex < numMatchingCodecs; codecIndex++)
+           {
+              if (encoderCodecs)
+              {
+                 delete encoderCodecs[codecIndex];
+                 encoderCodecs[codecIndex] = NULL;
+              }
 
-            delete decoderCodecs[codecIndex];
-            decoderCodecs[codecIndex] = NULL;
-        }
+
+              if (decoderCodecs)
+              {
+                 delete decoderCodecs[codecIndex];
+                 decoderCodecs[codecIndex] = NULL;
+              }
+           }
+        }        
+
         delete[] encoderCodecs;
         encoderCodecs = NULL;
 
@@ -3217,7 +3233,6 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
     memset(&srtpParams, 0, sizeof(srtpParams));
     memset(&matchingSrtpParams, 0, sizeof(matchingSrtpParams));
 
-
     if (mpMediaInterface)
     {
         mpMediaInterface->getCapabilitiesEx(mConnectionId,
@@ -3498,15 +3513,25 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
         }
     }
 
-    // Free up the codec copies and ar
-    for(int codecIndex = 0; codecIndex < numMatchingCodecs; codecIndex++)
+    if (encoderCodecs || decoderCodecs)
     {
-        delete encoderCodecs[codecIndex];
-        encoderCodecs[codecIndex] = NULL;
-
-        delete decoderCodecs[codecIndex];
-        decoderCodecs[codecIndex] = NULL;
+       // Free up the codec copies and ar
+       for(int codecIndex = 0; codecIndex < numMatchingCodecs; codecIndex++)
+       {
+          if (encoderCodecs)
+          {
+             delete encoderCodecs[codecIndex];
+             encoderCodecs[codecIndex] = NULL;
+          }
+          
+          if (decoderCodecs)
+          {
+             delete decoderCodecs[codecIndex];
+             decoderCodecs[codecIndex] = NULL;
+          }       
+       }
     }
+
     delete[] encoderCodecs;
     encoderCodecs = NULL;
 
