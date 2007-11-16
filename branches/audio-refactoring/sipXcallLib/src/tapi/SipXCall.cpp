@@ -779,15 +779,21 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
 
                if (bFireDialtone)
                {
+                  UtlString tmpSessionCallId = pData->sessionCallId;
+                  UtlString tmpCallId = pData->callId;
+                  pData->pMutex.release();
+
                   // fire dialtone event manually
-                  pInst->pCallEventListener->OnDialTone(CpCallStateEvent(pData->sessionCallId,
-                           pData->callId,
+                  pInst->pCallEventListener->OnDialTone(CpCallStateEvent(tmpSessionCallId,
+                           tmpCallId,
                            SipSession(),
                            NULL,
                            CALLSTATE_CAUSE_NORMAL));
                }
-               
-               pData->pMutex.release();
+               else
+               {
+                  pData->pMutex.release();
+               }               
 
                sr = SIPX_RESULT_SUCCESS;
             }
