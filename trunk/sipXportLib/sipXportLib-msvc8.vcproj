@@ -2951,6 +2951,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\utl\UtlTypedValue.h"
+				>
+			</File>
+			<File
 				RelativePath="include\utl\UtlVoidPtr.h"
 				>
 			</File>

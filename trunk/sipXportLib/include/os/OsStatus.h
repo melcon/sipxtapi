@@ -132,7 +132,9 @@ enum OsStatus
    OS_NOT_SUPPORTED,          // Not supported at this time
    OS_NOT_YET_IMPLEMENTED,    // coming soon ...
    OS_UNSPECIFIED,            // unspecified error
-   OS_UNAUTHORIZED            // "unauthorized" error
+   OS_UNAUTHORIZED,            // "unauthorized" error
+   OS_OVERFLOW,
+   OS_UNDERFLOW
 };
      //!enumcode: OS_INVALID=0 - invalid status (not yet set)
      //!enumcode: OS_SUCCESS - success
