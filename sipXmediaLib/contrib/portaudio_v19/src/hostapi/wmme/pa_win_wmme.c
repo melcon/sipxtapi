@@ -189,6 +189,8 @@ Non-critical stuff for the future:
 */
 #define PA_MME_WIN_NT_DEFAULT_LATENCY_      (PA_MME_WIN_9X_DEFAULT_LATENCY_ * 2)
 #define PA_MME_WIN_WDM_DEFAULT_LATENCY_     (PA_MME_WIN_9X_DEFAULT_LATENCY_)
+#define PA_MME_WIN_DEFAULT_MIN_BUFFER_COUNT_ 2
+#define PA_MME_WIN_VISTA_MIN_BUFFER_COUNT_   16
 
 
 #define PA_MME_MIN_TIMEOUT_MSEC_        (1000)
@@ -829,6 +831,25 @@ error:
     return result;
 }
 
+static unsigned int PaWinMe_GetMinSystemBufferCount(void)
+{
+	unsigned int minBufferCount;
+	OSVERSIONINFO osvi;
+	osvi.dwOSVersionInfoSize = sizeof(osvi);
+	GetVersionEx(&osvi);
+
+	// check for Vista
+	if(osvi.dwMajorVersion >= 6)
+	{
+		// Vista has extremely high latency
+		minBufferCount = PA_MME_WIN_VISTA_MIN_BUFFER_COUNT_;
+	}
+	else
+	{
+		minBufferCount = PA_MME_WIN_DEFAULT_MIN_BUFFER_COUNT_;
+	}
+	return minBufferCount;
+}
 
 static void GetDefaultLatencies( PaTime *defaultLowLatency, PaTime *defaultHighLatency )
 {
@@ -1278,76 +1299,45 @@ static void SelectBufferSizeAndCount( unsigned long baseBufferSize,
     unsigned long maximumBufferSize, unsigned long *hostBufferSize,
     unsigned long *hostBufferCount )
 {
-    unsigned long sizeMultiplier, bufferCount, latency;
-    unsigned long nextLatency, nextBufferSize;
-    int baseBufferSizeIsPowerOfTwo;
+    unsigned long bufferCount, latency;
+    unsigned long nextLatency;
     
-    sizeMultiplier = 1;
     bufferCount = baseBufferCount;
 
     /* count-1 below because latency is always determined by one less
         than the total number of buffers.
     */
-    latency = (baseBufferSize * sizeMultiplier) * (bufferCount-1);
+    latency = baseBufferSize * (bufferCount-1);
 
     if( latency > requestedLatency )
     {
-
         /* reduce number of buffers without falling below suggested latency */
 
-        nextLatency = (baseBufferSize * sizeMultiplier) * (bufferCount-2);
+        nextLatency = baseBufferSize * (bufferCount-2);
         while( bufferCount > minimumBufferCount && nextLatency >= requestedLatency )
         {
             --bufferCount;
-            nextLatency = (baseBufferSize * sizeMultiplier) * (bufferCount-2);
+            nextLatency = baseBufferSize * (bufferCount-2);
         }
 
     }else if( latency < requestedLatency ){
 
-        baseBufferSizeIsPowerOfTwo = (! (baseBufferSize & (baseBufferSize - 1)));
-        if( baseBufferSizeIsPowerOfTwo ){
-
-            /* double size of buffers without exceeding requestedLatency */
-
-            nextBufferSize = (baseBufferSize * (sizeMultiplier*2));
-            nextLatency = nextBufferSize * (bufferCount-1);
-            while( nextBufferSize <= maximumBufferSize
-                    && nextLatency < requestedLatency )
-            {
-                sizeMultiplier *= 2;
-                nextBufferSize = (baseBufferSize * (sizeMultiplier*2));
-                nextLatency = nextBufferSize * (bufferCount-1);
-            }   
-
-        }else{
-
-            /* increase size of buffers upto first excess of requestedLatency */
-
-            nextBufferSize = (baseBufferSize * (sizeMultiplier+1));
-            nextLatency = nextBufferSize * (bufferCount-1);
-            while( nextBufferSize <= maximumBufferSize
-                    && nextLatency < requestedLatency )
-            {
-                ++sizeMultiplier;
-                nextBufferSize = (baseBufferSize * (sizeMultiplier+1));
-                nextLatency = nextBufferSize * (bufferCount-1);
-            }
-
-            if( nextLatency < requestedLatency )
-                ++sizeMultiplier;            
-        }
-
         /* increase number of buffers until requestedLatency is reached */
-
-        latency = (baseBufferSize * sizeMultiplier) * (bufferCount-1);
+        latency = baseBufferSize * (bufferCount-1);
         while( latency < requestedLatency )
         {
             ++bufferCount;
-            latency = (baseBufferSize * sizeMultiplier) * (bufferCount-1);
+            latency = baseBufferSize * (bufferCount-1);
         }
     }
 
-    *hostBufferSize = baseBufferSize * sizeMultiplier;
+	/* don't let it go below minimum */
+	if (bufferCount < minimumBufferCount)
+	{
+		bufferCount = minimumBufferCount;
+	}
+
+    *hostBufferSize = baseBufferSize;
     *hostBufferCount = bufferCount;
 }
 
@@ -1390,6 +1380,12 @@ static void ReselectBufferCount( unsigned long bufferSize,
         }                                                         
     }
 
+	/* don't let it go below minimum */
+	if (bufferCount < minimumBufferCount)
+	{
+		bufferCount = minimumBufferCount;
+	}
+
     *hostBufferCount = bufferCount;
 }
 
@@ -1412,7 +1408,8 @@ static PaError CalculateBufferSettings(
     int effectiveInputChannelCount, effectiveOutputChannelCount;
     int hostInputFrameSize = 0;
     unsigned int i;
-    
+	unsigned int minSystemBufferCount = PaWinMe_GetMinSystemBufferCount();
+	
     if( inputChannelCount > 0 )
     {
         int hostInputSampleSize = Pa_GetSampleSize( hostInputSampleFormat );
@@ -1461,8 +1458,14 @@ static PaError CalculateBufferSettings(
             unsigned long minimumBufferCount = (outputChannelCount > 0)
                     ? PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_
                     : PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_HALF_DUPLEX_;
-
             unsigned long maximumBufferSize = (long) ((PA_MME_MAX_HOST_BUFFER_SECS_ * sampleRate) * hostInputFrameSize);
+
+			/* OS can have higher requirement */
+			if (minimumBufferCount < minSystemBufferCount)
+			{
+				minimumBufferCount = minSystemBufferCount;
+			}
+
             if( maximumBufferSize > PA_MME_MAX_HOST_BUFFER_BYTES_ )
                 maximumBufferSize = PA_MME_MAX_HOST_BUFFER_BYTES_;
 
@@ -1585,6 +1588,11 @@ static PaError CalculateBufferSettings(
             if( maximumBufferSize > PA_MME_MAX_HOST_BUFFER_BYTES_ )
                 maximumBufferSize = PA_MME_MAX_HOST_BUFFER_BYTES_;
 
+			/* OS can have higher requirement */
+			if (minimumBufferCount < minSystemBufferCount)
+			{
+				minimumBufferCount = minSystemBufferCount;
+			}
 
             /* compute the following in bytes, then convert back to frames */
 
@@ -1616,6 +1624,12 @@ static PaError CalculateBufferSettings(
                         unsigned long framesPerHostBuffer = *framesPerHostInputBuffer;
                         
                         minimumBufferCount = PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_;
+						/* OS can have higher requirement */
+						if (minimumBufferCount < minSystemBufferCount)
+						{
+							minimumBufferCount = minSystemBufferCount;
+						}
+
                         ReselectBufferCount(
                             framesPerHostBuffer * hostOutputFrameSize, /* bufferSize */
                             ((unsigned long)(suggestedOutputLatency * sampleRate)) * hostOutputFrameSize, /* suggestedLatency */
@@ -1631,6 +1645,12 @@ static PaError CalculateBufferSettings(
                         unsigned long framesPerHostBuffer = *framesPerHostOutputBuffer;
                         
                         minimumBufferCount = PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_;
+						/* OS can have higher requirement */
+						if (minimumBufferCount < minSystemBufferCount)
+						{
+							minimumBufferCount = minSystemBufferCount;
+						}
+
                         ReselectBufferCount(
                             framesPerHostBuffer * hostInputFrameSize, /* bufferSize */
                             ((unsigned long)(suggestedInputLatency * sampleRate)) * hostInputFrameSize, /* suggestedLatency */
