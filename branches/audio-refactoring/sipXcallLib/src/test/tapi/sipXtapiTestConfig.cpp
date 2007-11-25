@@ -52,11 +52,10 @@ void sipXtapiTestSuite::testGetVersion()
         CPPUNIT_ASSERT_EQUAL(sipxConfigGetVersion(szBuffer, 64), SIPX_RESULT_SUCCESS);
         CPPUNIT_ASSERT(strstr(szBuffer, "sipXtapi")!=NULL);
         memset(szBuffer, 0, sizeof(szBuffer));
-        CPPUNIT_ASSERT_EQUAL(sipxConfigGetVersion(szBuffer, 2), SIPX_RESULT_INSUFFICIENT_BUFFER);
+        // this will produce truncated string
+        CPPUNIT_ASSERT_EQUAL(sipxConfigGetVersion(szBuffer, 2), SIPX_RESULT_SUCCESS);
     }
 
-    // Does not create a call -- no need to pause
-    // OsTask::delay(TEST_DELAY) ;    
     checkForLeaks() ;
 }
 
