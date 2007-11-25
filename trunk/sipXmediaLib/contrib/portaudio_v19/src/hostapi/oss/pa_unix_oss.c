@@ -1,5 +1,5 @@
 /*
- * $Id: pa_unix_oss.c 1278 2007-09-12 17:39:48Z aknudsen $
+ * $Id: pa_unix_oss.c 1296 2007-10-28 22:43:50Z aknudsen $
  * PortAudio Portable Real-Time Audio Library
  * Latest Version at: http://www.portaudio.com
  * OSS implementation by:
@@ -1227,9 +1227,12 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
     }
 
     /* Round framesPerBuffer to the next power-of-two to make OSS happy. */
-    framesPerBuffer &= INT_MAX;
-    for (i = 1; framesPerBuffer > i; i <<= 1) ;
-    framesPerBuffer = i;
+    if( framesPerBuffer != paFramesPerBufferUnspecified )
+    {
+        framesPerBuffer &= INT_MAX;
+        for (i = 1; framesPerBuffer > i; i <<= 1) ;
+        framesPerBuffer = i;
+    }
 
     /* allocate and do basic initialization of the stream structure */
     PA_UNLESS( stream = (PaOssStream*)PaUtil_AllocateMemory( sizeof(PaOssStream) ), paInsufficientMemory );
@@ -1950,3 +1953,26 @@ static signed long GetStreamWriteAvailable( PaStream* s )
     return (PaOssStreamComponent_BufferSize( stream->playback ) - delay) / PaOssStreamComponent_FrameSize( stream->playback );
 }
 
+const char *PaOSS_GetStreamInputDevice( PaStream* s )
+{
+    PaOssStream *stream = (PaOssStream*)s;
+
+    if( stream->capture )
+    {
+      return stream->capture->devName;
+    }
+
+   return NULL;
+}
+
+const char *PaOSS_GetStreamOutputDevice( PaStream* s )
+{
+    PaOssStream *stream = (PaOssStream*)s;
+
+    if( stream->playback )
+    {
+      return stream->playback->devName;
+    }
+
+   return NULL;
+}

@@ -51,6 +51,22 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+/** Retrieve the GUID of the input device.
+
+ @param stream The stream to query.
+
+ @return A pointer to the GUID, or NULL if none.
+*/
+LPGUID PaWinDS_GetStreamInputGUID( PaStream* s );
+
+
+/** Retrieve the GUID of the output device.
+
+ @param stream The stream to query.
+
+ @return A pointer to the GUID, or NULL if none.
+*/
+LPGUID PaWinDS_GetStreamOutputGUID( PaStream* s );
 
 #define paWinDirectSoundUseLowLevelLatencyParameters            (0x01)
 #define paWinDirectSoundUseChannelMask                          (0x04)
