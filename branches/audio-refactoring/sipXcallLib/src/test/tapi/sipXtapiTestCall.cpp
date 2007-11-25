@@ -1090,6 +1090,8 @@ void sipXtapiTestSuite::testCallPlaybackFastPauseResume()
          cookie = 600;
          CPPUNIT_ASSERT_EQUAL(sipxCallAudioPlayFileStart(hCall, "crash.wav", true, true, false, false, 1.0f, (void*)cookie), SIPX_RESULT_SUCCESS);
          sipxCallAudioPlayFileStop(hCall);
+         bRC = validatorCalling.waitForMediaEvent(MEDIA_PLAYFILE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+         bRC = validatorCalling.waitForMediaEvent(MEDIA_PLAYFILE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
          CPPUNIT_ASSERT_EQUAL(sipxCallAudioPlayFileStart(g_hAutoAnswerCallbackCall, "crash.wav", true, true, false, false, 1.0f, (void*)cookie), SIPX_RESULT_SUCCESS);
          bRC = validatorCalled.waitForMediaEvent(MEDIA_PLAYFILE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
          sipxCallAudioPlaybackPause(g_hAutoAnswerCallbackCall);
