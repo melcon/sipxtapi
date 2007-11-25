@@ -177,7 +177,7 @@ UtlBoolean MprBufferRecorder::doProcessFrame(MpBufPtr inBufs[],
       if (!inBuf.isValid())
       {
          // Replace the invalid in with the silence frame.
-         inBuf = MpMisc.mpFgSilence;
+         inBuf = MpMisc.m_fgSilence;
       }
 
       // Our destination to copy samples is after the samples we've

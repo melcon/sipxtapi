@@ -12,32 +12,35 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#ifdef WIN32
-#define INSERT_SAWTOOTH
-#undef INSERT_SAWTOOTH
-#endif
-
 // SYSTEM INCLUDES
 #include <assert.h>
 
 // APPLICATION INCLUDES
 #include "mp/MpBuf.h"
 #include "mp/MprFromMic.h"
-#include "mp/MpBufferMsg.h"
-#include "mp/dmaTask.h"
+#include "mp/MpAudioDriverManager.h"
+#include "mp/MpAudioDriverBase.h"
+#include "mp/MpAudioDriverDefs.h"
+#include "mp/MpMisc.h"
 
-#ifdef RTL_ENABLED
-#   include <rtl_macro.h>
-#endif
-
-// function prototype
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
-
 // CONSTANTS
-
 // STATIC VARIABLE INITIALIZATIONS
-MICDATAHOOK MprFromMic::s_fnMicDataHook = 0 ;
+static const int HP800_N = 10;
+static const int HP800_N_HALF = HP800_N/2 + 1;
+
+static const int16_t shpB800[] = {15, 0, -123, -446, -844, 1542};
+/*
+* shpB800[0] =   15;   // 0.0036158;     in Q12
+* shpB800[1] =    0;   // 0.0;           in Q12
+* shpB800[2] = -123;   //-0.0299701;     in Q12
+* shpB800[3] = -446;   //-0.1090062;     in Q12
+* shpB800[4] = -844;   //-0.2061356;     in Q12
+* shpB800[5] = 1542;   // 0.3765164;     in Q12, original value 0.7530327. Here we
+*                      // divide it by 2 to make the following arithmetic process simpler.
+*/
+
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -46,14 +49,10 @@ MICDATAHOOK MprFromMic::s_fnMicDataHook = 0 ;
 // Constructor
 MprFromMic::MprFromMic(const UtlString& rName,
                        int samplesPerFrame,
-                       int samplesPerSec,
-                       OsMsgQ *pMicQ)
+                       int samplesPerSec)
 : MpAudioResource(rName, 0, 1, 1, 1, samplesPerFrame, samplesPerSec)
-, mpMicQ(pMicQ)
-, mNumFrames(0)
-#ifndef REAL_SILENCE_DETECTION
-, MinVoiceEnergy(0)
-#endif
+, m_framesProcessed(0)
+, m_minVoiceEnergy(0)
 {
    Init_highpass_filter800();
 }
@@ -82,8 +81,7 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
                                       int samplesPerFrame,
                                       int samplesPerSecond)
 {
-   MpAudioBufPtr   out;
-   MpBufferMsg*    pMsg;
+   MpAudioBufPtr out;
 
    // We need one output buffer
    if (outBufsSize != 1) 
@@ -91,123 +89,77 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
 
    // Don't waste the time if output is not connected
    if (!isOutputConnected(0))
-       return TRUE;
+      return TRUE;
 
    // One more frame processed
-   mNumFrames++;
-
-#ifdef RTL_ENABLED
-   RTL_EVENT("FromMic queue", mpMicQ->numMsgs());
-#endif
+   m_framesProcessed++;
 
    if (isEnabled) 
    {
-      // If the microphone queue (holds unprocessed mic data) has more then
-      // the max_mic_buffers threshold, drain the queue until in range)
-      while (mpMicQ && mpMicQ->numMsgs() > MpMisc.max_mic_buffers) 
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+      if (pAudioManager)
       {
-         if (mpMicQ->receive((OsMsg*&)pMsg, OsTime::NO_WAIT_TIME) == OS_SUCCESS) 
+         MpAudioStreamId streamId = pAudioManager->getInputAudioStream();
+         MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
+         if (streamId && pAudioDriver)
          {
-            pMsg->releaseMsg();
-                osPrintf( "mpMicQ drained. %d msgs in queue now\n"
-                        , mpMicQ->numMsgs());
+            MpAudioBufPtr micFrame = MpMisc.m_pRawAudioPool->getBuffer();
+            if (micFrame.isValid())
+            {
+               micFrame->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
+
+               pAudioDriver->readStreamAsync(streamId,
+                  micFrame->getSamplesWritePtr(),
+                  MpMisc.m_audioSamplesPerFrame);
+
+               out.swap(micFrame);
+            }
          }
       }
 
-      if (mpMicQ && mpMicQ->numMsgs() > 0)
-      {
-         if (mpMicQ->receive((OsMsg*&)pMsg, OsTime::NO_WAIT_TIME) == OS_SUCCESS) 
-         {
-//                osPrintf( "mpMicQ->receive() succeed, %d msgs in queue\n"
-//                        , mpMicQ->numMsgs());
-            out = pMsg->getBuffer();
-            pMsg->releaseMsg();
-         }
-      }
-      else
-      {
-//         osPrintf("MprFromMic: No data available (total frames=%d)\n", 
-//               mNumFrames);
-      }
-
-#ifdef INSERT_SAWTOOTH /* [ */
       if (!out.isValid())
       {
-         out = MpMisc.RawAudioPool->getBuffer();
-            if (!out.isValid())
-               return FALSE;
-         out->setSamplesNumber(MpMisc.frameSamples);
-      }
-      MpBuf_insertSawTooth(out);
-      out->setSpeechType(MpAudioBuf::MP_SPEECH_ACTIVE);
-#endif /* INSERT_SAWTOOTH ] */
-
-      if (s_fnMicDataHook)
-      {
-         // 
-         // Allow an external identity to source microphone data.  Ideally,
-         // this should probably become a different resource, but abstracting
-         // a new CallFlowGraph is a lot of work.
-         //
-
-         if (!out.isValid())
-         {
-            out = MpMisc.RawAudioPool->getBuffer();
-            if (!out.isValid())
-               return FALSE;
-            out->setSamplesNumber(MpMisc.frameSamples);
-         }
-         
-         if (out.isValid()) 
-         {
-            int n = 0;
-            MpAudioSample* s = NULL;
-
-            s = out->getSamplesWritePtr();
-            n = out->getSamplesNumber();
-            
-            s_fnMicDataHook(n, (short*)s) ;
-
-            out->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
-         }
+         // if buffer is not valid, use comfort noise
+         out = MpMisc.m_comfortNoise;
       }
 
       if (out.isValid())
       {
          switch(out->getSpeechType()) 
          {
-            case MpAudioBuf::MP_SPEECH_TONE:
-               break;
-            case MpAudioBuf::MP_SPEECH_MUTED:
-               out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
-               break;
-            default:
-               {
-                  MpAudioSample* shpTmpFrame;
-                  MpAudioBufPtr tpBuf;
+         case MpAudioBuf::MP_SPEECH_TONE:
+            break;
+         case MpAudioBuf::MP_SPEECH_MUTED:
+            out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
+            break;
+         default:
+            {
+               // detect speech
+               MpAudioBufPtr tpBuf;
+               MpAudioSample *shpSamples = out->getSamplesWritePtr();
+               int n = out->getSamplesNumber();
 
-                  MpAudioSample *shpSamples;
-                  int n = out->getSamplesNumber();
-                  shpSamples = out->getSamplesWritePtr();
+               // get new buffer for output of filter
+               tpBuf = MpMisc.m_pRawAudioPool->getBuffer();
+               if (!tpBuf.isValid())
+                  return FALSE;
+               tpBuf->setSamplesNumber(n);
 
-                  tpBuf = MpMisc.RawAudioPool->getBuffer();
-                  if (!out.isValid())
-                     return FALSE;
-                  tpBuf->setSamplesNumber(n);
-                  assert(tpBuf.isValid());
-                  shpTmpFrame = tpBuf->getSamplesWritePtr();
-                  highpass_filter800(shpSamples, shpTmpFrame, n);
+               MpAudioSample* shpTmpFrame = tpBuf->getSamplesWritePtr();
 
-                  out->setSpeechType(speech_detected(shpTmpFrame,n));
-               }
-               break;
+               // run filter and detect speech
+               highpass_filter800(shpSamples, shpTmpFrame, n);
+               out->setSpeechType(speech_detected(shpTmpFrame,n));
+            }
+            break;
          }
       }
-    }
-    else
-    {
-        out = inBufs[0];
-    }
+   }
+   else
+   {
+      // if disabled just pass input further
+      out = inBufs[0];
+   }
 
    outBufs[0] = out;
 
@@ -231,7 +183,8 @@ static const short         shLambdaSf = 32702;      // 0.998 in Q15
 static const short         shLambdaCSf =   67;      // 0.002 in Q15
 
 int FromMicThresh = 3;
-MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample, int iLength)
+MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample,
+                                                   int iLength)
 {
    int i;
    static int64_t  llLTPower = 8000L;
@@ -280,7 +233,6 @@ MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample, int iLeng
          llLTPower += (((int64_t) tmp32) << 8);
          llLTPower >>= 15;
       }
-
    }
    if(  (llSTPower>>4) > llLTPower )
       llLTPower = llSTPower >> 4;
@@ -299,8 +251,8 @@ MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample, int iLeng
 
 #else /* REAL_SILENCE_DETECTION ] [ */
 
-MpAudioBuf::SpeechType MprFromMic::speech_detected( int16_t* shpSample
-                                                  , int iLength)
+MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample,
+                                                   int iLength)
 {
    int i;
    int16_t prev;
@@ -308,13 +260,14 @@ MpAudioBuf::SpeechType MprFromMic::speech_detected( int16_t* shpSample
    unsigned long t;
 
    i = 0;
-   while (i < iLength) {
+   while (i < iLength)
+   {
       i++;
       prev = *shpSample++;
       t = (prev - *shpSample) >> 1;
       energy += t * t;
-      if (energy >= MinVoiceEnergy)
-          return MpAudioBuf::MP_SPEECH_ACTIVE;
+      if (energy >= m_minVoiceEnergy)
+         return MpAudioBuf::MP_SPEECH_ACTIVE;
    }
 
    return MpAudioBuf::MP_SPEECH_SILENT;
@@ -322,31 +275,18 @@ MpAudioBuf::SpeechType MprFromMic::speech_detected( int16_t* shpSample
 
 #endif /* REAL_SILENCE_DETECTION ] */
 
-static const int             HP800_N = 10;
-static const int             HP800_N_HALF = HP800_N/2 + 1;
-
-static const int16_t           shpB800[] = {15, 0, -123, -446, -844, 1542};
-/*
- * shpB800[0] =   15;   // 0.0036158;     in Q12
- * shpB800[1] =    0;   // 0.0;           in Q12
- * shpB800[2] = -123;   //-0.0299701;     in Q12
- * shpB800[3] = -446;   //-0.1090062;     in Q12
- * shpB800[4] = -844;   //-0.2061356;     in Q12
- * shpB800[5] = 1542;   // 0.3765164;     in Q12, original value 0.7530327. Here we
- *                      // divide it by 2 to make the following arthmetic process simpler.
- */
 void MprFromMic::Init_highpass_filter800(void)
 {
-  int i;
-  for(i = 0; i < 80+HP800_N; i++) {
+   int i;
+   for(i = 0; i < 80+HP800_N; i++)
+   {
       shpFilterBuf[i] = 0;
-  }
+   }
 }
 
-void MprFromMic::highpass_filter800(
-                int16_t *signal,    /* input signal */
-                int16_t *pOutput,   /* output signal */
-                short lg)         /* length of signal    */
+void MprFromMic::highpass_filter800(int16_t *signal,    /* input signal */
+                                    int16_t *pOutput,   /* output signal */
+                                    short lg)         /* length of signal    */
 {
    short   i, j;
    int32_t lS;           //32bit temp storage
@@ -356,11 +296,13 @@ void MprFromMic::highpass_filter800(
 
    shp1 = shpFilterBuf;
    shp2 = shpFilterBuf + lg;
-   for (i = 0; i < HP800_N; i++) {
+   for (i = 0; i < HP800_N; i++)
+   {
       *shp1++ = *shp2++;
    }
    shp2 = signal;
-   for (i = 0; i < lg; i++) {
+   for (i = 0; i < lg; i++)
+   {
       *shp1++ = *shp2++;
    }
 
@@ -370,7 +312,8 @@ void MprFromMic::highpass_filter800(
       lS = 0L;
       shp1 = shp0++;
       shp2 = shp1 + HP800_N;
-      for(j = 0; j < HP800_N_HALF; j++) {
+      for(j = 0; j < HP800_N_HALF; j++)
+      {
          lS += (int32_t) (*shp1++ + *shp2--) * (int32_t) shpB800[j];
       }
       pOutput[i] = (lS>>12);

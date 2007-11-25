@@ -13,6 +13,8 @@
 
 // DEFINES
 #define MIN_SAMPLE_RATE 200
+#define INPUT_PREFETCH_BUFFERS_COUNT 2
+#define OUTPUT_PREFETCH_BUFFERS_COUNT 2
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -55,10 +57,14 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_outputBufferUnderflow(0)
 , m_inputBufferOverflow(0)
 , m_inputBufferUnderflow(0)
+, m_inputBufferPrefetchMode(true)
+, m_outputBufferPrefetchMode(true)
+, m_inputPrefetchCount(0)
+, m_outputPrefetchCount(0)
 , m_bFrameRecorded(false)
 , m_bFramePushed(false)
 {   
-   switch(m_inputSampleFormat & 32)
+   switch(m_inputSampleFormat & 0x3f)
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_inputSampleSize = sizeof(float);
@@ -84,7 +90,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
       break;
    }
 
-   switch(m_outputSampleSize & 32)
+   switch(m_outputSampleFormat & 0x3f)
    {
    case MP_AUDIO_FORMAT_FLOAT32:
       m_outputSampleSize = sizeof(float);
@@ -121,14 +127,17 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    if (m_virtualFramesPerBuffer == 0)
    {
       // callback will accept frames of any size anyway...
-      // use 80 for now, we need to create buffers of certain size, but will accept any number of frames
-      m_virtualFramesPerBuffer = 80;
+      // use 160 for now, we need to create buffers of certain size, but will accept any number of frames
+      m_virtualFramesPerBuffer = 160;
    }
    
    // allocate input buffer
    if (m_inputSampleFormat > 0 && m_inputChannelCount > 0)
    {
-      m_inputBufferSize = (m_inputSampleSize * m_virtualFramesPerBuffer * m_inputChannelCount) * ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 1);
+      unsigned int inputFrameSize = m_inputSampleSize * m_inputChannelCount;
+      unsigned int inputBufferReserve = ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 5);
+      m_inputBufferSize = inputFrameSize * m_virtualFramesPerBuffer * inputBufferReserve;
+      m_inputPrefetchCount = min(INPUT_PREFETCH_BUFFERS_COUNT, inputBufferReserve) * m_virtualFramesPerBuffer;
       m_pInputBuffer = malloc(m_inputBufferSize);
 
       if (!m_pInputBuffer)
@@ -141,14 +150,17 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
          // zero buffer
          memset(m_pInputBuffer, 0, m_inputBufferSize);
          // start writing at the next sample position
-         m_inputWritePos = m_inputSampleSize * m_virtualFramesPerBuffer * m_inputChannelCount;
-      }      
+         m_inputWritePos = inputFrameSize;
+      }
    }
    
    // allocate output buffer
    if (m_outputSampleSize > 0 && m_outputChannelCount > 0)
    {
-      m_outputBufferSize = (m_outputSampleSize * m_virtualFramesPerBuffer * m_outputChannelCount) * ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 1);
+      unsigned int outputFrameSize = m_outputSampleSize * m_outputChannelCount;
+      unsigned int outputBufferReserve = ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 5);
+      m_outputBufferSize = outputFrameSize * m_virtualFramesPerBuffer * outputBufferReserve;
+      m_outputPrefetchCount = min(OUTPUT_PREFETCH_BUFFERS_COUNT, outputBufferReserve) * m_virtualFramesPerBuffer;
       m_pOutputBuffer = malloc(m_outputBufferSize);
 
       if (!m_pOutputBuffer)
@@ -161,7 +173,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
          // zero buffer
          memset(m_pOutputBuffer, 0, m_outputBufferSize);
          // start writing at the next sample position
-         m_outputWritePos = m_outputSampleSize * m_virtualFramesPerBuffer * m_outputChannelCount;
+         m_outputWritePos = outputFrameSize;
       }
    }
 }
@@ -190,10 +202,14 @@ int MpPortAudioStream::streamCallback(const void *input,
                                       PaStreamCallbackFlags statusFlags,
                                       void *userData)
 {
-   assert(userData);
-   MpPortAudioStream* instance = (MpPortAudioStream*)userData;
+   if (userData)
+   {
+      MpPortAudioStream* instance = (MpPortAudioStream*)userData;
 
-   return instance->instanceStreamCallback(input, output, frameCount, timeInfo, statusFlags);
+      return instance->instanceStreamCallback(input, output, frameCount, timeInfo, statusFlags);
+   }
+
+   return paContinue;
 }
 
 OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
@@ -201,12 +217,20 @@ OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
 {
    OsStatus status = OS_FAILED;
 
-   if (frames > 0)
+   if (frames > 0 && m_inputSampleSize > 0)
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
       {
          // count number of required bytes in buffer
          unsigned int bytesRequired = m_inputSampleSize * m_inputChannelCount * frames;
+
+         if (m_inputBufferPrefetchMode)
+         {
+            // input is in prefetch mode, send zeroes only
+            memset(buffer, 0, bytesRequired);
+            status = OS_PREFETCH;
+            return status;
+         }         
 
          unsigned int copyable = getCopyableBytes(m_inputReadPos, m_inputWritePos, m_inputBufferSize);
          unsigned int bytesToCopy = min(bytesRequired, copyable);
@@ -255,7 +279,7 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
 {
    OsStatus status = OS_FAILED;
 
-   if (frames > 0)
+   if (frames > 0 && m_outputSampleSize > 0)
    {
       if ((m_framesPerBuffer == 0) || (m_framesPerBuffer == frames))
       {
@@ -323,13 +347,13 @@ void MpPortAudioStream::resetStream()
    if (m_pInputBuffer)
    {
       memset(m_pInputBuffer, 0, m_inputBufferSize);
-      m_inputWritePos = m_inputSampleSize * m_virtualFramesPerBuffer * m_inputChannelCount;
+      m_inputWritePos = m_inputSampleSize * m_inputChannelCount;
    }
 
    if (m_pOutputBuffer)
    {
       memset(m_pOutputBuffer, 0, m_outputBufferSize);
-      m_outputWritePos = m_outputSampleSize * m_virtualFramesPerBuffer * m_outputChannelCount;
+      m_outputWritePos = m_outputSampleSize * m_outputChannelCount;
    }
 
    // reset statistics
@@ -339,6 +363,8 @@ void MpPortAudioStream::resetStream()
    m_inputBufferUnderflow = 0;
    m_bFrameRecorded = false;
    m_bFramePushed = false;
+   m_inputBufferPrefetchMode = true;
+   m_outputBufferPrefetchMode = true;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -360,24 +386,49 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
    if (frameCount > 0)
    {
       // handle output frames
-      if (m_outputChannelCount > 0 && output)
+      if (m_outputChannelCount > 0 && output && m_outputSampleSize > 0)
       {
+         unsigned int outputFrameCount = getOutputBufferFrameCount();
+
+         if (m_outputBufferPrefetchMode)
+         {
+            // prefetch is on
+            if (outputFrameCount > m_outputPrefetchCount)
+            {
+               // we have enough frames, disable prefetch mode
+               m_outputBufferPrefetchMode = false;
+            }
+         }
+         else
+         {
+            // prefetch is off
+            if (outputFrameCount <= 0)
+            {
+               // we are out of buffer
+               if (m_bFramePushed)
+               {
+                  // record only underflows since the first push
+                  m_outputBufferUnderflow++;
+               }
+               // buffer is empty, enable prefetch
+               m_outputBufferPrefetchMode = true;
+            }
+         }
+
          // count number of required bytes in buffer
          unsigned int bytesRequired = m_outputSampleSize * m_outputChannelCount * frameCount;
 
-         unsigned int copyable = getCopyableBytes(m_outputReadPos, m_outputWritePos, m_outputBufferSize);
+         unsigned int copyable = 0;
+         if (!m_outputBufferPrefetchMode)
+         {
+            copyable = getCopyableBytes(m_outputReadPos, m_outputWritePos, m_outputBufferSize);
+         }
          unsigned int bytesToCopy = min(bytesRequired, copyable);
          unsigned int framesToCopy = bytesToCopy / (m_outputSampleSize * m_outputChannelCount);
          unsigned int zeroFrames = 0;
 
-         if (framesToCopy < frameCount)
+         if (framesToCopy < frameCount && !m_outputBufferPrefetchMode)
          {
-            // we are out of buffer
-            if (m_bFramePushed)
-            {
-               // record only underflows since the first push
-               m_outputBufferUnderflow++;
-            }
             // we will have to copy zeroFrames filled with 0s, as we don't have enough data
             zeroFrames = frameCount - framesToCopy;
          }
@@ -409,14 +460,40 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
                }
             }
 
-            // we always increment by frameCount
-            m_outputReadPos = (m_outputReadPos + frameCount) % m_outputBufferSize;
+            m_outputReadPos = (m_outputReadPos + realBytesToCopy) % m_outputBufferSize;
+         }
+         else
+         {
+            // prefetch is on, or buffer is empty
+            // output zeros
+            memset(output, 0, bytesRequired);
          }
       }
 
       // handle input frames
-      if (m_inputChannelCount > 0 && input)
+      if (m_inputChannelCount > 0 && input && m_inputSampleSize > 0)
       {
+         unsigned int inputFrameCount = getInputBufferFrameCount();
+
+         if (m_inputBufferPrefetchMode)
+         {
+            // prefetch is on
+            if (inputFrameCount > m_inputPrefetchCount)
+            {
+               // we have enough frames, disable prefetch mode
+               m_inputBufferPrefetchMode = false;
+            }
+         }
+         else
+         {
+            // prefetch is off
+            if (inputFrameCount <= 0)
+            {
+               // buffer is empty, enable prefetch
+               m_inputBufferPrefetchMode = true;
+            }
+         }
+
          // count number of required bytes in buffer
          unsigned int bytesRequired = m_inputSampleSize * m_inputChannelCount * frameCount;
 
@@ -462,14 +539,30 @@ int MpPortAudioStream::getCopyableBytes(unsigned int inputPos,
 {
    if (inputPos < outputPos)
    {
-      return outputPos - inputPos - 1;
+      if (inputPos < maxPos && outputPos < maxPos)
+      {
+         return outputPos - inputPos - 1;
+      }      
    }
    else if (inputPos > outputPos)
    {
-      return maxPos - inputPos + outputPos - 1;
+      if (outputPos < maxPos)
+      {
+         return maxPos - inputPos + outputPos - 1;
+      }      
    }
    
    return 0;
+}
+
+int MpPortAudioStream::getInputBufferFrameCount()
+{
+   return getCopyableBytes(m_inputReadPos, m_inputWritePos, m_inputBufferSize) / (m_inputSampleSize * m_inputChannelCount);
+}
+
+int MpPortAudioStream::getOutputBufferFrameCount()
+{
+   return getCopyableBytes(m_outputReadPos, m_outputWritePos, m_outputBufferSize) / (m_outputSampleSize * m_outputChannelCount);
 }
 
 /* ============================ FUNCTIONS ================================= */

@@ -18,7 +18,6 @@
 #define REAL_SILENCE_DETECTION
 
 // SYSTEM INCLUDES
-
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
 #include "os/OsMsgQ.h"
@@ -32,8 +31,6 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-typedef void (*MICDATAHOOK)(const int nLength, short* samples) ;
-
 // FORWARD DECLARATIONS
 
 /**
@@ -41,56 +38,51 @@ typedef void (*MICDATAHOOK)(const int nLength, short* samples) ;
 */
 class MprFromMic : public MpAudioResource
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   enum { MAX_MIC_BUFFERS = 10 };
 
-/* ============================ CREATORS ================================== */
-///@name Creators
-//@{
+   /* ============================ CREATORS ================================== */
+   ///@name Creators
+   //@{
 
-     /// Constructor
-   MprFromMic(const UtlString& rName, int samplesPerFrame, int samplesPerSec,
-              OsMsgQ *pMicQ);
+   /// Constructor
+   MprFromMic(const UtlString& rName, int samplesPerFrame, int samplesPerSec);
 
-     /// Destructor
-   virtual
-   ~MprFromMic();
+   /// Destructor
+   virtual ~MprFromMic();
 
-//@}
+   //@}
 
-/* ============================ MANIPULATORS ============================== */
-///@name Manipulators
-//@{
+   /* ============================ MANIPULATORS ============================== */
+   ///@name Manipulators
+   //@{
 
-//@}
+   //@}
 
-/* ============================ ACCESSORS ================================= */
-///@name Accessors
-//@{
+   /* ============================ ACCESSORS ================================= */
+   ///@name Accessors
+   //@{
 
-//@}
+   //@}
 
-/* ============================ INQUIRY =================================== */
-///@name Inquiry
-//@{
+   /* ============================ INQUIRY =================================== */
+   ///@name Inquiry
+   //@{
 
-//@}
+   //@}
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
    enum{EqFilterLen = 24}; ///< Brant, 11 May 2001; was 13, allow for experiments.
 
    OsMsgQ *mpMicQ;                ///< We will read audio data from this queue.
    int16_t   shpFilterBuf[80 + 10];
-   int     mNumFrames;
-#ifndef REAL_SILENCE_DETECTION
-   unsigned long MinVoiceEnergy;  ///< trigger threshold for silence detection.
-#endif
+   int     m_framesProcessed;
+   unsigned long m_minVoiceEnergy;  ///< trigger threshold for silence detection.
 
    void  Init_highpass_filter800();
    void  highpass_filter800(int16_t *, int16_t *, short);
@@ -98,22 +90,18 @@ private:
 
 
    virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
-                                     MpBufPtr outBufs[],
-                                     int inBufsSize,
-                                     int outBufsSize,
-                                     UtlBoolean isEnabled,
-                                     int samplesPerFrame=80,
-                                     int samplesPerSecond=8000);
+      MpBufPtr outBufs[],
+      int inBufsSize,
+      int outBufsSize,
+      UtlBoolean isEnabled,
+      int samplesPerFrame=80,
+      int samplesPerSecond=8000);
 
-     /// Copy constructor (not implemented for this class)
+   /// Copy constructor (not implemented for this class)
    MprFromMic(const MprFromMic& rMprFromMic);
 
-     /// Assignment operator (not implemented for this class)
+   /// Assignment operator (not implemented for this class)
    MprFromMic& operator=(const MprFromMic& rhs);
-
-public:
-   static MICDATAHOOK s_fnMicDataHook ;
-
 };
 
 /* ============================ INLINE METHODS ============================ */

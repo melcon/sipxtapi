@@ -757,7 +757,7 @@ UtlBoolean MprBridge::doMix(MpBufPtr inBufs[], int inBufsSize,
                // This is mixed data. Convert it and copy to buffer.
 
                // Get buffer for output data.
-               MpAudioBufPtr pOutBuf = MpMisc.RawAudioPool->getBuffer();
+               MpAudioBufPtr pOutBuf = MpMisc.m_pRawAudioPool->getBuffer();
                assert(pOutBuf.isValid());
                pOutBuf->setSamplesNumber(samplesPerFrame);
                pOutBuf->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
@@ -834,7 +834,7 @@ UtlBoolean MprBridge::doMix(MpBufPtr inBufs[], int inBufsSize,
       }
 
       // Get buffer for output data.
-      MpAudioBufPtr pOutBuf = MpMisc.RawAudioPool->getBuffer();
+      MpAudioBufPtr pOutBuf = MpMisc.m_pRawAudioPool->getBuffer();
       assert(pOutBuf.isValid());
       pOutBuf->setSamplesNumber(samplesPerFrame);
       pOutBuf->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
