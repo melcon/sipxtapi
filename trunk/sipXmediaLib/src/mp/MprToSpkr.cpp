@@ -85,7 +85,7 @@ UtlBoolean MprToSpkr::doProcessFrame(MpBufPtr inBufs[],
       MpAudioSample* shpSamples = out->getSamplesWritePtr();
       int iLength = out->getSamplesNumber();
 
-      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance(FALSE);
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
       if (pAudioManager)
       {
          MpAudioStreamId streamId = pAudioManager->getOutputAudioStream();

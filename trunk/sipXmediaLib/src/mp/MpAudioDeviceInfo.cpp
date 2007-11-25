@@ -1,6 +1,6 @@
 //
 // Copyright (C) 2007 Jaroslav Libak
-//
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +23,7 @@
 
 MpAudioDeviceInfo::MpAudioDeviceInfo() : m_name(NULL)
 , m_hostApi(0)
+, m_hostApiName(0)
 , m_maxInputChannels(0)
 , m_maxOutputChannels(0)
 , m_defaultLowInputLatency(0.0)
@@ -53,6 +54,7 @@ MpAudioDeviceInfo& MpAudioDeviceInfo::operator=(const MpAudioDeviceInfo& rhs)
 
    m_name = rhs.getName();
    m_hostApi = rhs.getHostApi();
+   m_hostApiName = rhs.getHostApiName();
    m_maxInputChannels = rhs.getMaxInputChannels();
    m_maxOutputChannels = rhs.getMaxOutputChannels();
    m_defaultLowInputLatency = rhs.getDefaultLowInputLatency();

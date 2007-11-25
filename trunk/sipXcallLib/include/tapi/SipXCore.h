@@ -1,6 +1,6 @@
 //
 // Copyright (C) 2007 Jaroslav Libak
-// Licensed to SIPfoundry under a Contributor Agreement.
+// Licensed under the LGPL license.
 //
 // Copyright (C) 2005-2007 SIPez LLC.
 // Licensed to SIPfoundry under a Contributor Agreement.
@@ -67,34 +67,6 @@ class SipXMediaEventListener;
 
 // STRUCTS
 // TYPEDEFS
-
-class MIC_SETTING
-{
-public:
-   UtlBoolean bMuted;     /**< Muted state (regain gain) */
-   int  iGain;            /**< Gain setting (GAIN_MIN-GAIN_MAX) */
-   UtlString device;      /**< Desired auto device */
-
-   MIC_SETTING() : bMuted(FALSE),
-      iGain(0),
-      device(NULL)
-   {
-
-   }
-};
-
-class SPEAKER_SETTING
-{
-public:
-   int  iVol;              /**< Gain setting (VOLUME_MIN-VOLUME_MAX) */
-   UtlString device;       /**< Desired auto device */
-
-   SPEAKER_SETTING() : iVol(0),
-      device(NULL)
-   {
-
-   }
-};
 
 class AEC_SETTING
 {
@@ -195,12 +167,9 @@ public:
    SipXMediaEventListener* pMediaEventListener;
    SipDialogMgr* pDialogManager;
 
-   MIC_SETTING      micSetting;
-   SPEAKER_SETTING  speakerSettings[2];
    AEC_SETTING      aecSetting;
    AGC_SETTING      agcSetting;
    NOISE_REDUCTION_SETTING nrSetting;
-   SPEAKER_TYPE     enabledSpeaker;
    AUDIO_CODEC_PREFERENCES audioCodecSetting;
    VIDEO_CODEC_PREFERENCES videoCodecSetting;
 
@@ -244,7 +213,6 @@ public:
       pSecurityEventListener(NULL),
       pMediaEventListener(NULL),
       pDialogManager(NULL),
-      enabledSpeaker(SPEAKER),
       pMessageObserver(NULL),
       pStunNotification(NULL),
       nCalls(0),

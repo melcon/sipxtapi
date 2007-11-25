@@ -1,6 +1,6 @@
 //
 // Copyright (C) 2007 Jaroslav Libak
-//
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -193,7 +193,6 @@ OsStatus MpPortAudioDriver::getDeviceInfo(MpAudioDeviceIndex deviceIndex, MpAudi
 
    if (paDeviceInfo)
    {
-      status = OS_SUCCESS;
       deviceInfo.setName(paDeviceInfo->name);
       deviceInfo.setMaxOutputChannels(paDeviceInfo->maxOutputChannels);
       deviceInfo.setMaxInputChannels(paDeviceInfo->maxInputChannels);
@@ -203,6 +202,15 @@ OsStatus MpPortAudioDriver::getDeviceInfo(MpAudioDeviceIndex deviceIndex, MpAudi
       deviceInfo.setDefaultLowInputLatency(paDeviceInfo->defaultLowInputLatency);
       deviceInfo.setDefaultHighOutputLatency(paDeviceInfo->defaultHighOutputLatency);
       deviceInfo.setDefaultHighInputLatency(paDeviceInfo->defaultHighInputLatency);
+
+      const PaHostApiInfo* paApiInfo = Pa_GetHostApiInfo(paDeviceInfo->hostApi);
+
+      if (paApiInfo)
+      {
+         deviceInfo.setHostApiName(paApiInfo->name);
+         status = OS_SUCCESS;
+      }
+
    }
 
    return status;
