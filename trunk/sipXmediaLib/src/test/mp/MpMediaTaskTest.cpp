@@ -191,10 +191,6 @@ public:
         CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->numStartedFlowGraphs());
 
         delete pFlowGraph;
-
-        // Clear all Media Tasks data
-        res = mpShutdown();
-        CPPUNIT_ASSERT(res == OS_SUCCESS);
     }
 
     void testDebugMode()
@@ -227,10 +223,6 @@ public:
         waitTimeoutCnt = mpMediaTask->getWaitTimeoutCnt();
         OsTask::delay(1000);                     // wait 1 second
         CPPUNIT_ASSERT_EQUAL(waitTimeoutCnt, mpMediaTask->getWaitTimeoutCnt());
-
-        // Clear all Media Tasks data
-        res = mpShutdown();
-        CPPUNIT_ASSERT(res == OS_SUCCESS);
     }
 
 
@@ -279,10 +271,6 @@ public:
         CPPUNIT_ASSERT(mpMediaTask->getFocus() == NULL);
 
         delete pFlowGraph;
-
-        // Clear all Media Tasks data
-        res = mpShutdown();
-        CPPUNIT_ASSERT(res == OS_SUCCESS);
     }
 
     void testTimeLimitAndTimeout()

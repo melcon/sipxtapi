@@ -27,21 +27,21 @@
 
 /* ============================ MANIPULATORS ============================== */
 
-MpAudioDriverBase* MpAudioDriverFactory::createAudioDriver(enum AudioDriverImplementation implementation)
+MpAudioDriverBase* MpAudioDriverFactory::createAudioDriver(AudioDriverImplementation implementation)
 {
    OsSysLog::add(FAC_AUDIO, PRI_DEBUG, "createAudioDriver implementation=%d", (int)implementation);
 
    switch(implementation)
    {
    case AUDIO_DRIVER_PORTAUDIO:
-      return new MpPortAudioDriver();
+      return MpPortAudioDriver::createInstance();
    default:
       // illegal implementation type
       return NULL;
    }
 }
 
-UtlString MpAudioDriverFactory::getDriverNameVersion(enum AudioDriverImplementation implementation)
+UtlString MpAudioDriverFactory::getDriverNameVersion(AudioDriverImplementation implementation)
 {
    switch(implementation)
    {
