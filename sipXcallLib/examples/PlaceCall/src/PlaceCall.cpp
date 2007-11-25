@@ -723,29 +723,29 @@ bool playFileBuffer(char* szFile)
 // Display the list of input & output devices
 void dumpInputOutputDevices()
 {
-    size_t numDevices ;
+    int numDevices ;
 
-    if (sipxAudioGetNumInputDevices(&numDevices) == SIPX_RESULT_SUCCESS)
+    if (sipxAudioGetNumInputDevices(g_hInst1, &numDevices) == SIPX_RESULT_SUCCESS)
     {
         printf("Input Devices: %d\n", numDevices) ;
         for (size_t i=0; i<numDevices; i++)
         {
-            char szDevice[500];
-            memset(szDevice, 0, sizeof(szDevice));
-            sipxAudioGetInputDevice(i, szDevice, 499) ;
-            printf("\t#%d: %s\n", i, szDevice) ;
+           SIPX_AUDIO_DEVICE audioDevice;
+           memset(&audioDevice, 0, sizeof(audioDevice));
+           sipxAudioGetInputDeviceInfo(g_hInst1, i, &audioDevice);
+           printf("\t#%d: %s\n", i, audioDevice.deviceName) ;
         }
     }
 
-    if (sipxAudioGetNumOutputDevices(&numDevices) == SIPX_RESULT_SUCCESS)
+    if (sipxAudioGetNumOutputDevices(g_hInst1, &numDevices) == SIPX_RESULT_SUCCESS)
     {
         printf("Output Devices: %d\n", numDevices) ;
         for (size_t i=0; i<numDevices; i++)
         {
-            char szDevice[500];
-            memset(szDevice, 0, sizeof(szDevice));
-            sipxAudioGetOutputDevice(i, szDevice, 499) ;
-            printf("\t#%d: %s\n", i, szDevice) ;
+           SIPX_AUDIO_DEVICE audioDevice;
+           memset(&audioDevice, 0, sizeof(audioDevice));
+           sipxAudioGetOutputDeviceInfo(g_hInst1, i, &audioDevice);
+           printf("\t#%d: %s\n", i, audioDevice.deviceName) ;
         }
     }
 
@@ -871,14 +871,14 @@ int local_main(int argc, char* argv[])
         }
         if (szOutDevice)
         {
-            if (sipxAudioSetCallOutputDevice(g_hInst1, szOutDevice) != SIPX_RESULT_SUCCESS)
+            if (sipxAudioSetOutputDevice(g_hInst1, szOutDevice) != SIPX_RESULT_SUCCESS)
             {
                 printf("!! Setting output device %s failed !!\n", szOutDevice);
             }
         }
         if (szInDevice)
         {
-            if (sipxAudioSetCallInputDevice(g_hInst1, szInDevice) != SIPX_RESULT_SUCCESS)
+            if (sipxAudioSetInputDevice(g_hInst1, szInDevice) != SIPX_RESULT_SUCCESS)
             { 
                 printf("!! Setting input device %s failed !!\n", szOutDevice);
             }

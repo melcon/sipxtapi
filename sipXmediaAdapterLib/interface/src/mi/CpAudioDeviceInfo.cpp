@@ -6,7 +6,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "mp/MpAudioStreamInfo.h"
+#include "mi/CpAudioDeviceInfo.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -21,27 +21,40 @@
 
 /* ============================ CREATORS ================================== */
 
-MpAudioStreamInfo::MpAudioStreamInfo()
-: m_inputLatency(0.0)
-, m_outputLatency(0.0)
-, m_sampleRate(0.0)
+CpAudioDeviceInfo::CpAudioDeviceInfo()
+: m_deviceName(0)
+, m_driverName(0)
+, m_maxChannels(0)
+, m_defaultSampleRate(0.0)
+, m_bIsInput(FALSE)
 {
 
 }
 
-MpAudioStreamInfo::MpAudioStreamInfo(double inputLatency,
-                                     double outputLatency,
-                                     double sampleRate)
-: m_inputLatency(inputLatency)
-, m_outputLatency(outputLatency)
-, m_sampleRate(sampleRate)
+CpAudioDeviceInfo::~CpAudioDeviceInfo(void)
 {
 
 }
 
-MpAudioStreamInfo::~MpAudioStreamInfo(void)
+CpAudioDeviceInfo::CpAudioDeviceInfo(const CpAudioDeviceInfo& rCpAudioDeviceInfo)
 {
+   *this = rCpAudioDeviceInfo;
+}
 
+CpAudioDeviceInfo& CpAudioDeviceInfo::operator=(const CpAudioDeviceInfo& rhs)
+{
+   if (&rhs == this)
+   {
+      return *this;
+   }
+
+   m_deviceName = rhs.m_deviceName;
+   m_driverName = rhs.m_driverName;
+   m_maxChannels = rhs.m_maxChannels;
+   m_defaultSampleRate = rhs.m_defaultSampleRate;
+   m_bIsInput = rhs.m_bIsInput;
+
+   return *this;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -55,5 +68,4 @@ MpAudioStreamInfo::~MpAudioStreamInfo(void)
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
-
 

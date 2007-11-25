@@ -91,11 +91,16 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
                                                     int iTurnKeepAlivePeriodSecs,
                                                     UtlBoolean bEnableICE) ;
 
+    virtual OsStatus getAudioInputDeviceCount(int& count) const;
+    virtual OsStatus getAudioOutputDeviceCount(int& count) const;
+    virtual OsStatus getAudioInputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const;
+    virtual OsStatus getAudioOutputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const;
+
     virtual OsStatus setSpeakerVolume(int iVolume) ;
-    virtual OsStatus setSpeakerDevice(const UtlString& device) ;
+    virtual OsStatus setSpeakerDevice(const UtlString& device, const UtlString& driverName = "");
 
     virtual OsStatus setMicrophoneGain(int iGain) ;
-    virtual OsStatus setMicrophoneDevice(const UtlString& device) ;
+    virtual OsStatus setMicrophoneDevice(const UtlString& device, const UtlString& driverName = "");
     virtual OsStatus muteMicrophone(UtlBoolean bMute) ;
     virtual OsStatus setAudioAECMode(const MEDIA_AEC_MODE mode) ;
     virtual OsStatus enableAGC(UtlBoolean bEnable) ;
@@ -124,9 +129,9 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 /* ============================ ACCESSORS ================================= */
 
     virtual OsStatus getSpeakerVolume(int& iVolume) const  ;
-    virtual OsStatus getSpeakerDevice(UtlString& device) const ;
+    virtual OsStatus getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const;
     virtual OsStatus getMicrophoneGain(int& iVolume) const ;
-    virtual OsStatus getMicrophoneDevice(UtlString& device) const ;
+    virtual OsStatus getMicrophoneDevice(CpAudioDeviceInfo& deviceInfo) const;
 
     virtual OsStatus getNumOfCodecs(int& iCodecs) const;
     virtual OsStatus getCodec(int iCodec, UtlString& codec, int& bandWidth) const;

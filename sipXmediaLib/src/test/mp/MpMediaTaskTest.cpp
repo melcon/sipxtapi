@@ -49,6 +49,7 @@ public:
 
       // Setup media task
       res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME);
+      mpMediaTask = MpMediaTask::getMediaTask(FALSE);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
    }
 
@@ -59,6 +60,7 @@ public:
 
       // Clear all Media Tasks data
       res = mpShutdown();
+      mpMediaTask = NULL;
       CPPUNIT_ASSERT(res == OS_SUCCESS);
    }
 
@@ -74,7 +76,6 @@ public:
         CPPUNIT_ASSERT(mpMediaTask->getWaitTimeout() == MpMediaTask::DEF_SEM_WAIT_MSECS);
         CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->getWaitTimeoutCnt());
         CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->numManagedFlowGraphs());
-        CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->numProcessedFrames());
         CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->numStartedFlowGraphs());
 
         // Verify that the task is actually running by:

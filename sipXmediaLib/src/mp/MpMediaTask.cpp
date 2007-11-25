@@ -22,6 +22,8 @@
 // APPLICATION INCLUDES
 #include "os/OsLock.h"
 #include "os/OsMsgPool.h"
+#include "os/OsCallback.h"
+#include "os/OsTimer.h"
 #include "utl/UtlHashBagIterator.h"
 #include "utl/UtlPtr.h"
 #include "mp/MpFlowGraphBase.h"
@@ -31,6 +33,8 @@
 #include "mp/MpBufferMsg.h"
 #include "mp/MpCodecFactory.h"
 #include "mp/MpCodec.h"
+#include "mp/MpAudioDriverManager.h"
+#include "mp/MpAudioDriverBase.h"
 
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
@@ -88,6 +92,7 @@ MpMediaTask* MpMediaTask::getMediaTask(UtlBoolean bCreate)
    if (!isStarted)
    {
       isStarted = spInstance->start();
+      spInstance->startFrameStartTimer();
       assert(isStarted);
    }
 
@@ -109,6 +114,19 @@ MpMediaTask::~MpMediaTask()
       m_processingThreads[i] = NULL;
    }
 #endif
+
+   if (m_pFrameStartTimer)
+   {
+      m_pFrameStartTimer->stop(TRUE);
+      delete m_pFrameStartTimer;
+      m_pFrameStartTimer = NULL;
+   }
+   
+   if (m_pFrameStartCallback)
+   {
+      delete m_pFrameStartCallback;
+      m_pFrameStartCallback = NULL;
+   }
    
    // there shouldn't be any flowgraphs here at this point
    assert(mManagedFlowGraphs.entries() == 0);
@@ -283,6 +301,14 @@ OsStatus MpMediaTask::signalFrameStart(void)
    }
    return ret;
 }
+
+
+void MpMediaTask::signalFrameCallback(const intptr_t userData, const intptr_t eventData)
+{
+   // signal frame start
+   MpMediaTask::signalFrameStart();
+}
+
 
 // Directs the media processing task to start the specified flow 
 // graph.  A flow graph must be started in order for it to process 
@@ -518,7 +544,9 @@ MpMediaTask::MpMediaTask()
    mManagedFlowGraphs(),
    // numQueuedMsgs(0),
    mpSignalMsgPool(NULL),
-   nFrameStartMsgs(0)
+   nFrameStartMsgs(0),
+   m_pFrameStartCallback(NULL),
+   m_pFrameStartTimer(NULL)
 #ifdef _PROFILE /* [ */
    ,
    mStartToEndTime(20, 0, 1000, " %4d", 5),
@@ -562,6 +590,7 @@ MpMediaTask::MpMediaTask()
    }
 
    mpCodecFactory = MpCodecFactory::getMpCodecFactory();
+
 #ifdef _PROFILE /* [ */
    mStartTicks = 0;
    mStopTicks = 0;
@@ -675,6 +704,15 @@ UtlBoolean MpMediaTask::handleSetFocus(MpFlowGraphBase* pFlowGraph)
 
    if (mpFocus != NULL)
    {
+#ifndef DISABLE_LOCAL_AUDIO
+      // stop input stream
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+      if (pAudioManager)
+      {
+         pAudioManager->abortInputStream();
+      }
+#endif
+      
       // remove focus from the flow graph that currently has it
       Nprintf("MpMT::handleSetFocus(0x%X): removing old focus (0x%X)\n",
          (int) pFlowGraph, (int) mpFocus, 0,0,0,0);
@@ -692,6 +730,15 @@ UtlBoolean MpMediaTask::handleSetFocus(MpFlowGraphBase* pFlowGraph)
          mpFocus = NULL;
          return FALSE; // the flow graph did not accept focus.
       }
+
+#ifndef DISABLE_LOCAL_AUDIO
+      // start input stream
+      MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+      if (pAudioManager)
+      {
+         pAudioManager->startInputStream();
+      }
+#endif
       Nprintf("MpMT::handleSetFocus(0x%X): attempt to give focus SUCCEEDED\n",
          (int) pFlowGraph, 0,0,0,0,0);
    }
@@ -967,6 +1014,17 @@ UtlBoolean MpMediaTask::isManagedFlowGraph(MpFlowGraphBase* pFlowGraph)
    UtlPtr<MpFlowGraphBase> ptr(pFlowGraph);
    return mManagedFlowGraphs.contains(&ptr);
 }
+
+void MpMediaTask::startFrameStartTimer()
+{
+   m_pFrameStartCallback = new OsCallback(0, &signalFrameCallback);
+   m_pFrameStartTimer = new OsTimer(*m_pFrameStartCallback);
+   // calculate timer period is milliseconds
+   double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000;
+
+   m_pFrameStartTimer->periodicEvery(OsTime(0), OsTime((long)timerPeriod));
+}
+
 
 
 /* ============================ FUNCTIONS ================================= */

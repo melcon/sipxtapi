@@ -12,6 +12,9 @@
 #include <os/OsMutex.h>
 #include <utl/UtlBool.h>
 #include "mp/MpAudioDriverDefs.h"
+#include "mp/MpAudioDeviceInfo.h"
+// use STL vector
+#include <vector>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -19,6 +22,8 @@
 // CONSTANTS
 // FORWARD DECLARATIONS
 class MpAudioDriverBase;
+class UtlString;
+
 // STRUCTS
 // TYPEDEFS
 // MACROS
@@ -51,6 +56,78 @@ public:
    static MpAudioDriverManager* getInstance(UtlBoolean bCreate = TRUE);
 
    /**
+    * Returns name of current output device and driver name.
+    */
+   OsStatus getCurrentOutputDevice(MpAudioDeviceInfo& deviceInfo) const;
+
+   /**
+    * Returns name of current input device and driver name.
+    */
+   OsStatus getCurrentInputDevice(MpAudioDeviceInfo& deviceInfo) const;
+
+   /**
+   * Sets current output device. NONE disables it, "Default" will select
+   * default one. If it fails, it will try not to disable current stream.
+   */
+   OsStatus setCurrentOutputDevice(const UtlString& device, const UtlString& driverName);
+
+   /**
+   * Sets current input device. NONE disables it, "Default" will select
+   * default one. If it fails, it will try not to disable current stream.
+   */
+   OsStatus setCurrentInputDevice(const UtlString& device, const UtlString& driverName);
+
+   /**
+    * Returns number of input devices
+    */
+   int getInputDeviceCount() const;
+
+   /**
+    * Returns number of output devices
+    */
+   int getOutputDeviceCount() const;
+
+   /**
+    * Gets information about given input device
+    */
+   OsStatus getInputDeviceInfo(int deviceIndex, MpAudioDeviceInfo& deviceInfo);
+
+   /**
+    * Gets information about given output device
+    */
+   OsStatus getOutputDeviceInfo(int deviceIndex, MpAudioDeviceInfo& deviceInfo);
+
+   /**
+   * Starts input stream.
+   */
+   OsStatus startInputStream() const;
+
+   /**
+   * Starts output stream.
+   */
+   OsStatus startOutputStream() const;
+
+   /**
+    * Aborts input stream.
+    */
+   OsStatus abortInputStream() const;
+
+   /**
+    * Aborts output stream.
+    */
+   OsStatus abortOutputStream() const;
+
+   /**
+    * Closes input stream.
+    */
+   OsStatus closeInputStream();
+
+   /**
+    * Closes output stream.
+    */
+   OsStatus closeOutputStream();
+
+   /**
     * Deletes singleton manager. Not threadsafe.
     */
    void release();
@@ -62,10 +139,10 @@ public:
    //@{
 
    MpAudioStreamId getInputAudioStream() const { return m_inputAudioStream; }
-   void setInputAudioStream(MpAudioStreamId val) { m_inputAudioStream = val; }
-
    MpAudioStreamId getOutputAudioStream() const { return m_outputAudioStream; }
-   void setOutputAudioStream(MpAudioStreamId val) { m_outputAudioStream = val; }
+
+   MpAudioDeviceIndex getInputDeviceIndex() const { return m_inputDeviceIndex; }
+   MpAudioDeviceIndex getOutputDeviceIndex() const { return m_outputDeviceIndex; }
 
    MpAudioDriverBase* getAudioDriver() const { return m_pAudioDriver; }
 
@@ -98,7 +175,12 @@ private:
 
    MpAudioDriverBase* m_pAudioDriver; ///< pointer to audio driver
    MpAudioStreamId m_inputAudioStream; ///< ID if input audio stream
+   MpAudioDeviceIndex m_inputDeviceIndex; ///< index of current input device
    MpAudioStreamId m_outputAudioStream; ///< ID of output audio stream
+   MpAudioDeviceIndex m_outputDeviceIndex; ///< index of current output device
+   
+   std::vector<MpAudioDeviceInfo> m_outputAudioDevices;
+   std::vector<MpAudioDeviceInfo> m_inputAudioDevices;
 };
 
 #endif // MpAudioDriverManager_h__

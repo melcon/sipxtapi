@@ -35,8 +35,6 @@ DWORD WINAPI ConsoleStart(LPVOID lpParameter);
 #define portIsValid(p) ((p) >= 1 && (p) <= 65535)
 
 SIPX_INST g_hInst1 = NULL ;      // Handle to the sipXtapi instanance
-static short* g_loopback_samples[LOOPBACK_LENGTH] ; // loopback buffer
-static short g_loopback_head = 0 ;      // index into loopback
 static char* g_szPlayTones = NULL ;     // tones to play on answer
 static char* g_szFile = NULL ;          // file to play on answer
 #if defined(_WIN32) && defined(VIDEO)
@@ -91,7 +89,6 @@ void usage(const char* szExecutable)
     printf("   -f play file (default = none)\n") ;
     printf("   -p SIP port (default = 5060)\n") ;
     printf("   -r RTP port start (default = 9000)\n") ;
-    printf("   -l loopback audio (2 second delay)\n") ;
     printf("   -i line identity (e.g. sip:122@pingtel.com)\n") ;
     printf("   -u username (for authentication)\n") ;
     printf("   -a password  (for authentication)\n") ;
@@ -117,7 +114,6 @@ bool parseArgs(int argc,
                int* pRtpPort,
                char** pszPlayTones,
                char** pszFile,
-               bool* bLoopback,
                char** pszIdentity,
                char** pszUsername,
                char** pszPassword,
@@ -134,7 +130,6 @@ bool parseArgs(int argc,
     *pRtpPort = 9000 ;
     *pszPlayTones = NULL ;
     *pszFile = NULL ;
-    *bLoopback = false ;
     *pszIdentity = NULL ;
     *pszUsername = NULL ;
     *pszPassword = NULL ;
@@ -203,12 +198,6 @@ bool parseArgs(int argc,
                 break ; // Error
             }
         }
-        else if (strcmp(argv[i], "-l") == 0)
-        {
-            *bLoopback = true ;
-        }
-
-
         else if (strcmp(argv[i], "-i") == 0)
         {
             if ((i+1) < argc)
@@ -360,48 +349,6 @@ bool playTones(char* szPlayTones, SIPX_CALL hCall)
     return bRC ;
 }
 
-
-void SpkrAudioHook(const int nSamples, short* pSamples)
-{
-    memcpy(g_loopback_samples[g_loopback_head], pSamples, sizeof(short) * SAMPLES_PER_FRAME) ;
-    g_loopback_head = ((g_loopback_head + 1) % LOOPBACK_LENGTH) ;
-    memset(pSamples, 0, sizeof(short) * SAMPLES_PER_FRAME) ;
-}
-
-
-void MicAudioHook(const int nSamples, short* pSamples)
-{
-    short index = ((g_loopback_head + 1) % LOOPBACK_LENGTH) ;
-    memcpy(pSamples, g_loopback_samples[index], sizeof(short) * SAMPLES_PER_FRAME) ;
-}
-
-
-void clearLoopback()
-{
-    for (int i=0; i<LOOPBACK_LENGTH; i++)
-    {
-        if (g_loopback_samples[i])
-        {
-            memset(g_loopback_samples[i], 0, sizeof(short) * SAMPLES_PER_FRAME) ;
-        }
-    }
-    g_loopback_head = 0 ;
-}
-
-
-void initLoopback()
-{
-    for (int i=0; i<LOOPBACK_LENGTH; i++)
-    {
-        g_loopback_samples[i] = new short[SAMPLES_PER_FRAME] ;
-    }
-    clearLoopback() ;
-
-    sipxConfigSetSpkrAudioHook(SpkrAudioHook) ;
-    sipxConfigSetMicAudioHook(MicAudioHook) ;
-}
-
-
 bool EventCallBack(SIPX_EVENT_CATEGORY category, 
                    void* pInfo, 
                    void* pUserData)
@@ -436,7 +383,6 @@ bool EventCallBack(SIPX_EVENT_CATEGORY category,
             }
             break ;
         case CALLSTATE_ALERTING:
-            clearLoopback() ;
             sipxCallAnswer(pCallInfo->hCall) ;
             break ;
         case CALLSTATE_CONNECTED:
@@ -544,7 +490,6 @@ int local_main(int argc, char* argv[])
 {
     bool bError = true ;
     int iDuration, iSipPort, iRtpPort ;
-    bool bLoopback ;
     char* szIdentity ;
     char* szUsername ;
     char* szPassword ;
@@ -557,14 +502,9 @@ int local_main(int argc, char* argv[])
 
     // Parse Arguments
     if (parseArgs(argc, argv, &iDuration, &iSipPort, &iRtpPort, &g_szPlayTones,
-        &g_szFile, &bLoopback, &szIdentity, &szUsername, &szPassword, &szRealm, &szStunServer, &szProxy) &&
+        &g_szFile, &szIdentity, &szUsername, &szPassword, &szRealm, &szStunServer, &szProxy) &&
         (iDuration > 0) && (portIsValid(iSipPort)) && (portIsValid(iRtpPort)))
     {
-        if (bLoopback)
-        {
-            initLoopback() ;
-        }
-
         // Initialize sipX TAPI-like API
         sipxConfigSetLogLevel(LOG_LEVEL_DEBUG) ;
         sipxConfigSetLogFile("ReceiveCall.log");

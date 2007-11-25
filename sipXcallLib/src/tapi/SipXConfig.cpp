@@ -1,6 +1,6 @@
 //
 // Copyright (C) 2007 Jaroslav Libak
-// Licensed to SIPfoundry under a Contributor Agreement.
+// Licensed under the LGPL license.
 //
 // Copyright (C) 2005-2007 SIPez LLC.
 // Licensed to SIPfoundry under a Contributor Agreement.
@@ -180,34 +180,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogCallback(sipxLogCallback pCallback)
 #else
    return SIPX_RESULT_SUCCESS;
 #endif        
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigSetMicAudioHook(fnMicAudioHook hookProc) 
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetMicAudioHook");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetMicAudio hookProc=%p",
-      hookProc);
-
-   // TODO - call MediaInterface for hook data
-   //MprFromMic::s_fnMicDataHook = hookProc;
-
-   return SIPX_RESULT_FAILURE;
-}
-
-// CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSpkrAudioHook(fnSpkrAudioHook hookProc)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetSpkrAudioHook");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetSpkrAudioHook hookProc=%p",
-      hookProc);
-
-   // TODO - call MediaInterface for hook data
-   //MprToSpkr::s_fnToSpeakerHook = hookProc;
-
-   return SIPX_RESULT_FAILURE;
 }
 
 // CHECKED

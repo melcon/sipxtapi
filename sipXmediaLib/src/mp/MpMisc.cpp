@@ -22,7 +22,6 @@
 #include "os/OsMsgQ.h"
 #include "mp/MpTypes.h"
 #include "mp/MpCodec.h"
-#include "mp/dmaTask.h"
 #include "mp/MpBuf.h"
 #include "mp/MpAudioBuf.h"
 #include "mp/MpRtpBuf.h"
