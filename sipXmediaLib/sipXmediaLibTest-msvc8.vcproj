@@ -83,7 +83,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib"
+				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib ksuser.lib"
 				OutputFile=".\Debug/sipXmediaLibTest.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -611,6 +611,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\test\mp\MpAudioDriverFactoryTest.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\test\mp\MpBufTest.cpp"
 				>
 			</File>
@@ -650,14 +654,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\test\mp\MpInputDeviceDriverTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\test\mp\MpInputDeviceManagerTest.cpp"
-				>
-			</File>
-			<File
 				RelativePath="src\test\mp\MpMediaTaskTest.cpp"
 				>
 				<FileConfiguration
@@ -693,11 +689,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\test\mp\MpOutputDriverTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\test\mp\MpOutputManagerTest.cpp"
+				RelativePath=".\src\test\mp\MpPortAudioDriverTest.cpp"
 				>
 			</File>
 			<File
@@ -734,10 +726,6 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\src\test\mp\MpResourceTopologyTest.cpp"
-				>
 			</File>
 			<File
 				RelativePath=".\src\test\mp\MprFromMicTest.cpp"

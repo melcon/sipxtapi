@@ -291,7 +291,7 @@ public:
    */
    virtual OsStatus readStreamSync(MpAudioStreamId stream,
                                    void *buffer,
-                                   unsigned long frames);
+                                   unsigned long frames) = 0;
 
    /**
    * Write into a given synchronous stream given number of frames.
@@ -306,7 +306,7 @@ public:
    */
    virtual OsStatus writeStreamSync(MpAudioStreamId stream,
                                     const void *buffer,
-                                    unsigned long frames);
+                                    unsigned long frames) = 0;
 
    /**
    * Read from a given asynchronous stream given number of frames. Cannot be used
@@ -322,7 +322,7 @@ public:
    */
    virtual OsStatus readStreamAsync(MpAudioStreamId stream,
                                     void *buffer,
-                                    unsigned long frames);
+                                    unsigned long frames) = 0;
 
    /**
    * Write into a given asynchronous stream given number of frames. Cannot be used
@@ -337,7 +337,7 @@ public:
    */   
    virtual OsStatus writeStreamAsync(MpAudioStreamId stream,
                                      const void *buffer,
-                                     unsigned long frames);
+                                     unsigned long frames) = 0;
 
    /**
    * Gets number of frames that can be read from a synchronous audio stream without
@@ -347,7 +347,7 @@ public:
    * @param framesAvailable Number of frames that can be read without blocking
    * @returns OS_SUCCESS if successful
    */
-   virtual OsStatus getStreamReadAvailable(MpAudioStreamId stream, long& framesAvailable) const;
+   virtual OsStatus getStreamReadAvailable(MpAudioStreamId stream, long& framesAvailable) const = 0;
 
    /**
    * Gets number of frames that can be written to a synchronous audio stream without
@@ -357,7 +357,7 @@ public:
    * @param framesAvailable Number of frames that can be written without blocking
    * @returns OS_SUCCESS if successful
    */
-   virtual OsStatus getStreamWriteAvailable(MpAudioStreamId stream, long& framesAvailable) const;
+   virtual OsStatus getStreamWriteAvailable(MpAudioStreamId stream, long& framesAvailable) const = 0;
 
    /**
    * Gets size of sample in bytes for given sample format.

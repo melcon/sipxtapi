@@ -105,7 +105,7 @@ private:
    double m_defaultLowInputLatency; ///< latency for interactive performance
    double m_defaultLowOutputLatency;
 
-   double m_defaultHighInputLatency; ///< latency for non-intefactive applications
+   double m_defaultHighInputLatency; ///< latency for non-interactive applications
    double m_defaultHighOutputLatency;
 
    double m_defaultSampleRate;

@@ -124,6 +124,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         {
             CPPUNIT_FAIL("ERROR: Unknown type of media interface!");
         }
+        mediaInterface->release();
     }
 
     OsStatus waitForNotf(OsMsgDispatcher& notfDispatcher,

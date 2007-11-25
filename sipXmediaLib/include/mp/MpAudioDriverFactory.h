@@ -36,11 +36,11 @@ public:
     * Enumeration of all supported drivers. AUDIO_DRIVER_LAST is for iteration
     * of all available drivers in user code.
     */
-   enum 
+   enum AudioDriverImplementation
    {
       AUDIO_DRIVER_PORTAUDIO = 0,
       AUDIO_DRIVER_LAST
-   } AudioDriverImplementation;
+   };
 
    /* ============================ CREATORS ================================== */
    ///@name Creators
@@ -57,14 +57,14 @@ public:
     * @returns instance if it can be created or NULL if error occurred - i.e no
     *          more instances are allowed
     */
-   static MpAudioDriverBase* createAudioDriver(enum AudioDriverImplementation implementation);
+   static MpAudioDriverBase* createAudioDriver(AudioDriverImplementation implementation);
 
    /**
     * Used to get driver name and version in a string.
     *
     * @returns String containing name and version of given driver implementation.
     */
-   static UtlString getDriverNameVersion(enum AudioDriverImplementation implementation);
+   static UtlString getDriverNameVersion(AudioDriverImplementation implementation);
 
    //@}
 

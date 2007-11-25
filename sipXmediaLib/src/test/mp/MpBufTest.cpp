@@ -63,9 +63,6 @@ public:
 
    void testCreators()
    {
-      // Allocate (BUFFER_NUM+1) buffers. First BUFFER_NUM must be valid, other
-      // must not be valid.
-
       MpBufPtr p1 = mpPool->getBuffer();
       CPPUNIT_ASSERT(p1.isValid());
 
@@ -82,7 +79,7 @@ public:
       CPPUNIT_ASSERT(p5.isValid());
 
       MpBufPtr p6 = mpPool->getBuffer();
-      CPPUNIT_ASSERT(!p6.isValid());
+      CPPUNIT_ASSERT(p6.isValid());
    }
 
    void testAudioBuffersWriteData()

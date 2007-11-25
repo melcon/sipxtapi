@@ -282,10 +282,13 @@ UtlBoolean MprBufferRecorder::handleMessage(MpResourceMsg& rMsg)
 OsStatus MprBufferRecorder::sendNotification(MpResNotificationMsg::RNMsgType type)
 {
    MpFlowGraphBase* pFg = getFlowGraph();
-   assert(pFg != NULL);
-
-   MpResNotificationMsg msg(type, getName());
-   return pFg->postNotification(msg);
+   if (pFg)
+   {
+      MpResNotificationMsg msg(type, getName());
+      return pFg->postNotification(msg);
+   }
+   
+   return OS_FAILED;
 }
 
 /* ============================ FUNCTIONS ================================= */
