@@ -64,7 +64,6 @@ enum OsStatus
    // Task Management
    OS_TASK_NOT_STARTED,       // task has not yet been started (or has been
                               //  shut down)
-
    OS_PORT_IN_USE,            // task failed while trying to bind to port
 
    // Network status
@@ -134,7 +133,8 @@ enum OsStatus
    OS_UNSPECIFIED,            // unspecified error
    OS_UNAUTHORIZED,            // "unauthorized" error
    OS_OVERFLOW,
-   OS_UNDERFLOW
+   OS_UNDERFLOW,
+   OS_PREFETCH
 };
      //!enumcode: OS_INVALID=0 - invalid status (not yet set)
      //!enumcode: OS_SUCCESS - success

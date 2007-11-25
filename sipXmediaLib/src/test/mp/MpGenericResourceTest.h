@@ -43,16 +43,12 @@ public:
       OsStatus          res;
 
       // Setup media task
-      res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME, 6*10, 0);
+      res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
 
       mpFlowGraph = new MpFlowGraphBase( TEST_SAMPLES_PER_FRAME
                                        , TEST_SAMPLES_PER_SEC);
       CPPUNIT_ASSERT(mpFlowGraph != NULL);
-
-      // Call getMediaTask() which causes the task to get instantiated
-      pMediaTask = MpMediaTask::getMediaTask();
-      CPPUNIT_ASSERT(pMediaTask != NULL);
    }
 
    // Clean up after test is done.

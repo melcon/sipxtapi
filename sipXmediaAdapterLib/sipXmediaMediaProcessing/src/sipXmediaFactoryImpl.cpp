@@ -45,8 +45,6 @@
 #define CONFIG_PHONESET_SEND_INBAND_DTMF  "PHONESET_SEND_INBAND_DTMF"
 // initial pool size for audio buffers, if we run out of them,
 // we allocate a new pool. They are deleted only during shutdown.
-#define DEFAULT_INITIAL_AUDIO_BUFFERS 256
-
 // Audio codecs number calculation:
 
 #define GENERIC_AUDIO_CODECS_NUM 3
@@ -142,7 +140,7 @@ sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
     // Start audio subsystem if still not started.
     if (miInstanceCount == 0)
     {
-        mpStartUp(8000, 80, DEFAULT_INITIAL_AUDIO_BUFFERS, pConfigDb);
+        mpStartUp(8000, 80);
     }
 
     // Should we send inband DTMF by default?    
@@ -155,24 +153,9 @@ sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
         MpCallFlowGraph::setInbandDTMF(true) ;
     }
 
-    // init the media processing task
-    mpMediaTask = MpMediaTask::getMediaTask(); 
-
 #ifdef INCLUDE_RTCP /* [ */
     mpiRTCPControl = CRTCManager::getRTCPControl();
 #endif /* INCLUDE_RTCP ] */
-
-    if (miInstanceCount == 0)
-    {
-#ifndef ENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY
-        mpStartTasks();  
-#else
-        if (OS_SUCCESS != startNetInTask()) {
-           OsSysLog::add(FAC_MP, PRI_ERR,
-                         "Could not start NetInTask!!");
-        }
-#endif
-    }
 
     miGain = 7 ;
     ++miInstanceCount;
@@ -189,11 +172,6 @@ sipXmediaFactoryImpl::~sipXmediaFactoryImpl()
     --miInstanceCount;
     if (miInstanceCount == 0)
     {
-#ifndef ENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY
-        mpStopTasks();
-#else
-        shutdownNetInTask();
-#endif
         mpShutdown();
     }
 }
@@ -227,49 +205,27 @@ CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceN
 
 OsStatus sipXmediaFactoryImpl::setSpeakerVolume(int iVolume) 
 {
-    OsStatus rc = OS_SUCCESS ;
-    MpCodec_setVolume(iVolume) ;
-
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setSpeakerDevice(const UtlString& device) 
 {
-    OsStatus rc = OS_SUCCESS ;
-    DmaTask::setCallDevice(device.data()) ;
-    return rc ;    
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setMicrophoneGain(int iGain) 
 {
-    OsStatus rc ;
-
-    miGain = iGain ;
-    rc = MpCodec_setGain(miGain) ;
-    return rc ;
+    return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setMicrophoneDevice(const UtlString& device) 
 {
-    OsStatus rc = OS_SUCCESS ;
-    DmaTask::setInputDevice(device.data()) ;
-#ifdef WIN32
-    dmaSignalMicDeviceChange();
-#endif
-    return rc ;    
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::muteMicrophone(UtlBoolean bMute) 
 {
-    if (bMute)
-    {
-        MpCodec_setGain(0) ;
-    }
-    else
-    {
-        MpCodec_setGain(miGain) ;
-    }
-    return OS_SUCCESS ;
+    return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setAudioAECMode(const MEDIA_AEC_MODE mode)
@@ -478,40 +434,24 @@ OsStatus sipXmediaFactoryImpl::updateVideoPreviewWindow(void* displayContext)
 
 OsStatus sipXmediaFactoryImpl::getSpeakerVolume(int& iVolume) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    iVolume = MpCodec_getVolume() ;
-    if (iVolume==-1) {
-        rc = OS_FAILED;
-        iVolume = 0;
-    }
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::getSpeakerDevice(UtlString& device) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    device = DmaTask::getCallDevice() ;
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 
 OsStatus sipXmediaFactoryImpl::getMicrophoneGain(int& iGain) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    iGain = MpCodec_getGain() ;
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 
 OsStatus sipXmediaFactoryImpl::getMicrophoneDevice(UtlString& device) const
 {
-    OsStatus rc = OS_SUCCESS ;
-
-    device = DmaTask::getMicDevice() ;
-    return rc ;
+   return OS_NOT_SUPPORTED;
 }
 
 

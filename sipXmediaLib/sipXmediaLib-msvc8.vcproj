@@ -1390,14 +1390,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\dmaTaskPosix.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\dmaTaskWnt.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\DSPlib.cpp"
 					>
 				</File>
@@ -1415,10 +1407,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\HandsetFilterBank.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MicThreadWnt.cpp"
 					>
 				</File>
 				<File
@@ -1447,6 +1435,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpAudioDriverFactory.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpAudioDriverManager.cpp"
 					>
 				</File>
 				<File
@@ -1499,10 +1491,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpCallFlowGraph.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpCodec.cpp"
 					>
 				</File>
 				<File
@@ -1866,10 +1854,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\SpeakerThreadWnt.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\StreamBufferDataSource.cpp"
 					>
 				</File>
@@ -2048,6 +2032,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpAudioDriverFactory.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAudioDriverManager.h"
 					>
 				</File>
 				<File

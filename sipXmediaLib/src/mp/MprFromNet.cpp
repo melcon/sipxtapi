@@ -194,7 +194,7 @@ MpRtpBufPtr MprFromNet::parseRtpPacket(const MpUdpBufPtr &buf)
    int csrcSize;
 
    // Get new RTP buffer
-   rtpBuf = MpMisc.RtpPool->getBuffer();
+   rtpBuf = MpMisc.m_pRtpPool->getBuffer();
 
    // Copy RTP header data to RTP buffer.
    memcpy(&rtpBuf->getRtpHeader(), buf->getDataPtr(), sizeof(RtpHeader));

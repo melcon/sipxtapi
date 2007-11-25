@@ -43,8 +43,7 @@ public:
        // verify that destroying the flow graph also gets rid of the resources
        // and links.
        pToSpkr = new MprToSpkr("MprToSpkr",
-                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                               NULL, NULL);
+                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC, NULL);
 
        res = mpFlowGraph->addResource(*pToSpkr);
        CPPUNIT_ASSERT(res == OS_SUCCESS);
@@ -56,8 +55,7 @@ public:
        OsStatus          res;
 
        pToSpkr = new MprToSpkr("MprToSpkr",
-                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                               NULL, NULL);
+                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC, NULL);
        CPPUNIT_ASSERT(pToSpkr != NULL);
 
        setupFramework(pToSpkr);
@@ -98,8 +96,7 @@ public:
        OsStatus         res;
 
        pToSpkr = new MprToSpkr("MprToSpkr",
-                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                               NULL, NULL);
+                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC, NULL);
        CPPUNIT_ASSERT(pToSpkr != NULL);
 
        setupFramework(pToSpkr);
@@ -147,8 +144,7 @@ public:
        CPPUNIT_ASSERT(pEchoQ != NULL);
 
        pToSpkr = new MprToSpkr("MprToSpkr",
-                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                               pSpkQ, pEchoQ);
+                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC, pEchoQ);
        CPPUNIT_ASSERT(pToSpkr != NULL);
 
        setupFramework(pToSpkr);
@@ -193,8 +189,7 @@ public:
        CPPUNIT_ASSERT(pEchoQ != NULL);
 
        pToSpkr = new MprToSpkr("MprToSpkr",
-                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                               pSpkQ, pEchoQ);
+                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC, pEchoQ);
        CPPUNIT_ASSERT(pToSpkr != NULL);
 
        setupFramework(pToSpkr);
@@ -252,8 +247,7 @@ public:
        CPPUNIT_ASSERT(pEchoQ != NULL);
 
        pToSpkr = new MprToSpkr("MprToSpkr",
-                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                               pSpkQ, pEchoQ);
+                               TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC, pEchoQ);
        CPPUNIT_ASSERT(pToSpkr != NULL);
 
        setupFramework(pToSpkr);

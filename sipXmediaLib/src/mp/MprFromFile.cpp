@@ -483,7 +483,7 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
       if (mpFileBuffer)
       {
          // Get new buffer
-         out = MpMisc.RawAudioPool->getBuffer();
+         out = MpMisc.m_pRawAudioPool->getBuffer();
          if (!out.isValid())
          {
             return FALSE;

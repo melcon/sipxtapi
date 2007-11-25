@@ -42,8 +42,7 @@ public:
        // verify that destroying the flow graph also gets rid of the resources
        // and links.
        pFromMic = new MprFromMic("MprFromMic",
-                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                                 NULL);
+                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC);
 
        res = mpFlowGraph->addResource(*pFromMic);
        CPPUNIT_ASSERT(res == OS_SUCCESS);
@@ -55,8 +54,7 @@ public:
        OsStatus          res;
 
        pFromMic = new MprFromMic("MprFromMic",
-                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                                 NULL);
+                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC);
        CPPUNIT_ASSERT(pFromMic != NULL);
 
        setupFramework(pFromMic);
@@ -96,8 +94,7 @@ public:
        OsStatus          res;
 
        pFromMic = new MprFromMic("MprFromMic",
-                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                                 NULL);
+                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC);
        CPPUNIT_ASSERT(pFromMic != NULL);
 
        setupFramework(pFromMic);
@@ -140,8 +137,7 @@ public:
        CPPUNIT_ASSERT(pMsgQ != NULL);
 
        pFromMic = new MprFromMic("MprFromMic",
-                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                                 pMsgQ);
+                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC);
        CPPUNIT_ASSERT(pFromMic != NULL);
 
        setupFramework(pFromMic);
@@ -192,8 +188,7 @@ public:
        CPPUNIT_ASSERT(pMsgQ != NULL);
 
        pFromMic = new MprFromMic("MprFromMic",
-                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC,
-                                 pMsgQ);
+                                 TEST_SAMPLES_PER_FRAME, TEST_SAMPLES_PER_SEC);
        CPPUNIT_ASSERT(pFromMic != NULL);
 
        setupFramework(pFromMic);
@@ -210,7 +205,7 @@ public:
        pMsg->setMsgSubType(MpBufferMsg::AUD_RECORDED);
 
        // Fill message with buffer. Set audio type to muted.
-       pBuf = MpMisc.RawAudioPool->getBuffer();
+       pBuf = MpMisc.m_pRawAudioPool->getBuffer();
        CPPUNIT_ASSERT(pBuf.isValid());
        memset(pBuf->getSamplesWritePtr(), 0,
               pBuf->getSamplesNumber()*sizeof(MpAudioSample));
@@ -245,7 +240,7 @@ public:
        pMsg->setMsgSubType(MpBufferMsg::AUD_RECORDED);
 
        // Fill message with buffer. Set audio type to muted.
-       pBuf = MpMisc.RawAudioPool->getBuffer();
+       pBuf = MpMisc.m_pRawAudioPool->getBuffer();
        CPPUNIT_ASSERT(pBuf.isValid());
        memset(pBuf->getSamplesWritePtr(), 0,
               pBuf->getSamplesNumber()*sizeof(MpAudioSample));

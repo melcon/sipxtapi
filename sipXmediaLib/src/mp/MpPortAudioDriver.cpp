@@ -311,7 +311,7 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
             sampleRate,
             framesPerBuffer,
             streamFlags,
-            MpPortAudioStream::streamCallback,
+            synchronous ? NULL : MpPortAudioStream::streamCallback,
             strm);
 
       if (paError == paNoError)
@@ -369,7 +369,7 @@ OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
          sampleFormat,
          sampleRate,
          framesPerBuffer,
-         MpPortAudioStream::streamCallback,
+         synchronous ? NULL : MpPortAudioStream::streamCallback,
          strm);
 
       if (paError == paNoError)
@@ -403,7 +403,6 @@ OsStatus MpPortAudioDriver::closeStream(MpAudioStreamId stream)
    {
       UtlTypedValue<MpAudioStreamId> key(stream);
       UtlBoolean res = m_audioStreamMap.destroy(&key);
-      assert(res);
 
       status = OS_SUCCESS;
    }
@@ -671,12 +670,19 @@ OsStatus MpPortAudioDriver::getStreamReadAvailable(MpAudioStreamId stream,
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   signed long paFramesAvailable = Pa_GetStreamReadAvailable(stream);
+   // first verify that stream is synchronous
+   UtlTypedValue<MpAudioStreamId> strm(stream);
+   UtlContainable* res = m_audioStreamMap.find(&strm);
 
-   if (paFramesAvailable >= 0)
+   if (!res)
    {
-      framesAvailable = paFramesAvailable;
-      status = OS_SUCCESS;
+      signed long paFramesAvailable = Pa_GetStreamReadAvailable(stream);
+
+      if (paFramesAvailable >= 0)
+      {
+         framesAvailable = paFramesAvailable;
+         status = OS_SUCCESS;
+      }
    }
 
    return status;
@@ -688,12 +694,19 @@ OsStatus MpPortAudioDriver::getStreamWriteAvailable(MpAudioStreamId stream,
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   signed long paFramesAvailable = Pa_GetStreamWriteAvailable(stream);
+   // first verify that stream is synchronous
+   UtlTypedValue<MpAudioStreamId> strm(stream);
+   UtlContainable* res = m_audioStreamMap.find(&strm);
 
-   if (paFramesAvailable >= 0)
+   if (!res)
    {
-      framesAvailable = paFramesAvailable;
-      status = OS_SUCCESS;
+      signed long paFramesAvailable = Pa_GetStreamWriteAvailable(stream);
+
+      if (paFramesAvailable >= 0)
+      {
+         framesAvailable = paFramesAvailable;
+         status = OS_SUCCESS;
+      }
    }
 
    return status;

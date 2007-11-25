@@ -235,7 +235,7 @@ public:
         MpTestResource*  pResource3 = NULL;
         OsStatus         res;
 
-        mpStartUp(8000, 80, 6*10, 0);
+        mpStartUp(8000, 80);
 
         pFlowGraph = new MpFlowGraphBase(80, 8000);
         pResource1 = new MpTestResource("resource1", 4, 4, 4, 4);
@@ -460,7 +460,7 @@ public:
        MpTestResource*  pResource1 = NULL;
        OsStatus         res;
 
-       mpStartUp(8000, 80, 6*10, 0);
+       mpStartUp(8000, 80);
 
        pFlowGraph = new MpFlowGraphBase(80, 8000);
        pResource1 = new MpTestResource("resource1", 4, 4, 4, 4);
@@ -528,7 +528,7 @@ public:
        OsStatus         res;
 
        // Setup media task
-       res = mpStartUp(8000, 80, 6*10, 0);
+       res = mpStartUp(8000, 80);
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
        pFlowGraph = new MpFlowGraphBase(80, 8000);
@@ -545,9 +545,6 @@ public:
 
        // Call getMediaTask() which causes the task to get instantiated
        MpMediaTask* pMediaTask = MpMediaTask::getMediaTask();
-
-       res = mpStartTasks();
-       CPPUNIT_ASSERT(res == OS_SUCCESS);
 
        // Manage the flow graph so it flows...
        res = pMediaTask->manageFlowGraph(*pFlowGraph);

@@ -215,8 +215,8 @@ UtlBoolean MpTestResource::doProcessFrame(MpBufPtr inBufs[],
             // if the output buffer is presently NULL and the corresponding
             // bit in the mGenOutBufMask is set then allocate a new buffer
             // for the output port
-            assert(MpMisc.RawAudioPool != NULL);
-            MpAudioBufPtr pBuf = MpMisc.RawAudioPool->getBuffer();
+            assert(MpMisc.m_pRawAudioPool != NULL);
+            MpAudioBufPtr pBuf = MpMisc.m_pRawAudioPool->getBuffer();
             if(mSignalType == MP_TEST_SIGNAL_NULL)
             {
                memset(pBuf->getSamplesWritePtr(), 0,
