@@ -82,7 +82,7 @@
 #define DEFAULT_BIND_ADDRESS    "0.0.0.0" /**< Bind to the first physical interface discovered */
 
 #define INPUT_VOLUME_MIN                0       /**< Min acceptable gain value. This gain will mute mic. */
-#define OUTPUT_VOLUME_MAX                100     /**< Max acceptable gain value */
+#define INPUT_VOLUME_MAX                100     /**< Max acceptable gain value */
 
 #define BALANCE_MIN -100
 #define BALANCE_MAX 100

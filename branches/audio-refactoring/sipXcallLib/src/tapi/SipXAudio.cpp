@@ -280,7 +280,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
       if (pInterface)
       {
          // Validate gain is within range
-         if (iLevel >= INPUT_VOLUME_MIN && iLevel <= OUTPUT_VOLUME_MAX)
+         if (iLevel >= INPUT_VOLUME_MIN && iLevel <= INPUT_VOLUME_MAX)
          {
             OsStatus rc = OS_FAILED;
             rc = pInterface->setAudioInputVolume(iLevel);
