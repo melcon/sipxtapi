@@ -48,11 +48,11 @@ VolumeControlPanel::VolumeControlPanel(wxWindow* parent, const wxPoint& pos, con
         origin.y = 30;
         controlSize.SetHeight(size.GetHeight()-50);
         controlSize.SetWidth(16);
-        mpVolumeControl = new wxSlider(this, IDR_SPEAKER_SLIDER, VOLUME_MAX + 1 - volumeLevel, 0, VOLUME_MAX, origin, controlSize, wxSL_VERTICAL);
+        mpVolumeControl = new wxSlider(this, IDR_SPEAKER_SLIDER, OUTPUT_VOLUME_MAX + 1 - volumeLevel, 0, OUTPUT_VOLUME_MAX, origin, controlSize, wxSL_VERTICAL);
         mpVolumeControl->SetThumbLength(10);
 
         origin.x = 16;
-        mpMicGainControl = new wxSlider(this, IDR_MICROPHONE_SLIDER, GAIN_MAX + 1 - gainLevel, 0, GAIN_MAX, origin, controlSize, wxSL_VERTICAL);
+        mpMicGainControl = new wxSlider(this, IDR_MICROPHONE_SLIDER, OUTPUT_VOLUME_MAX + 1 - gainLevel, 0, OUTPUT_VOLUME_MAX, origin, controlSize, wxSL_VERTICAL);
         mpMicGainControl->SetThumbLength(10);
 
     origin.x = 16;
@@ -67,19 +67,19 @@ VolumeControlPanel::VolumeControlPanel(wxWindow* parent, const wxPoint& pos, con
 
 void VolumeControlPanel::OnSpeakerSlider(wxScrollEvent& event)
 {
-   if (VOLUME_MAX + 1 - mpVolumeControl->GetValue() != sipXmgr::getInstance().getSpeakerVolume())
+   if (OUTPUT_VOLUME_MAX + 1 - mpVolumeControl->GetValue() != sipXmgr::getInstance().getSpeakerVolume())
    {
-      sipXmgr::getInstance().setSpeakerVolume(VOLUME_MAX + 1 - mpVolumeControl->GetValue());
-      sipXezPhoneSettings::getInstance().setSpeakerVolume(VOLUME_MAX + 1 - mpVolumeControl->GetValue());
+      sipXmgr::getInstance().setSpeakerVolume(OUTPUT_VOLUME_MAX + 1 - mpVolumeControl->GetValue());
+      sipXezPhoneSettings::getInstance().setSpeakerVolume(OUTPUT_VOLUME_MAX + 1 - mpVolumeControl->GetValue());
    }
 }
 
 void VolumeControlPanel::OnMicrophoneSlider(wxScrollEvent& event)
 {
-   if (GAIN_MAX + 1 - mpMicGainControl->GetValue() != sipXmgr::getInstance().getMicGain())
+   if (OUTPUT_VOLUME_MAX + 1 - mpMicGainControl->GetValue() != sipXmgr::getInstance().getMicGain())
    {
-      sipXmgr::getInstance().setMicGain(GAIN_MAX + 1 - mpMicGainControl->GetValue());
-      sipXezPhoneSettings::getInstance().setMicGain(GAIN_MAX + 1 - mpMicGainControl->GetValue());
+      sipXmgr::getInstance().setMicGain(OUTPUT_VOLUME_MAX + 1 - mpMicGainControl->GetValue());
+      sipXezPhoneSettings::getInstance().setMicGain(OUTPUT_VOLUME_MAX + 1 - mpMicGainControl->GetValue());
    }
 }
 

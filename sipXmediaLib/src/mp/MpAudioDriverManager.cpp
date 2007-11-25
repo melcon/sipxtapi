@@ -12,9 +12,13 @@
 #include "mp/MpAudioDriverFactory.h"
 #include "mp/MpAudioDriverBase.h"
 #include "mp/MpAudioStreamParameters.h"
+#include "mp/MpAudioMixerBase.h"
 #include "mp/MpMisc.h"
 
 // DEFINES
+#define INPUT_MIXER_INDEX 0
+#define OUTPUT_MIXER_INDEX 0
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -169,6 +173,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                return OS_FAILED;
             }
             m_outputDeviceIndex = defaultOutputDeviceIndex;
+            m_outputAudioMixer = m_pAudioDriver->getMixerForStream(m_outputAudioStream, OUTPUT_MIXER_INDEX);
             return OS_SUCCESS;
          }
          else
@@ -250,6 +255,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             }
 
             m_outputDeviceIndex = i;
+            m_outputAudioMixer = m_pAudioDriver->getMixerForStream(m_outputAudioStream, OUTPUT_MIXER_INDEX);
             return OS_SUCCESS;
          }
       }
@@ -311,6 +317,8 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                return OS_FAILED;
             }
             m_inputDeviceIndex = defaultInputDeviceIndex;
+            m_inputAudioMixer = m_pAudioDriver->getMixerForStream(m_inputAudioStream, INPUT_MIXER_INDEX);
+
             return OS_SUCCESS;
          }
          else
@@ -392,6 +400,8 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             }
 
             m_inputDeviceIndex = i;
+            m_inputAudioMixer = m_pAudioDriver->getMixerForStream(m_inputAudioStream, INPUT_MIXER_INDEX);
+
             return OS_SUCCESS;
          }
       }
@@ -518,6 +528,9 @@ OsStatus MpAudioDriverManager::closeInputStream()
 
    if (m_inputAudioStream && m_pAudioDriver)
    {
+      delete m_inputAudioMixer;
+      m_inputAudioMixer = 0;
+
       UtlBoolean isActive = FALSE;
       m_pAudioDriver->isStreamActive(m_inputAudioStream, isActive);
       if (isActive)
@@ -544,6 +557,9 @@ OsStatus MpAudioDriverManager::closeOutputStream()
 
    if (m_outputAudioStream && m_pAudioDriver)
    {
+      delete m_outputAudioMixer;
+      m_outputAudioMixer = NULL;
+
       UtlBoolean isActive = FALSE;
       m_pAudioDriver->isStreamActive(m_outputAudioStream, isActive);
       if (isActive)
@@ -562,6 +578,122 @@ OsStatus MpAudioDriverManager::closeOutputStream()
    }
 
    return OS_FAILED;
+}
+
+void MpAudioDriverManager::getInputMixerName(UtlString& name) const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_inputAudioMixer)
+   {
+      m_inputAudioMixer->getMixerName(name, INPUT_MIXER_INDEX);
+   }
+   else
+   {
+      name = NULL;
+   }
+}
+
+void MpAudioDriverManager::getOutputMixerName(UtlString& name) const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioMixer)
+   {
+      m_outputAudioMixer->getMixerName(name, OUTPUT_MIXER_INDEX);
+   }
+   else
+   {
+      name = NULL;
+   }
+}
+
+MpAudioVolume MpAudioDriverManager::getMasterVolume() const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioMixer)
+   {
+      return m_outputAudioMixer->getMasterVolume();
+   }
+
+   return 0.0;
+}
+
+void MpAudioDriverManager::setMasterVolume(MpAudioVolume volume)
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioMixer)
+   {
+      m_outputAudioMixer->setMasterVolume(volume);
+   }
+}
+
+MpAudioVolume MpAudioDriverManager::getPCMOutputVolume() const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioMixer)
+   {
+      return m_outputAudioMixer->getPCMOutputVolume();
+   }
+
+   return 0.0;
+}
+
+void MpAudioDriverManager::setPCMOutputVolume(MpAudioVolume volume)
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioMixer)
+   {
+      m_outputAudioMixer->setPCMOutputVolume(volume);
+   }
+}
+
+MpAudioVolume MpAudioDriverManager::getInputVolume() const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_inputAudioMixer)
+   {
+      return m_inputAudioMixer->getInputVolume();
+   }
+
+   return 0.0;
+}
+
+void MpAudioDriverManager::setInputVolume(MpAudioVolume volume)
+{
+   OsLock lock(ms_mutex);
+
+   if (m_inputAudioMixer)
+   {
+      m_inputAudioMixer->setInputVolume(volume);
+   }
+}
+
+MpAudioBalance MpAudioDriverManager::getOutputBalance() const
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioMixer)
+   {
+      return m_outputAudioMixer->getOutputBalance();
+   }
+
+   return 0.0;
+}
+
+void MpAudioDriverManager::setOutputBalance(MpAudioBalance balance)
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioMixer)
+   {
+      m_outputAudioMixer->setOutputBalance(balance);
+   }
 }
 
 void MpAudioDriverManager::release()
@@ -585,6 +717,8 @@ MpAudioDriverManager::MpAudioDriverManager()
 , m_outputDeviceIndex(0)
 , m_outputAudioDevices()
 , m_inputAudioDevices()
+, m_inputAudioMixer(NULL)
+, m_outputAudioMixer(NULL)
 {
    m_pAudioDriver = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_PORTAUDIO);
 
@@ -654,9 +788,19 @@ MpAudioDriverManager::MpAudioDriverManager()
       MpMisc.m_audioSamplesPerFrame,
       MP_AUDIO_STREAM_CLIPOFF,
       FALSE);
-
+  
    m_pAudioDriver->startStream(m_inputAudioStream);
    m_pAudioDriver->startStream(m_outputAudioStream);
+
+   if (m_inputAudioStream)
+   {
+      m_inputAudioMixer = m_pAudioDriver->getMixerForStream(m_inputAudioStream, INPUT_MIXER_INDEX);
+   }
+
+   if (m_outputAudioStream)
+   {
+      m_outputAudioMixer = m_pAudioDriver->getMixerForStream(m_outputAudioStream, OUTPUT_MIXER_INDEX);
+   }
 }
 
 MpAudioDriverManager::~MpAudioDriverManager(void)
@@ -669,6 +813,9 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
    {
       if (m_inputAudioStream)
       {
+         delete m_inputAudioMixer;
+         m_inputAudioMixer = NULL;
+         
          UtlBoolean isActive = FALSE;
          m_pAudioDriver->isStreamActive(m_inputAudioStream, isActive);
          if (isActive)
@@ -681,6 +828,9 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
 
       if (m_outputAudioStream)
       {
+         delete m_outputAudioMixer;
+         m_outputAudioMixer = NULL;
+
          UtlBoolean isActive = FALSE;
          m_pAudioDriver->isStreamActive(m_inputAudioStream, isActive);
          if (isActive)
@@ -691,10 +841,14 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
          m_outputAudioStream = 0;
       }
 
+      m_outputAudioDevices.clear();
+      m_inputAudioDevices.clear();
+
       m_pAudioDriver->release();
       m_pAudioDriver = NULL;
    }
 }
+
 
 
 /* ============================ FUNCTIONS ================================= */

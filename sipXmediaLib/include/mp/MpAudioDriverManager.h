@@ -22,6 +22,7 @@
 // CONSTANTS
 // FORWARD DECLARATIONS
 class MpAudioDriverBase;
+class MpAudioMixerBase;
 class UtlString;
 
 // STRUCTS
@@ -128,6 +129,56 @@ public:
    OsStatus closeOutputStream();
 
    /**
+    * Gets name of input mixer
+    */
+   void getInputMixerName(UtlString& name) const;
+
+   /**
+   * Gets name of output mixer
+   */
+   void getOutputMixerName(UtlString& name) const;
+
+   /**
+    * Gets master output volume
+    */
+   virtual MpAudioVolume getMasterVolume() const;
+
+   /**
+    * Sets master output volume
+    */
+   virtual void setMasterVolume(MpAudioVolume volume);
+
+   /**
+    * Gets main output volume
+    */
+   virtual MpAudioVolume getPCMOutputVolume() const;
+
+   /**
+    * Sets main output volume
+    */
+   virtual void setPCMOutputVolume(MpAudioVolume volume);
+
+   /**
+    * Gets input volume
+    */
+   virtual MpAudioVolume getInputVolume() const;
+
+   /**
+    * Sets input volume
+    */
+   virtual void setInputVolume(MpAudioVolume volume);
+
+   /**
+    * Gets output balance (right, left)
+    */
+   virtual MpAudioBalance getOutputBalance() const;
+
+   /**
+    * Sets output balance
+    */
+   virtual void setOutputBalance(MpAudioBalance balance);
+
+   /**
     * Deletes singleton manager. Not threadsafe.
     */
    void release();
@@ -178,9 +229,12 @@ private:
    MpAudioDeviceIndex m_inputDeviceIndex; ///< index of current input device
    MpAudioStreamId m_outputAudioStream; ///< ID of output audio stream
    MpAudioDeviceIndex m_outputDeviceIndex; ///< index of current output device
+
+   MpAudioMixerBase* m_inputAudioMixer; ///< mixer for input stream
+   MpAudioMixerBase* m_outputAudioMixer; ///< mixer for output stream
    
-   std::vector<MpAudioDeviceInfo> m_outputAudioDevices;
-   std::vector<MpAudioDeviceInfo> m_inputAudioDevices;
+   std::vector<MpAudioDeviceInfo> m_outputAudioDevices; ///< array to store device info
+   std::vector<MpAudioDeviceInfo> m_inputAudioDevices; ///< array to store device info
 };
 
 #endif // MpAudioDriverManager_h__

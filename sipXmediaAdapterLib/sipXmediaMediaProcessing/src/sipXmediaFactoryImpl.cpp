@@ -129,6 +129,10 @@ extern "C" void sipxDestroyMediaFactoryFactory()
 
 // Constructor
 sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
+: m_bIsAudioOutputMuted(FALSE)
+, m_bIsAudioInputMuted(FALSE)
+, m_fMutedAudioOutputVolume(0.0)
+, m_fMutedAudioInputVolume(0.0)
 {    
     UtlString strInBandDTMF;
     
@@ -289,12 +293,7 @@ OsStatus sipXmediaFactoryImpl::getAudioOutputDeviceInfo(int deviceIndex, CpAudio
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setSpeakerVolume(int iVolume) 
-{
-   return OS_NOT_SUPPORTED;
-}
-
-OsStatus sipXmediaFactoryImpl::setSpeakerDevice(const UtlString& device, const UtlString& driverName) 
+OsStatus sipXmediaFactoryImpl::setAudioOutputDevice(const UtlString& device, const UtlString& driverName) 
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -309,12 +308,7 @@ OsStatus sipXmediaFactoryImpl::setSpeakerDevice(const UtlString& device, const U
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setMicrophoneGain(int iGain) 
-{
-    return OS_NOT_SUPPORTED;
-}
-
-OsStatus sipXmediaFactoryImpl::setMicrophoneDevice(const UtlString& device, const UtlString& driverName) 
+OsStatus sipXmediaFactoryImpl::setAudioInputDevice(const UtlString& device, const UtlString& driverName) 
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -329,9 +323,86 @@ OsStatus sipXmediaFactoryImpl::setMicrophoneDevice(const UtlString& device, cons
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::muteMicrophone(UtlBoolean bMute) 
+OsStatus sipXmediaFactoryImpl::muteAudioOutput(UtlBoolean bMute)
 {
-    return OS_NOT_SUPPORTED;
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      if (bMute)
+      {
+         // if we want to mute
+         if (!m_bIsAudioOutputMuted)
+         {
+            // if not muted, save volume
+            m_fMutedAudioOutputVolume = pAudioManager->getPCMOutputVolume();
+            m_bIsAudioOutputMuted = TRUE;
+         }
+
+         pAudioManager->setPCMOutputVolume(0.0);
+         // mute after mute will succeed
+         return OS_SUCCESS;
+      }
+      else
+      {
+         // if we want to unmute
+         if (m_bIsAudioOutputMuted)
+         {
+            // if muted, restore volume
+            pAudioManager->setPCMOutputVolume(m_fMutedAudioOutputVolume);
+            m_bIsAudioOutputMuted = FALSE;
+         }
+
+         // unmute after unmute will succeed
+         return OS_SUCCESS;
+      }
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::muteAudioInput(UtlBoolean bMute) 
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      if (bMute)
+      {
+         // if we want to mute
+         if (!m_bIsAudioInputMuted)
+         {
+            // if not muted, save volume
+            m_fMutedAudioInputVolume = pAudioManager->getInputVolume();
+            m_bIsAudioInputMuted = TRUE;
+         }
+
+         pAudioManager->setInputVolume(0.0);
+         // mute after mute will succeed
+         return OS_SUCCESS;
+      }
+      else
+      {
+         // if we want to unmute
+         if (m_bIsAudioInputMuted)
+         {
+            // if muted, restore volume
+            pAudioManager->setInputVolume(m_fMutedAudioInputVolume);
+            m_bIsAudioInputMuted = FALSE;
+         }
+
+         // unmute after unmute will succeed
+         return OS_SUCCESS;
+      }
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
 }
 
 OsStatus sipXmediaFactoryImpl::setAudioAECMode(const MEDIA_AEC_MODE mode)
@@ -538,12 +609,7 @@ OsStatus sipXmediaFactoryImpl::updateVideoPreviewWindow(void* displayContext)
 
 /* ============================ ACCESSORS ================================= */
 
-OsStatus sipXmediaFactoryImpl::getSpeakerVolume(int& iVolume) const
-{
-   return OS_NOT_SUPPORTED;
-}
-
-OsStatus sipXmediaFactoryImpl::getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const
+OsStatus sipXmediaFactoryImpl::getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -570,13 +636,7 @@ OsStatus sipXmediaFactoryImpl::getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) c
 }
 
 
-OsStatus sipXmediaFactoryImpl::getMicrophoneGain(int& iGain) const
-{
-   return OS_NOT_SUPPORTED;
-}
-
-
-OsStatus sipXmediaFactoryImpl::getMicrophoneDevice(CpAudioDeviceInfo& deviceInfo) const
+OsStatus sipXmediaFactoryImpl::getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -764,6 +824,189 @@ OsStatus sipXmediaFactoryImpl::getLocalAudioConnectionId(int& connectionId) cons
 
 }
 
+OsStatus sipXmediaFactoryImpl::getAudioInputMixerName(UtlString& name) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      pAudioManager->getInputMixerName(name);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioOutputMixerName(UtlString& name) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      pAudioManager->getOutputMixerName(name);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioMasterVolume(int& volume) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      float fVolume = pAudioManager->getMasterVolume();
+      volume = (int)(fVolume * 100);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::setAudioMasterVolume(int volume)
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      pAudioManager->setMasterVolume((float)volume / 100);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioPCMOutputVolume(int& volume) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      float fVolume = pAudioManager->getPCMOutputVolume();
+      volume = (int)(fVolume * 100);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::setAudioPCMOutputVolume(int volume)
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      if (!m_bIsAudioOutputMuted)
+      {
+         // output is not muted, set volume
+         pAudioManager->setPCMOutputVolume((float)volume / 100);
+      }
+      else
+      {
+         // output is muted, just update internal variable
+         m_fMutedAudioOutputVolume = (float)volume / 100;
+      }
+      
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioInputVolume(int& volume) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      float fVolume = pAudioManager->getInputVolume();
+      volume = (int)(fVolume * 100);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::setAudioInputVolume(int volume)
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      if (!m_bIsAudioInputMuted)
+      {
+         // input is not muted, set volume
+         pAudioManager->setInputVolume((float)volume / 100);
+      }
+      else
+      {
+         // input is muted, just update internal variable
+         m_fMutedAudioInputVolume = (float)volume / 100;
+      }
+      
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioOutputBalance(int& balance) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      float fBalance = pAudioManager->getOutputBalance();
+      balance = (int)(fBalance * 100);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::setAudioOutputBalance(int balance)
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      pAudioManager->setOutputBalance((float)balance / 100);
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
 
 /* ============================ INQUIRY =================================== */
 
@@ -783,6 +1026,19 @@ OsStatus sipXmediaFactoryImpl::isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode
 
    return OS_SUCCESS;  
 }
+
+OsStatus sipXmediaFactoryImpl::isAudioOutputMuted(UtlBoolean& bIsMuted) const
+{
+   bIsMuted = m_bIsAudioOutputMuted;
+   return OS_SUCCESS;
+}
+
+OsStatus sipXmediaFactoryImpl::isAudioInputMuted(UtlBoolean& bIsMuted) const
+{
+   bIsMuted = m_bIsAudioInputMuted;
+   return OS_SUCCESS;
+}
+
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 

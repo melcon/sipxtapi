@@ -52,6 +52,10 @@ class MpCodecFactory;
 class OsCallback;
 class OsTimer;
 
+#ifdef _WIN32
+class MpMMTimerWnt;
+#endif
+
 /**
 *  @brief Object responsible for coordinating the execution of media processing
 *  flow graphs.
@@ -352,7 +356,12 @@ private:
    UtlHashBag mManagedFlowGraphs;
 
    OsCallback* m_pFrameStartCallback; ///< callback for signal frame start timer
+
+#ifdef _WIN32
+   MpMMTimerWnt* m_pFrameStartTimer; ///< timer that will signal frame start
+#else
    OsTimer* m_pFrameStartTimer; ///< timer that will signal frame start
+#endif
 
    int       mLimitUsecs;    ///< Frame processing time limit (in usecs)
    int       mHandleMsgErrs; ///< @brief Number of message handling problems

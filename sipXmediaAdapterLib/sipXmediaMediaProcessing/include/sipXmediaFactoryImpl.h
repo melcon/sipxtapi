@@ -96,13 +96,13 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus getAudioInputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const;
     virtual OsStatus getAudioOutputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const;
 
-    virtual OsStatus setSpeakerVolume(int iVolume) ;
-    virtual OsStatus setSpeakerDevice(const UtlString& device, const UtlString& driverName = "");
+    virtual OsStatus setAudioOutputDevice(const UtlString& device, const UtlString& driverName = "");
+    virtual OsStatus setAudioInputDevice(const UtlString& device, const UtlString& driverName = "");
 
-    virtual OsStatus setMicrophoneGain(int iGain) ;
-    virtual OsStatus setMicrophoneDevice(const UtlString& device, const UtlString& driverName = "");
-    virtual OsStatus muteMicrophone(UtlBoolean bMute) ;
-    virtual OsStatus setAudioAECMode(const MEDIA_AEC_MODE mode) ;
+    virtual OsStatus muteAudioOutput(UtlBoolean bMute);
+    virtual OsStatus muteAudioInput(UtlBoolean bMute);
+
+    virtual OsStatus setAudioAECMode(const MEDIA_AEC_MODE mode);
     virtual OsStatus enableAGC(UtlBoolean bEnable) ;
     virtual OsStatus setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) ;
 
@@ -128,10 +128,8 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
 /* ============================ ACCESSORS ================================= */
 
-    virtual OsStatus getSpeakerVolume(int& iVolume) const  ;
-    virtual OsStatus getSpeakerDevice(CpAudioDeviceInfo& deviceInfo) const;
-    virtual OsStatus getMicrophoneGain(int& iVolume) const ;
-    virtual OsStatus getMicrophoneDevice(CpAudioDeviceInfo& deviceInfo) const;
+    virtual OsStatus getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const;
+    virtual OsStatus getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const;
 
     virtual OsStatus getNumOfCodecs(int& iCodecs) const;
     virtual OsStatus getCodec(int iCodec, UtlString& codec, int& bandWidth) const;
@@ -140,17 +138,30 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
     virtual OsStatus getLocalAudioConnectionId(int& connectionId) const ;
 
+    virtual OsStatus getAudioInputMixerName(UtlString& name) const;
+    virtual OsStatus getAudioOutputMixerName(UtlString& name) const;
+    virtual OsStatus getAudioMasterVolume(int& volume) const;
+    virtual OsStatus setAudioMasterVolume(int volume);
+    virtual OsStatus getAudioPCMOutputVolume(int& volume) const;
+    virtual OsStatus setAudioPCMOutputVolume(int volume);
+    virtual OsStatus getAudioInputVolume(int& volume) const;
+    virtual OsStatus setAudioInputVolume(int volume);
+    virtual OsStatus getAudioOutputBalance(int& balance) const;
+    virtual OsStatus setAudioOutputBalance(int balance);
+
     virtual OsStatus getVideoQuality(int& quality) const;
     virtual OsStatus getVideoBitRate(int& bitRate) const;
     virtual OsStatus getVideoFrameRate(int& frameRate) const;
 
 /* ============================ INQUIRY =================================== */
 
+    virtual OsStatus isAudioOutputMuted(UtlBoolean& bIsMuted) const;
+    virtual OsStatus isAudioInputMuted(UtlBoolean& bIsMuted) const;
+
     virtual OsStatus isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled);
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
   protected:
-    MpMediaTask*    mpMediaTask ;     /**< Media task instance */
 #ifdef INCLUDE_RTCP /* [ */
     IRTCPControl*   mpiRTCPControl;   /**< Realtime Control Interface */
 #endif /* INCLUDE_RTCP ] */
@@ -160,6 +171,10 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
   private:
     static int miInstanceCount;
 
+    UtlBoolean m_bIsAudioOutputMuted;
+    UtlBoolean m_bIsAudioInputMuted;
+    float m_fMutedAudioOutputVolume;
+    float m_fMutedAudioInputVolume;
 };
 
 /* ============================ INLINE METHODS ============================ */

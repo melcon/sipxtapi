@@ -728,11 +728,11 @@ void sipXtapiTestSuite::callMute(SIPX_CALL hCallingParty,
     // loop 50 times, muting and unmuting
     for (int i = 0; i < 50; i++)
     {
-        sipxAudioMuteMic(g_hInst1, true);
-        sipxAudioMuteMic(g_hInst1, false);
+        sipxAudioMuteInput(g_hInst1, true);
+        sipxAudioMuteInput(g_hInst1, false);
 
-        sipxAudioMuteMic(g_hInst2, true);
-        sipxAudioMuteMic(g_hInst2, false);
+        sipxAudioMuteInput(g_hInst2, true);
+        sipxAudioMuteInput(g_hInst2, false);
     }
 }
 

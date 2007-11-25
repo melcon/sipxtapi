@@ -898,7 +898,7 @@ const int sipXmgr::getSpeakerVolume() const
 {
    int volume;
    
-   sipxAudioGetVolume(m_hInst, &volume);
+   sipxAudioGetOutputVolume(m_hInst, &volume);
    
    return volume;
 }
@@ -908,7 +908,7 @@ const int sipXmgr::getRingerVolume() const
 {
    int volume;
    
-   sipxAudioGetVolume(m_hInst, &volume);
+   sipxAudioGetOutputVolume(m_hInst, &volume);
    
    return volume;
 }
@@ -918,7 +918,7 @@ const int sipXmgr::getMicGain() const
 {
    int gain;
    
-   sipxAudioGetGain(m_hInst, &gain);
+   sipxAudioGetInputVolume(m_hInst, &gain);
    
    return gain;
 }
@@ -928,13 +928,13 @@ void sipXmgr::setSpeakerVolume(const int volume)
 {
    int myVol = volume;
    
-   if (volume > VOLUME_MAX)
+   if (volume > OUTPUT_VOLUME_MAX)
    {
-      myVol = VOLUME_MAX;
+      myVol = OUTPUT_VOLUME_MAX;
    }
    // not yet implemented in the Linux
    #ifdef _WIN32
-       sipxAudioSetVolume(m_hInst, myVol);
+       sipxAudioSetOutputVolume(m_hInst, myVol);
    #endif
 }
 
@@ -943,9 +943,9 @@ void sipXmgr::setMicGain(const int gain)
 {
    int myGain = gain;
    
-   if (gain > GAIN_MAX)
+   if (gain > OUTPUT_VOLUME_MAX)
    {
-      myGain = GAIN_MAX;
+      myGain = OUTPUT_VOLUME_MAX;
    }
    
    // not yet implemented in the Linux
@@ -1455,8 +1455,8 @@ void sipXmgr::toggleMute()
 {
     int rc = 0;
 
-    sipxAudioIsMicMuted(m_hInst, &rc);
-    sipxAudioMuteMic(m_hInst, !rc);
+    sipxAudioIsInputMuted(m_hInst, &rc);
+    sipxAudioMuteInput(m_hInst, !rc);
     return;
 }
 
