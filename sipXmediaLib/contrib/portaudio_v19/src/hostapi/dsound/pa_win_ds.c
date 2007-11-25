@@ -1745,7 +1745,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         userLatencyFrames = (suggestedInputLatencyFrames > suggestedOutputLatencyFrames)
                     ? suggestedInputLatencyFrames
                     : suggestedOutputLatencyFrames;
-        if( userLatencyFrames > 0 ) minLatencyFrames = userLatencyFrames;
+        if( userLatencyFrames > minLatencyFrames ) minLatencyFrames = userLatencyFrames;
 
     /* Calculate stream->framesPerDSBuffer depending on framesPerBuffer */
         if( framesPerBuffer == paFramesPerBufferUnspecified )
