@@ -13,6 +13,9 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(sipXtapiTestAudio);
 
+#define GAIN_DEFAULT 70
+#define VOLUME_DEFAULT 70
+
 sipXtapiTestAudio::sipXtapiTestAudio() : m_hInst1(NULL)
 , m_hInst2(NULL)
 {
@@ -85,14 +88,14 @@ void sipXtapiTestAudio::testGainAPI()
          CPPUNIT_ASSERT_EQUAL(iGainLevel, GAIN_DEFAULT);
 
          // set to max
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, OUTPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, INPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iGainLevel, OUTPUT_VOLUME_MAX);
+         CPPUNIT_ASSERT_EQUAL(iGainLevel, INPUT_VOLUME_MAX);
 
          // set to max again
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, OUTPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetInputVolume(m_hInst1, INPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputVolume(m_hInst1, &iGainLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iGainLevel, OUTPUT_VOLUME_MAX);
+         CPPUNIT_ASSERT_EQUAL(iGainLevel, INPUT_VOLUME_MAX);
       }
    }
 }
@@ -147,63 +150,42 @@ void sipXtapiTestAudio::testVolumeAPI()
 {
    for (int iStressFactor = 0; iStressFactor < STRESS_FACTOR; iStressFactor++)
    {
-      SPEAKER_TYPE type;
       int iLevel;
 
       printf("\ntestVolumeAPI (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
 
       for (int i = 0; i < 5; i++)
       {
-         // Test Enable Speaker
-         CPPUNIT_ASSERT_EQUAL(sipxAudioEnableSpeaker(m_hInst1, SPEAKER), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetEnabledSpeaker(m_hInst1, &type), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(type, SPEAKER);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioEnableSpeaker(m_hInst1, RINGER), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetEnabledSpeaker(m_hInst1, &type), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(type, RINGER);
-
-         // Set both RINGER and SPEAKER to know states (cloned below)
-         /*CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, SPEAKER, VOLUME_DEFAULT), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, SPEAKER, &iLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetOutputVolume(m_hInst1, VOLUME_DEFAULT), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputVolume(m_hInst1, &iLevel), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_DEFAULT);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, RINGER, VOLUME_DEFAULT), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, RINGER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_DEFAULT);*/
 
-         // Test SPEAKER making sure RINGER doesn't change
-         /*CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, SPEAKER, VOLUME_MIN), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, SPEAKER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_MIN);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, RINGER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_DEFAULT);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, SPEAKER, VOLUME_MAX), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, SPEAKER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_MAX);*/
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetOutputVolume(m_hInst1, OUTPUT_VOLUME_MIN), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputVolume(m_hInst1, &iLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(iLevel, OUTPUT_VOLUME_MIN);
 
-         // Set both RINGER and SPEAKER to know states (clone of above)
-         /*CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, SPEAKER, VOLUME_DEFAULT), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, RINGER, VOLUME_DEFAULT), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, SPEAKER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_DEFAULT);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, RINGER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_DEFAULT);*/
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetOutputVolume(m_hInst1, OUTPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputVolume(m_hInst1, &iLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(iLevel, OUTPUT_VOLUME_MAX);
 
-         // Test RINGER making sure SPEAKER doesn't change
-         /*CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, RINGER, VOLUME_MIN), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, RINGER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_MIN);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, SPEAKER, &iLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetMasterVolume(m_hInst1, VOLUME_DEFAULT), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetMasterVolume(m_hInst1, &iLevel), SIPX_RESULT_SUCCESS);
          CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_DEFAULT);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioSetVolume(m_hInst1, RINGER, VOLUME_MAX), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetVolume(m_hInst1, RINGER, &iLevel), SIPX_RESULT_SUCCESS);
-         CPPUNIT_ASSERT_EQUAL(iLevel, VOLUME_MAX);*/
+
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetMasterVolume(m_hInst1, OUTPUT_VOLUME_MIN), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetMasterVolume(m_hInst1, &iLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(iLevel, OUTPUT_VOLUME_MIN);
+
+         CPPUNIT_ASSERT_EQUAL(sipxAudioSetMasterVolume(m_hInst1, OUTPUT_VOLUME_MAX), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetMasterVolume(m_hInst1, &iLevel), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(iLevel, OUTPUT_VOLUME_MAX);
       }
    }
 }
 
 void sipXtapiTestAudio::testAudioSettings()
 {
-   size_t  i;
+   int i;
 
    for (int iStressFactor = 0; iStressFactor < STRESS_FACTOR; iStressFactor++)
    {
@@ -247,40 +229,41 @@ void sipXtapiTestAudio::testAudioSettings()
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNoiseReductionMode(m_hInst1, &nrMode), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_HIGH);
 
-      size_t numOfDevices = 0;
+      int numOfDevices = 0;
       char* null = NULL;
 #define BUFFER_SIZE 200
-      char szDevice[BUFFER_SIZE];
       
       // Test sipxAudioGetNumInputDevices
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumInputDevices(NULL), SIPX_RESULT_INVALID_ARGS);
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumInputDevices(&numOfDevices), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumInputDevices(NULL, NULL), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumInputDevices(m_hInst1, &numOfDevices), SIPX_RESULT_SUCCESS);
+      SIPX_AUDIO_DEVICE audioDevice;
+
       for(i = 0; i < numOfDevices; i++) 
       {
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDevice(i, szDevice, BUFFER_SIZE - 1), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDeviceInfo(m_hInst1, i, &audioDevice), SIPX_RESULT_SUCCESS);
       }
 
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDevice(0, NULL, 0), SIPX_RESULT_INVALID_ARGS);
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDevice(0, szDevice, 0), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDeviceInfo(0, 0, 0), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDeviceInfo(0, 0, &audioDevice), SIPX_RESULT_INVALID_ARGS);
       // checks if there are no more devices
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDevice(numOfDevices, szDevice, BUFFER_SIZE - 1), SIPX_RESULT_INVALID_ARGS);
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDevice(-1, szDevice, BUFFER_SIZE - 1), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDeviceInfo(m_hInst1, numOfDevices, &audioDevice), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetInputDeviceInfo(m_hInst1, -1, &audioDevice), SIPX_RESULT_INVALID_ARGS);
 
       numOfDevices = 0;
 
       // Test sipxAudioGetNumOutputDevices
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumOutputDevices(NULL), SIPX_RESULT_INVALID_ARGS);
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumOutputDevices(&numOfDevices), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumOutputDevices(NULL, NULL), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumOutputDevices(m_hInst1, &numOfDevices), SIPX_RESULT_SUCCESS);
       for(i = 0; i < numOfDevices; i++) 
       {
-         CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDevice(i, szDevice, BUFFER_SIZE - 1), SIPX_RESULT_SUCCESS);
+         CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDeviceInfo(m_hInst1, i, &audioDevice), SIPX_RESULT_SUCCESS);
       }
 
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDevice(0, NULL, 0), SIPX_RESULT_INVALID_ARGS);
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDevice(0, szDevice, 0), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDeviceInfo(0, 0, 0), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDeviceInfo(0, 0, &audioDevice), SIPX_RESULT_INVALID_ARGS);
       // checks if there are no more devices
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDevice(numOfDevices, szDevice, BUFFER_SIZE - 1), SIPX_RESULT_INVALID_ARGS);
-      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDevice(-1, szDevice, BUFFER_SIZE - 1), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDeviceInfo(m_hInst1, numOfDevices, &audioDevice), SIPX_RESULT_INVALID_ARGS);
+      CPPUNIT_ASSERT_EQUAL(sipxAudioGetOutputDeviceInfo(m_hInst1, -1, &audioDevice), SIPX_RESULT_INVALID_ARGS);
    }
 }
 

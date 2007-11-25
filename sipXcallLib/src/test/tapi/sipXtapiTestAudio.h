@@ -22,7 +22,7 @@ class sipXtapiTestAudio : public CppUnit::TestFixture
 #if TEST_AUDIO /* [ */     
    CPPUNIT_TEST(testGainAPI);
    CPPUNIT_TEST(testMuteAPI);
-//   CPPUNIT_TEST(testVolumeAPI);       // FAILING on Win32/OS -- need to understand why
+   CPPUNIT_TEST(testVolumeAPI);
    CPPUNIT_TEST(testAudioSettings);   // requires voiceengine
 #endif /* TEST_AUDIO ] */
 
