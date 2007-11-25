@@ -140,18 +140,17 @@ void sipXtapiTestSuite::testCallRapidCallAndHangup()
 
         CPPUNIT_ASSERT_EQUAL(sipxLineAdd(g_hInst1, "sip:bandreasen@pingtel.com", &hLine), SIPX_RESULT_SUCCESS);
 
-         CPPUNIT_ASSERT_EQUAL(sipxCallCreate(g_hInst1, hLine, &hCall), SIPX_RESULT_SUCCESS);
+        CPPUNIT_ASSERT_EQUAL(sipxCallCreate(g_hInst1, hLine, &hCall), SIPX_RESULT_SUCCESS);
         CPPUNIT_ASSERT_EQUAL(sipxCallConnect(hCall, "sip:mike2@cheetah.pingtel.com"), SIPX_RESULT_SUCCESS);
         CPPUNIT_ASSERT_EQUAL(sipxCallDestroy(&hCall), SIPX_RESULT_SUCCESS);
 
-         CPPUNIT_ASSERT_EQUAL(sipxCallCreate(g_hInst1, hLine, &hCall), SIPX_RESULT_SUCCESS);
+        CPPUNIT_ASSERT_EQUAL(sipxCallCreate(g_hInst1, hLine, &hCall), SIPX_RESULT_SUCCESS);
         CPPUNIT_ASSERT_EQUAL(sipxCallConnect(hCall, "sip:mike2@cheetah.pingtel.com"), SIPX_RESULT_SUCCESS);
         CPPUNIT_ASSERT_EQUAL(sipxCallDestroy(&hCall), SIPX_RESULT_SUCCESS);
 
         CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
-        OsTask::delay(CALL_DELAY*2);
     }
-    OsTask::delay(TEST_DELAY);
+    OsTask::delay(CALL_DELAY*2);
 
     checkForLeaks();
 }
