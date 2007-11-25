@@ -221,7 +221,10 @@ public:
      *  next frame interval. For now, this method always returns OS_SUCCESS.
      */
 
-//@}
+   /**
+    * Enables test mode by not starting timer. For unittests.
+    */
+   static void enableTestMode(UtlBoolean bEnable);
 
      /// @brief Post NO_WAIT_TIME message to MediaTask queue. This signals
      /// the media processing task that it should begin processing the next
@@ -239,6 +242,8 @@ public:
     * sample rates
     */
    static void signalFrameCallback(const intptr_t userData, const intptr_t eventData);
+
+//@}
 
 /* ============================ ACCESSORS ================================= */
 ///@name Accessors
@@ -378,6 +383,7 @@ private:
                                     ///< of the MpMediaTask class
    static OsBSem       sLock;       ///< @brief semaphore used to ensure that
                                     ///< there is only one instance of this class
+   static UtlBoolean ms_bTestMode;  ///< whether unittest mode is enabled. If enabled, timer is disabled
 
 #if FRAME_PROCESSING_THREADS > 0
    MpMediaTaskHelper* m_processingThreads[FRAME_PROCESSING_THREADS]; ///< how many additional threads will process frames
