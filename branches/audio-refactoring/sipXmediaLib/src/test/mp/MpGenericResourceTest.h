@@ -42,6 +42,7 @@ public:
       MpMediaTask*      pMediaTask = NULL;
       OsStatus          res;
 
+      MpMediaTask::enableTestMode(TRUE);
       // Setup media task
       res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME);
       CPPUNIT_ASSERT(res == OS_SUCCESS);
@@ -79,6 +80,7 @@ public:
       // Clear all Media Tasks data
       res = mpShutdown();
       CPPUNIT_ASSERT(res == OS_SUCCESS);
+      MpMediaTask::enableTestMode(FALSE);
    }
 
 protected:
