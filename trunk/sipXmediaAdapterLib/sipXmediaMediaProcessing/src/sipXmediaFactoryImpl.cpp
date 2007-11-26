@@ -864,7 +864,7 @@ OsStatus sipXmediaFactoryImpl::getAudioMasterVolume(int& volume) const
    if (pAudioManager)
    {
       float fVolume = pAudioManager->getMasterVolume();
-      volume = (int)(fVolume * 100);
+      volume = (int)(fVolume * 100 + 0.5f);
       return OS_SUCCESS;
    }
 
@@ -897,7 +897,7 @@ OsStatus sipXmediaFactoryImpl::getAudioPCMOutputVolume(int& volume) const
    if (pAudioManager)
    {
       float fVolume = pAudioManager->getPCMOutputVolume();
-      volume = (int)(fVolume * 100);
+      volume = (int)(fVolume * 100 + 0.5f);
       return OS_SUCCESS;
    }
 
@@ -940,7 +940,7 @@ OsStatus sipXmediaFactoryImpl::getAudioInputVolume(int& volume) const
    if (pAudioManager)
    {
       float fVolume = pAudioManager->getInputVolume();
-      volume = (int)(fVolume * 100);
+      volume = (int)(fVolume * 100 + 0.5f);
       return OS_SUCCESS;
    }
 

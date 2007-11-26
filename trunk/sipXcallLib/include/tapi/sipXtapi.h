@@ -82,7 +82,7 @@
 #define DEFAULT_BIND_ADDRESS    "0.0.0.0" /**< Bind to the first physical interface discovered */
 
 #define INPUT_VOLUME_MIN                0       /**< Min acceptable gain value. This gain will mute mic. */
-#define OUTPUT_VOLUME_MAX                100     /**< Max acceptable gain value */
+#define INPUT_VOLUME_MAX                100     /**< Max acceptable gain value */
 
 #define BALANCE_MIN -100
 #define BALANCE_MAX 100
@@ -108,13 +108,13 @@
                                              sipXinitialize */
 
 #define SIPXTAPI_VERSION_STRING "sipXtapi SDK %s.%s (built %s)" /**< Version string format string */
-#define SIPXTAPI_VERSION        "3.1.0"      /**< sipXtapi API version -- automatically filled in 
+#define SIPXTAPI_VERSION        "3.1.1"      /**< sipXtapi API version -- automatically filled in 
                                                   during release process */   
 #define SIPXTAPI_BUILDNUMBER "0"             /**< Default build number -- automatically filled in 
                                                   during release process*/
-#define SIPXTAPI_BUILD_WORD 3,1,0,0          /**< Default build word -- automatically filled in 
+#define SIPXTAPI_BUILD_WORD 3,1,1,0          /**< Default build word -- automatically filled in 
                                                   during release process */
-#define SIPXTAPI_FULL_VERSION "3.1.0.0"      /**< Default full version number -- automatically filled in 
+#define SIPXTAPI_FULL_VERSION "3.1.1.0"      /**< Default full version number -- automatically filled in 
                                                   during release process*/
 #define SIPX_MAX_ADAPTER_NAME_LENGTH 256	 /**< Max length of an adapter name */
 
