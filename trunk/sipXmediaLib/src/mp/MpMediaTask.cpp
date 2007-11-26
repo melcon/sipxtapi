@@ -66,7 +66,7 @@
 // STATIC VARIABLE INITIALIZATIONS
 MpMediaTask* MpMediaTask::spInstance = NULL;
 OsBSem       MpMediaTask::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
-
+UtlBoolean MpMediaTask::ms_bTestMode = FALSE;
 
 #ifdef _PROFILE /* [ */
    static long long sSignalTicks; // Time (in microseconds) for the current
@@ -553,6 +553,7 @@ MpMediaTask::MpMediaTask()
    mpSignalMsgPool(NULL),
    nFrameStartMsgs(0),
    m_pFrameStartCallback(NULL),
+   m_pFrameStartTimer(NULL),
    m_bTaskOverloaded(FALSE)
 #ifdef _PROFILE /* [ */
    ,
@@ -1048,20 +1049,28 @@ UtlBoolean MpMediaTask::isManagedFlowGraph(MpFlowGraphBase* pFlowGraph)
 
 void MpMediaTask::startFrameStartTimer()
 {
-   m_pFrameStartCallback = new OsCallback(0, &signalFrameCallback);
+   if (!ms_bTestMode)
+   {
+      m_pFrameStartCallback = new OsCallback(0, &signalFrameCallback);
 #ifdef _WIN32
-   m_pFrameStartTimer = new MpMMTimerWnt(MpMMTimer::Notification);
-   // calculate timer period is microseconds
-   double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000000;
-   m_pFrameStartTimer->setNotification(m_pFrameStartCallback);
-   m_pFrameStartTimer->run((unsigned)timerPeriod);
+      m_pFrameStartTimer = new MpMMTimerWnt(MpMMTimer::Notification);
+      // calculate timer period is microseconds
+      double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000000;
+      m_pFrameStartTimer->setNotification(m_pFrameStartCallback);
+      m_pFrameStartTimer->run((unsigned)timerPeriod);
 #else
-   m_pFrameStartTimer = new OsTimer(*m_pFrameStartCallback);
-   // calculate timer period is milliseconds
-   double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000;
+      m_pFrameStartTimer = new OsTimer(*m_pFrameStartCallback);
+      // calculate timer period is milliseconds
+      double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000;
 
-   m_pFrameStartTimer->periodicEvery(OsTime(0), OsTime((long)timerPeriod));
+      m_pFrameStartTimer->periodicEvery(OsTime(0), OsTime((long)timerPeriod));
 #endif
+   }
+}
+
+void MpMediaTask::enableTestMode(UtlBoolean bEnable)
+{
+   ms_bTestMode = bEnable;
 }
 
 

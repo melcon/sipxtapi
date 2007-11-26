@@ -18,6 +18,7 @@
 // DEFINES
 #define INPUT_MIXER_INDEX 0
 #define OUTPUT_MIXER_INDEX 0
+#define DEFAULT_LATENCY 0.06
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -151,7 +152,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             MpAudioStreamParameters outputParameters;
             outputParameters.setChannelCount(1);
             outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            outputParameters.setSuggestedLatency(0.05);
+            outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             outputParameters.setDeviceIndex(defaultOutputDeviceIndex);
 
             // open asynchronous output stream
@@ -232,7 +233,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             MpAudioStreamParameters outputParameters;
             outputParameters.setChannelCount(1);
             outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            outputParameters.setSuggestedLatency(0.05);
+            outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             outputParameters.setDeviceIndex(i);
 
             // open asynchronous output stream
@@ -295,7 +296,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             MpAudioStreamParameters inputParameters;
             inputParameters.setChannelCount(1);
             inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            inputParameters.setSuggestedLatency(0.05);
+            inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             inputParameters.setDeviceIndex(defaultInputDeviceIndex);
 
             // open asynchronous input stream
@@ -377,7 +378,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             MpAudioStreamParameters inputParameters;
             inputParameters.setChannelCount(1);
             inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            inputParameters.setSuggestedLatency(0.05);
+            inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
             inputParameters.setDeviceIndex(i);
 
             // open asynchronous input stream
@@ -786,10 +787,10 @@ MpAudioDriverManager::MpAudioDriverManager()
 
    inputParameters.setChannelCount(1);
    inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-   inputParameters.setSuggestedLatency(0.05);
+   inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
    outputParameters.setChannelCount(1);
    outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-   outputParameters.setSuggestedLatency(0.05);
+   outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
 
    m_pAudioDriver->getDefaultInputDevice(m_inputDeviceIndex);
    m_pAudioDriver->getDefaultOutputDevice(m_outputDeviceIndex);
