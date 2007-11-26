@@ -239,9 +239,11 @@ int res_init()
    return ret;
 }
 
+#define MAX_DNS_SERVER_COUNT 6
+
 int res_init_ip(const char* localIp)
 {
-   char DNSServers[6][MAXIPLEN];
+   char DNSServers[MAX_DNS_SERVER_COUNT][MAXIPLEN];
    int dnsSvrCnt;
    register FILE *fp;
    register char *cp, **pp;
@@ -261,7 +263,13 @@ int res_init_ip(const char* localIp)
    char* szBuff = NULL;
    unsigned long defaultAddr = osSocketGetDefaultBindAddress();
    struct in_addr naddr;
+   int i = 0;
 
+   for (i = 0; i < MAX_DNS_SERVER_COUNT; i++)
+   {
+      memset(DNSServers[i], 0, MAXIPLEN);
+   }
+   
    acquireMutex(resGlobalLock);
    if (localIp == NULL || localIp[0] == 0)
    {
@@ -329,7 +337,7 @@ int res_init_ip(const char* localIp)
    _sip_res.ndots = 1;
    _sip_res.pfcode = 0;
 
-   if (dnsSvrCnt = getWindowsDNSServers(DNSServers, 6, szLocalIp))
+   if (dnsSvrCnt = getWindowsDNSServers(DNSServers, MAX_DNS_SERVER_COUNT, szLocalIp))
    {
       struct in_addr a;
       int nservIndex = 0;

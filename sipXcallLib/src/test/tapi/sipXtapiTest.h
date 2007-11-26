@@ -209,7 +209,7 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
 #endif /* TEST_CONF ] */
 
 #if TEST_REG /* [ */
-    CPPUNIT_TEST(testReRegistrationFailure);        // Has some timeing problem (looks like test)
+    CPPUNIT_TEST(testReRegistrationFailure);        // Has some timing problem (looks like test)
     CPPUNIT_TEST(testRegistration);
     CPPUNIT_TEST(testReRegistration);
     CPPUNIT_TEST(testBadRegistrarRegistration);
@@ -229,17 +229,17 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
 #endif /* TEST_TRANSFER_ADVANCED ] */
 
 #if TEST_CONFIG /* [ */
-    CPPUNIT_TEST(testGetVersion) ;
-    CPPUNIT_TEST(testSeqPortSelection) ;    
-    CPPUNIT_TEST(testAutoPortSelection) ;
-    CPPUNIT_TEST(testSetCallback) ;   
+    CPPUNIT_TEST(testGetVersion);
+    CPPUNIT_TEST(testSeqPortSelection);
+    CPPUNIT_TEST(testAutoPortSelection);
+    CPPUNIT_TEST(testSetCallback);
 #ifdef _WIN32
 #ifdef VOICE_ENGINE
     CPPUNIT_TEST(testConfigOutOfBand) ;
 #endif
 #endif
 #ifdef _WIN32
-    CPPUNIT_TEST(testConfigLog) ;
+    CPPUNIT_TEST(testConfigLog);
 #endif
     CPPUNIT_TEST(testConfigEnableShortNames);
     CPPUNIT_TEST(testTeardown);
