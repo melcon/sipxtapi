@@ -175,16 +175,12 @@ public:
    void testEnabledWithData()
    {
        MprToSpkr*        pToSpkr    = NULL;
-       OsMsgQ*           pSpkQ      = NULL;
        OsMsgQ*           pEchoQ     = NULL;
-       MpBufferMsg*      pSpkMsg    = NULL;
        MpBufferMsg*      pEchoMsg   = NULL;
        MpBufPtr          pBuf;
        OsStatus          res;
 
        // Create message queues to get data from MprToSpkr
-       pSpkQ = new OsMsgQ(MSG_Q_LEN);
-       CPPUNIT_ASSERT(pSpkQ != NULL);
        pEchoQ = new OsMsgQ(MSG_Q_LEN);
        CPPUNIT_ASSERT(pEchoQ != NULL);
 
@@ -203,22 +199,22 @@ public:
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
        // Get messages from the queues (wait for 1 second)
-       res = pSpkQ->receive((OsMsg*&)pSpkMsg, OsTime(1000));
-       CPPUNIT_ASSERT(res == OS_SUCCESS);
        res = pEchoQ->receive((OsMsg*&)pEchoMsg, OsTime(1000));
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
        // Store output buffer for convenience
        pBuf = mpSourceResource->mLastDoProcessArgs.outBufs[0];
 
+       MpBufPtr echoBuf = pEchoMsg->getBuffer();
+       CPPUNIT_ASSERT(echoBuf.isValid()); // echo buffer is a clone of output buffer
+       MpAudioBufPtr pEchoQBuf = echoBuf;
+       MpAudioBufPtr pSourceBuf = pBuf;
+       CPPUNIT_ASSERT(pSourceBuf.compareSamples(pEchoQBuf) == 0); // samples must be equal by content
+
        // Buffer is sent to queues and to output
-       CPPUNIT_ASSERT(  (mpSinkResource->mLastDoProcessArgs.inBufs[0] == pBuf)
-                     && (pSpkMsg->getBuffer().isValid())
-                     && (pEchoMsg->getBuffer() == pBuf)
-                     );
+       CPPUNIT_ASSERT(mpSinkResource->mLastDoProcessArgs.inBufs[0] == pBuf);
 
        // Free received message and stored buffer
-       pSpkMsg->releaseMsg();
        pEchoMsg->releaseMsg();
        pBuf.release();
 
@@ -226,23 +222,18 @@ public:
        haltFramework();
 
        // Free message queue
-       delete pSpkQ;
        delete pEchoQ;
    }
 
    void testEnabledFullQueue()
    {
        MprToSpkr*        pToSpkr    = NULL;
-       OsMsgQ*           pSpkQ      = NULL;
        OsMsgQ*           pEchoQ     = NULL;
-       MpBufferMsg*      pSpkMsg    = NULL;
        MpBufferMsg*      pEchoMsg   = NULL;
        MpBufPtr          pBuf[2];
        OsStatus          res;
 
        // Create message queues to get data from MprToSpkr
-       pSpkQ = new OsMsgQ(MSG_Q_LEN);
-       CPPUNIT_ASSERT(pSpkQ != NULL);
        pEchoQ = new OsMsgQ(MSG_Q_LEN);
        CPPUNIT_ASSERT(pEchoQ != NULL);
 
@@ -270,23 +261,23 @@ public:
        res = mpFlowGraph->processNextFrame();
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
-       // Get messages from the queues
-       res = pSpkQ->receive((OsMsg*&)pSpkMsg, OsTime(1000));
-       CPPUNIT_ASSERT(res == OS_SUCCESS);
+       // Get messages from the queue
        res = pEchoQ->receive((OsMsg*&)pEchoMsg, OsTime(1000));
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
        // Store output buffer for convenience
        pBuf[1] = mpSourceResource->mLastDoProcessArgs.outBufs[0];
 
+       MpBufPtr echoBuf = pEchoMsg->getBuffer();
        // Buffer is failed to send to queues, but appears on the output
-       CPPUNIT_ASSERT(  (mpSinkResource->mLastDoProcessArgs.inBufs[0] == pBuf[1])
-                     && (pSpkMsg->getBuffer().isValid())
-                     && (pEchoMsg->getBuffer() == pBuf[0])
-                     );
+       CPPUNIT_ASSERT(echoBuf.isValid()); // echo buffer is a clone of output buffer
+       MpAudioBufPtr pEchoQBuf = echoBuf;
+       MpAudioBufPtr pSourceBuf = pBuf[0];
+       CPPUNIT_ASSERT(pSourceBuf.compareSamples(pEchoQBuf) == 0); // samples must be equal by content
+
+       CPPUNIT_ASSERT(mpSinkResource->mLastDoProcessArgs.inBufs[0] == pBuf[1]);
 
        // Free received message and stored buffer
-       pSpkMsg->releaseMsg();
        pEchoMsg->releaseMsg();
        pBuf[0].release();
        pBuf[1].release();
@@ -295,7 +286,6 @@ public:
        haltFramework();
 
        // Free message queue
-       delete pSpkQ;
        delete pEchoQ;
    }
 };
