@@ -181,12 +181,12 @@ public:
    /**
     * Gets current input volume from volume meter calculated from samples.
     */
-   OsStatus getInputVolumeMeterReading(MP_VOLUME_METER_TYPE type, unsigned int& volume) const;
+   OsStatus getInputVolumeMeterReading(MP_VOLUME_METER_TYPE type, double& volume) const;
 
    /**
    * Gets current output volume from volume meter calculated from samples.
    */
-   OsStatus getOutputVolumeMeterReading(MP_VOLUME_METER_TYPE type, unsigned int& volume) const;
+   OsStatus getOutputVolumeMeterReading(MP_VOLUME_METER_TYPE type, double& volume) const;
 
    /**
     * Deletes singleton manager. Not threadsafe.

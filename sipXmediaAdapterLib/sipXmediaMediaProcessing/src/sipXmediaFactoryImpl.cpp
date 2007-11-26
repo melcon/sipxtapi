@@ -1010,7 +1010,7 @@ OsStatus sipXmediaFactoryImpl::setAudioOutputBalance(int balance)
 }
 
 OsStatus sipXmediaFactoryImpl::getAudioOutputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
-                                                                unsigned int& volume) const
+                                                                double& volume) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -1026,7 +1026,7 @@ OsStatus sipXmediaFactoryImpl::getAudioOutputVolumeMeterReading(MEDIA_VOLUME_MET
 }
 
 OsStatus sipXmediaFactoryImpl::getAudioInputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
-                                                               unsigned int& volume) const
+                                                               double& volume) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();

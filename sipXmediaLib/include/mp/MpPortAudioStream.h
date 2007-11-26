@@ -94,12 +94,12 @@ public:
    /**
     * Gets volume for input stream calculated from samples.
     */
-   unsigned int getInputStreamVolume(MP_VOLUME_METER_TYPE type) const;
+   double getInputStreamVolume(MP_VOLUME_METER_TYPE type) const;
 
    /**
    * Gets volume for output stream calculated from samples.
    */
-   unsigned int getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const;
+   double getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const;
 
    /**
     * Prints overflow/underflow statistics.

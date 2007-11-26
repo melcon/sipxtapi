@@ -2506,11 +2506,11 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputVolume(const SIPX_INST hInst,
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param type Type of volume meter to use. Can either be by VU or PPM
  *        algorithm. @see SIPX_VOLUME_METER_TYPE
- * @param iLevel The level of the volume 0-100
+ * @param level The level of the volume 0-100
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputEnergy(const SIPX_INST hInst,
                                                  SIPX_VOLUME_METER_TYPE type,
-                                                 unsigned int* iLevel);
+                                                 double* level);
 
 /**
 * Gets reading of volume from output volume meter. It calculates volume
@@ -2519,11 +2519,11 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputEnergy(const SIPX_INST hInst,
 * @param hInst Instance pointer obtained by sipxInitialize.
 * @param type Type of volume meter to use. Can either be by VU or PPM
 *        algorithm. @see SIPX_VOLUME_METER_TYPE
-* @param iLevel The level of the volume 0-100
+* @param level The level of the volume 0-100
 */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputEnergy(const SIPX_INST hInst,
                                                   SIPX_VOLUME_METER_TYPE type,
-                                                  unsigned int* iLevel);
+                                                  double* level);
 
 
 /**

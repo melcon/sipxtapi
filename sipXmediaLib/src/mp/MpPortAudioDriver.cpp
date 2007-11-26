@@ -752,7 +752,7 @@ OsStatus MpPortAudioDriver::getSampleSize(MpAudioDriverSampleFormat format,
 }
 
 OsStatus MpPortAudioDriver::getInputVolumeMeterReading(MpAudioStreamId stream,
-                                                       unsigned int& volume,
+                                                       double& volume,
                                                        MP_VOLUME_METER_TYPE type) const
 {
    OsLock lock(ms_driverMutex);
@@ -775,7 +775,7 @@ OsStatus MpPortAudioDriver::getInputVolumeMeterReading(MpAudioStreamId stream,
 }
 
 OsStatus MpPortAudioDriver::getOutputVolumeMeterReading(MpAudioStreamId stream,
-                                                        unsigned int& volume,
+                                                        double& volume,
                                                         MP_VOLUME_METER_TYPE type) const
 {
    OsLock lock(ms_driverMutex);
