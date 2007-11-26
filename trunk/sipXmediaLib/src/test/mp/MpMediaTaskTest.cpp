@@ -72,7 +72,6 @@ public:
         CPPUNIT_ASSERT(mpMediaTask->getDebugMode() == FALSE);
         CPPUNIT_ASSERT(mpMediaTask->getFocus() == NULL);
         CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->getLimitExceededCnt());
-        CPPUNIT_ASSERT(mpMediaTask->getTimeLimit() == MpMediaTask::DEF_TIME_LIMIT_USECS);
         CPPUNIT_ASSERT(mpMediaTask->getWaitTimeout() == MpMediaTask::DEF_SEM_WAIT_MSECS);
         CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->getWaitTimeoutCnt());
         CPPUNIT_ASSERT_EQUAL(0, mpMediaTask->numManagedFlowGraphs());

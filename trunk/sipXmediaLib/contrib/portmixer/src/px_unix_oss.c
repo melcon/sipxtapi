@@ -90,6 +90,62 @@ typedef struct PxInfo
 
 static const char *labels[] = SOUND_DEVICE_LABELS;
 
+static int initialize(px_mixer *Px)
+{
+   Px->info = calloc(1, sizeof(PxInfo));
+   if (Px->info == NULL) {
+      return FALSE;
+   }
+
+   Px->CloseMixer = close_mixer;
+   Px->GetNumMixers = get_num_mixers;
+   Px->GetMixerName = get_mixer_name;
+   Px->GetMasterVolume = get_master_volume;
+   Px->SetMasterVolume = set_master_volume;
+   Px->SupportsPCMOutputVolume = supports_pcm_output_volume;
+   Px->GetPCMOutputVolume = get_pcm_output_volume;
+   Px->SetPCMOutputVolume = set_pcm_output_volume;
+   Px->GetNumOutputVolumes = get_num_output_volumes;
+   Px->GetOutputVolumeName = get_output_volume_name;
+   Px->GetOutputVolume = get_output_volume;
+   Px->SetOutputVolume = set_output_volume;
+   Px->GetNumInputSources = get_num_input_sources;
+   Px->GetInputSourceName = get_input_source_name;
+   Px->GetCurrentInputSource = get_current_input_source;
+   Px->SetCurrentInputSource = set_current_input_source;
+   Px->GetInputVolume = get_input_volume;
+   Px->SetInputVolume = set_input_volume;
+   
+//   Px->SupportsOutputBalance = supports_output_balance;
+//   Px->GetOutputBalance = get_output_balance;
+//   Px->SetOutputBalance = set_output_balance; 
+//   Px->SupportsPlaythrough = supports_play_through;
+//   Px->GetPlaythrough = get_play_through;
+//   Px->SetPlaythrough = set_play_through;
+   
+   return TRUE;
+}
+
+static int cleanup(px_mixer *Px)
+{
+   PxInfo *info = (PxInfo *)Px->info;
+
+   if (info->capture.fd >= 0) {
+      close(info->capture.fd);
+   }
+
+   if (info->playback.fd >= 0) {
+      close(info->playback.fd);
+   }
+
+   if (info) {
+      free(info);
+      Px->info = NULL;
+   }
+   
+   return FALSE;
+}
+
 static int open_mixer(PxDev *dev, int cmd)
 {
    char name[sizeof(MIXER_NAME_BASE) + 1];
@@ -199,62 +255,6 @@ static PxVolume get_volume(int fd, int channel)
       return ((vol & 0xFF)/200.0) + (((vol>>8) & 0xFF)/200.0);
    else
       return (vol & 0xFF)/100.0;
-}
-
-static int initialize(px_mixer *Px)
-{
-   Px->info = calloc(1, sizeof(PxInfo));
-   if (Px->info == NULL) {
-      return FALSE;
-   }
-
-   Px->CloseMixer = close_mixer;
-   Px->GetNumMixers = get_num_mixers;
-   Px->GetMixerName = get_mixer_name;
-   Px->GetMasterVolume = get_master_volume;
-   Px->SetMasterVolume = set_master_volume;
-   Px->SupportsPCMOutputVolume = supports_pcm_output_volume;
-   Px->GetPCMOutputVolume = get_pcm_output_volume;
-   Px->SetPCMOutputVolume = set_pcm_output_volume;
-   Px->GetNumOutputVolumes = get_num_output_volumes;
-   Px->GetOutputVolumeName = get_output_volume_name;
-   Px->GetOutputVolume = get_output_volume;
-   Px->SetOutputVolume = set_output_volume;
-   Px->GetNumInputSources = get_num_input_sources;
-   Px->GetInputSourceName = get_input_source_name;
-   Px->GetCurrentInputSource = get_current_input_source;
-   Px->SetCurrentInputSource = set_current_input_source;
-   Px->GetInputVolume = get_input_volume;
-   Px->SetInputVolume = set_input_volume;
-   
-//   Px->SupportsOutputBalance = supports_output_balance;
-//   Px->GetOutputBalance = get_output_balance;
-//   Px->SetOutputBalance = set_output_balance; 
-//   Px->SupportsPlaythrough = supports_play_through;
-//   Px->GetPlaythrough = get_play_through;
-//   Px->SetPlaythrough = set_play_through;
-   
-   return TRUE;
-}
-
-static int cleanup(px_mixer *Px)
-{
-   PxInfo *info = (PxInfo *)Px->info;
-
-   if (info->capture.fd >= 0) {
-      close(info->capture.fd);
-   }
-
-   if (info->playback.fd >= 0) {
-      close(info->playback.fd);
-   }
-
-   if (info) {
-      free(info);
-      Px->info = NULL;
-   }
-   
-   return FALSE;
 }
 
 static void close_mixer(px_mixer *Px)

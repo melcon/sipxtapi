@@ -45,10 +45,10 @@
 				AdditionalOptions="/O2"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\include;&quot;..\..\portaudio-v19\include&quot;"
+				AdditionalIncludeDirectories="..\include;..\..\portaudio_v19\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;PX_USE_WIN_MME;PX_USE_WIN_DSOUND"
 				StringPooling="true"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -203,14 +203,6 @@
 				>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

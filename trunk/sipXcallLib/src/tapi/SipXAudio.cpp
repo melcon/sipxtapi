@@ -509,6 +509,56 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputVolume(const SIPX_INST hInst,
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputEnergy(const SIPX_INST hInst,
+                                                 SIPX_VOLUME_METER_TYPE type,
+                                                 unsigned int* iLevel)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         OsStatus status = pInterface->getAudioInputVolumeMeterReading((MEDIA_VOLUME_METER_TYPE)type,
+                                                                       *iLevel);
+         if (status == OS_SUCCESS)
+         {
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputEnergy(const SIPX_INST hInst,
+                                                  SIPX_VOLUME_METER_TYPE type,
+                                                  unsigned int* iLevel)
+{
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         OsStatus status = pInterface->getAudioOutputVolumeMeterReading((MEDIA_VOLUME_METER_TYPE)type,
+                                                                        *iLevel);
+         if (status == OS_SUCCESS)
+         {
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+
+   return sr;
+}
+
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
                                              const SIPX_AEC_MODE mode) 

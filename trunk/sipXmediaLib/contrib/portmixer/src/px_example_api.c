@@ -45,19 +45,6 @@ typedef struct PxInfo
    int         example;
 } PxInfo;
 
-int OpenMixer_Platform_API(px_mixer *Px, int index)
-{
-   PxInfo *info;
-
-   if (!initialize(Px)) {
-      return FALSE;
-   }
-   
-   info = (PxInfo *) Px->info;
-
-   return TRUE;
-}
-
 static int initialize(px_mixer *Px)
 {
    Px->info = calloc(1, sizeof(PxInfo));
@@ -105,6 +92,19 @@ static int cleanup(px_mixer *Px)
    }
 
    return FALSE;
+}
+
+int OpenMixer_Platform_API(px_mixer *Px, int index)
+{
+   PxInfo *info;
+
+   if (!initialize(Px)) {
+      return FALSE;
+   }
+   
+   info = (PxInfo *) Px->info;
+
+   return TRUE;
 }
 
 static void close_mixer(px_mixer *Px)

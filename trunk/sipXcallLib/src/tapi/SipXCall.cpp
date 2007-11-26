@@ -2100,20 +2100,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallTransfer(const SIPX_CALL hSourceCall,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxCallGetEnergyLevels(const SIPX_CALL hCall,
-                                                 int*            iInputEnergyLevel,
-                                                 int*            iOutputEnergyLevel,
-                                                 const size_t    nMaxContributors,
-                                                 unsigned int    CCSRCs[],
-                                                 int             iEnergyLevels[],
-                                                 size_t*         nActualContributors) 
-{
-   SIPX_RESULT rc = SIPX_RESULT_NOT_IMPLEMENTED;
-
-   return rc;
-}
-
-// CHECKED
 SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtpSourceIds(const SIPX_CALL hCall,
                                                       unsigned int* iSendSSRC,
                                                       unsigned int* iReceiveSSRC) 

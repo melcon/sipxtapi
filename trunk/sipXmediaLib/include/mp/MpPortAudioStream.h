@@ -9,6 +9,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsTime.h>
 #include <utl/UtlBool.h>
 #include "mp/MpAudioDriverDefs.h"
 #include "portaudio.h"
@@ -18,6 +19,7 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
+class MpVolumeMeterBase;
 // STRUCTS
 // TYPEDEFS
 // MACROS
@@ -88,6 +90,16 @@ public:
     */
    OsStatus writeStreamAsync(const void *buffer,
                              unsigned long frames);
+
+   /**
+    * Gets volume for input stream calculated from samples.
+    */
+   unsigned int getInputStreamVolume(MP_VOLUME_METER_TYPE type) const;
+
+   /**
+   * Gets volume for output stream calculated from samples.
+   */
+   unsigned int getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const;
 
    /**
     * Prints overflow/underflow statistics.
@@ -167,6 +179,9 @@ private:
    volatile unsigned int m_outputWritePos; ///< position in output buffer for writing
    volatile unsigned int m_outputReadPos; ///< position in output buffer for reading
 
+   MpVolumeMeterBase* m_inputVolumeMeter; ///< volume meter for input
+   MpVolumeMeterBase* m_outputVolumeMeter; ///< volume meter for output
+
    unsigned int m_outputBufferOverflow;
    unsigned int m_outputBufferUnderflow;
    unsigned int m_inputBufferOverflow;
@@ -179,6 +194,9 @@ private:
 
    bool m_bFrameRecorded; ///< whether at least one frame has been recorded
    bool m_bFramePushed; ///< whether at least one frame has been pushed
+
+   int m_streamReadWriteCount;
+   int m_callbackCallCount;
 };
 
 #endif // MpPortAudioStream_h__

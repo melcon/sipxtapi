@@ -100,6 +100,36 @@ static px_mixer *verify_mixer(PxMixer *mixer)
    return Px;
 }
 
+static int initialize(px_mixer *Px)
+{
+   Px->CloseMixer = close_mixer;
+   Px->GetNumMixers = get_num_mixers;
+   Px->GetMixerName = get_mixer_name;
+   Px->GetMasterVolume = get_master_volume;
+   Px->SetMasterVolume = set_master_volume;
+   Px->SupportsPCMOutputVolume = supports_pcm_output_volume;
+   Px->GetPCMOutputVolume = get_pcm_output_volume;
+   Px->SetPCMOutputVolume = set_pcm_output_volume;
+   Px->GetNumOutputVolumes = get_num_output_volumes;
+   Px->GetOutputVolumeName = get_output_volume_name;
+   Px->GetOutputVolume = get_output_volume;
+   Px->SetOutputVolume = set_output_volume;
+   Px->GetNumInputSources = get_num_input_sources;
+   Px->GetInputSourceName = get_input_source_name;
+   Px->GetCurrentInputSource = get_current_input_source;
+   Px->SetCurrentInputSource = set_current_input_source;
+   Px->GetInputVolume = get_input_volume;
+   Px->SetInputVolume = set_input_volume;
+   Px->SupportsOutputBalance = supports_output_balance;
+   Px->GetOutputBalance = get_output_balance;
+   Px->SetOutputBalance = set_output_balance;
+   Px->SupportsPlaythrough = supports_play_through;
+   Px->GetPlaythrough = get_play_through;
+   Px->SetPlaythrough = set_play_through;
+
+   return TRUE;
+}
+
 /*
  Px_OpenMixer() returns a mixer which will work with the given PortAudio
  audio device.  Pass 0 as the index for the first (default) mixer.
@@ -453,35 +483,6 @@ void Px_SetPlaythrough(PxMixer *mixer, PxVolume volume)
 || Default API routines                                                      ||
 -----------------------------------------------------------------------------*/
 
-static int initialize(px_mixer *Px)
-{
-   Px->CloseMixer = close_mixer;
-   Px->GetNumMixers = get_num_mixers;
-   Px->GetMixerName = get_mixer_name;
-   Px->GetMasterVolume = get_master_volume;
-   Px->SetMasterVolume = set_master_volume;
-   Px->SupportsPCMOutputVolume = supports_pcm_output_volume;
-   Px->GetPCMOutputVolume = get_pcm_output_volume;
-   Px->SetPCMOutputVolume = set_pcm_output_volume;
-   Px->GetNumOutputVolumes = get_num_output_volumes;
-   Px->GetOutputVolumeName = get_output_volume_name;
-   Px->GetOutputVolume = get_output_volume;
-   Px->SetOutputVolume = set_output_volume;
-   Px->GetNumInputSources = get_num_input_sources;
-   Px->GetInputSourceName = get_input_source_name;
-   Px->GetCurrentInputSource = get_current_input_source;
-   Px->SetCurrentInputSource = set_current_input_source;
-   Px->GetInputVolume = get_input_volume;
-   Px->SetInputVolume = set_input_volume;
-   Px->SupportsOutputBalance = supports_output_balance;
-   Px->GetOutputBalance = get_output_balance;
-   Px->SetOutputBalance = set_output_balance;
-   Px->SupportsPlaythrough = supports_play_through;
-   Px->GetPlaythrough = get_play_through;
-   Px->SetPlaythrough = set_play_through;
-
-   return TRUE;
-}
 
 static void close_mixer(px_mixer *Px)
 {
