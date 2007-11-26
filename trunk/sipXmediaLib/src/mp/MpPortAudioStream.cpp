@@ -364,7 +364,7 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
    return status;
 }
 
-unsigned int MpPortAudioStream::getInputStreamVolume(MP_VOLUME_METER_TYPE type) const
+double MpPortAudioStream::getInputStreamVolume(MP_VOLUME_METER_TYPE type) const
 {
    if (m_inputVolumeMeter)
    {
@@ -382,7 +382,7 @@ unsigned int MpPortAudioStream::getInputStreamVolume(MP_VOLUME_METER_TYPE type) 
    return 0;
 }
 
-unsigned int MpPortAudioStream::getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const
+double MpPortAudioStream::getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const
 {
    if (m_outputVolumeMeter)
    {

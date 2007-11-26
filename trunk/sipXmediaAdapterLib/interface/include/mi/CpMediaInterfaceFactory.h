@@ -418,13 +418,13 @@ public:
    }
 
    virtual OsStatus getAudioOutputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
-                                                     unsigned int& volume) const
+                                                     double& volume) const
    {
       return OS_NOT_SUPPORTED;
    }
 
    virtual OsStatus getAudioInputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
-                                                    unsigned int& volume) const
+                                                    double& volume) const
    {
       return OS_NOT_SUPPORTED;
    }

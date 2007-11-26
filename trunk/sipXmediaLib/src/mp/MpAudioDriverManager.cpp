@@ -698,7 +698,7 @@ void MpAudioDriverManager::setOutputBalance(MpAudioBalance balance)
 }
 
 OsStatus MpAudioDriverManager::getInputVolumeMeterReading(MP_VOLUME_METER_TYPE type,
-                                                          unsigned int& volume) const
+                                                          double& volume) const
 {
    OsLock lock(ms_mutex);
 
@@ -711,7 +711,7 @@ OsStatus MpAudioDriverManager::getInputVolumeMeterReading(MP_VOLUME_METER_TYPE t
 }
 
 OsStatus MpAudioDriverManager::getOutputVolumeMeterReading(MP_VOLUME_METER_TYPE type,
-                                                           unsigned int& volume) const
+                                                           double& volume) const
 {
    OsLock lock(ms_mutex);
 

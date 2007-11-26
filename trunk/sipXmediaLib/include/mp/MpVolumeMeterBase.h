@@ -62,12 +62,12 @@ public:
    /**
    * Calculates volume by VU algorithm.
    */
-   virtual unsigned int getVUVolume() const = 0;
+   virtual double getVUVolume() const = 0;
 
    /**
    * Calculates volume by PPM reading
    */
-   virtual unsigned int getPPMVolume() const = 0;
+   virtual double getPPMVolume() const = 0;
 
    //@}
 

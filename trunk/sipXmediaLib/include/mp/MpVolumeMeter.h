@@ -101,7 +101,7 @@ public:
    /**
     * Calculates volume by VU algorithm.
     */
-   virtual unsigned int getVUVolume() const
+   virtual double getVUVolume() const
    {
       if (m_pSamplesBuffer)
       {
@@ -113,7 +113,7 @@ public:
          }
          volume = volume / m_samplesBufferSize;
 
-         return (unsigned int)((volume / maxSampleValue) * 100);
+         return ((volume / maxSampleValue) * 100);
       }
 
       return 0;
@@ -122,7 +122,7 @@ public:
    /**
     * Calculates volume by PPM reading
     */
-   virtual unsigned int getPPMVolume() const
+   virtual double getPPMVolume() const
    {
       if (m_pSamplesBuffer)
       {
@@ -136,7 +136,7 @@ public:
             }
          }
 
-         return (unsigned int)(((double)max / maxSampleValue) * 100);
+         return (((double)max / maxSampleValue) * 100);
       }
 
       return 0;

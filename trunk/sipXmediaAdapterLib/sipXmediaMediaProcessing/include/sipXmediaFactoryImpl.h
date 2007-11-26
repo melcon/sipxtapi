@@ -149,9 +149,9 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus getAudioOutputBalance(int& balance) const;
     virtual OsStatus setAudioOutputBalance(int balance);
     virtual OsStatus getAudioOutputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
-                                                      unsigned int& volume) const;
+                                                      double& volume) const;
     virtual OsStatus getAudioInputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
-                                                     unsigned int& volume) const;
+                                                     double& volume) const;
 
     virtual OsStatus getVideoQuality(int& quality) const;
     virtual OsStatus getVideoBitRate(int& bitRate) const;
