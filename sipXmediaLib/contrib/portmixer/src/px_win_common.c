@@ -44,9 +44,6 @@
 #include "px_mixer.h"
 #include "px_win_common.h"
 
-static UINT get_ctrls(HMIXEROBJ mixer, DWORD lineID, PxCtrl **pctrls);
-static DWORD find_ctrl(HMIXEROBJ mixer, DWORD lineID, DWORD ctrlID);
-
 #if defined(_DEBUG)
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,86 +64,8 @@ static void dprintf(const char *format, ...)
 }
 #endif
 
-int open_mixers(px_mixer *Px, UINT deviceIn, UINT deviceOut)
-{
-   PxInfo*info;
-   MMRESULT res;
 
-   if (deviceIn == UINT_MAX && deviceOut == UINT_MAX) {
-      return FALSE;
-   }
-
-   if (!initialize(Px)) {
-      return FALSE;
-   }
-
-   info = (PxInfo *) Px->info;
-   info->hInputMixer = NULL;
-   info->hOutputMixer = NULL;
-   info->numInputs = 0;
-   info->muxID = 0;
-   info->speakerID = 0;
-	info->waveID = 0;
-
-   if (deviceIn != UINT_MAX) {
-      res = mixerOpen((LPHMIXER) &info->hInputMixer,
-                      deviceIn,
-                      0,
-                      0,
-                      MIXER_OBJECTF_MIXER);
-      if (res != MMSYSERR_NOERROR) {
-         return cleanup(Px);
-      }
-
-      info->muxID = find_ctrl(info->hInputMixer,
-                              MIXERLINE_COMPONENTTYPE_DST_WAVEIN,
-                              MIXERCONTROL_CONTROLTYPE_MUX);
-      if (info->muxID == -1) {
-         info->muxID = find_ctrl(info->hInputMixer,
-                                 MIXERLINE_COMPONENTTYPE_DST_WAVEIN,
-                                 MIXERCONTROL_CONTROLTYPE_MIXER);
-      }
-
-      info->numInputs = get_ctrls(info->hInputMixer,
-                                  MIXERLINE_COMPONENTTYPE_DST_WAVEIN,
-                                  &info->src);
-
-      if (info->numInputs == 0) {
-         return cleanup(Px);
-      }
-   }
-
-   if (deviceOut != UINT_MAX) {
-      res = mixerOpen((LPHMIXER) &info->hOutputMixer,
-                      deviceOut,
-                      0,
-                      0,
-                      MIXER_OBJECTF_WAVEOUT);
-      if (res != MMSYSERR_NOERROR) {
-         return cleanup(Px);
-      }
-
-      info->speakerID = find_ctrl(info->hOutputMixer,
-                                  MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
-                                  MIXERCONTROL_CONTROLTYPE_VOLUME);
-
-      info->waveID = find_ctrl(info->hOutputMixer,
-                               MIXERLINE_COMPONENTTYPE_SRC_WAVEOUT,
-                               MIXERCONTROL_CONTROLTYPE_VOLUME);
-
-      info->numOutputs = get_ctrls(info->hOutputMixer,
-                                   MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
-                                   &info->dst);
-
-      if (info->numOutputs == 0) {
-         return cleanup(Px);
-      }
-   }
-
-   return TRUE;
-}
-
-static UINT get_ctrls(HMIXEROBJ mixer, DWORD lineID, PxCtrl **pctrls)
+UINT get_ctrls(HMIXEROBJ mixer, DWORD lineID, PxCtrl **pctrls)
 {
    MMRESULT res;
    MIXERLINE line;
@@ -234,7 +153,7 @@ static UINT get_ctrls(HMIXEROBJ mixer, DWORD lineID, PxCtrl **pctrls)
    return 0;
 }
 
-static DWORD find_ctrl(HMIXEROBJ mixer, DWORD lineID, DWORD ctrlID)
+DWORD find_ctrl(HMIXEROBJ mixer, DWORD lineID, DWORD ctrlID)
 {
    MMRESULT res;
    MIXERLINE line;
@@ -271,7 +190,7 @@ static DWORD find_ctrl(HMIXEROBJ mixer, DWORD lineID, DWORD ctrlID)
    return control.dwControlID;
 }
 
-static int initialize(px_mixer *Px)
+int initialize(px_mixer *Px)
 {
    Px->info = calloc(1, sizeof(PxInfo));
    if (Px->info == NULL) {
@@ -308,7 +227,7 @@ static int initialize(px_mixer *Px)
    return TRUE;
 }
 
-static int cleanup(px_mixer *Px)
+int cleanup(px_mixer *Px)
 {
    PxInfo *info = (PxInfo *)Px->info;
    int i;

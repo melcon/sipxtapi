@@ -244,6 +244,22 @@ typedef enum SIPX_AUDIO_DATA_FORMAT
 
 
 /**
+ * Types of volume meters that can be used to query current input/output "energy"
+ * VU (Volume Unit) is average over certain amount of frames, and more corresponds
+ * to sensing of human ear.
+ * PPM (Peak Program Meters) is maximum from certain amount of frames. It reacts
+ * quicker to change, is louder than VU.
+ *
+ */
+typedef enum
+{
+   SIPX_VOLUME_METER_VU = 0,
+   SIPX_VOLUME_METER_PPM
+} SIPX_VOLUME_METER_TYPE;
+// keep in sync with MEDIA_VOLUME_METER_TYPE
+
+
+/**
  * Signature for a log callback function that gets passed three strings,
  * first string is the priority level, second string is the source id of 
  * the subsystem that generated the message, and the third string is the 
@@ -1923,41 +1939,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallResizeWindow(const SIPX_CALL hCall,
                                               const SIPX_WINDOW_HANDLE hWnd);
 
 
-/**
- * Gets energy levels for a call.  The call must be in the connected state
- * for this request to succeed.
- *
- * This API is only supported when sipXtapi is bundled with VoiceEngine from 
- * GIPS.
- *
- * @param hCall Handle to a call.  Call handles are obtained either by 
- *        invoking sipxCallCreate or passed to your application through
- *        a listener interface.
- * @param iInputEnergyLevel Input/Microphone energy level ranging from 0 to 9.
- * @param iOutputEnergyLevel Output/Speaker energy level ranging from 0 to 9. 
- *        The output energy level is pre-mixed (before mixing any files/tones or
- *        other parties).  sipxConferenceGetEnergyLevels provides an API to
- *        obtain post-mixed energy levels.
- * @param nMaxContributors Max number of contributors/energy levels.  
- *        Contributors are derived by looking at the contributing RTP source
- *        IDs from the RTP stream.
- * @param CCSRCs Array of contributing source ids.  This array will be filled 
- *        in up to a max of nMaxContributors.  See nActualContributors for
- *        the actual number of elements returned.
- * @param iEnergyLevels Energy level for each contributing source id ranging 
- *        from 0 to 9.  This array in up to a max of nMaxContributors.  See 
- *        nActualContributors for the actual number of elements returned.
- * @param nActualContributors The actual number of contributing source ids and
- *        energy levels returned.
- */
-SIPXTAPI_API SIPX_RESULT sipxCallGetEnergyLevels(const SIPX_CALL hCall,
-                                                 int* iInputEnergyLevel,
-                                                 int* iOutputEnergyLevel,
-                                                 const size_t nMaxContributors,
-                                                 unsigned int CCSRCs[],
-                                                 int iEnergyLevels[],
-                                                 size_t* nActualContributors);
-
 /** 
  * Gets the sending and receiving Audio RTP SSRC IDs.  The SSRC ID is used to 
  * identify the RTP/audio stream.  The call must be in the connected state
@@ -2516,6 +2497,33 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputVolume(const SIPX_INST hInst,
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputVolume(const SIPX_INST hInst,
                                                   int* iLevel);
+
+
+/**
+ * Gets reading of volume from input volume meter. It calculates volume
+ * from a few last audio frames recorded.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param type Type of volume meter to use. Can either be by VU or PPM
+ *        algorithm. @see SIPX_VOLUME_METER_TYPE
+ * @param iLevel The level of the volume 0-100
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioGetInputEnergy(const SIPX_INST hInst,
+                                                 SIPX_VOLUME_METER_TYPE type,
+                                                 unsigned int* iLevel);
+
+/**
+* Gets reading of volume from output volume meter. It calculates volume
+* from a few last audio frames played.
+*
+* @param hInst Instance pointer obtained by sipxInitialize.
+* @param type Type of volume meter to use. Can either be by VU or PPM
+*        algorithm. @see SIPX_VOLUME_METER_TYPE
+* @param iLevel The level of the volume 0-100
+*/
+SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputEnergy(const SIPX_INST hInst,
+                                                  SIPX_VOLUME_METER_TYPE type,
+                                                  unsigned int* iLevel);
 
 
 /**

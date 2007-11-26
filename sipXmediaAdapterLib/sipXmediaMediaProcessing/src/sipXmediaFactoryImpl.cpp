@@ -26,6 +26,7 @@
 #include "mp/MpCallFlowGraph.h"
 #include "net/SdpCodecFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
+#include "mp/MpAudioDriverDefs.h"
 #include "mp/MpAudioDriverManager.h"
 #include "mi/CpAudioDeviceInfo.h"
 
@@ -1000,6 +1001,38 @@ OsStatus sipXmediaFactoryImpl::setAudioOutputBalance(int balance)
    {
       pAudioManager->setOutputBalance((float)balance / 100);
       return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioOutputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
+                                                                unsigned int& volume) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      return pAudioManager->getOutputVolumeMeterReading((MP_VOLUME_METER_TYPE)type, volume);
+   }
+
+   return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus sipXmediaFactoryImpl::getAudioInputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
+                                                               unsigned int& volume) const
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      return pAudioManager->getInputVolumeMeterReading((MP_VOLUME_METER_TYPE)type, volume);
    }
 
    return OS_FAILED;

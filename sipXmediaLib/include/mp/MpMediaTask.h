@@ -113,7 +113,6 @@ class MpMediaTask : public OsServerTask
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    enum {
-       DEF_TIME_LIMIT_USECS    = 6000,  ///< processing limit  = 6 msecs
        DEF_SEM_WAIT_MSECS      =  500   ///< semaphore timeout = 0.5 secs
 #if defined(_WIN32) || defined(__pingtel_on_posix__) /* [ */
      , MEDIA_TASK_PRIORITY    = 0      ///< media task execution priority
@@ -363,6 +362,7 @@ private:
    OsTimer* m_pFrameStartTimer; ///< timer that will signal frame start
 #endif
 
+   UtlBoolean m_bTaskOverloaded; ///< media task overload flag
    int       mLimitUsecs;    ///< Frame processing time limit (in usecs)
    int       mHandleMsgErrs; ///< @brief Number of message handling problems
                              ///< during the last frame processing interval

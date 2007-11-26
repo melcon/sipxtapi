@@ -136,9 +136,6 @@ struct px_mixer
    void (*SetPlaythrough) (px_mixer *Px, PxVolume volume);
 };
 
-static int initialize(px_mixer *Px);
-static int cleanup(px_mixer *Px);
-
 static void close_mixer(px_mixer *Px);
 static int get_num_mixers(px_mixer *Px);
 static const char *get_mixer_name(px_mixer *Px, int i);

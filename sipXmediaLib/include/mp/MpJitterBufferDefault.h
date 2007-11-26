@@ -46,8 +46,8 @@ public:
       MAX_RTP_PACKETS = 64,  ///< MUST BE A POWER OF 2, AND SHOULD BE >3
       MAX_STATISTICS_SAMPLES = 500,
       FEW_STATISTICS_SAMPLES = 10,
-      MIN_PREFETCH_COUNT = 4,
-      MAX_PREFETCH_COUNT = 24
+      MIN_PREFETCH_COUNT = 8,
+      MAX_PREFETCH_COUNT = 30
    };
 
    /* ============================ CREATORS ================================== */
@@ -56,9 +56,13 @@ public:
 
    MpJitterBufferDefault(const UtlString& name,
       int payloadType,
-      unsigned int frameSize,
+      unsigned int frameSize, // size of our internal frames
       bool bUsePrefetch = true,
-      unsigned int initialPrefetchCount = 4);
+      unsigned int initialPrefetchCount = 6,
+      bool bDoPLC = false,
+      unsigned int maxConcealedFrames = 0,
+      bool bAutodetectPtime = true,
+      unsigned int ptime = 640); // how much rtp seq of inbound frames will increment
 
    /**
    * Jitter buffer destructor. Will free internal resources.
@@ -114,6 +118,7 @@ private:
    {
       unsigned int m_totalHits;
       unsigned int m_total2ndHits;
+      unsigned int m_totalPLCHits;
       unsigned int m_totalNormalUnderflows;
       unsigned int m_totalPrefetchUnderflows;
       unsigned int m_totalPulls;
@@ -130,6 +135,7 @@ private:
       : m_totalPulls(0)
       , m_totalHits(0)
       , m_total2ndHits(0)
+      , m_totalPLCHits(0)
       , m_totalNormalUnderflows(0)
       , m_totalPrefetchUnderflows(0)
       , m_totalPushCollisions(0)
@@ -161,6 +167,13 @@ private:
    int m_lastPushed;   ///< Index of the last inserted packet.
 
    MpRtpBufPtr m_pPackets[MAX_RTP_PACKETS];   ///< Buffer for incoming RTP packets
+   bool m_bAutodetectPtime; // whether ptime should be automatically detected
+   bool m_bDoPLC; ///< whether PLC is enabled, must be disabled for RFC 2833
+   MpRtpBufPtr m_pPLC; ///< 1 RTP frame for PLC purpose
+   unsigned int m_pTime; ///< ptime parameter - by how much timestamp will be incremented in inbound frame
+   unsigned int m_initialPTime;
+   unsigned int m_iPLCCounter; ///< how many times PLC frame was used
+   unsigned int m_iMaxConcealedFrames; ///< maximum number of successive lost frames to conceal
    JitterBufferStatistics m_statistics; ///< jitter buffer statistics
    RtpTimestamp m_internalClock;
    OsMutex m_mutex;

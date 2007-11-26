@@ -55,6 +55,8 @@
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
+#define TEST_TASK_LOAD
+
 #ifdef __pingtel_on_posix__ /* [ */
 #define MPMEDIA_DEF_MAX_MSGS 1000
 #else
@@ -266,9 +268,9 @@ OsStatus MpMediaTask::signalFrameStart(void)
    OsStatus ret = OS_TASK_NOT_STARTED;
    MpMediaTaskMsg* pMsg;
 
-   if (spInstance && spInstance->getFrameStartMsgs() >= 2)
+   if (spInstance && spInstance->m_bTaskOverloaded && spInstance->getFrameStartMsgs() >= 2)
    {
-      // don't post message, as we already have 2
+      // don't post message, as we already have 2 if overloaded
       return OS_SUCCESS;
    }
    
@@ -551,7 +553,7 @@ MpMediaTask::MpMediaTask()
    mpSignalMsgPool(NULL),
    nFrameStartMsgs(0),
    m_pFrameStartCallback(NULL),
-   m_pFrameStartTimer(NULL)
+   m_bTaskOverloaded(FALSE)
 #ifdef _PROFILE /* [ */
    ,
    mStartToEndTime(20, 0, 1000, " %4d", 5),
@@ -574,7 +576,9 @@ MpMediaTask::MpMediaTask()
    }
 #endif
 
-   res = setTimeLimit(DEF_TIME_LIMIT_USECS);
+   double timeLimit = ((1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000000) * 0.7;
+
+   res = setTimeLimit((int)timeLimit);
    assert(res == OS_SUCCESS);
 
    int totalNumBufs = MpMisc.m_pRtpHeadersPool->getNumBlocks() * 2;
@@ -832,6 +836,12 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
 {
    OsStatus         res;
 
+#ifdef TEST_TASK_LOAD
+   OsTime maxAllowedTime(mLimitUsecs*1000);
+   OsTime processingStartTime;
+   OsDateTime::getCurTime(processingStartTime);
+#endif
+
 #ifdef MEDIA_VERBOSE /* [ */
    static int lastmMCnt = -1;
 #endif /* MEDIA_VERBOSE ] */
@@ -1009,6 +1019,22 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
       nFrameStartMsgs--;
    }
    
+#ifdef TEST_TASK_LOAD
+   OsTime processingStopTime;
+   OsDateTime::getCurTime(processingStopTime);
+   if (processingStopTime - processingStartTime > maxAllowedTime)
+   {
+      // signal overload to skip processing frames
+      m_bTaskOverloaded = TRUE;
+   }
+   else
+   {
+      // disable overload flag, we will process even big backlog of frame start signals
+      m_bTaskOverloaded = FALSE;
+   }
+   
+#endif
+
    return TRUE;
 }
 

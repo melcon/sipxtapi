@@ -75,6 +75,13 @@ typedef enum MEDIA_INBOUND_DTMF_MODE
    MEDIA_INBOUND_DTMF_RFC2833
 } MEDIA_INBOUND_DTMF_MODE;
 
+// keep in sync with MP_VOLUME_METER_TYPE
+typedef enum
+{
+   MEDIA_VOLUME_METER_VU = 0,
+   MEDIA_VOLUME_METER_PPM
+} MEDIA_VOLUME_METER_TYPE;
+
 // FORWARD DECLARATIONS
 class CpMediaInterface;
 class SdpCodec;
@@ -406,6 +413,18 @@ public:
    }
 
    virtual OsStatus setAudioOutputBalance(int balance)
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus getAudioOutputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
+                                                     unsigned int& volume) const
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   virtual OsStatus getAudioInputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
+                                                    unsigned int& volume) const
    {
       return OS_NOT_SUPPORTED;
    }
