@@ -14,7 +14,10 @@ Main differences between customized and SIP Foundry version:
   * parallel DNS lookups in Windows. SIP foundry version only supports 1 DNS lookup at time for all threads. For Linux, parallel lookups are untested but can be enabled.
   * support for multiple core processors in media processing library. Multiple audio encoding/decoding threads are supported.
   * in-band DTMF and RFC2833 DTMF decoders, separate play buffer/file notifications, pause/resume playback
-  * adaptive jitter buffer, refactored jitter handling
+  * adaptive jitter buffer (changes size depending on jitter), refactored jitter handling
+  * packet loss concealment (PLC). When it finds a perfect match frame, it will use it to conceal up to 3 missing consecutive frames.
+  * uses portaudio and portmixer projects instead of old internal driver. Uses directsound or windows multimedia in Windows and OSS, Alsa in Linux. Problems in Windows Vista were fixed.
+  * API for getting audio energy - 2 methods are available - VU (Volume Unit) and PPM (Peak Program Meters). There is also API for setting/getting mic/wave/master volume/balance. Both mic & speaker can be muted.
   * very easy to build, no dependencies are required, everything is included
   * more secure code, usage of snprintf, snprintf_s in windows where possible, all old      code was checked and replaced
   * refactored event handling in sipxmedialib and sipxcalllib
