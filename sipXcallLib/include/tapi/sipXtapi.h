@@ -1757,19 +1757,18 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
  * <h3>Transfer Controller (this user agent):</h3>
  *
  * The transfer controller will automatically take the call out of 
- * focus and place it on hold.  Afterwards, the transfer controller
+ * focus. Afterwards, the transfer controller
  * will receive CALLSTATE_TRANSFER_EVENTs indicating the status of
  * the transfer.
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
  * Source Call: CALLSTATE_BRIDGED
- * Source Call: CALLSTATE_HELD
- * Source Call: MEDIA_CAUSE_HOLD
- * Source Call: MEDIA_CAUSE_HOLD
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_RINGING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
+ * Source Call: MEDIA_LOCAL_STOP
+ * Source Call: MEDIA_REMOTE_STOP
  * Source Call: CALLSTATE_DISCONNECTED
  * </pre>
  *
@@ -1779,14 +1778,16 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
  *
  * <h3>Transfer Target (identified by szAddress):</h3>
  *
- * The transferee will go through the normal event progression for an incoming
+ * The transfer target will go through the normal event progression for an incoming
  * call:
  *
  * <pre>
- * New Call: CALLSTATE_NEWCALL
- * New Call: CALLSTATE_OFFERING
- * New Call: CALLSTATE_ALERTING
- * New Call: CALLSTATE_CONNECTED
+ * New Call: CALLSTATE_NEWCALL::CALLSTATE_CAUSE_NORMAL
+ * New Call: CALLSTATE_OFFERING::CALLSTATE_CAUSE_NORMAL
+ * New Call: CALLSTATE_ALERTING::CALLSTATE_CAUSE_NORMAL
+ * New Call: MEDIA_REMOTE_START
+ * New Call: CALLSTATE_CONNECTED::CALLSTATE_CAUSE_NORMAL
+ * New Call: MEDIA_LOCAL_START
  * </pre>
  *
  * If the transfer target rejects the call or fails to answer, the transfer 
@@ -1825,30 +1826,27 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
- * Source Call: CALLSTATE_REMOTE_HELD
- * Source Call: MEDIA_LOCAL_STOP
- * Source Call: MEDIA_REMOTE_STOP
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
+ * Source Call: MEDIA_LOCAL_STOP
+ * Source Call: MEDIA_REMOTE_STOP
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_DISCONNECTED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_DESTROYED
  * </pre>
  *
  * The source call will automatically be disconnected if the transfer is 
- * successful.  Also, if the source call is part of a conference, the call 
+ * successful. Also, if the source call is part of a conference, the call 
  * will automatically be destroyed.  If not part of a conference, the 
  * application must destroy the call using sipxCallDestroy.
  *
  * <pre>
- * Target Call: CALLSTATE_REMOTE_HELD
  * Target Call: MEDIA_LOCAL_STOP
  * Target Call: MEDIA_REMOTE_STOP
  * Target Call: CALLSTATE_DISCONNECTED
  * Target Call: CALLSTATE_DESTROYED
  * </pre>
  * 
- * The target call is remote held as part of the transfer operation.  If the
- * target call is part of a conference, it will automatically be destroyed.
+ * If the target call is part of a conference, it will automatically be destroyed.
  * Otherwise, the application layer is responsible for calling 
  * sipxCallDestroy.
  *
