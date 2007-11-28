@@ -2150,28 +2150,11 @@ UtlBoolean SipConnection::originalCallTransfer(UtlString&  dialString,
             mTargetCallConnectionAddress = dialString;
             mTargetCallId = targetCallId;
 
-            // If the connection is not already on hold, do a hold
-            // first and then do the REFER transfer
-            if(mHoldState == TERMCONNECTION_TALKING || mHoldState == TERMCONNECTION_HOLDING)
-            {
-                mHoldCompleteAction = CpCallManager::CP_BLIND_TRANSFER;
+            // Send a REFER to tell the transferee to
+            // complete a blind transfer
+            doBlindRefer();
 
-                // need to do a remote hold first
-                // Then after that is complete do the REFER
-                if (mHoldState == TERMCONNECTION_TALKING)
-                {
-                    hold();
-                }
-                ret = TRUE;
-            }
-            else
-            {
-                // Send a REFER to tell the transferee to
-                // complete a blind transfer
-                doBlindRefer();
-
-                ret = mIsReferSent;
-            }
+            ret = TRUE;
         }
         else
         {

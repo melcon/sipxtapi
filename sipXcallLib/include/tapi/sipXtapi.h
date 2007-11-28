@@ -1723,8 +1723,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
 
 /**
  * Blind transfer the specified call to another party.  Monitor the
- * TRANSFER state events for details on the transfer attempt.  If the
- * call is not already on hold, the party will be placed on hold.
+ * TRANSFER state events for details on the transfer attempt.
  *
  * Assuming that all parties are using sipXtapi, all of the calls
  * are active (not held), and the transfer works, you should expect the 
@@ -1732,10 +1731,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
  *
  * <h3>Transferee (party being transfered):</h3>
  *
- * The transferee's original call will be placed on remote hold from the 
- * transfer controller and will then put itself on full hold before starting
- * the transfer.  The transfer is implemented as a new call -- this allows
- * the developer to reclaim the original call if the transfer fails.  The 
+ * The transfer is implemented as a new call -- this allows
+ * the developer to reclaim the original call if the transfer fails. The 
  * NEWCALL event will include a cause for of CALLSTATE_CAUSE_TRANSFER and
  * the hAssociatedCall member of the SIPX_CALLSTATE_INFO structure will
  * include the handle of the original call.
@@ -1755,9 +1752,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
  * </pre>
  *
  * After the transfer completes, the application developer must destroy 
- * the original call using sipxCallDestroy.  If the new call fails for
- * any reason, the application layer should resume the original call by
- * taking it off hold.
+ * the original call using sipxCallDestroy.
  *
  * <h3>Transfer Controller (this user agent):</h3>
  *
@@ -1818,9 +1813,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * consult and allow the source (transferee) to participant in the 
  * conversation, create a conference and then transfer one leg to 
  * another.
- *
- * If not already on hold, the transferee (hSourceCall) is placed on 
- * hold as part of the transfer operation.
  *
  * The event sequence may differ slightly depending on whether the calls
  * are part of a conference (attended transfer) or individual calls (semi-

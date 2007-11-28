@@ -1064,13 +1064,6 @@ PtStatus CallManager::transfer(const char* sourceCallId,
                                const char* targetAddress) 
 {
     PtStatus returnCode =  PT_SUCCESS;
-
-
-    // Place connections on hold
-    CpMultiStringMessage sourceHold(CP_HOLD_TERM_CONNECTION, sourceCallId, sourceAddress);
-    postMessage(sourceHold);
-    CpMultiStringMessage targetHold(CP_HOLD_TERM_CONNECTION, targetCallId, targetAddress);
-    postMessage(targetHold);
     
     // Construct the replaces header info
     // SIP alert: this is SIP specific and should not be in CallManager
