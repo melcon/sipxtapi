@@ -23,6 +23,13 @@ Main differences between customized and SIP Foundry version:
   * refactored event handling in sipxmedialib and sipxcalllib
   * based on revision 9963
 
+= Example applications =
+There are several example applications available:
+  * wxCommunicator - feature rich softphone, download from sourceforge, GPL
+  * sipxezphone - basic softphone
+  * SimpleSipxTerm - testing application/crude softphone
+  * PlaceCall - simple application for making calls
+  * ReceiveCall - simple application for receiving calls
 
 = Communication =
 There are several mailinglists available:
