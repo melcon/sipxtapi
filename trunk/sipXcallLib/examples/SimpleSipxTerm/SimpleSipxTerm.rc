@@ -1,0 +1,261 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\SimpleSipxTerm.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\SimpleSipxTerm.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About SimpleSipxTerm"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "SimpleSipxTerm Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2007 - EiSl",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
+END
+
+IDD_SIMPLESIPXTERM_DIALOG DIALOGEX 0, 0, 509, 177
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW | WS_EX_APPWINDOW
+CAPTION "Simple SIP Phone(s) based upon sipXtapi"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Exit...",IDOK,7,154,495,16
+    LISTBOX         IDC_LIST_LOG,7,15,495,134,NOT LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,WS_EX_LEFTSCROLLBAR
+    LTEXT           "Activity Logger...",IDC_STATIC,9,6,54,8
+END
+
+IDD_STARTUP DIALOGEX 0, 0, 137, 166
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "SIP Phone Settings...      (sipXtapi)"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Exit...",IDC_EXIT,5,145,45,15
+    PUSHBUTTON      "Start...",IDC_START,83,145,45,15
+    LTEXT           "Nbr of clients",IDC_STATIC,12,23,55,8
+    GROUPBOX        "Local Settings",IDC_STATIC,5,5,123,65
+    LTEXT           "local SIP port",IDC_STATIC,12,38,50,8
+    LTEXT           "local RT(C)P port",IDC_STATIC,12,54,55,8
+    EDITTEXT        IDC_EB_NRACC,70,20,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EB_SIPPORT,70,36,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EB_RTPPORT,70,52,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    GROUPBOX        "SIP Client / Account Settings",IDC_STATIC,5,75,123,65
+    LTEXT           "Start DNR-range",IDC_STATIC,12,93,54,8
+    EDITTEXT        IDC_EB_STARTDNR,69,90,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "SIP Server IP",IDC_STATIC,11,109,50,8
+    EDITTEXT        IDC_EB_SIPS_IP,69,107,50,12,ES_AUTOHSCROLL
+    LTEXT           "SIP Server port",IDC_STATIC,11,125,50,8
+    EDITTEXT        IDC_EB_SIPS_PORT,69,123,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "(m=4)",IDC_STATIC,107,23,18,8
+END
+
+IDD_SIPPHONE DIALOGEX 0, 0, 142, 179
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "SIP Phone"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "MakeCall",IDC_BUT_MAKECALL,15,65,50,15
+    PUSHBUTTON      "ClearCall",IDC_BUT_CLEARCALL,15,115,50,15
+    PUSHBUTTON      "AnswerCall",IDC_BUT_ANSWERCALL,15,95,50,15
+    GROUPBOX        "Display / Status",IDC_STATIC,5,5,130,37
+    GROUPBOX        "Controls",IDC_STATIC,5,45,130,130
+    PUSHBUTTON      "(Un)HoldCall",IDC_BUT_HOLDCALL,15,135,50,15
+    EDITTEXT        IDC_EB_DEST,75,71,50,12,ES_AUTOHSCROLL
+    LTEXT           "Destination DNR",IDC_STATIC,74,60,54,8
+    EDITTEXT        IDC_EB_DISPLAY_U,10,15,120,12,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EB_DISPLAY_L,10,26,120,12,ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "TransferCall",IDC_BUT_TRANSFERCALL,15,155,50,15
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "FileDescription", "SimpleSipxTerm MFC Application"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "SimpleSipxTerm"
+            VALUE "LegalCopyright", "Copyright (C) 2007"
+            VALUE "OriginalFilename", "SimpleSipxTerm.EXE"
+            VALUE "ProductName", "SimpleSipxTerm Application"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 48
+    END
+
+    IDD_SIMPLESIPXTERM_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 502
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 170
+    END
+
+    IDD_STARTUP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 159
+    END
+
+    IDD_SIPPHONE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 135
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 172
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About SimpleSipxTerm..."
+    IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\SimpleSipxTerm.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
