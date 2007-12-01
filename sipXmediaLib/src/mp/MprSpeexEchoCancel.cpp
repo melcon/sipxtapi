@@ -114,7 +114,7 @@ UtlBoolean MprSpeexEchoCancel::doProcessFrame(MpBufPtr inBufs[],
 
       int echoMsgs = MpMisc.pEchoQ->numMsgs();
       // Try to get a reference frame for echo cancellation.  21 = MAX_SPKR_BUFFERS(12) +
-      if (echoMsgs > 0)
+      if (echoMsgs > MAX_ECHO_QUEUE)
       {
          // Flush queue to prevent old frames being used in echo canceller. We need to 
          // pass echo frame from speaker before it is read from microphone

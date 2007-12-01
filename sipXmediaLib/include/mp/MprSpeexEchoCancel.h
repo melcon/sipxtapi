@@ -53,7 +53,7 @@ class MprSpeexEchoCancel : public MpAudioResource
 public:
 
    enum {
-      MAX_ECHO_QUEUE=1
+      MAX_ECHO_QUEUE=21
    };
 
 /* ============================ CREATORS ================================== */
