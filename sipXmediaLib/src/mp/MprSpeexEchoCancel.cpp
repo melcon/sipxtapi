@@ -37,11 +37,8 @@
 // Constructor
 MprSpeexEchoCancel::MprSpeexEchoCancel(const UtlString& rName,
                                        int samplesPerFrame, int samplesPerSec,
-                                       int filterLength,
-                                       int echoResiduePoolSize)
+                                       int filterLength)
 : MpAudioResource(rName, 1, 1, 1, 2, samplesPerFrame, samplesPerSec)
-, mEchoResiduePool( MpArrayBuf::getHeaderSize() + sizeof(spx_int32_t)*(samplesPerFrame + 1),
-                   echoResiduePoolSize)
 {
    //Initilize Speex Echo state with framesize and number of frames for length of buffer
    mpEchoState = speex_echo_state_init(samplesPerFrame, 
@@ -114,12 +111,12 @@ UtlBoolean MprSpeexEchoCancel::doProcessFrame(MpBufPtr inBufs[],
 
       int echoMsgs = MpMisc.m_pEchoQ->numMsgs();
       // Try to get a reference frame for echo cancellation.  21 = MAX_SPKR_BUFFERS(12) +
-      if (echoMsgs > 0)
+      if (echoMsgs >= MAX_ECHO_QUEUE_SIZE)
       {
          // Flush queue to prevent old frames being used in echo canceller. We need to 
          // pass echo frame from speaker before it is read from microphone
          while ((MpMisc.m_pEchoQ->receive((OsMsg*&) bufferMsg, OsTime::NO_WAIT_TIME) == OS_SUCCESS)
-               && MpMisc.m_pEchoQ->numMsgs() > MAX_ECHO_QUEUE)
+               && MpMisc.m_pEchoQ->numMsgs() > MAX_ECHO_QUEUE_SIZE)
          {
             bufferMsg->releaseMsg();
          }

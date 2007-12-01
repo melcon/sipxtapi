@@ -22,12 +22,7 @@
 
 /// @brief Default filter length (tail length) of AEC filter. See documentation
 /// on MprSpeexEchoCancel::MprSpeexEchoCancel() for more information.
-#define SPEEX_DEFAULT_AEC_FILTER_LENGTH 100
-
-/// @brief Default number of messages, reserved for echo residue. See
-/// documentation on MprSpeexEchoCancel::MprSpeexEchoCancel() for more
-/// information.
-#define SPEEX_DEFAULT_ECHO_RESIDUE_POOL_SIZE 1
+#define SPEEX_DEFAULT_AEC_FILTER_LENGTH 150
 
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -53,7 +48,7 @@ class MprSpeexEchoCancel : public MpAudioResource
 public:
 
    enum {
-      MAX_ECHO_QUEUE=1
+      MAX_ECHO_QUEUE_SIZE = 24, // = (outputstreambufferprefetch + inputstreambufferprefetch)*1.5
    };
 
 /* ============================ CREATORS ================================== */
@@ -61,8 +56,7 @@ public:
      /// Constructor
    MprSpeexEchoCancel(const UtlString& rName,
                       int samplesPerFrame, int samplesPerSec,
-                      int filterLength=SPEEX_DEFAULT_AEC_FILTER_LENGTH,
-                      int echoResiduePoolSize=SPEEX_DEFAULT_ECHO_RESIDUE_POOL_SIZE);
+                      int filterLength=SPEEX_DEFAULT_AEC_FILTER_LENGTH);
      /**<
      *  @param rName - resource name.
      *  @param samplesPerFrame - number of audio samples per frame. It is
@@ -105,8 +99,6 @@ protected:
 private:
    SpeexEchoState *mpEchoState;
    bool            mStartedCanceling;
-   bool            mEchoResidueCurrent;
-   MpBufPool       mEchoResiduePool;
 
    virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
                                      MpBufPtr outBufs[],
