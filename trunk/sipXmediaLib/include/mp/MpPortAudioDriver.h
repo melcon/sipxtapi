@@ -464,6 +464,11 @@ private:
     */
    void resetAsyncStream(MpAudioStreamId stream);
 
+   /**
+    * Checks whether this stream exists.
+    */
+   UtlBoolean isStreamValid(MpAudioStreamId stream) const;
+
    static unsigned int ms_instanceCounter; ///< counter of MpPortAudioDriver instances
    static OsMutex ms_driverMutex; ///< mutex for protection of audio driver calls
    static UtlString ms_driverName; ///< name of driver
