@@ -48,15 +48,17 @@ class MprSpeexEchoCancel : public MpAudioResource
 public:
 
    enum {
-      MAX_ECHO_QUEUE_SIZE = 24, // = (outputstreambufferprefetch + inputstreambufferprefetch)*1.5
+      DEFAULT_ECHO_QUEUE_LATENCY = 24, // = (outputstreambufferprefetch + inputstreambufferprefetch)*1.5
    };
 
 /* ============================ CREATORS ================================== */
 
      /// Constructor
    MprSpeexEchoCancel(const UtlString& rName,
-                      int samplesPerFrame, int samplesPerSec,
-                      int filterLength=SPEEX_DEFAULT_AEC_FILTER_LENGTH);
+                      int samplesPerFrame,
+                      int samplesPerSec,
+                      int filterLength = SPEEX_DEFAULT_AEC_FILTER_LENGTH,
+                      int echoQueueLatency = DEFAULT_ECHO_QUEUE_LATENCY);
      /**<
      *  @param rName - resource name.
      *  @param samplesPerFrame - number of audio samples per frame. It is
@@ -99,6 +101,8 @@ protected:
 private:
    SpeexEchoState *mpEchoState;
    bool            mStartedCanceling;
+   int m_echoQueueLatency; ///< time in ticks until a frame that was played can get to echo canceler
+                           /// through microphone
 
    virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
                                      MpBufPtr outBufs[],

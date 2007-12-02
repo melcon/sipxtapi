@@ -63,6 +63,9 @@
 #include "mp/MprRecorder.h"
 #include "mp/MpTypes.h"
 #include "mp/MpAudioUtils.h"
+#include "mp/MpAudioDriverManager.h"
+#include "mp/MpAudioStreamInfo.h"
+#include "mp/MpAudioDriverBase.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -156,8 +159,10 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    mpBufferRecorder   = new MprBufferRecorder("BufferRecorder",
                                  samplesPerFrame, samplesPerSec);
 #if defined (SPEEX_ECHO_CANCELATION)
+// audio & echo cancelation is enabled
+   int echoQueueLatency = estimateEchoQueueLatency(samplesPerSec, samplesPerFrame);
    mpEchoCancel       = new MprSpeexEchoCancel("SpeexEchoCancel",
-                                 samplesPerFrame, samplesPerSec);
+                                 samplesPerFrame, samplesPerSec, echoQueueLatency);
 #elif defined (SIPX_ECHO_CANCELATION)
    mpEchoCancel       = new MprEchoSuppress("SipxEchoCancel",
                                  samplesPerFrame, samplesPerSec);
@@ -1760,6 +1765,82 @@ UtlBoolean MpCallFlowGraph::isInboundRFC2833DTMFEnabled()
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+int MpCallFlowGraph::estimateEchoQueueLatency(int samplesPerSec,int samplesPerFrame)
+{
+#define BASE_STREAM_LATENCY 16
+#define MIN_DRIVER_LATENCY 4
+
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   int echoQueueLatency = BASE_STREAM_LATENCY;
+
+   if (pAudioManager)
+   {
+      MpAudioStreamId inputStreamId = pAudioManager->getInputAudioStream();
+      MpAudioStreamId outputStreamId = pAudioManager->getOutputAudioStream();
+      MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
+
+      if (pAudioDriver)
+      {
+         if (inputStreamId)
+         {
+            MpAudioStreamInfo streamInfo;
+            OsStatus res = pAudioDriver->getStreamInfo(inputStreamId, streamInfo);
+            if (res == OS_SUCCESS)
+            {
+               double inputLatencySec = streamInfo.getInputLatency(); // input latency in seconds
+               double inputLatencyFrames = inputLatencySec * samplesPerSec / samplesPerFrame;
+               if (inputLatencyFrames == 0)
+               {
+                  // just in case some driver is broken
+                  inputLatencyFrames = MIN_DRIVER_LATENCY;
+               }
+               
+               echoQueueLatency += inputLatencyFrames;
+            }
+            else
+            {
+               echoQueueLatency += MIN_DRIVER_LATENCY;
+            }            
+         }
+         else
+         {
+            echoQueueLatency += MIN_DRIVER_LATENCY;
+         }
+         if (outputStreamId)
+         {
+            MpAudioStreamInfo streamInfo;
+            OsStatus res = pAudioDriver->getStreamInfo(outputStreamId, streamInfo);
+            if (res == OS_SUCCESS)
+            {
+               double outputLatencySec = streamInfo.getOutputLatency(); // input latency in seconds
+               double outputLatencyFrames = outputLatencySec * samplesPerSec / samplesPerFrame;
+               if (outputLatencyFrames == 0)
+               {
+                  // just in case some driver is broken
+                  outputLatencyFrames = MIN_DRIVER_LATENCY;
+               }
+
+               echoQueueLatency += outputLatencyFrames;
+            }
+            else
+            {
+               echoQueueLatency += MIN_DRIVER_LATENCY;
+            }            
+         }
+         else
+         {
+            echoQueueLatency += MIN_DRIVER_LATENCY;
+         }
+      }
+   }
+
+   return echoQueueLatency;
+#else
+   return 1;
+#endif
+}
+
 UtlBoolean MpCallFlowGraph::writeWAVHeader(int handle)
 {
     UtlBoolean retCode = FALSE;
