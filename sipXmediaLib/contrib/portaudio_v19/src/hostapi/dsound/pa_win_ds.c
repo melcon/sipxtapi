@@ -1753,7 +1753,14 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
         /* App support variable framesPerBuffer */
             stream->framesPerDSBuffer = minLatencyFrames;
 
-            stream->streamRepresentation.streamInfo.outputLatency = (double)(minLatencyFrames - 1) / sampleRate;
+            if (outputParameters)
+            {
+               stream->streamRepresentation.streamInfo.outputLatency = (double)(minLatencyFrames - 1) / sampleRate;
+            }
+            if (inputParameters)
+            {
+               stream->streamRepresentation.streamInfo.inputLatency = (double)(minLatencyFrames - 1) / sampleRate;
+            }
         }
         else
         {
@@ -1763,7 +1770,14 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
             numUserBuffers += 1; /* So we have latency worth of buffers ahead of current buffer. */
             stream->framesPerDSBuffer = framesPerBuffer * numUserBuffers;
 
-            stream->streamRepresentation.streamInfo.outputLatency = (double)(framesPerBuffer * (numUserBuffers-1)) / sampleRate;
+            if (outputParameters)
+            {
+               stream->streamRepresentation.streamInfo.outputLatency = (double)(framesPerBuffer * (numUserBuffers-1)) / sampleRate;
+            }
+            if (inputParameters)
+            {
+               stream->streamRepresentation.streamInfo.inputLatency = (double)(framesPerBuffer * (numUserBuffers-1)) / sampleRate;
+            }
         }
 
         {
@@ -1838,6 +1852,7 @@ static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
             */
             
             int bytesPerSample = Pa_GetSampleSize(hostInputSampleFormat);
+
             bytesPerDirectSoundBuffer = stream->framesPerDSBuffer * inputParameters->channelCount * bytesPerSample;
             if( bytesPerDirectSoundBuffer < DSBSIZE_MIN )
             {
