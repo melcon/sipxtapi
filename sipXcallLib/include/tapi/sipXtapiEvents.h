@@ -245,6 +245,7 @@ typedef enum SIPX_CALLSTATE_EVENT
 /**
  * Callstate cause events identify the reason for a Callstate event or 
  * provide more detail.
+ * @note keep synchronized with CP_CALLSTATE_CAUSE
  */
 typedef enum SIPX_CALLSTATE_CAUSE
 {
@@ -649,12 +650,13 @@ typedef enum
 /**
  * Enumeration of possible media event types.  Today, MEDIA_TYPE_AUDIO and
  * MEDIA_TYPE_VIDEO are supported.
+ *
+ * @note keep synchronized with CP_MEDIA_TYPE
  */
 typedef enum
 {
     MEDIA_TYPE_AUDIO = 0,   /**< Audio media event type */
     MEDIA_TYPE_VIDEO,   /**< Video media event type */
-
 } SIPX_MEDIA_TYPE;
 
 

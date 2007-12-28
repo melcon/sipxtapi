@@ -753,6 +753,22 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\include\cp\CpCallLibEvents.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpCallStateEventListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpMediaEventListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpNotificationMsgDef.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
