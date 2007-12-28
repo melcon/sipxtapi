@@ -18,6 +18,7 @@
 // APPLICATION INCLUDES
 #include "tapi/SipXMediaEventListener.h"
 #include "tapi/SipXEvents.h"
+#include "tapi/sipXtapiEvents.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -52,8 +53,8 @@ void SipXMediaEventListener::OnMediaLocalStart( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_LOCAL_START,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -64,8 +65,8 @@ void SipXMediaEventListener::OnMediaLocalStop( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_LOCAL_STOP,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -76,8 +77,8 @@ void SipXMediaEventListener::OnMediaRemoteStart( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_REMOTE_START,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -88,8 +89,8 @@ void SipXMediaEventListener::OnMediaRemoteStop( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_REMOTE_STOP,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -100,8 +101,8 @@ void SipXMediaEventListener::OnMediaRemoteSilent( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_REMOTE_SILENT,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -112,8 +113,8 @@ void SipXMediaEventListener::OnMediaPlayfileStart( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_PLAYFILE_START,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData,
                       event.m_pCookie,
                       event.m_playBufferIndex);
@@ -126,8 +127,8 @@ void SipXMediaEventListener::OnMediaPlayfileStop( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_PLAYFILE_STOP,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData,
                       event.m_pCookie,
                       event.m_playBufferIndex);
@@ -140,8 +141,8 @@ void SipXMediaEventListener::OnMediaPlaybufferStart( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_PLAYBUFFER_START,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData,
                       event.m_pCookie,
                       event.m_playBufferIndex);
@@ -154,8 +155,8 @@ void SipXMediaEventListener::OnMediaPlaybufferStop( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_PLAYBUFFER_STOP,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData,
                       event.m_pCookie,
                       event.m_playBufferIndex);
@@ -168,8 +169,8 @@ void SipXMediaEventListener::OnMediaPlaybackPaused( const CpMediaEvent& event )
       event.m_sSessionCallId,
       event.m_sRemoteAddress,
       MEDIA_PLAYBACK_PAUSED,
-      event.m_Cause,
-      event.m_MediaType,
+      (SIPX_MEDIA_CAUSE)event.m_Cause,
+      (SIPX_MEDIA_TYPE)event.m_MediaType,
       event.m_pEventData,
       event.m_pCookie,
       event.m_playBufferIndex);
@@ -182,8 +183,8 @@ void SipXMediaEventListener::OnMediaPlaybackResumed( const CpMediaEvent& event )
       event.m_sSessionCallId,
       event.m_sRemoteAddress,
       MEDIA_PLAYBACK_RESUMED,
-      event.m_Cause,
-      event.m_MediaType,
+      (SIPX_MEDIA_CAUSE)event.m_Cause,
+      (SIPX_MEDIA_TYPE)event.m_MediaType,
       event.m_pEventData,
       event.m_pCookie,
       event.m_playBufferIndex);
@@ -196,8 +197,8 @@ void SipXMediaEventListener::OnMediaRemoteDTMF( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_REMOTE_DTMF,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -208,8 +209,8 @@ void SipXMediaEventListener::OnMediaDeviceFailure( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_DEVICE_FAILURE,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -220,8 +221,8 @@ void SipXMediaEventListener::OnMediaRemoteActive( const CpMediaEvent& event )
                       event.m_sSessionCallId,
                       event.m_sRemoteAddress,
                       MEDIA_REMOTE_ACTIVE,
-                      event.m_Cause,
-                      event.m_MediaType,
+                      (SIPX_MEDIA_CAUSE)event.m_Cause,
+                      (SIPX_MEDIA_TYPE)event.m_MediaType,
                       event.m_pEventData);
 }
 
@@ -232,8 +233,8 @@ void SipXMediaEventListener::OnMediaRecordingStart(const CpMediaEvent& event)
                      event.m_sSessionCallId,
                      event.m_sRemoteAddress,
                      MEDIA_RECORDING_START,
-                     event.m_Cause,
-                     event.m_MediaType,
+                     (SIPX_MEDIA_CAUSE)event.m_Cause,
+                     (SIPX_MEDIA_TYPE)event.m_MediaType,
                      event.m_pEventData);
 }
 
@@ -244,8 +245,8 @@ void SipXMediaEventListener::OnMediaRecordingStop(const CpMediaEvent& event)
                      event.m_sSessionCallId,
                      event.m_sRemoteAddress,
                      MEDIA_RECORDING_STOP,
-                     event.m_Cause,
-                     event.m_MediaType,
+                     (SIPX_MEDIA_CAUSE)event.m_Cause,
+                     (SIPX_MEDIA_TYPE)event.m_MediaType,
                      event.m_pEventData);
 }
 /* ============================ ACCESSORS ================================= */
