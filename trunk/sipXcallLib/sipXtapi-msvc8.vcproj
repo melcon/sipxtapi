@@ -72,7 +72,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib smime3.lib nss3.lib ssl3.lib libnspr4.lib libplc4.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib smime3.lib nss3.lib ssl3.lib libnspr4.lib libplc4.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapid.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -173,7 +173,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib smime3.lib nss3.lib ssl3.lib libnspr4.lib libplc4.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib smime3.lib nss3.lib ssl3.lib libnspr4.lib libplc4.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapi.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -275,7 +275,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapi.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -379,7 +379,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapid.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Debug&quot;;..\sipXportLib\contrib\pcre\lib"
@@ -475,7 +475,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib usc_speech_codec.lib vm.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib usc_speech_codec.lib vm.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapid.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -576,7 +576,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib usc_speech_codec.lib vm.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib usc_speech_codec.lib vm.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapi.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
