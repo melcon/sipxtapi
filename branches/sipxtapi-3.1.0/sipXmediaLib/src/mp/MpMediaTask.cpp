@@ -100,6 +100,8 @@ MpMediaTask::~MpMediaTask()
    // $$$ need to figure out how to cleanly shut down this task after
    // $$$ unmanaging and destroying all of its flow graphs
 
+   waitUntilShutDown();
+
 #if FRAME_PROCESSING_THREADS > 0
    for (int i = 0; i < FRAME_PROCESSING_THREADS; i++)
    {
