@@ -532,9 +532,11 @@ MpMediaTask::MpMediaTask()
    OsStatus res;
 
 #if FRAME_PROCESSING_THREADS > 0
+   char frameProcessorTaskName[20];
    for (int i = 0; i < FRAME_PROCESSING_THREADS; i++)
    {
-      m_processingThreads[i] = new MpMediaTaskHelper("frameProcessor", NULL, MEDIA_TASK_PRIORITY);
+      SNPRINTF(frameProcessorTaskName, sizeof(frameProcessorTaskName), "FrameProcessor-%d", i);
+      m_processingThreads[i] = new MpMediaTaskHelper(frameProcessorTaskName, NULL, MEDIA_TASK_PRIORITY);
       // start threads
       UtlBoolean res = m_processingThreads[i]->start();
       assert(res);
