@@ -4385,7 +4385,10 @@ UtlBoolean SipConnection::getInitialSdpCodecs(const SipMessage* sdpMessage,
                    localVideoFramerate,
                    matchingVideoFramerate);
 
-      mpMediaInterface->setSrtpParams(matchingSrtpParams);
+      if (mpMediaInterface != NULL)
+      {
+         mpMediaInterface->setSrtpParams(matchingSrtpParams);
+      }
 
       // To be complient with RFC 3264
       if(sdpBody->findValueInField("a", "sendonly"))
