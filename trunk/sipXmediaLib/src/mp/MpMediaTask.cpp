@@ -268,7 +268,11 @@ OsStatus MpMediaTask::signalFrameStart(void)
    OsStatus ret = OS_TASK_NOT_STARTED;
    MpMediaTaskMsg* pMsg;
 
-   if (spInstance && spInstance->m_bTaskOverloaded && spInstance->getFrameStartMsgs() >= 2)
+   if (spInstance &&
+#ifdef TEST_TASK_LOAD
+      spInstance->m_bTaskOverloaded &&
+#endif
+      spInstance->getFrameStartMsgs() >= 2)
    {
       // don't post message, as we already have 2 if overloaded
       return OS_SUCCESS;
