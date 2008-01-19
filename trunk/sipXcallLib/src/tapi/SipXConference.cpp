@@ -598,6 +598,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
             // call can be added, create it with confCallId
             SIPX_RESULT res = sipxCallCreateHelper(pInst,
                hLine,
+               NULL,
                hConf,
                phNewCall,
                confCallId,
