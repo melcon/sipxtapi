@@ -699,8 +699,10 @@ SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall)
 }
 
 // CHECKED
+// either hLine or szLine must be available
 SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                                  const SIPX_LINE hLine,
+                                 const char* szLine,
                                  const SIPX_CONF hConf,
                                  SIPX_CALL* phCall,
                                  const UtlString& sCallId,
@@ -720,16 +722,28 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
    {
       if (phCall)
       {
-         SIPX_LINE_DATA* pLine = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
-
-         if (pLine)
+         // set line URI either by handle, or string
+         UtlString sLineURI;
+         if (hLine != SIPX_LINE_NULL)
+         {
+            SIPX_LINE_DATA* pLine = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
+            if (pLine)
+            {
+               sLineURI = pLine->lineURI.toString();
+               sipxLineReleaseLock(pLine, SIPX_LOCK_READ, stackLogger);
+            }
+         }
+         else
+         {
+            sLineURI = szLine;
+         }
+         
+         // we now must have a valid line URI - should be not null
+         if (!sLineURI.isNull())
          {
             SIPX_CALL_DATA* pData = new SIPX_CALL_DATA();
             // Set line URI in call
-            pData->lineURI = pLine->lineURI.toString();
-            assert(!pData->lineURI.isNull());
-            sipxLineReleaseLock(pLine, SIPX_LOCK_READ, stackLogger);
-
+            pData->lineURI = sLineURI;
             pData->pMutex.acquire();
             UtlBoolean res = gCallHandleMap.allocHandle(*phCall, pData);
 
@@ -816,6 +830,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
    return sr;
 }
 
+
 /*********************************************************************/
 /*       Public call handling functions                              */
 /*********************************************************************/
@@ -823,7 +838,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxCallCreate(const SIPX_INST hInst,
                                         const SIPX_LINE hLine,
-                                        SIPX_CALL*  phCall)
+                                        SIPX_CALL* phCall)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallCreate");
 
@@ -834,9 +849,30 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreate(const SIPX_INST hInst,
 
    if (phCall)
    {
-     rc = sipxCallCreateHelper(hInst, hLine, SIPX_CONF_NULL, phCall);
+      rc = sipxCallCreateHelper(hInst, hLine, NULL, SIPX_CONF_NULL, phCall);
    }
    
+   return rc;
+}
+
+// CHECKED
+SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
+                                                     const char* szLine,
+                                                     SIPX_CALL* phCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallCreateOnLine");
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxCallCreateOnLine hInst=%p szLine=%s phCall=%p",
+      hInst, szLine, phCall);
+
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+
+   if (phCall && szLine)
+   {
+      rc = sipxCallCreateHelper(hInst, SIPX_LINE_NULL, szLine, SIPX_CONF_NULL, phCall);
+   }
+
    return rc;
 }
 

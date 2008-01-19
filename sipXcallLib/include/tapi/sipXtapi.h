@@ -1196,6 +1196,25 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreate(const SIPX_INST hInst,
                                         SIPX_CALL* phCall);
 
 /**
+ * Create a new call for the purpose of creating an outbound connection/call.
+ * As a side effect, a DIALTONE event is fired to simulate the PSTN world.
+ * Generally an application would simulate dialtone in reaction to that
+ * event. Use this function only if you need to dial from a virtual line
+ * that you don't want to register with sipxtapi.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param szLine Arbitrary Line Identity for the outbound call.  The line identity 
+ *        defines the "From" caller-id. If this line is not registered with sipxtapi
+ *        SIPX_LINE_NULL will be returned in all call events associated with this call.
+ * @param phCall Pointer to a call handle.  Upon success, this value is
+ *        replaced with a valid call handle.  Success is determined by
+ *        the SIPX_RESULT result code.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
+                                                     const char* szLine,
+                                                     SIPX_CALL* phCall);
+
+/**
  * Connects an idle call to the designated target address
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 

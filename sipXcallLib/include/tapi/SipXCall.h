@@ -166,12 +166,14 @@ UtlBoolean sipxCallIsRemoveInsteadOfDropSet(SIPX_CALL hCall);
 
 SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                                  const SIPX_LINE hLine,
+                                 const char* szLine,
                                  const SIPX_CONF hConf,
                                  SIPX_CALL* phCall,
                                  const UtlString& sCallId = "",
                                  const UtlString& sSessionCallId = "",
                                  bool bCreateInCallManager = true,
                                  bool bFireDialtone = true);
+
 
 SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall);
 
