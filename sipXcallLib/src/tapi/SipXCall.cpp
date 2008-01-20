@@ -860,10 +860,10 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
                                                      const char* szLine,
                                                      SIPX_CALL* phCall)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallCreateOnLine");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallCreateOnVirtualLine");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallCreateOnLine hInst=%p szLine=%s phCall=%p",
+      "sipxCallCreateOnVirtualLine hInst=%p szLine=%s phCall=%p",
       hInst, szLine, phCall);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
