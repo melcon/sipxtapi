@@ -51,6 +51,7 @@ nobase_include_HEADERS = \
     os/OsFileIteratorBase.h \
     os/OsFileSystem.h \
     os/OsFS.h \
+    os/OsIntPtrMsg.h \
     os/OsIntTypes.h \
     os/OsLock.h \
     os/OsLockingList.h \
@@ -60,6 +61,7 @@ nobase_include_HEADERS = \
     os/OsMsgDispatcher.h \
     os/OsMulticastSocket.h \
     os/OsMutex.h \
+    os/OsMutexC.h \
     os/OsNameDb.h \
     os/OsNameDbInit.h \
     os/OsNatAgentTask.h \
@@ -121,9 +123,11 @@ nobase_include_HEADERS = \
     utl/UtlCrc32.h \
     utl/UtlLink.h \
     utl/UtlContainable.h \
-    utl/UtlCopyableContainable.h \
     utl/UtlContainer.h \
     utl/UtlContainableAtomic.h \
+    utl/UtlCopyableContainable.h \
+    utl/UtlCopyableSList.h \
+    utl/UtlCopyableSortedList.h \
     utl/UtlDateTime.h \
     utl/UtlDList.h \
     utl/UtlDListIterator.h \
@@ -140,14 +144,13 @@ nobase_include_HEADERS = \
     utl/UtlListIterator.h \
     utl/UtlObservable.h \
     utl/UtlObservableImpl.h \
+    utl/UtlPtr.h \
     utl/UtlRegex.h \
     utl/UtlRscStore.h \
     utl/UtlRscTrace.h \
     utl/UtlSList.h \
-    utl/UtlCopyableSList.h \
     utl/UtlSListIterator.h \
     utl/UtlSortedList.h \
-    utl/UtlCopyableSortedList.h \
     utl/UtlString.h \
     utl/UtlVoidPtr.h \
     utl/UtlTokenizer.h \
