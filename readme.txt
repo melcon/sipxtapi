@@ -14,12 +14,12 @@ Linux Build Hints
 Basic requirements:
 - gcc, g++, autoconf, automake, libtool, libssl-dev
 
-Under Debian run 'apt-get install libtool autoconf automake gcc'
+Under Debian run 'apt-get install libtool autoconf automake gcc g++ libssl-dev'
 
 The Linux build has been tested on Debian 4.0r2. Autoconf is required to generate the configure script. Pcre library is mandatory, while cppunit is only required for unittests.
 
 Under FC6: 'yum install pcre-devel cppunit-devel'
-Under Debian: 'apt-get install libpcre3-dev libcppunit-dev libssl-dev gcc g++'
+Under Debian: 'apt-get install libpcre3-dev libcppunit-dev'
 
 Optional dependencies:
 - speex-devel, gsm-devel, doxygen
