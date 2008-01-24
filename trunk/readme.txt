@@ -11,18 +11,33 @@ http://sipx-wiki.calivia.com/index.php/SipXtapi_and_sipXezPhone_Build_Environmen
 
 Linux Build Hints
 =================
-The Linux build has been tested on Fedora Core 6 and Ubuntu 6.10 (Edgy).  Automake and autoconf should do the trick for you.  If you find any missing components, you will need to install those.  See the INSTALL doc in sipXportLib for more info on these dependences.
+Basic requirements:
+- gcc, g++, autoconf, automake, libtool, libssl-dev
+
+Under Debian run 'apt-get install libtool autoconf automake gcc'
+
+The Linux build has been tested on Debian 4.0r2. Autoconf is required to generate the configure script. Pcre library is mandatory, while cppunit is only required for unittests.
 
 Under FC6: 'yum install pcre-devel cppunit-devel'
-Under Ubunutu: 'apt-get install libpcre3-dev libcppunit-dev'.
+Under Debian: 'apt-get install libpcre3-dev libcppunit-dev libssl-dev gcc g++'
 
-In order to build with GSM and Speex codec support you will need to install libgsm (version >= 1.0.10) and libspeex (version >= 1.1) development libraries.  Their presence will be detected during 'configure' stage automatically.  If do NOT want include GSM or Speex support even if appropriate libraries are present, use "--disable-codec-gsm" and "--disable-codec-speex" switch when configuring sipXtackLib, sipXmediaLib and sipXmediaAdapterLib.
+Optional dependencies:
+- speex-devel, gsm-devel, doxygen
 
-Under Ubunutu: 'apt-get install libspeex-dev libgsm1-dev' to install libgsm and libspeex.
+In order to build with GSM and Speex codec support you will need to install libgsm (version >= 1.0.10) and libspeex (version >= 1.2beta2) development libraries.  Their presence will be detected during 'configure' stage automatically.  If do NOT want include GSM or Speex support even if appropriate libraries are present, use "--disable-codec-gsm" and "--disable-codec-speex" switch when configuring sipXtackLib, sipXmediaLib and sipXmediaAdapterLib. Doxygen is required for building html documentation from source code.
+
 Under FC6: 'yum install speex-devel gsm-devel'
    note: you may need to add the linva repository: 
    'rpm -ivh http://rpm.livna.org/livna-release-6.rpm'
+Under Debian: 'apt-get install libgsm1-dev doxygen'
 
+Possible problems:
+If you get the following error during autoreconf then install libtool:
+
+    configure.ac:14: error: possibly undefined macro: AC_PROG_LIBTOOL
+    If this token and others are legitimate, please use m4_pattern_allow.
+    See the Autoconf documentation.
+	    
 1) Build 
 
 cd sipXportLib
