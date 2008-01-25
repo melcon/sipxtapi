@@ -256,7 +256,7 @@ const UtlContainableType Dialog::getContainableType() const
 
 // Constructor
 SipDialogEvent::SipDialogEvent(const char* state, const char* entity)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__),
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL),
      // Generate the initial report with version 1, so we can generate
      // the default report with version 0 in
      // DialogDefaultConstructor::generateDefaultContent (in
@@ -270,7 +270,7 @@ SipDialogEvent::SipDialogEvent(const char* state, const char* entity)
 }
 
 SipDialogEvent::SipDialogEvent(const char* bodyBytes)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__)
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL)
 {
    remove(0);
    append(DIALOG_EVENT_CONTENT_TYPE);

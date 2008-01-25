@@ -46,7 +46,7 @@
 #define HTTP_READ_TIMEOUT_MSECS  30000
 
 HttpConnectionMap* HttpConnectionMap::pInstance = NULL;
-OsBSem HttpConnectionMap::mLock(OsBSem::Q_FIFO, OsBSem::FULL, "", __FILE__);    
+OsBSem HttpConnectionMap::mLock(OsBSem::Q_FIFO, OsBSem::FULL);    
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -183,7 +183,7 @@ HttpConnectionMap::~HttpConnectionMap()
 int HttpConnectionMapEntry::count = 0;
 
 HttpConnectionMapEntry::HttpConnectionMapEntry(const UtlString& name) :
-                                 mLock(OsBSem::Q_FIFO, OsBSem::FULL, __FUNCTION__, __FILE__),
+                                 mLock(OsBSem::Q_FIFO, OsBSem::FULL),
                                  mbInUse(true)
 {
     char nameBuffer[256];

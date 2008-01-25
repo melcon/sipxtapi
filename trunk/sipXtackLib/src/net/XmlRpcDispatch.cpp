@@ -93,7 +93,7 @@ const char* XmlRpcDispatch::DEFAULT_URL_PATH = "/RPC2";
 XmlRpcDispatch::XmlRpcDispatch(int httpServerPort,
                                bool isSecureServer,
                                const char* uriPath)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__)
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL)
 {
     UtlString osBaseUriDirectory ;
 
@@ -137,7 +137,7 @@ XmlRpcDispatch::XmlRpcDispatch(int httpServerPort,
 
 // Copy constructor NOT IMPLEMENTED
 XmlRpcDispatch::XmlRpcDispatch(const XmlRpcDispatch& rXmlRpcDispatch)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__)
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL)
 {
 }
 

@@ -120,7 +120,7 @@ const UtlContainableType Resource::getContainableType() const
 SipResourceList::SipResourceList(const UtlBoolean state,
                                  const char* uri,
                                  const char* type)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__)
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL)
 {
    remove(0);
    append(RESOURCE_LIST_CONTENT_TYPE);
@@ -140,7 +140,7 @@ SipResourceList::SipResourceList(const UtlBoolean state,
 }
 
 SipResourceList::SipResourceList(const char* bodyBytes, const char* type)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__)
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL)
 {
    remove(0);
    append(RESOURCE_LIST_CONTENT_TYPE);
