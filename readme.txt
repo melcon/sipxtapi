@@ -22,14 +22,14 @@ Under FC6: 'yum install pcre-devel cppunit-devel'
 Under Debian: 'apt-get install libpcre3-dev libcppunit-dev'
 
 Optional dependencies:
-- speex-devel, gsm-devel, doxygen
+- speex-devel, gsm-devel, doxygen, graphviz
 
-In order to build with GSM and Speex codec support you will need to install libgsm (version >= 1.0.10) and libspeex (version >= 1.2beta2) development libraries.  Their presence will be detected during 'configure' stage automatically.  If do NOT want include GSM or Speex support even if appropriate libraries are present, use "--disable-codec-gsm" and "--disable-codec-speex" switch when configuring sipXtackLib, sipXmediaLib and sipXmediaAdapterLib. Doxygen is required for building html documentation from source code.
+In order to build with GSM and Speex codec support you will need to install libgsm (version >= 1.0.10) and libspeex (version >= 1.2beta2) development libraries.  Their presence will be detected during 'configure' stage automatically.  If do NOT want include GSM or Speex support even if appropriate libraries are present, use "--disable-codec-gsm" and "--disable-codec-speex" switch when configuring sipXtackLib, sipXmediaLib and sipXmediaAdapterLib. Doxygen is required for building html documentation from source code. With graphviz present, doxygen generates better looking graphs.
 
 Under FC6: 'yum install speex-devel gsm-devel'
    note: you may need to add the linva repository: 
    'rpm -ivh http://rpm.livna.org/livna-release-6.rpm'
-Under Debian: 'apt-get install libgsm1-dev doxygen'
+Under Debian: 'apt-get install libgsm1-dev doxygen graphviz'
 
 Possible problems:
 If you get the following error during autoreconf then install libtool:
