@@ -44,6 +44,8 @@ configure: error: Cannot find dt.jar in expected location. You may try setting t
 	    
 1) Build 
 
+run ./pre_conf.sh to create symlinks for includes
+
 cd sipXportLib
 autoreconf -fi
 ./configure --prefix=/tmp/stage
