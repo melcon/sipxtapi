@@ -37,6 +37,10 @@ If you get the following error during autoreconf then install libtool:
     configure.ac:14: error: possibly undefined macro: AC_PROG_LIBTOOL
     If this token and others are legitimate, please use m4_pattern_allow.
     See the Autoconf documentation.
+
+If you get the following error, install JDK or use --disable-sipviewer flag during configuration:
+
+configure: error: Cannot find dt.jar in expected location. You may try setting the JAVA_HOME environment variable if you haven't already done so
 	    
 1) Build 
 
