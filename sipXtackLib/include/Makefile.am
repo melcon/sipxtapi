@@ -90,7 +90,6 @@ nobase_include_HEADERS =  \
     net/SipUserAgentStateless.h \
     net/SmimeBody.h \
     net/StateChangeNotifier.h \
-    net/TapiMgr.h \
     net/Url.h \
     net/version.h \
     net/XmlRpcBody.h \

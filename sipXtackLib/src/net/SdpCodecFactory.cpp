@@ -44,7 +44,7 @@
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 SdpCodecFactory* SdpCodecFactory::spInstance = NULL;
-OsBSem SdpCodecFactory::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
+OsBSem SdpCodecFactory::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL, "", __FILE__);
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 

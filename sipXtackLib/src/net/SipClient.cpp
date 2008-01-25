@@ -66,7 +66,7 @@ SipClient::SipClient(OsSocket* socket) :
    sipUserAgent(NULL),
    mRemoteViaPort(PORT_NONE),
    mRemoteReceivedPort(PORT_NONE),
-   mSocketLock(OsBSem::Q_FIFO, OsBSem::FULL),
+   mSocketLock(OsBSem::Q_FIFO, OsBSem::FULL, __FUNCTION__, __FILE__),
    mFirstResendTimeoutMs(SIP_DEFAULT_RTT * 4), // for first transaction time out
    mInUseForWrite(0),
    mWaitingList(NULL),
@@ -93,7 +93,7 @@ SipClient::SipClient(OsSocket* socket) :
 
 // Copy constructor
 SipClient::SipClient(const SipClient& rSipClient) 
-    : mSocketLock(OsBSem::Q_FIFO, OsBSem::FULL)
+    : mSocketLock(OsBSem::Q_FIFO, OsBSem::FULL, __FUNCTION__, __FILE__)
 {
 }
 

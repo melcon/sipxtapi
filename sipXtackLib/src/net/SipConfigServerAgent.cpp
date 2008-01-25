@@ -42,7 +42,7 @@
 
 // STATIC VARIABLE INITIALIZATIONS
 SipConfigServerAgent* SipConfigServerAgent::spInstance = NULL ;
-OsBSem SipConfigServerAgent::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
+OsBSem SipConfigServerAgent::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL, "", __FILE__);
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
