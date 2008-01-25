@@ -127,7 +127,7 @@ const UtlContainableType Tuple::getContainableType() const
 
 // Constructor
 SipPresenceEvent::SipPresenceEvent(const char* entity, const char*bodyBytes)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__)
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL)
 {
    remove(0);
    append(PRESENCE_EVENT_CONTENT_TYPE);
