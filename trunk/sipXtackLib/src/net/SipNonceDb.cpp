@@ -205,7 +205,7 @@ UtlString SipNonceDb::nonceSignature(const UtlString& callId,
    return signature;
 }
 
-OsBSem*     SharedNonceDb::spLock       = new OsBSem(OsBSem::Q_PRIORITY, OsBSem::FULL);
+OsBSem*     SharedNonceDb::spLock       = new OsBSem(OsBSem::Q_PRIORITY, OsBSem::FULL, "", __FILE__);
 SipNonceDb* SharedNonceDb::spSipNonceDb = NULL;
 
 SipNonceDb* SharedNonceDb::get()

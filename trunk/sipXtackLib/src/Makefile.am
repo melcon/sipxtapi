@@ -117,7 +117,6 @@ libsipXtack_la_SOURCES =  \
     net/SipUserAgentStateless.cpp \
     net/SmimeBody.cpp \
     net/StateChangeNotifier.cpp \
-    net/TapiMgr.cpp \
     net/Url.cpp \
     net/XmlRpcBody.cpp \
     net/XmlRpcDispatch.cpp \

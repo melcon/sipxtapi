@@ -42,7 +42,7 @@ SipDialogMonitor::SipDialogMonitor(SipUserAgent* userAgent,
                                    int hostPort,
                                    int refreshTimeout,
                                    bool toBePublished)
-   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL)
+   : mLock(OsBSem::Q_PRIORITY, OsBSem::FULL, __FUNCTION__, __FILE__)
 {
    mpUserAgent = userAgent;
    mDomainName = domainName;
