@@ -19,9 +19,10 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CStartupSettingsDlg)
 	enum { IDD = IDD_STARTUP };
-	int		m_NrOfAccounts;
+    CString m_Interface;
 	int		m_RtpPort;
 	int		m_SipPort;
+	int		m_NrOfAccounts;
 	CString	m_SipServerIP;
 	int   	m_SipServerPort;
 	int		m_StartDnr;
@@ -44,6 +45,8 @@ protected:
 	afx_msg void OnExit();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+public:
+    afx_msg void OnBnClickedInfo();
 };
 
 //{{AFX_INSERT_LOCATION}}
