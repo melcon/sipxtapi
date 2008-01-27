@@ -2,11 +2,16 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(sipXtackLib, 2.9, sipx-dev@list.sipfoundry.org)
+AC_INIT(sipXtackLib, 2.9, sipxtapi@googlegroups.com)
 AC_CONFIG_AUX_DIR(config)
 AC_PREFIX_DEFAULT([/usr/local/sipx])
 AM_INIT_AUTOMAKE(foreign)
+
+# Check minimum for automake version
 SFAC_AUTOMAKE_VERSION([1.6])
+
+# Check that we don't have buggy 2.58 autoconf
+CHECK_AUTOCONF
 
 # Configure pkg-config
 PKG_PROG_PKG_CONFIG
@@ -15,7 +20,7 @@ AC_CONFIG_SRCDIR([src/net/SipMessage.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_PROG_LIBTOOL
 
-# Checks for programs.
+# Checks for compilers and preprocessors
 AC_PROG_CXX
 AC_PROG_CC
 
@@ -49,67 +54,43 @@ AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([clock_gettime getcwd gethostbyname gethostname gettimeofday inet_ntoa localtime_r memchr memset mkdir putenv rmdir select setenv socket strchr strdup strerror strrchr strstr strtol strtoul tzset])
 
-# Look for CPPUnit libraries
+# Check for additional libraries
 CHECK_CPPUNIT
-
-# Look for GSM and Speex codecs
-CHECK_GSM
-#CHECK_SPEEX
-
-# Look for SSL libraries
 CHECK_SSL
 
-# sipX dependencies
-SFAC_LIB_PORT
-SFAC_LIB_SDP
+# Look for GSM and Speex codecs
+#CHECK_GSM
+#CHECK_SPEEX
 
+# Adds option for building TLS version
 SFAC_FEATURE_SIP_TLS
 
+# Adds options for doxygen
 ENABLE_DOXYGEN
 AM_CONDITIONAL(DOC, test x$enable_doc = xyes)
-
-## Sipviewer is written in java and compiled w/ant so allow someone
-## w/o java or ant to effectively ignore anything about this
-AC_ARG_ENABLE(sipviewer, 
-  [  --disable-sipviewer       Do not try to compile java based sipviewer program],
-  , enable_sipviewer=yes)
-AM_CONDITIONAL(SIPVIEWER, test x$enable_sipviewer = xyes)
 AM_CONDITIONAL(USE_BLDNO, test x$enable_buildnumber = xyes)
 
-if test x$enable_sipviewer = xyes
-then
-## SIPViewer is only part of project that uses java, so restrict
-## test only if installing sipviewer
-  CHECK_JDK
-  CHECK_ANT
+# Add options for bakefile
+AC_ARG_ENABLE(debug,
+              [  --enable-debug          Enable debugging information],
+              USE_DEBUG="$enableval", USE_DEBUG="no")
+
+if test $USE_DEBUG = yes ; then 
+  DEBUG=1
+  CFLAGS="$CFLAGS -g"
+else
+  DEBUG=0
 fi
+
+AC_BAKEFILE([m4_include(autoconf_inc.m4)])
 
 # named is used in some sipXtackLib tests
 CHECK_NAMED
 
 AC_CONFIG_FILES([
-  Makefile 
+  Makefile
   config/sipXcommon.mak
-  include/Makefile 
-  src/Makefile 
-  bin/Makefile 
-  meta/Makefile 
-  src/test/Makefile
-  examples/Makefile
-  examples/im/Makefile
-  examples/xmlrpc/Makefile
-  syslog2siptrace/Makefile 
-  siplog2siptrace/Makefile
-  sipviewer/Makefile 
-  siptest/Makefile 
-  siptest/src/Makefile 
-  siptest/include/Makefile 
-  siptest/src/siptest/Makefile
-  doc/Makefile  
+  doc/Makefile
 ])
 
 AC_OUTPUT
-
-# autoconf variables like datadir, localstatedir, etc are not resolved until make
-# time, so this allows ant to work immediately after ./configure
-make config.properties
