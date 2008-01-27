@@ -1,0 +1,111 @@
+<?xml version="1.0" ?>
+<!--
+
+   Bakefile for sipXmediaAdapterLib library 
+
+-->
+<makefile>
+
+  <!-- include helper bakefiles -->
+  <include file="presets/simple.bkl"/> 
+
+  <!-- Common sources and headers regardless of platform -->
+  <template id="commonfiles">
+    <!-- List all source files that need to be compiled -->
+		<sources>interface/src/mi/CpAudioDeviceInfo.cpp</sources>
+		<sources>interface/src/mi/CpMediaInterface.cpp</sources>
+		<sources>interface/src/mi/CpMediaInterfaceFactory.cpp</sources>
+		<sources>sipXmediaMediaProcessing/src/CpPhoneMediaInterface.cpp</sources>
+		<sources>sipXmediaMediaProcessing/src/sipXmediaFactoryImpl.cpp</sources>
+
+		<!-- List all header files, these will be added to project -->
+    <headers>interface/include/mi/CpAudioDeviceInfo.h</headers>
+    <headers>interface/include/mi/CpMediaInterface.h</headers>
+    <headers>interface/include/mi/CpMediaInterfaceFactory.h</headers>
+    <headers>interface/include/mi/CpMediaInterfaceFactoryFactory.h</headers>
+    <headers>sipXmediaMediaProcessing/include/CpPhoneMediaInterface.h</headers>
+    <headers>sipXmediaMediaProcessing/include/sipXmediaFactoryImpl.h</headers>
+
+    <!-- Set include directory for compiler, corresponds to -I switch -->
+    <include>sipXmediaMediaProcessing</include>
+    <include>../sipXportLib/include</include>
+    <include>../sipXsdpLib/include</include>
+    <include>../sipXmediaLib/include</include>
+    <include>../sipXcallLib/include</include>
+    <include>../sipXtackLib/include</include>
+    <include>interface/include</include>
+	</template>
+
+  <!-- Windows sources and headers -->
+  <template id="windowsfiles">
+    <!-- List windows source files that need to be compiled -->
+    <!--sources></sources-->
+
+    <!-- List windows header files, these will be added to project -->
+    <!--headers></headers-->
+
+    <include>../sipXportLib/contrib/pcre/include</include>
+	</template>
+
+  <!-- Targets for Linux -->
+  <if cond="FORMAT in ['autoconf','gnu']">
+
+    <!-- Static library target -->
+    <lib id="sipXmediaAdapterLib-static" template="simple,commonfiles">
+      <libname>sipXmediaAdapterLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <!-- Put defines here -->
+      <define>DISABLE_LOCAL_AUDIO</define>
+
+      <!--install-to>$(BINDIR)</install-to-->
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </lib>
+
+    <!-- Shared library target -->
+    <dll id="sipXmediaAdapterLib-shared" template="simple,commonfiles">
+      <dllname>sipXmediaAdapterLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</dllname>
+      <libname>sipXmediaAdapterLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <so_version>3.1.1</so_version>
+      <!-- Put defines here -->
+      <define>DISABLE_LOCAL_AUDIO</define>
+      
+      <!--install-to>$(BINDIR)</install-to-->
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </dll>
+  
+  </if>
+
+  <!-- Targets for Windows -->
+  <if cond="FORMAT in ['msvc6prj','msvs2003prj', 'msvs2005prj', 'msvc']">
+
+    <!-- Library target -->
+    <lib id="sipXmediaAdapterLib" template="simple,commonfiles,windowsfiles">
+      <libname>sipXmediaAdapterLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <!-- Put defines here -->
+      <define>WIN32</define>
+      <define>_LIB</define>
+      <define>xxDISABLE_LOCAL_AUDIO</define>
+      <define>HAVE_GSM</define>
+      <define>HAVE_SPEEX</define>
+      <define>HAVE_ILBC</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1</define>
+      <define>_CRT_SECURE_NO_DEPRECATE</define>
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </lib>
+
+  </if>
+
+</makefile>
