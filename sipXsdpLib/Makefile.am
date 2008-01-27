@@ -34,8 +34,8 @@ LDFLAGS = @LDFLAGS@
 ### Variables: ###
 
 DESTDIR = 
-SIPXSDPLIB_STATIC_CXXFLAGS = $(____DEBUG) -Iinclude -I..\sipXsdpLib\include \
-	-I..\sipXtackLib\include -I..\sipXportLib\include $(CPPFLAGS) $(CXXFLAGS)
+SIPXSDPLIB_STATIC_CXXFLAGS = $(____DEBUG) -Iinclude -I../sipXsdpLib/include \
+	-I../sipXtackLib/include -I../sipXportLib/include $(CPPFLAGS) $(CXXFLAGS)
 SIPXSDPLIB_STATIC_OBJECTS =  \
 	sipXsdpLib_static_Sdp.o \
 	sipXsdpLib_static_SdpMediaLine.o \
@@ -43,8 +43,8 @@ SIPXSDPLIB_STATIC_OBJECTS =  \
 	sipXsdpLib_static_SdpCandidate.o \
 	sipXsdpLib_static_SdpCandidatePair.o \
 	sipXsdpLib_static_SdpHelperResip.o
-SIPXSDPLIB_SHARED_CXXFLAGS = $(____DEBUG) -Iinclude -I..\sipXsdpLib\include \
-	-I..\sipXtackLib\include -I..\sipXportLib\include $(PIC_FLAG) $(CPPFLAGS) \
+SIPXSDPLIB_SHARED_CXXFLAGS = $(____DEBUG) -Iinclude -I../sipXsdpLib/include \
+	-I../sipXtackLib/include -I../sipXportLib/include $(PIC_FLAG) $(CPPFLAGS) \
 	$(CXXFLAGS)
 SIPXSDPLIB_SHARED_OBJECTS =  \
 	sipXsdpLib_shared_Sdp.o \
