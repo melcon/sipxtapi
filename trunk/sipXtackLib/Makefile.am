@@ -37,9 +37,13 @@ LDFLAGS = @LDFLAGS@
 
 DESTDIR = 
 SIPXTACKLIB_STATIC_CFLAGS = $(____DEBUG) -Iinclude -I../sipXportLib/include \
-	-I../sipXsdpLib/include -I../sipXcallLib/include $(CPPFLAGS) $(CFLAGS)
+	-I../sipXsdpLib/include -I../sipXcallLib/include \
+	-DSIP_STACK_VERSION=\"1.3.0\" -DSIPX_CONFDIR=\".\" -DSIPX_LOGDIR=\".\" \
+	$(CPPFLAGS) $(CFLAGS)
 SIPXTACKLIB_STATIC_CXXFLAGS = $(____DEBUG) -Iinclude -I../sipXportLib/include \
-	-I../sipXsdpLib/include -I../sipXcallLib/include $(CPPFLAGS) $(CXXFLAGS)
+	-I../sipXsdpLib/include -I../sipXcallLib/include \
+	-DSIP_STACK_VERSION=\"1.3.0\" -DSIPX_CONFDIR=\".\" -DSIPX_LOGDIR=\".\" \
+	$(CPPFLAGS) $(CXXFLAGS)
 SIPXTACKLIB_STATIC_OBJECTS =  \
 	sipXtackLib_static_HttpBody.o \
 	sipXtackLib_static_HttpMessage.o \
@@ -130,11 +134,13 @@ SIPXTACKLIB_STATIC_OBJECTS =  \
 	sipXtackLib_static_res_query.o \
 	sipXtackLib_static_res_send.o
 SIPXTACKLIB_SHARED_CFLAGS = $(____DEBUG) -Iinclude -I../sipXportLib/include \
-	-I../sipXsdpLib/include -I../sipXcallLib/include $(PIC_FLAG) $(CPPFLAGS) \
-	$(CFLAGS)
+	-I../sipXsdpLib/include -I../sipXcallLib/include \
+	-DSIP_STACK_VERSION=\"1.3.0\" -DSIPX_CONFDIR=\".\" -DSIPX_LOGDIR=\".\" \
+	$(PIC_FLAG) $(CPPFLAGS) $(CFLAGS)
 SIPXTACKLIB_SHARED_CXXFLAGS = $(____DEBUG) -Iinclude -I../sipXportLib/include \
-	-I../sipXsdpLib/include -I../sipXcallLib/include $(PIC_FLAG) $(CPPFLAGS) \
-	$(CXXFLAGS)
+	-I../sipXsdpLib/include -I../sipXcallLib/include \
+	-DSIP_STACK_VERSION=\"1.3.0\" -DSIPX_CONFDIR=\".\" -DSIPX_LOGDIR=\".\" \
+	$(PIC_FLAG) $(CPPFLAGS) $(CXXFLAGS)
 SIPXTACKLIB_SHARED_OBJECTS =  \
 	sipXtackLib_shared_HttpBody.o \
 	sipXtackLib_shared_HttpMessage.o \
