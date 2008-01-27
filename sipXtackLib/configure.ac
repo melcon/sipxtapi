@@ -58,6 +58,9 @@ AC_CHECK_FUNCS([clock_gettime getcwd gethostbyname gethostname gettimeofday inet
 CHECK_CPPUNIT
 CHECK_SSL
 
+# Define additional compiler flags for pingtel code
+SFAC_INIT_FLAGS
+
 # Look for GSM and Speex codecs
 #CHECK_GSM
 #CHECK_SPEEX
