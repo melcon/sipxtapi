@@ -2,17 +2,22 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(sipXsdpLib, 2.9, sipx-dev@list.sipfoundry.org)
+AC_INIT(sipXsdpLib, 2.9, sipxtapi@googlegroups.com)
 AC_CONFIG_AUX_DIR(config)
 AC_PREFIX_DEFAULT([/usr/local/sipx])
 AM_INIT_AUTOMAKE(foreign)
+
+# Check minimum for automake version
 SFAC_AUTOMAKE_VERSION([1.6])
+
+# Check that we don't have buggy 2.58 autoconf
+CHECK_AUTOCONF
 
 AC_CONFIG_SRCDIR([src/sdp/Sdp.cpp])
 AM_CONFIG_HEADER([config.h])
 AC_PROG_LIBTOOL
 
-# Checks for programs.
+# Checks for compilers and preprocessors
 AC_PROG_CXX
 AC_PROG_CC
 
@@ -22,7 +27,7 @@ AC_PROG_CC
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([limits.h arpa/inet.h fcntl.h malloc.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h malloc.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -46,30 +51,39 @@ AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([clock_gettime getcwd gethostbyname gethostname gettimeofday inet_ntoa localtime_r memchr memset mkdir putenv rmdir select setenv socket strchr strdup strerror strrchr strstr strtol strtoul tzset])
 
+# Check for additional libraries
 CHECK_CPPUNIT
 CHECK_SSL
 
-# sipX dependencies
-SFAC_LIB_PORT
+# Define additional compiler flags for pingtel code
+SFAC_INIT_FLAGS
 
+# Adds option for building TLS version
 SFAC_FEATURE_SIP_TLS
 
+# Adds options for doxygen
 ENABLE_DOXYGEN
 AM_CONDITIONAL(DOC, test x$enable_doc = xyes)
-
 AM_CONDITIONAL(USE_BLDNO, test x$enable_buildnumber = xyes)
 
+# Add options for bakefile
+AC_ARG_ENABLE(debug,
+              [  --enable-debug          Enable debugging information],
+              USE_DEBUG="$enableval", USE_DEBUG="no")
+
+if test $USE_DEBUG = yes ; then 
+  DEBUG=1
+  CFLAGS="$CFLAGS -g"
+else
+  DEBUG=0
+fi
+
+AC_BAKEFILE([m4_include(autoconf_inc.m4)])
+
 AC_CONFIG_FILES([
-  Makefile 
+  Makefile
   config/sipXcommon.mak
-  include/Makefile 
-  src/Makefile 
-  src/test/Makefile
   doc/Makefile
 ])
 
 AC_OUTPUT
-
-# autoconf variables like datadir, localstatedir, etc are not resolved until make
-# time, so this allows ant to work immediately after ./configure
-make config.properties

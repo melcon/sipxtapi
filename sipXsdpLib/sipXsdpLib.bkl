@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<!--
+
+   Bakefile for sipXsdpLib library 
+
+-->
+<makefile>
+
+  <!-- include helper bakefiles -->
+  <include file="presets/simple.bkl"/> 
+
+  <!-- Common sources and headers regardless of platform -->
+  <template id="commonfiles">
+    <!-- List all source files that need to be compiled -->
+		<sources>src/sdp/Sdp.cpp</sources>
+    <sources>src/sdp/SdpMediaLine.cpp</sources>
+    <sources>src/sdp/SdpCodec.cpp</sources>
+    <sources>src/sdp/SdpCandidate.cpp</sources>
+    <sources>src/sdp/SdpCandidatePair.cpp</sources>
+    <sources>src/sdp/SdpHelperResip.cpp</sources>
+
+		<!-- List all header files, these will be added to project -->
+    <headers>include/sdp/Sdp.h</headers>
+    <headers>include/sdp/SdpMediaLine.h</headers>
+    <headers>include/sdp/SdpCodec.h</headers>
+    <headers>include/sdp/SdpCandidate.h</headers>
+    <headers>include/sdp/SdpCandidatePair.h</headers>
+    <headers>include/sdp/SdpHelperResip.h</headers>
+
+    <!-- Set include directory for compiler, corresponds to -I switch -->
+    <include>include</include>
+    <include>..\sipXsdpLib\include</include>
+    <include>..\sipXtackLib\include</include>
+    <include>..\sipXportLib\include</include>
+	</template>
+
+  <!-- Targets for Linux -->
+  <if cond="FORMAT in ['autoconf','gnu']">
+
+    <!-- Static library target -->
+    <lib id="sipXsdpLib-static" template="simple,commonfiles">
+      <libname>sipXsdpLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <!-- Put defines here -->
+      <!--install-to>$(BINDIR)</install-to-->
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </lib>
+
+    <!-- Shared library target -->
+    <dll id="sipXsdpLib-shared" template="simple,commonfiles">
+      <dllname>sipXsdpLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</dllname>
+      <libname>sipXsdpLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <so_version>2.9.0</so_version>
+      <!-- Put defines here -->
+      <!--install-to>$(BINDIR)</install-to-->
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </dll>
+  
+  </if>
+
+  <!-- Targets for Windows -->
+  <if cond="FORMAT in ['msvc6prj','msvs2003prj', 'msvs2005prj', 'msvc']">
+
+    <!-- Library target -->
+    <lib id="sipXsdpLib" template="simple,commonfiles">
+      <libname>sipXsdpLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <!-- Put defines here -->
+      <define>WIN32</define>
+      <define>_LIB</define>
+      <define>DISABLE_MEM_POOLS</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1</define>
+      <define>_CRT_SECURE_NO_WARNINGS</define>
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </lib>
+
+  </if>
+
+</makefile>
