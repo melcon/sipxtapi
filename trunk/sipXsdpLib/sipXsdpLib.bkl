@@ -29,9 +29,9 @@
 
     <!-- Set include directory for compiler, corresponds to -I switch -->
     <include>include</include>
-    <include>..\sipXsdpLib\include</include>
-    <include>..\sipXtackLib\include</include>
-    <include>..\sipXportLib\include</include>
+    <include>../sipXsdpLib/include</include>
+    <include>../sipXtackLib/include</include>
+    <include>../sipXportLib/include</include>
 	</template>
 
   <!-- Targets for Linux -->
