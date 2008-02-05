@@ -1059,20 +1059,25 @@ void MpMediaTask::startFrameStartTimer()
 {
    if (!ms_bTestMode)
    {
+      OsStatus result = OS_FAILED;
       m_pFrameStartCallback = new OsCallback(0, &signalFrameCallback);
 #ifdef _WIN32
       m_pFrameStartTimer = new MpMMTimerWnt(MpMMTimer::Notification);
       // calculate timer period is microseconds
       double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000000;
       m_pFrameStartTimer->setNotification(m_pFrameStartCallback);
-      m_pFrameStartTimer->run((unsigned)timerPeriod);
+      result = m_pFrameStartTimer->run((unsigned)timerPeriod);
 #else
       m_pFrameStartTimer = new OsTimer(*m_pFrameStartCallback);
       // calculate timer period is milliseconds
       double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000;
 
-      m_pFrameStartTimer->periodicEvery(OsTime(0), OsTime((long)timerPeriod));
+      result = m_pFrameStartTimer->periodicEvery(OsTime(0), OsTime((long)timerPeriod));
 #endif
+      if (result != OS_SUCCESS)
+      {
+         OsSysLog::add(FAC_MP, PRI_ERR, "MpMediaTask::startFrameStartTimer - timer couldn't be started, audio won't work!");
+      }
    }
 }
 
