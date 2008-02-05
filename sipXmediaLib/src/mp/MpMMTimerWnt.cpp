@@ -14,6 +14,7 @@
 #include <os/OsSysLog.h>
 
 // APPLICATION INCLUDES
+#include "os/wnt/OsSystemInfoWnt.h"
 #include "mp/MpMMTimerWnt.h"
 
 // APPLICATION INCLUDES
@@ -121,7 +122,7 @@ OsStatus MpMMTimerWnt::run(unsigned usecPeriodic,
 
 OsStatus MpMMTimerWnt::runMultimedia(unsigned usecPeriodic)
 {
-   OsStatus status = OS_SUCCESS;
+   OsStatus status = OS_FAILED;
 
    if(mbTimerStarted)
    {
@@ -161,31 +162,72 @@ OsStatus MpMMTimerWnt::runMultimedia(unsigned usecPeriodic)
    else
    {
       mPeriodMSec = msecPeriodic;
-      status = OS_SUCCESS;
-      mbTimerStarted = TRUE;
    }
 
    if(mTimerType == Notification)
    {
+      UINT fuEvent = TIME_PERIODIC | TIME_CALLBACK_FUNCTION;
+
+      if (OsSystemInfoWnt::getOsVersion() >= OsSystemInfoWnt::WINDOWS_XP)
+      {
+         fuEvent |= MPMMTIMER_EXTRA_TIMER_OPTIONS;
+      }
+
       mTimerId =
          timeSetEvent(mPeriodMSec, mResolution, 
                       (LPTIMECALLBACK)&MpMMTimerWnt::timeProcCallback,
                       (DWORD)this, 
-                      TIME_PERIODIC | TIME_CALLBACK_FUNCTION |
-                      MPMMTIMER_EXTRA_TIMER_OPTIONS
+                      fuEvent
                       );
+      if (mTimerId)
+      {
+         status = OS_SUCCESS;
+         mbTimerStarted = TRUE;
+      }
+      else
+      {
+         // starting timer failed, probably parameter not supported on given OS
+         status = OS_FAILED;
+      }
    }
    else if(mTimerType == Linear)
    {
       // Create the event.
       mEventHandle = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-      mTimerId = 
-         timeSetEvent(mPeriodMSec, mResolution, (LPTIMECALLBACK)mEventHandle, 
-                      NULL, 
-                      TIME_PERIODIC | TIME_CALLBACK_EVENT_PULSE |
-                      MPMMTIMER_EXTRA_TIMER_OPTIONS
-                      );
+      if (mEventHandle)
+      {
+         UINT fuEvent = TIME_PERIODIC | TIME_CALLBACK_EVENT_PULSE;
+
+         if (OsSystemInfoWnt::getOsVersion() >= OsSystemInfoWnt::WINDOWS_XP)
+         {
+            fuEvent |= MPMMTIMER_EXTRA_TIMER_OPTIONS;
+         }
+
+         mTimerId = 
+            timeSetEvent(mPeriodMSec, mResolution, (LPTIMECALLBACK)mEventHandle, 
+            NULL, 
+            fuEvent
+            );
+
+         if (mTimerId)
+         {
+            status = OS_SUCCESS;
+            mbTimerStarted = TRUE;
+         }
+         else
+         {
+            // starting timer failed, probably parameter not supported on given OS
+            status = OS_FAILED;
+            // cleanup handle
+            CloseHandle(mEventHandle);
+            mEventHandle = 0;
+         }
+      }
+      else
+      {
+         status = OS_FAILED;
+      }
    }
 
    return status;
