@@ -1999,6 +1999,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\os\Wnt\OsSystemInfoWnt.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\os\OsTask.cpp"
 				>
 			</File>
@@ -2685,6 +2689,10 @@
 			</File>
 			<File
 				RelativePath="include\os\OsSysLogTask.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\wnt\OsSystemInfoWnt.h"
 				>
 			</File>
 			<File
