@@ -288,6 +288,7 @@
     <sources>src/os/Wnt/OsProcessIteratorWnt.cpp</sources>
     <sources>src/os/Wnt/OsProcessWnt.cpp</sources>
     <sources>src/os/Wnt/OsSharedLibMgrWnt.cpp</sources>
+    <sources>src/os/Wnt/OsSystemInfoWnt.cpp</sources>
     <sources>src/os/Wnt/OsTaskWnt.cpp</sources>
     <sources>src/os/Wnt/OsTimerMessage.cpp</sources>
     <sources>src/os/Wnt/OsUtilWnt.cpp</sources>
@@ -308,6 +309,7 @@
     <headers>include/os/wnt/OsProcessIteratorWnt.h</headers>
     <headers>include/os/wnt/OsProcessWnt.h</headers>
     <headers>include/os/wnt/OsSharedLibMgrWnt.h</headers>
+    <headers>include/os/wnt/OsSystemInfoWnt.h</headers>
     <headers>include/os/wnt/OsTaskWnt.h</headers>
     <headers>include/os/wnt/OsUtilWnt.h</headers>
     <headers>include/os/wnt/WIndowsAdapterInfo.h</headers>
