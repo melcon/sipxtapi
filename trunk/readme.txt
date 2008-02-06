@@ -66,13 +66,13 @@ cd ..
 
 cd sipXmediaLib
 autoreconf -fi
-./configure --prefix=/tmp/stage --enable-local-audio [--disable-codec-gsm] [--disable-codec-speex]
+./configure --prefix=/tmp/stage [--disable-local-audio] [--disable-codec-gsm] [--disable-codec-speex]
 make;make install
 cd ..
 
 cd sipXmediaAdapterLib
 autoreconf -fi
-./configure --prefix=/tmp/stage [--disable-codec-gsm] [--disable-codec-speex]
+./configure --prefix=/tmp/stage [--disable-local-audio] [--disable-codec-gsm] [--disable-codec-speex]
 make;make install
 cd ..
 
