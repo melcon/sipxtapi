@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<!--
+
+   Bakefile for sipXcallLib library 
+
+-->
+<makefile>
+
+  <!-- include helper bakefiles -->
+  <include file="presets/simple.bkl"/> 
+
+  <!-- Common sources and headers regardless of platform -->
+  <template id="commonfiles">
+    <!-- List all source files that need to be compiled -->
+		<sources>src/cp/CallManager.cpp</sources>
+		<sources>src/cp/Connection.cpp</sources>
+		<sources>src/cp/CpCall.cpp</sources>
+		<sources>src/cp/CpCallIdGenerator.cpp</sources>
+		<sources>src/cp/CpCallManager.cpp</sources>
+		<sources>src/cp/CpGhostConnection.cpp</sources>
+		<sources>src/cp/CpIntMessage.cpp</sources>
+		<sources>src/cp/CpMultiStringMessage.cpp</sources>
+		<sources>src/cp/CpPeerCall.cpp</sources>
+		<sources>src/cp/CSeqManager.cpp</sources>
+		<sources>src/cp/SipConnection.cpp</sources>
+
+		<!-- List all header files, these will be added to project -->
+		<headers>include/cp/CallManager.h</headers>
+		<headers>include/cp/Connection.h</headers>
+		<headers>include/cp/CpCall.h</headers>
+		<headers>include/cp/CpCallIdGenerator.h</headers>
+		<headers>include/cp/CpCallManager.h</headers>
+		<headers>include/cp/CpCallStateEventListener.h</headers>
+		<headers>include/cp/CpDefs.h</headers>
+		<headers>include/cp/CpGhostConnection.h</headers>
+		<headers>include/cp/CpIntMessage.h</headers>
+		<headers>include/cp/CpMediaEventListener.h</headers>
+		<headers>include/cp/CpMultiStringMessage.h</headers>
+		<headers>include/cp/CpNotificationMsgDef.h</headers>
+		<headers>include/cp/CpPeerCall.h</headers>
+		<headers>include/cp/CSeqManager.h</headers>
+		<headers>include/cp/SipConnection.h</headers>
+
+    <!-- Set include directory for compiler, corresponds to -I switch -->
+    <include>include</include>
+    <include>../sipXportLib/include</include>
+    <include>../sipXsdpLib/include</include>
+    <include>../sipXtackLib/include</include>
+    <include>../sipXmediaLib/include</include>
+    <include>../sipXmediaAdapterLib/interface/include</include>
+	</template>
+
+  <!-- Windows sources and headers -->
+  <template id="windowsfiles">
+    <!-- List windows source files that need to be compiled -->
+    <!--sources></sources-->
+
+    <!-- List windows header files, these will be added to project -->
+    <!--headers></headers-->
+
+    <include>../sipXportLib/contrib/pcre/include</include>
+	</template>
+
+  <!-- Targets for Linux -->
+  <if cond="FORMAT in ['autoconf','gnu']">
+
+    <!-- Static library target -->
+    <lib id="sipXcallLib-static" template="simple,commonfiles">
+      <libname>sipXcallLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <!-- Put defines here -->
+      <!--define></define-->
+
+      <!--install-to>$(BINDIR)</install-to-->
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </lib>
+
+    <!-- Shared library target -->
+    <dll id="sipXcallLib-shared" template="simple,commonfiles">
+      <dllname>sipXcallLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</dllname>
+      <libname>sipXcallLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <so_version>3.1.1</so_version>
+      <!-- Put defines here -->
+      <!--define></define-->
+      
+      <!--install-to>$(BINDIR)</install-to-->
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </dll>
+  
+  </if>
+
+  <!-- Targets for Windows -->
+  <if cond="FORMAT in ['msvc6prj','msvs2003prj', 'msvs2005prj', 'msvc']">
+
+    <!-- Library target -->
+    <lib id="sipXcallLib" template="simple,commonfiles,windowsfiles">
+      <libname>sipXcallLib$(substituteFromDict(DEBUG,{'1':'d','0':''}))</libname>
+
+      <!-- Put defines here -->
+      <define>WIN32</define>
+      <define>_LIB</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1</define>
+      <define>_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1</define>
+      <define>_CRT_SECURE_NO_DEPRECATE</define>
+
+      <threading>multi</threading>
+      <cxx-rtti>on</cxx-rtti>
+      <cxx-exceptions>on</cxx-exceptions>
+    </lib>
+
+  </if>
+
+</makefile>
