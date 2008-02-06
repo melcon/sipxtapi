@@ -213,8 +213,8 @@ void SdpCandidatePair::resetPriority()
 {
    uint64_t offererPriority = mOfferer == OFFERER_LOCAL ? mLocalCandidate.getPriority() : mRemoteCandidate.getPriority();
    uint64_t answererPriority = mOfferer == OFFERER_LOCAL ? mRemoteCandidate.getPriority() : mLocalCandidate.getPriority();
-   mPriority = (sipx_min(offererPriority, answererPriority) << 32) |
-               (sipx_max(offererPriority, answererPriority) << 1) |
+   mPriority = (min(offererPriority, answererPriority) << 32) |
+               (max(offererPriority, answererPriority) << 1) |
                (offererPriority > answererPriority ? 1 : 0);
 }
 
