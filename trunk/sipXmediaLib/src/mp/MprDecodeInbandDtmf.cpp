@@ -14,7 +14,7 @@
 #endif
 
 // APPLICATION INCLUDES
-#include "mp/MprDecodeInBandDtmf.h"
+#include "mp/MprDecodeInbandDtmf.h"
 #include "mp/MpRtpInputAudioConnection.h"
 #include "mp/MpResNotification.h"
 #include "mp/MprRecorder.h"
