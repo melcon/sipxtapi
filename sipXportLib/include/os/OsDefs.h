@@ -95,12 +95,12 @@
 #endif
 
 /* Define min and max if they're not already defined. */
-#ifndef sipx_max
-#  define sipx_max(x,y) (((x)>(y))?(x):(y))
+#ifndef max
+#  define max(x,y) (((x)>(y))?(x):(y))
 #endif 
 
-#ifndef sipx_min
-#  define sipx_min(x,y) (((x)<(y))?(x):(y))
+#ifndef min
+#  define min(x,y) (((x)<(y))?(x):(y))
 #endif 
 
 /* APPLICATION INCLUDES  */
