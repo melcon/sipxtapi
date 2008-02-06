@@ -70,6 +70,16 @@ ENABLE_DOXYGEN
 AM_CONDITIONAL(DOC, test x$enable_doc = xyes)
 AM_CONDITIONAL(USE_BLDNO, test x$enable_buildnumber = xyes)
 
+# Disable local audio support (microphone / speaker)
+AC_ARG_ENABLE(local-audio,
+[  --disable-local-audio    Disable local audio (speaker and microphone)],
+[ case "${enableval}" in
+  yes) disable_local_audio=true ;;
+  no) disable_local_audio=false ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --disable-local-audio) ;;
+esac],[disable_local_audio=false])
+AM_CONDITIONAL(DISABLE_LOCAL_AUDIO, test x$disable_local_audio = xtrue)
+
 # Add options for bakefile
 AC_ARG_ENABLE(debug,
               [  --enable-debug          Enable debugging information],
