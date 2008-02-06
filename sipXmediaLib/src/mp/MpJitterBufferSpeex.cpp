@@ -4,6 +4,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef HAVE_SPEEX
+
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
@@ -173,3 +175,4 @@ int MpJitterBufferSpeex::getBufferLength()
 
 /* ============================ FUNCTIONS ================================= */
 
+#endif // HAVE_SPEEX

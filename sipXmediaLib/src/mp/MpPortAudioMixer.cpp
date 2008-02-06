@@ -4,6 +4,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef DISABLE_LOCAL_AUDIO
+
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlDefs.h>
@@ -339,3 +341,5 @@ MpPortAudioMixer::MpPortAudioMixer()
 }
 
 /* ============================ FUNCTIONS ================================= */
+
+#endif // DISABLE_LOCAL_AUDIO

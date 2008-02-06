@@ -4,6 +4,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef DISABLE_LOCAL_AUDIO
+
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <assert.h>
@@ -673,3 +675,4 @@ int MpPortAudioStream::getOutputBufferFrameCount()
 /* ============================ FUNCTIONS ================================= */
 
 
+#endif // DISABLE_LOCAL_AUDIO

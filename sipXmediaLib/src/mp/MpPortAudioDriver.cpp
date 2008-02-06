@@ -4,6 +4,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef DISABLE_LOCAL_AUDIO
+
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
@@ -961,4 +963,4 @@ UtlBoolean MpPortAudioDriver::isStreamValid(MpAudioStreamId stream) const
 
 /* ============================ FUNCTIONS ================================= */
 
-
+#endif // DISABLE_LOCAL_AUDIO
