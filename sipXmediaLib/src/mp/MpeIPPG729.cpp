@@ -15,6 +15,7 @@
 
 #include "assert.h"
 // APPLICATION INCLUDES
+#include "winsock2.h"
 #include "mp/MpeIPPG729.h"
 
 extern "C" {
@@ -65,13 +66,13 @@ OsStatus MpeIPPG729::initEncode(void)
    }
 
    // Get USC codec params
-   lCallResult = USCCodecAllocInfo(&codec->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec->uscParams);
+   lCallResult = USCCodecGetInfo(&codec->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
@@ -85,7 +86,7 @@ OsStatus MpeIPPG729::initEncode(void)
    }
 
    // Set params for encode
-   codec->uscParams.pInfo->params.direction = 0;
+   codec->uscParams.pInfo->params.direction = USC_ENCODE;
    codec->uscParams.pInfo->params.law = 0;
    codec->uscParams.nChannels = 1;
 
@@ -97,7 +98,7 @@ OsStatus MpeIPPG729::initEncode(void)
    }
 
    // Init decoder
-   lCallResult = USCEncoderInit(&codec->uscParams, NULL);
+   lCallResult = USCEncoderInit(&codec->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;  
