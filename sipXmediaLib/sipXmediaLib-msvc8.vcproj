@@ -381,7 +381,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2beta2\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;C:\work\IPP\5.1\ia32\include;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\codec\include&quot;;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\include&quot;;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include"
-				PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_INTEL_IPP;_DEBUG;WIN32;_LIB;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_INTEL_IPP;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO"
 				StringPooling="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -543,7 +543,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2beta2\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;C:\work\IPP\5.1\ia32\include;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\codec\include&quot;;&quot;c:\work\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\include&quot;;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include"
-				PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;xxHAVE_ILBC;HAVE_INTEL_IPP;NDEBUG;WIN32;_LIB;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_INTEL_IPP;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -1514,6 +1514,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdIPPG7231.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpdIPPG729.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdPtAVT.cpp"
 					>
 				</File>
@@ -1539,6 +1547,14 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpDspUtils.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPG7231.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPG729.cpp"
 					>
 				</File>
 				<File
@@ -2087,6 +2103,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdIPPG7231.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpdIPPG729.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdPtAVT.h"
 					>
 				</File>
@@ -2124,6 +2148,14 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpDspUtilsSum.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPG7231.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPG729.h"
 					>
 				</File>
 				<File
