@@ -20,7 +20,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpDecoderBase.h"
-#include "jb/jb_typedefs.h"
 
 extern "C" {
 #include "usc.h"
@@ -96,7 +95,6 @@ public:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    static const MpCodecInfo smCodecInfo;  ///< static information about the codec
-   JB_inst* mpJBState;
 
    LoadedCodec *codec;          ///< Loaded codec info
 

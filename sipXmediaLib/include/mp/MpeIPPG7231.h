@@ -20,7 +20,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpEncoderBase.h"
-#include "jb/jb_typedefs.h"
 
 extern "C" {
 #include "usc.h"

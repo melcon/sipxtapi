@@ -23,7 +23,6 @@
 
 // APPLICATION INCLUDES
 #include "mp/MpdIPPG729.h"
-#include "mp/JB/JB_API.h"
 
 extern "C" {
 #include "ippcore.h"
@@ -50,7 +49,6 @@ const MpCodecInfo MpdIPPG729::smCodecInfo(
 
 MpdIPPG729::MpdIPPG729(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
-, mpJBState(NULL)
 {
    codec = (LoadedCodec*)malloc(sizeof(LoadedCodec));
 }
