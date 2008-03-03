@@ -86,20 +86,20 @@ OsStatus MpdIPPG729::initDecode()
    }
 
    // Get USC codec params
-   lCallResult = USCCodecAllocInfo(&codec->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec->uscParams);
+   lCallResult = USCCodecGetInfo(&codec->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
    // Set params for decode
-   codec->uscParams.pInfo->params.direction = 1;
+   codec->uscParams.pInfo->params.direction = USC_DECODE;
    codec->uscParams.pInfo->params.law = 0;
    codec->uscParams.nChannels = 1;
 
@@ -116,7 +116,7 @@ OsStatus MpdIPPG729::initDecode()
    }
 
    // Init decoder
-   lCallResult = USCDecoderInit(&codec->uscParams, NULL);
+   lCallResult = USCDecoderInit(&codec->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED; 

@@ -89,38 +89,38 @@ OsStatus MpdIPPG7231::initDecode()
    }
 
    // Get USC codec params
-   lCallResult = USCCodecAllocInfo(&codec6300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecAllocInfo(&codec5300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec5300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec6300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec5300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec5300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
    // Set params for decode
-   codec6300->uscParams.pInfo->params.direction = 1;
+   codec6300->uscParams.pInfo->params.direction = USC_DECODE;
    codec6300->uscParams.pInfo->params.law = 0;
    codec6300->uscParams.nChannels = 1;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
    codec6300->uscParams.pInfo->params.modes.vad =1;
 
-   codec5300->uscParams.pInfo->params.direction = 1;
+   codec5300->uscParams.pInfo->params.direction = USC_DECODE;
    codec5300->uscParams.pInfo->params.law = 0;
    codec5300->uscParams.nChannels = 1;
    codec5300->uscParams.pInfo->params.modes.bitrate = 5300;
@@ -140,13 +140,13 @@ OsStatus MpdIPPG7231::initDecode()
    }
 
    // Init decoder
-   lCallResult = USCDecoderInit(&codec6300->uscParams, NULL);
+   lCallResult = USCDecoderInit(&codec6300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCDecoderInit(&codec5300->uscParams, NULL);
+   lCallResult = USCDecoderInit(&codec5300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;

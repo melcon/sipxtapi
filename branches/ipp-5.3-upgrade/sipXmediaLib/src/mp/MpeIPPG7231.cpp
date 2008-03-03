@@ -16,6 +16,7 @@
 
 #include "assert.h"
 // APPLICATION INCLUDES
+#include "winsock2.h"
 #include "mp/MpeIPPG7231.h"
 
 extern "C" {
@@ -79,25 +80,25 @@ OsStatus MpeIPPG7231::initEncode(void)
    }
 
    // Get USC codec params
-   lCallResult = USCCodecAllocInfo(&codec6300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecAllocInfo(&codec5300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec5300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec6300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec5300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec5300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
@@ -117,13 +118,13 @@ OsStatus MpeIPPG7231::initEncode(void)
    }
 
    // Set params for encode
-   codec6300->uscParams.pInfo->params.direction = 0;
+   codec6300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec6300->uscParams.pInfo->params.law = 0;
    codec6300->uscParams.nChannels = 1;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
    codec6300->uscParams.pInfo->params.modes.vad = 1;    
 
-   codec5300->uscParams.pInfo->params.direction = 0;
+   codec5300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec5300->uscParams.pInfo->params.law = 0;
    codec5300->uscParams.nChannels = 1;
    codec5300->uscParams.pInfo->params.modes.bitrate = 5300;
@@ -143,13 +144,13 @@ OsStatus MpeIPPG7231::initEncode(void)
    }
 
    // Init decoder
-   lCallResult = USCEncoderInit(&codec6300->uscParams, NULL);
+   lCallResult = USCEncoderInit(&codec6300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCEncoderInit(&codec5300->uscParams, NULL);
+   lCallResult = USCEncoderInit(&codec5300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
