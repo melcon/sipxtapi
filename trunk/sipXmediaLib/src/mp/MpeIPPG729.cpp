@@ -16,7 +16,6 @@
 #include "assert.h"
 // APPLICATION INCLUDES
 #include "mp/MpeIPPG729.h"
-#include "mp/JB/JB_API.h"
 
 extern "C" {
 #include "ippcore.h"

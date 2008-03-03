@@ -15,7 +15,6 @@
 
 // APPLICATION INCLUDES
 #include "mp/MpdIPPG7231.h"
-#include "mp/JB/JB_API.h"
 
 extern "C" {
 #include "ippcore.h"
