@@ -102,6 +102,7 @@
 #define HTTP_AUTHENTICATION_QOP_TOKEN  "qop"
 #   define HTTP_QOP_AUTH "auth"
 #   define HTTP_QOP_AUTH_INTEGRITY "auth-int"
+#define HTTP_AUTHENTICATION_STALE_TOKEN  "stale"
 #define HTTP_AUTHENTICATION_USERNAME_TOKEN  "username"
 #define HTTP_AUTHENTICATION_URI_TOKEN       "uri"
 #define HTTP_AUTHENTICATION_RESPONSE_TOKEN  "response"
@@ -540,7 +541,8 @@ public:
                                     UtlString* opaque,
                                     UtlString* algorithm, // MD5 or MD5-sess
                                     UtlString* qop, // may be multiple values
-                                    int authorizationEntity) const;
+                                    int authorizationEntity,
+                                    UtlString* stale = NULL) const; // whether nonce is stale
 
     void setAuthenticationData(const char* scheme, const char* realm,
                                 const char* nonce, const char* opaque,
@@ -606,8 +608,9 @@ public:
                                          UtlString* opaque = NULL,
                                          UtlString* response = NULL,
                                          UtlString* uri = NULL,
-                                                                                 int authorizationEntity = HttpMessage::PROXY ,
-                                         int index = 0) const;
+                                         int authorizationEntity = HttpMessage::PROXY ,
+                                         int index = 0,
+                                         UtlString* stale = NULL) const;
 
     static void buildMd5UserPasswordDigest(const char* user,
                                            const char* realm,
