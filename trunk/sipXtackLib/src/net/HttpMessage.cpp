@@ -2581,7 +2581,8 @@ UtlBoolean HttpMessage::getAuthenticationData(UtlString* scheme,
                                              UtlString* opaque,
                                              UtlString* algorithm, // MD5 or MD5-sess
                                              UtlString* qop, // may be multiple values
-                                             int authorizationEntity) const
+                                             int authorizationEntity,
+                                             UtlString* stale) const
 {
     const char* fieldValue = NULL;
     if(authorizationEntity == SERVER)
@@ -2604,6 +2605,7 @@ UtlBoolean HttpMessage::getAuthenticationData(UtlString* scheme,
         if(opaque) opaque->remove(0);
         if(algorithm) algorithm->remove(0);
         if(qop) qop->remove(0);
+        if(stale) stale->remove(0);
 
         tokenizer.getNextAttribute(*scheme, value);
         cannonizeToken(*scheme);
@@ -2633,6 +2635,10 @@ UtlBoolean HttpMessage::getAuthenticationData(UtlString* scheme,
             else if(qop && name.compareTo(HTTP_AUTHENTICATION_QOP_TOKEN, UtlString::ignoreCase) == 0)
             {
                 qop->append(value.data());
+            }
+            else if (stale && name.compareTo(HTTP_AUTHENTICATION_STALE_TOKEN, UtlString::ignoreCase) == 0)
+            {
+               stale->append(value.data());
             }
         }
     }
@@ -2713,8 +2719,9 @@ UtlBoolean HttpMessage::getDigestAuthorizationData(UtlString* user,
                                                   UtlString* opaque,
                                                   UtlString* response,
                                                   UtlString* uri,
-                                                                                                  int authorizationEntity,
-                                                  int index) const
+                                                  int authorizationEntity,
+                                                  int index,
+                                                  UtlString* stale) const
 {
 
    const char* value = NULL;
@@ -2737,6 +2744,7 @@ UtlBoolean HttpMessage::getDigestAuthorizationData(UtlString* user,
         if(user) user->remove(0);
         if(uri) uri->remove(0);
         if(response) response->remove(0);
+        if(stale) stale->remove(0);
 
         // If this is a digest response
         tokenizer.getNextAttribute(scheme, value);
@@ -2772,6 +2780,10 @@ UtlBoolean HttpMessage::getDigestAuthorizationData(UtlString* user,
                 else if(uri && name.compareTo(HTTP_AUTHENTICATION_URI_TOKEN, UtlString::ignoreCase) == 0)
                 {
                     uri->append(value.data());
+                }
+                else if(stale && name.compareTo(HTTP_AUTHENTICATION_STALE_TOKEN, UtlString::ignoreCase) == 0)
+                {
+                   stale->append(value.data());
                 }
             }
         }
