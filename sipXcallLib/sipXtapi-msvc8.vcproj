@@ -475,11 +475,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib usc_speech_codec.lib vm.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib usc_speech_codecd.lib vmd.lib"
 				OutputFile="bin\sipXtapid.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Debug&quot;;..\sipXportLib\contrib\pcre\lib"
+				AdditionalLibraryDirectories="lib;..\..\IPP\5.3\ia32\lib;..\..\IPP\5.3\ia32\stublib;..\sipXportLib\contrib\pcre\lib;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\core\vm\Debug&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\bin\_\lib&quot;"
 				IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib"
 				ModuleDefinitionFile=""
 				DelayLoadDLLs=""
@@ -576,11 +576,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib usc_speech_codec.lib vm.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib usc_speech_codec.lib vm.lib"
 				OutputFile="bin\sipXtapi.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Release&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Release&quot;;..\sipXportLib\contrib\pcre\lib"
+				AdditionalLibraryDirectories="lib;..\..\IPP\5.3\ia32\lib;..\..\IPP\5.3\ia32\stublib;..\sipXportLib\contrib\pcre\lib;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\application\usc_speech_codec\Release&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\core\vm\Release&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\bin\_\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="false"

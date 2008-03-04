@@ -27,7 +27,7 @@ extern "C" {
 
 const MpCodecInfo MpdIPPG7231::smCodecInfo(
    SdpCodec::SDP_CODEC_G723,    // codecType
-   "Intel IPP 5.1",             // codecVersion
+   "Intel IPP 5.3",             // codecVersion
    true,                        // usesNetEq
    8000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
@@ -44,7 +44,9 @@ MpdIPPG7231::MpdIPPG7231(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
 {
    codec5300 = (LoadedCodec*)malloc(sizeof(LoadedCodec));
+   memset(codec5300, 0, sizeof(LoadedCodec));
    codec6300 = (LoadedCodec*)malloc(sizeof(LoadedCodec));
+   memset(codec6300, 0, sizeof(LoadedCodec));
 }
 
 MpdIPPG7231::~MpdIPPG7231()
@@ -64,9 +66,9 @@ OsStatus MpdIPPG7231::initDecode()
    {
    case SdpCodec::SDP_CODEC_G723:  
       // Apply codec name and VAD to codec definition structure
-      strcpy((char*)codec6300->codecName,"IPP_G723.1");
+      strcpy((char*)codec6300->codecName, "IPP_G723.1");
       codec6300->lIsVad = 1;
-      strcpy((char*)codec5300->codecName,"IPP_G723.1");
+      strcpy((char*)codec5300->codecName, "IPP_G723.1");
       codec5300->lIsVad = 1;
 
       break;
@@ -89,40 +91,73 @@ OsStatus MpdIPPG7231::initDecode()
    }
 
    // Get USC codec params
-   lCallResult = USCCodecAllocInfo(&codec6300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecAllocInfo(&codec5300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec5300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec6300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec5300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec5300->uscParams, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // Get its supported format details
+   lCallResult = GetUSCCodecParamsByFormat(codec6300, BY_NAME, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // Get its supported format details
+   lCallResult = GetUSCCodecParamsByFormat(codec5300, BY_NAME, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
    // Set params for decode
-   codec6300->uscParams.pInfo->params.direction = 1;
+   USC_PCMType streamType;
+   streamType.bitPerSample = getInfo()->getNumBitsPerSample();
+   streamType.nChannels = getInfo()->getNumChannels();
+   streamType.sample_frequency = getInfo()->getSamplingRate();
+
+   // decoder doesn't need to know PCM type
+   lCallResult = SetUSCDecoderPCMType(&codec6300->uscParams, -1, &streamType, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // instead of SetUSCDecoderParams(...)
+   codec6300->uscParams.pInfo->params.direction = USC_DECODE;
    codec6300->uscParams.pInfo->params.law = 0;
-   codec6300->uscParams.nChannels = 1;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
    codec6300->uscParams.pInfo->params.modes.vad =1;
 
-   codec5300->uscParams.pInfo->params.direction = 1;
+   // decoder doesn't need to know PCM type
+   lCallResult = SetUSCDecoderPCMType(&codec5300->uscParams, -1, &streamType, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // instead of SetUSCDecoderParams(...)
+   codec5300->uscParams.pInfo->params.direction = USC_DECODE;
    codec5300->uscParams.pInfo->params.law = 0;
-   codec5300->uscParams.nChannels = 1;
    codec5300->uscParams.pInfo->params.modes.bitrate = 5300;
    codec5300->uscParams.pInfo->params.modes.vad =1;
 
@@ -140,13 +175,13 @@ OsStatus MpdIPPG7231::initDecode()
    }
 
    // Init decoder
-   lCallResult = USCDecoderInit(&codec6300->uscParams, NULL);
+   lCallResult = USCDecoderInit(&codec6300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCDecoderInit(&codec5300->uscParams, NULL);
+   lCallResult = USCDecoderInit(&codec5300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
