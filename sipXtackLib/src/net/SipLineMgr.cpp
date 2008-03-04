@@ -704,6 +704,7 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
     UtlString algorithm;
     UtlString qop;
     UtlString callId;
+    UtlString stale;
 
     response->getCSeqField(&sequenceNum, &method);
     response->getCallIdField(&callId) ;
@@ -723,7 +724,7 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
     // a request with credentials
     response->getAuthenticationData(
         &scheme, &realm, &nonce, &opaque,
-        &algorithm, &qop, authorizationEntity);
+        &algorithm, &qop, authorizationEntity, &stale);
 
     UtlBoolean alreadyTriedOnce = FALSE;
     int requestAuthIndex = 0;
@@ -743,19 +744,26 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
     }
     else
     {
-        // Check to see if we already tried to send the credentials
-        while(request->getDigestAuthorizationData(
-                &requestUser, &requestRealm,
-                NULL, NULL, NULL, NULL,
-                authorizationEntity, requestAuthIndex) )
-        {
-            if(realm.compareTo(requestRealm) == 0)
-            {
+       // if stale flag is TRUE, according to RFC2617 we may wish to retry so we do
+       // According to RFC2617: "The server should only set stale to TRUE
+       // if it receives a request for which the nonce is invalid but with a
+       // valid digest for that nonce" - so there shouldn't be infinite auth loop
+       if (stale.compareTo("TRUE", UtlString::ignoreCase) != 0)
+       {
+          // Check to see if we already tried to send the credentials
+          while(request->getDigestAuthorizationData(
+             &requestUser, &requestRealm,
+             NULL, NULL, NULL, NULL,
+             authorizationEntity, requestAuthIndex) )
+          {
+             if(realm.compareTo(requestRealm) == 0)
+             {
                 alreadyTriedOnce = TRUE;
                 break;
-            }
-            requestAuthIndex++;
-        }
+             }
+             requestAuthIndex++;
+          }
+       }
     }
     // Find the line that sent the request that was challenged
     Url fromUrl;
