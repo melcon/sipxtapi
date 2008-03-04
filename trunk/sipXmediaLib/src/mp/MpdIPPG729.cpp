@@ -34,7 +34,7 @@ extern "C" {
 
 const MpCodecInfo MpdIPPG729::smCodecInfo(
    SdpCodec::SDP_CODEC_G729A,   // codecType
-   "Intel IPP 5.1",             // codecVersion
+   "Intel IPP 5.3",             // codecVersion
    true,                        // usesNetEq
    8000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
@@ -51,6 +51,7 @@ MpdIPPG729::MpdIPPG729(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
 {
    codec = (LoadedCodec*)malloc(sizeof(LoadedCodec));
+   memset(codec, 0, sizeof(LoadedCodec));
 }
 
 MpdIPPG729::~MpdIPPG729()
@@ -70,9 +71,8 @@ OsStatus MpdIPPG729::initDecode()
    case SdpCodec::SDP_CODEC_G729A:
    case SdpCodec::SDP_CODEC_G729: 
       // Apply codec name and VAD to codec definition structure
-      strcpy((char*)codec->codecName,"IPP_G729A");
+      strcpy((char*)codec->codecName, "IPP_G729A");
       codec->lIsVad = 0;
-
       break;
    default:
       return OS_FAILED;
@@ -86,22 +86,41 @@ OsStatus MpdIPPG729::initDecode()
    }
 
    // Get USC codec params
-   lCallResult = USCCodecAllocInfo(&codec->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec->uscParams);
+   lCallResult = USCCodecGetInfo(&codec->uscParams, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // Get its supported format details
+   lCallResult = GetUSCCodecParamsByFormat(codec, BY_NAME, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
    // Set params for decode
-   codec->uscParams.pInfo->params.direction = 1;
+   USC_PCMType streamType;
+   streamType.bitPerSample = getInfo()->getNumBitsPerSample();
+   streamType.nChannels = getInfo()->getNumChannels();
+   streamType.sample_frequency = getInfo()->getSamplingRate();
+
+   // decoder doesn't need to know PCM type
+   lCallResult = SetUSCDecoderPCMType(&codec->uscParams, -1, &streamType, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // instead of SetUSCDecoderParams(...)
+   codec->uscParams.pInfo->params.direction = USC_DECODE;
    codec->uscParams.pInfo->params.law = 0;
-   codec->uscParams.nChannels = 1;
 
    // Prepare input buffer parameters
    Bitstream.bitrate = 8000;
@@ -116,7 +135,7 @@ OsStatus MpdIPPG729::initDecode()
    }
 
    // Init decoder
-   lCallResult = USCDecoderInit(&codec->uscParams, NULL);
+   lCallResult = USCDecoderInit(&codec->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED; 

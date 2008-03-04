@@ -16,6 +16,7 @@
 
 #include "assert.h"
 // APPLICATION INCLUDES
+#include "winsock2.h"
 #include "mp/MpeIPPG7231.h"
 
 extern "C" {
@@ -26,7 +27,7 @@ extern "C" {
 
 const MpCodecInfo MpeIPPG7231::smCodecInfo(
    SdpCodec::SDP_CODEC_G723,     // codecType
-   "Intel IPP 5.1",              // codecVersion
+   "Intel IPP 5.3",              // codecVersion
    true,                         // usesNetEq
    8000,                         // samplingRate
    16,                           // numBitsPerSample
@@ -45,7 +46,9 @@ MpeIPPG7231::MpeIPPG7231(int payloadType)
 , mEncodedBuffer(NULL)
 {
    codec5300 = (LoadedCodec*)malloc(sizeof(LoadedCodec));
+   memset(codec5300, 0, sizeof(LoadedCodec));
    codec6300 = (LoadedCodec*)malloc(sizeof(LoadedCodec));
+   memset(codec6300, 0, sizeof(LoadedCodec));
 }
 
 MpeIPPG7231::~MpeIPPG7231()
@@ -60,9 +63,9 @@ OsStatus MpeIPPG7231::initEncode(void)
    int lCallResult;
 
    ippStaticInit();
-   strcpy((char*)codec6300->codecName,"IPP_G723.1");
+   strcpy((char*)codec6300->codecName, "IPP_G723.1");
    codec6300->lIsVad = 1;
-   strcpy((char*)codec5300->codecName,"IPP_G723.1");
+   strcpy((char*)codec5300->codecName, "IPP_G723.1");
    codec5300->lIsVad = 1;
 
    // Load codec by name from command line
@@ -79,25 +82,25 @@ OsStatus MpeIPPG7231::initEncode(void)
    }
 
    // Get USC codec params
-   lCallResult = USCCodecAllocInfo(&codec6300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecAllocInfo(&codec5300->uscParams);
+   lCallResult = USCCodecAllocInfo(&codec5300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec6300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec6300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCCodecGetInfo(&codec5300->uscParams);
+   lCallResult = USCCodecGetInfo(&codec5300->uscParams, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
@@ -117,15 +120,33 @@ OsStatus MpeIPPG7231::initEncode(void)
    }
 
    // Set params for encode
-   codec6300->uscParams.pInfo->params.direction = 0;
+   USC_PCMType streamType;
+   streamType.bitPerSample = getInfo()->getNumBitsPerSample();
+   streamType.nChannels = getInfo()->getNumChannels();
+   streamType.sample_frequency = getInfo()->getSamplingRate();
+
+   lCallResult = SetUSCEncoderPCMType(&codec6300->uscParams, LINEAR_PCM, &streamType, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // instead of SetUSCEncoderParams(...)
+   codec6300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec6300->uscParams.pInfo->params.law = 0;
-   codec6300->uscParams.nChannels = 1;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
    codec6300->uscParams.pInfo->params.modes.vad = 1;    
 
-   codec5300->uscParams.pInfo->params.direction = 0;
+   // Set params for encode
+   lCallResult = SetUSCEncoderPCMType(&codec5300->uscParams, LINEAR_PCM, &streamType, NULL);
+   if (lCallResult < 0)
+   {
+      return OS_FAILED;
+   }
+
+   // instead of SetUSCEncoderParams(...)
+   codec5300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec5300->uscParams.pInfo->params.law = 0;
-   codec5300->uscParams.nChannels = 1;
    codec5300->uscParams.pInfo->params.modes.bitrate = 5300;
    codec5300->uscParams.pInfo->params.modes.vad = 1;
 
@@ -143,13 +164,13 @@ OsStatus MpeIPPG7231::initEncode(void)
    }
 
    // Init decoder
-   lCallResult = USCEncoderInit(&codec6300->uscParams, NULL);
+   lCallResult = USCEncoderInit(&codec6300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   lCallResult = USCEncoderInit(&codec5300->uscParams, NULL);
+   lCallResult = USCEncoderInit(&codec5300->uscParams, NULL, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
@@ -158,9 +179,9 @@ OsStatus MpeIPPG7231::initEncode(void)
    // Allocate memory for the input buffer. Size of output buffer is equal
    // to the size of 1 frame
    mpStoredFramesBuffer = 
-         (char *)ippsMalloc_8s(codec6300->uscParams.pInfo->params.framesize);
+         ippsMalloc_8s(codec6300->uscParams.pInfo->params.framesize);
 
-   ippsSet_8u(0,(unsigned char *)mpStoredFramesBuffer,
+   ippsSet_8u(0, (Ipp8u *)mpStoredFramesBuffer,
               codec6300->uscParams.pInfo->params.framesize);
 
    mStoredFramesCount = 0;
@@ -204,7 +225,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       // Do the pre-procession of the frame
       infrmLen = USCEncoderPreProcessFrame(&codec5300->uscParams,
                                            mpStoredFramesBuffer,
-                                           (char *)mEncodedBuffer,
+                                           mEncodedBuffer,
                                            &PCMStream,
                                            &Bitstream);
       // Encode one frame
@@ -221,7 +242,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       // Do the post-procession of the frame
       frmlen = USCEncoderPostProcessFrame(&codec5300->uscParams,
                                           mpStoredFramesBuffer,
-                                          (char *)mEncodedBuffer,
+                                          mEncodedBuffer,
                                           &PCMStream,
                                           &Bitstream);
 
