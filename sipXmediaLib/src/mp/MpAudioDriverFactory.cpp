@@ -33,8 +33,10 @@ MpAudioDriverBase* MpAudioDriverFactory::createAudioDriver(AudioDriverImplementa
 
    switch(implementation)
    {
+#ifndef DISABLE_LOCAL_AUDIO
    case AUDIO_DRIVER_PORTAUDIO:
       return MpPortAudioDriver::createInstance();
+#endif
    default:
       // illegal implementation type
       return NULL;
@@ -45,11 +47,13 @@ UtlString MpAudioDriverFactory::getDriverNameVersion(AudioDriverImplementation i
 {
    switch(implementation)
    {
+#ifndef DISABLE_LOCAL_AUDIO
    case AUDIO_DRIVER_PORTAUDIO:
       {
          UtlString nameVersion = MpPortAudioDriver::ms_driverName + " " + MpPortAudioDriver::ms_driverVersion;
          return nameVersion;
       }
+#endif
    default:
       // illegal implementation type
       return UtlString("Error, unknown audio driver name");
