@@ -53,7 +53,7 @@
 
 /**
  @file
- @ingroup hostaip_src
+ @ingroup hostapi_src
 
  This file contains the implementation
  required for blocking I/O. It is separated from pa_mac_core.c simply to ease
@@ -175,7 +175,7 @@ PaError initializeBlioRingBuffers(
 
       err = PaUtil_InitializeRingBuffer(
             &blio->inputRingBuffer,
-            ringBufferSize*blio->inputSampleSizePow2*inChan,
+            1, ringBufferSize*blio->inputSampleSizePow2*inChan,
             data );
       assert( !err );
    }
@@ -189,7 +189,7 @@ PaError initializeBlioRingBuffers(
 
       err = PaUtil_InitializeRingBuffer(
             &blio->outputRingBuffer,
-            ringBufferSize*blio->outputSampleSizePow2*outChan,
+            1, ringBufferSize*blio->outputSampleSizePow2*outChan,
             data );
       assert( !err );
    }
