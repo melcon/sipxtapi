@@ -615,6 +615,13 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
    {
       SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)*phInst;
 
+      // remember original filename, as it could be lost when uninitializing sipxtapi
+      UtlString logfile;
+      OsStatus logFileResult = OS_FAILED;
+      SIPX_LOG_LEVEL logPriority;
+      logFileResult = OsSysLog::getOutputFile(logfile);
+      logPriority = (SIPX_LOG_LEVEL)OsSysLog::getLoggingPriority();
+
       if (pInst)
       {
          sipxSubscribeDestroyAll(*phInst);
@@ -639,6 +646,17 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
 
          sipxLineRemoveAll(*phInst);
          sipxUnInitialize(*phInst, true);
+
+         if (logFileResult == OS_SUCCESS && logfile.length() > 0)
+         {
+            // if we can set previous logging configuration
+            sipxConfigInitLogging(logfile.data(), logPriority);
+         }
+         else
+         {
+            // log file is not used, but at least set priority to original level
+            sipxConfigSetLogLevel(logPriority);
+         }
       }
 
       rc = sipxInitialize(phInst,
