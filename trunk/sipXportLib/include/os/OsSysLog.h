@@ -244,6 +244,13 @@ public:
      //       OsSysLog::initialize(maxInMemoryLogEntries).
      //!param logfile - The full qualified path the the target log file.
 
+   /**
+    * Returns output file. Fails if logger is not started.
+    * @param logfile Name of file if it was set.
+    * @return OS_SUCCESS if successful
+    */
+   static OsStatus getOutputFile(UtlString& logfile);
+
    static OsStatus setCallbackFunction(OsSysLogCallback pCallback);
      //:Set a callback function to collect logging results.
      //
