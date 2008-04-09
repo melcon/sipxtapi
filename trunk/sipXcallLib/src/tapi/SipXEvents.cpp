@@ -1777,11 +1777,11 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       callInfo.sipResponseCode = sipResponseCode;
       callInfo.szSipResponseText = sResponseText.data(); // safe to do as SipXEventDispatcher makes a copy
 
-      // fire event
-      SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CALLSTATE, &callInfo);
-
       // store call state
       sipxCallSetState(hCall, event, cause);
+
+      // fire event
+      SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CALLSTATE, &callInfo);
 
       // If this is a DESTROY message, free up resources
       if (CALLSTATE_DESTROYED == event)
