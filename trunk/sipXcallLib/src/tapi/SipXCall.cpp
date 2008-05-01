@@ -469,7 +469,7 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
                                  UtlString* pCallId,
                                  UtlString* pSessionCallId,
                                  UtlString* pStrRemoteAddress,
-                                 UtlString* pLineUri,
+                                 UtlString* pFromUri,
                                  UtlString* pGhostCallId, 
                                  UtlString* pRemoteContactAddress) 
 {
@@ -500,9 +500,9 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
          *pStrRemoteAddress = pData->remoteAddress;
       }
 
-      if (pLineUri)
+      if (pFromUri)
       {
-         *pLineUri = pData->fromURI;
+         *pFromUri = pData->fromURI;
       }
 
       if (pGhostCallId)
@@ -1255,13 +1255,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
 
    if (szLineUri)
    {
-      UtlString lineUri;
+      UtlString fromUri;
 
-      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, &lineUri))
+      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, &fromUri))
       {
          if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szLineUri, lineUri, iMaxLength);
+            SAFE_STRNCPY(szLineUri, fromUri, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1320,13 +1320,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
          pData->remoteAddress)
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
-         UtlString callId(pData->callId);
+         UtlString sessionCallId(pData->sessionCallId);
          UtlString remoteAddress(pData->remoteAddress);
 
          sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
          SipDialog sipDialog;
-         pCallManager->getSipDialog(callId, remoteAddress, sipDialog);
+         pCallManager->getSipDialog(sessionCallId, remoteAddress, sipDialog);
 
          Url contact;
          sipDialog.getLocalContact(contact);
@@ -1725,13 +1725,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
           pData->remoteAddress)
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
-         UtlString callId(pData->callId);
+         UtlString sessionCallId(pData->sessionCallId);
          UtlString remoteAddress(pData->remoteAddress);
          UtlString userAgent;
 
          sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
-         pCallManager->getRemoteUserAgent(callId, remoteAddress, userAgent);
+         pCallManager->getRemoteUserAgent(sessionCallId, remoteAddress, userAgent);
 
          if (iMaxLength)
          {
