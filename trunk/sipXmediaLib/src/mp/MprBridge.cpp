@@ -152,6 +152,7 @@ MprBridge::MprBridge(const UtlString& rName,
 , mpLastOutputContributors(NULL)
 #endif // TEST_PRINT_CONTRIBUTORS ]
 , mpGainMatrix(NULL)
+#ifdef LINEAR_COMPLEXITY_BRIDGE
 , mActiveInputsListSize(0)
 , mpActiveInputsList(NULL)
 , mMixActionsStackLength(0)
@@ -167,6 +168,7 @@ MprBridge::MprBridge(const UtlString& rName,
 , mMixDataInfoProcessedStackLength(0)
 , mMixDataInfoProcessedStackTop(0)
 , mpMixDataInfoProcessedStack(NULL)
+#endif
 , mpMixAccumulator(NULL)
 {
    handleDisable();
@@ -200,6 +202,7 @@ MprBridge::MprBridge(const UtlString& rName,
       pGain++;
    }
    
+   #ifdef LINEAR_COMPLEXITY_BRIDGE
    // Initialize all data structures, used for optimization:
 
    // Initialize extended inputs, taking into account that we have "standard"
@@ -222,6 +225,8 @@ MprBridge::MprBridge(const UtlString& rName,
    mpMixDataInfoStackTop = mpMixDataInfoStack;
    mMixDataInfoProcessedStackLength = maxInputs()*maxOutputs();
    mpMixDataInfoProcessedStack = new int[mMixDataInfoProcessedStackLength];
+   #endif
+
    // Allocate temporary storage for mixing data.
    mpMixAccumulator = new MpBridgeAccum[getSamplesPerFrame()];
    assert(mpMixAccumulator != NULL);
@@ -231,11 +236,13 @@ MprBridge::MprBridge(const UtlString& rName,
 MprBridge::~MprBridge()
 {
    delete[] mpGainMatrix;
+#ifdef LINEAR_COMPLEXITY_BRIDGE
    delete[] mpActiveInputsList;
    delete[] mpMixActionsStack;
    delete[] mpMixDataStack;
    delete[] mpMixDataInfoStack;
    delete[] mpMixDataInfoProcessedStack;
+#endif
    delete[] mpMixAccumulator;
 
 #ifdef TEST_PRINT_CONTRIBUTORS
@@ -286,7 +293,7 @@ OsStatus MprBridge::setMixWeightsForInput(int bridgeInputPort,
    MpBridgeGain *pGainsCopy = new MpBridgeGain[numWeights];
    memcpy(pGainsCopy, gains, numWeights*sizeof(MpBridgeGain));
 
-   MpFlowGraphMsg msg(SET_WEIGHTS_FOR_OUTPUT, this,
+   MpFlowGraphMsg msg(SET_WEIGHTS_FOR_INPUT, this,
                       (void*)pGainsCopy, NULL,
                       bridgeInputPort, numWeights);
    return postMessage(msg);
@@ -1133,7 +1140,9 @@ UtlBoolean MprBridge::handleSetMixWeightsForOutput(int bridgeOutputPort,
       if (gain[i] != MP_BRIDGE_GAIN_UNDEFINED)
       {
          *pCurGain = gain[i];
+#ifdef LINEAR_COMPLEXITY_BRIDGE
          mExtendedInputs.setGain(i, bridgeOutputPort, gain[i]);
+#endif
       }
       pCurGain++;
    }
@@ -1159,7 +1168,9 @@ UtlBoolean MprBridge::handleSetMixWeightsForInput(int bridgeInputPort,
       if (gain[i] != MP_BRIDGE_GAIN_UNDEFINED)
       {
          *pCurGain = gain[i];
+#ifdef LINEAR_COMPLEXITY_BRIDGE
          mExtendedInputs.setGain(bridgeInputPort, i, gain[i]);
+#endif
       }
       pCurGain += maxInputs();
    }
