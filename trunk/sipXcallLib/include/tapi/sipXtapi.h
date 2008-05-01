@@ -1344,7 +1344,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall);
 
 
 /**
- * Get the SIP call ID of the call represented by the specified call handle.
+ * Get the SIP Call-Id of the call represented by the specified call handle.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1359,9 +1359,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
                                        const size_t iMaxLength);
 
 /**
- * Get the SIP identity of the local connection.  The identity represents
- * either 1) who was called in the case of a inbound call, or 2) the
- * line identity used in an outbound call.
+ * Get the SIP identity of the local connection. This is the line URI of
+ * supplied call. This SIP identity will not contain a tag.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1376,7 +1375,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
 
 
 /**
- * Get the SIP identity of the remote connection.
+ * Get the SIP identity of the remote connection. It may contain a tag.
  * 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through

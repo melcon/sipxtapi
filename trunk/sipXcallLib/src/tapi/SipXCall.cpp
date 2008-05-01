@@ -471,7 +471,7 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
                                  UtlString* pStrRemoteAddress,
                                  UtlString* pLineUri,
                                  UtlString* pGhostCallId, 
-                                 UtlString* pContactAddress) 
+                                 UtlString* pRemoteContactAddress) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetCommonData");
 
@@ -510,9 +510,9 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
          *pGhostCallId = pData->ghostCallId;
       }
 
-      if (pContactAddress)
+      if (pRemoteContactAddress)
       {
-         *pContactAddress = pData->contactAddress;
+         *pRemoteContactAddress = pData->remoteContactAddress;
       }
       bSuccess = TRUE;
 
@@ -1304,26 +1304,45 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
                                               char* szContactAddress,
                                               const size_t iMaxLength)
 {
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetContactID");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxCallGetContactID hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
 
-   if (szContactAddress)
+   if (pData)
    {
-      UtlString contactAddress;
-
-      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, NULL, NULL, &contactAddress))
+      if (pData->pInst &&
+         pData->pInst->pCallManager &&
+         pData->callId && 
+         pData->remoteAddress)
       {
-         if (iMaxLength > 0)
+         CallManager* pCallManager = pData->pInst->pCallManager;
+         UtlString callId(pData->callId);
+         UtlString remoteAddress(pData->remoteAddress);
+
+         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+
+         SipDialog sipDialog;
+         pCallManager->getSipDialog(callId, remoteAddress, sipDialog);
+
+         Url contact;
+         sipDialog.getLocalContact(contact);
+
+         if (iMaxLength)
          {
-            SAFE_STRNCPY(szContactAddress, contactAddress, iMaxLength);
+            SAFE_STRNCPY(szContactAddress, contact.toString().data(), iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
+      else
+      {
+         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      }
    }
-   
+
    return sr;
 }
 
@@ -1657,42 +1676,23 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
                                                   char* szContact,
                                                   const size_t iMaxLength)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetRemoteContact");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxCallGetRemoteContact hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
 
-   if (pData)
+   if (szContact)
    {
-      if (pData->pInst &&
-          pData->pInst->pCallManager &&
-          pData->callId && 
-          pData->remoteAddress)
+      UtlString contactAddress;
+
+      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, NULL, NULL, &contactAddress))
       {
-         CallManager* pCallManager = pData->pInst->pCallManager;
-         UtlString callId(pData->callId);
-         UtlString remoteAddress(pData->remoteAddress);
-
-         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
-
-         SipDialog sipDialog;
-         pCallManager->getSipDialog(callId, remoteAddress, sipDialog);
-
-         Url contact;
-         sipDialog.getRemoteContact(contact);
-
-         if (iMaxLength)
+         if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szContact, contact.toString().data(), iMaxLength);
+            SAFE_STRNCPY(szContact, contactAddress, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
-      }
-      else
-      {
-         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
       }
    }
 
