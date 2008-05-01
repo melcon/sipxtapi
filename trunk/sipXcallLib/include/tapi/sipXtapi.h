@@ -1359,8 +1359,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
                                        const size_t iMaxLength);
 
 /**
- * Get the SIP identity of the local connection. This is the line URI of
- * supplied call. It may contain a tag.
+ * Get the SIP identity of the local connection. It may contain a tag.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
