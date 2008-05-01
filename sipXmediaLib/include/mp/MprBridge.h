@@ -199,6 +199,7 @@ protected:
    MpBridgeGain*  mpGainMatrix;        ///< mMaxOutputs x mMaxInputs array
                     ///< of inputs to outputs gains.
 
+#ifdef LINEAR_COMPLEXITY_BRIDGE
 /* ============================ Extended inputs =========================== */
 ///@name Extended inputs
 //@{
@@ -731,6 +732,7 @@ protected:
    }
 
 //@}
+#endif
 
    MpBridgeAccum* mpMixAccumulator;    ///< Accumulator to store sum of all inputs.
                     ///< have size of mSamplesPerFrame. Used in doMix() only.
