@@ -1606,7 +1606,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       session.getFromUrl(urlFrom);
       session.getContactRequestUri(pCallData->remoteContactAddress);
 
-      pCallData->lineURI = urlFrom.toString();
+      pCallData->fromURI = urlFrom.toString();
       pCallData->pInst = pSipXInstance;
       pCallData->pMutex.release();
 
@@ -1697,6 +1697,13 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
       if (pCallData)
       {
+         if (event == CALLSTATE_REMOTE_OFFERING) {
+            // update call fromURI, since for outbound calls, we need to update tag
+            Url urlFrom;
+            session.getFromUrl(urlFrom);
+            pCallData->fromURI = urlFrom.toString();
+         }
+
          if (pCallData->remoteContactAddress.isNull())
          {
             session.getContactRequestUri(pCallData->remoteContactAddress);
