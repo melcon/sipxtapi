@@ -259,7 +259,7 @@ UtlBoolean CpPeerCall::handleDialString(OsMsg* pEventMessage)
     ((CpMultiStringMessage*)pEventMessage)->getString1Data(dialString);    
     ((CpMultiStringMessage*)pEventMessage)->getString2Data(desiredCallId);
     ((CpMultiStringMessage*)pEventMessage)->getString5Data(locationHeader);
-    contactId = (SIPX_CONTACT_TYPE) ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
+    contactId = (SIPX_CONTACT_ID) ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
     void* pDisplay = (void*) ((CpMultiStringMessage*)pEventMessage)->getInt2Data();
     void* pSecurity = (void*) ((CpMultiStringMessage*)pEventMessage)->getInt3Data();
     int bandWidth = ((CpMultiStringMessage*)pEventMessage)->getInt4Data();
