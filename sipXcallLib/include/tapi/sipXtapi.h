@@ -1360,7 +1360,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
 
 /**
  * Get the SIP identity of the local connection. This is the line URI of
- * supplied call. This SIP identity will not contain a tag.
+ * supplied call. It may contain a tag.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1430,7 +1430,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConference(const SIPX_CALL hCall,
                                                  
 
 /**
- * Get the SIP request URI.
+ * Get the SIP request URI that initiated the call. It is retrieved either
+ * from sent or received SIP INVITE depending on whether it is an outbound
+ * or inbound call.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through

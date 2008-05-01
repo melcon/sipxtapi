@@ -303,7 +303,7 @@ UtlBoolean validCallData(SIPX_CALL_DATA* pData)
 {
    return (pData &&
       pData->callId && 
-      pData->lineURI && 
+      pData->fromURI && 
       pData->pInst &&
       pData->pInst->pCallManager && 
       pData->pInst->pRefreshManager &&
@@ -502,7 +502,7 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
 
       if (pLineUri)
       {
-         *pLineUri = pData->lineURI;
+         *pLineUri = pData->fromURI;
       }
 
       if (pGhostCallId)
@@ -743,7 +743,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
          {
             SIPX_CALL_DATA* pData = new SIPX_CALL_DATA();
             // Set line URI in call
-            pData->lineURI = sLineURI;
+            pData->fromURI = sLineURI;
             pData->pMutex.acquire();
             UtlBoolean res = gCallHandleMap.allocHandle(*phCall, pData);
 
@@ -1479,7 +1479,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
             }
             // set outbound line
             // just posts message
-            pInst->pCallManager->setOutboundLineForCall(pData->callId, pData->lineURI);
+            pInst->pCallManager->setOutboundLineForCall(pData->callId, pData->fromURI);
 
             // create sessionCallId
             pData->sessionCallId = szSessionCallId;
@@ -1645,16 +1645,21 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
           pData->remoteAddress) 
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
-         UtlString callId(pData->callId);
+         UtlString sessionCallId(pData->sessionCallId);
          UtlString remoteAddress(pData->remoteAddress);
 
          sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
          SipDialog sipDialog;
-         pCallManager->getSipDialog(callId, remoteAddress, sipDialog);
+         pCallManager->getSipDialog(sessionCallId, remoteAddress, sipDialog);
 
          UtlString uri;
          sipDialog.getRemoteRequestUri(uri);
+         if (uri.isNull()) {
+            // for outbound call only LocalRequestUri is valid, but we don't keep info
+            // whether it is inbound or outbound call
+            sipDialog.getLocalRequestUri(uri);
+         }
 
          if (iMaxLength)
          {

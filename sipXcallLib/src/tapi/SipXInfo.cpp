@@ -160,7 +160,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
          UtlString remoteAddress(pCall->remoteAddress);
          SIPX_INSTANCE_DATA* pInst = pCall->pInst;
          SIPX_LINE hLine = pCall->hLine;
-         UtlString lineURI(pCall->lineURI);
+         UtlString lineURI(pCall->fromURI);
          assert(pInst);
          sipxCallReleaseLock(pCall, SIPX_LOCK_READ, stackLogger);
 

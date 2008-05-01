@@ -41,7 +41,7 @@ public:
    UtlString sessionCallId;
    UtlString ghostCallId;    
    UtlString remoteAddress;
-   UtlString lineURI;
+   UtlString fromURI;
    UtlString remoteContactAddress;///< Remote Contact URI
    SIPX_LINE hLine;
    SIPX_INSTANCE_DATA* pInst;
@@ -79,7 +79,7 @@ public:
       sessionCallId(NULL),
       ghostCallId(NULL),
       remoteAddress(NULL),
-      lineURI(NULL),
+      fromURI(NULL),
       remoteContactAddress(NULL),
       hLine(0),
       pInst(NULL),
