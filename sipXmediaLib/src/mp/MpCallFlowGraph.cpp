@@ -160,9 +160,9 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
                                  samplesPerFrame, samplesPerSec);
 #if defined (SPEEX_ECHO_CANCELATION)
 // audio & echo cancelation is enabled
-   int echoQueueLatency = estimateEchoQueueLatency(samplesPerSec, samplesPerFrame);
+   int echoQueueLatency = MpCallFlowGraph::estimateEchoQueueLatency(samplesPerSec, samplesPerFrame);
    mpEchoCancel       = new MprSpeexEchoCancel("SpeexEchoCancel",
-                                 samplesPerFrame, samplesPerSec, echoQueueLatency);
+                                 samplesPerFrame, samplesPerSec, SPEEX_DEFAULT_AEC_FILTER_LENGTH, echoQueueLatency);
 #elif defined (SIPX_ECHO_CANCELATION)
    mpEchoCancel       = new MprEchoSuppress("SipxEchoCancel",
                                  samplesPerFrame, samplesPerSec);
@@ -1360,6 +1360,7 @@ MpConnectionID MpCallFlowGraph::createConnection(OsMsgQ* pConnectionNotification
    SNPRINTF(numBuf, sizeof(numBuf), "%d", found);
    inConnectionName.append(numBuf);
    outConnectionName.append(numBuf);
+
    mpInputConnections[found] = 
        new MpRtpInputAudioConnection(inConnectionName,
                                      found,

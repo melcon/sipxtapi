@@ -529,7 +529,7 @@ private:
    * by exactly that delay. This method will estimate this latency and
    * is crucial for correct echo canceler operation
    */
-   int estimateEchoQueueLatency(int samplesPerSec,int samplesPerFrame);
+   static int estimateEchoQueueLatency(int samplesPerSec,int samplesPerFrame);
 
      ///  Write out standard 16bit 8k sampled WAV Header
    UtlBoolean writeWAVHeader(int handle);
