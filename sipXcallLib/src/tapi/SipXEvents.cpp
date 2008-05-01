@@ -1604,7 +1604,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
 
       Url urlFrom;
       session.getFromUrl(urlFrom);
-      session.getContactRequestUri(pCallData->contactAddress);
+      session.getContactRequestUri(pCallData->remoteContactAddress);
 
       pCallData->lineURI = urlFrom.toString();
       pCallData->pInst = pSipXInstance;
@@ -1697,9 +1697,9 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
       if (pCallData)
       {
-         if (pCallData->contactAddress.isNull())
+         if (pCallData->remoteContactAddress.isNull())
          {
-            session.getContactRequestUri(pCallData->contactAddress);
+            session.getContactRequestUri(pCallData->remoteContactAddress);
          }
 
          sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
