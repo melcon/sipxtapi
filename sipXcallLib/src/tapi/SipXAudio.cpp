@@ -581,11 +581,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
       {
          if (pInterface->setAudioAECMode((MEDIA_AEC_MODE)mode) == OS_SUCCESS)
          {
-            if (!pInst->aecSetting.bInitialized)
-            {
-               pInst->aecSetting.bInitialized = true;
-            }
-            pInst->aecSetting.mode = mode;
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -614,21 +609,10 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAECMode(const SIPX_INST hInst,
 
       if (pInterface)
       {
-         if (!pInst->aecSetting.bInitialized)
+         MEDIA_AEC_MODE aceMode;
+         if (pInterface->getAudioAECMode(aceMode) == OS_SUCCESS)
          {
-            MEDIA_AEC_MODE aceMode;
-            if (pInterface->getAudioAECMode(aceMode) == OS_SUCCESS)
-            {
-               pInst->aecSetting.bInitialized = true;
-               pInst->aecSetting.mode = (SIPX_AEC_MODE)aceMode;
-               *mode = (SIPX_AEC_MODE)aceMode;
-
-               sr = SIPX_RESULT_SUCCESS;
-            }
-         }
-         else
-         {
-            *mode = pInst->aecSetting.mode;
+            *mode = (SIPX_AEC_MODE)aceMode;
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -659,11 +643,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAGCMode(const SIPX_INST hInst,
       {
          if (pInterface->enableAGC(bEnable) == OS_SUCCESS)
          {
-            if (!pInst->agcSetting.bInitialized)
-            {
-               pInst->agcSetting.bInitialized = true;
-            }
-            pInst->agcSetting.bEnabled = bEnable;
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -692,21 +671,10 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAGCMode(const SIPX_INST hInst,
 
       if (pInterface)
       {
-         if (!pInst->agcSetting.bInitialized)
-         {            
-            UtlBoolean bCheck;
-            if (pInterface->isAGCEnabled(bCheck) == OS_SUCCESS)
-            {
-               pInst->agcSetting.bInitialized = true;
-               pInst->agcSetting.bEnabled = (bCheck == TRUE);
-               *bEnabled = bCheck;
-
-               sr = SIPX_RESULT_SUCCESS;
-            }
-         }
-         else
+         UtlBoolean bCheck;
+         if (pInterface->isAGCEnabled(bCheck) == OS_SUCCESS)
          {
-            *bEnabled = pInst->agcSetting.bEnabled;
+            *bEnabled = bCheck;
             sr = SIPX_RESULT_SUCCESS;
          }
       }      
@@ -737,11 +705,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
       {
          if (pInterface->setAudioNoiseReductionMode((MEDIA_NOISE_REDUCTION_MODE)mode) == OS_SUCCESS)
          {
-            if (!pInst->nrSetting.bInitialized)
-            {
-               pInst->nrSetting.bInitialized = true;
-            }
-            pInst->nrSetting.mode = mode;
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -770,21 +733,10 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
 
       if (pInterface)
       {
-         if (!pInst->nrSetting.bInitialized)
+         MEDIA_NOISE_REDUCTION_MODE nrMode;
+         if (pInterface->getAudioNoiseReductionMode(nrMode) == OS_SUCCESS)
          {
-            MEDIA_NOISE_REDUCTION_MODE nrMode;
-            if (pInterface->getAudioNoiseReductionMode(nrMode) == OS_SUCCESS)
-            {
-               pInst->nrSetting.bInitialized = true;
-               pInst->nrSetting.mode = (SIPX_NOISE_REDUCTION_MODE)nrMode;
-               *mode = (SIPX_NOISE_REDUCTION_MODE)nrMode;
-
-               sr = SIPX_RESULT_SUCCESS;
-            }
-         }
-         else
-         {
-            *mode = pInst->nrSetting.mode;
+            *mode = (SIPX_NOISE_REDUCTION_MODE)nrMode;
             sr = SIPX_RESULT_SUCCESS;
          }
       }

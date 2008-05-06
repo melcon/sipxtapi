@@ -167,9 +167,6 @@ public:
    SipXMediaEventListener* pMediaEventListener;
    SipDialogMgr* pDialogManager;
 
-   AEC_SETTING      aecSetting;
-   AGC_SETTING      agcSetting;
-   NOISE_REDUCTION_SETTING nrSetting;
    AUDIO_CODEC_PREFERENCES audioCodecSetting;
    VIDEO_CODEC_PREFERENCES videoCodecSetting;
 
