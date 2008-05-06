@@ -440,6 +440,20 @@ OsStatus sipXmediaFactoryImpl::enableAGC(UtlBoolean bEnable) {
   }
 }
 
+OsStatus sipXmediaFactoryImpl::getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_MODE& mode) const {
+   UtlBoolean bMode = FALSE;
+   if (MpCallFlowGraph::getAudioNoiseReduction(bMode)) {
+      if (bMode) {
+         mode = MEDIA_NOISE_REDUCTION_HIGH;
+      } else {
+         mode = MEDIA_NOISE_REDUCTION_DISABLED;
+      }
+      return OS_SUCCESS;
+   } else {
+      return OS_NOT_SUPPORTED;
+   }
+}
+
 OsStatus sipXmediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) {
   if (mode == MEDIA_NOISE_REDUCTION_DISABLED) {
     if (MpCallFlowGraph::setAudioNoiseReduction(FALSE)) {

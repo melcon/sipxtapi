@@ -338,7 +338,10 @@ public:
      *  @warning Only available when Speex is enabled!
      */
 
-     /// Enable/disable speex noise reduction.
+   /// Gets noise reduction configuration
+   static UtlBoolean getAudioNoiseReduction(UtlBoolean& bEnabled);
+
+   /// Enable/disable speex noise reduction.
    static UtlBoolean setAudioNoiseReduction(UtlBoolean bEnable);
      /**<
      *  @note Enabling this also enables echo residue filtering.
