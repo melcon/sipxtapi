@@ -378,6 +378,8 @@ OsStatus sipXmediaFactoryImpl::muteAudioInput(UtlBoolean bMute)
          {
             // if not muted, save volume
             m_fMutedAudioInputVolume = pAudioManager->getInputVolume();
+            // if input volume cannot be discovered, unmute won't work
+            if (m_fMutedAudioInputVolume < 0) m_fMutedAudioInputVolume = 0.0f;
             m_bIsAudioInputMuted = TRUE;
          }
 
@@ -971,8 +973,10 @@ OsStatus sipXmediaFactoryImpl::getAudioInputVolume(int& volume) const
    if (pAudioManager)
    {
       float fVolume = pAudioManager->getInputVolume();
-      volume = (int)(fVolume * 100 + 0.5f);
-      return OS_SUCCESS;
+      if (fVolume >= 0.0f) {
+         volume = (int)(fVolume * 100 + 0.5f);
+         return OS_SUCCESS;
+      }
    }
 
    return OS_FAILED;
