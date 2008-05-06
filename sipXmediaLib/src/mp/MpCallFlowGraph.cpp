@@ -1626,6 +1626,13 @@ UtlBoolean MpCallFlowGraph::setAGC(UtlBoolean bEnable)
    return bReturn;
 }
 
+UtlBoolean MpCallFlowGraph::getAudioNoiseReduction(UtlBoolean& bEnabled)
+{
+   UtlBoolean bReturn = TRUE;
+   bEnabled = sbEnableNoiseReduction;
+   return bReturn;
+}
+
 UtlBoolean MpCallFlowGraph::setAudioNoiseReduction(UtlBoolean bEnable)
 {
    UtlBoolean bReturn = FALSE;
