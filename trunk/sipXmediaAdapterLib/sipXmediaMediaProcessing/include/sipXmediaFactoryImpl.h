@@ -102,6 +102,7 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus muteAudioOutput(UtlBoolean bMute);
     virtual OsStatus muteAudioInput(UtlBoolean bMute);
 
+    virtual OsStatus getAudioAECMode(MEDIA_AEC_MODE& mode) const;
     virtual OsStatus setAudioAECMode(const MEDIA_AEC_MODE mode);
     virtual OsStatus enableAGC(UtlBoolean bEnable) ;
     virtual OsStatus setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) ;

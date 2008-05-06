@@ -318,7 +318,12 @@ public:
      /// Enables/Disable the transmission of inband DTMF audio
    static UtlBoolean setInbandDTMF(UtlBoolean bEnable);
 
-     /// Set Acoustic Echo Cancelation mode
+   /**
+    * Gets AEC settings.
+    */
+   static UtlBoolean getAECMode(FLOWGRAPH_AEC_MODE& mode);
+
+   /// Set Acoustic Echo Cancelation mode
    static UtlBoolean setAECMode(FLOWGRAPH_AEC_MODE mode);
      /**<
      *  @warning Only available when Speex or internal AEC module is enabled!
@@ -472,6 +477,7 @@ private:
    static const int DEF_SAMPLES_PER_SEC;
 
    static UtlBoolean sbSendInBandDTMF ;
+   static FLOWGRAPH_AEC_MODE ms_AECMode;
    static UtlBoolean sbEnableAEC ;
    static UtlBoolean sbEnableAGC ;
    static UtlBoolean sbEnableNoiseReduction ;

@@ -86,8 +86,10 @@ UtlBoolean MpCallFlowGraph::sbSendInBandDTMF = true ;
 
 #ifdef DOING_ECHO_CANCELATION  // [
 UtlBoolean MpCallFlowGraph::sbEnableAEC = true ;
+FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_CANCEL;
 #else // DOING_ECHO_CANCELATION ][
 UtlBoolean MpCallFlowGraph::sbEnableAEC = false ;
+FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_DISABLED;
 #endif // DOING_ECHO_CANCELATION ]
 
 #ifdef HAVE_SPEEX // [
@@ -1563,6 +1565,14 @@ UtlBoolean MpCallFlowGraph::setInbandDTMF(UtlBoolean bEnable)
    return bSave ;
 }
 
+// Get Echo Cancelation Mode.
+UtlBoolean MpCallFlowGraph::getAECMode(FLOWGRAPH_AEC_MODE& mode)
+{
+   UtlBoolean bReturn = true;
+   mode = ms_AECMode;
+   return bReturn;
+}
+
 // Set Echo Cancelation Mode.
 UtlBoolean MpCallFlowGraph::setAECMode(FLOWGRAPH_AEC_MODE mode)
 {
@@ -1570,11 +1580,11 @@ UtlBoolean MpCallFlowGraph::setAECMode(FLOWGRAPH_AEC_MODE mode)
    // Not sure if this is the correct behavior.
    UtlBoolean bReturn = false;
    switch (mode) {
-
    case FLOWGRAPH_AEC_CANCEL:
    case FLOWGRAPH_AEC_CANCEL_AUTO:
 #ifdef DOING_ECHO_CANCELATION // [
       sbEnableAEC = true;
+      ms_AECMode = mode;
       bReturn = true;
 #endif // DOING_ECHO_CANCELATION ]
       break;
@@ -1583,10 +1593,12 @@ UtlBoolean MpCallFlowGraph::setAECMode(FLOWGRAPH_AEC_MODE mode)
 #ifdef SIPX_ECHO_CANCELATION // [
       sbEnableAEC = true;
       bReturn = true;
+      ms_AECMode = mode;
 #endif // SIPX_ECHO_CANCELATION ]
       break;
 
    case FLOWGRAPH_AEC_DISABLED:
+      ms_AECMode = mode;
       sbEnableAEC = false;
       bReturn = true;
       break;
