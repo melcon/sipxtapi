@@ -410,7 +410,7 @@ OsStatus sipXmediaFactoryImpl::getAudioAECMode(MEDIA_AEC_MODE& mode) const
 {
    if (MpCallFlowGraph::getAECMode((FLOWGRAPH_AEC_MODE&)mode)) {
       return OS_SUCCESS;
-   }else {
+   } else {
       return OS_NOT_SUPPORTED; 
    }
 }
@@ -419,15 +419,23 @@ OsStatus sipXmediaFactoryImpl::setAudioAECMode(const MEDIA_AEC_MODE mode)
 {
   if (MpCallFlowGraph::setAECMode((FLOWGRAPH_AEC_MODE)mode)) {
     return OS_SUCCESS;
-  }else {
+  } else {
     return OS_NOT_SUPPORTED; 
   }
+}
+
+OsStatus sipXmediaFactoryImpl::isAGCEnabled(UtlBoolean& bEnable) const {
+   if (MpCallFlowGraph::getAGC(bEnable)) {
+      return OS_SUCCESS;
+   } else {
+      return OS_NOT_SUPPORTED; 
+   }
 }
 
 OsStatus sipXmediaFactoryImpl::enableAGC(UtlBoolean bEnable) {
   if (MpCallFlowGraph::setAGC(bEnable)) {
     return OS_SUCCESS;
-  }else {
+  } else {
     return OS_NOT_SUPPORTED; 
   }
 }

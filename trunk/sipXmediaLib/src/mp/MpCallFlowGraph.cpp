@@ -1609,6 +1609,13 @@ UtlBoolean MpCallFlowGraph::setAECMode(FLOWGRAPH_AEC_MODE mode)
    return bReturn;
 }
 
+UtlBoolean MpCallFlowGraph::getAGC(UtlBoolean& bEnabled)
+{
+   UtlBoolean bReturn = TRUE;
+   bEnabled = sbEnableAGC;
+   return bReturn;
+}
+
 UtlBoolean MpCallFlowGraph::setAGC(UtlBoolean bEnable)
 {
    UtlBoolean bReturn = FALSE;

@@ -329,7 +329,10 @@ public:
      *  @warning Only available when Speex or internal AEC module is enabled!
      */
 
-     /// Enable/disable Automatic Gain Control.
+   /// Gets AGC settings
+   static UtlBoolean getAGC(UtlBoolean& bEnabled);
+
+   /// Enable/disable Automatic Gain Control.
    static UtlBoolean setAGC(UtlBoolean bEnable);
      /**<
      *  @warning Only available when Speex is enabled!
