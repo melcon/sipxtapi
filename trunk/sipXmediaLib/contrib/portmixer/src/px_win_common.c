@@ -635,7 +635,7 @@ static PxVolume get_input_volume(px_mixer *Px)
 
    if (info->hInputMixer) {
       src = get_current_input_source(Px);
-      if (src < info->numInputs) {
+      if (src >= 0 && src < info->numInputs) {
          return VolumeFunction(info->hInputMixer,
                                info->src[src].controlID,
                                -1.0);
@@ -652,7 +652,7 @@ static void set_input_volume(px_mixer *Px, PxVolume volume)
 
    if (info->hInputMixer) {
       src = get_current_input_source(Px);
-      if (src < info->numInputs) {
+      if (src >= 0 && src < info->numInputs) {
          VolumeFunction(info->hInputMixer,
                         info->src[src].controlID,
                         volume);
