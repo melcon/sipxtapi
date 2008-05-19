@@ -26,6 +26,7 @@
 #include "tapi/SipXUtil.h"
 #include "tapi/sipXtapi.h"
 #include "net/Url.h"
+#include "os/wnt/mdump.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -214,3 +215,27 @@ SIPXTAPI_API SIPX_RESULT sipxUtilUrlGetUrlParam(const char* szUrl,
    return rc;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxSaveMemoryDump(const char* filePath)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+
+#ifdef _WIN32
+   if (filePath)
+   {
+      bool result = MDump::saveDump(filePath);
+
+      if (result)
+      {
+         rc = SIPX_RESULT_SUCCESS;
+      }
+      else
+      {
+         rc = SIPX_RESULT_FAILURE;
+      }
+   }
+#else
+   rc = SIPX_RESULT_NOT_IMPLEMENTED;
+#endif
+
+   return rc;
+}
