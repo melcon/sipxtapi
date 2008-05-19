@@ -628,41 +628,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                 messageProcessed = TRUE;
                 break;
             }
-        case CP_ENABLE_STUN:
-            {
-                UtlString stunServer ;
-                int iRefreshPeriod ;
-                int iStunPort ;
-                OsNotification* pNotification ;
-
-
-                CpMultiStringMessage& enableStunMessage = (CpMultiStringMessage&)eventMessage;
-                enableStunMessage.getString1Data(stunServer) ;
-                iStunPort = enableStunMessage.getInt1Data() ;
-                iRefreshPeriod = enableStunMessage.getInt2Data() ;                
-                pNotification = (OsNotification*) enableStunMessage.getInt3Data() ;
-
-                doEnableStun(stunServer, iStunPort, iRefreshPeriod, pNotification) ;
-                break ;
-            }
-        case CP_ENABLE_TURN:
-            {
-                UtlString turnServer ;
-                UtlString turnUsername ;
-                UtlString turnPassword ;
-                int iTurnPort ;
-                int iRefreshPeriod ;
-
-                CpMultiStringMessage& enableStunMessage = (CpMultiStringMessage&)eventMessage;
-                enableStunMessage.getString1Data(turnServer) ;
-                enableStunMessage.getString2Data(turnUsername) ;
-                enableStunMessage.getString3Data(turnPassword) ;
-                iTurnPort = enableStunMessage.getInt1Data() ;
-                iRefreshPeriod = enableStunMessage.getInt2Data() ;                
-
-                doEnableTurn(turnServer, iTurnPort, turnUsername, turnPassword, iRefreshPeriod) ;
-                break ;
-            }
         case CP_ANSWER_CONNECTION:
         case CP_DROP:
         case CP_BLIND_TRANSFER:
@@ -1755,29 +1720,6 @@ void CallManager::setMaxCalls(int maxCalls)
     mMaxCalls = maxCalls;
 }
 
-// Enable STUN for NAT/Firewall traversal
-void CallManager::enableStun(const char* szStunServer, 
-                             int iServerPort,
-                             int iKeepAlivePeriodSecs, 
-                             OsNotification* pNotification)
-{
-    CpMultiStringMessage enableStunMessage(CP_ENABLE_STUN, szStunServer, NULL, 
-            NULL, NULL, NULL, iServerPort, iKeepAlivePeriodSecs, (int) pNotification) ;
-    postMessage(enableStunMessage);
-}
-
-
-void CallManager::enableTurn(const char* szTurnServer,
-                             int iTurnPort,
-                             const char* szUsername,
-                             const char* szPassword,
-                             int iKeepAlivePeriodSecs) 
-{
-    CpMultiStringMessage enableTurnMessage(CP_ENABLE_TURN, szTurnServer, szUsername,
-            szPassword, NULL, NULL, iTurnPort, iKeepAlivePeriodSecs) ;
-    postMessage(enableTurnMessage);
-}
-
 /* ============================ ACCESSORS ================================= */
 
 UtlBoolean CallManager::changeCallFocus(CpCall* callToTakeFocus)
@@ -2325,10 +2267,10 @@ void CallManager::doConnect(const char* callId,
     }
 }
 
-void CallManager::doEnableStun(const UtlString& stunServer, 
-                               int              iStunPort,
-                               int              iKeepAlivePeriodSecs, 
-                               OsNotification*  pNotification)
+void CallManager::enableStun(const UtlString& stunServer, 
+                             int              iStunPort,
+                             int              iKeepAlivePeriodSecs, 
+                             OsNotification*  pNotification)
 {
     mStunServer = stunServer ;
     mStunPort = iStunPort ;
@@ -2341,11 +2283,11 @@ void CallManager::doEnableStun(const UtlString& stunServer,
 }
 
 
-void CallManager::doEnableTurn(const UtlString& turnServer, 
-                               int              iTurnPort,
-                               const UtlString& turnUsername,
-                               const UtlString& szTurnPassword,
-                               int              iKeepAlivePeriodSecs)
+void CallManager::enableTurn(const UtlString& turnServer, 
+                             int              iTurnPort,
+                             const UtlString& turnUsername,
+                             const UtlString& szTurnPassword,
+                             int              iKeepAlivePeriodSecs)
 {
     mTurnServer = turnServer ;
     mTurnPort = iTurnPort ;

@@ -145,8 +145,6 @@ public:
         CP_SET_OUTBOUND_LINE,
         CP_OUTGOING_INFO,
         CP_GET_MEDIA_CONNECTION_ID,
-        CP_ENABLE_STUN,
-        CP_ENABLE_TURN,         
         CP_GET_CAN_ADD_PARTY,
         CP_SPLIT_CONNECTION,
         CP_JOIN_CONNECTION, //80
