@@ -4016,5 +4016,14 @@ SIPXTAPI_API SIPX_RESULT sipxPIMSendPagerMessage(SIPX_INST hInst,
                                                  char* responseCodeText,
                                                  size_t buffLength);
 
+/**
+ * Saves full memory dump to given file. It is supported only in Windows.
+ * A .dmp file will be produced, which can be opened in visual studio,
+ * where threads and memory content can be investigated.
+ *
+ * @param filePath Path and name of file to which memory content should
+ *                 be saved
+ */
+SIPXTAPI_API SIPX_RESULT sipxSaveMemoryDump(const char* filePath);
 
 #endif // _sipXtapi_h_
