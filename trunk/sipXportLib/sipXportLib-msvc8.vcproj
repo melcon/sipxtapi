@@ -1727,6 +1727,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\os\Wnt\mdump.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\os\OsAssert.c"
 				>
 			</File>
@@ -2373,6 +2377,10 @@
 			</File>
 			<File
 				RelativePath=".\include\os\IStunSocket.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\wnt\mdump.h"
 				>
 			</File>
 			<File
