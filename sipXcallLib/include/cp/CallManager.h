@@ -203,20 +203,7 @@ public:
 
     virtual void setMaxCalls(int maxCalls);
     //:Set the maximum number of calls to admit to the system.
-
-    virtual void enableStun(const char* szStunServer, 
-                            int iStunPort,
-                            int iKeepAlivePeriodSecs,
-                            OsNotification *pNotification = NULL) ;
-    //:Enable STUN for NAT/Firewall traversal
-
-    virtual void enableTurn(const char* szTurnServer,
-                            int iTurnPort,
-                            const char* szUsername,
-                            const char* szPassword,
-                            int iKeepAlivePeriodSecs) ;
-
-    
+   
     virtual UtlBoolean sendInfo(const char* callId, 
                                 const char* szRemoteAddress,
                                 const char* szContentType,
@@ -269,7 +256,21 @@ public:
    virtual UtlBoolean canAddConnection(const char* szCallId);
    //: Can a new connection be added to the specified call?  This method is 
    //: delegated to the media interface.
-   
+
+   void enableStun(const UtlString& szStunServer, 
+                   int              iServerPort,
+                   int              iKeepAlivePeriodSecs = 0, 
+                   OsNotification*  pNotification = NULL);
+   //:Enable STUN for NAT/Firewall traversal                           
+
+   void enableTurn(const UtlString& turnServer, 
+                   int              iTurnPort,
+                   const UtlString& turnUsername,
+                   const UtlString& szTurnPassword,
+                   int              iKeepAlivePeriodSecs = 0);
+   //:Enable TURN for NAT/Firewall traversal                           
+
+
 /* ============================ INQUIRY =================================== */
    int getTotalNumberOutgoingCalls() { return mnTotalOutgoingCalls;}
    int getTotalNumberIncomingCalls() { return mnTotalIncomingCalls;}
@@ -354,19 +355,6 @@ private:
                    const int bandWidth = AUDIO_CODEC_BW_DEFAULT,
                    SIPX_TRANSPORT_DATA* pTransport = NULL,
                    const RtpTransportOptions rtpTransportOptions = RTP_TRANSPORT_UDP) ;
-
-    void doEnableStun(const UtlString& szStunServer, 
-                      int              iServerPort,
-                      int              iKeepAlivePeriodSecs, 
-                      OsNotification*  pNotification) ;
-    //:Enable STUN for NAT/Firewall traversal                           
-
-    void doEnableTurn(const UtlString& turnServer, 
-                      int              iTurnPort,
-                      const UtlString& turnUsername,
-                      const UtlString& szTurnPassword,
-                      int              iKeepAlivePeriodSecs) ;
-    //:Enable TURN for NAT/Firewall traversal                           
 
            CallManager(const CallManager& rCallManager);
      //:Copy constructor (disabled)
