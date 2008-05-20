@@ -27,6 +27,7 @@
 #include <os/OsEvent.h>
 #include <os/OsReadLock.h>
 #include <os/OsWriteLock.h>
+#include <os/OsLock.h>
 #include <cp/CallManager.h>
 #include <utl/UtlRegex.h>
 #include <net/SipMessageEvent.h>
@@ -119,6 +120,7 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
                          , m_pInfoStatusEventListener(pInfoStatusEventListener)
                          , m_pSecurityEventListener(pSecurityEventListener)
                          , m_pMediaEventListener(pMediaEventListener)
+                         , m_memberMutex(OsMutex::Q_FIFO)
 {
     OsStackTraceLogger(FAC_CP, PRI_DEBUG, "CallManager");
 
@@ -283,6 +285,7 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
 // Copy constructor
 CallManager::CallManager(const CallManager& rCallManager) :
 CpCallManager("CallManager-%d", "call")
+, m_memberMutex(OsMutex::Q_FIFO)
 {
 }
 
@@ -416,13 +419,25 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                 sipUserAgent->getContactDb().getRecordForAdapter(contact, adapterName.data(), CONTACT_LOCAL);
                                 port = contact.iPort;
 
+                                UtlString stunServer;
+                                UtlString turnServer;
+                                UtlString turnUsername; 
+                                UtlString turnPassword;
+                                {
+                                  OsLock lock(m_memberMutex);
+                                  stunServer = mStunServer;
+                                  turnServer = mTurnServer;
+                                  turnUsername = mTurnUsername;
+                                  turnPassword = mTurnPassword;
+                                }
+
                                 pMediaInterface = mpMediaFactory->createMediaInterface(
 									NULL,
                                     NULL, 
                                     localAddress, numCodecs, codecArray, 
-                                    mLocale.data(), mExpeditedIpTos, mStunServer, 
-                                    mStunPort, mStunKeepAlivePeriodSecs, mTurnServer,
-                                    mTurnPort, mTurnUsername, mTurnPassword,
+                                    mLocale.data(), mExpeditedIpTos, stunServer, 
+                                    mStunPort, mStunKeepAlivePeriodSecs, turnServer,
+                                    mTurnPort, turnUsername, turnPassword,
                                     mTurnKeepAlivePeriodSecs, isIceEnabled());
 
 
@@ -2170,13 +2185,24 @@ void CallManager::doCreateCall(const char* callId,
             UtlString localAddress;
             int dummyPort;
             
+            UtlString stunServer;
+            UtlString turnServer;
+            UtlString turnUsername; 
+            UtlString turnPassword;
+            {
+               OsLock lock(m_memberMutex);
+               stunServer = mStunServer;
+               turnServer = mTurnServer;
+               turnUsername = mTurnUsername;
+               turnPassword = mTurnPassword;
+            }
             sipUserAgent->getLocalAddress(&localAddress, &dummyPort, TRANSPORT_UDP);
             CpMediaInterface* mediaInterface = mpMediaFactory->createMediaInterface(
 				NULL,
                 publicAddress.data(), localAddress.data(),
                 numCodecs, codecArray, mLocale.data(), mExpeditedIpTos,
-                mStunServer, mStunPort, mStunKeepAlivePeriodSecs, 
-                mTurnServer, mTurnPort, mTurnUsername, mTurnPassword, 
+                stunServer, mStunPort, mStunKeepAlivePeriodSecs, 
+                turnServer, mTurnPort, turnUsername, turnPassword, 
                 mTurnKeepAlivePeriodSecs, isIceEnabled());
 
             OsSysLog::add(FAC_CP, PRI_DEBUG, "Creating new SIP Call, mediaInterface: 0x%08x\n", (int)mediaInterface);
@@ -2272,9 +2298,13 @@ void CallManager::enableStun(const UtlString& stunServer,
                              int              iKeepAlivePeriodSecs, 
                              OsNotification*  pNotification)
 {
-    mStunServer = stunServer ;
-    mStunPort = iStunPort ;
-    mStunKeepAlivePeriodSecs = iKeepAlivePeriodSecs ;
+   {
+      OsLock lock(m_memberMutex); // guard string assignment
+
+      mStunServer = stunServer;
+      mStunPort = iStunPort;
+      mStunKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
+   }
 
     if (sipUserAgent) 
     {
@@ -2289,14 +2319,18 @@ void CallManager::enableTurn(const UtlString& turnServer,
                              const UtlString& szTurnPassword,
                              int              iKeepAlivePeriodSecs)
 {
-    mTurnServer = turnServer ;
-    mTurnPort = iTurnPort ;
-    mTurnUsername = turnUsername ;
-    mTurnPassword = szTurnPassword ;
-    mTurnKeepAlivePeriodSecs = iKeepAlivePeriodSecs ;
+   bool bEnabled = false;
+   {
+      OsLock lock(m_memberMutex); // guard string assignment
+      mTurnServer = turnServer;
+      mTurnPort = iTurnPort;
+      mTurnUsername = turnUsername;
+      mTurnPassword = szTurnPassword;
+      mTurnKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
+      bEnabled = (mTurnServer.length() > 0) && portIsValid(mTurnPort);
+   }
 
-    bool bEnabled = (mTurnServer.length() > 0) && portIsValid(mTurnPort) ;
-    sipUserAgent->getContactDb().enableTurn(bEnabled) ;
+    sipUserAgent->getContactDb().enableTurn(bEnabled);
 }
 
 

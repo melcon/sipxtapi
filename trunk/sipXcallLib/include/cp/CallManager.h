@@ -25,6 +25,7 @@
 #include <cp/CpDefs.h>
 
 #include <os/OsProtectEventMgr.h>
+#include <os/OsMutex.h>
 
 // DEFINES
 // MACROS
@@ -290,6 +291,7 @@ private:
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
 
+   OsMutex m_memberMutex;
    UtlString mOutboundLine;
     UtlBoolean dialing;
     UtlBoolean mOffHook;
