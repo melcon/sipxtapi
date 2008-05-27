@@ -40,6 +40,8 @@ const MpCodecInfo MpeIPPG729::smCodecInfo(
 
 MpeIPPG729::MpeIPPG729(int payloadType)
 : MpEncoderBase(payloadType, &smCodecInfo)
+, inputBuffer(NULL)
+, outputBuffer(NULL)
 {
    codec = (LoadedCodec*)malloc(sizeof(LoadedCodec));
    memset(codec, 0, sizeof(LoadedCodec));
@@ -116,6 +118,13 @@ OsStatus MpeIPPG729::initEncode(void)
       return OS_FAILED;  
    }
 
+   // Allocate memory for the output buffer. Size of output buffer is equal
+   // to the size of 1 frame
+   inputBuffer = 
+      (Ipp8s *)ippsMalloc_8s(codec->uscParams.pInfo->params.framesize);
+   outputBuffer = 
+      (Ipp8u *)ippsMalloc_8u(codec->uscParams.pInfo->maxbitsize + 1);
+
    return OS_SUCCESS;
 }
 
@@ -123,6 +132,14 @@ OsStatus MpeIPPG729::freeEncode(void)
 {
    // Free codec memory
    USCFree(&codec->uscParams);
+   if (inputBuffer)
+   {
+      ippsFree(inputBuffer);
+   }
+   if (outputBuffer)
+   {
+      ippsFree(outputBuffer);
+   }
 
    return OS_SUCCESS;
 }
@@ -137,12 +154,8 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
                             UtlBoolean& sendNow,
                             MpAudioBuf::SpeechType& rAudioCategory)
 {
-   // Allocate memory for the output buffer. Size of output buffer is equal
-   // to the size of 1 frame
-   Ipp8s* inputBuffer = 
-         (Ipp8s *)ippsMalloc_8s(codec->uscParams.pInfo->params.framesize);
-   Ipp8u* outputBuffer = 
-         (Ipp8u *)ippsMalloc_8u(codec->uscParams.pInfo->maxbitsize + 1);
+
+   ippsSet_8u(0, (Ipp8u *)outputBuffer, codec->uscParams.pInfo->maxbitsize + 1);
 
    ippsCopy_8u((unsigned char *)pAudioSamples, (unsigned char *)inputBuffer,
                codec->uscParams.pInfo->params.framesize);     
