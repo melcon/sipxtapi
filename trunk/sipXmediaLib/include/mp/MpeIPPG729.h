@@ -123,6 +123,8 @@ private:
    static const MpCodecInfo smCodecInfo;  ///< static information about the codec
 
    LoadedCodec *codec;  ///< Loaded codec info
+   Ipp8s* inputBuffer;
+   Ipp8u* outputBuffer;
 };
 
 #endif // HAVE_INTEL_IPP ]
