@@ -144,10 +144,6 @@ SdpCodec::SdpCodec(int payloadFormat,
       {
          setValue(SDP_CODEC_G7221);
       }
-      else if(mMimeSubtype.compareTo("g7231") == 0)
-      {
-         setValue(SDP_CODEC_G7231);
-      }
       else if(mMimeSubtype.compareTo("eg711a") == 0)
       {
          setValue(SDP_CODEC_GIPS_IPCMA);

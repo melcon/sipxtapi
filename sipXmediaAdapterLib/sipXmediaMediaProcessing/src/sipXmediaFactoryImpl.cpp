@@ -529,7 +529,7 @@ OsStatus sipXmediaFactoryImpl::buildCodecFactory(SdpCodecFactory *pFactory,
 
 #ifdef HAVE_INTEL_IPP /* [ */
     codecs[IPP_AUDIO_CODECS_BEGIN+0] = SdpCodec::SDP_CODEC_G729A;
-    codecs[IPP_AUDIO_CODECS_BEGIN+1] = SdpCodec::SDP_CODEC_G7231;
+    codecs[IPP_AUDIO_CODECS_BEGIN+1] = SdpCodec::SDP_CODEC_G723;
 #endif /* HAVE_INTEL_IPP ] */
 
     if (pFactory)
@@ -743,7 +743,7 @@ OsStatus sipXmediaFactoryImpl::getCodec(int iCodec, UtlString& codec, int &bandW
 #ifdef HAVE_INTEL_IPP /* [ */
     case IPP_AUDIO_CODECS_BEGIN+0: codec = (const char*) SdpCodec::SDP_CODEC_G729A;
        break;
-    case IPP_AUDIO_CODECS_BEGIN+1: codec = (const char*) SdpCodec::SDP_CODEC_G7231;
+    case IPP_AUDIO_CODECS_BEGIN+1: codec = (const char*) SdpCodec::SDP_CODEC_G723;
        break;
 #endif /* HAVE_INTEL_IPP ] */
 
@@ -798,8 +798,8 @@ OsStatus sipXmediaFactoryImpl::getCodecNameByType(SdpCodec::SdpCodecTypes type, 
     case SdpCodec::SDP_CODEC_G729A:
         codecName = SIPX_CODEC_ID_G729A;
         break;
-    case SdpCodec::SDP_CODEC_G7231:
-        codecName = SIPX_CODEC_ID_G7231;
+    case SdpCodec::SDP_CODEC_G723:
+        codecName = SIPX_CODEC_ID_G723;
         break;
     case SdpCodec::SDP_CODEC_GIPS_PCMA:
         codecName = SIPX_CODEC_ID_PCMA;
