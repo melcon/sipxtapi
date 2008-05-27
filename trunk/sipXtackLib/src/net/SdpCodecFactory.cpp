@@ -705,7 +705,7 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
       case SdpCodec::SDP_CODEC_G7231:
          {
             SdpCodec aCodec(SdpCodec::SDP_CODEC_G7231,
-                            SdpCodec::SDP_CODEC_G7231,
+                            SdpCodec::SDP_CODEC_G723,
                             MIME_TYPE_AUDIO,
                             MIME_SUBTYPE_G723,
                             8000,
