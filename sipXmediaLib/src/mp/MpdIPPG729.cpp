@@ -159,7 +159,6 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
    int frames;
 
    unsigned payloadSize = rtpPacket->getPayloadSize();
-   assert(payloadSize == G729_PATTERN_LENGTH);
 
    if (decodedBufferLength < 160)
    {
