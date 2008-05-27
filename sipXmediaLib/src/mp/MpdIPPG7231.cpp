@@ -26,7 +26,7 @@ extern "C" {
 #define G723_PATTERN_LENGTH_6300 24
 
 const MpCodecInfo MpdIPPG7231::smCodecInfo(
-   SdpCodec::SDP_CODEC_G723,    // codecType
+   SdpCodec::SDP_CODEC_G7231,    // codecType
    "Intel IPP 5.3",             // codecVersion
    true,                        // usesNetEq
    8000,                        // samplingRate
@@ -62,20 +62,11 @@ OsStatus MpdIPPG7231::initDecode()
 
    ippStaticInit();
 
-   switch (getPayloadType())
-   {
-   case SdpCodec::SDP_CODEC_G723:  
-      // Apply codec name and VAD to codec definition structure
-      strcpy((char*)codec6300->codecName, "IPP_G723.1");
-      codec6300->lIsVad = 1;
-      strcpy((char*)codec5300->codecName, "IPP_G723.1");
-      codec5300->lIsVad = 1;
-
-      break;
-
-   default:
-      return OS_FAILED;
-   }
+   // Apply codec name and VAD to codec definition structure
+   strcpy((char*)codec6300->codecName, "IPP_G723.1");
+   codec6300->lIsVad = 1;
+   strcpy((char*)codec5300->codecName, "IPP_G723.1");
+   codec5300->lIsVad = 1;
 
    // Load codec by name from command line
    lCallResult = LoadUSCCodecByName(codec6300,NULL);
@@ -209,9 +200,6 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
 
    infrmLen = rtpPacket->getPayloadSize();
 
-   assert(infrmLen == G723_PATTERN_LENGTH_6300 ||
-          infrmLen == G723_PATTERN_LENGTH_5300);
-
    // Prepare encoded buffer parameters
    if (infrmLen == G723_PATTERN_LENGTH_6300)
    {
@@ -220,13 +208,13 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
       Bitstream.nbytes = 24;
       decodedSamples = 240;
    }
-   else
+   else if (infrmLen == G723_PATTERN_LENGTH_5300)
    {
       Bitstream.bitrate = 5300;
       Bitstream.frametype = 0;
       Bitstream.nbytes = 20;
-      decodedSamples = 160;
-   }
+      decodedSamples = 240;
+   } else return 0; // we ignore SID frames 4 bytes long, should generate comfort noise
 
    if (decodedBufferLength < decodedSamples)
    {
