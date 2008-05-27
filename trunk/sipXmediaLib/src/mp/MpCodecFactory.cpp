@@ -135,7 +135,7 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_G729A):
       rpDecoder = new MpdIPPG729(payloadType);
       break;
-   case (SdpCodec::SDP_CODEC_G7231): 
+   case (SdpCodec::SDP_CODEC_G723): 
       rpDecoder = new MpdIPPG7231(payloadType);
       break;
 #endif // HAVE_IPP ]
@@ -212,7 +212,7 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_G729A):
       rpEncoder = new MpeIPPG729(payloadType);
       break;
-   case (SdpCodec::SDP_CODEC_G7231):
+   case (SdpCodec::SDP_CODEC_G723):
       rpEncoder = new MpeIPPG7231(payloadType);
       break;
 #endif // HAVE_IPP ]

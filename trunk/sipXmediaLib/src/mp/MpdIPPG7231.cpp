@@ -26,7 +26,7 @@ extern "C" {
 #define G723_PATTERN_LENGTH_6300 24
 
 const MpCodecInfo MpdIPPG7231::smCodecInfo(
-   SdpCodec::SDP_CODEC_G7231,    // codecType
+   SdpCodec::SDP_CODEC_G723,    // codecType
    "Intel IPP 5.3",             // codecVersion
    true,                        // usesNetEq
    8000,                        // samplingRate

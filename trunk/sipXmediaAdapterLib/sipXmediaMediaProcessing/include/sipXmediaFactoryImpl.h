@@ -30,7 +30,6 @@
 #define SIPX_CODEC_ID_G729      "G729"
 #define SIPX_CODEC_ID_G729A     "G729A"
 #define SIPX_CODEC_ID_G723      "G723"
-#define SIPX_CODEC_ID_G7231     "G723.1"
 #define SIPX_CODEC_ID_TELEPHONE "audio/telephone-event"
 #define SIPX_CODEC_ID_SPEEX     "SPEEX"
 #define SIPX_CODEC_ID_SPEEX_5   "SPEEX_5"

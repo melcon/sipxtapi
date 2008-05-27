@@ -258,11 +258,9 @@ SdpCodec::SdpCodecTypes SdpCodecFactory::getCodecType(const char* pCodecName)
        strcmp(compareString,"G729B") == 0)
         retType = SdpCodec::SDP_CODEC_G729AB;
     else
-    if (strcmp(compareString,"G723") == 0)
+    if (strcmp(compareString,"G723") == 0 ||
+        strcmp(compareString,"G723.1") == 0)
         retType = SdpCodec::SDP_CODEC_G723;
-    else
-    if (strcmp(compareString,"G723.1") == 0)
-       retType = SdpCodec::SDP_CODEC_G7231;
     else
     if (strcmp(compareString,"G729A-FOR-CISCO-7960") == 0)
         retType = SdpCodec::SDP_CODEC_G729ACISCO7960;
@@ -702,9 +700,9 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
 #endif // HAVE_GSM ]
 
 #ifdef HAVE_INTEL_IPP
-      case SdpCodec::SDP_CODEC_G7231:
+      case SdpCodec::SDP_CODEC_G723:
          {
-            SdpCodec aCodec(SdpCodec::SDP_CODEC_G7231,
+            SdpCodec aCodec(SdpCodec::SDP_CODEC_G723,
                             SdpCodec::SDP_CODEC_G723,
                             MIME_TYPE_AUDIO,
                             MIME_SUBTYPE_G723,
