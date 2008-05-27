@@ -178,11 +178,10 @@ OsStatus MpeIPPG7231::initEncode(void)
 
    // Allocate memory for the input buffer. Size of output buffer is equal
    // to the size of 1 frame
-   mpStoredFramesBuffer = 
-         ippsMalloc_8s(codec6300->uscParams.pInfo->params.framesize);
+   mpStoredFramesBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->params.framesize);
+   mEncodedBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->maxbitsize + 1);
 
-   ippsSet_8u(0, (Ipp8u *)mpStoredFramesBuffer,
-              codec6300->uscParams.pInfo->params.framesize);
+   ippsSet_8u(0, (Ipp8u *)mpStoredFramesBuffer, codec5300->uscParams.pInfo->params.framesize);
 
    mStoredFramesCount = 0;
 
@@ -195,6 +194,7 @@ OsStatus MpeIPPG7231::freeEncode(void)
    USCFree(&codec6300->uscParams);
    USCFree(&codec5300->uscParams);
    ippsFree(mpStoredFramesBuffer);
+   ippsFree(mEncodedBuffer);
 
    return OS_SUCCESS;
 }
@@ -213,6 +213,9 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
 
    if (mStoredFramesCount == 2)
    {
+      // zero encoded buffer
+      ippsSet_8u(0, (Ipp8u *)mEncodedBuffer, codec5300->uscParams.pInfo->maxbitsize + 1);
+
       ippsCopy_8u((unsigned char *)pAudioSamples,
                   (unsigned char *)mpStoredFramesBuffer+mStoredFramesCount*160,
                   numSamples*sizeof(MpAudioSample));     
