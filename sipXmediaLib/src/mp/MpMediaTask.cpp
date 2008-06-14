@@ -21,6 +21,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsLock.h"
+#include "os/OsEvent.h"
 #include "os/OsMsgPool.h"
 #include "os/OsCallback.h"
 #include "os/OsTimer.h"
@@ -162,7 +163,8 @@ MpMediaTask::~MpMediaTask()
 // processing interval.
 OsStatus MpMediaTask::manageFlowGraph(MpFlowGraphBase& rFlowGraph)
 {
-   MpMediaTaskMsg msg(MpMediaTaskMsg::MANAGE, &rFlowGraph);
+   OsEvent event;
+   MpMediaTaskMsg msg(MpMediaTaskMsg::MANAGE, &rFlowGraph, &event);
    OsStatus       res;
 
    if (rFlowGraph.getState() != MpFlowGraphBase::STOPPED) {
@@ -172,6 +174,8 @@ OsStatus MpMediaTask::manageFlowGraph(MpFlowGraphBase& rFlowGraph)
 
    res = postMessage(msg, OsTime::NO_WAIT_TIME);
    assert(res == OS_SUCCESS);
+   // wait until flowgraph is managed
+   event.wait();
 
    return OS_SUCCESS;
 }
@@ -186,11 +190,14 @@ OsStatus MpMediaTask::manageFlowGraph(MpFlowGraphBase& rFlowGraph)
 // interval.
 OsStatus MpMediaTask::unmanageFlowGraph(MpFlowGraphBase& rFlowGraph)
 {
-   MpMediaTaskMsg msg(MpMediaTaskMsg::UNMANAGE, &rFlowGraph);
-   OsStatus       res;
+   OsEvent event;
+   MpMediaTaskMsg msg(MpMediaTaskMsg::UNMANAGE, &rFlowGraph, &event);
+   OsStatus res;
 
    res = postMessage(msg, OsTime::NO_WAIT_TIME);
    assert(res == OS_SUCCESS);
+   // wait until flowgraph is unmanaged
+   event.wait();
 
    return OS_SUCCESS;
 }
@@ -645,9 +652,13 @@ UtlBoolean MpMediaTask::handleMessage(OsMsg& rMsg)
    switch (pMsg->getMsg())
    {
    case MpMediaTaskMsg::MANAGE:
-      if (!handleManage(pFlowGraph))
-         mHandleMsgErrs++;
-      break;
+      {
+         OsEvent* event = (OsEvent*)pMsg->getPtr2();
+         if (!handleManage(pFlowGraph))
+            mHandleMsgErrs++;
+         if (event) event->signal(0);
+         break;
+      }
    case MpMediaTaskMsg::SET_FOCUS:
       if (!handleSetFocus(pFlowGraph))
          mHandleMsgErrs++;
@@ -661,9 +672,13 @@ UtlBoolean MpMediaTask::handleMessage(OsMsg& rMsg)
          mHandleMsgErrs++;
       break;
    case MpMediaTaskMsg::UNMANAGE:
-      if (!handleUnmanage(pFlowGraph))
-         mHandleMsgErrs++;
-      break;
+      {
+         OsEvent* event = (OsEvent*)pMsg->getPtr2();
+         if (!handleUnmanage(pFlowGraph))
+            mHandleMsgErrs++;
+         if (event) event->signal(0);
+         break;
+      }
    case MpMediaTaskMsg::WAIT_FOR_SIGNAL:
       if (!handleWaitForSignal(pMsg))
          mHandleMsgErrs++;

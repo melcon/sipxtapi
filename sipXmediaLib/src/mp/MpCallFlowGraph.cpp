@@ -527,9 +527,7 @@ MpCallFlowGraph::~MpCallFlowGraph()
    res = pMediaTask->unmanageFlowGraph(*this);
    assert(res == OS_SUCCESS);
 
-   // wait until the flow graph is unmanaged.
-   while (pMediaTask->isManagedFlowGraph(this))
-      OsTask::delay(10);   // wait 10 msecs before checking again
+   assert(!pMediaTask->isManagedFlowGraph(this));
 
    // $$$ I believe that we should just be able to delete the flow graph
    // $$$ at this point, but for now let's get rid of all the connections
