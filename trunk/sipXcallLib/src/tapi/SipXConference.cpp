@@ -995,3 +995,50 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStart(const SIPX_CONF hConf, const char* szFile)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAudioRecordFileStart");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConferenceAudioRecordFileStart hConf=%d szFile=%s", hConf, szFile);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   
+   if (hConf > SIPX_CONF_NULL && szFile)
+   {
+      SIPX_CONF_DATA* pData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
+
+      if (pData)
+      {
+         // conference was found, just repost message
+         pData->pInst->pCallManager->audioChannelRecordStart(pData->confCallId, NULL, szFile);
+         sr = SIPX_RESULT_SUCCESS;
+         sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      }
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStop(const SIPX_CONF hConf)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceAudioRecordFileStop");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConferenceAudioRecordFileStop hConf=%d", hConf);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   if (hConf > SIPX_CONF_NULL)
+   {
+      SIPX_CONF_DATA* pData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
+
+      if (pData)
+      {
+         // conference was found, just repost message
+         pData->pInst->pCallManager->audioChannelRecordStop(pData->confCallId, NULL);
+         sr = SIPX_RESULT_SUCCESS;
+         sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      }
+   }
+
+   return sr;
+}

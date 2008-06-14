@@ -2085,6 +2085,10 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
         handleTransferOtherPartyUnhold(&eventMessage) ;
         break ;
 
+    case CallManager::CP_MUTE_INPUT_TERM_CONNECTION:
+       handleMuteInputTermConnection(&eventMessage);
+       break;
+
     default:
         processedMessage = FALSE;
 #ifdef TEST_PRINT
@@ -2629,6 +2633,41 @@ UtlBoolean CpPeerCall::handleTransferOtherPartyUnhold(OsMsg* pEventMessage)
     return true ;
 }
 
+// Handles the processing of a CP_MUTE_INPUT_TERM_CONNECTION message
+UtlBoolean CpPeerCall::handleMuteInputTermConnection(OsMsg* pEventMessage)
+{
+   UtlString targetCallId;
+   UtlString remoteAddress;
+   Connection* pConnection;
+
+   CpMultiStringMessage* pMultiMessage = (CpMultiStringMessage*) pEventMessage;
+   pMultiMessage->getString1Data(targetCallId);
+   pMultiMessage->getString2Data(remoteAddress);
+   UtlBoolean mute = (UtlBoolean)pMultiMessage->getInt1Data();
+   OsEvent* pEvent = (OsEvent*)pMultiMessage->getInt2Data();
+   OsStatus res = OS_FAILED;
+
+   UtlDListIterator iterator(mConnections);
+   while ((pConnection = (Connection*) iterator()))
+   {
+      Url remoteUrl(remoteAddress);
+
+      if (!pConnection->isSameRemoteAddress(remoteUrl))
+      {
+         if (pConnection->muteInput(mute))
+         {
+            res = OS_SUCCESS;
+         }
+      }
+   }
+
+   if (pEvent)
+   {
+      pEvent->signal(res);
+   }
+
+   return true;
+}
 
 // Handles the processing of a CP_TRANSFER_OTHER_PARTY_JOIN message
 UtlBoolean CpPeerCall::handleTransferOtherPartyJoin(OsMsg* pEventMessage) 

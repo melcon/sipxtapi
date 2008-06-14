@@ -144,6 +144,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 
    for (i=0; i<MAX_CONNECTIONS; i++) mpInputConnections[i] = NULL;
    for (i=0; i<MAX_CONNECTIONS; i++) mpOutputConnections[i] = NULL;
+   for (i=0; i<MAX_CONNECTIONS; i++) mpBridgePorts[i] = -1;
    for (i=0; i<MAX_RECORDERS; i++) mpRecorders[i] = NULL;
 
    // create the resources and add them to the flow graph
@@ -1391,9 +1392,8 @@ MpConnectionID MpCallFlowGraph::createConnection(OsMsgQ* pConnectionNotification
       return -1;
    }
 
+   mpBridgePorts[found] = bridgePort;
    mConnTableLock.release();
-
-   Zprintf("bridgePort = %d\n", bridgePort, 0,0,0,0,0);
 
    pInputConnection->enable();
    pOutputConnection->enable();
@@ -1450,6 +1450,40 @@ OsStatus MpCallFlowGraph::deleteConnection(MpConnectionID connID)
           return OS_UNSPECIFIED;
    }
 }
+
+OsStatus MpCallFlowGraph::muteInput(MpConnectionID connID)
+{
+	if(connID >= 0 && connID < MAX_CONNECTIONS && mpBridgePorts[connID] != -1 && mpBridge != NULL)
+	{
+		MpBridgeGain gains[MAX_CONNECTIONS];
+		for(int i = 0; i < MAX_CONNECTIONS; i++)
+		{
+			gains[i] = MP_BRIDGE_GAIN_MUTED;
+		}
+
+		return mpBridge->setMixWeightsForInput(mpBridgePorts[connID], MAX_CONNECTIONS, gains);
+	}
+
+	return OS_FAILED;
+}
+
+OsStatus MpCallFlowGraph::unmuteInput(MpConnectionID connID)
+{
+	if(connID >= 0 && connID < MAX_CONNECTIONS && mpBridgePorts[connID] != -1 && mpBridge != NULL)
+	{
+		MpBridgeGain gains[MAX_CONNECTIONS];
+		for(int i = 0; i < MAX_CONNECTIONS; i++)
+		{
+			gains[i] = MP_BRIDGE_GAIN_PASSTHROUGH;
+		}
+		gains[mpBridgePorts[connID]] = MP_BRIDGE_GAIN_MUTED;
+
+		return mpBridge->setMixWeightsForInput(mpBridgePorts[connID], MAX_CONNECTIONS, gains);
+	}
+
+	return OS_FAILED;
+}
+
 
 // Start sending RTP and RTCP packets.
 void MpCallFlowGraph::startSendRtp(OsSocket& rRtpSocket,
@@ -2023,6 +2057,7 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
    return retCode;
 }
 
+
 // Handle the FLOWGRAPH_REMOVE_CONNECTION message.
 // Returns TRUE if the message was handled, otherwise FALSE.
 UtlBoolean MpCallFlowGraph::handleRemoveConnection(MpFlowGraphMsg& rMsg)
@@ -2040,6 +2075,7 @@ UtlBoolean MpCallFlowGraph::handleRemoveConnection(MpFlowGraphMsg& rMsg)
    pOutputConnection = mpOutputConnections[connID];
    mpInputConnections[connID] = NULL;
    mpOutputConnections[connID] = NULL;
+   mpBridgePorts[connID] = -1;
    mConnTableLock.release();
 
    // now remove synchronous resources from flow graph

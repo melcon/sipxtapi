@@ -337,6 +337,8 @@ public:
 
 /* ============================ ACCESSORS ================================= */
 
+	UtlBoolean muteInput(UtlBoolean bMute);
+
 	void getLocalAddress(UtlString* address);
 	int getState(int isLocal = 0) const;
 	int getState(int isLocal, int& cause) const;

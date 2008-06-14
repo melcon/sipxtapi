@@ -75,7 +75,7 @@
                                              + (default connections * 2). */
 #define DEFAULT_STUN_PORT       3478    /**< Default stun server port */
 
-#define DEFAULT_CONNECTIONS     32      /**< Default number of max sim. conns. */
+#define DEFAULT_CONNECTIONS     64      /**< Default number of max sim. conns. */
 #define DEFAULT_IDENTITY        "sipx"  /**< sipx@<IP>:UDP_PORT used as identify if lines
                                              are not defined.  This define only controls
                                              the userid portion of the SIP url. */
@@ -94,7 +94,7 @@
 #define MAX_VIDEO_DEVICES       8       /**< Max number of video capture devices. */
 #define MAX_VIDEO_DEVICE_LENGTH 256     /**< Max length of video capture device string. */
 
-#define CONF_MAX_CONNECTIONS    32      /**< Max number of conference participants */
+#define CONF_MAX_CONNECTIONS    64      /**< Max number of conference participants */
 #define SIPX_MAX_IP_ADDRESSES   32      /**< Maximum number of IP addresses on the host */
 
 
@@ -1592,6 +1592,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackResume(const SIPX_CALL hCall);
  * left in the conference. If the original call has been dropped, use handle
  * of other call in the conference to stop recording.
  *
+ * @note Use sipxConferenceAudioRecordFileStart for conference recording
+ *       instead of this method.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -2011,6 +2013,17 @@ SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
                                                        const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                        const char* szVideoCodecName);
 
+/**
+ * Enables/disables discarding of inbound RTP for given call. Should be used
+ * in server applications where local audio is disabled.
+ *
+ * @param hCall Handle to a call.  Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ * @param bMute Whether to mute or unmute inbound audio
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallMuteInput(const SIPX_CALL hCall, const int bMute);
+
 //@}
 
 /** @name Publishing Methods */
@@ -2297,6 +2310,24 @@ SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStart(const SIPX_CONF hConf,
  */
 SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStop(const SIPX_CONF hConf);
 
+/**
+ * Start recording conference into given file. The resulting file will
+ * be a PCM WAV file. Recording can be started only if there is at least
+ * one call in the conference, and stops when the last call disconnects.
+ * If an abandoned conference is populated by calls again, recording needs
+ * to be started again too.
+ *
+ * @param hConf Conference handle obtained by calling sipxConferenceCreate.
+ * @param szFile Name of file for recording.
+ */
+SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStart(const SIPX_CONF hConf, const char* szFile);
+
+/**
+ * Stop recording conference started by sipxConferenceAudioRecordFileStart.
+ *
+ * @param hConf Conference handle obtained by calling sipxConferenceCreate.
+ */
+SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStop(const SIPX_CONF hConf);
 
 /**
  * Destroys a conference.  All participants within a conference are
@@ -2355,6 +2386,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
                                                              const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                              const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                              const char* szVideoCodecName);
+
 //@}
 
 /** @name Audio Methods */

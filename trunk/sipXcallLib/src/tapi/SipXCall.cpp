@@ -2203,3 +2203,38 @@ SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxCallMuteInput(const SIPX_CALL hCall, const int bMute)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallMuteInput");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxCallMuteInput hCall=%d bMute=%d", hCall, bMute);
+
+   SIPX_INSTANCE_DATA* pInst = NULL;
+   UtlString callId;
+   UtlString remoteAddress;
+   UtlBoolean bDoMute = FALSE;
+
+   // Find Call
+   SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
+   if (pCallData)
+   {
+      pInst = pCallData->pInst;
+      remoteAddress = pCallData->remoteAddress;
+
+      callId = pCallData->sessionCallId; // = SIP CallID
+      if (!callId.isNull()) bDoMute = TRUE; // if call is connected, muting is possible, otherwise not
+
+      // Release Call
+      sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+   }
+
+   if (bDoMute)
+   {
+      if (pInst->pCallManager->muteInputTermConnection(callId, remoteAddress, bMute) == OS_SUCCESS)
+      {
+         return SIPX_RESULT_SUCCESS;
+      }
+   }
+
+   return SIPX_RESULT_FAILURE;
+}

@@ -156,6 +156,8 @@ public:
    virtual OsStatus startChannelTone(int connectionId, int toneId, UtlBoolean local, UtlBoolean remote) ;
    virtual OsStatus stopChannelTone(int connectionId) ;
 
+   virtual OsStatus muteInput(int connectionId, UtlBoolean bMute);
+
    virtual OsStatus playAudio(const char* url, 
                               UtlBoolean repeat,
                               UtlBoolean local, 

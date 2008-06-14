@@ -288,20 +288,14 @@ public:
      /// Creates a new MpAudioConnection; returns -1 if failure.
    MpConnectionID createConnection(OsMsgQ* pConnectionNotificationQueue);
 
-     /// enables hearing audio data from a source
-   UtlBoolean unmuteInput(MpConnectionID connID);
-
-     /// enables sending audio data to a remote party
-   UtlBoolean unmuteOutput(MpConnectionID connID);
-
-     /// disables hearing audio data from a source
-   UtlBoolean muteInput(MpConnectionID connID);
-
-     /// disables sending audio data to a remote party
-   UtlBoolean muteOutput(MpConnectionID connID);
-
      /// Removes an MpAudioConnection and deletes it and all its resources.
    OsStatus deleteConnection(MpConnectionID connID);
+
+     /// enables hearing audio data from a source
+   OsStatus unmuteInput(MpConnectionID connID);
+
+     /// disables hearing audio data from a source
+   OsStatus muteInput(MpConnectionID connID);
 
    virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
 
@@ -492,7 +486,7 @@ private:
 
    OsMsgQ* m_pInterfaceNotificationQueue;
 
-   enum { MAX_CONNECTIONS = 10 };
+   enum { MAX_CONNECTIONS = 64 };
 
    MprBridge*    mpBridge;
    MprFromFile*  mpFromFile;
@@ -522,6 +516,7 @@ private:
    UtlBoolean    mToneIsGlobal;
    MpRtpInputAudioConnection* mpInputConnections[MAX_CONNECTIONS];
    MpRtpOutputAudioConnection* mpOutputConnections[MAX_CONNECTIONS];
+   int mpBridgePorts[MAX_CONNECTIONS];
    UtlBoolean     mToneGenDefocused; ///< disabled during defocused state flag
 #ifdef INCLUDE_RTCP /* [ */
    IRTCPSession* mpiRTCPSession;

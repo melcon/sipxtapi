@@ -29,6 +29,8 @@
 #include <os/IStunSocket.h>
 
 // DEFINES
+#define MAX_CONFERENCE_PARTICIPANTS 64
+
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -487,6 +489,10 @@ public:
 
    virtual OsStatus stopChannelAudio(int connectionId) = 0 ;
 
+   /**
+    * Mute input for given call on bridge.
+    */
+   virtual OsStatus muteInput(int connectionId, UtlBoolean bMute);
 
      /// @brief Give the focus of the local audio device to the associated call 
    virtual OsStatus giveFocus() = 0 ;

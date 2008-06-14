@@ -65,6 +65,11 @@ OsStatus CpMediaInterface::recordMic(UtlString* pAudioBuf)
    return OS_NOT_SUPPORTED; 
 };
 
+OsStatus CpMediaInterface::muteInput(int connectionId, UtlBoolean bMute) 
+{ 
+   return OS_NOT_SUPPORTED;
+};
+
 /* ============================ ACCESSORS ================================= */
 
 int CpMediaInterface::getInvalidConnectionId()
