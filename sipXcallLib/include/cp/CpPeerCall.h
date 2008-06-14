@@ -301,6 +301,8 @@ protected:
     UtlBoolean handleTransferOtherPartyUnhold(OsMsg* pEventMessage) ;
     //: Handles the processing of a CP_TRANSFER_OTHER_PARTY_UNHOLD message
 
+    UtlBoolean handleMuteInputTermConnection(OsMsg* pEventMessage);
+
     UtlBoolean handleGetUserAgent(OsMsg* pEventMessage);
 
     virtual UtlBoolean getConnectionState(const char* remoteAddress, int& state);

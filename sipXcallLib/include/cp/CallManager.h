@@ -158,6 +158,7 @@ public:
     virtual OsStatus audioChannelRecordStart(const char* callId, const char* szRemoteAddress, const char* szFile) ;
     virtual OsStatus audioChannelRecordStop(const char* callId, const char* szRemoteAddress) ;
     virtual void bufferPlay(const char* callId, int audiobuf, int bufSize, int type, UtlBoolean repeat, UtlBoolean local, UtlBoolean remote, void* pCookie = NULL);
+    virtual OsStatus muteInputTermConnection(const char* callId, const char* szRemoteAddress, UtlBoolean mute);
 
     // Operations for calls & connections
     virtual void acceptConnection(const char* callId,

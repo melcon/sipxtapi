@@ -185,6 +185,19 @@ Connection::~Connection()
 
 /* ============================ MANIPULATORS ============================== */
 
+UtlBoolean Connection::muteInput(UtlBoolean bMute)
+{
+	if(mpMediaInterface)
+	{
+		if(mpMediaInterface->muteInput(mConnectionId, bMute) == OS_SUCCESS)
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 void Connection::prepareForSplit()
 {
     if ((mpMediaInterface) &&

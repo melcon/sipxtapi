@@ -698,7 +698,8 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_LIMIT_CODEC_PREFERENCES:
         case CP_OUTGOING_INFO:
         case CP_GET_USERAGENT:
-            // Forward the message to the call
+        case CP_MUTE_INPUT_TERM_CONNECTION:
+        // Forward the message to the call
             {
                 UtlString callId;
                 ((CpMultiStringMessage&)eventMessage).getString1Data(callId);
@@ -1305,6 +1306,21 @@ void CallManager::bufferPlay(const char* callId, int audioBuf, int bufSize, int 
     postMessage(startToneMessage);
 }
 
+OsStatus CallManager::muteInputTermConnection(const char* callId, const char* szRemoteAddress, UtlBoolean mute)
+{
+   OsEvent event;
+   CpMultiStringMessage muteMessage(CP_MUTE_INPUT_TERM_CONNECTION,
+      callId, szRemoteAddress, NULL, NULL, NULL, // strings
+      mute, (intptr_t)&event); // intptr_t's
+
+   postMessage(muteMessage);
+   event.wait();
+   // fetch result from event data
+   intptr_t result = 0;
+   event.getEventData(result);
+
+   return (OsStatus)result;
+}
 
 void CallManager::setOutboundLineForCall(const char* callId, const char* address, SIPX_CONTACT_TYPE eType)
 {

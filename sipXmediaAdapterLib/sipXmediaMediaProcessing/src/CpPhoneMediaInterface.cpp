@@ -1361,6 +1361,23 @@ OsStatus CpPhoneMediaInterface::stopChannelTone(int connectionId)
     return stopTone() ;
 }
 
+OsStatus CpPhoneMediaInterface::muteInput(int connectionId, UtlBoolean bMute)
+{
+   OsStatus returnCode = OS_FAILED;
+   if(mpFlowGraph)
+   {
+	   if(bMute)
+	   {
+	      return mpFlowGraph->muteInput(connectionId);
+	   }
+	   else
+	   {
+		  return mpFlowGraph->unmuteInput(connectionId);
+	   }
+   }
+
+   return(returnCode);
+}
 
 OsStatus CpPhoneMediaInterface::giveFocus()
 {
@@ -1760,7 +1777,7 @@ UtlBoolean CpPhoneMediaInterface::isDestinationSet(int connectionId)
 
 UtlBoolean CpPhoneMediaInterface::canAddParty() 
 {
-    return (mMediaConnections.entries() < 4) ;
+    return (mMediaConnections.entries() < MAX_CONFERENCE_PARTICIPANTS);
 }
 
 
