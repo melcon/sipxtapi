@@ -2638,7 +2638,7 @@ UtlBoolean CpPeerCall::handleMuteInputTermConnection(OsMsg* pEventMessage)
 {
    UtlString targetCallId;
    UtlString remoteAddress;
-   Connection* pConnection;
+   Connection* pConnection = NULL;
 
    CpMultiStringMessage* pMultiMessage = (CpMultiStringMessage*) pEventMessage;
    pMultiMessage->getString1Data(targetCallId);
@@ -2647,20 +2647,15 @@ UtlBoolean CpPeerCall::handleMuteInputTermConnection(OsMsg* pEventMessage)
    OsEvent* pEvent = (OsEvent*)pMultiMessage->getInt2Data();
    OsStatus res = OS_FAILED;
 
-   UtlDListIterator iterator(mConnections);
-   while ((pConnection = (Connection*) iterator()))
+   pConnection = findHandlingConnection(remoteAddress);
+   if (pConnection)
    {
-      Url remoteUrl(remoteAddress);
-
-      if (!pConnection->isSameRemoteAddress(remoteUrl))
+      if (pConnection->muteInput(mute))
       {
-         if (pConnection->muteInput(mute))
-         {
-            res = OS_SUCCESS;
-         }
+         res = OS_SUCCESS;
       }
    }
-
+   
    if (pEvent)
    {
       pEvent->signal(res);
@@ -3638,11 +3633,11 @@ Connection* CpPeerCall::findHandlingConnection(UtlString& remoteAddress)
     OsReadLock lock(mConnectionMutex);
     Connection* connection = NULL;
     UtlDListIterator iterator(mConnections);
+    Url remoteUrl(remoteAddress);
 
     while ((connection = (Connection*) iterator()))
     {
         UtlString connectionRemoteAddress;
-        Url remoteUrl(remoteAddress);
 
         connection->getRemoteAddress(&connectionRemoteAddress);
         if (!connectionRemoteAddress.isNull())
