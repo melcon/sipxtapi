@@ -1155,7 +1155,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall, int bTakeFocus)
    return sr;
 }
 
-// CHECKED, remove sipxIsCallInFocus(), make sure focus is gained automatically in CallManager, not here
+// CHECKED
 SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAnswer");
@@ -1175,10 +1175,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
          void *display = NULL;
          void *security = NULL;
 
-         // TO BE REMOVED, not thread safe, focus could be gained by another phone call
-         // just after the function call to sipxIsCallInFocus
-         // local focus has to be gained automatically for Answer if no call has focus
-         if (!pCallData->pInst->pCallManager->isFocusTaken() || bTakeFocus)
+         if (bTakeFocus)
          {
             pCallData->bInFocus = TRUE;
 
