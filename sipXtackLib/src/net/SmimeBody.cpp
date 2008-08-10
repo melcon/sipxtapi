@@ -958,9 +958,6 @@ UtlBoolean SmimeBody::isDecrypted() const
 #include <net/SmimeBody.h>
 #include <net/HttpMessage.h>
 #include <os/OsSysLog.h>
-#ifdef SIP_TLS
-#include <os/OsTLS.h>
-#endif
 
 #ifdef HAVE_NSS
 

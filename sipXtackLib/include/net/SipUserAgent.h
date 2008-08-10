@@ -27,7 +27,6 @@
 #include <os/OsQueuedEvent.h>
 #ifdef SIP_TLS
 #include <net/SipTlsServer.h>
-#include <os/OsTLS.h>
 #endif
 #include <os/OsNatKeepaliveListener.h>
 
@@ -155,9 +154,6 @@ class SipUserAgentBase;
  */
 
 class SipUserAgent : public SipUserAgentBase 
-#ifdef SIP_TLS
-                     , public ITlsSink
-#endif 
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -631,9 +627,6 @@ public:
 
 #ifdef SIP_TLS    
     SipTlsServer* getTlsServer() { return mSipTlsServer; }
-    // ITlsSink implementation
-    bool onServerCertificate(void* pCert, char* serverHostName);
-    bool onTlsEvent(int cause);
 #endif
 
     void addExternalTransport(const UtlString tranportName, const SIPX_TRANSPORT_DATA* const pTransport);

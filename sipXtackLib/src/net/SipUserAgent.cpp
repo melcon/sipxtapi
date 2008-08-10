@@ -4383,52 +4383,6 @@ const SIPX_TRANSPORT_DATA* const SipUserAgent::lookupExternalTransport(const Utl
     }
     return NULL;
 }
-#ifdef SIP_TLS
-// ITlsSink implementations
-bool SipUserAgent::onServerCertificate(void* pCert,
-                                       char* serverHostName)
-{
-    bool bRet = true;
-
-    if (!mpLastSipMessage)
-    {
-        bRet = false;
-    }
-    else
-    {
-        char szSubjAltName[256];
-
-        memset(szSubjAltName, 0, sizeof(szSubjAltName));
-        SmimeBody::getSubjAltName(szSubjAltName, (CERTCertificate*)pCert, sizeof(szSubjAltName));
-        bRet = mpLastSipMessage->fireSecurityEvent(this,
-                                    SECURITY_TLS,
-                                    SECURITY_CAUSE_TLS_SERVER_CERTIFICATE,
-                                    mpLastSipMessage->getSecurityAttributes(),
-                                    pCert,
-                                    szSubjAltName);
-        if (!bRet)
-        {
-            mpLastSipMessage->fireSecurityEvent(this,
-                                                SECURITY_TLS,
-                                                SECURITY_CAUSE_TLS_CERTIFICATE_REJECTED,
-                                                mpLastSipMessage->getSecurityAttributes(),
-                                                pCert,
-                                                szSubjAltName);
-        }
-
-    }
-    return bRet;
-}
-
-bool SipUserAgent::onTlsEvent(int cause)
-{
-    bool bRet = true;
-
-    return bRet;
-}
-
-
-#endif
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
