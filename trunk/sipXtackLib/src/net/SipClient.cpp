@@ -24,10 +24,6 @@
 #include <os/OsDatagramSocket.h>
 #include <os/OsSysLog.h>
 #include <os/OsEvent.h>
-#ifdef SIP_TLS
-#include "os/OsTLSConnectionSocket.h"
-#include "os/OsTLSClientConnectionSocket.h"
-#endif
 
 #define SIP_DEFAULT_RTT 500
 
@@ -211,15 +207,6 @@ int SipClient::run(void* runArg)
 #endif
 
             message = new SipMessage();
-
-            // first, if this is a TLS socket, make sure the handshake is complete
-#ifdef SIP_TLS
-            OsTLSClientConnectionSocket* pSslSocket = dynamic_cast<OsTLSClientConnectionSocket*> (clientSocket);
-            if (pSslSocket)
-            {
-                pSslSocket->waitForHandshake(-1);
-            }
-#endif
 
             // Block and wait for the socket to be ready to read
             // clientSocket shouldn't be null

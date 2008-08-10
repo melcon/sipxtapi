@@ -22,11 +22,8 @@
 
 #ifdef SIP_TLS
 #  include <tapi/sipxtapi.h>
-#   ifdef SIP_TLS_NSS
-#   else
-#    include <os/OsSSLServerSocket.h>
-#    include <os/OsSSLConnectionSocket.h>
-#   endif
+#  include <os/OsSSLServerSocket.h>
+#  include <os/OsSSLConnectionSocket.h>
 #endif
 
 #include <net/SipServerBroker.h>
@@ -138,16 +135,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
     if(portIsValid(port))
     {
 #ifdef SIP_TLS
-#   ifdef SIP_TLS_NSS
-        // TODO - create a new OpenTLSServerSocket
-        OsServerSocket* pServerSocket = new OsTLSServerSocket(64, port, mCertNickname, mCertPassword, mDbLocation, szBindAddr);
-        if (pServerSocket)
-        {
-            
-        }
-#   else
         OsServerSocket* pServerSocket = new OsSSLServerSocket(64, port);
-#   endif
 #else
         OsServerSocket* pServerSocket = new OsServerSocket(64, port);
 #endif
@@ -160,11 +148,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
             {
                 delete pServerSocket ;
 #ifdef SIP_TLS
-#   ifdef SIP_TLS_NSS
-                pServerSocket = new OsTLSServerSocket(64, port+i, mCertNickname, mCertPassword, mDbLocation);
-#   else
                 pServerSocket = new OsSSLServerSocket(64, port+i);
-#   endif
 #else
                 pServerSocket = new OsServerSocket(64, port+i);
 #endif                
@@ -203,33 +187,6 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
                                                                                                 pServerSocket)));                                                   
     
             rc = OS_SUCCESS;
-#           ifdef SIP_TLS_NSS
-            TlsInitCodes tlsInitCode = ((OsTLSServerSocket*)pServerSocket)->getTlsInitCode();
-            if (tlsInitCode != TLS_INIT_SUCCESS)
-            {
-                switch (tlsInitCode)
-                {
-                    case TLS_INIT_DATABASE_FAILURE:
-                        mTlsInitCode = OS_TLS_INIT_DATABASE_FAILURE;
-                        break;
-                    case TLS_INIT_BAD_PASSWORD:
-                        mTlsInitCode = OS_TLS_INIT_BAD_PASSWORD;
-                        break;
-                    case TLS_INIT_TCP_IMPORT_FAILURE:
-                        mTlsInitCode = OS_TLS_INIT_TCP_IMPORT_FAILURE;
-                        break;
-                    case TLS_INIT_NSS_FAILURE:
-                        mTlsInitCode = OS_TLS_INIT_NSS_FAILURE;
-                        break;
-                    default:
-                        mTlsInitCode = OS_TLS_INIT_NSS_FAILURE;
-                        break;
-                }
-                OsSysLog::add(FAC_SIP, PRI_ERR,
-                  "SipTlsServer - init failure = %d",
-                  mTlsInitCode);
-            }
-#           endif
         }
     }
     return rc;
@@ -316,11 +273,7 @@ OsSocket* SipTlsServer::buildClientSocket(int hostPort, const char* hostAddress,
 {
     OsSocket* socket = NULL;
 #ifdef SIP_TLS
-#   ifdef SIP_TLS_NSS
-       socket = new OsTLSClientConnectionSocket(hostPort, hostAddress, mCertNickname, mCertPassword, mDbLocation, 0, localIp, mSipUserAgent);
-#   else
-       socket = new OsSSLConnectionSocket(hostPort, hostAddress);
-#   endif
+    socket = new OsSSLConnectionSocket(hostPort, hostAddress);
 #else
     // Create the socket in non-blocking mode so it does not block
     // while conecting

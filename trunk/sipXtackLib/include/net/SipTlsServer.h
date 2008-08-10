@@ -19,8 +19,6 @@
 
 // APPLICATION INCLUDES
 #include <net/SipProtocolServerBase.h>
-#include <os/OsTLSServerSocket.h>
-#include "os/OsTLSClientConnectionSocket.h"
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
