@@ -14,6 +14,10 @@
 #include <ctype.h>
 #include <time.h>
 
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#endif
+
 #ifdef __pingtel_on_posix__
 #include <stdlib.h>
 #include <netdb.h>
