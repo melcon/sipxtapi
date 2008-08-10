@@ -37,7 +37,7 @@
 #include <net/SipObserverCriteria.h>
 #include <os/HostAdapterAddress.h>
 #include <net/Url.h>
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
 #include <net/SipTlsServer.h>
 #endif
 #include <net/SipTcpServer.h>
@@ -131,7 +131,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
         : SipUserAgentBase(sipTcpPort, sipUdpPort, sipTlsPort, queueSize)
         , mSipTcpServer(NULL)
         , mSipUdpServer(NULL)
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
         , mSipTlsServer(NULL)
 #endif
         , mMessageLogRMutex(OsRWMutex::Q_FIFO)
@@ -174,7 +174,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
         mTcpPort = mSipTcpServer->getServerPort() ;
     }
 
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     if (mTlsPort != PORT_NONE)
     {
         mSipTlsServer = new SipTlsServer(mTlsPort,
@@ -454,7 +454,7 @@ SipUserAgent::~SipUserAgent()
        mSipUdpServer = NULL;
     }
 
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     if(mSipTlsServer)
     {
        mSipTlsServer->shutdownListener();
@@ -1327,7 +1327,7 @@ UtlBoolean SipUserAgent::sendStatelessResponse(SipMessage& rresponse)
     {
         sendSucceeded = sendTcp(&responseCopy, sendAddress.data(), sendPort);
     }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     else if(sendProtocol.compareTo(SIP_TRANSPORT_TLS, UtlString::ignoreCase) == 0)
     {
         sendSucceeded = sendTls(&responseCopy, sendAddress.data(), sendPort);
@@ -1377,7 +1377,7 @@ UtlBoolean SipUserAgent::sendStatelessRequest(SipMessage& request,
     {
         sendSucceeded = sendTcp(&request, address.data(), port);
     }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     else if(protocol == OsSocket::SSL_SOCKET)
     {
         sendSucceeded = sendTls(&request, address.data(), port);
@@ -1472,7 +1472,7 @@ UtlBoolean SipUserAgent::sendTls(SipMessage* message,
                                                                 const char* serverAddress,
                                                                 int port)
 {
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
    int sendSucceeded = FALSE;
    int len;
    UtlString msgBytes;
@@ -2886,7 +2886,7 @@ void SipUserAgent::garbageCollection()
 #         endif
             mSipTcpServer->removeOldClients(tcpThen);
         }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
         if (mSipTlsServer)
         {
           OsSysLog::add(FAC_SIP, PRI_DEBUG,
@@ -3083,7 +3083,7 @@ UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX
                 if (mSipTcpServer)
                     *pPort = mSipTcpServer->getServerPort() ;
                 break;
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
             case TRANSPORT_TLS:
                 if (mSipTlsServer)
                     *pPort = mSipTlsServer->getServerPort();
@@ -3349,7 +3349,7 @@ void SipUserAgent::getViaInfo(int protocol,
     {
         port = mTcpPort == SIP_PORT ? PORT_NONE : mTcpPort;
     }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     else if(protocol == OsSocket::SSL_SOCKET)
     {
         port = mTlsPort == SIP_TLS_PORT ? PORT_NONE : mTlsPort;
@@ -3582,7 +3582,7 @@ void SipUserAgent::printStatus()
     {
         mSipTcpServer->printStatus();
     }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     if(mSipTlsServer)
     {
         mSipTlsServer->printStatus();
@@ -3735,7 +3735,7 @@ int SipUserAgent::getTlsPort() const
 {
     int iPort = PORT_NONE ;
 
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     if (mSipTlsServer)
     {
         iPort = mSipTlsServer->getServerPort() ;
@@ -3877,7 +3877,7 @@ UtlBoolean SipUserAgent::isOk(OsSocket::IpProtocolSocketType socketType)
                 retval = mSipUdpServer->isOk();
             }
             break;
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
         case OsSocket::SSL_SOCKET :
             if (mSipTlsServer)
             {

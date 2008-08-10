@@ -1048,7 +1048,7 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
         resendDuration = 0;
         resendTime = userAgent.getReliableTransportTimeout() * 1000;
     }
-#   ifdef SIP_TLS
+#   ifdef HAVE_SSL
     else if(toProtocol == OsSocket::SSL_SOCKET)
     {
         lastSentProtocol = OsSocket::SSL_SOCKET;
@@ -3307,7 +3307,7 @@ UtlBoolean SipTransaction::doResend(SipMessage& resendMessage,
         }
     }
 
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     else if(protocol == OsSocket::TCP ||
        protocol == OsSocket::SSL_SOCKET)
 #else
@@ -3339,7 +3339,7 @@ UtlBoolean SipTransaction::doResend(SipMessage& resendMessage,
                                          sendAddress.data(),
                                          sendPort);
            }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
            else if(protocol == OsSocket::SSL_SOCKET)
            {
               sendOk = userAgent.sendTls(&resendMessage,
@@ -3547,7 +3547,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
                 {
                     userAgent.sendTcp(response, sendAddress.data(), sendPort);
                 }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
                 else if(sendProtocol == OsSocket::SSL_SOCKET)
                 {
                     userAgent.sendTls(response, sendAddress.data(), sendPort);
@@ -3596,7 +3596,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
                 {
                     userAgent.sendTcp(mpAck, sendAddress.data(), sendPort);
                 }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
                 else if(sendProtocol == OsSocket::SSL_SOCKET)
                 {
                     userAgent.sendTls(mpAck, sendAddress.data(), sendPort);
@@ -3640,7 +3640,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
             {
                 userAgent.sendTcp(mpAck, sendAddress.data(), sendPort);
             }
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
             else if(sendProtocol == OsSocket::SSL_SOCKET)
             {
                 userAgent.sendTls(mpAck, sendAddress.data(), sendPort);

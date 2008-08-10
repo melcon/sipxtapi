@@ -546,7 +546,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include;..\..\openSSL\include\"
+				AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include;..\..\openSSL\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048;HAVE_SSL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

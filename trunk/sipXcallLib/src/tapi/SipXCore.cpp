@@ -566,7 +566,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    rc = SIPX_RESULT_SUCCESS;
    //  check for TLS initialization
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
    if (pInst->pSipUserAgent->getTlsServer() && iActualTLSPort > 0 && szTLSCertificateNickname)
    {
       OsStatus initStatus = pInst->pSipUserAgent->getTlsServer()->getTlsInitCode();

@@ -25,7 +25,7 @@
 #include <net/SipTransactionList.h>
 #include <net/SipUdpServer.h>
 #include <os/OsQueuedEvent.h>
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
 #include <net/SipTlsServer.h>
 #endif
 #include <os/OsNatKeepaliveListener.h>
@@ -625,7 +625,7 @@ public:
                     const int*           piTargetPort,
                     SIPX_TRANSPORT_DATA* pTransport = NULL) ;
 
-#ifdef SIP_TLS    
+#ifdef HAVE_SSL    
     SipTlsServer* getTlsServer() { return mSipTlsServer; }
 #endif
 
@@ -709,7 +709,7 @@ private:
 
     SipTcpServer* mSipTcpServer;
     SipUdpServer* mSipUdpServer;
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     SipTlsServer* mSipTlsServer;
 #endif
     SipTransactionList mSipTransactions;

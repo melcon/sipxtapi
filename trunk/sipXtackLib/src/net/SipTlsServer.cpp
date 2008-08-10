@@ -8,7 +8,7 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
 
 // SYSTEM INCLUDES
 #include <assert.h>
@@ -20,11 +20,9 @@
 #include <os/HostAdapterAddress.h>
 #include <utl/UtlHashMapIterator.h>
 
-#ifdef SIP_TLS
-#  include <tapi/sipxtapi.h>
-#  include <os/OsSSLServerSocket.h>
-#  include <os/OsSSLConnectionSocket.h>
-#endif
+#include <tapi/sipxtapi.h>
+#include <os/OsSSLServerSocket.h>
+#include <os/OsSSLConnectionSocket.h>
 
 #include <net/SipServerBroker.h>
 #include <net/SipTcpServer.h>
@@ -134,7 +132,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
 
     if(portIsValid(port))
     {
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
         OsServerSocket* pServerSocket = new OsSSLServerSocket(64, port);
 #else
         OsServerSocket* pServerSocket = new OsServerSocket(64, port);
@@ -147,7 +145,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
             for (int i=1; i<=SIP_MAX_PORT_RANGE; i++)
             {
                 delete pServerSocket ;
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
                 pServerSocket = new OsSSLServerSocket(64, port+i);
 #else
                 pServerSocket = new OsServerSocket(64, port+i);
@@ -272,7 +270,7 @@ SipTlsServer::~SipTlsServer()
 OsSocket* SipTlsServer::buildClientSocket(int hostPort, const char* hostAddress, const char* localIp)
 {
     OsSocket* socket = NULL;
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
     socket = new OsSSLConnectionSocket(hostPort, hostAddress);
 #else
     // Create the socket in non-blocking mode so it does not block

@@ -12,7 +12,7 @@
 #ifndef _SipTlsServer_h_
 #define _SipTlsServer_h_
 
-#ifdef SIP_TLS
+#ifdef HAVE_SSL
 
 // SYSTEM INCLUDES
 //#include <...>
@@ -96,5 +96,5 @@ private:
 
 /* ============================ INLINE METHODS ============================ */
 
-#endif  // SIP_TLS
+#endif  // HAVE_SSL
 #endif  // _SipTlsServer_h_
