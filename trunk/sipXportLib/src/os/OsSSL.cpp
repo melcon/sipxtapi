@@ -13,6 +13,10 @@
 
 #if defined(HAVE_SSL)
 
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#endif
+
 // SYSTEM INCLUDES
 #include <openssl/rand.h>
 #include <openssl/x509v3.h>

@@ -17,7 +17,8 @@
 #include <stdio.h>
 
 #if defined(_WIN32)
-#   include <winsock.h>
+#   define WIN32_LEAN_AND_MEAN
+#   include <winsock2.h>
 #elif defined(_VXWORKS)
 #   include <inetLib.h>
 #   include <netdb.h>
