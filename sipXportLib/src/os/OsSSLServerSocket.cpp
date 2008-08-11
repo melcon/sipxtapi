@@ -122,7 +122,7 @@ OsConnectionSocket* OsSSLServerSocket::accept()
                        clientSocket);
 
          // TODO: allow this to be a non-shared context...
-         SSL* pSSL = OsSharedSSL::get()->getServerConnection();
+         SSL* pSSL = OsSSL::getInstance()->getServerConnection();
          if (pSSL)
          {
             SSL_set_fd (pSSL, clientSocket);

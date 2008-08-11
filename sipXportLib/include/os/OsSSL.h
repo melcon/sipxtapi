@@ -17,6 +17,7 @@
 #include "os/OsBSem.h"
 #include "os/OsSysLog.h"
 #include "openssl/ssl.h"
+#include <utl/UtlString.h>
 
 // DEFINES
 // MACROS
@@ -29,33 +30,51 @@
 class UtlString;
 class UtlSList;
 
-/// Wrapper for the OpenSSL SSL_CTX context structure.
-/// This class is responsible for all global policy initialization and
-/// enforcement.
+/**
+ * Wrapper for the OpenSSL SSL_CTX context structure.
+ * This class is responsible for all global policy initialization and
+ * enforcement.
+ *
+ * If certificate or CA path is not supplied, default one is used.
+ */
 class OsSSL
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
   public:
 
-   /// Construct an SSL Context from which connections are created.
-   OsSSL(const char* authorityPath = NULL,   /**< Path to a directory containing trusted
-                                              *   certificates files;
-                                              * If NULL, compiled-in default is used */
-         const char* publicCertificatePath = NULL, /**< Path to certificate file;
-                                                    * If NULL, compiled-in default is used */
-         const char* privateKeyPath = NULL  /**< Path to private key file;
-                                             * If NULL, compiled-in default is used.
-                                             * @note: If publicCertificatePath is NULL, this
-                                             *        must also be NULL.
-                                             */
-         );
-
-   ~OsSSL();
-
 /* ============================ CREATORS ================================== */
 
 /* ============================ MANIPULATORS ============================== */
  
+   static OsSSL* getInstance();
+
+   /**
+    * Sets directory containing several CA certificates. Create links using c_rehash.
+    * @see http://www.openssl.org/docs/ssl/SSL_CTX_load_verify_locations.html
+    */
+   static void setCApath(const UtlString& path);
+
+   /**
+    * Sets PEM file (base64) containing CA certificates.
+    */
+   static void setCAfile(const UtlString& caFile);
+
+   /**
+    * Sets file containing PEM certificate. Certificate must not be encrypted.
+    */
+   static void setCertificateFile(const UtlString& file);
+
+   /**
+    * Sets file containing private key in PEM format. Key might be encrypted.
+    */
+   static void setPrivateKeyFile(const UtlString& file);
+
+   /**
+    * Sets password used for private key decryption.
+    */
+   static void setPassword(const UtlString& password);
+
+
 /* ============================ ACCESSORS ================================= */
 
    /// Get an SSL server connection handle
@@ -107,17 +126,35 @@ class OsSSL
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
   protected:
 
+     /// Construct an SSL Context from which connections are created.
+     OsSSL();
+
+     ~OsSSL();
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
   private:
 
    static bool sInitialized;
    
    SSL_CTX* mCTX;
+   static OsBSem* m_spInstanceLock;
+   static OsSSL* m_spInstance;
+   static UtlString m_sCaPath;
+   static UtlString m_sCaFile;
+   static UtlString m_sCertificateFile;
+   static UtlString m_sPrivateKeyFile;
+   static UtlString m_sPassword;
 
    /// Certificate chain validation hook called by openssl
    static int verifyCallback(int valid,            ///< validity so far from openssl
                              X509_STORE_CTX* store ///< certificate information db
                              );
+
+   /**
+    * PEM password callback. Used to decrypt private keys.
+    */
+   static int pem_passwd_cb(char *buf, int size, int rwflag, void *userdata);
+
    /**<
     * @returns validity as determined by local policy
     * @note See 'man SSL_CTX_set_verify'
@@ -129,32 +166,6 @@ class OsSSL
    /// Disable assignment operator
    OsSSL& operator=(const OsSSL& rhs);
 };
-
-/// A singleton wrapper for OsSSL
-class OsSharedSSL
-{
-  public:
-   
-   static OsSSL* get();
-   
-  private:
-
-   static OsBSem* spSslLock;
-   static OsSSL*  spSharedSSL;
-   
-   /// singleton constructor
-   OsSharedSSL();
-
-   ~OsSharedSSL();
-   
-   /// Disable copy constructor
-   OsSharedSSL(const OsSharedSSL& r);
-
-   /// Disable assignment operator
-   OsSharedSSL& operator=(const OsSharedSSL& rhs);
-};
-
-
 
 /* ============================ INLINE METHODS ============================ */
 

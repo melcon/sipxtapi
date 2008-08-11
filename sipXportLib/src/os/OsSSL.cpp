@@ -24,6 +24,7 @@
 #include <openssl/err.h>
 
 // APPLICATION INCLUDES
+#include "os/OsDefs.h"
 #include "os/OsSSL.h"
 #include "os/OsLock.h"
 #include "os/OsSysLog.h"
@@ -37,13 +38,21 @@
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
-#define TEST_DEBUG
+//#define TEST_DEBUG
 const char* defaultPublicCertificateFile = SIPX_CONFDIR "/ssl/ssl.crt";
 const char* defaultPrivateKeyFile        = SIPX_CONFDIR "/ssl/ssl.key";
 
 const char* defaultAuthorityPath         = SIPX_CONFDIR "/ssl/authorities";
 
 bool OsSSL::sInitialized = false;
+
+OsBSem* OsSSL::m_spInstanceLock = new OsBSem(OsBSem::Q_PRIORITY, OsBSem::FULL);
+OsSSL* OsSSL::m_spInstance = NULL;
+UtlString OsSSL::m_sCaPath = NULL;
+UtlString OsSSL::m_sCaFile = NULL;
+UtlString OsSSL::m_sCertificateFile = NULL;
+UtlString OsSSL::m_sPrivateKeyFile = NULL;
+UtlString OsSSL::m_sPassword = NULL;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -52,13 +61,12 @@ bool OsSSL::sInitialized = false;
 
 // Constructor
 
-OsSSL::OsSSL(const char* authorityPath,
-             const char* publicCertificateFile,
-             const char* privateKeyPath
-             )
+OsSSL::OsSSL()
 {
    if (!sInitialized)
    {
+      sInitialized = true;
+
       // Initialize random number generator before using SSL
 
       // TODO: this is a bad way to do this - it may need to be fixed.
@@ -72,124 +80,110 @@ OsSSL::OsSSL(const char* authorityPath,
 
       /* make a random number and set the top and bottom bits */
       int seed[32];
-      for (unsigned int i = 0; i < sizeof(seed)/sizeof(int);i++)
+      for (unsigned int i = 0; i < sizeof(seed) / sizeof(int); i++)
       {
          seed[i] = rand();
       }
 
-      RAND_seed(seed,sizeof(seed));
+      RAND_seed(seed, sizeof(seed));
+      int res = RAND_status();
+      if (res)
+      {
+         // not enough randomness in PRNG
+         OsSysLog::add(FAC_KERNEL, PRI_ERR, "OsSSL::_ Not enough randomness in PRNG");
+      }
+
       SSLeay_add_ssl_algorithms();
 
       // It is suggested by the OpenSSL group that embedded systems
       // only enable loading of error strings when debugging.
       // Perhaps this should be conditional?
       SSL_load_error_strings();
-   
-      sInitialized = true;
-   }
-   
-   mCTX = SSL_CTX_new(SSLv23_method());
+      
+      mCTX = SSL_CTX_new(SSLv23_method());
 
-   if (mCTX)
-   {
-      if (SSL_CTX_load_verify_locations(mCTX,
-                                        NULL, // we do not support using a bundled CA file
-                                        authorityPath ? authorityPath : defaultAuthorityPath)
-          > 0)
+      if (mCTX)
       {
-         
-         if (SSL_CTX_use_certificate_file(mCTX,
-                                          publicCertificateFile
-                                          ? publicCertificateFile
-                                          : defaultPublicCertificateFile,
-                                          SSL_FILETYPE_PEM)
-             > 0)
+         // set password callback
+         SSL_CTX_set_default_passwd_cb(mCTX, pem_passwd_cb);
+
+         UtlString caPath = m_sCaPath.data() ? m_sCaPath.data() : defaultAuthorityPath;
+         if (SSL_CTX_load_verify_locations(mCTX,
+                                           m_sCaFile.data(),
+                                           caPath.data()) > 0)
          {
-            if (SSL_CTX_use_PrivateKey_file(mCTX,
-                                            privateKeyPath
-                                            ? privateKeyPath
-                                            : defaultPrivateKeyFile,
-                                            SSL_FILETYPE_PEM)
-                > 0)
+            UtlString certFile = m_sCertificateFile.data() ? m_sCertificateFile.data() : defaultPublicCertificateFile;
+            if (SSL_CTX_use_certificate_file(mCTX,
+                                             certFile.data(),
+                                             SSL_FILETYPE_PEM) > 0)
             {
-               if (SSL_CTX_check_private_key(mCTX))
+               UtlString keyFile = m_sPrivateKeyFile.data() ? m_sPrivateKeyFile.data() : defaultPrivateKeyFile;
+               if (SSL_CTX_use_PrivateKey_file(mCTX,
+                                               keyFile.data(),
+                                               SSL_FILETYPE_PEM) > 0)
                {
-                  OsSysLog::add(FAC_KERNEL, PRI_INFO
-                                ,"OsSSL::_ %p CTX %p loaded key pair:\n"
-                                "   public  '%s'\n"
-                                "   private '%s'"
-                                ,this, mCTX,
-                                publicCertificateFile
-                                ? publicCertificateFile
-                                : defaultPublicCertificateFile,
-                                privateKeyPath
-                                ? privateKeyPath
-                                : defaultPrivateKeyFile
-                                );
+                  if (SSL_CTX_check_private_key(mCTX))
+                  {
+                     // check successful, private key ok
+                     OsSysLog::add(FAC_KERNEL, PRI_INFO
+                                   ,"OsSSL::_ %p CTX %p loaded key pair:\n"
+                                   "   public  '%s'\n"
+                                   "   private '%s'"
+                                   ,this, mCTX,
+                                   certFile.data(),
+                                   keyFile.data());
 
-                  // TODO: log our own certificate data
+                     // TODO: log our own certificate data
 
-                  // Establish verification rules
-                  SSL_CTX_set_verify(mCTX,
-                                     SSL_VERIFY_PEER + SSL_VERIFY_CLIENT_ONCE,
-                                     verifyCallback
-                                     );
-                  
-                  // disable server connection caching
-                  // TODO: Investigate turning this on...
-                  SSL_CTX_set_session_cache_mode(mCTX, SSL_SESS_CACHE_OFF);
+                     // Establish verification rules
+                     SSL_CTX_set_verify(mCTX,
+                                        SSL_VERIFY_PEER + SSL_VERIFY_CLIENT_ONCE,
+                                        verifyCallback
+                                        );
+                     
+                     // disable server connection caching
+                     // TODO: Investigate turning this on...
+                     SSL_CTX_set_session_cache_mode(mCTX, SSL_SESS_CACHE_OFF);
+                  }
+                  else
+                  {
+                     OsSysLog::add(FAC_KERNEL, PRI_ERR,
+                                   "OsSSL::_ Private key '%s' does not match certificate '%s'",
+                                   keyFile.data(),
+                                   certFile.data()
+                                   );
+                  }
                }
                else
                {
                   OsSysLog::add(FAC_KERNEL, PRI_ERR,
-                                "OsSSL::_ Private key '%s' does not match certificate '%s'",
-                                privateKeyPath
-                                ? privateKeyPath
-                                : defaultPrivateKeyFile,
-                                publicCertificateFile
-                                ? publicCertificateFile
-                                : defaultPublicCertificateFile
-                                );
+                                "OsSSL::_ Private key '%s' could not be initialized.",
+                                keyFile.data());
                }
             }
             else
             {
                OsSysLog::add(FAC_KERNEL, PRI_ERR,
-                             "OsSSL::_ Private key '%s' could not be initialized.",
-                             privateKeyPath
-                             ? privateKeyPath
-                             : defaultPrivateKeyFile
-                             );
+                             "OsSSL::_ Public key '%s' could not be initialized.",
+                             certFile.data());
             }
          }
          else
          {
             OsSysLog::add(FAC_KERNEL, PRI_ERR,
-                          "OsSSL::_ Public key '%s' could not be initialized.",
-                          publicCertificateFile
-                          ? publicCertificateFile
-                          : defaultPublicCertificateFile
-                          );
+                          "OsSSL::_ SSL_CTX_load_verify_locations failed\n"
+                          "    authorityDir:  '%s'",
+                          caPath.data());
          }
-
       }
       else
       {
-         OsSysLog::add(FAC_KERNEL, PRI_ERR,
-                       "OsSSL::_ SSL_CTX_load_verify_locations failed\n"
-                       "    authorityDir:  '%s'",
-                       authorityPath ? authorityPath : defaultAuthorityPath);
+         OsSysLog::add(FAC_KERNEL, PRI_ERR, "OsSSL::_ SSL_CTX_new failed");
       }
-   }
-   else
-   {
-      OsSysLog::add(FAC_KERNEL, PRI_ERR, "OsSSL::_ SSL_CTX_new failed");
    }
 }
 
-
 // Destructor
-
 OsSSL::~OsSSL()
 {
    // Since error queue data structures are allocated automatically for new threads,
@@ -206,6 +200,44 @@ OsSSL::~OsSSL()
 
 /* ============================ MANIPULATORS ============================== */
  
+OsSSL* OsSSL::getInstance()
+{
+   // critical region to ensure that only one shared ssl context is created
+   OsLock lock(*m_spInstanceLock);
+
+   if (!m_spInstance)
+   {
+      m_spInstance = new OsSSL();
+   }
+
+   return m_spInstance;
+}
+
+void OsSSL::setCApath(const UtlString& path)
+{
+   m_sCaPath = path;
+}
+
+void OsSSL::setCAfile(const UtlString& caFile)
+{
+   m_sCaFile = caFile;
+}
+
+void OsSSL::setCertificateFile(const UtlString& file)
+{
+   m_sCertificateFile = file;
+}
+
+void OsSSL::setPrivateKeyFile(const UtlString& file)
+{
+   m_sPrivateKeyFile = file;
+}
+
+void OsSSL::setPassword(const UtlString& password)
+{
+   m_sPassword = password;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /// Get an SSL server connection handle
@@ -267,7 +299,7 @@ void OsSSL::releaseConnection(SSL*& connection)
 void OsSSL::logConnectParams(const OsSysLogFacility facility, ///< callers facility
                              const OsSysLogPriority priority, ///< log priority
                              const char* callerMsg,  ///< Identifies circumstances of connection
-                             SSL*  connection  ///< SSL connection to be described
+                             SSL* connection  ///< SSL connection to be described
                              )
 {
    if (connection)
@@ -535,32 +567,6 @@ void OsSSL::dumpCipherList()
 
 }
 
-/********************************************************************************/
-
-
-OsSSL* OsSharedSSL::get()
-{
-   // critical region to ensure that only one shared ssl context is created
-   OsLock lock(*spSslLock);
-
-   if (!spSharedSSL)
-   {
-      spSharedSSL = new OsSSL();
-   }
-   return spSharedSSL;
-}
-
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-
-OsBSem* OsSharedSSL::spSslLock   = new OsBSem(OsBSem::Q_PRIORITY, OsBSem::FULL);
-OsSSL*  OsSharedSSL::spSharedSSL = NULL;
-
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-
-
-
-/* ============================ FUNCTIONS ================================= */
-
 int OsSSL::verifyCallback(int valid,            // validity so far from openssl
                           X509_STORE_CTX* store // certificate information db
                           )
@@ -576,20 +582,35 @@ int OsSSL::verifyCallback(int valid,            // validity so far from openssl
       // log the details of why openssl thinks this is not valid
       char issuer[256]; 
       char subject[256]; 
-      
+
       X509_NAME_oneline(X509_get_issuer_name(cert), issuer, sizeof(issuer));
       X509_NAME_oneline(X509_get_subject_name(cert), subject, sizeof(subject));
       OsSysLog::add(FAC_KERNEL, PRI_ERR,
-                    "OsSSL::verifyCallback invalid certificate at depth %d\n"
-                    "       error='%s'\n"
-                    "       issuer='%s'\n"
-                    "       subject='%s'",
-                    X509_STORE_CTX_get_error_depth(store),
-                    X509_verify_cert_error_string(X509_STORE_CTX_get_error(store)),
-                    issuer, subject);
+         "OsSSL::verifyCallback invalid certificate at depth %d\n"
+         "       error='%s'\n"
+         "       issuer='%s'\n"
+         "       subject='%s'",
+         X509_STORE_CTX_get_error_depth(store),
+         X509_verify_cert_error_string(X509_STORE_CTX_get_error(store)),
+         issuer, subject);
    }
 
    return valid;
 }
+
+int OsSSL::pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
+{
+   SAFE_STRNCPY(buf, m_sPassword.data(), size);
+   return(SAFE_STRLEN(buf));
+}
+
+/********************************************************************************/
+
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+/* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+/* ============================ FUNCTIONS ================================= */
+
 
 #endif // HAVE_SSL

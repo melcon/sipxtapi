@@ -335,7 +335,7 @@ void OsSSLConnectionSocket::SSLInitSocket(int socket, long timeoutInSecs)
        int err = -1;
 
        // TODO: eventually this should allow for other SSL contexts...
-       mSSL = OsSharedSSL::get()->getServerConnection();
+       mSSL = OsSSL::getInstance()->getServerConnection();
 
        if (mSSL && (socketDescriptor > OS_INVALID_SOCKET_DESCRIPTOR))
        {
