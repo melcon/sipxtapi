@@ -46,13 +46,15 @@ const char* defaultAuthorityPath         = SIPX_CONFDIR "/ssl/authorities";
 
 bool OsSSL::sInitialized = false;
 
-OsBSem* OsSSL::m_spInstanceLock = new OsBSem(OsBSem::Q_PRIORITY, OsBSem::FULL);
+OsBSem OsSSL::m_sInstanceLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
 OsSSL* OsSSL::m_spInstance = NULL;
 UtlString OsSSL::m_sCaPath = NULL;
 UtlString OsSSL::m_sCaFile = NULL;
 UtlString OsSSL::m_sCertificateFile = NULL;
 UtlString OsSSL::m_sPrivateKeyFile = NULL;
 UtlString OsSSL::m_sPassword = NULL;
+
+OsSSLDestructor OsSSLDestructor::m_sInstance;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -203,7 +205,7 @@ OsSSL::~OsSSL()
 OsSSL* OsSSL::getInstance()
 {
    // critical region to ensure that only one shared ssl context is created
-   OsLock lock(*m_spInstanceLock);
+   OsLock lock(m_sInstanceLock);
 
    if (!m_spInstance)
    {
