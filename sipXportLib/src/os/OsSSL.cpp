@@ -89,7 +89,7 @@ OsSSL::OsSSL()
 
       RAND_seed(seed, sizeof(seed));
       int res = RAND_status();
-      if (res)
+      if (!res)
       {
          // not enough randomness in PRNG
          OsSysLog::add(FAC_KERNEL, PRI_ERR, "OsSSL::_ Not enough randomness in PRNG");
@@ -109,17 +109,17 @@ OsSSL::OsSSL()
          // set password callback
          SSL_CTX_set_default_passwd_cb(mCTX, pem_passwd_cb);
 
-         UtlString caPath = m_sCaPath.data() ? m_sCaPath.data() : defaultAuthorityPath;
+         UtlString caPath = !m_sCaPath.isNull() ? m_sCaPath.data() : defaultAuthorityPath;
          if (SSL_CTX_load_verify_locations(mCTX,
-                                           m_sCaFile.data(),
+                                           !m_sCaFile.isNull() ? m_sCaFile.data() : NULL,
                                            caPath.data()) > 0)
          {
-            UtlString certFile = m_sCertificateFile.data() ? m_sCertificateFile.data() : defaultPublicCertificateFile;
+            UtlString certFile = !m_sCertificateFile.isNull() ? m_sCertificateFile.data() : defaultPublicCertificateFile;
             if (SSL_CTX_use_certificate_file(mCTX,
                                              certFile.data(),
                                              SSL_FILETYPE_PEM) > 0)
             {
-               UtlString keyFile = m_sPrivateKeyFile.data() ? m_sPrivateKeyFile.data() : defaultPrivateKeyFile;
+               UtlString keyFile = !m_sPrivateKeyFile.isNull() ? m_sPrivateKeyFile.data() : defaultPrivateKeyFile;
                if (SSL_CTX_use_PrivateKey_file(mCTX,
                                                keyFile.data(),
                                                SSL_FILETYPE_PEM) > 0)
