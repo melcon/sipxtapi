@@ -60,8 +60,8 @@ public:
 
     OsStatus getTlsInitCode() { return mTlsInitCode; }
 
-    UtlBoolean startListener();
-    void shutdownListener();
+    virtual UtlBoolean startListener();
+    virtual void shutdownListener();
     int run(void* pArg);
 
     UtlHashMap mServerBrokers;

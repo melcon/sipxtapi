@@ -21,6 +21,7 @@
 #include <os/OsDateTime.h>
 #include <os/HostAdapterAddress.h>
 #include <utl/UtlHashMapIterator.h>
+#include <utl/UtlPtr.h>
 #include <net/SipServerBroker.h>
 #include <os/OsPtrMsg.h>
 
@@ -77,6 +78,7 @@ SipTcpServer::SipTcpServer(int port,
                 mDefaultIp = adapterAddresses[i]->mAddress.data();
             }
             delete adapterAddresses[i];
+            adapterAddresses[i] = NULL;
         }
     }
 
@@ -93,16 +95,16 @@ UtlBoolean SipTcpServer::startListener()
 
     // iterate over the SipServerBroker map and call start
     UtlHashMapIterator iterator(mServerBrokers);
-    UtlVoidPtr* pBrokerContainer = NULL;
+    UtlPtr<SipServerBroker>* pBrokerContainer = NULL;
     SipServerBroker* pBroker = NULL;
     UtlString* pKey = NULL;
     
     while((pKey = (UtlString*)iterator()))
     {
-        pBrokerContainer = (UtlVoidPtr*) iterator.value();
+        pBrokerContainer = (UtlPtr<SipServerBroker>*) iterator.value();
         if (pBrokerContainer)
         {
-            pBroker = (SipServerBroker*)pBrokerContainer->getValue();
+            pBroker = pBrokerContainer->getValue();
             if (pBroker)
             {
                 pBroker->start();
@@ -140,7 +142,7 @@ OsStatus SipTcpServer::createServerSocket(const char* szBindAddr, int& port, con
         {
             port = pSocket->getLocalHostPort();
             SIPX_CONTACT_ADDRESS contact;
-            strcpy(contact.cIpAddress, szBindAddr);
+            SAFE_STRNCPY(contact.cIpAddress, szBindAddr, sizeof(contact.cIpAddress));
             contact.iPort = port;
             contact.eContactType = CONTACT_LOCAL;
             UtlString adapterName;
@@ -150,14 +152,14 @@ OsStatus SipTcpServer::createServerSocket(const char* szBindAddr, int& port, con
             contact.eTransportType = TRANSPORT_TCP;
             mSipUserAgent->addContactAddress(contact);
        
-            // add address and port to the maps
+            // add address and port to the maps. Socket object deletion is managed by SipServerBroker
             mServerSocketMap.insertKeyAndValue(new UtlString(szBindAddr),
-                                               new UtlVoidPtr((void*)pSocket));
+                                               new UtlPtr<OsServerSocket>(pSocket, FALSE));
             mServerPortMap.insertKeyAndValue(new UtlString(szBindAddr),
                                                    new UtlInt(pSocket->getLocalHostPort()));
             mServerBrokers.insertKeyAndValue(new UtlString(szBindAddr),
-                                              new UtlVoidPtr(new SipServerBroker((OsServerTask*)mpServerBrokerListener,
-                                                                                                pSocket)));                                                   
+                                              new UtlPtr<SipServerBroker>(new SipServerBroker((OsServerTask*)mpServerBrokerListener,
+                                                                                               pSocket), FALSE));                                                   
         }
 
     }
@@ -181,47 +183,27 @@ SipTcpServer::~SipTcpServer()
     waitUntilShutDown();
     {
         SipServerBroker* pBroker = NULL;
-        UtlHashMapIterator iterator(this->mServerBrokers);
-        UtlVoidPtr* pBrokerContainer = NULL;
+        UtlHashMapIterator iterator(mServerBrokers);
+        UtlPtr<SipServerBroker>* pBrokerContainer = NULL;
         UtlString* pKey = NULL;
         
         while ((pKey = (UtlString*)iterator()))
         {
-            pBrokerContainer = (UtlVoidPtr*)iterator.value();
+            pBrokerContainer = (UtlPtr<SipServerBroker>*)iterator.value();
             if (pBrokerContainer)
             {
-                pBroker = (SipServerBroker*)pBrokerContainer->getValue();
+                pBroker = pBrokerContainer->getValue();
                 if (pBroker)
                 {
                     delete pBroker;
+                    pBroker = NULL;
                 }
             }
         }
         mServerBrokers.destroyAll();
     }
 
-/*
-    {
-        OsSocket* pSocket = NULL;
-        UtlHashMapIterator iterator(mServerSocketMap);
-        UtlVoidPtr* pSocketContainer = NULL;
-        UtlString* pKey = NULL;
-        
-        while (pKey = (UtlString*)iterator())
-        {
-            pSocketContainer = (UtlVoidPtr*)iterator.value();
-            if (pSocketContainer)
-            {
-                pSocket = (OsSocket*)pSocketContainer->getValue();
-                if (pSocket)
-                {
-                    delete pSocket;
-                }
-            }
-        }
-        mServerSocketMap.destroyAll();
-    }
-*/
+    // socket objects are managed by SipServerBroker
     mServerSocketMap.destroyAll();
     mServerPortMap.destroyAll();
     

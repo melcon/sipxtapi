@@ -72,7 +72,9 @@ public:
 
     int run(void* pArg);
 
-    void shutdownListener();
+    virtual UtlBoolean startListener();
+
+    virtual void shutdownListener();
 
     void enableStun(const char* szStunServer, 
                     int iStunPort,

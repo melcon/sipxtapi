@@ -158,63 +158,6 @@ void SipProtocolServerBase::releaseClient(SipClient* client)
     mClientLock.releaseWrite();
 }
 
-UtlBoolean SipProtocolServerBase::startListener()
-{
-#       ifdef TEST_PRINT
-        osPrintf("SIP Server binding to port %d\n", serverPort);
-#       endif
-
-    UtlHashMapIterator iter(mServerSocketMap);
-    UtlVoidPtr* pSocketContainer = NULL;
-    UtlString* pKey;
-    while ((pKey =(UtlString*)iter()))
-    {
-        OsSocket* pSocket = NULL;
-        SipClient* pServer = NULL;
-        UtlVoidPtr* pServerContainer = NULL;
-
-        UtlString localIp = *pKey;
-        pSocketContainer = (UtlVoidPtr*)iter.value();
-         
-        if (pSocketContainer)
-        {    
-            pSocket = (OsSocket*)pSocketContainer->getValue();
-        }
-        
-        pServerContainer = (UtlVoidPtr*)mServers.findValue(&localIp);
-        if (!pServerContainer)
-        {
-            pServer = new SipClient(pSocket);
-
-            // This used to be done at the end of this else statement
-            // however there is a race and the userAgent must be set before
-            // starting this client.  I think the race occurs if there is
-            // immediately an incoming message on the socket.
-            if(mSipUserAgent)
-            {
-                if (pServer)
-                {
-                    pServer->setUserAgent(mSipUserAgent);
-                }
-            }
-            this->mServers.insertKeyAndValue(new UtlString(localIp), new UtlVoidPtr((void*)pServer));
-            pServer->start();
-        }
-        else
-        {
-            pServer = (SipClient*) pServerContainer->getValue();
-            if(mSipUserAgent)
-            {
-                if (pServer)
-                {
-                    pServer->setUserAgent(mSipUserAgent);
-                }
-            }
-        }
-    }
-    return(TRUE);
-}
-
 SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
                                                int hostPort,
                                                const char* localIp)
