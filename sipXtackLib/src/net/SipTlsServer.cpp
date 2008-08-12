@@ -29,6 +29,7 @@
 #include <net/SipTcpServer.h>
 #include <net/SipUserAgent.h>
 #include <net/SipTlsServer.h>
+#include <net/SipServerBrokerListener.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -209,14 +210,13 @@ int SipTlsServer::run(void* runArgument)
 // Destructor
 SipTlsServer::~SipTlsServer()
 {
-    waitUntilShutDown();
     if (mpServerBrokerListener)
     {
         mpServerBrokerListener->requestShutdown();
         delete mpServerBrokerListener;
         mpServerBrokerListener = NULL;
     }
-
+    waitUntilShutDown();
     {
         SipServerBroker* pBroker = NULL;
         UtlHashMapIterator iterator(mServerBrokers);
@@ -240,6 +240,7 @@ SipTlsServer::~SipTlsServer()
         mServerBrokers.destroyAll();
     }
 
+    // socket objects are managed by SipServerBroker
     mServerSocketMap.destroyAll();
     mServerPortMap.destroyAll();
 }

@@ -26,6 +26,7 @@
 #include "os/OsServerSocket.h"
 #include "os/OsEventMsg.h"
 #include "net/SipTcpServer.h"
+#include "net/SipServerBrokerListener.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

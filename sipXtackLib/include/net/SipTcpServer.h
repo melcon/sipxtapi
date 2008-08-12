@@ -30,29 +30,6 @@
 // FORWARD DECLARATIONS
 class SipUserAgent;
 
-enum EventSubTypes
-{
-    SIP_SERVER_BROKER_NOTIFY = 1
-};
-
-class SipServerBrokerListener : public OsServerTask
-{
-public:
-    SipServerBrokerListener(SipProtocolServerBase* pOwner) :
-        OsServerTask("SipTcpServerBrokerListener-%d", (void*)pOwner),
-        mpOwner(pOwner)
-        {
-            start();
-        }
-        virtual ~SipServerBrokerListener()
-        {
-            waitUntilShutDown();
-        }
-        virtual UtlBoolean handleMessage(OsMsg& rMsg);
-    private:
-        SipProtocolServerBase* mpOwner;
-};
-
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
 class SipTcpServer : public SipProtocolServerBase
