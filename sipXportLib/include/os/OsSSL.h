@@ -39,6 +39,8 @@ class UtlSList;
  */
 class OsSSL
 {
+   friend class OsSSLDestructor;
+
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
   public:
 
@@ -137,7 +139,7 @@ class OsSSL
    static bool sInitialized;
    
    SSL_CTX* mCTX;
-   static OsBSem* m_spInstanceLock;
+   static OsBSem m_sInstanceLock;
    static OsSSL* m_spInstance;
    static UtlString m_sCaPath;
    static UtlString m_sCaFile;
@@ -165,6 +167,30 @@ class OsSSL
 
    /// Disable assignment operator
    OsSSL& operator=(const OsSSL& rhs);
+};
+
+/**
+ * Helper class for deleting OsSSL singleton. OsSSL is not used in destructors
+ * of static singletons, so deintialization ordering across modules doesn't cause us
+ * problems.
+ */
+class OsSSLDestructor
+{
+protected:
+   OsSSLDestructor()
+   {
+
+   }
+
+   ~OsSSLDestructor()
+   {
+      delete OsSSL::m_spInstance;
+      OsSSL::m_spInstance = NULL;
+      OsSSL::sInitialized = false;
+   }
+
+private:
+   static OsSSLDestructor m_sInstance;
 };
 
 /* ============================ INLINE METHODS ============================ */
