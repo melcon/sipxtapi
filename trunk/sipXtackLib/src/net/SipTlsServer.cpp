@@ -19,6 +19,7 @@
 #include <os/OsDateTime.h>
 #include <os/HostAdapterAddress.h>
 #include <utl/UtlHashMapIterator.h>
+#include <utl/UtlPtr.h>
 
 #include <tapi/sipxtapi.h>
 #include <os/OsSSLServerSocket.h>
@@ -105,16 +106,16 @@ UtlBoolean SipTlsServer::startListener()
 
     // iterate over the SipServerBroker map and call start
     UtlHashMapIterator iterator(mServerBrokers);
-    UtlVoidPtr* pBrokerContainer = NULL;
+    UtlPtr<SipServerBroker>* pBrokerContainer = NULL;
     SipServerBroker* pBroker = NULL;
     UtlString* pKey = NULL;
     
     while(pKey = (UtlString*)iterator())
     {
-        pBrokerContainer = (UtlVoidPtr*) iterator.value();
+        pBrokerContainer = (UtlPtr<SipServerBroker>*) iterator.value();
         if (pBrokerContainer)
         {
-            pBroker = (SipServerBroker*)pBrokerContainer->getValue();
+            pBroker = pBrokerContainer->getValue();
             if (pBroker)
             {
                 pBroker->start();
@@ -176,12 +177,12 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
        
             // add address and port to the maps
             mServerSocketMap.insertKeyAndValue(new UtlString(szBindAddr),
-                                               new UtlVoidPtr((void*)pServerSocket));
+                                               new UtlPtr<OsServerSocket>(pServerSocket, FALSE));
             mServerPortMap.insertKeyAndValue(new UtlString(szBindAddr),
                                                    new UtlInt(pServerSocket->getLocalHostPort()));
             mServerBrokers.insertKeyAndValue(new UtlString(szBindAddr),
-                                              new UtlVoidPtr(new SipServerBroker((OsServerTask*)mpServerBrokerListener,
-                                                                                                pServerSocket)));                                                   
+                                             new UtlPtr<SipServerBroker>(new SipServerBroker((OsServerTask*)mpServerBrokerListener,
+                                                                                             pServerSocket), FALSE));
     
             rc = OS_SUCCESS;
         }
@@ -213,55 +214,55 @@ SipTlsServer::~SipTlsServer()
     {
         mpServerBrokerListener->requestShutdown();
         delete mpServerBrokerListener;
+        mpServerBrokerListener = NULL;
     }
+
     {
         SipServerBroker* pBroker = NULL;
-        UtlHashMapIterator iterator(this->mServerBrokers);
-        UtlVoidPtr* pBrokerContainer = NULL;
+        UtlHashMapIterator iterator(mServerBrokers);
+        UtlPtr<SipServerBroker>* pBrokerContainer = NULL;
         UtlString* pKey = NULL;
         
         while (pKey = (UtlString*)iterator())
         {
-            pBrokerContainer = (UtlVoidPtr*)iterator.value();
+            pBrokerContainer = (UtlPtr<SipServerBroker>*)iterator.value();
             if (pBrokerContainer)
             {
-                pBroker = (SipServerBroker*)pBrokerContainer->getValue();
+                pBroker = pBrokerContainer->getValue();
                 if (pBroker)
                 {
                     pBroker->requestShutdown();
                     delete pBroker;
+                    pBroker = NULL;
                 }
             }
         }
         mServerBrokers.destroyAll();
     }
 
-/*
     {
-        OsSocket* pSocket = NULL;
+        OsServerSocket* pSocket = NULL;
         UtlHashMapIterator iterator(mServerSocketMap);
-        UtlVoidPtr* pSocketContainer = NULL;
+        UtlPtr<OsServerSocket>* pSocketContainer = NULL;
         UtlString* pKey = NULL;
         
         while (pKey = (UtlString*)iterator())
         {
-            pSocketContainer = (UtlVoidPtr*)iterator.value();
+            pSocketContainer = (UtlPtr<OsServerSocket>*)iterator.value();
             if (pSocketContainer)
             {
-                pSocket = (OsSocket*)pSocketContainer->getValue();
+                pSocket = pSocketContainer->getValue();
                 if (pSocket)
                 {
                     delete pSocket;
+                    pSocket = NULL;
                 }
             }
         }
         mServerSocketMap.destroyAll();
     }
-*/
-    mServerSocketMap.destroyAll();
+
     mServerPortMap.destroyAll();
-
-
 }
 
 /* ============================ MANIPULATORS ============================== */
