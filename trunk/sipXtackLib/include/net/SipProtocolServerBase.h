@@ -56,7 +56,7 @@ public:
 
 /* ============================ MANIPULATORS ============================== */
 
-    virtual UtlBoolean startListener();
+    virtual UtlBoolean startListener() = 0;
 
     virtual void shutdownListener() = 0;
 

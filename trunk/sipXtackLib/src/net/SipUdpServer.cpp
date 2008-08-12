@@ -31,6 +31,7 @@
 #include <os/OsTask.h>
 #include <utl/UtlHashMapIterator.h>
 #include <utl/UtlSListIterator.h>
+#include <utl/UtlPtr.h>
 
 #if defined(_VXWORKS)
 #   include <socket.h>
@@ -247,9 +248,30 @@ SipUdpServer::~SipUdpServer()
         }
     }
 
+    {
+       /*OsNatDatagramSocket* pSocket = NULL;
+       UtlHashMapIterator iterator(mServerSocketMap);
+       UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
+       UtlString* pKey = NULL;
+
+       while (pKey = (UtlString*)iterator())
+       {
+          pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)iterator.value();
+          if (pSocketContainer)
+          {
+             pSocket = pSocketContainer->getValue();
+             if (pSocket)
+             {
+                delete pSocket;
+                pSocket = NULL;
+             }
+          }
+       }*/
+       mServerSocketMap.destroyAll();
+    }
+
     mServers.destroyAll();
     mServerPortMap.destroyAll();    
-    mServerSocketMap.destroyAll();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -286,7 +308,7 @@ OsStatus SipUdpServer::createServerSocket(const char* szBoundIp,
         pSocket->enableTransparentReads(false);  
         port = pSocket->getLocalHostPort();
         SIPX_CONTACT_ADDRESS contact;
-        strcpy(contact.cIpAddress, szBoundIp);
+        SAFE_STRNCPY(contact.cIpAddress, szBoundIp, sizeof(contact.cIpAddress));
         contact.iPort = port;
         contact.eContactType = CONTACT_LOCAL;
         UtlString adapterName;
@@ -299,7 +321,7 @@ OsStatus SipUdpServer::createServerSocket(const char* szBoundIp,
    
         // add address and port to the maps
         mServerSocketMap.insertKeyAndValue(new UtlString(szBoundIp),
-                                            new UtlVoidPtr((void*)pSocket));
+                                            new UtlPtr<OsNatDatagramSocket>(pSocket));
         port = pSocket->getLocalHostPort() ;
         mServerPortMap.insertKeyAndValue(new UtlString(szBoundIp), new UtlInt(port));
 
@@ -396,15 +418,15 @@ void SipUdpServer::enableStun(const char* szStunServer,
     
     while (0 != strcmp(szIpToStun, ""))
     {
-        UtlVoidPtr* pSocketContainer;
+        UtlPtr<OsNatDatagramSocket>* pSocketContainer;
         UtlString key(szIpToStun);
         
-        pSocketContainer = (UtlVoidPtr*)this->mServerSocketMap.findValue(&key);
+        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)this->mServerSocketMap.findValue(&key);
         OsNatDatagramSocket* pSocket = NULL;
         
         if (pSocketContainer)
         {
-            pSocket = (OsNatDatagramSocket*)pSocketContainer->getValue();
+            pSocket = pSocketContainer->getValue();
         }                                                                  
         if (pSocket)
         {
@@ -436,6 +458,63 @@ void SipUdpServer::enableStun(const char* szStunServer,
         }
     } // end while  
     
+}
+
+UtlBoolean SipUdpServer::startListener()
+{
+#       ifdef TEST_PRINT
+   osPrintf("SIP Server binding to port %d\n", serverPort);
+#       endif
+
+   UtlHashMapIterator iter(mServerSocketMap);
+   UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
+   UtlString* pKey;
+   while ((pKey =(UtlString*)iter()))
+   {
+      OsNatDatagramSocket* pSocket = NULL;
+      SipClient* pServer = NULL;
+      UtlVoidPtr* pServerContainer = NULL;
+
+      UtlString localIp = *pKey;
+      pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)iter.value();
+
+      if (pSocketContainer)
+      {    
+         pSocket = pSocketContainer->getValue();
+      }
+
+      pServerContainer = (UtlVoidPtr*)mServers.findValue(&localIp);
+      if (!pServerContainer)
+      {
+         pServer = new SipClient(pSocket);
+
+         // This used to be done at the end of this else statement
+         // however there is a race and the userAgent must be set before
+         // starting this client.  I think the race occurs if there is
+         // immediately an incoming message on the socket.
+         if(mSipUserAgent)
+         {
+            if (pServer)
+            {
+               pServer->setUserAgent(mSipUserAgent);
+            }
+         }
+         this->mServers.insertKeyAndValue(new UtlString(localIp), new UtlVoidPtr((void*)pServer));
+         pServer->start();
+      }
+      else
+      {
+         pServer = (SipClient*) pServerContainer->getValue();
+         if(mSipUserAgent)
+         {
+            if (pServer)
+            {
+               pServer->setUserAgent(mSipUserAgent);
+            }
+         }
+      }
+   }
+   return(TRUE);
 }
 
 void SipUdpServer::shutdownListener()
@@ -506,15 +585,15 @@ OsSocket* SipUdpServer::buildClientSocket(int hostPort, const char* hostAddress,
 
     if (mSipUserAgent && mSipUserAgent->getUseRport())
     {
-        UtlVoidPtr* pSocketContainer = NULL;
+        UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
 
         assert(localIp != NULL);
         UtlString localKey(localIp);
         
-        pSocketContainer = (UtlVoidPtr*)mServerSocketMap.findValue(&localKey);
+        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&localKey);
         assert(pSocketContainer);
         
-        pSocket = (OsNatDatagramSocket*)pSocketContainer->getValue();
+        pSocket = pSocketContainer->getValue();
         assert(pSocket);
     }
     else
@@ -549,10 +628,10 @@ UtlBoolean SipUdpServer::addCrLfKeepAlive(const char* szLocalIp,
                 (strcmp(szLocalIp, "0.0.0.0") == 0) || 
                 (strlen(szLocalIp) == 0)    )
         {
-            UtlVoidPtr* pValue = (UtlVoidPtr*) mServerSocketMap.findValue(pKey) ;
+            UtlPtr<OsNatDatagramSocket>* pValue = (UtlPtr<OsNatDatagramSocket>*) mServerSocketMap.findValue(pKey) ;
             if (pValue)
             {
-                pSocket = (OsNatDatagramSocket*) pValue->getValue() ;
+                pSocket = pValue->getValue();
                 if (pSocket)
                 {
                     if (pSocket->addCrLfKeepAlive(szRemoteIp, remotePort, 
@@ -585,10 +664,10 @@ UtlBoolean SipUdpServer::removeCrLfKeepAlive(const char* szLocalIp,
                 (strcmp(szLocalIp, "0.0.0.0") == 0) || 
                 (strlen(szLocalIp) == 0)    )
         {
-            UtlVoidPtr* pValue = (UtlVoidPtr*) mServerSocketMap.findValue(pKey) ;
+            UtlPtr<OsNatDatagramSocket>* pValue = (UtlPtr<OsNatDatagramSocket>*) mServerSocketMap.findValue(pKey) ;
             if (pValue)
             {
-                pSocket = (OsNatDatagramSocket*) pValue->getValue() ;
+                pSocket = pValue->getValue();
                 if (pSocket)
                 {
                     if (pSocket->removeCrLfKeepAlive(szRemoteIp, remotePort))
@@ -621,10 +700,10 @@ UtlBoolean SipUdpServer::addStunKeepAlive(const char* szLocalIp,
                 (strcmp(szLocalIp, "0.0.0.0") == 0) || 
                 (strlen(szLocalIp) == 0)    )
         {
-            UtlVoidPtr* pValue = (UtlVoidPtr*) mServerSocketMap.findValue(pKey) ;
+            UtlPtr<OsNatDatagramSocket>* pValue = (UtlPtr<OsNatDatagramSocket>*) mServerSocketMap.findValue(pKey) ;
             if (pValue)
             {
-                pSocket = (OsNatDatagramSocket*) pValue->getValue() ;
+                pSocket = pValue->getValue();
                 if (pSocket)
                 {
                     if (pSocket->addStunKeepAlive(szRemoteIp, remotePort, 
@@ -657,10 +736,10 @@ UtlBoolean SipUdpServer::removeStunKeepAlive(const char* szLocalIp,
                 (strcmp(szLocalIp, "0.0.0.0") == 0) || 
                 (strlen(szLocalIp) == 0)    )
         {
-            UtlVoidPtr* pValue = (UtlVoidPtr*) mServerSocketMap.findValue(pKey) ;
+            UtlPtr<OsNatDatagramSocket>* pValue = (UtlPtr<OsNatDatagramSocket>*) mServerSocketMap.findValue(pKey) ;
             if (pValue)
             {
-                pSocket = (OsNatDatagramSocket*) pValue->getValue() ;
+                pSocket = pValue->getValue();
                 if (pSocket)
                 {
                     if (pSocket->removeStunKeepAlive(szRemoteIp, remotePort))
@@ -694,10 +773,10 @@ UtlBoolean SipUdpServer::addSipKeepAlive(const char* szLocalIp,
                 (strcmp(szLocalIp, "0.0.0.0") == 0) || 
                 (strlen(szLocalIp) == 0)    )
         {
-            UtlVoidPtr* pValue = (UtlVoidPtr*) mServerSocketMap.findValue(pKey) ;
+            UtlPtr<OsNatDatagramSocket>* pValue = (UtlPtr<OsNatDatagramSocket>*) mServerSocketMap.findValue(pKey) ;
             if (pValue)
             {
-                pSocket = (OsNatDatagramSocket*) pValue->getValue() ;
+                pSocket = pValue->getValue();
                 if (pSocket)
                 {
                     SipKeepAliveBinding* pBinding = NULL ;                    
@@ -752,10 +831,10 @@ UtlBoolean SipUdpServer::removeSipKeepAlive(const char* szLocalIp,
                 (strcmp(szLocalIp, "0.0.0.0") == 0) || 
                 (strlen(szLocalIp) == 0)    )
         {
-            UtlVoidPtr* pValue = (UtlVoidPtr*) mServerSocketMap.findValue(pKey) ;
+            UtlPtr<OsNatDatagramSocket>* pValue = (UtlPtr<OsNatDatagramSocket>*) mServerSocketMap.findValue(pKey) ;
             if (pValue)
             {
-                pSocket = (OsNatDatagramSocket*) pValue->getValue() ;
+                pSocket = pValue->getValue();
                 if (pSocket)
                 {
                     SipKeepAliveBinding* pBinding = NULL ;                    
@@ -795,10 +874,10 @@ void SipUdpServer::updateSipKeepAlive(const char* szLocalIp,
                 (strcmp(szLocalIp, "0.0.0.0") == 0) || 
                 (strlen(szLocalIp) == 0)    )
         {
-            UtlVoidPtr* pValue = (UtlVoidPtr*) mServerSocketMap.findValue(pKey) ;
+            UtlPtr<OsNatDatagramSocket>* pValue = (UtlPtr<OsNatDatagramSocket>*) mServerSocketMap.findValue(pKey) ;
             if (pValue)
             {
-                pSocket = (OsNatDatagramSocket*) pValue->getValue() ;
+                pSocket = pValue->getValue();
                 if (pSocket)
                 {
                     SipKeepAliveBinding* pBinding = NULL ;                    
@@ -882,16 +961,16 @@ UtlBoolean SipUdpServer::getStunAddress(UtlString* pIpAddress, int* pPort,
 {
     UtlBoolean bRet = false;
     OsNatDatagramSocket* pSocket = NULL;
-    UtlVoidPtr* pSocketContainer = NULL;
+    UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
 
     if (szLocalIp)
     {
         UtlString localIpKey(szLocalIp);
        
-        pSocketContainer = (UtlVoidPtr*)this->mServerSocketMap.findValue(&localIpKey);
+        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)this->mServerSocketMap.findValue(&localIpKey);
         if (pSocketContainer)
         {
-            pSocket = (OsNatDatagramSocket*)pSocketContainer->getValue();
+            pSocket = pSocketContainer->getValue();
         }
     }
     else
@@ -899,10 +978,10 @@ UtlBoolean SipUdpServer::getStunAddress(UtlString* pIpAddress, int* pPort,
         // just use the default Socket in our collection
         UtlString defaultIpKey(mDefaultIp);
        
-        pSocketContainer = (UtlVoidPtr*)mServerSocketMap.findValue(&defaultIpKey);
+        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&defaultIpKey);
         if (pSocketContainer != NULL )
         {
-            pSocket = (OsNatDatagramSocket*)pSocketContainer->getValue();
+            pSocket = pSocketContainer->getValue();
         }
     }
     

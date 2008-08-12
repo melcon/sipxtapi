@@ -81,7 +81,7 @@ public:
     //void addEventConsumer(OsServerTask* messageEventListener);
     //void removeEventConsumer(OsServerTask* messageEventListener);
 
-    void shutdownListener();
+    virtual void shutdownListener();
 
     int run(void* pArg);
 

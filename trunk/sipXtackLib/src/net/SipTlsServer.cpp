@@ -175,7 +175,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
             contact.eTransportType = TRANSPORT_TLS;
             mSipUserAgent->addContactAddress(contact);
        
-            // add address and port to the maps
+            // add address and port to the maps. Socket object deletion is managed by SipServerBroker
             mServerSocketMap.insertKeyAndValue(new UtlString(szBindAddr),
                                                new UtlPtr<OsServerSocket>(pServerSocket, FALSE));
             mServerPortMap.insertKeyAndValue(new UtlString(szBindAddr),
@@ -240,28 +240,7 @@ SipTlsServer::~SipTlsServer()
         mServerBrokers.destroyAll();
     }
 
-    {
-        OsServerSocket* pSocket = NULL;
-        UtlHashMapIterator iterator(mServerSocketMap);
-        UtlPtr<OsServerSocket>* pSocketContainer = NULL;
-        UtlString* pKey = NULL;
-        
-        while (pKey = (UtlString*)iterator())
-        {
-            pSocketContainer = (UtlPtr<OsServerSocket>*)iterator.value();
-            if (pSocketContainer)
-            {
-                pSocket = pSocketContainer->getValue();
-                if (pSocket)
-                {
-                    delete pSocket;
-                    pSocket = NULL;
-                }
-            }
-        }
-        mServerSocketMap.destroyAll();
-    }
-
+    mServerSocketMap.destroyAll();
     mServerPortMap.destroyAll();
 }
 
