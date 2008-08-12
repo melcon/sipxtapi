@@ -164,7 +164,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
             
             port = pServerSocket->getLocalHostPort();
             SIPX_CONTACT_ADDRESS contact;
-            strcpy(contact.cIpAddress, szBindAddr);
+            SAFE_STRNCPY(contact.cIpAddress, szBindAddr, sizeof(contact.cIpAddress));
             contact.iPort = port;
             contact.eContactType = CONTACT_LOCAL;
             UtlString szAdapterName;
