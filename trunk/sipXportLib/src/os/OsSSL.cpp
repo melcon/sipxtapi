@@ -63,32 +63,14 @@ OsSSLDestructor OsSSLDestructor::m_sInstance;
 
 // Constructor
 
-OsSSL::OsSSL()
+OsSSL::OsSSL() :
+m_initResult(OsSSL::SSL_INIT_FAILURE)
 {
    if (!sInitialized)
    {
       sInitialized = true;
 
-      // Initialize random number generator before using SSL
-
-      // TODO: this is a bad way to do this - it may need to be fixed.
-      //
-      //       We should be using better randomness if possible, but at the very
-      //       least we should be saving the current rand state in a file so that
-      //       is not reset each time.  I think that on a modern Linux, this has
-      //       no effect because OpenSSL will use /dev/urandom internally anyway?
-      //
-      // This needs to be examined.
-
-      /* make a random number and set the top and bottom bits */
-      int seed[32];
-      for (unsigned int i = 0; i < sizeof(seed) / sizeof(int); i++)
-      {
-         seed[i] = rand();
-      }
-
-      RAND_seed(seed, sizeof(seed));
-      int res = RAND_status();
+      int res = initSSLRandomness();
       if (!res)
       {
          // not enough randomness in PRNG
@@ -101,7 +83,21 @@ OsSSL::OsSSL()
       // only enable loading of error strings when debugging.
       // Perhaps this should be conditional?
       SSL_load_error_strings();
-      
+
+      // use default values if SSL was not configured
+      if (m_sCaPath.isNull())
+      {
+         m_sCaPath = defaultAuthorityPath;
+      }
+      if (m_sCertificateFile.isNull())
+      {
+         m_sCertificateFile = defaultPublicCertificateFile;
+      }
+      if (m_sPrivateKeyFile.isNull())
+      {
+         m_sPrivateKeyFile = defaultPrivateKeyFile;
+      }
+
       mCTX = SSL_CTX_new(SSLv23_method());
 
       if (mCTX)
@@ -109,19 +105,16 @@ OsSSL::OsSSL()
          // set password callback
          SSL_CTX_set_default_passwd_cb(mCTX, pem_passwd_cb);
 
-         UtlString caPath = !m_sCaPath.isNull() ? m_sCaPath.data() : defaultAuthorityPath;
          if (SSL_CTX_load_verify_locations(mCTX,
                                            !m_sCaFile.isNull() ? m_sCaFile.data() : NULL,
-                                           caPath.data()) > 0)
+                                           m_sCaPath.data()) > 0)
          {
-            UtlString certFile = !m_sCertificateFile.isNull() ? m_sCertificateFile.data() : defaultPublicCertificateFile;
             if (SSL_CTX_use_certificate_file(mCTX,
-                                             certFile.data(),
+                                             m_sCertificateFile.data(),
                                              SSL_FILETYPE_PEM) > 0)
             {
-               UtlString keyFile = !m_sPrivateKeyFile.isNull() ? m_sPrivateKeyFile.data() : defaultPrivateKeyFile;
                if (SSL_CTX_use_PrivateKey_file(mCTX,
-                                               keyFile.data(),
+                                               m_sPrivateKeyFile.data(),
                                                SSL_FILETYPE_PEM) > 0)
                {
                   if (SSL_CTX_check_private_key(mCTX))
@@ -132,8 +125,8 @@ OsSSL::OsSSL()
                                    "   public  '%s'\n"
                                    "   private '%s'"
                                    ,this, mCTX,
-                                   certFile.data(),
-                                   keyFile.data());
+                                   m_sCertificateFile.data(),
+                                   m_sPrivateKeyFile.data());
 
                      // TODO: log our own certificate data
 
@@ -146,13 +139,15 @@ OsSSL::OsSSL()
                      // disable server connection caching
                      // TODO: Investigate turning this on...
                      SSL_CTX_set_session_cache_mode(mCTX, SSL_SESS_CACHE_OFF);
+
+                     m_initResult = SSL_INIT_SUCCESS;
                   }
                   else
                   {
                      OsSysLog::add(FAC_KERNEL, PRI_ERR,
                                    "OsSSL::_ Private key '%s' does not match certificate '%s'",
-                                   keyFile.data(),
-                                   certFile.data()
+                                   m_sPrivateKeyFile.data(),
+                                   m_sCertificateFile.data()
                                    );
                   }
                }
@@ -160,14 +155,14 @@ OsSSL::OsSSL()
                {
                   OsSysLog::add(FAC_KERNEL, PRI_ERR,
                                 "OsSSL::_ Private key '%s' could not be initialized.",
-                                keyFile.data());
+                                m_sPrivateKeyFile.data());
                }
             }
             else
             {
                OsSysLog::add(FAC_KERNEL, PRI_ERR,
                              "OsSSL::_ Public key '%s' could not be initialized.",
-                             certFile.data());
+                             m_sCertificateFile.data());
             }
          }
          else
@@ -175,7 +170,7 @@ OsSSL::OsSSL()
             OsSysLog::add(FAC_KERNEL, PRI_ERR,
                           "OsSSL::_ SSL_CTX_load_verify_locations failed\n"
                           "    authorityDir:  '%s'",
-                          caPath.data());
+                          m_sCaPath.data());
          }
       }
       else
@@ -215,6 +210,8 @@ OsSSL* OsSSL::getInstance()
    return m_spInstance;
 }
 
+/* ============================ ACCESSORS ================================= */
+
 void OsSSL::setCApath(const UtlString& path)
 {
    m_sCaPath = path;
@@ -240,7 +237,35 @@ void OsSSL::setPassword(const UtlString& password)
    m_sPassword = password;
 }
 
-/* ============================ ACCESSORS ================================= */
+UtlString OsSSL::getCApath()
+{
+   return m_sCaPath;
+}
+
+UtlString OsSSL::getCAfile()
+{
+   return m_sCaFile;
+}
+
+UtlString OsSSL::getCertificateFile()
+{
+   return m_sCertificateFile;
+}
+
+UtlString OsSSL::getPrivateKeyFile()
+{
+   return m_sPrivateKeyFile;
+}
+
+UtlString OsSSL::getPassword()
+{
+   return m_sPassword;
+}
+
+OsSSL::SSL_INIT_RESULT OsSSL::getInitResult()
+{
+   return m_initResult;
+}
 
 /// Get an SSL server connection handle
 SSL* OsSSL::getServerConnection()
@@ -604,6 +629,30 @@ int OsSSL::pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 {
    SAFE_STRNCPY(buf, m_sPassword.data(), size);
    return(SAFE_STRLEN(buf));
+}
+
+int OsSSL::initSSLRandomness()
+{
+   // Initialize random number generator before using SSL
+
+   // TODO: this is a bad way to do this - it may need to be fixed.
+   //
+   //       We should be using better randomness if possible, but at the very
+   //       least we should be saving the current rand state in a file so that
+   //       is not reset each time.  I think that on a modern Linux, this has
+   //       no effect because OpenSSL will use /dev/urandom internally anyway?
+   //
+   // This needs to be examined.
+
+   /* make a random number and set the top and bottom bits */
+   int seed[32];
+   for (unsigned int i = 0; i < sizeof(seed) / sizeof(int); i++)
+   {
+      seed[i] = rand();
+   }
+
+   RAND_seed(seed, sizeof(seed));
+   return RAND_status();
 }
 
 /********************************************************************************/
