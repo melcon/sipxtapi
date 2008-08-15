@@ -44,40 +44,52 @@ class OsSSL
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
   public:
 
+  typedef enum
+  {
+     SSL_INIT_SUCCESS = 0,
+     SSL_INIT_FAILURE
+  } SSL_INIT_RESULT;
+
 /* ============================ CREATORS ================================== */
 
 /* ============================ MANIPULATORS ============================== */
  
    static OsSSL* getInstance();
 
+/* ============================ ACCESSORS ================================= */
+
    /**
     * Sets directory containing several CA certificates. Create links using c_rehash.
     * @see http://www.openssl.org/docs/ssl/SSL_CTX_load_verify_locations.html
     */
    static void setCApath(const UtlString& path);
+   static UtlString getCApath();
 
    /**
     * Sets PEM file (base64) containing CA certificates.
     */
    static void setCAfile(const UtlString& caFile);
+   static UtlString getCAfile();
 
    /**
     * Sets file containing PEM certificate. Certificate must not be encrypted.
     */
    static void setCertificateFile(const UtlString& file);
+   static UtlString getCertificateFile();
 
    /**
     * Sets file containing private key in PEM format. Key might be encrypted.
     */
    static void setPrivateKeyFile(const UtlString& file);
+   static UtlString getPrivateKeyFile();
 
    /**
     * Sets password used for private key decryption.
     */
    static void setPassword(const UtlString& password);
+   static UtlString getPassword();
 
-
-/* ============================ ACCESSORS ================================= */
+   SSL_INIT_RESULT getInitResult();
 
    /// Get an SSL server connection handle
    SSL* getServerConnection();
@@ -139,6 +151,7 @@ class OsSSL
    static bool sInitialized;
    
    SSL_CTX* mCTX;
+   SSL_INIT_RESULT m_initResult;
    static OsBSem m_sInstanceLock;
    static OsSSL* m_spInstance;
    static UtlString m_sCaPath;
@@ -156,6 +169,8 @@ class OsSSL
     * PEM password callback. Used to decrypt private keys.
     */
    static int pem_passwd_cb(char *buf, int size, int rwflag, void *userdata);
+
+   int initSSLRandomness();
 
    /**<
     * @returns validity as determined by local policy
