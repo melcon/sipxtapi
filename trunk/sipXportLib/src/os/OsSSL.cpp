@@ -53,6 +53,7 @@ UtlString OsSSL::m_sCaFile = NULL;
 UtlString OsSSL::m_sCertificateFile = NULL;
 UtlString OsSSL::m_sPrivateKeyFile = NULL;
 UtlString OsSSL::m_sPassword = NULL;
+OsSSL::SSL_CRT_VERIFICATION OsSSL::m_sPolicy = OsSSL::SSL_VERIFICATION_DEFAULT;
 
 OsSSLDestructor OsSSLDestructor::m_sInstance;
 
@@ -63,8 +64,8 @@ OsSSLDestructor OsSSLDestructor::m_sInstance;
 
 // Constructor
 
-OsSSL::OsSSL() :
-m_initResult(OsSSL::SSL_INIT_FAILURE)
+OsSSL::OsSSL()
+: m_initResult(OsSSL::SSL_INIT_FAILURE)
 {
    if (!sInitialized)
    {
@@ -237,6 +238,11 @@ void OsSSL::setPassword(const UtlString& password)
    m_sPassword = password;
 }
 
+void OsSSL::setCrtVerificationPolicy(SSL_CRT_VERIFICATION policy)
+{
+   m_sPolicy = policy;
+}
+
 UtlString OsSSL::getCApath()
 {
    return m_sCaPath;
@@ -260,6 +266,11 @@ UtlString OsSSL::getPrivateKeyFile()
 UtlString OsSSL::getPassword()
 {
    return m_sPassword;
+}
+
+OsSSL::SSL_CRT_VERIFICATION OsSSL::getCrtVerificationPolicy()
+{
+   return m_sPolicy;
 }
 
 OsSSL::SSL_INIT_RESULT OsSSL::getInitResult()
@@ -599,6 +610,11 @@ int OsSSL::verifyCallback(int valid,            // validity so far from openssl
                           )
 {
    X509* cert = X509_STORE_CTX_get_current_cert(store);
+
+   if (m_sPolicy == OsSSL::SSL_ALWAYS_ACCEPT)
+   {
+      return TRUE;
+   }
 
    if (valid)
    {

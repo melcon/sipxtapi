@@ -50,6 +50,12 @@ class OsSSL
      SSL_INIT_FAILURE
   } SSL_INIT_RESULT;
 
+  typedef enum
+  {
+     SSL_VERIFICATION_DEFAULT = 0, ///< A valid CRT parent CA, hostname & CN match, and valid date are required
+     SSL_ALWAYS_ACCEPT ///< Always accept all certificates, even invalid ones
+  } SSL_CRT_VERIFICATION;
+
 /* ============================ CREATORS ================================== */
 
 /* ============================ MANIPULATORS ============================== */
@@ -88,6 +94,12 @@ class OsSSL
     */
    static void setPassword(const UtlString& password);
    static UtlString getPassword();
+
+   /**
+    * Sets certificate verification policy.
+    */
+   static void setCrtVerificationPolicy(SSL_CRT_VERIFICATION policy);
+   static SSL_CRT_VERIFICATION getCrtVerificationPolicy();
 
    SSL_INIT_RESULT getInitResult();
 
@@ -159,6 +171,7 @@ class OsSSL
    static UtlString m_sCertificateFile;
    static UtlString m_sPrivateKeyFile;
    static UtlString m_sPassword;
+   static SSL_CRT_VERIFICATION m_sPolicy;
 
    /// Certificate chain validation hook called by openssl
    static int verifyCallback(int valid,            ///< validity so far from openssl
