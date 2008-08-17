@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="sipXtackLibTest-msvc8"
 	ProjectGUID="{D7CB9BA0-29DB-421E-A0CC-0FF3EFECFBE8}"
 	RootNamespace="sipXtackLibTest"
@@ -713,10 +713,6 @@
 			</File>
 			<File
 				RelativePath=".\src\test\net\UrlTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\test\net\XmlRpcTest.cpp"
 				>
 			</File>
 		</Filter>
