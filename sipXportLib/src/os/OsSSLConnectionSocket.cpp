@@ -104,12 +104,12 @@ OsSSLConnectionSocket::OsSSLConnectionSocket(int serverPort, const char* serverN
     mbExternalSSLSocket = FALSE;
     if (mIsConnected)
     {
-    SSLInitSocket(socketDescriptor, timeoutInSecs);
-    OsSysLog::add(FAC_KERNEL, PRI_DEBUG, 
-                  "OsSSLConnectionSocket::_(port %d, name '%s', timeout %ld)",
-                  serverPort, serverName, timeoutInSecs
-                  );
-}
+        SSLInitSocket(socketDescriptor, timeoutInSecs);
+        OsSysLog::add(FAC_KERNEL, PRI_DEBUG, 
+                      "OsSSLConnectionSocket::_(port %d, name '%s', timeout %ld)",
+                      serverPort, serverName, timeoutInSecs
+                      );
+    }
 }
 
 
