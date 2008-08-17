@@ -15,7 +15,6 @@
 
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
-#include <net/HttpServer.h>
 #include <net/HttpBody.h>
 #include <net/NameValuePair.h>
 #include <os/OsSocket.h>
