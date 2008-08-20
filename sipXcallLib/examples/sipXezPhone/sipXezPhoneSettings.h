@@ -388,7 +388,6 @@ public:
          mDbLocation=dbLocation;
          mCertNickname=certNickname;
          mCertDbPassword=certDbPassword;
-         sipxConfigSetSecurityParameters(sipXmgr::getInstance().getSipxInstance(), dbLocation.data(), certNickname.data(), certDbPassword.data());
          } 
 
     /*
@@ -401,7 +400,6 @@ public:
          dbLocation=mDbLocation;
          certNickname=mCertNickname;
          certDbPassword=mCertDbPassword;
-         sipxConfigSetSecurityParameters(sipXmgr::getInstance().getSipxInstance(), dbLocation.data(), certNickname.data(), certDbPassword.data());
         }  
 
     wxColor getBackgroundColor() const;

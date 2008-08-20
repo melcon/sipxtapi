@@ -133,7 +133,7 @@ public:
 
     UtlBoolean newSubscribeMsg( SipMessage& message );
 
-    SipRefreshMgr(SipLineStateEventListener *listener);
+    SipRefreshMgr(SipLineStateEventListener *listener = NULL);
 
     void dumpMessageLists(UtlString& results) ;
       //:Appends the message contents of both the mRegisterList and 

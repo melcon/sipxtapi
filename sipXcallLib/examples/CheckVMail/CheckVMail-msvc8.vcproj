@@ -154,7 +154,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sipXtapid.lib"
 				OutputFile="..\bin\CheckVMail_Debug.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

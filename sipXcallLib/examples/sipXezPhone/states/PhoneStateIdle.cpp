@@ -99,7 +99,6 @@ PhoneState* PhoneStateIdle::OnOffer(SIPX_CALL hCall)
 
 
         security.setSecurityLevel((SIPX_SRTP_LEVEL)iLevel);
-        sipxConfigSetSecurityParameters(sipXmgr::getInstance().getSipxInstance(), dbLocation, certNickname, certDbPassword);
         
         // the callee does not specify the srtp key, null it out
         security.setSrtpKey("", 30);

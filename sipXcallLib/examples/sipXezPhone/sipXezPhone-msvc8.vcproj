@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrtd.lib msvcprtd.lib rpcrt4.lib Ws2_32.lib comctl32.lib sipXtapid.lib sipXportLibD.lib pcre.lib winmm.lib wxmsw26_core.lib wxmsw26_adv.lib wxbase26.lib"
+				AdditionalDependencies="msvcrtd.lib msvcprtd.lib rpcrt4.lib Ws2_32.lib comctl32.lib pcre.lib winmm.lib wxmsw26_core.lib wxmsw26_adv.lib wxbase26.lib"
 				OutputFile="debug\sipXezPhone.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -171,7 +171,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrt.lib msvcprt.lib rpcrt4.lib Ws2_32.lib comctl32.lib sipXtapi.lib sipXportLib.lib pcre.lib winmm.lib wxmsw26_core.lib wxmsw26_adv.lib wxbase26.lib"
+				AdditionalDependencies="msvcrt.lib msvcprt.lib rpcrt4.lib Ws2_32.lib comctl32.lib pcre.lib winmm.lib wxmsw26_core.lib wxmsw26_adv.lib wxbase26.lib"
 				OutputFile="release\sipXezPhone.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -205,6 +205,104 @@
 				Name="VCPostBuildEventTool"
 				Description="Populating sipXtapi.dll"
 				CommandLine="copy ..\..\sipXtapi\Release\sipXtapi.dll Release&#x0D;&#x0A;xcopy  res Release\res /I /Y /S&#x0D;&#x0A;"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug-TLS|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug/sipXezPhone.tlb"
+				HeaderFileName=""
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\include;..\..\..\sipXportLib\include;..\..\..\sipXcallLib\include;..\..\..\sipXtackLib\include;..\..\..\sipXportLib\contrib\pcre\include;..\..\..\..\openSSL\include"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;WINVER=0x400;_MT;wxUSE_GUI=1"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough="stdwx.h"
+				BrowseInformation="1"
+				WarningLevel="3"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
+				CompileAs="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="msvcrtd.lib msvcprtd.lib rpcrt4.lib Ws2_32.lib comctl32.lib pcre.lib winmm.lib wxmsw26_core.lib wxmsw26_adv.lib wxbase26.lib libeay32.lib ssleay32.lib"
+				OutputFile="debug\sipXezPhone.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\lib\wnt;..\lib;..\lib\wnt\wx;..\..\..\sipXportLib\contrib\pcre\lib;..\..\..\..\openSSL\lib"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames="msvcrt.lib"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile=".\Debug/sipXezPhone.pdb"
+				SubSystem="2"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Populating sipXtapi.dll"
+				CommandLine="copy ..\..\sipXtapi\Debug\sipXtapid.dll Debug&#x0D;&#x0A;xcopy  res Debug\res /I /Y /S&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -244,6 +342,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="CallHistoryPanel.cpp"
@@ -270,6 +379,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="CallList.cpp"
@@ -291,6 +411,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
@@ -338,6 +469,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\DialerThread.cpp"
@@ -372,6 +514,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="DialPadPanel.cpp"
@@ -393,6 +546,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
@@ -432,6 +596,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="PlacedCallList.cpp"
@@ -453,6 +628,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
@@ -488,6 +674,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\sipXAudioSettingsDlg.cpp"
@@ -513,6 +710,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
@@ -548,6 +756,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\sipXezPhoneAboutDlg.h"
@@ -573,6 +792,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
@@ -604,6 +834,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="sipXezPhoneSettings.cpp"
@@ -625,6 +866,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
@@ -656,6 +908,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\sipXezPhoneSettingsDlg.h"
@@ -682,6 +945,17 @@
 						Name="VCCLCompilerTool"
 						Optimization="2"
 						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories="C:\dev_Video\gips"
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
 					/>
@@ -724,6 +998,17 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\VideoPanel.cpp"
@@ -753,6 +1038,17 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BrowseInformation="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-TLS|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""
 						BrowseInformation="1"
