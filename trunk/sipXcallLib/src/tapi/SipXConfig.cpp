@@ -19,7 +19,9 @@
 
 // APPLICATION INCLUDES
 #include "os/OsSysLog.h"
-#include "os/OsSSL.h"
+#ifdef HAVE_SSL
+#  include "os/OsSSL.h"
+#endif
 #include "os/OsNatAgentTask.h"
 #include "os/HostAdapterAddress.h"
 #include "net/SipUserAgent.h"
