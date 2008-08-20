@@ -994,17 +994,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
          // set up security info
          if (pSecurity)
          {
-            // augment the security attributes with the instance's security parameters
-            SecurityHelper securityHelper;
             // don't generate a random key, and remove one if one it is there
             // (the caller will provide the agreed upon key)
             pSecurity->setSrtpKey("", 30);
-            // copies sipxinstance dblocation to security attribute
-            pCallData->pInst->lock.acquire();
-            securityHelper.setDbLocation(*pSecurity, pCallData->pInst->dbLocation);
-            securityHelper.setMyCertNickname(*pSecurity, pCallData->pInst->myCertNickname);
-            securityHelper.setDbPassword(*pSecurity, pCallData->pInst->dbPassword);
-            pCallData->pInst->lock.release();
          }
 
          // set the display object
@@ -1456,12 +1448,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
                {
                   securityHelper.generateSrtpKey(*pSecurity);
                }
-               // copy security details from instance to pSecurity
-               pInst->lock.acquire();
-               securityHelper.setDbLocation(*pSecurity, pInst->dbLocation);
-               securityHelper.setMyCertNickname(*pSecurity, pInst->myCertNickname);
-               securityHelper.setDbPassword(*pSecurity, pInst->dbPassword);
-               pInst->lock.release();
             }
 
             PtStatus status;

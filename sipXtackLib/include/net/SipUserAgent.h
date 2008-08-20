@@ -247,9 +247,6 @@ public:
                 int readBufferSize = -1,
                 int queueSize = OsServerTask::DEF_MAX_MSGS,
                 UtlBoolean bUseNextAvailablePort = FALSE,
-                UtlString certNickname = "",
-                UtlString certPassword = "",
-                UtlString dbLocation = ".",
                 UtlBoolean doUaMessageChecks = TRUE);
 
     //! Destructor

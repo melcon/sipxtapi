@@ -48,7 +48,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include"
+				AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include;..\..\openSSL\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;ENABLE_LOGGING;_USRDLL;SIPXTAPI_EXPORTS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;HAVE_SSL"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"

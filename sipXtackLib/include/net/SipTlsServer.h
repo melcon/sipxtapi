@@ -40,9 +40,6 @@ public:
    SipTlsServer(int sipPort = SIP_TLS_PORT, 
                 SipUserAgent* userAgent = NULL,
                 UtlBoolean bUseNextAvailablePort = FALSE,
-                UtlString certNickname = "",
-                UtlString certPassword = "",
-                UtlString dbLocation = ".",
                 const char* szBoundIp = "0.0.0.0");
      //:Default constructor
 
@@ -80,9 +77,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-    UtlString mCertNickname;
-    UtlString mCertPassword;
-    UtlString mDbLocation;
     int mServerPort;
     OsStatus mTlsInitCode;
 
