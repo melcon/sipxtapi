@@ -87,22 +87,11 @@ public:
    virtual UtlBoolean isOk() const;
    //: Server socket is in ready to accept incoming conection requests.
 
-   int isConnectionReady();
-   //: Poll to see if connections are waiting
-   //!returns: 1 if one or call to accept() will not block <br>
-   //!returns: 0 if no connections are ready (i.e. accept() will block).
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   
-   static int pemPasswdCallbackFunc(char *buf, int size, int rwflag, void *userdata);
-    //:Callback used to set the private key password for decrypting the key
-    //:buf is the buffer to fill with a password
-    //:size is the maximum size of the buffer 
-
    OsSSLServerSocket(const OsSSLServerSocket& rOsSSLServerSocket);
      //:Disable copy constructor
 
