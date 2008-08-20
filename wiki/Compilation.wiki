@@ -1,0 +1,31 @@
+#summary One-sentence summary of this page.
+
+= Windows =
+
+Visual Studio 2005 or later is required. Solution and projects for VS2005 are provided, which can be upgraded to VS2008 projects by user upon opening. VS2003 and VC6 are not supported anymore.
+
+=== Libraries included in sipxtapi: ===
+ * nspr-4.6.4 - will be removed in the future
+ * nss-3.9.2 - will be removed in the future
+ * pcre 7.0 (2006)
+ * libGSM 06.10
+ * libILBC
+ * patched portaudio V19
+ * patched portmixer from Audacity project
+ * speex 1.2beta2
+ * wxWidgets 2.6 - used by sipXezPhone
+
+=== Libraries not included in sipxtapi: ===
+ * DirectX SDK - required by portaudio. If server version of sipxtapi is compiled, not needed. Download from http://msdn.microsoft.com/en-us/directx/default.aspx
+ * OpenSSL - needed for TLS support. Optional dependency. Download stable snapshot openssl-0.9.8-stable-SNAP from ftp://ftp.openssl.org/snapshot/ and compile. OpenSSL needs to be located in openssl directory outside sipxtapi.
+ * cppunit 1.12 or later - needed to run unittests. Optional dependency. Download from http://cppunit.sourceforge.net/
+
+== Compilation steps ==
+ # Download DirectX SDK and setup VS2005 to be able to locate DirectX include and lib\x86 directories. This can be done in Tools->Options->Projects and Solutions->VC++ Directories.
+ # Optionally download and compile cppunit 1.12 and OpenSSL. Setup VS2005 to be able to find cppunit.
+ # Open sipX-msvc8.sln. Select Win32 solution platform, and Debug or Release solution configuration. Build sipXtapi-msvc8 project.
+ # Compile sample applications ReceiveCall, PlaceCall, sipXezPhone, SimpleSipxTerm
+
+= Linux =
+
+Googlecode sipxtapi cannot be currently compiled in Linux. Effort was made to use bakefile project for makefile generation, but it solved only few problems and introduced new ones. Originally project was compilable in Linux, all platform dependent code is guarded. In the future bakefiles will be merged with original SIPFoundry makefiles to make the project compilable in Linux again.
