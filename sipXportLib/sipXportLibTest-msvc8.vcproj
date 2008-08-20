@@ -1031,7 +1031,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\os\test\OsSSLTest.cpp"
+				RelativePath=".\src\test\os\OsSSLConnectionSocketTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\test\os\OsSSLTest.cpp"
 				>
 			</File>
 			<File
