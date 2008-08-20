@@ -70,6 +70,10 @@ CallManager *CpTestSupport::newCallManager(SipUserAgent* sua)
           localAddress.data(),
           sua,
           0,//sipSessionReinviteTimer
+          NULL, // pCallEventListener
+          NULL, // pInfoStatusEventListener
+          NULL, // pSecurityEventListener
+          NULL, // pMediaEventListener
           NULL, // mgcpStackTask
           "ivr@sip.pingtel.com", // defaultCallExtension
           Connection::RING, // availableBehavior
@@ -81,7 +85,6 @@ CallManager *CpTestSupport::newCallManager(SipUserAgent* sua)
           NULL, // speedNums
           CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
           4, // numDialPlanDigits
-          CallManager::NEAR_END_HOLD, // holdType
           5000, // offeringDelay
           "", // pLocal
           CP_MAXIMUM_RINGING_EXPIRE_SECONDS, //inviteExpireSeconds

@@ -135,11 +135,7 @@ UtlBoolean sipXmgr::Initialize(const int iSipPort, const int iRtpPort, const boo
                                                 DEFAULT_CONNECTIONS,
                                                 sipXezPhoneSettings::getInstance().getIdentity(),
                                                 NULL,
-                                                false, 
-                                                certNickname,
-                                                certDbPassword,
-                                                "."
-                                                ))
+                                                false))
     {
         wxMessageBox("sipXezPhone failed to initialize sipXtapi (expiration or port in use?)", "Unable to start") ;
         return false;

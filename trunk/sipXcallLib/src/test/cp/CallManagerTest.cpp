@@ -41,87 +41,14 @@ class CallManangerTest : public CppUnit::TestCase
 {
     CPPUNIT_TEST_SUITE(CallManangerTest);
 
-#ifdef BROKEN_UNITTEST
-    CPPUNIT_TEST(testOnOffHook);
-    CPPUNIT_TEST(testPickupCall);
-#endif
     CPPUNIT_TEST(testSimpleTeardown);
   //CPPUNIT_TEST(testUATeardown);
   //CPPUNIT_TEST(testLineMgrUATeardown);
   //CPPUNIT_TEST(testRefreshMgrUATeardown);
-    CPPUNIT_TEST(testGetNewCallId);
     CPPUNIT_TEST_SUITE_END();
 
 public:
 
-    void testOnOffHook()
-    {
-        PsMsg *keyMsg;
-        SipUserAgent *ua = CpTestSupport::newSipUserAgent();
-        ua->start();
-        CallManager *callmgr = CpTestSupport::newCallManager(ua);
-        callmgr->start();
-
-                keyMsg = new PsMsg(PsMsg::HOOKSW_STATE, NULL, PsHookswTask::OFF_HOOK, 0);
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_DOWN, NULL, 0, '1');
-                callmgr->postMessage(*keyMsg);
-        delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_UP, NULL, 0, '1');
-                callmgr->postMessage(*keyMsg);
-        delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_DOWN, NULL, 0, '0');
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_UP, NULL, 0, '0');
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_DOWN, NULL, 0, '0');
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_UP, NULL, 0, '0');
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_DOWN, NULL, 0, '4');
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-                keyMsg = new PsMsg(PsMsg::BUTTON_UP, NULL, 0, '4');
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-        delete callmgr;
-        delete ua;
-    }
-
-
-    void testPickupCall()
-    {
-        PsMsg *keyMsg;
-        SipUserAgent *ua = CpTestSupport::newSipUserAgent();
-        ua->start();
-        CallManager *callmgr = CpTestSupport::newCallManager(ua);
-        callmgr->start();
-
-                // Wait a little and pick up the hook assuming it is ringing
-                OsTask::delay(30000);
-                printf("Picking up ringing phone\n");
-
-                keyMsg = new PsMsg(PsMsg::HOOKSW_STATE, NULL, PsHookswTask::OFF_HOOK, 0);
-                callmgr->postMessage(*keyMsg);
-                delete keyMsg;
-
-        delete callmgr;
-        delete ua;
-    }
 
     void testSimpleTeardown()
     {
@@ -142,6 +69,10 @@ public:
                                "sip:153@pingtel.com",
                                NULL, //SipUserAgent
                                0, // sipSessionReinviteTimer
+                               NULL, // pCallEventListener
+                               NULL, // pInfoStatusEventListener
+                               NULL, // pSecurityEventListener
+                               NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
                                NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
@@ -153,7 +84,6 @@ public:
                                NULL, // speedNums
                                CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
                                4, // numDialPlanDigits
-                               CallManager::NEAR_END_HOLD, // holdType
                                5000, // offeringDelay
                                "", // pLocal
                                CP_MAXIMUM_RINGING_EXPIRE_SECONDS, //inviteExpireSeconds
@@ -222,6 +152,10 @@ public:
                                "sip:153@pingtel.com",
                                sipUA, //SipUserAgent
                                0, // sipSessionReinviteTimer
+                               NULL, // pCallEventListener
+                               NULL, // pInfoStatusEventListener
+                               NULL, // pSecurityEventListener
+                               NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
                                NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
@@ -233,7 +167,6 @@ public:
                                NULL, // speedNums
                                CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
                                4, // numDialPlanDigits
-                               CallManager::NEAR_END_HOLD, // holdType
                                5000, // offeringDelay
                                "", // pLocal
                                CP_MAXIMUM_RINGING_EXPIRE_SECONDS, //inviteExpireSeconds
@@ -297,6 +230,10 @@ public:
                                "sip:153@pingtel.com",
                                sipUA, //SipUserAgent
                                0, // sipSessionReinviteTimer
+                               NULL, // pCallEventListener
+                               NULL, // pInfoStatusEventListener
+                               NULL, // pSecurityEventListener
+                               NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
                                NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
@@ -308,7 +245,6 @@ public:
                                NULL, // speedNums
                                CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
                                4, // numDialPlanDigits
-                               CallManager::NEAR_END_HOLD, // holdType
                                5000, // offeringDelay
                                "", // pLocal
                                CP_MAXIMUM_RINGING_EXPIRE_SECONDS, //inviteExpireSeconds
@@ -383,6 +319,10 @@ public:
                                "sip:153@pingtel.com",
                                sipUA, //SipUserAgent
                                0, // sipSessionReinviteTimer
+                               NULL, // pCallEventListener
+                               NULL, // pInfoStatusEventListener
+                               NULL, // pSecurityEventListener
+                               NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
                                NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
@@ -394,7 +334,6 @@ public:
                                NULL, // speedNums
                                CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
                                4, // numDialPlanDigits
-                               CallManager::NEAR_END_HOLD, // holdType
                                5000, // offeringDelay
                                "", // pLocal
                                CP_MAXIMUM_RINGING_EXPIRE_SECONDS, //inviteExpireSeconds
@@ -426,105 +365,6 @@ public:
         }
     }
 
-    /* Support routine for testGetNewCallId to parse and validate a call ID.
-     * The first argument is the call ID.
-     * The second argument is the expected prefix.
-     * The third argument receives the counter part of the call ID.
-     * The fourth argument, if null, receives the suffix part of the call ID;
-     *     if not null, is the expected suffix part of the call ID.
-     */
-    void testGetNewCallId_validate(UtlString &callId,
-                                   const char* expected_prefix,
-                                   UtlString* counter,
-                                   UtlString* suffix)
-      {
-         char actual_prefix[100], actual_counter[100], actual_suffix[100];
-         char msg[1000];
-
-         // The character that separates fields in call IDs.
-         // This is a #define so it is easy to change.
-         // Fields in generated call IDs must never contain this character.
-         #define FIELD_SEPARATOR_CHAR "_"
-
-         int chars_consumed = -1;
-         sscanf(callId.data(),
-                "%[^" FIELD_SEPARATOR_CHAR "]" FIELD_SEPARATOR_CHAR
-                "%[^" FIELD_SEPARATOR_CHAR "]" FIELD_SEPARATOR_CHAR
-                "%s%n",
-                actual_prefix, actual_counter, actual_suffix,
-                &chars_consumed);
-         sprintf(msg, "Cannot parse call ID '%s'", callId.data());
-         CPPUNIT_ASSERT_MESSAGE(msg,
-                                chars_consumed == callId.length());
-         sprintf(msg, "Actual prefix '%s' does not match expected prefix '%s' in call ID '%s'",
-                 actual_prefix, expected_prefix, callId.data());
-         CPPUNIT_ASSERT_MESSAGE(msg,
-                                strcmp(actual_prefix, expected_prefix) == 0);
-         *counter = actual_counter;
-         if (suffix->length() == 0)
-         {
-            // Set the suffix argument.
-            *suffix = actual_suffix;
-         }
-         else
-         {
-            // Validate the suffix field.
-            sprintf(msg, "Actual suffix '%s' does not match expected suffix '%s' in call ID '%s'",
-                    actual_suffix, suffix->data(), callId.data());
-            CPPUNIT_ASSERT_MESSAGE(msg,
-                                   strcmp(actual_suffix, suffix->data()) == 0);
-         }
-      }
-
-    /* Support routine for testGetNewCallId to write over the stack to ensure
-     * that a valid pointer does not appear in getNewCallId's stack by accident.
-     */
-     void testGetNewCallId_hose_stack()
-      {
-         int buffer[1024];
-         int i;
-         // Access buffer through p, to confuse simple optimizers.
-         int *p = &buffer[0];
-
-         for (i = 0; i < sizeof (buffer) / sizeof (int); i++)
-         {
-            p[i] = i;
-         }
-      }
-
-    /* Some basic tests on the CpCallManager::getNewCallId methods. */
-    void testGetNewCallId()
-    {
-       // To hold the returned call IDs.
-       UtlString callId1, callId2, callId3, callId4;
-       // To hold the discovered suffix.
-       UtlString suffix("");
-       // To hold counter fields.
-       UtlString counter;
-
-       testGetNewCallId_hose_stack();
-       CpCallManager::getNewCallId("prefix1", &callId1);
-       testGetNewCallId_validate(callId1, "prefix1", &counter, &suffix);
-       char msg[1000];
-       // The hex suffix can be either 12 or 16 characters, depending
-       // on the USE_LONG_CALL_IDS in CpCallManager.cpp.
-       sprintf(msg,
-               "Actual suffix '%s' is not 12/16 hex characters in call ID '%s'",
-               suffix.data(), callId1.data());
-       CPPUNIT_ASSERT_MESSAGE(msg,
-                              (suffix.length() == 12 ||
-                               suffix.length() == 16) &&
-                              strspn(suffix.data(), "0123456789abcdef") ==
-                                suffix.length());
-
-       testGetNewCallId_hose_stack();
-       CpCallManager::getNewCallId("prefix2", &callId2);
-       testGetNewCallId_validate(callId2, "prefix2", &counter, &suffix);
-
-       testGetNewCallId_hose_stack();
-       CpCallManager::getNewCallId("prefix3", &callId3);
-       testGetNewCallId_validate(callId3, "prefix3", &counter, &suffix);
-    }
 
 };
 
