@@ -23,6 +23,16 @@ Main differences between customized and SIP Foundry version:
   * refactored event handling in sipxmedialib and sipxcalllib
   * based on revision 9963
 
+= Get source code =
+Source code can be downloaded directly from SVN using a command line SVN client:
+
+svn checkout http://sipxtapi.googlecode.com/svn/trunk/ sipxtapi
+
+or by using Tortoise SVN Windows client. Select SVN checkout operation, use http://sipxtapi.googlecode.com/svn/trunk/ as URL repository.
+
+= Compilation =
+See http://code.google.com/p/sipxtapi/wiki/Compilation
+
 = Example applications =
 There are several example applications available:
   * wxCommunicator - feature rich softphone, download from sourceforge, GPL - http://sourceforge.net/projects/wxcommunicator/
