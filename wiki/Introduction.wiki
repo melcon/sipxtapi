@@ -25,7 +25,7 @@ Main differences between customized and SIP Foundry version:
 
 = Example applications =
 There are several example applications available:
-  * wxCommunicator - feature rich softphone, download from sourceforge, GPL
+  * wxCommunicator - feature rich softphone, download from sourceforge, GPL - http://sourceforge.net/projects/wxcommunicator/
   * sipxezphone - basic softphone
   * SimpleSipxTerm - testing application/crude softphone
   * PlaceCall - simple application for making calls
