@@ -145,6 +145,20 @@ class securityHelper;
 // TYPEDEFS
 
 /**
+ * Strategy for verifying SSL certificates. By default, certificate
+ * must have valid date, must be signed by approved certificate authority (CA),
+ * and its common name (CN) must match server/client hostname.
+ *
+ * Testing certificates can be used by setting policy to always accept.
+ * SipXtapi is not supplied with default store of approved certificate authorities.
+ */
+typedef enum
+{
+   SIPX_SSL_VERIFICATION_DEFAULT = 0, ///< A valid CRT parent CA, hostname & CN match, and valid date are required
+   SIPX_SSL_ALWAYS_ACCEPT ///< Always accept all certificates, even invalid ones
+} SIPX_SSL_CRT_VERIFICATION;
+
+/**
  * Codec bandwidth ids are used to select a group of codecs with equal or lower
  * bandwidth requirements
  *
@@ -1004,9 +1018,6 @@ typedef enum SIPX_NOISE_REDUCTION_MODE
  *        or tlsPort, try sequential ports until a successful port is 
  *        found.  If enabled, sipXtapi will try 10 sequential port 
  *        numbers after the initial port.
- * @param szTLSCertificateNickname Nickname of the certificate to use as an SSL server.
- * @param szTLSCertificatePassword Password for the SSL server certificate.
- * @param szDbLocation Path to the certificate database.
  */
 SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
                                         const int udpPort = DEFAULT_UDP_PORT,
@@ -1016,10 +1027,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
                                         const int maxConnections = DEFAULT_CONNECTIONS,
                                         const char* szIdentity = DEFAULT_IDENTITY,
                                         const char* szBindToAddr = DEFAULT_BIND_ADDRESS,
-                                        int         bUseSequentialPorts = 0,
-                                        const char* szTLSCertificateNickname = NULL,
-                                        const char* szTLSCertificatePassword = NULL,
-                                        const char* szDbLocation = NULL);
+                                        int         bUseSequentialPorts = 0);
 
 
 /** 
@@ -1067,9 +1075,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
  *        or tlsPort, try sequential ports until a successful port is 
  *        found.  If enabled, sipXtapi will try 10 sequential port 
  *        numbers after the initial port.
- * @param szTLSCertificateNickname Nickname of the certificate to use as an SSL server.
- * @param szTLSCertificatePassword Password for the SSL server certificate.
- * @param szDbLocation Path to the certificate database.
  */
 SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
                                           const int udpPort = DEFAULT_UDP_PORT,
@@ -1079,10 +1084,7 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
                                           const int maxConnections = DEFAULT_CONNECTIONS,
                                           const char* szIdentity = DEFAULT_IDENTITY,
                                           const char* szBindToAddr = DEFAULT_BIND_ADDRESS,
-                                          int         bUseSequentialPorts = 0,
-                                          const char* szTLSCertificateNickname = NULL,
-                                          const char* szTLSCertificatePassword = NULL,
-                                          const char* szDbLocation = NULL);
+                                          int         bUseSequentialPorts = 0);
 
 /** 
  * Uninitialize the sipX TAPI-like API layer.  This method tears down the
@@ -3634,18 +3636,46 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAllLocalNetworkIps(char* arrAddresses[],
                                                          int* numAddresses);
                                                          
 /**
- * Set security parameters for an instance of sipXtapi.
- * @deprecated These should be set using sipxInitialize.
+ * Set security parameters for TLS. Needs to be called before sipxInitialize and
+ * all other functions. Can be executed only once, subsequent executions have no effect.
+ * Certificates used must be in PEM format.
  *
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param szDbLocation The directory in which the certificate database resides.
- * @param szMyCertNickname The local user's certificate nickname, for database lookup.
- * @param szDbPassword The password for the certificated database.
+ * To generate testing private key without encryption:
+ * openssl genrsa -out mykey.pem 1024
+ * 
+ * Generate a certificate using the new key:
+ * openssl req -new -x509 -key mykey.pem -out mycert.pem -days 3650
+ *
+ * without -x509 option a CSR (certificate request) is created. This can be sent to a 
+ * certificate authority to be signed. Signed certificate can then be also used by sipXtapi.
+ *
+ * WARNING: when using TLS, it is recommended to compile OpenSSL from source code in Windows.
+ * Debug and Release builds of sipXtapi with TLS require separate libeay32.lib, ssleay32.lib files
+ * for Debug and Release mode. Mixing these will result in a crash.
+ * 
+ * @param verificationMode Determines how SSL/TLS certificates are verified. By default
+ *        they are verified internally using callback. Certificates with invalid date,
+ *        CN and hostname mismatch or not signed by approved CA are rejected. Use
+ *        SIPX_SSL_ALWAYS_ACCEPT for testing certificates.
+ * @param szCApath Path to directory containing several CA certificates. Links to certificates
+ *        must be prepared with c_rehash according to http://www.openssl.org/docs/ssl/SSL_CTX_load_verify_locations.html
+ *        If not supplied, then ./ssl/authorities is used.
+ * @param szCAfile Alternative to szCApath. Path to PEM file (base64) containing CA certificates.
+ *        If set to NULL, no CAfile is used.
+ * @param szCertificateFile Path to PEM file with OpenSSL certificate. Certificate should be
+ *        unencrypted. By default ./ssl/ssl.crt is used.
+ * @param szPrivateKeyFile Path to PEM file with OpenSSL private key. Can be encrypted.
+ *        By default ./ssl/ssl.key is used.
+ * @param szPassword Password to use for decrypting any private keys or certificates.
+ *        If private key is not encrypted, it will not be used.
+ * 
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSecurityParameters(const SIPX_INST hInst,
-                                                         const char* szDbLocation,
-                                                         const char* szMyCertNickname,
-                                                         const char* szDbPassword);                                        
+SIPXTAPI_API SIPX_RESULT sipxConfigSetTLSSecurityParameters(SIPX_SSL_CRT_VERIFICATION verificationMode = SIPX_SSL_VERIFICATION_DEFAULT,
+                                                            const char* szCApath = NULL,
+                                                            const char* szCAfile = NULL,
+                                                            const char* szCertificateFile = NULL,
+                                                            const char* szPrivateKeyFile = NULL,
+                                                            const char* szPassword = NULL);
 
 /**
  * Enables/Disables use of short field names in sip messages.

@@ -123,9 +123,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
                            int readBufferSize,
                            int queueSize,
                            UtlBoolean bUseNextAvailablePort,
-                           UtlString certNickname,
-                           UtlString certPassword,
-                           UtlString dbLocation,
                            UtlBoolean doUaMessageChecks
                            ) 
         : SipUserAgentBase(sipTcpPort, sipUdpPort, sipTlsPort, queueSize)
@@ -180,9 +177,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
         mSipTlsServer = new SipTlsServer(mTlsPort,
                                          this,
                                          bUseNextAvailablePort,
-                                         certNickname,
-                                         certPassword,
-                                         dbLocation,
                                          defaultAddress);
         mSipTlsServer->startListener();
         mTlsPort = mSipTlsServer->getServerPort() ;

@@ -19,6 +19,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsSysLog.h"
+#include "os/OsSSL.h"
 #include "os/OsNatAgentTask.h"
 #include "os/HostAdapterAddress.h"
 #include "net/SipUserAgent.h"
@@ -982,26 +983,40 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRTCP(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSecurityParameters(const SIPX_INST hInst,
-                                                         const char* szDbLocation,
-                                                         const char* szMyCertNickname,
-                                                         const char* szDbPassword)
+SIPXTAPI_API SIPX_RESULT sipxConfigSetTLSSecurityParameters(SIPX_SSL_CRT_VERIFICATION verificationMode,
+                                                            const char* szCApath,
+                                                            const char* szCAfile,
+                                                            const char* szCertificateFile,
+                                                            const char* szPrivateKeyFile,
+                                                            const char* szPassword)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetSecurityParameters");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetSecurityParameters hInst=%p, dbLocation=%s",
-      hInst, szDbLocation);
+      "sipxConfigSetSecurityParameters verificationMode=%d, szCApath=%s, "
+      "szCAfile=%s, szCertificateFile=%s, szPrivateKeyFile=%s",
+      szCApath != NULL ? szCApath : "",
+      szCAfile != NULL ? szCAfile : "",
+      szCertificateFile != NULL ? szCertificateFile : "",
+      szPrivateKeyFile != NULL ? szPrivateKeyFile : "");
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
 
-   if (pInst)
+#ifdef HAVE_SSL
+   OsSSL::setCrtVerificationPolicy((OsSSL::SSL_CRT_VERIFICATION)verificationMode);
+   OsSSL::setCApath(szCApath);
+   OsSSL::setCAfile(szCAfile);
+   OsSSL::setCertificateFile(szCertificateFile);
+   OsSSL::setPrivateKeyFile(szPrivateKeyFile);
+   OsSSL::setPassword(szPassword);
+
+   OsSSL::SSL_INIT_RESULT sslResult = OsSSL::getInstance()->getInitResult(); // init OpenSSL
+   if (sslResult == OsSSL::SSL_INIT_SUCCESS)
    {
-      SAFE_STRNCPY(pInst->dbLocation, szDbLocation, sizeof(pInst->dbLocation));
-      SAFE_STRNCPY(pInst->myCertNickname, szMyCertNickname, sizeof(pInst->myCertNickname));
-      SAFE_STRNCPY(pInst->dbPassword, szDbPassword, sizeof(pInst->dbPassword));
       rc = SIPX_RESULT_SUCCESS;
    }
+#else
+   rc = SIPX_RESULT_NOT_IMPLEMENTED;
+#endif
 
    return rc;
 }

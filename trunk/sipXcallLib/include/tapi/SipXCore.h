@@ -182,9 +182,6 @@ public:
    int             nConferences;  /**< Counter for inprocess conferences */
    int             nLines;        /**< Counter for inprocess lines */
    void*           pVoiceEngine;  /**< Cache VoiceEngine pointer */
-   char            dbLocation[256];    /**< Cache cert db location > */
-   char            myCertNickname[32]; /**< Cache certificate nickname > */
-   char            dbPassword[32];    /**< Cache cert db password > */
    UtlBoolean      bShortNames;   /**< short names in sip messages >*/
    UtlBoolean      bAllowHeader;  /**< use allow header in sip messages>*/
    UtlBoolean      bDateHeader;   /**< use Date header in sip messages>*/
@@ -231,9 +228,6 @@ public:
          outputAudioDevices[i] = NULL;
       }
       
-      memset(dbLocation, 0, sizeof(dbLocation));
-      memset(myCertNickname, 0, sizeof(myCertNickname));
-      memset(dbPassword, 0, sizeof(dbPassword));
       memset(szAcceptLanguage, 0, sizeof(szAcceptLanguage));
       memset(szLocationHeader, 0, sizeof(szLocationHeader));
    }

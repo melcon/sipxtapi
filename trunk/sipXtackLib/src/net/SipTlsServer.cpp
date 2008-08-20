@@ -45,14 +45,8 @@
 SipTlsServer::SipTlsServer(int port,
                            SipUserAgent* userAgent, 
                            UtlBoolean bUseNextAvailablePort,
-                           UtlString certNickname,
-                           UtlString certPassword,
-                           UtlString dbLocation,
                            const char*  szBindAddr) :
  SipProtocolServerBase(userAgent, "TLS", "SipTlsServer %d"),
- mCertNickname(certNickname),
- mCertPassword(certPassword),
- mDbLocation(dbLocation),
  mTlsInitCode(OS_SUCCESS)
 {
     OsSysLog::add(FAC_SIP, PRI_DEBUG,

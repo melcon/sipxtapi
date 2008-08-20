@@ -313,10 +313,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
                                         const int maxConnections,
                                         const char* szIdentity,
                                         const char* szBindToAddr,
-                                        int bUseSequentialPorts,
-                                        const char* szTLSCertificateNickname,
-                                        const char* szTLSCertificatePassword,
-                                        const char* szDbLocation)
+                                        int bUseSequentialPorts)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxInitialize");
 
@@ -340,14 +337,11 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    // log settings
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxInitialize tcpPort=%d udpPort=%d tlsPort=%d rtpPortStart=%d"
-      " maxConnections=%d identity=%s bindTo=%s sequentialPorts=%d"
-      " certNickname=%s, DBLocation=%s",
+      " maxConnections=%d identity=%s bindTo=%s sequentialPorts=%d",
       tcpPort, udpPort, iActualTLSPort, rtpPortStart, maxConnections,
       ((szIdentity != NULL) ? szIdentity : ""),
       ((szBindToAddr != NULL) ? szBindToAddr : ""),
-      bUseSequentialPorts,
-      ((szTLSCertificateNickname != NULL) ? szTLSCertificateNickname : ""),
-      ((szDbLocation != NULL) ? szDbLocation : "")) ;
+      bUseSequentialPorts);
 
    // Disable Console by default
    enableConsoleOutput(false);
@@ -417,10 +411,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       TRUE,                       // defaultToUaTransactions
       -1,                         // readBufferSize
       OsServerTask::DEF_MAX_MSGS, // queueSize
-      bUseSequentialPorts,        // bUseNextAvailablePort
-      szTLSCertificateNickname,
-      szTLSCertificatePassword,
-      szDbLocation);
+      bUseSequentialPorts);       // bUseNextAvailablePort
    pInst->pSipUserAgent->allowMethod(SIP_INFO_METHOD);
 
    // set bind address on OsSocket
@@ -567,19 +558,12 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    rc = SIPX_RESULT_SUCCESS;
    //  check for TLS initialization
 #ifdef HAVE_SSL
-   if (pInst->pSipUserAgent->getTlsServer() && iActualTLSPort > 0 && szTLSCertificateNickname)
+   if (pInst->pSipUserAgent->getTlsServer() && iActualTLSPort > 0)
    {
       OsStatus initStatus = pInst->pSipUserAgent->getTlsServer()->getTlsInitCode();
       if (initStatus != OS_SUCCESS)
       {
          rc = SIPX_RESULT_FAILURE;
-      }
-      else
-      {
-         sipxConfigSetSecurityParameters((SIPX_INST)pInst,
-            szTLSCertificateNickname,
-            szTLSCertificatePassword,
-            szDbLocation);
       }
    }
 #endif
@@ -598,10 +582,7 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
                                           const int maxConnections,
                                           const char* szIdentity,
                                           const char* szBindToAddr,
-                                          int bUseSequentialPorts,
-                                          const char* szTLSCertificateNickname,
-                                          const char* szTLSCertificatePassword,
-                                          const char* szDbLocation)
+                                          int bUseSequentialPorts)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxReInitialize");
 
@@ -667,10 +648,7 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
          maxConnections,
          szIdentity,
          szBindToAddr,
-         bUseSequentialPorts,
-         szTLSCertificateNickname,
-         szTLSCertificatePassword,
-         szDbLocation);
+         bUseSequentialPorts);
    }
 
    return rc;
