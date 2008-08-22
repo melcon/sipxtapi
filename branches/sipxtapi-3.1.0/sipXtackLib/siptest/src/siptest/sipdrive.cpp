@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
    CommandProcessor processor;
 
    SipLineMgr*    lineMgr = new SipLineMgr();
-   SipRefreshMgr* refreshMgr = new SipRefreshMgr();
+   SipRefreshMgr* refreshMgr = new SipRefreshMgr(NULL);
 
    lineMgr->StartLineMgr();
    lineMgr->initializeRefreshMgr( refreshMgr );
