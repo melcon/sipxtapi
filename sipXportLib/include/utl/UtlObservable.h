@@ -33,6 +33,11 @@ public:
      *                  pass to the observer.
      */
     virtual void onNotify(UtlObservable* subject, int code, intptr_t userData) = 0;
+
+    virtual ~UtlObserver()
+    {
+
+    }
 };
 
 /**
@@ -43,6 +48,11 @@ public:
 class UtlObservable
 {
 public:
+    virtual ~UtlObservable()
+    {
+
+    }
+
     /**
      * Registers a listener of this observable.
      * Derived classes of UtlObservable should store
