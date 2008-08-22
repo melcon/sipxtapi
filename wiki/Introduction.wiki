@@ -30,6 +30,8 @@ svn checkout http://sipxtapi.googlecode.com/svn/trunk/ sipxtapi
 
 or by using Tortoise SVN Windows client. Select SVN checkout operation, use http://sipxtapi.googlecode.com/svn/trunk/ as URL repository.
 
+See http://code.google.com/p/sipxtapi/wiki/AvailableBranches for description of other available branches.
+
 = Compilation =
 See http://code.google.com/p/sipxtapi/wiki/Compilation
 
