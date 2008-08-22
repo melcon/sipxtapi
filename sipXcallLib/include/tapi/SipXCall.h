@@ -41,8 +41,8 @@ public:
    UtlString sessionCallId;
    UtlString ghostCallId;    
    UtlString remoteAddress;
-   UtlString lineURI;
-   UtlString contactAddress;
+   UtlString fromURI;
+   UtlString remoteContactAddress;///< Remote Contact URI
    SIPX_LINE hLine;
    SIPX_INSTANCE_DATA* pInst;
    OsMutex pMutex;
@@ -79,8 +79,8 @@ public:
       sessionCallId(NULL),
       ghostCallId(NULL),
       remoteAddress(NULL),
-      lineURI(NULL),
-      contactAddress(NULL),
+      fromURI(NULL),
+      remoteContactAddress(NULL),
       hLine(0),
       pInst(NULL),
       hConf(NULL),
@@ -147,7 +147,7 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
                                  UtlString* pStrRemoteAddress,
                                  UtlString* pLineUri,
                                  UtlString* pGhostCallId = NULL, 
-                                 UtlString* pContactAddress = NULL);
+                                 UtlString* pRemoteContactAddress = NULL);
 
 /**
 * Get the list of active calls for the specified call manager instance

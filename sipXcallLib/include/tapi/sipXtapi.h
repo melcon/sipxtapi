@@ -1330,7 +1330,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall);
 
 
 /**
- * Get the SIP call ID of the call represented by the specified call handle.
+ * Get the SIP Call-Id of the call represented by the specified call handle.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1345,9 +1345,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
                                        const size_t iMaxLength);
 
 /**
- * Get the SIP identity of the local connection.  The identity represents
- * either 1) who was called in the case of a inbound call, or 2) the
- * line identity used in an outbound call.
+ * Get the SIP identity of the local connection. It may contain a tag.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1362,7 +1360,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
 
 
 /**
- * Get the SIP identity of the remote connection.
+ * Get the SIP identity of the remote connection. It may contain a tag.
  * 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1417,7 +1415,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConference(const SIPX_CALL hCall,
                                                  
 
 /**
- * Get the SIP request URI.
+ * Get the SIP request URI that initiated the call. It is retrieved either
+ * from sent or received SIP INVITE depending on whether it is an outbound
+ * or inbound call.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1466,6 +1466,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
  * Play a tone (DTMF, dialtone, ring back, etc) to the local and/or
  * remote party.  See the DTMF_ constants for built-in tones.
  * DTMF is sent via RFC 2833 method. sipxCallDestroy stops tones automatically.
+ * Minimum DTMF length must be 60msec. It is not enforced by sipxtapi.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1727,8 +1728,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
 
 /**
  * Blind transfer the specified call to another party.  Monitor the
- * TRANSFER state events for details on the transfer attempt.  If the
- * call is not already on hold, the party will be placed on hold.
+ * TRANSFER state events for details on the transfer attempt.
  *
  * Assuming that all parties are using sipXtapi, all of the calls
  * are active (not held), and the transfer works, you should expect the 
@@ -1736,10 +1736,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
  *
  * <h3>Transferee (party being transfered):</h3>
  *
- * The transferee's original call will be placed on remote hold from the 
- * transfer controller and will then put itself on full hold before starting
- * the transfer.  The transfer is implemented as a new call -- this allows
- * the developer to reclaim the original call if the transfer fails.  The 
+ * The transfer is implemented as a new call -- this allows
+ * the developer to reclaim the original call if the transfer fails. The 
  * NEWCALL event will include a cause for of CALLSTATE_CAUSE_TRANSFER and
  * the hAssociatedCall member of the SIPX_CALLSTATE_INFO structure will
  * include the handle of the original call.
@@ -1759,26 +1757,23 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
  * </pre>
  *
  * After the transfer completes, the application developer must destroy 
- * the original call using sipxCallDestroy.  If the new call fails for
- * any reason, the application layer should resume the original call by
- * taking it off hold.
+ * the original call using sipxCallDestroy.
  *
  * <h3>Transfer Controller (this user agent):</h3>
  *
  * The transfer controller will automatically take the call out of 
- * focus and place it on hold.  Afterwards, the transfer controller
+ * focus. Afterwards, the transfer controller
  * will receive CALLSTATE_TRANSFER_EVENTs indicating the status of
  * the transfer.
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
  * Source Call: CALLSTATE_BRIDGED
- * Source Call: CALLSTATE_HELD
- * Source Call: MEDIA_CAUSE_HOLD
- * Source Call: MEDIA_CAUSE_HOLD
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_RINGING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
+ * Source Call: MEDIA_LOCAL_STOP
+ * Source Call: MEDIA_REMOTE_STOP
  * Source Call: CALLSTATE_DISCONNECTED
  * </pre>
  *
@@ -1788,14 +1783,16 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
  *
  * <h3>Transfer Target (identified by szAddress):</h3>
  *
- * The transferee will go through the normal event progression for an incoming
+ * The transfer target will go through the normal event progression for an incoming
  * call:
  *
  * <pre>
- * New Call: CALLSTATE_NEWCALL
- * New Call: CALLSTATE_OFFERING
- * New Call: CALLSTATE_ALERTING
- * New Call: CALLSTATE_CONNECTED
+ * New Call: CALLSTATE_NEWCALL::CALLSTATE_CAUSE_NORMAL
+ * New Call: CALLSTATE_OFFERING::CALLSTATE_CAUSE_NORMAL
+ * New Call: CALLSTATE_ALERTING::CALLSTATE_CAUSE_NORMAL
+ * New Call: MEDIA_REMOTE_START
+ * New Call: CALLSTATE_CONNECTED::CALLSTATE_CAUSE_NORMAL
+ * New Call: MEDIA_LOCAL_START
  * </pre>
  *
  * If the transfer target rejects the call or fails to answer, the transfer 
@@ -1823,9 +1820,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * conversation, create a conference and then transfer one leg to 
  * another.
  *
- * If not already on hold, the transferee (hSourceCall) is placed on 
- * hold as part of the transfer operation.
- *
  * The event sequence may differ slightly depending on whether the calls
  * are part of a conference (attended transfer) or individual calls (semi-
  * attended transfer).
@@ -1837,30 +1831,27 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
- * Source Call: CALLSTATE_REMOTE_HELD
- * Source Call: MEDIA_LOCAL_STOP
- * Source Call: MEDIA_REMOTE_STOP
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
+ * Source Call: MEDIA_LOCAL_STOP
+ * Source Call: MEDIA_REMOTE_STOP
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_DISCONNECTED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_DESTROYED
  * </pre>
  *
  * The source call will automatically be disconnected if the transfer is 
- * successful.  Also, if the source call is part of a conference, the call 
+ * successful. Also, if the source call is part of a conference, the call 
  * will automatically be destroyed.  If not part of a conference, the 
  * application must destroy the call using sipxCallDestroy.
  *
  * <pre>
- * Target Call: CALLSTATE_REMOTE_HELD
  * Target Call: MEDIA_LOCAL_STOP
  * Target Call: MEDIA_REMOTE_STOP
  * Target Call: CALLSTATE_DISCONNECTED
  * Target Call: CALLSTATE_DESTROYED
  * </pre>
  * 
- * The target call is remote held as part of the transfer operation.  If the
- * target call is part of a conference, it will automatically be destroyed.
+ * If the target call is part of a conference, it will automatically be destroyed.
  * Otherwise, the application layer is responsible for calling 
  * sipxCallDestroy.
  *

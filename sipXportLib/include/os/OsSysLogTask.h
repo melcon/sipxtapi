@@ -73,6 +73,10 @@ public:
    }
    
 /* ============================ ACCESSORS ================================= */
+   /**
+    * Returns name of file that is used for logging.
+    */
+   UtlString getLogFileName();
 
    OsStatus getMaxEntries(int& maxEntries);
      //:Obtains the maximum number of in-memory log entries.  

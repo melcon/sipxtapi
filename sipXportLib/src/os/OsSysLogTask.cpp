@@ -162,6 +162,24 @@ OsStatus OsSysLogTask::flush(const OsTime& rTimeout)
 
 /* ============================ ACCESSORS ================================= */
 
+UtlString OsSysLogTask::getLogFileName()
+{
+   UtlString res;
+   mRWMutex.acquireRead();
+
+   if (mFlushPeriod == 0)
+   {
+      res = mUnboundedLogFile;
+   }
+   else
+   {
+      res = mBoundedLogFile;
+   }
+   mRWMutex.releaseRead();
+
+   return res;
+}
+
 // Get the max number of log entries
 OsStatus OsSysLogTask::getMaxEntries(int& maxEntries)
 {
