@@ -21,6 +21,7 @@ Visual Studio 2005 or later is required. Solution and projects for VS2005 are pr
 == Compilation steps ==
  # Download DirectX SDK and setup VS2005 to be able to locate DirectX include and lib\x86 directories. This can be done in Tools->Options->Projects and Solutions->VC++ Directories.
  # Optionally download and compile cppunit 1.12 and OpenSSL. Setup VS2005 to be able to find cppunit.
+ # Check out desired branch from SVN. See http://code.google.com/p/sipxtapi/wiki/AvailableBranches for description of available branches.
  # Open sipX-msvc8.sln. Select Win32 solution platform, and Debug or Release solution configuration. Build sipXtapi-msvc8 project.
  # Compile sample applications ReceiveCall, PlaceCall, sipXezPhone, SimpleSipxTerm
 
