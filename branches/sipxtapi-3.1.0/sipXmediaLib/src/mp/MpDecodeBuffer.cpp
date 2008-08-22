@@ -15,6 +15,7 @@
 #include "assert.h"
 #include "string.h"
 
+#include "os/OsDefs.h"
 #include "mp/MpDecodeBuffer.h"
 #include "mp/MpDecoderBase.h"
 #include "mp/MpMisc.h"
