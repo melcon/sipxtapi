@@ -667,6 +667,14 @@ OsStatus MpCallFlowGraph::gainFocus(void)
 
    boolRes = mpToSpkr->enable();        assert(boolRes);
 
+#ifdef DOING_ECHO_CANCELATION // [
+   if (!mpTFsMicMixer->isEnabled())  
+   {
+      boolRes = mpEchoCancel->disable();
+      assert(boolRes);
+   }
+#endif // DOING_ECHO_CANCELATION ]
+
 #endif // DISABLE_LOCAL_AUDIO
 
    // Re-enable the tone as it is now being heard
@@ -675,16 +683,6 @@ OsStatus MpCallFlowGraph::gainFocus(void)
       mpToneGen->enable();
       mToneGenDefocused = FALSE;
    }
-
-#ifdef DOING_ECHO_CANCELATION // [
-   if (!mpTFsMicMixer->isEnabled())  
-   {
-#ifndef DISABLE_LOCAL_AUDIO
-      boolRes = mpEchoCancel->disable();
-      assert(boolRes);
-#endif
-   }
-#endif // DOING_ECHO_CANCELATION ]
 
    Nprintf("MpBFG::gainFocus(0x%X)\n", (int) this, 0,0,0,0,0);
    return OS_SUCCESS;
