@@ -3838,7 +3838,10 @@ void SipConnection::processReferRequest(const SipMessage* request)
             PtEvent::META_CALL_TRANSFERRING, 2, metaEventCallIds, bTakeFocus);
         mpCall->setTargetCallId(targetCallId.data());
         mpCall->setCallType(CpCall::CP_TRANSFEREE_ORIGINAL_CALL);
-        mpCallManager->setOutboundLineForCall(targetCallId, mLocalContact, mContactType) ;
+
+        Url tempUrl(mFromUrl); // mFromUrl may have a tag, strip it
+        tempUrl.removeParameters();
+        mpCallManager->setOutboundLineForCall(targetCallId, tempUrl.toString().data(), mContactType);
 
         // Send a message to the target call to create the
         // connection and send the INVITE
