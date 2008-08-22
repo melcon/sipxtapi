@@ -49,7 +49,7 @@ public:
 
    CpCallStateEvent(const UtlString& sSessionCallId,
                      const UtlString& sCallId,
-                     SipSession& session,
+                     const SipSession& session,
                      const UtlString& sRemoteAddress,
                      SIPX_CALLSTATE_CAUSE cause,
                      const void* pEventData = NULL,
