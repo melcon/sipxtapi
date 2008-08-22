@@ -1,6 +1,6 @@
 //
 // Copyright (C) 2007 Jaroslav Libak
-// Licensed to SIPfoundry under a Contributor Agreement.
+// Licensed under the LGPL license.
 //
 // Copyright (C) 2005-2007 SIPez LLC.
 // Licensed to SIPfoundry under a Contributor Agreement.
@@ -303,7 +303,7 @@ UtlBoolean validCallData(SIPX_CALL_DATA* pData)
 {
    return (pData &&
       pData->callId && 
-      pData->lineURI && 
+      pData->fromURI && 
       pData->pInst &&
       pData->pInst->pCallManager && 
       pData->pInst->pRefreshManager &&
@@ -469,9 +469,9 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
                                  UtlString* pCallId,
                                  UtlString* pSessionCallId,
                                  UtlString* pStrRemoteAddress,
-                                 UtlString* pLineUri,
+                                 UtlString* pFromUri,
                                  UtlString* pGhostCallId, 
-                                 UtlString* pContactAddress) 
+                                 UtlString* pRemoteContactAddress) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetCommonData");
 
@@ -500,9 +500,9 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
          *pStrRemoteAddress = pData->remoteAddress;
       }
 
-      if (pLineUri)
+      if (pFromUri)
       {
-         *pLineUri = pData->lineURI;
+         *pFromUri = pData->fromURI;
       }
 
       if (pGhostCallId)
@@ -510,9 +510,9 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
          *pGhostCallId = pData->ghostCallId;
       }
 
-      if (pContactAddress)
+      if (pRemoteContactAddress)
       {
-         *pContactAddress = pData->contactAddress;
+         *pRemoteContactAddress = pData->remoteContactAddress;
       }
       bSuccess = TRUE;
 
@@ -726,8 +726,8 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
          {
             SIPX_CALL_DATA* pData = new SIPX_CALL_DATA();
             // Set line URI in call
-            pData->lineURI = pLine->lineURI.toString();
-            assert(!pData->lineURI.isNull());
+            pData->fromURI = pLine->lineURI.toString();
+            assert(!pData->fromURI.isNull());
             sipxLineReleaseLock(pLine, SIPX_LOCK_READ, stackLogger);
 
             pData->pMutex.acquire();
@@ -823,7 +823,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxCallCreate(const SIPX_INST hInst,
                                         const SIPX_LINE hLine,
-                                        SIPX_CALL*  phCall)
+                                        SIPX_CALL* phCall)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallCreate");
 
@@ -1219,13 +1219,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
 
    if (szLineUri)
    {
-      UtlString lineUri;
+      UtlString fromUri;
 
-      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, &lineUri))
+      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, &fromUri))
       {
          if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szLineUri, lineUri, iMaxLength);
+            SAFE_STRNCPY(szLineUri, fromUri, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1268,26 +1268,45 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
                                               char* szContactAddress,
                                               const size_t iMaxLength)
 {
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetContactID");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxCallGetContactID hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
 
-   if (szContactAddress)
+   if (pData)
    {
-      UtlString contactAddress;
-
-      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, NULL, NULL, &contactAddress))
+      if (pData->pInst &&
+         pData->pInst->pCallManager &&
+         pData->callId && 
+         pData->remoteAddress)
       {
-         if (iMaxLength > 0)
+         CallManager* pCallManager = pData->pInst->pCallManager;
+         UtlString sessionCallId(pData->sessionCallId);
+         UtlString remoteAddress(pData->remoteAddress);
+
+         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+
+         SipDialog sipDialog;
+         pCallManager->getSipDialog(sessionCallId, remoteAddress, sipDialog);
+
+         Url contact;
+         sipDialog.getLocalContact(contact);
+
+         if (iMaxLength)
          {
-            SAFE_STRNCPY(szContactAddress, contactAddress, iMaxLength);
+            SAFE_STRNCPY(szContactAddress, contact.toString().data(), iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
+      else
+      {
+         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      }
    }
-   
+
    return sr;
 }
 
@@ -1424,7 +1443,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
             }
             // set outbound line
             // just posts message
-            pInst->pCallManager->setOutboundLineForCall(pData->callId, pData->lineURI);
+            pInst->pCallManager->setOutboundLineForCall(pData->callId, pData->fromURI);
 
             // create sessionCallId
             pData->sessionCallId = szSessionCallId;
@@ -1590,16 +1609,21 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
           pData->remoteAddress) 
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
-         UtlString callId(pData->callId);
+         UtlString sessionCallId(pData->sessionCallId);
          UtlString remoteAddress(pData->remoteAddress);
 
          sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
          SipDialog sipDialog;
-         pCallManager->getSipDialog(callId, remoteAddress, sipDialog);
+         pCallManager->getSipDialog(sessionCallId, remoteAddress, sipDialog);
 
          UtlString uri;
          sipDialog.getRemoteRequestUri(uri);
+         if (uri.isNull()) {
+            // for outbound call only LocalRequestUri is valid, but we don't keep info
+            // whether it is inbound or outbound call
+            sipDialog.getLocalRequestUri(uri);
+         }
 
          if (iMaxLength)
          {
@@ -1621,42 +1645,23 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
                                                   char* szContact,
                                                   const size_t iMaxLength)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetRemoteContact");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxCallGetRemoteContact hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
 
-   if (pData)
+   if (szContact)
    {
-      if (pData->pInst &&
-          pData->pInst->pCallManager &&
-          pData->callId && 
-          pData->remoteAddress)
+      UtlString contactAddress;
+
+      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, NULL, NULL, &contactAddress))
       {
-         CallManager* pCallManager = pData->pInst->pCallManager;
-         UtlString callId(pData->callId);
-         UtlString remoteAddress(pData->remoteAddress);
-
-         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
-
-         SipDialog sipDialog;
-         pCallManager->getSipDialog(callId, remoteAddress, sipDialog);
-
-         Url contact;
-         sipDialog.getRemoteContact(contact);
-
-         if (iMaxLength)
+         if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szContact, contact.toString().data(), iMaxLength);
+            SAFE_STRNCPY(szContact, contactAddress, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
-      }
-      else
-      {
-         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
       }
    }
 
@@ -1684,13 +1689,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
           pData->remoteAddress)
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
-         UtlString callId(pData->callId);
+         UtlString sessionCallId(pData->sessionCallId);
          UtlString remoteAddress(pData->remoteAddress);
          UtlString userAgent;
 
          sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
-         pCallManager->getRemoteUserAgent(callId, remoteAddress, userAgent);
+         pCallManager->getRemoteUserAgent(sessionCallId, remoteAddress, userAgent);
 
          if (iMaxLength)
          {

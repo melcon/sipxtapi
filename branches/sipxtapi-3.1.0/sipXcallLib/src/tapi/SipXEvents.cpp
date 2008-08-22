@@ -1604,9 +1604,9 @@ void sipxFireCallEvent(const SIPX_INST pInst,
 
       Url urlFrom;
       session.getFromUrl(urlFrom);
-      session.getContactRequestUri(pCallData->contactAddress);
+      session.getContactRequestUri(pCallData->remoteContactAddress);
 
-      pCallData->lineURI = urlFrom.toString();
+      pCallData->fromURI = urlFrom.toString();
       pCallData->pInst = pSipXInstance;
       pCallData->pMutex.release();
 
@@ -1697,9 +1697,16 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
       if (pCallData)
       {
-         if (pCallData->contactAddress.isNull())
+         if (event == CALLSTATE_REMOTE_OFFERING) {
+            // update call fromURI, since for outbound calls, we need to update tag
+            Url urlFrom;
+            session.getFromUrl(urlFrom);
+            pCallData->fromURI = urlFrom.toString();
+         }
+
+         if (pCallData->remoteContactAddress.isNull())
          {
-            session.getContactRequestUri(pCallData->contactAddress);
+            session.getContactRequestUri(pCallData->remoteContactAddress);
          }
 
          sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
@@ -1777,11 +1784,11 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       callInfo.sipResponseCode = sipResponseCode;
       callInfo.szSipResponseText = sResponseText.data(); // safe to do as SipXEventDispatcher makes a copy
 
-      // fire event
-      SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CALLSTATE, &callInfo);
-
       // store call state
       sipxCallSetState(hCall, event, cause);
+
+      // fire event
+      SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CALLSTATE, &callInfo);
 
       // If this is a DESTROY message, free up resources
       if (CALLSTATE_DESTROYED == event)

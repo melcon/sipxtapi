@@ -160,6 +160,16 @@ OsStatus OsSysLog::setOutputFile(const int minFlushPeriod,
    return rc ;
 }
 
+OsStatus OsSysLog::getOutputFile(UtlString& logfile)
+{
+   if (spOsSysLogTask != NULL)
+   {
+      logfile = spOsSysLogTask->getLogFileName();
+      return OS_SUCCESS;
+   }
+
+   return OS_FAILED;
+}
 
 OsStatus OsSysLog::setCallbackFunction(OsSysLogCallback pCallback)
 {
