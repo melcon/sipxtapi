@@ -265,7 +265,7 @@ public:
    /**
     * TODO: DOCS
     */
-   virtual UtlBoolean applyDestinationAddress(const char* szAddress, int iPort) ;
+   virtual UtlBoolean applyDestinationAddress(const char* szAddress, int iPort, UtlBoolean enableStunKeepalive, int stunKeepAliveSecs, UtlBoolean enableTurnKeepalive) ;
 
 
    /**

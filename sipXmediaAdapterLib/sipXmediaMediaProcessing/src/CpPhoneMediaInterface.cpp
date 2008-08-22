@@ -632,7 +632,7 @@ OsStatus CpPhoneMediaInterface::setConnectionDestination(int connectionId,
             {
                 OsNatDatagramSocket *pSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtpAudioSocket;
                 pSocket->readyDestination(remoteRtpHostAddress, remoteAudioRtpPort) ;
-                pSocket->applyDestinationAddress(remoteRtpHostAddress, remoteAudioRtpPort) ;
+                pSocket->applyDestinationAddress(remoteRtpHostAddress, remoteAudioRtpPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull()) ;
             }
             else
             {
@@ -648,7 +648,7 @@ OsStatus CpPhoneMediaInterface::setConnectionDestination(int connectionId,
             {
                 OsNatDatagramSocket *pSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtcpAudioSocket;
                 pSocket->readyDestination(remoteRtpHostAddress, remoteAudioRtcpPort) ;
-                pSocket->applyDestinationAddress(remoteRtpHostAddress, remoteAudioRtcpPort) ;
+                pSocket->applyDestinationAddress(remoteRtpHostAddress, remoteAudioRtcpPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull()) ;
             }
             else
             {
@@ -673,7 +673,7 @@ OsStatus CpPhoneMediaInterface::setConnectionDestination(int connectionId,
             {
                 OsNatDatagramSocket *pRtpSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtpVideoSocket;
                 pRtpSocket->readyDestination(remoteRtpHostAddress, remoteVideoRtpPort) ;
-                pRtpSocket->applyDestinationAddress(remoteRtpHostAddress, remoteVideoRtpPort) ;
+                pRtpSocket->applyDestinationAddress(remoteRtpHostAddress, remoteVideoRtpPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull()) ;
             }
             else
             {
@@ -689,7 +689,7 @@ OsStatus CpPhoneMediaInterface::setConnectionDestination(int connectionId,
                 {
                    OsNatDatagramSocket *pRctpSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtcpVideoSocket;
                    pRctpSocket->readyDestination(remoteRtpHostAddress, remoteVideoRtcpPort) ;
-                   pRctpSocket->applyDestinationAddress(remoteRtpHostAddress, remoteVideoRtcpPort) ;
+                   pRctpSocket->applyDestinationAddress(remoteRtpHostAddress, remoteVideoRtcpPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull()) ;
                 }
                 else
                 {
@@ -2225,7 +2225,7 @@ void CpPhoneMediaInterface::applyAlternateDestinations(int connectionId)
            OsNatDatagramSocket *pSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtpAudioSocket;
             if (pSocket->getBestDestinationAddress(destAddress, destPort))
             {
-                pSocket->applyDestinationAddress(destAddress, destPort);
+                pSocket->applyDestinationAddress(destAddress, destPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull());
                 pMediaConnection->mRtpSendHostAddress = destAddress;
                 pMediaConnection->mRtpAudioSendHostPort = destPort;
             }
@@ -2237,7 +2237,7 @@ void CpPhoneMediaInterface::applyAlternateDestinations(int connectionId)
             OsNatDatagramSocket *pSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtcpAudioSocket;
             if (pSocket->getBestDestinationAddress(destAddress, destPort))
             {
-                pSocket->applyDestinationAddress(destAddress, destPort) ;                
+                pSocket->applyDestinationAddress(destAddress, destPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull()) ;                
                 pMediaConnection->mRtcpAudioSendHostPort = destPort;                
             }            
         }
@@ -2251,7 +2251,7 @@ void CpPhoneMediaInterface::applyAlternateDestinations(int connectionId)
             OsNatDatagramSocket *pSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtpVideoSocket;
             if (pSocket->getBestDestinationAddress(destAddress, destPort))
             {
-                pSocket->applyDestinationAddress(destAddress, destPort) ;                
+                pSocket->applyDestinationAddress(destAddress, destPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull()) ;                
                 pMediaConnection->mRtpVideoSendHostPort = destPort;
             }            
         }
@@ -2262,7 +2262,7 @@ void CpPhoneMediaInterface::applyAlternateDestinations(int connectionId)
             OsNatDatagramSocket *pSocket = (OsNatDatagramSocket*)pMediaConnection->mpRtcpVideoSocket;
             if (pSocket->getBestDestinationAddress(destAddress, destPort))
             {
-                pSocket->applyDestinationAddress(destAddress, destPort) ;                
+                pSocket->applyDestinationAddress(destAddress, destPort, !mStunServer.isNull(), mStunRefreshPeriodSecs, !mTurnServer.isNull()) ;                
                 pMediaConnection->mRtcpVideoSendHostPort = destPort;
             }            
         }

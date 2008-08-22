@@ -1795,19 +1795,16 @@ UtlBoolean CallManager::changeCallFocus(CpCall* callToTakeFocus)
     if(callToTakeFocus != infocusCall)
     {
         focusChanged = TRUE;
+        if(infocusCall)
+        {
+           infocusCall->outOfFocus();
+           pushCall(infocusCall);
+        }
+
         if(callToTakeFocus)
         {
             callToTakeFocus = removeCall(callToTakeFocus);
             if(callToTakeFocus) callToTakeFocus->inFocus();
-        }
-        if(infocusCall)
-        {
-            // Temporary fix so that focus change has happened
-            delay(20);
-
-
-            infocusCall->outOfFocus();
-            pushCall(infocusCall);
         }
         infocusCall = callToTakeFocus;
     }

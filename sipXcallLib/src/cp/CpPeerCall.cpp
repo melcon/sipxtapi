@@ -3599,11 +3599,11 @@ Connection* CpPeerCall::findHandlingConnection(UtlString& remoteAddress)
     OsReadLock lock(mConnectionMutex);
     Connection* connection = NULL;
     UtlDListIterator iterator(mConnections);
+    Url remoteUrl(remoteAddress);
 
     while ((connection = (Connection*) iterator()))
     {
         UtlString connectionRemoteAddress;
-        Url remoteUrl(remoteAddress);
 
         connection->getRemoteAddress(&connectionRemoteAddress);
         if (!connectionRemoteAddress.isNull())

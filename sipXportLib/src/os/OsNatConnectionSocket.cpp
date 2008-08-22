@@ -38,8 +38,6 @@
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
-#define DEFAULT_MEDIA_STUN_KEEPALIVE        28
-
 // STATIC VARIABLE INITIALIZATIONS
 
 // FORWARD DECLARATIONS
@@ -619,21 +617,31 @@ UtlBoolean OsNatConnectionSocket::getBestDestinationAddress(UtlString& address,
 }
 
 
-UtlBoolean OsNatConnectionSocket::applyDestinationAddress(const char* szAddress, int iPort) 
+UtlBoolean OsNatConnectionSocket::applyDestinationAddress(const char* szAddress, int iPort, UtlBoolean enableStunKeepalive, int stunKeepAliveSecs, UtlBoolean enableTurnKeepalive) 
 {
-    UtlBoolean bRC = false ;
+    UtlBoolean bRC = false;
 
-    // ::TODO:: The keepalive period should be configurable (taken from 
-    // default stun keepalive setting)
-    if (!addStunKeepAlive(szAddress, iPort, DEFAULT_MEDIA_STUN_KEEPALIVE, NULL))
+    if (enableStunKeepalive)
     {
-        // Bob: [2006-06-13] The only way this fails right now is if the 
-        //      binding is already added.
+       // ::TODO:: The keepalive period should be configurable (taken from 
+       // default stun keepalive setting)
+       if (!addStunKeepAlive(szAddress, iPort, enableStunKeepalive, NULL))
+       {
+          // Bob: [2006-06-13] The only way this fails right now is if the 
+          //      binding is already added.
+       }
     }
    
-    if (mpNatAgent->setTurnDestination(this, szAddress, iPort))
+    if (enableTurnKeepalive)
     {
-        bRC = true ;
+       if (mpNatAgent->setTurnDestination(this, szAddress, iPort))
+       {
+          bRC = true;
+       }
+    }
+    else
+    {
+       bRC = true;
     }
 
     return bRC ;
