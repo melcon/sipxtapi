@@ -774,7 +774,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                {
                   // only create real call if it is requested
                   // for conference add, we don't create it here
-                  pInst->pCallManager->createCall(&pData->callId);
+                  pInst->pCallManager->createCall(&pData->callId, 0, PtEvent::META_EVENT_NONE, 0, NULL, FALSE);
                }
 
                if (bFireDialtone)
@@ -1119,7 +1119,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall, int bTakeFocus)
    return sr;
 }
 
-// CHECKED, remove sipxIsCallInFocus(), make sure focus is gained automatically in CallManager, not here
+// CHECKED
 SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAnswer");
@@ -1139,10 +1139,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
          void *display = NULL;
          void *security = NULL;
 
-         // TO BE REMOVED, not thread safe, focus could be gained by another phone call
-         // just after the function call to sipxIsCallInFocus
-         // local focus has to be gained automatically for Answer if no call has focus
-         if (!pCallData->pInst->pCallManager->isFocusTaken() || bTakeFocus)
+         if (bTakeFocus)
          {
             pCallData->bInFocus = TRUE;
 
@@ -1352,7 +1349,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallConnect");
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   UtlBoolean bSetFocus = FALSE;
    char* pLocationHeader = NULL; // passed to CallManager
 
    // default values if options are not passed
@@ -1435,7 +1431,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
             PtStatus status;
 
             // maybe take focus
-            if (!pInst->pCallManager->isFocusTaken() || bTakeFocus)
+            if (bTakeFocus)
             {
                // just posts message
                pInst->pCallManager->unholdLocalTerminalConnection(pData->callId);

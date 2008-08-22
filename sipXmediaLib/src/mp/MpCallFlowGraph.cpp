@@ -330,6 +330,8 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    boolRes = mpCallrecMixer->disable();     assert(boolRes);
    boolRes = mpMicCallrecSplitter->disable();         assert(boolRes);
    boolRes = mpSpeakerCallrecSplitter->disable();     assert(boolRes);
+   // disable bridge->ToSpkr mixer
+   boolRes = mpTFsBridgeMixer->disable();     assert(boolRes);
 
 #ifndef DISABLE_LOCAL_AUDIO // [
    // disable the FromMic, EchoCancel, PreProcess and ToSpkr -- we cannot have focus yet...
