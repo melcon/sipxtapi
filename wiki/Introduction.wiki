@@ -43,6 +43,9 @@ There are several example applications available:
   * PlaceCall - simple application for making calls
   * ReceiveCall - simple application for receiving calls
 
+= Documentation =
+Doxygen generated documentation in html form can be downloaded from http://code.google.com/p/sipxtapi/downloads/list . Open index.html file to see the documentation.
+
 = Communication =
 There are several mailinglists available:
   * for developers, users - http://groups.google.com/group/sipxtapi
