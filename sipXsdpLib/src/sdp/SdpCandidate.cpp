@@ -13,6 +13,8 @@
 // Author: Scott Godin (sgodin AT SipSpectrum DOT com)
 
 // SYSTEM INCLUDES
+#include <limits.h>
+
 // APPLICATION INCLUDES
 #include <utl/UtlSListIterator.h>
 #include <sdp/SdpCandidate.h>
