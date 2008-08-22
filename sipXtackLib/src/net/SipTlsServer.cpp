@@ -94,6 +94,7 @@ SipTlsServer::SipTlsServer(int port,
                 mDefaultIp = adapterAddresses[i]->mAddress.data();
             }
             delete adapterAddresses[i];
+            adapterAddresses[i] = NULL;
         }
     }
 
@@ -181,12 +182,10 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
             
             port = pServerSocket->getLocalHostPort();
             SIPX_CONTACT_ADDRESS contact;
-            strcpy(contact.cIpAddress, szBindAddr);
+            SAFE_STRNCPY(contact.cIpAddress, szBindAddr, sizeof(contact.cIpAddress));
             contact.iPort = port;
             contact.eContactType = CONTACT_LOCAL;
             UtlString szAdapterName;
-            memset((void*)szAdapterName.data(), 0, sizeof(szAdapterName)); // null out the string
-            
 
             getContactAdapterName(szAdapterName, contact.cIpAddress);
             SAFE_STRNCPY(contact.cInterface, szAdapterName.data(), sizeof(contact.cInterface));
