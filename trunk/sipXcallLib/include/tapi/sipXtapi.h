@@ -2898,16 +2898,22 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
                                         size_t* nActual);
 
 /**
- * Get the contact ID for the designated line handle
+ * Get the contact info for the designated line handle
  *
  * @param hLine Handle to a line appearance.  Line handles are obtained by
  *        creating a line using the sipxLineAdd function or by receiving
  *        a line event notification.
- * @param contactId contact Id specified during line creation
+ * @param szContactIp Buffer to hold actual contact IP address.
+ * @param nContactIpSize Size of szContactIp buffer.
+ * @param contactPort Actual line contact port
+ * @param contactType Type of contact being used by line.
  */
-SIPXTAPI_API SIPX_RESULT sipxLineGetContactId(const SIPX_LINE  hLine,
-                                              SIPX_CONTACT_ID* pContactId);
-
+SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
+                                                char* szContactIp,
+                                                const size_t nContactIpSize,
+                                                int* contactPort,
+                                                SIPX_CONTACT_TYPE* contactType,
+                                                SIPX_TRANSPORT_TYPE* transport);
 
 /**
  * Find a line definition given a URI.  

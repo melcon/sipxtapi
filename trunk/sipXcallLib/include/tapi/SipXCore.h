@@ -278,10 +278,11 @@ SIPXTAPI_API SIPX_RESULT sipxCheckForHandleLeaks();
 const char* sipxContactTypeToString(SIPX_CONTACT_TYPE type);
 
 //: Get the external host and port given the contact preference
-void sipxGetContactHostPort(SIPX_INSTANCE_DATA* pData, 
-                            SIPX_CONTACT_TYPE   contactType, 
-                            Url&                uri,
-                            SIPX_TRANSPORT_TYPE protocol);
+void sipxSelectContact(SIPX_INSTANCE_DATA* pData, 
+                       SIPX_CONTACT_TYPE& contactType, 
+                       UtlString& contactIp,
+                       int& contactPort,
+                       SIPX_TRANSPORT_TYPE transport);
 
 void sipxIncSessionCount();
 void sipxDecSessionCount();
