@@ -538,8 +538,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine, const char* szL
 
 // CHECKED
 SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
-                                                char* szContactIp,
-                                                const size_t nContactIpSize,
+                                                char* szContactAddress,
+                                                const size_t nContactAddressSize,
                                                 int* contactPort,
                                                 SIPX_CONTACT_TYPE* contactType,
                                                 SIPX_TRANSPORT_TYPE* transport)
@@ -553,7 +553,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
    SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
    if (pData)
    {
-      SAFE_STRNCPY(szContactIp, pData->m_contactIp.data(), nContactIpSize);
+      SAFE_STRNCPY(szContactAddress, pData->m_contactAddress.data(), nContactAddressSize);
       *contactPort = pData->m_contactPort;
       *contactType = pData->m_contactType;
       *transport = pData->m_transport;
@@ -737,7 +737,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
 
             if (pData)
             {
-               pData->m_contactIp = contactIp;
+               pData->m_contactAddress = contactIp;
                pData->m_contactPort = contactPort;
                pData->m_transport = transport;
                pData->m_contactType = contactType;

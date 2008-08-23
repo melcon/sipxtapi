@@ -2903,15 +2903,15 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
  * @param hLine Handle to a line appearance.  Line handles are obtained by
  *        creating a line using the sipxLineAdd function or by receiving
  *        a line event notification.
- * @param szContactIp Buffer to hold actual contact IP address.
- * @param nContactIpSize Size of szContactIp buffer.
+ * @param szContactAddress Buffer to hold actual contact address.
+ * @param nContactAddressSize Size of szContactAddress buffer.
  * @param contactPort Actual line contact port
  * @param contactType Type of contact being used by line.
  * @param transport Type of transport being used in contact.
  */
 SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
-                                                char* szContactIp,
-                                                const size_t nContactIpSize,
+                                                char* szContactAddress,
+                                                const size_t nContactAddressSize,
                                                 int* contactPort,
                                                 SIPX_CONTACT_TYPE* contactType,
                                                 SIPX_TRANSPORT_TYPE* transport);
