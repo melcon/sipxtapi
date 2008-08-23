@@ -27,18 +27,6 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-
-/**
- * Line contact type: Use the local address or a NAT-derived address 
- * (e.g. STUN)
- */
-typedef enum LINE_CONTACT_TYPE
-{
-    LINE_CONTACT_LOCAL,          /**< Use the local IP address */
-    LINE_CONTACT_NAT_MAPPED     /**< Use the NAT-derived IP address */
-
-} LINE_CONTACT_TYPE ;
-
 //STATE TRANSITION//
 /*
                                                         |----1/2refresh time--|
@@ -150,9 +138,6 @@ public:
     UtlBoolean getPreferredContactUri(Url& preferredContactUri) const ;
       //: Get Preferred host/ip for the contact in subsequent registers
 
-    LINE_CONTACT_TYPE getContactType() const ;
-    void setContactType(LINE_CONTACT_TYPE eContactType) ;
-
 protected:
 
         UtlBoolean mIsVisible;
@@ -161,7 +146,6 @@ protected:
         Url mIdentity; //line key which is the canonical URL stripped of display name, angle brackets and field parameters (basically the URI).
     Url mUserEnteredUrl; //user entered URL string (could be incomplete "sip:444@")
     Url mCanonicalUrl; //The canonical URL which is the URL string with the host and port filled in if they were missing.
-    LINE_CONTACT_TYPE meContactType;  /**< Type of of contact address (either LOCAL or NAT_MAPPED) */
 
         UtlString mUser;
     UtlString mLineId;

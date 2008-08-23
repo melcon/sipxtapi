@@ -39,20 +39,7 @@
 // Copy constructor
 SipLine::SipLine(const SipLine& rSipLine)
 {
-   mIsVisible = rSipLine.mIsVisible ;
-   mIdentity = rSipLine.mIdentity ;
-   mUserEnteredUrl = rSipLine.mUserEnteredUrl;
-   mUser = rSipLine.mUser ;
-   mCurrentState = rSipLine.mCurrentState ;
-   mIsAutoEnabled = rSipLine.mIsAutoEnabled ;
-   mIsUsingCallHandling = rSipLine.mIsUsingCallHandling;
-   mCanonicalUrl = rSipLine.mCanonicalUrl;
-   mLineId = rSipLine.mLineId;
-   mPreferredContactUri = rSipLine.mPreferredContactUri ;
-   meContactType = rSipLine.meContactType;
-   
-   copyCredentials(rSipLine);
-   
+   *this = rSipLine;
 }
 
 SipLine& SipLine::operator=(const SipLine& rSipLine)
@@ -71,7 +58,6 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
       mIsUsingCallHandling = rSipLine.mIsUsingCallHandling;
       mLineId = rSipLine.mLineId;
       mPreferredContactUri = rSipLine.mPreferredContactUri ;
-      meContactType = rSipLine.meContactType;
       copyCredentials(rSipLine);
    }
    return *this;
@@ -130,7 +116,6 @@ SipLine::SipLine(Url userEnteredUrl,
    mIsAutoEnabled = isAutoEnabled;
    mIsUsingCallHandling = useCallHandling;
    mUserEnteredUrl = userEnteredUrl;
-   meContactType = LINE_CONTACT_NAT_MAPPED ; 
    if (identityUri.toString().isNull())
    {
       //then get uri from user entered url ...uri is complete in it
@@ -392,19 +377,6 @@ UtlBoolean SipLine::getPreferredContactUri(Url& preferredContactUri) const
 
     return (host.length() > 0) ;
 }
-
-
-LINE_CONTACT_TYPE SipLine::getContactType() const 
-{
-    return meContactType ;
-}
-
-
-void SipLine::setContactType(LINE_CONTACT_TYPE eContactType) 
-{
-    meContactType = eContactType ;
-}
-
 
 UtlBoolean SipLine::getAllCredentials( int MaxEnteries/*[in]*/ ,
       int& actualEnteries /*[out/int]*/,
