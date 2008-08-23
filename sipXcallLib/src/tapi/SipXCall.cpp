@@ -608,7 +608,7 @@ SIPX_CONTACT_TYPE sipxCallGetLineContactType(SIPX_CALL hCall)
 
       if (pLineData)
       {
-         contactType = pLineData->contactType;
+         contactType = pLineData->m_contactType;
          sipxLineReleaseLock(pLineData, SIPX_LOCK_READ, logItem);
       }
    }
@@ -729,7 +729,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
             SIPX_LINE_DATA* pLine = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
             if (pLine)
             {
-               sLineURI = pLine->lineURI.toString();
+               sLineURI = pLine->m_lineURI.toString();
                sipxLineReleaseLock(pLine, SIPX_LOCK_READ, stackLogger);
             }
          }

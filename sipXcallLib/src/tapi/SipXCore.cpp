@@ -199,13 +199,12 @@ const char* sipxContactTypeToString(SIPX_CONTACT_TYPE type)
 
 // CHECKED
 // Get the external host and port given the contact preference
-void sipxGetContactHostPort(SIPX_INSTANCE_DATA* pData,
-                            SIPX_CONTACT_TYPE contactType,
-                            Url& uri,
-                            SIPX_TRANSPORT_TYPE sipx_protocol)
+void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
+                       SIPX_CONTACT_TYPE& contactType,
+                       UtlString& contactIp,
+                       int& contactPort,
+                       SIPX_TRANSPORT_TYPE transport)
 {
-   UtlString useIp;
-   int usePort;
 
    if (contactType == CONTACT_RELAY)
    {
@@ -213,33 +212,42 @@ void sipxGetContactHostPort(SIPX_INSTANCE_DATA* pData,
       contactType = CONTACT_AUTO;
    }
 
-   // Use configured address first
+   // Use configured address first. Always selects mSipUdpServer port, ignoring transport.
    if ((contactType == CONTACT_AUTO) || (contactType == CONTACT_CONFIG))
    {
-      if (pData->pSipUserAgent->getConfiguredPublicAddress(&useIp, &usePort))
+      if (pData->pSipUserAgent->getConfiguredPublicAddress(&contactIp, &contactPort))
       {
-         uri.setHostAddress(useIp);
-         uri.setHostPort(usePort);
+         if (transport != TRANSPORT_UDP)
+         {
+            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
+               "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
+               transport, contactType);
+         }
+         contactType = CONTACT_CONFIG;
          return;
       }
    }
 
-   // Use NAT_MAPPED next
+   // Use NAT_MAPPED next. Always selects mSipUdpServer port, ignoring transport.
    if ((contactType == CONTACT_AUTO) || (contactType == CONTACT_NAT_MAPPED))
    {
-      if (pData->pSipUserAgent->getNatMappedAddress(&useIp, &usePort))
+      if (pData->pSipUserAgent->getNatMappedAddress(&contactIp, &contactPort))
       {
-         uri.setHostAddress(useIp);
-         uri.setHostPort(usePort);
+         if (transport != TRANSPORT_UDP)
+         {
+            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
+               "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
+               transport, contactType);
+         }
+         contactType = CONTACT_NAT_MAPPED;
          return;
       }
    }
 
-   // Lastly, use local
-   if (pData->pSipUserAgent->getLocalAddress(&useIp, &usePort, sipx_protocol))
+   // Lastly, use local. Also takes into account transport to select contactPort.
+   if (pData->pSipUserAgent->getLocalAddress(&contactIp, &contactPort, transport))
    {
-      uri.setHostAddress(useIp);
-      uri.setHostPort(usePort);
+      contactType = CONTACT_LOCAL; // propagate selected contact type up
    }
 }
 

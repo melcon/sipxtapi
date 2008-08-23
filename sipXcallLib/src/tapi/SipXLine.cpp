@@ -66,8 +66,8 @@ static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& uri)
    // if we want to check for NULL, then we would have to use
    // new(std:::nothrow) instead of just new
 
-   pData->lineURI = uri;
-   pData->pInst = pInst;
+   pData->m_lineURI = uri;
+   pData->m_pInst = pInst;
 
    return pData;
 }
@@ -94,11 +94,11 @@ SIPX_LINE_DATA* sipxLineLookup(const SIPX_LINE hLine,
          switch (type)
          {
          case SIPX_LOCK_READ:
-            status = pRC->mutex.acquire();
+            status = pRC->m_mutex.acquire();
             assert(status == OS_SUCCESS);
             break;
          case SIPX_LOCK_WRITE:
-            status = pRC->mutex.acquire();
+            status = pRC->m_mutex.acquire();
             assert(status == OS_SUCCESS);
             break;
          default:
@@ -132,11 +132,11 @@ void sipxLineReleaseLock(SIPX_LINE_DATA* pData,
          switch (type)
          {
          case SIPX_LOCK_READ:
-            status = pData->mutex.release();
+            status = pData->m_mutex.release();
             assert(status == OS_SUCCESS);
             break;
          case SIPX_LOCK_WRITE:
-            status = pData->mutex.release();
+            status = pData->m_mutex.release();
             assert(status == OS_SUCCESS);
             break;
          default: 
@@ -182,10 +182,10 @@ void sipxLineObjectFree(const SIPX_LINE hLine)
 
    if (pData)
    {
-      pData->pInst->lock.acquire();
-      pData->pInst->nLines--;
-      assert(pData->pInst->nLines >= 0);
-      pData->pInst->lock.release();
+      pData->m_pInst->lock.acquire();
+      pData->m_pInst->nLines--;
+      assert(pData->m_pInst->nLines >= 0);
+      pData->m_pInst->lock.release();
 
       const void* pRC = gLineHandleMap.removeHandle(hLine);
       assert(pRC);
@@ -193,7 +193,7 @@ void sipxLineObjectFree(const SIPX_LINE hLine)
 
       UtlVoidPtr* pValue;
 
-      while ((pValue = (UtlVoidPtr*) pData->lineAliases.get()))
+      while ((pValue = (UtlVoidPtr*) pData->m_lineAliases.get()))
       {
          Url* pUri = (Url*) pValue->getValue();
          delete pUri;
@@ -214,8 +214,8 @@ UtlBoolean validLineData(const SIPX_LINE_DATA* pData)
 {
    UtlBoolean bValid = FALSE;
 
-   if (pData && pData->pInst && 
-      pData->pInst->pCallManager)
+   if (pData && pData->m_pInst && 
+      pData->m_pInst->pCallManager)
    {
       bValid = TRUE;
    }
@@ -248,10 +248,10 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
          if (pData)
          {
             // got access to line object, lock it
-            OsLock lock(pData->mutex);
+            OsLock lock(pData->m_mutex);
 
             // Check main line definition
-            if (urlURI.isUserHostPortEqual(pData->lineURI))
+            if (urlURI.isUserHostPortEqual(pData->m_lineURI))
             {
                hLine = pIndex->getValue();
                break;
@@ -260,7 +260,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
             // check for line aliases
             UtlVoidPtr* pValue;
             Url* pUrl;
-            UtlSListIterator iterator(pData->lineAliases);
+            UtlSListIterator iterator(pData->m_lineAliases);
 
             while ((pValue = (UtlVoidPtr*) iterator()))
             {
@@ -290,10 +290,10 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
             if (pData)
             {
                // got access to line object, lock it
-               OsLock lock(pData->mutex);
+               OsLock lock(pData->m_mutex);
 
                // Check main line definition
-               if (urlURI.isUserHostEqual(pData->lineURI))
+               if (urlURI.isUserHostEqual(pData->m_lineURI))
                {
                   hLine = pIndex->getValue();
                   break;
@@ -302,7 +302,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                // Check for line aliases
                UtlVoidPtr* pValue;
                Url* pUrl;
-               UtlSListIterator iterator(pData->lineAliases);
+               UtlSListIterator iterator(pData->m_lineAliases);
 
                while ((pValue = (UtlVoidPtr*) iterator()))
                {
@@ -334,13 +334,13 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
             if (pData)
             {
                // got access to line object, lock it
-               OsLock lock(pData->mutex);
+               OsLock lock(pData->m_mutex);
 
                UtlString uriUsername;
                UtlString hostUsername;
 
                urlURI.getUserId(uriUsername);
-               pData->lineURI.getUserId(hostUsername);
+               pData->m_lineURI.getUserId(hostUsername);
 
                if (uriUsername.compareTo(hostUsername, UtlString::ignoreCase) == 0)
                {
@@ -351,7 +351,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                // Check for line aliases
                UtlVoidPtr* pValue;
                Url* pUrl;
-               UtlSListIterator iterator(pData->lineAliases);
+               UtlSListIterator iterator(pData->m_lineAliases);
 
                while ((pValue = (UtlVoidPtr*) iterator()))
                {
@@ -395,8 +395,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineRemove(SIPX_LINE hLine)
 
       if (pData)
       {
-         Url lineURI(pData->lineURI);
-         SIPX_INSTANCE_DATA* pInst = pData->pInst;
+         Url lineURI(pData->m_lineURI);
+         SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
 
          sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
@@ -432,8 +432,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineRegister(const SIPX_LINE hLine, const int bRegi
       SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_WRITE, stackLogger);
       if (pData)
       {
-         Url lineURI(pData->lineURI);
-         SIPX_INSTANCE_DATA* pInst = pData->pInst;
+         Url lineURI(pData->m_lineURI);
+         SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
 
          sipxLineReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 
@@ -474,8 +474,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddCredential(const SIPX_LINE hLine,
 
    if (pData)
    {
-      Url lineURI(pData->lineURI);
-      SIPX_INSTANCE_DATA* pInst = pData->pInst;
+      Url lineURI(pData->m_lineURI);
+      SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
 
       sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
@@ -525,7 +525,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine, const char* szL
          url.getUri(strURI);
          Url uri(strURI);
 
-         pData->lineAliases.append(new UtlVoidPtr(new Url(uri)));
+         pData->m_lineAliases.append(new UtlVoidPtr(new Url(uri)));
 
          sipxLineReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 
@@ -537,26 +537,31 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine, const char* szL
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxLineGetContactId(const SIPX_LINE  hLine,
-                                              SIPX_CONTACT_ID* pContactId)
+SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
+                                                char* szContactIp,
+                                                const size_t nContactIpSize,
+                                                int* contactPort,
+                                                SIPX_CONTACT_TYPE* contactType,
+                                                SIPX_TRANSPORT_TYPE* transport)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineGetContactId");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineGetContactInfo");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, 
-      "sipxLineGetContactId hLine=%d", hLine);
+      "sipxLineGetContactInfo hLine=%d", hLine);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   if (pContactId)
+   SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
+   if (pData)
    {
-      SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
-      if (pData)
-      {
-         *pContactId = pData->contactId;
-         sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      SAFE_STRNCPY(szContactIp, pData->m_contactIp.data(), nContactIpSize);
+      *contactPort = pData->m_contactPort;
+      *contactType = pData->m_contactType;
+      *transport = pData->m_transport;
 
-         sr = SIPX_RESULT_SUCCESS;
-      }  
-   }
+      sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+
+      sr = SIPX_RESULT_SUCCESS;
+   }  
    
    return sr;
 }
@@ -646,14 +651,14 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
    {
       if (szBuffer)
       {
-         SAFE_STRNCPY(szBuffer, pData->lineURI.toString(), nBuffer);
+         SAFE_STRNCPY(szBuffer, pData->m_lineURI.toString(), nBuffer);
 
          *nActual = strlen(szBuffer) + 1;
          sr = SIPX_RESULT_SUCCESS;
       }
       else
       {
-         *nActual = strlen(pData->lineURI.toString()) + 1;
+         *nActual = strlen(pData->m_lineURI.toString()) + 1;
          sr = SIPX_RESULT_SUCCESS;
       }
 
@@ -692,13 +697,12 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          uri.removeHeaderParameters();
          url.getUserId(userId);
 
-         SipLine line(url, uri, userId);
-
          // Set the preferred contact
-         Url uriPreferredContact;
          SIPX_CONTACT_ADDRESS* pContact = NULL;
          SIPX_CONTACT_TYPE contactType = CONTACT_AUTO;
-         SIPX_TRANSPORT_TYPE sipx_protocol = TRANSPORT_UDP;
+         SIPX_TRANSPORT_TYPE transport = TRANSPORT_UDP;
+         UtlString contactIp;
+         int contactPort;
 
          // try to find contact by ID
          pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
@@ -712,33 +716,38 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          if (lineUrl.contains("sips:") || lineUrl.contains("transport=tls"))
          {
             // use TLS
-            sipx_protocol = TRANSPORT_TLS;
+            transport = TRANSPORT_TLS;
          }
          else if (lineUrl.contains("transport=tcp"))
          {
             // use TCP transport
-            sipx_protocol = TRANSPORT_TCP;
+            transport = TRANSPORT_TCP;
          }
 
-         sipxGetContactHostPort(pInst, contactType, uriPreferredContact, sipx_protocol);
-         line.setPreferredContactUri(uriPreferredContact);
+         // select contact IP, port, maybe override contact type and transport. Transport is used to select port.
+         sipxSelectContact(pInst, contactType, contactIp, contactPort, transport);
 
-         UtlBoolean bRC = pInst->pLineManager->addLine(line, false);
+         SipLine line(url, uri, userId, TRUE, SipLine::LINE_STATE_UNKNOWN);
+         line.setPreferredContact(contactIp, contactPort);
+
+         UtlBoolean bRC = pInst->pLineManager->addLine(line, FALSE);
          if (bRC)
          {
             SIPX_LINE_DATA* pData = createLineData(pInst, uri);
 
             if (pData)
             {
-               pData->contactId = contactId;
-               pData->contactType = (SIPX_CONTACT_TYPE)contactType;
+               pData->m_contactIp = contactIp;
+               pData->m_contactPort = contactPort;
+               pData->m_transport = transport;
+               pData->m_contactType = contactType;
 
                UtlBoolean res = gLineHandleMap.allocHandle(*phLine, pData);
                if (res)
                {
-                  pData->pInst->lock.acquire();
-                  pData->pInst->nLines++;
-                  pData->pInst->lock.release();
+                  pData->m_pInst->lock.acquire();
+                  pData->m_pInst->nLines++;
+                  pData->m_pInst->lock.release();
 
                   sr = SIPX_RESULT_SUCCESS;
 

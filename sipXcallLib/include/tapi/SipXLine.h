@@ -32,20 +32,24 @@
 class SIPX_LINE_DATA
 {
 public:
-   Url lineURI;
-   SIPX_INSTANCE_DATA* pInst;
-   OsMutex             mutex;    
-   SIPX_CONTACT_TYPE   contactType;
-   UtlSList            lineAliases;
-   SIPX_CONTACT_ID     contactId;
+   Url m_lineURI; ///< URI of line. Doesn't contain any parameters.
+   SIPX_INSTANCE_DATA* m_pInst;
+   OsMutex m_mutex;    
+   SIPX_CONTACT_TYPE m_contactType; ///< contact type used by line
+   UtlString m_contactIp; ///< IP of sip contact used by line
+   int m_contactPort; ///< port of sip contact used by line
+   SIPX_TRANSPORT_TYPE m_transport; ///< actual transport used for line registration
+   UtlSList m_lineAliases;
 
    SIPX_LINE_DATA()
-      : mutex(OsMutex::Q_FIFO),
-      lineURI(NULL),
-      pInst(NULL),
-      contactType(CONTACT_AUTO),
-      lineAliases(),
-      contactId(0)
+      : m_mutex(OsMutex::Q_FIFO)
+      , m_lineURI(NULL)
+      , m_pInst(NULL)
+      , m_contactType(CONTACT_AUTO)
+      , m_lineAliases()
+      , m_contactIp(NULL)
+      , m_contactPort(0)
+      , m_transport(TRANSPORT_UDP)
    {
    }
 
