@@ -2907,6 +2907,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
  * @param nContactIpSize Size of szContactIp buffer.
  * @param contactPort Actual line contact port
  * @param contactType Type of contact being used by line.
+ * @param transport Type of transport being used in contact.
  */
 SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
                                                 char* szContactIp,
