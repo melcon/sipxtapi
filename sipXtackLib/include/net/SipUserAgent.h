@@ -430,7 +430,9 @@ public:
                                SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP) ;
 
     //! Get the NAT mapped address and port
-    UtlBoolean getNatMappedAddress(UtlString* pIpAddress, int* pPort) ;
+    UtlBoolean getNatMappedAddress(UtlString* pIpAddress,
+                                   int* pPort,
+                                   SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP);
 
     void setIsUserAgent(UtlBoolean isUserAgent);
 
