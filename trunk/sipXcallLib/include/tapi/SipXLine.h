@@ -36,7 +36,7 @@ public:
    SIPX_INSTANCE_DATA* m_pInst;
    OsMutex m_mutex;    
    SIPX_CONTACT_TYPE m_contactType; ///< contact type used by line
-   UtlString m_contactIp; ///< IP of sip contact used by line
+   UtlString m_contactAddress; ///< Address of sip contact used by line
    int m_contactPort; ///< port of sip contact used by line
    SIPX_TRANSPORT_TYPE m_transport; ///< actual transport used for line registration
    UtlSList m_lineAliases;
@@ -47,7 +47,7 @@ public:
       , m_pInst(NULL)
       , m_contactType(CONTACT_AUTO)
       , m_lineAliases()
-      , m_contactIp(NULL)
+      , m_contactAddress(NULL)
       , m_contactPort(0)
       , m_transport(TRANSPORT_UDP)
    {
