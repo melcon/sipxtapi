@@ -130,8 +130,6 @@ public:
 
    void setUserEnteredUrlForLine(const Url& identity, UtlString sipUrl);
 
-   UtlBoolean setContactTypeForLine(const Url& identity, LINE_CONTACT_TYPE eContactType) ;
-
    UtlBoolean addCredentialForLine(
         const Url& identity,
         const UtlString strRealm,
@@ -237,8 +235,6 @@ public:
    UtlBoolean getUserEnteredUrlForLine( const Url& identity, UtlString &sipUrl) const;
 
    UtlBoolean getCanonicalUrlForLine(const Url& identity, UtlString &sipUrl) const ;
-
-   UtlBoolean getContactTypeForLine(const Url& identity, LINE_CONTACT_TYPE& eContactType) const ;
 
 /* ============================ INQUIRY =================================== */
 
