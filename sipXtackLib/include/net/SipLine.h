@@ -134,6 +134,7 @@ public:
         void removeAllCredentials();
 
     void setPreferredContactUri(const Url& preferredContactUri) ;
+    void setPreferredContact(const UtlString& contactAddress, int contactPort);
       //: Set the preferred host/ip for the contact in subsequent registers
     UtlBoolean getPreferredContactUri(Url& preferredContactUri) const ;
       //: Get Preferred host/ip for the contact in subsequent registers
