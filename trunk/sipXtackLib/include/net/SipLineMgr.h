@@ -257,7 +257,7 @@ protected:
 
     void removeFromList(SipLine* line);
 
-    void addToList(SipLine *line);
+    void addLineToList(SipLine& line);
 
     SipLine* getLineforAuthentication(
         const SipMessage* request /*[in]*/,

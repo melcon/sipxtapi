@@ -219,32 +219,28 @@ SipLineMgr::handleMessage(OsMsg &eventMessage)
 }
 
 
-UtlBoolean
-SipLineMgr::addLine(SipLine&   line, 
-                    UtlBoolean doEnable)
+UtlBoolean SipLineMgr::addLine(SipLine& line,
+                               UtlBoolean doEnable /*= TRUE*/)
 {
-    UtlBoolean added = FALSE;
-    // check if it is a duplicate url
-    if (!sLineList.isDuplicate(&line))
-    {
-        addToList(&line);
-        if (line.getState() == SipLine::LINE_STATE_REGISTERED)
-        {
-            if (doEnable)
-            {
-               enableLine(line.getIdentity());
-            }
-        }
-        added = TRUE;
-        SipLineEvent lineEvent(&line, SipLineEvent::SIP_LINE_EVENT_LINE_ADDED);
-        queueMessageToObservers(lineEvent);
+   UtlBoolean added = FALSE;
+   // check if it is a duplicate url
+   if (!sLineList.isDuplicate(&line))
+   {
+      addLineToList(line);
+      if (doEnable)
+      {
+         // if requested enable line - send REGISTER message
+         enableLine(line.getIdentity());
+      }
+      added = TRUE;
+      SipLineEvent lineEvent(&line, SipLineEvent::SIP_LINE_EVENT_LINE_ADDED);
+      queueMessageToObservers(lineEvent);
 
-        syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::addLine added line: %s",
-                line.getIdentity().toString().data()) ;
-    }
+      syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::addLine added line: %s",
+         line.getIdentity().toString().data()) ;
+   }
 
-    dumpLines();
-    return added;
+   return added;
 }
 
 void
@@ -1061,9 +1057,9 @@ void SipLineMgr::queueMessageToObservers(SipLineEvent& event)
 }
 
 
-void SipLineMgr::addToList(SipLine *line)
+void SipLineMgr::addLineToList(SipLine& line)
 {
-    sLineList.add(new SipLine(*line));
+    sLineList.add(new SipLine(line));
 }
 
 
