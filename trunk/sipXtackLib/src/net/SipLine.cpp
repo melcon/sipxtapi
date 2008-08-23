@@ -367,6 +367,11 @@ void SipLine::setPreferredContactUri(const Url& preferredContactUri)
     mPreferredContactUri = preferredContactUri ;
 }
 
+void SipLine::setPreferredContact(const UtlString& contactAddress, int contactPort)
+{
+   mPreferredContactUri.setHostAddress(contactAddress);
+   mPreferredContactUri.setHostPort(contactPort);
+}
 
 UtlBoolean SipLine::getPreferredContactUri(Url& preferredContactUri) const
 {
@@ -448,3 +453,4 @@ void SipLine::generateLineID(UtlString& lineId)
    // Shorten the line Ids to 12 chars (from 32)
    lineId.remove(12) ;
 }
+
