@@ -3095,7 +3095,9 @@ UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX
 
 
 // Get the NAT mapped address and port
-UtlBoolean SipUserAgent::getNatMappedAddress(UtlString* pIpAddress, int* pPort)
+UtlBoolean SipUserAgent::getNatMappedAddress(UtlString* pIpAddress,
+                                             int* pPort,
+                                             SIPX_TRANSPORT_TYPE protocol /*= TRANSPORT_UDP*/)
 {
     UtlBoolean bRet(FALSE);
     
