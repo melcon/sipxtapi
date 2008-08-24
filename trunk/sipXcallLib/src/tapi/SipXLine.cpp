@@ -699,6 +699,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          SIPX_CONTACT_TYPE contactType = CONTACT_AUTO;
          SIPX_TRANSPORT_TYPE transport = TRANSPORT_UDP;
          UtlString contactIp;
+         UtlString suggestedContactIp;
          int contactPort;
 
          // try to find contact by ID
@@ -706,7 +707,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          if (pContact)
          {
             // contact found
-            contactType = pContact->eContactType;            
+            contactType = pContact->eContactType;
+            suggestedContactIp = pContact->cIpAddress; // try to suggest contact IP address as well
          }
 
          UtlString lineUrl(szLineUrl);
@@ -722,7 +724,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          }
 
          // select contact IP, port, maybe override contact type and transport. Transport is used to select port.
-         sipxSelectContact(pInst, contactType, contactIp, contactPort, transport);
+         sipxSelectContact(pInst, contactType, suggestedContactIp, contactIp, contactPort, transport);
 
          SipLine line(url, uri, userId, TRUE, SipLine::LINE_STATE_UNKNOWN);
          line.setPreferredContact(contactIp, contactPort);
