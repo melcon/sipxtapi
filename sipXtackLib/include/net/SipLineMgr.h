@@ -98,7 +98,7 @@ public:
 
    void setDefaultOutboundLine( const Url& outboundLine );
 
-   UtlBoolean enableLine( const Url& identity );
+   UtlBoolean enableLine(const Url& lineURI);
 
    void disableLine(const Url& identity,
                     UtlBoolean onStartup = FALSE,
