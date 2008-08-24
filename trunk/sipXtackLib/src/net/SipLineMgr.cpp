@@ -139,14 +139,10 @@ SipLineMgr::handleMessage(OsMsg &eventMessage)
                 if (CSeq == 1) //first time registration - go directly to expired state
                 {
                     line->setState(SipLine::LINE_STATE_EXPIRED);
-                    SipLineEvent lineEvent(line, SipLineEvent::SIP_LINE_EVENT_NO_RESPONSE,"","",0,"No Response");
-                    queueMessageToObservers(lineEvent);
                 }
                 else
                 {
                     line->setState(SipLine::LINE_STATE_FAILED);
-                    SipLineEvent lineEvent(line, SipLineEvent::SIP_LINE_EVENT_FAILED,"","",0,"No Response");
-                    queueMessageToObservers(lineEvent);
                 }
 
                 // Log the failure
@@ -163,8 +159,6 @@ SipLineMgr::handleMessage(OsMsg &eventMessage)
                 {
                     //set line state to correct
                     line->setState(SipLine::LINE_STATE_REGISTERED);
-                    SipLineEvent lineEvent(line, SipLineEvent::SIP_LINE_EVENT_SUCCESS,"","",responseCode,sipResponseText);
-                    queueMessageToObservers(lineEvent);
 
                     // Log the success
                     int CSeq;
@@ -197,10 +191,6 @@ SipLineMgr::handleMessage(OsMsg &eventMessage)
 
                     //SDUATODO: LINE_STATE_FAILED after timing mechanism in place
                     line->setState(SipLine::LINE_STATE_EXPIRED);
-                    SipLineEvent lineEvent(
-                        line, SipLineEvent::SIP_LINE_EVENT_FAILED,
-                        realm, scheme, responseCode, sipResponseText );
-                    queueMessageToObservers(lineEvent);
 
                     // Log the failure
                     int CSeq;
@@ -233,9 +223,6 @@ UtlBoolean SipLineMgr::addLine(SipLine& line,
          enableLine(line.getIdentity());
       }
       added = TRUE;
-      SipLineEvent lineEvent(&line, SipLineEvent::SIP_LINE_EVENT_LINE_ADDED);
-      queueMessageToObservers(lineEvent);
-
       syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::addLine added line: %s",
          line.getIdentity().toString().data()) ;
    }
@@ -261,10 +248,6 @@ SipLineMgr::deleteLine(const Url& identity)
         removeFromList(line);
         pDeleteLine = line ;
     }
-
-    // notify the observers that the line was deleted
-    SipLineEvent lineEvent( line, SipLineEvent::SIP_LINE_EVENT_LINE_DELETED );
-    queueMessageToObservers( lineEvent );
 
     syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::deleteLine deleted line: %s",
             identity.toString().data()) ;
@@ -343,9 +326,6 @@ SipLineMgr::disableLine(
         mpRefreshMgr->unRegisterUser(identity, onStartup, lineId);
     }
 
-    SipLineEvent lineEvent(line, SipLineEvent::SIP_LINE_EVENT_LINE_DISABLED);
-    queueMessageToObservers(lineEvent);
-
     syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::disableLine disabled line: %s",
             identity.toString().data()) ;
 }
@@ -358,9 +338,6 @@ SipLineMgr::notifyChangeInLineProperties(Url& identity)
     {
         // Ignore error, will be logged on remove/enable/disable/etc
     }
-
-    SipLineEvent lineEvent(line, SipLineEvent::SIP_LINE_EVENT_LINE_CHANGED);
-    queueMessageToObservers(lineEvent);
 }
 
 void
@@ -371,8 +348,6 @@ SipLineMgr::notifyChangeInOutboundLine(Url& identity)
     {
         // Ignore error, will be logged on remove/enable/disable/etc
     }
-    SipLineEvent lineEvent(line, SipLineEvent::SIP_LINE_EVENT_OUTBOUND_CHANGED);
-    queueMessageToObservers(lineEvent);
 }
 
 
@@ -913,87 +888,6 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
 #endif
     return( createdResponse );
 }
-
-void SipLineMgr::addMessageObserver(OsMsgQ& messageQueue,
-                                      void* observerData)
-{
-    SipObserverCriteria* observer = new SipObserverCriteria(observerData,
-        &messageQueue,
-        "",
-        FALSE,
-        FALSE,
-        FALSE,
-        FALSE,
-        NULL);
-
-    {
-        // Add the observer and its filter criteria to the list lock scope
-        OsWriteLock lock(mObserverMutex);
-        mMessageObservers.insert(observer);
-    }
-}
-
-
-UtlBoolean SipLineMgr::removeMessageObserver(OsMsgQ& messageQueue,
-                                            void* pObserverData)
-{
-    OsWriteLock lock(mObserverMutex);
-
-    SipObserverCriteria* pObserver = NULL ;
-    UtlBoolean bRemovedObservers = FALSE ;
-
-    // Traverse all of the observers and remove any that match the
-    // message queue/observer data.  If the pObserverData is null, all
-    // matching message queues will be removed.  Otherwise, only those
-    // observers that match both the message queue and observer data
-    // are removed.
-    UtlHashBagIterator iterator(mMessageObservers);
-    while((pObserver = (SipObserverCriteria*) iterator()))
-    {
-        if (pObserver->getObserverQueue() == &messageQueue)
-        {
-            if ((pObserverData == NULL) ||
-                    (pObserverData == pObserver->getObserverData()))
-            {
-                bRemovedObservers = true ;
-
-                UtlContainable* wasRemoved = mMessageObservers.removeReference(pObserver);
-                if(wasRemoved)
-                {
-                   delete wasRemoved;
-                }
-            }
-        }
-    }
-    return bRemovedObservers ;
-}
-
-
-void SipLineMgr::queueMessageToObservers(SipLineEvent& event)
-{
-    // Find all of the observers which are interested in this method and post the message
-    UtlString observerMatchingKey("");
-    SipObserverCriteria* observerCriteria = NULL;
-    OsReadLock lock(mObserverMutex);
-
-    UtlHashBagIterator observerIterator(mMessageObservers, &observerMatchingKey);
-    do
-    {
-        observerCriteria = (SipObserverCriteria*) observerIterator();
-
-        // If this message matches the filter criteria
-        if(observerCriteria)
-        {
-            OsMsgQ* observerQueue = observerCriteria->getObserverQueue();
-            void* observerData = observerCriteria->getObserverData();
-            // Put the message in the observers queue
-            event.setObserverData(observerData);
-            observerQueue->send(event);
-        }
-    }
-    while(observerCriteria != NULL);
-}
-
 
 void SipLineMgr::addLineToList(SipLine& line)
 {
