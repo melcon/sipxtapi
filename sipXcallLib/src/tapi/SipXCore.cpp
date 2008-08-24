@@ -442,7 +442,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    unsigned long defaultBindAddress = inet_addr(defaultBindAddressString.data());
    OsSocket::setDefaultBindAddress(defaultBindAddress);
    // start SipUserAgent server task
-   pInst->pSipUserAgent->start();   
+   pInst->pSipUserAgent->start();
 
    // log bind address, ports
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "Default bind address %s, udpPort=%d, tcpPort=%d, tlsPort=%d",
