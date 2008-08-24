@@ -149,7 +149,6 @@ public:
    //removes all credentials for this line
    void removeAllCredentials();
 
-   void setPreferredContactUri(const Url& preferredContactUri);
    void setPreferredContact(const UtlString& contactAddress, int contactPort);
    //: Set the preferred host/ip for the contact in subsequent registers
    UtlBoolean getPreferredContactUri(Url& preferredContactUri) const;
@@ -188,6 +187,7 @@ protected:
 
    void copyCredentials(const SipLine& rSipLine);
    void generateLineID(UtlString& lineId);
+   Url buildLineContact(const UtlString& address = NULL, int port = PORT_NONE);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

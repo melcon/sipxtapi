@@ -16,6 +16,7 @@
 #   include <netinet/in.h>
 #endif
 
+#include <net/SipMessage.h>
 #include <utl/UtlHashBagIterator.h>
 #include <net/SipLine.h>
 #include <net/Url.h>
@@ -79,7 +80,9 @@ SipLine::SipLine(const Url& userEnteredUrl,
       m_canonicalUrl.setHostPort(identityPort);
    }
    // create new Line Id for this line
-   generateLineID(m_lineId);   
+   generateLineID(m_lineId);
+   // build default contact
+   m_preferredContactUri = buildLineContact();
 }
 
 SipLine::~SipLine()
@@ -322,16 +325,9 @@ void SipLine::removeAllCredentials()
     m_credentials.destroyAll();
 }
 
-void SipLine::setPreferredContactUri(const Url& preferredContactUri)
-{
-    m_preferredContactUri = preferredContactUri;
-}
-
 void SipLine::setPreferredContact(const UtlString& contactAddress, int contactPort)
 {
-   m_preferredContactUri.reset();
-   m_preferredContactUri.setHostAddress(contactAddress);
-   m_preferredContactUri.setHostPort(contactPort);
+   m_preferredContactUri = buildLineContact(contactAddress, contactPort);
 }
 
 UtlBoolean SipLine::getPreferredContactUri(Url& preferredContactUri) const
@@ -379,4 +375,21 @@ void SipLine::generateLineID(UtlString& lineId)
 
    // Shorten the line Ids to 12 chars (from 32)
    lineId.remove(12);
+}
+
+Url SipLine::buildLineContact(const UtlString& address, int port)
+{
+   Url contactUrl(m_canonicalUrl);
+
+   if (!address.isNull())
+   {
+      contactUrl.setHostAddress(address);
+      contactUrl.setHostPort(port);
+   }
+   contactUrl.setPassword(NULL);
+   contactUrl.setPath(NULL);
+   contactUrl.setUrlParameter(SIP_LINE_IDENTIFIER, m_lineId);
+   contactUrl.includeAngleBrackets();
+
+   return contactUrl;
 }
