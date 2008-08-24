@@ -312,6 +312,11 @@ UtlBoolean SipProtocolServerBase::isOk()
     return bRet;
 }
 
+UtlBoolean SipProtocolServerBase::isBoundTo(const UtlString& ipAddress)
+{
+   return mServerSocketMap.find(ipAddress) != NULL;
+}
+
 UtlBoolean SipProtocolServerBase::waitForClientToWrite(SipClient* client)
 {
     UtlBoolean exists;
@@ -706,6 +711,7 @@ int SipProtocolServerBase::dumpLayout(void *Ths)
    OsLockingList::dumpLayout(Ths);
    return sizeof(*THIS);
 }
+
 #endif /* LOOKING_FOR_T220_COMPILER_BUG ] */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
