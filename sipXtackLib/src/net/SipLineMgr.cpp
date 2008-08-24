@@ -1135,7 +1135,7 @@ SipLineMgr::deleteCredentialForLine(const Url& identity, const UtlString strReal
         osPrintf("ERROR::SipLineMgr::addCredentialForLine() - No Line for identity\n");
         return false;
     }
-    line->removeCredential(&strRealm);
+    line->removeCredential(strRealm);
     return true;
 
 }
@@ -1150,7 +1150,7 @@ SipLineMgr::getNumOfCredentialsForLine( const Url& identity ) const
         osPrintf("ERROR::SipLineMgr::getNumOfCredentialsForLine() - No Line for identity \n");
     } else
     {
-        numOfCredentials = line->GetNumOfCredentials();
+        numOfCredentials = line->getNumOfCredentials();
     }
     return numOfCredentials;
 }
@@ -1576,7 +1576,7 @@ void SipLineMgr::storeLine(OsConfigDb* pConfigDb, UtlString strSubKey, SipLine l
         else
             pConfigDb->set(strKey, LINE_ALLOW_FORWARDING_DISABLE) ;
 
-        int noOfCredentials = line.GetNumOfCredentials();
+        int noOfCredentials = line.getNumOfCredentials();
                 if (noOfCredentials > 0)
                 {
                         UtlString *strRealms = new UtlString[noOfCredentials] ;
