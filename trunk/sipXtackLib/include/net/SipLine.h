@@ -71,10 +71,7 @@ public:
    SipLine(const Url& userEnteredUrl = "", ///< url with parameters like transport=tls
            const Url& identityUri = "", ///< uri, without parameters
            const UtlString& user = "",
-           UtlBoolean visible = TRUE,
-           int state = LINE_STATE_UNKNOWN,
-           UtlBoolean isAutoEnabled = TRUE,
-           UtlBoolean useCallHandling = FALSE);
+           int state = LINE_STATE_UNKNOWN);
 
    virtual ~SipLine();
    SipLine(const SipLine& rSipLine);
@@ -106,18 +103,6 @@ public:
    Url getIdentity() const;
    Url getCanonicalUrl() const;
 
-   //if line will get enabled after reboot - ( ie it is persitant)
-   void setAutoEnableStatus(UtlBoolean isAutoEnabled);
-   UtlBoolean getAutoEnableStatus() const;
-
-   //to use the call handling of the owner or not
-   UtlBoolean getCallHandling() const;
-   void setCallHandling(UtlBoolean useCallHandling = TRUE);
-
-   //if line is visible in the line list to the user
-   UtlBoolean getVisibility() const;
-   void setVisibility(UtlBoolean isEnable = TRUE);
-
    //for use from GUI
    int getNumOfCredentials() const;
 
@@ -145,7 +130,7 @@ public:
                                 UtlString passdigest[]) const;
 
    //removes credetials for a particular realm
-   void removeCredential(const UtlString& realm);
+   UtlBoolean removeCredential(const UtlString& realm);
    //removes all credentials for this line
    void removeAllCredentials();
 
@@ -171,9 +156,6 @@ public:
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   UtlBoolean m_isVisible;
-   UtlBoolean m_isAutoEnabled;
-   UtlBoolean m_isUsingCallHandling;
    Url m_identityUri; /// <line key which is the canonical URL stripped of display name, angle brackets and field parameters (basically the URI).
    Url m_userEnteredUrl; ///< user entered URL string (could be incomplete "sip:444@")
    Url m_canonicalUrl; ///< The canonical URL which is the URL string with the host and port filled in if they were missing.

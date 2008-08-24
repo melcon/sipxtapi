@@ -92,7 +92,6 @@ public:
 
     void unRegisterUser (
         const Url& fromUrl,
-        const UtlBoolean& onStartup = FALSE,
         const UtlString& lineid ="" );
      
     void setLineMgr(SipLineMgr* const lineMgr);

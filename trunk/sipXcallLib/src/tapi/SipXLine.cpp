@@ -452,14 +452,11 @@ SIPXTAPI_API SIPX_RESULT sipxLineRegister(const SIPX_LINE hLine, const int bRegi
          {
             if (bRegister)
             {
-               pInst->pLineManager->enableLine(lineURI);
+               pInst->pLineManager->registerLine(lineURI);
             }
             else
             {
-               pInst->pLineManager->disableLine(lineURI,
-                  false,
-                  lineURI.toString());
-               //  ->unRegisterUser(*pData->lineURI, false, pData->lineURI->toString());
+               pInst->pLineManager->unregisterLine(lineURI, lineURI.toString());
             }
             sr = SIPX_RESULT_SUCCESS;
          }
@@ -738,10 +735,10 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
             return sr;
          }
 
-         SipLine line(url, uri, userId, TRUE, SipLine::LINE_STATE_UNKNOWN);
+         SipLine line(url, uri, userId, SipLine::LINE_STATE_UNKNOWN);
          line.setPreferredContact(contactIp, contactPort);
 
-         UtlBoolean bRC = pInst->pLineManager->addLine(line, FALSE);
+         UtlBoolean bRC = pInst->pLineManager->addLine(line);
          if (bRC)
          {
             SIPX_LINE_DATA* pData = createLineData(pInst, uri);

@@ -269,95 +269,50 @@ void SipRefreshMgr::reRegister( const Url& fromUrl)
 void 
 SipRefreshMgr::unRegisterUser (
     const Url& fromUrl, 
-    const UtlBoolean& onStartup, 
     const UtlString& lineId )
 {
-   if ( onStartup )
-    {
+     SipMessage sipMsg;
+     if ( isDuplicateRegister(fromUrl, sipMsg) )
+     {
+         Url Uri = fromUrl;
+         //dont set a common expires - then you need to send * in contact field
+         //sipMsg.setExpiresField(0);
+         UtlString contactField;
+         sipMsg.getContactField(0,contactField);
+         Url contact(contactField);
+         contact.setFieldParameter(SIP_EXPIRES_FIELD,"0");
+         sipMsg.setContactField(contact.toString());
+         sipMsg.removeHeader(SIP_EXPIRES_FIELD,0);
+ 
+         UtlString localIp;
+         int localPort;
+         
+         SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP;
+         UtlString fromString;
+         
+         fromUrl.toString(fromString);
+         if (fromString.contains("sips:") || fromString.contains("transport=tls"))
+         {
+             protocol = TRANSPORT_TLS;
+         }
+         else if (fromString.contains("transport=tcp"))
+         {
+             protocol = TRANSPORT_TCP;
+         }
+         mMyUserAgent->getLocalAddress(&localIp, &localPort, protocol);
+         sipMsg.setLocalIp(localIp);
 
-        Url Uri = fromUrl;
-        Uri.setDisplayName("");
-        Uri.setUserId("");
-
-        //generate Call Id
-        UtlString registerCallId = mCallIdGenerator.getNewCallId();
-
-        SipMessage* regMessage = new SipMessage();
-        UtlString contactField = buildContactField(fromUrl, lineId, NULL); // NULL ???
-
-        UtlString fromField(fromUrl.toString());
-        UtlString toField(fromField);
-        //add Tag to from field
-        UtlString tagNamevaluePair ;
-        createTagNameValuePair(tagNamevaluePair);
-        fromField.append(";");
-        fromField.append(tagNamevaluePair);
-
-        Url contact(contactField);
-        contact.setFieldParameter(SIP_EXPIRES_FIELD,"0");
-
-        regMessage->setRegisterData(fromField.data(), // from
-                                    toField.data(), // to
-                                    Uri.toString(), // uri
-                                    contact.toString().data(), // contact
-                                    registerCallId.data(),
-                                    UNREGISTER_CSEQ_NUMBER,
-                                    0);
-
-        regMessage->removeHeader(SIP_EXPIRES_FIELD,0);
-
-        if (sendRequest(*regMessage , SIP_REGISTER_METHOD) != OS_SUCCESS)
-        {
-            removeFromRegisterList(regMessage);
-            // delete regMessage; - wdn -  fix leaks later !!!
-        }
-
-    }
-    else
-    {
-        SipMessage sipMsg;
-        if ( isDuplicateRegister(fromUrl, sipMsg) )
-        {
-            Url Uri = fromUrl;
-            //dont set a common expires - then you need to send * in contact field
-            //sipMsg.setExpiresField(0);
-            UtlString contactField;
-            sipMsg.getContactField(0,contactField);
-            Url contact(contactField);
-            contact.setFieldParameter(SIP_EXPIRES_FIELD,"0");
-            sipMsg.setContactField(contact.toString());
-            sipMsg.removeHeader(SIP_EXPIRES_FIELD,0);
-    
-            UtlString localIp;
-            int localPort;
-            
-            SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP;
-            UtlString fromString;
-            
-            fromUrl.toString(fromString);
-            if (fromString.contains("sips:") || fromString.contains("transport=tls"))
-            {
-                protocol = TRANSPORT_TLS;
-            }
-            else if (fromString.contains("transport=tcp"))
-            {
-                protocol = TRANSPORT_TCP;
-            }
-            mMyUserAgent->getLocalAddress(&localIp, &localPort, protocol);
-            sipMsg.setLocalIp(localIp);
-
-            if (mLineListener) 
-            {
-               mLineListener->OnLineUnregistering(SipLineStateEvent(lineId, LINESTATE_UNREGISTERING_NORMAL));
-            }
-            
-            // clear out any pending register requests
-            removeAllFromRequestList(&sipMsg);
-            sendRequest(sipMsg, SIP_REGISTER_METHOD);
-            addToRegisterList(&sipMsg);
-            }
-        }
-    }
+         if (mLineListener) 
+         {
+            mLineListener->OnLineUnregistering(SipLineStateEvent(lineId, LINESTATE_UNREGISTERING_NORMAL));
+         }
+         
+         // clear out any pending register requests
+         removeAllFromRequestList(&sipMsg);
+         sendRequest(sipMsg, SIP_REGISTER_METHOD);
+         addToRegisterList(&sipMsg);
+     }
+}
 
 UtlBoolean SipRefreshMgr::isDuplicateRegister(const Url& fromUrl, 
                                               SipMessage &oldMsg)
@@ -862,7 +817,6 @@ SipRefreshMgr::processOKResponse(
                 if (mpLineMgr)
                 {
                    mpLineMgr->setStateForLine(url, SipLine::LINE_STATE_DISABLED);
-                   mpLineMgr->lineHasBeenUnregistered(url);
                 }
                 if (mLineListener)
                 {

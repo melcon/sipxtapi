@@ -128,11 +128,9 @@ public:
          // Limit life time of lineMgr and refreshMgr. They should be freed
          // before releasing OsNatAgentTask instance, or we will crash.
          {
-            SipLineMgr    lineMgr;
             SipRefreshMgr refreshMgr(NULL);
-
-            lineMgr.StartLineMgr();
-            lineMgr.initializeRefreshMgr( &refreshMgr );
+            SipLineMgr    lineMgr(&refreshMgr);
+            lineMgr.startLineMgr();
 
             SipUserAgent sipUA( 5090
                               ,5090
@@ -213,11 +211,10 @@ public:
          // Limit life time of lineMgr and refreshMgr. They should be freed
          // before releasing OsNatAgentTask instance, or we will crash.
          {
-            SipLineMgr    lineMgr;
             SipRefreshMgr refreshMgr(NULL);
+            SipLineMgr lineMgr(&refreshMgr);
 
-            lineMgr.StartLineMgr();
-            lineMgr.initializeRefreshMgr( &refreshMgr );
+            lineMgr.startLineMgr();
 
             SipUserAgent sipUA( 5090
                               ,5090
