@@ -107,9 +107,8 @@ public:
     //REGISTER METHODS
     UtlBoolean newRegisterMsg (
         const Url& fromUrl,
-        const UtlString& lineId,
         int registryPeriodSeconds = -1,
-        const Url* pPreferredContactUri = NULL);
+        const Url& pPreferredContactUri = NULL);
 
     void reRegisterAll();
 

@@ -317,15 +317,9 @@ UtlBoolean SipLineMgr::enableLine(const Url& lineURI)
     line->setState(SipLine::LINE_STATE_TRYING);
     Url canonicalUrl = line->getCanonicalUrl();
     Url preferredContact;
-    Url* pPreferredContact = NULL;
+    line->getPreferredContactUri(preferredContact);
 
-    if (line->getPreferredContactUri(preferredContact))
-    {
-       // if line has preferred contact, use it
-        pPreferredContact = &preferredContact;
-    }
-
-    if (!mpRefreshMgr->newRegisterMsg(canonicalUrl, line->getLineId(), -1, pPreferredContact))
+    if (!mpRefreshMgr->newRegisterMsg(canonicalUrl, -1, preferredContact))
     {
         //duplicate ...call reregister
         mpRefreshMgr->reRegister(lineURI);

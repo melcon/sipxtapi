@@ -285,14 +285,13 @@ SipRefreshMgr::addMessageObserver (
 //REGISTER
 /*===================================================================*/
 UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
-                                         const UtlString& lineId,
                                          int registryPeriodSeconds,
-                                         const Url* pPreferredContactUri)
+                                         const Url& contactUri)
 {
     if (!isDuplicateRegister(fromUrl))
     {
-        syslog(FAC_REFRESH_MGR, PRI_DEBUG, "adding registration:\nurl=%s\nlineid=%s\nperiod=%d",
-                fromUrl.toString().data(), lineId.data(), registryPeriodSeconds) ;
+        syslog(FAC_REFRESH_MGR, PRI_DEBUG, "adding registration:\nurl=%s\nperiod=%d",
+                fromUrl.toString().data(), registryPeriodSeconds);
         
         Url uri = fromUrl;
         uri.setDisplayName("");
@@ -300,12 +299,12 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
 
         //generate Call Id
         UtlString registerCallId = mCallIdGenerator.getNewCallId();
-        UtlString contactField = buildContactField(fromUrl, lineId, pPreferredContactUri);
+        UtlString contactField = contactUri.toString();
 
         registerUrl(fromUrl.toString(), // from
                     fromUrl.toString(), // to                    
                     uri.toString(),
-                    contactField.data(),
+                    contactField.data(), // contact
                     registerCallId,                    
                     registryPeriodSeconds);
 
@@ -313,8 +312,8 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
     }
     else
     {
-        syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to add new registration (dup):\nurl=%s\nlineid=%s\nperiod=%d",
-                fromUrl.toString().data(), lineId.data(), registryPeriodSeconds) ;
+        syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to add new registration (dup):\nurl=%s\nperiod=%d",
+                fromUrl.toString().data(), registryPeriodSeconds);
     }
 
     return false;
