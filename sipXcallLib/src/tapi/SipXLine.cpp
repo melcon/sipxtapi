@@ -553,8 +553,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
    SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
    if (pData)
    {
-      SAFE_STRNCPY(szContactAddress, pData->m_contactAddress.data(), nContactAddressSize);
-      *contactPort = pData->m_contactPort;
+      SAFE_STRNCPY(szContactAddress, pData->m_contactUri.getHostAddress().data(), nContactAddressSize);
+      *contactPort = pData->m_contactUri.getHostPort();
       *contactType = pData->m_contactType;
       *transport = pData->m_transport;
 
@@ -697,6 +697,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          // Set the preferred contact
          SIPX_CONTACT_ADDRESS* pContact = NULL;
          SIPX_CONTACT_TYPE contactType = CONTACT_AUTO;
+         SIPX_TRANSPORT_TYPE suggestedTransport = TRANSPORT_UDP;
          SIPX_TRANSPORT_TYPE transport = TRANSPORT_UDP;
          UtlString contactIp;
          UtlString suggestedContactIp;
@@ -712,19 +713,29 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          }
 
          UtlString lineUrl(szLineUrl);
-         if (lineUrl.contains("sips:") || lineUrl.contains("transport=tls"))
+         if (lineUrl.contains("sips:") || lineUrl.contains("suggestedTransport=tls"))
          {
             // use TLS
-            transport = TRANSPORT_TLS;
+            suggestedTransport = TRANSPORT_TLS;
          }
-         else if (lineUrl.contains("transport=tcp"))
+         else if (lineUrl.contains("suggestedTransport=tcp"))
          {
-            // use TCP transport
-            transport = TRANSPORT_TCP;
+            // use TCP suggestedTransport
+            suggestedTransport = TRANSPORT_TCP;
          }
+         transport = suggestedTransport; // we need to detect whether suggested transport was overridden
 
-         // select contact IP, port, maybe override contact type and transport. Transport is used to select port.
+         // select contact IP, port, maybe override contact type and suggestedTransport. Transport is used to select port.
          sipxSelectContact(pInst, contactType, suggestedContactIp, contactIp, contactPort, transport);
+
+         if (transport != suggestedTransport)
+         {
+            // transport was rejected, we cannot use given lineUrl with this transport, return error
+            // the only way to proceed would have been removing suggestedTransport from szLineUrl
+            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "selected transport %d was rejected", suggestedTransport);
+            sr = SIPX_RESULT_FAILURE;
+            return sr;
+         }
 
          SipLine line(url, uri, userId, TRUE, SipLine::LINE_STATE_UNKNOWN);
          line.setPreferredContact(contactIp, contactPort);
@@ -736,9 +747,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
 
             if (pData)
             {
-               pData->m_contactAddress = contactIp;
-               pData->m_contactPort = contactPort;
-               pData->m_transport = transport;
+               line.getPreferredContactUri(pData->m_contactUri);
+               pData->m_transport = suggestedTransport;
                pData->m_contactType = contactType;
 
                UtlBoolean res = gLineHandleMap.allocHandle(*phLine, pData);

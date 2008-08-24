@@ -32,12 +32,11 @@
 class SIPX_LINE_DATA
 {
 public:
-   Url m_lineURI; ///< URI of line. Doesn't contain any parameters.
+   Url m_lineURI; ///< URI of line. Doesn't contain any parameters, display name or brackets
    SIPX_INSTANCE_DATA* m_pInst;
-   OsMutex m_mutex;    
+   OsMutex m_mutex;
    SIPX_CONTACT_TYPE m_contactType; ///< contact type used by line
-   UtlString m_contactAddress; ///< Address of sip contact used by line
-   int m_contactPort; ///< port of sip contact used by line
+   Url m_contactUri; ///< preferred contact used by line
    SIPX_TRANSPORT_TYPE m_transport; ///< actual transport used for line registration
    UtlSList m_lineAliases;
 
@@ -47,8 +46,7 @@ public:
       , m_pInst(NULL)
       , m_contactType(CONTACT_AUTO)
       , m_lineAliases()
-      , m_contactAddress(NULL)
-      , m_contactPort(0)
+      , m_contactUri(NULL)
       , m_transport(TRANSPORT_UDP)
    {
    }
