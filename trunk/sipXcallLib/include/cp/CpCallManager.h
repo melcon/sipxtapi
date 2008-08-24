@@ -27,8 +27,8 @@
 #include "net/SipMessage.h"
 #include "net/SipContactDb.h"
 #include "net/SipDialog.h"
+#include "net/SipCallIdGenerator.h"
 #include "cp/Connection.h"
-#include "cp/CpCallIdGenerator.h"
 
 // DEFINES
 // MACROS
@@ -602,8 +602,8 @@ private:
     //! Assignment operator undefined
     CpCallManager& operator=(const CpCallManager& rhs);
 
-    CpCallIdGenerator m_callIdGenerator;
-    CpCallIdGenerator m_sipCallIdGenerator;
+    SipCallIdGenerator m_callIdGenerator;
+    SipCallIdGenerator m_sipCallIdGenerator;
     UtlDList mCallList;
     int mLastMetaEventId;
     UtlBoolean mbEnableICE ;
