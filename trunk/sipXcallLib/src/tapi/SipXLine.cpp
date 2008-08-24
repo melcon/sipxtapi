@@ -690,12 +690,9 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
    {
       if (szLineUrl && phLine)
       {
-         UtlString userId;
          Url url(szLineUrl);
-         Url uri = url;
-         uri.removeFieldParameters();
-         uri.removeHeaderParameters();
-         url.getUserId(userId);
+         Url uri = url.getUri();
+         UtlString userId = url.getUserId();
 
          // Set the preferred contact
          SIPX_CONTACT_ADDRESS* pContact = NULL;
