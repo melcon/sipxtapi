@@ -300,15 +300,14 @@ void SipLineMgr::lineHasBeenUnregistered(const Url& identity)
     //delete line;
 }
 
-UtlBoolean
-SipLineMgr::enableLine(const Url& identity)
+UtlBoolean SipLineMgr::enableLine(const Url& lineURI)
 {
-    SipLine *line = NULL;
-    line = sLineList.getLine(identity) ;
-    if ( line == NULL)
+    SipLine *line = sLineList.getLine(lineURI);
+
+    if (line == NULL)
     {
         syslog(FAC_LINE_MGR, PRI_ERR, "unable to enable line (not found): %s",
-                identity.toString().data()) ;
+                lineURI.toString().data()) ;
         return FALSE;
     }
 
@@ -316,24 +315,25 @@ SipLineMgr::enableLine(const Url& identity)
     //queueMessageToObservers(lineEvent);
 
     line->setState(SipLine::LINE_STATE_TRYING);
-    Url canonical = line->getCanonicalUrl();
-    Url preferredContact ;
-    Url* pPreferredContact = NULL ;
+    Url canonicalUrl = line->getCanonicalUrl();
+    Url preferredContact;
+    Url* pPreferredContact = NULL;
 
     if (line->getPreferredContactUri(preferredContact))
     {
-        pPreferredContact = &preferredContact ;
+       // if line has preferred contact, use it
+        pPreferredContact = &preferredContact;
     }
 
-    if (!mpRefreshMgr->newRegisterMsg(canonical, line->getLineId(), -1, pPreferredContact))
+    if (!mpRefreshMgr->newRegisterMsg(canonicalUrl, line->getLineId(), -1, pPreferredContact))
     {
         //duplicate ...call reregister
-        mpRefreshMgr->reRegister(identity);
+        mpRefreshMgr->reRegister(lineURI);
     }
     line = NULL;
 
     syslog(FAC_LINE_MGR, PRI_INFO, "enabled line: %s",
-            identity.toString().data()) ;
+            lineURI.toString().data()) ;
 
     return TRUE;
 }
