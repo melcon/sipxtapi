@@ -314,7 +314,7 @@ UtlBoolean SipProtocolServerBase::isOk()
 
 UtlBoolean SipProtocolServerBase::isBoundTo(const UtlString& ipAddress)
 {
-   return mServerSocketMap.find(ipAddress) != NULL;
+   return mServerSocketMap.find(&ipAddress) != NULL;
 }
 
 UtlBoolean SipProtocolServerBase::waitForClientToWrite(SipClient* client)
