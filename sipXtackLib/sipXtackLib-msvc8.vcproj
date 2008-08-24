@@ -14688,6 +14688,10 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\net\SipTransport.cpp"
+					>
+				</File>
+				<File
 					RelativePath="src\net\SipUdpServer.cpp"
 					>
 					<FileConfiguration
@@ -16088,6 +16092,10 @@
 				</File>
 				<File
 					RelativePath="include\net\SipTransactionList.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\SipTransport.h"
 					>
 				</File>
 				<File
