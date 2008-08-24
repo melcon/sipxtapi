@@ -68,11 +68,20 @@ void NetMd5Codec::encode(const char* text, UtlString& encodedText)
   MD5Update (&context, (unsigned char *)text, len);
   MD5Final (digest, &context);
 
+  encodedText.remove(0); // clean string
   for (i = 0; i < 16; i++)
     {
       SNPRINTF(szTmp, sizeof(szTmp), "%02x", digest[i]);
       encodedText.append(szTmp);
     }
+}
+
+UtlString NetMd5Codec::encode(const char* text)
+{
+   UtlString result;
+
+   NetMd5Codec::encode(text, result);
+   return result;
 }
 
 /* ============================ ACCESSORS ================================= */
