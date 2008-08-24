@@ -78,6 +78,9 @@ public:
 
 /* ============================ INQUIRY =================================== */
 
+    ///< checks whether server is bound to given ip address
+    UtlBoolean isBoundTo(const UtlString& ipAddress);
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
     friend class SipServerBrokerListener;
@@ -102,7 +105,7 @@ protected:
     UtlString mDefaultIp;
     int mDefaultPort;
     SipUserAgent* mSipUserAgent;
-    UtlHashMap mServerSocketMap;
+    UtlHashMap mServerSocketMap; ///< key is UtlString with IP address
     UtlHashMap mServerPortMap;
     UtlHashMap mServers;
     SipServerBrokerListener* mpServerBrokerListener;
