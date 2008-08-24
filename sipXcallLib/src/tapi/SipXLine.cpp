@@ -24,6 +24,7 @@
 #include <utl/UtlHashMapIterator.h>
 #include <net/SipUserAgent.h>
 #include "net/SipLineMgr.h"
+#include <net/SipTransport.h>
 #include "tapi/SipXLine.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXEvents.h"
@@ -712,17 +713,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
             suggestedContactIp = pContact->cIpAddress; // try to suggest contact IP address as well
          }
 
-         UtlString lineUrl(szLineUrl);
-         if (lineUrl.contains("sips:") || lineUrl.contains("suggestedTransport=tls"))
-         {
-            // use TLS
-            suggestedTransport = TRANSPORT_TLS;
-         }
-         else if (lineUrl.contains("suggestedTransport=tcp"))
-         {
-            // use TCP suggestedTransport
-            suggestedTransport = TRANSPORT_TCP;
-         }
+         suggestedTransport = (SIPX_TRANSPORT_TYPE)SipTransport::getSipTransport(szLineUrl);
          transport = suggestedTransport; // we need to detect whether suggested transport was overridden
 
          // select contact IP, port, maybe override contact type and suggestedTransport. Transport is used to select port.
