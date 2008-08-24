@@ -422,6 +422,11 @@ void Url::getUserId(UtlString& userId) const
    userId = mUserId;
 }
 
+UtlString Url::getUserId() const
+{
+   return mUserId;
+}
+
 void Url::setUserId(const char* userId)
 {
    if (userId)
@@ -459,6 +464,10 @@ void Url::getHostAddress(UtlString& address) const
     address = mHostAddress;
 }
 
+UtlString Url::getHostAddress() const
+{
+   return mHostAddress;
+}
 void Url::getHostWithPort(UtlString& domain) const
 {
    getHostAddress(domain);
@@ -867,6 +876,21 @@ void Url::getUri(UtlString& urlString)
     }
 }
 
+void Url::getUri(Url& uri) const
+{
+   uri = getUri();
+}
+
+Url Url::getUri() const
+{
+   Url uri(*this);
+   uri.setDisplayName(NULL);
+   uri.removeAngleBrackets();
+   uri.removeFieldParameters();
+   uri.removeHeaderParameters();
+
+   return uri;
+}
 void Url::setHeaderParameter(const char* name, const char* value)
 {
     if ( name && *name )

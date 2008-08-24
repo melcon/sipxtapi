@@ -193,6 +193,7 @@ public:
 
     /// Get the URL user identity if present
     void getUserId(UtlString& userId) const;
+    UtlString getUserId() const;
 
     /// Set the URL user identity
     void setUserId(const char* userId);
@@ -216,6 +217,7 @@ public:
 
     /// Get the URL host name or IP address
     void getHostAddress(UtlString& address) const;
+    UtlString getHostAddress() const;
 
     /// Get the host and port together as a string "host:port"
     void getHostWithPort(UtlString& domain) const;
@@ -428,6 +430,10 @@ public:
 
     /// Gets the serialized URL as a string (with no display name or field parameters)
     void getUri(UtlString& Uri);
+
+    ///< Gets the serialized URL as a new URI with no display name or field parameters
+    void getUri(Url& uri) const;
+    Url getUri() const;
 
 /* ============================ INQUIRY =================================== */
 
