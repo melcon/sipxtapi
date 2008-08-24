@@ -131,25 +131,25 @@ public:
    UtlBoolean getCredentials(const UtlString& type,
                              const UtlString& realm,
                              UtlString& userID,
-                             UtlString& MD5_token);
+                             UtlString& MD5_token) const;
 
    UtlBoolean getCredentials(const UtlString& type,
                              const UtlString& realm,
-                             SipLineCredentials& lineCredentials);
+                             SipLineCredentials& lineCredentials) const;
 
    UtlBoolean getAllCredentials(int maxEnteries,
                                 int& actualEnteries,
                                 UtlString realm[],
                                 UtlString userId[],
                                 UtlString type[],
-                                UtlString passdigest[]);
+                                UtlString passdigest[]) const;
 
    //removes credetials for a particular realm
    void removeCredential(const UtlString& realm);
    //removes all credentials for this line
    void removeAllCredentials();
 
-   void setPreferredContactUri(const Url& preferredContactUri) ;
+   void setPreferredContactUri(const Url& preferredContactUri);
    void setPreferredContact(const UtlString& contactAddress, int contactPort);
    //: Set the preferred host/ip for the contact in subsequent registers
    UtlBoolean getPreferredContactUri(Url& preferredContactUri) const;
@@ -175,16 +175,16 @@ protected:
    UtlBoolean m_isVisible;
    UtlBoolean m_isAutoEnabled;
    UtlBoolean m_isUsingCallHandling;
-   Url m_identityUri; //line key which is the canonical URL stripped of display name, angle brackets and field parameters (basically the URI).
-   Url m_userEnteredUrl; //user entered URL string (could be incomplete "sip:444@")
-   Url m_canonicalUrl; //The canonical URL which is the URL string with the host and port filled in if they were missing.
+   Url m_identityUri; /// <line key which is the canonical URL stripped of display name, angle brackets and field parameters (basically the URI).
+   Url m_userEnteredUrl; ///< user entered URL string (could be incomplete "sip:444@")
+   Url m_canonicalUrl; ///< The canonical URL which is the URL string with the host and port filled in if they were missing.
 
    UtlString m_user;
    UtlString m_lineId;
    int m_currentState;
    Url m_preferredContactUri;
 
-   UtlHashBag m_credentials;
+   mutable UtlHashBag m_credentials;
 
    void copyCredentials(const SipLine& rSipLine);
    void generateLineID(UtlString& lineId);

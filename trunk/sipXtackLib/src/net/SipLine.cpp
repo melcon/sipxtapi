@@ -274,7 +274,7 @@ int SipLine::getNumOfCredentials() const
 UtlBoolean SipLine::getCredentials(const UtlString& type,
                                    const UtlString& realm,
                                    UtlString& userID,
-                                   UtlString& MD5_token)
+                                   UtlString& MD5_token) const
 {
    SipLineCredentials lineCredentials;
 
@@ -287,7 +287,7 @@ UtlBoolean SipLine::getCredentials(const UtlString& type,
 
 UtlBoolean SipLine::getCredentials(const UtlString& type,
                                    const UtlString& realm,
-                                   SipLineCredentials& lineCredentials)
+                                   SipLineCredentials& lineCredentials) const
 {
    UtlString emptyRealm(NULL);
 
@@ -341,12 +341,12 @@ UtlBoolean SipLine::getPreferredContactUri(Url& preferredContactUri) const
     return (!preferredContactUri.getHostAddress().isNull());
 }
 
-UtlBoolean SipLine::getAllCredentials(int maxEnteries/*[in]*/ ,
-                                      int& actualEnteries /*[out/int]*/,
-                                      UtlString realm[]/*[out/int]*/,
-                                      UtlString userId[]/*[out/int]*/,
-                                      UtlString type[]/*[out/int]*/,
-                                      UtlString passdigest[]/*[out/int]*/)
+UtlBoolean SipLine::getAllCredentials(int maxEnteries,
+                                      int& actualEnteries,
+                                      UtlString realm[],
+                                      UtlString userId[],
+                                      UtlString type[],
+                                      UtlString passdigest[]) const
 {
     int i = 0;
 
