@@ -306,7 +306,7 @@ SipLine* SipLineList::findLine(const char* lineId,
         {
       // If the realm doesn't match, simply skip it
       if ((realm != NULL) && strlen(realm)
-            && (!nextLine->IsDuplicateRealm(realm)))
+            && (!nextLine->isDuplicateRealm(realm)))
       {
          continue ;
       }

@@ -19,17 +19,16 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-SipLineCredentials::SipLineCredentials( const UtlString realm,
-                                                                           const UtlString userId,
-                                                                           const UtlString passwordToken,
-                                                                           const UtlString type)
-:UtlString(realm)
+SipLineCredentials::SipLineCredentials(const UtlString& realm,
+                                       const UtlString& userId,
+                                       const UtlString& passwordToken,
+                                       const UtlString& type)
+: UtlString(realm) // initialize superclass string to realm, so that we can use this class in hashbag
 {
-
-        mType = type;
-        mPasswordToken = passwordToken;
-        mUserId = userId;
-        mRealm = realm;
+   m_type = type;
+   m_passwordToken = passwordToken;
+   m_userId = userId;
+   m_realm = realm;
 }
 
 SipLineCredentials::~SipLineCredentials()
@@ -37,26 +36,29 @@ SipLineCredentials::~SipLineCredentials()
 
 }
 
-void SipLineCredentials::getRealm(UtlString* realm)
+UtlString SipLineCredentials::getPasswordMD5Digest() const
 {
-        realm->remove(0);
-        realm->append(mRealm);
-
+   UtlString digest;
+   HttpMessage::buildMd5UserPasswordDigest(m_userId, m_realm, m_passwordToken, digest);
+   return digest;
 }
 
-void SipLineCredentials::getUserId(UtlString* UserId)
+UtlString SipLineCredentials::getRealm() const
 {
-        UserId->remove(0);
-        UserId->append(mUserId);
+   return m_realm;
 }
 
-void SipLineCredentials::getPasswordToken(UtlString* passToken)
+UtlString SipLineCredentials::getUserId() const
 {
-        passToken->remove(0);
-        passToken->append(mPasswordToken);
+   return m_userId;
 }
-void SipLineCredentials::getType(UtlString* type)
+
+UtlString SipLineCredentials::getPasswordToken() const
 {
-        type->remove(0);
-        type->append(mType);
+   return m_passwordToken;
+}
+
+UtlString SipLineCredentials::getType() const
+{
+   return m_type;
 }

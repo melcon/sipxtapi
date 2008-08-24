@@ -36,6 +36,57 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+SipLine::SipLine(const Url& userEnteredUrl,
+                 const Url& identityUri,
+                 const UtlString& user,
+                 UtlBoolean visible,
+                 int state,
+                 UtlBoolean isAutoEnabled,
+                 UtlBoolean useCallHandling)
+{
+   if (user.isNull())
+   {
+      userEnteredUrl.getUserId(m_user);
+   }
+   else
+   {
+      m_user = user;
+   }
+
+   m_userEnteredUrl = userEnteredUrl;
+   if (identityUri.toString().isNull())
+   {
+      //then get uri from user entered url ...uri is complete in it
+      m_identityUri = m_userEnteredUrl.getUri();
+   }
+   else
+   {
+      m_identityUri = identityUri;
+   }
+   m_isVisible = visible;
+   m_currentState = state;
+   m_isAutoEnabled = isAutoEnabled;
+   m_isUsingCallHandling = useCallHandling;
+
+   //construct a complete url from identityUri and userEntered Url.
+   m_canonicalUrl = m_userEnteredUrl;
+   UtlString address = m_canonicalUrl.getHostAddress();
+   if (address.isNull())
+   {
+      UtlString identityHost = m_identityUri.getHostAddress();
+      int identityPort = m_identityUri.getHostPort();
+      m_canonicalUrl.setHostAddress(identityHost);
+      m_canonicalUrl.setHostPort(identityPort);
+   }
+   // create new Line Id for this line
+   generateLineID(m_lineId);   
+}
+
+SipLine::~SipLine()
+{
+   m_credentials.destroyAll();
+}
+
 // Copy constructor
 SipLine::SipLine(const SipLine& rSipLine)
 {
@@ -48,16 +99,16 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
       return *this;
    else
    {
-      mIsVisible = rSipLine.mIsVisible ;
-      mIdentity = rSipLine.mIdentity ;
-      mUserEnteredUrl = rSipLine.mUserEnteredUrl;
-      mCanonicalUrl = rSipLine.mCanonicalUrl;
-      mUser = rSipLine.mUser ;
-      mCurrentState = rSipLine.mCurrentState ;
-      mIsAutoEnabled = rSipLine.mIsAutoEnabled ;
-      mIsUsingCallHandling = rSipLine.mIsUsingCallHandling;
-      mLineId = rSipLine.mLineId;
-      mPreferredContactUri = rSipLine.mPreferredContactUri ;
+      m_isVisible = rSipLine.m_isVisible ;
+      m_identityUri = rSipLine.m_identityUri ;
+      m_userEnteredUrl = rSipLine.m_userEnteredUrl;
+      m_canonicalUrl = rSipLine.m_canonicalUrl;
+      m_user = rSipLine.m_user ;
+      m_currentState = rSipLine.m_currentState ;
+      m_isAutoEnabled = rSipLine.m_isAutoEnabled ;
+      m_isUsingCallHandling = rSipLine.m_isUsingCallHandling;
+      m_lineId = rSipLine.m_lineId;
+      m_preferredContactUri = rSipLine.m_preferredContactUri ;
       copyCredentials(rSipLine);
    }
    return *this;
@@ -65,392 +116,242 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
 //deep copy of credentials
 void SipLine::copyCredentials(const SipLine &rSipLine)
 {
-   UtlString Realm;
-   UtlString UserID;
-   UtlString Type;
-   UtlString Password;
-
-   if(!mCredentials.isEmpty())
+   if(!m_credentials.isEmpty())
    {
-      mCredentials.destroyAll();
+      m_credentials.destroyAll();
    }
-   if (! rSipLine.mCredentials.isEmpty())
+   if (!rSipLine.m_credentials.isEmpty())
    {
-        UtlHashBagIterator observerIterator(const_cast<UtlHashBag&> (rSipLine.mCredentials));
-        SipLineCredentials* credential = NULL;
-        do
-        {
-            credential = (SipLineCredentials*) observerIterator();
-            if ( credential)
-            {
-                credential->getRealm(&Realm);
-                credential->getUserId(&UserID);
-                credential->getType(&Type);
-                credential->getPasswordToken(&Password);
-                addCredentials(Realm , UserID , Password , Type);
-            }
-        }
-        while(credential != NULL) ;
+      UtlHashBagIterator observerIterator(const_cast<UtlHashBag&> (rSipLine.m_credentials));
+      SipLineCredentials* credential = NULL;
+
+      while((credential = (SipLineCredentials*) observerIterator()) != NULL)
+      {
+         addCredentials(credential->getRealm(),
+                        credential->getUserId(),
+                        credential->getPasswordToken(),
+                        credential->getType());
+      }
    }
 }
 
-SipLine::SipLine(Url userEnteredUrl,
-                 Url identityUri,
-                 UtlString user,
-                 UtlBoolean visible,
-                 int state,
-                 UtlBoolean isAutoEnabled,
-                 UtlBoolean useCallHandling)
+UtlString SipLine::getLineId() const
 {
-   if (user.isNull())
-   {
-      mUser = userEnteredUrl.toString();
-   }
-   else
-   {
-      mUser = user;
-   }
-
-   mIsVisible = visible;
-   mCurrentState = state;
-   mIsAutoEnabled = isAutoEnabled;
-   mIsUsingCallHandling = useCallHandling;
-   mUserEnteredUrl = userEnteredUrl;
-   if (identityUri.toString().isNull())
-   {
-      //then get uri from user entered url ...uri is complete in it
-      UtlString uri;
-      mUserEnteredUrl.getUri(uri);
-      mIdentity = Url(uri);
-   }
-   else
-   {
-      mIdentity = identityUri;
-   }
-
-   //construct a complete url from identity and userEntered Url.
-   mCanonicalUrl = mUserEnteredUrl;
-   UtlString address;
-   mUserEnteredUrl.getHostAddress(address);
-   if (address.isNull())
-   {
-      UtlString identityHost;
-      mIdentity.getHostAddress(identityHost);
-      int identityPort = mIdentity.getHostPort();
-      mCanonicalUrl.setHostAddress(identityHost);
-      mCanonicalUrl.setHostPort(identityPort);
-   }
-   // create new Line Id for this line
-   generateLineID(mLineId);   
+   return m_lineId;
 }
 
-SipLine::~SipLine()
-{
-    mCredentials.destroyAll();
-}
-
-UtlString& SipLine::getLineId()
-{
-   return mLineId;
-}
-
-
-UtlBoolean SipLine::isDeviceLine()
+UtlBoolean SipLine::isDeviceLine() const
 {
     return (getUser().compareTo("Device", UtlString::ignoreCase) == 0) ;
 }
 
 
-int SipLine::getState()
+int SipLine::getState() const
 {
-    return mCurrentState;
+    return m_currentState;
 }
 
 void SipLine::setState(int state)
 {
-    mCurrentState = state;
+    m_currentState = state;
 }
 
-UtlString& SipLine::getUser()
+UtlString SipLine::getUser() const
 {
-    return mUser;
+    return m_user;
 }
 
-void SipLine::setUser(const UtlString user)
+void SipLine::setUser(const UtlString& user)
 {
-   mUser.remove(0);
-   mUser.append(user);
+   m_user = user;
 }
 
-void SipLine::getIdentityAndUrl(Url &identity, Url &userEnteredUrl)
+void SipLine::getIdentityAndUrl(Url &identityUri, Url &userEnteredUrl) const
 {
-   identity = mIdentity;
-   userEnteredUrl = mUserEnteredUrl;
+   identityUri = m_identityUri;
+   userEnteredUrl = m_userEnteredUrl;
 }
 
-void SipLine::setIdentityAndUrl(Url identity, Url userEnteredUrl)
+void SipLine::setIdentityAndUrl(Url identityUri, Url userEnteredUrl)
 {
-   UtlString identityHost;
-   UtlString address;
-   int identityPort;
-
-   mIdentity = identity;
-   mLineId.remove(0);
-   generateLineID(mLineId);
-   mUserEnteredUrl = userEnteredUrl;
-   //construct a complete url from identity and userEntered Url.
-   mCanonicalUrl = mUserEnteredUrl;
+   m_identityUri = identityUri;
+   generateLineID(m_lineId);
+   m_userEnteredUrl = userEnteredUrl;
+   //construct a complete url from identityUri and userEntered Url.
+   m_canonicalUrl = m_userEnteredUrl;
    
-   mUserEnteredUrl.getHostAddress(address);
+   UtlString address = m_canonicalUrl.getHostAddress();
    if (address.isNull())
-   {     
-      mIdentity.getHostAddress(identityHost);
-      identityPort = mIdentity.getHostPort();
-      mCanonicalUrl.setHostAddress(identityHost);
-      mCanonicalUrl.setHostPort(identityPort);
+   {
+      UtlString identityHost = m_identityUri.getHostAddress();
+      int identityPort = m_identityUri.getHostPort();
+      m_canonicalUrl.setHostAddress(identityHost);
+      m_canonicalUrl.setHostPort(identityPort);
    }
 }
 
-
-Url& SipLine::getUserEnteredUrl()
+Url SipLine::getUserEnteredUrl() const
 {
-    return mUserEnteredUrl;
+    return m_userEnteredUrl;
 }
-Url& SipLine::getIdentity()
+Url SipLine::getIdentity() const
 {
-    return mIdentity;
-}
-
-Url& SipLine::getCanonicalUrl()
-{
-    return mCanonicalUrl;
+    return m_identityUri;
 }
 
-void SipLine::setAutoEnableStatus( UtlBoolean isAutoEnabled)
+Url SipLine::getCanonicalUrl() const
 {
-    mIsAutoEnabled = isAutoEnabled;
+    return m_canonicalUrl;
 }
 
-UtlBoolean SipLine::getAutoEnableStatus()
+void SipLine::setAutoEnableStatus(UtlBoolean isAutoEnabled)
 {
-    return mIsAutoEnabled ;
+    m_isAutoEnabled = isAutoEnabled;
+}
+
+UtlBoolean SipLine::getAutoEnableStatus() const
+{
+    return m_isAutoEnabled;
 }
 
 void SipLine::setVisibility(UtlBoolean isEnable)
 {
-    mIsVisible = isEnable;
+    m_isVisible = isEnable;
 }
 
-UtlBoolean SipLine::getVisibility()
+UtlBoolean SipLine::getVisibility() const
 {
-    return mIsVisible;
+    return m_isVisible;
 }
+
 void SipLine::setCallHandling(UtlBoolean useCallHandling)
 {
-    mIsUsingCallHandling = useCallHandling;
+    m_isUsingCallHandling = useCallHandling;
 }
 
-UtlBoolean SipLine::getCallHandling()
+UtlBoolean SipLine::getCallHandling() const
 {
-    return mIsUsingCallHandling;
+    return m_isUsingCallHandling;
 }
 
-UtlBoolean SipLine::addCredentials( const UtlString& strRealm,
-                             const UtlString& strUserID,
-                             const UtlString& strPasswd,
-                             const UtlString& Type)
+UtlBoolean SipLine::addCredentials(const UtlString& strRealm,
+                                   const UtlString& strUserID,
+                                   const UtlString& strPasswd,
+                                   const UtlString& strType)
 {
    UtlBoolean isAdded = FALSE;
 
-   if(!IsDuplicateRealm(strRealm, Type))
+   if(!isDuplicateRealm(strRealm))
    {
-      SipLineCredentials* credential = new SipLineCredentials(strRealm , strUserID, strPasswd, Type);
-      mCredentials.insert((UtlString*)credential);
+      SipLineCredentials* credential = new SipLineCredentials(strRealm , strUserID, strPasswd, strType);
+      m_credentials.insert(credential);
       isAdded = TRUE;
    }
+
    return isAdded;
 }
 
-int SipLine::GetNumOfCredentials()
+int SipLine::getNumOfCredentials() const
 {
-   return mCredentials.entries();
+   return m_credentials.entries();
 
 }
 
 UtlBoolean SipLine::getCredentials(const UtlString& type /*[in]*/,
-                             const UtlString& realm /*[in]*/,
-                             UtlString* userID /*[out]*/,
-                             UtlString* MD5_token /*[out]*/)
+                                   const UtlString& realm /*[in]*/,
+                                   UtlString* userID /*[out]*/,
+                                   UtlString* MD5_token /*[out]*/)
 {
-   UtlBoolean credentialsFound = FALSE;
-   UtlString matchRealm(realm);
    UtlString emptyRealm(NULL);
-   UtlString userPassword;
-   *MD5_token = "";
 
-   SipLineCredentials* credential = (SipLineCredentials*) mCredentials.find(&matchRealm);
+   SipLineCredentials* credential = (SipLineCredentials*) m_credentials.find(&realm);
    if (credential)
    {
-      credential->getUserId(userID);
-      credential->getPasswordToken(&userPassword);
-      credentialsFound = TRUE;
-      credential = NULL;
-      HttpMessage::buildMd5UserPasswordDigest(userID->data(), matchRealm.data(), userPassword.data(), *MD5_token);
+      *userID = credential->getUserId();
+      *MD5_token = credential->getPasswordMD5Digest();
    }
-   else
+   else // if realm was not found, then return credentials for default = empty realm
    {
-      credential = (SipLineCredentials*) mCredentials.find(&emptyRealm);
+      credential = (SipLineCredentials*) m_credentials.find(&emptyRealm);
       if (credential)
       {
-          credential->getUserId(userID);
-          credential->getPasswordToken(&userPassword);
-          credentialsFound = TRUE;
-          credential = NULL;
-          HttpMessage::buildMd5UserPasswordDigest(userID->data(), realm.data(), userPassword.data(), *MD5_token);
+         *userID = credential->getUserId();
+         *MD5_token = credential->getPasswordMD5Digest();
       }
    }
 
-   return  credentialsFound ;
+   return credential != NULL;
 }
 
-UtlBoolean SipLine::getDuplicateCredentials(const UtlString& type /*[in]*/,
-                                            const UtlString& realm /*[in]*/)
+void SipLine::removeCredential(const UtlString& realm)
 {
-   UtlBoolean credentialsFound = FALSE;
-   UtlString matchRealm(realm);
-   UtlString emptyRealm(NULL);
-
-   if (realm.length() == 0)
-   {
-      SipLineCredentials* credential = (SipLineCredentials*) mCredentials.find(&emptyRealm);
-      if (credential)
-      {
-          credentialsFound = TRUE;
-          credential = NULL;
-      }
-   }
-   else
-   {
-      SipLineCredentials* credential = (SipLineCredentials*) mCredentials.find(&matchRealm);
-      if (credential)
-      {
-         credentialsFound = TRUE;
-         credential = NULL;
-      }
-   }
-
-   return  credentialsFound ;
-}
-
-void SipLine::removeCredential(const UtlString *realm)
-{
-   UtlString matchRealm(*realm);
- 
-   UtlContainable* wasRemoved = mCredentials.removeReference(&matchRealm);
-
+   UtlContainable* wasRemoved = m_credentials.removeReference(&realm);
    if(wasRemoved)
    {
       delete wasRemoved;
    }
-
 }
 
 void SipLine::removeAllCredentials()
 {
-    mCredentials.destroyAll();
-
+    m_credentials.destroyAll();
 }
-
 
 void SipLine::setPreferredContactUri(const Url& preferredContactUri)
 {
-    mPreferredContactUri = preferredContactUri ;
+    m_preferredContactUri = preferredContactUri;
 }
 
 void SipLine::setPreferredContact(const UtlString& contactAddress, int contactPort)
 {
-   mPreferredContactUri.setHostAddress(contactAddress);
-   mPreferredContactUri.setHostPort(contactPort);
+   m_preferredContactUri.reset();
+   m_preferredContactUri.setHostAddress(contactAddress);
+   m_preferredContactUri.setHostPort(contactPort);
 }
 
 UtlBoolean SipLine::getPreferredContactUri(Url& preferredContactUri) const
 {
-    UtlString host ; 
+    preferredContactUri = m_preferredContactUri;
 
-    preferredContactUri = mPreferredContactUri ;
-    preferredContactUri.getHostAddress(host) ;
-
-    return (host.length() > 0) ;
+    return (!preferredContactUri.getHostAddress().isNull());
 }
 
-UtlBoolean SipLine::getAllCredentials( int MaxEnteries/*[in]*/ ,
-      int& actualEnteries /*[out/int]*/,
-      UtlString realm[]/*[out/int]*/,
-      UtlString userId[]/*[out/int]*/,
-      UtlString type[]/*[out/int]*/,
-      UtlString passtoken[]/*[out/int]*/)
+UtlBoolean SipLine::getAllCredentials(int maxEnteries/*[in]*/ ,
+                                      int& actualEnteries /*[out/int]*/,
+                                      UtlString realm[]/*[out/int]*/,
+                                      UtlString userId[]/*[out/int]*/,
+                                      UtlString type[]/*[out/int]*/,
+                                      UtlString passdigest[]/*[out/int]*/)
 {
-    UtlBoolean credentialsFound = FALSE;
-    UtlString Realm;
-    UtlString UserID;
-    UtlString Type;
-    UtlString Password;
-    UtlString PassToken;
     int i = 0;
 
-    UtlHashBagIterator observerIterator(mCredentials);
+    UtlHashBagIterator observerIterator(m_credentials);
     SipLineCredentials* credential = NULL;
 
-    do
-    {
-        credential = (SipLineCredentials*) observerIterator();
-        if ( credential)
-        {
-            credential->getRealm(&Realm);
-            credential->getUserId(&UserID);
-            credential->getType(&Type);
-            credential->getPasswordToken(&Password) ;
-            PassToken = "";
-            HttpMessage::buildMd5UserPasswordDigest(UserID.data(), Realm.data(), Password.data(), PassToken);
-            
-            realm[i].remove(0);
-            realm[i].append(Realm);
-            
-            userId[i].remove(0);
-            userId[i].append(UserID);
+    while((credential = (SipLineCredentials*) observerIterator()) != NULL && i < maxEnteries)
+    {     
+      userId[i] = credential->getUserId();
+      passdigest[i] = credential->getPasswordMD5Digest();
+      realm[i] = credential->getRealm();
+      type[i] = credential->getType();
 
-            type[i].remove(0);
-            type[i].append(Type);
-
-            passtoken[i].remove(0) ;
-            passtoken[i].append(PassToken) ;
-
-            i++;
-            credentialsFound = TRUE;
-        }
+      i++;
     }
-    while(credential != NULL && i< MaxEnteries) ;
+
     actualEnteries = i;
-    return  credentialsFound ;
+    return  actualEnteries > 0;
 }
 
-
-
-UtlBoolean SipLine::IsDuplicateRealm(const UtlString realm, const UtlString scheme)
+UtlBoolean SipLine::isDuplicateRealm(const UtlString& realm) const
 {
-   UtlString userID;
-   UtlString passToken;
-   if (getDuplicateCredentials(scheme, realm))
-      return TRUE;
-   else
-      return FALSE;
+   SipLineCredentials* credential = (SipLineCredentials*) m_credentials.find(&realm);
+   return credential != NULL;
 }
 
 void SipLine::generateLineID(UtlString& lineId)
 {
-   NetMd5Codec::encode(mIdentity.toString().data(), lineId);
+   lineId = NetMd5Codec::encode(m_identityUri.toString());
 
    // Shorten the line Ids to 12 chars (from 32)
-   lineId.remove(12) ;
+   lineId.remove(12);
 }
-
