@@ -427,7 +427,8 @@ public:
     //! Get the local address and port
     UtlBoolean getLocalAddress(UtlString* pIpAddress,
                                int* pPort,
-                               SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP) ;
+                               SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP,
+                               const UtlString& preferredIp = NULL);
 
     //! Get the NAT mapped address and port
     UtlBoolean getNatMappedAddress(UtlString* pIpAddress,
@@ -712,8 +713,8 @@ private:
     SipTlsServer* mSipTlsServer;
 #endif
     SipTransactionList mSipTransactions;
-    UtlString defaultSipUser;
-    UtlString defaultSipAddress;
+    UtlString mDefaultSipUser;
+    UtlString mDefaultSipAddress;
     UtlString proxyServers;
     UtlString directoryServers;
     UtlString registryServers;

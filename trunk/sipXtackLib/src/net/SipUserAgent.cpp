@@ -272,8 +272,8 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
     }
     if(defaultUser)
     {
-        defaultSipUser.append(defaultUser);
-        NameValueTokenizer::frontBackTrim(&defaultSipUser, " \t\n\r");
+        mDefaultSipUser.append(defaultUser);
+        NameValueTokenizer::frontBackTrim(&mDefaultSipUser, " \t\n\r");
     }
 
     if (!defaultAddress || strcmp(defaultAddress, "0.0.0.0") == 0)
@@ -284,12 +284,12 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
         // Bind to the contact's Ip
         if (pContact)
         {
-            defaultSipAddress = pContact->cIpAddress;
+            mDefaultSipAddress = pContact->cIpAddress;
         }
     }
     else
     {
-        defaultSipAddress.append(defaultAddress);
+        mDefaultSipAddress.append(defaultAddress);
         sipIpAddress.append(defaultAddress);
     }
 
@@ -308,7 +308,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
         contact.eContactType = CONTACT_CONFIG;
         strcpy(contact.cIpAddress, publicAddress);
 
-        if (getContactAdapterName(adapterName, defaultSipAddress))
+        if (getContactAdapterName(adapterName, mDefaultSipAddress))
         {
             SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
         }
@@ -317,7 +317,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
            // If getContactAdapterName can't find an adapter.
            OsSysLog::add(FAC_SIP, PRI_WARNING,
                          "SipUserAgent::_ no adapter found for address '%s'",
-                         defaultSipAddress.data());
+                         mDefaultSipAddress.data());
            SAFE_STRNCPY(contact.cInterface, "(unknown)", sizeof(contact.cInterface));
         }
         contact.iPort = mUdpPort; // what about the TCP port?
@@ -326,7 +326,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
     }
     else
     {
-        sipIpAddress = defaultSipAddress;
+        sipIpAddress = mDefaultSipAddress;
     }
 
     mSipPort = PORT_NONE;
@@ -360,7 +360,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
                 hostIpAddress.data(),
                 (mUdpPort == SIP_PORT) ? PORT_NONE : mUdpPort,
                 (mUdpPort == mTcpPort) ? "" : SIP_TRANSPORT_UDP,
-                defaultSipUser.data());
+                mDefaultSipUser.data());
 
 #ifdef TEST_PRINT
         osPrintf("UDP default contact: \"%s\"\n", mContactAddress.data());
@@ -372,7 +372,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
     {
         SipMessage::buildSipUrl(&mContactAddress, hostIpAddress.data(),
                 (mTcpPort == SIP_PORT) ? PORT_NONE : mUdpPort,
-                SIP_TRANSPORT_TCP, defaultSipUser.data());
+                SIP_TRANSPORT_TCP, mDefaultSipUser.data());
 #ifdef TEST_PRINT
         osPrintf("TCP default contact: \"%s\"\n", mContactAddress.data());
 #endif
@@ -3051,46 +3051,84 @@ UtlBoolean SipUserAgent::getConfiguredPublicAddress(UtlString* pIpAddress, int* 
 }
 
 // Get the local address and port
-UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX_TRANSPORT_TYPE protocol)
+UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX_TRANSPORT_TYPE protocol, const UtlString& preferredIp)
 {
-    if (pIpAddress)
-    {
-        if (defaultSipAddress.length() > 0)
-        {
-            *pIpAddress = defaultSipAddress;
-        }
-        else
-        {
-            OsSocket::getHostIp(pIpAddress) ;
-        }   
-    }
+   if (pIpAddress)
+   {
+      *pIpAddress = NULL;
 
-    if (pPort)
-    {
-        switch (protocol)
-        {
-            case TRANSPORT_UDP:
-                if (mSipUdpServer)
-                    *pPort = mSipUdpServer->getServerPort() ;
-                break;
-            case TRANSPORT_TCP:
-                if (mSipTcpServer)
-                    *pPort = mSipTcpServer->getServerPort() ;
-                break;
+      if (!preferredIp.isNull())
+      {
+         // we have preferred ip address, try to use it if possible
+         switch (protocol)
+         {
+         default:
+         case TRANSPORT_UDP:
+            if (mSipUdpServer && mSipUdpServer->isBoundTo(preferredIp))
+            {
+               // server is bound to preferred ip, we can use it
+               *pIpAddress = preferredIp;
+            }
+            break;
+         case TRANSPORT_TCP:
+            if (mSipTcpServer && mSipTcpServer->isBoundTo(preferredIp))
+            {
+               // server is bound to preferred ip, we can use it
+               *pIpAddress = preferredIp;
+            }
+            break;
 #ifdef HAVE_SSL
-            case TRANSPORT_TLS:
-                if (mSipTlsServer)
-                    *pPort = mSipTlsServer->getServerPort();
-                break;
+         case TRANSPORT_TLS:
+            if (mSipTlsServer && mSipTlsServer->isBoundTo(preferredIp))
+            {
+               // server is bound to preferred ip, we can use it
+               *pIpAddress = preferredIp;
+            }
+            break;
 #endif
-            default:
-                if (mSipUdpServer)
-                    *pPort = mSipUdpServer->getServerPort() ;
-                break;
-        }
-    }
+         }
+      }
 
-    return TRUE ;
+      if (pIpAddress->isNull())
+      {
+         // if ip address was not selected from preferred ip
+         if (mDefaultSipAddress.length() > 0)
+         {
+            *pIpAddress = mDefaultSipAddress;
+         }
+         else
+         {
+            OsSocket::getHostIp(pIpAddress);
+         }
+      }
+   }
+
+   if (pPort)
+   {
+      switch (protocol)
+      {
+      case TRANSPORT_UDP:
+         if (mSipUdpServer)
+            *pPort = mSipUdpServer->getServerPort();
+         break;
+      case TRANSPORT_TCP:
+         if (mSipTcpServer)
+            *pPort = mSipTcpServer->getServerPort();
+         break;
+#ifdef HAVE_SSL
+      case TRANSPORT_TLS:
+         if (mSipTlsServer)
+            *pPort = mSipTlsServer->getServerPort();
+         break;
+#endif
+      default:
+         if (mSipUdpServer)
+            *pPort = mSipUdpServer->getServerPort();
+         break;
+      }
+   }
+
+   return TRUE;
 }
 
 
@@ -3234,7 +3272,7 @@ void SipUserAgent::prepareContact(SipMessage& message,
                 contactIp,
                 mUdpPort == SIP_PORT ? PORT_NONE : mUdpPort,
                 NULL,
-                defaultSipUser.data());
+                mDefaultSipUser.data());
         message.setContactField(contact) ;
     }
 
@@ -3410,7 +3448,7 @@ void SipUserAgent::getFromAddress(UtlString* address, int* port, UtlString* prot
             }
 
             // If there is an address configured use it
-            NameValueTokenizer::getSubField(defaultSipAddress.data(), 0,
+            NameValueTokenizer::getSubField(mDefaultSipAddress.data(), 0,
                     ", \t", address);
 
             // else use the local host ip address
