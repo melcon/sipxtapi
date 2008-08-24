@@ -24,12 +24,16 @@ class SipLineCredentials : public UtlString
 {
 public:
 
+   SipLineCredentials();
+
    SipLineCredentials(const UtlString& realm,
                       const UtlString& userId,
                       const UtlString& passwordToken,
                       const UtlString& type);
 
    virtual ~SipLineCredentials();
+   SipLineCredentials(const SipLineCredentials& rSipLineCredentials);
+   SipLineCredentials& operator=(const SipLineCredentials& rSipLineCredentials);
 
    UtlString getRealm() const;
    UtlString getUserId() const;

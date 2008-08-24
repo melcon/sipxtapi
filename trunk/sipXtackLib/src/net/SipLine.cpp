@@ -251,32 +251,57 @@ UtlBoolean SipLine::addCredentials(const UtlString& strRealm,
    return isAdded;
 }
 
+UtlBoolean SipLine::addCredentials(const SipLineCredentials& lineCredentials)
+{
+   UtlBoolean isAdded = FALSE;
+
+   if(!isDuplicateRealm(lineCredentials.getRealm()))
+   {
+      SipLineCredentials* credential = new SipLineCredentials(lineCredentials);
+      m_credentials.insert(credential);
+      isAdded = TRUE;
+   }
+
+   return isAdded;
+}
+
 int SipLine::getNumOfCredentials() const
 {
    return m_credentials.entries();
 
 }
 
-UtlBoolean SipLine::getCredentials(const UtlString& type /*[in]*/,
-                                   const UtlString& realm /*[in]*/,
-                                   UtlString* userID /*[out]*/,
-                                   UtlString* MD5_token /*[out]*/)
+UtlBoolean SipLine::getCredentials(const UtlString& type,
+                                   const UtlString& realm,
+                                   UtlString& userID,
+                                   UtlString& MD5_token)
+{
+   SipLineCredentials lineCredentials;
+
+   UtlBoolean result = getCredentials(type, realm, lineCredentials);
+   userID = lineCredentials.getUserId();
+   MD5_token = lineCredentials.getPasswordMD5Digest();
+
+   return result;
+}
+
+UtlBoolean SipLine::getCredentials(const UtlString& type,
+                                   const UtlString& realm,
+                                   SipLineCredentials& lineCredentials)
 {
    UtlString emptyRealm(NULL);
 
    SipLineCredentials* credential = (SipLineCredentials*) m_credentials.find(&realm);
    if (credential)
    {
-      *userID = credential->getUserId();
-      *MD5_token = credential->getPasswordMD5Digest();
+      lineCredentials = *credential;
    }
    else // if realm was not found, then return credentials for default = empty realm
    {
       credential = (SipLineCredentials*) m_credentials.find(&emptyRealm);
       if (credential)
       {
-         *userID = credential->getUserId();
-         *MD5_token = credential->getPasswordMD5Digest();
+         lineCredentials = *credential;
       }
    }
 

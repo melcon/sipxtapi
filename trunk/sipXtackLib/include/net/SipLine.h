@@ -28,6 +28,8 @@
 // STRUCTS
 // TYPEDEFS
 
+class SipLineCredentials;
+
 //STATE TRANSITION//
 /*
                                                         |----1/2refresh time--|
@@ -123,19 +125,24 @@ public:
                              const UtlString& strUserID,
                              const UtlString& strPassword,
                              const UtlString& strType);
+   UtlBoolean addCredentials(const SipLineCredentials& lineCredentials);
 
    ///< Gets credentials for given realm. Type is currently ignored.
-   UtlBoolean getCredentials(const UtlString& type /*[in]*/,
-                             const UtlString& realm /*[in]*/,
-                             UtlString* userID /*[out]*/,
-                             UtlString* MD5_token /*[out]*/);
+   UtlBoolean getCredentials(const UtlString& type,
+                             const UtlString& realm,
+                             UtlString& userID,
+                             UtlString& MD5_token);
 
-   UtlBoolean getAllCredentials(int maxEnteries/*[in]*/ ,
-                                int& actualEnteries /*[out/int]*/,
-                                UtlString realm[]/*[out/int]*/,
-                                UtlString userId[]/*[out/int]*/,
-                                UtlString type[]/*[out/int]*/,
-                                UtlString passdigest[]/*[out/int]*/);
+   UtlBoolean getCredentials(const UtlString& type,
+                             const UtlString& realm,
+                             SipLineCredentials& lineCredentials);
+
+   UtlBoolean getAllCredentials(int maxEnteries,
+                                int& actualEnteries,
+                                UtlString realm[],
+                                UtlString userId[],
+                                UtlString type[],
+                                UtlString passdigest[]);
 
    //removes credetials for a particular realm
    void removeCredential(const UtlString& realm);
