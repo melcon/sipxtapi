@@ -24,15 +24,13 @@
 #include "net/SipMessageList.h"
 #include "net/SipMessageEvent.h"
 #include "net/SipCallIdGenerator.h"
-#include "tapi/sipXtapiEvents.h" /* :TODO: CIRCULAR */
-
 #include "net/SipLine.h"
 
 
 // DEFINES
 #define DEFAULT_PERCENTAGE_TIMEOUT 48 //48%
 #define FAILED_PERCENTAGE_TIMEOUT 24 //24%
-#define SIP_LINE_LINEID "lineID"
+
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -47,19 +45,20 @@ class SipLineStateEventListener;
 class SipRefreshMgr : public OsServerTask
 {
 public:
+    SipRefreshMgr(SipLineStateEventListener *listener = NULL);
+
+    virtual ~SipRefreshMgr();
+
     //INITIALIZE
-    UtlBoolean init(
-        SipUserAgent *ptrToMyAgent,
-        const char* sipDirectoryServers = NULL,
-        const char* sipRegistryServers = NULL,
-        int defaultRegistryTimeout = 3600);
+    UtlBoolean init(SipUserAgent *ptrToMyAgent,
+                    int defaultRegistryTimeout = 3600);
 
     void startRefreshMgr();
     
     /**
      * Mutator for the mDefaultRegistryPeriodMember
      */
-    void setRegistryPeriod(const int periodInSeconds);
+    void setRegistryPeriod(int periodInSeconds);
     
     void addMessageObserver (
         OsMsgQ& messageQueue,
@@ -99,35 +98,16 @@ public:
     void setLineMgr(SipLineMgr* const lineMgr);
     //: Sets a pointer to the line manager
     
-    SipLineMgr* const getLineMgr() const;
-    //: Gets the line manager pointer
-
-    SipRefreshMgr(SipLineStateEventListener *listener = NULL);
-
     void dumpMessageLists(UtlString& results) ;
       //:Appends the message contents of both the mRegisterList and 
       // mSubscribeList
   
-    virtual ~SipRefreshMgr();
-
     virtual UtlBoolean handleMessage( OsMsg& eventMessage );
 
 protected:
     SipLineMgr* mpLineMgr;
     // the line manager object that uses this refresh manager
     
-    // MsgType categories defined for use by the system
-    enum RefreshMsgTypes
-    {
-        UNSPECIFIED = 0,
-        START_REFRESH_MGR
-    };
-
-    // Common Methods
-    UtlBoolean isUAStarted();
-
-    void waitForUA();
-
     void queueMessageToObservers (
         SipMessageEvent& event,
         const char* method);
@@ -207,7 +187,6 @@ protected:
     SipMessageList mRegisterList;
     OsRWMutex mRegisterListMutexR;
     OsRWMutex mRegisterListMutexW;
-    UtlString mRegistryServer;
 
     // events
     SipLineStateEventListener* mLineListener;
@@ -217,7 +196,6 @@ protected:
     UtlBoolean mIsStarted;
     UtlHashBag mMessageObservers;
     OsRWMutex mObserverMutex;
-    OsMutex mUAReadyMutex;
     SipUserAgent* mMyUserAgent;
     UtlRandom mRandomNumGenerator;
     UtlHashBag mTimerBag;

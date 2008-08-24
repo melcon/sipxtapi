@@ -257,17 +257,8 @@ SipLineMgr::deleteLine(const Url& identity)
        return;
     }
 
-    // we don't un-register any more
-//    if (line->getState() == SipLine::LINE_STATE_REGISTERED )
-//    {
-//        // Add to temporary list - needed if challenged for credentials.
-//        addToTempList(line);
-//        disableLine(identity, 0, identity.toString());
-//    }
-//    else
     {
         removeFromList(line);
-        removeFromTempList(line);
         pDeleteLine = line ;
     }
 
@@ -384,18 +375,6 @@ SipLineMgr::notifyChangeInOutboundLine(Url& identity)
     queueMessageToObservers(lineEvent);
 }
 
-
-void SipLineMgr::setOwner(const UtlString& owner)
-{
-    mOwner.remove(0);
-    mOwner.append(owner);
-}
-
-const UtlString&
-SipLineMgr::getOwner() const
-{
-    return mOwner;
-}
 
 void
 SipLineMgr::setDefaultOutboundLine(const Url& outboundLine)
@@ -520,12 +499,9 @@ SipLineMgr::getLine(
     return FALSE;
 }
 
-SipLine*
-SipLineMgr::getLineforAuthentication(
-    const SipMessage* request /*[in]*/,
-    const SipMessage* response /*[in]*/,
-    const UtlBoolean& isIncomingRequest,
-    const UtlBoolean& fromTempList) const
+SipLine* SipLineMgr::getLineforAuthentication(const SipMessage* request /*[in]*/,
+                                              const SipMessage* response /*[in]*/,
+                                              UtlBoolean isIncomingRequest) const
 {
     SipLine* line = NULL;
     UtlString lineId;
@@ -603,15 +579,6 @@ SipLineMgr::getLineforAuthentication(
 
    UtlString emptyRealm(NULL);
 
-   if (fromTempList)
-   {
-      line = sTempLineList.findLine(lineId.data(), realm.data(), toFromUrl, userId.data(), mOutboundLine) ;
-      if (line == NULL)
-      {
-         line = sTempLineList.findLine(lineId.data(), emptyRealm.data(), toFromUrl, userId.data(), mOutboundLine) ;
-      }
-   }
-
    if (line == NULL)
    {
       line = sLineList.findLine(lineId.data(), realm.data(), toFromUrl, userId.data(), mOutboundLine) ;
@@ -628,15 +595,6 @@ SipLineMgr::getLineforAuthentication(
        toFromUrl.removeFieldParameters();
        toFromUrl.setDisplayName("");
        toFromUrl.removeAngleBrackets();
-
-       if (fromTempList)
-       {
-          line = sTempLineList.findLine(lineId.data(), realm.data(), toFromUrl, userId.data(), mOutboundLine) ;
-          if (line == NULL)
-          {
-             line = sTempLineList.findLine(lineId.data(), emptyRealm.data(), toFromUrl, userId.data(), mOutboundLine) ;
-          }
-       }
 
        if (line == NULL)
        {
@@ -781,28 +739,14 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
         }
     }
 
-    if( method.compareTo(SIP_REGISTER_METHOD) ==0  && expires == 0 )
-    {
-        line = getLineforAuthentication(request, response, FALSE, TRUE);
-        if(line)
-        {
-            if(line->getCredentials(scheme, realm, userID, passToken))
-            {
-            credentialFound = TRUE;
-            }
-            removeFromTempList(line);
-        }
-    } else
-    {
-        line = getLineforAuthentication(request, response, FALSE);
-        if(line)
-        {
-            if(line->getCredentials(scheme, realm, userID, passToken))
-            {
-                credentialFound = TRUE;
-            }
-        }
-    }
+     line = getLineforAuthentication(request, response, FALSE);
+     if(line)
+     {
+         if(line->getCredentials(scheme, realm, userID, passToken))
+         {
+             credentialFound = TRUE;
+         }
+     }
 
     if( !alreadyTriedOnce && credentialFound )
     {
@@ -1060,15 +1004,6 @@ void SipLineMgr::addLineToList(SipLine& line)
 void SipLineMgr::removeFromList(SipLine *line)
 {
     sLineList.remove(line);
-}
-void SipLineMgr::addToTempList(SipLine *line)
-{
-    sTempLineList.add(new SipLine(*line));
-}
-
-void SipLineMgr::removeFromTempList(SipLine *line)
-{
-    sTempLineList.remove(line);
 }
 
 void SipLineMgr::setDefaultContactUri(const Url& contactUri)
@@ -1388,325 +1323,6 @@ SipLineMgr::getCanonicalUrlForLine(
         line = NULL;
     }
     return retVal;
-}
-
-// Delete all line definitions from the specified configuration db.
-void
-SipLineMgr::purgeLines( OsConfigDb *pConfigDb )
-{
-    UtlString keyLast ;
-    UtlString keyNext ;
-    UtlString valueNext ;
-
-    if (pConfigDb != NULL)
-    {
-        // Remove all PHONESET_LINE. keys
-        OsConfigDb phonesetSubHash ;
-        if (pConfigDb->getSubHash(BASE_PHONESET_LINE_KEY, phonesetSubHash) == OS_SUCCESS)
-        {
-            while (phonesetSubHash.getNext(keyLast, keyNext, valueNext) == OS_SUCCESS)
-            {
-                UtlString removeKey(BASE_PHONESET_LINE_KEY) ;
-                removeKey.append(keyNext) ;
-                pConfigDb->remove(removeKey) ;
-                keyLast = keyNext ;
-            }
-        }
-
-        // Remove all USER_LINE. keys
-        OsConfigDb userSubHash ;
-        keyLast.remove(0) ;
-        if (pConfigDb->getSubHash(BASE_USER_LINE_KEY, userSubHash) == OS_SUCCESS)
-        {
-            while (userSubHash.getNext(keyLast, keyNext, valueNext) == OS_SUCCESS)
-            {
-                UtlString removeKey(BASE_USER_LINE_KEY) ;
-                removeKey.append(keyNext) ;
-                pConfigDb->remove(removeKey) ;
-                keyLast = keyNext ;
-            }
-        }
-
-        // Remove the Default outbound line
-        pConfigDb->remove(USER_DEFAULT_OUTBOUND_LINE) ;
-    }
-}
-
-
-// Load a single line
-UtlBoolean
-SipLineMgr::loadLine(
-    OsConfigDb* pConfigDb,
-    UtlString strSubKey,
-    SipLine& line )
-{
-    UtlBoolean bSuccess = false ;
-    UtlBoolean bAllowForwarding ;
-    int iRegistration = SipLine::LINE_STATE_UNKNOWN;
-    UtlString  strKey ;
-    UtlString  strUrl ;
-    UtlString  strValue ;
-
-    if ( pConfigDb != NULL )
-    {
-        // Get URL
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_URL) ;
-        if (pConfigDb->get(strKey, strUrl))
-        {
-            if (!strUrl.isNull())
-            {
-                UtlString address;
-                Url url(strUrl) ;
-                Url identity(url);
-                url.getHostAddress(address);
-                if( address.isNull())    //dynamic IP address
-                {
-                    //get address and port from contact uri
-                    UtlString contactHost;
-                    mDefaultContactUri.getHostAddress(contactHost);
-                    int contactPort = mDefaultContactUri.getHostPort();
-                    identity.setHostAddress(contactHost);
-                    identity.setHostPort(contactPort);
-                } else
-                {
-                    UtlString uri;
-                    url.getUri(uri);
-                    identity = Url(uri);
-                }
-                line.setIdentityAndUrl(identity,url);
-                bSuccess = true ;
-
-                // Get Allow Forwarding (Default is ENABLE)
-                strKey = strSubKey ;
-                strKey.append(LINE_PARAM_ALLOW_FORWARDING) ;
-                if ((pConfigDb->get(strKey, strValue)) &&
-                strValue.compareTo(LINE_ALLOW_FORWARDING_ENABLE, UtlString::ignoreCase)==0)
-                {
-                    bAllowForwarding = true ;
-                } else
-                {
-                    bAllowForwarding = false ;
-                }
-                line.setCallHandling(bAllowForwarding) ;
-
-                // Get Registration (Default is Provision)
-                strKey = strSubKey ;
-                strKey.append(LINE_PARAM_REGISTRATION) ;
-                if ((pConfigDb->get(strKey, strValue)) &&
-                        strValue.compareTo(LINE_REGISTRATION_REGISTER, UtlString::ignoreCase)==0)
-                {
-                    iRegistration  = SipLine::LINE_STATE_REGISTERED ;
-                }
-                else
-                {
-                    iRegistration  = SipLine::LINE_STATE_PROVISIONED;
-                }
-                    //The list registration behaviour is independent of the autoenable behaviour.
-                    //The autoEnable behaviour is just for persistence. Since we do not have guest
-                    //login all the lines right now by default should have autoenable status true
-                    //since this line is read from a file( ie is persistent) is is autoenabled.
-                    line.setState(iRegistration) ;
-                    line.setAutoEnableStatus(TRUE);
-
-                // Load Credentials.  Attempt to load the max number of
-                // credentials, however, if any credentials fail to load,
-                // kick out. This is a safe optimization assuming that
-                // credentials numbers are sequential.
-                line.removeAllCredentials() ;
-                for (int i=0; i<MAX_CREDENTIALS; i++)
-                {
-                    strKey = strSubKey ;
-                    strKey.append(LINE_PARAM_CREDENTIAL) ;
-                    char szTempBuf[32] ;
-                    SNPRINTF(szTempBuf, sizeof(szTempBuf), "%d", i+1) ;
-                    strKey.append(szTempBuf) ;
-                    strKey.append(".") ;
-
-                    if (!loadCredential(pConfigDb, strKey, line))
-                        break ;
-
-                }
-            }
-        }
-    }
-    return bSuccess ;
-}
-
-// Store/save a single line
-void SipLineMgr::storeLine(OsConfigDb* pConfigDb, UtlString strSubKey, SipLine line)
-{
-    UtlString strKey ;
-
-    if (pConfigDb != NULL)
-    {
-        // Store URL
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_URL) ;
-        Url urlLine = line.getUserEnteredUrl() ;
-        pConfigDb->set(strKey, urlLine.toString()) ;
-
-        // Store Registration Type
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_REGISTRATION) ;
-        //get line state and if it is anything other than PROVISION,
-        //set the line state to REGISTER because the other states are set
-        //only for REGISTRATION behaviour
-        int iLineState = line.getState();
-        if (iLineState == SipLine::LINE_STATE_PROVISIONED)
-            pConfigDb->set(strKey, LINE_REGISTRATION_PROVISION) ;
-        else
-            pConfigDb->set(strKey, LINE_REGISTRATION_REGISTER) ;
-
-        //there is no need to set the autoenable state because if we are
-        //saving it then it has to be autoenabled. The check should be performed
-        //before saving the line
-
-        // Store Call Handling Settings
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_ALLOW_FORWARDING) ;
-        if (line.getCallHandling())
-            pConfigDb->set(strKey, LINE_ALLOW_FORWARDING_ENABLE) ;
-        else
-            pConfigDb->set(strKey, LINE_ALLOW_FORWARDING_DISABLE) ;
-
-        int noOfCredentials = line.getNumOfCredentials();
-                if (noOfCredentials > 0)
-                {
-                        UtlString *strRealms = new UtlString[noOfCredentials] ;
-                        UtlString *strUserIds = new UtlString[noOfCredentials] ;
-                        UtlString *strTypes = new UtlString[noOfCredentials] ;
-                        UtlString *strPassTokens = new UtlString[noOfCredentials] ;
-
-                        int iCredentials = 0 ;
-
-                        if (line.getAllCredentials(noOfCredentials, iCredentials, strRealms, strUserIds, strTypes, strPassTokens))
-                        {
-                                for (int i=0; i<iCredentials; i++)
-                                {
-                                        UtlString strCredentialKey(strSubKey) ;
-                                        strCredentialKey.append(LINE_PARAM_CREDENTIAL) ;
-                                        char szTempBuf[32] ;
-                                        SNPRINTF(szTempBuf, sizeof(szTempBuf), "%d", i+1) ;
-                                        strCredentialKey.append(szTempBuf) ;
-                                        strCredentialKey.append(".") ;
-
-                                        storeCredential(pConfigDb, strCredentialKey, strRealms[i], strUserIds[i], strPassTokens[i], strTypes[i]) ;
-                                }
-                        }
-                        delete [] strRealms;
-                        delete [] strUserIds;
-                        delete [] strTypes;
-                        delete [] strPassTokens;
-                }
-    }
-}
-
-// Load a single credential and populate it within a line
-UtlBoolean SipLineMgr::loadCredential(OsConfigDb* pConfigDb,
-                                     UtlString strSubKey,
-                                     SipLine& line)
-
-
-{
-    UtlBoolean bSuccess = false ;
-    UtlString  strKey ;
-
-    UtlString strRealm ;
-    UtlString strUserId ;
-    UtlString strPassToken ;
-
-    if (pConfigDb != NULL)
-    {
-        // Get Realm
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_CREDENTIAL_REALM) ;
-        pConfigDb->get(strKey, strRealm) ;
-
-        // Get User ID
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_CREDENTIAL_USERID) ;
-        pConfigDb->get(strKey, strUserId) ;
-
-        // Get Password Token
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_CREDENTIAL_PASSTOKEN) ;
-        pConfigDb->get(strKey, strPassToken) ;
-
-        if (!strUserId.isNull() && !strPassToken.isNull())
-        {
-            bSuccess = true ;
-            line.addCredentials(strRealm, strUserId, strPassToken, HTTP_DIGEST_AUTHENTICATION) ;
-        }
-    }
-
-    return bSuccess ;
-}
-
-// Store/save a single credential
-void SipLineMgr::storeCredential(OsConfigDb* pConfigDb,
-                                 UtlString strSubKey,
-                                 UtlString strRealm,
-                                 UtlString strUserId,
-                                 UtlString strPassToken,
-                                 UtlString strType)
-
-{
-    UtlString strKey ;
-
-    if (pConfigDb != NULL)
-    {
-        // Store Realm
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_CREDENTIAL_REALM) ;
-        pConfigDb->set(strKey, strRealm) ;
-
-        // Store User ID
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_CREDENTIAL_USERID) ;
-        pConfigDb->set(strKey, strUserId) ;
-
-        // Store Password Token
-        strKey = strSubKey ;
-        strKey.append(LINE_PARAM_CREDENTIAL_PASSTOKEN) ;
-        pConfigDb->set(strKey, strPassToken) ;
-    }
-}
-
-
-void SipLineMgr::enableAllLines()
-{
-   int noOfLines =  getNumLines() ;
-   size_t actualLines;
-
-   // Allocate Lines
-   SipLine *lines = new SipLine[noOfLines] ;
-   // Get Actual lines and disable first
-   if (getLines(noOfLines, actualLines, lines))
-   {
-      for(size_t i = 0 ; i < actualLines; i++)
-      {
-         if ( lines[i].getState() == SipLine::LINE_STATE_REGISTERED)
-         {
-            /* We no longer implicitly unregister */
-            //disableLine(lines[i].getIdentity(), TRUE, lines[i].getLineId());//unregister for startup
-         }
-      }
-   }
-   // enable lines again
-   if (getLines(noOfLines, actualLines, lines))
-   {
-      for(size_t i =0 ; i< actualLines; i++)
-      {
-         if ( lines[i].getState() == SipLine::LINE_STATE_REGISTERED)
-         {
-               enableLine(lines[i].getIdentity());
-         }
-      }
-   }
-
-    // Free Lines
-    delete []lines ;
 }
 
 
