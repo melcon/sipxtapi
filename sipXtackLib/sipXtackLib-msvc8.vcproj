@@ -7458,6 +7458,10 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\net\SipCallIdGenerator.cpp"
+					>
+				</File>
+				<File
 					RelativePath="src\net\SipClient.cpp"
 					>
 					<FileConfiguration
@@ -15932,6 +15936,10 @@
 				</File>
 				<File
 					RelativePath="include\net\SdpHelper.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\SipCallIdGenerator.h"
 					>
 				</File>
 				<File
