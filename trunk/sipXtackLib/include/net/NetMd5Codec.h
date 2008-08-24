@@ -49,6 +49,7 @@ public:
 /* ============================ MANIPULATORS ============================== */
 
    static void encode(const char* test, UtlString& encodedText);
+   static UtlString encode(const char* test);
 
 /* ============================ ACCESSORS ================================= */
 
