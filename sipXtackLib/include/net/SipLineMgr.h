@@ -8,7 +8,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _SipLineMgr_h_
 #define _SipLineMgr_h_
 
@@ -16,13 +15,9 @@
 // #include <...>
 
 // APPLICATION INCLUDES
-
-
 #include "os/OsServerTask.h"
 #include "net/SipLine.h"
 #include "net/SipLineList.h"
-#include "net/SipLineEvent.h"
-#include "net/HttpMessage.h"
 
 // DEFINES
 // MACROS
@@ -32,8 +27,9 @@
 // STRUCTS
 // TYPEDEFS
 // FORWARD DECLARATIONS
-class OsConfigDb;
 class SipRefreshMgr;
+class HttpMessage;
+class SipMessage;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
@@ -108,15 +104,6 @@ public:
    UtlBoolean deleteCredentialForLine(const Url& identity,
                                      const UtlString strRealm );
 
-   //
-   // Listener/Observer Manipulators
-   //
-
-   void addMessageObserver(OsMsgQ& messageQueue,
-                            void* observerData = NULL );
-
-   UtlBoolean removeMessageObserver(OsMsgQ& messageQueue,
-                                   void* pObserverData = NULL );
    //:Removes all SIP message observers for the given message/queue observer
    //!param: messageQueue - All observers dispatching to this message queue
    //        will be removed if the pObserverData is NULL or matches.
@@ -194,8 +181,6 @@ protected:
      //:Assignment operator
 
     UtlBoolean handleMessage(OsMsg& eventMessage);
-
-    void queueMessageToObservers(SipLineEvent& event);
 
     void removeFromList(SipLine* line);
 
