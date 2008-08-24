@@ -319,7 +319,7 @@ UtlBoolean SipLineMgr::enableLine(const Url& lineURI)
     Url preferredContact;
     line->getPreferredContactUri(preferredContact);
 
-    if (!mpRefreshMgr->newRegisterMsg(canonicalUrl, -1, preferredContact))
+    if (!mpRefreshMgr->newRegisterMsg(canonicalUrl, preferredContact, -1))
     {
         //duplicate ...call reregister
         mpRefreshMgr->reRegister(lineURI);

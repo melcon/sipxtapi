@@ -107,8 +107,8 @@ public:
     //REGISTER METHODS
     UtlBoolean newRegisterMsg (
         const Url& fromUrl,
-        int registryPeriodSeconds = -1,
-        const Url& pPreferredContactUri = NULL);
+        const Url& contactUri,
+        int registryPeriodSeconds = -1);
 
     void reRegisterAll();
 
@@ -203,16 +203,16 @@ protected:
         const OsMsg& eventMessage,
         SipMessage* registerRequest);
 
-    void createTagNameValuePair( UtlString& tagNamevaluePair );
+    void createTagNameValuePair(UtlString& tagNamevaluePair);
+    UtlString createTagValue();
 
     // register
-    void registerUrl(
-        const char* registerFromAddress,
-        const char* registerToAddress,
-        const char* registerUri,
-        const char* contactUrl,
-        const UtlString& registerCallId,
-        int registerPeriod = -1);
+    void registerUrl(const Url& fromUrl,
+                     const Url& toUrl,
+                     const Url& requestUri,
+                     const UtlString& contactUrl,
+                     const UtlString& callId,
+                     int registerPeriod = -1);
 
     UtlBoolean isDuplicateRegister( 
         const Url& url,

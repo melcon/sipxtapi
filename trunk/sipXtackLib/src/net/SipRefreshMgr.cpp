@@ -38,6 +38,7 @@
 #include "net/SipObserverCriteria.h"
 #include "net/Url.h"
 #include "net/SipUserAgent.h"
+#include "net/SipTransport.h"
 #include "utl/UtlTokenizer.h"
 
 #define UNREGISTER_CSEQ_NUMBER   2146483648   // 2^31 - 1,000,000
@@ -285,38 +286,41 @@ SipRefreshMgr::addMessageObserver (
 //REGISTER
 /*===================================================================*/
 UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
-                                         int registryPeriodSeconds,
-                                         const Url& contactUri)
+                                         const Url& contactUri,
+                                         int registryPeriodSeconds)
 {
-    if (!isDuplicateRegister(fromUrl))
-    {
-        syslog(FAC_REFRESH_MGR, PRI_DEBUG, "adding registration:\nurl=%s\nperiod=%d",
-                fromUrl.toString().data(), registryPeriodSeconds);
-        
-        Url uri = fromUrl;
-        uri.setDisplayName("");
-        uri.setUserId("");
+   if (!isDuplicateRegister(fromUrl))
+   {
+      syslog(FAC_REFRESH_MGR, PRI_DEBUG, "adding registration:\nurl=%s\nperiod=%d",
+         fromUrl.toString().data(), registryPeriodSeconds);
 
-        //generate Call Id
-        UtlString registerCallId = mCallIdGenerator.getNewCallId();
-        UtlString contactField = contactUri.toString();
+      Url uri = fromUrl;
+      uri.setDisplayName("");
+      uri.setUserId("");
+      uri.removeAngleBrackets();
+      uri.removeFieldParameters();
+      UtlString strUri = uri.toString();
 
-        registerUrl(fromUrl.toString(), // from
-                    fromUrl.toString(), // to                    
-                    uri.toString(),
-                    contactField.data(), // contact
-                    registerCallId,                    
-                    registryPeriodSeconds);
+      //generate Call Id
+      UtlString registerCallId = mCallIdGenerator.getNewCallId();
+      UtlString contactField = contactUri.toString();
 
-        return true;
-    }
-    else
-    {
-        syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to add new registration (dup):\nurl=%s\nperiod=%d",
-                fromUrl.toString().data(), registryPeriodSeconds);
-    }
+      registerUrl(fromUrl, // from
+                  fromUrl, // to                    
+                  uri,
+                  contactField, // contact
+                  registerCallId,                    
+                  registryPeriodSeconds);
 
-    return false;
+      return TRUE;
+   }
+   else
+   {
+      syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to add new registration (dup):\nurl=%s\nperiod=%d",
+         fromUrl.toString().data(), registryPeriodSeconds);
+   }
+
+   return FALSE;
 }
 
 
@@ -1292,75 +1296,45 @@ SipRefreshMgr::sendToObservers (
     // Do not delete the message it gets deleted with the event
 }
 
-void 
-SipRefreshMgr::registerUrl(
-    const char* registerFromAddress,
-    const char* registerToAddress,
-    const char* registerUri,
-    const char* contactUrl,
-    const UtlString& registerCallId,
-    int registerPeriod)
+void SipRefreshMgr::registerUrl(const Url& fromUrl,
+                                const Url& toUrl,
+                                const Url& requestUri,
+                                const UtlString& contactUrl,
+                                const UtlString& callId,
+                                int registerPeriod)
 {
-    SipMessage* regMessage = new SipMessage();
-    int startSequence = 101;
-    
+   SipMessage regMessage;
+   int startSequence = 101;
+   Url newFromUrl(fromUrl);
 
-    UtlString fromField(registerFromAddress);
-    // add Tag to from field
-    UtlString tagNamevaluePair ;
-    createTagNameValuePair(tagNamevaluePair);
-    fromField.append(";");
-    fromField.append(tagNamevaluePair);
+   // add Tag to from field
+   newFromUrl.setFieldParameter("tag", createTagValue());
 
-    regMessage->setRegisterData (
-        fromField.data(),       // from
-        registerToAddress,      // to
-        registerUri,            // uri
-        contactUrl,             // contact
-        registerCallId.data(),  // callid
-        startSequence,
-        registerPeriod >= 0 ? registerPeriod : mDefaultRegistryPeriod );
+   regMessage.setRegisterData (
+      newFromUrl.toString(), // from
+      toUrl.toString(),   // to
+      requestUri.toString(),// uri
+      contactUrl,         // contact
+      callId,             // callid
+      startSequence,
+      registerPeriod >= 0 ? registerPeriod : mDefaultRegistryPeriod );
 
-    // Add to the register list
-    addToRegisterList(regMessage);
-    
-    // If the user agent is not started, then queue it.  Once the
-    // UA is started, it will kick off those registrations.
-    if ( isUAStarted() )
-    {       
-        UtlString localIp;
-        int localPort;
-        SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP;
-        
-        UtlString uri(registerUri);
-        if (uri.contains("sips:") || uri.contains("transport=tls"))
-        {
-            protocol = TRANSPORT_TLS;
-        }
-        if (uri.contains("transport=tcp"))
-        {
-            protocol = TRANSPORT_TCP;
-        }
+   // Add to the register list
+   addToRegisterList(&regMessage);
 
-        mMyUserAgent->getLocalAddress(&localIp, &localPort, protocol);
-        regMessage->setLocalIp(localIp);
-        if (sendRequest(*regMessage , SIP_REGISTER_METHOD) != OS_SUCCESS)
-        {
-            // if we couldn't send, go ahead and remove the register request from the list
-            removeFromRegisterList(regMessage);
-            regMessage = 0;
-        }
-    }
-    else
-    {        
-        regMessage->setContactField("") ; // BA: Why are we clearing the contact field ?!?
+   UtlString localIp;
+   int localPort;
+   SIPXSTACK_TRANSPORT_TYPE transport = SipTransport::getSipTransport(requestUri);
 
-        syslog(FAC_REFRESH_MGR, PRI_DEBUG, "queueing register until the SIP UA is ready:\nfrom=%s\nto=%s\nuri=%s\ncontact=%s\ncallid=%s",
-                fromField.data(), registerToAddress, registerUri, 
-                contactUrl, registerCallId.data()) ;
-    }
-
-    delete regMessage;
+   mMyUserAgent->getLocalAddress(&localIp, &localPort, (SIPX_TRANSPORT_TYPE)transport);
+   regMessage.setLocalIp(localIp);
+   if (sendRequest(regMessage , SIP_REGISTER_METHOD) != OS_SUCCESS)
+   {
+      // if we couldn't send, go ahead and remove the register request from the list
+      removeFromRegisterList(&regMessage);
+      syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to send register sip message: \nfromUrl: %s\ntoUrl: %s\nrequestUri: %s\ncallId %s",
+         fromUrl.toString().data(), toUrl.toString().data(), requestUri.toString().data(), callId.data());
+   }
 }
 
 
@@ -2049,14 +2023,24 @@ SipRefreshMgr::rescheduleAfterTime(
     }        
 }
 
-void 
-SipRefreshMgr::createTagNameValuePair( UtlString& tagNamevaluePair )
+void SipRefreshMgr::createTagNameValuePair( UtlString& tagNamevaluePair )
 {
     // Build a from tag
     char fromTagBuffer[24];
     SNPRINTF(fromTagBuffer, sizeof(fromTagBuffer), "%0x%0x", mRandomNumGenerator.rand(), mRandomNumGenerator.rand());
     tagNamevaluePair = "tag=" ;
     tagNamevaluePair.append(fromTagBuffer);
+}
+
+UtlString SipRefreshMgr::createTagValue()
+{
+   UtlString result;
+   char fromTagBuffer[24];
+   // generate tag value
+   SNPRINTF(fromTagBuffer, sizeof(fromTagBuffer), "%0x%0x", mRandomNumGenerator.rand(), mRandomNumGenerator.rand());
+   result = fromTagBuffer;
+
+   return result;
 }
 
 UtlString SipRefreshMgr::buildContactField(const Url& registerToField, 
