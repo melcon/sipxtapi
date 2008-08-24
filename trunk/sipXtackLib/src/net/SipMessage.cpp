@@ -245,7 +245,6 @@ void SipMessage::setSipRequestFirstHeaderLine(const char* method,
                                    const char* uri,
                                    const char* protocolVersion)
 {
-   //fix for bug : 1667 - 12/18/2001
    Url tempRequestUri(uri, TRUE);
    UtlString strRequestUri;
    tempRequestUri.removeUrlParameter("method");
