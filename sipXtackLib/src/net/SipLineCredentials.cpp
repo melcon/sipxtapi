@@ -59,10 +59,19 @@ SipLineCredentials& SipLineCredentials::operator=(const SipLineCredentials& rSip
    return *this;
 }
 
-UtlString SipLineCredentials::getPasswordMD5Digest() const
+UtlString SipLineCredentials::getPasswordMD5Digest(const UtlString& realm) const
 {
    UtlString digest;
-   HttpMessage::buildMd5UserPasswordDigest(m_userId, m_realm, m_passwordToken, digest);
+
+   if (!realm.isNull())
+   {
+      HttpMessage::buildMd5UserPasswordDigest(m_userId, realm, m_passwordToken, digest);
+   }
+   else
+   {
+      HttpMessage::buildMd5UserPasswordDigest(m_userId, m_realm, m_passwordToken, digest);
+   }
+
    return digest;
 }
 

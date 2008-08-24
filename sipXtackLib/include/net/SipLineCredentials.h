@@ -38,7 +38,12 @@ public:
    UtlString getRealm() const;
    UtlString getUserId() const;
    UtlString getPasswordToken() const;
-   UtlString getPasswordMD5Digest() const; ///< gets MD5 digest of password token
+
+   /**
+    *  Gets MD5 digest of userid, realm and password. Uses supplied
+    *  realm if not NULL, otherwise credentials realm.
+    */
+   UtlString getPasswordMD5Digest(const UtlString& realm = NULL) const;
    UtlString getType() const;
 
 private:
