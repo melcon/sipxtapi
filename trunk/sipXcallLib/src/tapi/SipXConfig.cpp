@@ -342,32 +342,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterExpiration(const SIPX_INST hInst,
 }
 
 // CHECKED
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSubscribeExpiration(const SIPX_INST hInst,
-                                                          const int nSubscribeExpirationSecs)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetSubscribeExpiration");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetSubscribeExpiration hInst=%p seconds=%d",
-      hInst, nSubscribeExpirationSecs);
-
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-   assert(pInst);
-
-   if (pInst)
-   {
-      assert(pInst->pRefreshManager);
-      if (pInst->pRefreshManager)
-      {
-         pInst->pRefreshManager->setSubscribeTimeout(nSubscribeExpirationSecs);
-         rc = SIPX_RESULT_SUCCESS;
-      }
-   }
-
-   return rc;
-}
-
-// CHECKED
 SIPXTAPI_API SIPX_RESULT sipxConfigSetDnsSrvFailoverTimeout(const SIPX_INST hInst,
                                                             const int failoverTimeoutInSecs)
 {

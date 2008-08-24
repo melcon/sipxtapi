@@ -402,7 +402,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
                                            const char* szEventType,
                                            const char* szAcceptType,
                                            SIPX_SUB* phSub,
-                                           int bRemoteContactIsGruu)
+                                           int bRemoteContactIsGruu,
+                                           int subscriptionPeriod)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallSubscribe");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -426,7 +427,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
       if (res)
       {
          subscriptionData->pInst = pInst;
-         int subscriptionPeriod = 3600;
 
          // Need to get the resourceId, To, From and Contact from
          // the associated call
@@ -562,7 +562,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                                              const char* szEventType,
                                              const char* szAcceptType,
                                              const SIPX_CONTACT_ID contactId,
-                                             SIPX_SUB* phSub)
+                                             SIPX_SUB* phSub,
+                                             int subscriptionPeriod)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSubscribe");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,

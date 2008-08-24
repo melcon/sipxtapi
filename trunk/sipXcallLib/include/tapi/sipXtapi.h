@@ -1704,12 +1704,15 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall);
  *        (GRUU).  Normally one cannot assume that a contact is a GRUU and the
  *        To or From address for the remote side is assumed to be an Address Of
  *        Record (AOR) that is globally routable.
+ * @param subscriptionPeriod Subscription expiration period. After this
+ *        period, new SUBSCRIBE message will be sent.
  */                                          
 SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
                                            const char* szEventType,
                                            const char* szAcceptType,
                                            SIPX_SUB* phSub,
-                                           int bRemoteContactIsGruu = 0);
+                                           int bRemoteContactIsGruu = 0,
+                                           int subscriptionPeriod = 3600);
 
 /**
  * Unsubscribe from previously subscribed NOTIFY events.  This method will
@@ -3085,19 +3088,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRport(const SIPX_INST hInst,
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterExpiration(const SIPX_INST hInst,
                                                          const int nRegisterExpirationSecs);
-
-/**
- * Specifies the expiration period for subscription.  After setting this 
- * configuration, all subsequent SUBSCRIBE messages will be sent with the new
- * subscribe period. 
- *
- * @param hInst Instance pointer obtained by sipxInitialize. 
- * @param nSubscribeExpirationSecs Number of seconds until the expiration of a
- *        SUBSCRIBE message
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSubscribeExpiration(const SIPX_INST hInst,
-                                                          const int nSubscribeExpirationSecs);
-   
+  
 /**
  * Enables STUN (Simple Traversal of UDP through NAT) support for both 
  * UDP SIP signaling and UDP audio/video (RTP).  STUN helps user agents
@@ -3880,6 +3871,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
  * @param phSub Pointer to a subscription handle whose value is set by this 
  *        funtion.  This handle allows you to cancel the subscription and
  *        differeniate between NOTIFY events.
+ * @param subscriptionPeriod Subscription expiration period. After this
+ *        period, new SUBSCRIBE message will be sent.
  */ 
 SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst, 
                                              const SIPX_LINE hLine, 
@@ -3887,7 +3880,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                                              const char* szEventType, 
                                              const char* szAcceptType, 
                                              const SIPX_CONTACT_ID contactId, 
-                                             SIPX_SUB* phSub); 
+                                             SIPX_SUB* phSub,
+                                             int subscriptionPeriod = 3600); 
 /**
  * Unsubscribe from previously subscribed NOTIFY events.  This method will
  * send another subscription request with an expires time of 0 (zero) to end
