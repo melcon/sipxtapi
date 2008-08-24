@@ -1149,9 +1149,6 @@ void Url::toString(UtlString& urlString) const
    if (   isNameAddr                             // There was a Display name
        || mAngleBracketsIncluded                 // Explicit setting from the caller
        || haveFldParams
-       || (   ( SipUrlScheme == mScheme || SipsUrlScheme == mScheme )
-           && ( haveUrlParams || haveHdrParams )
-           )
        )
    {
        urlString.append("<", 1);
@@ -1573,6 +1570,12 @@ void Url::parseString(const char* urlString, UtlBoolean isAddrSpec)
          // actual parsing of the parameters is in parseFieldParameters
          // so that it only happens if someone asks for them.
       }
+   }
+
+   if (!isAddrSpec && (mScheme == SipUrlScheme || mScheme == SipsUrlScheme))
+   {
+      // for not addr spec sip & sips enable angle brackets
+      mAngleBracketsIncluded = TRUE;
    }
 }
 #  ifdef TIME_PARSE
