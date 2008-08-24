@@ -280,7 +280,7 @@ UtlBoolean SipLine::getCredentials(const UtlString& type,
 
    UtlBoolean result = getCredentials(type, realm, lineCredentials);
    userID = lineCredentials.getUserId();
-   MD5_token = lineCredentials.getPasswordMD5Digest();
+   MD5_token = lineCredentials.getPasswordMD5Digest(realm);
 
    return result;
 }
