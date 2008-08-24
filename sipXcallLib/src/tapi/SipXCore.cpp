@@ -395,10 +395,10 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
    pInst->pSecurityEventListener = new SipXSecurityEventListener(pInst);
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
-   // create Line manager
-   pInst->pLineManager = new SipLineMgr();
    // create refresh manager
    pInst->pRefreshManager = new SipRefreshMgr(pInst->pLineEventListener);
+   // create Line manager
+   pInst->pLineManager = new SipLineMgr(pInst->pRefreshManager);
    pInst->pRefreshManager->setLineMgr(pInst->pLineManager);
 
    pInst->nCalls = 0;
@@ -458,7 +458,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    // Startup Line Manager  Refresh Manager
    pInst->pLineManager->start();
-   pInst->pLineManager->initializeRefreshMgr(pInst->pRefreshManager);
    pInst->pRefreshManager->init(pInst->pSipUserAgent);
    pInst->pRefreshManager->startRefreshMgr();
 

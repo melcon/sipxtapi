@@ -27,12 +27,15 @@
 // STRUCTS
 // TYPEDEFS
 // FORWARD DECLARATIONS
+
 class SipRefreshMgr;
 class HttpMessage;
 class SipMessage;
 
-//:Class short description which may consist of multiple lines (note the ':')
-// Class detailed description which may extend to multiple lines
+/**
+ * Line management class. Responsible for managing addition, removal,
+ * configuration of new lines, and firing line events.
+ */
 class SipLineMgr : public OsServerTask
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -40,37 +43,26 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   SipLineMgr(const char* authenticationScheme = HTTP_DIGEST_AUTHENTICATION);
-     //:Default constructor
-
-   SipLineMgr(const SipLineMgr& rSipLineMgr);
-     //:Copy constructor
+   SipLineMgr(SipRefreshMgr *refershMgr = NULL);
 
    virtual ~SipLineMgr();
-     //:Destructor
 
 /* ============================ MANIPULATORS ============================== */
 
-   void StartLineMgr();
+   /** Starts line manager server task */
+   void startLineMgr();
 
-   UtlBoolean initializeRefreshMgr( SipRefreshMgr * refreshMgr );
+   /** Adds new sip line to line manager. */
+   UtlBoolean addLine(SipLine& line);
 
-   void setDefaultContactUri(const Url& contactUri);
+   /** Registers line identified by lineURI. */
+   UtlBoolean registerLine(const Url& lineURI);
 
-   UtlBoolean addLine(SipLine& line,
-                      UtlBoolean doEnable = TRUE);
+   /** Unregisters line identified by lineURI. */
+   UtlBoolean unregisterLine(const Url& identity,
+                             const UtlString& lineId ="");
 
-   void deleteLine(const Url& identity);
-
-   void setDefaultOutboundLine( const Url& outboundLine );
-
-   UtlBoolean enableLine(const Url& lineURI);
-
-   void disableLine(const Url& identity,
-                    UtlBoolean onStartup = FALSE,
-                    const UtlString& lineId ="");
-
-   void lineHasBeenUnregistered(const Url& identity);
+   UtlBoolean deleteLine(const Url& identity);
 
    UtlBoolean buildAuthenticatedRequest(const SipMessage* response /*[in]*/,
                                        const SipMessage* request /*[in]*/,
@@ -80,71 +72,35 @@ public:
    // Line Manipulators
    //
 
-   void setFirstLineAsDefaultOutBound();
+   void setStateForLine(const Url& lineUri, int state);
 
-   void setCallHandlingForLine(const Url& identity, UtlBoolean useCallHandling= TRUE);
+   void setUserForLine(const Url& lineUri, const UtlString User);
 
-   void setAutoEnableForLine(const Url& identity, UtlBoolean isAutoEnable = TRUE);
+   void setUserEnteredUrlForLine(const Url& lineUri, UtlString sipUrl);
 
-   void setStateForLine(const Url& identity, int state);
+   UtlBoolean addCredentialForLine(const Url& lineUri,
+                                   const UtlString& strRealm,
+                                   const UtlString& strUserID,
+                                   const UtlString& strPasswd,
+                                   const UtlString& type);
 
-   void setVisibilityForLine(const Url& identity, UtlBoolean Visibility = TRUE);
-
-   void setUserForLine(const Url& identity, const UtlString User);
-
-   void setUserEnteredUrlForLine(const Url& identity, UtlString sipUrl);
-
-   UtlBoolean addCredentialForLine(
-        const Url& identity,
-        const UtlString strRealm,
-        const UtlString strUserID,
-        const UtlString strPasswd,
-        const UtlString type);
-
-   UtlBoolean deleteCredentialForLine(const Url& identity,
-                                     const UtlString strRealm );
-
-   //:Removes all SIP message observers for the given message/queue observer
-   //!param: messageQueue - All observers dispatching to this message queue
-   //        will be removed if the pObserverData is NULL or matches.
-   //!param: pObserverData - If null, all observers that match the message
-   //        queue will be removed.  Otherwise, only observers that match
-   //        both the message queue and observer data will be removed.
-   //!returns TRUE if one or more observers are removed otherwise FALSE.
-
-        void notifyChangeInLineProperties(Url& identity);
-
-   void notifyChangeInOutboundLine(Url& identity);
-
-   //
-   // Serialization Manipulators
-   //
+   UtlBoolean deleteCredentialForLine(const Url& lineUri,
+                                      const UtlString strRealm);
 
 /* ============================ ACCESSORS ================================= */
 
-   void getDefaultOutboundLine( UtlString &rOutBoundLine );
+   UtlBoolean getLines(size_t maxLines,
+                       size_t& actualLines,
+                       SipLine* lines[]) const;
 
-   UtlBoolean getLine(
-       const UtlString& toUrl,
-       const UtlString& localContact,
-       SipLine& sipline ) const;
-    //:Get the line identified by the designated To and Local Contact URLs.
-    //
-    //!returns The line identified by the designated To and Local Contact
-    //         URLs or NULL if not found.
-
-   UtlBoolean getLines(size_t maxLines /*[in]*/,
-                       size_t& actualLines /*[out]*/,
-                       SipLine* lines[]/*[in/out]*/) const;
-
-   UtlBoolean getLines(size_t maxLines /*[in]*/,
-                       size_t& actualLines /*[in/out]*/,
-                       SipLine lines[]/*[in/out]*/) const;
+   UtlBoolean getLines(size_t maxLines,
+                       size_t& actualLines,
+                       SipLine lines[]) const;
 
    int getNumLines () const;
    //:Get the current number of lines.
 
-   int getNumOfCredentialsForLine( const Url& identity ) const;
+   int getNumOfCredentialsForLine(const Url& identity) const;
 
    UtlBoolean getCredentialListForLine(
         const Url& identity,
@@ -155,13 +111,7 @@ public:
         UtlString typeList[],
         UtlString passTokenList[] );
 
-   UtlBoolean getCallHandlingForLine( const Url& identity ) const;
-
-   UtlBoolean getEnableForLine(const Url& identity) const;
-
    int getStateForLine(const Url& identity ) const;
-
-   UtlBoolean getVisibilityForLine(const Url& identity ) const;
 
    UtlBoolean getUserForLine(const Url& identity, UtlString &User) const;
 
@@ -177,12 +127,14 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+   SipLineMgr(const SipLineMgr& rSipLineMgr);
+
    SipLineMgr& operator=(const SipLineMgr& rhs);
      //:Assignment operator
 
     UtlBoolean handleMessage(OsMsg& eventMessage);
 
-    void removeFromList(SipLine* line);
+    void removeFromList(SipLine& line);
 
     void addLineToList(SipLine& line);
 
@@ -196,14 +148,9 @@ private:
     void dumpLines();
 
     UtlBoolean mIsStarted;
-    UtlString mAuthenticationScheme;
 
     SipRefreshMgr* mpRefreshMgr;
     Url mOutboundLine;
-    Url mDefaultContactUri;
-
-    UtlHashBag mMessageObservers;
-    OsRWMutex mObserverMutex;
 
     // line list and temp line lists
     mutable SipLineList  sLineList;

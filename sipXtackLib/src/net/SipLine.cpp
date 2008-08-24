@@ -40,10 +40,7 @@
 SipLine::SipLine(const Url& userEnteredUrl,
                  const Url& identityUri,
                  const UtlString& user,
-                 UtlBoolean visible,
-                 int state,
-                 UtlBoolean isAutoEnabled,
-                 UtlBoolean useCallHandling)
+                 int state)
 {
    if (user.isNull())
    {
@@ -64,10 +61,7 @@ SipLine::SipLine(const Url& userEnteredUrl,
    {
       m_identityUri = identityUri;
    }
-   m_isVisible = visible;
    m_currentState = state;
-   m_isAutoEnabled = isAutoEnabled;
-   m_isUsingCallHandling = useCallHandling;
 
    //construct a complete url from identityUri and userEntered Url.
    m_canonicalUrl = m_userEnteredUrl;
@@ -102,16 +96,13 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
       return *this;
    else
    {
-      m_isVisible = rSipLine.m_isVisible ;
-      m_identityUri = rSipLine.m_identityUri ;
+      m_identityUri = rSipLine.m_identityUri;
       m_userEnteredUrl = rSipLine.m_userEnteredUrl;
       m_canonicalUrl = rSipLine.m_canonicalUrl;
-      m_user = rSipLine.m_user ;
-      m_currentState = rSipLine.m_currentState ;
-      m_isAutoEnabled = rSipLine.m_isAutoEnabled ;
-      m_isUsingCallHandling = rSipLine.m_isUsingCallHandling;
+      m_user = rSipLine.m_user;
+      m_currentState = rSipLine.m_currentState;
       m_lineId = rSipLine.m_lineId;
-      m_preferredContactUri = rSipLine.m_preferredContactUri ;
+      m_preferredContactUri = rSipLine.m_preferredContactUri;
       copyCredentials(rSipLine);
    }
    return *this;
@@ -207,36 +198,6 @@ Url SipLine::getCanonicalUrl() const
     return m_canonicalUrl;
 }
 
-void SipLine::setAutoEnableStatus(UtlBoolean isAutoEnabled)
-{
-    m_isAutoEnabled = isAutoEnabled;
-}
-
-UtlBoolean SipLine::getAutoEnableStatus() const
-{
-    return m_isAutoEnabled;
-}
-
-void SipLine::setVisibility(UtlBoolean isEnable)
-{
-    m_isVisible = isEnable;
-}
-
-UtlBoolean SipLine::getVisibility() const
-{
-    return m_isVisible;
-}
-
-void SipLine::setCallHandling(UtlBoolean useCallHandling)
-{
-    m_isUsingCallHandling = useCallHandling;
-}
-
-UtlBoolean SipLine::getCallHandling() const
-{
-    return m_isUsingCallHandling;
-}
-
 UtlBoolean SipLine::addCredentials(const UtlString& strRealm,
                                    const UtlString& strUserID,
                                    const UtlString& strPasswd,
@@ -271,7 +232,6 @@ UtlBoolean SipLine::addCredentials(const SipLineCredentials& lineCredentials)
 int SipLine::getNumOfCredentials() const
 {
    return m_credentials.entries();
-
 }
 
 UtlBoolean SipLine::getCredentials(const UtlString& type,
@@ -311,13 +271,17 @@ UtlBoolean SipLine::getCredentials(const UtlString& type,
    return credential != NULL;
 }
 
-void SipLine::removeCredential(const UtlString& realm)
+UtlBoolean SipLine::removeCredential(const UtlString& realm)
 {
    UtlContainable* wasRemoved = m_credentials.removeReference(&realm);
    if(wasRemoved)
    {
       delete wasRemoved;
+      wasRemoved = NULL;
+      return TRUE;
    }
+
+   return FALSE;
 }
 
 void SipLine::removeAllCredentials()

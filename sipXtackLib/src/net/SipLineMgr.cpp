@@ -8,9 +8,7 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
-
 #if defined(_VXWORKS)
 #   include <taskLib.h>
 #   include <netinet/in.h>
@@ -18,7 +16,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 
 // APPLICATION INCLUDES
 #include "utl/UtlHashBagIterator.h"
@@ -43,32 +40,23 @@
 // CONSTANTS
 // STATIC INITIALIZERS
 
-//#define TEST_PRINT 1
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-SipLineMgr::SipLineMgr(const char* authenticationScheme) :
-    OsServerTask( "SipLineMgr-%d" ),
-    mAuthenticationScheme (HTTP_DIGEST_AUTHENTICATION),
-    mpRefreshMgr (NULL),
-    mObserverMutex(OsRWMutex::Q_FIFO)
-{   // Authentication
-    if(authenticationScheme)
-    {
-        mAuthenticationScheme.append(authenticationScheme);
-        // Do not require authentication if not Basic or Digest
-        if(   0 != mAuthenticationScheme.compareTo(HTTP_BASIC_AUTHENTICATION,
-                                                   UtlString::ignoreCase
-                                                   )
-           && 0 != mAuthenticationScheme.compareTo(HTTP_DIGEST_AUTHENTICATION,
-                                                   UtlString::ignoreCase
-                                                   )
-           )
-        {
-            mAuthenticationScheme.remove(0);
-        }
-    }
+SipLineMgr::SipLineMgr(SipRefreshMgr *refershMgr)
+: OsServerTask("SipLineMgr-%d")
+, mpRefreshMgr(refershMgr)
+{
+   if (refershMgr)
+   {
+      mpRefreshMgr->addMessageObserver(*(getMessageQueue()),
+         SIP_REGISTER_METHOD,
+         TRUE, // do want to get requests
+         TRUE, // do want responses
+         TRUE, // Incoming messages
+         FALSE); // Don't want to see out going messages
+   }
 }
 
 SipLineMgr::~SipLineMgr()
@@ -79,30 +67,25 @@ SipLineMgr::~SipLineMgr()
     // Do not delete the refresh manager as it was
     // created in another context and we do not know
     // who else may be using it
+    mpRefreshMgr = NULL;
 }
 
 void SipLineMgr::dumpLines()
 {
-
     sLineList.dumpLines();
-    // now for sTempLineList
-    sLineList.dumpLines();
-
 }
 
-void
-SipLineMgr::StartLineMgr()
+void SipLineMgr::startLineMgr()
 {
     if(!isStarted())
     {
         // start the thread
         start();
+        mIsStarted = TRUE;
     }
-    mIsStarted = TRUE;
 }
 
-UtlBoolean
-SipLineMgr::handleMessage(OsMsg &eventMessage)
+UtlBoolean SipLineMgr::handleMessage(OsMsg &eventMessage)
 {
     UtlBoolean messageProcessed = FALSE;
 
@@ -208,85 +191,50 @@ SipLineMgr::handleMessage(OsMsg &eventMessage)
     return  messageProcessed ;
 }
 
-
-UtlBoolean SipLineMgr::addLine(SipLine& line,
-                               UtlBoolean doEnable /*= TRUE*/)
+UtlBoolean SipLineMgr::addLine(SipLine& line)
 {
    UtlBoolean added = FALSE;
    // check if it is a duplicate url
    if (!sLineList.isDuplicate(&line))
    {
       addLineToList(line);
-      if (doEnable)
-      {
-         // if requested enable line - send REGISTER message
-         enableLine(line.getIdentity());
-      }
       added = TRUE;
       syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::addLine added line: %s",
-         line.getIdentity().toString().data()) ;
+         line.getIdentity().toString().data());
    }
 
    return added;
 }
 
-void
-SipLineMgr::deleteLine(const Url& identity)
+UtlBoolean SipLineMgr::deleteLine(const Url& lineUri)
 {
-    SipLine *line = NULL;
-    SipLine *pDeleteLine = NULL ;
+    SipLine *pLine = sLineList.getLine(lineUri);
 
-    line = sLineList.getLine(identity) ;
-    if (line == NULL)
+    if (pLine)
     {
-        syslog(FAC_LINE_MGR, PRI_ERR, "SipLineMgr::deleteLine unable to delete line (not found): %s",
-                identity.toString().data()) ;
-       return;
+       removeFromList(*pLine);
+       delete pLine;
+       pLine = NULL;
+
+       syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::deleteLine deleted line: %s",
+          lineUri.toString().data());
+
+       return TRUE;
     }
 
-    {
-        removeFromList(line);
-        pDeleteLine = line ;
-    }
-
-    syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::deleteLine deleted line: %s",
-            identity.toString().data()) ;
-    
-    if (pDeleteLine)
-    {
-        delete pDeleteLine ;
-    }
-    dumpLines();
+    return FALSE;
 }
 
-void SipLineMgr::lineHasBeenUnregistered(const Url& identity)
-{
-    SipLine *line = NULL;
-
-    line = sLineList.getLine(identity) ;
-    if (line == NULL)
-    {
-        syslog(FAC_LINE_MGR, PRI_ERR, "unable to delete line (not found): %s",
-                identity.toString().data()) ;
-       return;
-    }
-    //removeFromList(line);
-    //delete line;
-}
-
-UtlBoolean SipLineMgr::enableLine(const Url& lineURI)
+UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
     SipLine *line = sLineList.getLine(lineURI);
 
-    if (line == NULL)
+    if (!line)
     {
         syslog(FAC_LINE_MGR, PRI_ERR, "unable to enable line (not found): %s",
                 lineURI.toString().data()) ;
         return FALSE;
     }
-
-    //SipLineEvent lineEvent(line, SipLineEvent::SIP_LINE_EVENT_LINE_ENABLED);
-    //queueMessageToObservers(lineEvent);
 
     line->setState(SipLine::LINE_STATE_TRYING);
     Url canonicalUrl = line->getCanonicalUrl();
@@ -306,172 +254,51 @@ UtlBoolean SipLineMgr::enableLine(const Url& lineURI)
     return TRUE;
 }
 
-void
-SipLineMgr::disableLine(
-    const Url& identity,
-    UtlBoolean onStartup,
-    const UtlString& lineId)
+UtlBoolean SipLineMgr::unregisterLine(const Url& identity,
+                                      const UtlString& lineId)
 {
     SipLine *line = sLineList.getLine(identity) ;
-    if ( line == NULL)
+    if (!line)
     {
-        syslog(FAC_LINE_MGR, PRI_ERR, "SipLineMgr::disableLine unable to disable line (not found): %s",
-                identity.toString().data()) ;
+        syslog(FAC_LINE_MGR, PRI_ERR, "SipLineMgr::unregisterLine unable to disable line (not found): %s",
+                identity.toString().data());
+        return FALSE;
     }
 
     // we don't implicitly un-register any more
     if (line->getState() == SipLine::LINE_STATE_REGISTERED ||
         line->getState() == SipLine::LINE_STATE_TRYING)
     {
-        mpRefreshMgr->unRegisterUser(identity, onStartup, lineId);
-    }
-
-    syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::disableLine disabled line: %s",
-            identity.toString().data()) ;
-}
-
-void
-SipLineMgr::notifyChangeInLineProperties(Url& identity)
-{
-    SipLine *line = sLineList.getLine(identity) ;
-    if (line == NULL)
-    {
-        // Ignore error, will be logged on remove/enable/disable/etc
-    }
-}
-
-void
-SipLineMgr::notifyChangeInOutboundLine(Url& identity)
-{
-    SipLine *line = sLineList.getLine(identity) ;
-    if ( line == NULL)
-    {
-        // Ignore error, will be logged on remove/enable/disable/etc
-    }
-}
-
-
-void
-SipLineMgr::setDefaultOutboundLine(const Url& outboundLine)
-{
-   mOutboundLine = outboundLine;
-
-   syslog(FAC_LINE_MGR, PRI_INFO, "default line changed: %s",
-         outboundLine.toString().data()) ;
-
-   notifyChangeInOutboundLine( mOutboundLine );
-}
-
-void
-SipLineMgr::getDefaultOutboundLine(UtlString &rOutBoundLine)
-{
-    // check if default outbound is valid?
-    UtlString host;
-    mOutboundLine.getHostAddress(host);
-    if( host.isNull())
-    {
-        setFirstLineAsDefaultOutBound();
-    }
-    rOutBoundLine.remove(0);
-    rOutBoundLine.append(mOutboundLine.toString());
-}
-
-void
-SipLineMgr::setFirstLineAsDefaultOutBound()
-{
-    SipLine line;
-    if (!sLineList.getDeviceLine(&line))
-    {
-        sLineList.getFirstLine(&line);
-    }
-    Url outbound = line.getCanonicalUrl();
-    setDefaultOutboundLine(outbound);
-}
-
-UtlBoolean SipLineMgr::getLines(size_t maxLines /*[in]*/,
-                                size_t& actualLines /*[out]*/,
-                                SipLine lines[]/*[in/out]*/) const
-{
-    UtlBoolean linesFound = FALSE;
-    linesFound = sLineList.linesInArray(
-        maxLines, &actualLines, lines);
-    return linesFound;
-}
-
-UtlBoolean SipLineMgr::getLines(size_t maxLines /*[in]*/,
-                                size_t& actualLines /*[in/out]*/,
-                                SipLine* lines[]/*[in/out]*/) const
-{
-    UtlBoolean linesFound = FALSE;
-    linesFound = sLineList.linesInArray(
-        maxLines, &actualLines, lines );
-    return linesFound;
-}
-
-int
-SipLineMgr::getNumLines() const
-{
-    return sLineList.getListSize();
-}
-
-
-UtlBoolean
-SipLineMgr::getLine(
-    const UtlString& toField,
-    const UtlString& localContact,
-    SipLine& sipline ) const
-{
-    UtlString temp;
-    if( localContact.index("<") == UTL_NOT_FOUND)
-    {
-        temp.append("<");
-        temp.append(localContact);
-        temp.append(">");
-    } else
-    {
-        temp.append(localContact);
-    }
-
-    Url localContactUrl(temp);
-    UtlString lineId;
-    UtlString userId;
-
-    SipLine* line = NULL;
-
-    localContactUrl.getUrlParameter( SIP_LINE_IDENTIFIER , lineId );
-    localContactUrl.getUserId(userId);
-    Url toUrl(toField);
-
-    int userIdmatches = 0;
-    if( !lineId.isNull())
-    {
-        line = sLineList.getLine(lineId) ;
-    }
-
-    if(!line && !userId.isNull())
-    {
-        line = sLineList.getLine(userId, userIdmatches) ;
-        if(userIdmatches > 1)
-        {
-            line = sLineList.getLine(toUrl) ;
-        }
-    }
-
-    if(!line)
-    {
-        // try with just the userId
-        UtlString userId;
-        toUrl.getUserId(userId);
-        line = sLineList.getLine(userId, userIdmatches );
-    }
-
-    if(line)
-    {
-        sipline = *line;
+        mpRefreshMgr->unRegisterUser(identity, lineId);
+        syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::unregisterLine disabled line: %s",
+           identity.toString().data());
         return TRUE;
     }
 
     return FALSE;
+}
+
+UtlBoolean SipLineMgr::getLines(size_t maxLines,
+                                size_t& actualLines,
+                                SipLine lines[]) const
+{
+    UtlBoolean linesFound = FALSE;
+    linesFound = sLineList.linesInArray(maxLines, &actualLines, lines);
+    return linesFound;
+}
+
+UtlBoolean SipLineMgr::getLines(size_t maxLines,
+                                size_t& actualLines,
+                                SipLine* lines[]) const
+{
+    UtlBoolean linesFound = FALSE;
+    linesFound = sLineList.linesInArray(maxLines, &actualLines, lines);
+    return linesFound;
+}
+
+int SipLineMgr::getNumLines() const
+{
+    return sLineList.getListSize();
 }
 
 SipLine* SipLineMgr::getLineforAuthentication(const SipMessage* request /*[in]*/,
@@ -597,8 +424,7 @@ SipLine* SipLineMgr::getLineforAuthentication(const SipMessage* request /*[in]*/
    return line;
 }
 
-UtlBoolean
-SipLineMgr::isUserIdDefined( const SipMessage* request /*[in]*/ ) const
+UtlBoolean SipLineMgr::isUserIdDefined(const SipMessage* request) const
 {
     SipLine* line = NULL;
     line = getLineforAuthentication(request, NULL, TRUE);
@@ -734,27 +560,7 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
             // the Sticky DNS fields will be copied by the copy constructor
             *newAuthRequest = *request;
             // Reset the transport parameters
-#ifdef TEST_PRINT
-            int transportTimeStamp = newAuthRequest->getTransportTime();
-            int lastResendDuration = newAuthRequest->getResendDuration();
-            int timesSent = newAuthRequest->getTimesSent();
-            int transportProtocol = newAuthRequest->getSendProtocol(); //OsSocket::UNKNOWN;
-            int mFirstSent = newAuthRequest->isFirstSend();
-            osPrintf( "LineMgr::BuildAuthenticated response transTime: %d resendDur: %d timesSent: %d sendProtocol: %d isFirst: %d\n",
-                      transportTimeStamp, lastResendDuration, timesSent, transportProtocol, mFirstSent);
-#endif
             newAuthRequest->resetTransport();
-
-#ifdef TEST_PRINT
-            transportTimeStamp = newAuthRequest->getTransportTime();
-            lastResendDuration = newAuthRequest->getResendDuration();
-            timesSent = newAuthRequest->getTimesSent();
-            transportProtocol = newAuthRequest->getSendProtocol(); //OsSocket::UNKNOWN;
-            mFirstSent = newAuthRequest->isFirstSend();
-            osPrintf("LineMgr::BuildAuthenticated response transTime: %d resendDur: %d timesSent: %d sendProtocol: %d isFirst: %d\n",
-                     transportTimeStamp, lastResendDuration, timesSent, transportProtocol, mFirstSent);
-#endif
-
             // Get rid of the via as another will be added.
             newAuthRequest->removeLastVia();
             if(scheme.compareTo(HTTP_DIGEST_AUTHENTICATION, UtlString::ignoreCase) == 0)
@@ -867,25 +673,9 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
     }
     line = NULL;
 
-#ifdef TEST_PRINT
-    osPrintf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
-    UtlString authBytes;
-    int authBytesLen;
-    newAuthRequest->getBytes(&authBytes, &authBytesLen);
-    osPrintf("Auth. message:\n%s", authBytes.data());
-    osPrintf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
-#endif
-
     // Else we already tried to provide authentication
     // Or we do not have a userId and password for this uri
     // Let this error message throught to the application
-#ifdef TEST
-    else
-    {
-        osPrintf("Giving up on entity %d authorization, line: \"%s\"\n", authorizationEntity, fromUri.data());
-        osPrintf("authorization failed previously sent: %d\n", request->getAuthorizationField(&authField, authorizationEntity));
-    }
-#endif
     return( createdResponse );
 }
 
@@ -895,180 +685,73 @@ void SipLineMgr::addLineToList(SipLine& line)
 }
 
 
-void SipLineMgr::removeFromList(SipLine *line)
+void SipLineMgr::removeFromList(SipLine& line)
 {
-    sLineList.remove(line);
+    sLineList.remove(&line);
 }
 
-void SipLineMgr::setDefaultContactUri(const Url& contactUri)
-{
-   mDefaultContactUri = contactUri;
-}
-
-UtlBoolean SipLineMgr::initializeRefreshMgr(SipRefreshMgr *refershMgr)
-{
-    if (refershMgr)
-    {
-        mpRefreshMgr = refershMgr;
-        mpRefreshMgr->addMessageObserver(*(getMessageQueue()),
-            SIP_REGISTER_METHOD,
-            TRUE, // do want to get requests
-            TRUE, // do want responses
-            TRUE, // Incoming messages
-            FALSE); // Don't want to see out going messages
-        return true;
-    }
-    else
-    {
-        osPrintf("ERROR::SipLineMgr::SipLineMgr SIP REFRESH MGR NULL\n");
-        return false;
-    }
-}
-
-UtlBoolean
-SipLineMgr::addCredentialForLine(
-    const Url& identity,
-    const UtlString strRealm,
-    const UtlString strUserID,
-    const UtlString strPasswd,
-    const UtlString type)
+UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
+                                            const UtlString& strRealm,
+                                            const UtlString& strUserID,
+                                            const UtlString& strPasswd,
+                                            const UtlString& type)
 {
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
+    if (!(line = sLineList.getLine(lineUri)))
     {
-        osPrintf("ERROR::SipLineMgr::addCredentialForLine() - No Line for identity\n");
-        return false;
+        return FALSE;
     }
 
-    if (!line->addCredentials(strRealm , strUserID, strPasswd, type))
-    {
-        line = NULL;
-        osPrintf("ERROR::SipLineMgr::addCredentialForLine() - Duplicate Realm\n");
-        return false;
-    }
-    return true;
+    return line->addCredentials(strRealm , strUserID, strPasswd, type);
 }
 
-UtlBoolean
-SipLineMgr::deleteCredentialForLine(const Url& identity, const UtlString strRealm)
+UtlBoolean SipLineMgr::deleteCredentialForLine(const Url& lineUri, const UtlString strRealm)
 {
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
+    if (!(line = sLineList.getLine(lineUri)))
     {
-        osPrintf("ERROR::SipLineMgr::addCredentialForLine() - No Line for identity\n");
-        return false;
+        return FALSE;
     }
-    line->removeCredential(strRealm);
-    return true;
 
+    return line->removeCredential(strRealm);
 }
 
-int
-SipLineMgr::getNumOfCredentialsForLine( const Url& identity ) const
+int SipLineMgr::getNumOfCredentialsForLine(const Url& lineUri) const
 {
-    int numOfCredentials = 0;
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine( identity )) )
+    if (!(line = sLineList.getLine(lineUri)))
     {
-        osPrintf("ERROR::SipLineMgr::getNumOfCredentialsForLine() - No Line for identity \n");
-    } else
-    {
-        numOfCredentials = line->getNumOfCredentials();
+       return 0;
     }
-    return numOfCredentials;
+
+    return line->getNumOfCredentials();
 }
 
-UtlBoolean
-SipLineMgr::getCredentialListForLine(
-    const Url& identity,
-    int maxEnteries,
-    int & actualEnteries,
-    UtlString realmList[],
-    UtlString userIdList[],
-    UtlString typeList[],
-    UtlString passTokenList[] )
-{
-    UtlBoolean retVal = FALSE;
-    SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
-    {
-        osPrintf("ERROR::SipLineMgr::getCredentialListForLine() - No Line for identity \n");
-    } else
-    {
-        retVal = line->getAllCredentials(maxEnteries, actualEnteries, realmList, userIdList, typeList, passTokenList);
-    }
-    return retVal;
-}
-
-//line Call Handling
-void SipLineMgr::setCallHandlingForLine(const Url& identity , UtlBoolean useCallHandling)
+UtlBoolean SipLineMgr::getCredentialListForLine(const Url& lineUri,
+                                                int maxEnteries,
+                                                int& actualEnteries,
+                                                UtlString realmList[],
+                                                UtlString userIdList[],
+                                                UtlString typeList[],
+                                                UtlString passTokenList[])
 {
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
+    if (!(line = sLineList.getLine(lineUri)))
     {
-        osPrintf("ERROR::SipLineMgr::setCallHandlingForLine() - No Line for identity\n");
-        return;
+        return FALSE;
     }
-    line->setCallHandling(useCallHandling);
-    line = NULL;
-}
 
-UtlBoolean
-SipLineMgr::getCallHandlingForLine(const Url& identity) const
-{
-    UtlBoolean retVal = FALSE;
-    SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
-    {
-        osPrintf("ERROR::SipLineMgr::getCallHandlingForLine() - No Line for identity \n");
-    } else
-    {
-        retVal = line->getCallHandling();
-        line = NULL;
-    }
-    return retVal;
-}
-
-//line auto enable
-void SipLineMgr::setAutoEnableForLine(const Url& identity , UtlBoolean isAutoEnable)
-{
-    SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
-    {
-        osPrintf("ERROR::SipLineMgr::setAutoEnableStatus() - No Line for identity\n");
-        return;
-    }
-    line->setAutoEnableStatus(isAutoEnable);
-    line = NULL;
-
-}
-
-UtlBoolean
-SipLineMgr::getEnableForLine(const Url& identity) const
-{
-    UtlBoolean retVal = FALSE;
-    SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
-    {
-        osPrintf("ERROR::SipLineMgr::getEnableForLine() - No Line for identity \n");
-    }
-    else
-    {
-        retVal = line->getAutoEnableStatus();
-        line = NULL;
-    }
-    return retVal;
+    return line->getAllCredentials(maxEnteries, actualEnteries, realmList, userIdList, typeList, passTokenList);
 }
 
 //can only get state
-int
-SipLineMgr::getStateForLine( const Url& identity ) const
+int SipLineMgr::getStateForLine( const Url& identity ) const
 {
     int State = SipLine::LINE_STATE_UNKNOWN;
     SipLine *line = NULL;
     if (! (line = sLineList.getLine(identity)) )
     {
-        osPrintf("ERROR::SipLineMgr::getStateForLine() - No Line for identity \n");
+        osPrintf("ERROR::SipLineMgr::getStateForLine() - No Line for lineUri \n");
     } else
     {
       State =line->getState();
@@ -1077,15 +760,13 @@ SipLineMgr::getStateForLine( const Url& identity ) const
     return State;
 }
 
-void
-SipLineMgr::setStateForLine(
-    const Url& identity,
-    int state )
+void SipLineMgr::setStateForLine(const Url& lineUri,
+                                 int state)
 {
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
+    if (! (line = sLineList.getLine(lineUri)) )
     {
-        osPrintf("ERROR::SipLineMgr::setStateForLine() - No Line for identity\n");
+        osPrintf("ERROR::SipLineMgr::setStateForLine() - No Line for lineUri\n");
         return;
     }
     int previousState =line->getState();
@@ -1094,53 +775,23 @@ SipLineMgr::setStateForLine(
     if ( previousState != SipLine::LINE_STATE_PROVISIONED && state == SipLine::LINE_STATE_PROVISIONED)
     {
         /* We no longer implicitly unregister */
-        //disableLine(identity);
+        //unregisterLine(lineUri);
     }
     else if( previousState == SipLine::LINE_STATE_PROVISIONED && state == SipLine::LINE_STATE_REGISTERED)
     {
-        enableLine(identity);
+        registerLine(lineUri);
     }
-    line = NULL;
-}
-
-// Line visibility
-UtlBoolean
-SipLineMgr::getVisibilityForLine( const Url& identity ) const
-{
-    UtlBoolean retVal = FALSE;
-    SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
-    {
-        osPrintf("ERROR::SipLineMgr::getVisibilityForLine() - No Line for identity \n");
-    }
-    else
-    {
-      retVal = line->getVisibility();
-        line = NULL;
-   }
-    return retVal;
-}
-void SipLineMgr::setVisibilityForLine(const Url& identity , UtlBoolean Visibility)
-{
-    SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
-    {
-        osPrintf("ERROR::SipLineMgr::setVisibilityForLine() - No Line for identity\n");
-        return;
-    }
-    line->setVisibility(Visibility);
     line = NULL;
 }
 
 //line User
-UtlBoolean
-SipLineMgr::getUserForLine(const Url& identity, UtlString &User) const
+UtlBoolean SipLineMgr::getUserForLine(const Url& lineUri, UtlString &User) const
 {
     UtlBoolean retVal = FALSE;
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
+    if (! (line = sLineList.getLine(lineUri)) )
     {
-        osPrintf("ERROR::SipLineMgr::getUserForLine() - No Line for identity \n");
+        osPrintf("ERROR::SipLineMgr::getUserForLine() - No Line for lineUri \n");
     } else
     {
         User.remove(0);
@@ -1151,29 +802,29 @@ SipLineMgr::getUserForLine(const Url& identity, UtlString &User) const
     }
     return retVal;
 }
-void SipLineMgr::setUserForLine(const Url& identity, const UtlString User)
+void SipLineMgr::setUserForLine(const Url& lineUri, const UtlString User)
 {
 
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
+    if (! (line = sLineList.getLine(lineUri)) )
     {
-        osPrintf("ERROR::SipLineMgr::setUserForLine() - No Line for identity\n");
+        osPrintf("ERROR::SipLineMgr::setUserForLine() - No Line for lineUri\n");
         return;
     }
     line->setUser(User);
     line = NULL;
 }
 
-void SipLineMgr::setUserEnteredUrlForLine(const Url& identity, UtlString sipUrl)
+void SipLineMgr::setUserEnteredUrlForLine(const Url& lineUri, UtlString sipUrl)
 {
 
     SipLine *line = NULL;
-    if (! (line = sLineList.getLine(identity)) )
+    if (! (line = sLineList.getLine(lineUri)) )
     {
         osPrintf("ERROR::SipLineMgr::setUserEnteredUrlForLine() - No Line for this Url\n");
         return;
     }
-    line->setIdentityAndUrl(identity, Url(sipUrl));
+    line->setIdentityAndUrl(lineUri, Url(sipUrl));
     line = NULL;
 }
 
