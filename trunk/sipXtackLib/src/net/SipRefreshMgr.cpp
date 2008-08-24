@@ -56,11 +56,8 @@
 SipRefreshMgr::SipRefreshMgr(SipLineStateEventListener *listener):
     OsServerTask("SipRefreshMgr-%d"),
     mpLineMgr(NULL),
-    mpLastLineEventMap(NULL),
     mRegisterListMutexR(OsRWMutex::Q_FIFO),
     mRegisterListMutexW(OsRWMutex::Q_FIFO),
-    mSubscribeListMutexR(OsRWMutex::Q_FIFO),
-    mSubscribeListMutexW(OsRWMutex::Q_FIFO),
     mIsStarted(FALSE),
     mObserverMutex(OsRWMutex::Q_FIFO),
     mUAReadyMutex(OsRWMutex::Q_FIFO),
@@ -73,12 +70,6 @@ SipRefreshMgr::SipRefreshMgr(SipLineStateEventListener *listener):
 SipRefreshMgr::~SipRefreshMgr()
 { 
     waitUntilShutDown();
-
-    if (mpLastLineEventMap)
-    {
-        mpLastLineEventMap->destroyAll() ;
-        delete mpLastLineEventMap ;
-    }
 
     UtlHashBagIterator itor(mMessageObservers) ;
     while (SipObserverCriteria* pObserver = (SipObserverCriteria*) itor())
@@ -105,59 +96,22 @@ SipRefreshMgr::~SipRefreshMgr()
 UtlBoolean
 SipRefreshMgr::init(
     SipUserAgent *ptrToMyAgent,
-    int sipTcpPort,
-    int sipUdpPort,
-    const char* defaultUser,
-    const char* publicAddress,
-    const char* defaultAddress,
     const char* sipDirectoryServers,
     const char* sipRegistryServers,
-    int defaultRegistryTimeout,
-    int defaultSubscribeTimeout,
-    int restartCount,
-    const char* macAddress )
+    int defaultRegistryTimeout)
 {
     if ( ptrToMyAgent != NULL )
     {
         mMyUserAgent = ptrToMyAgent;
 
-        //set default paremeters
-        mTcpPort = sipTcpPort;
-        mUdpPort = sipUdpPort;
-
-        if ( defaultAddress )
-            mDefaultSipAddress.append( defaultAddress );
-
-        if ( publicAddress && *publicAddress )
-            mSipIpAddress.append( publicAddress );
-        else
-            OsSocket::getHostIp( &mSipIpAddress );
-
         if ( sipRegistryServers )
             mRegistryServer.append(sipRegistryServers);
-
-        if ( defaultUser && *defaultUser )
-            mDefaultUser.append(defaultUser);
-
-        if ( macAddress && *macAddress )
-            mMacAddress.append(macAddress);
 
         // defaultRegistryTimeout is 1 hr
         if ( defaultRegistryTimeout <= 0 )
             mDefaultRegistryPeriod = 3600;
         else
             mDefaultRegistryPeriod = defaultRegistryTimeout;
-
-        // defaultSubscribeTimeout is 24 hr
-        if ( defaultSubscribeTimeout <= 0 )
-            mDefaultSubscribePeriod = 60*60*24;
-        else
-            mDefaultSubscribePeriod = defaultSubscribeTimeout;
-
-        mRestartCount = restartCount;
-        char strCount[64];
-        SNPRINTF( strCount, sizeof(strCount), "%d", mRestartCount );
-        mRestartCountStr.append( strCount );
         return true;
     } else
     {
@@ -167,7 +121,7 @@ SipRefreshMgr::init(
 }
 
 void
-SipRefreshMgr::StartRefreshMgr()
+SipRefreshMgr::startRefreshMgr()
 {
     if ( !isStarted() )
     {   // start the thread
@@ -221,9 +175,6 @@ SipRefreshMgr::waitForUA()
     // register all lines
     reRegisterAll();
 
-    // subscribe to all subscriptions, MWI, CONFIG SERVER etc.
-    reSubscribeAll();
-
     mIsStarted = TRUE;
 
 #ifdef TEST_PRINT
@@ -236,22 +187,6 @@ SipRefreshMgr::isUAStarted()
 {
     OsLock lock(mUAReadyMutex);
     return(mIsStarted);
-}
-
-void
-SipRefreshMgr::addMessageConsumer( OsServerTask* messageEventListener )
-{
-    // Need to do the real thing by keeping a list of consumers
-    // and putting a mutex around the add to list
-    //if(messageListener)
-    //{
-    //  osPrintf("WARNING: message consumer is NOT a LIST\n");
-    //}
-    //messageListener = messageEventListener;
-    if ( messageEventListener )
-    {
-        addMessageObserver( *(messageEventListener->getMessageQueue()));
-    }
 }
 
 void
@@ -324,55 +259,6 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
 }
 
 
-/*---------------------------------------------------*/
-void 
-SipRefreshMgr::getFromAddress(
-    UtlString* address, 
-    int* port, 
-    UtlString* protocol )
-{
-    UtlTokenizer tokenizer(mRegistryServer);
-    UtlString regServer;
-
-    tokenizer.next(regServer, ",");
-    SipMessage::parseAddressFromUri(regServer.data(), address, port, protocol);
-
-    if ( address->isNull() )
-    {
-        protocol->remove(0);
-        // TCP only
-        if ( portIsValid(mTcpPort) && !portIsValid(mUdpPort) )
-        {
-            protocol->append(SIP_TRANSPORT_TCP);
-            *port = mTcpPort;
-        }
-        // UDP only
-        else if ( portIsValid(mUdpPort) && !portIsValid(mTcpPort) )
-        {
-            protocol->append(SIP_TRANSPORT_UDP);
-            *port = mUdpPort;
-        }
-        // TCP & UDP on non-standard port
-        else if ( mTcpPort != SIP_PORT )
-        {
-            *port = mTcpPort;
-        }
-        // TCP & UDP on standard port
-        else
-        {
-            *port = PORT_NONE;
-        }
-
-        // If there is an address configured use it
-        NameValueTokenizer::getSubField(mDefaultSipAddress.data(), 0, ", \t", address);
-        // else use the local host ip address
-        if ( address->isNull() )
-        {
-            address->append(mSipIpAddress);
-        }
-    }
-
-}/*---------------------------------------------------*/
 void SipRefreshMgr::reRegisterAll()
 {
     SipMessageList tempList;
@@ -742,29 +628,6 @@ SipRefreshMgr::rescheduleRequest(
         }
         defaultTime = mDefaultRegistryPeriod;
     }
-    else // Subscribe
-    {
-        OsReadLock readlock(mSubscribeListMutexR);
-        listMessage = mSubscribeList.getDuplicate(request);
-        // May not have a To tag set in the list because it was sent the first time
-        if ( !listMessage )
-        {
-            UtlString fromUri;
-            request->getFromUri(&fromUri);
-            Url uri(fromUri);
-            uri.removeAngleBrackets();
-            if ( !fromUri.isNull() )
-            {
-                SipMessage sipMsg;
-                if ( isDuplicateSubscribe(uri, sipMsg) )
-                {
-                    listMessage = mSubscribeList.getDuplicate(&sipMsg);
-                }
-            }
-        }
-        defaultTime = mDefaultSubscribePeriod;
-    }
-
 
     // if it is an immediate send then it is either a re-register or unregister
     // The Request has already incremented CSEQ number is that case so don't
@@ -786,8 +649,6 @@ SipRefreshMgr::rescheduleRequest(
     // Remove the old list message and add the new one
     if ( methodStr.compareTo(SIP_REGISTER_METHOD) == 0 )
         addToRegisterList(request);        
-    else
-        addToSubscribeList(request);
     
     // There will always be a copy - if there is no copy then don't reschedule 
     // because reregister may have removed the copy deliberately.
@@ -1287,9 +1148,6 @@ SipRefreshMgr::sendToObservers (
     if ( method.compareTo(SIP_REGISTER_METHOD) == 0 )
     {
         queueMessageToObservers(event, SIP_REGISTER_METHOD);
-    } else
-    {
-        queueMessageToObservers(event, SIP_SUBSCRIBE_METHOD);
     }
     // send it to those with no method descrimination as well
     queueMessageToObservers(event, "");
@@ -1406,16 +1264,6 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
                     request = new SipMessage(*requestFound);
             }
 
-            // IS this a subscribe msg?
-            if ( !request )
-            {
-                OsReadLock readlock(mSubscribeListMutexR);
-                // Find the request which goes with this response
-                requestFound = mSubscribeList.getRequestFor(sipMsg);
-                if (requestFound)
-                    request = new SipMessage(*requestFound);
-            }
-
             if ( request )
             {
                 UtlBoolean retryWithAuthentication = FALSE;
@@ -1440,17 +1288,6 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
                            retryWithAuthentication = TRUE;
                         }
                     } 
-                    else if ( strcmp(method.data(), SIP_SUBSCRIBE_METHOD) == 0 )
-                    {
-                        // Find the request which goes with this response
-                        SipMessage* request = mSubscribeList.getRequestFor(sipMsg);
-
-                        //increment the CSeq number in the stored request
-                        request->incrementCSeqNumber();
-                        addToSubscribeList(request);
-
-                        retryWithAuthentication = TRUE;
-                    }
                 }
 
                 if ( request && retryWithAuthentication == FALSE )
@@ -1567,31 +1404,6 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
                             method.data(), callId.data()) ;                  
                     }
                 } 
-                else
-                {
-                    if ( isDuplicateSubscribe(uri, sipMsg) )
-                    {
-                        int listNum;
-                        UtlString listMethod;
-                        sipMsg.getCSeqField(&listNum , &listMethod);
-
-                        // check if CSeq is less than what is in the list ..if less, then it is because
-                        // reregister must have incremented it and this rescheduling from the previous
-                        // msg
-                        if ( num >= listNum )
-                        {                            
-                            if (sendRequest(*sipMessage, SIP_SUBSCRIBE_METHOD) != OS_SUCCESS)
-                            {
-                                removeFromSubscribeList(sipMessage);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to refresh %s (not found):\ncallid=%s",
-                            method.data(), callId.data()) ;                  
-                    }                     
-                }
             }
 
             // The timer made its own copy of this message.Delete it now that we are done with it.
@@ -1604,21 +1416,6 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
 
     return (messageProcessed);
 }
-
-
-// Get the nat mapped address (if available)
-UtlBoolean SipRefreshMgr::getNatMappedAddress(UtlString* pIpAddress, int* pPort) 
-{
-    UtlBoolean bRC = FALSE ;
-
-    if (mMyUserAgent)
-    {
-        bRC = mMyUserAgent->getNatMappedAddress(pIpAddress, pPort) ;
-    }
-
-    return bRC ;
-}
-      
 
 void 
 SipRefreshMgr::queueMessageToObservers(
@@ -1674,172 +1471,6 @@ SipRefreshMgr::queueMessageToObservers(
     while ( observerCriteria != NULL );
 }
 
-/*===================================================================*/
-// SUBSCRIBE
-/*===================================================================*/
-void SipRefreshMgr::reSubscribeAll()
-{
-    SipMessageList tempList;
-    SipMessage* listMessage;
-    int iteratorHandle;
-
-    {//scope the locks
-        OsReadLock readlock(mSubscribeListMutexR);
-        OsWriteLock writeLock(mSubscribeListMutexW);
-
-        iteratorHandle = mSubscribeList.getIterator();
-        while ((listMessage = (SipMessage*) mSubscribeList.getSipMessageForIndex(iteratorHandle)))
-        {
-            //somehow stop the old timer - will get not cause harm because will not be able to find corresponding request.
-            tempList.add(listMessage);
-        }
-        mSubscribeList.releaseIterator(iteratorHandle);
-    }
-
-    iteratorHandle = tempList.getIterator();
-    while ((listMessage = (SipMessage*) tempList.getSipMessageForIndex(iteratorHandle)))
-    {
-        rescheduleRequest(listMessage, 1 , SIP_SUBSCRIBE_METHOD, DEFAULT_PERCENTAGE_TIMEOUT ,TRUE);
-    }
-    tempList.releaseIterator(iteratorHandle);
-}
-
-void SipRefreshMgr::unSubscribeAll()
-{
-    SipMessage* listMessage;
-    int iteratorHandle;
-
-    {//scope the locks
-        OsReadLock readlock(mSubscribeListMutexR);
-        OsWriteLock writeLock(mSubscribeListMutexW);
-
-        iteratorHandle = mSubscribeList.getIterator();
-        while ((listMessage = (SipMessage*) mSubscribeList.getSipMessageForIndex(iteratorHandle)))
-        {
-            listMessage->setExpiresField(0);
-            listMessage->incrementCSeqNumber();
-
-            // Clear the DNS field, so that we retry DNS-SRV before resending.  
-            // This should be performed for all failure cases, except for
-            // auth challenges
-            listMessage->clearDNSField() ;
-            listMessage->resetTransport() ;
-
-            UtlString localIp;
-            int localPort;
-
-            SIPX_TRANSPORT_TYPE protocol = TRANSPORT_UDP;
-            UtlString url;
-            listMessage->getToField(&url);
-            if (url.contains("sips:") || url.contains("transport=tls"))
-            {
-                protocol = TRANSPORT_TLS;
-            }
-            if (url.contains("transport=tcp"))
-            {
-                protocol = TRANSPORT_TCP;
-            }
-
-            mMyUserAgent->getLocalAddress(&localIp, &localPort, protocol);
-            listMessage->setLocalIp(localIp);
-            
-            mMyUserAgent->send(*listMessage);
-            mSubscribeList.remove(iteratorHandle);
-
-            delete listMessage;
-        }
-        mSubscribeList.releaseIterator(iteratorHandle);
-    }
-
-}
-
-UtlBoolean 
-SipRefreshMgr::newSubscribeMsg( SipMessage& sipMessage )
-{
-    UtlString to;
-    UtlString method;
-    UtlString eventType;
-
-    // Assume failed unless proven otherwise
-    UtlBoolean result = false;    
-    sipMessage.getRequestMethod( &method );        
-    sipMessage.getToField( &to );
-    sipMessage.getEventField( eventType );
-
-    // ensure that this is a subscribe request
-    if ( strcmp( method.data(), SIP_SUBSCRIBE_METHOD ) == 0 )
-    {
-        if ( !isDuplicateSubscribe( to.data() ) )
-        {
-            syslog(FAC_REFRESH_MGR, PRI_DEBUG, "adding registration:\nurl=%s\nevent-type=%s",
-                    to.data(), eventType.data()) ;
-
-            // lazy create the from tag
-            Url fromUrl;
-            sipMessage.getFromUrl( fromUrl );
-            UtlString tagValue;
-            if ( !fromUrl.getFieldParameter( "tag", tagValue ) )
-            {
-                // tag has not been set so set it here
-                UtlString tagNameValuePair;
-                createTagNameValuePair( tagNameValuePair );
-                // Tokenize out the tag=value part
-                UtlTokenizer next (tagNameValuePair);
-                UtlString junk;
-                next.next(junk, "=");
-                UtlString tagValue;
-                next.next(tagValue, "=");
-                fromUrl.setFieldParameter("tag", tagValue);
-                sipMessage.setRawFromField( fromUrl.toString().data() );
-            }
-
-            // lazy create the callid
-            UtlString subscribeCallId;
-            sipMessage.getCallIdField(&subscribeCallId);
-            if ( subscribeCallId.isNull() )
-            {
-                UtlString from;
-                sipMessage.getFromField( &from );
-                // Generate Call Id
-                UtlString subscribeCallId = mCallIdGenerator.getNewCallId();
-
-                sipMessage.setCallIdField(
-                    subscribeCallId.data());
-            }
-
-            // Add to subscription list
-            addToSubscribeList( &sipMessage );
-
-            if (isUAStarted())
-            {
-                if (sendRequest( sipMessage, SIP_SUBSCRIBE_METHOD ) != OS_SUCCESS)
-                {
-                    removeFromSubscribeList(&sipMessage);
-                }
-            }
-            else
-            {
-                syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to add registration (queue):\nurl=%s\nevent-type=%s",
-                        to.data(), eventType.data()) ;
-
-            } 
-            result = true;
-        } 
-        else
-        {
-            syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to add new registration (dup):\nurl=%s\nevent-type=%s",
-                    to.data(), eventType.data()) ;
-        }
-    } 
-    else
-    {
-        osPrintf("ERROR SipRefreshMgr::newSubscribeMsg - "
-                 "Not a SIP_SUBSCRIBE_METHOD request\n");
-    }
-    return result;
-}
-
-
 // Appends the message contents of both the mRegisterList and mSubscribeList.
 void SipRefreshMgr::dumpMessageLists(UtlString& results)
 {
@@ -1849,12 +1480,6 @@ void SipRefreshMgr::dumpMessageLists(UtlString& results)
     results.append("\nRegister List:\n\n") ;
     mRegisterList.remove(0) ;
     mRegisterList.toString(temp) ;
-    results.append(temp) ;
-
-    // Dump Subscribe List
-    results.append("\nSubscribe List:\n\n") ;
-    mSubscribeList.remove(0) ;
-    mSubscribeList.toString(temp) ;
     results.append(temp) ;
 }
 
@@ -1920,71 +1545,6 @@ SipRefreshMgr::addToRegisterList(SipMessage *message)
 #endif
 }
 
-UtlBoolean  
-SipRefreshMgr::removeFromSubscribeList(SipMessage* message)
-{
-    UtlBoolean bRemovedOk = FALSE;
-
-    OsReadLock readlock(mSubscribeListMutexR);
-    OsWriteLock writeLock(mSubscribeListMutexW);
-#ifdef TEST_PRINT
-    osPrintf("**********************************************\n");
-    osPrintf("Removing message from subscribe list: %X\n",message);
-    osPrintf("**********************************************\n");
-#endif
-    if (mSubscribeList.remove(message) == FALSE)
-    {
-#ifdef TEST_PRINT
-        osPrintf("**********************************************\n");
-        osPrintf("Cannot Find message to subscribe list: %X\n",message);
-        osPrintf("**********************************************\n");
-#endif
-    }
-    else
-        bRemovedOk = TRUE;
-
-    return bRemovedOk;
-}
-
-void 
-SipRefreshMgr::addToSubscribeList(SipMessage *message)
-{
-    OsReadLock readlock(mSubscribeListMutexR);
-    OsWriteLock writeLock(mSubscribeListMutexW);
-    mSubscribeList.add(new SipMessage (*message));
-}
-
-UtlBoolean 
-SipRefreshMgr::isDuplicateSubscribe ( const Url& toUrl )
-{
-    OsReadLock readlock(mSubscribeListMutexR);
-    OsWriteLock writeLock(mSubscribeListMutexW);
-
-    SipMessage * oldMsg = mSubscribeList.isSameTo(toUrl);
-    if ( oldMsg )
-    {
-        return true;
-    }
-    return false;
-}
-
-UtlBoolean 
-SipRefreshMgr::isDuplicateSubscribe (
-    const Url& fromUrl, 
-    SipMessage &oldMsg )
-{
-    OsReadLock readlock(mSubscribeListMutexR);
-    OsWriteLock writeLock(mSubscribeListMutexW);
-    // call copy constructor on the oldMsg
-    SipMessage* pduplicate = mSubscribeList.isSameFrom(fromUrl);
-    if ( pduplicate != NULL )
-    {
-        oldMsg = *pduplicate;
-        return true;
-    }
-    return false;
-}
-
 void 
 SipRefreshMgr::rescheduleAfterTime(
     SipMessage *request, 
@@ -2008,10 +1568,6 @@ SipRefreshMgr::rescheduleAfterTime(
         {
             iOriginalExpiration = mDefaultRegistryPeriod ;
         }
-        else
-        {
-            iOriginalExpiration = mDefaultSubscribePeriod ;
-        } 
     }
     if (request)
     {
@@ -2140,56 +1696,6 @@ void SipRefreshMgr::setRegistryPeriod(const int periodInSeconds)
     mDefaultRegistryPeriod = periodInSeconds;
 }
 
-void SipRefreshMgr::setSubscribeTimeout(const int periodInSeconds)
-{
-    mDefaultSubscribePeriod = periodInSeconds;
-}
-
-const int SipRefreshMgr::getSubscribeTimeout()
-{
-    return mDefaultSubscribePeriod;
-}
-
-
-SIPX_LINESTATE_EVENT SipRefreshMgr::getLastLineEvent(const UtlString& lineId)
-{
-    SIPX_LINESTATE_EVENT lastLineEvent = LINESTATE_UNKNOWN;
-    UtlInt* lastEvent = NULL;
-    
-    if (!mpLastLineEventMap)
-    {
-        mpLastLineEventMap = new UtlHashMap();
-    }
-    lastEvent = dynamic_cast<UtlInt*>(mpLastLineEventMap->find(&lineId));   
-    if (lastEvent)
-    {
-        lastLineEvent = (SIPX_LINESTATE_EVENT)lastEvent->getValue();
-    }
-    return lastLineEvent;
-}
- 
-void SipRefreshMgr::setLastLineEvent(const UtlString& lineId, const SIPX_LINESTATE_EVENT eMajor)
-{
-    if (!mpLastLineEventMap)
-    {
-        mpLastLineEventMap = new UtlHashMap();
-    }
-
-    UtlString* newId = new UtlString(lineId);
-    UtlString* exisitingId;
-    
-    if((exisitingId = dynamic_cast<UtlString*>(mpLastLineEventMap->find(newId))))
-    {
-       OsSysLog::add(FAC_REFRESH_MGR, PRI_DEBUG,
-                     "SipRefreshMgr::setLastLineEvent: LineId found, being destroyed ??"
-                     );
-       mpLastLineEventMap->destroy(exisitingId);
-    }
-
-    mpLastLineEventMap->insertKeyAndValue(newId, new UtlInt(eMajor));
-}
-
-
 void SipRefreshMgr::removeAllFromRequestList(SipMessage* response)
 {
     OsReadLock readlock(mRegisterListMutexR);
@@ -2201,10 +1707,6 @@ void SipRefreshMgr::removeAllFromRequestList(SipMessage* response)
     if (methodName.compareTo(SIP_REGISTER_METHOD) == 0)
     {
         removeAllFromRequestList(response, &mRegisterList);
-    }
-    else if (methodName.compareTo(SIP_SUBSCRIBE_METHOD) == 0)
-    {
-        removeAllFromRequestList(response, &mSubscribeList);
     }
 
 #ifdef TEST_PRINT

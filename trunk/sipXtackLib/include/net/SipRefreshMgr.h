@@ -50,37 +50,17 @@ public:
     //INITIALIZE
     UtlBoolean init(
         SipUserAgent *ptrToMyAgent,
-        int sipTcpPort = SIP_PORT,
-        int sipUdpPort = SIP_PORT,
-        const char* defaultUser = NULL,
-        const char* publicAddress = NULL,
-        const char* defaultSipAddress = NULL,
         const char* sipDirectoryServers = NULL,
         const char* sipRegistryServers = NULL,
-        int defaultRegistryTimeout = 3600,      // one hr
-        int defaultSubscribeTimeout = 60*60*24, // 24 hrs
-        int restartCount = 1,
-        const char* macAddress = NULL );
+        int defaultRegistryTimeout = 3600);
 
-    void StartRefreshMgr();
+    void startRefreshMgr();
     
     /**
      * Mutator for the mDefaultRegistryPeriodMember
      */
     void setRegistryPeriod(const int periodInSeconds);
     
-    /**
-     * Mutator for the mDefaultSubscribePeriodMember
-     */
-    void setSubscribeTimeout(const int periodInSeconds);
-
-    /**
-     * Accessor for the mDefaultSubscribePeriodMember
-     */
-    const int getSubscribeTimeout();
-
-    void addMessageConsumer( OsServerTask* messageEventListener );
-
     void addMessageObserver (
         OsMsgQ& messageQueue,
         const char* sipMethod = NULL,
@@ -101,9 +81,6 @@ public:
     //! param: eventName - want to observer SUBSCRIBE or NOTIFY requests having the given event type
     //! param: observerData - data to be attached to SIP messages queued on the observer
 
-    //void removeMessageConsumer(OsServerTask* messageConsumer);
-    //: Remove a SIP message recipient
-
     //REGISTER METHODS
     UtlBoolean newRegisterMsg (
         const Url& fromUrl,
@@ -118,20 +95,12 @@ public:
         const Url& fromUrl,
         const UtlBoolean& onStartup = FALSE,
         const UtlString& lineid ="" );
-
-    //SUBSRIBE METHODS
-    void reSubscribeAll();
-    
-    void unSubscribeAll();
-      //:Unsubscribe all
-      
+     
     void setLineMgr(SipLineMgr* const lineMgr);
     //: Sets a pointer to the line manager
     
     SipLineMgr* const getLineMgr() const;
     //: Gets the line manager pointer
-
-    UtlBoolean newSubscribeMsg( SipMessage& message );
 
     SipRefreshMgr(SipLineStateEventListener *listener = NULL);
 
@@ -142,9 +111,6 @@ public:
     virtual ~SipRefreshMgr();
 
     virtual UtlBoolean handleMessage( OsMsg& eventMessage );
-
-    UtlBoolean getNatMappedAddress(UtlString* pIpAddress, int* pPort) ;
-      //: Get the nat mapped address (if available)
 
 protected:
     SipLineMgr* mpLineMgr;
@@ -165,11 +131,6 @@ protected:
     void queueMessageToObservers (
         SipMessageEvent& event,
         const char* method);
-
-    void getFromAddress (
-        UtlString* address,
-        int* port,
-        UtlString* protocol);
 
     void rescheduleAfterTime (
         SipMessage* message,
@@ -226,19 +187,6 @@ protected:
      //: Returns TRUE if message was found and removed from list.
      //: Message is NOT deleted.  
 
-    // subscribe
-    void addToSubscribeList( SipMessage * message);
-
-    UtlBoolean removeFromSubscribeList( SipMessage* message );
-     //: Returns TRUE if message was found and removed from list.
-     //: Message is NOT deleted.  
-
-    UtlBoolean isDuplicateSubscribe ( const Url& url );
-
-    UtlBoolean isDuplicateSubscribe(
-        const Url& fromUrl,
-        SipMessage &oldMsg );
-
     UtlString buildContactField(const Url& registerToField,
                                 const UtlString& lineId = "",
                                 const Url* pPreferredContactUri = NULL);
@@ -253,27 +201,13 @@ protected:
     
     UtlBoolean isExpiresZero(SipMessage* pRequest) ;
       //: Is the expires field set to zero for the specified msg?
-         
-    SIPX_LINESTATE_EVENT getLastLineEvent(const UtlString& lineId);
-    //: holding on to the last known line event type 
-    
-    void setLastLineEvent(const UtlString& lineId, const SIPX_LINESTATE_EVENT eMajor);
-    //: sets the last line event type 
-    
-    UtlHashMap* mpLastLineEventMap;
-
+       
     // register
     int mDefaultRegistryPeriod;
     SipMessageList mRegisterList;
     OsRWMutex mRegisterListMutexR;
     OsRWMutex mRegisterListMutexW;
     UtlString mRegistryServer;
-
-    // subscribe
-    int mDefaultSubscribePeriod;
-    SipMessageList mSubscribeList;
-    OsRWMutex mSubscribeListMutexR;
-    OsRWMutex mSubscribeListMutexW;
 
     // events
     SipLineStateEventListener* mLineListener;
@@ -284,17 +218,8 @@ protected:
     UtlHashBag mMessageObservers;
     OsRWMutex mObserverMutex;
     OsMutex mUAReadyMutex;
-    UtlString mContactAddress;
-    UtlString mDefaultSipAddress;
-    UtlString mSipIpAddress;
-    UtlString mDefaultUser;
-    UtlString mMacAddress;
-    UtlString mRestartCountStr;
     SipUserAgent* mMyUserAgent;
-    int mTcpPort;
-    int mUdpPort;
-    int mRestartCount;
-    UtlRandom mRandomNumGenerator ;
+    UtlRandom mRandomNumGenerator;
     UtlHashBag mTimerBag;
 };
 
