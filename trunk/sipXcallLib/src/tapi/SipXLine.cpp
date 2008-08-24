@@ -158,13 +158,23 @@ void sipxLineReleaseLock(SIPX_LINE_DATA* pData,
 // CHECKED
 void sipxLineRemoveAll(const SIPX_INST hInst) 
 {
-   SIPX_LINE lines[MAX_LINES];
-   size_t nLines = 0 ;
-   sipxLineGet(hInst, lines, MAX_LINES, &nLines);
-
-   for (size_t i = 0; i < nLines; i++)
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   if (pInst)
    {
-      sipxLineRemove(lines[i]);
+      int linesCount = pInst->pLineManager->getNumLines();
+      SIPX_LINE lines[1];
+      size_t nLines = 0;
+
+      for (size_t i = 0; i < (size_t)linesCount; i++)
+      {
+         // remove lines 1 by 1
+         sipxLineGet(hInst, lines, 1, &nLines);
+         if (nLines > 0)
+         {
+            sipxLineRemove(lines[i]);
+         }
+         nLines = 0;
+      }
    }
 }
 
