@@ -42,6 +42,7 @@
 
 #define UNREGISTER_CSEQ_NUMBER   2146483648   // 2^31 - 1,000,000
 #define MIN_REFRESH_TIME_SECS       20 // Floor for re-subscribes/re-registers
+#define CALL_ID_PREFIX "s" // refresh manager uses s
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -63,7 +64,8 @@ SipRefreshMgr::SipRefreshMgr(SipLineStateEventListener *listener):
     mObserverMutex(OsRWMutex::Q_FIFO),
     mUAReadyMutex(OsRWMutex::Q_FIFO),
     mMyUserAgent(NULL),
-    mLineListener(listener)
+    mLineListener(listener),
+    mCallIdGenerator(CALL_ID_PREFIX)
 {
 }
 
@@ -282,14 +284,12 @@ SipRefreshMgr::addMessageObserver (
 /*===================================================================*/
 //REGISTER
 /*===================================================================*/
-UtlBoolean 
-SipRefreshMgr::newRegisterMsg( 
-    const Url& fromUrl,
-    const UtlString& lineId,
-    int registryPeriodSeconds,
-    Url* pPreferredContactUri)
+UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
+                                         const UtlString& lineId,
+                                         int registryPeriodSeconds,
+                                         const Url* pPreferredContactUri)
 {
-    if ( !isDuplicateRegister( fromUrl ) )
+    if (!isDuplicateRegister(fromUrl))
     {
         syslog(FAC_REFRESH_MGR, PRI_DEBUG, "adding registration:\nurl=%s\nlineid=%s\nperiod=%d",
                 fromUrl.toString().data(), lineId.data(), registryPeriodSeconds) ;
@@ -299,14 +299,8 @@ SipRefreshMgr::newRegisterMsg(
         uri.setUserId("");
 
         //generate Call Id
-        UtlString registerCallId;
-        generateCallId( 
-            fromUrl.toString(),
-            SIP_REGISTER_METHOD, 
-            registerCallId );
-
-        UtlString contactField;
-        getContactField( fromUrl, contactField, lineId, pPreferredContactUri);
+        UtlString registerCallId = mCallIdGenerator.getNewCallId();
+        UtlString contactField = buildContactField(fromUrl, lineId, pPreferredContactUri);
 
         registerUrl(fromUrl.toString(), // from
                     fromUrl.toString(), // to                    
@@ -459,12 +453,10 @@ SipRefreshMgr::unRegisterUser (
         Uri.setUserId("");
 
         //generate Call Id
-        UtlString registerCallId;
-        generateCallId(fromUrl.toString(),SIP_REGISTER_METHOD, registerCallId, TRUE);
+        UtlString registerCallId = mCallIdGenerator.getNewCallId();
 
         SipMessage* regMessage = new SipMessage();
-        UtlString contactField;
-        getContactField( fromUrl, contactField, lineId );
+        UtlString contactField = buildContactField(fromUrl, lineId, NULL); // NULL ???
 
         UtlString fromField(fromUrl.toString());
         UtlString toField(fromField);
@@ -540,10 +532,8 @@ SipRefreshMgr::unRegisterUser (
         }
     }
 
-UtlBoolean 
-SipRefreshMgr::isDuplicateRegister (
-    const Url& fromUrl, 
-    SipMessage &oldMsg )
+UtlBoolean SipRefreshMgr::isDuplicateRegister(const Url& fromUrl, 
+                                              SipMessage &oldMsg)
 {
     OsReadLock readlock(mRegisterListMutexR);
     OsWriteLock writeLock(mRegisterListMutexW);
@@ -808,10 +798,9 @@ SipRefreshMgr::rescheduleRequest(
         if ( contact.isNull() )
         {
             UtlString toField;
-            UtlString contactStr;
             request->getToField(&toField);
             Url toFieldTmp(toField);
-            getContactField(toFieldTmp, contactStr, lineId);
+            UtlString contactStr = buildContactField(toFieldTmp, lineId, NULL);
             request->setContactField(contactStr.data());
         }
 
@@ -1839,11 +1828,7 @@ SipRefreshMgr::newSubscribeMsg( SipMessage& sipMessage )
                 UtlString from;
                 sipMessage.getFromField( &from );
                 // Generate Call Id
-                UtlString subscribeCallId;
-                generateCallId ( 
-                    from,
-                    SIP_SUBSCRIBE_METHOD, 
-                    subscribeCallId );
+                UtlString subscribeCallId = mCallIdGenerator.getNewCallId();
 
                 sipMessage.setCallIdField(
                     subscribeCallId.data());
@@ -1898,60 +1883,6 @@ void SipRefreshMgr::dumpMessageLists(UtlString& results)
     mSubscribeList.remove(0) ;
     mSubscribeList.toString(temp) ;
     results.append(temp) ;
-}
-
-
-void 
-SipRefreshMgr::generateCallId(
-    const UtlString& fromUrl,
-    const UtlString& method,
-    UtlString& callId,
-    UtlBoolean onStartup)
-{
-    Url temp(fromUrl);
-    UtlString identity;
-    temp.getIdentity(identity);
-
-    if ( method.compareTo(SIP_REGISTER_METHOD) == 0 )
-    {
-        if ( onStartup )
-        {
-            int previousCount = mRestartCount -1;
-            char strCount[64];
-            SNPRINTF(strCount, sizeof(strCount), "%d", previousCount);
-
-            //use previous restart count to get the previous call id
-            HttpMessage::buildMd5UserPasswordDigest(mMacAddress, strCount, identity, callId);
-        } else
-        {
-            // TEMP - mdc
-            // call id is a hash of fromUrl, ipaddress+rnd, method
-            int randomInt = mRandomNumGenerator.rand();
-            char randomString[60];
-            SNPRINTF(randomString, sizeof(randomString), "-%d", randomInt);
-
-            UtlString randomizedHostIP;
-            OsSocket::getHostIp( &randomizedHostIP );
-            randomizedHostIP.append (randomString);
-
-            HttpMessage::buildMd5UserPasswordDigest(
-                fromUrl, randomizedHostIP, method, callId );
-            //HttpMessage::buildMd5UserPasswordDigest(mMacAddress, mRestartCountStr, identity, callId);
-        }
-    } else // subscribe method
-    {
-        // call id is a hash of fromUrl, ipaddress+rnd, method
-        int randomInt = mRandomNumGenerator.rand();
-        char randomString[60];
-        SNPRINTF(randomString, sizeof(randomString), "-%d", randomInt);
-
-        UtlString randomizedHostIP;
-        OsSocket::getHostIp( &randomizedHostIP );
-        randomizedHostIP.append (randomString);
-
-        HttpMessage::buildMd5UserPasswordDigest(
-            fromUrl, randomizedHostIP, method, callId );
-    }
 }
 
 UtlBoolean 
@@ -2129,14 +2060,11 @@ SipRefreshMgr::createTagNameValuePair( UtlString& tagNamevaluePair )
     tagNamevaluePair.append(fromTagBuffer);
 }
 
-void 
-SipRefreshMgr::getContactField(
-    const Url& registerToField, 
-    UtlString& contact,
-    const UtlString& lineId,
-    Url* pPreferredContactUri)
+UtlString SipRefreshMgr::buildContactField(const Url& registerToField, 
+                                           const UtlString& lineId,
+                                           const Url* pPreferredContactUri)
 {
-    contact.remove(0);
+    UtlString contact;
     UtlString tempContact;
     UtlString displayName;
     UtlString userId;
@@ -2198,6 +2126,8 @@ SipRefreshMgr::getContactField(
         index ++;
     }
     contact.append(contactUrl.toString().data());
+
+    return contact;
 }
 
 
