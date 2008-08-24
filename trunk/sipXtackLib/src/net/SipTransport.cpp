@@ -45,11 +45,14 @@ SIPXSTACK_TRANSPORT_TYPE SipTransport::getSipTransport(const UtlString& strUrl)
 {
    SIPXSTACK_TRANSPORT_TYPE transport = SIPXSTACK_TRANSPORT_UDP;
 
-   if (strUrl.contains("sips:") || strUrl.contains("transport=tls"))
+   UtlString lowerStrUrl(strUrl);
+   lowerStrUrl.toLower();
+
+   if (lowerStrUrl.contains("sips:") || lowerStrUrl.contains("transport=tls"))
    {
       transport = SIPXSTACK_TRANSPORT_TLS;
    }
-   if (strUrl.contains("transport=tcp"))
+   if (lowerStrUrl.contains("transport=tcp"))
    {
       transport = SIPXSTACK_TRANSPORT_TCP;
    }
