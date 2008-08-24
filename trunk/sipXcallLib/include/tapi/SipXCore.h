@@ -282,7 +282,7 @@ void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
                        SIPX_CONTACT_TYPE& contactType, 
                        UtlString& contactIp,
                        int& contactPort,
-                       SIPX_TRANSPORT_TYPE transport);
+                       SIPX_TRANSPORT_TYPE& transport);
 
 void sipxIncSessionCount();
 void sipxDecSessionCount();

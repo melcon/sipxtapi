@@ -203,7 +203,7 @@ void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
                        SIPX_CONTACT_TYPE& contactType,
                        UtlString& contactIp,
                        int& contactPort,
-                       SIPX_TRANSPORT_TYPE transport)
+                       SIPX_TRANSPORT_TYPE& transport)
 {
 
    if (contactType == CONTACT_RELAY)
@@ -222,6 +222,12 @@ void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
             OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
                "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
                transport, contactType);
+
+            if (transport == TRANSPORT_TLS)
+            {
+               // override transport, since contact port will be of UDP Sip server
+               transport = TRANSPORT_UDP;
+            }
          }
          contactType = CONTACT_CONFIG;
          return;
@@ -238,6 +244,12 @@ void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
             OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
                "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
                transport, contactType);
+
+            if (transport == TRANSPORT_TLS)
+            {
+               // override transport, since contact port will be of UDP Sip server
+               transport = TRANSPORT_UDP;
+            }
          }
          contactType = CONTACT_NAT_MAPPED;
          return;
