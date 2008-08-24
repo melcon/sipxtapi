@@ -16,13 +16,14 @@
 
 // APPLICATION INCLUDES
 #include "os/OsServerTask.h"
+#include "utl/UtlRandom.h"
+#include "utl/UtlHashMap.h"
 #include "net/SipMessage.h"
 #include "net/SipTcpServer.h"
 #include "net/SipUdpServer.h"
 #include "net/SipMessageList.h"
 #include "net/SipMessageEvent.h"
-#include "utl/UtlRandom.h"
-#include "utl/UtlHashMap.h"
+#include "net/SipCallIdGenerator.h"
 #include "tapi/sipXtapiEvents.h" /* :TODO: CIRCULAR */
 
 #include "net/SipLine.h"
@@ -108,7 +109,7 @@ public:
         const Url& fromUrl,
         const UtlString& lineId,
         int registryPeriodSeconds = -1,
-        Url* pPreferredContactUri = NULL);
+        const Url* pPreferredContactUri = NULL);
 
     void reRegisterAll();
 
@@ -145,13 +146,6 @@ public:
 
     UtlBoolean getNatMappedAddress(UtlString* pIpAddress, int* pPort) ;
       //: Get the nat mapped address (if available)
-
-    void generateCallId (
-        const UtlString& lineId,
-        const UtlString& method,
-        UtlString& callid,
-        UtlBoolean onStartup = FALSE );
-
 
 protected:
     SipLineMgr* mpLineMgr;
@@ -246,12 +240,10 @@ protected:
         const Url& fromUrl,
         SipMessage &oldMsg );
 
-    void getContactField(
-        const Url& registerToField,
-        UtlString& contact,
-        const UtlString& lineId = "",
-        Url* pPreferredContactUri = NULL);
-        
+    UtlString buildContactField(const Url& registerToField,
+                                const UtlString& lineId = "",
+                                const Url* pPreferredContactUri = NULL);
+    
     void removeAllFromRequestList(SipMessage* response);
     //: Removes all prior request records for this response
     //: from the SipMessageLists (mRegisterList & mSubscribeList)
@@ -288,6 +280,7 @@ protected:
     SipLineStateEventListener* mLineListener;
 
     // common
+    SipCallIdGenerator mCallIdGenerator;
     UtlBoolean mIsStarted;
     UtlHashBag mMessageObservers;
     OsRWMutex mObserverMutex;
