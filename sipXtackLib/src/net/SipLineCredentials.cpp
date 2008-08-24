@@ -19,6 +19,11 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+SipLineCredentials::SipLineCredentials()
+{
+
+}
+
 SipLineCredentials::SipLineCredentials(const UtlString& realm,
                                        const UtlString& userId,
                                        const UtlString& passwordToken,
@@ -34,6 +39,24 @@ SipLineCredentials::SipLineCredentials(const UtlString& realm,
 SipLineCredentials::~SipLineCredentials()
 {
 
+}
+
+SipLineCredentials::SipLineCredentials(const SipLineCredentials& rSipLineCredentials)
+{
+   *this = rSipLineCredentials;
+}
+
+SipLineCredentials& SipLineCredentials::operator=(const SipLineCredentials& rSipLineCredentials)
+{
+   UtlString::operator=(rSipLineCredentials); // copy UtlString superclass
+
+   // copy this class members
+   m_userId = rSipLineCredentials.m_userId;
+   m_passwordToken = rSipLineCredentials.m_passwordToken;
+   m_realm = rSipLineCredentials.m_realm;
+   m_type = rSipLineCredentials.m_type;
+
+   return *this;
 }
 
 UtlString SipLineCredentials::getPasswordMD5Digest() const

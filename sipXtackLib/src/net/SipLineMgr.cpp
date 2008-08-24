@@ -792,7 +792,7 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
         line = getLineforAuthentication(request, response, FALSE, TRUE);
         if(line)
         {
-            if(line->getCredentials(scheme, realm, &userID, &passToken))
+            if(line->getCredentials(scheme, realm, userID, passToken))
             {
             credentialFound = TRUE;
             }
@@ -803,7 +803,7 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
         line = getLineforAuthentication(request, response, FALSE);
         if(line)
         {
-            if(line->getCredentials(scheme, realm, &userID, &passToken))
+            if(line->getCredentials(scheme, realm, userID, passToken))
             {
                 credentialFound = TRUE;
             }
@@ -812,7 +812,7 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
 
     if( !alreadyTriedOnce && credentialFound )
     {
-        if ( line->getCredentials(scheme, realm, &userID, &passToken))
+        if ( line->getCredentials(scheme, realm, userID, passToken))
         {
             OsSysLog::add(FAC_AUTH, PRI_INFO, "found auth credentials for:\nlineId:%s\ncallid=%s\nscheme=%s\nmethod=%s\ncseq=%d\nrealm=%s",
                fromUri.data(), callId.data(), scheme.data(), method.data(), sequenceNum, realm.data()) ;
