@@ -90,9 +90,7 @@ public:
 
     void reRegister ( const Url& fromUrl );
 
-    void unRegisterUser (
-        const Url& fromUrl,
-        const UtlString& lineid ="" );
+    void unRegisterUser(const Url& fromUrl);
      
     void setLineMgr(SipLineMgr* const lineMgr);
     //: Sets a pointer to the line manager

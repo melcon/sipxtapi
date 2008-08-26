@@ -53,7 +53,7 @@ class SipLine
 public:
 
    //utility functions
-   enum LineStates
+   typedef enum
    {
       LINE_STATE_UNKNOWN  = 0,
       LINE_STATE_REGISTERED,  ///< sucessfull registeration , registration no expried on server
@@ -62,7 +62,7 @@ public:
       LINE_STATE_PROVISIONED, ///< dont send registration , but enabled because server provisioned it.
       LINE_STATE_TRYING,      ///< registration message sent , awaiting response
       LINE_STATE_EXPIRED      ///< registration expried on server
-   };
+   } LineStates;
 
    /* ============================ CREATORS ================================== */
    ///@name Creators

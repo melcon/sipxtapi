@@ -16,6 +16,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsServerTask.h"
+#include "os/OsMutex.h"
 #include "net/SipLine.h"
 #include "net/SipLineList.h"
 
@@ -33,21 +34,22 @@ class HttpMessage;
 class SipMessage;
 
 /**
- * Line management class. Responsible for managing addition, removal,
- * configuration of new lines, and firing line events.
- */
+* Line management class. Responsible for managing addition, removal,
+* configuration of new lines, and firing line events.
+*/
 class SipLineMgr : public OsServerTask
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
    SipLineMgr(SipRefreshMgr *refershMgr = NULL);
 
+   /** Line manager destructor */
    virtual ~SipLineMgr();
 
-/* ============================ MANIPULATORS ============================== */
+   /* ============================ MANIPULATORS ============================== */
 
    /** Starts line manager server task */
    void startLineMgr();
@@ -59,101 +61,77 @@ public:
    UtlBoolean registerLine(const Url& lineURI);
 
    /** Unregisters line identified by lineURI. */
-   UtlBoolean unregisterLine(const Url& identity,
-                             const UtlString& lineId ="");
+   UtlBoolean unregisterLine(const Url& lineURI);
 
-   UtlBoolean deleteLine(const Url& identity);
+   /** Deletes line from line manager */
+   UtlBoolean deleteLine(const Url& lineURI);
 
-   UtlBoolean buildAuthenticatedRequest(const SipMessage* response /*[in]*/,
-                                       const SipMessage* request /*[in]*/,
-                                       SipMessage* newAuthRequest /*[out]*/);
+   UtlBoolean buildAuthenticatedRequest(const SipMessage* response,
+                                        const SipMessage* request,
+                                        SipMessage* newAuthRequest);
 
    //
    // Line Manipulators
    //
 
-   void setStateForLine(const Url& lineUri, int state);
+   /** Sets state on given line */
+   UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
 
-   void setUserForLine(const Url& lineUri, const UtlString User);
-
-   void setUserEnteredUrlForLine(const Url& lineUri, UtlString sipUrl);
-
+   /** Adds new credentials to given line */
    UtlBoolean addCredentialForLine(const Url& lineUri,
                                    const UtlString& strRealm,
                                    const UtlString& strUserID,
                                    const UtlString& strPasswd,
                                    const UtlString& type);
 
+   /** Deletes credentials for given realm from given line */
    UtlBoolean deleteCredentialForLine(const Url& lineUri,
                                       const UtlString strRealm);
 
-/* ============================ ACCESSORS ================================= */
-
-   UtlBoolean getLines(size_t maxLines,
-                       size_t& actualLines,
-                       SipLine* lines[]) const;
+   /* ============================ ACCESSORS ================================= */
 
    UtlBoolean getLines(size_t maxLines,
                        size_t& actualLines,
                        SipLine lines[]) const;
 
-   int getNumLines () const;
+   int getNumLines() const;
    //:Get the current number of lines.
 
-   int getNumOfCredentialsForLine(const Url& identity) const;
+   /* ============================ INQUIRY =================================== */
 
-   UtlBoolean getCredentialListForLine(
-        const Url& identity,
-        int maxEnteries,
-        int &actualEnteries,
-        UtlString realmList[],
-        UtlString userIdList[],
-        UtlString typeList[],
-        UtlString passTokenList[] );
-
-   int getStateForLine(const Url& identity ) const;
-
-   UtlBoolean getUserForLine(const Url& identity, UtlString &User) const;
-
-   UtlBoolean getUserEnteredUrlForLine( const Url& identity, UtlString &sipUrl) const;
-
-   UtlBoolean getCanonicalUrlForLine(const Url& identity, UtlString &sipUrl) const ;
-
-/* ============================ INQUIRY =================================== */
-
-   UtlBoolean isUserIdDefined( const SipMessage* request /*[in]*/) const;
+   UtlBoolean isUserIdDefined(const SipMessage* request) const;
 
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+   /** Copy constructor */
    SipLineMgr(const SipLineMgr& rSipLineMgr);
 
+   /** Assignment operator */
    SipLineMgr& operator=(const SipLineMgr& rhs);
-     //:Assignment operator
 
-    UtlBoolean handleMessage(OsMsg& eventMessage);
+   /** Handles message sent to this OsServerTask */
+   UtlBoolean handleMessage(OsMsg& eventMessage);
 
-    void removeFromList(SipLine& line);
+   SipLine* getLineforAuthentication(const SipMessage* request,
+                                     const SipMessage* response,
+                                     UtlBoolean isIncomingRequest = FALSE) const;
 
-    void addLineToList(SipLine& line);
-
-    SipLine* getLineforAuthentication(
-        const SipMessage* request /*[in]*/,
-        const SipMessage* response /*[in]*/,
-        UtlBoolean isIncomingRequest = FALSE) const;
-
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-    void dumpLines();
+   /** Removes SipLine from internal list */
+   void removeFromList(SipLine& line);
 
-    UtlBoolean mIsStarted;
+   /** Adds SipLine to internal list */
+   void addLineToList(SipLine& line);
 
-    SipRefreshMgr* mpRefreshMgr;
-    Url mOutboundLine;
+   void dumpLines();
 
-    // line list and temp line lists
-    mutable SipLineList  sLineList;
+   SipRefreshMgr* m_pRefreshMgr; ///< refresh manager, resends line register messages
+   Url m_outboundLine;
+   mutable OsMutex m_mutex; ///< mutex for concurrent access
+   mutable SipLineList m_listList; ///< list of SipLine objects
 };
 
 /* ============================ INLINE METHODS ============================ */
