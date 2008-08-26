@@ -456,7 +456,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineRegister(const SIPX_LINE hLine, const int bRegi
             }
             else
             {
-               pInst->pLineManager->unregisterLine(lineURI, lineURI.toString());
+               pInst->pLineManager->unregisterLine(lineURI);
             }
             sr = SIPX_RESULT_SUCCESS;
          }

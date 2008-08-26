@@ -267,9 +267,7 @@ void SipRefreshMgr::reRegister( const Url& fromUrl)
 
 /*---------------------------------------------------*/
 void 
-SipRefreshMgr::unRegisterUser (
-    const Url& fromUrl, 
-    const UtlString& lineId )
+SipRefreshMgr::unRegisterUser(const Url& fromUrl)
 {
      SipMessage sipMsg;
      if ( isDuplicateRegister(fromUrl, sipMsg) )
@@ -304,7 +302,7 @@ SipRefreshMgr::unRegisterUser (
 
          if (mLineListener) 
          {
-            mLineListener->OnLineUnregistering(SipLineStateEvent(lineId, LINESTATE_UNREGISTERING_NORMAL));
+            mLineListener->OnLineUnregistering(SipLineStateEvent(fromUrl.toString(), LINESTATE_UNREGISTERING_NORMAL));
          }
          
          // clear out any pending register requests
