@@ -22,6 +22,7 @@
 
 #include <os/OsLock.h>
 #include <utl/UtlHashMapIterator.h>
+#include <utl/UtlSListIterator.h>
 #include <net/SipUserAgent.h>
 #include "net/SipLineMgr.h"
 #include <net/SipTransport.h>
@@ -619,17 +620,19 @@ SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
 
    if (pInst && lines && actual && max > 0)
    {
-      *actual = 0;
-      SipLine* pLines = new SipLine[max];
+      *actual = 0; // zero number of found lines
+      SipLine* pLine = NULL;
+      UtlSList lineList; // list for holding SipLine objects
 
-      pInst->pLineManager->getLines(max, *actual, pLines);    // rc is > 0 lines (useless)
-
-      for (size_t i = 0; i < *actual; i++)
+      pInst->pLineManager->getLineCopies(lineList);
+      UtlSListIterator itor(lineList);
+      // iterate through all lines
+      while ((pLine = (SipLine*)itor()) != NULL && *actual < max)
       {
-         lines[i] = sipxLineLookupHandleByURI(pLines[i].getIdentity().toString());
+         lines[*actual] = sipxLineLookupHandleByURI(pLine->getIdentityUri().toString());
+         *actual = *actual + 1;
       }
 
-      delete [] pLines;
       sr = SIPX_RESULT_SUCCESS;
    }
    else
@@ -700,7 +703,6 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
       {
          Url url(szLineUrl);
          Url uri = url.getUri();
-         UtlString userId = url.getUserId();
 
          // Set the preferred contact
          SIPX_CONTACT_ADDRESS* pContact = NULL;
@@ -735,7 +737,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
             return sr;
          }
 
-         SipLine line(url, uri, userId, SipLine::LINE_STATE_UNKNOWN);
+         SipLine line(url, uri, SipLine::LINE_STATE_UNKNOWN);
          line.setPreferredContact(contactIp, contactPort);
 
          UtlBoolean bRC = pInst->pLineManager->addLine(line);
@@ -745,7 +747,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
 
             if (pData)
             {
-               line.getPreferredContactUri(pData->m_contactUri);
+               pData->m_contactUri = line.getPreferredContactUri();
                pData->m_transport = suggestedTransport;
                pData->m_contactType = contactType;
 

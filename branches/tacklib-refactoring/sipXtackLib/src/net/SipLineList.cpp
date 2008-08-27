@@ -5,388 +5,222 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Jaroslav Libak
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
+// SYSTEM INCLUDES
+// APPLICATION INCLUDES
+#include <os/OsSysLog.h>
+#include <utl/UtlHashMapIterator.h>
 #include "net/SipLineList.h"
-#include "os/OsSysLog.h"
-//#define TEST_PRINT
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+
+// DEFINES
+// EXTERNAL FUNCTIONS
+// EXTERNAL VARIABLES
+// CONSTANTS
+// STATIC VARIABLE INITIALIZATIONS
+// MACROS
+// GLOBAL VARIABLES
+// GLOBAL FUNCTIONS
+
 SipLineList::SipLineList()
-{}
+: m_lineMap()
+{
+
+}
 
 SipLineList::~SipLineList()
 {    
-    while (SipLine* pLine = (SipLine*) m_LineList.pop()) 
-    {
-        delete pLine ;
-    }
+   m_lineMap.destroyAll();
 }
 
-void
-SipLineList::add(SipLine *newLine)
+UtlBoolean SipLineList::add(SipLine *pLine)
 {
-        m_LineList.push(newLine);
-}
-
-UtlBoolean
-SipLineList::remove(SipLine *line)
-{
-    // Changed this to call common code
-    Url lineIdentityUrl = line->getIdentity();
-    return remove( lineIdentityUrl );
-}
-
-UtlBoolean
-SipLineList::remove(const Url& lineIdentityUrl)
-{
-   SipLine* nextline = NULL;
-
-   int iteratorHandle = m_LineList.getIteratorHandle();
-        while(NULL != (nextline = (SipLine*) m_LineList.next(iteratorHandle)))
-        {
-      // compare the line identities
-      Url nextLineUrl = nextline->getIdentity();
-      if (lineIdentityUrl.isUserHostPortEqual(nextLineUrl))
-      {
-         m_LineList.remove(iteratorHandle);
-         break;
-      }
-   }
-   m_LineList.releaseIteratorHandle(iteratorHandle);
-
-        return( nextline != NULL );
-}
-
-UtlBoolean
-SipLineList::isDuplicate( SipLine *line )
-{
-    // Changed this to call common code
-    Url lineIdentityUrl = line->getIdentity();
-    return isDuplicate( lineIdentityUrl );
-}
-
-UtlBoolean
-SipLineList::isDuplicate( const Url& lineIdentityUrl )
-{
-   SipLine* nextline = NULL;
-   UtlBoolean isDuplicate = FALSE;
-
-   int iteratorHandle = m_LineList.getIteratorHandle();
-   while(NULL != (nextline = (SipLine*) m_LineList.next(iteratorHandle)))
+   if (pLine && !lineExists(*pLine))
    {
-      // compare the line identities
-      Url nextLineUrl = nextline->getIdentity();
-      if (lineIdentityUrl.isUserHostPortEqual(nextLineUrl))
-      {
-         isDuplicate = TRUE;
-         break;
-      }
+      // if it doesn't already exist, add to bag
+      m_lineMap.insertKeyAndValue(pLine->getIdentityUri().toString().clone(), pLine);
+      return TRUE;
    }
-   m_LineList.releaseIteratorHandle(iteratorHandle);
 
-        return isDuplicate;
+   return FALSE;
 }
 
-SipLine*
-SipLineList::getLine( const Url& lineIdentityUrl )
+UtlBoolean SipLineList::add(const SipLine& line)
 {
-   SipLine* nextline = NULL;
+   SipLine* pLine = new SipLine(line);
 
-   int iteratorHandle = m_LineList.getIteratorHandle();
-        while(NULL != (nextline = (SipLine*) m_LineList.next(iteratorHandle)))
+   if (add(pLine))
    {
-      // compare the line identities
-      Url nextLineUrl = nextline->getIdentity();
-      if (lineIdentityUrl.isUserHostPortEqual(nextLineUrl))
+      // addition successful
+      return TRUE;
+   }
+   else
+   {
+      // delete copy
+      delete pLine;
+      pLine = NULL;
+      return FALSE;
+   }
+}
+
+UtlBoolean SipLineList::remove(const SipLine& line)
+{
+   return m_lineMap.destroy(&line.getIdentityUri().toString());
+}
+
+UtlBoolean SipLineList::remove(const Url& lineIdentityUri)
+{
+   return m_lineMap.destroy(&lineIdentityUri.toString());
+}
+
+UtlBoolean SipLineList::lineExists(const SipLine& line) const
+{
+   return m_lineMap.contains(&line.getIdentityUri().toString());
+}
+
+UtlBoolean SipLineList::lineExists(const Url& lineIdentityUri) const
+{
+   return m_lineMap.contains(&lineIdentityUri.toString());
+}
+
+SipLine* SipLineList::getLine(const Url& lineIdentityUri) const
+{
+   return dynamic_cast<SipLine*>(m_lineMap.findValue(&lineIdentityUri.toString()));
+}
+
+SipLine* SipLineList::getLine(const UtlString& lineId) const
+{
+   SipLine* pLine = NULL;
+
+   if (!lineId.isNull())
+   {
+      UtlHashMapIterator itor(m_lineMap);
+      UtlContainable* pKey = NULL;
+
+      while ((pKey = itor()) != NULL)
       {
-         break ;
+         pLine = dynamic_cast<SipLine*>(itor.value());
+         if (pLine && !pLine->getLineId().compareTo(lineId, UtlString::ignoreCase))
+         {
+            return pLine;
+         }
       }
    }
 
-   m_LineList.releaseIteratorHandle(iteratorHandle);
-
-        return nextline;
+   return NULL;
 }
 
-SipLine*
-SipLineList::getLine(const UtlString& lineId)
+SipLine* SipLineList::getLineByUserId(const UtlString& userId) const
 {
-        SipLine* nextline = NULL;
+   SipLine* pLine = NULL;
 
-    if ( !lineId.isNull() )
-    {
-            int iteratorHandle = m_LineList.getIteratorHandle();
-            while(NULL != (nextline = (SipLine*) m_LineList.next(iteratorHandle)))
-        {
-            // compare the line identities
-            UtlString nextLineId = nextline->getLineId();
-            if (!nextLineId.isNull())
-            {
-#ifdef TEST_PRINT
-                osPrintf( "SipLineList::getLine Comparing %s to %s \n",
-                          lineId.data(), nextLineId.data() );
-#endif
-                        if( lineId == nextLineId )
-                {
-#ifdef TEST_PRINT
-                    osPrintf("SipLineList::getLine TRUE\n");
-#endif
-                                break;
-                }
-            }
-        }
-            m_LineList.releaseIteratorHandle(iteratorHandle);
-    }
-        return nextline;
+   if (!userId.isNull())
+   {
+      UtlHashMapIterator itor(m_lineMap);
+      UtlContainable* pKey = NULL;
+
+      while ((pKey = itor()) != NULL)
+      {
+         pLine = dynamic_cast<SipLine*>(itor.value());
+         if (pLine && !pLine->getUserId().compareTo(userId, UtlString::ignoreCase))
+         {
+            return pLine;
+         }
+      }
+   }
+
+   return NULL;
 }
 
-SipLine*
-SipLineList::getLine (
-    const UtlString& userId,
-    int& numOfMatches )
+size_t SipLineList::getLinesCount() const
 {
-        SipLine* nextline = NULL;
-    SipLine* firstMatchedLine = NULL;
-    UtlString nextUserId;
-    numOfMatches = 0;
-
-    if (!userId.isNull())
-    {
-        int iteratorHandle = m_LineList.getIteratorHandle();
-            while(NULL != (nextline = (SipLine*) m_LineList.next(iteratorHandle)))
-            {
-            nextUserId.remove(0);
-            Url identity = nextline->getIdentity();
-            identity.getUserId( nextUserId );
-
-            if (!nextUserId.isNull())
-            {
-#ifdef TEST_PRINT
-                osPrintf( "SipLineList::getLine Comparing %s to %s \n",
-                          nextUserId.data(), userId.data() );
-#endif
-                        if( nextUserId.compareTo( userId ) == 0 )
-                        {
-#ifdef TEST_PRINT
-                    osPrintf("SipLineList::getLine TRUE\n");
-#endif
-                    if( numOfMatches == 0)
-                    {
-                        firstMatchedLine = nextline;
-                    }
-                    numOfMatches ++;
-                }
-            }
-            }
-        m_LineList.releaseIteratorHandle(iteratorHandle);
-    }
-        return firstMatchedLine;
+   return m_lineMap.entries();
 }
-
-
-int
-SipLineList::getListSize()
-{
-        return m_LineList.getCount();
-}
-
-UtlBoolean
-SipLineList::linesInArray(
-    size_t maxSize,
-    size_t *returnSize,
-    SipLine Line[])
-{
-
-        size_t counter = 0 ;
-        UtlBoolean retVal;
-        int iteratorHandle = m_LineList.getIteratorHandle();
-        SipLine* nextLine = NULL;
-
-        while (counter < maxSize && ((nextLine = (SipLine*) m_LineList.next(iteratorHandle))!= NULL))
-        {
-                //return copy of the line
-                Line[counter] = *nextLine;
-                counter++;
-        }
-        m_LineList.releaseIteratorHandle(iteratorHandle);
-        *returnSize = counter;
-        counter > 0 ? retVal = true : retVal = false;
-        return retVal;
-}
-
-UtlBoolean
-SipLineList::linesInArray(
-    size_t maxSize,
-    size_t *returnSize,
-    SipLine *Line[])
-{
-        size_t counter = 0 ;
-        UtlBoolean retVal;
-        int iteratorHandle = m_LineList.getIteratorHandle();
-        SipLine* nextLine = NULL;
-
-        while (counter < maxSize && ((nextLine = (SipLine*) m_LineList.next(iteratorHandle))!= NULL))
-        {
-                //return copy of the line
-                *Line[counter] = *nextLine;
-                counter++;
-        }
-        m_LineList.releaseIteratorHandle(iteratorHandle);
-        *returnSize = counter;
-        counter > 0 ? retVal = true : retVal = false;
-        return retVal;
-}
-
-UtlBoolean
-SipLineList::getFirstLine( SipLine *Line )
-{
-        UtlBoolean retVal = FALSE;
-        int iteratorHandle = m_LineList.getIteratorHandle();
-        SipLine* nextLine = NULL;
-        nextLine = (SipLine*) m_LineList.next(iteratorHandle);
-        if(nextLine)
-        {
-                //return copy of the line
-                *Line = *nextLine;
-                retVal = TRUE;
-        }
-        m_LineList.releaseIteratorHandle(iteratorHandle);
-        return retVal;
-}
-
-UtlBoolean
-SipLineList::getDeviceLine(SipLine *line)
-{
-        UtlBoolean retVal = FALSE;
-        UtlString user;
-        int iteratorHandle = m_LineList.getIteratorHandle();
-        SipLine* nextLine = NULL;
-        while ((nextLine = (SipLine*) m_LineList.next(iteratorHandle))!= NULL)
-        {
-                user = nextLine->getUser();
-                if ( user.compareTo("device" , UtlString::ignoreCase) == 0)
-                {
-                        *line = *nextLine;
-                        retVal = TRUE;
-         break;
-                }
-                user.remove(0);
-        }
-        m_LineList.releaseIteratorHandle(iteratorHandle);
-        return retVal;
-}
-
-
 
 //
 // Priorities:
-//   1. Matches first lineID & realm
-//   2. Matches first matches toFromUrl & realm
-//   3. Matches first user & realm
-//   4. Matches first default line & realm
+//   1. Matches first lineID
+//   2. Matches first lineUri user, host, port
+//   3. Matches first userId
 //
-SipLine* SipLineList::findLine(const char* lineId,
-                               const char* realm,
-                               const Url&  toFromUrl,
-                               const char* userId,
-                               const Url& defaultLine)
+SipLine* SipLineList::findLine(const UtlString& lineId,
+                               const Url& lineUri,
+                               const UtlString& userId) const
 {
-   SipLine* pLineMatchingLineID  = NULL ;
-   SipLine* pLineMatchingUrl     = NULL ;
-   SipLine* pLineMatchingUser    = NULL ;
-   SipLine* pLineMatchingDefault = NULL ;
+   SipLine* pLineMatchingUri = NULL;
+   SipLine* pLineMatchingUserId = NULL;
+   SipLine* pLine = NULL;
 
-        int iteratorHandle = m_LineList.getIteratorHandle();
-        SipLine* nextLine = NULL;
-        while ((nextLine = (SipLine*) m_LineList.next(iteratorHandle))!= NULL)
-        {
-      // If the realm doesn't match, simply skip it
-      if ((realm != NULL) && strlen(realm)
-            && (!nextLine->isDuplicateRealm(realm)))
-      {
-         continue ;
-      }
+   UtlHashMapIterator itor(m_lineMap);
+   UtlContainable* pKey = NULL;
 
-      //
-      // Priority 1: Check LineId
-      //
-      if (lineId != NULL)
+   while ((pKey = itor()) != NULL)
+   {
+      pLine = dynamic_cast<SipLine*>(itor.value());
+      if (pLine)
       {
-         if (nextLine->getLineId().compareTo(lineId) == 0)
+         if (!lineId.compareTo(pLine->getLineId(), UtlString::matchCase))
          {
-            // We have match for the given lineId
-            pLineMatchingLineID = nextLine ;
-            break ;
+            // lineId match
+            return pLine;
          }
-      }
-
-      Url nextLineIdentity = nextLine->getIdentity();
-
-      //
-      // Priority 2: check ToFromUrl
-      //
-      if (pLineMatchingUrl == NULL)
-      {
-         if (nextLineIdentity.isUserHostPortEqual(toFromUrl))
+         else if (pLine->getIdentityUri().isUserHostPortEqual(lineUri))
          {
-            pLineMatchingUrl = nextLine ;
-            // Continue searching, because we may find a better match
+            // we found line with matching user, host and port
+            pLineMatchingUri = pLine;
          }
-      }
-
-      //
-      // Priority 3: Matches user & realm
-      //
-      UtlString user = nextLine->getUser() ;
-      if ((pLineMatchingUser == NULL) && (userId != NULL))
-      {
-         if (user.compareTo(userId) == 0)    // should be case sensitive
+         else if (!pLine->getUserId().compareTo(userId, UtlString::ignoreCase))
          {
-            pLineMatchingUser = nextLine ;
-            // Continue searching, because we may find a better match
+            pLineMatchingUserId = pLine;
          }
-      }
-
-      //
-      // Priority 4: Check for default line
-      //
-      if (nextLineIdentity.isUserHostPortEqual(defaultLine))
-      {
-         pLineMatchingDefault = nextLine ;
-         // Continue searching, because we may find a better match
       }
    }
-   m_LineList.releaseIteratorHandle(iteratorHandle) ;
 
-   // This is ugly, but needed for the desired effect
-   if (pLineMatchingLineID)
-      return pLineMatchingLineID ;
-   else if (pLineMatchingUrl)
-      return pLineMatchingUrl ;
-   else if (pLineMatchingUser)
-      return pLineMatchingUser ;
-   else if (pLineMatchingDefault)
-      return pLineMatchingDefault ;
-   else
-      return NULL ;
-   
+   if (pLineMatchingUri)
+   {
+      return pLineMatchingUri;
+   }
+   // is NULL if nothing was found
+   return pLineMatchingUserId;
 }
 
 void SipLineList::dumpLines()
 {
-   SipLine* nextline = NULL;
-   int iteratorHandle = m_LineList.getIteratorHandle();
+   SipLine* pLine = NULL;
+
+   UtlHashMapIterator itor(m_lineMap);
+   UtlContainable* pKey = NULL;
    int i = 0;
-   while(NULL != (nextline = (SipLine*) m_LineList.next(iteratorHandle)))
+
+   while ((pKey = itor()) != NULL)
    {
-      // compare the line identities
-      Url nextLineUrl = nextline->getIdentity();
-      OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x [%d]: %s",
-            this, i++, nextLineUrl.toString().data() ) ;
+      pLine = dynamic_cast<SipLine*>(itor.value());
+      if (pLine)
+      {
+         OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x [%d]: lineURI=%s, LINEID=%s, lineState=%d",
+            this, i++, pLine->getIdentityUri().toString().data(), pLine->getLineId().data(), (int)pLine->getState());
+      }
    }
-   m_LineList.releaseIteratorHandle(iteratorHandle);
+}
+
+void SipLineList::getLineCopies(UtlSList& lineList) const
+{
+   SipLine* pLine = NULL;
+
+   UtlHashMapIterator itor(m_lineMap);
+   UtlContainable* pKey = NULL;
+   int i = 0;
+
+   while ((pKey = itor()) != NULL)
+   {
+      pLine = dynamic_cast<SipLine*>(itor.value());
+      if (pLine)
+      {
+         // copy line into list
+         lineList.append(new SipLine(*pLine));
+      }
+   }
 }

@@ -5,20 +5,21 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Jaroslav Libak
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_SIPLINE_H__6AD8439B_AA8A_4F09_B5C4_44A3BA9C7AC6__INCLUDED_)
-#define AFX_SIPLINE_H__6AD8439B_AA8A_4F09_B5C4_44A3BA9C7AC6__INCLUDED_
+#ifndef SipLine_h__
+#define SipLine_h__
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
 #include <utl/UtlHashBag.h>
+#include <utl/UtlCopyableContainable.h>
+#include <utl/UtlString.h>
 #include "HttpMessage.h"
 #include "net/Url.h"
-
 
 // DEFINES
 // MACROS
@@ -28,40 +29,29 @@
 // STRUCTS
 // TYPEDEFS
 
-class SipLineCredentials;
-
-//STATE TRANSITION//
-/*
-                                                        |----1/2refresh time--|
-                                                        |--------------refresh time-------------|
- ---------             ------------           --------          ---------
- | TRYING| --------->  |REGISTERED| --------->|FAILED| -------->|EXPIRED|
- ---------             ------------           --------          ---------
-        |                                                       |       ^                                                               ^
-        |                                                       |___|
-        |                                                           |                                                                    |
-    |______________________failed the first time____________________|
-
-*/
+class SipLineCredential;
 
 /**
  * Class representing a SIP line. Has identity URI, credentials, contact associated with it.
+ * Currently only 1 credential per realm is supported of any type.
+ * It is not thread safe.
  */
-class SipLine
+class SipLine : public UtlCopyableContainable
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+   static const UtlContainableType TYPE;    /** < Class type used for runtime checking */
 
-   //utility functions
+   /** Line states */
    typedef enum
    {
       LINE_STATE_UNKNOWN  = 0,
-      LINE_STATE_REGISTERED,  ///< sucessfull registeration , registration no expried on server
+      LINE_STATE_REGISTERED,  ///< successful registration, registration no expired on server
       LINE_STATE_DISABLED,    ///< not registering
       LINE_STATE_FAILED,      ///< failed registration
-      LINE_STATE_PROVISIONED, ///< dont send registration , but enabled because server provisioned it.
-      LINE_STATE_TRYING,      ///< registration message sent , awaiting response
-      LINE_STATE_EXPIRED      ///< registration expried on server
+      LINE_STATE_PROVISIONED, ///< don't send registration, but enabled because server provisioned it.
+      LINE_STATE_TRYING,      ///< registration message sent, awaiting response
+      LINE_STATE_EXPIRED      ///< registration expired on server
    } LineStates;
 
    /* ============================ CREATORS ================================== */
@@ -69,9 +59,8 @@ public:
    //@{
 
    SipLine(const Url& userEnteredUrl = "", ///< url with parameters like transport=tls
-           const Url& identityUri = "", ///< uri, without parameters
-           const UtlString& user = "",
-           int state = LINE_STATE_UNKNOWN);
+           const Url& identityUri = "", ///< uri, doesn't contain headerParameters or fieldParameters, display name or brackets
+           LineStates state = LINE_STATE_UNKNOWN);
 
    virtual ~SipLine();
    SipLine(const SipLine& rSipLine);
@@ -82,74 +71,101 @@ public:
    /* ============================ MANIPULATORS ============================== */
    ///@name Manipulators
    //@{
+
+   /**
+    * Get the ContainableType for a UtlContainable-derived class.
+    */
+   virtual UtlContainableType getContainableType() const;
+
+   /** Calculate a hash code for this object. */
+   virtual unsigned hash() const;
+
+   /** Compare this object to another object. */
+   virtual int compareTo(UtlContainable const *compareContainable) const;
+
+   /** Creates a copy of object */
+   virtual UtlCopyableContainable* clone() const;
+
    //@}
 
    /* ============================ ACCESSORS ================================= */
    ///@name Accessors
    //@{
+
+   /** Gets 12 characters uniquely identifying this line */
    UtlString getLineId() const;
 
-   int getState() const;
-   void setState(int state);
+   /** Gets state of line */
+   LineStates getState() const;
 
-   //who does the line belong to
-   UtlString getUser() const;
-   void setUser(const UtlString& user);
+   /** Sets state of line. Changing state doesn't trigger any actions. */
+   void setState(LineStates state);
 
-   //line identily or name - just the Uri
-   void getIdentityAndUrl(Url &identityUri, Url &userEnteredUrl) const;
-   void setIdentityAndUrl(Url identityUri, Url userEnteredUrl);
+   /** Gets UserId part of userEnteredUrl */
+   UtlString getUserId() const;
+
+   /** Gets the user entered url used to construct line. */
    Url getUserEnteredUrl() const;
-   Url getIdentity() const;
+
+   /**
+    * Gets line identityUri. It doesn't contain headerParameters
+    * or fieldParameters, display name or brackets. But it can contain
+    * url parameters like transport=tcp
+    */
+   Url getIdentityUri() const;
+
+   /** Gets canonical line url. It is basically UserEnteredUrl + host:port from identityUri*/
    Url getCanonicalUrl() const;
 
-   //for use from GUI
+   /** Returns number of credentials stored in line */
    int getNumOfCredentials() const;
 
-   UtlBoolean addCredentials(const UtlString& strRealm,
-                             const UtlString& strUserID,
-                             const UtlString& strPassword,
-                             const UtlString& strType);
-   UtlBoolean addCredentials(const SipLineCredentials& lineCredentials);
+   /** Adds credentials for this line */
+   UtlBoolean addCredential(const UtlString& strRealm,
+                            const UtlString& strUserID,
+                            const UtlString& strPassword,
+                            const UtlString& strType);
 
-   ///< Gets credentials for given realm. Type is currently ignored.
-   UtlBoolean getCredentials(const UtlString& type,
-                             const UtlString& realm,
-                             UtlString& userID,
-                             UtlString& MD5_token) const;
+   /** Adds credentials for this line */
+   UtlBoolean addCredential(const SipLineCredential& lineCredential);
 
-   UtlBoolean getCredentials(const UtlString& type,
-                             const UtlString& realm,
-                             SipLineCredentials& lineCredentials) const;
+   /** Gets credentials for given realm. Type is currently ignored. */
+   UtlBoolean getCredential(const UtlString& type,
+                            const UtlString& realm,
+                            UtlString& userID,
+                            UtlString& passwordMD5Digest) const;
 
-   UtlBoolean getAllCredentials(int maxEnteries,
-                                int& actualEnteries,
-                                UtlString realm[],
-                                UtlString userId[],
-                                UtlString type[],
-                                UtlString passdigest[]) const;
+   /**
+    * Gets credentials for given realm. This method can be used to access
+    * original clear text password from SipLineCredentials.
+    */
+   UtlBoolean getCredential(const UtlString& type,
+                            const UtlString& realm,
+                            SipLineCredential& lineCredentials) const;
 
-   //removes credetials for a particular realm
-   UtlBoolean removeCredential(const UtlString& realm);
-   //removes all credentials for this line
+   /** Removes credentials for a particular realm */
+   UtlBoolean removeCredential(const UtlString& type,
+                               const UtlString& realm
+                               );
+
+   /** Removes all credentials for this line */
    void removeAllCredentials();
 
+   /** Set the preferred host/ip for the contact in subsequent registers */
    void setPreferredContact(const UtlString& contactAddress, int contactPort);
-   //: Set the preferred host/ip for the contact in subsequent registers
-   UtlBoolean getPreferredContactUri(Url& preferredContactUri) const;
-   ///< Get Preferred host/ip for the contact in subsequent registers. Returns true if contact contains hostname.
+   
+   /** 
+    * Get Preferred host/ip for the contact in subsequent registers.
+    */
+   Url getPreferredContactUri() const;
 
    //@}
    /* ============================ INQUIRY =================================== */
    ///@name Inquiry
    //@{
 
-   UtlBoolean isDeviceLine() const;
-   //: Determine if this line is a device line.  Presently, a line is
-   //  considered a device line if it's user is "Device"
-
-   ///< Whether credentials for this realm already exist.
-   UtlBoolean isDuplicateRealm(const UtlString& realm) const;
+   /** Whether credentials for this realm already exist. */
+   UtlBoolean realmExists(const UtlString& realm) const;
 
    //@}
 
@@ -160,12 +176,11 @@ protected:
    Url m_userEnteredUrl; ///< user entered URL string (could be incomplete "sip:444@")
    Url m_canonicalUrl; ///< The canonical URL which is the URL string with the host and port filled in if they were missing.
 
-   UtlString m_user;
-   UtlString m_lineId;
-   int m_currentState;
-   Url m_preferredContactUri;
+   UtlString m_lineId; ///< 12 characters uniquely identifying line. Part of contact as LINE parameter
+   LineStates m_currentState; ///< current state of line
+   Url m_preferredContactUri; ///< contact that will be used in SIP messages
 
-   mutable UtlHashBag m_credentials;
+   mutable UtlHashBag m_credentials; ///< bag of SipLineCredential
 
    void copyCredentials(const SipLine& rSipLine);
    void generateLineID(UtlString& lineId);
@@ -175,4 +190,4 @@ protected:
 private:
 };
 
-#endif // !defined(AFX_SIPLINE_H__6AD8439B_AA8A_4F09_B5C4_44A3BA9C7AC6__INCLUDED_)
+#endif // SipLine_h__
