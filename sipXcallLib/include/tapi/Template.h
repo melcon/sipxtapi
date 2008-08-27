@@ -4,16 +4,39 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef Template_h__
+#define Template_h__
+
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 // DEFINES
+// MACROS
 // EXTERNAL FUNCTIONS
-// EXTERNAL VARIABLES
 // CONSTANTS
-// FORWARD DECLARATIONS
 // STRUCTS
 // TYPEDEFS
 // MACROS
-// GLOBAL VARIABLES
-// GLOBAL FUNCTIONS
+// FORWARD DECLARATIONS
 
+/**
+ * Class Description
+ */
+class GenericClass
+{
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
+public:
+   /* ============================ CREATORS ================================== */
+
+   /* ============================ MANIPULATORS ============================== */
+
+   /* ============================ INQUIRY =================================== */
+
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
+protected:
+
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+
+};
+
+#endif // Template_h__
