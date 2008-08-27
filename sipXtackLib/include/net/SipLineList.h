@@ -5,21 +5,18 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Jaroslav Libak
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_SIPLINELIST_H__3822B7DD_69A6_44FC_B936_B75FACC65DC2__INCLUDED_)
-#define AFX_SIPLINELIST_H__3822B7DD_69A6_44FC_B936_B75FACC65DC2__INCLUDED_
+#ifndef SipLineList_h__
+#define SipLineList_h__
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
-#include <os/OsLockingList.h>
+#include <utl/UtlHashMap.h>
 #include <net/SipLine.h>
-#include <os/OsRWMutex.h>
-#include <os/OsReadLock.h>
-#include <os/OsWriteLock.h>
 
 // DEFINES
 // MACROS
@@ -30,39 +27,81 @@
 // TYPEDEFS
 // FORWARD DECLARATIONS
 
+/**
+ * List of SipLine instances. Only one SipLine with given lineURI may be present
+ * at time.
+ * Not thread safe.
+ */
 class SipLineList
 {
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-        UtlBoolean getDeviceLine(SipLine *line);
-        UtlBoolean linesInArray(size_t maxSize , size_t* returnSize, SipLine* Line[]);
-        UtlBoolean linesInArray(size_t maxSize, size_t* returnSize, SipLine Line[]);
+   /* ============================ CREATORS ================================== */
 
-        UtlBoolean getFirstLine(SipLine *Line);
-        SipLine* getLine(const Url& identityUrl);
-   SipLine* getLine(const UtlString& lineId);
-   SipLine* getLine(const UtlString& userId, int& numOfMatches);
+   SipLineList();
+   virtual ~SipLineList();
 
-        int getListSize() ;
+   /* ============================ MANIPULATORS ============================== */
 
-        UtlBoolean isDuplicate( SipLine* line);
-        UtlBoolean isDuplicate( const Url& lineIdentityUrl );
+   /** Adds a new line to the list. Returns FALSE if it was not added. */
+   UtlBoolean add(SipLine* pLine);
 
-        UtlBoolean remove(SipLine* line);
-        UtlBoolean remove(const Url& lineIdentityUrl);
-   void add(SipLine* newLine);
+   /** Adds a copy of line to the list. Returns FALSE if it was not added. */
+   UtlBoolean add(const SipLine& line);
 
-   SipLine* findLine(const char* lineId,
-                     const char* realm,
-                     const Url& toFromUrl,
-                     const char* userId,
-                     const Url& defaultLine) ;
+   /** Removes line with the same lineIdentityUri from line list and deletes it */
+   UtlBoolean remove(const SipLine& line);
 
-        SipLineList();
-        virtual ~SipLineList();
-        void dumpLines();
+   /** Removes line with the same lineIdentityUri from line list and deletes it */
+   UtlBoolean remove(const Url& lineIdentityUri);
 
+   /** Prints line list into log file */
+   void dumpLines();
+
+   /**
+    * Tries to find line according to given parameters. First try lookup by
+    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+    * not found by identityUri, try by userId.
+    */
+   SipLine* findLine(const UtlString& lineId,
+                     const Url& lineUri,
+                     const UtlString& userId) const;
+
+   /* ============================ ACCESSORS ================================= */
+
+   /** Copies line clones into supplied list */
+   void getLineCopies(UtlSList& lineList) const;
+
+   /** Gets number of lines in list */
+   size_t getLinesCount() const;
+
+   /** Gets line from the list by identityUri */
+   SipLine* getLine(const Url& identityUri) const;
+
+   /** Gets line from the list by lineId */
+   SipLine* getLine(const UtlString& lineId) const;
+
+   /**
+    * Gets line from the list by userID. Multiple lines might match, but
+    * only the first match is returned.
+    */
+   SipLine* getLineByUserId(const UtlString& userId) const;
+
+   /* ============================ INQUIRY =================================== */
+
+   /** Checks whether this line is present in line list */
+   UtlBoolean lineExists(const SipLine& line) const;
+
+   /** Checks whether this line is present in line list */
+   UtlBoolean lineExists(const Url& lineIdentityUri) const;
+
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-        OsLockingList m_LineList;
+
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+   mutable UtlHashMap m_lineMap; ///< map of SipLine instances
+
 };
 
-#endif // !defined(AFX_SIPLINELIST_H__3822B7DD_69A6_44FC_B936_B75FACC65DC2__INCLUDED_)
+#endif // SipLineList_h__

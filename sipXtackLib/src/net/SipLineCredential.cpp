@@ -13,21 +13,21 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include <net/SipLineCredentials.h>
+#include <net/SipLineCredential.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-SipLineCredentials::SipLineCredentials()
+SipLineCredential::SipLineCredential()
 {
 
 }
 
-SipLineCredentials::SipLineCredentials(const UtlString& realm,
-                                       const UtlString& userId,
-                                       const UtlString& passwordToken,
-                                       const UtlString& type)
+SipLineCredential::SipLineCredential(const UtlString& realm,
+                                     const UtlString& userId,
+                                     const UtlString& passwordToken,
+                                     const UtlString& type)
 : UtlString(realm) // initialize superclass string to realm, so that we can use this class in hashbag
 {
    m_type = type;
@@ -36,17 +36,17 @@ SipLineCredentials::SipLineCredentials(const UtlString& realm,
    m_realm = realm;
 }
 
-SipLineCredentials::~SipLineCredentials()
+SipLineCredential::~SipLineCredential()
 {
 
 }
 
-SipLineCredentials::SipLineCredentials(const SipLineCredentials& rSipLineCredentials)
+SipLineCredential::SipLineCredential(const SipLineCredential& rSipLineCredentials)
 {
    *this = rSipLineCredentials;
 }
 
-SipLineCredentials& SipLineCredentials::operator=(const SipLineCredentials& rSipLineCredentials)
+SipLineCredential& SipLineCredential::operator=(const SipLineCredential& rSipLineCredentials)
 {
    UtlString::operator=(rSipLineCredentials); // copy UtlString superclass
 
@@ -59,7 +59,7 @@ SipLineCredentials& SipLineCredentials::operator=(const SipLineCredentials& rSip
    return *this;
 }
 
-UtlString SipLineCredentials::getPasswordMD5Digest(const UtlString& realm) const
+UtlString SipLineCredential::getPasswordMD5Digest(const UtlString& realm) const
 {
    UtlString digest;
 
@@ -75,22 +75,22 @@ UtlString SipLineCredentials::getPasswordMD5Digest(const UtlString& realm) const
    return digest;
 }
 
-UtlString SipLineCredentials::getRealm() const
+UtlString SipLineCredential::getRealm() const
 {
    return m_realm;
 }
 
-UtlString SipLineCredentials::getUserId() const
+UtlString SipLineCredential::getUserId() const
 {
    return m_userId;
 }
 
-UtlString SipLineCredentials::getPasswordToken() const
+UtlString SipLineCredential::getPasswordToken() const
 {
    return m_passwordToken;
 }
 
-UtlString SipLineCredentials::getType() const
+UtlString SipLineCredential::getType() const
 {
    return m_type;
 }

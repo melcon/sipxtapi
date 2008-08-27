@@ -12,8 +12,6 @@
 #define _SipLineMgr_h_
 
 // SYSTEM INCLUDES
-// #include <...>
-
 // APPLICATION INCLUDES
 #include "os/OsServerTask.h"
 #include "os/OsMutex.h"
@@ -70,10 +68,6 @@ public:
                                         const SipMessage* request,
                                         SipMessage* newAuthRequest);
 
-   //
-   // Line Manipulators
-   //
-
    /** Sets state on given line */
    UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
 
@@ -86,16 +80,16 @@ public:
 
    /** Deletes credentials for given realm from given line */
    UtlBoolean deleteCredentialForLine(const Url& lineUri,
-                                      const UtlString strRealm);
+                                      const UtlString& strRealm,
+                                      const UtlString& type);
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlBoolean getLines(size_t maxLines,
-                       size_t& actualLines,
-                       SipLine lines[]) const;
+   /** Copies line clones into supplied list */
+   void getLineCopies(UtlSList& lineList) const;
 
+   /** Get the current number of lines. */
    int getNumLines() const;
-   //:Get the current number of lines.
 
    /* ============================ INQUIRY =================================== */
 
@@ -120,16 +114,11 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Removes SipLine from internal list */
-   void removeFromList(SipLine& line);
 
-   /** Adds SipLine to internal list */
-   void addLineToList(SipLine& line);
-
+   /** Prints all lines in line manager */
    void dumpLines();
 
    SipRefreshMgr* m_pRefreshMgr; ///< refresh manager, resends line register messages
-   Url m_outboundLine;
    mutable OsMutex m_mutex; ///< mutex for concurrent access
    mutable SipLineList m_listList; ///< list of SipLine objects
 };

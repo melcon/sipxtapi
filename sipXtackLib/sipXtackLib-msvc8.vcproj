@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="sipXtackLib-msvc8"
 	ProjectGUID="{0D0CE4BC-3884-4ABE-9795-8CCA6C3BC646}"
 	RootNamespace="sipXtackLib-msvc8"
@@ -8778,7 +8778,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="src\net\SipLineCredentials.cpp"
+					RelativePath=".\src\net\SipLineCredential.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -15757,7 +15757,7 @@
 					>
 				</File>
 				<File
-					RelativePath="include\net\SipLineCredentials.h"
+					RelativePath=".\include\net\SipLineCredential.h"
 					>
 				</File>
 				<File
