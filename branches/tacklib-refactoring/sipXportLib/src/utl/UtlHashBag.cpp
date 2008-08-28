@@ -177,7 +177,7 @@ void UtlHashBag::insert(UtlLink*       link,  ///< The UtlLink for the entry if 
    resizeIfNeededAndSafe();
 }
 
-UtlContainable* UtlHashBag::remove(UtlContainable* object)
+UtlContainable* UtlHashBag::remove(const UtlContainable* object)
 {
    UtlContainable* removed = NULL;
    
@@ -256,7 +256,7 @@ UtlContainable* UtlHashBag::removeReference(const UtlContainable* object)
 }
 
 
-UtlBoolean UtlHashBag::destroy(UtlContainable* object)
+UtlBoolean UtlHashBag::destroy(const UtlContainable* object)
 {
    UtlBoolean deletedAnObject = FALSE;
 
