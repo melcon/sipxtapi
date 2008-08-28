@@ -19,6 +19,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
 #include <net/SipLine.h>
+#include <net/SipLineCredential.h>
 #include <net/Url.h>
 #include <net/SipMessage.h>
 #include <CompareHelper.h>
@@ -30,6 +31,15 @@
 #define USER_ID_2 "user2"
 #define IDENTITY_URI_1 "<sip:user1:password1@host1:5060;urlparm=value1"
 #define IDENTITY_URI_2 "<sip:user2:password2@host2:5061;urlparm=value2>"
+
+#define CREDENTIAL_USERID "John"
+#define CREDENTIAL_USERID2 "John2"
+#define CREDENTIAL_PASSWORD "password"
+#define CREDENTIAL_PASSWORD2 "password2"
+#define CREDENTIAL_REALM "test_realm"
+#define CREDENTIAL_REALM2 "test_realm2"
+#define CREDENTIAL_TYPE "some_type"
+#define CREDENTIAL_TYPE2 "some_type2"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -55,7 +65,8 @@ class SipLineTest : public CppUnit::TestCase
    CPPUNIT_TEST(testSipLineCanonicalUri);
    CPPUNIT_TEST(testSipLineRealm);
    CPPUNIT_TEST(testSipLineContact);
-   CPPUNIT_TEST(testSipLineCredentials);
+   CPPUNIT_TEST(testSipLineCredentials1);
+   CPPUNIT_TEST(testSipLineCredentials2);
    CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -182,7 +193,7 @@ public:
       CPPUNIT_ASSERT(areTheSame(line1.getPreferredContactUri(), correctContact));
    }
 
-   void testSipLineCredentials()
+   void testSipLineCredentials1()
    {
       SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
 
@@ -190,6 +201,22 @@ public:
       line1.addCredential("realm2", "username2", "password", "type");
 
       CPPUNIT_ASSERT(line1.getNumOfCredentials() == 2);
+   }
+
+   void testSipLineCredentials2()
+   {
+      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLineCredential cred(CREDENTIAL_REALM, CREDENTIAL_USERID, CREDENTIAL_PASSWORD, CREDENTIAL_TYPE);
+      CPPUNIT_ASSERT(line1.addCredential(cred));
+      CPPUNIT_ASSERT(!line1.addCredential(cred));
+      CPPUNIT_ASSERT(line1.addCredential(CREDENTIAL_REALM2, CREDENTIAL_USERID2, CREDENTIAL_PASSWORD2, CREDENTIAL_TYPE2));
+
+      SipLineCredential res;
+      CPPUNIT_ASSERT(line1.getCredential(CREDENTIAL_TYPE, CREDENTIAL_REALM, res));
+      CPPUNIT_ASSERT(areTheSame(cred.getUserId(), res.getUserId()));
+      CPPUNIT_ASSERT(areTheSame(cred.getRealm(), res.getRealm()));
+      CPPUNIT_ASSERT(areTheSame(cred.getPasswordToken(), res.getPasswordToken()));
+      CPPUNIT_ASSERT(areTheSame(cred.getType(), res.getType()));
    }
 
 };
