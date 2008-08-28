@@ -95,8 +95,11 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   /** Copies line clones into supplied list */
+   /** Copies SipLine clones into supplied list */
    void getLineCopies(UtlSList& lineList) const;
+
+   /** Gets SIP lineURIs of all SipLines */
+   void getLineUris(UtlSList& lineUris) const;
 
    /** Gets a copy of given line including credentials. Returns FALSE if line was not found */
    UtlBoolean getLineCopy(const Url& lineUri, SipLine& sipLine) const;

@@ -75,6 +75,9 @@ public:
    /** Copies line clones into supplied list */
    void getLineCopies(UtlSList& lineList) const;
 
+   /** Gets LineURIs of all SipLines */
+   void getLineUris(UtlSList& lineList) const;
+
    /** Gets number of lines in list */
    size_t getLinesCount() const;
 
