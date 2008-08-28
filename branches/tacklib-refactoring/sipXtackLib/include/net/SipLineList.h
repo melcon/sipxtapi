@@ -55,6 +55,9 @@ public:
    /** Removes line with the same lineIdentityUri from line list and deletes it */
    UtlBoolean remove(const Url& lineIdentityUri);
 
+   /** Removes all lines from list */
+   void removeAll();
+
    /** Prints line list into log file */
    void dumpLines();
 
