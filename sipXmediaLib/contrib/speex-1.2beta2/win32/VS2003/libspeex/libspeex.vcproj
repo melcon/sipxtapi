@@ -23,7 +23,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_CONFIG_H; USE_ALLOCA"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				Detect64BitPortabilityProblems="TRUE"
@@ -33,7 +33,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/libspeex.lib"/>
+				OutputFile="$(OutDir)/libspeexd.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -72,7 +72,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_CONFIG_H; USE_ALLOCA"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				BufferSecurityCheck="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
@@ -123,7 +123,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_CONFIG_H"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				BufferSecurityCheck="FALSE"
 				EnableEnhancedInstructionSet="1"
 				UsePrecompiledHeader="0"
@@ -175,7 +175,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_CONFIG_H"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				BufferSecurityCheck="FALSE"
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="0"
@@ -227,7 +227,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_CONFIG_H"
 				StringPooling="TRUE"
 				ExceptionHandling="FALSE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				BufferSecurityCheck="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
@@ -351,9 +351,6 @@
 				RelativePath="..\..\..\libspeex\mdf.c">
 			</File>
 			<File
-				RelativePath="..\..\..\libspeex\medfilter.c">
-			</File>
-			<File
 				RelativePath="..\..\..\libspeex\misc.c">
 			</File>
 			<File
@@ -394,6 +391,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\libspeex\vq.c">
+			</File>
+			<File
+				RelativePath="..\..\..\libspeex\window.c">
 			</File>
 		</Filter>
 		<Filter
