@@ -195,6 +195,12 @@ void SipLineMgr::getLineCopies(UtlSList& lineList) const
    m_listList.getLineCopies(lineList);
 }
 
+void SipLineMgr::getLineUris(UtlSList& lineUris) const
+{
+   OsLock lock(m_mutex); // scoped lock
+   m_listList.getLineUris(lineUris);
+}
+
 UtlBoolean SipLineMgr::getLineCopy(const Url& lineUri, SipLine& sipLine) const
 {
    OsLock lock(m_mutex); // scoped lock
