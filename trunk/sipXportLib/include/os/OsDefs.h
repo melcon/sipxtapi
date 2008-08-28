@@ -36,7 +36,12 @@
 #endif
 
 #ifdef _WIN32
-#define SNPRINTF(buff, buffsize, ...) {_snprintf_s((buff), (buffsize), _TRUNCATE, __VA_ARGS__);}
+  // Variadic macros not supported in MSVC++ before version 2005
+  #if defined(_MSC_VER) && _MSC_VER < 1400
+    #define SNPRINTF _snprintf
+  #else
+    #define SNPRINTF(buff, buffsize, ...) {_snprintf_s((buff), (buffsize), _TRUNCATE, __VA_ARGS__);}
+  #endif
 #else
 #define SNPRINTF(buff, buffsize, ...)                   \
    {                                                    \
@@ -54,11 +59,12 @@
 #define SAFE_STRCHR(X, Y) (((X) == NULL) ? NULL : strchr((X), (Y)))
 #endif
 
-#ifdef _WIN32
+
+                       // strncpy_s introduced in MSVC++ 2005
+#if defined(_WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400
 #define SAFE_STRNCPY(X, Y, Z) if ((X)) {strncpy_s((X), (Z), (Y), _TRUNCATE); }
 #else
-#define SAFE_STRNCPY(X, Y, Z) if ((X)) {strncpy((X), (Y), (Z)); if ((Z) > 0) (X)[(Z) - 1] = 0; }
-                                
+#define SAFE_STRNCPY(X, Y, Z) if ((X)) {strncpy((X), (Y), (Z)); if ((Z) > 0) (X)[(Z) - 1] = 0; }                              
 #endif
 
 
