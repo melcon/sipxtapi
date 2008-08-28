@@ -76,6 +76,11 @@ UtlBoolean SipLineList::remove(const Url& lineIdentityUri)
    return m_lineMap.destroy(&lineIdentityUri.toString());
 }
 
+void SipLineList::removeAll()
+{
+   m_lineMap.destroyAll();
+}
+
 UtlBoolean SipLineList::lineExists(const SipLine& line) const
 {
    return m_lineMap.contains(&line.getIdentityUri().toString());
@@ -224,3 +229,4 @@ void SipLineList::getLineCopies(UtlSList& lineList) const
       }
    }
 }
+
