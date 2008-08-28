@@ -44,6 +44,11 @@
 #include <objbase.h>
 #include <unknwn.h>
 
+// For some reason this must manually be included for MSVC7.1
+#if defined(_MSC_VER) && _MSC_VER == 1310
+  #include <limits.h>
+#endif
+
 #include "portaudio.h"
 #include "pa_win_ds.h"
 

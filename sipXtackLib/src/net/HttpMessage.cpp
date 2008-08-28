@@ -2340,10 +2340,15 @@ void HttpMessage::getBytes(UtlString* bufferString, int* length) const
             bufferString->append(ContentLen);
             bufferString->append(HTTP_NAME_VALUE_DELIMITER);
             char bodyLengthString[40];
+
             if (pBody)
-                SNPRINTF(bodyLengthString, sizeof(bodyLengthString), " %d", pBody->getLength())
+            {
+                SNPRINTF(bodyLengthString, sizeof(bodyLengthString), " %d", pBody->getLength());
+            }
             else
-                SNPRINTF(bodyLengthString, sizeof(bodyLengthString), " %d", bodyLen)
+            {
+                SNPRINTF(bodyLengthString, sizeof(bodyLengthString), " %d", bodyLen);
+            }
             
             bufferString->append(bodyLengthString);
             bufferString->append(END_OF_LINE_DELIMITOR);
