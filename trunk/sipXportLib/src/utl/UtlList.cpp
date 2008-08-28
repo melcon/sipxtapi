@@ -124,7 +124,7 @@ void UtlList::removeLink(UtlLink* toBeRemoved)
 
 
 // Removes and frees the designated objects.
-UtlBoolean UtlList::destroy(UtlContainable* obj) 
+UtlBoolean UtlList::destroy(const UtlContainable* obj) 
 {
    UtlBoolean result = FALSE;
 

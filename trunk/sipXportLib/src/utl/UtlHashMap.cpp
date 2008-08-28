@@ -149,7 +149,7 @@ UtlContainable* UtlHashMap::removeReference(const UtlContainable* key)
 
 
 
-UtlBoolean UtlHashMap::destroy(UtlContainable* key) 
+UtlBoolean UtlHashMap::destroy(const UtlContainable* key) 
 {
    UtlBoolean wasRemoved = FALSE;
    UtlContainable* value;

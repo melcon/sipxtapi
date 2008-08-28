@@ -67,7 +67,7 @@ public:
      * Removes the designated objects from the list and frees the object 
      * by calling delete.
      */ 
-    virtual UtlBoolean destroy(UtlContainable*) = 0 ;    
+    virtual UtlBoolean destroy(const UtlContainable*) = 0 ;    
 
     /**
      * Removes all elements from the container and deletes each one.
