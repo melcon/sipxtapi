@@ -600,12 +600,12 @@ UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
    OsLock lock(m_mutex); // scoped lock
 
    SipLine *pLine = m_listList.getLine(lineUri);
-   if (!pLine)
+   if (pLine)
    {
-      return FALSE;
+      return pLine->addCredential(strRealm , strUserID, strPasswd, type);
    }
 
-   return pLine->addCredential(strRealm , strUserID, strPasswd, type);
+   return FALSE;
 }
 
 UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
@@ -614,12 +614,12 @@ UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
    OsLock lock(m_mutex); // scoped lock
 
    SipLine *pLine = m_listList.getLine(lineUri);
-   if (!pLine)
+   if (pLine)
    {
-      return FALSE;
+      return pLine->addCredential(credential);
    }
 
-   return pLine->addCredential(credential);
+   return FALSE;
 }
 
 UtlBoolean SipLineMgr::deleteCredentialForLine(const Url& lineUri,
@@ -629,12 +629,12 @@ UtlBoolean SipLineMgr::deleteCredentialForLine(const Url& lineUri,
    OsLock lock(m_mutex); // scoped lock
 
    SipLine *pLine = m_listList.getLine(lineUri);
-   if (!pLine)
+   if (pLine)
    {
-      return FALSE;
+      return pLine->removeCredential(type, strRealm);
    }
 
-   return pLine->removeCredential(type, strRealm);
+   return FALSE;
 }
 
 UtlBoolean SipLineMgr::deleteAllCredentialsForLine(const Url& lineUri)
@@ -657,13 +657,13 @@ UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
    OsLock lock(m_mutex); // scoped lock
 
    SipLine *pLine = m_listList.getLine(lineUri);
-   if (!pLine)
+   if (pLine)
    {
-      return FALSE;
+      pLine->setState(state);
+      return TRUE;
    }
 
-   pLine->setState(state);
-   return TRUE;
+   return FALSE;
 }
 
 void SipLineMgr::dumpLines()
