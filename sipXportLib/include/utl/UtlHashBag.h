@@ -65,7 +65,7 @@ class UtlHashBag : public UtlContainer
     * 
     * @return the removed object if a match was found, otherwise NULL.
     */
-   virtual UtlContainable* remove(UtlContainable* object);
+   virtual UtlContainable* remove(const UtlContainable* object);
     
    /**
     * Remove the designated object by reference
@@ -80,7 +80,7 @@ class UtlHashBag : public UtlContainer
     *
     * @return true if a match was found, false if not
     */ 
-   virtual UtlBoolean destroy(UtlContainable* object);    
+   virtual UtlBoolean destroy(const UtlContainable* object);    
 
    /**
     * Removes all elements from the container and deletes each one.
