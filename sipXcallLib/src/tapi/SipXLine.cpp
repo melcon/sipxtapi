@@ -171,7 +171,7 @@ void sipxLineRemoveAll(const SIPX_INST hInst)
          sipxLineGet(hInst, lines, 1, &nLines);
          if (nLines > 0)
          {
-            sipxLineRemove(lines[i]);
+            sipxLineRemove(lines[0]);
          }
          nLines = 0;
       }
