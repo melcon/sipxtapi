@@ -35,6 +35,7 @@
 #include "net/SipMessage.h"
 #include "net/NetMd5Codec.h"
 #include "net/SipRefreshMgr.h"
+#include <net/SipLineCredential.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -115,6 +116,13 @@ UtlBoolean SipLineMgr::deleteLine(const Url& lineUri)
    return FALSE;
 }
 
+void SipLineMgr::deleteAllLines()
+{
+   OsLock lock(m_mutex);
+
+   m_listList.removeAll();
+}
+
 UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
    Url canonicalUrl;
@@ -187,7 +195,20 @@ void SipLineMgr::getLineCopies(UtlSList& lineList) const
    m_listList.getLineCopies(lineList);
 }
 
-int SipLineMgr::getNumLines() const
+UtlBoolean SipLineMgr::getLineCopy(const Url& lineUri, SipLine& sipLine) const
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (pLine)
+   {
+      sipLine = *pLine;
+   }
+
+   return FALSE;
+}
+
+size_t SipLineMgr::getNumLines() const
 {
    OsLock lock(m_mutex); // scoped lock
    return m_listList.getLinesCount();
@@ -587,6 +608,20 @@ UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
    return pLine->addCredential(strRealm , strUserID, strPasswd, type);
 }
 
+UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
+                                            const SipLineCredential& credential)
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (!pLine)
+   {
+      return FALSE;
+   }
+
+   return pLine->addCredential(credential);
+}
+
 UtlBoolean SipLineMgr::deleteCredentialForLine(const Url& lineUri,
                                                const UtlString& strRealm,
                                                const UtlString& type)
@@ -600,6 +635,20 @@ UtlBoolean SipLineMgr::deleteCredentialForLine(const Url& lineUri,
    }
 
    return pLine->removeCredential(type, strRealm);
+}
+
+UtlBoolean SipLineMgr::deleteAllCredentialsForLine(const Url& lineUri)
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (pLine)
+   {
+      pLine->removeAllCredentials();
+      return TRUE;
+   }
+
+   return FALSE;
 }
 
 UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
