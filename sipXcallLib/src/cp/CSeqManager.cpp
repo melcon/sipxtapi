@@ -40,13 +40,13 @@ CSeqManager::~CSeqManager()
     UtlString* pKey;   
 
     // Clean out hashmap    
-    while ((pKey = (UtlString*)iterator()))
+    while ((pKey = dynamic_cast<UtlString*>(iterator())))
     {
-        UtlVoidPtr* pValue = (UtlVoidPtr*) mHashMap.findValue(pKey) ;
+        UtlVoidPtr* pValue = dynamic_cast<UtlVoidPtr*>(mHashMap.findValue(pKey));
         assert(pValue != NULL) ;
         if (pValue)
         {        
-            CSEQ_CONTEXT* pContext = (CSEQ_CONTEXT*) pValue->getValue() ;
+            CSEQ_CONTEXT* pContext = (CSEQ_CONTEXT*)pValue->getValue();
             mHashMap.destroy(pKey) ;
             delete pContext ;
         }
@@ -120,10 +120,10 @@ void CSeqManager::dumpState(UtlString& state)
     UtlVoidPtr* pKey;   
     
     // Clean out hashmap
-    while ((pKey = (UtlVoidPtr*)iterator()))
+    while ((pKey = dynamic_cast<UtlVoidPtr*>(iterator())))
     {
         char cTemp[512] ;
-        CSEQ_CONTEXT* pContext = (CSEQ_CONTEXT*) pKey->getValue();
+        CSEQ_CONTEXT* pContext = (CSEQ_CONTEXT*)pKey->getValue();
 
         sprintf(cTemp, "Identifier: %s, CSeq=%d, inProgress=%d\n",               
                 pContext->identifier.data(),
@@ -179,7 +179,7 @@ CSEQ_CONTEXT* CSeqManager::getContext(const char* szIdentifier)
     assert(szIdentifier != NULL) ;
     
     UtlString key(szIdentifier) ;
-    UtlVoidPtr* pValue = (UtlVoidPtr*) mHashMap.findValue(&key) ;
+    UtlVoidPtr* pValue = dynamic_cast<UtlVoidPtr*>(mHashMap.findValue(&key));
     if (pValue)
     {
         pContext = (CSEQ_CONTEXT*) pValue->getValue() ;
