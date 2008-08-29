@@ -562,7 +562,7 @@ void sipxCallDestroyAll(const SIPX_INST hInst)
 
       // iterate over all session call ids
       UtlSListIterator itor(sessionCallIdList);
-      while(pSessionCallId = (UtlString*)itor())
+      while(pSessionCallId = dynamic_cast<UtlString*>(itor()))
       {
          hCall = sipxCallLookupHandleBySessionCallId(*pSessionCallId, pInst);
 

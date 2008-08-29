@@ -202,11 +202,11 @@ void SipXHandleMap::dump()
    UtlInt* pKey;
    UtlVoidPtr* pValue;
 
-   while ((pKey = (UtlInt*)itor()))
+   while ((pKey = dynamic_cast<UtlInt*>(itor())))
    {
       pValue = dynamic_cast<UtlVoidPtr*>(findValue(pKey));
       printf("\tkey=%08X, value=%08X\n", pKey->getValue(),
-             pValue ? pValue->getValue() : 0) ;
+             pValue ? pValue->getValue() : 0);
    }
 
    unlock();
