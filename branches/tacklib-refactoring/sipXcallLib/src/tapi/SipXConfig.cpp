@@ -1284,7 +1284,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRouteByUser(const SIPX_TRANS
    return rc;
 }
 
-, not sure it works
 SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRANSPORT hTransport,
                                                                   const char* szSourceIP,
                                                                   const int iSourcePort,
@@ -1786,7 +1785,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hIns
 #endif
 }
 
-, doesn't work like for audio codecs, just sets bitrate & framerate
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst,
                                                      SIPX_VIDEO_BANDWIDTH_ID bandWidth)
 {
@@ -2138,7 +2136,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
 #endif
 }
 
-, problem pInst->videoCodecSetting.pPreferences will be empty after execution
 SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst)
 {
 #ifdef VIDEO
@@ -2499,7 +2496,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFramerate(const SIPX_INST hInst,
 * Public Misc Config Functions
 ***************************************************************************/
 
-, verify that cbsize of addresses is correct
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalContacts(const SIPX_INST hInst,
                                                     SIPX_CONTACT_ADDRESS addresses[],
                                                     size_t nMaxAddresses,
