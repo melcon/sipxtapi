@@ -45,7 +45,7 @@ SipXHandleMap gSubHandleMap;  /**< Global Map of Subscribed (client) event data 
 
 /* ============================ FUNCTIONS ================================= */
 
-// CHECKED
+
 void sipxSubscribeClientSubCallback(SipSubscribeClient::SubscriptionState newState,
                                     const char* earlyDialogHandle,
                                     const char* dialogHandle,
@@ -148,7 +148,7 @@ void sipxSubscribeClientSubCallback(SipSubscribeClient::SubscriptionState newSta
 /**
  * @brief Finds subscription and locks it.
  */
-// CHECKED
+
 SIPX_SUBSCRIPTION_DATA* sipxSubscribeLookup(const SIPX_SUB hSub,
                                             SIPX_LOCK_TYPE type,
                                             const OsStackTraceLogger& oneBackInStack)
@@ -185,7 +185,7 @@ SIPX_SUBSCRIPTION_DATA* sipxSubscribeLookup(const SIPX_SUB hSub,
 /**
  * @brief Releases subscription lock.
  */
-// CHECKED
+
 void sipxSubscribeReleaseLock(SIPX_SUBSCRIPTION_DATA* pData,
                               SIPX_LOCK_TYPE type,
                               const OsStackTraceLogger& oneBackInStack) 
@@ -214,7 +214,7 @@ void sipxSubscribeReleaseLock(SIPX_SUBSCRIPTION_DATA* pData,
 /**
  * @brief Remove/Destroy all subscriptions
  */ 
-// CHECKED
+
 void sipxSubscribeDestroyAll(const SIPX_INST hInst) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxSubscribeDestroyAll");
@@ -256,7 +256,7 @@ void sipxSubscribeDestroyAll(const SIPX_INST hInst)
    gSubHandleMap.unlock();
 }
 
-// CHECKED
+
 void sipxSubscribeClientNotifyCallback(const char* earlyDialogHandle,
                                        const char* dialogHandle,
                                        void* applicationData,
@@ -339,7 +339,7 @@ void sipxSubscribeClientNotifyCallback(const char* earlyDialogHandle,
 /**
 * @brief Cancels subscription and deletes the object.
 */
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallUnsubscribe");
@@ -397,7 +397,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub)
    return(sipXresult);
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
                                            const char* szEventType,
                                            const char* szAcceptType,
@@ -555,7 +555,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
    return sipXresult;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                                              const SIPX_LINE hLine,
                                              const char* szTargetUrl,
@@ -679,7 +679,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
    return sipXresult;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigUnsubscribe(const SIPX_SUB hSub) 
 { 
    return sipxCallUnsubscribe(hSub); 

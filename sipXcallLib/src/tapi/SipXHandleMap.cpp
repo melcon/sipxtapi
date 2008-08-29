@@ -29,7 +29,7 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-// CHECKED
+
 SipXHandleMap::SipXHandleMap(int startingHandle, int avoidHandle)
    : mLock(OsMutex::Q_FIFO)
    , mNextHandle(startingHandle)
@@ -38,14 +38,14 @@ SipXHandleMap::SipXHandleMap(int startingHandle, int avoidHandle)
 }
 
 // Destructor
-// CHECKED
+
 SipXHandleMap::~SipXHandleMap()
 {
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-// CHECKED
+
 void SipXHandleMap::addHandleRef(SIPXHANDLE hHandle)
 {
    lock();
@@ -66,7 +66,7 @@ void SipXHandleMap::addHandleRef(SIPXHANDLE hHandle)
    unlock();
 }
 
-// CHECKED
+
 void SipXHandleMap::releaseHandleRef(SIPXHANDLE hHandle)
 {
    lock();
@@ -83,19 +83,19 @@ void SipXHandleMap::releaseHandleRef(SIPXHANDLE hHandle)
    unlock();
 }
 
-// CHECKED
+
 void SipXHandleMap::lock() const
 {
    mLock.acquire();
 }
 
-// CHECKED
+
 void SipXHandleMap::unlock() const
 {
    mLock.release();
 }
 
-// CHECKED
+
 UtlBoolean SipXHandleMap::allocHandle(SIPXHANDLE& hHandle, const void* pData)
 {
    UtlBoolean res = FALSE;
@@ -139,7 +139,7 @@ UtlBoolean SipXHandleMap::allocHandle(SIPXHANDLE& hHandle, const void* pData)
    return res;
 }
 
-// CHECKED
+
 const void* SipXHandleMap::findHandle( SIPXHANDLE handle ) const
 {
    lock();
@@ -160,7 +160,7 @@ const void* SipXHandleMap::findHandle( SIPXHANDLE handle ) const
    return pRC;
 }
 
-// CHECKED
+
 const void* SipXHandleMap::removeHandle(SIPXHANDLE handle) 
 {
    lock();

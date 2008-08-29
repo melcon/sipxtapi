@@ -57,7 +57,7 @@ SipXHandleMap gPubHandleMap(1, SIPX_PUB_NULL);  /**< Global Map of Published (su
 /**
 * Finds publisher and locks it.
 */
-// CHECKED
+
 SIPX_PUBLISH_DATA* sipxPublishLookup(const SIPX_PUB hPub,
                                      SIPX_LOCK_TYPE type,
                                      const OsStackTraceLogger& oneBackInStack)
@@ -94,7 +94,7 @@ SIPX_PUBLISH_DATA* sipxPublishLookup(const SIPX_PUB hPub,
 /**
 * Releases publisher lock.
 */
-// CHECKED
+
 void sipxPublishReleaseLock(SIPX_PUBLISH_DATA* pData,
                             SIPX_LOCK_TYPE type,
                             const OsStackTraceLogger& oneBackInStack) 
@@ -123,7 +123,7 @@ void sipxPublishReleaseLock(SIPX_PUBLISH_DATA* pData,
 /**
  *  Remove/Destroy all Publishers
  */
-// CHECKED
+
 void sipxPublisherDestroyAll(const SIPX_INST hInst) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxPublisherDestroyAll");
@@ -187,7 +187,7 @@ void sipxPublisherFreeObject(const SIPX_PUB hPub)
 * Public Publisher Functions
 ***************************************************************************/
 
-// CHECKED, weird code
+, weird code
 SIPXTAPI_API SIPX_RESULT sipxPublisherDestroy(const SIPX_PUB hPub,
                                               const char* szContentType,
                                               const char* pFinalContent,
@@ -254,7 +254,7 @@ SIPXTAPI_API SIPX_RESULT sipxPublisherDestroy(const SIPX_PUB hPub,
    return sipXresult;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxPublisherCreate(const SIPX_INST hInst,
                                              SIPX_PUB* phPub,
                                              const char* szResourceId,
@@ -375,7 +375,7 @@ SIPXTAPI_API SIPX_RESULT sipxPublisherCreate(const SIPX_INST hInst,
    return sipXresult;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxPublisherUpdate(const SIPX_PUB hPub,
                                              const char* szContentType,
                                              const char* pContent,

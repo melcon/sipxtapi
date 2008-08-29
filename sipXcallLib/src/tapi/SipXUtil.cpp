@@ -37,7 +37,7 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
-// CHECKED
+
 /**
 * Simple utility function to parse the username, host, and port from
 * a URL.  All url, field, and header parameters are ignored.  You may also 
@@ -78,7 +78,7 @@ SIPXTAPI_API SIPX_RESULT sipxUtilUrlParse(const char* szUrl,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxUtilUrlGetDisplayName(const char* szUrl,
                                                    char* szDisplayName,
                                                    size_t nDisplayName) 
@@ -103,7 +103,7 @@ SIPXTAPI_API SIPX_RESULT sipxUtilUrlGetDisplayName(const char* szUrl,
    return rc;
 }
 
-// CHECKED
+
 /**
 * Simple utility function to update a URL.  If the szUrl isn't large enough,
 * this function will fail.  Specify a NULL szUrl to request required length.
@@ -149,7 +149,7 @@ SIPXTAPI_API SIPX_RESULT sipxUtilUrlUpdate(char* szUrl,
    return rc;
 }
 
-// CHECKED
+
 static bool findUrlParameter(Url* pUrl,
                              const char* szName,
                              size_t index,
@@ -181,7 +181,7 @@ static bool findUrlParameter(Url* pUrl,
    return bRC;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxUtilUrlGetUrlParam(const char* szUrl,
                                                 const char* szParamName,
                                                 size_t nParamIndex,

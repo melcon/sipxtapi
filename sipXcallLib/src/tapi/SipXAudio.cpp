@@ -39,7 +39,7 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
-// CHECKED
+
 void initAudioDevices(SIPX_INSTANCE_DATA& pInst)
 {
 #if defined(_WIN32)
@@ -72,7 +72,7 @@ void initAudioDevices(SIPX_INSTANCE_DATA& pInst)
 #endif
 }
 
-// CHECKED
+
 void freeAudioDevices(SIPX_INSTANCE_DATA& pInst)
 {
    for (int i = 0; i < MAX_AUDIO_DEVICES; i++)
@@ -261,7 +261,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputBalance(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
                                                  const int iLevel)
 {
@@ -300,7 +300,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputVolume(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputVolume(const SIPX_INST hInst,
                                                  int* iLevel)
 {
@@ -331,7 +331,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputVolume(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioMuteInput(const SIPX_INST hInst,
                                             const int bMute)
 {
@@ -362,7 +362,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMuteInput(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioMuteOutput(const SIPX_INST hInst,
                                              const int bMute)
 {
@@ -393,7 +393,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioMuteOutput(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioIsInputMuted(const SIPX_INST hInst,
                                                int* bMuted)
 {
@@ -423,7 +423,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsInputMuted(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioIsOutputMuted(const SIPX_INST hInst,
                                                 int* bMuted)
 {
@@ -451,7 +451,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioIsOutputMuted(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputVolume(const SIPX_INST hInst,
                                                   const int iLevel)
 {
@@ -485,7 +485,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputVolume(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputVolume(const SIPX_INST hInst,
                                                   int* iLevel)
 {
@@ -562,7 +562,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputEnergy(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
                                              const SIPX_AEC_MODE mode) 
 {
@@ -592,7 +592,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetAECMode(const SIPX_INST hInst,
                                              SIPX_AEC_MODE* mode)
 {
@@ -624,7 +624,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAECMode(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioSetAGCMode(const SIPX_INST hInst,
                                              const int bEnable) 
 {
@@ -654,7 +654,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAGCMode(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetAGCMode(const SIPX_INST hInst,
                                              int* bEnabled) 
 {
@@ -686,7 +686,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAGCMode(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
                                                         const SIPX_NOISE_REDUCTION_MODE mode) 
 {
@@ -716,7 +716,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
                                                         SIPX_NOISE_REDUCTION_MODE* mode) 
 {
@@ -748,7 +748,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(const SIPX_INST hInst,
                                                      int* numDevices)
 {
@@ -772,7 +772,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNumInputDevices(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const SIPX_INST hInst,
                                                      const int index,
                                                      SIPX_AUDIO_DEVICE* deviceInfo)
@@ -803,7 +803,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDeviceInfo(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(const SIPX_INST hInst,
                                                       int* numDevices)
 {
@@ -827,7 +827,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNumOutputDevices(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const SIPX_INST hInst,
                                                       const int index,
                                                       SIPX_AUDIO_DEVICE* deviceInfo)
@@ -858,7 +858,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDeviceInfo(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
                                                  const char* szDevice,
                                                  const char* szDriver)
@@ -888,7 +888,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetInputDevice(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
                                                  SIPX_AUDIO_DEVICE* deviceInfo)
 {
@@ -922,7 +922,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputDevice(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
                                                   const char* szDevice,
                                                   const char* szDriver)
@@ -952,7 +952,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
                                                   SIPX_AUDIO_DEVICE* deviceInfo)
 {
