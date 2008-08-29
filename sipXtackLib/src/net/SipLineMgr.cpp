@@ -209,6 +209,7 @@ UtlBoolean SipLineMgr::getLineCopy(const Url& lineUri, SipLine& sipLine) const
    if (pLine)
    {
       sipLine = *pLine;
+      return TRUE;
    }
 
    return FALSE;
