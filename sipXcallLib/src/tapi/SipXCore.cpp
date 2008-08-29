@@ -325,7 +325,6 @@ SIPX_RESULT checkEvalExpiration()
 * Public Initialization Functions
 ***************************************************************************/
 
-, problem in szIdentity processing
 SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
                                         const int udpPort,
                                         const int tcpPort,

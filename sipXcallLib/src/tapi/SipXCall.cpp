@@ -347,7 +347,6 @@ void sipxCallReleaseLock(SIPX_CALL_DATA* pData,
    }   
 }
 
-, external lock on mutex gCallAccessLock is assumed
 void destroyCallData(SIPX_CALL_DATA* pData)
 {
    if (pData)
@@ -877,7 +876,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
 }
 
 
-, errorCode, szErrorText is ignored
 SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall,
                                         const int errorCode,
                                         const char* szErrorText)
@@ -937,7 +935,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallRedirect(const SIPX_CALL hCall, const char* szF
    return sr;
 }
 
-, make sure that CallManager automatically takes focus if no call has focus
 SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
                                         SIPX_VIDEO_DISPLAY* const pDisplay,
                                         SIPX_SECURITY_ATTRIBUTES* const pSecurity,
@@ -1046,7 +1043,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
    return sr;
 }
 
-, for conference call bStopRemoteAudio is ignored as only remote audio is stopped
+// for conference call bStopRemoteAudio is ignored as only remote audio is stopped
 // that is to prevent focus loss from the conference. In CpPeerCall sessionCallId should be
 // used to find call to hold, not remoteAddress, as we can have 2 calls to the same
 // address in the same conference.
@@ -1101,7 +1098,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallHold(const SIPX_CALL hCall,
    return sr;
 }
 
-, In CpPeerCall sessionCallId should be
+// In CpPeerCall sessionCallId should be
 // used to find call to hold, not remoteAddress, as we can have 2 calls to the same
 // address in the same conference. Change the way pCallData->bInFocus is set
 SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall, int bTakeFocus)
@@ -1201,7 +1198,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
    return sr;
 }
 
-, returns Sip CallID
+// returns Sip CallID
 SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
                                        char* szId,
                                        const size_t iMaxLength)
@@ -1230,7 +1227,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
    return sr;
 }
 
-, returns Line Uri of the call
+// returns Line Uri of the call
 SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
                                             char* szLineUri,
                                             const size_t iMaxLength)
@@ -1259,7 +1256,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
    return sr;
 }
 
-, returns remote address
+// returns remote address
 SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
                                              char* szRemoteAddress,
                                              const size_t iMaxLength)
@@ -1548,7 +1545,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall)
 }
 
 
-, internal function used for testing only
+// internal function used for testing only
 SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
                                                  int* connectionId)
 {

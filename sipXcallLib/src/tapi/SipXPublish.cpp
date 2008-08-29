@@ -187,7 +187,6 @@ void sipxPublisherFreeObject(const SIPX_PUB hPub)
 * Public Publisher Functions
 ***************************************************************************/
 
-, weird code
 SIPXTAPI_API SIPX_RESULT sipxPublisherDestroy(const SIPX_PUB hPub,
                                               const char* szContentType,
                                               const char* pFinalContent,

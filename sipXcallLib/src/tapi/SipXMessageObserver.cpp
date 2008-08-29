@@ -202,7 +202,6 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
     return bRet;
 }
 
-, MINOR PROBLEM
 UtlBoolean SipXMessageObserver::handleIncomingInfoStatus(SipMessage* pSipMessage)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoStatus");
