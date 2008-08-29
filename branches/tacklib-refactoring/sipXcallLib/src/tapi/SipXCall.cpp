@@ -43,7 +43,7 @@ SipXHandleMap gCallHandleMap(1, SIPX_CALL_NULL);  /**< Global Map of call handle
 
 /* ============================ FUNCTIONS ================================= */
 
-// CHECKED
+
 UtlBoolean sipxCallSetState(SIPX_CALL hCall,
                             SIPX_CALLSTATE_EVENT event,
                             SIPX_CALLSTATE_CAUSE cause)
@@ -119,7 +119,7 @@ UtlBoolean sipxCallSetState(SIPX_CALL hCall,
    return bSuccess;
 }
 
-// CHECKED
+
 SIPX_CALL sipxCallLookupHandleBySessionCallId( const UtlString& sessionCallID, SIPX_INST pInst )
 {
    SIPX_CALL hCall = 0;
@@ -169,7 +169,7 @@ SIPX_CALL sipxCallLookupHandleBySessionCallId( const UtlString& sessionCallID, S
    return hCall;
 }
 
-// CHECKED
+
 SIPX_CALL sipxCallLookupHandleByCallId( const UtlString& callID, SIPX_INST pInst )
 {
    SIPX_CALL hCall = 0;
@@ -222,7 +222,7 @@ SIPX_CALL sipxCallLookupHandleByCallId( const UtlString& callID, SIPX_INST pInst
 /**
 * Frees call object.
 */
-// CHECKED
+
 void sipxCallObjectFree(const SIPX_CALL hCall, const OsStackTraceLogger& oneBackInStack)
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallObjectFree", oneBackInStack);
@@ -253,7 +253,7 @@ void sipxCallObjectFree(const SIPX_CALL hCall, const OsStackTraceLogger& oneBack
 * Finds call by call handle and acquires lock on it.
 * OsMutex is used internally instead of OsRWMutex to allow recursive locking.
 */
-// CHECKED
+
 SIPX_CALL_DATA* sipxCallLookup(const SIPX_CALL hCall,
                                SIPX_LOCK_TYPE type,
                                const OsStackTraceLogger& oneBackInStack)
@@ -298,7 +298,7 @@ SIPX_CALL_DATA* sipxCallLookup(const SIPX_CALL hCall,
 /**
 * Checks whether call data is valid.
 */
-// CHECKED
+
 UtlBoolean validCallData(SIPX_CALL_DATA* pData)
 {
    return (pData &&
@@ -313,7 +313,7 @@ UtlBoolean validCallData(SIPX_CALL_DATA* pData)
 /**
 * Releases call lock.
 */
-// CHECKED
+
 void sipxCallReleaseLock(SIPX_CALL_DATA* pData,
                          SIPX_LOCK_TYPE type,
                          const OsStackTraceLogger& oneBackInStack)
@@ -347,7 +347,7 @@ void sipxCallReleaseLock(SIPX_CALL_DATA* pData,
    }   
 }
 
-// CHECKED, external lock on mutex gCallAccessLock is assumed
+, external lock on mutex gCallAccessLock is assumed
 void destroyCallData(SIPX_CALL_DATA* pData)
 {
    if (pData)
@@ -357,7 +357,7 @@ void destroyCallData(SIPX_CALL_DATA* pData)
    }
 }
 
-// CHECKED
+
 UtlBoolean sipxCallGetMediaState(SIPX_CALL         hCall,
                                  SIPX_MEDIA_EVENT& lastLocalMediaAudioEvent,
                                  SIPX_MEDIA_EVENT& lastLocalMediaVideoEvent,
@@ -384,7 +384,7 @@ UtlBoolean sipxCallGetMediaState(SIPX_CALL         hCall,
    return bSuccess;
 }
 
-// CHECKED
+
 UtlBoolean sipxCallSetMediaState(SIPX_CALL hCall,
                                  SIPX_MEDIA_EVENT event,
                                  SIPX_MEDIA_TYPE type) 
@@ -441,7 +441,7 @@ UtlBoolean sipxCallSetMediaState(SIPX_CALL hCall,
    return bSuccess;
 }
 
-// CHECKED
+
 UtlBoolean sipxCallGetState(SIPX_CALL hCall, 
                             SIPX_CALLSTATE_EVENT& lastEvent,
                             SIPX_CALLSTATE_CAUSE& lastCause,
@@ -463,7 +463,7 @@ UtlBoolean sipxCallGetState(SIPX_CALL hCall,
    return bSuccess;
 }
 
-// CHECKED
+
 UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
                                  SIPX_INSTANCE_DATA** pInst,
                                  UtlString* pCallId,
@@ -522,7 +522,7 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
    return bSuccess;
 }
 
-// CHECKED
+
 // returns sessionCallIds of CpPeerCall and callIds for empty CpPeerCalls
 SIPXTAPI_API SIPX_RESULT sipxGetAllCallIds(SIPX_INST hInst, UtlSList& sessionCallIdList)
 {
@@ -545,7 +545,7 @@ SIPXTAPI_API SIPX_RESULT sipxGetAllCallIds(SIPX_INST hInst, UtlSList& sessionCal
    return rc;
 }
 
-// CHECKED
+
 // Destroy all calls, no need to send simulated DESTROYED events, as the way
 // we shutdown OsServerTasks is going to change (optionally they will wait until all messages
 // are processed)
@@ -576,7 +576,7 @@ void sipxCallDestroyAll(const SIPX_INST hInst)
    }
 }
 
-// CHECKED
+
 SIPX_CONF sipxCallGetConf(SIPX_CALL hCall) 
 {
    SIPX_CONF hConf = SIPX_CONF_NULL;
@@ -592,7 +592,7 @@ SIPX_CONF sipxCallGetConf(SIPX_CALL hCall)
    return hConf;
 }
 
-// CHECKED
+
 SIPX_CONTACT_TYPE sipxCallGetLineContactType(SIPX_CALL hCall) 
 {
    SIPX_CONTACT_TYPE contactType = CONTACT_AUTO;
@@ -616,7 +616,7 @@ SIPX_CONTACT_TYPE sipxCallGetLineContactType(SIPX_CALL hCall)
    return contactType;
 }
 
-// CHECKED
+
 UtlBoolean sipxCallSetRemoveInsteadofDrop(SIPX_CALL hCall) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallSetRemoveInsteadOfDrop");
@@ -634,7 +634,7 @@ UtlBoolean sipxCallSetRemoveInsteadofDrop(SIPX_CALL hCall)
    return bSuccess;
 }
 
-// CHECKED
+
 UtlBoolean sipxCallIsRemoveInsteadOfDropSet(SIPX_CALL hCall)
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallIsREmoveInsteadOfDropSet");
@@ -651,7 +651,7 @@ UtlBoolean sipxCallIsRemoveInsteadOfDropSet(SIPX_CALL hCall)
    return bShouldRemove;
 }
 
-// CHECKED
+
 // this function assumes call is not in conference
 SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall)
 {
@@ -698,7 +698,7 @@ SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall)
    return sr;
 }
 
-// CHECKED
+
 // either hLine or szLine must be available
 SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                                  const SIPX_LINE hLine,
@@ -835,7 +835,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
 /*       Public call handling functions                              */
 /*********************************************************************/
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallCreate(const SIPX_INST hInst,
                                         const SIPX_LINE hLine,
                                         SIPX_CALL* phCall)
@@ -855,7 +855,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreate(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
                                                      const char* szLine,
                                                      SIPX_CALL* phCall)
@@ -877,7 +877,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
 }
 
 
-// CHECKED, errorCode, szErrorText is ignored
+, errorCode, szErrorText is ignored
 SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall,
                                         const int errorCode,
                                         const char* szErrorText)
@@ -911,7 +911,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallRedirect(const SIPX_CALL hCall, const char* szForwardURL)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallRedirect");
@@ -937,7 +937,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallRedirect(const SIPX_CALL hCall, const char* szF
    return sr;
 }
 
-// CHECKED, make sure that CallManager automatically takes focus if no call has focus
+, make sure that CallManager automatically takes focus if no call has focus
 SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
                                         SIPX_VIDEO_DISPLAY* const pDisplay,
                                         SIPX_SECURITY_ATTRIBUTES* const pSecurity,
@@ -1046,7 +1046,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED, for conference call bStopRemoteAudio is ignored as only remote audio is stopped
+, for conference call bStopRemoteAudio is ignored as only remote audio is stopped
 // that is to prevent focus loss from the conference. In CpPeerCall sessionCallId should be
 // used to find call to hold, not remoteAddress, as we can have 2 calls to the same
 // address in the same conference.
@@ -1101,7 +1101,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallHold(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED, In CpPeerCall sessionCallId should be
+, In CpPeerCall sessionCallId should be
 // used to find call to hold, not remoteAddress, as we can have 2 calls to the same
 // address in the same conference. Change the way pCallData->bInFocus is set
 SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall, int bTakeFocus)
@@ -1147,7 +1147,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall, int bTakeFocus)
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAnswer");
@@ -1201,7 +1201,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
    return sr;
 }
 
-// CHECKED, returns Sip CallID
+, returns Sip CallID
 SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
                                        char* szId,
                                        const size_t iMaxLength)
@@ -1230,7 +1230,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED, returns Line Uri of the call
+, returns Line Uri of the call
 SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
                                             char* szLineUri,
                                             const size_t iMaxLength)
@@ -1259,7 +1259,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED, returns remote address
+, returns remote address
 SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
                                              char* szRemoteAddress,
                                              const size_t iMaxLength)
@@ -1288,7 +1288,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
                                               char* szContactAddress,
                                               const size_t iMaxLength)
@@ -1335,7 +1335,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallGetConference(const SIPX_CALL hCall,
                                                SIPX_CONF* hConf) 
 {
@@ -1365,7 +1365,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConference(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
                                          const char* szAddress,
                                          SIPX_VIDEO_DISPLAY* const pDisplay,
@@ -1522,7 +1522,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallDestroy");
@@ -1548,7 +1548,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall)
 }
 
 
-// CHECKED, internal function used for testing only
+, internal function used for testing only
 SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
                                                  int* connectionId)
 {
@@ -1606,7 +1606,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
                                                char* szUri,
                                                const size_t iMaxLength)
@@ -1658,7 +1658,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
                                                   char* szContact,
                                                   const size_t iMaxLength)
@@ -1686,7 +1686,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
                                                     char* szAgent,
                                                     const size_t iMaxLength)
@@ -1730,7 +1730,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall,
                                            const SIPX_TONE_ID toneId,
                                            const int bLocal,
@@ -1757,7 +1757,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallStopTone");
@@ -1783,7 +1783,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall)
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStart(const SIPX_CALL hCall,
                                                     const char* szFile,
                                                     const int bRepeat,
@@ -1833,7 +1833,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStart(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallAudioPlayFileStop(const SIPX_CALL hCall)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAudioPlayFileStop");
@@ -1901,7 +1901,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioPlaybackResume(const SIPX_CALL hCall)
 }
 
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStart(const SIPX_CALL hCall,
                                                       const char* szFile) 
 {
@@ -1929,7 +1929,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStart(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAudioRecordFileStop");
@@ -1956,7 +1956,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall)
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
                                                  const char* szBuffer,
                                                  const int bufSize,
@@ -1999,7 +1999,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallPlayBufferStop");
@@ -2022,7 +2022,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall)
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
                                                const char* pszAddress)
 {
@@ -2078,7 +2078,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallTransfer(const SIPX_CALL hSourceCall,
                                           const SIPX_CALL hTargetCall)
 {
@@ -2122,7 +2122,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallTransfer(const SIPX_CALL hSourceCall,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtpSourceIds(const SIPX_CALL hCall,
                                                       unsigned int* iSendSSRC,
                                                       unsigned int* iReceiveSSRC) 
@@ -2132,7 +2132,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtpSourceIds(const SIPX_CALL hCall,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
                                                    SIPX_RTCP_STATS* pStats)
 {
@@ -2141,7 +2141,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
                                                        const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                        const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,

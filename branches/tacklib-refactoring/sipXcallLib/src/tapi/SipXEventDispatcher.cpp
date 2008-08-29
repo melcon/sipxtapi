@@ -64,7 +64,7 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-// CHECKED
+
 void SipXEventDispatcher::initDispatcher()
 {
    OsWriteLock lock(m_InstanceLock);
@@ -76,7 +76,7 @@ void SipXEventDispatcher::initDispatcher()
    }
 }
 
-// CHECKED
+
 void SipXEventDispatcher::shutdownDispatcher()
 {
    OsWriteLock lock(m_InstanceLock);
@@ -93,7 +93,7 @@ void SipXEventDispatcher::shutdownDispatcher()
 
 /* ============================ MANIPULATORS ============================== */
 
-// CHECKED
+
 UtlBoolean SipXEventDispatcher::handleMessage(OsMsg& rMsg)
 {
     UtlBoolean bRet = false ;
@@ -124,7 +124,7 @@ UtlBoolean SipXEventDispatcher::handleMessage(OsMsg& rMsg)
     return bRet;
 }
 
-// CHECKED
+
 UtlBoolean SipXEventDispatcher::addListener(const SIPX_INST hInst,
                                             SIPX_EVENT_CALLBACK_PROC pCallbackProc,
                                             void* pUserData) 
@@ -142,7 +142,7 @@ UtlBoolean SipXEventDispatcher::addListener(const SIPX_INST hInst,
     return FALSE;
 }
 
-// CHECKED
+
 UtlBoolean SipXEventDispatcher::removeListener(const SIPX_INST hInst,
                                                SIPX_EVENT_CALLBACK_PROC pCallbackProc,
                                                void* pUserData) 
@@ -177,7 +177,7 @@ UtlBoolean SipXEventDispatcher::removeListener(const SIPX_INST hInst,
     return bRC;
 }
 
-// CHECKED
+
 void SipXEventDispatcher::removeAllListeners(const SIPX_INST hInst) 
 {
     OsWriteLock lock(m_MemberLock);
@@ -198,7 +198,7 @@ void SipXEventDispatcher::removeAllListeners(const SIPX_INST hInst)
     }
 }
 
-// CHECKED
+
 void SipXEventDispatcher::serviceListeners(const SIPX_INST hInst,
                                            SIPX_EVENT_CATEGORY category, 
                                            void* pInfo)
@@ -223,7 +223,7 @@ void SipXEventDispatcher::serviceListeners(const SIPX_INST hInst,
     }
 }
 
-// CHECKED
+
 void SipXEventDispatcher::dispatchEvent(const SIPX_INST hInst,
                                         SIPX_EVENT_CATEGORY category, 
                                         void* pInfo)
@@ -251,7 +251,7 @@ void SipXEventDispatcher::dispatchEvent(const SIPX_INST hInst,
 
 /* ============================ INQUIRY =================================== */
 
-// CHECKED
+
 int SipXEventDispatcher::getListenerCount( const SIPX_INST hInst )
 {
    OsReadLock lock(m_MemberLock);
@@ -280,13 +280,13 @@ int SipXEventDispatcher::getListenerCount( const SIPX_INST hInst )
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-// CHECKED
+
 SipXEventDispatcher::SipXEventDispatcher() 
 : OsServerTask("SipXEventDispatcher-%d")
 {
 }
 
-// CHECKED
+
 SipXEventDispatcher::~SipXEventDispatcher(void)
 {
    waitUntilShutDown();

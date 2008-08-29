@@ -43,7 +43,7 @@ SipXHandleMap gLineHandleMap(1, SIPX_LINE_NULL);  /**< Global Map of line handle
 
 /* ============================ FUNCTIONS ================================= */
 
-// CHECKED
+
 SIPX_LINE sipxLineLookupHandle(const char* szLineURI, 
                                const char* szRequestUri) 
 { 
@@ -58,7 +58,7 @@ SIPX_LINE sipxLineLookupHandle(const char* szLineURI,
    return hLine;
 }
 
-// CHECKED
+
 static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& uri)
 {
    SIPX_LINE_DATA* pData = new SIPX_LINE_DATA();
@@ -77,7 +77,7 @@ static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& uri)
 /**
  * @brief Finds a line by handle and acquires a lock on it.
  */
-// CHECKED
+
 SIPX_LINE_DATA* sipxLineLookup(const SIPX_LINE hLine,
                                SIPX_LOCK_TYPE type,
                                const OsStackTraceLogger& oneBackInStack)
@@ -119,7 +119,7 @@ SIPX_LINE_DATA* sipxLineLookup(const SIPX_LINE hLine,
    return pRC;
 }
 
-// CHECKED
+
 void sipxLineReleaseLock(SIPX_LINE_DATA* pData,
                          SIPX_LOCK_TYPE type,
                          const OsStackTraceLogger& oneBackInStack) 
@@ -156,7 +156,7 @@ void sipxLineReleaseLock(SIPX_LINE_DATA* pData,
 /**
  * @brief Removes and deletes all lines. Lines are not unregistered.
  */
-// CHECKED
+
 void sipxLineRemoveAll(const SIPX_INST hInst) 
 {
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
@@ -182,7 +182,7 @@ void sipxLineRemoveAll(const SIPX_INST hInst)
 /**
  * Frees line object by handle.
  */
-// CHECKED
+
 void sipxLineObjectFree(const SIPX_LINE hLine)
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineObjectFree");
@@ -221,7 +221,7 @@ void sipxLineObjectFree(const SIPX_LINE hLine)
    }
 }
 
-// CHECKED
+
 UtlBoolean validLineData(const SIPX_LINE_DATA* pData) 
 {
    UtlBoolean bValid = FALSE;
@@ -235,7 +235,7 @@ UtlBoolean validLineData(const SIPX_LINE_DATA* pData)
    return bValid;
 }
 
-// CHECKED
+
 SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
 {
    gLineHandleMap.lock(); // global lock for line deletion
@@ -393,7 +393,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
 /*       Public line handling functions                              */
 /*********************************************************************/
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineRemove(SIPX_LINE hLine)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineRemove");
@@ -430,7 +430,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineRemove(SIPX_LINE hLine)
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineRegister(const SIPX_LINE hLine, const int bRegister)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineRegister");
@@ -467,7 +467,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineRegister(const SIPX_LINE hLine, const int bRegi
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineAddCredential(const SIPX_LINE hLine,                                                 
                                                const char* szUserID,
                                                const char* szPasswd,
@@ -514,7 +514,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddCredential(const SIPX_LINE hLine,
    return sr;
 }
 
-// CHECKED, verify the weird Url conversion
+, verify the weird Url conversion
 SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine, const char* szLineURL) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineAddAlias");
@@ -545,7 +545,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine, const char* szL
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
                                                 char* szContactAddress,
                                                 const size_t nContactAddressSize,
@@ -575,7 +575,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineFindByURI(const SIPX_INST hInst,
                                            const char* szURI,
                                            SIPX_LINE* phLine) 
@@ -603,7 +603,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineFindByURI(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
                                      SIPX_LINE lines[],
                                      const size_t max,
@@ -643,7 +643,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
                                         char* szBuffer,
                                         const size_t nBuffer,
@@ -679,7 +679,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
                                      const char* szLineUrl,
                                      SIPX_LINE* phLine,
