@@ -18,6 +18,7 @@
 #include <net/SipLine.h>
 #include <net/SipLineMgr.h>
 #include <net/SipLineCredential.h>
+#include <CompareHelper.h>
 #include <sipxunit/TestUtilities.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCase.h>
@@ -54,7 +55,12 @@ class SipLineMgrTest : public CppUnit::TestCase
    CPPUNIT_TEST(testAddDeleteLine);
    CPPUNIT_TEST(testAddDeleteCredentials1);
    CPPUNIT_TEST(testAddDeleteCredentials2);
+   CPPUNIT_TEST(testAddDeleteCredentials3);
    CPPUNIT_TEST(testGetNumLines);
+   CPPUNIT_TEST(testGetLineCopies);
+   CPPUNIT_TEST(testGetLineCopy);
+   CPPUNIT_TEST(testGetLineUris);
+   CPPUNIT_TEST(testSetStateForLine);
    CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -114,6 +120,16 @@ public:
       CPPUNIT_ASSERT(lineMgr.deleteAllCredentialsForLine(IDENTITY_URI_1));
    }
 
+   void testAddDeleteCredentials3()
+   {
+      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLineMgr lineMgr;
+
+      lineMgr.addLine(line1);
+      lineMgr.addCredentialForLine(IDENTITY_URI_1, CREDENTIAL_REALM, CREDENTIAL_USERID, CREDENTIAL_PASSWORD, CREDENTIAL_TYPE);
+      CPPUNIT_ASSERT(lineMgr.deleteCredentialForLine(IDENTITY_URI_1, CREDENTIAL_REALM, CREDENTIAL_TYPE));
+   }
+
    void testGetNumLines()
    {
       SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
@@ -127,6 +143,60 @@ public:
       CPPUNIT_ASSERT(lineMgr.getNumLines() == 2);
       lineMgr.deleteAllLines();
       CPPUNIT_ASSERT(lineMgr.getNumLines() == 0);
+   }
+
+   void testGetLineCopies()
+   {
+      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLine line2(USER_ENTERED_URI_2, IDENTITY_URI_2);
+      SipLineMgr lineMgr;
+      lineMgr.addLine(line1);
+      lineMgr.addLine(line2);
+
+      UtlSList lineList;
+      lineMgr.getLineCopies(lineList);
+      CPPUNIT_ASSERT(lineList.entries() == 2);
+   }
+
+   void testGetLineCopy()
+   {
+      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLineMgr lineMgr;
+      lineMgr.addLine(line1);
+
+      SipLine line2;
+      CPPUNIT_ASSERT(lineMgr.getLineCopy(IDENTITY_URI_1, line2));
+      CPPUNIT_ASSERT(areTheSame(line1, line2));
+   }
+
+   void testGetLineUris()
+   {
+      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLine line2(USER_ENTERED_URI_2, IDENTITY_URI_2);
+      SipLineMgr lineMgr;
+      lineMgr.addLine(line1);
+      lineMgr.addLine(line2);
+
+      UtlSList lineUris;
+      lineMgr.getLineUris(lineUris);
+      CPPUNIT_ASSERT(lineUris.entries() == 2);
+   }
+
+   void testSetStateForLine()
+   {
+      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1, SipLine::LINE_STATE_UNKNOWN);
+      line1.setState(SipLine::LINE_STATE_FAILED);
+      SipLineMgr lineMgr;
+      lineMgr.addLine(line1);
+
+      SipLine line2;
+      lineMgr.getLineCopy(IDENTITY_URI_1, line2);
+      CPPUNIT_ASSERT(line2.getState() == SipLine::LINE_STATE_FAILED);
+
+      CPPUNIT_ASSERT(lineMgr.setStateForLine(IDENTITY_URI_1, SipLine::LINE_STATE_REGISTERED));
+      lineMgr.getLineCopy(IDENTITY_URI_1, line2);
+      CPPUNIT_ASSERT(line2.getState() == SipLine::LINE_STATE_REGISTERED);
+
    }
 };
 
