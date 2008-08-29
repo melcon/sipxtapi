@@ -287,7 +287,7 @@ SipConnection::~SipConnection()
     UtlSListIterator iterator(mMediaEventEmitters);
     UtlInt* pEmitterContainer;
     IMediaEventEmitter* pEmitter;
-    while ((pEmitterContainer = (UtlInt*)iterator()))
+    while ((pEmitterContainer = dynamic_cast<UtlInt*>(iterator())))
     {
         pEmitter = (IMediaEventEmitter*)pEmitterContainer->getValue();
         pEmitter->onListenerRemoved();
