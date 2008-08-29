@@ -203,7 +203,7 @@ void sipxConferenceDestroyAll(const SIPX_INST hInst)
 
    while ((pKey = dynamic_cast<UtlInt*>(pubIter())))
    {
-      pValue = (UtlVoidPtr*)gConfHandleMap.findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(gConfHandleMap.findValue(pKey));
       assert(pValue);
 
       hConf = (SIPX_CONF)pValue->getValue();
