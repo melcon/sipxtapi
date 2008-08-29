@@ -19,7 +19,7 @@
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXEvents.h"
 #include "tapi/sipXtapiEvents.h"
-#include "utl/UtlVoidPtr.h"
+#include <utl/UtlPtr.h>
 #include "os/OsPtrMsg.h"
 #include "os/OsReadLock.h"
 #include "os/OsWriteLock.h"
@@ -45,9 +45,9 @@ UtlHashMap SipXEventDispatcher::m_Listeners;
 class SIPX_EVENT_LISTENER_CONTEXT
 {
 public:
-   const SIPX_INST             m_hInst;
-   SIPX_EVENT_CALLBACK_PROC    m_pCallbackProc;
-   void*                       m_pUserData;
+   const SIPX_INST m_hInst;
+   SIPX_EVENT_CALLBACK_PROC m_pCallbackProc;
+   void* m_pUserData;
 
    SIPX_EVENT_LISTENER_CONTEXT(const SIPX_INST inst,
                                SIPX_EVENT_CALLBACK_PROC callbackProc,
@@ -108,8 +108,8 @@ UtlBoolean SipXEventDispatcher::handleMessage(OsMsg& rMsg)
                 SIPX_INST hInst;
 
                 category = (SIPX_EVENT_CATEGORY)rMsg.getMsgSubType();
-                pDataCopy = ((OsPtrMsg&)rMsg).getPtr();
-                hInst = ((OsPtrMsg&)rMsg).getPtr2();
+                pDataCopy = (dynamic_cast<OsPtrMsg&>(rMsg)).getPtr();
+                hInst = (dynamic_cast<OsPtrMsg&>(rMsg)).getPtr2();
 
                 serviceListeners(hInst, category, pDataCopy);
 
@@ -126,36 +126,39 @@ UtlBoolean SipXEventDispatcher::handleMessage(OsMsg& rMsg)
 
 // CHECKED
 UtlBoolean SipXEventDispatcher::addListener(const SIPX_INST hInst,
-                                            SIPX_EVENT_CALLBACK_PROC  pCallbackProc,
-                                            void*                     pUserData) 
+                                            SIPX_EVENT_CALLBACK_PROC pCallbackProc,
+                                            void* pUserData) 
 {
     OsWriteLock lock(m_MemberLock);
 
-    assert(pCallbackProc);    
+    assert(hInst);
+    if (hInst && pCallbackProc)
+    {
+       SIPX_EVENT_LISTENER_CONTEXT* pContext = new SIPX_EVENT_LISTENER_CONTEXT(hInst, pCallbackProc, pUserData);
+       m_Listeners.insert(new UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>(pContext, TRUE)); // enable content auto delete
+       return TRUE;
+    }
 
-    SIPX_EVENT_LISTENER_CONTEXT* pContext = new SIPX_EVENT_LISTENER_CONTEXT(hInst, pCallbackProc, pUserData);
-    m_Listeners.insert(new UtlVoidPtr(pContext));
-
-    return TRUE;
+    return FALSE;
 }
 
 // CHECKED
 UtlBoolean SipXEventDispatcher::removeListener(const SIPX_INST hInst,
-                                               SIPX_EVENT_CALLBACK_PROC  pCallbackProc,
-                                               void*                     pUserData) 
+                                               SIPX_EVENT_CALLBACK_PROC pCallbackProc,
+                                               void* pUserData) 
 {
     OsWriteLock lock(m_MemberLock);
 
-    assert(pCallbackProc);    
+    assert(pCallbackProc);
 
     UtlHashMapIterator itor(m_Listeners);
-    UtlVoidPtr* pValue;
+    UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>* pValue;
     SIPX_EVENT_LISTENER_CONTEXT* pContext = NULL;
     UtlBoolean bRC = FALSE;
 
-    while ((pValue = (UtlVoidPtr*)itor()))
+    while ((pValue = dynamic_cast<UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>*>(itor())))
     {
-        pContext = (SIPX_EVENT_LISTENER_CONTEXT*)pValue->getValue();
+        pContext = pValue->getValue();
         assert(pContext);
 
         if (pContext)
@@ -165,8 +168,6 @@ UtlBoolean SipXEventDispatcher::removeListener(const SIPX_INST hInst,
                 pContext->m_pUserData == pUserData)
             {
                 m_Listeners.destroy(pValue);
-                // mListeners.destroy will only delete the UtlVoidPtr object, not pContext
-                delete pContext;
                 bRC = TRUE;
                 break;
             }
@@ -182,19 +183,17 @@ void SipXEventDispatcher::removeAllListeners(const SIPX_INST hInst)
     OsWriteLock lock(m_MemberLock);
 
     UtlHashMapIterator itor(m_Listeners);
-    UtlVoidPtr* pValue;
+    UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>* pValue;
     SIPX_EVENT_LISTENER_CONTEXT* pContext = NULL;
 
-    while ((pValue = (UtlVoidPtr*)itor()))
+    while ((pValue = dynamic_cast<UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>*>(itor())))
     {
-       pContext = (SIPX_EVENT_LISTENER_CONTEXT*) pValue->getValue();
+       pContext = pValue->getValue();
        assert(pContext);
 
        if (pContext && pContext->m_hInst == hInst)
        {
           m_Listeners.destroy(pValue);
-          // mListeners.destroy will only delete the UtlVoidPtr object, not pContext
-          delete pContext;
        }
     }
 }
@@ -202,18 +201,18 @@ void SipXEventDispatcher::removeAllListeners(const SIPX_INST hInst)
 // CHECKED
 void SipXEventDispatcher::serviceListeners(const SIPX_INST hInst,
                                            SIPX_EVENT_CATEGORY category, 
-                                           void*               pInfo)
+                                           void* pInfo)
 {
     OsReadLock lock(m_MemberLock);
     assert(pInfo);
 
     UtlHashMapIterator itor(m_Listeners);
-    UtlVoidPtr* pValue;
+    UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>* pValue;
     SIPX_EVENT_LISTENER_CONTEXT* pContext = NULL;
 
-    while ((pValue = (UtlVoidPtr*)itor()))
+    while ((pValue = dynamic_cast<UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>*>(itor())))
     {
-        pContext = (SIPX_EVENT_LISTENER_CONTEXT*)pValue->getValue();
+        pContext = pValue->getValue();
         assert(pContext);
         assert(pContext->m_pCallbackProc);
 
@@ -227,7 +226,7 @@ void SipXEventDispatcher::serviceListeners(const SIPX_INST hInst,
 // CHECKED
 void SipXEventDispatcher::dispatchEvent(const SIPX_INST hInst,
                                         SIPX_EVENT_CATEGORY category, 
-                                        void*               pInfo)
+                                        void* pInfo)
 {
    OsReadLock lock(m_InstanceLock);
 
@@ -259,12 +258,12 @@ int SipXEventDispatcher::getListenerCount( const SIPX_INST hInst )
    int counter = 0;
 
    UtlHashMapIterator itor(m_Listeners);
-   UtlVoidPtr* pValue;
+   UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>* pValue;
    SIPX_EVENT_LISTENER_CONTEXT* pContext = NULL;
 
-   while ((pValue = (UtlVoidPtr*)itor()))
+   while ((pValue = dynamic_cast<UtlPtr<SIPX_EVENT_LISTENER_CONTEXT>*>(itor())))
    {
-      pContext = (SIPX_EVENT_LISTENER_CONTEXT*)pValue->getValue();
+      pContext = pValue->getValue();
       assert(pContext);
       assert(pContext->m_pCallbackProc);
 
@@ -289,7 +288,8 @@ SipXEventDispatcher::SipXEventDispatcher()
 
 // CHECKED
 SipXEventDispatcher::~SipXEventDispatcher(void)
-{   
+{
    waitUntilShutDown();
+   m_Listeners.destroyAll();
 }
 

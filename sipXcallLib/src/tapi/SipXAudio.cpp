@@ -317,12 +317,15 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputVolume(const SIPX_INST hInst,
       CpMediaInterfaceFactory* pInterface = 
          pInst->pCallManager->getMediaInterfaceFactory();
 
-      OsStatus status = pInterface->getAudioInputVolume(*iLevel);
-
-      if (status == OS_SUCCESS)
+      if (pInterface)
       {
-         sr = SIPX_RESULT_SUCCESS;
-      }
+         OsStatus status = pInterface->getAudioInputVolume(*iLevel);
+
+         if (status == OS_SUCCESS)
+         {
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }      
    }
 
    return sr;

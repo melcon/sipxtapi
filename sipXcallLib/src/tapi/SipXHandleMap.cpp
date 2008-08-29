@@ -52,7 +52,7 @@ void SipXHandleMap::addHandleRef(SIPXHANDLE hHandle)
 
    UtlInt handle(hHandle);
 
-   UtlInt* count = static_cast<UtlInt*>(mLockCountHash.findValue(&handle));
+   UtlInt* count = dynamic_cast<UtlInt*>(mLockCountHash.findValue(&handle));
 
    if (!count)
    {
@@ -73,7 +73,7 @@ void SipXHandleMap::releaseHandleRef(SIPXHANDLE hHandle)
 
    UtlInt handle(hHandle);
 
-   UtlInt* pCount = static_cast<UtlInt*>(mLockCountHash.findValue(&handle));
+   UtlInt* pCount = dynamic_cast<UtlInt*>(mLockCountHash.findValue(&handle));
 
    if (pCount)
    {
@@ -148,7 +148,7 @@ const void* SipXHandleMap::findHandle( SIPXHANDLE handle ) const
    UtlInt key(handle);
    UtlVoidPtr* pValue;
 
-   pValue = (UtlVoidPtr*)findValue(&key);
+   pValue = dynamic_cast<UtlVoidPtr*>(findValue(&key));
 
    if (pValue)
    {
@@ -169,13 +169,13 @@ const void* SipXHandleMap::removeHandle(SIPXHANDLE handle)
    const void* pRC = NULL;
    UtlInt key(handle);
 
-   UtlInt* pCount = static_cast<UtlInt*>(mLockCountHash.findValue(&key));
+   UtlInt* pCount = dynamic_cast<UtlInt*>(mLockCountHash.findValue(&key));
 
    if (!pCount || pCount->getValue() < 1)
    {
       UtlVoidPtr* pValue;
 
-      pValue = (UtlVoidPtr*)findValue(&key);
+      pValue = dynamic_cast<UtlVoidPtr*>(findValue(&key));
       if (pValue)
       {
          pRC = pValue->getValue();
@@ -204,7 +204,7 @@ void SipXHandleMap::dump()
 
    while ((pKey = (UtlInt*)itor()))
    {
-      pValue = (UtlVoidPtr*)findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(findValue(pKey));
       printf("\tkey=%08X, value=%08X\n", pKey->getValue(),
              pValue ? pValue->getValue() : 0) ;
    }
