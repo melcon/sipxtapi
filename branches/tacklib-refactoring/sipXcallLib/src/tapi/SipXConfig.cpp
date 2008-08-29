@@ -1876,7 +1876,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
             int index = 0;
             int bytesToCopy;
 
-            while (pDevice = (UtlString*)iterator())
+            while (pDevice = dynamic_cast<UtlString*>(iterator()))
             {
                if (pDevice->length() > 0)
                {

@@ -225,9 +225,9 @@ void sipxSubscribeDestroyAll(const SIPX_INST hInst)
    UtlVoidPtr* pValue;
    SIPX_SUB hSub;
 
-   while ((pKey = (UtlInt*)iter()))
+   while ((pKey = dynamic_cast<UtlInt*>(iter())))
    {
-      pValue = (UtlVoidPtr*)gSubHandleMap.findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(gSubHandleMap.findValue(pKey));
       assert(pValue);
 
       hSub = (SIPX_SUB)pValue->getValue();

@@ -274,7 +274,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
             Url* pUrl;
             UtlSListIterator iterator(pData->m_lineAliases);
 
-            while ((pValue = (UtlVoidPtr*) iterator()))
+            while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
             {
                pUrl = (Url*)pValue->getValue();
 
@@ -316,7 +316,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                Url* pUrl;
                UtlSListIterator iterator(pData->m_lineAliases);
 
-               while ((pValue = (UtlVoidPtr*) iterator()))
+               while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
                {
                   pUrl = (Url*) pValue->getValue();
 
@@ -365,7 +365,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                Url* pUrl;
                UtlSListIterator iterator(pData->m_lineAliases);
 
-               while ((pValue = (UtlVoidPtr*) iterator()))
+               while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
                {
                   pUrl = (Url*) pValue->getValue();
                   UtlString aliasUsername;
@@ -627,7 +627,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
       pInst->pLineManager->getLineCopies(lineList);
       UtlSListIterator itor(lineList);
       // iterate through all lines
-      while ((pLine = (SipLine*)itor()) != NULL && *actual < max)
+      while ((pLine = dynamic_cast<SipLine*>(itor())) != NULL && *actual < max)
       {
          lines[*actual] = sipxLineLookupHandleByURI(pLine->getIdentityUri().toString());
          *actual = *actual + 1;

@@ -154,9 +154,9 @@ void sipxTransportDestroyAll(const SIPX_INST hInst)
    UtlVoidPtr*        pValue;
    SIPX_TRANSPORT     hTransport;
 
-   while ((pKey = (UtlInt*)transportIterator()))
+   while ((pKey = dynamic_cast<UtlInt*>(transportIterator())))
    {
-      pValue = (UtlVoidPtr*) gTransportHandleMap.findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(gTransportHandleMap.findValue(pKey));
       hTransport = (SIPX_TRANSPORT)pValue->getValue();
 
       if (hTransport)

@@ -34,7 +34,6 @@
 #include "tapi/SipXConference.h"
 #include "os/OsDefs.h"
 #include "utl/UtlSList.h"
-#include "utl/UtlSListIterator.h"
 #include "utl/UtlVoidPtr.h"
 #include "os/OsMutex.h"
 #include "utl/UtlString.h"

@@ -134,9 +134,9 @@ void sipxPublisherDestroyAll(const SIPX_INST hInst)
    UtlVoidPtr* pValue;
    SIPX_PUB hPub;        
 
-   while ((pKey = (UtlInt*)pubIter()))
+   while ((pKey = dynamic_cast<UtlInt*>(pubIter())))
    {
-      pValue = (UtlVoidPtr*)gPubHandleMap.findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(gPubHandleMap.findValue(pKey));
       assert(pValue);
 
       hPub = (SIPX_PUB)pValue->getValue();
