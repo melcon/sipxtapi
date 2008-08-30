@@ -328,3 +328,13 @@ UtlCopyableContainable* SipLine::clone() const
 {
    return new SipLine(*this);
 }
+
+UtlString SipLine::getProxyServers() const
+{
+   return m_proxyServers;
+}
+
+void SipLine::setProxyServers(const UtlString& proxyServers)
+{
+   m_proxyServers = proxyServers;
+}
