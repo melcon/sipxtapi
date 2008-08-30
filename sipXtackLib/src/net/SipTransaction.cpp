@@ -747,7 +747,7 @@ void SipTransaction::prepareRequestForSend(SipMessage& request,
        }
 
         // Use the proxy only for requests
-        userAgent.getProxyServer(0, &toAddress, &port, &protocol);
+        userAgent.getProxyServer(request, 0, toAddress, port, protocol);
 #       ifdef ROUTE_DEBUG
         OsSysLog::add(FAC_SIP, PRI_DEBUG,
                       "SipTransaction::prepareRequestForSend %p got proxy toAddress '%s', port %d, protocol '%s'",

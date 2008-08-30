@@ -205,7 +205,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundProxy(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setProxyServers(szProxy);
+         pInst->pSipUserAgent->setDefaultProxyServers(szProxy);
          rc = SIPX_RESULT_SUCCESS;
       }
    }

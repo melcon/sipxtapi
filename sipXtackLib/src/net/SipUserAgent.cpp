@@ -266,7 +266,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
     // SIP Server info
     if(sipProxyServers)
     {
-        proxyServers.append(sipProxyServers);
+        m_defaultProxyServers.append(sipProxyServers);
     }
     if(sipDirectoryServers)
     {
@@ -3477,29 +3477,64 @@ void SipUserAgent::getDirectoryServer(int index, UtlString* address,
         serverAddress.remove(0);
 }
 
-void SipUserAgent::getProxyServer(int index, UtlString* address,
-                                                                          int* port, UtlString* protocol)
+UtlBoolean SipUserAgent::getProxyServer(const UtlString& proxyServers,
+                                        int index,
+                                        UtlString& address,
+                                        int& port,
+                                        UtlString& protocol)
 {
-        UtlString serverAddress;
-        NameValueTokenizer::getSubField(proxyServers.data(), 0,
-                SIP_MULTIFIELD_SEPARATOR, &serverAddress);
+   address.remove(0);
+   port = PORT_NONE;
+   protocol.remove(0);
 
-        address->remove(0);
-        *port = PORT_NONE;
-        protocol->remove(0);
-        SipMessage::parseAddressFromUri(serverAddress.data(), address, port, protocol);
-        serverAddress.remove(0);
+   UtlString serverAddress;
+   NameValueTokenizer::getSubField(proxyServers.data(), index, SIP_MULTIFIELD_SEPARATOR, &serverAddress);
+
+   SipMessage::parseAddressFromUri(serverAddress.data(), &address, &port, &protocol);
+   serverAddress.remove(0);
+
+   return !address.isNull();
 }
 
-void SipUserAgent::setProxyServers(const char* sipProxyServers)
+UtlBoolean SipUserAgent::getProxyServer(const SipMessage& sipMsg,
+                                        int index,
+                                        UtlString& address,
+                                        int& port,
+                                        UtlString& protocol)
+{
+   address.remove(0);
+   port = PORT_NONE;
+   protocol.remove(0);
+
+   if (m_pLineProvider)
+   {
+      // try to get proxy servers for given message
+      UtlString proxyServers;
+      UtlBoolean found = m_pLineProvider->getProxyServersForMessage(sipMsg, proxyServers);
+      if (found && !proxyServers.isNull())
+      {
+         // try to use found proxyServers
+         return SipUserAgent::getProxyServer(proxyServers, index, address, port, protocol);
+      }
+      else
+      {
+         // try to use default proxy server
+         return SipUserAgent::getProxyServer(m_defaultProxyServers, index, address, port, protocol);
+      }
+   }
+
+   return FALSE;
+}
+
+void SipUserAgent::setDefaultProxyServers(const char* sipProxyServers)
 {
     if (sipProxyServers)
     {
-        proxyServers = sipProxyServers ;
+        m_defaultProxyServers = sipProxyServers ;
     }
     else
     {
-        proxyServers.remove(0) ;
+        m_defaultProxyServers.remove(0) ;
     }
 }
 
