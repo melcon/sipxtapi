@@ -29,7 +29,10 @@
 
 /**
  * List of SipLine instances. Only one SipLine with given lineURI may be present
- * at time.
+ * at time. Some of methods allow to retrieve pointer to internal SipLine object.
+ * It must be ensured externally that it doesn't get deleted during manipulation
+ * by usage of a mutex.
+ *
  * Not thread safe.
  */
 class SipLineList

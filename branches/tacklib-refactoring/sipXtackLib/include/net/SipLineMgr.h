@@ -17,6 +17,7 @@
 #include "os/OsMutex.h"
 #include "net/SipLine.h"
 #include "net/SipLineList.h"
+#include <net/SipLineProvider.h>
 
 // DEFINES
 // MACROS
@@ -35,7 +36,7 @@ class SipMessage;
 * Line management class. Responsible for managing addition, removal,
 * configuration of new lines, and firing line events.
 */
-class SipLineMgr : public OsServerTask
+class SipLineMgr : public OsServerTask, public SipLineProvider
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -109,8 +110,14 @@ public:
 
    /* ============================ INQUIRY =================================== */
 
-   UtlBoolean isUserIdDefined(const SipMessage* request) const;
-
+   /**
+    * Tries to find line according to given parameters. First try lookup by
+    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+    * not found by identityUri, try by userId.
+    */
+   virtual UtlBoolean lineExists(const UtlString& lineId,
+                                 const Url& lineUri,
+                                 const UtlString& userId) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -124,12 +131,17 @@ protected:
    /** Handles message sent to this OsServerTask */
    UtlBoolean handleMessage(OsMsg& eventMessage);
 
-   SipLine* getLineforAuthentication(const SipMessage* request,
-                                     const SipMessage* response,
-                                     UtlBoolean isIncomingRequest = FALSE) const;
-
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   /**
+    * Tries to find line according to given parameters. First try lookup by
+    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+    * not found by identityUri, try by userId.
+    */
+   const SipLine* findLine(const UtlString& lineId,
+                           const Url& lineUri,
+                           const UtlString& userId) const;
 
    /** Prints all lines in line manager */
    void dumpLines();
