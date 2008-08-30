@@ -375,7 +375,7 @@ public:
      *  proxy server is used.  Please consider using DNS SRV in
      *  until fully implemented.
      */
-    void setProxyServers(const char* sipProxyServers);
+    void setDefaultProxyServers(const char* sipProxyServers);
 
 
     UtlBoolean addCrLfKeepAlive(const char* szLocalIp,
@@ -465,8 +465,19 @@ public:
     void getDirectoryServer(int index, UtlString* address,
                             int* port, UtlString* protocol);
 
-    void getProxyServer(int index, UtlString* address,
-                        int* port, UtlString* protocol);
+    /** gets the proxy server with given index from given proxyServers string */
+    static UtlBoolean getProxyServer(const UtlString& proxyServers,
+                                     int index,
+                                     UtlString& address,
+                                     int& port,
+                                     UtlString& protocol);
+
+    /** gets proxy server for given message or default proxy server */
+    UtlBoolean getProxyServer(const SipMessage& sipMsg,
+                              int index,
+                              UtlString& address,
+                              int& port,
+                              UtlString& protocol);
 
     //! Print diagnostics
     void printStatus();
@@ -715,7 +726,7 @@ private:
     SipTransactionList mSipTransactions;
     UtlString mDefaultSipUser;
     UtlString mDefaultSipAddress;
-    UtlString proxyServers;
+    UtlString m_defaultProxyServers;
     UtlString directoryServers;
     UtlString registryServers;
     int registryPeriod;
