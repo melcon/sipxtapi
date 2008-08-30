@@ -514,6 +514,38 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddCredential(const SIPX_LINE hLine,
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxLineSetOutboundProxy(const SIPX_LINE hLine,                                                 
+                                                  const char* szProxyServers)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineSetOutboundProxy");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxLineSetOutboundProxy hLine=%d szProxyServers=%s",
+      hLine, szProxyServers);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
+
+   if (pData)
+   {
+      Url lineURI(pData->m_lineURI);
+      SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
+
+      sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+
+      UtlBoolean rc = pInst->pLineManager->setLineProxyServers(lineURI, szProxyServers);
+      if (rc)
+      {
+         sr = SIPX_RESULT_SUCCESS;
+      }
+   }
+   else
+   {
+      sr = SIPX_RESULT_INVALID_ARGS;
+   }
+
+   return sr;
+}
+
 SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine, const char* szLineURL) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineAddAlias");
