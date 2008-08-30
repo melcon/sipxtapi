@@ -359,20 +359,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                         if(m_pLineProvider && mIsRequredUserIdMatch &&
                             method.compareTo(SIP_INVITE_METHOD,UtlString::ignoreCase) == 0)
                         {
-                           // get LINEID, lineUri, userId
-                           UtlString lineId;
-                           Url toUrl;
-                           Url lineUri;
-                           UtlString strRequestUri;
-                           UtlString userId;
-                           sipMsg->getRequestUri(&strRequestUri);
-                           Url requestUri(strRequestUri);
-                           requestUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from requestUri
-                           sipMsg->getToUrl(toUrl);
-                           lineUri = toUrl.getUri(); // get lineUri from toUrl
-                           lineUri.getUserId(userId); // get userId from lineUri
-
-                            isUserValid = m_pLineProvider->lineExists(lineId, lineUri, userId);
+                            isUserValid = m_pLineProvider->lineExists(*sipMsg, TRUE);
                             if(!isUserValid)
                             {
                                 //no such user - return 404

@@ -68,10 +68,6 @@ public:
    /** Deletes all lines */
    void deleteAllLines();
 
-   UtlBoolean buildAuthenticatedRequest(const SipMessage* response,
-                                        const SipMessage* request,
-                                        SipMessage* newAuthRequest);
-
    /** Sets state on given line */
    UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
 
@@ -93,6 +89,18 @@ public:
 
    /** Deletes all credentials from given line */
    UtlBoolean deleteAllCredentialsForLine(const Url& lineUri);
+
+   /**
+   * Tries to find line according to given parameters. First try lookup by
+   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+   * not found by identityUri, try by userId.
+   *
+   * If found, then line is copied into line parameter. It is slower than getLineCopy.
+   */
+   virtual UtlBoolean findLineCopy(const UtlString& lineId,
+                                   const Url& lineUri,
+                                   const UtlString& userId,
+                                   SipLine& sipLine) const;
 
    /* ============================ ACCESSORS ================================= */
 
@@ -135,13 +143,15 @@ protected:
 private:
 
    /**
-    * Tries to find line according to given parameters. First try lookup by
-    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
-    * not found by identityUri, try by userId.
-    */
-   const SipLine* findLine(const UtlString& lineId,
-                           const Url& lineUri,
-                           const UtlString& userId) const;
+   * Tries to find line according to given parameters. First try lookup by
+   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+   * not found by identityUri, try by userId.
+   *
+   * This function returns direct pointer, and can only be used internally.
+   */
+   virtual const SipLine* findLine(const UtlString& lineId,
+                                   const Url& lineUri,
+                                   const UtlString& userId) const;
 
    /** Prints all lines in line manager */
    void dumpLines();
