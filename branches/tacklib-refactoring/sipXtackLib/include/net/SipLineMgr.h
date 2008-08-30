@@ -68,6 +68,12 @@ public:
    /** Deletes all lines */
    void deleteAllLines();
 
+   /** Sets proxy servers for line. Overrides the default proxy servers. */
+   UtlBoolean setLineProxyServers(const Url& lineUri, const UtlString& proxyServers);
+
+   /** Gets line proxy servers. Returns TRUE if line was found. Proxy servers might be empty. */
+   virtual UtlBoolean getLineProxyServers(const Url& lineUri, UtlString& proxyServers) const;
+
    /** Sets state on given line */
    UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
 

@@ -83,6 +83,19 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
    return result;
 }
 
+UtlBoolean SipLineProvider::getProxyServersForMessage(const SipMessage& sipRequest,
+                                                      UtlString& proxyServer) const
+{
+   UtlString lineId;
+   Url lineUri;
+   UtlString userId;
+
+   // get LINEID, lineUri, userId from SipMessage
+   extractLineData(sipRequest, FALSE, lineId, lineUri, userId);
+
+   return getLineProxyServers(lineUri, proxyServer);
+}
+
 void SipLineProvider::extractLineData(const SipMessage& sipMsg,
                                       UtlBoolean isInboundMessage,
                                       UtlString& lineId,
