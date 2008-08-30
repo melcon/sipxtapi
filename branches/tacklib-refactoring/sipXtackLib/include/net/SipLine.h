@@ -117,6 +117,10 @@ public:
    /** Gets canonical line url. It is basically UserEnteredUrl + host:port from identityUri*/
    Url getCanonicalUrl() const;
 
+   /** Sets line proxy servers. If not set, default proxy servers might be used. */
+   UtlString getProxyServers() const;
+   void setProxyServers(const UtlString& proxyServers);
+
    /** Returns number of credentials stored in line */
    int getNumOfCredentials() const;
 
@@ -179,6 +183,7 @@ protected:
    UtlString m_lineId; ///< 12 characters uniquely identifying line. Part of contact as LINE parameter
    LineStates m_currentState; ///< current state of line
    Url m_preferredContactUri; ///< contact that will be used in SIP messages
+   UtlString m_proxyServers; ///< SIP proxy servers address:port, separated by ,
 
    mutable UtlHashBag m_credentials; ///< bag of SipLineCredential
 
