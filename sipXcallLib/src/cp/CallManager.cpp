@@ -36,7 +36,7 @@
 #include <net/Url.h>
 #include <net/SipSession.h>
 #include <net/SipDialog.h>
-#include <net/SipLineMgr.h>
+#include <net/SipLineProvider.h>
 #include <net/NameValueTokenizer.h>
 #include <sdp/SdpCodec.h>
 #include <cp/CpIntMessage.h>
@@ -82,7 +82,7 @@ Flash                 16
 
 // Constructor
 CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
-                         SipLineMgr* pLineMgrTask,
+                         SipLineProvider* pLineProvider,
                          UtlBoolean isEarlyMediaFor180Enabled,
                          SdpCodecFactory* pCodecFactory,
                          int rtpPortStart,
@@ -175,7 +175,7 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
     else
         mInviteExpireSeconds = CP_MAXIMUM_RINGING_EXPIRE_SECONDS;
 
-    mpLineMgrTask = pLineMgrTask;
+    m_pLineProvider = pLineProvider;
     mIsRequredUserIdMatch = isRequredUserIdMatch;
     mExpeditedIpTos = expeditedIpTos;
 
@@ -356,11 +356,24 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                         UtlString method;
                         sipMsg->getRequestMethod(&method);
 
-                        if(mpLineMgrTask && mIsRequredUserIdMatch &&
+                        if(m_pLineProvider && mIsRequredUserIdMatch &&
                             method.compareTo(SIP_INVITE_METHOD,UtlString::ignoreCase) == 0)
                         {
-                            isUserValid = mpLineMgrTask->isUserIdDefined(sipMsg);
-                            if( !isUserValid)
+                           // get LINEID, lineUri, userId
+                           UtlString lineId;
+                           Url toUrl;
+                           Url lineUri;
+                           UtlString strRequestUri;
+                           UtlString userId;
+                           sipMsg->getRequestUri(&strRequestUri);
+                           Url requestUri(strRequestUri);
+                           requestUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from requestUri
+                           sipMsg->getToUrl(toUrl);
+                           lineUri = toUrl.getUri(); // get lineUri from toUrl
+                           lineUri.getUserId(userId); // get userId from lineUri
+
+                            isUserValid = m_pLineProvider->lineExists(lineId, lineUri, userId);
+                            if(!isUserValid)
                             {
                                 //no such user - return 404
                                 SipMessage noSuchUserResponse;

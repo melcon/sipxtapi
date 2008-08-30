@@ -221,138 +221,21 @@ size_t SipLineMgr::getNumLines() const
    return m_listList.getLinesCount();
 }
 
-SipLine* SipLineMgr::getLineforAuthentication(const SipMessage* request,
-                                              const SipMessage* response,
-                                              UtlBoolean isIncomingRequest) const
+// m_mutex is expected to be held externally
+const SipLine* SipLineMgr::findLine(const UtlString& lineId,
+                                    const Url& lineUri,
+                                    const UtlString& userId) const
 {
-   SipLine* line = NULL;
-   UtlString lineId;
-   Url      toFromUrl;
-   UtlString toFromUri;
-   UtlString userId;
-
-   UtlString nonce;
-   UtlString opaque;
-   UtlString realm;
-   UtlString scheme;
-   UtlString algorithm;
-   UtlString qop;
-
-   // Get realm and scheme (hard way but not too expensive)
-   if (response != NULL)
-   {
-      if (!response->getAuthenticationData(&scheme, &realm, &nonce, &opaque, &algorithm, &qop, SipMessage::PROXY))
-      {
-         if (!response->getAuthenticationData(&scheme, &realm, &nonce, &opaque, &algorithm, &qop, SipMessage::SERVER))
-         {
-            // Report inability to get auth criteria
-            UtlString callId ;
-            UtlString method ;
-            int sequenceNum ;
-
-            response->getCallIdField(&callId);
-            response->getCSeqField(&sequenceNum, &method);
-            OsSysLog::add(FAC_LINE_MGR, PRI_ERR, "unable get auth data for message:\ncallid=%s\ncseq=%d\nmethod=%s",
-               callId.data(), sequenceNum, method.data()) ;
-         }
-         else
-         {
-            OsSysLog::add(FAC_AUTH, PRI_DEBUG, "SERVER auth request:scheme=%s\nrealm=%s\nnounce=%s\nopaque=%s\nalgorithm=%s\nqop=%s",
-               scheme.data(), realm.data(), nonce.data(), opaque.data(), algorithm.data(), qop.data()) ;
-         }
-      }
-      else
-      {
-         OsSysLog::add(FAC_AUTH, PRI_DEBUG, "PROXY auth request:scheme=%s\nrealm=%s\nnounce=%s\nopaque=%s\nalgorithm=%s\nqop=%s",
-            scheme.data(), realm.data(), nonce.data(), opaque.data(), algorithm.data(), qop.data()) ;
-      }
-   }
-
-   // Get the LineID and userID
-   if(isIncomingRequest)
-   {
-      //check line id in request uri
-      UtlString requestUri;
-      request->getRequestUri(&requestUri);
-      UtlString temp;
-      temp.append("<");
-      temp.append(requestUri);
-      temp.append(">");
-      Url requestUriUrl(temp);
-      requestUriUrl.getUrlParameter(SIP_LINE_IDENTIFIER , lineId);
-      requestUriUrl.getUserId(userId);
-   }
-   else
-   {
-      //check line ID in contact
-      UtlString contact;
-      request->getContactEntry(0, &contact);
-      Url contactUrl(contact);
-      contactUrl.getUrlParameter(SIP_LINE_IDENTIFIER , lineId);
-      contactUrl.getUserId(userId);
-   }
-
-   // Get the fromURL
-   request->getFromUrl(toFromUrl);
-   toFromUrl.removeFieldParameters();
-   toFromUrl.setDisplayName("");
-   toFromUrl.removeAngleBrackets();
-
-
-   UtlString emptyRealm(NULL);
-
-   if (line == NULL)
-   {
-      line = m_listList.findLine(lineId, toFromUrl, userId.data());
-      if (line == NULL)
-      {
-         line = m_listList.findLine(lineId, toFromUrl, userId.data());
-      }
-   }
-
-   if (line == NULL)
-   {
-      // Get the toURL
-      request->getToUrl(toFromUrl);
-      toFromUrl.removeFieldParameters();
-      toFromUrl.setDisplayName("");
-      toFromUrl.removeAngleBrackets();
-
-      if (line == NULL)
-      {
-         line = m_listList.findLine(lineId, toFromUrl, userId.data());
-         if (line == NULL)
-         {
-            line = m_listList.findLine(lineId, toFromUrl, userId.data());
-         }
-      }
-   }
-
-   if (line == NULL)
-   {
-      // Log the failure
-      OsSysLog::add(FAC_AUTH, PRI_ERR, "line manager is unable to find auth credentials:\nuser=%s\nrealm=%s\nlineid=%s",
-         userId.data(), realm.data(), lineId.data()) ;
-   }
-   else
-   {
-      // Log the SUCCESS
-      OsSysLog::add(FAC_AUTH, PRI_INFO, "line manager found matching auth credentials:\nuser=%s\nrealm=%s\nlineid=%s",
-         userId.data(), realm.data(), lineId.data()) ;
-   }
-
-   return line;
+   return m_listList.findLine(lineId, lineUri, userId);
 }
 
-UtlBoolean SipLineMgr::isUserIdDefined(const SipMessage* request) const
+UtlBoolean SipLineMgr::lineExists(const UtlString& lineId,
+                                  const Url& lineUri,
+                                  const UtlString& userId) const
 {
-   SipLine* pLine = getLineforAuthentication(request, NULL, TRUE);
-   if(pLine)
-      return TRUE;
-   else
-      return FALSE;
+   OsLock lock(m_mutex); // scoped lock
+   return findLine(lineId, lineUri, userId) != NULL; // if we found something, then line exists
 }
-
 
 UtlBoolean SipLineMgr::buildAuthenticatedRequest(
    const SipMessage* response /*[in]*/,
@@ -439,7 +322,7 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
    UtlString userID;
    UtlString passToken;
    UtlBoolean credentialFound = FALSE;
-   SipLine* line = NULL;
+   const SipLine* line = NULL;
    //if challenged for an unregister request - then get credentials from temp lsit of lines
    int expires;
    int contactIndexCount = 0;
@@ -459,7 +342,23 @@ UtlBoolean SipLineMgr::buildAuthenticatedRequest(
       }
    }
 
-   line = getLineforAuthentication(request, response, FALSE);
+   {
+      // get LINEID, lineUri, userId
+      UtlString lineId;
+      Url fromUrl;
+      Url lineUri;
+      UtlString userId;
+      UtlString contact;
+      request->getContactEntry(0, &contact);
+      Url contactUrl(contact);
+      contactUrl.getUrlParameter(SIP_LINE_IDENTIFIER, lineId);
+      contactUrl.getUserId(userId);
+      request->getFromUrl(fromUrl);
+      lineUri = fromUrl.getUri(); // get lineUri from fromUrl
+
+      line = findLine(lineId, lineUri, userId);
+   }
+
    if(line)
    {
       if(line->getCredential(scheme, realm, userID, passToken))

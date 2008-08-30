@@ -48,7 +48,7 @@ class SdpCodecFactory;
 class CpMultiStringMessage;
 class SipSession;
 class SipDialog;
-class SipLineMgr;
+class SipLineProvider;
 class CpMediaInterfaceFactory;
 
 //:Class short description which may consist of multiple lines (note the ':')
@@ -61,7 +61,7 @@ public:
 /* ============================ CREATORS ================================== */
 
    CallManager(UtlBoolean isRequiredUserIdMatch,
-               SipLineMgr* lineMgrTask,
+               SipLineProvider* lineProvider,
                UtlBoolean isEarlyMediaFor180Enabled,
                SdpCodecFactory* pCodecFactory,
                int rtpPortStart,
@@ -314,7 +314,7 @@ private:
     int mExpeditedIpTos;
     UtlString mCallManagerHistory[CP_CALL_HISTORY_LENGTH];
     UtlBoolean mIsEarlyMediaFor180;
-    SipLineMgr*       mpLineMgrTask;     //Line manager
+    SipLineProvider* m_pLineProvider;     //Line provider
     UtlBoolean mIsRequredUserIdMatch;
     // mMaxCalls can be changed by code running in other threads.
     volatile int mMaxCalls;    
