@@ -56,7 +56,7 @@ class OsQueuedEvent;
 class OsTimer;
 class SipSession;
 class SipTcpServer;
-class SipLineMgr;
+class SipLineProvider;
 class SipUserAgentBase;
 
 //! Transaction and Transport manager for SIP stack
@@ -241,7 +241,7 @@ public:
                 OsConfigDb* authenticateDb = NULL,
                 OsConfigDb* authorizeUserIds = NULL,
                 OsConfigDb* authorizePasswords = NULL,
-                SipLineMgr* lineMgr = NULL,
+                SipLineProvider* lineProvider = NULL,
                 int sipFirstResendTimeout = SIP_DEFAULT_RTT,
                 UtlBoolean defaultToUaTransactions = TRUE,
                 int readBufferSize = -1,
@@ -753,7 +753,7 @@ private:
     OsConfigDb* mpAuthenticationDb;
     OsConfigDb* mpAuthorizationUserIds;
     OsConfigDb* mpAuthorizationPasswords;
-    SipLineMgr* mpLineMgr;
+    SipLineProvider* m_pLineProvider;
     int mMaxMessageLogSize;
     UtlString mMessageLog;
     UtlString mLocationHeader;
@@ -780,6 +780,10 @@ private:
                                            const UtlString& method);
     void queueMessageToObservers(SipMessage* message,
                                  int messageType);
+
+    UtlBoolean buildAuthenticatedRequest(const SipMessage* response,
+                                         const SipMessage* request,
+                                         SipMessage* newAuthRequest);
 
     //! timer that sends events to the queue periodically
     OsTimer* mpTimer;

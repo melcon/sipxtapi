@@ -15,6 +15,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <utl/UtlDefs.h>
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -23,9 +25,15 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class SipMessage;
+class Url;
+class UtlString;
+class SipLine;
+class SipLineCredential;
 
 /**
- * Interface describing basic functionality definition of a sip line provider.
+ * Sip line provider is responsible for line operations directly related to SipMessage
+ * content.
  */
 class SipLineProvider
 {
@@ -37,6 +45,40 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   /**
+    * Gets SipLineCredential object for line from sipRequest. sipResponse is used
+    * to get the correct realm and scheme.
+    * SipLineCredential returned will be for correct userid, realm and scheme.
+    *
+    * @param sipResponse Message sent by remote server to us with authentication request
+    * @param sipRequest Message about to be sent by us with authentication data
+    * @param lineCredentials Returned line credentials if found
+    */
+   UtlBoolean getCredentialForMessage(const SipMessage& sipResponse,
+                                      const SipMessage& sipRequest,
+                                      SipLineCredential& lineCredential) const;
+
+   /**
+   * Tries to find line according to given parameters. First try lookup by
+   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+   * not found by identityUri, try by userId.
+   *
+   * If found, then line is copied into line parameter.
+   */
+   virtual UtlBoolean findLineCopy(const UtlString& lineId,
+                                   const Url& lineUri,
+                                   const UtlString& userId,
+                                   SipLine& line) const = 0;
+
+   /**
+   * Tries to extract line data from given sip message. Doesn't check if line exists.
+   */
+   void extractLineData(const SipMessage& sipMsg,
+                        UtlBoolean isInboundMessage,
+                        UtlString& lineId,
+                        Url& lineUri,
+                        UtlString& userId) const;
+
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -47,6 +89,12 @@ public:
    virtual UtlBoolean lineExists(const UtlString& lineId,
                                  const Url& lineUri,
                                  const UtlString& userId) const = 0;
+
+   /**
+    * Checks if line from SipMessage exists.
+    */
+   UtlBoolean lineExists(const SipMessage& sipMsg,
+                         UtlBoolean isInboundMessage) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
