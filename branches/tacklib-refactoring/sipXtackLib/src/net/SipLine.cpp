@@ -297,7 +297,9 @@ UtlContainableType SipLine::getContainableType() const
 
 unsigned SipLine::hash() const
 {
-   return m_identityUri.toString().hash();
+   UtlString strIdentityUri = m_identityUri.toString();
+   strIdentityUri.toLower();
+   return strIdentityUri.hash();
 }
 
 int SipLine::compareTo(UtlContainable const *compareContainable) const
@@ -310,7 +312,7 @@ int SipLine::compareTo(UtlContainable const *compareContainable) const
       {
          // for same type compare by identity uri
          SipLine const *pLine = dynamic_cast<SipLine const *>(compareContainable);
-         compareFlag = m_identityUri.toString().compareTo(pLine->getIdentityUri().toString(), UtlString::matchCase);
+         compareFlag = m_identityUri.toString().compareTo(pLine->getIdentityUri().toString(), UtlString::ignoreCase);
       }
       else
       {
