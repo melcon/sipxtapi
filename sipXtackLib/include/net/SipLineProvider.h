@@ -59,6 +59,16 @@ public:
                                       SipLineCredential& lineCredential) const;
 
    /**
+    * Gets proxy server that should be used for given message. Proxy server
+    * is selected from line, which is being used to send the message.
+    */
+   UtlBoolean getProxyServersForMessage(const SipMessage& sipRequest,
+                                        UtlString& proxyServer) const;
+
+   /** Gets line proxy server. Returns TRUE if line was found. Proxy server might be empty. */
+   virtual UtlBoolean getLineProxyServers(const Url& lineUri, UtlString& proxyServers) const = 0;
+
+   /**
    * Tries to find line according to given parameters. First try lookup by
    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
    * not found by identityUri, try by userId.

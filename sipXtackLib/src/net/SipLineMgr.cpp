@@ -315,6 +315,36 @@ UtlBoolean SipLineMgr::findLineCopy(const UtlString& lineId,
    return pLine != NULL;
 }
 
+UtlBoolean SipLineMgr::setLineProxyServers(const Url& lineUri,
+                                           const UtlString& proxyServers)
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (pLine)
+   {
+      pLine->setProxyServers(proxyServers);
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipLineMgr::getLineProxyServers(const Url& lineUri,
+                                           UtlString& proxyServers) const
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (pLine)
+   {
+      proxyServers = pLine->getProxyServers();
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
 UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
                                        SipLine::LineStates state)
 {
