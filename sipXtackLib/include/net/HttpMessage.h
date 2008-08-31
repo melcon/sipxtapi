@@ -182,11 +182,12 @@ class HttpMessage
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-    enum HttpEndpointEnum
+    typedef enum
     {
         SERVER = 0,
-        PROXY
-    };
+        PROXY,
+        UNKNOWN
+    } HttpEndpointEnum;
 
 /* ============================ CREATORS ================================== */
 
@@ -338,6 +339,8 @@ public:
     /*! The end of the headers is determined by the first blank line
      */
     static int findHeaderEnd(const char* messageBytes, int messageLength);
+
+    static HttpEndpointEnum getAuthorizationEntity(int responseCode);
 
     //@}
 /* ============================ ACCESSORS ================================= */
