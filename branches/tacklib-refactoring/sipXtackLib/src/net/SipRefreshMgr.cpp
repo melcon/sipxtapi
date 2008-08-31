@@ -51,16 +51,14 @@
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
-SipRefreshMgr::SipRefreshMgr(SipLineStateEventListener *listener):
-OsServerTask("SipRefreshMgr-%d"),
-mpLineMgr(NULL),
-mRegisterListMutexR(OsRWMutex::Q_FIFO),
-mRegisterListMutexW(OsRWMutex::Q_FIFO),
-mIsStarted(FALSE),
-mObserverMutex(OsRWMutex::Q_FIFO),
-mMyUserAgent(NULL),
-mLineListener(listener),
-mCallIdGenerator(CALL_ID_PREFIX)
+SipRefreshMgr::SipRefreshMgr(SipLineStateEventListener *pListener)
+: OsServerTask("SipRefreshMgr-%d")
+, m_pLineMgr(NULL)
+, m_mutex(OsMutex::Q_FIFO)
+, m_pSipUserAgent(NULL)
+, m_pLineListener(pListener)
+, m_callIdGenerator(CALL_ID_PREFIX)
+, m_defaultRegistryPeriod(3600)
 {
 }
 
@@ -68,15 +66,8 @@ SipRefreshMgr::~SipRefreshMgr()
 { 
    waitUntilShutDown();
 
-   UtlHashBagIterator itor(mMessageObservers) ;
-   while (SipObserverCriteria* pObserver = (SipObserverCriteria*) itor())
-   {
-      mMessageObservers.remove(pObserver) ;
-      delete pObserver ;
-   }
-
    // delete all unfired timers and their SipMessages
-   UtlHashBagIterator timerIterator(mTimerBag) ;
+   UtlHashBagIterator timerIterator(m_timerBag) ;
    while (OsTimer* pTimer = (OsTimer*) timerIterator())
    {
       SipMessage *pMessage = (SipMessage *)pTimer->getUserData();
@@ -84,84 +75,32 @@ SipRefreshMgr::~SipRefreshMgr()
       delete pMessage;
       delete pTimer;
    }
-   mTimerBag.removeAll();
+   m_timerBag.removeAll();
 }
 
-/*===================================================================*/
-//INITIALIZED
-/*===================================================================*/
-UtlBoolean SipRefreshMgr::init(SipUserAgent *ptrToMyAgent,
-                               int defaultRegistryTimeout)
+void SipRefreshMgr::setSipUserAgent(SipUserAgent *pSipUserAgent)
 {
-   if (ptrToMyAgent)
-   {
-      mMyUserAgent = ptrToMyAgent;
-
-      // defaultRegistryTimeout is 1 hr
-      if ( defaultRegistryTimeout <= 0 )
-         mDefaultRegistryPeriod = 3600;
-      else
-         mDefaultRegistryPeriod = defaultRegistryTimeout;
-      return true;
-   }
-   else
-   {
-      return false;
-   }
+   m_pSipUserAgent = pSipUserAgent;
 }
 
 void SipRefreshMgr::startRefreshMgr()
 {
    if (!isStarted())
-   {   // start the thread
+   {
+      OsSysLog::add(FAC_LINE_MGR, PRI_INFO, "SipRefreshMgr is starting...");
+
+      // start the thread
       start();
 
-      // wait for the UA to start and get the NAT address
-      mMyUserAgent->waitUntilReady();
-
-      mMyUserAgent->addMessageObserver(
-         *(this->getMessageQueue()),
+      m_pSipUserAgent->addMessageObserver(*(this->getMessageQueue()),
          SIP_REGISTER_METHOD,
          TRUE,       // want to get requests
          TRUE,       // want to get responses
          TRUE,       // Incoming messages
          FALSE);     // Don't want to see out going messages
-
-      mIsStarted = TRUE;
    }
 }
 
-void
-SipRefreshMgr::addMessageObserver (
-                                   OsMsgQ& messageQueue,
-                                   const char* sipMethod,
-                                   UtlBoolean wantRequests,
-                                   UtlBoolean wantResponses,
-                                   UtlBoolean wantIncoming,
-                                   UtlBoolean wantOutGoing,
-                                   const char* eventName,
-                                   void* observerData)
-{
-   SipObserverCriteria* observer =
-      new SipObserverCriteria(
-      observerData,
-      &messageQueue,
-      sipMethod,
-      wantRequests,
-      wantResponses,
-      wantIncoming,
-      wantOutGoing,
-      eventName );
-   {
-      // Add the observer and its filter criteria to the list lock scope
-      OsWriteLock lock(mObserverMutex);
-      mMessageObservers.insert(observer);
-   }
-}
-
-/*===================================================================*/
-//REGISTER
-/*===================================================================*/
 UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
                                          const Url& contactUri,
                                          int registryPeriodSeconds)
@@ -171,23 +110,15 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
       syslog(FAC_REFRESH_MGR, PRI_DEBUG, "adding registration:\nurl=%s\nperiod=%d",
          fromUrl.toString().data(), registryPeriodSeconds);
 
-      Url uri = fromUrl;
-      uri.setDisplayName("");
-      uri.setUserId("");
-      uri.removeAngleBrackets();
-      uri.removeFieldParameters();
-      UtlString strUri = uri.toString();
-
-      //generate Call Id
-      UtlString registerCallId = mCallIdGenerator.getNewCallId();
-      UtlString contactField = contactUri.toString();
+      Url requestUri = fromUrl.getUri(); // REGISTER request uri
+      UtlString registerCallId = m_callIdGenerator.getNewCallId();
 
       registerUrl(fromUrl, // from
-         fromUrl, // to                    
-         uri,
-         contactField, // contact
-         registerCallId,                    
-         registryPeriodSeconds);
+                  fromUrl, // to                    
+                  requestUri, // sip request uri
+                  contactUri.toString(), // contact
+                  registerCallId,
+                  registryPeriodSeconds);
 
       return TRUE;
    }
@@ -200,51 +131,10 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
    return FALSE;
 }
 
-
-void SipRefreshMgr::reRegisterAll()
+void SipRefreshMgr::reRegister(const Url& fromUrl)
 {
-   SipMessageList tempList;
-   SipMessage* listMessage;
-   int iteratorHandle;
-
-   //scope the locks
-   {
-      OsReadLock readlock(mRegisterListMutexR);
-      OsWriteLock writeLock(mRegisterListMutexW);
-
-      iteratorHandle = mRegisterList.getIterator();
-      while ((listMessage = (SipMessage*) mRegisterList.getSipMessageForIndex(iteratorHandle)))
-      {
-         //somehow stop the old timer - will get not cause harm because will not be able to find corresponding request.
-         tempList.add(listMessage);
-      }
-      mRegisterList.releaseIterator(iteratorHandle);
-   }
-
-   iteratorHandle = tempList.getIterator();
-   while ((listMessage = (SipMessage*) tempList.getSipMessageForIndex(iteratorHandle)))
-   {
-      rescheduleRequest(listMessage, 1 , SIP_REGISTER_METHOD, DEFAULT_PERCENTAGE_TIMEOUT, TRUE);
-   }
-   tempList.releaseIterator(iteratorHandle);
-
-
-   // We need to empty the list before the Implicit destructor deletes 
-   // the "members" and the list.
-   //
-   iteratorHandle = tempList.getIterator();
-   while (tempList.getSipMessageForIndex(iteratorHandle))
-   {
-      tempList.remove(iteratorHandle);
-   }
-   tempList.releaseIterator(iteratorHandle);
-
-}
-/*---------------------------------------------------*/
-void SipRefreshMgr::reRegister( const Url& fromUrl)
-{
-   SipMessage *oldMsg = mRegisterList.isSameFrom( fromUrl);
-   if ( oldMsg )
+   SipMessage *oldMsg = m_registerList.isSameFrom(fromUrl);
+   if (oldMsg)
    {
       SipMessage newMsg(*oldMsg);
       newMsg.incrementCSeqNumber();
@@ -264,10 +154,7 @@ void SipRefreshMgr::reRegister( const Url& fromUrl)
    }
 }
 
-
-/*---------------------------------------------------*/
-void 
-SipRefreshMgr::unRegisterUser(const Url& fromUrl)
+void SipRefreshMgr::unRegisterUser(const Url& fromUrl)
 {
    SipMessage sipMsg;
    if ( isDuplicateRegister(fromUrl, sipMsg) )
@@ -297,12 +184,12 @@ SipRefreshMgr::unRegisterUser(const Url& fromUrl)
       {
          protocol = TRANSPORT_TCP;
       }
-      mMyUserAgent->getLocalAddress(&localIp, &localPort, protocol);
+      m_pSipUserAgent->getLocalAddress(&localIp, &localPort, protocol);
       sipMsg.setLocalIp(localIp);
 
-      if (mLineListener) 
+      if (m_pLineListener) 
       {
-         mLineListener->OnLineUnregistering(SipLineStateEvent(fromUrl.toString(), LINESTATE_UNREGISTERING_NORMAL));
+         m_pLineListener->OnLineUnregistering(SipLineStateEvent(fromUrl.toString(), LINESTATE_UNREGISTERING_NORMAL));
       }
 
       // clear out any pending register requests
@@ -315,10 +202,10 @@ SipRefreshMgr::unRegisterUser(const Url& fromUrl)
 UtlBoolean SipRefreshMgr::isDuplicateRegister(const Url& fromUrl, 
                                               SipMessage &oldMsg)
 {
-   OsReadLock readlock(mRegisterListMutexR);
-   OsWriteLock writeLock(mRegisterListMutexW);
+   OsLock lock(m_mutex); // scoped lock
+
    // call copy constructor on the oldMsg
-   SipMessage* pduplicate = mRegisterList.isSameFrom(fromUrl);
+   SipMessage* pduplicate = m_registerList.isSameFrom(fromUrl);
    if ( pduplicate != NULL )
    {
       oldMsg = *pduplicate;
@@ -327,16 +214,13 @@ UtlBoolean SipRefreshMgr::isDuplicateRegister(const Url& fromUrl,
    return false;
 }
 
-UtlBoolean 
-SipRefreshMgr::isDuplicateRegister( const Url& fromUrl )
+UtlBoolean SipRefreshMgr::isDuplicateRegister(const Url& fromUrl)
 {
-   OsReadLock readlock( mRegisterListMutexR );
-   OsWriteLock writeLock( mRegisterListMutexW );
+   OsLock lock(m_mutex); // scoped lock
 
-   SipMessage* oldMsg = mRegisterList.isSameFrom( fromUrl );
-   if ( oldMsg != NULL )
-      return true;
-   return false;
+   SipMessage* oldMsg = m_registerList.isSameFrom(fromUrl);
+
+   return oldMsg != NULL;
 }
 
 OsStatus 
@@ -371,9 +255,9 @@ SipRefreshMgr::sendRequest (
       protocol = TRANSPORT_TCP;
    }
 
-   mMyUserAgent->getLocalAddress(&localIp, &localPort, protocol);
+   m_pSipUserAgent->getLocalAddress(&localIp, &localPort, protocol);
    request.setLocalIp(localIp);
-   if ( !mMyUserAgent->send( request, getMessageQueue() ) )
+   if ( !m_pSipUserAgent->send( request, getMessageQueue() ) )
    {
       UtlString toField ;    
       request.getToField(&toField) ;
@@ -389,22 +273,22 @@ SipRefreshMgr::sendRequest (
       lineId = "sip:" + lineId; 
       if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && !isExpiresZero(&request)) 
       {
-         if (mpLineMgr)
+         if (m_pLineMgr)
          {
-            mpLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
+            m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
          }
 
-         if (mLineListener) 
+         if (m_pLineListener) 
          {
-            mLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, LINESTATE_REGISTER_FAILED_COULD_NOT_CONNECT));
+            m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, LINESTATE_REGISTER_FAILED_COULD_NOT_CONNECT));
          }
          rescheduleAfterTime(&request, FAILED_PERCENTAGE_TIMEOUT);
       }
       else if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && isExpiresZero(&request)) 
       {
-         if (mLineListener)
+         if (m_pLineListener)
          {
-            mLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId, LINESTATE_UNREGISTER_FAILED_COULD_NOT_CONNECT));
+            m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId, LINESTATE_UNREGISTER_FAILED_COULD_NOT_CONNECT));
          }
       }
 
@@ -421,12 +305,6 @@ SipRefreshMgr::sendRequest (
       {
          message->setResponseListenerData( request.getResponseListenerData() );
       }
-
-      // Report error to observers
-      SipMessageEvent eventMsg( message );
-      eventMsg.setMessageStatus( SipMessageEvent::TRANSPORT_ERROR );
-      message = NULL;
-      sendToObservers( eventMsg, &request );           
    }
    else
    {
@@ -440,9 +318,9 @@ SipRefreshMgr::sendRequest (
       lineId = "sip:" + lineId; 
       if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && !isExpiresZero(&request)) 
       {
-         if (mLineListener)
+         if (m_pLineListener)
          {
-            mLineListener->OnLineRegistering(SipLineStateEvent(lineId, LINESTATE_REGISTERING_NORMAL));
+            m_pLineListener->OnLineRegistering(SipLineStateEvent(lineId, LINESTATE_REGISTERING_NORMAL));
          }
       }
       else if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && isExpiresZero(&request)) 
@@ -479,8 +357,8 @@ SipRefreshMgr::rescheduleRequest(
 
    if ( methodStr.compareTo(SIP_REGISTER_METHOD) == 0 )
    {
-      OsReadLock readlock(mRegisterListMutexR);
-      listMessage = mRegisterList.getDuplicate(request);
+      OsLock lock(m_mutex); // scoped lock
+      listMessage = m_registerList.getDuplicate(request);
       // May not have a To tag set in the list because it was sent the first time
       if ( !listMessage )
       {
@@ -493,11 +371,11 @@ SipRefreshMgr::rescheduleRequest(
             SipMessage sipMsg;
             if ( isDuplicateRegister(uri, sipMsg) )
             {
-               listMessage = mRegisterList.getDuplicate(&sipMsg);
+               listMessage = m_registerList.getDuplicate(&sipMsg);
             }
          }
       }
-      defaultTime = mDefaultRegistryPeriod;
+      defaultTime = m_defaultRegistryPeriod;
    }
 
    // if it is an immediate send then it is either a re-register or unregister
@@ -548,10 +426,10 @@ SipRefreshMgr::rescheduleRequest(
 
       OsTimer* timer = new OsTimer(&mIncomingQ,
          (int)timerRegisterMessage);
-      mTimerBag.insert(timer);
+      m_timerBag.insert(timer);
 
       int maxSipTransactionTimeSecs = 
-         (mMyUserAgent->getSipStateTransactionTimeout()/1000);
+         (m_pSipUserAgent->getSipStateTransactionTimeout()/1000);
 
       secondsFromNow = (secondsFromNow * percentage)/100;
 
@@ -592,7 +470,7 @@ SipRefreshMgr::processResponse(
                                SipMessage *request)
 {
    SipMessage* response = (SipMessage*)((SipMessageEvent&)eventMessage).getMessage();
-   SipMessage* requestCopy = mRegisterList.getRequestFor(response);
+   SipMessage* requestCopy = m_registerList.getRequestFor(response);
    if (requestCopy)
    {
       requestCopy = new SipMessage(*requestCopy);
@@ -600,7 +478,6 @@ SipRefreshMgr::processResponse(
 
 
    SipMessage* responseCopy = new SipMessage(*response);
-   UtlBoolean sendEventToUpperlayer = FALSE;    
 
    if (!request)
       assert(0);
@@ -616,7 +493,6 @@ SipRefreshMgr::processResponse(
       if ( request && responseCode < SIP_2XX_CLASS_CODE )
       {   
          // provisional response codes
-         sendEventToUpperlayer = TRUE;
       }
       else if ( ( (responseCode >= SIP_2XX_CLASS_CODE) && 
          (responseCode < SIP_3XX_CLASS_CODE) ) )
@@ -644,9 +520,9 @@ SipRefreshMgr::processResponse(
                response->getResponseStatusText(&responseStatusText);
                if (responseCode == 401 || responseCode == 403 || responseCode == 407)
                {
-                  if (mLineListener)
+                  if (m_pLineListener)
                   {
-                     mLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
                         LINESTATE_UNREGISTER_FAILED_NOT_AUTHORIZED,
                         responseCode,
                         responseStatusText));
@@ -654,9 +530,9 @@ SipRefreshMgr::processResponse(
                }
                else if (responseCode == 408)
                {
-                  if (mLineListener)
+                  if (m_pLineListener)
                   {
-                     mLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
                         LINESTATE_UNREGISTER_FAILED_TIMEOUT,
                         responseCode,
                         responseStatusText));
@@ -664,16 +540,15 @@ SipRefreshMgr::processResponse(
                }
                else
                {
-                  if (mLineListener)
+                  if (m_pLineListener)
                   {
-                     mLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
                         LINESTATE_CAUSE_UNKNOWN,
                         responseCode,
                         responseStatusText));
                   }
                }
             }
-            sendEventToUpperlayer = TRUE;
          }
          else // it is a register or subscribe
          {
@@ -684,9 +559,9 @@ SipRefreshMgr::processResponse(
                requestCopy->getToUrl(url);
                url.getIdentity(lineId);
 
-               if (mpLineMgr)
+               if (m_pLineMgr)
                {
-                  mpLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
+                  m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
                }
 
                lineId = "sip:" + lineId; 
@@ -695,9 +570,9 @@ SipRefreshMgr::processResponse(
 
                if (responseCode == 401 || responseCode == 403 || responseCode == 407)
                {
-                  if (mLineListener)
+                  if (m_pLineListener)
                   {
-                     mLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
                         LINESTATE_REGISTER_FAILED_NOT_AUTHORIZED,
                         responseCode,
                         responseStatusText));
@@ -705,9 +580,9 @@ SipRefreshMgr::processResponse(
                }
                else if (responseCode == 408)
                {
-                  if (mLineListener)
+                  if (m_pLineListener)
                   {
-                     mLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
                         LINESTATE_REGISTER_FAILED_TIMEOUT,
                         responseCode,
                         responseStatusText));
@@ -716,9 +591,9 @@ SipRefreshMgr::processResponse(
                }
                else
                {
-                  if (mLineListener)
+                  if (m_pLineListener)
                   {
-                     mLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
                         LINESTATE_CAUSE_UNKNOWN,
                         responseCode,
                         responseStatusText));
@@ -732,14 +607,14 @@ SipRefreshMgr::processResponse(
    }
    else
    {
-      if (mpLineMgr)
+      if (m_pLineMgr)
       {
          Url url;
          UtlString lineId;
          requestCopy->getToUrl(url);
          url.getIdentity(lineId);
 
-         mpLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
+         m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
       }
 
       Url url;
@@ -747,16 +622,12 @@ SipRefreshMgr::processResponse(
       requestCopy->getToUrl(url);
       url.getIdentity(lineId);
       lineId = "sip:" + lineId; 
-      if (mLineListener)
+      if (m_pLineListener)
       {
-         mLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, LINESTATE_CAUSE_UNKNOWN));
+         m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, LINESTATE_CAUSE_UNKNOWN));
       }
    }
 
-   if ( sendEventToUpperlayer )
-   {
-      sendToObservers(eventMessage, requestCopy);
-   }
    delete responseCopy;
    delete requestCopy;
 }
@@ -812,17 +683,17 @@ SipRefreshMgr::processOKResponse(
          url.getIdentity(lineId);
          lineId = "sip:" + lineId; 
 
-         if (mpLineMgr)
+         if (m_pLineMgr)
          {
-            mpLineMgr->setStateForLine(url, SipLine::LINE_STATE_DISABLED);
+            m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_DISABLED);
          }
-         if (mLineListener)
+         if (m_pLineListener)
          {
             int responseCode = response->getResponseStatusCode();
             UtlString responseStatusText;
             response->getResponseStatusText(&responseStatusText);
 
-            mLineListener->OnLineUnregistered(SipLineStateEvent(lineId,
+            m_pLineListener->OnLineUnregistered(SipLineStateEvent(lineId,
                LINESTATE_UNREGISTERED_NORMAL,
                responseCode,
                responseStatusText));
@@ -849,16 +720,16 @@ SipRefreshMgr::processOKResponse(
             body->getBytes( &bodyBytes, &nBodySize );
          }
 
-         if (mpLineMgr)
+         if (m_pLineMgr)
          {
-            mpLineMgr->setStateForLine(url, SipLine::LINE_STATE_REGISTERED);
+            m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_REGISTERED);
          }
-         if (mLineListener)
+         if (m_pLineListener)
          {
             UtlString responseStatusText;
             response->getResponseStatusText(&responseStatusText);
 
-            mLineListener->OnLineRegistered(SipLineStateEvent(lineId,
+            m_pLineListener->OnLineRegistered(SipLineStateEvent(lineId,
                LINESTATE_REGISTERED_NORMAL,
                response->getResponseStatusCode(),
                responseStatusText));
@@ -983,37 +854,6 @@ SipRefreshMgr::parseContactFields(
 
 }
 
-void 
-SipRefreshMgr::sendToObservers (
-                                const OsMsg& eventMessage,
-                                SipMessage *request )
-{
-
-   SipMessage* Response = (SipMessage*)((SipMessageEvent&)eventMessage).getMessage();
-   int messageType = ((SipMessageEvent&)eventMessage).getMessageStatus();
-
-   if (!request)
-      assert(0);
-
-   // Create a new message event
-   SipMessage * message = new SipMessage(*Response);
-
-   SipMessageEvent event(message);
-   event.setMessageStatus(messageType);
-
-   UtlString method;
-   request->getRequestMethod( &method) ;
-   // Find all of the observers which are interested in
-   // this method and post the message
-   if ( method.compareTo(SIP_REGISTER_METHOD) == 0 )
-   {
-      queueMessageToObservers(event, SIP_REGISTER_METHOD);
-   }
-   // send it to those with no method descrimination as well
-   queueMessageToObservers(event, "");
-   // Do not delete the message it gets deleted with the event
-}
-
 void SipRefreshMgr::registerUrl(const Url& fromUrl,
                                 const Url& toUrl,
                                 const Url& requestUri,
@@ -1035,7 +875,7 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
       contactUrl,         // contact
       callId,             // callid
       startSequence,
-      registerPeriod >= 0 ? registerPeriod : mDefaultRegistryPeriod );
+      registerPeriod >= 0 ? registerPeriod : m_defaultRegistryPeriod );
 
    // Add to the register list
    addToRegisterList(&regMessage);
@@ -1044,7 +884,7 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
    int localPort;
    SIPXSTACK_TRANSPORT_TYPE transport = SipTransport::getSipTransport(requestUri);
 
-   mMyUserAgent->getLocalAddress(&localIp, &localPort, (SIPX_TRANSPORT_TYPE)transport);
+   m_pSipUserAgent->getLocalAddress(&localIp, &localPort, (SIPX_TRANSPORT_TYPE)transport);
    regMessage.setLocalIp(localIp);
    if (sendRequest(regMessage , SIP_REGISTER_METHOD) != OS_SUCCESS)
    {
@@ -1087,8 +927,6 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
          {
             if (msgInList)
             {
-               sendToObservers(eventMessage, msgInList);
-
                // try again after default time out
                rescheduleAfterTime(msgInList, FAILED_PERCENTAGE_TIMEOUT);
             }
@@ -1110,9 +948,9 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
 
          // Is this a register msg?
          {
-            OsReadLock readlock(mRegisterListMutexR);
+            OsLock lock(m_mutex); // scoped lock
             // Find the request which goes with this response
-            requestFound = mRegisterList.getRequestFor(sipMsg);
+            requestFound = m_registerList.getRequestFor(sipMsg);
             //make a dupe
             if ( requestFound )
                request = new SipMessage(*requestFound);
@@ -1131,7 +969,7 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
                if ( strcmp(method.data(), SIP_REGISTER_METHOD) == 0 )
                {
                   // Find the request which goes with this response
-                  SipMessage* request = mRegisterList.getRequestFor(sipMsg);
+                  SipMessage* request = m_registerList.getRequestFor(sipMsg);
 
                   // increment the CSeq number in the stored request
                   if ( request )
@@ -1193,7 +1031,7 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
       if ( timer )
       {
          // remove timer from mTimerBag
-         mTimerBag.removeReference(timer);
+         m_timerBag.removeReference(timer);
          delete timer;
          timer = NULL;
       }
@@ -1263,60 +1101,6 @@ SipRefreshMgr::handleMessage( OsMsg& eventMessage )
    return (messageProcessed);
 }
 
-void 
-SipRefreshMgr::queueMessageToObservers(
-                                       SipMessageEvent& event, 
-                                       const char* method )
-{
-   const SipMessage* message = event.getMessage();
-
-   // Find all of the observers which are interested in this method and post the message
-   UtlString messageEventName;
-   if ( message ) message->getEventField(messageEventName);
-   UtlString observerMatchingMethod(method);
-   SipObserverCriteria* observerCriteria = NULL;
-
-   OsReadLock lock(mObserverMutex);
-
-   UtlHashBagIterator observerIterator(mMessageObservers, &observerMatchingMethod);
-   do
-   {
-      observerCriteria = (SipObserverCriteria*) observerIterator();
-
-      // If this message matches the filter criteria
-      //wants responses
-      if ( observerCriteria &&
-         observerCriteria->wantsIncoming() &&
-         (message->isResponse() && observerCriteria->wantsResponses()) )
-      {
-         OsMsgQ* observerQueue = observerCriteria->getObserverQueue();
-         void* observerData = observerCriteria->getObserverData();
-
-         // Cheat a little and set the observer data to be passed back
-         ((SipMessage*) message)->setResponseListenerData(observerData);
-
-         // Put the message in the observers queue
-         observerQueue->send(event);
-      }
-      //wants requests
-      if ( observerCriteria &&
-         observerCriteria->wantsIncoming() &&
-         !message->isResponse() )
-      {
-         OsMsgQ* observerQueue = observerCriteria->getObserverQueue();
-         void* observerData = observerCriteria->getObserverData();
-
-         // Cheat a little and set the observer data to be passed back
-         ((SipMessage*) message)->setResponseListenerData(observerData);
-
-         // Put the message in the observers queue
-         observerQueue->send(event);
-      }
-
-   }
-   while ( observerCriteria != NULL );
-}
-
 // Appends the message contents of both the mRegisterList and mSubscribeList.
 void SipRefreshMgr::dumpMessageLists(UtlString& results)
 {
@@ -1324,8 +1108,8 @@ void SipRefreshMgr::dumpMessageLists(UtlString& results)
 
    // Dump Register List
    results.append("\nRegister List:\n\n") ;
-   mRegisterList.remove(0) ;
-   mRegisterList.toString(temp) ;
+   m_registerList.remove(0) ;
+   m_registerList.toString(temp) ;
    results.append(temp) ;
 }
 
@@ -1334,10 +1118,9 @@ SipRefreshMgr::removeFromRegisterList(SipMessage* message)
 {
    UtlBoolean bRemovedOk = FALSE;
 
-   OsReadLock readlock(mRegisterListMutexR);
-   OsWriteLock writeLock(mRegisterListMutexW);
+   OsLock lock(m_mutex); // scoped lock
 
-   if ( mRegisterList.remove(message) == FALSE )
+   if ( m_registerList.remove(message) == FALSE )
    {
    }
    else
@@ -1348,17 +1131,16 @@ SipRefreshMgr::removeFromRegisterList(SipMessage* message)
 void 
 SipRefreshMgr::addToRegisterList(SipMessage *message)
 {
-   OsReadLock readlock(mRegisterListMutexR);
-   OsWriteLock writeLock(mRegisterListMutexW);
+   OsLock lock(m_mutex); // scoped lock
 
-   if (mRegisterList.getDuplicate( message, TRUE ))
+   if (m_registerList.getDuplicate( message, TRUE ))
    {
       // osPrintf("****We already have the message in mRegisterList[]");
    }
    else
    {
       SipMessage *msg = new SipMessage (*message);
-      mRegisterList.add(msg);
+      m_registerList.add(msg);
    }
 }
 
@@ -1383,7 +1165,7 @@ SipRefreshMgr::rescheduleAfterTime(
    {
       if ( method.compareTo(SIP_REGISTER_METHOD) == 0 )
       {
-         iOriginalExpiration = mDefaultRegistryPeriod ;
+         iOriginalExpiration = m_defaultRegistryPeriod ;
       }
    }
    if (request)
@@ -1400,7 +1182,7 @@ void SipRefreshMgr::createTagNameValuePair( UtlString& tagNamevaluePair )
 {
    // Build a from tag
    char fromTagBuffer[24];
-   SNPRINTF(fromTagBuffer, sizeof(fromTagBuffer), "%0x%0x", mRandomNumGenerator.rand(), mRandomNumGenerator.rand());
+   SNPRINTF(fromTagBuffer, sizeof(fromTagBuffer), "%0x%0x", m_randomNumGenerator.rand(), m_randomNumGenerator.rand());
    tagNamevaluePair = "tag=" ;
    tagNamevaluePair.append(fromTagBuffer);
 }
@@ -1410,7 +1192,7 @@ UtlString SipRefreshMgr::createTagValue()
    UtlString result;
    char fromTagBuffer[24];
    // generate tag value
-   SNPRINTF(fromTagBuffer, sizeof(fromTagBuffer), "%0x%0x", mRandomNumGenerator.rand(), mRandomNumGenerator.rand());
+   SNPRINTF(fromTagBuffer, sizeof(fromTagBuffer), "%0x%0x", m_randomNumGenerator.rand(), m_randomNumGenerator.rand());
    result = fromTagBuffer;
 
    return result;
@@ -1452,7 +1234,7 @@ UtlString SipRefreshMgr::buildContactField(const Url& registerToField,
    // Use default contact from SipUserAgent if preferred is not supplied
    if (tempContact.length() == 0)
    {
-      mMyUserAgent->getContactUri(&tempContact);
+      m_pSipUserAgent->getContactUri(&tempContact);
    }
 
    // The contact URI does not have the correct urserId information in it ...
@@ -1510,20 +1292,19 @@ UtlBoolean SipRefreshMgr::isExpiresZero(SipMessage* pRequest)
 
 void SipRefreshMgr::setRegistryPeriod(int periodInSeconds)
 {
-   mDefaultRegistryPeriod = periodInSeconds;
+   m_defaultRegistryPeriod = periodInSeconds;
 }
 
 void SipRefreshMgr::removeAllFromRequestList(SipMessage* response)
 {
-   OsReadLock readlock(mRegisterListMutexR);
-   OsWriteLock writeLock(mRegisterListMutexW);
+   OsLock lock(m_mutex); // scoped lock
    UtlString methodName;
    int seqNum = 0;
 
    response->getCSeqField(&seqNum, &methodName);
    if (methodName.compareTo(SIP_REGISTER_METHOD) == 0)
    {
-      removeAllFromRequestList(response, &mRegisterList);
+      removeAllFromRequestList(response, &m_registerList);
    }
 }
 
@@ -1543,8 +1324,8 @@ void SipRefreshMgr::removeAllFromRequestList(SipMessage* response, SipMessageLis
       listMessage->getCSeqField(&requestSeqNum, &dummy);
       if (response->isSameSession(listMessage) && (seqNum == -1 || requestSeqNum <= seqNum) )
       {
-         mRegisterList.releaseIterator(iteratorHandle);
-         mRegisterList.remove(listMessage);
+         m_registerList.releaseIterator(iteratorHandle);
+         m_registerList.remove(listMessage);
          delete listMessage;
          listMessage = NULL;
          iteratorHandle = pRequestList->getIterator();
@@ -1553,8 +1334,8 @@ void SipRefreshMgr::removeAllFromRequestList(SipMessage* response, SipMessageLis
    pRequestList->releaseIterator(iteratorHandle);
 }
 
-void SipRefreshMgr::setLineMgr(SipLineMgr* const lineMgr)
+void SipRefreshMgr::setLineMgr(SipLineMgr* lineMgr)
 {
-   mpLineMgr = lineMgr;
+   m_pLineMgr = lineMgr;
    return;
 }

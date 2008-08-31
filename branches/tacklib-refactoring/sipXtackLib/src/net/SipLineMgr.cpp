@@ -126,8 +126,8 @@ void SipLineMgr::deleteAllLines()
 
 UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
-   Url canonicalUrl;
    Url preferredContact;
+   Url canonicalUrl;
 
    {
       OsLock lock(m_mutex); // scoped lock
@@ -137,13 +137,13 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
       if (!pLine)
       {
          syslog(FAC_LINE_MGR, PRI_ERR, "unable to enable line (not found): %s",
-            lineURI.toString().data()) ;
+            lineURI.toString().data());
          return FALSE;
       }
 
       pLine->setState(SipLine::LINE_STATE_TRYING);
-      canonicalUrl = pLine->getCanonicalUrl();
       preferredContact = pLine->getPreferredContactUri();
+      canonicalUrl = pLine->getCanonicalUrl();
       pLine = NULL;
    }
 
@@ -153,8 +153,7 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
       m_pRefreshMgr->reRegister(lineURI);
    }
 
-   syslog(FAC_LINE_MGR, PRI_INFO, "enabled line: %s",
-      lineURI.toString().data());
+   syslog(FAC_LINE_MGR, PRI_INFO, "enabled line: %s", lineURI.toString().data());
 
    return TRUE;
 }

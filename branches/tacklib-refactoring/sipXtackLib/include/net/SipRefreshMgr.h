@@ -8,7 +8,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef SIPREFRESHMGR_H
 #define SIPREFRESHMGR_H
 
@@ -19,6 +18,7 @@
 #include "utl/UtlRandom.h"
 #include "utl/UtlHashMap.h"
 #include "net/SipMessage.h"
+#include "os/OsMutex.h"
 #include "net/SipTcpServer.h"
 #include "net/SipUdpServer.h"
 #include "net/SipMessageList.h"
@@ -42,131 +42,90 @@ class SipUserAgent;
 class SipLineMgr;
 class SipLineStateEventListener;
 
+/**
+ * Class responsible for line registration.
+ */
 class SipRefreshMgr : public OsServerTask
 {
 public:
-   SipRefreshMgr(SipLineStateEventListener *listener = NULL);
+   /** Constructor. */
+   SipRefreshMgr(SipLineStateEventListener *pListener = NULL);
 
+   /** Destructor */
    virtual ~SipRefreshMgr();
 
-   //INITIALIZE
-   UtlBoolean init(SipUserAgent *ptrToMyAgent,
-      int defaultRegistryTimeout = 3600);
+   /** Sets SipUserAgent that should be used by SipRefreshMgr */
+   void setSipUserAgent(SipUserAgent *pSipUserAgent);
 
+   /** Starts the SipRefreshMgr thread */
    void startRefreshMgr();
 
-   /**
-   * Mutator for the mDefaultRegistryPeriodMember
-   */
+   /** Sets default registration period in seconds */
    void setRegistryPeriod(int periodInSeconds);
 
-   void addMessageObserver (
-      OsMsgQ& messageQueue,
-      const char* sipMethod = NULL,
-      UtlBoolean wantRequests = TRUE,
-      UtlBoolean wantResponses = TRUE,
-      UtlBoolean wantIncoming = TRUE,
-      UtlBoolean wantOutGoing = FALSE,
-      const char* eventName = NULL,
-      void* observerData = NULL );
+   /** Creates and sends new register message for given line. */
+   UtlBoolean newRegisterMsg(const Url& fromUrl,
+                             const Url& contactUri,
+                             int registryPeriodSeconds = -1);
 
-   //: Add a SIP message observer for SIP messages meeting the filter criteria
-   //! param: messageQueue - the queue on which an SipMessageEvent is dispatched
-   //! param: sipMethod - the specific method type of the requests or responses to be observed.  NULL or a null string indicates all methods.
-   //! param: wantRequests - want to observe SIP requests
-   //! param: wantResponses - want to observe SIP responses
-   //! param: wantIncoming - want to observe SIP messages originating from the network.
-   //! param: wantOutGoing - want to observe SIP messages originating from locally.
-   //! param: eventName - want to observer SUBSCRIBE or NOTIFY requests having the given event type
-   //! param: observerData - data to be attached to SIP messages queued on the observer
-
-   //REGISTER METHODS
-   UtlBoolean newRegisterMsg (
-      const Url& fromUrl,
-      const Url& contactUri,
-      int registryPeriodSeconds = -1);
-
-   void reRegisterAll();
-
-   void reRegister ( const Url& fromUrl );
+   void reRegister(const Url& fromUrl);
 
    void unRegisterUser(const Url& fromUrl);
 
-   void setLineMgr(SipLineMgr* const lineMgr);
-   //: Sets a pointer to the line manager
+   void setLineMgr(SipLineMgr* lineMgr);
 
    void dumpMessageLists(UtlString& results) ;
    //:Appends the message contents of both the mRegisterList and 
    // mSubscribeList
 
-   virtual UtlBoolean handleMessage( OsMsg& eventMessage );
+   virtual UtlBoolean handleMessage(OsMsg& eventMessage);
 
 protected:
-   SipLineMgr* mpLineMgr;
-   // the line manager object that uses this refresh manager
+   void rescheduleAfterTime(SipMessage* message, int percentage = DEFAULT_PERCENTAGE_TIMEOUT );
 
-   void queueMessageToObservers (
-      SipMessageEvent& event,
-      const char* method);
+   OsStatus sendRequest(SipMessage& registerRequest, const char *method);
 
-   void rescheduleAfterTime (
-      SipMessage* message,
-      int percentage = DEFAULT_PERCENTAGE_TIMEOUT );
+   void rescheduleRequest(SipMessage* registerRequest,
+                          int secondsFromNow,
+                          const char* method,
+                          int percentage = DEFAULT_PERCENTAGE_TIMEOUT,
+                          UtlBoolean sendImmediate = FALSE);
 
-   void sendToObservers (
-      const OsMsg& eventMessage,
-      SipMessage * registerRequest );
+   void processOKResponse(SipMessage* registerResponse,
+                          SipMessage* registerRequest);
 
-   OsStatus sendRequest (
-      SipMessage& registerRequest,
-      const char *method);
+   void parseContactFields(SipMessage* message,
+                           SipMessage* sipRequest,
+                           int& expireVal);
 
-   void rescheduleRequest (
-      SipMessage* registerRequest,
-      int secondsFromNow,
-      const char* method,
-      int percentage = DEFAULT_PERCENTAGE_TIMEOUT,
-      UtlBoolean sendImmediate = FALSE );
-
-   void processOKResponse (
-      SipMessage* registerResponse,
-      SipMessage* registerRequest );
-
-   void parseContactFields (
-      SipMessage* message,
-      SipMessage* sipRequest,
-      int& expireVal );
-
-   void processResponse(
-      const OsMsg& eventMessage,
-      SipMessage* registerRequest);
+   void processResponse(const OsMsg& eventMessage,
+                        SipMessage* registerRequest);
 
    void createTagNameValuePair(UtlString& tagNamevaluePair);
    UtlString createTagValue();
 
    // register
    void registerUrl(const Url& fromUrl,
-      const Url& toUrl,
-      const Url& requestUri,
-      const UtlString& contactUrl,
-      const UtlString& callId,
-      int registerPeriod = -1);
+                    const Url& toUrl,
+                    const Url& requestUri,
+                    const UtlString& contactUrl,
+                    const UtlString& callId,
+                    int registerPeriod = -1);
 
-   UtlBoolean isDuplicateRegister( 
-      const Url& url,
-      SipMessage& oldMessage );
+   UtlBoolean isDuplicateRegister(const Url& url,
+                                  SipMessage& oldMessage);
 
-   UtlBoolean isDuplicateRegister( const Url& url );
+   UtlBoolean isDuplicateRegister(const Url& url);
 
-   void addToRegisterList( SipMessage* message);
+   void addToRegisterList(SipMessage* message);
 
-   UtlBoolean removeFromRegisterList( SipMessage* message );
+   UtlBoolean removeFromRegisterList(SipMessage* message);
    //: Returns TRUE if message was found and removed from list.
    //: Message is NOT deleted.  
 
    UtlString buildContactField(const Url& registerToField,
-      const UtlString& lineId = "",
-      const Url* pPreferredContactUri = NULL);
+                               const UtlString& lineId = "",
+                               const Url* pPreferredContactUri = NULL);
 
    void removeAllFromRequestList(SipMessage* response);
    //: Removes all prior request records for this response
@@ -179,23 +138,20 @@ protected:
    UtlBoolean isExpiresZero(SipMessage* pRequest) ;
    //: Is the expires field set to zero for the specified msg?
 
+   SipLineMgr* m_pLineMgr;
    // register
-   int mDefaultRegistryPeriod;
-   SipMessageList mRegisterList;
-   OsRWMutex mRegisterListMutexR;
-   OsRWMutex mRegisterListMutexW;
+   int m_defaultRegistryPeriod;
+   SipMessageList m_registerList;
+   mutable OsMutex m_mutex; ///< mutex for concurrent access
 
    // events
-   SipLineStateEventListener* mLineListener;
+   SipLineStateEventListener* m_pLineListener;
 
    // common
-   SipCallIdGenerator mCallIdGenerator;
-   UtlBoolean mIsStarted;
-   UtlHashBag mMessageObservers;
-   OsRWMutex mObserverMutex;
-   SipUserAgent* mMyUserAgent;
-   UtlRandom mRandomNumGenerator;
-   UtlHashBag mTimerBag;
+   SipCallIdGenerator m_callIdGenerator;
+   SipUserAgent* m_pSipUserAgent;
+   UtlRandom m_randomNumGenerator;
+   UtlHashBag m_timerBag;
 };
 
 #endif // SIPREFRESHMGR_H
