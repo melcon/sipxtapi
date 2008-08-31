@@ -52,7 +52,8 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
    if (lineFound)
    {
       // get authentication details from response
-      int authorizationEntity = HttpMessage::SERVER;
+      HttpMessage::HttpEndpointEnum authorizationEntity = 
+         HttpMessage::getAuthorizationEntity(sipResponse.getResponseStatusCode());
       UtlString nonce;
       UtlString opaque;
       UtlString realm;
