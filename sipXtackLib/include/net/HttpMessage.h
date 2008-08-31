@@ -605,6 +605,13 @@ public:
                                     int nonceCount,
                                     int authorizationEntity);
 
+    /**
+     * Checks if message has authorization data for given user, realm and entity.
+     */
+    UtlBoolean hasDigestAuthorizationData(const UtlString& user,
+                                          const UtlString& realm = NULL,
+                                          int authorizationEntity = HttpMessage::PROXY) const;
+
     UtlBoolean getDigestAuthorizationData(UtlString* user,
                                          UtlString* realm = NULL,
                                          UtlString* nonce = NULL,
