@@ -2726,8 +2726,7 @@ UtlBoolean HttpMessage::getAuthorizationField(UtlString* authenticationField,
     return(fieldValue != NULL);
 }
 
-UtlBoolean HttpMessage::hasDigestAuthorizationData(const UtlString& user,
-                                                   const UtlString& realm /*= NULL*/,
+UtlBoolean HttpMessage::hasDigestAuthorizationData(const UtlString& realm /*= NULL*/,
                                                    int authorizationEntity /*= PROXY*/) const
 {
    int requestAuthIndex = 0;
@@ -2736,7 +2735,7 @@ UtlBoolean HttpMessage::hasDigestAuthorizationData(const UtlString& user,
 
    while(getDigestAuthorizationData(&msgUser, &msgRealm, NULL, NULL, NULL, NULL, authorizationEntity, requestAuthIndex))
    {
-      if(!realm.compareTo(msgRealm) && !user.compareTo(msgUser))
+      if(!realm.compareTo(msgRealm))
       {
          return TRUE;
       }
