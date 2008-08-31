@@ -457,7 +457,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    // Startup Line Manager  Refresh Manager
    pInst->pLineManager->start();
-   pInst->pRefreshManager->init(pInst->pSipUserAgent);
+   pInst->pRefreshManager->setSipUserAgent(pInst->pSipUserAgent);
    pInst->pRefreshManager->startRefreshMgr();
 
    // Create and start up a SIP SUBSCRIBE server
