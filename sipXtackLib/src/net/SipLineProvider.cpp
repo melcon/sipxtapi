@@ -108,12 +108,9 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
    {
       // use requestUri & toUrl
       Url toUrl;
-      UtlString strRequestUri;
-      sipMsg.getRequestUri(&strRequestUri);
-      Url requestUri(strRequestUri);
-      requestUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from requestUri
       sipMsg.getToUrl(toUrl);
       lineUri = toUrl.getUri(); // get lineUri from toUrl
+      lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
       lineUri.getUserId(userId); // get userId from lineUri
    }
    else
