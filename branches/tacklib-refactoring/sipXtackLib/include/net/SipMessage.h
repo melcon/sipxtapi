@@ -922,10 +922,12 @@ public:
                       UtlString* tag = NULL) const;
 
     void getCallIdField(UtlString* callId) const;
+    void getCallIdField(UtlString& callId) const;
 
     void getDialogHandle(UtlString& dialogHandle) const;
 
     UtlBoolean getCSeqField(int* sequenceNum, UtlString* sequenceMethod) const;
+    UtlBoolean getCSeqField(int& sequenceNum, UtlString& sequenceMethod) const;
 
     UtlBoolean getRequireExtension(int extensionIndex, UtlString* extension) const;
 
