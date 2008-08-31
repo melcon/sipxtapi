@@ -608,8 +608,7 @@ public:
     /**
      * Checks if message has authorization data for given user, realm and entity.
      */
-    UtlBoolean hasDigestAuthorizationData(const UtlString& user,
-                                          const UtlString& realm = NULL,
+    UtlBoolean hasDigestAuthorizationData(const UtlString& realm = NULL,
                                           int authorizationEntity = HttpMessage::PROXY) const;
 
     UtlBoolean getDigestAuthorizationData(UtlString* user,
