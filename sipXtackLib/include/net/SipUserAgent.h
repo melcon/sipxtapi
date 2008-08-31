@@ -796,11 +796,45 @@ private:
    * Builds a new request with authentication details.
    *
    * @param response SipMessage with 401 or 407 code and authentication request
-   * @param request New request being constructed
+   * @param request Original request which triggered response
+   * @param newAuthRequest New request with authentication. We fill authentication
+   *        data there.
    */
-   UtlBoolean buildAuthenticatedRequest(const SipMessage* response,
-      const SipMessage* request,
-      SipMessage* newAuthRequest);
+   UtlBoolean buildAuthenticatedRequest(const SipMessage& response,
+                                        const SipMessage& request,
+                                        SipMessage& newAuthRequest);
+
+   /** Builds authenticated sip message from given template */
+   static void buildAuthenticatedSipMessage(const SipMessage& sipMessageTemplate,
+                                            SipMessage& sipMessage,
+                                            const UtlString& userID,
+                                            const UtlString& passMD5Token,
+                                            const UtlString& algorithm,
+                                            const UtlString& realm,
+                                            const UtlString& nonce,
+                                            const UtlString& opaque,
+                                            const UtlString& qop,
+                                            int authorizationEntity);
+
+   /** Gets userID and md5 password for given authentication request */
+   UtlBoolean getCredentialForMessage(const SipMessage& sipResponse, ///< response with 401 or 407
+                                      const SipMessage& sipRequest, ///< original sip request
+                                      UtlString& userID,
+                                      UtlString& passMD5Token) const;
+
+   /** Builds digest of http message body */
+   static void getHttpBodyDigest(const SipMessage& sipMessage, UtlString& bodyDigest);
+
+   /** Adds authentication to sip message */
+   static void addSipMessageAuthentication(SipMessage& sipMessage,
+                                           const UtlString& userID,
+                                           const UtlString& passMD5Token,
+                                           const UtlString& algorithm,
+                                           const UtlString& realm,
+                                           const UtlString& nonce,
+                                           const UtlString& opaque,
+                                           const UtlString& qop,
+                                           int authorizationEntity);
 
    //! timer that sends events to the queue periodically
    OsTimer* mpTimer;
@@ -822,7 +856,6 @@ private:
 
    //! Disabled assignment operator
    SipUserAgent& operator=(const SipUserAgent& rhs);
-
 };
 
 /* ============================ INLINE METHODS ============================ */

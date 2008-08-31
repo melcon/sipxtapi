@@ -4110,7 +4110,8 @@ UtlBoolean SipUserAgent::resendWithAuthorization(SipMessage* response,
    osPrintf("**************************************\n");
 #endif
 
-   if (m_pLineProvider && buildAuthenticatedRequest(response, request,authorizedRequest))
+   if (m_pLineProvider && response && request && authorizedRequest &&
+       buildAuthenticatedRequest(*response, *request, *authorizedRequest))
    {
 #ifdef TEST_PRINT
       osPrintf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
@@ -4455,63 +4456,73 @@ const SIPX_TRANSPORT_DATA* const SipUserAgent::lookupExternalTransport(const Utl
    return NULL;
 }
 
-UtlBoolean SipUserAgent::buildAuthenticatedRequest(const SipMessage* response,
-                                                   const SipMessage* request,
-                                                   SipMessage* newAuthRequest)
+UtlBoolean SipUserAgent::getCredentialForMessage(const SipMessage& sipResponse, // message with authentication request
+                                                 const SipMessage& sipRequest, // original sip request
+                                                 UtlString& userID,
+                                                 UtlString& passMD5Token) const
+{
+   UtlBoolean credentialFound = FALSE;
+
+   if (m_pLineProvider)
+   {
+      SipLineCredential sipLineCredential;
+      credentialFound = m_pLineProvider->getCredentialForMessage(sipResponse, sipRequest, sipLineCredential);
+      if (credentialFound)
+      {
+         UtlString scheme;
+         UtlString realm;
+         HttpMessage::HttpEndpointEnum authorizationEntity = 
+            HttpMessage::getAuthorizationEntity(sipResponse.getResponseStatusCode());
+         sipResponse.getAuthenticationData(&scheme, &realm, NULL, NULL, NULL, NULL, authorizationEntity, NULL);
+
+         passMD5Token = sipLineCredential.getPasswordMD5Digest(realm);
+         userID = sipLineCredential.getUserId();
+      }
+   }
+
+   return credentialFound;
+}
+
+UtlBoolean SipUserAgent::buildAuthenticatedRequest(const SipMessage& response, // response with 401 or 407
+                                                   const SipMessage& request, // original sip request
+                                                   SipMessage& newAuthRequest)
 {
    UtlBoolean createdResponse = FALSE;
-   // Get the userId and password from the DB for the URI
-   int sequenceNum;
-   int authorizationEntity = HttpMessage::SERVER;
-   UtlString uri;
-   UtlString method;
+   int sequenceNum; // cseq from response
+   UtlString sipMethod; // method in cseq field
+   UtlString callId; // sip call id from response
+   HttpMessage::HttpEndpointEnum authorizationEntity = 
+      HttpMessage::getAuthorizationEntity(response.getResponseStatusCode());
+   Url fromUri;// fromUri from original request message, for logging
+
+   // data from authentication request from sip response
+   UtlString scheme;
+   UtlString realm;
    UtlString nonce;
    UtlString opaque;
-   UtlString realm;
-   UtlString scheme;
    UtlString algorithm;
-   UtlString qop;
-   UtlString callId;
+   UtlString qop; 
    UtlString stale;
 
-   response->getCSeqField(&sequenceNum, &method);
-   response->getCallIdField(&callId) ;
-   int responseCode = response->getResponseStatusCode();
+   response.getCSeqField(sequenceNum, sipMethod);
+   response.getCallIdField(callId);
+   response.getAuthenticationData(&scheme, &realm, &nonce, &opaque, &algorithm, &qop, authorizationEntity, &stale);
+   request.getFromUrl(fromUri);
 
-   // Use the To uri as key to user and password to use
-   if(responseCode == HTTP_UNAUTHORIZED_CODE)
-   {
-      authorizationEntity = HttpMessage::SERVER;
-   } else if(responseCode == HTTP_PROXY_UNAUTHORIZED_CODE)
-   {
-      // For proxy we use the uri for the key to userId and password
-      authorizationEntity = HttpMessage::PROXY;
-   }
+   UtlBoolean alreadyTriedOnce = FALSE; // if we already tried to send auth data once
 
-   // Get the digest authentication info. needed to create
-   // a request with credentials
-   response->getAuthenticationData(
-      &scheme, &realm, &nonce, &opaque,
-      &algorithm, &qop, authorizationEntity, &stale);
-
-   UtlBoolean alreadyTriedOnce = FALSE;
-   int requestAuthIndex = 0;
-   UtlString requestUser;
-   UtlString requestRealm;
-
-   // if scheme is basic , we dont support it anymore and we
-   //should not sent request again because the password has been
-   //converterd to digest already and the BASIC authentication will fail anyway
    if(scheme.compareTo(HTTP_BASIC_AUTHENTICATION, UtlString::ignoreCase) == 0)
    {
-      alreadyTriedOnce = TRUE; //so that we never send request with basic authenticatiuon
-
-      // Log error
-      OsSysLog::add(FAC_AUTH, PRI_ERR, "line manager is unable to handle basic auth:\ncallid=%s\nmethod=%s\ncseq=%d\nrealm=%s",
-         callId.data(), method.data(), sequenceNum, realm.data()) ;
+      // Log error, basic authentication is not supported
+      OsSysLog::add(FAC_AUTH, PRI_ERR, "SipUserAgent is unable to handle basic authentication:\nlineUri=%s\ncallid=%s\nmethod=%s\ncseq=%d\nrealm=%s",
+         fromUri.toString().data(), callId.data(), sipMethod.data(), sequenceNum, realm.data());
+      return FALSE;
    }
-   else
+   else if(scheme.compareTo(HTTP_DIGEST_AUTHENTICATION, UtlString::ignoreCase) == 0)
    {
+      OsSysLog::add(FAC_AUTH, PRI_DEBUG, "Received authentication request:\nlineId:%s\ncallid=%s\nscheme=%s\nmethod=%s\ncseq=%d\nrealm=%s",
+         fromUri.toString().data(), callId.data(), scheme.data(), sipMethod.data(), sequenceNum, realm.data()) ;
+
       // if stale flag is TRUE, according to RFC2617 we may wish to retry so we do
       // According to RFC2617: "The server should only set stale to TRUE
       // if it receives a request for which the nonce is invalid but with a
@@ -4519,175 +4530,168 @@ UtlBoolean SipUserAgent::buildAuthenticatedRequest(const SipMessage* response,
       if (stale.compareTo("TRUE", UtlString::ignoreCase) != 0)
       {
          // Check to see if we already tried to send the credentials
-         while(request->getDigestAuthorizationData(
-            &requestUser, &requestRealm,
-            NULL, NULL, NULL, NULL,
-            authorizationEntity, requestAuthIndex) )
-         {
-            if(realm.compareTo(requestRealm) == 0)
-            {
-               alreadyTriedOnce = TRUE;
-               break;
-            }
-            requestAuthIndex++;
-         }
+         alreadyTriedOnce = request.hasDigestAuthorizationData(realm, authorizationEntity);
       }
-   }
-   // Find the line that sent the request that was challenged
-   Url fromUrl;
-   UtlString fromUri;
-   UtlString userID;
-   UtlString passToken;
-   UtlBoolean credentialFound = FALSE;
-   //if challenged for an unregister request - then get credentials from temp lsit of lines
-   int expires;
-   int contactIndexCount = 0;
-   UtlString contactEntry;
 
-   if (!request->getExpiresField(&expires))
-   {
-      while ( request->getContactEntry(contactIndexCount , &contactEntry ))
-      {
-         UtlString expireStr;
-         Url contact(contactEntry);
-         contact.getFieldParameter(SIP_EXPIRES_FIELD, expireStr);
-         expires = atoi(expireStr.data());
-         if( expires == 0)
-            break;
-         contactIndexCount++;
-      }
-   }
+      // find credential for message
+      UtlString userID;
+      UtlString passMD5Token;
+      UtlBoolean credentialFound = getCredentialForMessage(response, request, userID, passMD5Token);
 
-   if (m_pLineProvider && request && response)
-   {
-      SipLineCredential sipLineCredential;
-      credentialFound = m_pLineProvider->getCredentialForMessage(*response, *request, sipLineCredential);
       if (credentialFound)
       {
-         passToken = sipLineCredential.getPasswordMD5Digest(realm);
-         userID = sipLineCredential.getUserId();
-      }
-   }
-
-   if(!alreadyTriedOnce && credentialFound)
-   {
-      OsSysLog::add(FAC_AUTH, PRI_INFO, "found auth credentials for:\nlineId:%s\ncallid=%s\nscheme=%s\nmethod=%s\ncseq=%d\nrealm=%s",
-         fromUri.data(), callId.data(), scheme.data(), method.data(), sequenceNum, realm.data()) ;
-
-      // Construct a new request with authorization and send it
-      // the Sticky DNS fields will be copied by the copy constructor
-      *newAuthRequest = *request;
-      // Reset the transport parameters
-      newAuthRequest->resetTransport();
-      // Get rid of the via as another will be added.
-      newAuthRequest->removeLastVia();
-      if(scheme.compareTo(HTTP_DIGEST_AUTHENTICATION, UtlString::ignoreCase) == 0)
-      {
-         UtlString responseHash;
-         int nonceCount;
-         // create the authorization in the request
-         request->getRequestUri(&uri);
-
-         // :TBD: cheat and use the cseq instead of a real nonce-count
-         request->getCSeqField(&nonceCount, &method);
-         nonceCount = (nonceCount + 1) / 2;
-
-         request->getRequestMethod(&method);
-
-         // Use unique tokens which are constant for this
-         // session to generate a cnonce
-         Url fromUrl;
-         UtlString cnonceSeed;
-         UtlString fromTag;
-         UtlString cnonce;
-         request->getCallIdField(&cnonceSeed);
-         request->getFromUrl(fromUrl);
-         fromUrl.getFieldParameter("tag", fromTag);
-         cnonceSeed.append(fromTag);
-         cnonceSeed.append("blablacnonce"); // secret
-         NetMd5Codec::encode(cnonceSeed, cnonce);
-
-         // Get the digest of the body
-         const HttpBody* body = request->getBody();
-         UtlString bodyDigest;
-         const char* bodyString = "";
-         if(body)
+         if (!alreadyTriedOnce)
          {
-            int len;
-            body->getBytes(&bodyString, &len);
-            if(bodyString == NULL)
-               bodyString = "";
+            OsSysLog::add(FAC_AUTH, PRI_DEBUG, "About to authenticate:\nlineId:%s\ncallid=%s\nscheme=%s\nmethod=%s\ncseq=%d\nrealm=%s",
+               fromUri.toString().data(), callId.data(), scheme.data(), sipMethod.data(), sequenceNum, realm.data());
+
+            SipUserAgent::buildAuthenticatedSipMessage(request, newAuthRequest, userID, passMD5Token, algorithm, realm,
+               nonce, opaque, qop, authorizationEntity);
+
+            return TRUE;
          }
-
-         NetMd5Codec::encode(bodyString, bodyDigest);
-
-         // Build the Digest hash response
-         HttpMessage::buildMd5Digest(
-            passToken.data(),
-            algorithm.data(),
-            nonce.data(),
-            cnonce.data(),
-            nonceCount,
-            qop.data(),
-            method.data(),
-            uri.data(),
-            bodyDigest.data(),
-            &responseHash);
-
-         newAuthRequest->setDigestAuthorizationData(
-            userID.data(),
-            realm.data(),
-            nonce.data(),
-            uri.data(),
-            responseHash.data(),
-            algorithm.data(),
-            cnonce.data(),
-            opaque.data(),
-            qop.data(),
-            nonceCount,
-            authorizationEntity);
-
+         else
+         {
+            OsSysLog::add(FAC_AUTH, PRI_WARNING, "Repeated authentication request for:\nlineId:%s\ncallid=%s\nscheme=%s\nmethod=%s\ncseq=%d\nrealm=%s"
+               "\nGiving up, probably wrong password was provided",
+               fromUri.toString().data(), callId.data(), scheme.data(), sipMethod.data(), sequenceNum, realm.data());
+            return FALSE;
+         }
       }
-
-      // This is a new version of the message so increment the sequence number
-      newAuthRequest->incrementCSeqNumber();
-
-      // If the first hop of this message is strict routed,
-      // we need to add the request URI host back in the route
-      // field so that the send will work correctly
-      //
-      //  message is:
-      //      METHOD something
-      //      Route: xyz, abc
-      //
-      //  change to xyz:
-      //      METHOD something
-      //      Route: something, xyz, abc
-      //
-      //  which sends as:
-      //      METHOD something
-      //      Route: xyz, abc
-      //
-      // But if the first hop is loose routed:
-      //
-      //  message is:
-      //      METHOD something
-      //      Route: xyz;lr, abc
-      //
-      // leave URI and routes alone
-      if ( newAuthRequest->isClientMsgStrictRouted() )
+      else
       {
-         UtlString requestUri;
-         newAuthRequest->getRequestUri(&requestUri);
-         newAuthRequest->addRouteUri(requestUri);
+         // credentials not found - either unknown realm, line or userid
+         OsSysLog::add(FAC_AUTH, PRI_ERR, "No credentials found for:\nlineId:%s\ncallid=%s\nscheme=%s\nmethod=%s\ncseq=%d\nrealm=%s",
+            fromUri.toString().data(), callId.data(), scheme.data(), sipMethod.data(), sequenceNum, realm.data());
+         return FALSE;
       }
-      createdResponse = TRUE;
+   }
+   else
+   {
+      OsSysLog::add(FAC_AUTH, PRI_ERR, "Unknown authentication scheme:\nlineId:%s\ncallid=%s\nscheme=%s\nmethod=%s\ncseq=%d\nrealm=%s",
+         fromUri.toString().data(), callId.data(), scheme.data(), sipMethod.data(), sequenceNum, realm.data());
+      return FALSE;
    }
 
-   // Else we already tried to provide authentication
-   // Or we do not have a userId and password for this uri
-   // Let this error message throught to the application
-   return( createdResponse );
+   return FALSE;
+}
+
+void SipUserAgent::getHttpBodyDigest(const SipMessage& sipMessage, UtlString& bodyDigest)
+{
+   // Get the digest of the body
+   const HttpBody* body = sipMessage.getBody();
+   const char* bodyString = "";
+
+   if(body)
+   {
+      int len;
+      body->getBytes(&bodyString, &len);
+      if(bodyString == NULL)
+         bodyString = "";
+   }
+
+   NetMd5Codec::encode(bodyString, bodyDigest);
+}
+
+void SipUserAgent::addSipMessageAuthentication(SipMessage& sipMessage,
+                                               const UtlString& userID,
+                                               const UtlString& passMD5Token,
+                                               const UtlString& algorithm,
+                                               const UtlString& realm,
+                                               const UtlString& nonce,
+                                               const UtlString& opaque,
+                                               const UtlString& qop,
+                                               int authorizationEntity)
+{
+   UtlString responseHash;
+   UtlString requestUri;
+   int nonceCount;
+   UtlString sipMethod;
+
+   sipMessage.getRequestUri(&requestUri);
+   // :TBD: cheat and use the cseq instead of a real nonce-count
+   sipMessage.getCSeqField(&nonceCount, &sipMethod);
+   sipMessage.getRequestMethod(&sipMethod);
+   nonceCount = (nonceCount + 1) / 2;
+
+   // Use unique tokens which are constant for this
+   // session to generate a cnonce
+   UtlString cnonceSeed;
+   Url fromUrl;
+   UtlString fromTag;
+   UtlString cnonce;
+   sipMessage.getCallIdField(&cnonceSeed);
+   sipMessage.getFromUrl(fromUrl);
+   fromUrl.getFieldParameter("tag", fromTag);
+   cnonceSeed.append(fromTag);
+   cnonceSeed.append("blablacnonce"); // secret
+   NetMd5Codec::encode(cnonceSeed, cnonce);
+
+   UtlString bodyDigest;
+   SipUserAgent::getHttpBodyDigest(sipMessage, bodyDigest);
+
+   // Build the Digest hash response
+   HttpMessage::buildMd5Digest(passMD5Token, algorithm, nonce, cnonce, nonceCount, qop,
+      sipMethod, requestUri, bodyDigest, &responseHash);
+
+   sipMessage.setDigestAuthorizationData(userID, realm, nonce, requestUri,
+      responseHash, algorithm, cnonce, opaque, qop, nonceCount, authorizationEntity);
+}
+
+void SipUserAgent::buildAuthenticatedSipMessage(const SipMessage& sipMessageTemplate,
+                                                SipMessage& sipMessage,
+                                                const UtlString& userID,
+                                                const UtlString& passMD5Token,
+                                                const UtlString& algorithm,
+                                                const UtlString& realm,
+                                                const UtlString& nonce,
+                                                const UtlString& opaque,
+                                                const UtlString& qop,
+                                                int authorizationEntity)
+{
+   // Construct a new request with authorization and send it
+   // the Sticky DNS fields will be copied by the copy constructor
+   sipMessage = sipMessageTemplate;
+   // Reset the transport parameters
+   sipMessage.resetTransport();
+   // Get rid of the via as another will be added.
+   sipMessage.removeLastVia();
+
+   SipUserAgent::addSipMessageAuthentication(sipMessage, userID, passMD5Token, algorithm,
+      realm, nonce, opaque, qop, authorizationEntity);
+
+   // This is a new version of the message so increment the sequence number
+   sipMessage.incrementCSeqNumber();
+
+   // If the first hop of this message is strict routed,
+   // we need to add the request URI host back in the route
+   // field so that the send will work correctly
+   //
+   //  message is:
+   //      METHOD something
+   //      Route: xyz, abc
+   //
+   //  change to xyz:
+   //      METHOD something
+   //      Route: something, xyz, abc
+   //
+   //  which sends as:
+   //      METHOD something
+   //      Route: xyz, abc
+   //
+   // But if the first hop is loose routed:
+   //
+   //  message is:
+   //      METHOD something
+   //      Route: xyz;lr, abc
+   //
+   // leave URI and routes alone
+   if (sipMessage.isClientMsgStrictRouted())
+   {
+      UtlString requestUri;
+      sipMessage.getRequestUri(&requestUri);
+      sipMessage.addRouteUri(requestUri);
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
