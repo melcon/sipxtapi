@@ -206,12 +206,6 @@ public:
 
 /* ============================ MANIPULATORS ============================== */
 
-    //! Set the default address for the local connection.
-    /*! This is used to set the calling ID information when
-     * making an outbound call.
-     */
-    virtual void setOutboundLine(const char* lineUrl) = 0;
-
     /** @name For internal use only
      * These should be private methods, but due to the structure
      * of how they are used they must be public.
@@ -238,6 +232,7 @@ public:
 
     //! Creates a new call with an implicit local connection.
     virtual void createCall(UtlString* callId,
+                            const UtlString& lineURI = NULL, ///< call doesn't have a lineURI, i.e Conference
                             int metaEventId = 0,
                             int metaEventType = PtEvent::META_EVENT_NONE,
                             int numMetaEventCalls = 0,

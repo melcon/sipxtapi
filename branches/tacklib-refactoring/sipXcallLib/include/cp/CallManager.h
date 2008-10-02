@@ -75,7 +75,6 @@ public:
                SipSecurityEventListener* pSecurityEventListener,
                CpMediaEventListener* pMediaEventListener,
                PtMGCP* mgcpStackTask,                     // Suggested value: NULL
-               const char* defaultCallExtension,          // Suggested value: NULL
                int availableBehavior,                     // Suggested value: Connection::RING
                const char* unconditionalForwardUrl,       // Suggested value: NULL
                int forwardOnNoAnswerSeconds,              // Suggested value: -1
@@ -102,11 +101,11 @@ public:
 
     virtual void requestShutdown(void);
 
-    virtual void setOutboundLine(const char* lineUrl);
     virtual void setOutboundLineForCall(const char* callId, const Url& lineURI, SIPX_CONTACT_TYPE eType = CONTACT_AUTO);
 
     // Operations for calls
     virtual void createCall(UtlString* callId,
+                            const UtlString& lineURI = NULL, ///< call doesn't have a lineURI, i.e Conference
                             int metaEventId = 0,
                             int metaEventType = PtEvent::META_EVENT_NONE,
                             int numMetaEventCalls = 0,
@@ -293,7 +292,6 @@ private:
    CpMediaEventListener* m_pMediaEventListener;
 
    OsMutex m_memberMutex;
-   UtlString mOutboundLine;
     UtlBoolean dialing;
     UtlBoolean mOffHook;
     UtlBoolean speakerOn;
@@ -342,11 +340,12 @@ private:
     void doHold();
 
     void doCreateCall(const char* callId,
-                        int metaEventId = 0,
-                        int metaEventType = PtEvent::META_EVENT_NONE,
-                        int numMetaEventCalls = 0,
-                        const char* metaEventCallIds[] = NULL,
-                        UtlBoolean assumeFocusIfNoInfocusCall = TRUE);
+                      const UtlString& lineURI = NULL,
+                      int metaEventId = 0,
+                      int metaEventType = PtEvent::META_EVENT_NONE,
+                      int numMetaEventCalls = 0,
+                      const char* metaEventCallIds[] = NULL,
+                      UtlBoolean assumeFocusIfNoInfocusCall = TRUE);
 
     void doConnect(const char* callId,
                    const char* addressUrl,
