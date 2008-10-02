@@ -360,7 +360,7 @@ public:
                                   UtlBoolean sendEarlyMedia = FALSE) = 0;
 
     virtual void setOutboundLineForCall(const char* callId, 
-                                        const char* address, 
+                                        const Url& lineURI,
                                         SIPX_CONTACT_TYPE eType = CONTACT_AUTO) = 0;
 
 
