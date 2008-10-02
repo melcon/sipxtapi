@@ -32,11 +32,11 @@
 class SIPX_LINE_DATA
 {
 public:
-   Url m_lineURI; ///< URI of line. Doesn't contain headerParameters or fieldParameters, display name or brackets
+   Url m_lineURI; ///< URI of line. Doesn't contain headerParameters or fieldParameters, display name or brackets, for example sip:number@domain;transport=tcp
    SIPX_INSTANCE_DATA* m_pInst;
    OsMutex m_mutex;
    SIPX_CONTACT_TYPE m_contactType; ///< contact type used by line
-   Url m_contactUri; ///< preferred contact used by line
+   Url m_contactUri; ///< preferred contact used by line, for example <sip:number@192.168.0.129:5060;transport=tcp;LINEID=04d0aae02fe0>
    SIPX_TRANSPORT_TYPE m_transport; ///< actual transport used for line registration
    UtlSList m_lineAliases;
 
