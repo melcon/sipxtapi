@@ -103,7 +103,7 @@ public:
     virtual void requestShutdown(void);
 
     virtual void setOutboundLine(const char* lineUrl);
-    virtual void setOutboundLineForCall(const char* callId, const char* address, SIPX_CONTACT_TYPE eType = CONTACT_AUTO);
+    virtual void setOutboundLineForCall(const char* callId, const Url& lineURI, SIPX_CONTACT_TYPE eType = CONTACT_AUTO);
 
     // Operations for calls
     virtual void createCall(UtlString* callId,

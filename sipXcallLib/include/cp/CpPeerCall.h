@@ -354,8 +354,8 @@ private:
     UtlDList mConnections;
     OsRWMutex mConnectionMutex;
     int mDialMode;
-    UtlString mLocalAddress;
-    UtlString mLocalTerminalId;
+    UtlString mLocalAddress; ///< contains lineURI
+    UtlString mLocalTerminalId; ///< contains lineURI
     UtlBoolean mIsEarlyMediaFor180;
     UtlBoolean mbRequestedDrop;      // Have we requested to be dropped by the CallManager
     SIPXTACK_SECURITY_ATTRIBUTES* mpSecurity;

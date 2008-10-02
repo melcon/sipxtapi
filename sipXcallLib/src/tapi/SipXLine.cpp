@@ -732,8 +732,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
    {
       if (szLineUrl && phLine)
       {
-         Url url(szLineUrl);
-         Url uri = url.getUri();
+         Url url(szLineUrl); // for example <sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
+         Url uri = url.getUri(); // for example sip:number@domain;transport=tcp
 
          // Set the preferred contact
          SIPX_CONTACT_ADDRESS* pContact = NULL;
