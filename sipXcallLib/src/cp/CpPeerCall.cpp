@@ -331,7 +331,7 @@ UtlBoolean CpPeerCall::handleTransfer(OsMsg* pEventMessage)
         startMetaEvent(metaEventId, PtEvent::META_CALL_TRANSFERRING, 2, metaCallIds);
 
         // Create the target call
-        mpManager->createCall(&targetCallId, metaEventId, 
+        mpManager->createCall(&targetCallId, mLocalAddress, metaEventId, 
             PtEvent::META_CALL_TRANSFERRING, 2, metaCallIds,
             FALSE);  // Do  not assume focus if there is no infocus call
         // as this is not a real call.  It is a place holder for call

@@ -515,7 +515,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
       NULL, // mgcpStackTask
-      NULL, // defaultCallExtension
       Connection::RING, // availableBehavior
       NULL, // unconditionalForwardUrl
       -1, // forwardOnNoAnswerSeconds
@@ -533,7 +532,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       sipXmediaFactoryFactory(NULL));
 
    // Start up the call processing system
-   pInst->pCallManager->setOutboundLine(localAddress);
    pInst->pCallManager->start();
 
    CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();

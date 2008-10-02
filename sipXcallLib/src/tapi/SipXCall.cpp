@@ -789,7 +789,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                {
                   // only create real call if it is requested
                   // for conference add, we don't create it here
-                  pInst->pCallManager->createCall(&pData->callId, 0, PtEvent::META_EVENT_NONE, 0, NULL, FALSE);
+                  pInst->pCallManager->createCall(&pData->callId, NULL, 0, PtEvent::META_EVENT_NONE, 0, NULL, FALSE);
                }
 
                if (bFireDialtone)

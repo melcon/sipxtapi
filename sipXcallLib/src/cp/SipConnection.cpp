@@ -3818,7 +3818,7 @@ void SipConnection::processReferRequest(const SipMessage* request)
 
         // The new call by default assumes focus.
         // Mark the new call as part of this transfer meta event
-        mpCallManager->createCall(&targetCallId, metaEventId,
+        mpCallManager->createCall(&targetCallId, mLineURI.toString(), metaEventId,
             PtEvent::META_CALL_TRANSFERRING, 2, metaEventCallIds, bTakeFocus);
         mpCall->setTargetCallId(targetCallId.data());
         mpCall->setCallType(CpCall::CP_TRANSFEREE_ORIGINAL_CALL);
