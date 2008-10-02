@@ -863,6 +863,13 @@ void CallManager::createCall(UtlString* callId,
     mnTotalOutgoingCalls++;
 }
 
+UtlString CallManager::createConference()
+{
+   UtlString conferenceCallId;
+   getNewCallId(&conferenceCallId); // generate new call Id for CpPeerCall
+   createCall(&conferenceCallId); // create new call
+   return conferenceCallId;
+}
 
 OsStatus CallManager::getCalls(UtlSList& callIdList)
 {
