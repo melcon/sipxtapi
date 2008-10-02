@@ -1917,7 +1917,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
         handleHoldLocalTermConnection(&eventMessage);
         break ;
 
-    case CallManager::CP_SET_OUTBOUND_LINE:
+    case CallManager::CP_SET_CALL_OUTBOUND_LINE:
         handleSetOutboundLine( &eventMessage );   
         break;
 
@@ -2560,7 +2560,6 @@ UtlBoolean CpPeerCall::handleJoinConnection(OsMsg* pEventMessage)
     return true ; 
 }
 
-
 void CpPeerCall::handleSetOutboundLine(OsMsg* pEventMessage)
 {   
     UtlString strOutboundAddress;
@@ -2569,7 +2568,7 @@ void CpPeerCall::handleSetOutboundLine(OsMsg* pEventMessage)
     Url outboundLine(strOutboundAddress);
     outboundLine.toString(mLocalTerminalId);
     mLocalAddress = mLocalTerminalId;
-}  
+}
 
 // Handles the processing of a CP_TRANSFER_OTHER_PARTY_HOLD message
 UtlBoolean CpPeerCall::handleTransferOtherPartyHold(OsMsg* pEventMessage) 

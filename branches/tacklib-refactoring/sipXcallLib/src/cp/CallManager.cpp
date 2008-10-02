@@ -685,7 +685,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_RINGING_EXPIRED:
         case CP_GET_SESSION:
         case CP_CANCEL_TIMER:
-        case CP_SET_OUTBOUND_LINE:
+        case CP_SET_CALL_OUTBOUND_LINE:
         case CP_GET_MEDIA_CONNECTION_ID:
         case CP_GET_MEDIA_ENERGY_LEVELS:
         case CP_GET_CALL_MEDIA_ENERGY_LEVELS:
@@ -1322,10 +1322,10 @@ OsStatus CallManager::muteInputTermConnection(const char* callId, const char* sz
    return (OsStatus)result;
 }
 
-void CallManager::setOutboundLineForCall(const char* callId, const char* address, SIPX_CONTACT_TYPE eType)
+void CallManager::setOutboundLineForCall(const char* callId, const Url& lineURI, SIPX_CONTACT_TYPE eType)
 {
-    CpMultiStringMessage outboundLineMessage(CP_SET_OUTBOUND_LINE, callId, 
-            address, NULL, NULL, NULL, (int) eType);
+    CpMultiStringMessage outboundLineMessage(CP_SET_CALL_OUTBOUND_LINE, callId, 
+            lineURI.toString(), NULL, NULL, NULL, (int) eType);
 
     postMessage(outboundLineMessage);
 }

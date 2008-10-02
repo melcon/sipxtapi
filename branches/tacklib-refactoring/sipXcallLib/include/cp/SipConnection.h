@@ -327,6 +327,7 @@ private:
     UtlBoolean inviteFromThisSide;
     UtlString mLastRequestMethod;
     UtlString mRemoteContact; //last contact frield from the other side
+    Url mLineURI; // line URI, will never contain a tag
     Url mFromUrl; // SIP address for the local side
     Url mToUrl;  //  SIP address for the remote side
     UtlString mRemoteUriStr;  //  SIP uri string for the remote side

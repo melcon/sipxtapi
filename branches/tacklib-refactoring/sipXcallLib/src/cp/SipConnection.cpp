@@ -124,6 +124,7 @@ SipConnection::SipConnection(const char* outboundLineAddress,
     if(outboundLineAddress)
     {
         mFromUrl = outboundLineAddress;
+        mLineURI = mFromUrl;
 
         // Before adding the from tag, construct the local contact with the
         // device's NAT friendly contact information (getContactUri).  The host
@@ -3822,9 +3823,8 @@ void SipConnection::processReferRequest(const SipMessage* request)
         mpCall->setTargetCallId(targetCallId.data());
         mpCall->setCallType(CpCall::CP_TRANSFEREE_ORIGINAL_CALL);
 
-        Url tempUrl(mFromUrl); // mFromUrl may have a tag, strip it
-        tempUrl.removeParameters();
-        mpCallManager->setOutboundLineForCall(targetCallId, tempUrl.toString().data(), mContactType);
+        // use our own mLineURI as line for the new call, it doesn't contain tag, and contains all other parameters like transport
+        mpCallManager->setOutboundLineForCall(targetCallId, mLineURI.toString().data(), mContactType);
 
         // Send a message to the target call to create the
         // connection and send the INVITE
