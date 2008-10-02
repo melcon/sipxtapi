@@ -432,7 +432,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                 }
 
                                 pMediaInterface = mpMediaFactory->createMediaInterface(
-									NULL,
+									         NULL,
                                     NULL, 
                                     localAddress, numCodecs, codecArray, 
                                     mLocale.data(), mExpeditedIpTos, stunServer, 
@@ -450,6 +450,10 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                 else
                                     inviteExpireSeconds = mInviteExpireSeconds;
 
+                                // ask line provider to extract lineURI from message
+                                Url lineURI;
+                                m_pLineProvider->extractLineData(*sipMsg, TRUE, UtlString(), lineURI, UtlString());
+
                                 handlingCall = new CpPeerCall(mIsEarlyMediaFor180,
                                     this,
                                     pMediaInterface,
@@ -461,7 +465,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     callId.data(),
                                     sipUserAgent,
                                     mSipSessionReinviteTimer,
-                                    mOutboundLine.data(),
+                                    lineURI.toString().data(), // sets mLocalAddress for CpPeerCall
                                     mOfferedTimeOut,
                                     mLineAvailableBehavior,
                                     mForwardUnconditional.data(),
@@ -470,8 +474,9 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     mNoAnswerTimeout,
                                     mForwardOnNoAnswer.data(),
                                     inviteExpireSeconds);
-								// temporary
-								pMediaInterface->setInterfaceNotificationQueue(handlingCall->getMessageQueue());
+							
+                                // temporary
+								        pMediaInterface->setInterfaceNotificationQueue(handlingCall->getMessageQueue());
 
                                 for (int i = 0; i < numCodecs; i++)
                                 {

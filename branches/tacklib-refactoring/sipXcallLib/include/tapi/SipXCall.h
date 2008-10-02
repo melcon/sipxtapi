@@ -20,6 +20,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <net/Url.h>
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
 #include "tapi/SipXCore.h"

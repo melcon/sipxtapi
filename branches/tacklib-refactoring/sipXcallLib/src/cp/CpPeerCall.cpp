@@ -142,14 +142,7 @@ CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
 
     if(defaultCallExtension)
     {
-        //extension.append(phoneExtension);
-        //NameValueTokenizer::frontBackTrim(&extension, " \t\n\r");
-        Url outboundLine(defaultCallExtension);
-
-
-        // For now the terminal id is the extension
-        //mLocalTerminalId.append(extension);
-        outboundLine.toString(mLocalTerminalId);
+        mLocalTerminalId = defaultCallExtension;
         mLocalAddress = mLocalTerminalId;
     }
 
@@ -612,7 +605,7 @@ UtlBoolean CpPeerCall::handleSipMessage(OsMsg* pEventMessage)
             osPrintf("%s-CpPeerCall::handleSipMessage - connection NULL, shouldCreateConnection TRUE msgType %d msgSubType %d \n", 
                 name.data(), pEventMessage->getMsgType(), pEventMessage->getMsgSubType());
 #endif
-            connection = new SipConnection("", // Get local address from message
+            connection = new SipConnection(mLocalAddress, // use lineURI from mLocalAddress if it is known
                 mIsEarlyMediaFor180,
                 mpManager,
                 this,
@@ -2565,8 +2558,7 @@ void CpPeerCall::handleSetOutboundLine(OsMsg* pEventMessage)
     UtlString strOutboundAddress;
     ((CpMultiStringMessage*)pEventMessage)->getString2Data(strOutboundAddress);
 
-    Url outboundLine(strOutboundAddress);
-    outboundLine.toString(mLocalTerminalId);
+    mLocalTerminalId = strOutboundAddress;
     mLocalAddress = mLocalTerminalId;
 }
 

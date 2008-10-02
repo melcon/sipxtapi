@@ -110,6 +110,7 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
       Url toUrl;
       sipMsg.getToUrl(toUrl);
       lineUri = toUrl.getUri(); // get lineUri from toUrl
+      lineUri.removeUrlParameter("tag"); // remove tag just in case it was url parameter, case insensitive operation
       lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
       lineUri.getUserId(userId); // get userId from lineUri
    }
@@ -124,6 +125,7 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
       contactUrl.getUserId(userId);
       sipMsg.getFromUrl(fromUrl);
       lineUri = fromUrl.getUri(); // get lineUri from fromUrl
+      lineUri.removeUrlParameter("tag"); // remove tag just in case it was url parameter, case insensitive operation
    }
 }
 
