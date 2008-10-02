@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="sipXcallLib-msvc8"
 	ProjectGUID="{0EADF7C3-7D48-45BF-A00D-ECB94DC912EA}"
 	RootNamespace="sipXcallLib-msvc8"
@@ -130,7 +130,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 				CompileAs="0"
 			/>
 			<Tool
