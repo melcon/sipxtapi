@@ -111,6 +111,9 @@ public:
                             int numMetaEventCalls = 0,
                             const char* metaEventCallIds[] = NULL,
                             UtlBoolean assumeFocusIfNoInfocusCall = TRUE);
+    /** Creates empty conference returning its Id */
+    virtual UtlString createConference();
+
     virtual OsStatus getCalls(UtlSList& callIdList);
 
     virtual PtStatus connect(const char* callId,
