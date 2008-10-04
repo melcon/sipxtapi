@@ -758,7 +758,7 @@ typedef struct
  */
 typedef enum 
 {
-    SIPX_MESSAGE_OK,                  /**< The message was successfully processed (200) */ 
+    SIPX_MESSAGE_OK = 0,                  /**< The message was successfully processed (200) */ 
     SIPX_MESSAGE_FAILURE,             /**< The server received the message, but could or would
                                            not process it. */
     SIPX_MESSAGE_SERVER_FAILURE,      /**< The server encountered an error while trying to process

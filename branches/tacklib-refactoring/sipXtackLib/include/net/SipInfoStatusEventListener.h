@@ -20,7 +20,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
-#include "tapi/sipXtapiEvents.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -29,6 +28,15 @@
 // FORWARD DECLARATIONS
 // STRUCTS
 // TYPEDEFS
+
+typedef enum 
+{
+    SIPXTACK_MESSAGE_OK = 0,
+    SIPXTACK_MESSAGE_FAILURE,
+    SIPXTACK_MESSAGE_SERVER_FAILURE,
+    SIPXTACK_MESSAGE_GLOBAL_FAILURE,
+} SIPXTACK_MESSAGE_STATUS;
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
@@ -36,10 +44,16 @@
 class SipInfoStatusEvent
 {
 public:
-   SIPX_INFOSTATUS_EVENT m_Event;
-   SIPX_MESSAGE_STATUS m_Status;
+   SIPXTACK_MESSAGE_STATUS m_status;
    int m_iResponseCode;
-   UtlString m_sResponseText;  
+   UtlString m_sResponseText;
+
+   SipInfoStatusEvent() : m_status(SIPXTACK_MESSAGE_OK)
+      , m_iResponseCode(0)
+      , m_sResponseText()
+   {
+
+   }
 };
 
 

@@ -23,6 +23,7 @@
 #include <tapi/SipXTransport.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/CpDefs.h>
+#include <net/SipInfoStatusEventListener.h>
 
 // DEFINES
 // MACROS
@@ -323,7 +324,7 @@ public:
                             intptr_t pEventData2 = 0);
 
     void fireSipXInfoStatusEvent(SIPX_INFOSTATUS_EVENT event,
-                                 SIPX_MESSAGE_STATUS status,
+                                 SIPXTACK_MESSAGE_STATUS status,
                                  const UtlString& sResponseText,
                                  int responseCode = 0);
 

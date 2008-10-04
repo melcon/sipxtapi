@@ -751,15 +751,14 @@ void Connection::fireSipXMediaEvent(CP_MEDIA_EVENT event,
 }
 
 void Connection::fireSipXInfoStatusEvent(SIPX_INFOSTATUS_EVENT event,
-                                         SIPX_MESSAGE_STATUS status,
+                                         SIPXTACK_MESSAGE_STATUS status,
                                          const UtlString& sResponseText,
                                          int responseCode)
 {
    if (m_pInfoStatusEventListener)
    {
       SipInfoStatusEvent infoEvent;
-      infoEvent.m_Event = event;
-      infoEvent.m_Status = status;
+      infoEvent.m_status = status;
       infoEvent.m_sResponseText = sResponseText;
       infoEvent.m_iResponseCode = responseCode;
 

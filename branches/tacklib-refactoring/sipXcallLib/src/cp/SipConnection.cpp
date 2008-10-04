@@ -1158,7 +1158,7 @@ UtlBoolean SipConnection::sendInfo(UtlString contentType, UtlString sContent)
     }
     else
     {
-        fireSipXInfoStatusEvent(INFOSTATUS_NETWORK_ERROR, SIPX_MESSAGE_FAILURE, NULL);
+        fireSipXInfoStatusEvent(INFOSTATUS_NETWORK_ERROR, SIPXTACK_MESSAGE_FAILURE, NULL);
     }
 
     //delete pBody; // DONT delete here!  body is deleted by HttpMessage class
