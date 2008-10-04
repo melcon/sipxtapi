@@ -100,6 +100,8 @@ public:
       m_cause = event.m_cause;
       m_responseCode = event.m_responseCode;
       m_sResponseText = event.m_sResponseText;
+
+      return *this;
    }
 };
 

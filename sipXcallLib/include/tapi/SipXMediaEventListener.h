@@ -95,6 +95,8 @@ public:
       m_codec = event.m_codec;
       m_idleTime = event.m_idleTime;
       m_toneId = event.m_toneId;
+
+      return *this;
    }
 
    SipXMediaEvent(const CpMediaEvent& eventPayload, SIPX_MEDIA_EVENT event = MEDIA_UNKNOWN)
