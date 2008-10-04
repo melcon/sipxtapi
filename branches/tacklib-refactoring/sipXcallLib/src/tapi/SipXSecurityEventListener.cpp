@@ -45,40 +45,40 @@ SipXSecurityEventListener::~SipXSecurityEventListener()
 
 /* ============================ MANIPULATORS ============================== */
 
-void SipXSecurityEventListener::OnEncrypt( const SipSecurityEvent& event )
+void SipXSecurityEventListener::OnEncrypt(const SipSecurityEvent& event)
 {
    sipxFireSecurityEvent(m_pInst,
                          event.m_sSRTPkey,
                          event.m_pCertificate,
                          event.m_nCertificateSize,
                          SECURITY_ENCRYPT,
-                         event.m_Cause,
+                         (SIPX_SECURITY_CAUSE)event.m_Cause,
                          event.m_sSubjAltName,
                          event.m_SessionCallId,
                          event.m_sRemoteAddress);
 }
 
-void SipXSecurityEventListener::OnDecrypt( const SipSecurityEvent& event )
+void SipXSecurityEventListener::OnDecrypt(const SipSecurityEvent& event)
 {
    sipxFireSecurityEvent(m_pInst,
                          event.m_sSRTPkey,
                          event.m_pCertificate,
                          event.m_nCertificateSize,
                          SECURITY_DECRYPT,
-                         event.m_Cause,
+                         (SIPX_SECURITY_CAUSE)event.m_Cause,
                          event.m_sSubjAltName,
                          event.m_SessionCallId,
                          event.m_sRemoteAddress);
 }
 
-void SipXSecurityEventListener::OnTLS( const SipSecurityEvent& event )
+void SipXSecurityEventListener::OnTLS(const SipSecurityEvent& event)
 {
    sipxFireSecurityEvent(m_pInst,
                          event.m_sSRTPkey,
                          event.m_pCertificate,
                          event.m_nCertificateSize,
                          SECURITY_TLS,
-                         event.m_Cause,
+                         (SIPX_SECURITY_CAUSE)event.m_Cause,
                          event.m_sSubjAltName,
                          event.m_SessionCallId,
                          event.m_sRemoteAddress);

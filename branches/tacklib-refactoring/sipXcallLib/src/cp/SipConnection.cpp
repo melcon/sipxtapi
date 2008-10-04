@@ -6707,8 +6707,8 @@ UtlBoolean SipConnection::prepareInviteSdpForSend(SipMessage* pMsg,
             UtlString callId;
             pMsg->getCallIdField(&callId);
 
-            fireSipXSecurityEvent(SECURITY_ENCRYPT,
-                                 SECURITY_CAUSE_ENCRYPT_SUCCESS,
+            fireSipXSecurityEvent(SIPXTACK_SECURITY_ENCRYPT,
+                                 SIPXTACK_SECURITY_CAUSE_ENCRYPT_SUCCESS,
                                  mpSecurity->getSrtpKey(),
                                  (void*)mpSecurity->getSmimeKey(),
                                  mpSecurity->getSmimeKeyLength(),

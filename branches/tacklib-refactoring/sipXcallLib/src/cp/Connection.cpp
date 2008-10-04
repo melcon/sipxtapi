@@ -609,8 +609,8 @@ void Connection::fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
    m_eLastMinor = causeCode;
 }
 
-void Connection::fireSipXSecurityEvent(SIPX_SECURITY_EVENT event,
-                                       SIPX_SECURITY_CAUSE cause,
+void Connection::fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
+                                       SIPXTACK_SECURITY_CAUSE cause,
                                        const UtlString& sSRTPkey,
                                        void* pCertificate,
                                        size_t nCertificateSize,
@@ -632,13 +632,13 @@ void Connection::fireSipXSecurityEvent(SIPX_SECURITY_EVENT event,
 
       switch(event)
       {
-      case SECURITY_ENCRYPT:
+      case SIPXTACK_SECURITY_ENCRYPT:
          m_pSecurityEventListener->OnEncrypt(secEvent);
          break;
-      case SECURITY_DECRYPT:
+      case SIPXTACK_SECURITY_DECRYPT:
          m_pSecurityEventListener->OnDecrypt(secEvent);
          break;
-      case SECURITY_TLS:
+      case SIPXTACK_SECURITY_TLS:
          m_pSecurityEventListener->OnTLS(secEvent);
          break;
       default:

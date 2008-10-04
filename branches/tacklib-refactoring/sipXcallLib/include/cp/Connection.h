@@ -24,6 +24,7 @@
 #include <mi/CpMediaInterface.h>
 #include <cp/CpDefs.h>
 #include <net/SipInfoStatusEventListener.h>
+#include <net/SipSecurityEventListener.h>
 
 // DEFINES
 // MACROS
@@ -328,8 +329,8 @@ public:
                                  const UtlString& sResponseText,
                                  int responseCode = 0);
 
-    void fireSipXSecurityEvent(SIPX_SECURITY_EVENT event,
-                               SIPX_SECURITY_CAUSE cause,
+    void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
+                               SIPXTACK_SECURITY_CAUSE cause,
                                const UtlString& sSRTPkey,
                                void* pCertificate,
                                size_t nCertificateSize,
