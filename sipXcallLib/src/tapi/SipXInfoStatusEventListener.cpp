@@ -45,14 +45,16 @@ SipXInfoStatusEventListener::~SipXInfoStatusEventListener()
 
 /* ============================ MANIPULATORS ============================== */
 
-void SipXInfoStatusEventListener::OnResponse( const SipInfoStatusEvent& event )
+void SipXInfoStatusEventListener::OnResponse(const SipInfoStatusEvent& event)
 {
-   sipxFireInfoStatusEvent(m_pInst, 0, event.m_Status, event.m_iResponseCode, event.m_sResponseText, INFOSTATUS_RESPONSE);
+   sipxFireInfoStatusEvent(m_pInst, 0, (SIPX_MESSAGE_STATUS)event.m_status,
+      event.m_iResponseCode, event.m_sResponseText, INFOSTATUS_RESPONSE);
 }
 
-void SipXInfoStatusEventListener::OnNetworkError( const SipInfoStatusEvent& event )
+void SipXInfoStatusEventListener::OnNetworkError(const SipInfoStatusEvent& event)
 {
-   sipxFireInfoStatusEvent(m_pInst, 0, event.m_Status, event.m_iResponseCode, event.m_sResponseText, INFOSTATUS_NETWORK_ERROR);
+   sipxFireInfoStatusEvent(m_pInst, 0, (SIPX_MESSAGE_STATUS)event.m_status,
+      event.m_iResponseCode, event.m_sResponseText, INFOSTATUS_NETWORK_ERROR);
 }
 
 /* ============================ ACCESSORS ================================= */
