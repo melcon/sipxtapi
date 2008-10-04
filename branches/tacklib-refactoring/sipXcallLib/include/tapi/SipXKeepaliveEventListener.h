@@ -43,7 +43,7 @@ public:
 
    SipXKeepaliveEventListener(SIPX_INST pInst);
 
-   virtual ~SipXKeepaliveEventListener() {} ;
+   virtual ~SipXKeepaliveEventListener();
 
    /* ============================ MANIPULATORS ============================== */
 

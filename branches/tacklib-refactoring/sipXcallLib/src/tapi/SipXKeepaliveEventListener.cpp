@@ -35,9 +35,15 @@
 
 /* ============================ CREATORS ================================== */
 
-SipXKeepaliveEventListener::SipXKeepaliveEventListener( SIPX_INST pInst ) : OsNatKeepaliveListener()
+SipXKeepaliveEventListener::SipXKeepaliveEventListener(SIPX_INST pInst) : OsServerTask("SipXKeepaliveEventListener-%d")
+, OsNatKeepaliveListener()
 {
    m_pInst = pInst;
+}
+
+SipXKeepaliveEventListener::~SipXKeepaliveEventListener()
+{
+   waitUntilShutDown();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -78,8 +84,8 @@ UtlBoolean SipXKeepaliveEventListener::handleMessage(OsMsg& rRawMsg)
          KeepaliveEventMsg* pMsg = dynamic_cast<KeepaliveEventMsg*>(&rRawMsg);
          if (pMsg)
          {
-            const OsNatKeepaliveEvent& payload = pMsg->getEventPayloadRef();
             // cast succeeded
+            const OsNatKeepaliveEvent& payload = pMsg->getEventPayloadRef();
             handleKeepaliveEvent(pMsg->getEvent(), pMsg->getEventCause(),
                (SIPX_KEEPALIVE_TYPE)payload.type, payload.remoteAddress, payload.remotePort,
                payload.keepAliveSecs, payload.mappedAddress, payload.mappedPort);

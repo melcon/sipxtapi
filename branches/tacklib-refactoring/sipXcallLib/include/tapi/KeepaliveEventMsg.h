@@ -42,7 +42,7 @@ public:
 
    KeepaliveEventMsg();
 
-   KeepaliveEventMsg(SIPX_KEEPALIVE_EVENT eventType,
+   KeepaliveEventMsg(SIPX_KEEPALIVE_EVENT event,
                      SIPX_KEEPALIVE_CAUSE eventCause,
                      const OsNatKeepaliveEvent& eventPayload);
 
