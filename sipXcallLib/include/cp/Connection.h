@@ -305,13 +305,13 @@ public:
     // call events
     void prepareCallStateEvent(CpCallStateEvent& event,
                                SIPX_CALLSTATE_CAUSE eMinor,
-                               void *pEventData = NULL,
+                               const UtlString& sOriginalSessionCallId = NULL,
                                int sipResponseCode = 0,
                                const UtlString& sResponseText = NULL);
 
     void fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
                            SIPX_CALLSTATE_CAUSE causeCode,
-                           void* pEventData = NULL,
+                           const UtlString& sOriginalSessionCallId = NULL,
                            int sipResponseCode = 0,
                            const UtlString& sResponseText = NULL);
 

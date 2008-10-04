@@ -43,7 +43,7 @@ public:
    SipSession m_Session;
    UtlString m_sRemoteAddress;
    SIPX_CALLSTATE_CAUSE m_cause;
-   const void* m_pEventData;
+   UtlString m_sOriginalSessionCallId; // callId supplied sometimes for transfer events
    int m_sipResponseCode;
    UtlString m_sResponseText;
 
@@ -52,7 +52,7 @@ public:
                      const SipSession& session,
                      const UtlString& sRemoteAddress,
                      SIPX_CALLSTATE_CAUSE cause,
-                     const void* pEventData = NULL,
+                     const UtlString& sOriginalSessionCallId = NULL,
                      int sipResponseCode = 0,
                      const UtlString& sResponseText = NULL)
  : m_sSessionCallId(sSessionCallId),
@@ -60,7 +60,7 @@ public:
    m_Session(session),
    m_sRemoteAddress(sRemoteAddress),
    m_cause(cause),
-   m_pEventData(pEventData),
+   m_sOriginalSessionCallId(sOriginalSessionCallId),
    m_sipResponseCode(sipResponseCode),
    m_sResponseText(sResponseText)
    {
@@ -69,14 +69,12 @@ public:
 
    CpCallStateEvent()
    {
-      m_pEventData = NULL;
       m_sipResponseCode = 0;
       m_cause = CALLSTATE_CAUSE_UNKNOWN;
    }
 
    ~CpCallStateEvent()
    {
-
    }
 
    CpCallStateEvent(const CpCallStateEvent& event)
@@ -96,7 +94,7 @@ public:
       m_Session = event.m_Session;
       m_sRemoteAddress = event.m_sRemoteAddress;
       m_cause = event.m_cause;
-      m_pEventData = event.m_pEventData;
+      m_sOriginalSessionCallId = event.m_sOriginalSessionCallId;
       m_sipResponseCode = event.m_sipResponseCode;
       m_sResponseText = event.m_sResponseText;
    }

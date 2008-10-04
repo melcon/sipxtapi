@@ -1545,7 +1545,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
                        const UtlString& szRemoteAddress, 
                        SIPX_CALLSTATE_EVENT event, 
                        SIPX_CALLSTATE_CAUSE cause, 
-                       const void* pEventData,
+                       const UtlString& sOriginalSessionCallId,
                        int sipResponseCode,
                        const UtlString& sResponseText)
 {
@@ -1610,10 +1610,9 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       pCallData->pMutex.release();
 
       // VERIFY
-      if (pEventData) // event data during newcall => call transfer original call
+      if (!sOriginalSessionCallId.isNull()) // event data during newcall => call transfer original call
       {
-         const char* szOriginalCallId = (const char*)pEventData;
-         hAssociatedCall = sipxCallLookupHandleBySessionCallId(UtlString(szOriginalCallId), pInst);
+         hAssociatedCall = sipxCallLookupHandleBySessionCallId(sOriginalSessionCallId, pInst);
 
          // Make sure we remove the call instead of allowing a drop.  When acting
          // as a transfer target, we are performing surgery on a CpPeerCall.  We
@@ -1852,7 +1851,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       sipxFireCallEvent(pInst, sCallId, sSessionCallId, session, szRemoteAddress,
          CALLSTATE_DESTROYED,
          CALLSTATE_CAUSE_NORMAL,
-         pEventData);
+         sOriginalSessionCallId);
    }
 
    // check for the bHoldAfterConnect flag.  If it is true, start a hold

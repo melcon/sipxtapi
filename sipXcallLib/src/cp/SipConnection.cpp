@@ -979,7 +979,7 @@ UtlBoolean SipConnection::dial(const char* dialString,
                     // get the original callid from the call object
                     mpCall->getOriginalCallId(origCallId);
                 }
-                fireSipXCallEvent(CALLSTATE_NEWCALL, CALLSTATE_CAUSE_TRANSFER, (void*) origCallId.data());
+                fireSipXCallEvent(CALLSTATE_NEWCALL, CALLSTATE_CAUSE_TRANSFER, origCallId);
             }
 
             // Create and send an INVITE
@@ -3112,7 +3112,7 @@ void SipConnection::processInviteRequestOffering(const SipMessage* request,
             2, metaEventCallIds);
         mpCall->setCallType(CpCall::CP_TRANSFER_TARGET_TARGET_CALL);
 
-        fireSipXCallEvent(CALLSTATE_NEWCALL, CALLSTATE_CAUSE_TRANSFERRED, (void*) replaceCallId.data()) ;
+        fireSipXCallEvent(CALLSTATE_NEWCALL, CALLSTATE_CAUSE_TRANSFERRED, replaceCallId);
     }
     else
     {
