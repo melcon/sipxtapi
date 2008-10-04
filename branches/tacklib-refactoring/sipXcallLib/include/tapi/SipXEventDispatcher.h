@@ -99,6 +99,10 @@ private:
 
    virtual ~SipXEventDispatcher(void);
 
+   SipXEventDispatcher(const SipXEventDispatcher& rhs);
+
+   SipXEventDispatcher& operator=(const SipXEventDispatcher& rhs);
+
    void serviceListeners(const SIPX_INST hInst,
                          SIPX_EVENT_CATEGORY category, 
                          void*               pInfo);
