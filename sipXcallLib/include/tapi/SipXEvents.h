@@ -93,19 +93,6 @@ void sipxFirePIMEvent(void* userData,
                       const char* subject,
                       const SipMessage& messageRequest);
 
-/**
-* Fires events to interested listener (keepalive events only)
-*/
-void sipxFireKeepaliveEvent(const SIPX_INST      pInst,                                                        
-                            SIPX_KEEPALIVE_EVENT event,
-                            SIPX_KEEPALIVE_CAUSE cause,
-                            SIPX_KEEPALIVE_TYPE  type,
-                            const char*          szRemoteAddress,
-                            int                  remotePort,
-                            int                  keepAliveSecs,
-                            const char*          szFeedbackAddress,
-                            int                  feedbackPort);
-
 bool sipxFireSubscriptionStatusEvent(const SIPX_INST pInst,
                                      SIPX_SUBSTATUS_INFO* pInfo);
 
@@ -128,5 +115,7 @@ bool sipxFireSecurityEvent(const SIPX_INST pInst,
                            const UtlString& sSubjAltName,
                            const UtlString& sSessionCallId,
                            const UtlString& sRemoteAddress);
+
+const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type);
 
 #endif // SipXEvents_h__

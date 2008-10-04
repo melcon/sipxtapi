@@ -583,7 +583,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    }
 #endif
 
-   pInst->pKeepaliveDispatcher = new SipXKeepaliveEventListener(pInst);
+   pInst->pKeepaliveEventListener = new SipXKeepaliveEventListener(pInst);
+   pInst->pKeepaliveEventListener->start(); // start thread
 
    return rc;
 }
@@ -778,8 +779,8 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          delete pInst->pMessageObserver;
          pInst->pMessageObserver = NULL;
          sipxTransportDestroyAll(pInst);
-         delete pInst->pKeepaliveDispatcher;
-         pInst->pKeepaliveDispatcher = NULL;
+         delete pInst->pKeepaliveEventListener;
+         pInst->pKeepaliveEventListener = NULL;
 #ifdef _WIN32
          Sleep(50); // give it time to dispatch all events
          // this will be removed

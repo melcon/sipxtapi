@@ -447,7 +447,7 @@ SIPXTAPI_API const char* sipxKeepaliveCauseToString(SIPX_KEEPALIVE_CAUSE event)
 }
 
 
-static const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
+const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
 {
    const char* str = "Unknown";
 
@@ -1419,51 +1419,6 @@ void sipxFirePIMEvent(void* userData,
       free((void*)pimInfo.subject);
    }
 }
-
-
-void sipxFireKeepaliveEvent(const SIPX_INST      pInst,                                                        
-                            SIPX_KEEPALIVE_EVENT event,
-                            SIPX_KEEPALIVE_CAUSE cause,
-                            SIPX_KEEPALIVE_TYPE  type,
-                            const char*          szRemoteAddress,
-                            int                  remotePort,
-                            int                  keepAliveSecs,
-                            const char*          szFeedbackAddress,
-                            int                  feedbackPort)
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxFireKeepaliveEvent src=%p event=%s:%s type=%s remote=%s:%d keepalive=%ds mapped=%s:%d\n",
-      pInst, 
-      sipxKeepaliveEventToString(event),
-      sipxKeepaliveCauseToString(cause), 
-      convertKeepaliveTypeToString(type),
-      szRemoteAddress ? szRemoteAddress : "",
-      remotePort, 
-      keepAliveSecs,
-      szFeedbackAddress ? szFeedbackAddress : "",
-      feedbackPort);
-
-   SIPX_KEEPALIVE_INFO keepaliveInfo;
-   memset(&keepaliveInfo, 0, sizeof(SIPX_KEEPALIVE_INFO));
-
-   keepaliveInfo.nSize = sizeof(SIPX_KEEPALIVE_INFO);
-   keepaliveInfo.event = event;
-   keepaliveInfo.cause = cause;
-   keepaliveInfo.type = type;
-   keepaliveInfo.szRemoteAddress = SAFE_STRDUP(szRemoteAddress);
-   keepaliveInfo.remotePort = remotePort;
-   keepaliveInfo.keepAliveSecs = keepAliveSecs;
-   keepaliveInfo.szFeedbackAddress = SAFE_STRDUP(szFeedbackAddress);
-   keepaliveInfo.feedbackPort = feedbackPort;
-
-   SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_KEEPALIVE, &keepaliveInfo);
-
-   // free doesn't mind NULL value
-   free((void*)keepaliveInfo.szRemoteAddress);
-   free((void*)keepaliveInfo.szFeedbackAddress);
-}
-
-
 
 void sipxFireConfigEvent(const SIPX_INST pInst,                                                        
                          SIPX_CONFIG_EVENT event,

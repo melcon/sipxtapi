@@ -165,6 +165,7 @@ public:
    SipXInfoStatusEventListener* pInfoStatusEventListener;
    SipXSecurityEventListener* pSecurityEventListener;
    SipXMediaEventListener* pMediaEventListener;
+   SipXKeepaliveEventListener* pKeepaliveEventListener;
    SipDialogMgr* pDialogManager;
 
    AUDIO_CODEC_PREFERENCES audioCodecSetting;
@@ -188,8 +189,6 @@ public:
    char            szAcceptLanguage[16]; /**< accept language to use in sip messages>*/
    char            szLocationHeader[256]; /**< location header */
    UtlBoolean      bRtpOverTcp;   /**< allow RTP over TCP */
-
-   SipXKeepaliveEventListener* pKeepaliveDispatcher;
 
    SIPX_INSTANCE_DATA() : lock(OsMutex::Q_FIFO),
       pSipUserAgent(NULL),
@@ -217,7 +216,7 @@ public:
       bAllowHeader(FALSE),
       bDateHeader(FALSE),
       bRtpOverTcp(FALSE),
-      pKeepaliveDispatcher(NULL),
+      pKeepaliveEventListener(NULL),
       nInputAudioDevices(0),
       nOutputAudioDevices(0)
    {
