@@ -73,6 +73,33 @@ public:
       m_sipResponseCode = 0;
       m_cause = CALLSTATE_CAUSE_UNKNOWN;
    }
+
+   ~CpCallStateEvent()
+   {
+
+   }
+
+   CpCallStateEvent(const CpCallStateEvent& event)
+   {
+      *this = event;
+   }
+
+   CpCallStateEvent& operator=(const CpCallStateEvent& event)
+   {
+      if (&event == this)
+      {
+         return *this;
+      }
+
+      m_sCallId = event.m_sCallId;
+      m_sSessionCallId = event.m_sSessionCallId;
+      m_Session = event.m_Session;
+      m_sRemoteAddress = event.m_sRemoteAddress;
+      m_cause = event.m_cause;
+      m_pEventData = event.m_pEventData;
+      m_sipResponseCode = event.m_sipResponseCode;
+      m_sResponseText = event.m_sResponseText;
+   }
 };
 
 

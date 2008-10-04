@@ -644,6 +644,8 @@ void Connection::fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
       default:
          ;
       }
+
+      secEvent.m_pCertificate = NULL; // must be zeroed before ~SipSecurityEvent runs
    }
 }
 

@@ -39,13 +39,37 @@ public:
    CpVideoCodecInfo m_videoCodec;
    bool m_bIsEncrypted;
 
+   /* ============================ CREATORS ================================== */
+
    CpCodecInfo() : m_bIsEncrypted(false)
       , m_audioCodec()
       , m_videoCodec()
    {
    }
 
-   /* ============================ CREATORS ================================== */
+   ~CpCodecInfo()
+   {
+
+   }
+
+   CpCodecInfo(const CpCodecInfo& rhs)
+   {
+      *this = rhs;
+   }
+
+   CpCodecInfo& operator=(const CpCodecInfo& rhs)
+   {
+      if (&rhs == this)
+      {
+         return *this;
+      }
+
+      m_audioCodec = rhs.m_audioCodec;
+      m_videoCodec = rhs.m_videoCodec;
+      m_bIsEncrypted = rhs.m_bIsEncrypted;
+
+      return *this;
+   }
 
    /* ============================ MANIPULATORS ============================== */
 

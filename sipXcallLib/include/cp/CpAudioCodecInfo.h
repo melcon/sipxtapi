@@ -49,13 +49,37 @@ public:
    CP_AUDIO_BANDWIDTH_ID m_iBandWidth;
    int m_iPayloadType;
 
+   /* ============================ CREATORS ================================== */
+
    CpAudioCodecInfo() : m_codecName()
       , m_iBandWidth(CP_AUDIO_CODEC_BW_DEFAULT)
       , m_iPayloadType(0)
    {
    }
 
-   /* ============================ CREATORS ================================== */
+   ~CpAudioCodecInfo()
+   {
+
+   }
+
+   CpAudioCodecInfo(const CpAudioCodecInfo& rhs)
+   {
+      *this = rhs;
+   }
+
+   CpAudioCodecInfo& operator=(const CpAudioCodecInfo& rhs)
+   {
+      if (&rhs == this)
+      {
+         return *this;
+      }
+
+      m_codecName = rhs.m_codecName;
+      m_iBandWidth = rhs.m_iBandWidth;
+      m_iPayloadType = rhs.m_iPayloadType;
+
+      return *this;
+   }
 
    /* ============================ MANIPULATORS ============================== */
 

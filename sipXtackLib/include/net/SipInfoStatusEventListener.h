@@ -54,6 +54,28 @@ public:
    {
 
    }
+
+   ~SipInfoStatusEvent()
+   {
+      // do nothing
+   }
+
+   SipInfoStatusEvent(const SipInfoStatusEvent& event)
+   {
+      *this = event;
+   }
+
+   SipInfoStatusEvent& operator=(const SipInfoStatusEvent& event)
+   {
+      if (&event == this)
+      {
+         return *this;
+      }
+
+      m_status = event.m_status;
+      m_iResponseCode = event.m_iResponseCode;
+      m_sResponseText = event.m_sResponseText;
+   }
 };
 
 
