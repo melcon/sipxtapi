@@ -75,6 +75,8 @@ public:
       m_status = event.m_status;
       m_iResponseCode = event.m_iResponseCode;
       m_sResponseText = event.m_sResponseText;
+
+      return *this;
    }
 };
 

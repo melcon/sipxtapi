@@ -90,6 +90,8 @@ public:
       m_codec = event.m_codec;
       m_idleTime = event.m_idleTime;
       m_toneId = event.m_toneId;
+
+      return *this;
    }
 };
 

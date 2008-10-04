@@ -97,6 +97,8 @@ public:
       m_sOriginalSessionCallId = event.m_sOriginalSessionCallId;
       m_sipResponseCode = event.m_sipResponseCode;
       m_sResponseText = event.m_sResponseText;
+
+      return *this;
    }
 };
 
