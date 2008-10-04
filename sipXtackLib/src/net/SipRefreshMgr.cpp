@@ -189,7 +189,7 @@ void SipRefreshMgr::unRegisterUser(const Url& fromUrl)
 
       if (m_pLineListener) 
       {
-         m_pLineListener->OnLineUnregistering(SipLineStateEvent(fromUrl.toString(), LINESTATE_UNREGISTERING_NORMAL));
+         m_pLineListener->OnLineUnregistering(SipLineStateEvent(fromUrl.toString(), SIPXTACK_LINESTATE_UNREGISTERING_NORMAL));
       }
 
       // clear out any pending register requests
@@ -280,7 +280,7 @@ SipRefreshMgr::sendRequest (
 
          if (m_pLineListener) 
          {
-            m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, LINESTATE_REGISTER_FAILED_COULD_NOT_CONNECT));
+            m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_REGISTER_FAILED_COULD_NOT_CONNECT));
          }
          rescheduleAfterTime(&request, FAILED_PERCENTAGE_TIMEOUT);
       }
@@ -288,7 +288,7 @@ SipRefreshMgr::sendRequest (
       {
          if (m_pLineListener)
          {
-            m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId, LINESTATE_UNREGISTER_FAILED_COULD_NOT_CONNECT));
+            m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_UNREGISTER_FAILED_COULD_NOT_CONNECT));
          }
       }
 
@@ -320,7 +320,7 @@ SipRefreshMgr::sendRequest (
       {
          if (m_pLineListener)
          {
-            m_pLineListener->OnLineRegistering(SipLineStateEvent(lineId, LINESTATE_REGISTERING_NORMAL));
+            m_pLineListener->OnLineRegistering(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_REGISTERING_NORMAL));
          }
       }
       else if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && isExpiresZero(&request)) 
@@ -523,7 +523,7 @@ SipRefreshMgr::processResponse(
                   if (m_pLineListener)
                   {
                      m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
-                        LINESTATE_UNREGISTER_FAILED_NOT_AUTHORIZED,
+                        SIPXTACK_LINESTATE_UNREGISTER_FAILED_NOT_AUTHORIZED,
                         responseCode,
                         responseStatusText));
                   }
@@ -533,7 +533,7 @@ SipRefreshMgr::processResponse(
                   if (m_pLineListener)
                   {
                      m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
-                        LINESTATE_UNREGISTER_FAILED_TIMEOUT,
+                        SIPXTACK_LINESTATE_UNREGISTER_FAILED_TIMEOUT,
                         responseCode,
                         responseStatusText));
                   }
@@ -543,7 +543,7 @@ SipRefreshMgr::processResponse(
                   if (m_pLineListener)
                   {
                      m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
-                        LINESTATE_CAUSE_UNKNOWN,
+                        SIPXTACK_LINESTATE_CAUSE_UNKNOWN,
                         responseCode,
                         responseStatusText));
                   }
@@ -573,7 +573,7 @@ SipRefreshMgr::processResponse(
                   if (m_pLineListener)
                   {
                      m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
-                        LINESTATE_REGISTER_FAILED_NOT_AUTHORIZED,
+                        SIPXTACK_LINESTATE_REGISTER_FAILED_NOT_AUTHORIZED,
                         responseCode,
                         responseStatusText));
                   }
@@ -583,7 +583,7 @@ SipRefreshMgr::processResponse(
                   if (m_pLineListener)
                   {
                      m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
-                        LINESTATE_REGISTER_FAILED_TIMEOUT,
+                        SIPXTACK_LINESTATE_REGISTER_FAILED_TIMEOUT,
                         responseCode,
                         responseStatusText));
                   }
@@ -594,7 +594,7 @@ SipRefreshMgr::processResponse(
                   if (m_pLineListener)
                   {
                      m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
-                        LINESTATE_CAUSE_UNKNOWN,
+                        SIPXTACK_LINESTATE_CAUSE_UNKNOWN,
                         responseCode,
                         responseStatusText));
                   }
@@ -624,7 +624,7 @@ SipRefreshMgr::processResponse(
       lineId = "sip:" + lineId; 
       if (m_pLineListener)
       {
-         m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, LINESTATE_CAUSE_UNKNOWN));
+         m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_CAUSE_UNKNOWN));
       }
    }
 
@@ -694,7 +694,7 @@ SipRefreshMgr::processOKResponse(
             response->getResponseStatusText(&responseStatusText);
 
             m_pLineListener->OnLineUnregistered(SipLineStateEvent(lineId,
-               LINESTATE_UNREGISTERED_NORMAL,
+               SIPXTACK_LINESTATE_UNREGISTERED_NORMAL,
                responseCode,
                responseStatusText));
          }
@@ -730,7 +730,7 @@ SipRefreshMgr::processOKResponse(
             response->getResponseStatusText(&responseStatusText);
 
             m_pLineListener->OnLineRegistered(SipLineStateEvent(lineId,
-               LINESTATE_REGISTERED_NORMAL,
+               SIPXTACK_LINESTATE_REGISTERED_NORMAL,
                response->getResponseStatusCode(),
                responseStatusText));
          }

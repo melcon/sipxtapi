@@ -28,9 +28,6 @@
 #include <sdp/SdpCodec.h>
 #include <net/Url.h>
 #include <net/SmimeBody.h>
-#include <tapi/sipXtapi.h>
-#include <tapi/sipXtapiEvents.h>
-
 
 class UtlHashMap;
 class SipUserAgent;
