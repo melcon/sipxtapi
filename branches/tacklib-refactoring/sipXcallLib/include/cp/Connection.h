@@ -22,6 +22,7 @@
 #include <tapi/sipXtapiEvents.h>
 #include <tapi/SipXTransport.h>
 #include <mi/CpMediaInterface.h>
+#include <cp/CpDefs.h>
 
 // DEFINES
 // MACROS
@@ -313,11 +314,11 @@ public:
                            const UtlString& sResponseText = NULL);
 
     // media events
-    void prepareMediaEvent(CpMediaEvent& event, SIPX_MEDIA_CAUSE cause, SIPX_MEDIA_TYPE type, void* pEventData = NULL);
+    void prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type);
 
     void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                            SIPX_MEDIA_CAUSE cause,
-                            SIPX_MEDIA_TYPE  type,
+                            CP_MEDIA_CAUSE cause,
+                            CP_MEDIA_TYPE  type,
                             intptr_t pEventData1 = 0,
                             intptr_t pEventData2 = 0);
 

@@ -2051,16 +2051,16 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
             UtlString remoteAddress ;
             ((CpMultiStringMessage&)eventMessage).getString2Data(remoteAddress) ;
             int event = ((CpMultiStringMessage&)eventMessage).getInt1Data() ;
-            int cause = ((CpMultiStringMessage&)eventMessage).getInt2Data() ;
-            int type = ((CpMultiStringMessage&)eventMessage).getInt3Data() ;
+            CP_MEDIA_CAUSE cause = (CP_MEDIA_CAUSE)((CpMultiStringMessage&)eventMessage).getInt2Data() ;
+            CP_MEDIA_TYPE type = (CP_MEDIA_TYPE)((CpMultiStringMessage&)eventMessage).getInt3Data() ;
 
             Connection* connection = findHandlingConnection(remoteAddress);
             if (connection)
-            {   
+            {
                 connection->fireSipXMediaEvent(
                         (SIPX_MEDIA_EVENT) event,
-                        (SIPX_MEDIA_CAUSE) cause,
-                        (SIPX_MEDIA_TYPE) type,
+                        (CP_MEDIA_CAUSE) cause,
+                        (CP_MEDIA_TYPE) type,
                         NULL) ;            
             }
         }
@@ -2096,8 +2096,8 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
 
 // fires given media event to all SipConnections
 void CpPeerCall::forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                                    SIPX_MEDIA_CAUSE cause,
-                                    SIPX_MEDIA_TYPE type,
+                                    CP_MEDIA_CAUSE cause,
+                                    CP_MEDIA_TYPE type,
                                     intptr_t pEventData1,
                                     intptr_t pEventData2)
 {
@@ -2112,8 +2112,8 @@ void CpPeerCall::forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
 }
 
 void CpPeerCall::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                                    SIPX_MEDIA_CAUSE cause,
-                                    SIPX_MEDIA_TYPE type,
+                                    CP_MEDIA_CAUSE cause,
+                                    CP_MEDIA_TYPE type,
                                     int mediaConnectionId,
                                     intptr_t pEventData1,
                                     intptr_t pEventData2)
@@ -2146,13 +2146,13 @@ UtlBoolean CpPeerCall::handleConnectionNotfMessage(OsMsg& eventMessage)
    switch(type)
    {
    case CP_NOTIFICATION_DTMF_INBAND:
-      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, MEDIA_CAUSE_DTMF_INBAND, (SIPX_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_INBAND, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    case CP_NOTIFICATION_DTMF_RFC2833:
-      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, MEDIA_CAUSE_DTMF_RFC2833, (SIPX_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_RFC2833, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    case CP_NOTIFICATION_DTMF_SIPINFO:
-      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, MEDIA_CAUSE_DTMF_SIPINFO, (SIPX_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_SIPINFO, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    default:
       assert(false);
@@ -2173,28 +2173,28 @@ UtlBoolean CpPeerCall::handleInterfaceNotfMessage(OsMsg& eventMessage)
    switch(type)
    {
    case CP_NOTIFICATION_START_PLAY_FILE:
-      forkSipXMediaEvent(MEDIA_PLAYFILE_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_PLAYFILE_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_STOP_PLAY_FILE:
-      forkSipXMediaEvent(MEDIA_PLAYFILE_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_PLAYFILE_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_START_PLAY_BUFFER:
-      forkSipXMediaEvent(MEDIA_PLAYBUFFER_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_PLAYBUFFER_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_STOP_PLAY_BUFFER:
-      forkSipXMediaEvent(MEDIA_PLAYBUFFER_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_PLAYBUFFER_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_PAUSE_PLAYBACK:
-      forkSipXMediaEvent(MEDIA_PLAYBACK_PAUSED, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_PLAYBACK_PAUSED, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_RESUME_PLAYBACK:
-      forkSipXMediaEvent(MEDIA_PLAYBACK_RESUMED, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_PLAYBACK_RESUMED, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_RECORDING_STARTED:
-      forkSipXMediaEvent(MEDIA_RECORDING_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_RECORDING_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_RECORDING_STOPPED:
-      forkSipXMediaEvent(MEDIA_RECORDING_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(MEDIA_RECORDING_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    default:
       assert(false);

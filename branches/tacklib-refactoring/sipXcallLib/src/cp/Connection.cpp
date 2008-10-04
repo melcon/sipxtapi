@@ -23,18 +23,19 @@
 #include <os/OsTimer.h>
 #include "os/OsDateTime.h"
 #include "os/OsUtil.h"
+#include <sdp/SdpCodec.h>
+#include <net/SipSession.h>
+#include <net/SipSecurityEventListener.h>
+#include <net/SipInfoStatusEventListener.h>
+#include <ptapi/PtTerminalConnection.h>
+#include <mi/CpMediaInterface.h>
 #include <cp/Connection.h>
 #include <cp/CpGhostConnection.h>
 #include <cp/CpMultiStringMessage.h>
 #include <cp/CpCall.h>
 #include <cp/CpCallStateEventListener.h>
 #include <cp/CpMediaEventListener.h>
-#include <mi/CpMediaInterface.h>
-#include <sdp/SdpCodec.h>
-#include <net/SipSession.h>
-#include <net/SipSecurityEventListener.h>
-#include <net/SipInfoStatusEventListener.h>
-#include <ptapi/PtTerminalConnection.h>
+#include <cp/CpCodecInfo.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -646,8 +647,7 @@ void Connection::fireSipXSecurityEvent(SIPX_SECURITY_EVENT event,
    }
 }
 
-
-void Connection::prepareMediaEvent( CpMediaEvent& event, SIPX_MEDIA_CAUSE cause, SIPX_MEDIA_TYPE type, void* pEventData /*= NULL*/ )
+void Connection::prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type)
 {
    getCallId(&event.m_sSessionCallId);
    getRemoteAddress(&event.m_sRemoteAddress);
@@ -657,14 +657,13 @@ void Connection::prepareMediaEvent( CpMediaEvent& event, SIPX_MEDIA_CAUSE cause,
       mpCall->getCallId(event.m_sCallId);
    }
 
-   event.m_Cause = cause;
-   event.m_MediaType = type;
-   event.m_pEventData = pEventData;
+   event.m_cause = cause;
+   event.m_mediaType = type;
 }
 
 void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                                    SIPX_MEDIA_CAUSE cause,
-                                    SIPX_MEDIA_TYPE  type,
+                                    CP_MEDIA_CAUSE cause,
+                                    CP_MEDIA_TYPE  type,
                                     intptr_t pEventData1,
                                     intptr_t pEventData2)
 {
@@ -676,11 +675,17 @@ void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
       switch(event)
       {
       case MEDIA_LOCAL_START:
-         mediaEvent.m_pEventData = (void*)pEventData1;
+         if (pEventData1)
+         {
+            mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
+         }
          m_pMediaEventListener->OnMediaLocalStart(mediaEvent);
          break;
       case MEDIA_LOCAL_STOP:
-         mediaEvent.m_pEventData = (void*)pEventData1;
+         if (pEventData1)
+         {
+            mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
+         }
          m_pMediaEventListener->OnMediaLocalStop(mediaEvent);
          break;
       case MEDIA_REMOTE_START:
@@ -690,7 +695,7 @@ void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
          m_pMediaEventListener->OnMediaRemoteStop(mediaEvent);
          break;
       case MEDIA_REMOTE_SILENT:
-         mediaEvent.m_pEventData = (void*)pEventData1;
+         mediaEvent.m_idleTime = (int)pEventData1;
          m_pMediaEventListener->OnMediaRemoteSilent(mediaEvent);
          break;
       case MEDIA_PLAYFILE_START:
@@ -715,16 +720,16 @@ void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
          break;
       case MEDIA_PLAYBACK_PAUSED:
          mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = pEventData2;
+         mediaEvent.m_playBufferIndex = (int)pEventData2;
          m_pMediaEventListener->OnMediaPlaybackPaused(mediaEvent);
          break;
       case MEDIA_PLAYBACK_RESUMED:
          mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = pEventData2;
+         mediaEvent.m_playBufferIndex = (int)pEventData2;
          m_pMediaEventListener->OnMediaPlaybackResumed(mediaEvent);
          break;
       case MEDIA_REMOTE_DTMF:
-         mediaEvent.m_pEventData = (void*)pEventData1;
+         mediaEvent.m_toneId = (CP_TONE_ID)pEventData1;
          m_pMediaEventListener->OnMediaRemoteDTMF(mediaEvent);
          break;
       case MEDIA_DEVICE_FAILURE:

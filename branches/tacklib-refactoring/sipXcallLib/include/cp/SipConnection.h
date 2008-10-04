@@ -296,8 +296,8 @@ protected:
     void fireIncompatibleCodecsEvent(SdpCodecFactory* pSupportedCodecs,
                                      SdpCodec**       ppMatchedCodecs,
                                      int              nMatchedCodces) ;
-    void fireAudioStartEvents(SIPX_MEDIA_CAUSE cause = MEDIA_CAUSE_NORMAL) ;
-    void fireAudioStopEvents(SIPX_MEDIA_CAUSE cause = MEDIA_CAUSE_NORMAL) ;
+    void fireAudioStartEvents(CP_MEDIA_CAUSE cause = CP_MEDIA_CAUSE_NORMAL);
+    void fireAudioStopEvents(CP_MEDIA_CAUSE cause = CP_MEDIA_CAUSE_NORMAL);
 
     /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
