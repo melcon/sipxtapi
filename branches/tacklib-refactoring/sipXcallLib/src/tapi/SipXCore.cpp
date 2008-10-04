@@ -393,6 +393,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pCallEventListener = new SipXCallEventListener(pInst);
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
    pInst->pSecurityEventListener = new SipXSecurityEventListener(pInst);
+   pInst->pSecurityEventListener->start();
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
    // create refresh manager
    pInst->pRefreshManager = new SipRefreshMgr(pInst->pLineEventListener);

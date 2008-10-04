@@ -2020,7 +2020,6 @@ bool sipxFireNotifyEvent(const SIPX_INST pInst,
    return true;
 }
 
-
 bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
                              SIPX_INFO hInfo,
                              SIPX_MESSAGE_STATUS status,
@@ -2039,36 +2038,6 @@ bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
    infoStatus.event = event;
 
    SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_INFO_STATUS, &infoStatus);
-
-   return true;
-}
-
-
-bool sipxFireSecurityEvent(const SIPX_INST pInst,
-                           const UtlString& sSRTPkey,
-                           void* pCertificate,
-                           size_t nCertificateSize,
-                           SIPX_SECURITY_EVENT event,
-                           SIPX_SECURITY_CAUSE cause,
-                           const UtlString& sSubjAltName,
-                           const UtlString& sSessionCallId,
-                           const UtlString& sRemoteAddress)
-{
-   SIPX_SECURITY_INFO info;
-   memset((void*)&info, 0, sizeof(SIPX_SECURITY_INFO));
-
-   info.nSize = sizeof(SIPX_SECURITY_INFO);
-   info.szSRTPkey = sSRTPkey.data();
-   info.pCertificate = pCertificate;
-   info.nCertificateSize = nCertificateSize;
-   info.cause = cause;
-   info.event = event;
-   info.szSubjAltName = sSubjAltName.data();
-   info.callId = sSessionCallId.data();
-   info.hCall = sipxCallLookupHandleBySessionCallId(sSessionCallId, pInst);
-   info.remoteAddress = sRemoteAddress.data();
-
-   SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_SECURITY, &info);
 
    return true;
 }
