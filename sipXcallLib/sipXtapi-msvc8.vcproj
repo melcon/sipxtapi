@@ -607,6 +607,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath=".\src\tapi\InfoStatusEventMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tapi\KeepaliveEventMsg.cpp"
 				>
 			</File>
@@ -983,6 +987,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\include\tapi\InfoStatusEventMsg.h"
+				>
+			</File>
 			<File
 				RelativePath=".\include\tapi\KeepaliveEventMsg.h"
 				>
