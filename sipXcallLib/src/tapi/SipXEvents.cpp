@@ -1822,15 +1822,13 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       if (pCallData->lastLocalMediaAudioEvent == MEDIA_LOCAL_START)
       {
          sipxFireMediaEvent(pInst, sCallId, sSessionCallId, szRemoteAddress, 
-            MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO,
-            NULL) ;
+            MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
       if (pCallData->lastLocalMediaVideoEvent == MEDIA_LOCAL_START)
       {
          sipxFireMediaEvent(pInst, sCallId,  sSessionCallId,szRemoteAddress, 
-            MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO,
-            NULL) ;
+            MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
       // fire simulated remote media events
@@ -1839,8 +1837,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
          (pCallData->lastRemoteMediaAudioEvent == MEDIA_REMOTE_ACTIVE))
       {
          sipxFireMediaEvent(pInst, sCallId,  sSessionCallId,szRemoteAddress, 
-            MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO,
-            NULL) ;
+            MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
       if ((pCallData->lastRemoteMediaVideoEvent == MEDIA_REMOTE_START) || 
@@ -1848,8 +1845,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
          (pCallData->lastRemoteMediaVideoEvent == MEDIA_REMOTE_ACTIVE))
       {
          sipxFireMediaEvent(pInst, sCallId, sSessionCallId, szRemoteAddress, 
-            MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO,
-            NULL) ;
+            MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
       // also fire destroyed event
@@ -1885,28 +1881,39 @@ void sipxFireCallEvent(const SIPX_INST pInst,
    }
 }
 
-
 void sipxFireMediaEvent(SIPX_INST pInst,
                         const UtlString& sCallId,
                         const UtlString& sSessionCallId,
                         const UtlString& sRemoteAddress,
                         SIPX_MEDIA_EVENT event,
                         SIPX_MEDIA_CAUSE cause,
-                        SIPX_MEDIA_TYPE type,
-                        void* pEventData,
-                        void* pCookie,
-                        int playBufferIndex)
+                        SIPX_MEDIA_TYPE type)
+{
+   SipXMediaEvent eventPayload;
+   eventPayload.m_event = event;
+   eventPayload.m_cause = cause;
+   eventPayload.m_mediaType = type;
+   eventPayload.m_sCallId = sCallId;
+   eventPayload.m_sSessionCallId = sSessionCallId;
+   eventPayload.m_sRemoteAddress = sRemoteAddress;
+
+   sipxFireMediaEvent(pInst, eventPayload);
+}
+
+void sipxFireMediaEvent(SIPX_INST pInst,
+                        const SipXMediaEvent& eventPayload)
 {
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxFireMediaEvent Src=%p CallId=%s RemoteAddress=%s Event=%s:%s type=%d",
       pInst,
-      sCallId.data(),
-      sRemoteAddress.data(),
-      sipxMediaEventToString(event),
-      sipxMediaCauseToString(cause),
-      type);
+      eventPayload.m_sCallId.data(),
+      eventPayload.m_sRemoteAddress.data(),
+      sipxMediaEventToString(eventPayload.m_event),
+      sipxMediaCauseToString(eventPayload.m_cause),
+      eventPayload.m_mediaType);
 
-   SIPX_CALL hCall = sipxCallLookupHandleBySessionCallId(sSessionCallId, pInst);
+   SIPX_MEDIA_EVENT event = eventPayload.m_event;
+   SIPX_CALL hCall = sipxCallLookupHandleBySessionCallId(eventPayload.m_sSessionCallId, pInst);
    UtlBoolean bIgnored = FALSE;
 
    /*
@@ -1926,7 +1933,7 @@ void sipxFireMediaEvent(SIPX_INST pInst,
          lastRemoteMediaAudioEvent,
          lastRemoteMediaVideoEvent))
       {
-         switch (type)
+         switch (eventPayload.m_mediaType)
          {
          case MEDIA_TYPE_AUDIO:
             if ((event == MEDIA_LOCAL_START) || (event == MEDIA_LOCAL_STOP))
@@ -1990,14 +1997,14 @@ void sipxFireMediaEvent(SIPX_INST pInst,
       // ignore certain events
       if (event == MEDIA_REMOTE_SILENT)
       {
-         if (type == MEDIA_TYPE_AUDIO)
+         if (eventPayload.m_mediaType == MEDIA_TYPE_AUDIO)
          {
             if (lastRemoteMediaAudioEvent == MEDIA_REMOTE_STOP)
             {
                bIgnored = TRUE;
             }
          }
-         else if (type == MEDIA_TYPE_VIDEO)
+         else if (eventPayload.m_mediaType == MEDIA_TYPE_VIDEO)
          {
             if (lastRemoteMediaVideoEvent == MEDIA_REMOTE_STOP)
             {
@@ -2013,38 +2020,23 @@ void sipxFireMediaEvent(SIPX_INST pInst,
          memset(&mediaInfo, 0, sizeof(mediaInfo));
          mediaInfo.nSize = sizeof(SIPX_MEDIA_INFO);
          mediaInfo.event = event;
-         mediaInfo.cause = cause;
-         mediaInfo.mediaType = type;
+         mediaInfo.cause = eventPayload.m_cause;
+         mediaInfo.mediaType = eventPayload.m_mediaType;
          mediaInfo.hCall = hCall;
-         mediaInfo.pCookie = pCookie;
-         mediaInfo.playBufferIndex = playBufferIndex;
-
-         switch (event)
-         {
-         case MEDIA_LOCAL_START:
-         case MEDIA_REMOTE_START:
-            if (pEventData)
-            {
-               memcpy(&mediaInfo.codec, pEventData, sizeof(SIPX_CODEC_INFO));
-            }
-            break;
-         case MEDIA_REMOTE_SILENT:
-            mediaInfo.idleTime = (int)pEventData;
-            break ;
-         case MEDIA_REMOTE_DTMF:
-            mediaInfo.toneId = (SIPX_TONE_ID)(int)pEventData;
-         default:
-            break;
-         }
+         mediaInfo.pCookie = eventPayload.m_pCookie;
+         mediaInfo.playBufferIndex = eventPayload.m_playBufferIndex;
+         mediaInfo.codec = eventPayload.m_codec;
+         mediaInfo.idleTime = eventPayload.m_idleTime;
+         mediaInfo.toneId = eventPayload.m_toneId;
 
          SipXEventDispatcher::dispatchEvent((SIPX_INST)pInst, EVENT_CATEGORY_MEDIA, &mediaInfo);
 
-         sipxCallSetMediaState(hCall, event, type);
+         sipxCallSetMediaState(hCall, event, eventPayload.m_mediaType);
       }
    }
    else
    {
-      OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Media event received but call was not found for CallId=%s", sSessionCallId.data());
+      OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Media event received but call was not found for CallId=%s", eventPayload.m_sSessionCallId.data());
    }
 }
 

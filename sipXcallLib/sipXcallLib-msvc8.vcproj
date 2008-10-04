@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="sipXcallLib-msvc8"
 	ProjectGUID="{0EADF7C3-7D48-45BF-A00D-ECB94DC912EA}"
 	RootNamespace="sipXcallLib-msvc8"
@@ -730,6 +730,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpAudioCodecInfo.h"
+				>
+			</File>
+			<File
 				RelativePath="include\cp\CpCall.h"
 				>
 			</File>
@@ -739,6 +743,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpCallStateEventListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpCodecInfo.h"
 				>
 			</File>
 			<File
@@ -767,6 +775,10 @@
 			</File>
 			<File
 				RelativePath="include\cp\CpPeerCall.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpVideoCodecInfo.h"
 				>
 			</File>
 			<File

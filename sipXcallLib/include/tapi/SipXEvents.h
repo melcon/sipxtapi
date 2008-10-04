@@ -21,6 +21,7 @@
 // APPLICATION INCLUDES
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
+#include "tapi/SipXMediaEventListener.h"
 #include "utl/UtlString.h"
 
 // DEFINES
@@ -30,6 +31,7 @@
 // FORWARD DECLARATIONS
 class SipSession;
 class SipMessage;
+class CpMediaEvent;
 
 // STRUCTS
 // TYPEDEFS
@@ -71,15 +73,15 @@ void sipxFireCallEvent(const SIPX_INST pInst,
                        const UtlString& sResponseText = NULL);
 
 void sipxFireMediaEvent(SIPX_INST pInst,
+                        const SipXMediaEvent& eventPayload);
+
+void sipxFireMediaEvent(SIPX_INST pInst,
                         const UtlString& sCallId,
                         const UtlString& sSessionCallId,
                         const UtlString& sRemoteAddress,
                         SIPX_MEDIA_EVENT event,
                         SIPX_MEDIA_CAUSE cause,
-                        SIPX_MEDIA_TYPE type,
-                        void* pEventData = NULL,
-                        void* pCookie = NULL,
-                        int playBufferIndex = 0);
+                        SIPX_MEDIA_TYPE type);
 
 /**
 * Fires SipPimClient events
