@@ -47,37 +47,37 @@ SipXLineEventListener::~SipXLineEventListener()
 
 void SipXLineEventListener::OnLineRegistering( const SipLineStateEvent& event )
 {
-   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_REGISTERING, (SIPX_LINESTATE_CAUSE)event.m_Cause, event.m_responseCode, event.m_sResponseText);
+   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_REGISTERING, (SIPX_LINESTATE_CAUSE)event.m_cause, event.m_responseCode, event.m_sResponseText);
 }
 
 void SipXLineEventListener::OnLineRegistered( const SipLineStateEvent& event )
 {
-   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_REGISTERED, (SIPX_LINESTATE_CAUSE)event.m_Cause, event.m_responseCode, event.m_sResponseText);
+   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_REGISTERED, (SIPX_LINESTATE_CAUSE)event.m_cause, event.m_responseCode, event.m_sResponseText);
 }
 
 void SipXLineEventListener::OnLineUnregistering( const SipLineStateEvent& event )
 {
-   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_UNREGISTERING, (SIPX_LINESTATE_CAUSE)event.m_Cause, event.m_responseCode, event.m_sResponseText);
+   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_UNREGISTERING, (SIPX_LINESTATE_CAUSE)event.m_cause, event.m_responseCode, event.m_sResponseText);
 }
 
 void SipXLineEventListener::OnLineUnregistered( const SipLineStateEvent& event )
 {
-   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_UNREGISTERED, (SIPX_LINESTATE_CAUSE)event.m_Cause, event.m_responseCode, event.m_sResponseText);
+   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_UNREGISTERED, (SIPX_LINESTATE_CAUSE)event.m_cause, event.m_responseCode, event.m_sResponseText);
 }
 
 void SipXLineEventListener::OnLineRegisterFailed( const SipLineStateEvent& event )
 {
-   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_REGISTER_FAILED, (SIPX_LINESTATE_CAUSE)event.m_Cause, event.m_responseCode, event.m_sResponseText);
+   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_REGISTER_FAILED, (SIPX_LINESTATE_CAUSE)event.m_cause, event.m_responseCode, event.m_sResponseText);
 }
 
 void SipXLineEventListener::OnLineUnregisterFailed( const SipLineStateEvent& event )
 {
-   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_UNREGISTER_FAILED, (SIPX_LINESTATE_CAUSE)event.m_Cause, event.m_responseCode, event.m_sResponseText);
+   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_UNREGISTER_FAILED, (SIPX_LINESTATE_CAUSE)event.m_cause, event.m_responseCode, event.m_sResponseText);
 }
 
 void SipXLineEventListener::OnLineProvisioned( const SipLineStateEvent& event )
 {
-   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_PROVISIONED, (SIPX_LINESTATE_CAUSE)event.m_Cause, event.m_responseCode, event.m_sResponseText);
+   sipxFireLineEvent(m_pInst, event.m_sLineId, LINESTATE_PROVISIONED, (SIPX_LINESTATE_CAUSE)event.m_cause, event.m_responseCode, event.m_sResponseText);
 }
 
 /* ============================ ACCESSORS ================================= */

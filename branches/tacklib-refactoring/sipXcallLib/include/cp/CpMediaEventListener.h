@@ -61,6 +61,36 @@ public:
    , m_toneId(CP_ID_DTMF_0)
    {
    }
+
+   ~CpMediaEvent()
+   {
+      // do nothing
+   }
+
+   CpMediaEvent(const CpMediaEvent& event)
+   {
+      *this = event;
+   }
+
+   CpMediaEvent& operator=(const CpMediaEvent& event)
+   {
+      if (&event == this)
+      {
+         return *this;
+      }
+
+      m_sCallId = event.m_sCallId;
+      m_sSessionCallId = event.m_sSessionCallId;
+      m_sRemoteAddress = event.m_sRemoteAddress;
+      m_pCookie = event.m_pCookie;
+      m_playBufferIndex = event.m_playBufferIndex;
+      m_cause = event.m_cause;
+      m_mediaType = event.m_mediaType;
+
+      m_codec = event.m_codec;
+      m_idleTime = event.m_idleTime;
+      m_toneId = event.m_toneId;
+   }
 };
 
 

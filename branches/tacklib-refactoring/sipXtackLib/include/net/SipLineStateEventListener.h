@@ -66,17 +66,40 @@ class SipLineStateEvent
 public:
 
    UtlString m_sLineId;
-   SIPXTACK_LINESTATE_CAUSE m_Cause;
+   SIPXTACK_LINESTATE_CAUSE m_cause;
    int m_responseCode;
    UtlString m_sResponseText;
 
    SipLineStateEvent(const UtlString& lineId, SIPXTACK_LINESTATE_CAUSE cause, int responseCode = 0, const UtlString& sResponseText = NULL)
       : m_sLineId(lineId),
-        m_Cause(cause),
+        m_cause(cause),
         m_responseCode(responseCode),
         m_sResponseText(sResponseText)
    {
 
+   }
+
+   ~SipLineStateEvent()
+   {
+
+   }
+
+   SipLineStateEvent(const SipLineStateEvent& event)
+   {
+      *this = event;
+   }
+
+   SipLineStateEvent& operator=(const SipLineStateEvent& event)
+   {
+      if (&event == this)
+      {
+         return *this;
+      }
+
+      m_sLineId = event.m_sLineId;
+      m_cause = event.m_cause;
+      m_responseCode = event.m_responseCode;
+      m_sResponseText = event.m_sResponseText;
    }
 };
 

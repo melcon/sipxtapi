@@ -89,6 +89,48 @@ public:
    {
 
    }
+
+   ~SipSecurityEvent()
+   {
+      if (m_pCertificate)
+      {
+         delete m_pCertificate;
+         m_pCertificate = NULL;
+      }
+   }
+
+   SipSecurityEvent(const SipSecurityEvent& event)
+   {
+      *this = event;
+   }
+
+   SipSecurityEvent& operator=(const SipSecurityEvent& event)
+   {
+      if (&event == this)
+      {
+         return *this;
+      }
+
+      m_sSRTPkey = event.m_sSRTPkey;
+      if (m_pCertificate)
+      {
+         delete m_pCertificate;
+         m_pCertificate = NULL;
+      }
+      if (event.m_nCertificateSize > 0)
+      {
+         m_pCertificate = malloc(event.m_nCertificateSize);
+         memcpy(m_pCertificate, event.m_pCertificate, event.m_nCertificateSize);
+      }
+      m_nCertificateSize = event.m_nCertificateSize;
+      m_Event = event.m_Event;
+      m_Cause = event.m_Cause;
+      m_sSubjAltName = event.m_sSubjAltName;
+      m_SessionCallId = event.m_SessionCallId;
+      m_sRemoteAddress = event.m_sRemoteAddress;
+
+      return *this;
+   }
 };
 
 
@@ -121,6 +163,7 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
 
 };
 

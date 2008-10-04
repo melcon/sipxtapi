@@ -49,13 +49,37 @@ public:
    CP_VIDEO_BANDWIDTH_ID m_iBandWidth;
    int m_iPayloadType;
 
+   /* ============================ CREATORS ================================== */
+
    CpVideoCodecInfo() : m_codecName()
       , m_iBandWidth(CP_VIDEO_CODEC_BW_DEFAULT)
       , m_iPayloadType(0)
    {
    }
 
-   /* ============================ CREATORS ================================== */
+   ~CpVideoCodecInfo()
+   {
+
+   }
+
+   CpVideoCodecInfo(const CpVideoCodecInfo& rhs)
+   {
+      *this = rhs;
+   }
+
+   CpVideoCodecInfo& operator=(const CpVideoCodecInfo& rhs)
+   {
+      if (&rhs == this)
+      {
+         return *this;
+      }
+
+      m_codecName = rhs.m_codecName;
+      m_iBandWidth = rhs.m_iBandWidth;
+      m_iPayloadType = rhs.m_iPayloadType;
+
+      return *this;
+   }
 
    /* ============================ MANIPULATORS ============================== */
 
