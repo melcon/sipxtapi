@@ -611,6 +611,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\tapi\SecurityEventMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tapi\SecurityHelper.cpp"
 				>
 			</File>
@@ -981,6 +985,10 @@
 			>
 			<File
 				RelativePath=".\include\tapi\KeepaliveEventMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\SecurityEventMsg.h"
 				>
 			</File>
 			<File

@@ -72,8 +72,8 @@ public:
    UtlString           m_sSRTPkey;
    void*               m_pCertificate;
    size_t              m_nCertificateSize;
-   SIPXTACK_SECURITY_EVENT m_Event;
-   SIPXTACK_SECURITY_CAUSE m_Cause;
+   SIPXTACK_SECURITY_EVENT m_event;
+   SIPXTACK_SECURITY_CAUSE m_cause;
    UtlString           m_sSubjAltName;
    UtlString           m_SessionCallId;
    UtlString           m_sRemoteAddress;
@@ -81,8 +81,8 @@ public:
    SipSecurityEvent() : m_sSRTPkey()
       , m_pCertificate(NULL)
       , m_nCertificateSize(0)
-      , m_Event(SIPXTACK_SECURITY_UNKNOWN)
-      , m_Cause(SIPXTACK_SECURITY_CAUSE_UNKNOWN)
+      , m_event(SIPXTACK_SECURITY_UNKNOWN)
+      , m_cause(SIPXTACK_SECURITY_CAUSE_UNKNOWN)
       , m_sSubjAltName()
       , m_SessionCallId()
       , m_sRemoteAddress()
@@ -123,8 +123,8 @@ public:
          memcpy(m_pCertificate, event.m_pCertificate, event.m_nCertificateSize);
       }
       m_nCertificateSize = event.m_nCertificateSize;
-      m_Event = event.m_Event;
-      m_Cause = event.m_Cause;
+      m_event = event.m_event;
+      m_cause = event.m_cause;
       m_sSubjAltName = event.m_sSubjAltName;
       m_SessionCallId = event.m_SessionCallId;
       m_sRemoteAddress = event.m_sRemoteAddress;

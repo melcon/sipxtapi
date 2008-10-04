@@ -106,16 +106,6 @@ bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
                              const UtlString& sResponseText,
                              SIPX_INFOSTATUS_EVENT event);
 
-bool sipxFireSecurityEvent(const SIPX_INST pInst,
-                           const UtlString& sSRTPkey,
-                           void* pCertificate,
-                           size_t nCertificateSize,
-                           SIPX_SECURITY_EVENT event,
-                           SIPX_SECURITY_CAUSE cause,
-                           const UtlString& sSubjAltName,
-                           const UtlString& sSessionCallId,
-                           const UtlString& sRemoteAddress);
-
 const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type);
 
 #endif // SipXEvents_h__

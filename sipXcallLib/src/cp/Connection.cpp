@@ -621,8 +621,8 @@ void Connection::fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
    if (m_pSecurityEventListener)
    {
       SipSecurityEvent secEvent;
-      secEvent.m_Event = event;
-      secEvent.m_Cause = cause;
+      secEvent.m_event = event;
+      secEvent.m_cause = cause;
       secEvent.m_sSRTPkey = sSRTPkey;
       secEvent.m_pCertificate = pCertificate;
       secEvent.m_nCertificateSize = nCertificateSize;
