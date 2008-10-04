@@ -29,10 +29,10 @@ KeepaliveEventMsg::KeepaliveEventMsg() : OsMsg(KEEPALIVE_MSG, 0)
 
 }
 
-KeepaliveEventMsg::KeepaliveEventMsg(SIPX_KEEPALIVE_EVENT eventType,
+KeepaliveEventMsg::KeepaliveEventMsg(SIPX_KEEPALIVE_EVENT event,
                                      SIPX_KEEPALIVE_CAUSE eventCause,
                                      const OsNatKeepaliveEvent& eventPayload) : OsMsg(KEEPALIVE_MSG, 0)
-, m_event(eventType)
+, m_event(event)
 , m_eventCause(eventCause)
 , m_eventPayload(eventPayload)
 {
