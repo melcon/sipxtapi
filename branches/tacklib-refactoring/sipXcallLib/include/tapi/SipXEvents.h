@@ -99,13 +99,6 @@ bool sipxFireSubscriptionStatusEvent(const SIPX_INST pInst,
 bool sipxFireNotifyEvent(const SIPX_INST pInst,
                          SIPX_NOTIFY_INFO* pInfo);
 
-bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
-                             SIPX_INFO hInfo,
-                             SIPX_MESSAGE_STATUS status,
-                             int responseCode,
-                             const UtlString& sResponseText,
-                             SIPX_INFOSTATUS_EVENT event);
-
 const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type);
 
 #endif // SipXEvents_h__

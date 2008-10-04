@@ -2020,28 +2020,6 @@ bool sipxFireNotifyEvent(const SIPX_INST pInst,
    return true;
 }
 
-bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
-                             SIPX_INFO hInfo,
-                             SIPX_MESSAGE_STATUS status,
-                             int responseCode,
-                             const UtlString& sResponseText,
-                             SIPX_INFOSTATUS_EVENT event)
-{
-   SIPX_INFOSTATUS_INFO infoStatus;
-   memset((void*)&infoStatus, 0, sizeof(SIPX_INFOSTATUS_INFO));
-
-   infoStatus.nSize = sizeof(SIPX_INFOSTATUS_INFO);
-   infoStatus.hInfo = hInfo;
-   infoStatus.status = status;
-   infoStatus.responseCode = responseCode;
-   infoStatus.szResponseText = sResponseText.data();
-   infoStatus.event = event;
-
-   SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_INFO_STATUS, &infoStatus);
-
-   return true;
-}
-
 /*********************************************************************/
 /*       Event listener management                                   */
 /*********************************************************************/
