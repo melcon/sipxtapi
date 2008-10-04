@@ -661,9 +661,9 @@ void Connection::prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP
    event.m_mediaType = type;
 }
 
-void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
+void Connection::fireSipXMediaEvent(CP_MEDIA_EVENT event,
                                     CP_MEDIA_CAUSE cause,
-                                    CP_MEDIA_TYPE  type,
+                                    CP_MEDIA_TYPE type,
                                     intptr_t pEventData1,
                                     intptr_t pEventData2)
 {
@@ -674,74 +674,74 @@ void Connection::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
 
       switch(event)
       {
-      case MEDIA_LOCAL_START:
+      case CP_MEDIA_LOCAL_START:
          if (pEventData1)
          {
             mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
          }
          m_pMediaEventListener->OnMediaLocalStart(mediaEvent);
          break;
-      case MEDIA_LOCAL_STOP:
+      case CP_MEDIA_LOCAL_STOP:
          if (pEventData1)
          {
             mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
          }
          m_pMediaEventListener->OnMediaLocalStop(mediaEvent);
          break;
-      case MEDIA_REMOTE_START:
+      case CP_MEDIA_REMOTE_START:
          m_pMediaEventListener->OnMediaRemoteStart(mediaEvent);
          break;
-      case MEDIA_REMOTE_STOP:
+      case CP_MEDIA_REMOTE_STOP:
          m_pMediaEventListener->OnMediaRemoteStop(mediaEvent);
          break;
-      case MEDIA_REMOTE_SILENT:
+      case CP_MEDIA_REMOTE_SILENT:
          mediaEvent.m_idleTime = (int)pEventData1;
          m_pMediaEventListener->OnMediaRemoteSilent(mediaEvent);
          break;
-      case MEDIA_PLAYFILE_START:
+      case CP_MEDIA_PLAYFILE_START:
          mediaEvent.m_pCookie = (void*)pEventData1;
          mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlayfileStart(mediaEvent);
          break;
-      case MEDIA_PLAYFILE_STOP:
+      case CP_MEDIA_PLAYFILE_STOP:
          mediaEvent.m_pCookie = (void*)pEventData1;
          mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlayfileStop(mediaEvent);
          break;
-      case MEDIA_PLAYBUFFER_START:
+      case CP_MEDIA_PLAYBUFFER_START:
          mediaEvent.m_pCookie = (void*)pEventData1;
          mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlaybufferStart(mediaEvent);
          break;
-      case MEDIA_PLAYBUFFER_STOP:
+      case CP_MEDIA_PLAYBUFFER_STOP:
          mediaEvent.m_pCookie = (void*)pEventData1;
          mediaEvent.m_playBufferIndex = pEventData2;
          m_pMediaEventListener->OnMediaPlaybufferStop(mediaEvent);
          break;
-      case MEDIA_PLAYBACK_PAUSED:
+      case CP_MEDIA_PLAYBACK_PAUSED:
          mediaEvent.m_pCookie = (void*)pEventData1;
          mediaEvent.m_playBufferIndex = (int)pEventData2;
          m_pMediaEventListener->OnMediaPlaybackPaused(mediaEvent);
          break;
-      case MEDIA_PLAYBACK_RESUMED:
+      case CP_MEDIA_PLAYBACK_RESUMED:
          mediaEvent.m_pCookie = (void*)pEventData1;
          mediaEvent.m_playBufferIndex = (int)pEventData2;
          m_pMediaEventListener->OnMediaPlaybackResumed(mediaEvent);
          break;
-      case MEDIA_REMOTE_DTMF:
+      case CP_MEDIA_REMOTE_DTMF:
          mediaEvent.m_toneId = (CP_TONE_ID)pEventData1;
          m_pMediaEventListener->OnMediaRemoteDTMF(mediaEvent);
          break;
-      case MEDIA_DEVICE_FAILURE:
+      case CP_MEDIA_DEVICE_FAILURE:
          m_pMediaEventListener->OnMediaDeviceFailure(mediaEvent);
          break;
-      case MEDIA_REMOTE_ACTIVE:
+      case CP_MEDIA_REMOTE_ACTIVE:
          m_pMediaEventListener->OnMediaRemoteActive(mediaEvent);
          break;
-      case MEDIA_RECORDING_START:
+      case CP_MEDIA_RECORDING_START:
          m_pMediaEventListener->OnMediaRecordingStart(mediaEvent);
          break;
-      case MEDIA_RECORDING_STOP:
+      case CP_MEDIA_RECORDING_STOP:
          m_pMediaEventListener->OnMediaRecordingStop(mediaEvent);
          break;
       default:
