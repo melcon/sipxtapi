@@ -525,7 +525,7 @@ UtlBoolean Connection::validStateTransition(SIPX_CALLSTATE_EVENT eFrom, SIPX_CAL
 // call events
 void Connection::prepareCallStateEvent(CpCallStateEvent& event,
                                        SIPX_CALLSTATE_CAUSE eMinor,
-                                       void *pEventData,
+                                       const UtlString& sOriginalSessionCallId,
                                        int sipResponseCode,
                                        const UtlString& sResponseText)
 {
@@ -537,14 +537,14 @@ void Connection::prepareCallStateEvent(CpCallStateEvent& event,
       mpCall->getCallId(event.m_sCallId);
    }
    event.m_cause = eMinor;
-   event.m_pEventData = pEventData;
+   event.m_sOriginalSessionCallId = sOriginalSessionCallId;
    event.m_sipResponseCode = sipResponseCode;
    event.m_sResponseText = sResponseText;
 }
 
 void Connection::fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
                                    SIPX_CALLSTATE_CAUSE causeCode,
-                                   void* pEventData,
+                                   const UtlString& sOriginalSessionCallId,
                                    int sipResponseCode,
                                    const UtlString& sResponseText)
 {
@@ -557,7 +557,7 @@ void Connection::fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
    if (m_pCallEventListener)
    {
       CpCallStateEvent event;
-      prepareCallStateEvent(event, causeCode, pEventData, sipResponseCode, sResponseText);
+      prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
 
       switch(eventCode)
       {
