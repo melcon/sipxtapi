@@ -924,7 +924,7 @@ UtlBoolean SipConnection::dial(const char* dialString,
             setCallId(callId);
             if (!bAudioAvailable)
             {
-                fireSipXMediaEvent(MEDIA_DEVICE_FAILURE, CP_MEDIA_CAUSE_DEVICE_UNAVAILABLE, CP_MEDIA_TYPE_AUDIO);
+                fireSipXMediaEvent(CP_MEDIA_DEVICE_FAILURE, CP_MEDIA_CAUSE_DEVICE_UNAVAILABLE, CP_MEDIA_TYPE_AUDIO);
             }
             setState(CONNECTION_FAILED, CONNECTION_REMOTE, CONNECTION_CAUSE_RESOURCES_NOT_AVAILABLE);
             fireSipXCallEvent(CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_RESOURCE_LIMIT);
@@ -6918,14 +6918,14 @@ void SipConnection::fireIncompatibleCodecsEvent(SdpCodecFactory* pSupportedCodec
 
     if (bIncludedAudioCodecs && !bFoundAudioCodecs)
     {
-        fireSipXMediaEvent(MEDIA_REMOTE_STOP, CP_MEDIA_CAUSE_INCOMPATIBLE, CP_MEDIA_TYPE_AUDIO) ;
+        fireSipXMediaEvent(CP_MEDIA_REMOTE_STOP, CP_MEDIA_CAUSE_INCOMPATIBLE, CP_MEDIA_TYPE_AUDIO) ;
     }
 
     if (bIncludedVideoCodec && !bFoundVideoCodecs)
     {
         if (mpMediaInterface->getVideoWindowDisplay() != NULL)
         {
-            fireSipXMediaEvent(MEDIA_REMOTE_STOP, CP_MEDIA_CAUSE_INCOMPATIBLE, CP_MEDIA_TYPE_VIDEO) ;
+            fireSipXMediaEvent(CP_MEDIA_REMOTE_STOP, CP_MEDIA_CAUSE_INCOMPATIBLE, CP_MEDIA_TYPE_VIDEO) ;
         }
     }
 }
@@ -6946,19 +6946,19 @@ void SipConnection::fireAudioStartEvents(CP_MEDIA_CAUSE cause)
         {
             if (mpMediaInterface->isSendingRtpAudio(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_LOCAL_START, cause, CP_MEDIA_TYPE_AUDIO, (intptr_t)&tapiCodec);
+                fireSipXMediaEvent(CP_MEDIA_LOCAL_START, cause, CP_MEDIA_TYPE_AUDIO, (intptr_t)&tapiCodec);
             }
             if (mpMediaInterface->isSendingRtpVideo(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_LOCAL_START, cause, CP_MEDIA_TYPE_VIDEO, (intptr_t)&tapiCodec);
+                fireSipXMediaEvent(CP_MEDIA_LOCAL_START, cause, CP_MEDIA_TYPE_VIDEO, (intptr_t)&tapiCodec);
             }
             if (mpMediaInterface->isReceivingRtpAudio(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_REMOTE_START, cause, CP_MEDIA_TYPE_AUDIO, (intptr_t)&tapiCodec);
+                fireSipXMediaEvent(CP_MEDIA_REMOTE_START, cause, CP_MEDIA_TYPE_AUDIO, (intptr_t)&tapiCodec);
             }
             if (mpMediaInterface->isReceivingRtpVideo(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_REMOTE_START, cause, CP_MEDIA_TYPE_VIDEO, (intptr_t)&tapiCodec);
+                fireSipXMediaEvent(CP_MEDIA_REMOTE_START, cause, CP_MEDIA_TYPE_VIDEO, (intptr_t)&tapiCodec);
             }
         }
     }
@@ -6979,11 +6979,11 @@ void SipConnection::fireAudioStopEvents(CP_MEDIA_CAUSE cause)
 */
             if (!mpMediaInterface->isSendingRtpAudio(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_LOCAL_STOP, cause, CP_MEDIA_TYPE_AUDIO);
+                fireSipXMediaEvent(CP_MEDIA_LOCAL_STOP, cause, CP_MEDIA_TYPE_AUDIO);
             }
             if (!mpMediaInterface->isReceivingRtpAudio(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_REMOTE_STOP, cause, CP_MEDIA_TYPE_AUDIO);
+                fireSipXMediaEvent(CP_MEDIA_REMOTE_STOP, cause, CP_MEDIA_TYPE_AUDIO);
             }
         }
 
@@ -6998,11 +6998,11 @@ void SipConnection::fireAudioStopEvents(CP_MEDIA_CAUSE cause)
 */
             if (!mpMediaInterface->isSendingRtpVideo(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_LOCAL_STOP, cause, CP_MEDIA_TYPE_VIDEO);
+                fireSipXMediaEvent(CP_MEDIA_LOCAL_STOP, cause, CP_MEDIA_TYPE_VIDEO);
             }
             if (!mpMediaInterface->isReceivingRtpVideo(mConnectionId))
             {
-                fireSipXMediaEvent(MEDIA_REMOTE_STOP, cause, CP_MEDIA_TYPE_VIDEO);
+                fireSipXMediaEvent(CP_MEDIA_REMOTE_STOP, cause, CP_MEDIA_TYPE_VIDEO);
             }
         }
     }

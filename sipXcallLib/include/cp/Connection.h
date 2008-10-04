@@ -316,7 +316,7 @@ public:
     // media events
     void prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type);
 
-    void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
+    void fireSipXMediaEvent(CP_MEDIA_EVENT event,
                             CP_MEDIA_CAUSE cause,
                             CP_MEDIA_TYPE  type,
                             intptr_t pEventData1 = 0,

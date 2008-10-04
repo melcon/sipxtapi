@@ -157,7 +157,7 @@ protected:
     /**
      * Fires given event to all SipConnections.
      */
-    void forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
+    void forkSipXMediaEvent(CP_MEDIA_EVENT event,
                             CP_MEDIA_CAUSE cause,
                             CP_MEDIA_TYPE type,
                             intptr_t pEventData1,
@@ -167,7 +167,7 @@ protected:
      * Finds the correct SipConnection by mediaConnectionId and fires
      * media event for it.
      */
-    void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
+    void fireSipXMediaEvent(CP_MEDIA_EVENT event,
                             CP_MEDIA_CAUSE cause,
                             CP_MEDIA_TYPE type,
                             int mediaConnectionId,
