@@ -3591,8 +3591,8 @@ void SipConnection::processInviteRequest(const SipMessage* request)
 
         if (pSdpBody)
         {
-            bool bTcpAvailable = pSdpBody->isTransportAvailable(OsSocket::TCP, MEDIA_TYPE_AUDIO);
-            bool bUdpAvailable = pSdpBody->isTransportAvailable(OsSocket::UDP, MEDIA_TYPE_AUDIO);
+            bool bTcpAvailable = pSdpBody->isTransportAvailable(OsSocket::TCP, (SDP_MEDIA_TYPE)MEDIA_TYPE_AUDIO);
+            bool bUdpAvailable = pSdpBody->isTransportAvailable(OsSocket::UDP, (SDP_MEDIA_TYPE)MEDIA_TYPE_AUDIO);
             if (!bUdpAvailable && bTcpAvailable)
             {
                 rtpTransportFlags = RTP_TRANSPORT_TCP | mRtpTcpRole;
@@ -5591,7 +5591,7 @@ void SipConnection::processInviteResponse(const SipMessage* response)
     if (pBody)
     {
         // take care of sdp options
-        bool bTcpAvailable = pBody->isTransportAvailable(OsSocket::TCP, MEDIA_TYPE_AUDIO);
+        bool bTcpAvailable = pBody->isTransportAvailable(OsSocket::TCP, (SDP_MEDIA_TYPE)MEDIA_TYPE_AUDIO);
         UtlString tcpRole = pBody->getRtpTcpRole();
         RtpTcpRoles role = RTP_TCP_ROLE_ACTPASS;
         if (bTcpAvailable)
