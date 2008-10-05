@@ -1740,13 +1740,13 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       // fire simulated local media events
       if (pCallData->lastLocalMediaAudioEvent == MEDIA_LOCAL_START)
       {
-         sipxFireMediaEvent(pInst, sCallId, sSessionCallId, szRemoteAddress, 
+         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
             MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
       if (pCallData->lastLocalMediaVideoEvent == MEDIA_LOCAL_START)
       {
-         sipxFireMediaEvent(pInst, sCallId,  sSessionCallId,szRemoteAddress, 
+         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
             MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
@@ -1755,7 +1755,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
          (pCallData->lastRemoteMediaAudioEvent == MEDIA_REMOTE_SILENT) ||
          (pCallData->lastRemoteMediaAudioEvent == MEDIA_REMOTE_ACTIVE))
       {
-         sipxFireMediaEvent(pInst, sCallId,  sSessionCallId,szRemoteAddress, 
+         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
             MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
@@ -1763,7 +1763,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
          (pCallData->lastRemoteMediaVideoEvent == MEDIA_REMOTE_SILENT) ||
          (pCallData->lastRemoteMediaVideoEvent == MEDIA_REMOTE_ACTIVE))
       {
-         sipxFireMediaEvent(pInst, sCallId, sSessionCallId, szRemoteAddress, 
+         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
             MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
@@ -1799,166 +1799,6 @@ void sipxFireCallEvent(const SIPX_INST pInst,
       }
    }
 }
-
-void sipxFireMediaEvent(SIPX_INST pInst,
-                        const UtlString& sCallId,
-                        const UtlString& sSessionCallId,
-                        const UtlString& sRemoteAddress,
-                        SIPX_MEDIA_EVENT event,
-                        SIPX_MEDIA_CAUSE cause,
-                        SIPX_MEDIA_TYPE type)
-{
-   SipXMediaEvent eventPayload;
-   eventPayload.m_event = event;
-   eventPayload.m_cause = cause;
-   eventPayload.m_mediaType = type;
-   eventPayload.m_sCallId = sCallId;
-   eventPayload.m_sSessionCallId = sSessionCallId;
-   eventPayload.m_sRemoteAddress = sRemoteAddress;
-
-   sipxFireMediaEvent(pInst, eventPayload);
-}
-
-void sipxFireMediaEvent(SIPX_INST pInst,
-                        const SipXMediaEvent& eventPayload)
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxFireMediaEvent Src=%p CallId=%s RemoteAddress=%s Event=%s:%s type=%d",
-      pInst,
-      eventPayload.m_sCallId.data(),
-      eventPayload.m_sRemoteAddress.data(),
-      sipxMediaEventToString(eventPayload.m_event),
-      sipxMediaCauseToString(eventPayload.m_cause),
-      eventPayload.m_mediaType);
-
-   SIPX_MEDIA_EVENT event = eventPayload.m_event;
-   SIPX_CALL hCall = sipxCallLookupHandleBySessionCallId(eventPayload.m_sSessionCallId, pInst);
-   UtlBoolean bIgnored = FALSE;
-
-   /*
-   * Check/Filter duplicate events
-   */
-   UtlBoolean bDuplicateEvent = FALSE;
-   if (hCall != SIPX_CALL_NULL)
-   {
-      SIPX_MEDIA_EVENT lastLocalMediaAudioEvent;
-      SIPX_MEDIA_EVENT lastLocalMediaVideoEvent;
-      SIPX_MEDIA_EVENT lastRemoteMediaAudioEvent;
-      SIPX_MEDIA_EVENT lastRemoteMediaVideoEvent;
-
-      if (sipxCallGetMediaState(hCall,
-         lastLocalMediaAudioEvent,
-         lastLocalMediaVideoEvent,
-         lastRemoteMediaAudioEvent,
-         lastRemoteMediaVideoEvent))
-      {
-         switch (eventPayload.m_mediaType)
-         {
-         case MEDIA_TYPE_AUDIO:
-            if ((event == MEDIA_LOCAL_START) || (event == MEDIA_LOCAL_STOP))
-            {
-               if (event == lastLocalMediaAudioEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_LOCAL_STOP && lastLocalMediaAudioEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            }
-            else if ((event == MEDIA_REMOTE_START) || 
-               (event == MEDIA_REMOTE_STOP) || 
-               (event == MEDIA_REMOTE_SILENT))
-            {
-               if (event == lastRemoteMediaAudioEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_REMOTE_STOP && lastRemoteMediaAudioEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            }
-            break ;
-         case MEDIA_TYPE_VIDEO:
-            if ((event == MEDIA_LOCAL_START) || (event == MEDIA_LOCAL_STOP))
-            {
-               if (event == lastLocalMediaVideoEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_LOCAL_STOP && lastLocalMediaVideoEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            } 
-            else if ((event == MEDIA_REMOTE_START) || 
-               (event == MEDIA_REMOTE_STOP) || 
-               (event == MEDIA_REMOTE_SILENT))
-            {
-               if (event == lastRemoteMediaVideoEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_REMOTE_STOP && lastRemoteMediaVideoEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            }
-            break;
-         }
-      }
-
-      // ignore certain events
-      if (event == MEDIA_REMOTE_SILENT)
-      {
-         if (eventPayload.m_mediaType == MEDIA_TYPE_AUDIO)
-         {
-            if (lastRemoteMediaAudioEvent == MEDIA_REMOTE_STOP)
-            {
-               bIgnored = TRUE;
-            }
-         }
-         else if (eventPayload.m_mediaType == MEDIA_TYPE_VIDEO)
-         {
-            if (lastRemoteMediaVideoEvent == MEDIA_REMOTE_STOP)
-            {
-               bIgnored = TRUE;
-            }
-         }
-      }
-
-      // Only proceed if this isn't a duplicate event 
-      if (!bIgnored && !bDuplicateEvent)
-      {
-         SIPX_MEDIA_INFO mediaInfo;
-         memset(&mediaInfo, 0, sizeof(mediaInfo));
-         mediaInfo.nSize = sizeof(SIPX_MEDIA_INFO);
-         mediaInfo.event = event;
-         mediaInfo.cause = eventPayload.m_cause;
-         mediaInfo.mediaType = eventPayload.m_mediaType;
-         mediaInfo.hCall = hCall;
-         mediaInfo.pCookie = eventPayload.m_pCookie;
-         mediaInfo.playBufferIndex = eventPayload.m_playBufferIndex;
-         mediaInfo.codec = eventPayload.m_codec;
-         mediaInfo.idleTime = eventPayload.m_idleTime;
-         mediaInfo.toneId = eventPayload.m_toneId;
-
-         SipXEventDispatcher::dispatchEvent((SIPX_INST)pInst, EVENT_CATEGORY_MEDIA, &mediaInfo);
-
-         sipxCallSetMediaState(hCall, event, eventPayload.m_mediaType);
-      }
-   }
-   else
-   {
-      OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Media event received but call was not found for CallId=%s", eventPayload.m_sSessionCallId.data());
-   }
-}
-
 
 bool sipxFireSubscriptionStatusEvent(const SIPX_INST pInst,
                                      SIPX_SUBSTATUS_INFO* pInfo)

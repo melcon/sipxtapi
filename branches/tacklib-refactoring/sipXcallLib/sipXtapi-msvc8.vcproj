@@ -619,6 +619,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\tapi\MediaEventMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tapi\SecurityEventMsg.cpp"
 				>
 			</File>
@@ -1001,6 +1005,10 @@
 			</File>
 			<File
 				RelativePath=".\include\tapi\LineStateEventMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\MediaEventMsg.h"
 				>
 			</File>
 			<File

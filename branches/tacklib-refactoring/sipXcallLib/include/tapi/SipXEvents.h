@@ -66,17 +66,6 @@ void sipxFireCallEvent(const SIPX_INST pInst,
                        int sipResponseCode = 0,
                        const UtlString& sResponseText = NULL);
 
-void sipxFireMediaEvent(SIPX_INST pInst,
-                        const SipXMediaEvent& eventPayload);
-
-void sipxFireMediaEvent(SIPX_INST pInst,
-                        const UtlString& sCallId,
-                        const UtlString& sSessionCallId,
-                        const UtlString& sRemoteAddress,
-                        SIPX_MEDIA_EVENT event,
-                        SIPX_MEDIA_CAUSE cause,
-                        SIPX_MEDIA_TYPE type);
-
 /**
 * Fires SipPimClient events
 */
