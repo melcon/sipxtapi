@@ -1457,41 +1457,6 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
 }
 
 
-void sipxFireLineEvent(SIPX_INST pInst,
-                       const UtlString& lineIdentifier,
-                       SIPX_LINESTATE_EVENT event,
-                       SIPX_LINESTATE_CAUSE cause,
-                       int sipResponseCode,
-                       const UtlString& sResponseText)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxFireLineEvent");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxFireLineEvent pSrc=%p szLineIdentifier=%s event=%d cause=%d",
-      pInst, lineIdentifier.data(), event, cause);
-
-   SIPX_LINE_DATA* pLineData = NULL;
-   SIPX_LINE hLine = SIPX_LINE_NULL;
-
-   hLine = sipxLineLookupHandleByURI(lineIdentifier);
-
-   // fire event even if line doesn't exist anymore - was destroyed, in that case
-   // hLine will be SIPX_LINE_NULL, we can not wait with deletion until LINESTATE_UNREGISTERED
-   // is received, as server could not respond
-   SIPX_LINESTATE_INFO lineInfo;
-   memset((void*) &lineInfo, 0, sizeof(SIPX_LINESTATE_INFO));
-
-   lineInfo.nSize = sizeof(SIPX_LINESTATE_INFO);
-   lineInfo.hLine = hLine;
-   lineInfo.szLineUri = lineIdentifier;
-   lineInfo.event = event;
-   lineInfo.cause = cause;
-   lineInfo.sipResponseCode = sipResponseCode;
-   lineInfo.szSipResponseText = sResponseText.data(); // safe to do, as dispatcher makes a copy
-
-   SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_LINESTATE, &lineInfo);
-
-}
-
 // dont forget to fill szRemoteAddress in call after it is connected
 void sipxFireCallEvent(const SIPX_INST pInst,
                        const UtlString& sCallId, 

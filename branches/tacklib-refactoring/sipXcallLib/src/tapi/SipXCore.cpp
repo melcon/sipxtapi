@@ -390,6 +390,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    // create event listeners
    pInst->pLineEventListener = new SipXLineEventListener(pInst);
+   pInst->pLineEventListener->start();
    pInst->pCallEventListener = new SipXCallEventListener(pInst);
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
    pInst->pInfoStatusEventListener->start();

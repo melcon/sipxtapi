@@ -70,6 +70,14 @@ public:
    int m_responseCode;
    UtlString m_sResponseText;
 
+   SipLineStateEvent() : m_sLineId()
+      , m_cause(SIPXTACK_LINESTATE_CAUSE_UNKNOWN)
+      , m_responseCode(0)
+      , m_sResponseText()
+   {
+
+   }
+
    SipLineStateEvent(const UtlString& lineId, SIPXTACK_LINESTATE_CAUSE cause, int responseCode = 0, const UtlString& sResponseText = NULL)
       : m_sLineId(lineId),
         m_cause(cause),
