@@ -38,8 +38,8 @@ public:
    /* ============================ CREATORS ================================== */
 
    /**
-   * Constructor accepting an optional default value.
-   */
+    * Constructor accepting an optional default value.
+    */
    OsPtrLock(T* pValue = NULL)
       : m_pValue(pValue)
    {
@@ -48,27 +48,65 @@ public:
    }
 
    /**
-   * Destructor
-   */
+    * Destructor
+    */
    virtual ~OsPtrLock()
    {
       release();
       m_pValue = NULL;
    }
 
+   /**
+    * Copy constructor for assigning instance of OsPtrLock. Copies the pointer
+    * stored in OsPtrLock, and locks it again.
+    */
+   OsPtrLock(const OsPtrLock& rhs)
+   {
+      superclassCheck();
+      m_pValue = rhs.getValue();
+      acquire();
+   }
+
    /* ============================ MANIPULATORS ============================== */
+
+   /** 
+    * Assignment operator for assigning instance of OsPtrLock into OsPtrLock.
+    * Locks the assigned object. Object will get unlocked during destruction or
+    * another assignment.
+    */
+   OsPtrLock& operator=(const OsPtrLock& rhs)
+   {
+      if (rhs == this)
+      {
+         // when self assignment do not lock or unlock anything
+         return *this;
+      }
+
+      release(); // release old lock
+      m_pValue = rhs.getValue();
+      acquire(); // acquire new lock
+      return *this;
+   }
 
    /** 
     * Assignment operator for assigning instance of OsSyncBase into OsPtrLock.
     * Locks the assigned object. Object will get unlocked during destruction or
     * another assignment.
     */
-   OsPtrLock& operator=(OsSyncBase& rhs)
+   OsPtrLock& operator=(OsSyncBase* rhs)
    {
       release(); // release old lock
-      m_pValue = dynamic_cast<T*>(&rhs);
+      m_pValue = dynamic_cast<T*>(rhs);
       acquire(); // acquire new lock
       return *this;
+   }
+
+   /**
+    * -> operator returns contents of OsPtrLock.
+    */
+   T* operator->()
+   {
+      return m_pValue;
    }
 
    /* ============================ ACCESSORS ================================= */
@@ -82,16 +120,6 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   // disable copy constructor
-   OsPtrLock(const OsPtrLock& rhs)
-   {
-   }
-
-   // disable assignment operator
-   OsPtrLock& operator=(const OsPtrLock& rhs)
-   {
-      return this;
-   }
 
    void acquire()
    {
