@@ -29,6 +29,7 @@
 #include "tapi/SipXLine.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXEvents.h"
+#include <tapi/SipXLineEventListener.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -793,10 +794,9 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
 
                   pInst->pLineManager->setStateForLine(uri, SipLine::LINE_STATE_PROVISIONED);
 
-                  sipxFireLineEvent(pInst, 
-                     szLineUrl, 
-                     LINESTATE_PROVISIONED,
-                     LINESTATE_PROVISIONED_NORMAL);
+                  pInst->pLineEventListener->sipxFireLineEvent(szLineUrl,
+                                                               LINESTATE_PROVISIONED,
+                                                               LINESTATE_PROVISIONED_NORMAL);
                }
                else
                {

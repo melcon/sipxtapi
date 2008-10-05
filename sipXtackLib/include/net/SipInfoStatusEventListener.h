@@ -55,6 +55,13 @@ public:
 
    }
 
+   SipInfoStatusEvent(SIPXTACK_MESSAGE_STATUS status, int iResponseCode, const UtlString& sResponseText) : m_status(status)
+      , m_iResponseCode(iResponseCode)
+      , m_sResponseText(sResponseText)
+   {
+
+   }
+
    ~SipInfoStatusEvent()
    {
       // do nothing

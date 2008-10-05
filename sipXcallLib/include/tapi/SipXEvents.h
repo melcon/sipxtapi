@@ -54,12 +54,6 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
 /**
 * Fires a Line Event to the listeners.
 */
-void sipxFireLineEvent(SIPX_INST pInst,
-                       const UtlString& lineIdentifier,
-                       SIPX_LINESTATE_EVENT event,
-                       SIPX_LINESTATE_CAUSE cause,
-                       int sipResponseCode = 0,
-                       const UtlString& sResponseText = NULL);
 
 void sipxFireCallEvent(const SIPX_INST pInst,
                        const UtlString& sCallId,

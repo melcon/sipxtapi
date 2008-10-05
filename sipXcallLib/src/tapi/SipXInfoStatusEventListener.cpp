@@ -92,11 +92,7 @@ void SipXInfoStatusEventListener::sipxFireInfoStatusEvent(SIPX_INFO hInfo,
                                                           const UtlString& sResponseText,
                                                           SIPX_INFOSTATUS_EVENT event)
 {
-   SipInfoStatusEvent payload;
-   payload.m_iResponseCode = responseCode;
-   payload.m_sResponseText = sResponseText;
-   payload.m_status = (SIPXTACK_MESSAGE_STATUS)status;
-
+   SipInfoStatusEvent payload((SIPXTACK_MESSAGE_STATUS)status, responseCode, sResponseText);
    InfoStatusEventMsg msg(event, hInfo, payload);
    postMessage(msg);
 }
