@@ -28,6 +28,7 @@
 /* ============================ CREATORS ================================== */
 
 XCpSipConnection::XCpSipConnection()
+: XCpAbstractConnection()
 {
 
 }

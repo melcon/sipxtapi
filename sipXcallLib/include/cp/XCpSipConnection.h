@@ -15,6 +15,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/XCpAbstractConnection.h>
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -27,7 +29,7 @@
 /**
 * XCpSipConnection realizes sip communication.
 */
-class XCpSipConnection
+class XCpSipConnection : public XCpAbstractConnection
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:

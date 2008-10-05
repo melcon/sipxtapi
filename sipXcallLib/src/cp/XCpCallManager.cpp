@@ -12,8 +12,13 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsPtrLock.h>
 #include <utl/UtlHashMapIterator.h>
+#include <utl/UtlInt.h>
 #include <cp/XCpCallManager.h>
+#include <cp/XCpAbstractCall.h>
+#include <cp/XCpCall.h>
+#include <cp/XCpConference.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -35,9 +40,9 @@ const int XCpCallManager::CALLMANAGER_MAX_REQUEST_MSGS = 2000;
 /* ============================ CREATORS ================================== */
 
 XCpCallManager::XCpCallManager(UtlBoolean bDoNotDisturb,
-                           UtlBoolean bEnableICE,
-                           int rtpPortStart,
-                           int rtpPortEnd)
+                               UtlBoolean bEnableICE,
+                               int rtpPortStart,
+                               int rtpPortEnd)
 : OsServerTask("XCallManager-%d", NULL, CALLMANAGER_MAX_REQUEST_MSGS)
 , m_callIdGenerator(callIdPrefix)
 , m_conferenceIdGenerator(conferenceIdPrefix)
@@ -56,6 +61,8 @@ XCpCallManager::~XCpCallManager()
    waitUntilShutDown();
 }
 
+/* ============================ MANIPULATORS ============================== */
+
 UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
 {
    UtlBoolean bResult = FALSE;
@@ -69,8 +76,6 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
 
    return bResult;
 }
-
-/* ============================ MANIPULATORS ============================== */
 
 /* ============================ ACCESSORS ================================= */
 

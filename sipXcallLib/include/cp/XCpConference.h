@@ -15,6 +15,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/XCpAbstractCall.h>
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -27,7 +29,7 @@
 /**
  * XCpConference wraps several XSipConnections realizing conference functionality.
  */
-class XCpConference
+class XCpConference : public XCpAbstractCall
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -48,6 +50,9 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   XCpConference(const XCpConference& rhs);
+
+   XCpConference& operator=(const XCpConference& rhs);
 
 };
 
