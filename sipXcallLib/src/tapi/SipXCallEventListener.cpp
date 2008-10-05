@@ -148,6 +148,9 @@ UtlBoolean SipXCallEventListener::handleMessage(OsMsg& rRawMsg)
          {
             // cast succeeded
             const CpCallStateEvent& payload = pMsg->getEventPayloadRef();
+            handleCallEvent(payload.m_sCallId, payload.m_sSessionCallId, payload.m_Session, payload.m_sRemoteAddress,
+               pMsg->getEvent(), payload.m_cause, payload.m_sOriginalSessionCallId,
+               payload.m_sipResponseCode, payload.m_sResponseText);
          }
       }
       bResult = TRUE;
