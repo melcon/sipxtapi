@@ -52,21 +52,6 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
                          void* pEventData);
 
 /**
-* Fires a Line Event to the listeners.
-*/
-
-void sipxFireCallEvent(const SIPX_INST pInst,
-                       const UtlString& sCallId,
-                       const UtlString& sSessionCallId,
-                       const SipSession& pSession,
-                       const UtlString& szRemoteAddress,
-                       SIPX_CALLSTATE_EVENT event,
-                       SIPX_CALLSTATE_CAUSE cause,
-                       const UtlString& sOriginalSessionCallId = NULL,
-                       int sipResponseCode = 0,
-                       const UtlString& sResponseText = NULL);
-
-/**
 * Fires SipPimClient events
 */
 void sipxFirePIMEvent(void* userData,
@@ -83,5 +68,7 @@ bool sipxFireNotifyEvent(const SIPX_INST pInst,
                          SIPX_NOTIFY_INFO* pInfo);
 
 const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type);
+const char* convertCallstateEventToString(SIPX_CALLSTATE_EVENT eMajor);
+const char* convertCallstateCauseToString(SIPX_CALLSTATE_CAUSE eMinor);
 
 #endif // SipXEvents_h__
