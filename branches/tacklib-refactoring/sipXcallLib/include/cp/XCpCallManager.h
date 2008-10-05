@@ -29,6 +29,11 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+template <class T>
+class OsPtrLock; // forward template class declaration
+class XCpAbstractCall;
+class XCpCall;
+class XCpConference;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
@@ -49,6 +54,49 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   /**
+    * Finds and returns a call or conference as XCpAbstractCall according to given id.
+    * Returned OsPtrLock unlocks XCpAbstractCall automatically, and the object should not
+    * be used outside its scope.
+    * @param sID Identifier of call or conference. Must not be sip call-id.
+    *
+    * @return TRUE if a call or conference was found, FALSE otherwise.
+    */
+   UtlBoolean findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock);
+
+   /**
+    * Finds and returns a call or conference as XCpAbstractCall according to given sip call-id.
+    * Returned OsPtrLock unlocks XCpAbstractCall automatically, and the object should not
+    * be used outside its scope.
+    * @param sSipCallId Sip call-id of the call to find.
+    * @param sFromTag Tag of From SIP message field if known
+    * @param sToTag Tag of To SIP message field if known
+    *
+    * @return TRUE if a call or conference was found, FALSE otherwise.
+    */
+   UtlBoolean findAbstractCallBySipCallId(const UtlString& sSipCallId,
+                                          const UtlString& sFromTag,
+                                          const UtlString& sToTag,
+                                          OsPtrLock<XCpAbstractCall>& ptrLock);
+
+   /**
+    * Finds and returns a XCpCall according to given id.
+    * Returned OsPtrLock unlocks XCpCall automatically, and the object should not
+    * be used outside its scope.
+    *
+    * @return TRUE if a call was found, FALSE otherwise.
+    */
+   UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock);
+
+   /**
+    * Finds and returns a XCpConference according to given id.
+    * Returned OsPtrLock unlocks XCpConference automatically, and the object should not
+    * be used outside its scope.
+    *
+    * @return TRUE if a conference was found, FALSE otherwise.
+    */
+   UtlBoolean findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock);
 
    /* ============================ ACCESSORS ================================= */
 
