@@ -114,7 +114,6 @@ UtlBoolean SipXLineEventListener::handleMessage(OsMsg& rRawMsg)
       break;
    }
    return bResult;
-
 }
 
 void SipXLineEventListener::sipxFireLineEvent(const UtlString& lineIdentifier,

@@ -19,6 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include "os/OsServerTask.h"
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
 #include "cp/CpMediaEventListener.h"
@@ -118,7 +119,7 @@ public:
 /**
 * Listener for Media events
 */
-class SipXMediaEventListener : public CpMediaEventListener
+class SipXMediaEventListener : public OsServerTask, public CpMediaEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -161,17 +162,31 @@ public:
 
    virtual void OnMediaRecordingStop(const CpMediaEvent& event);
 
+   virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   void sipxFireMediaEvent(const UtlString& sCallId,
+                           const UtlString& sSessionCallId,
+                           const UtlString& sRemoteAddress,
+                           SIPX_MEDIA_EVENT event,
+                           SIPX_MEDIA_CAUSE cause,
+                           SIPX_MEDIA_TYPE type);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   SIPX_INST m_pInst;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   SipXMediaEventListener(const SipXMediaEventListener& rhs);
 
+   SipXMediaEventListener& operator=(const SipXMediaEventListener& rhs);
+
+   void handleMediaEvent(const SipXMediaEvent& eventPayload);
+
+   SIPX_INST m_pInst;
 };
 
 #endif // SipXMediaEventListener_h__
