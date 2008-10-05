@@ -28,6 +28,7 @@
 /* ============================ CREATORS ================================== */
 
 XCpConference::XCpConference()
+: XCpAbstractCall()
 {
 
 }

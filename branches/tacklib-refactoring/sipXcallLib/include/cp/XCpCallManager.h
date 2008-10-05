@@ -40,9 +40,9 @@ public:
    /* ============================ CREATORS ================================== */
 
    XCpCallManager(UtlBoolean doNotDisturb,
-                UtlBoolean bEnableICE,
-                int rtpPortStart,
-                int rtpPortEnd);
+                  UtlBoolean bEnableICE,
+                  int rtpPortStart,
+                  int rtpPortEnd);
 
    virtual ~XCpCallManager();
 

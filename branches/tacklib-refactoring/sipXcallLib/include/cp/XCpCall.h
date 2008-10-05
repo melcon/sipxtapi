@@ -15,6 +15,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/XCpAbstractCall.h>
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -27,7 +29,7 @@
 /**
  * XCpCall wraps XSipConnection realizing all call functionality.
  */
-class XCpCall
+class XCpCall : public XCpAbstractCall
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -48,7 +50,9 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   XCpCall(const XCpCall& rhs);
 
+   XCpCall& operator=(const XCpCall& rhs);
 };
 
 #endif // XCpCall_h__
