@@ -45,6 +45,13 @@ public:
 
    /* ============================ INQUIRY =================================== */
 
+   /**
+   * Checks if this conference has given sip dialog.
+   */
+   virtual UtlBoolean hasSipDialog(const UtlString& sSipCallId,
+                                   const UtlString& sLocalTag = NULL,
+                                   const UtlString& sRemoteTag = NULL) const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 

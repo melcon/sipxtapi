@@ -87,6 +87,13 @@ public:
    */
    virtual int compareTo(UtlContainable const* inVal) const;
 
+   /**
+    * Checks if this abstract call has given sip dialog.
+    */
+   virtual UtlBoolean hasSipDialog(const UtlString& sSipCallId,
+                                   const UtlString& sLocalTag = NULL,
+                                   const UtlString& sRemoteTag = NULL) const = 0;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
