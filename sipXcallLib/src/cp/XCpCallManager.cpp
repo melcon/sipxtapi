@@ -132,7 +132,6 @@ XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId)
    else return XCpCallManager::ID_TYPE_SIP;
 }
 
-// m_memberMutex lock is assumed
 UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock)
 {
    XCpCallManager::ID_TYPE type = getIdType(sId);
@@ -141,6 +140,7 @@ UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<
    {
    case XCpCallManager::ID_TYPE_CALL:
       {
+         OsLock lock(m_memberMutex);
          // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpCall>&
          XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
          if (pCall)
@@ -154,6 +154,7 @@ UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<
       }
    case XCpCallManager::ID_TYPE_CONFERENCE:
       {
+         OsLock lock(m_memberMutex);
          // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpConference>&
          XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
          if (pConference)
@@ -173,12 +174,13 @@ UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<
    return result;
 }
 
-// m_memberMutex lock is assumed
 UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCallId,
                                                        const UtlString& sLocalTag,
                                                        const UtlString& sRemoteTag,
                                                        OsPtrLock<XCpAbstractCall>& ptrLock)
 {
+   OsLock lock(m_memberMutex);
+
    // iterate through hashmap and ask every call if it has given sip dialog
    UtlHashMapIterator callMapItor(m_callMap);
    XCpCall* pCall = NULL;
@@ -210,9 +212,9 @@ UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCall
    return FALSE;
 }
 
-// m_memberMutex lock is assumed
 UtlBoolean XCpCallManager::findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock)
 {
+   OsLock lock(m_memberMutex);
    XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
    if (pCall)
    {
@@ -224,9 +226,9 @@ UtlBoolean XCpCallManager::findCall(const UtlString& sId, OsPtrLock<XCpCall>& pt
    return FALSE;
 }
 
-// m_memberMutex lock is assumed
 UtlBoolean XCpCallManager::findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock)
 {
+   OsLock lock(m_memberMutex);
    XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
    if (pConference)
    {
@@ -236,6 +238,118 @@ UtlBoolean XCpCallManager::findConference(const UtlString& sId, OsPtrLock<XCpCon
 
    ptrLock = NULL;
    return FALSE;
+}
+
+UtlBoolean XCpCallManager::push(XCpCall& call)
+{
+   OsLock lock(m_memberMutex);
+
+   UtlCopyableContainable *pKey = call.getId().clone();
+   UtlContainable *pResult = m_callMap.insertKeyAndValue(pKey, &call);
+   if (pResult)
+   {
+      return TRUE;
+   }
+   else
+   {
+      delete pKey;
+      pKey = NULL;
+      return FALSE;
+   }
+}
+
+UtlBoolean XCpCallManager::push(XCpConference& conference)
+{
+   OsLock lock(m_memberMutex);
+
+   UtlCopyableContainable *pKey = conference.getId().clone();
+   UtlContainable *pResult = m_conferenceMap.insertKeyAndValue(pKey, &conference);
+   if (pResult)
+   {
+      return TRUE;
+   }
+   else
+   {
+      delete pKey;
+      pKey = NULL;
+      return FALSE;
+   }
+}
+
+UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
+{
+   OsLock lock(m_memberMutex);
+   // avoid findCall, as we don't need that much locking
+   UtlContainable *pValue = NULL;
+   UtlContainable *pKey = m_callMap.removeKeyAndValue(&sId, pValue);
+   if(pKey)
+   {
+      XCpCall *pCall = dynamic_cast<XCpCall*>(pValue);
+      if (pCall)
+      {
+         // call was found
+         pCall->acquire(); // lock the call
+         delete pCall;
+         pCall = NULL;
+      }
+      else
+      {
+         OsSysLog::add(FAC_CP, PRI_WARNING, "Unexpected state. Key was removed from call hashmap but value was NULL.");
+      }
+      delete pKey;
+      pKey = NULL;
+      return TRUE;
+   }
+   return FALSE;
+}
+
+UtlBoolean XCpCallManager::deleteConference(const UtlString& sId)
+{
+   OsLock lock(m_memberMutex);
+   // avoid findConference, as we don't need that much locking
+   UtlContainable *pValue = NULL;
+   UtlContainable *pKey = m_conferenceMap.removeKeyAndValue(&sId, pValue);
+   if(pKey)
+   {
+      XCpConference *pConference = dynamic_cast<XCpConference*>(pValue);
+      if (pConference)
+      {
+         // conference was found
+         pConference->acquire(); // lock the conference
+         delete pConference;
+         pConference = NULL;
+      }
+      else
+      {
+         OsSysLog::add(FAC_CP, PRI_WARNING, "Unexpected state. Key was removed from conference hashmap but value was NULL.");
+      }
+      delete pKey;
+      pKey = NULL;
+      return TRUE;
+   }
+   return FALSE;
+}
+
+UtlBoolean XCpCallManager::deleteAbstractCall(const UtlString& sId)
+{
+   XCpCallManager::ID_TYPE type = getIdType(sId);
+   UtlBoolean result = FALSE;
+
+   switch(type)
+   {
+   case XCpCallManager::ID_TYPE_CALL:
+      {
+         deleteCall(sId);
+      }
+   case XCpCallManager::ID_TYPE_CONFERENCE:
+      {
+         deleteConference(sId);
+      }
+   default:
+      break;
+   }
+
+   return result;
 }
 
 /* ============================ FUNCTIONS ================================= */

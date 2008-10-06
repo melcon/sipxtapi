@@ -27,8 +27,8 @@
 
 /* ============================ CREATORS ================================== */
 
-XCpConference::XCpConference()
-: XCpAbstractCall()
+XCpConference::XCpConference(const UtlString& sId)
+: XCpAbstractCall(sId)
 {
 
 }

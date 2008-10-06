@@ -35,7 +35,7 @@ class XCpCall : public XCpAbstractCall
 public:
    /* ============================ CREATORS ================================== */
 
-   XCpCall();
+   XCpCall(const UtlString& sId);
 
    virtual ~XCpCall();
 

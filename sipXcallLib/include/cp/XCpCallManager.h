@@ -101,8 +101,6 @@ private:
    * be used outside its scope.
    * @param sID Identifier of call or conference. Must not be sip call-id.
    *
-   * m_memberMutex lock is assumed
-   *
    * @return TRUE if a call or conference was found, FALSE otherwise.
    */
    UtlBoolean findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock);
@@ -114,8 +112,6 @@ private:
    * @param sSipCallId Sip call-id of the call to find.
    * @param sLocalTag Tag of From SIP message field if known
    * @param sRemoteTag Tag of To SIP message field if known
-   *
-   * m_memberMutex lock is assumed
    *
    * @return TRUE if a call or conference was found, FALSE otherwise.
    */
@@ -129,8 +125,6 @@ private:
    * Returned OsPtrLock unlocks XCpCall automatically, and the object should not
    * be used outside its scope.
    *
-   * m_memberMutex lock is assumed
-   *
    * @return TRUE if a call was found, FALSE otherwise.
    */
    UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock);
@@ -140,11 +134,39 @@ private:
    * Returned OsPtrLock unlocks XCpConference automatically, and the object should not
    * be used outside its scope.
    *
-   * m_memberMutex lock is assumed
-   *
    * @return TRUE if a conference was found, FALSE otherwise.
    */
    UtlBoolean findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock);
+
+   /**
+    * Pushes given XCpCall on the call stack. Call must not be locked to avoid deadlocks.
+    * Only push newly created calls.
+    */
+   UtlBoolean push(XCpCall& call);
+
+   /**
+    * Pushes given XCpCall on the conference stack. Conference must not be locked to avoid deadlocks.
+    * Only push newly created conferences.
+    */
+   UtlBoolean push(XCpConference& conference);
+
+   /**
+    * Deletes call identified by Id from stack. Doesn't hang up the call, just shuts
+    * media resources and deletes the call.
+    */
+   UtlBoolean deleteCall(const UtlString& sId);
+
+   /**
+    * Deletes conference identified by Id from stack. Doesn't hang up the conference, just shuts
+    * media resources and deletes the conference.
+    */
+   UtlBoolean deleteConference(const UtlString& sId);
+
+   /**
+   * Deletes abstract call identified by Id from stack. Doesn't hang up the call, just shuts
+   * media resources and deletes the call. Works for both calls and conferences.
+   */
+   UtlBoolean deleteAbstractCall(const UtlString& sId);
 
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
