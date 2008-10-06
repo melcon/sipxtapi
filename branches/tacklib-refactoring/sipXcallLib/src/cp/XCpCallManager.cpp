@@ -60,6 +60,8 @@ XCpCallManager::XCpCallManager(UtlBoolean bDoNotDisturb,
 XCpCallManager::~XCpCallManager()
 {
    waitUntilShutDown();
+   deleteAllCalls();
+   deleteAllConferences();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -101,25 +103,19 @@ UtlString XCpCallManager::getNewSipCallId()
    return m_sipCallIdGenerator.getNewCallId();
 }
 
-UtlBoolean XCpCallManager::isCallId(const UtlString& sId)
+UtlBoolean XCpCallManager::isCallId(const UtlString& sId) const
 {
    XCpCallManager::ID_TYPE type = getIdType(sId);
    return type == XCpCallManager::ID_TYPE_CALL;
 }
 
-UtlBoolean XCpCallManager::isConferenceId(const UtlString& sId)
+UtlBoolean XCpCallManager::isConferenceId(const UtlString& sId) const
 {
    XCpCallManager::ID_TYPE type = getIdType(sId);
    return type == XCpCallManager::ID_TYPE_CONFERENCE;
 }
 
-UtlBoolean XCpCallManager::isSipCallId(const UtlString& sId)
-{
-   XCpCallManager::ID_TYPE type = getIdType(sId);
-   return type == XCpCallManager::ID_TYPE_SIP;
-}
-
-XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId)
+XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId) const
 {
    if (sId.first(callIdPrefix) >= 0)
    {
@@ -129,10 +125,10 @@ XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId)
    {
       return XCpCallManager::ID_TYPE_CONFERENCE;
    }
-   else return XCpCallManager::ID_TYPE_SIP;
+   else return XCpCallManager::ID_TYPE_UNKNOWN;
 }
 
-UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock)
+UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
    XCpCallManager::ID_TYPE type = getIdType(sId);
    UtlBoolean result = FALSE;
@@ -177,7 +173,7 @@ UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<
 UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCallId,
                                                        const UtlString& sLocalTag,
                                                        const UtlString& sRemoteTag,
-                                                       OsPtrLock<XCpAbstractCall>& ptrLock)
+                                                       OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
    OsLock lock(m_memberMutex);
 
@@ -212,7 +208,7 @@ UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCall
    return FALSE;
 }
 
-UtlBoolean XCpCallManager::findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock)
+UtlBoolean XCpCallManager::findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const
 {
    OsLock lock(m_memberMutex);
    XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
@@ -226,7 +222,7 @@ UtlBoolean XCpCallManager::findCall(const UtlString& sId, OsPtrLock<XCpCall>& pt
    return FALSE;
 }
 
-UtlBoolean XCpCallManager::findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock)
+UtlBoolean XCpCallManager::findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock) const
 {
    OsLock lock(m_memberMutex);
    XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
@@ -350,6 +346,18 @@ UtlBoolean XCpCallManager::deleteAbstractCall(const UtlString& sId)
    }
 
    return result;
+}
+
+void XCpCallManager::deleteAllCalls()
+{
+   OsLock lock(m_memberMutex);
+   m_callMap.destroyAll();
+}
+
+void XCpCallManager::deleteAllConferences()
+{
+   OsLock lock(m_memberMutex);
+   m_conferenceMap.destroyAll();
 }
 
 /* ============================ FUNCTIONS ================================= */
