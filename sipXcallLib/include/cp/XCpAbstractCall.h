@@ -110,7 +110,8 @@ private:
 
    static const int CALL_MAX_REQUEST_MSGS;
 
-   OsMutex m_memberMutex; ///< mutex for member synchronization
+   mutable OsMutex m_memberMutex; ///< mutex for member synchronization
+
    const UtlString m_sId; ///< unique identifier of the abstract call
 };
 

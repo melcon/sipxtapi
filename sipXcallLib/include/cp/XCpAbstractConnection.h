@@ -85,7 +85,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   OsMutex m_memberMutex; ///< mutex for member synchronization
+   mutable OsMutex m_memberMutex; ///< mutex for member synchronization
 };
 
 #endif // XCpAbstractConnection_h__
