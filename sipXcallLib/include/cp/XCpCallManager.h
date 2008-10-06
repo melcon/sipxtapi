@@ -78,7 +78,7 @@ private:
    {
       ID_TYPE_CALL,
       ID_TYPE_CONFERENCE,
-      ID_TYPE_SIP
+      ID_TYPE_UNKNOWN
    } ID_TYPE;
 
    /** Generates new id for call. It is not the call-id field used in sip messages, instead its an internal id */
@@ -90,10 +90,14 @@ private:
    /** Generates new sip call-id */
    UtlString getNewSipCallId();
 
-   UtlBoolean isCallId(const UtlString& sId);
-   UtlBoolean isConferenceId(const UtlString& sId);
-   UtlBoolean isSipCallId(const UtlString& sId);
-   ID_TYPE getIdType(const UtlString& sId);
+   /** Checks if given Id identifies a call instance */
+   UtlBoolean isCallId(const UtlString& sId) const;
+
+   /** Checks if given Id identifies a conference instance */
+   UtlBoolean isConferenceId(const UtlString& sId) const;
+
+   /** Gets the type of Id. Can be call, conference or unknown. */
+   ID_TYPE getIdType(const UtlString& sId) const;
 
    /**
    * Finds and returns a call or conference as XCpAbstractCall according to given id.
@@ -103,7 +107,7 @@ private:
    *
    * @return TRUE if a call or conference was found, FALSE otherwise.
    */
-   UtlBoolean findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock);
+   UtlBoolean findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
    * Finds and returns a call or conference as XCpAbstractCall according to given sip call-id.
@@ -118,7 +122,7 @@ private:
    UtlBoolean findAbstractCallBySipDialog(const UtlString& sSipCallId,
                                           const UtlString& sLocalTag,
                                           const UtlString& sRemoteTag,
-                                          OsPtrLock<XCpAbstractCall>& ptrLock);
+                                          OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
    * Finds and returns a XCpCall according to given id.
@@ -127,7 +131,7 @@ private:
    *
    * @return TRUE if a call was found, FALSE otherwise.
    */
-   UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock);
+   UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const;
 
    /**
    * Finds and returns a XCpConference according to given id.
@@ -136,7 +140,7 @@ private:
    *
    * @return TRUE if a conference was found, FALSE otherwise.
    */
-   UtlBoolean findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock);
+   UtlBoolean findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock) const;
 
    /**
     * Pushes given XCpCall on the call stack. Call must not be locked to avoid deadlocks.
@@ -168,9 +172,22 @@ private:
    */
    UtlBoolean deleteAbstractCall(const UtlString& sId);
 
+   /**
+    * Deletes all calls on the stack, freeing any call resources. Doesn't properly terminate
+    * the calls.
+    */
+   void deleteAllCalls();
+
+   /**
+    * Deletes all conferences on the stack, freeing any call resources. Doesn't properly terminate
+    * the conferences.
+    */
+   void deleteAllConferences();
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
-   OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
+   mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
+
    // not thread safe fields
    UtlHashMap m_callMap; ///< hashmap with calls
    UtlHashMap m_conferenceMap; ///< hashmap with conferences
