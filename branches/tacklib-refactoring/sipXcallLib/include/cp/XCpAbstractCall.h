@@ -46,7 +46,7 @@ public:
 
    /* ============================ CREATORS ================================== */
 
-   XCpAbstractCall();
+   XCpAbstractCall(const UtlString& sId);
 
    virtual ~XCpAbstractCall();
 
@@ -77,6 +77,11 @@ public:
    */
    virtual UtlContainableType getContainableType() const;
 
+   /**
+    * Gets Id of the abstract call.
+    */
+   UtlString getId() const;
+
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -106,6 +111,7 @@ private:
    static const int CALL_MAX_REQUEST_MSGS;
 
    OsMutex m_memberMutex; ///< mutex for member synchronization
+   const UtlString m_sId; ///< unique identifier of the abstract call
 };
 
 #endif // XCpAbstractCall_h__

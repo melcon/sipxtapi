@@ -30,9 +30,10 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 
 /* ============================ CREATORS ================================== */
 
-XCpAbstractCall::XCpAbstractCall()
+XCpAbstractCall::XCpAbstractCall(const UtlString& sId)
 : OsServerTask("XCpAbstractCall-%d", NULL, CALL_MAX_REQUEST_MSGS)
 , m_memberMutex(OsMutex::Q_FIFO)
+, m_sId(sId)
 {
 
 }
@@ -83,6 +84,11 @@ unsigned XCpAbstractCall::hash() const
 UtlContainableType XCpAbstractCall::getContainableType() const
 {
    return XCpAbstractCall::TYPE;
+}
+
+UtlString XCpAbstractCall::getId() const
+{
+   return m_sId;
 }
 
 /* ============================ INQUIRY =================================== */
