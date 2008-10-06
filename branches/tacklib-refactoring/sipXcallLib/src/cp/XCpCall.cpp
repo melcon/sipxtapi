@@ -44,6 +44,13 @@ XCpCall::~XCpCall()
 
 /* ============================ INQUIRY =================================== */
 
+UtlBoolean XCpCall::hasSipDialog(const UtlString& sSipCallId,
+                                 const UtlString& sLocalTag,
+                                 const UtlString& sRemoteTag) const
+{
+   return FALSE;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

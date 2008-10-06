@@ -25,9 +25,9 @@
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
-const char* callIdPrefix = "call_";
-const char* conferenceIdPrefix = "conf_";
-const char* sipCallIdPrefix = "s";
+const char* callIdPrefix = "call_"; // id prefix for all calls. Only used internally.
+const char* conferenceIdPrefix = "conf_"; // id prefix for all conferences. Only used internally.
+const char* sipCallIdPrefix = "s"; // prefix of sip call-id sent in sip messages.
 
 // STATIC VARIABLE INITIALIZATIONS
 const int XCpCallManager::CALLMANAGER_MAX_REQUEST_MSGS = 2000;
@@ -76,84 +76,6 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
    }
 
    return bResult;
-}
-
-UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock)
-{
-   XCpCallManager::ID_TYPE type = getIdType(sId);
-   UtlBoolean result = FALSE;
-   switch(type)
-   {
-   case XCpCallManager::ID_TYPE_CALL:
-      {
-         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpCall>&
-         OsLock lock(m_memberMutex);
-         XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
-         if (pCall)
-         {
-            ptrLock = pCall;
-            return TRUE;
-         }
-
-         ptrLock = NULL;
-         return FALSE;
-      }
-   case XCpCallManager::ID_TYPE_CONFERENCE:
-      {
-         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpConference>&
-         OsLock lock(m_memberMutex);
-         XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
-         if (pConference)
-         {
-            ptrLock = pConference;
-            return TRUE;
-         }
-
-         ptrLock = NULL;
-         return FALSE;
-      }
-   default:
-      break;
-   }
-
-   ptrLock = NULL;
-   return result;
-}
-
-UtlBoolean XCpCallManager::findAbstractCallBySipCallId(const UtlString& sSipCallId,
-                                                       const UtlString& sFromTag,
-                                                       const UtlString& sToTag,
-                                                       OsPtrLock<XCpAbstractCall>& ptrLock)
-{
-   return FALSE;
-}
-
-UtlBoolean XCpCallManager::findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock)
-{
-   OsLock lock(m_memberMutex);
-   XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
-   if (pCall)
-   {
-      ptrLock = pCall;
-      return TRUE;
-   }
-   
-   ptrLock = NULL;
-   return FALSE;
-}
-
-UtlBoolean XCpCallManager::findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock)
-{
-   OsLock lock(m_memberMutex);
-   XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
-   if (pConference)
-   {
-      ptrLock = pConference;
-      return TRUE;
-   }
-
-   ptrLock = NULL;
-   return FALSE;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -208,6 +130,112 @@ XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId)
       return XCpCallManager::ID_TYPE_CONFERENCE;
    }
    else return XCpCallManager::ID_TYPE_SIP;
+}
+
+// m_memberMutex lock is assumed
+UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sId, OsPtrLock<XCpAbstractCall>& ptrLock)
+{
+   XCpCallManager::ID_TYPE type = getIdType(sId);
+   UtlBoolean result = FALSE;
+   switch(type)
+   {
+   case XCpCallManager::ID_TYPE_CALL:
+      {
+         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpCall>&
+         XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
+         if (pCall)
+         {
+            ptrLock = pCall;
+            return TRUE;
+         }
+
+         ptrLock = NULL;
+         return FALSE;
+      }
+   case XCpCallManager::ID_TYPE_CONFERENCE:
+      {
+         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpConference>&
+         XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
+         if (pConference)
+         {
+            ptrLock = pConference;
+            return TRUE;
+         }
+
+         ptrLock = NULL;
+         return FALSE;
+      }
+   default:
+      break;
+   }
+
+   ptrLock = NULL;
+   return result;
+}
+
+// m_memberMutex lock is assumed
+UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCallId,
+                                                       const UtlString& sLocalTag,
+                                                       const UtlString& sRemoteTag,
+                                                       OsPtrLock<XCpAbstractCall>& ptrLock)
+{
+   // iterate through hashmap and ask every call if it has given sip dialog
+   UtlHashMapIterator callMapItor(m_callMap);
+   XCpCall* pCall = NULL;
+
+   // TODO: optimize speed by using list in hashmap indexed by call-id. Have to investigate if call-id switch in XCpCall is possible/desirable
+   while(callMapItor()) // go to next pair
+   {
+      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
+      if (pCall && pCall->hasSipDialog(sSipCallId, sLocalTag, sRemoteTag))
+      {
+         ptrLock = pCall;
+         return TRUE;
+      }
+   }
+
+   // iterate through hashmap and ask every conference if it has given sip dialog
+   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
+   XCpConference* pConference = NULL;
+   while(conferenceMapItor()) // go to next pair
+   {
+      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
+      if (pConference && pConference->hasSipDialog(sSipCallId, sLocalTag, sRemoteTag))
+      {
+         ptrLock = pConference;
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+// m_memberMutex lock is assumed
+UtlBoolean XCpCallManager::findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock)
+{
+   XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
+   if (pCall)
+   {
+      ptrLock = pCall;
+      return TRUE;
+   }
+
+   ptrLock = NULL;
+   return FALSE;
+}
+
+// m_memberMutex lock is assumed
+UtlBoolean XCpCallManager::findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock)
+{
+   XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
+   if (pConference)
+   {
+      ptrLock = pConference;
+      return TRUE;
+   }
+
+   ptrLock = NULL;
+   return FALSE;
 }
 
 /* ============================ FUNCTIONS ================================= */
