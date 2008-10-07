@@ -126,24 +126,8 @@ SipDialog::SipDialog(const char* callId,
 SipDialog::SipDialog(const SipDialog& rSipDialog)
   : UtlString(rSipDialog)
 {
-   mLocalField = rSipDialog.mLocalField;
-   mLocalTag = rSipDialog.mLocalTag;
-   mRemoteField = rSipDialog.mRemoteField;
-   mRemoteTag = rSipDialog.mRemoteTag;
-   mLocalContact = rSipDialog.mLocalContact;
-   mRemoteContact = rSipDialog.mRemoteContact;
-   mRouteSet = rSipDialog.mRouteSet;
-   mInitialMethod = rSipDialog.mInitialMethod;
-   mLocalInitatedDialog = rSipDialog.mLocalInitatedDialog;
-   mInitialLocalCseq = rSipDialog.mInitialLocalCseq;
-   mInitialRemoteCseq = rSipDialog.mInitialRemoteCseq;
-   mLastLocalCseq = rSipDialog.mLastLocalCseq;
-   mLastRemoteCseq = rSipDialog.mLastRemoteCseq;
-   mDialogState = rSipDialog.mDialogState;
-   msLocalRequestUri = rSipDialog.msLocalRequestUri;
-   msRemoteRequestUri = rSipDialog.msRemoteRequestUri;
+   *this = rSipDialog;
 }
-
 
 // Destructor
 SipDialog::~SipDialog()
@@ -153,14 +137,12 @@ SipDialog::~SipDialog()
 /* ============================ MANIPULATORS ============================== */
 
 // Assignment operator
-SipDialog& 
-SipDialog::operator=(const SipDialog& rhs)
+SipDialog& SipDialog::operator=(const SipDialog& rhs)
 {
    if (this == &rhs)            // handle the assignment to self case
       return *this;
 
    UtlString::operator=(rhs);  // assign fields for parent class
-
 
    mLocalField = rhs.mLocalField;
    mLocalTag = rhs.mLocalTag;
@@ -182,7 +164,6 @@ SipDialog::operator=(const SipDialog& rhs)
 
    return *this;
 }
-
 
 void SipDialog::updateDialogData(const SipMessage& message)
 {
