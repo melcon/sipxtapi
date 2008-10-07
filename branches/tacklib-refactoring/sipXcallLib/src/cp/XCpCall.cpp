@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/XCpCall.h>
+#include <net/SipDialog.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -40,6 +41,16 @@ XCpCall::~XCpCall()
 
 /* ============================ MANIPULATORS ============================== */
 
+OsStatus XCpCall::sendInfo(const UtlString& sSipCallId,
+                           const UtlString& sLocalTag,
+                           const UtlString& sRemoteTag,
+                           const UtlString& sContentType,
+                           const UtlString& sContentEncoding,
+                           const UtlString& sContent)
+{
+   return OS_FAILED;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
@@ -49,6 +60,46 @@ UtlBoolean XCpCall::hasSipDialog(const UtlString& sSipCallId,
                                  const UtlString& sRemoteTag) const
 {
    return FALSE;
+}
+
+int XCpCall::getCallCount() const
+{
+   return 0;
+}
+
+OsStatus XCpCall::getAudioEnergyLevels(int& iInputEnergyLevel, int& iOutputEnergyLevel) const
+{
+   iInputEnergyLevel = 0;
+   iOutputEnergyLevel = 0;
+
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::getRemoteUserAgent(const UtlString& sSipCallId,
+                                     const UtlString& sLocalTag,
+                                     const UtlString& sRemoteTag,
+                                     UtlString& userAgent) const
+{
+   userAgent.remove(0);
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpCall::getMediaConnectionId(int& mediaConnID) const
+{
+   mediaConnID = -1;
+
+   return OS_INVALID;
+}
+
+OsStatus XCpCall::getSipDialog(const UtlString& sSipCallId,
+                               const UtlString& sLocalTag,
+                               const UtlString& sRemoteTag,
+                               SipDialog& dialog) const
+{
+   dialog = SipDialog(); // assign empty SipDialog
+
+   return OS_NOT_FOUND;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
