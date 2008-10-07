@@ -97,6 +97,12 @@ public:
      */
     SipDialog(const char* callId, const char* localField, const char* remoteField); 
 
+    //! Copy constructor
+    SipDialog(const SipDialog& rSipDialog);
+
+    //! Assignment operator
+    SipDialog& operator=(const SipDialog& rhs);
+
     //! Destructor
     virtual
     ~SipDialog();
@@ -296,12 +302,6 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-    //! Copy constructor
-    SipDialog(const SipDialog& rSipDialog);
-
-    //! Assignment operator
-    SipDialog& operator=(const SipDialog& rhs);
-
     // The callId is stored in the UtlString base class data element
     Url mLocalField; // To or From depending on who initiated the transaction
     Url mRemoteField; // To or From depending on who initiated the transaction
