@@ -29,6 +29,7 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class SipDialog;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -53,6 +54,14 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   /** Sends an INFO message to the other party(s) on the call */
+   virtual OsStatus sendInfo(const UtlString& sSipCallId,
+                             const UtlString& sLocalTag,
+                             const UtlString& sRemoteTag,
+                             const UtlString& sContentType,
+                             const UtlString& sContentEncoding,
+                             const UtlString& sContent) = 0;
 
    /** Block until the sync object is acquired or the timeout expires */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
@@ -98,6 +107,28 @@ public:
    virtual UtlBoolean hasSipDialog(const UtlString& sSipCallId,
                                    const UtlString& sLocalTag = NULL,
                                    const UtlString& sRemoteTag = NULL) const = 0;
+
+   /** Gets the number of sip connections in this call */
+   virtual int getCallCount() const = 0;
+
+   /** Gets audio energy levels for call */
+   virtual OsStatus getAudioEnergyLevels(int& iInputEnergyLevel,
+                                         int& iOutputEnergyLevel) const = 0;
+
+   /** gets remote user agent for call or conference */
+   virtual OsStatus getRemoteUserAgent(const UtlString& sSipCallId,
+                                       const UtlString& sLocalTag,
+                                       const UtlString& sRemoteTag,
+                                       UtlString& userAgent) const = 0;
+
+   /** Gets internal id of media connection for given call or conference. Only for unit tests */
+   virtual OsStatus getMediaConnectionId(int& mediaConnID) const = 0;
+
+   /** Gets copy of SipDialog for given call */
+   virtual OsStatus getSipDialog(const UtlString& sSipCallId,
+                                 const UtlString& sLocalTag,
+                                 const UtlString& sRemoteTag,
+                                 SipDialog& dialog) const = 0;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

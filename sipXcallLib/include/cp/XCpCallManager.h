@@ -34,6 +34,14 @@ class OsPtrLock; // forward template class declaration
 class XCpAbstractCall;
 class XCpCall;
 class XCpConference;
+class CpMediaInterfaceFactory;
+class UtlSList;
+class SipUserAgent;
+class CpCallStateEventListener;
+class SipInfoStatusEventListener;
+class SipSecurityEventListener;
+class CpMediaEventListener;
+class SipDialog;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
@@ -44,16 +52,54 @@ class XCpCallManager : public OsServerTask
 public:
    /* ============================ CREATORS ================================== */
 
-   XCpCallManager(UtlBoolean doNotDisturb,
+   XCpCallManager(CpCallStateEventListener* pCallEventListener,
+                  SipInfoStatusEventListener* pInfoStatusEventListener,
+                  SipSecurityEventListener* pSecurityEventListener,
+                  CpMediaEventListener* pMediaEventListener,
+                  SipUserAgent* pSipUserAgent,
+                  UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
+                  UtlBoolean bEnableSipInfo,
                   int rtpPortStart,
-                  int rtpPortEnd);
+                  int rtpPortEnd,
+                  int maxCalls, // max calls before sending busy. -1 means unlimited
+                  CpMediaInterfaceFactory* pMediaFactory);
 
    virtual ~XCpCallManager();
 
    /* ============================ MANIPULATORS ============================== */
 
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   virtual void requestShutdown(void);
+
+   /** Creates new empty call, returning id if successful */
+   OsStatus createCall(UtlString& id);
+
+   /** Creates new empty conference, returning id if successful */
+   OsStatus createConference(UtlString& id);
+
+   /** Enable STUN for NAT/Firewall traversal */
+   void enableStun(const UtlString& sStunServer, 
+                   int iServerPort,
+                   int iKeepAlivePeriodSecs = 0, 
+                   OsNotification* pNotification = NULL);
+
+   /** Enable TURN for NAT/Firewall traversal */
+   void enableTurn(const UtlString& sTurnServer,
+                   int iTurnPort,
+                   const UtlString& sTurnUsername,
+                   const UtlString& sTurnPassword,
+                   int iKeepAlivePeriodSecs = 0);
+
+   /** Sends an INFO message to the other party(s) on the call */
+   OsStatus sendInfo(const UtlString& sId,
+                     const UtlString& sSipCallId,
+                     const UtlString& sLocalTag,
+                     const UtlString& sRemoteTag,
+                     const UtlString& sContentType,
+                     const UtlString& sContentEncoding,
+                     const UtlString& sContent);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -63,7 +109,47 @@ public:
    UtlBoolean getEnableICE() const { return m_bEnableICE; }
    void setEnableICE(UtlBoolean val) { m_bEnableICE = val; }
 
+   /** Enable/disable reception of SIP INFO. Sending is always allowed. Only affects new calls. */
+   UtlBoolean getEnableSipInfo() const { return m_bEnableSipInfo; }
+   void setEnableSipInfo(UtlBoolean val) { m_bEnableSipInfo = val; }
+
+   int getMaxCalls() const { return m_maxCalls; }
+   void setMaxCalls(int val) { m_maxCalls = val; }
+
+   CpMediaInterfaceFactory* getMediaInterfaceFactory() const;
+
    /* ============================ INQUIRY =================================== */
+
+   /** gets total amount of calls. Also calls in conference are counted */
+   int getCallCount() const;
+
+   /** Gets ids of all calls */
+   OsStatus getCallIds(UtlSList& idList) const;
+
+   /** Gets ids of all conferences */
+   OsStatus getConferenceIds(UtlSList& idList) const;
+
+   /** Gets audio energy levels for call or conference identified by sId */
+   OsStatus getAudioEnergyLevels(const UtlString& sId,
+                                 int& iInputEnergyLevel,
+                                 int& iOutputEnergyLevel) const;
+
+   /** Gets remote user agent for call or conference */
+   OsStatus getRemoteUserAgent(const UtlString& sId,
+                               const UtlString& sSipCallId,
+                               const UtlString& sLocalTag,
+                               const UtlString& sRemoteTag,
+                               UtlString& userAgent) const;
+
+   /** Gets internal id of media connection for given call or conference. Only for unit tests */
+   OsStatus getMediaConnectionId(const UtlString& sId, int& mediaConnID) const;
+
+   /** Gets copy of SipDialog for given call */
+   OsStatus getSipDialog(const UtlString& sId,
+                         const UtlString& sSipCallId,
+                         const UtlString& sLocalTag,
+                         const UtlString& sRemoteTag,
+                         SipDialog& dialog) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -184,6 +270,9 @@ private:
     */
    void deleteAllConferences();
 
+   /** Checks if we can create new call */
+   UtlBoolean canCreateNewCall();
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
@@ -192,13 +281,34 @@ private:
    UtlHashMap m_callMap; ///< hashmap with calls
    UtlHashMap m_conferenceMap; ///< hashmap with conferences
 
+   UtlString m_sStunServer; ///< address or ip of stun server
+   int m_iStunPort; ///< port for stun server
+   int m_iStunKeepAlivePeriodSecs; ///< stun refresh period
+
+   UtlString m_sTurnServer; ///< turn server address or ip
+   int m_iTurnPort; ///< turn server port
+   UtlString m_sTurnUsername; ///< turn username
+   UtlString m_sTurnPassword; ///< turn password
+   int m_iTurnKeepAlivePeriodSecs; ///< turn refresh period
+
    // thread safe fields
    SipCallIdGenerator m_callIdGenerator; ///< generates string ids for calls
    SipCallIdGenerator m_conferenceIdGenerator; ///< generates string ids for conferences
    SipCallIdGenerator m_sipCallIdGenerator; ///< generates string sip call-ids
 
+   CpMediaInterfaceFactory* m_pMediaFactory;
+   CpCallStateEventListener* m_pCallEventListener;
+   SipInfoStatusEventListener* m_pInfoStatusEventListener;
+   SipSecurityEventListener* m_pSecurityEventListener;
+   CpMediaEventListener* m_pMediaEventListener;
+   SipUserAgent* m_pSipUserAgent;
+
+   // thread safe atomic
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)
    UtlBoolean m_bEnableICE; 
+   UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
+   int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited
+
    // read only fields
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
