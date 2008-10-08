@@ -185,6 +185,203 @@ OsStatus XCpCallManager::createConference(UtlString& id)
    return result;
 }
 
+OsStatus XCpCallManager::connectCall(const UtlString& sId,
+                                     UtlString& sSipCallId,
+                                     const UtlString& toAddress,
+                                     const UtlString& lineURI,
+                                     const UtlString& locationHeader,
+                                     CP_CONTACT_ID contactId)
+{
+   OsStatus result = OS_NOT_FOUND;
+   sSipCallId.remove(0); // clear string
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sId, ptrLock);
+   if (resFind)
+   {
+      sSipCallId = getNewSipCallId();
+      // we found call and have a lock on it
+      return ptrLock->connect(sSipCallId, toAddress, lineURI, locationHeader, contactId);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::connectConferenceCall(const UtlString& sId,
+                                               UtlString& sSipCallId,
+                                               const UtlString& toAddress,
+                                               const UtlString& lineURI,
+                                               const UtlString& locationHeader,
+                                               CP_CONTACT_ID contactId)
+{
+   OsStatus result = OS_NOT_FOUND;
+   sSipCallId.remove(0); // clear string
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConference(sId, ptrLock);
+   if (resFind)
+   {
+      sSipCallId = getNewSipCallId();
+      // we found call and have a lock on it
+      return ptrLock->connect(sSipCallId, toAddress, lineURI, locationHeader, contactId);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::acceptCallConnection(const UtlString& sId,
+                                              const UtlString& locationHeader,
+                                              CP_CONTACT_ID contactId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->acceptConnection(locationHeader, contactId);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::rejectCallConnection(const UtlString& sId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->rejectConnection();
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::redirectCallConnection(const UtlString& sId,
+                                                const UtlString& sRedirectSipUri)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->redirectConnection(sRedirectSipUri);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::answerCallConnection(const UtlString& sId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->answerConnection();
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropAbstractCallConnection(const UtlString& sId,
+                                                    const UtlString& sSipCallId,
+                                                    const UtlString& sLocalTag,
+                                                    const UtlString& sRemoteTag)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findAbstractCallById(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->dropConnection(sSipCallId, sLocalTag, sRemoteTag);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropCallConnection(const UtlString& sId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->dropConnection();
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropAllConferenceConnections(const UtlString& sId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConference(sId, ptrLock);
+   if (resFind)
+   {
+      // we found conference and have a lock on it
+      return ptrLock->dropAllConnections();
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropAbstractCall(const UtlString& sId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   // this deletes it safely, shutting down thread and media resources
+   UtlBoolean resDelete = deleteAbstractCall(sId);
+   if (resDelete)
+   {
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropCall(const UtlString& sId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   // this deletes it safely, shutting down thread and media resources
+   UtlBoolean resDelete = deleteCall(sId);
+   if (resDelete)
+   {
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropConference(const UtlString& sId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   // this deletes it safely, shutting down thread and media resources
+   UtlBoolean resDelete = deleteConference(sId);
+   if (resDelete)
+   {
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
 void XCpCallManager::enableStun(const UtlString& sStunServer,
                                 int iServerPort,
                                 int iKeepAlivePeriodSecs /*= 0*/,
@@ -321,11 +518,45 @@ OsStatus XCpCallManager::getConferenceIds(UtlSList& idList) const
    return OS_SUCCESS;
 }
 
+OsStatus XCpCallManager::getCallSipCallId(const UtlString& sId,
+                                          UtlString& sSipCallId) const
+{
+   OsStatus result = OS_NOT_FOUND;
+   sSipCallId.remove(0);
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->getCallSipCallId(sSipCallId);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::getConferenceSipCallIds(const UtlString& sId,
+                                                 UtlSList& sipCallIdList) const
+{
+   OsStatus result = OS_NOT_FOUND;
+   sipCallIdList.destroyAll();
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConference(sId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->getConferenceSipCallIds(sipCallIdList);
+   }
+
+   return result;
+}
+
 OsStatus XCpCallManager::getAudioEnergyLevels(const UtlString& sId,
                                               int& iInputEnergyLevel,
                                               int& iOutputEnergyLevel) const
 {
-   OsStatus result = OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
    UtlBoolean resFind = findAbstractCallById(sId, ptrLock);
    if (resFind)
@@ -343,7 +574,7 @@ OsStatus XCpCallManager::getRemoteUserAgent(const UtlString& sId,
                                             const UtlString& sRemoteTag,
                                             UtlString& userAgent) const
 {
-   OsStatus result = OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
    UtlBoolean resFind = findAbstractCallById(sId, ptrLock);
    if (resFind)
@@ -357,7 +588,7 @@ OsStatus XCpCallManager::getRemoteUserAgent(const UtlString& sId,
 
 OsStatus XCpCallManager::getMediaConnectionId(const UtlString& sId, int& mediaConnID) const
 {
-   OsStatus result = OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
    UtlBoolean resFind = findAbstractCallById(sId, ptrLock);
    if (resFind)
@@ -375,7 +606,7 @@ OsStatus XCpCallManager::getSipDialog(const UtlString& sId,
                                       const UtlString& sRemoteTag,
                                       SipDialog& dialog) const
 {
-   OsStatus result = OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
    UtlBoolean resFind = findAbstractCallById(sId, ptrLock);
    if (resFind)

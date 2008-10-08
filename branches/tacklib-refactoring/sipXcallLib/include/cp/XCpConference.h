@@ -41,6 +41,48 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
+   /** Connects call to given address. Uses supplied sip call-id. */
+   virtual OsStatus connect(const UtlString& sSipCallId,
+                            const UtlString& toAddress,
+                            const UtlString& lineURI,
+                            const UtlString& locationHeader,
+                            CP_CONTACT_ID contactId);
+
+   /**
+    * Always fails, as conference cannot accept inbound call. Instead, add calls
+    * to conference.
+    */
+   virtual OsStatus acceptConnection(const UtlString& locationHeader,
+                                     CP_CONTACT_ID contactId);
+
+   /**
+    * Always fails, as conference cannot reject inbound connections.
+    */
+   virtual OsStatus rejectConnection();
+
+   /**
+   * Always fails, as conference cannot redirect inbound connections.
+   */
+   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUri);
+
+   /**
+   * Always fails, as conference cannot answer inbound connections.
+   */
+   virtual OsStatus answerConnection();
+
+   /**
+   * Disconnects given call with given sip call-id
+   *
+   * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+   * progresses to disconnected and the connection is removed.
+   */
+   virtual OsStatus dropConnection(const UtlString& sSipCallId,
+                                   const UtlString& sLocalTag,
+                                   const UtlString& sRemoteTag);
+
+   /** Disconnects all calls */
+   OsStatus dropAllConnections();
+
    /** Sends an INFO message to the other party(s) on the call */
    virtual OsStatus sendInfo(const UtlString& sSipCallId,
                              const UtlString& sLocalTag,
@@ -62,6 +104,9 @@ public:
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;
+
+   /** Gets sip call-id of conference if its available */
+   OsStatus getConferenceSipCallIds(UtlSList& sipCallIdList) const;
 
    /** Gets audio energy levels for call */
    virtual OsStatus getAudioEnergyLevels(int& iInputEnergyLevel,
