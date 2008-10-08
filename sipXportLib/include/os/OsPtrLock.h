@@ -63,7 +63,7 @@ public:
    OsPtrLock(const OsPtrLock& rhs)
    {
       superclassCheck();
-      m_pValue = rhs.getValue();
+      m_pValue = rhs.m_pValue;
       acquire();
    }
 
@@ -83,7 +83,7 @@ public:
       }
 
       release(); // release old lock
-      m_pValue = rhs.getValue();
+      m_pValue = rhs.m_pValue;
       acquire(); // acquire new lock
       return *this;
    }
