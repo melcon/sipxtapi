@@ -41,6 +41,48 @@ XCpCall::~XCpCall()
 
 /* ============================ MANIPULATORS ============================== */
 
+OsStatus XCpCall::connect(const UtlString& sSipCallId,
+                          const UtlString& toAddress,
+                          const UtlString& lineURI,
+                          const UtlString& locationHeader,
+                          CP_CONTACT_ID contactId)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::acceptConnection(const UtlString& locationHeader,
+                                   CP_CONTACT_ID contactId)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::rejectConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::redirectConnection(const UtlString& sRedirectSipUri)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::answerConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::dropConnection(const UtlString& sSipCallId,
+                                 const UtlString& sLocalTag,
+                                 const UtlString& sRemoteTag)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::dropConnection()
+{
+   return OS_FAILED;
+}
+
 OsStatus XCpCall::sendInfo(const UtlString& sSipCallId,
                            const UtlString& sLocalTag,
                            const UtlString& sRemoteTag,
@@ -65,6 +107,12 @@ UtlBoolean XCpCall::hasSipDialog(const UtlString& sSipCallId,
 int XCpCall::getCallCount() const
 {
    return 0;
+}
+
+OsStatus XCpCall::getCallSipCallId(UtlString& sSipCallId) const
+{
+   sSipCallId.remove(0);
+   return OS_FAILED;
 }
 
 OsStatus XCpCall::getAudioEnergyLevels(int& iInputEnergyLevel, int& iOutputEnergyLevel) const

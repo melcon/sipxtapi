@@ -35,6 +35,8 @@
 // STRUCTS
 // TYPEDEFS
 
+typedef int CP_CONTACT_ID; 
+
 /**
 * DTMF/other tone ids.
 */

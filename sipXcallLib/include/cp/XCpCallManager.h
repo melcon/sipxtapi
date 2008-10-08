@@ -20,6 +20,7 @@
 #include <os/OsServerTask.h>
 #include <utl/UtlHashMap.h>
 #include <net/SipCallIdGenerator.h>
+#include <cp/CpDefs.h>
 
 // DEFINES
 // MACROS
@@ -62,7 +63,7 @@ public:
                   UtlBoolean bEnableSipInfo,
                   int rtpPortStart,
                   int rtpPortEnd,
-                  int maxCalls, // max calls before sending busy. -1 means unlimited
+                  int maxCalls, // max calls before sending busy. -1 means unlimited. Doesn't limit outbound calls.
                   CpMediaInterfaceFactory* pMediaFactory);
 
    virtual ~XCpCallManager();
@@ -78,6 +79,98 @@ public:
 
    /** Creates new empty conference, returning id if successful */
    OsStatus createConference(UtlString& id);
+
+   /** Connects an existing call identified by id, to given address returning sip call-id */
+   OsStatus connectCall(const UtlString& sId,
+                        UtlString& sSipCallId,
+                        const UtlString& toAddress,
+                        const UtlString& lineURI,
+                        const UtlString& locationHeader,
+                        CP_CONTACT_ID contactId);
+
+   /** Connects a call in an existing conference identified by id, to given address returning sip call-id */
+   OsStatus connectConferenceCall(const UtlString& sId,
+                                  UtlString& sSipCallId,
+                                  const UtlString& toAddress,
+                                  const UtlString& lineURI,
+                                  const UtlString& locationHeader,
+                                  CP_CONTACT_ID contactId);
+
+   /** 
+    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
+    *
+    * Progress the connection from the OFFERING state to the
+    * RINGING state. This causes a SIP 180 Ringing provisional
+    * response to be sent.
+    */
+   OsStatus acceptCallConnection(const UtlString& sId,
+                                 const UtlString& locationHeader,
+                                 CP_CONTACT_ID contactId);
+
+   /**
+    * Reject the incoming connection.
+    *
+    * Progress the connection from the OFFERING state to
+    * the FAILED state with the cause of busy. With SIP this
+    * causes a 486 Busy Here response to be sent.
+    */
+   OsStatus rejectCallConnection(const UtlString& sId);
+
+   /**
+    * Redirect the incoming connection.
+    *
+    * Progress the connection from the OFFERING state to
+    * the FAILED state. This causes a SIP 302 Moved
+    * Temporarily response to be sent with the specified
+    * contact URI.
+    */
+   OsStatus redirectCallConnection(const UtlString& sId, const UtlString& sRedirectSipUri);
+
+   /**
+    * Answer the incoming terminal connection.
+    *
+    * Progress the connection from the OFFERING or RINGING state
+    * to the ESTABLISHED state and also creating the terminal
+    * connection (with SIP a 200 OK response is sent).
+    */
+   OsStatus answerCallConnection(const UtlString& sId);
+
+   /** 
+    * Disconnects given simple call or conference call, not destroying the XCpCall/XCpConference
+    * object so that it can be reused
+    *
+    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+    * progresses to disconnected and the connection is removed.
+    */
+   OsStatus dropAbstractCallConnection(const UtlString& sId,
+                                       const UtlString& sSipCallId,
+                                       const UtlString& sLocalTag,
+                                       const UtlString& sRemoteTag);
+
+   /** 
+    * Disconnects given simple call not destroying the XCpCall object so that it can be reused.
+    *
+    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+    * progresses to disconnected and the connection is removed.
+    */
+   OsStatus dropCallConnection(const UtlString& sId);
+
+   /**
+    * Disconnects given all conference calls not destroying the XCpConference object so that it can be reused.
+    *
+    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+    * progresses to disconnected and the connection is removed.
+    */
+   OsStatus dropAllConferenceConnections(const UtlString& sId);
+
+   /** Deletes the XCpCall/XCpConference object, doesn't disconnect call */
+   OsStatus dropAbstractCall(const UtlString& sId);
+
+   /** Deletes the XCpCall object, doesn't disconnect call */
+   OsStatus dropCall(const UtlString& sId);
+
+   /** Deletes the XCpConference object, doesn't disconnect conference calls */
+   OsStatus dropConference(const UtlString& sId);
 
    /** Enable STUN for NAT/Firewall traversal */
    void enableStun(const UtlString& sStunServer, 
@@ -128,6 +221,14 @@ public:
 
    /** Gets ids of all conferences */
    OsStatus getConferenceIds(UtlSList& idList) const;
+
+   /** Gets sip call-id of call if its available */
+   OsStatus getCallSipCallId(const UtlString& sId,
+                             UtlString& sSipCallId) const;
+
+   /** Gets sip call-ids of conference if available */
+   OsStatus getConferenceSipCallIds(const UtlString& sId,
+                                    UtlSList& sipCallIdList) const;
 
    /** Gets audio energy levels for call or conference identified by sId */
    OsStatus getAudioEnergyLevels(const UtlString& sId,
@@ -270,7 +371,7 @@ private:
     */
    void deleteAllConferences();
 
-   /** Checks if we can create new call */
+   /** Checks if we can create new call. Only used when new inbound call is created. */
    UtlBoolean canCreateNewCall();
 
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
@@ -307,7 +408,7 @@ private:
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)
    UtlBoolean m_bEnableICE; 
    UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
-   int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited
+   int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
 
    // read only fields
    const int m_rtpPortStart;
