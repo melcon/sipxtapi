@@ -21,6 +21,8 @@
 #include <utl/UtlHashMap.h>
 #include <net/SipCallIdGenerator.h>
 #include <cp/CpDefs.h>
+#include <cp/CpAudioCodecInfo.h>
+#include <cp/CpVideoCodecInfo.h>
 
 // DEFINES
 // MACROS
@@ -171,6 +173,172 @@ public:
 
    /** Deletes the XCpConference object, doesn't disconnect conference calls */
    OsStatus dropConference(const UtlString& sId);
+
+   /**
+    * Put the specified terminal connection on hold. Works for
+    * calls and conferences.
+    *
+    * Change the terminal connection state from TALKING to HELD.
+    * (With SIP a re-INVITE message is sent with SDP indicating
+    * no media should be sent.)
+    */
+   OsStatus holdAbstractCallConnection(const UtlString& sId,
+                                       const UtlString& sSipCallId,
+                                       const UtlString& sLocalTag,
+                                       const UtlString& sRemoteTag);
+
+   /**
+   * Put the specified terminal connection on hold. Only works for calls.
+   *
+   * Change the terminal connection state from TALKING to HELD.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * no media should be sent.)
+   */
+   OsStatus holdCallConnection(const UtlString& sId);
+
+   /**
+    * Convenience method to put all of the terminal connections in
+    * the specified conference on hold.
+    */
+   OsStatus holdAllConferenceConnections(const UtlString& sId);
+
+   /**
+    * Convenience method to put the local terminal connection on hold.
+    * Can be used for both calls and conferences.
+    * Microphone will be disconnected from the call or conference, local
+    * audio will stop flowing to remote party. Remote party will still
+    * be audible to local user.
+    */
+   OsStatus holdLocalAbstractCallConnection(const UtlString& sId);
+
+   /**
+    * Take the specified local terminal connection off hold,.
+    *
+    * Microphone will be reconnected to the call or conference,
+    * and audio will start flowing from local machine to remote party.
+    */
+   OsStatus unholdLocalAbstractCallConnection(const UtlString& sId);
+
+   /**
+    * Convenience method to take all of the terminal connections in
+    * the specified conference off hold.
+    *
+    * Change the terminal connection state from HELD to TALKING.
+    * (With SIP a re-INVITE message is sent with SDP indicating
+    * media should be sent.)
+    */
+   OsStatus unholdAllConferenceConnections(const UtlString& sId);
+
+   /**
+    * Convenience method to take the terminal connection off hold.
+    * Works for both calls and conferences.
+    *
+    * Change the terminal connection state from HELD to TALKING.
+    * (With SIP a re-INVITE message is sent with SDP indicating
+    * media should be sent.)
+    */
+   OsStatus unholdAbstractCallConnection(const UtlString& sId,
+                                         const UtlString& sSipCallId,
+                                         const UtlString& sLocalTag,
+                                         const UtlString& sRemoteTag);
+
+   /**
+   * Convenience method to take the terminal connection off hold.
+   * Works only for calls.
+   *
+   * Change the terminal connection state from HELD to TALKING.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * media should be sent.)
+   */
+   OsStatus unholdCallConnection(const UtlString& sId);
+
+   /**
+    * Enables discarding of inbound RTP for given call
+    * or conference. Useful for server applications without mic/speaker.
+    */
+   OsStatus silentHoldRemoteAbstractCallConnection(const UtlString& sId,
+                                                   const UtlString& sSipCallId,
+                                                   const UtlString& sLocalTag,
+                                                   const UtlString& sRemoteTag);
+
+   /**
+   * Disables discarding of inbound RTP for given call
+   * or conference. Useful for server applications without mic/speaker.
+   */
+   OsStatus silentUnholdRemoteAbstractCallConnection(const UtlString& sId,
+                                                     const UtlString& sSipCallId,
+                                                     const UtlString& sLocalTag,
+                                                     const UtlString& sRemoteTag);
+
+   /**
+   * Stops outbound RTP for given call or conference.
+   * Useful for server applications without mic/speaker.
+   */
+   OsStatus silentHoldLocalAbstractCallConnection(const UtlString& sId,
+                                                  const UtlString& sSipCallId,
+                                                  const UtlString& sLocalTag,
+                                                  const UtlString& sRemoteTag);
+
+   /**
+   * Starts outbound RTP for given call or conference.
+   * Useful for server applications without mic/speaker.
+   */
+   OsStatus silentUnholdLocalAbstractCallConnection(const UtlString& sId,
+                                                    const UtlString& sSipCallId,
+                                                    const UtlString& sLocalTag,
+                                                    const UtlString& sRemoteTag);
+
+   /**
+    * Rebuild codec factory on the fly with new audio codec requirements
+    * and new video codecs. Preferences will be in effect after the next
+    * INVITE or re-INVITE. Can be called on empty call or conference to limit
+    * codecs for future calls. When called on an established call, hold/unhold
+    * or codec renegotiation needs to be triggered to actually change codecs.
+    * If used on conference, codecs will be applied to all future calls, and all
+    * calls that are unheld.
+    */
+   OsStatus limitAbstractCallCodecPreferences(const UtlString& sId,
+                                              CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                              const UtlString& sAudioCodecs,
+                                              CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                              const UtlString& sVideoCodecs);
+
+   /**
+    * Rebuild codec factory on the fly with new audio codec requirements
+    * and specified video codecs.  Renegotiate the codecs to be use for the
+    * specified terminal connection. For call overrides preferences set by
+    * limitAbstractCallCodecPreferences. For conference, only overrides
+    * codecs used by given call. Conference call will then ignore preferences set
+    * by previous call to limitAbstractCallCodecPreferences when unhold is executed.
+    * But next call of limitAbstractCallCodecPreferences will again override this setting.
+    *
+    * This is typically performed after a capabilities change for the
+    * terminal connection (for example, addition or removal of a codec type).
+    * (Sends a SIP re-INVITE.)
+    */
+   OsStatus renegotiateCodecsAbstractCallConnection(const UtlString& sId,
+                                                    const UtlString& sSipCallId,
+                                                    const UtlString& sLocalTag,
+                                                    const UtlString& sRemoteTag,
+                                                    CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                                    const UtlString& sAudioCodecs,
+                                                    CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                                    const UtlString& sVideoCodecs);
+
+   /**
+   * Rebuild codec factory on the fly with new audio codec requirements
+   * and specified video codecs. Convenience method to renegotiate the codecs
+   * for all of the terminal connections in the specified conference.
+   *
+   * This is typically performed after a capabilities change for the
+   * terminal connection (for example, addition or removal of a codec type).
+   * (Sends a SIP re-INVITE.)
+   */
+   OsStatus renegotiateCodecsAllConferenceConnections(const UtlString& sId,
+                                                      CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                                      const UtlString& sAudioCodecs,
+                                                      CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                                      const UtlString& sVideoCodecs);
 
    /** Enable STUN for NAT/Firewall traversal */
    void enableStun(const UtlString& sStunServer, 

@@ -59,6 +59,16 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    return bResult;
 }
 
+OsStatus XCpAbstractCall::holdLocalConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::unholdLocalConnection()
+{
+   return OS_FAILED;
+}
+
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
 {
    return m_memberMutex.acquire(rTimeout);
