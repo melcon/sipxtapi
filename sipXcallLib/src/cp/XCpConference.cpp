@@ -83,6 +83,85 @@ OsStatus XCpConference::dropAllConnections()
    return OS_FAILED;
 }
 
+OsStatus XCpConference::holdConnection(const UtlString& sSipCallId,
+                                       const UtlString& sLocalTag,
+                                       const UtlString& sRemoteTag)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::holdAllConnections()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::unholdAllConnections()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::unholdConnection(const UtlString& sSipCallId,
+                                         const UtlString& sLocalTag,
+                                         const UtlString& sRemoteTag)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::silentHoldRemoteConnection(const UtlString& sSipCallId,
+                                                   const UtlString& sLocalTag,
+                                                   const UtlString& sRemoteTag)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::silentUnholdRemoteConnection(const UtlString& sSipCallId,
+                                                     const UtlString& sLocalTag,
+                                                     const UtlString& sRemoteTag)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::silentHoldLocalConnection(const UtlString& sSipCallId,
+                                                  const UtlString& sLocalTag,
+                                                  const UtlString& sRemoteTag)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::silentUnholdLocalConnection(const UtlString& sSipCallId,
+                                                    const UtlString& sLocalTag,
+                                                    const UtlString& sRemoteTag)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                              const UtlString& sAudioCodecs,
+                                              CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                              const UtlString& sVideoCodecs)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::renegotiateCodecsConnection(const UtlString& sSipCallId,
+                                                    const UtlString& sLocalTag,
+                                                    const UtlString& sRemoteTag,
+                                                    CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                                    const UtlString& sAudioCodecs,
+                                                    CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                                    const UtlString& sVideoCodecs)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::renegotiateCodecsAllConnections(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                                        const UtlString& sAudioCodecs,
+                                                        CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                                        const UtlString& sVideoCodecs)
+{
+   return OS_FAILED;
+}
+
 OsStatus XCpConference::sendInfo(const UtlString& sSipCallId,
                                  const UtlString& sLocalTag,
                                  const UtlString& sRemoteTag,

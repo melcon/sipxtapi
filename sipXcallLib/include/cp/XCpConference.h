@@ -83,6 +83,121 @@ public:
    /** Disconnects all calls */
    OsStatus dropAllConnections();
 
+   /**
+   * Put the specified terminal connection on hold.
+   *
+   * Change the terminal connection state from TALKING to HELD.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * no media should be sent.)
+   */
+   virtual OsStatus holdConnection(const UtlString& sSipCallId,
+                                   const UtlString& sLocalTag,
+                                   const UtlString& sRemoteTag);
+
+   /**
+   * Convenience method to put all of the terminal connections in
+   * the specified conference on hold.
+   */
+   OsStatus holdAllConnections();
+
+   /**
+   * Convenience method to take all of the terminal connections in
+   * the specified conference off hold.
+   *
+   * Change the terminal connection state from HELD to TALKING.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * media should be sent.)
+   */
+   OsStatus unholdAllConnections();
+
+   /**
+   * Convenience method to take the terminal connection off hold.
+   *
+   * Change the terminal connection state from HELD to TALKING.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * media should be sent.)
+   */
+   virtual OsStatus unholdConnection(const UtlString& sSipCallId,
+                                     const UtlString& sLocalTag,
+                                     const UtlString& sRemoteTag);
+
+   /**
+   * Enables discarding of inbound RTP for given call
+   * or conference. Useful for server applications without mic/speaker.
+   */
+   virtual OsStatus silentHoldRemoteConnection(const UtlString& sSipCallId,
+                                               const UtlString& sLocalTag,
+                                               const UtlString& sRemoteTag);
+
+   /**
+   * Disables discarding of inbound RTP for given call
+   * or conference. Useful for server applications without mic/speaker.
+   */
+   virtual OsStatus silentUnholdRemoteConnection(const UtlString& sSipCallId,
+                                                 const UtlString& sLocalTag,
+                                                 const UtlString& sRemoteTag);
+
+   /**
+   * Stops outbound RTP for given call or conference.
+   * Useful for server applications without mic/speaker.
+   */
+   virtual OsStatus silentHoldLocalConnection(const UtlString& sSipCallId,
+                                              const UtlString& sLocalTag,
+                                              const UtlString& sRemoteTag);
+
+   /**
+   * Starts outbound RTP for given call or conference.
+   * Useful for server applications without mic/speaker.
+   */
+   virtual OsStatus silentUnholdLocalConnection(const UtlString& sSipCallId,
+                                                const UtlString& sLocalTag,
+                                                const UtlString& sRemoteTag);
+
+   /**
+   * Rebuild codec factory on the fly with new audio codec requirements
+   * and new video codecs. Preferences will be in effect after the next
+   * INVITE or re-INVITE. Can be called on empty call or conference to limit
+   * codecs for future calls. When called on an established call, hold/unhold
+   * or codec renegotiation needs to be triggered to actually change codecs.
+   * If used on conference, codecs will be applied to all future calls, and all
+   * calls that are unheld.
+   */
+   virtual OsStatus limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                          const UtlString& sAudioCodecs,
+                                          CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                          const UtlString& sVideoCodecs);
+
+   /**
+   * Rebuild codec factory on the fly with new audio codec requirements
+   * and one specific video codec.  Renegotiate the codecs to be use for the
+   * specified terminal connection.
+   *
+   * This is typically performed after a capabilities change for the
+   * terminal connection (for example, addition or removal of a codec type).
+   * (Sends a SIP re-INVITE.)
+   */
+   virtual OsStatus renegotiateCodecsConnection(const UtlString& sSipCallId,
+                                                const UtlString& sLocalTag,
+                                                const UtlString& sRemoteTag,
+                                                CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                                const UtlString& sAudioCodecs,
+                                                CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                                const UtlString& sVideoCodecs);
+
+   /**
+   * Rebuild codec factory on the fly with new audio codec requirements
+   * and one specific video codec. Convenience method to renegotiate the codecs
+   * for all of the terminal connections in the specified conference.
+   *
+   * This is typically performed after a capabilities change for the
+   * terminal connection (for example, addition or removal of a codec type).
+   * (Sends a SIP re-INVITE.)
+   */
+   OsStatus renegotiateCodecsAllConnections(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                            const UtlString& sAudioCodecs,
+                                            CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                            const UtlString& sVideoCodecs);
+
    /** Sends an INFO message to the other party(s) on the call */
    virtual OsStatus sendInfo(const UtlString& sSipCallId,
                              const UtlString& sLocalTag,
