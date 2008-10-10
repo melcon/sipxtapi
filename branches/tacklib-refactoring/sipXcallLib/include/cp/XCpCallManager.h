@@ -503,8 +503,8 @@ private:
    *
    * @return TRUE if a call or conference was found, FALSE otherwise.
    */
-   UtlBoolean findAbstractCallById(const UtlString& sAbstractCallId,
-                                   OsPtrLock<XCpAbstractCall>& ptrLock) const;
+   UtlBoolean findAbstractCall(const UtlString& sAbstractCallId,
+                               OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
    * Finds and returns a call or conference as XCpAbstractCall according to given sip call-id.
@@ -516,10 +516,8 @@ private:
    *
    * @return TRUE if a call or conference was found, FALSE otherwise.
    */
-   UtlBoolean findAbstractCallBySipDialog(const UtlString& sSipCallId,
-                                          const UtlString& sLocalTag,
-                                          const UtlString& sRemoteTag,
-                                          OsPtrLock<XCpAbstractCall>& ptrLock) const;
+   UtlBoolean findAbstractCall(const SipDialog& sSipDialog,
+                               OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
    * Finds and returns a XCpCall according to given id.

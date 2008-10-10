@@ -164,9 +164,7 @@ OsStatus XCpConference::sendInfo(const SipDialog& sSipDialog,
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean XCpConference::hasSipDialog(const UtlString& sSipCallId,
-                                       const UtlString& sLocalTag /*= NULL*/,
-                                       const UtlString& sRemoteTag /*= NULL*/) const
+UtlBoolean XCpConference::hasSipDialog(const SipDialog& sSipDialog) const
 {
    return FALSE;
 }

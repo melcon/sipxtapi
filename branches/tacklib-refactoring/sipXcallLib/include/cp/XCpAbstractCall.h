@@ -292,9 +292,7 @@ public:
    /**
     * Checks if this abstract call has given sip dialog.
     */
-   virtual UtlBoolean hasSipDialog(const UtlString& sSipCallId,
-                                   const UtlString& sLocalTag = NULL,
-                                   const UtlString& sRemoteTag = NULL) const = 0;
+   virtual UtlBoolean hasSipDialog(const SipDialog& sSipDialog) const = 0;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const = 0;

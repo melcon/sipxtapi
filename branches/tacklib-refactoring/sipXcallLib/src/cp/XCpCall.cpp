@@ -156,9 +156,7 @@ OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean XCpCall::hasSipDialog(const UtlString& sSipCallId,
-                                 const UtlString& sLocalTag,
-                                 const UtlString& sRemoteTag) const
+UtlBoolean XCpCall::hasSipDialog(const SipDialog& sSipDialog) const
 {
    return FALSE;
 }
