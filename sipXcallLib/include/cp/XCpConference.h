@@ -76,12 +76,14 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const UtlString& sSipCallId,
-                                   const UtlString& sLocalTag,
-                                   const UtlString& sRemoteTag);
+   virtual OsStatus dropConnection(const SipDialog& sSipDialog);
 
    /** Disconnects all calls */
    OsStatus dropAllConnections();
+
+   /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
+   virtual OsStatus transferBlind(const SipDialog& sSipDialog,
+                                  const UtlString& sTransferSipUri);
 
    /**
    * Put the specified terminal connection on hold.
@@ -90,9 +92,7 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * no media should be sent.)
    */
-   virtual OsStatus holdConnection(const UtlString& sSipCallId,
-                                   const UtlString& sLocalTag,
-                                   const UtlString& sRemoteTag);
+   virtual OsStatus holdConnection(const SipDialog& sSipDialog);
 
    /**
    * Convenience method to put all of the terminal connections in
@@ -117,41 +117,31 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * media should be sent.)
    */
-   virtual OsStatus unholdConnection(const UtlString& sSipCallId,
-                                     const UtlString& sLocalTag,
-                                     const UtlString& sRemoteTag);
+   virtual OsStatus unholdConnection(const SipDialog& sSipDialog);
 
    /**
    * Enables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentHoldRemoteConnection(const UtlString& sSipCallId,
-                                               const UtlString& sLocalTag,
-                                               const UtlString& sRemoteTag);
+   virtual OsStatus silentHoldRemoteConnection(const SipDialog& sSipDialog);
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentUnholdRemoteConnection(const UtlString& sSipCallId,
-                                                 const UtlString& sLocalTag,
-                                                 const UtlString& sRemoteTag);
+   virtual OsStatus silentUnholdRemoteConnection(const SipDialog& sSipDialog);
 
    /**
    * Stops outbound RTP for given call or conference.
    * Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentHoldLocalConnection(const UtlString& sSipCallId,
-                                              const UtlString& sLocalTag,
-                                              const UtlString& sRemoteTag);
+   virtual OsStatus silentHoldLocalConnection(const SipDialog& sSipDialog);
 
    /**
    * Starts outbound RTP for given call or conference.
    * Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentUnholdLocalConnection(const UtlString& sSipCallId,
-                                                const UtlString& sLocalTag,
-                                                const UtlString& sRemoteTag);
+   virtual OsStatus silentUnholdLocalConnection(const SipDialog& sSipDialog);
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -176,9 +166,7 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   virtual OsStatus renegotiateCodecsConnection(const UtlString& sSipCallId,
-                                                const UtlString& sLocalTag,
-                                                const UtlString& sRemoteTag,
+   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sSipDialog,
                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
@@ -199,9 +187,7 @@ public:
                                             const UtlString& sVideoCodecs);
 
    /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const UtlString& sSipCallId,
-                             const UtlString& sLocalTag,
-                             const UtlString& sRemoteTag,
+   virtual OsStatus sendInfo(const SipDialog& sSipDialog,
                              const UtlString& sContentType,
                              const UtlString& sContentEncoding,
                              const UtlString& sContent);
@@ -228,19 +214,15 @@ public:
                                          int& iOutputEnergyLevel) const;
 
    /** Gets remote user agent for call or conference */
-   virtual OsStatus getRemoteUserAgent(const UtlString& sSipCallId,
-                                       const UtlString& sLocalTag,
-                                       const UtlString& sRemoteTag,
+   virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
                                        UtlString& userAgent) const;
 
    /** Gets internal id of media connection for given call or conference. Only for unit tests */
    virtual OsStatus getMediaConnectionId(int& mediaConnID) const;
 
    /** Gets copy of SipDialog for given call */
-   virtual OsStatus getSipDialog(const UtlString& sSipCallId,
-                                 const UtlString& sLocalTag,
-                                 const UtlString& sRemoteTag,
-                                 SipDialog& dialog) const;
+   virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
+                                 SipDialog& sOutputSipDialog) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

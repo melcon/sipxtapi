@@ -71,9 +71,7 @@ OsStatus XCpCall::answerConnection()
    return OS_FAILED;
 }
 
-OsStatus XCpCall::dropConnection(const UtlString& sSipCallId,
-                                 const UtlString& sLocalTag,
-                                 const UtlString& sRemoteTag)
+OsStatus XCpCall::dropConnection(const SipDialog& sSipDialog)
 {
    return OS_FAILED;
 }
@@ -83,9 +81,13 @@ OsStatus XCpCall::dropConnection()
    return OS_FAILED;
 }
 
-OsStatus XCpCall::holdConnection(const UtlString& sSipCallId,
-                                 const UtlString& sLocalTag,
-                                 const UtlString& sRemoteTag)
+OsStatus XCpCall::transferBlind(const SipDialog& sSipDialog,
+                                const UtlString& sTransferSipUri)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::holdConnection(const SipDialog& sSipDialog)
 {
    return OS_FAILED;
 }
@@ -95,9 +97,7 @@ OsStatus XCpCall::holdConnection()
    return OS_FAILED;
 }
 
-OsStatus XCpCall::unholdConnection(const UtlString& sSipCallId,
-                                   const UtlString& sLocalTag,
-                                   const UtlString& sRemoteTag)
+OsStatus XCpCall::unholdConnection(const SipDialog& sSipDialog)
 {
    return OS_FAILED;
 }
@@ -107,30 +107,22 @@ OsStatus XCpCall::unholdConnection()
    return OS_FAILED;
 }
 
-OsStatus XCpCall::silentHoldRemoteConnection(const UtlString& sSipCallId,
-                                             const UtlString& sLocalTag,
-                                             const UtlString& sRemoteTag)
+OsStatus XCpCall::silentHoldRemoteConnection(const SipDialog& sSipDialog)
 {
    return OS_FAILED;
 }
 
-OsStatus XCpCall::silentUnholdRemoteConnection(const UtlString& sSipCallId,
-                                               const UtlString& sLocalTag,
-                                               const UtlString& sRemoteTag)
+OsStatus XCpCall::silentUnholdRemoteConnection(const SipDialog& sSipDialog)
 {
    return OS_FAILED;
 }
 
-OsStatus XCpCall::silentHoldLocalConnection(const UtlString& sSipCallId,
-                                            const UtlString& sLocalTag,
-                                            const UtlString& sRemoteTag)
+OsStatus XCpCall::silentHoldLocalConnection(const SipDialog& sSipDialog)
 {
    return OS_FAILED;
 }
 
-OsStatus XCpCall::silentUnholdLocalConnection(const UtlString& sSipCallId,
-                                              const UtlString& sLocalTag,
-                                              const UtlString& sRemoteTag)
+OsStatus XCpCall::silentUnholdLocalConnection(const SipDialog& sSipDialog)
 {
    return OS_FAILED;
 }
@@ -143,9 +135,7 @@ OsStatus XCpCall::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
    return OS_FAILED;
 }
 
-OsStatus XCpCall::renegotiateCodecsConnection(const UtlString& sSipCallId,
-                                              const UtlString& sLocalTag,
-                                              const UtlString& sRemoteTag,
+OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sSipDialog,
                                               CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                               const UtlString& sAudioCodecs,
                                               CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
@@ -154,9 +144,7 @@ OsStatus XCpCall::renegotiateCodecsConnection(const UtlString& sSipCallId,
    return OS_FAILED;
 }
 
-OsStatus XCpCall::sendInfo(const UtlString& sSipCallId,
-                           const UtlString& sLocalTag,
-                           const UtlString& sRemoteTag,
+OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
                            const UtlString& sContentType,
                            const UtlString& sContentEncoding,
                            const UtlString& sContent)
@@ -194,9 +182,7 @@ OsStatus XCpCall::getAudioEnergyLevels(int& iInputEnergyLevel, int& iOutputEnerg
    return OS_FAILED;
 }
 
-OsStatus XCpCall::getRemoteUserAgent(const UtlString& sSipCallId,
-                                     const UtlString& sLocalTag,
-                                     const UtlString& sRemoteTag,
+OsStatus XCpCall::getRemoteUserAgent(const SipDialog& sSipDialog,
                                      UtlString& userAgent) const
 {
    userAgent.remove(0);
@@ -211,9 +197,7 @@ OsStatus XCpCall::getMediaConnectionId(int& mediaConnID) const
    return OS_INVALID;
 }
 
-OsStatus XCpCall::getSipDialog(const UtlString& sSipCallId,
-                               const UtlString& sLocalTag,
-                               const UtlString& sRemoteTag,
+OsStatus XCpCall::getSipDialog(const SipDialog& sSipDialog,
                                SipDialog& dialog) const
 {
    dialog = SipDialog(); // assign empty SipDialog

@@ -59,6 +59,65 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    return bResult;
 }
 
+OsStatus XCpAbstractCall::audioToneStart(int iToneId,
+                                         UtlBoolean bLocal,
+                                         UtlBoolean bRemote)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::audioToneStop()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::audioFilePlay(const UtlString& audioFile,
+                                        UtlBoolean bRepeat,
+                                        UtlBoolean bLocal,
+                                        UtlBoolean bRemote,
+                                        UtlBoolean bMixWithMic /*= FALSE*/,
+                                        int iDownScaling /*= 100*/,
+                                        void* pCookie /*= NULL*/)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::audioBufferPlay(void* pAudiobuf,
+                                          size_t iBufSize,
+                                          int iType,
+                                          UtlBoolean bRepeat,
+                                          UtlBoolean bLocal,
+                                          UtlBoolean bRemote,
+                                          void* pCookie /*= NULL*/)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::audioStop()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::pauseAudioPlayback()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::resumeAudioPlayback()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::audioRecordStart(const UtlString& sFile)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::audioRecordStop()
+{
+   return OS_FAILED;
+}
+
 OsStatus XCpAbstractCall::holdLocalConnection()
 {
    return OS_FAILED;

@@ -109,9 +109,52 @@ public:
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
     * progresses to disconnected and the connection is removed.
     */
-   virtual OsStatus dropConnection(const UtlString& sSipCallId,
-                                   const UtlString& sLocalTag,
-                                   const UtlString& sRemoteTag) = 0;
+   virtual OsStatus dropConnection(const SipDialog& sSipDialog) = 0;
+
+   /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
+   virtual OsStatus transferBlind(const SipDialog& sSipDialog,
+                                  const UtlString& sTransferSipUri) = 0;
+
+   /** Starts DTMF tone on call connection.*/
+   OsStatus audioToneStart(int iToneId,
+                           UtlBoolean bLocal,
+                           UtlBoolean bRemote);
+
+   /** Stops DTMF tone on call connection */
+   OsStatus audioToneStop();
+
+   /** Starts playing audio file on call connection */
+   OsStatus audioFilePlay(const UtlString& audioFile,
+                          UtlBoolean bRepeat,
+                          UtlBoolean bLocal,
+                          UtlBoolean bRemote,
+                          UtlBoolean bMixWithMic = FALSE,
+                          int iDownScaling = 100,
+                          void* pCookie = NULL);
+
+   /** Starts playing audio buffer on call connection. Passed buffer will be copied internally. */
+   OsStatus audioBufferPlay(void* pAudiobuf,
+                            size_t iBufSize,
+                            int iType,
+                            UtlBoolean bRepeat,
+                            UtlBoolean bLocal,
+                            UtlBoolean bRemote,
+                            void* pCookie = NULL);
+
+   /** Stops playing audio file or buffer on call connection */
+   OsStatus audioStop();
+
+   /** Pauses audio playback of file or buffer. */
+   OsStatus pauseAudioPlayback();
+
+   /** Resumes audio playback of file or buffer */
+   OsStatus resumeAudioPlayback();
+
+   /** Starts recording call or conference. */
+   OsStatus audioRecordStart(const UtlString& sFile);
+
+   /** Stops recording call or conference. */
+   OsStatus audioRecordStop();
 
    /**
    * Put the specified terminal connection on hold.
@@ -120,9 +163,7 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * no media should be sent.)
    */
-   virtual OsStatus holdConnection(const UtlString& sSipCallId,
-                                   const UtlString& sLocalTag,
-                                   const UtlString& sRemoteTag) = 0;
+   virtual OsStatus holdConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Convenience method to put the local terminal connection on hold.
@@ -148,41 +189,31 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * media should be sent.)
    */
-   virtual OsStatus unholdConnection(const UtlString& sSipCallId,
-                                     const UtlString& sLocalTag,
-                                     const UtlString& sRemoteTag) = 0;
+   virtual OsStatus unholdConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Enables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentHoldRemoteConnection(const UtlString& sSipCallId,
-                                               const UtlString& sLocalTag,
-                                               const UtlString& sRemoteTag) = 0;
+   virtual OsStatus silentHoldRemoteConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentUnholdRemoteConnection(const UtlString& sSipCallId,
-                                                 const UtlString& sLocalTag,
-                                                 const UtlString& sRemoteTag) = 0;
+   virtual OsStatus silentUnholdRemoteConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Stops outbound RTP for given call or conference.
    * Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentHoldLocalConnection(const UtlString& sSipCallId,
-                                              const UtlString& sLocalTag,
-                                              const UtlString& sRemoteTag) = 0;
+   virtual OsStatus silentHoldLocalConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Starts outbound RTP for given call or conference.
    * Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentUnholdLocalConnection(const UtlString& sSipCallId,
-                                                const UtlString& sLocalTag,
-                                                const UtlString& sRemoteTag) = 0;
+   virtual OsStatus silentUnholdLocalConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -207,9 +238,7 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   virtual OsStatus renegotiateCodecsConnection(const UtlString& sSipCallId,
-                                                const UtlString& sLocalTag,
-                                                const UtlString& sRemoteTag,
+   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sSipDialog,
                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
@@ -217,9 +246,7 @@ public:
 
 
    /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const UtlString& sSipCallId,
-                             const UtlString& sLocalTag,
-                             const UtlString& sRemoteTag,
+   virtual OsStatus sendInfo(const SipDialog& sSipDialog,
                              const UtlString& sContentType,
                              const UtlString& sContentEncoding,
                              const UtlString& sContent) = 0;
@@ -277,19 +304,15 @@ public:
                                          int& iOutputEnergyLevel) const = 0;
 
    /** gets remote user agent for call or conference */
-   virtual OsStatus getRemoteUserAgent(const UtlString& sSipCallId,
-                                       const UtlString& sLocalTag,
-                                       const UtlString& sRemoteTag,
+   virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
                                        UtlString& userAgent) const = 0;
 
    /** Gets internal id of media connection for given call or conference. Only for unit tests */
    virtual OsStatus getMediaConnectionId(int& mediaConnID) const = 0;
 
    /** Gets copy of SipDialog for given call */
-   virtual OsStatus getSipDialog(const UtlString& sSipCallId,
-                                 const UtlString& sLocalTag,
-                                 const UtlString& sRemoteTag,
-                                 SipDialog& dialog) const = 0;
+   virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
+                                 SipDialog& sOutputSipDialog) const = 0;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
