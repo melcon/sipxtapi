@@ -100,26 +100,35 @@ SipDialog::SipDialog(const SipMessage* initialMessage,
        mInitialLocalCseq = -1;
        mInitialRemoteCseq = -1;
    }
-
-   mDialogState = DIALOG_UNKNOWN;
 }
 
 // Constructor
-SipDialog::SipDialog(const char* callId, 
-                     const char* localField, 
-                     const char* remoteField)
-    : UtlString(callId)
+SipDialog::SipDialog(const char* szCallId, 
+                     const char* szLocalTag, 
+                     const char* szRemoteTag)
+    : UtlString(szCallId)
 {
-    mRemoteField = Url(remoteField);
-    mRemoteField.getFieldParameter("tag", mRemoteTag);
-    mLocalField = Url(localField);
-    mLocalField.getFieldParameter("tag", mLocalTag);
+   mLocalTag = szLocalTag;
+   mRemoteTag = szRemoteTag;
 
     mInitialLocalCseq = -1;
     mInitialRemoteCseq = -1;
     mLastLocalCseq = -1;
     mLastRemoteCseq = -1;
-    mDialogState = DIALOG_UNKNOWN;
+}
+
+SipDialog::SipDialog(const UtlString& sSipCallId,
+                     const UtlString& sLocalTag,
+                     const UtlString& sRemoteTag)
+: UtlString(sSipCallId)
+{
+   mLocalTag = sLocalTag;
+   mRemoteTag = sRemoteTag;
+
+   mInitialLocalCseq = -1;
+   mInitialRemoteCseq = -1;
+   mLastLocalCseq = -1;
+   mLastRemoteCseq = -1;
 }
 
 // Copy constructor
@@ -157,10 +166,8 @@ SipDialog& SipDialog::operator=(const SipDialog& rhs)
    mInitialRemoteCseq = rhs.mInitialRemoteCseq;
    mLastLocalCseq = rhs.mLastLocalCseq;
    mLastRemoteCseq = rhs.mLastRemoteCseq;
-   mDialogState = rhs.mDialogState;
    msLocalRequestUri = rhs.msLocalRequestUri;
    msRemoteRequestUri = rhs.msRemoteRequestUri;
-   // Do not copy mApplicationData
 
    return *this;
 }
@@ -554,11 +561,6 @@ int SipDialog::getNextLocalCseq()
     return(mLastLocalCseq);
 }
 
-//int SipDialog::getDialogState() const
-//{
-//    return mDialogState;
-//}
-
 /* ============================ INQUIRY =================================== */
 
 
@@ -862,40 +864,6 @@ void SipDialog::toString(UtlString& dialogDumpString)
     SNPRINTF(numberString, sizeof(numberString), "%d", mLastRemoteCseq);
     dialogDumpString.append("\nmLastRemoteCseq:");
     dialogDumpString.append(numberString);
-    SNPRINTF(numberString, sizeof(numberString), "%d", mDialogState);
-    dialogDumpString.append("\nmDialogState:");
-    dialogDumpString.append(numberString);
-}
-
-void SipDialog::getStateString(DialogState state, 
-                               UtlString& stateString)
-{
-    switch(state)
-    {
-    case DIALOG_UNKNOWN:
-        stateString = "DIALOG_UNKNOWN";
-        break;
-    case DIALOG_EARLY:
-        stateString = "DIALOG_EARLY";
-        break;
-    case DIALOG_ESTABLISHED:
-        stateString = "DIALOG_ESTABLISHED";
-        break;
-    case DIALOG_FAILED:
-        stateString = "DIALOG_FAILED";
-        break;
-    case DIALOG_TERMINATED:
-        stateString = "DIALOG_TERMINATED";
-        break;
-
-    // This should not happen
-    default:
-        stateString = "DIALOG_????: ";
-        char stateCode[20];
-        SNPRINTF(stateCode, sizeof(stateCode), "%d", state);
-        stateString.append(stateCode);
-        break;
-    }
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
