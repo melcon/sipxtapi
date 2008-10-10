@@ -82,17 +82,23 @@ public:
    /** Creates new empty conference, returning id if successful */
    OsStatus createConference(UtlString& sConferenceId);
 
-   /** Connects an existing call identified by id, to given address returning sip call-id */
+   /** 
+    * Connects an existing call identified by id, to given address returning SipDialog.
+    * SipDialog can be used to retrieve sip call-id and from tag
+    */
    OsStatus connectCall(const UtlString& sCallId,
-                        UtlString& sSipCallId,
+                        SipDialog& sSipDialog,
                         const UtlString& toAddress,
                         const UtlString& lineURI,
                         const UtlString& locationHeader,
                         CP_CONTACT_ID contactId);
 
-   /** Connects a call in an existing conference identified by id, to given address returning sip call-id */
+   /** 
+    * Connects a call in an existing conference identified by id, to given address returning SipDialog.
+    * SipDialog can be used to retrieve sip call-id and from tag
+    */
    OsStatus connectConferenceCall(const UtlString& sConferenceId,
-                                  UtlString& sSipCallId,
+                                  SipDialog& sSipDialog,
                                   const UtlString& toAddress,
                                   const UtlString& lineURI,
                                   const UtlString& locationHeader,

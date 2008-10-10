@@ -187,44 +187,44 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
 }
 
 OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
-                                     UtlString& sSipCallId,
+                                     SipDialog& sSipDialog,
                                      const UtlString& toAddress,
                                      const UtlString& lineURI,
                                      const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId)
 {
    OsStatus result = OS_NOT_FOUND;
-   sSipCallId.remove(0); // clear string
+   sSipDialog = SipDialog();
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
    UtlBoolean resFind = findCall(sCallId, ptrLock);
    if (resFind)
    {
-      sSipCallId = getNewSipCallId();
+      UtlString sSipCallId = getNewSipCallId();
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, toAddress, lineURI, locationHeader, contactId);
+      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, lineURI, locationHeader, contactId);
    }
 
    return result;
 }
 
 OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
-                                               UtlString& sSipCallId,
+                                               SipDialog& sSipDialog,
                                                const UtlString& toAddress,
                                                const UtlString& lineURI,
                                                const UtlString& locationHeader,
                                                CP_CONTACT_ID contactId)
 {
    OsStatus result = OS_NOT_FOUND;
-   sSipCallId.remove(0); // clear string
+   sSipDialog = SipDialog();
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
    UtlBoolean resFind = findConference(sConferenceId, ptrLock);
    if (resFind)
    {
-      sSipCallId = getNewSipCallId();
+      UtlString sSipCallId = getNewSipCallId();
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, toAddress, lineURI, locationHeader, contactId);
+      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, lineURI, locationHeader, contactId);
    }
 
    return result;

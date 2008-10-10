@@ -60,6 +60,7 @@ public:
 
    /** Connects call to given address. Uses supplied sip call-id. */
    virtual OsStatus connect(const UtlString& sSipCallId,
+                            SipDialog& sSipDialog,
                             const UtlString& toAddress,
                             const UtlString& lineURI,
                             const UtlString& locationHeader,

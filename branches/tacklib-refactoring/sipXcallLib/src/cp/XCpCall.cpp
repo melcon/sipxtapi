@@ -42,6 +42,7 @@ XCpCall::~XCpCall()
 /* ============================ MANIPULATORS ============================== */
 
 OsStatus XCpCall::connect(const UtlString& sSipCallId,
+                          SipDialog& sSipDialog,
                           const UtlString& toAddress,
                           const UtlString& lineURI,
                           const UtlString& locationHeader,
