@@ -203,9 +203,7 @@ public:
    /**
    * Checks if this call has given sip dialog.
    */
-   virtual UtlBoolean hasSipDialog(const UtlString& sSipCallId,
-                                   const UtlString& sLocalTag = NULL,
-                                   const UtlString& sRemoteTag = NULL) const;
+   virtual UtlBoolean hasSipDialog(const SipDialog& sSipDialog) const;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;

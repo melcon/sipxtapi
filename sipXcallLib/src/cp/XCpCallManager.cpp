@@ -299,7 +299,7 @@ OsStatus XCpCallManager::dropAbstractCallConnection(const UtlString& sAbstractCa
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -388,7 +388,7 @@ OsStatus XCpCallManager::transferBlindAbstractCall(const UtlString& sAbstractCal
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -416,7 +416,7 @@ OsStatus XCpCallManager::audioToneStart(const UtlString& sAbstractCallId,
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -431,7 +431,7 @@ OsStatus XCpCallManager::audioToneStop(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -453,7 +453,7 @@ OsStatus XCpCallManager::audioFilePlay(const UtlString& sAbstractCallId,
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -475,7 +475,7 @@ OsStatus XCpCallManager::audioBufferPlay(const UtlString& sAbstractCallId,
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -490,7 +490,7 @@ OsStatus XCpCallManager::audioStop(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -505,7 +505,7 @@ OsStatus XCpCallManager::pauseAudioPlayback(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -520,7 +520,7 @@ OsStatus XCpCallManager::resumeAudioPlayback(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -536,7 +536,7 @@ OsStatus XCpCallManager::audioRecordStart(const UtlString& sAbstractCallId,
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -551,7 +551,7 @@ OsStatus XCpCallManager::audioRecordStop(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -567,7 +567,7 @@ OsStatus XCpCallManager::holdAbstractCallConnection(const UtlString& sAbstractCa
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -612,7 +612,7 @@ OsStatus XCpCallManager::holdLocalAbstractCallConnection(const UtlString& sAbstr
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -627,7 +627,7 @@ OsStatus XCpCallManager::unholdLocalAbstractCallConnection(const UtlString& sAbs
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -658,7 +658,7 @@ OsStatus XCpCallManager::unholdAbstractCallConnection(const UtlString& sAbstract
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -689,7 +689,7 @@ OsStatus XCpCallManager::silentHoldRemoteAbstractCallConnection(const UtlString&
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -705,7 +705,7 @@ OsStatus XCpCallManager::silentUnholdRemoteAbstractCallConnection(const UtlStrin
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -721,7 +721,7 @@ OsStatus XCpCallManager::silentHoldLocalAbstractCallConnection(const UtlString& 
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -737,7 +737,7 @@ OsStatus XCpCallManager::silentUnholdLocalAbstractCallConnection(const UtlString
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -756,7 +756,7 @@ OsStatus XCpCallManager::limitAbstractCallCodecPreferences(const UtlString& sAbs
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -776,7 +776,7 @@ OsStatus XCpCallManager::renegotiateCodecsAbstractCallConnection(const UtlString
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -853,7 +853,7 @@ OsStatus XCpCallManager::sendInfo(const UtlString& sAbstractCallId,
 {
    OsStatus result = OS_FAILED;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -980,7 +980,7 @@ OsStatus XCpCallManager::getAudioEnergyLevels(const UtlString& sAbstractCallId,
 {
    OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -996,7 +996,7 @@ OsStatus XCpCallManager::getRemoteUserAgent(const UtlString& sAbstractCallId,
 {
    OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -1011,7 +1011,7 @@ OsStatus XCpCallManager::getMediaConnectionId(const UtlString& sAbstractCallId,
 {
    OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -1027,7 +1027,7 @@ OsStatus XCpCallManager::getSipDialog(const UtlString& sAbstractCallId,
 {
    OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCallById(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -1081,8 +1081,8 @@ XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId) const
    else return XCpCallManager::ID_TYPE_UNKNOWN;
 }
 
-UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sAbstractCallId,
-                                                OsPtrLock<XCpAbstractCall>& ptrLock) const
+UtlBoolean XCpCallManager::findAbstractCall(const UtlString& sAbstractCallId,
+                                            OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
    XCpCallManager::ID_TYPE type = getIdType(sAbstractCallId);
    UtlBoolean result = FALSE;
@@ -1124,10 +1124,8 @@ UtlBoolean XCpCallManager::findAbstractCallById(const UtlString& sAbstractCallId
    return result;
 }
 
-UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCallId,
-                                                       const UtlString& sLocalTag,
-                                                       const UtlString& sRemoteTag,
-                                                       OsPtrLock<XCpAbstractCall>& ptrLock) const
+UtlBoolean XCpCallManager::findAbstractCall(const SipDialog& sSipDialog,
+                                            OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
    OsLock lock(m_memberMutex);
 
@@ -1139,7 +1137,7 @@ UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCall
    while(callMapItor()) // go to next pair
    {
       pCall = dynamic_cast<XCpCall*>(callMapItor.value());
-      if (pCall && pCall->hasSipDialog(sSipCallId, sLocalTag, sRemoteTag))
+      if (pCall && pCall->hasSipDialog(sSipDialog))
       {
          ptrLock = pCall;
          return TRUE;
@@ -1152,7 +1150,7 @@ UtlBoolean XCpCallManager::findAbstractCallBySipDialog(const UtlString& sSipCall
    while(conferenceMapItor()) // go to next pair
    {
       pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference && pConference->hasSipDialog(sSipCallId, sLocalTag, sRemoteTag))
+      if (pConference && pConference->hasSipDialog(sSipDialog))
       {
          ptrLock = pConference;
          return TRUE;
