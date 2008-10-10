@@ -5,6 +5,9 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+// Contributors retain copyright to elements licensed under a Contributor Agreement.
+// Licensed to the User under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 // Author: Dan Petrie (dpetrie AT SIPez DOT com)
@@ -310,7 +313,7 @@ private:
    UtlString mInitialMethod;
    UtlString msLocalRequestUri;
    UtlString msRemoteRequestUri;
-   UtlBoolean mLocalInitatedDialog;
+   UtlBoolean mLocalInitiatedDialog;
    int mInitialLocalCseq;
    int mInitialRemoteCseq;
    int mLastLocalCseq;
