@@ -61,15 +61,6 @@ class SipDialog : public UtlString
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-    enum DialogState
-    {
-        DIALOG_UNKNOWN,
-        DIALOG_EARLY,
-        DIALOG_ESTABLISHED,
-        DIALOG_FAILED,
-        DIALOG_TERMINATED
-    };
-
 /* ============================ CREATORS ================================== */
 
     //! Default Dialog constructor
@@ -95,7 +86,18 @@ public:
      * \param remoteField - sip message To or From field value representing the 
      *        remote side of the dialog.
      */
-    SipDialog(const char* callId, const char* localField, const char* remoteField); 
+    SipDialog(const char* szCallId, const char* szLocalTag, const char* szRemoteTag); 
+
+    //! Constructor accepting the basic pieces of a session callId, toUrl, and from Url.
+    /*! Optionally construct a dialog from the given message
+    *
+    * \param callId - sip message call-id header value
+    * \param localField - sip message To or From field value representing the 
+    *        local side of the dialog.
+    * \param remoteField - sip message To or From field value representing the 
+    *        remote side of the dialog.
+    */
+    SipDialog(const UtlString& sSipCallId, const UtlString& sLocalTag, const UtlString& sRemoteTag); 
 
     //! Copy constructor
     SipDialog(const SipDialog& rSipDialog);
@@ -218,10 +220,6 @@ public:
     //! Debug method to dump the contents of this SipDialog into a string
     void toString(UtlString& dialogDumpString);
 
-    //! Get a string representation for the state value
-    static void getStateString(DialogState state, 
-                               UtlString& stateString);
-
 /* ============================ INQUIRY =================================== */
 
     //! Compare the message to see if it matches this dialog
@@ -296,7 +294,6 @@ public:
 
     //! Check if mesage cseq is after the last remote transaction
     UtlBoolean isNextRemoteCseq(const SipMessage& message) const;
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -318,8 +315,6 @@ private:
     int mInitialRemoteCseq;
     int mLastLocalCseq;
     int mLastRemoteCseq;
-    int mDialogState;
-
 };
 
 /* ============================ INLINE METHODS ============================ */
