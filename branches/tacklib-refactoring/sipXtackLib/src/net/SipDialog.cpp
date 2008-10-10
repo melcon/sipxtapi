@@ -5,6 +5,9 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+// Contributors retain copyright to elements licensed under a Contributor Agreement.
+// Licensed to the User under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 // Author: Dan Petrie (dpetrie AT SIPez DOT com)
@@ -44,7 +47,7 @@ SipDialog::SipDialog(const SipMessage* initialMessage,
          (initialMessage->isResponse() &&
          !isFromLocal))
       {
-         mLocalInitatedDialog = TRUE;
+         mLocalInitiatedDialog = TRUE;
          initialMessage->getFromUrl(mLocalField);
          mLocalField.getFieldParameter("tag", mLocalTag);
          initialMessage->getToUrl(mRemoteField);
@@ -57,15 +60,16 @@ SipDialog::SipDialog(const SipMessage* initialMessage,
       // The transaction was initiated from the other side
       else
       {
-         mLocalInitatedDialog = FALSE;
+         mLocalInitiatedDialog = FALSE;
          initialMessage->getFromUrl(mRemoteField);
          mRemoteField.getFieldParameter("tag", mRemoteTag);
          initialMessage->getToUrl(mLocalField);
          mLocalField.getFieldParameter("tag", mLocalTag);
          initialMessage->getCSeqField(&mInitialRemoteCseq, &mInitialMethod);
          mLastRemoteCseq = mInitialRemoteCseq;
-         mLastLocalCseq = -1;
-         mInitialLocalCseq = -1;
+         // Start local CSeq's at 1, because some UAs cannot handle 0.
+         mLastLocalCseq = 0;
+         mInitialLocalCseq = 0;
       }
 
       if(!initialMessage->isResponse())
@@ -78,26 +82,36 @@ SipDialog::SipDialog(const SipMessage* initialMessage,
          }
          else
          {
+            // Incoming initial Request, we need to set the Route set here
+            if(initialMessage->isRecordRouteAccepted())
+            {
+               initialMessage->buildRouteField(&mRouteSet);
+            }
             msLocalRequestUri = uri;
          }
       }
 
+      // :TODO: this should use a new interface to get a parsed value
       UtlString contact;
+      // Get the Contact, but as an addr-spec.
       initialMessage->getContactUri(0, &contact);
       if(isFromLocal)
       {
-         mLocalContact = contact;
+         mLocalContact.fromString(contact, TRUE);
       }
       else
       {
-         mRemoteContact = contact;
+         mRemoteContact.fromString(contact, TRUE);
       }
    }
    else
    {
-      mLastLocalCseq = -1;
+      // Insert dummy values into fields that aren't automatically initialized.
+      mLocalInitiatedDialog = FALSE;
+      // Start local CSeq's at 1, because some UAs cannot handle 0.
+      mLastLocalCseq = 0;
       mLastRemoteCseq = -1;
-      mInitialLocalCseq = -1;
+      mInitialLocalCseq = 0;
       mInitialRemoteCseq = -1;
    }
 }
@@ -161,7 +175,7 @@ SipDialog& SipDialog::operator=(const SipDialog& rhs)
    mRemoteContact = rhs.mRemoteContact;
    mRouteSet = rhs.mRouteSet;
    mInitialMethod = rhs.mInitialMethod;
-   mLocalInitatedDialog = rhs.mLocalInitatedDialog;
+   mLocalInitiatedDialog = rhs.mLocalInitiatedDialog;
    mInitialLocalCseq = rhs.mInitialLocalCseq;
    mInitialRemoteCseq = rhs.mInitialRemoteCseq;
    mLastLocalCseq = rhs.mLastLocalCseq;
@@ -208,21 +222,17 @@ void SipDialog::updateDialogData(const SipMessage& message)
       {
          // Always update the contact if it is set
          UtlString messageContact;
+         // Get the Contact value, but as an addr-spec.
          if(message.getContactUri(0, &messageContact) &&
             !messageContact.isNull())
          {
-            // Add the angle brackets for contact
-            Url url(messageContact);
-            url.includeAngleBrackets();
-            messageContact = url.toString();
-
             if(message.isResponse())
             {
-               mRemoteContact = messageContact;
+               mRemoteContact.fromString(messageContact, TRUE);
             }
             else
             {
-               mLocalContact = messageContact;
+               mLocalContact.fromString(messageContact, TRUE);
             }
          }
       }
@@ -235,7 +245,7 @@ void SipDialog::updateDialogData(const SipMessage& message)
       {
          // A successful response to an INVITE or SUBSCRIBE
          // make this early dialog a set up dialog
-         if(mLocalInitatedDialog &&
+         if(mLocalInitiatedDialog &&
             message.isResponse() && 
             responseCode >= SIP_2XX_CLASS_CODE && // successful dialog setup
             responseCode < SIP_3XX_CLASS_CODE &&
@@ -249,7 +259,11 @@ void SipDialog::updateDialogData(const SipMessage& message)
             mRemoteField.getFieldParameter("tag", mRemoteTag);
 
             // Need to get the route set as well
-            message.buildRouteField(&mRouteSet);
+            // Make sure the Request Method is allowed to set Record-Routes
+            if(message.isRecordRouteAccepted())
+            {
+               message.buildRouteField(&mRouteSet);
+            }
          }
       }
    }
@@ -270,16 +284,17 @@ void SipDialog::updateDialogData(const SipMessage& message)
       {
          // Always update the contact if it is set
          UtlString messageContact;
+         // Get the Contact value, but as an addr-spec.
          if(message.getContactUri(0, &messageContact) &&
             !messageContact.isNull())
          {
             if(message.isResponse())
             {
-               mLocalContact = messageContact;
+               mLocalContact.fromString(messageContact, TRUE);
             }
             else
             {
-               mRemoteContact = messageContact;
+               mRemoteContact.fromString(messageContact, TRUE);
             }
          }
       }
@@ -289,7 +304,7 @@ void SipDialog::updateDialogData(const SipMessage& message)
       {
          // A response (e.g. NOTIFY) can come before we get the
          // successful response to the initial transaction
-         if(!mLocalInitatedDialog &&
+         if(!mLocalInitiatedDialog &&
             !message.isResponse() &&
             mRemoteTag.isNull()) // tag not set
          {
@@ -304,7 +319,7 @@ void SipDialog::updateDialogData(const SipMessage& message)
       // First successful response from the local side
       if(cSeq == mLastRemoteCseq)
       {
-         if(!mLocalInitatedDialog &&
+         if(!mLocalInitiatedDialog &&
             message.isResponse() && 
             responseCode >= SIP_2XX_CLASS_CODE && // successful dialog setup
             responseCode < SIP_3XX_CLASS_CODE &&
@@ -325,11 +340,14 @@ void SipDialog::setRequestData(SipMessage& request, const char* method)
    {
       request.getRequestMethod(&methodString);
    }
+
    // The request URI should be the remote contact
    UtlString remoteContact;
-   mRemoteContact.removeAngleBrackets();
-   mRemoteContact.removeUrlParameters();
-   mRemoteContact.toString(remoteContact);
+   // Use getUri() to get the contact in addr-spec format.
+   // (mRemoteContact should have no field parameters, but if it has
+   // URI parameters, toString would add <...>, which are not allowed
+   // in URIs.)
+   mRemoteContact.getUri(remoteContact);
 
    // If the remote contact is empty, use the remote request uri
    if (remoteContact.compareTo("sip:") == 0)
@@ -383,12 +401,12 @@ void SipDialog::getEarlyHandle(UtlString& earlyDialogHandle) const
    // Do not add the tag for the side that did not initiate the dialog
    earlyDialogHandle = *this; // callId
    earlyDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   if(mLocalInitatedDialog)
+   if(mLocalInitiatedDialog)
    {
       earlyDialogHandle.append(mLocalTag);
    }
    earlyDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   if(!mLocalInitatedDialog)
+   if(!mLocalInitiatedDialog)
    {
       earlyDialogHandle.append(mRemoteTag);
    }
@@ -492,7 +510,6 @@ void SipDialog::setRemoteContact(const Url& remoteContact)
 {
    mRemoteContact = remoteContact;
 }
-
 
 void SipDialog::getLocalContact(Url& localContact) const
 {
@@ -728,10 +745,10 @@ UtlBoolean SipDialog::isTransactionRemotelyInitiated(const UtlString& callId,
    UtlBoolean isRemoteDialog = FALSE;
    if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
    {
-      if((toTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 ||
-         toTag.isNull() || mLocalTag.isNull()) &&
-         fromTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0 ||
-         mRemoteTag.isNull()) // If this is remotely initiated fromTag
+      if(((toTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 ||
+         toTag.isNull() || mLocalTag.isNull())) &&
+         (fromTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0 ||
+         mRemoteTag.isNull())) // If this is remotely initiated fromTag
          // cannot be a null string.  mRemoteTag can be a null string
          // as occurs when a remotely initiated NOTIFY is received 
          // before the SUBSCRIBE response is received.
@@ -851,7 +868,7 @@ void SipDialog::toString(UtlString& dialogDumpString)
    dialogDumpString.append("\nmsRemoteRequestUri:");
    dialogDumpString.append(msRemoteRequestUri);
    dialogDumpString.append("\nmLocalInitatedDialog:");
-   dialogDumpString.append(mLocalInitatedDialog);
+   dialogDumpString.append(mLocalInitiatedDialog);
    SNPRINTF(numberString, sizeof(numberString), "%d", mInitialLocalCseq);
    dialogDumpString.append("\nmInitialLocalCseq:");
    dialogDumpString.append(numberString);
