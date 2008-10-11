@@ -1160,6 +1160,8 @@ public:
     //! as opposed to a request.
     UtlBoolean isResponse() const;
 
+    UtlBoolean isRequest() const;
+
     //! @ Transaction and session related inquiry methods
     //@{
     UtlBoolean isSameMessage(const SipMessage* message,
