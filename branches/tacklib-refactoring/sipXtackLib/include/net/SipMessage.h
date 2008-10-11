@@ -126,6 +126,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_LINE_IDENTIFIER "LINEID"
 #define SIPX_IMPLIED_SUB "sipx-implied" ///< integer expiration duration for subscription
 // Response codes and text
+#define SIP_1XX_CLASS_CODE 100
+
 #define SIP_TRYING_CODE 100
 #define SIP_TRYING_TEXT "Trying"
 
@@ -1202,8 +1204,6 @@ public:
     // ISmimeNotifySink implementations                               
     void OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause);
     bool OnSignature(void* pCert, char* szSubjAltName);        
-    UtlBoolean getFromThisSide() const { return mbFromThisSide; }
-    void setFromThisSide(const bool bFromThisSide) { mbFromThisSide = bFromThisSide; }
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -1216,7 +1216,6 @@ private:
     UtlString mCustomRouteId;
 
     UtlString mLocalIp;
-    UtlBoolean mbFromThisSide;
     UtlBoolean mbUseShortNames;
 
     //SDUA

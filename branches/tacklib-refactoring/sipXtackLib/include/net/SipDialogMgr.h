@@ -87,8 +87,8 @@ public:
     //! Get the early dialog handle for the given established dialog handle
     /*! This works even if the SipDialog is an early dialog that has not yet 
      *  been updated to be an established dialog. */
-    UtlBoolean getEarlyDialogHandleFor(const char* establishedDialogHandle, 
-                                       UtlString& earlyDialogHandle);
+    UtlBoolean getInitialDialogHandleFor(const char* establishedDialogHandle, 
+                                         UtlString& earlyDialogHandle);
 
     //! Get the established dialog for the given early dialog
     UtlBoolean getEstablishedDialogHandleFor(const char* earlyDialogHandle,
@@ -106,13 +106,13 @@ public:
     /*! If earlyDialogHandle is not an early dialog, no matches are
      * considered to exist.
      */
-    UtlBoolean earlyDialogExists(const char* earlyDialogHandle);
+    UtlBoolean initialDialogExists(const char* earlyDialogHandle);
 
     //! Is there an early dialog that matches this established dialogHandle
     /*! If establishedDialogHandle is not an established dialog, no matches are
      * considered to exist.
      */
-    UtlBoolean earlyDialogExistsFor(const char* establishedDialogHandle);
+    UtlBoolean initialDialogExistsFor(const char* establishedDialogHandle);
 
     //! Is there a dialog that matches this dialogHandle
     /*! If the dialog handle is an early dialog, it will only match

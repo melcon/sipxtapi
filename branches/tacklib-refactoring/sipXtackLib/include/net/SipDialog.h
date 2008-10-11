@@ -20,6 +20,7 @@
 // APPLICATION INCLUDES
 
 #include <os/OsDefs.h>
+#include <utl/UtlString.h>
 #include <utl/UtlHashMap.h>
 #include <net/Url.h>
 
@@ -38,12 +39,16 @@ class SipMessage;
 //! Class for containing SIP dialog state information
 /*! In SIP a dialog is defined by the SIP Call-Id
 *  header and the tag parameter from the SIP To
-*  and From header fields.  An early dialog has
-*  has only the tag set on one side, the transaction
-*  originator side.  In the initial transaction the
-*  the originator tag in in the From header field.
-*  The final destination sets the To header field
-*  tag in the initial transaction.
+*  and From header fields.
+*
+*  Dialog state is split into state and substate. The reason
+*  is we can construct SipDialog from call-id, tags, but have
+*  no idea if this is an early or confirmed dialog according
+*  to RFC2833. Dialog is established if it contains both tags
+*  and is not terminated. Dialog is early after 1xx response with
+*  to tag. Dialog is confirmed after 200 OK response with to tag.
+*  Dialog termination of established dialog is not automatically
+*  detected, and must be explicitly set by user.
 *
 * \par Local and Remote
 *  As the To and From fields get swapped depending
@@ -56,13 +61,39 @@ class SipMessage;
 *  sides of the dialog by thinking Left and Right
 *  instead of local and remote.
 *
-*  This class is intended to depricate the SipSession
+*  This class is intended to deprecate the SipSession
 *  class.
 */
 class SipDialog : public UtlString
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+
+   /**
+    * State of SipDialog:
+    * - initial - when SipDialog is constructed and one of tags is missing
+    * - established - when SipDialog is constructed with both tags, or as result of updateDialogData
+    * - terminated - after 4xx, 5xx, 6xx responses
+    */
+   typedef enum
+   {
+      DIALOG_STATE_INITIAL,
+      DIALOG_STATE_ESTABLISHED,
+      DIALOG_STATE_TERMINATED
+   } DialogState;
+
+   /**
+    * Substate of SipDialog:
+    * - unknown - the default state
+    * - early - when updateDialogData can see 1xx response with remote tag
+    * - confirmed - after final 200 OK response to dialog initiation, with both tags
+    */
+   typedef enum
+   {
+      DIALOG_SUBSTATE_UNKNOWN,
+      DIALOG_SUBSTATE_EARLY,
+      DIALOG_SUBSTATE_CONFIRMED
+   } DialogSubState;
 
    /* ============================ CREATORS ================================== */
 
@@ -71,14 +102,8 @@ public:
    *
    * \param initialMessage - message to initiate the dialog, typically this
    *        is a request.
-   * \param isFromLocal - The message was sent from this side of the transaction.
-   *        When the SipDialog is used in a proxy context, local and remote
-   *        is not obvious.  A way to think about it in a proxy scenario is
-   *        to think of local to be the left side and remote to be the right
-   *        side of the transaction.
    */
-   SipDialog(const SipMessage* initialMessage = NULL,
-      UtlBoolean isFromLocal = TRUE);
+   SipDialog(const SipMessage* initialMessage = NULL);
 
    //! Constructor accepting the basic pieces of a session callId, toUrl, and from Url.
    /*! Optionally construct a dialog from the given message
@@ -89,7 +114,7 @@ public:
    * \param remoteField - sip message To or From field value representing the 
    *        remote side of the dialog.
    */
-   SipDialog(const char* szCallId, const char* szLocalTag, const char* szRemoteTag); 
+   SipDialog(const char* szCallId, const char* szLocalTag, const char* szRemoteTag, UtlBoolean isFromLocal = TRUE); 
 
    //! Constructor accepting the basic pieces of a session callId, toUrl, and from Url.
    /*! Optionally construct a dialog from the given message
@@ -100,7 +125,7 @@ public:
    * \param remoteField - sip message To or From field value representing the 
    *        remote side of the dialog.
    */
-   SipDialog(const UtlString& sSipCallId, const UtlString& sLocalTag, const UtlString& sRemoteTag); 
+   SipDialog(const UtlString& sSipCallId, const UtlString& sLocalTag, const UtlString& sRemoteTag, UtlBoolean isFromLocal = TRUE); 
 
    //! Copy constructor
    SipDialog(const SipDialog& rSipDialog);
@@ -135,22 +160,25 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-
    //! Gets a string handle that can be used to uniquely identify this dialog
    void getHandle(UtlString& dialogHandle) const;
 
-   //! Get the early dialog handle for this dialog
-   void getEarlyHandle(UtlString& earlyDialogHandle) const;
+   /**
+    * Get the initial dialog handle for this dialog. Initial dialog is dialog
+    * that has not yet been established. Early and confirmed dialogs are considered
+    * established dialogs.
+    */
+   void getInitialHandle(UtlString& initialDialogHandle) const;
 
    //! Gets the call-id, and tags from the dialogHandle
-   static void parseHandle(const char* dialogHandle,
+   static void parseHandle(const UtlString& dialogHandle,
       UtlString& callId,
       UtlString& localTag,
       UtlString& remoteTag);
 
    //! Reverse the order of the tags in the handle
-   static void reverseTags(const char* dialogHandle,
-      UtlString& reversedHandle);
+   static void reverseTags(const UtlString& dialogHandle,
+                           UtlString& reversedHandle);
 
    //! Get the SIP call-id header value for this dialog
    void getCallId(UtlString& callId) const;
@@ -198,27 +226,36 @@ public:
    //! Set the last used SIP Cseq number for the remote side
    void setLastRemoteCseq(int seqNum);
 
-   //! Get the request URI for the local side
-   /*! This may be different than the local contact.  This is
-   *  what was received in the last request from the remote 
-   *  side.
-   */
+   /**
+    * Get the request URI for the local side.
+    *
+    * This may be different than the local contact.  This is
+    * what was received in the last request from the remote 
+    * side.
+    */
    void getLocalRequestUri(UtlString& requestUri) const;
-   //! Set the request URI for the local side
+
+   /** Set the request URI for the local side */
    void setLocalRequestUri(const UtlString& requestUri);
-   //! Get the request URI for the remote side
-   /*! This is typically meaningless for the remote side
-   *  when observed from the local end point as it should
-   *  not be different than the local contact.  However 
-   *  in some applications it may be possible to observe
-   *  what the request URI is on the remote side or in
-   *  a proxy in which case this may be interesting.
-   */
+
+   /**
+    *  Gets the requestUri we used in the initial request.
+    */
    void getRemoteRequestUri(UtlString& requestUri) const;
    //! Set the request URI for the remote side
    void setRemoteRequestUri(const UtlString& requestUri);
 
-   //int getDialogState() const;
+   /** Retrieves state of SipDialog. */
+   SipDialog::DialogState getDialogState() const { return m_dialogState; }
+   /** Sets state of SipDialog. Avoid using it if possible. */
+   void setDialogState(SipDialog::DialogState val) { m_dialogState = val; }
+
+   /** Retrieves substate of SipDialog - unknown, early, confirmed */
+   SipDialog::DialogSubState getDialogSubState() const { return m_dialogSubState; }
+   void setDialogSubState(SipDialog::DialogSubState val) { m_dialogSubState = val; }
+
+   /** Marks dialog as terminated */
+   void terminateDialog();
 
    //! Debug method to dump the contents of this SipDialog into a string
    void toString(UtlString& dialogDumpString);
@@ -237,27 +274,27 @@ public:
    /*! The tags are compared in both directions.
    */
    UtlBoolean isSameDialog(const UtlString& callId,
-      const UtlString& localTag,
-      const UtlString& remoteTag) const;
+                           const UtlString& localTag,
+                           const UtlString& remoteTag) const;
 
    //! Compare the given dialog handle with that of this dialog
    /*! The tags are compared in both directions.
    */
-   UtlBoolean isSameDialog(const char* dialogHandle);
+   UtlBoolean isSameDialog(const UtlString& dialogHandle);
 
    //! Determine if this is an early dialog
-   UtlBoolean isEarlyDialog() const;
+   UtlBoolean isInitialDialog() const;
 
    //! Determine if the given handle is for an early dialog
    /*! That is check if one of the tags is null
    */
-   static UtlBoolean isEarlyDialog(const char* dialogHandle);
+   static UtlBoolean isInitialDialog(const char* dialogHandle);
 
    //! Checks if this is an early dialog for the given SIP message
-   UtlBoolean isEarlyDialogFor(const SipMessage& message) const;
+   UtlBoolean isInitialDialogFor(const SipMessage& message) const;
 
    //! Checks if this is an early dialog for the given SIP message
-   UtlBoolean isEarlyDialogFor(const UtlString& callId,
+   UtlBoolean isInitialDialogFor(const UtlString& callId,
       const UtlString& localTag,
       const UtlString& remoteTag) const;
 
@@ -266,7 +303,7 @@ public:
    *  the SIP Call-Id and one of the given tags matches one of
    *  the tags of this dialog.
    */
-   UtlBoolean wasEarlyDialogFor(const UtlString& callId,
+   UtlBoolean wasInitialDialogFor(const UtlString& callId,
       const UtlString& localTag,
       const UtlString& remoteTag) const;
 
@@ -274,7 +311,7 @@ public:
    /*! If the request was sent from the local side, the fromTag will
    *  match the local tag.
    */
-   UtlBoolean isTransactionLocallyInitiated(const UtlString& callId,
+   UtlBoolean isDialogLocallyInitiated(const UtlString& callId,
       const UtlString& fromTag,
       const UtlString& toTag) const;
 
@@ -282,7 +319,7 @@ public:
    /*! If the request was sent from the local side, the fromTag will
    *  match the remote tag.
    */
-   UtlBoolean isTransactionRemotelyInitiated(const UtlString& callId,
+   UtlBoolean isDialogRemotelyInitiated(const UtlString& callId,
       const UtlString& fromTag,
       const UtlString& toTag) const;
 
@@ -302,22 +339,27 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   void updateDialogState(const SipMessage* pSipMessage = NULL);
+
    // The callId is stored in the UtlString base class data element
-   Url mLocalField; // To or From depending on who initiated the transaction
-   Url mRemoteField; // To or From depending on who initiated the transaction
-   UtlString mLocalTag;
-   UtlString mRemoteTag;
-   Url mLocalContact;
-   Url mRemoteContact;
-   UtlString mRouteSet;
-   UtlString mInitialMethod;
-   UtlString msLocalRequestUri;
-   UtlString msRemoteRequestUri;
-   UtlBoolean mLocalInitiatedDialog;
-   int mInitialLocalCseq;
-   int mInitialRemoteCseq;
-   int mLastLocalCseq;
-   int mLastRemoteCseq;
+   Url m_localField; // To or From depending on who initiated the transaction
+   Url m_remoteField; // To or From depending on who initiated the transaction
+   UtlString m_sLocalTag;
+   UtlString m_sRemoteTag;
+   Url m_localContact;
+   Url m_remoteContact; // In RFC-2833 described as "remote target"
+   UtlString m_sRouteSet;
+   UtlString m_sInitialMethod;
+   UtlString m_sLocalRequestUri;
+   UtlString m_sRemoteRequestUri;
+   UtlBoolean m_sLocalInitiatedDialog;
+   int m_iInitialLocalCseq;
+   int m_iInitialRemoteCseq;
+   int m_iLastLocalCseq;
+   int m_sLastRemoteCseq;
+   UtlBoolean m_bSecure;
+   DialogState m_dialogState;
+   DialogSubState m_dialogSubState;
 };
 
 /* ============================ INLINE METHODS ============================ */

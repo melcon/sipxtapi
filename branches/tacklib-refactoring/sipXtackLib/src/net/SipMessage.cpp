@@ -57,8 +57,7 @@ SipMessage::SipMessage(const char* messageBytes,
                        int byteCount) :
    HttpMessage(messageBytes, byteCount),
    mpSecurity(NULL),
-   mpEventData(NULL),
-   mbFromThisSide(true)
+   mpEventData(NULL)
 {
    mbUseShortNames = false ;
    mLocalIp = "";
@@ -74,8 +73,7 @@ SipMessage::SipMessage(OsSocket* inSocket,
                        int bufferSize) :
    HttpMessage(inSocket, bufferSize),
    mpSecurity(NULL),
-   mpEventData(NULL),
-   mbFromThisSide(true)
+   mpEventData(NULL)
 {
 #ifdef TRACK_LIFE
    osPrintf("Created SipMessage @ address:%X\n",this);
@@ -101,7 +99,6 @@ SipMessage::SipMessage(const SipMessage& rSipMessage) :
    m_dnsAddress = rSipMessage.m_dnsAddress;
    m_dnsPort = rSipMessage.m_dnsPort;
    mpSipTransaction = rSipMessage.mpSipTransaction;
-   mbFromThisSide = rSipMessage.mbFromThisSide;
    mCustomRouteId = rSipMessage.mCustomRouteId;
    mbUseShortNames = rSipMessage.mbUseShortNames;
 }
@@ -127,7 +124,6 @@ SipMessage::operator=(const SipMessage& rSipMessage)
       m_dnsAddress = rSipMessage.m_dnsAddress;
       m_dnsPort = rSipMessage.m_dnsPort;
       mpSipTransaction = rSipMessage.mpSipTransaction;
-      mbFromThisSide = rSipMessage.mbFromThisSide;
       mCustomRouteId = rSipMessage.mCustomRouteId;
       mbUseShortNames = rSipMessage.mbUseShortNames;
    }

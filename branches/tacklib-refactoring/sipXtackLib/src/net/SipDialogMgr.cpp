@@ -75,7 +75,7 @@ UtlBoolean SipDialogMgr::createDialog(const SipMessage& message,
 
     // Check to see if the dialog exists
     if(dialogExists(handle) ||
-        earlyDialogExistsFor(handle))
+        initialDialogExistsFor(handle))
     {
         // Should not try to create a dialog for one that
         // already exists
@@ -88,7 +88,7 @@ UtlBoolean SipDialogMgr::createDialog(const SipMessage& message,
     else
     {
         createdDialog = TRUE;
-        SipDialog* dialog = new SipDialog(&message, messageIsFromLocalSide);
+        SipDialog* dialog = new SipDialog(&message);
         lock();
         mDialogs.insert(dialog);
         unlock();
@@ -182,8 +182,8 @@ UtlBoolean SipDialogMgr::setNextLocalTransactionInfo(SipMessage& request,
 
 /* ============================ ACCESSORS ================================= */
 
-UtlBoolean SipDialogMgr::getEarlyDialogHandleFor(const char* establishedDialogHandle, 
-                                                 UtlString& earlyDialogHandle)
+UtlBoolean SipDialogMgr::getInitialDialogHandleFor(const char* establishedDialogHandle, 
+                                                   UtlString& earlyDialogHandle)
 {
     UtlBoolean foundDialog = FALSE;
     UtlString handle(establishedDialogHandle ? establishedDialogHandle : "");
@@ -194,7 +194,7 @@ UtlBoolean SipDialogMgr::getEarlyDialogHandleFor(const char* establishedDialogHa
                                    FALSE); // if early, match established dialog
     if(dialog)
     {
-        dialog->getEarlyHandle(earlyDialogHandle);
+        dialog->getInitialHandle(earlyDialogHandle);
         foundDialog = TRUE;
     }
     else
@@ -207,7 +207,7 @@ UtlBoolean SipDialogMgr::getEarlyDialogHandleFor(const char* establishedDialogHa
 }
 
 UtlBoolean SipDialogMgr::getEstablishedDialogHandleFor(const char* earlyDialogHandle,
-                                             UtlString& establishedDialogHandle)
+                                                       UtlString& establishedDialogHandle)
 {
     UtlBoolean foundDialog = FALSE;
     UtlString handle(earlyDialogHandle ? earlyDialogHandle : "");
@@ -218,7 +218,7 @@ UtlBoolean SipDialogMgr::getEstablishedDialogHandleFor(const char* earlyDialogHa
     SipDialog* dialog = findDialog(handle,
                                    FALSE, // if established, match early dialog
                                    TRUE); // if early, match established dialog
-    if(dialog && !dialog->isEarlyDialog())
+    if(dialog && !dialog->isInitialDialog())
     {
         dialog->getHandle(establishedDialogHandle);
         foundDialog = TRUE;
@@ -264,7 +264,7 @@ int SipDialogMgr::toString(UtlString& dumpString)
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean SipDialogMgr::earlyDialogExists(const char* dialogHandle)
+UtlBoolean SipDialogMgr::initialDialogExists(const char* dialogHandle)
 {
     UtlBoolean foundDialog = FALSE;
     UtlString handle(dialogHandle ? dialogHandle : "");
@@ -277,7 +277,7 @@ UtlBoolean SipDialogMgr::earlyDialogExists(const char* dialogHandle)
                                    FALSE); // if early, match established dialog
 
     // We only want early dialogs
-    if(dialog && dialog->isEarlyDialog())
+    if(dialog && dialog->isInitialDialog())
     {
         foundDialog = TRUE;
     }
@@ -287,13 +287,13 @@ UtlBoolean SipDialogMgr::earlyDialogExists(const char* dialogHandle)
     return(foundDialog);
 }
 
-UtlBoolean SipDialogMgr::earlyDialogExistsFor(const char* establishedDialogHandle)
+UtlBoolean SipDialogMgr::initialDialogExistsFor(const char* establishedDialogHandle)
 {
     UtlBoolean foundDialog = FALSE;
     UtlString handle(establishedDialogHandle ? establishedDialogHandle : "");
 
     // If we have an established dialog handle
-    if(!SipDialog::isEarlyDialog(handle))
+    if(!SipDialog::isInitialDialog(handle))
     {
         lock();
         // Looking for an dialog that matches this handle, if there
@@ -303,7 +303,7 @@ UtlBoolean SipDialogMgr::earlyDialogExistsFor(const char* establishedDialogHandl
                                        TRUE, // if established, match early dialog
                                        FALSE); // if early, match established dialog
 
-        if(dialog && !dialog->isEarlyDialog())
+        if(dialog && !dialog->isInitialDialog())
         {
             foundDialog = TRUE;
         }
@@ -356,7 +356,7 @@ UtlBoolean SipDialogMgr::isLastLocalTransaction(const SipMessage& message,
                                    TRUE); // if early, match established dialog
 
     if(dialog && 
-       dialog->isTransactionLocallyInitiated(callId, fromTag, toTag) &&
+       dialog->isDialogLocallyInitiated(callId, fromTag, toTag) &&
        dialog->isSameLocalCseq(message))
     {
         matchesTransaction = TRUE;
@@ -385,7 +385,7 @@ UtlBoolean SipDialogMgr::isNewRemoteTransaction(const SipMessage& message)
                                    TRUE); // if early, match established dialog
 
     if(dialog && 
-       dialog->isTransactionRemotelyInitiated(callId, fromTag, toTag) &&
+       dialog->isDialogRemotelyInitiated(callId, fromTag, toTag) &&
        dialog->isNextRemoteCseq(message))
     {
         matchesTransaction = TRUE;
@@ -440,7 +440,7 @@ SipDialog* SipDialogMgr::findDialog(UtlString& callId,
         while((dialog = (SipDialog*) iterator()))
         {
             // Check for match on the early dialog for the handle
-            if(dialog->isEarlyDialogFor(callId, localTag, remoteTag))
+            if(dialog->isInitialDialogFor(callId, localTag, remoteTag))
             {
                 break;
             }
@@ -454,7 +454,7 @@ SipDialog* SipDialogMgr::findDialog(UtlString& callId,
         while((dialog = (SipDialog*) iterator()))
         {
             // Check for match on the early dialog for the handle
-            if(dialog->wasEarlyDialogFor(callId, localTag, remoteTag))
+            if(dialog->wasInitialDialogFor(callId, localTag, remoteTag))
             {
                 break;
             }
