@@ -854,6 +854,9 @@ void SipDialog::toString(UtlString& dialogDumpString)
    SNPRINTF(numberString, sizeof(numberString), "%d", m_sLastRemoteCseq);
    dialogDumpString.append("\nmLastRemoteCseq:");
    dialogDumpString.append(numberString);
+   SNPRINTF(numberString, sizeof(numberString), "%d", (int)m_bSecure);
+   dialogDumpString.append("\nmSecure:");
+   dialogDumpString.append(numberString);
    SNPRINTF(numberString, sizeof(numberString), "%d", (int)m_dialogState);
    dialogDumpString.append("\nmDialogState:");
    dialogDumpString.append(numberString);
