@@ -157,7 +157,7 @@ UtlBoolean SipSubscriptionMgr::updateDialogInfo(const SipMessage& subscribeReque
     isNew = FALSE;
     UtlBoolean subscriptionSucceeded = FALSE;
     UtlString dialogHandle;
-    subscribeRequest.getDialogHandle(dialogHandle);
+    SipDialog::getDialogHandle(subscribeRequest, dialogHandle);
     SubscriptionServerState* state = NULL;
     int expiration = -1;
     isSubscriptionExpired = TRUE;
@@ -216,7 +216,7 @@ UtlBoolean SipSubscriptionMgr::updateDialogInfo(const SipMessage& subscribeReque
             subscribeCopy->setToFieldTag(toTag);
 
             // Re-get the dialog handle now that the To tag is set
-            subscribeCopy->getDialogHandle(dialogHandle);
+            SipDialog::getDialogHandle(*subscribeCopy, dialogHandle);
 
             // Create the dialog
             mDialogMgr.createDialog(*subscribeCopy, FALSE, dialogHandle);
@@ -258,7 +258,7 @@ UtlBoolean SipSubscriptionMgr::updateDialogInfo(const SipMessage& subscribeReque
                                             SIP_ACCEPTED_TEXT, 
                                             contact);
             subscribeResponse.setExpiresField(expiration);
-            subscribeCopy->getDialogHandle(subscribeDialogHandle);
+            SipDialog::getDialogHandle(*subscribeCopy, subscribeDialogHandle);
 
             lock();
             mSubscriptionStatesByDialogHandle.insert(state);

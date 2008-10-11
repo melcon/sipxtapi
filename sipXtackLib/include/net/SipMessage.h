@@ -925,8 +925,6 @@ public:
     void getCallIdField(UtlString* callId) const;
     void getCallIdField(UtlString& callId) const;
 
-    void getDialogHandle(UtlString& dialogHandle) const;
-
     UtlBoolean getCSeqField(int* sequenceNum, UtlString* sequenceMethod) const;
     UtlBoolean getCSeqField(int& sequenceNum, UtlString& sequenceMethod) const;
 

@@ -3275,27 +3275,6 @@ void SipMessage::getCallIdField(UtlString& callId) const
    getCallIdField(&callId);
 }
 
-void SipMessage::getDialogHandle(UtlString& dialogHandle) const
-{
-    getCallIdField(&dialogHandle);
-    // Separator
-    dialogHandle.append(',');
-
-    Url messageFromUrl;
-    getFromUrl(messageFromUrl);
-    UtlString fromTag;
-    messageFromUrl.getFieldParameter("tag", fromTag);
-    dialogHandle.append(fromTag);
-    // Separator
-    dialogHandle.append(',');
-
-    Url messageToUrl;
-    getToUrl(messageToUrl);
-    UtlString toTag;
-    messageToUrl.getFieldParameter("tag", toTag);
-    dialogHandle.append(toTag);
-}
-
 UtlBoolean SipMessage::getCSeqField(int& sequenceNum, UtlString& sequenceMethod) const
 {
    return getCSeqField(&sequenceNum, &sequenceMethod);
