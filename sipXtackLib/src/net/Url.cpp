@@ -216,6 +216,10 @@ Url::Url(const char* urlString, UtlBoolean isAddrSpec) :
    {
       parseString(urlString ,isAddrSpec);
    }
+   else
+   {
+      initAngleBrackets(isAddrSpec);
+   }
 }
 
 void Url::fromString(const UtlString& urlString,
@@ -887,7 +891,6 @@ Url Url::getUri() const
    uri.setDisplayName(NULL);
    uri.removeAngleBrackets();
    uri.removeFieldParameters();
-   uri.removeHeaderParameters();
 
    return uri;
 }
@@ -1572,11 +1575,7 @@ void Url::parseString(const char* urlString, UtlBoolean isAddrSpec)
       }
    }
 
-   if (!isAddrSpec && (mScheme == SipUrlScheme || mScheme == SipsUrlScheme))
-   {
-      // for not addr spec sip & sips enable angle brackets
-      mAngleBracketsIncluded = TRUE;
-   }
+   initAngleBrackets(isAddrSpec);
 }
 #  ifdef TIME_PARSE
      UtlString timeDump;
@@ -1858,4 +1857,12 @@ void Url::gen_value_escape(UtlString& unEscapedText)
    }
 }
 
+void Url::initAngleBrackets(UtlBoolean isAddrSpec)
+{
+   if (!isAddrSpec && (mScheme == SipUrlScheme || mScheme == SipsUrlScheme))
+   {
+      // for not addr spec sip & sips enable angle brackets
+      mAngleBracketsIncluded = TRUE;
+   }
+}
 /* ============================ FUNCTIONS ================================= */

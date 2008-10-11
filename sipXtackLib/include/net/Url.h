@@ -522,6 +522,7 @@ private:
                                                     *   other place where only the addr-spec production
                                                     *   is valid. */
                     );
+   void initAngleBrackets(UtlBoolean isAddrSpec = FALSE);
 
    Scheme    mScheme;
 
