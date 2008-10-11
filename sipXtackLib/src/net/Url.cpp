@@ -378,11 +378,20 @@ void Url::setUrlType(const char* urlProtocol)
       
       mScheme = scheme(schemeName);
 
-      if ( UnknownUrlScheme == mScheme )
+      if (mScheme == SipUrlScheme || mScheme == SipsUrlScheme)
       {
+         mAngleBracketsIncluded = TRUE;
+      }
+      else if (UnknownUrlScheme == mScheme)
+      {
+         mAngleBracketsIncluded = FALSE;
          OsSysLog::add(FAC_SIP, PRI_ERR, "Url::setUrlType unsupported Url scheme '%s'",
                        urlProtocol
                        );
+      }
+      else
+      {
+         mAngleBracketsIncluded = FALSE;
       }
    }
    else
@@ -391,6 +400,7 @@ void Url::setUrlType(const char* urlProtocol)
       OsSysLog::add(FAC_SIP, PRI_CRIT, "Url::setUrlType Url scheme NULL");
       assert(urlProtocol);
       mScheme = UnknownUrlScheme;
+      mAngleBracketsIncluded = FALSE;
    }
 }
 
