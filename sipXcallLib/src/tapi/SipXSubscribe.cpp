@@ -606,8 +606,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
          {
             subscriptionData->pInst = pInst;
 
-            int subscriptionPeriod = 3600;
-
             SIPX_CONTACT_ADDRESS* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
 
             if (pContact) 
