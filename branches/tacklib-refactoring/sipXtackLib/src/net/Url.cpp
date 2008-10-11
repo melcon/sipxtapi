@@ -125,14 +125,14 @@ const char* SchemeName[ Url::NUM_SUPPORTED_URL_SCHEMES ] =
 //   $1 matches user
 //   $2 matches password
 const RegEx UsernameAndPassword(
-   "("
+    "("
       "(?:"
          "[a-zA-Z0-9_.!~*'()&=+$,;?/-]++"
       "|"
          "%[0-9a-fA-F]{2}"
       ")+"
     ")"
-   "(?:" ":"
+    "(?:" ":"
         "("
         "(?:"
             "[a-zA-Z0-9_.!~*'()&=+$,-]++"
