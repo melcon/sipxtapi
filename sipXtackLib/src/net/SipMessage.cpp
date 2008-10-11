@@ -4574,6 +4574,11 @@ UtlBoolean SipMessage::isResponse() const
    return(responseType);
 }
 
+UtlBoolean SipMessage::isRequest() const
+{
+   return !isResponse();
+}
+
 UtlBoolean SipMessage::isServerTransaction(UtlBoolean isOutgoing) const
 {
     UtlBoolean returnCode;
