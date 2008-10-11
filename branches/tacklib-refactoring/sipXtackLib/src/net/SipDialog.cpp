@@ -395,16 +395,29 @@ void SipDialog::setRequestData(SipMessage& request, const char* method)
 
 /* ============================ ACCESSORS ================================= */
 
-void SipDialog::getHandle(UtlString& dialogHandle) const
+void SipDialog::getDialogHandle(const SipMessage& sipMessage, UtlString& sDialogHandle)
 {
-   dialogHandle = *this; // callId
-   dialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   dialogHandle.append(m_sLocalTag);
-   dialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   dialogHandle.append(m_sRemoteTag);
+   sDialogHandle.remove(0);
+   sipMessage.getCallIdField(sDialogHandle);
+   sDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
+   UtlString sLocalTag;
+   UtlString sRemoteTag;
+   getLocalRemoteTag(sipMessage, sLocalTag, sRemoteTag);
+   sDialogHandle.append(sLocalTag);
+   sDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
+   sDialogHandle.append(sRemoteTag);
 }
 
-void SipDialog::getInitialHandle(UtlString& initialDialogHandle) const
+void SipDialog::getDialogHandle(UtlString& sDialogHandle) const
+{
+   sDialogHandle = *this; // callId
+   sDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
+   sDialogHandle.append(m_sLocalTag);
+   sDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
+   sDialogHandle.append(m_sRemoteTag);
+}
+
+void SipDialog::getInitialDialogHandle(UtlString& initialDialogHandle) const
 {
    // Do not add the tag for the side that did not initiate the dialog
    initialDialogHandle = *this; // callId
@@ -477,6 +490,7 @@ void SipDialog::setCallId(const char* callId)
 {
    remove(0);
    append(callId ? callId : "");
+   updateDialogState(); // also update dialog state, maybe dialog got established now
 }
 
 void SipDialog::getLocalField(Url& localField) const
@@ -492,6 +506,8 @@ void SipDialog::getLocalTag(UtlString& localTag) const
 void SipDialog::setLocalField(const Url& localField)
 {
    m_localField = localField;
+   m_localField.getFieldParameter("tag", m_sLocalTag); // also set tag
+   updateDialogState(); // also update dialog state, maybe dialog got established now
 }
 
 void SipDialog::getRemoteField(Url& remoteField) const
@@ -507,6 +523,8 @@ void SipDialog::getRemoteTag(UtlString& remoteTag) const
 void SipDialog::setRemoteField(const Url& remoteField)
 {
    m_remoteField = remoteField;
+   m_remoteField.getFieldParameter("tag", m_sRemoteTag); // also set tag
+   updateDialogState(); // also update dialog state, maybe dialog got established now
 }
 
 void SipDialog::getRemoteContact(Url& remoteContact) const
@@ -595,26 +613,12 @@ int SipDialog::getNextLocalCseq()
 
 UtlBoolean SipDialog::isSameDialog(const SipMessage& message) const
 {
-   UtlBoolean isFromLocal = message.isFromThisSide();
    UtlString messageCallId;
-   message.getCallIdField(&messageCallId);
-   Url messageFromUrl;
-   message.getFromUrl(messageFromUrl);
    UtlString localTag;
-   Url messageToUrl;
-   message.getToUrl(messageToUrl);
    UtlString remoteTag;
-   if (isFromLocal)
-   {
-      messageFromUrl.getFieldParameter("tag", localTag);
-      messageToUrl.getFieldParameter("tag", remoteTag);
-   }
-   else
-   {
-      // reverse tags
-      messageFromUrl.getFieldParameter("tag", remoteTag);
-      messageToUrl.getFieldParameter("tag", localTag);
-   }
+
+   message.getCallIdField(&messageCallId);
+   getLocalRemoteTag(message, localTag, remoteTag);
 
    return isSameDialog(messageCallId, localTag, remoteTag);
 }
@@ -650,28 +654,12 @@ UtlBoolean SipDialog::isSameDialog(const UtlString& dialogHandle)
 
 UtlBoolean SipDialog::isInitialDialogFor(const SipMessage& message) const
 {
-   UtlString handle;
-
-   UtlBoolean isFromLocal = message.isFromThisSide(); // flag set when reading msg from socket
    UtlString messageCallId;
-   message.getCallIdField(&messageCallId);
-   Url messageFromUrl;
-   message.getFromUrl(messageFromUrl);
    UtlString localTag;
-   Url messageToUrl;
-   message.getToUrl(messageToUrl);
    UtlString remoteTag;
-   if (isFromLocal)
-   {
-      messageFromUrl.getFieldParameter("tag", localTag);
-      messageToUrl.getFieldParameter("tag", remoteTag);
-   }
-   else
-   {
-      // reverse tags
-      messageFromUrl.getFieldParameter("tag", remoteTag);
-      messageToUrl.getFieldParameter("tag", localTag);
-   }
+
+   message.getCallIdField(&messageCallId);
+   getLocalRemoteTag(message, localTag, remoteTag);
 
    return isInitialDialogFor(messageCallId, localTag, remoteTag);
 }
@@ -683,10 +671,23 @@ UtlBoolean SipDialog::isInitialDialogFor(const UtlString& callId,
    UtlBoolean isSameInitialDialog = FALSE;
 
    // for initial dialog, callId and localTag must match
-   if(this->compareTo(callId, UtlString::ignoreCase) == 0 ||
-      localTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0)
+   if(this->compareTo(callId, UtlString::ignoreCase) == 0)
    {
-      isSameInitialDialog = TRUE;
+      if (m_sLocalInitiatedDialog)
+      {
+         if (localTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0)
+         {
+            isSameInitialDialog = TRUE;
+         }
+      }
+      else
+      {
+         // remotely initiated dialog
+         if (remoteTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0)
+         {
+            isSameInitialDialog = TRUE;
+         }
+      }
    }
 
    return isSameInitialDialog;
@@ -749,7 +750,7 @@ UtlBoolean SipDialog::isInitialDialog() const
    return(tagNotSet);
 }
 
-UtlBoolean SipDialog::isInitialDialog(const char* handle)
+UtlBoolean SipDialog::isInitialDialog(const UtlString& handle)
 {
    // For now make the simple assumption that if one of
    // the tags is not set that this is an early dialog
@@ -757,13 +758,12 @@ UtlBoolean SipDialog::isInitialDialog(const char* handle)
    // set the tags.  I do not think we need to support
    // RFC 2543 in this class.
    UtlBoolean tagNotSet = FALSE;
-   if(handle && *handle)
+   if(!handle.isNull())
    {
-      UtlString dialogHandle(handle);
       UtlString callId;
       UtlString localTag;
       UtlString remoteTag;
-      parseHandle(dialogHandle, callId, localTag, remoteTag);
+      parseHandle(handle, callId, localTag, remoteTag);
       if(localTag.isNull() || remoteTag.isNull())
       {
          tagNotSet = TRUE;
@@ -865,6 +865,33 @@ void SipDialog::toString(UtlString& dialogDumpString)
    dialogDumpString.append(numberString);
 }
 
+void SipDialog::getLocalRemoteTag(const SipMessage& sipMessage, UtlString& sLocalTag, UtlString& sRemoteTag)
+{
+   sLocalTag.remove(0);
+   sRemoteTag.remove(0);
+   Url messageFromUrl;
+   sipMessage.getFromUrl(messageFromUrl);
+   Url messageToUrl;
+   sipMessage.getToUrl(messageToUrl);
+   bool swapTags = isTagSwapNeeded(sipMessage);
+
+   if (swapTags)
+   {
+      messageFromUrl.getFieldParameter("tag", sRemoteTag);
+      messageToUrl.getFieldParameter("tag", sLocalTag);
+   }
+   else
+   {
+      messageFromUrl.getFieldParameter("tag", sLocalTag);
+      messageToUrl.getFieldParameter("tag", sRemoteTag);
+   }
+}
+
+bool SipDialog::isTagSwapNeeded(const SipMessage& sipMessage)
+{
+   return !((bool)sipMessage.isRequest()) ^ ((bool)!sipMessage.isFromThisSide()); // bool XOR, don't change to UtlBoolean!
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -948,5 +975,6 @@ void SipDialog::updateSecureFlag(const SipMessage* pSipMessage /*= NULL*/)
 
    m_bSecure = FALSE;
 }
+
 /* ============================ FUNCTIONS ================================= */
 

@@ -70,7 +70,7 @@ UtlBoolean SipDialogMgr::createDialog(const SipMessage& message,
     // If the dialog handle was not set, get it from the message
     if(handle.isNull())
     {
-        message.getDialogHandle(handle);
+       SipDialog::getDialogHandle(message, handle);
     }
 
     // Check to see if the dialog exists
@@ -104,7 +104,7 @@ UtlBoolean SipDialogMgr::updateDialog(const SipMessage& message,
     // If the dialog handle was not set, get it from the message
     if(handle.isNull())
     {
-        message.getDialogHandle(handle);
+       SipDialog::getDialogHandle(message, handle);
     }
 
     lock();
@@ -144,7 +144,7 @@ UtlBoolean SipDialogMgr::setNextLocalTransactionInfo(SipMessage& request,
     UtlString dialogHandleString(dialogHandle ? dialogHandle : "");
     if(dialogHandleString.isNull())
     {
-        request.getDialogHandle(dialogHandleString);
+       SipDialog::getDialogHandle(request, dialogHandleString);
     }
 
     lock();
@@ -194,7 +194,7 @@ UtlBoolean SipDialogMgr::getInitialDialogHandleFor(const char* establishedDialog
                                    FALSE); // if early, match established dialog
     if(dialog)
     {
-        dialog->getInitialHandle(earlyDialogHandle);
+        dialog->getInitialDialogHandle(earlyDialogHandle);
         foundDialog = TRUE;
     }
     else
@@ -220,7 +220,7 @@ UtlBoolean SipDialogMgr::getEstablishedDialogHandleFor(const char* earlyDialogHa
                                    TRUE); // if early, match established dialog
     if(dialog && !dialog->isInitialDialog())
     {
-        dialog->getHandle(establishedDialogHandle);
+        dialog->getDialogHandle(establishedDialogHandle);
         foundDialog = TRUE;
     }
     else
@@ -341,7 +341,7 @@ UtlBoolean SipDialogMgr::isLastLocalTransaction(const SipMessage& message,
     // If the dialog handle was not set, get it from the message
     if(handle.isNull())
     {
-        message.getDialogHandle(handle);
+       SipDialog::getDialogHandle(message, handle);
     }
 
     UtlString callId;
@@ -371,7 +371,7 @@ UtlBoolean SipDialogMgr::isNewRemoteTransaction(const SipMessage& message)
 {
     UtlBoolean matchesTransaction = FALSE;
     UtlString handle;
-    message.getDialogHandle(handle);
+    SipDialog::getDialogHandle(message, handle);
 
     UtlString callId;
     UtlString fromTag;

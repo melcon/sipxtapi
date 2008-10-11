@@ -283,7 +283,7 @@ UtlBoolean SipSubscribeClient::addSubscription(SipMessage& subscriptionRequest,
 
     // Create a SubscribeState and set the members
     SubscribeClientState* clientState = new SubscribeClientState;
-    subscriptionRequest.getDialogHandle(*clientState);
+    SipDialog::getDialogHandle(subscriptionRequest, *clientState);
     clientState->mState = SUBSCRIPTION_UNKNOWN;
     clientState->mpApplicationData = applicationData;
     clientState->mpStateCallback = subscriptionStateCallback;
@@ -729,7 +729,7 @@ void SipSubscribeClient::handleNotifyRequest(const SipMessage& notifyRequest)
     // multiple event types in the same dialog
 
     UtlString notifyDialogHandle;
-    notifyRequest.getDialogHandle(notifyDialogHandle);
+    SipDialog::getDialogHandle(notifyRequest, notifyDialogHandle);
 
     // Is there an established dialog?
     UtlBoolean foundDialog = mpDialogMgr->dialogExists(notifyDialogHandle);

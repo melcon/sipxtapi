@@ -160,15 +160,20 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   //! Gets a string handle that can be used to uniquely identify this dialog
-   void getHandle(UtlString& dialogHandle) const;
+   /**
+    * Constructs dialog handle for given SipMessage. Tags are swapped if needed.
+    */
+   static void getDialogHandle(const SipMessage& sipMessage, UtlString& sDialogHandle);
+
+   /** Gets a string handle that can be used to uniquely identify this dialog */
+   void getDialogHandle(UtlString& dialogHandle) const;
 
    /**
     * Get the initial dialog handle for this dialog. Initial dialog is dialog
     * that has not yet been established. Early and confirmed dialogs are considered
     * established dialogs.
     */
-   void getInitialHandle(UtlString& initialDialogHandle) const;
+   void getInitialDialogHandle(UtlString& initialDialogHandle) const;
 
    //! Gets the call-id, and tags from the dialogHandle
    static void parseHandle(const UtlString& dialogHandle,
@@ -293,7 +298,7 @@ public:
    //! Determine if the given handle is for an early dialog
    /*! That is check if one of the tags is null
    */
-   static UtlBoolean isInitialDialog(const char* dialogHandle);
+   static UtlBoolean isInitialDialog(const UtlString& dialogHandle);
 
    //! Checks if this is an early dialog for the given SIP message
    UtlBoolean isInitialDialogFor(const SipMessage& message) const;
@@ -339,6 +344,22 @@ public:
 
    //! Check if mesage cseq is after the last remote transaction
    UtlBoolean isNextRemoteCseq(const SipMessage& message) const;
+
+   /**
+    * Gets local and remote tag for given sip message for usage in dialog. Tag swap operation
+    * is performed if needed.
+    */
+   static void getLocalRemoteTag(const SipMessage& sipMessage, UtlString& sLocalTag, UtlString& sRemoteTag);
+
+   /**
+    * Determines if we need to swap tags when transforming from/to tag into
+    * local/remote tag. Normally from=local and to/remote, but if this function
+    * returns true, they need to be swapped. This allows more strict sip dialog
+    * matching.
+    * Depends on if message is request/response and if its inbound/outbound.
+    */
+   static bool isTagSwapNeeded(const SipMessage& sipMessage);
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 

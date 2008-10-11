@@ -194,7 +194,7 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
     // Make sure we do not have an existing dialog or refresh session state
     // going for the given message
     UtlString messageDialogHandle;
-    subscribeOrRegisterRequest.getDialogHandle(messageDialogHandle);
+    SipDialog::getDialogHandle(subscribeOrRegisterRequest, messageDialogHandle);
     UtlBoolean existingRefreshState = FALSE;
     UtlBoolean existingDialogState = FALSE;
     if(!SipDialog::isInitialDialog(messageDialogHandle))
@@ -628,7 +628,7 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
 
             UtlString dialogHandle;
             UtlString earlyDialogHandle;
-            sipMessage->getDialogHandle(dialogHandle);
+            SipDialog::getDialogHandle(*sipMessage, dialogHandle);
             UtlBoolean foundDialog = 
                 mpDialogMgr->dialogExists(dialogHandle);
             UtlBoolean foundEarlyDialog = FALSE;
