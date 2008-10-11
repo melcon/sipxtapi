@@ -42,6 +42,7 @@ SipDialog::SipDialog(const SipMessage* initialMessage)
       UtlString callId;
       initialMessage->getCallIdField(&callId);
       append(callId);
+      updateSecureFlag(initialMessage);
 
       // The transaction was initiated from this side
       if((!initialMessage->isResponse() && isFromLocal) ||
@@ -141,6 +142,7 @@ SipDialog::SipDialog(const char* szCallId,
    m_bSecure = FALSE;
 
    updateDialogState();
+   updateSecureFlag();
 }
 
 SipDialog::SipDialog(const UtlString& sSipCallId,
@@ -162,6 +164,7 @@ SipDialog::SipDialog(const UtlString& sSipCallId,
    m_bSecure = FALSE;
 
    updateDialogState();
+   updateSecureFlag();
 }
 
 // Copy constructor
@@ -201,6 +204,7 @@ SipDialog& SipDialog::operator=(const SipDialog& rhs)
    m_sLastRemoteCseq = rhs.m_sLastRemoteCseq;
    m_sLocalRequestUri = rhs.m_sLocalRequestUri;
    m_sRemoteRequestUri = rhs.m_sRemoteRequestUri;
+   m_bSecure = rhs.m_bSecure;
    m_dialogState = rhs.m_dialogState;
    m_dialogSubState = rhs.m_dialogSubState;
 
@@ -924,5 +928,22 @@ void SipDialog::updateDialogState(const SipMessage* pSipMessage)
    }
 }
 
+void SipDialog::updateSecureFlag(const SipMessage* pSipMessage /*= NULL*/)
+{
+   if (pSipMessage && pSipMessage->isRequest())
+   {
+      // init secure flag
+      UtlString sRequestUri;
+      pSipMessage->getRequestUri(&sRequestUri);
+      Url requestUrl(sRequestUri, TRUE);
+      if (requestUrl.getScheme() == Url::SipsUrlScheme)
+      {
+         m_bSecure = TRUE;
+         return;
+      }
+   }
+
+   m_bSecure = FALSE;
+}
 /* ============================ FUNCTIONS ================================= */
 
