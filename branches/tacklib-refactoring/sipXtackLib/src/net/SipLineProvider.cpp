@@ -107,9 +107,23 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
    if (isInboundMessage)
    {
       // use requestUri & toUrl
-      Url toUrl;
-      sipMsg.getToUrl(toUrl);
-      lineUri = toUrl.getUri(); // get lineUri from toUrl
+      UtlString requestMethod;
+      sipMsg.getRequestMethod(&requestMethod);
+      if (requestMethod.compareTo(SIP_REGISTER_METHOD, UtlString::ignoreCase))
+      {
+         // this is REGISTER, RequestUri is different from toUri, use toUri
+         Url toUrl;
+         sipMsg.getToUrl(toUrl);
+         lineUri = toUrl.getUri(); // get lineUri from toUrl
+      }
+      else
+      {
+         // INVITE, INFO... These may also have different RequestUri from toUri, if there is redirection 3xx.
+         // See RFC-2833 - 8.2.2.1 To and Request-URI
+         UtlString requestUri;
+         sipMsg.getRequestUri(&requestUri);
+         lineUri = requestUri; // RequestUri is definitely us, To header field not necessarily..
+      }
       lineUri.removeUrlParameter("tag"); // remove tag just in case it was url parameter, case insensitive operation
       lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
       lineUri.getUserId(userId); // get userId from lineUri
