@@ -109,7 +109,7 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
       // use requestUri & toUrl
       UtlString requestMethod;
       sipMsg.getRequestMethod(&requestMethod);
-      if (requestMethod.compareTo(SIP_REGISTER_METHOD, UtlString::ignoreCase))
+      if (sipMsg.isResponse() || requestMethod.compareTo(SIP_REGISTER_METHOD))
       {
          // this is REGISTER, RequestUri is different from toUri, use toUri
          Url toUrl;
