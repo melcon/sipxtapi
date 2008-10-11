@@ -322,7 +322,7 @@ UtlBoolean SipSubscribeClient::endSubscription(const char* dialogHandle)
         if(clientState->mState != SUBSCRIPTION_FAILED &&
            clientState->mpStateCallback)
         {
-            UtlBoolean isEarlyDialog = mpDialogMgr->earlyDialogExists(matchDialog);
+            UtlBoolean isEarlyDialog = mpDialogMgr->initialDialogExists(matchDialog);
 
             // Indicate that the subscription was terminated
             clientState->fireStateCallback(SUBSCRIPTION_TERMINATED,
@@ -346,7 +346,7 @@ UtlBoolean SipSubscribeClient::endSubscription(const char* dialogHandle)
         // It is possible that there is more than one dialog that matches
         // this early dialog handle.
         UtlString earlyDialogHandle;
-        while(mpDialogMgr->getEarlyDialogHandleFor(matchDialog, earlyDialogHandle))
+        while(mpDialogMgr->getInitialDialogHandleFor(matchDialog, earlyDialogHandle))
         {
             lock();
             clientState = removeState(earlyDialogHandle);
@@ -404,7 +404,7 @@ void SipSubscribeClient::endAllSubscriptions()
             if(clientState->mState != SUBSCRIPTION_FAILED &&
                clientState->mpStateCallback)
             {
-                mpDialogMgr->getEarlyDialogHandleFor(*dialogKey, earlyDialogHandle);
+                mpDialogMgr->getInitialDialogHandleFor(*dialogKey, earlyDialogHandle);
 
                 // Indicate that the subscription was terminated
                 clientState->fireStateCallback(SUBSCRIPTION_TERMINATED,
@@ -739,7 +739,7 @@ void SipSubscribeClient::handleNotifyRequest(const SipMessage& notifyRequest)
     // routines.
     UtlString earlyDialogHandle;
     UtlBoolean foundEarlyDialog =
-            mpDialogMgr->getEarlyDialogHandleFor(notifyDialogHandle,
+            mpDialogMgr->getInitialDialogHandleFor(notifyDialogHandle,
             earlyDialogHandle);
 
     UtlBoolean subscriptionFound = FALSE;

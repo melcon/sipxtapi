@@ -255,7 +255,6 @@ int SipClient::run(void* runArg)
 #ifdef LOG_TIME
                eventTimes.addEvent("reading");
 #endif
-               message->setFromThisSide(false);
                bytesRead = message->read(clientSocket, readBufferSize, &buffer);
 
             }

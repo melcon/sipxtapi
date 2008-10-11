@@ -117,7 +117,7 @@ void sipxSubscribeClientSubCallback(SipSubscribeClient::SubscriptionState newSta
       // established dialog, update the dialog handle in the
       // subcription data structure
       if(earlyDialogHandle && dialogHandle && 
-         SipDialog::isEarlyDialog(pData->dialogHandle))
+         SipDialog::isInitialDialog(pData->dialogHandle))
       {
          pData->dialogHandle = dialogHandle;
       }
@@ -289,7 +289,7 @@ void sipxSubscribeClientNotifyCallback(const char* earlyDialogHandle,
          // established dialog, update the dialog handle in the
          // subcription data structure
          if(earlyDialogHandle && dialogHandle &&
-            SipDialog::isEarlyDialog(pData->dialogHandle))
+            SipDialog::isInitialDialog(pData->dialogHandle))
          {
             pData->dialogHandle = dialogHandle;
          }

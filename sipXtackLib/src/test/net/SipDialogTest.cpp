@@ -141,18 +141,18 @@ Content-Length: 0\r\n\r\n";
          CPPUNIT_ASSERT_EQUAL(7, subDialog.getLastLocalCseq());
          CPPUNIT_ASSERT_EQUAL(-1, subDialog.getLastRemoteCseq());
 
-         CPPUNIT_ASSERT(subDialog.isEarlyDialog());
+         CPPUNIT_ASSERT(subDialog.isInitialDialog());
 
-         CPPUNIT_ASSERT(subDialog.isEarlyDialogFor("config-17747cec9-00d01e004e6f@10.1.1.10",
+         CPPUNIT_ASSERT(subDialog.isInitialDialogFor("config-17747cec9-00d01e004e6f@10.1.1.10",
              "17747cec9", "foo"));
-         CPPUNIT_ASSERT(subDialog.isEarlyDialogFor(subscribeRequestString));
-         CPPUNIT_ASSERT(subDialog.isEarlyDialogFor(subscribeResponseString));
+         CPPUNIT_ASSERT(subDialog.isInitialDialogFor(subscribeRequestString));
+         CPPUNIT_ASSERT(subDialog.isInitialDialogFor(subscribeResponseString));
 
 
          CPPUNIT_ASSERT(subDialog.isSameDialog("config-17747cec9-00d01e004e6f@10.1.1.10",
              "17747cec9", ""));
          CPPUNIT_ASSERT(subDialog.isSameDialog(subRequest));
-         CPPUNIT_ASSERT(subDialog.isEarlyDialogFor(subResponse));
+         CPPUNIT_ASSERT(subDialog.isInitialDialogFor(subResponse));
          CPPUNIT_ASSERT(!subDialog.isSameDialog(subResponse));
 
          // Update to change early dialog to setup dialog
@@ -166,7 +166,7 @@ Content-Length: 0\r\n\r\n";
          subDialog.getRemoteTag(updatedRemoteTag);
          ASSERT_STR_EQUAL("1114487634asd", updatedRemoteTag.data());
          CPPUNIT_ASSERT(subDialog.isSameDialog(subResponse));
-         CPPUNIT_ASSERT(subDialog.wasEarlyDialogFor("config-17747cec9-00d01e004e6f@10.1.1.10",
+         CPPUNIT_ASSERT(subDialog.wasInitialDialogFor("config-17747cec9-00d01e004e6f@10.1.1.10",
              "17747cec9", ""));
 
       };
@@ -327,7 +327,7 @@ Voice-Message: 0/0 (0/0)\r\n";
          CPPUNIT_ASSERT(dialogMgr.createDialog(subRequest, TRUE));
          CPPUNIT_ASSERT(dialogMgr.countDialogs() == 1);
          CPPUNIT_ASSERT(dialogMgr.updateDialog(sub401Response));
-         CPPUNIT_ASSERT(dialogMgr.earlyDialogExists(earlyDialogHandle));
+         CPPUNIT_ASSERT(dialogMgr.initialDialogExists(earlyDialogHandle));
          CPPUNIT_ASSERT(dialogMgr.updateDialog(subWithAuthRequest));
          CPPUNIT_ASSERT(dialogMgr.updateDialog(sub202Response));
          UtlString establishedSubDialogHandle;

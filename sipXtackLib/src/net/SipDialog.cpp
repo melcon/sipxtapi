@@ -32,117 +32,136 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-SipDialog::SipDialog(const SipMessage* initialMessage,
-                     UtlBoolean isFromLocal)
+SipDialog::SipDialog(const SipMessage* initialMessage)
+: m_dialogState(DIALOG_STATE_INITIAL)
+, m_dialogSubState(DIALOG_SUBSTATE_UNKNOWN)
 {
    if(initialMessage)
    {
+      UtlBoolean isFromLocal = initialMessage->isFromThisSide();
       UtlString callId;
       initialMessage->getCallIdField(&callId);
       append(callId);
 
       // The transaction was initiated from this side
-      if((!initialMessage->isResponse() &&
-         isFromLocal) ||
-         (initialMessage->isResponse() &&
-         !isFromLocal))
+      if((!initialMessage->isResponse() && isFromLocal) ||
+         (initialMessage->isResponse() && !isFromLocal))
       {
-         mLocalInitiatedDialog = TRUE;
-         initialMessage->getFromUrl(mLocalField);
-         mLocalField.getFieldParameter("tag", mLocalTag);
-         initialMessage->getToUrl(mRemoteField);
-         mRemoteField.getFieldParameter("tag", mRemoteTag);
-         initialMessage->getCSeqField(&mInitialLocalCseq, &mInitialMethod);
-         mLastLocalCseq = mInitialLocalCseq;
-         mLastRemoteCseq = -1;
-         mInitialRemoteCseq = -1;
+         // either local request or remote response (to our previous request)
+         m_sLocalInitiatedDialog = TRUE;
+         initialMessage->getFromUrl(m_localField);
+         m_localField.getFieldParameter("tag", m_sLocalTag);
+         initialMessage->getToUrl(m_remoteField);
+         m_remoteField.getFieldParameter("tag", m_sRemoteTag);
+         initialMessage->getCSeqField(&m_iInitialLocalCseq, &m_sInitialMethod);
+         m_iLastLocalCseq = m_iInitialLocalCseq;
+         m_sLastRemoteCseq = -1;
+         m_iInitialRemoteCseq = -1;
       }
       // The transaction was initiated from the other side
       else
       {
-         mLocalInitiatedDialog = FALSE;
-         initialMessage->getFromUrl(mRemoteField);
-         mRemoteField.getFieldParameter("tag", mRemoteTag);
-         initialMessage->getToUrl(mLocalField);
-         mLocalField.getFieldParameter("tag", mLocalTag);
-         initialMessage->getCSeqField(&mInitialRemoteCseq, &mInitialMethod);
-         mLastRemoteCseq = mInitialRemoteCseq;
+         // local response or remote inbound request
+         m_sLocalInitiatedDialog = FALSE;
+         initialMessage->getFromUrl(m_remoteField);
+         m_remoteField.getFieldParameter("tag", m_sRemoteTag);
+         initialMessage->getToUrl(m_localField);
+         m_localField.getFieldParameter("tag", m_sLocalTag);
+         initialMessage->getCSeqField(&m_iInitialRemoteCseq, &m_sInitialMethod);
+         m_sLastRemoteCseq = m_iInitialRemoteCseq;
          // Start local CSeq's at 1, because some UAs cannot handle 0.
-         mLastLocalCseq = 0;
-         mInitialLocalCseq = 0;
+         m_iLastLocalCseq = 0;
+         m_iInitialLocalCseq = 0;
       }
 
-      if(!initialMessage->isResponse())
+      if(initialMessage->isRequest())
       {
+         // this is a request
          UtlString uri;
          initialMessage->getRequestUri(&uri);
          if(isFromLocal)
          {
-            msRemoteRequestUri = uri;
+            m_sRemoteRequestUri = uri;
          }
          else
          {
             // Incoming initial Request, we need to set the Route set here
             if(initialMessage->isRecordRouteAccepted())
             {
-               initialMessage->buildRouteField(&mRouteSet);
+               initialMessage->buildRouteField(&m_sRouteSet);
             }
-            msLocalRequestUri = uri;
+            m_sLocalRequestUri = uri;
          }
       }
 
-      // :TODO: this should use a new interface to get a parsed value
       UtlString contact;
       // Get the Contact, but as an addr-spec.
       initialMessage->getContactUri(0, &contact);
       if(isFromLocal)
       {
-         mLocalContact.fromString(contact, TRUE);
+         m_localContact.fromString(contact, TRUE);
       }
       else
       {
-         mRemoteContact.fromString(contact, TRUE);
+         m_remoteContact.fromString(contact, TRUE);
       }
    }
    else
    {
       // Insert dummy values into fields that aren't automatically initialized.
-      mLocalInitiatedDialog = FALSE;
+      m_sLocalInitiatedDialog = TRUE;
       // Start local CSeq's at 1, because some UAs cannot handle 0.
-      mLastLocalCseq = 0;
-      mLastRemoteCseq = -1;
-      mInitialLocalCseq = 0;
-      mInitialRemoteCseq = -1;
+      m_iLastLocalCseq = 0;
+      m_sLastRemoteCseq = -1;
+      m_iInitialLocalCseq = 0;
+      m_iInitialRemoteCseq = -1;
+      m_bSecure = FALSE;
    }
+
+   updateDialogState(initialMessage);
 }
 
 // Constructor
 SipDialog::SipDialog(const char* szCallId, 
                      const char* szLocalTag, 
-                     const char* szRemoteTag)
-                     : UtlString(szCallId)
+                     const char* szRemoteTag,
+                     UtlBoolean isFromLocal)
+: UtlString(szCallId)
+, m_dialogState(DIALOG_STATE_INITIAL)
+, m_dialogSubState(DIALOG_SUBSTATE_UNKNOWN)
 {
-   mLocalTag = szLocalTag;
-   mRemoteTag = szRemoteTag;
+   m_sLocalTag = szLocalTag;
+   m_sRemoteTag = szRemoteTag;
 
-   mInitialLocalCseq = -1;
-   mInitialRemoteCseq = -1;
-   mLastLocalCseq = -1;
-   mLastRemoteCseq = -1;
+   m_sLocalInitiatedDialog = isFromLocal;
+   m_iInitialLocalCseq = 0;
+   m_iInitialRemoteCseq = -1;
+   m_iLastLocalCseq = 0;
+   m_sLastRemoteCseq = -1;
+   m_bSecure = FALSE;
+
+   updateDialogState();
 }
 
 SipDialog::SipDialog(const UtlString& sSipCallId,
                      const UtlString& sLocalTag,
-                     const UtlString& sRemoteTag)
-                     : UtlString(sSipCallId)
+                     const UtlString& sRemoteTag,
+                     UtlBoolean isFromLocal)
+: UtlString(sSipCallId)
+, m_dialogState(DIALOG_STATE_INITIAL)
+, m_dialogSubState(DIALOG_SUBSTATE_UNKNOWN)
 {
-   mLocalTag = sLocalTag;
-   mRemoteTag = sRemoteTag;
+   m_sLocalTag = sLocalTag;
+   m_sRemoteTag = sRemoteTag;
 
-   mInitialLocalCseq = -1;
-   mInitialRemoteCseq = -1;
-   mLastLocalCseq = -1;
-   mLastRemoteCseq = -1;
+   m_sLocalInitiatedDialog = isFromLocal;
+   m_iInitialLocalCseq = 0;
+   m_iInitialRemoteCseq = -1;
+   m_iLastLocalCseq = 0;
+   m_sLastRemoteCseq = -1;
+   m_bSecure = FALSE;
+
+   updateDialogState();
 }
 
 // Copy constructor
@@ -167,29 +186,32 @@ SipDialog& SipDialog::operator=(const SipDialog& rhs)
 
    UtlString::operator=(rhs);  // assign fields for parent class
 
-   mLocalField = rhs.mLocalField;
-   mLocalTag = rhs.mLocalTag;
-   mRemoteField = rhs.mRemoteField;
-   mRemoteTag = rhs.mRemoteTag;
-   mLocalContact = rhs.mLocalContact;
-   mRemoteContact = rhs.mRemoteContact;
-   mRouteSet = rhs.mRouteSet;
-   mInitialMethod = rhs.mInitialMethod;
-   mLocalInitiatedDialog = rhs.mLocalInitiatedDialog;
-   mInitialLocalCseq = rhs.mInitialLocalCseq;
-   mInitialRemoteCseq = rhs.mInitialRemoteCseq;
-   mLastLocalCseq = rhs.mLastLocalCseq;
-   mLastRemoteCseq = rhs.mLastRemoteCseq;
-   msLocalRequestUri = rhs.msLocalRequestUri;
-   msRemoteRequestUri = rhs.msRemoteRequestUri;
+   m_localField = rhs.m_localField;
+   m_sLocalTag = rhs.m_sLocalTag;
+   m_remoteField = rhs.m_remoteField;
+   m_sRemoteTag = rhs.m_sRemoteTag;
+   m_localContact = rhs.m_localContact;
+   m_remoteContact = rhs.m_remoteContact;
+   m_sRouteSet = rhs.m_sRouteSet;
+   m_sInitialMethod = rhs.m_sInitialMethod;
+   m_sLocalInitiatedDialog = rhs.m_sLocalInitiatedDialog;
+   m_iInitialLocalCseq = rhs.m_iInitialLocalCseq;
+   m_iInitialRemoteCseq = rhs.m_iInitialRemoteCseq;
+   m_iLastLocalCseq = rhs.m_iLastLocalCseq;
+   m_sLastRemoteCseq = rhs.m_sLastRemoteCseq;
+   m_sLocalRequestUri = rhs.m_sLocalRequestUri;
+   m_sRemoteRequestUri = rhs.m_sRemoteRequestUri;
+   m_dialogState = rhs.m_dialogState;
+   m_dialogSubState = rhs.m_dialogSubState;
 
    return *this;
 }
 
 void SipDialog::updateDialogData(const SipMessage& message)
 {
+   // get call-id, From, To and both tags
    UtlString messageCallId;
-   message.getCallIdField(&messageCallId);
+   message.getCallIdField(messageCallId);
    Url messageFromUrl;
    message.getFromUrl(messageFromUrl);
    UtlString messageFromTag;
@@ -206,19 +228,20 @@ void SipDialog::updateDialogData(const SipMessage& message)
 
    // Figure out if the request is from the local or
    // the remote side
-   if(isTransactionLocallyInitiated(messageCallId,
+   if(isDialogLocallyInitiated(messageCallId,
       messageFromTag,
       messageToTag))
    {
       // This message is part of a transaction initiated by
       // the local side of the dialog
 
-      if(cSeq > mLastLocalCseq) 
+      if(cSeq > m_iLastLocalCseq) 
       {
-         mLastLocalCseq = cSeq;
+         // we were probably not shown some SipMessage from this dialog
+         m_iLastLocalCseq = cSeq;
       }
 
-      if(cSeq >= mLastLocalCseq) 
+      if(cSeq == m_iLastLocalCseq) 
       {
          // Always update the contact if it is set
          UtlString messageContact;
@@ -228,59 +251,53 @@ void SipDialog::updateDialogData(const SipMessage& message)
          {
             if(message.isResponse())
             {
-               mRemoteContact.fromString(messageContact, TRUE);
+               m_remoteContact.fromString(messageContact, TRUE);
             }
             else
             {
-               mLocalContact.fromString(messageContact, TRUE);
+               m_localContact.fromString(messageContact, TRUE);
             }
          }
-      }
 
-      // Cannot assume that we only establish a dialog with the
-      // initial cseq.  For example if there is an authentication
-      // challenge, the dialog will not be established until the
-      // second transaction.
-      if(cSeq == mLastLocalCseq)
-      {
          // A successful response to an INVITE or SUBSCRIBE
          // make this early dialog a set up dialog
-         if(mLocalInitiatedDialog &&
-            message.isResponse() && 
-            responseCode >= SIP_2XX_CLASS_CODE && // successful dialog setup
-            responseCode < SIP_3XX_CLASS_CODE &&
-            mRemoteTag.isNull() && // tag not set
-            mRouteSet.isNull()) // have not yet set the route set
+         if(m_sLocalInitiatedDialog && message.isResponse() && 
+            responseCode >= SIP_1XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
          {
-            // Change this early dialog to a set up dialog.
-            // The tag gets set in the 2xx response
-            // so we need to update the URL
-            message.getToUrl(mRemoteField);
-            mRemoteField.getFieldParameter("tag", mRemoteTag);
-
-            // Need to get the route set as well
-            // Make sure the Request Method is allowed to set Record-Routes
-            if(message.isRecordRouteAccepted())
+            if (m_sRemoteTag.isNull())// tag not set
             {
-               message.buildRouteField(&mRouteSet);
+               message.getToUrl(m_remoteField);
+               m_remoteField.getFieldParameter("tag", m_sRemoteTag);
+            }
+            if (m_sRouteSet.isNull())
+            {
+               // Need to get the route set as well
+               // Make sure the Request Method is allowed to set Record-Routes
+               if(message.isRecordRouteAccepted())
+               {
+                  message.buildRouteField(&m_sRouteSet);
+               }
             }
          }
+
+         updateDialogState(&message);
       }
    }
-   else if(isTransactionRemotelyInitiated(messageCallId,
+   else if(isDialogRemotelyInitiated(messageCallId,
       messageFromTag,
       messageToTag))
    {
-      int prevRemoteCseq = mLastRemoteCseq;
+      int prevRemoteCseq = m_sLastRemoteCseq;
 
       // This message is part of a transaction initiated by
       // the callee/destination of the session
-      if(cSeq > mLastRemoteCseq) 
+      if(cSeq > m_sLastRemoteCseq) 
       {
-         mLastRemoteCseq = cSeq;
+         // we were probably not shown some SipMessage from this dialog. Perhaps remote party sent it and it was lost.
+         m_sLastRemoteCseq = cSeq;
       }
 
-      if(cSeq >= mLastRemoteCseq)
+      if(cSeq == m_sLastRemoteCseq)
       {
          // Always update the contact if it is set
          UtlString messageContact;
@@ -290,45 +307,32 @@ void SipDialog::updateDialogData(const SipMessage& message)
          {
             if(message.isResponse())
             {
-               mLocalContact.fromString(messageContact, TRUE);
+               m_localContact.fromString(messageContact, TRUE);
             }
             else
             {
-               mRemoteContact.fromString(messageContact, TRUE);
+               m_remoteContact.fromString(messageContact, TRUE);
             }
          }
-      }
 
-      // First transaction from the otherside
-      if(cSeq == mLastRemoteCseq && prevRemoteCseq == -1)
-      {
          // A response (e.g. NOTIFY) can come before we get the
          // successful response to the initial transaction
-         if(!mLocalInitiatedDialog &&
-            !message.isResponse() &&
-            mRemoteTag.isNull()) // tag not set
+         if(!m_sLocalInitiatedDialog && !message.isResponse() && m_sRemoteTag.isNull()) // tag not set
          {
             // Change this early dialog to a set up dialog.
             // The tag gets set in the 2xx response
             // so we need to update the URL
-            message.getFromUrl(mRemoteField);
-            mRemoteField.getFieldParameter("tag", mRemoteTag);
+            message.getFromUrl(m_remoteField);
+            m_remoteField.getFieldParameter("tag", m_sRemoteTag);
          }
-      }
-
-      // First successful response from the local side
-      if(cSeq == mLastRemoteCseq)
-      {
-         if(!mLocalInitiatedDialog &&
-            message.isResponse() && 
-            responseCode >= SIP_2XX_CLASS_CODE && // successful dialog setup
-            responseCode < SIP_3XX_CLASS_CODE &&
-            mLocalTag.isNull()) 
+         if(!m_sLocalInitiatedDialog && message.isResponse() && 
+            responseCode >= SIP_1XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE && m_sLocalTag.isNull()) 
          {
             // Update the local tag
-            message.getToUrl(mLocalField);
-            mLocalField.getFieldParameter("tag", mLocalTag);
+            message.getToUrl(m_localField);
+            m_localField.getFieldParameter("tag", m_sLocalTag);
          }
+         updateDialogState(&message);
       }
    }
 }
@@ -347,14 +351,14 @@ void SipDialog::setRequestData(SipMessage& request, const char* method)
    // (mRemoteContact should have no field parameters, but if it has
    // URI parameters, toString would add <...>, which are not allowed
    // in URIs.)
-   mRemoteContact.getUri(remoteContact);
+   m_remoteContact.getUri(remoteContact);
 
    // If the remote contact is empty, use the remote request uri
    if (remoteContact.compareTo("sip:") == 0)
    {
       OsSysLog::add(FAC_ACD, PRI_DEBUG, "SipDialog::setRequestData - using remote request uri %s",
-         msRemoteRequestUri.data());
-      request.setSipRequestFirstHeaderLine(methodString, msRemoteRequestUri);
+         m_sRemoteRequestUri.data());
+      request.setSipRequestFirstHeaderLine(methodString, m_sRemoteRequestUri);
    }
    else
    {
@@ -363,22 +367,22 @@ void SipDialog::setRequestData(SipMessage& request, const char* method)
 
    // The local field is the From field
    UtlString fromField;
-   mLocalField.toString(fromField);
+   m_localField.toString(fromField);
    request.setRawFromField(fromField);
 
    // The remote field is the To field
    UtlString toField;
-   mRemoteField.toString(toField);
+   m_remoteField.toString(toField);
    request.setRawToField(toField);
 
    // Get the next local Cseq, the method should already be set
    getNextLocalCseq();
-   request.setCSeqField(mLastLocalCseq, methodString);
+   request.setCSeqField(m_iLastLocalCseq, methodString);
 
    // Set the route header according to the route set
-   if(!mRouteSet.isNull())
+   if(!m_sRouteSet.isNull())
    {
-      request.setRouteField(mRouteSet);
+      request.setRouteField(m_sRouteSet);
    }
 
    // Set the call-id
@@ -391,28 +395,28 @@ void SipDialog::getHandle(UtlString& dialogHandle) const
 {
    dialogHandle = *this; // callId
    dialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   dialogHandle.append(mLocalTag);
+   dialogHandle.append(m_sLocalTag);
    dialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   dialogHandle.append(mRemoteTag);
+   dialogHandle.append(m_sRemoteTag);
 }
 
-void SipDialog::getEarlyHandle(UtlString& earlyDialogHandle) const
+void SipDialog::getInitialHandle(UtlString& initialDialogHandle) const
 {
    // Do not add the tag for the side that did not initiate the dialog
-   earlyDialogHandle = *this; // callId
-   earlyDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   if(mLocalInitiatedDialog)
+   initialDialogHandle = *this; // callId
+   initialDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
+   if(m_sLocalInitiatedDialog)
    {
-      earlyDialogHandle.append(mLocalTag);
+      initialDialogHandle.append(m_sLocalTag);
    }
-   earlyDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
-   if(!mLocalInitiatedDialog)
+   initialDialogHandle.append(DIALOG_HANDLE_SEPARATOR);
+   if(!m_sLocalInitiatedDialog)
    {
-      earlyDialogHandle.append(mRemoteTag);
+      initialDialogHandle.append(m_sRemoteTag);
    }
 }
 
-void SipDialog::parseHandle(const char* dialogHandle,
+void SipDialog::parseHandle(const UtlString& dialogHandle,
                             UtlString& callId,
                             UtlString& localTag,
                             UtlString& remoteTag)
@@ -422,7 +426,7 @@ void SipDialog::parseHandle(const char* dialogHandle,
    remoteTag = "";
 
    // The call-id ends at the first comma
-   const char* callIdEnd = strchr(dialogHandle,DIALOG_HANDLE_SEPARATOR);
+   const char* callIdEnd = strchr(dialogHandle, DIALOG_HANDLE_SEPARATOR);
    if(callIdEnd)
    {
       // Move past the first comma
@@ -447,13 +451,13 @@ void SipDialog::parseHandle(const char* dialogHandle,
    }
 }
 
-void SipDialog::reverseTags(const char* dialogHandle,
+void SipDialog::reverseTags(const UtlString& dialogHandle,
                             UtlString& reversedHandle)
 {
    UtlString tag1;
    UtlString tag2;
-   parseHandle(dialogHandle, reversedHandle, tag1, tag2);
-   reversedHandle.capacity(strlen(dialogHandle) + 2);
+   parseHandle(dialogHandle, reversedHandle, tag1, tag2); // copies call-id into reversedHandle
+   reversedHandle.capacity(dialogHandle.length() + 2);
    reversedHandle.append(DIALOG_HANDLE_SEPARATOR);
    reversedHandle.append(tag2);
    reversedHandle.append(DIALOG_HANDLE_SEPARATOR);
@@ -473,109 +477,113 @@ void SipDialog::setCallId(const char* callId)
 
 void SipDialog::getLocalField(Url& localField) const
 {
-   localField = mLocalField;
+   localField = m_localField;
 }
 
 void SipDialog::getLocalTag(UtlString& localTag) const
 {
-   localTag = mLocalTag;
+   localTag = m_sLocalTag;
 }
 
 void SipDialog::setLocalField(const Url& localField)
 {
-   mLocalField = localField;
+   m_localField = localField;
 }
 
 void SipDialog::getRemoteField(Url& remoteField) const
 {
-   remoteField = mRemoteField;
+   remoteField = m_remoteField;
 }
 
 void SipDialog::getRemoteTag(UtlString& remoteTag) const
 {
-   remoteTag = mRemoteTag;
+   remoteTag = m_sRemoteTag;
 }
 
 void SipDialog::setRemoteField(const Url& remoteField)
 {
-   mRemoteField = remoteField;
+   m_remoteField = remoteField;
 }
 
 void SipDialog::getRemoteContact(Url& remoteContact) const
 {
-   remoteContact = mRemoteContact;
+   remoteContact = m_remoteContact;
 }
 
 void SipDialog::setRemoteContact(const Url& remoteContact)
 {
-   mRemoteContact = remoteContact;
+   m_remoteContact = remoteContact;
 }
 
 void SipDialog::getLocalContact(Url& localContact) const
 {
-   localContact = mLocalContact;
+   localContact = m_localContact;
 }
 
 void SipDialog::setLocalContact(const Url& localContact)
 {
-   mLocalContact = localContact;
+   m_localContact = localContact;
 }
 
 void SipDialog::getLocalRequestUri(UtlString& requestUri) const
 {
-   requestUri = msLocalRequestUri;
+   requestUri = m_sLocalRequestUri;
 }
 
 void SipDialog::setLocalRequestUri(const UtlString& requestUri)
 {
-   msLocalRequestUri = requestUri;
+   m_sLocalRequestUri = requestUri;
 }
 
 void SipDialog::getRemoteRequestUri(UtlString& requestUri) const
 {
-   requestUri = msRemoteRequestUri;
+   requestUri = m_sRemoteRequestUri;
 }
 
 void SipDialog::setRemoteRequestUri(const UtlString& requestUri)
 {
-   msRemoteRequestUri = requestUri;
+   m_sRemoteRequestUri = requestUri;
 }
 
+void SipDialog::terminateDialog()
+{
+   m_dialogState = DIALOG_STATE_TERMINATED;
+}
 
 void SipDialog::getInitialMethod(UtlString& method) const
 {
-   method = mInitialMethod;
+   method = m_sInitialMethod;
 }
 
 void SipDialog::setInitialMethod(const char* method)
 {
-   mInitialMethod = method;
+   m_sInitialMethod = method;
 }
 
 int SipDialog::getLastLocalCseq() const
 {
-   return(mLastLocalCseq);
+   return(m_iLastLocalCseq);
 }
 
 void SipDialog::setLastLocalCseq(int lastLocalCseq)
 {
-   mLastLocalCseq = lastLocalCseq;
+   m_iLastLocalCseq = lastLocalCseq;
 }
 
 int SipDialog::getLastRemoteCseq() const
 {
-   return(mLastRemoteCseq);
+   return(m_sLastRemoteCseq);
 }
 
 void SipDialog::setLastRemoteCseq(int lastRemoteCseq)
 {
-   mLastRemoteCseq = lastRemoteCseq;
+   m_sLastRemoteCseq = lastRemoteCseq;
 }
 
 int SipDialog::getNextLocalCseq()
 {
-   mLastLocalCseq++;
-   return(mLastLocalCseq);
+   m_iLastLocalCseq++;
+   return(m_iLastLocalCseq);
 }
 
 /* ============================ INQUIRY =================================== */
@@ -583,41 +591,28 @@ int SipDialog::getNextLocalCseq()
 
 UtlBoolean SipDialog::isSameDialog(const SipMessage& message) const
 {
+   UtlBoolean isFromLocal = message.isFromThisSide();
    UtlString messageCallId;
    message.getCallIdField(&messageCallId);
-   UtlBoolean isSameDialog = FALSE;
-   if(messageCallId.compareTo(*this, UtlString::ignoreCase) == 0)
+   Url messageFromUrl;
+   message.getFromUrl(messageFromUrl);
+   UtlString localTag;
+   Url messageToUrl;
+   message.getToUrl(messageToUrl);
+   UtlString remoteTag;
+   if (isFromLocal)
    {
-      Url messageFromUrl;
-      message.getFromUrl(messageFromUrl);
-      UtlString messageFromTag;
-      messageFromUrl.getFieldParameter("tag", messageFromTag);
-      if(messageFromTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0)
-      {
-         Url messageToUrl;
-         message.getToUrl(messageToUrl);
-         UtlString messageToTag;
-         messageToUrl.getFieldParameter("tag", messageToTag);
-         if(messageToTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0)
-         {
-            isSameDialog = TRUE;
-         }
-      }
-      else if(messageFromTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0)
-      {
-         Url messageToUrl;
-         message.getToUrl(messageToUrl);
-         UtlString messageToTag;
-         messageToUrl.getFieldParameter("tag", messageToTag);
-         if(messageToTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0)
-         {
-            isSameDialog = TRUE;
-         }
-      }
-
+      messageFromUrl.getFieldParameter("tag", localTag);
+      messageToUrl.getFieldParameter("tag", remoteTag);
    }
-   return(isSameDialog);
+   else
+   {
+      // reverse tags
+      messageFromUrl.getFieldParameter("tag", remoteTag);
+      messageToUrl.getFieldParameter("tag", localTag);
+   }
 
+   return isSameDialog(messageCallId, localTag, remoteTag);
 }
 
 UtlBoolean SipDialog::isSameDialog(const UtlString& callId,
@@ -630,106 +625,85 @@ UtlBoolean SipDialog::isSameDialog(const UtlString& callId,
 
    if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
    {
-      if(localTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 &&
-         remoteTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0)
-      {
-         isSameDialog = TRUE;
-      }
-
-      else if(remoteTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 &&
-         localTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0)
+      if(localTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 &&
+         remoteTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0)
       {
          isSameDialog = TRUE;
       }
    }
 
-   return(isSameDialog);
+   return isSameDialog;
 }
 
-UtlBoolean SipDialog::isSameDialog(const char* dialogHandle)
+UtlBoolean SipDialog::isSameDialog(const UtlString& dialogHandle)
 {
    UtlString callId;
    UtlString localTag;
    UtlString remoteTag;
    parseHandle(dialogHandle, callId, localTag, remoteTag);
-   return(isSameDialog(callId, localTag, remoteTag));
+   return isSameDialog(callId, localTag, remoteTag);
 }
 
-UtlBoolean SipDialog::isEarlyDialogFor(const SipMessage& message) const
+UtlBoolean SipDialog::isInitialDialogFor(const SipMessage& message) const
 {
    UtlString handle;
 
-   message.getDialogHandle(handle);
-
-   UtlString callId;
+   UtlBoolean isFromLocal = message.isFromThisSide(); // flag set when reading msg from socket
+   UtlString messageCallId;
+   message.getCallIdField(&messageCallId);
+   Url messageFromUrl;
+   message.getFromUrl(messageFromUrl);
    UtlString localTag;
+   Url messageToUrl;
+   message.getToUrl(messageToUrl);
    UtlString remoteTag;
-   parseHandle(handle, callId, localTag, remoteTag);
+   if (isFromLocal)
+   {
+      messageFromUrl.getFieldParameter("tag", localTag);
+      messageToUrl.getFieldParameter("tag", remoteTag);
+   }
+   else
+   {
+      // reverse tags
+      messageFromUrl.getFieldParameter("tag", remoteTag);
+      messageToUrl.getFieldParameter("tag", localTag);
+   }
 
-   return(isEarlyDialogFor(callId, localTag, remoteTag));
+   return isInitialDialogFor(messageCallId, localTag, remoteTag);
 }
 
-UtlBoolean SipDialog::isEarlyDialogFor(const UtlString& callId,
-                                       const UtlString& localTag,
-                                       const UtlString& remoteTag) const
+UtlBoolean SipDialog::isInitialDialogFor(const UtlString& callId,
+                                         const UtlString& localTag,
+                                         const UtlString& remoteTag) const
 {
-   UtlBoolean isSameEarlyDialog = FALSE;
+   UtlBoolean isSameInitialDialog = FALSE;
 
-   // If the local tag is NULL the remote tag must match one of the
-   // two given tags, to be an early dialog for the given dialog info
-   if(mLocalTag.isNull())
+   // for initial dialog, callId and localTag must match
+   if(this->compareTo(callId, UtlString::ignoreCase) == 0 ||
+      localTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0)
    {
-      if(localTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0 ||
-         remoteTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0)
-      {
-         isSameEarlyDialog = TRUE;
-      }
+      isSameInitialDialog = TRUE;
    }
 
-   // If the remote tag is NULL the local tag must match one of the
-   // two given tags, to be an early dialog for the given dialog info
-   else if(mRemoteTag.isNull())
-   {
-      if(localTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 ||
-         remoteTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0)
-      {
-         isSameEarlyDialog = TRUE;
-      }
-   }
-
-   return(isSameEarlyDialog);
+   return isSameInitialDialog;
 }
 
-UtlBoolean SipDialog::wasEarlyDialogFor(const UtlString& callId,
-                                        const UtlString& localTag,
-                                        const UtlString& remoteTag) const
+UtlBoolean SipDialog::wasInitialDialogFor(const UtlString& callId,
+                                          const UtlString& localTag,
+                                          const UtlString& remoteTag) const
 {
-   UtlBoolean wasSameEarlyDialog = FALSE;
-
-   // Assume that if any either of the given tags matches 
-   // one of the dialog's tags that they shared the same
-   // early dialog
-   if(localTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0 ||
-      remoteTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0 ||
-      localTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 ||
-      remoteTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0)
-   {
-      wasSameEarlyDialog = TRUE;
-   }
-
-   return(wasSameEarlyDialog);
+   return isInitialDialogFor(callId, localTag, remoteTag);
 }
 
-UtlBoolean SipDialog::isTransactionLocallyInitiated(const UtlString& callId,
-                                                    const UtlString& fromTag,
-                                                    const UtlString& toTag) const
+UtlBoolean SipDialog::isDialogLocallyInitiated(const UtlString& callId,
+                                               const UtlString& fromTag,
+                                               const UtlString& toTag) const
 {
    UtlBoolean isLocalDialog = FALSE;
    if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
    {
-      if(fromTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 &&
-         (toTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0 ||
-         toTag.isNull() || mRemoteTag.isNull()))
+      if(fromTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 &&
+         (toTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0 || toTag.isNull() || m_sRemoteTag.isNull()))
       {
          isLocalDialog = TRUE;
       }
@@ -738,20 +712,15 @@ UtlBoolean SipDialog::isTransactionLocallyInitiated(const UtlString& callId,
    return(isLocalDialog);
 }
 
-UtlBoolean SipDialog::isTransactionRemotelyInitiated(const UtlString& callId,
-                                                     const UtlString& fromTag,
-                                                     const UtlString& toTag) const
+UtlBoolean SipDialog::isDialogRemotelyInitiated(const UtlString& callId,
+                                                const UtlString& fromTag,
+                                                const UtlString& toTag) const
 {
    UtlBoolean isRemoteDialog = FALSE;
    if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
    {
-      if(((toTag.compareTo(mLocalTag, UtlString::ignoreCase) == 0 ||
-         toTag.isNull() || mLocalTag.isNull())) &&
-         (fromTag.compareTo(mRemoteTag, UtlString::ignoreCase) == 0 ||
-         mRemoteTag.isNull())) // If this is remotely initiated fromTag
-         // cannot be a null string.  mRemoteTag can be a null string
-         // as occurs when a remotely initiated NOTIFY is received 
-         // before the SUBSCRIBE response is received.
+      if(((toTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 || toTag.isNull() || m_sLocalTag.isNull())) &&
+         (fromTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0))
       {
          isRemoteDialog = TRUE;
       }
@@ -760,7 +729,7 @@ UtlBoolean SipDialog::isTransactionRemotelyInitiated(const UtlString& callId,
    return(isRemoteDialog);
 }
 
-UtlBoolean SipDialog::isEarlyDialog() const
+UtlBoolean SipDialog::isInitialDialog() const
 {
    // For now make the simple assumption that if one of
    // the tags is not set that this is an early dialog
@@ -768,7 +737,7 @@ UtlBoolean SipDialog::isEarlyDialog() const
    // set the tags.  I do not think we need to support
    // RFC 2543 in this class.
    UtlBoolean tagNotSet = FALSE;
-   if(mLocalTag.isNull() || mRemoteTag.isNull())
+   if(m_sLocalTag.isNull() || m_sRemoteTag.isNull())
    {
       tagNotSet = TRUE;
    }
@@ -776,7 +745,7 @@ UtlBoolean SipDialog::isEarlyDialog() const
    return(tagNotSet);
 }
 
-UtlBoolean SipDialog::isEarlyDialog(const char* handle)
+UtlBoolean SipDialog::isInitialDialog(const char* handle)
 {
    // For now make the simple assumption that if one of
    // the tags is not set that this is an early dialog
@@ -805,7 +774,7 @@ UtlBoolean SipDialog::isSameLocalCseq(const SipMessage& message) const
    int cseq;
    message.getCSeqField(&cseq, NULL);
 
-   return(cseq == mLastLocalCseq);
+   return(cseq == m_iLastLocalCseq);
 }
 
 UtlBoolean SipDialog::isSameRemoteCseq(const SipMessage& message) const
@@ -813,7 +782,7 @@ UtlBoolean SipDialog::isSameRemoteCseq(const SipMessage& message) const
    int cseq;
    message.getCSeqField(&cseq, NULL);
 
-   return(cseq == mLastRemoteCseq);
+   return(cseq == m_sLastRemoteCseq);
 }
 
 UtlBoolean SipDialog::isNextLocalCseq(const SipMessage& message) const
@@ -821,7 +790,7 @@ UtlBoolean SipDialog::isNextLocalCseq(const SipMessage& message) const
    int cseq;
    message.getCSeqField(&cseq, NULL);
 
-   return(cseq > mLastLocalCseq);
+   return(cseq > m_iLastLocalCseq);
 }
 
 UtlBoolean SipDialog::isNextRemoteCseq(const SipMessage& message) const
@@ -829,7 +798,7 @@ UtlBoolean SipDialog::isNextRemoteCseq(const SipMessage& message) const
    int cseq;
    message.getCSeqField(&cseq, NULL);
 
-   return(cseq > mLastRemoteCseq);
+   return(cseq > m_sLastRemoteCseq);
 }
 
 void SipDialog::toString(UtlString& dialogDumpString)
@@ -844,48 +813,116 @@ void SipDialog::toString(UtlString& dialogDumpString)
    dialogDumpString.append(*this);
    dialogDumpString.append("\nmLocalField:");
    UtlString tmpString;
-   mLocalField.toString(tmpString);
+   m_localField.toString(tmpString);
    dialogDumpString.append(tmpString);
    dialogDumpString.append("\nmRemoteField:");
-   mRemoteField.toString(tmpString);
+   m_remoteField.toString(tmpString);
    dialogDumpString.append(tmpString);
    dialogDumpString.append("\nmLocalTag:");
-   dialogDumpString.append(mLocalTag);
+   dialogDumpString.append(m_sLocalTag);
    dialogDumpString.append("\nmRemoteTag:");
-   dialogDumpString.append(mRemoteTag);
+   dialogDumpString.append(m_sRemoteTag);
    dialogDumpString.append("\nmLocalContact:");
-   mLocalContact.toString(tmpString);
+   m_localContact.toString(tmpString);
    dialogDumpString.append(tmpString);
    dialogDumpString.append("\nmRemoteContact:");
-   mRemoteContact.toString(tmpString);
+   m_remoteContact.toString(tmpString);
    dialogDumpString.append(tmpString);
    dialogDumpString.append("\nmRouteSet:");
-   dialogDumpString.append(mRouteSet);
+   dialogDumpString.append(m_sRouteSet);
    dialogDumpString.append("\nmInitialMethod:");
-   dialogDumpString.append(mInitialMethod);
+   dialogDumpString.append(m_sInitialMethod);
    dialogDumpString.append("\nmsLocalRequestUri:");
-   dialogDumpString.append(msLocalRequestUri);
+   dialogDumpString.append(m_sLocalRequestUri);
    dialogDumpString.append("\nmsRemoteRequestUri:");
-   dialogDumpString.append(msRemoteRequestUri);
+   dialogDumpString.append(m_sRemoteRequestUri);
    dialogDumpString.append("\nmLocalInitatedDialog:");
-   dialogDumpString.append(mLocalInitiatedDialog);
-   SNPRINTF(numberString, sizeof(numberString), "%d", mInitialLocalCseq);
+   dialogDumpString.append(m_sLocalInitiatedDialog);
+   SNPRINTF(numberString, sizeof(numberString), "%d", m_iInitialLocalCseq);
    dialogDumpString.append("\nmInitialLocalCseq:");
    dialogDumpString.append(numberString);
-   SNPRINTF(numberString, sizeof(numberString), "%d", mInitialRemoteCseq);
+   SNPRINTF(numberString, sizeof(numberString), "%d", m_iInitialRemoteCseq);
    dialogDumpString.append("\nmInitialRemoteCseq:");
    dialogDumpString.append(numberString);
-   SNPRINTF(numberString, sizeof(numberString), "%d", mLastLocalCseq);
+   SNPRINTF(numberString, sizeof(numberString), "%d", m_iLastLocalCseq);
    dialogDumpString.append("\nmLastLocalCseq:");
    dialogDumpString.append(numberString);
-   SNPRINTF(numberString, sizeof(numberString), "%d", mLastRemoteCseq);
+   SNPRINTF(numberString, sizeof(numberString), "%d", m_sLastRemoteCseq);
    dialogDumpString.append("\nmLastRemoteCseq:");
+   dialogDumpString.append(numberString);
+   SNPRINTF(numberString, sizeof(numberString), "%d", (int)m_dialogState);
+   dialogDumpString.append("\nmDialogState:");
+   dialogDumpString.append(numberString);
+   SNPRINTF(numberString, sizeof(numberString), "%d", (int)m_dialogSubState);
+   dialogDumpString.append("\nmDialogSubState:");
    dialogDumpString.append(numberString);
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void SipDialog::updateDialogState(const SipMessage* pSipMessage)
+{
+   // only update state if not terminated
+   if (m_dialogState != DIALOG_STATE_TERMINATED)
+   {
+      if (!isNull())
+      {
+         // call-id is not null
+         if (!m_sLocalTag.isNull())
+         {
+            if (!m_sRemoteTag.isNull())
+            {
+               m_dialogState = DIALOG_STATE_ESTABLISHED;
+            }
+            else
+            {
+               m_dialogState = DIALOG_STATE_INITIAL;
+            }
+         }
+         else
+         {
+            m_dialogState = DIALOG_STATE_INITIAL;
+         }
+      }
+      else
+      {
+         m_dialogState = DIALOG_STATE_INITIAL;
+      }
+
+      if (m_dialogState == DIALOG_STATE_ESTABLISHED)
+      {
+         // check if SipMessage is 200 Ok
+         if (pSipMessage && pSipMessage->isResponse())
+         {
+            int statusCode = pSipMessage->getResponseStatusCode();
+            if (statusCode >= SIP_1XX_CLASS_CODE && statusCode < SIP_2XX_CLASS_CODE)
+            {
+               // we have both tags and 200 response, this is a confirmed dialog
+               m_dialogSubState = DIALOG_SUBSTATE_EARLY;
+            }
+            else if (statusCode >= SIP_2XX_CLASS_CODE && statusCode < SIP_3XX_CLASS_CODE)
+            {
+               // we have both tags and 200 response, this is a confirmed dialog
+               m_dialogSubState = DIALOG_SUBSTATE_CONFIRMED;
+            }
+         }
+      }
+      else if (m_dialogState == DIALOG_STATE_INITIAL)
+      {
+         // if dialog is in initial state and we get 5xx or 6xx, we terminate it
+         if (pSipMessage && pSipMessage->isResponse())
+         {
+            int statusCode = pSipMessage->getResponseStatusCode();
+            if (statusCode >= SIP_5XX_CLASS_CODE)
+            {
+               m_dialogState = DIALOG_STATE_TERMINATED;
+            }
+         }
+      }
+   }
+}
 
 /* ============================ FUNCTIONS ================================= */
 

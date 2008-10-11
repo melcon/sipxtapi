@@ -176,8 +176,8 @@ Voice-Message: 0/0 (0/0)\r\n";
          UtlString responseDialogHandle;
          createdSubscribeResponse.getDialogHandle(responseDialogHandle);
          ASSERT_STR_EQUAL(responseDialogHandle, subscribeDialogHandle);
-         CPPUNIT_ASSERT(!SipDialog::isEarlyDialog(subscribeDialogHandle));
-         CPPUNIT_ASSERT(!SipDialog::isEarlyDialog(responseDialogHandle));
+         CPPUNIT_ASSERT(!SipDialog::isInitialDialog(subscribeDialogHandle));
+         CPPUNIT_ASSERT(!SipDialog::isInitialDialog(responseDialogHandle));
          CPPUNIT_ASSERT(dialogMgr->countDialogs() == 1);
          UtlString mgrEstablishedDialogHandle;
          CPPUNIT_ASSERT(dialogMgr->getEstablishedDialogHandleFor(earlyDialogHandle,

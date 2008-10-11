@@ -163,7 +163,7 @@ UtlBoolean SipSubscriptionMgr::updateDialogInfo(const SipMessage& subscribeReque
     isSubscriptionExpired = TRUE;
 
     // If this is an early dialog we need to make it an established dialog.
-    if(SipDialog::isEarlyDialog(dialogHandle))
+    if(SipDialog::isInitialDialog(dialogHandle))
     {
         UtlString establishedDialogHandle;
         if(mDialogMgr.getEstablishedDialogHandleFor(dialogHandle, establishedDialogHandle))

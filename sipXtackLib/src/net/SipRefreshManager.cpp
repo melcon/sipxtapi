@@ -197,7 +197,7 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
     subscribeOrRegisterRequest.getDialogHandle(messageDialogHandle);
     UtlBoolean existingRefreshState = FALSE;
     UtlBoolean existingDialogState = FALSE;
-    if(!SipDialog::isEarlyDialog(messageDialogHandle))
+    if(!SipDialog::isInitialDialog(messageDialogHandle))
     {
         existingDialogState = TRUE;
         OsSysLog::add(FAC_SIP, PRI_ERR,
@@ -220,7 +220,7 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
 
         // The dialog should not exist either
         else if(mpDialogMgr->dialogExists(messageDialogHandle) ||
-            mpDialogMgr->earlyDialogExistsFor(messageDialogHandle))
+            mpDialogMgr->initialDialogExistsFor(messageDialogHandle))
         {
             existingDialogState = TRUE;
             OsSysLog::add(FAC_SIP, PRI_ERR,
@@ -417,7 +417,7 @@ UtlBoolean SipRefreshManager::stopRefresh(const char* dialogHandle)
 
                 // Invoke the refresh state call back to indicate
                 // the refresh has been expired
-                UtlBoolean stateKeyIsEarlyDialog = SipDialog::isEarlyDialog(*state);
+                UtlBoolean stateKeyIsEarlyDialog = SipDialog::isInitialDialog(*state);
                 (state->mpStateCallback)(state->mRequestState,
                                          stateKeyIsEarlyDialog ? state->data() : NULL,
                                          stateKeyIsEarlyDialog ? NULL : state->data(),
@@ -642,8 +642,8 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
             else
             {
                 foundEarlyDialog = 
-                    mpDialogMgr->getEarlyDialogHandleFor(dialogHandle, 
-                                                         earlyDialogHandle);
+                    mpDialogMgr->getInitialDialogHandleFor(dialogHandle, 
+                                                           earlyDialogHandle);
 
                 if(foundEarlyDialog)
                 {
@@ -910,7 +910,7 @@ RefreshDialogState* SipRefreshManager::getAnyDialog(UtlString& messageDialogHand
         else
         {
             UtlString earlyDialogHandle;
-            mpDialogMgr->getEarlyDialogHandleFor(messageDialogHandle,
+            mpDialogMgr->getInitialDialogHandleFor(messageDialogHandle,
                                            earlyDialogHandle);
 
             state = (RefreshDialogState*) 
