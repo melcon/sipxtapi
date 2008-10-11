@@ -257,6 +257,11 @@ public:
    /** Marks dialog as terminated */
    void terminateDialog();
 
+   /** Gets the secure flag of sip dialog */
+   UtlBoolean getSecure() const { return m_bSecure; }
+   /** Sets the secure flag of sip dialog */
+   void setSecure(UtlBoolean val) { m_bSecure = val; }
+
    //! Debug method to dump the contents of this SipDialog into a string
    void toString(UtlString& dialogDumpString);
 
@@ -340,6 +345,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    void updateDialogState(const SipMessage* pSipMessage = NULL);
+   void updateSecureFlag(const SipMessage* pSipMessage = NULL);
 
    // The callId is stored in the UtlString base class data element
    Url m_localField; // To or From depending on who initiated the transaction
