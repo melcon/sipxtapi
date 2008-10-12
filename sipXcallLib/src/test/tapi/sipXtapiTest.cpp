@@ -20,6 +20,7 @@
 #include "os/OsBSem.h"
 #include "os/OsDatagramSocket.h"
 
+//#define ENABLE_SOCKET_SELECT_FIX 1
 
 #ifdef PURIFY
     #include "pure.h"
@@ -68,9 +69,11 @@ void socketSelectCrashFix()
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
+#ifdef ENABLE_SOCKET_SELECT_FIX
    socketSelectCrashFix();
    // fix for socket select crash in debug mode. Caused by closing socket from other thread, while select is running
    // on it. Seems to be a bug in winapi.
+#endif
 #endif
    
     enableConsoleOutput(FALSE) ;
