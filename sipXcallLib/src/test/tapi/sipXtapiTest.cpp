@@ -53,9 +53,26 @@ OsDatagramSocket* g_pPrimaryStunSeverSocket2 ;
 OsDatagramSocket* g_pSecondaryStunServerSocket ;
 OsDatagramSocket* g_pSecondaryStunServerSocket2 ;
 
+#ifdef _WIN32
+void socketSelectCrashFix()
+{
+   BOOL res = SetProcessAffinityMask(GetCurrentProcess(), 1);
+   if (!res)
+   {
+      DWORD errorCode = GetLastError();
+      printf("Error when calling SetProcessAffinityMask, %i", errorCode);
+   }
+}
+#endif
 
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
+   socketSelectCrashFix();
+   // fix for socket select crash in debug mode. Caused by closing socket from other thread, while select is running
+   // on it. Seems to be a bug in winapi.
+#endif
+   
     enableConsoleOutput(FALSE) ;
 
     // Get the top level suite from the registry
