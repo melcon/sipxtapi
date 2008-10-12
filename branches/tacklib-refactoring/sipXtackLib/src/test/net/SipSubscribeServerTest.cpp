@@ -136,6 +136,7 @@ Voice-Message: 0/0 (0/0)\r\n";
        UtlString aor("sip:");
        aor.append(resourceId);
        SipMessage mwiSubscribeRequest(mwiSubscribe);
+       mwiSubscribeRequest.setFromThisSide(false);
        mwiSubscribeRequest.setSipRequestFirstHeaderLine(SIP_SUBSCRIBE_METHOD, 
                                                        aor, 
                                                        SIP_PROTOCOL_VERSION);
@@ -272,9 +273,13 @@ Voice-Message: 0/0 (0/0)\r\n";
        CPPUNIT_ASSERT(notifyBodySize == (int)strlen(mwiStateString));
        CPPUNIT_ASSERT(notifyBodySize > 10);  // just to make sure both aren't null
        UtlString secondNotifyDialogHandle;
+       UtlString secondNotifyDialogHandleReversed;
        SipDialog::getDialogHandle(*secondNotify, secondNotifyDialogHandle);
+       // need to reverse tags, as our dialogMgr is server side manager that only has server side dialog
+       // client side dialog is not created, therefore we cannot find dialog for NOTIFY there
+       SipDialog::reverseTags(secondNotifyDialogHandle, secondNotifyDialogHandleReversed);
        CPPUNIT_ASSERT(!secondNotifyDialogHandle.isNull());
-       CPPUNIT_ASSERT(dialogMgr->dialogExists(secondNotifyDialogHandle));
+       CPPUNIT_ASSERT(dialogMgr->dialogExists(secondNotifyDialogHandleReversed));
        CPPUNIT_ASSERT(dialogMgr->countDialogs() == 1);
 
 
@@ -368,8 +373,13 @@ Voice-Message: 0/0 (0/0)\r\n";
        ASSERT_STR_EQUAL(mwiStateString, oneTimeBodyString);
        UtlString oneTimeNotifyDialogHandle;
        SipDialog::getDialogHandle(*secondNotify, oneTimeNotifyDialogHandle);
+       UtlString oneTimeNotifyDialogHandleReversed;
+       // need to reverse tags, as our dialogMgr is server side manager that only has server side dialog
+       // client side dialog is not created, therefore we cannot find dialog for NOTIFY there
+       SipDialog::reverseTags(secondNotifyDialogHandle, secondNotifyDialogHandleReversed);
+
        CPPUNIT_ASSERT(!oneTimeNotifyDialogHandle.isNull());
-       CPPUNIT_ASSERT(dialogMgr->dialogExists(oneTimeNotifyDialogHandle));
+       CPPUNIT_ASSERT(dialogMgr->dialogExists(secondNotifyDialogHandleReversed));
        CPPUNIT_ASSERT(dialogMgr->countDialogs() == 2);
        long now = OsDateTime::getSecsSinceEpoch();
        UtlString dialogDump;
