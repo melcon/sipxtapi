@@ -232,7 +232,7 @@ void SipDialog::updateDialogData(const SipMessage& message)
 
    // Figure out if the request is from the local or
    // the remote side
-   if(isDialogLocallyInitiated(messageCallId,
+   if(isTransactionLocallyInitiated(messageCallId,
       messageFromTag,
       messageToTag))
    {
@@ -287,7 +287,7 @@ void SipDialog::updateDialogData(const SipMessage& message)
          updateDialogState(&message);
       }
    }
-   else if(isDialogRemotelyInitiated(messageCallId,
+   else if(isTransactionRemotelyInitiated(messageCallId,
       messageFromTag,
       messageToTag))
    {
@@ -700,7 +700,7 @@ UtlBoolean SipDialog::wasInitialDialogFor(const UtlString& callId,
    return isInitialDialogFor(callId, localTag, remoteTag);
 }
 
-UtlBoolean SipDialog::isDialogLocallyInitiated(const UtlString& callId,
+UtlBoolean SipDialog::isTransactionLocallyInitiated(const UtlString& callId,
                                                const UtlString& fromTag,
                                                const UtlString& toTag) const
 {
@@ -717,7 +717,7 @@ UtlBoolean SipDialog::isDialogLocallyInitiated(const UtlString& callId,
    return(isLocalDialog);
 }
 
-UtlBoolean SipDialog::isDialogRemotelyInitiated(const UtlString& callId,
+UtlBoolean SipDialog::isTransactionRemotelyInitiated(const UtlString& callId,
                                                 const UtlString& fromTag,
                                                 const UtlString& toTag) const
 {

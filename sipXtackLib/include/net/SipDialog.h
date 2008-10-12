@@ -321,7 +321,7 @@ public:
    /*! If the request was sent from the local side, the fromTag will
    *  match the local tag.
    */
-   UtlBoolean isDialogLocallyInitiated(const UtlString& callId,
+   UtlBoolean isTransactionLocallyInitiated(const UtlString& callId,
       const UtlString& fromTag,
       const UtlString& toTag) const;
 
@@ -329,7 +329,7 @@ public:
    /*! If the request was sent from the local side, the fromTag will
    *  match the remote tag.
    */
-   UtlBoolean isDialogRemotelyInitiated(const UtlString& callId,
+   UtlBoolean isTransactionRemotelyInitiated(const UtlString& callId,
       const UtlString& fromTag,
       const UtlString& toTag) const;
 

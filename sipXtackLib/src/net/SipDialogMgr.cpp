@@ -356,7 +356,7 @@ UtlBoolean SipDialogMgr::isLastLocalTransaction(const SipMessage& message,
                                    TRUE); // if early, match established dialog
 
     if(dialog && 
-       dialog->isDialogLocallyInitiated(callId, fromTag, toTag) &&
+       dialog->isTransactionLocallyInitiated(callId, fromTag, toTag) &&
        dialog->isSameLocalCseq(message))
     {
         matchesTransaction = TRUE;
@@ -385,7 +385,7 @@ UtlBoolean SipDialogMgr::isNewRemoteTransaction(const SipMessage& message)
                                    TRUE); // if early, match established dialog
 
     if(dialog && 
-       dialog->isDialogRemotelyInitiated(callId, fromTag, toTag) &&
+       dialog->isTransactionRemotelyInitiated(callId, fromTag, toTag) &&
        dialog->isNextRemoteCseq(message))
     {
         matchesTransaction = TRUE;
