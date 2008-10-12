@@ -3207,10 +3207,12 @@ UtlBoolean SipTransaction::findBestResponse(SipMessage& bestResponse)
    {
       if(mpRequest)
       {
+         // no response received for some request, create simulated "408 Request timeout"
          bestResponse.setResponseData(mpRequest,
             SIP_REQUEST_TIMEOUT_CODE,
             SIP_REQUEST_TIMEOUT_TEXT);
          responseFound = TRUE;
+         bestResponse.setFromThisSide(false); // this will only be forwarded locally, simulate it was actually received
       }
       else
       {
