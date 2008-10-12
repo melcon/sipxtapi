@@ -21,6 +21,7 @@
 EventValidator::EventValidator(const char* szTitle) 
     : m_semUnprocessed(OsBSem::Q_FIFO, OsBSem::EMPTY) 
     , m_mutLists(OsMutex::Q_FIFO) 
+    , m_iMaxLookAhead(DEFAULT_MAX_LOOKAHEAD)
 {
     m_title = szTitle ;
     m_pUnfoundEvent = NULL ;
@@ -79,7 +80,7 @@ void EventValidator::reset()
     OsLock lock(m_mutLists) ;
 
     m_iDefaultTimeoutInSecs = 10 ;
-    m_iMaxLookAhead = 4 ;
+    m_iMaxLookAhead = DEFAULT_MAX_LOOKAHEAD;
 
     for (int i=0; i<MAX_EVENT_CATEGORIES; i++)
     {

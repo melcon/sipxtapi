@@ -19,6 +19,7 @@
 #include "utl/UtlSList.h"
 
 #define DEFAULT_TIMEOUT         -1
+#define DEFAULT_MAX_LOOKAHEAD   6
 #define MAX_EVENT_CATEGORIES    16  // room for growth
 #ifndef MIN
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
