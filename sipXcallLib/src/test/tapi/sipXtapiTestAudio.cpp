@@ -219,11 +219,13 @@ void sipXtapiTestAudio::testAudioSettings()
 
       CPPUNIT_ASSERT_EQUAL(sipxAudioSetNoiseReductionMode(m_hInst1, SIPX_NOISE_REDUCTION_LOW), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNoiseReductionMode(m_hInst1, &nrMode), SIPX_RESULT_SUCCESS);
-      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_LOW);
+      //CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_LOW); // only works with GIPS
+      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_HIGH); // correct for sipxmedialib
 
       CPPUNIT_ASSERT_EQUAL(sipxAudioSetNoiseReductionMode(m_hInst1, SIPX_NOISE_REDUCTION_MEDIUM), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNoiseReductionMode(m_hInst1, &nrMode), SIPX_RESULT_SUCCESS);
-      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_MEDIUM);
+      //CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_MEDIUM); // only works with GIPS
+      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_HIGH); // correct for sipxmedialib
 
       CPPUNIT_ASSERT_EQUAL(sipxAudioSetNoiseReductionMode(m_hInst1, SIPX_NOISE_REDUCTION_HIGH), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNoiseReductionMode(m_hInst1, &nrMode), SIPX_RESULT_SUCCESS);
