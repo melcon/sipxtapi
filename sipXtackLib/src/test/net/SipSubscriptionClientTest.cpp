@@ -317,7 +317,7 @@ class SipSubscribeClientMgr : public CppUnit::TestCase
         int firstNotifyCseq;
         firstNotifyRequest->getCSeqField(&firstNotifyCseq, NULL);
         CPPUNIT_ASSERT(firstSubCseq == 1);
-        CPPUNIT_ASSERT(firstNotifyCseq == 0);
+        CPPUNIT_ASSERT(firstNotifyCseq == 1);
 
         //subClient.dumpStates(clientStateString);
         //printf("client states:\n%s\n", clientStateString.data());

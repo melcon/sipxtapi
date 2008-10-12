@@ -120,8 +120,14 @@ class SipDialogTest : public CppUnit::TestCase
       CPPUNIT_TEST(createSubscribeDialog);
       CPPUNIT_TEST(createDeleteDialogTest);
       CPPUNIT_TEST(isTagSwapNeededTest);
+      CPPUNIT_TEST(isInitialDialogTest);
+      CPPUNIT_TEST(createDialogNotifyBeforeResponseTest);
       CPPUNIT_TEST(isSameDialogServerPerspectiveTest);
       CPPUNIT_TEST(isSameDialogClientPerspectiveTest);
+      CPPUNIT_TEST(isSameDialogStrictServerPerspectiveTest);
+      CPPUNIT_TEST(isSameDialogStrictClientPerspectiveTest);
+      CPPUNIT_TEST(isInitialDialogOfServerPerspectiveTest);
+      CPPUNIT_TEST(isInitialDialogOfClientPerspectiveTest);
       CPPUNIT_TEST(subscribeNotifyServerPerspectiveTest);
       CPPUNIT_TEST(subscribeNotifyClientPerspectiveTest);
       CPPUNIT_TEST_SUITE_END();
@@ -238,22 +244,23 @@ Content-Length: 0\r\n\r\n";
 
          CPPUNIT_ASSERT(subDialog.isInitialDialog());
 
-         CPPUNIT_ASSERT(subDialog.isInitialDialogFor("config-17747cec9-00d01e004e6f@10.1.1.10",
+         CPPUNIT_ASSERT(subDialog.isInitialDialogOf("config-17747cec9-00d01e004e6f@10.1.1.10",
              "17747cec9", "foo"));
-         CPPUNIT_ASSERT(subDialog.isInitialDialogFor(subRequest));
-         CPPUNIT_ASSERT(subDialog.isInitialDialogFor(subResponse));
+         CPPUNIT_ASSERT(subDialog.isInitialDialogOf(subRequest));
+         CPPUNIT_ASSERT(subDialog.isInitialDialogOf(subResponse));
 
 
          CPPUNIT_ASSERT(subDialog.isSameDialog("config-17747cec9-00d01e004e6f@10.1.1.10",
              "17747cec9", ""));
          CPPUNIT_ASSERT(subDialog.isSameDialog(subRequest));
-         CPPUNIT_ASSERT(subDialog.isInitialDialogFor(subResponse));
-         CPPUNIT_ASSERT(!subDialog.isSameDialog(subResponse));
+         CPPUNIT_ASSERT(subDialog.isInitialDialogOf(subResponse));
+         CPPUNIT_ASSERT(subDialog.isSameDialog(subResponse));
 
          // Update to change early dialog to setup dialog
          UtlString dump;
          subDialog.toString(dump);
-         subDialog.updateDialogData(subResponse);
+         subDialog.updateDialog(subResponse);
+         CPPUNIT_ASSERT(!subDialog.isSameDialog(subRequest)); // after updating dialog state, request no longer matches
          UtlString updatedLocalTag;
          UtlString updatedRemoteTag;
          subDialog.getLocalTag(updatedLocalTag);
@@ -261,10 +268,21 @@ Content-Length: 0\r\n\r\n";
          subDialog.getRemoteTag(updatedRemoteTag);
          ASSERT_STR_EQUAL("1114487634asd", updatedRemoteTag.data());
          CPPUNIT_ASSERT(subDialog.isSameDialog(subResponse));
-         CPPUNIT_ASSERT(subDialog.wasInitialDialogFor("config-17747cec9-00d01e004e6f@10.1.1.10",
+         CPPUNIT_ASSERT(subDialog.isInitialDialogOf("config-17747cec9-00d01e004e6f@10.1.1.10",
              "17747cec9", ""));
 
       };
+
+      void isInitialDialogTest()
+      {
+         CPPUNIT_ASSERT(!SipDialog::isInitialDialog("call-id,localtag,remotetag"));
+         CPPUNIT_ASSERT(SipDialog::isInitialDialog("call-id,localtag,"));
+         CPPUNIT_ASSERT(SipDialog::isInitialDialog("call-id,,remotetag"));
+
+         CPPUNIT_ASSERT(!SipDialog::isInitialDialog("call-id", "localtag", "remotetag"));
+         CPPUNIT_ASSERT(SipDialog::isInitialDialog("call-id", NULL, "remotetag"));
+         CPPUNIT_ASSERT(SipDialog::isInitialDialog("call-id", "localtag", NULL));
+      }
 
       void isTagSwapNeededTest()
       {
@@ -297,6 +315,69 @@ Content-Length: 0\r\n\r\n";
          CPPUNIT_ASSERT(dialogMgr.countDialogs() == 0);
       }
 
+      void createDialogNotifyBeforeResponseTest()
+      {
+         SipMessage subWithAuthRequest(subscribeAuth);
+         subWithAuthRequest.setFromThisSide(true);
+         SipMessage sub202Response(subscribe202);
+         sub202Response.setFromThisSide(false);
+         SipMessage notifyRequest(notify);
+         notifyRequest.setFromThisSide(true);
+         SipDialog sipDialog(&subWithAuthRequest);
+         CPPUNIT_ASSERT(sipDialog.isInitialDialog());
+         sipDialog.updateDialog(notifyRequest); // first give it notify
+         CPPUNIT_ASSERT(sipDialog.isEstablishedDialog()); // we must be established dialog now
+         sipDialog.updateDialog(sub202Response);
+         CPPUNIT_ASSERT(sipDialog.isEstablishedDialog()); // we must be still established dialog
+      }
+
+      void isSameDialogStrictServerPerspectiveTest()
+      {
+         SipMessage subWithAuthRequest(subscribeAuth);
+         subWithAuthRequest.setFromThisSide(false);
+         SipMessage sub202Response(subscribe202);
+         sub202Response.setFromThisSide(true);
+         SipMessage notifyRequest(notify);
+         notifyRequest.setFromThisSide(true);
+
+         SipDialog sipDialog(&subWithAuthRequest);
+         // all must succeed
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(subWithAuthRequest, TRUE));
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(sub202Response, TRUE));
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(notifyRequest, TRUE));
+         sipDialog.updateDialog(sub202Response); // this will establish dialog
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest, TRUE));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response, TRUE));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest, TRUE));
+         sipDialog.updateDialog(notifyRequest); // dialog is already established
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest, TRUE));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response, TRUE));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest, TRUE));
+      }
+
+      void isSameDialogStrictClientPerspectiveTest()
+      {
+         SipMessage subWithAuthRequest(subscribeAuth);
+         subWithAuthRequest.setFromThisSide(true);
+         SipMessage sub202Response(subscribe202);
+         sub202Response.setFromThisSide(false);
+         SipMessage notifyRequest(notify);
+         notifyRequest.setFromThisSide(false);
+
+         SipDialog sipDialog(&subWithAuthRequest);
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(subWithAuthRequest, TRUE));
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(sub202Response, TRUE));
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(notifyRequest, TRUE));
+         sipDialog.updateDialog(sub202Response); // this will establish dialog
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest, TRUE));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response, TRUE));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest, TRUE));
+         sipDialog.updateDialog(notifyRequest); // dialog is already established
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest, TRUE)); 
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response, TRUE));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest, TRUE));
+      }
+
       void isSameDialogServerPerspectiveTest()
       {
          SipMessage subWithAuthRequest(subscribeAuth);
@@ -305,10 +386,20 @@ Content-Length: 0\r\n\r\n";
          sub202Response.setFromThisSide(true);
          SipMessage notifyRequest(notify);
          notifyRequest.setFromThisSide(true);
+
          SipDialog sipDialog(&subWithAuthRequest);
-         CPPUNIT_ASSERT(sipDialog.isInitialDialogFor(subWithAuthRequest));
-         CPPUNIT_ASSERT(sipDialog.isInitialDialogFor(sub202Response));
-         CPPUNIT_ASSERT(sipDialog.isInitialDialogFor(notifyRequest));
+         // all must succeed
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(subWithAuthRequest));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest));
+         sipDialog.updateDialog(sub202Response); // this will establish dialog
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest)); // original message will no longer match
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest));
+         sipDialog.updateDialog(notifyRequest); // dialog is already established
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest)); // original message will no longer match
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest));
       }
 
       void isSameDialogClientPerspectiveTest()
@@ -319,10 +410,66 @@ Content-Length: 0\r\n\r\n";
          sub202Response.setFromThisSide(false);
          SipMessage notifyRequest(notify);
          notifyRequest.setFromThisSide(false);
+
          SipDialog sipDialog(&subWithAuthRequest);
-         CPPUNIT_ASSERT(sipDialog.isInitialDialogFor(subWithAuthRequest));
-         CPPUNIT_ASSERT(sipDialog.isInitialDialogFor(sub202Response));
-         CPPUNIT_ASSERT(sipDialog.isInitialDialogFor(notifyRequest));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(subWithAuthRequest));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest));
+         sipDialog.updateDialog(sub202Response); // this will establish dialog
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest)); // original message will no longer match
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest));
+         sipDialog.updateDialog(notifyRequest); // dialog is already established
+         CPPUNIT_ASSERT(!sipDialog.isSameDialog(subWithAuthRequest)); // original message will no longer match
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isSameDialog(notifyRequest));
+      }
+
+      void isInitialDialogOfServerPerspectiveTest()
+      {
+         SipMessage subWithAuthRequest(subscribeAuth);
+         subWithAuthRequest.setFromThisSide(false);
+         SipMessage sub202Response(subscribe202);
+         sub202Response.setFromThisSide(true);
+         SipMessage notifyRequest(notify);
+         notifyRequest.setFromThisSide(true);
+
+         SipDialog sipDialog(&subWithAuthRequest);
+         // all must succeed
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(subWithAuthRequest));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(notifyRequest));
+         sipDialog.updateDialog(sub202Response); // this will establish dialog
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(subWithAuthRequest)); // original message must still match
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(notifyRequest));
+         sipDialog.updateDialog(notifyRequest); // dialog is already established
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(subWithAuthRequest)); // original message must still match
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(notifyRequest));
+      }
+
+      void isInitialDialogOfClientPerspectiveTest()
+      {
+         SipMessage subWithAuthRequest(subscribeAuth);
+         subWithAuthRequest.setFromThisSide(true);
+         SipMessage sub202Response(subscribe202);
+         sub202Response.setFromThisSide(false);
+         SipMessage notifyRequest(notify);
+         notifyRequest.setFromThisSide(false);
+
+         SipDialog sipDialog(&subWithAuthRequest);
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(subWithAuthRequest));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(notifyRequest));
+         sipDialog.updateDialog(sub202Response); // this will establish dialog
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(subWithAuthRequest)); // original message must still match
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(notifyRequest));
+         sipDialog.updateDialog(notifyRequest); // dialog is already established
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(subWithAuthRequest)); // original message must still match
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(sub202Response));
+         CPPUNIT_ASSERT(sipDialog.isInitialDialogOf(notifyRequest));
       }
 
       void subscribeNotifyServerPerspectiveTest()
