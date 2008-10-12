@@ -600,6 +600,7 @@ void SipDialogEvent::buildBody() const
    dialogEvent.append(BEGIN_DIALOG_INFO);
 
    Url entityUri(mEntity);
+   entityUri.removeAngleBrackets(); // we don't want angle brackets in XML
    SNPRINTF(version, sizeof(version), "%d", mVersion);
 
    dialogEvent.append(VERSION_EQUAL);
