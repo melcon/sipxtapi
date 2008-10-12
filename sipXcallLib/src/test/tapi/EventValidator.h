@@ -152,6 +152,10 @@ public:
 
     void addMarker(const char* szMarkerText) ;
 
+    void validateCallMediaStartEvents();
+
+    void validateCallMediaStopEvents();
+
 protected:
     UtlString* allocCallStateEntry(SIPX_CALL hCall,
                                    SIPX_LINE hLine,
