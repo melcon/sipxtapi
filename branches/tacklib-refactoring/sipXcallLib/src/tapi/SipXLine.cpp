@@ -60,7 +60,7 @@ SIPX_LINE sipxLineLookupHandle(const char* szLineURI,
 }
 
 
-static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& uri)
+static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& lineUri, const Url& userEnteredUrl)
 {
    SIPX_LINE_DATA* pData = new SIPX_LINE_DATA();
    // if there is allocation failure, std::bad_alloc exception is thrown
@@ -69,7 +69,8 @@ static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& uri)
    // if we want to check for NULL, then we would have to use
    // new(std:::nothrow) instead of just new
 
-   pData->m_lineURI = uri;
+   pData->m_userEnteredUrl = userEnteredUrl;
+   pData->m_lineURI = lineUri;
    pData->m_pInst = pInst;
 
    return pData;
@@ -733,7 +734,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
    {
       if (szLineUrl && phLine)
       {
-         Url url(szLineUrl); // for example <sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
+         Url url(szLineUrl); // for example "display name"<sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
          Url uri = url.getUri(); // for example sip:number@domain;transport=tcp
 
          // Set the preferred contact
@@ -775,7 +776,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          UtlBoolean bRC = pInst->pLineManager->addLine(line);
          if (bRC)
          {
-            SIPX_LINE_DATA* pData = createLineData(pInst, uri);
+            SIPX_LINE_DATA* pData = createLineData(pInst, uri, url);
 
             if (pData)
             {
