@@ -160,7 +160,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
          UtlString remoteAddress(pCall->remoteAddress);
          SIPX_INSTANCE_DATA* pInst = pCall->pInst;
          SIPX_LINE hLine = pCall->hLine;
-         UtlString lineURI(pCall->fromURI);
+         UtlString userEnteredLineUrl;
+         pCall->userEnteredLineUrl.toString(userEnteredLineUrl);
          assert(pInst);
          sipxCallReleaseLock(pCall, SIPX_LOCK_READ, stackLogger);
 
@@ -180,7 +181,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
                pInfoData->infoData.nSize = sizeof(SIPX_INFO_INFO);
                pInfoData->infoData.hCall = hCall;
                pInfoData->infoData.hLine = hLine;
-               pInfoData->infoData.szFromURL = SAFE_STRDUP(lineURI.data());
+               pInfoData->infoData.szFromURL = SAFE_STRDUP(userEnteredLineUrl.data());
                pInfoData->infoData.nContentLength = nContentLength;
                pInfoData->infoData.szContentType = SAFE_STRDUP(szContentType);
                pInfoData->infoData.pContent = SAFE_STRDUP(szContent);

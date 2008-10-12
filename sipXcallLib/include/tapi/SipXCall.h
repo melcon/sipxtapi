@@ -43,6 +43,7 @@ public:
    UtlString ghostCallId;
    UtlString remoteAddress;
    UtlString fromURI; ///< from URI used for call, will contain tag. For outbound calls tag is added later.
+   Url userEnteredLineUrl; ///< like lineURI, but with display name, field parameters or brackets
    Url lineURI; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag.
    UtlString remoteContactAddress;///< Remote Contact URI
    SIPX_LINE hLine;

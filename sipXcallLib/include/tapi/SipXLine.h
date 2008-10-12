@@ -32,6 +32,7 @@
 class SIPX_LINE_DATA
 {
 public:
+   Url m_userEnteredUrl; ///< URL entered by user. Includes display name, brackets, field parameters
    Url m_lineURI; ///< URI of line. Doesn't contain fieldParameters, display name or brackets, for example sip:number@domain;transport=tcp
    SIPX_INSTANCE_DATA* m_pInst;
    OsMutex m_mutex;
@@ -42,6 +43,7 @@ public:
 
    SIPX_LINE_DATA()
       : m_mutex(OsMutex::Q_FIFO)
+      , m_userEnteredUrl(NULL)
       , m_lineURI(NULL)
       , m_pInst(NULL)
       , m_contactType(CONTACT_AUTO)

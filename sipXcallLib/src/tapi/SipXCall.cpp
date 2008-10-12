@@ -723,18 +723,21 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
       {
          // set line URI either by handle, or string
          UtlString sLineURI;
+         UtlString sUserEnteredLineUrl;
          if (hLine != SIPX_LINE_NULL)
          {
             SIPX_LINE_DATA* pLine = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
             if (pLine)
             {
                sLineURI = pLine->m_lineURI.toString();
+               sUserEnteredLineUrl = pLine->m_userEnteredUrl.toString();
                sipxLineReleaseLock(pLine, SIPX_LOCK_READ, stackLogger);
             }
          }
          else
          {
             sLineURI = szLine;
+            sUserEnteredLineUrl = szLine;
          }
          
          // we now must have a valid line URI - should be not null
@@ -743,7 +746,8 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
             Url lineURI(sLineURI); // reconstruct lineURI Url object from string
             SIPX_CALL_DATA* pData = new SIPX_CALL_DATA();
             // Set line URI in call
-            pData->fromURI = sLineURI; // keep the future fromURI, which will also get a tag
+            pData->userEnteredLineUrl = sUserEnteredLineUrl;
+            pData->fromURI = sUserEnteredLineUrl; // keep the future fromURI, which will also get a tag
             pData->lineURI = lineURI; // keep also original lineURI, which never gets a tag
             pData->pMutex.acquire();
             UtlBoolean res = gCallHandleMap.allocHandle(*phCall, pData);
@@ -1460,7 +1464,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
             }
             // set outbound line
             // just posts message
-            pInst->pCallManager->setOutboundLineForCall(pData->callId, pData->lineURI);
+            pInst->pCallManager->setOutboundLineForCall(pData->callId, pData->userEnteredLineUrl);
 
             // create sessionCallId
             pData->sessionCallId = szSessionCallId;
