@@ -1081,4 +1081,24 @@ bool EventValidator::waitUntilEvent(const char* szEvent, int iTimeoutInSecs)
     return bFound ;
 }
 
+void EventValidator::validateCallMediaStartEvents()
+{
+   bool bRC = false;
+   bRC = waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+   CPPUNIT_ASSERT(bRC);
+   /*bRC = waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+   CPPUNIT_ASSERT(bRC);*/
+   bRC = waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+   CPPUNIT_ASSERT(bRC);
+}
 
+void EventValidator::validateCallMediaStopEvents()
+{
+   bool bRC = false;
+   bRC = waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+   CPPUNIT_ASSERT(bRC);
+   /*bRC = waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+   CPPUNIT_ASSERT(bRC);*/
+   bRC = waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+   CPPUNIT_ASSERT(bRC);
+}
