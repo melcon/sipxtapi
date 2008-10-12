@@ -61,6 +61,16 @@ class SipMessage;
 *  sides of the dialog by thinking Left and Right
 *  instead of local and remote.
 *
+*  This class makes a strict difference between client and server
+*  SipDialog. SipDialog on client will have the same call-id like
+*  server SipDialog, but local/remote tags will be reversed. When
+*  trying to match server dialog against a client dialog, matching will
+*  fail. Client and server dialog are considered separate dialogs.
+*  This is possible because SipMessage records if it was received through
+*  socket. Thanks to strict difference between client and server SipDialog
+*  we can make a call to ourselves or subscribe and send notifications to
+*  ourselves.
+*
 *  This class is intended to deprecate the SipSession
 *  class.
 */
@@ -130,9 +140,6 @@ public:
    //! Copy constructor
    SipDialog(const SipDialog& rSipDialog);
 
-   //! Assignment operator
-   SipDialog& operator=(const SipDialog& rhs);
-
    //! Destructor
    virtual
       ~SipDialog();
@@ -140,13 +147,19 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
+   //! Assignment operator
+   SipDialog& operator=(const SipDialog& rhs);
+
+   //! Update dialog operator
+   SipDialog& operator<<(const SipMessage& message);
+
    //! update the dialog information based upon the given message
    /*! Typically this updates things like the Contact, CSeq headers and 
    *  tag information for the dialog.
    *  \param message - SIP message which is assumed to be part of this
    *         dialog.
    */
-   void updateDialogData(const SipMessage& message);
+   void updateDialog(const SipMessage& message);
 
    //! Set fields in next SIP request for this dialog
    /*! Set the request URI, call-id, To, From, Route and Cseq headers
@@ -177,9 +190,9 @@ public:
 
    //! Gets the call-id, and tags from the dialogHandle
    static void parseHandle(const UtlString& dialogHandle,
-      UtlString& callId,
-      UtlString& localTag,
-      UtlString& remoteTag);
+                           UtlString& callId,
+                           UtlString& localTag,
+                           UtlString& remoteTag);
 
    //! Reverse the order of the tags in the handle
    static void reverseTags(const UtlString& dialogHandle,
@@ -272,66 +285,83 @@ public:
 
    /* ============================ INQUIRY =================================== */
 
-   //! Compare the message to see if it matches this dialog
-   /*! A dialog matches if the SIP Call-Id header and
-   *  the tags from the SIP message To and From field
-   *  match those of this dialog.  The tags are compared in
-   * both directions.
+   /**
+   * Checks if SipMessage is part of this SipDialog. strictMatch
+   * affects if we want initial SipDialog to match SipMessage with
+   * established dialog.
+   * @param strictMatch If true then both tags must match.
    */
-   UtlBoolean isSameDialog(const SipMessage& message) const;
+   UtlBoolean isSameDialog(const SipMessage& message,
+                           UtlBoolean strictMatch = FALSE) const;
 
-   //! Compare the given dialog indentifiers match those of this dialog
-   /*! The tags are compared in both directions.
+   /**
+   * Checks if given dialog is part of this SipDialog. strictMatch
+   * affects if we want initial SipDialog to match given established
+   * dialog.
+   * @param strictMatch If true then both tags must match.
    */
    UtlBoolean isSameDialog(const UtlString& callId,
                            const UtlString& localTag,
-                           const UtlString& remoteTag) const;
+                           const UtlString& remoteTag,
+                           UtlBoolean strictMatch = FALSE) const;
 
-   //! Compare the given dialog handle with that of this dialog
-   /*! The tags are compared in both directions.
-   */
-   UtlBoolean isSameDialog(const UtlString& dialogHandle);
+   /**
+    * Compare the given dialog handle with that of this dialog.
+    * Dialog handle must of the form: "callid,localtag,remotetag".
+    *
+    * Localtag doesn't always equal to fromtag. When constructing
+    * dialogHandle from SipMessage, tag swap is done automatically.
+    * @param strictMatch If true then both tags must match.
+    */
+   UtlBoolean isSameDialog(const UtlString& dialogHandle,
+                           UtlBoolean strictMatch = FALSE) const;
 
-   //! Determine if this is an early dialog
+   /** Determine if this is an initial (not yet established) dialog */
    UtlBoolean isInitialDialog() const;
 
-   //! Determine if the given handle is for an early dialog
-   /*! That is check if one of the tags is null
-   */
+   /** Determine if this is an established dialog */
+   UtlBoolean isEstablishedDialog() const;
+
+   /** Determine if this is a terminated dialog */
+   UtlBoolean isTerminatedDialog() const;
+
+   /** Determine if this is an initial (not yet established) dialog */
    static UtlBoolean isInitialDialog(const UtlString& dialogHandle);
 
-   //! Checks if this is an early dialog for the given SIP message
-   UtlBoolean isInitialDialogFor(const SipMessage& message) const;
+   /** Determine if this is an initial (not yet established) dialog */
+   static UtlBoolean isInitialDialog(const UtlString& callId,
+                                     const UtlString& localTag,
+                                     const UtlString& remoteTag);
 
-   //! Checks if this is an early dialog for the given SIP message
-   UtlBoolean isInitialDialogFor(const UtlString& callId,
-      const UtlString& localTag,
-      const UtlString& remoteTag) const;
+   /**
+    * Check if current SipDialog could have been the initial dialog of
+    * given SipMessage dialog.
+    */
+   UtlBoolean isInitialDialogOf(const SipMessage& message) const;
 
-   //! Checks if this was an early dialog for the given SIP message
-   /*! This dialog is considered to have been an early dialog if
-   *  the SIP Call-Id and one of the given tags matches one of
-   *  the tags of this dialog.
-   */
-   UtlBoolean wasInitialDialogFor(const UtlString& callId,
-      const UtlString& localTag,
-      const UtlString& remoteTag) const;
+   /**
+    * Check if current SipDialog could have been the initial dialog of
+    * given dialog.
+    */
+   UtlBoolean isInitialDialogOf(const UtlString& callId,
+                                const UtlString& localTag,
+                                const UtlString& remoteTag) const;
 
    //! Query if the transaction request was sent from the local side
    /*! If the request was sent from the local side, the fromTag will
    *  match the local tag.
    */
    UtlBoolean isTransactionLocallyInitiated(const UtlString& callId,
-      const UtlString& fromTag,
-      const UtlString& toTag) const;
+                                            const UtlString& fromTag,
+                                            const UtlString& toTag) const;
 
    //! Query if the transaction request was sent from the remote side
    /*! If the request was sent from the local side, the fromTag will
    *  match the remote tag.
    */
    UtlBoolean isTransactionRemotelyInitiated(const UtlString& callId,
-      const UtlString& fromTag,
-      const UtlString& toTag) const;
+                                             const UtlString& fromTag,
+                                             const UtlString& toTag) const;
 
    //! Check if message and SIP local Cseq match
    UtlBoolean isSameLocalCseq(const SipMessage& message) const;
@@ -365,7 +395,15 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /**
+    * Updates state of dialog according to given SipMessage. This is used to update state
+    * to established state, and determine if we are early or confirmed dialog.
+    */
    void updateDialogState(const SipMessage* pSipMessage = NULL);
+
+   /**
+    * Updates the secure flag of SipDialog.
+    */
    void updateSecureFlag(const SipMessage* pSipMessage = NULL);
 
    // The callId is stored in the UtlString base class data element
