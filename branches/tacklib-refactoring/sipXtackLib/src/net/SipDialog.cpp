@@ -718,14 +718,17 @@ UtlBoolean SipDialog::isTransactionLocallyInitiated(const UtlString& callId,
 }
 
 UtlBoolean SipDialog::isTransactionRemotelyInitiated(const UtlString& callId,
-                                                const UtlString& fromTag,
-                                                const UtlString& toTag) const
+                                                     const UtlString& fromTag,
+                                                     const UtlString& toTag) const
 {
    UtlBoolean isRemoteDialog = FALSE;
    if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
    {
-      if(((toTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 || toTag.isNull() || m_sLocalTag.isNull())) &&
-         (fromTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0))
+      if(((toTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 || toTag.isNull() || m_sLocalTag.isNull()) &&
+         (fromTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0)) ||
+         // also handle special case when NOTIFY is received before response to SUBSCRIBE
+         // NOTIFY will have from tag but our remote tag is null. But to tag must match local tag.
+         (toTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 && (m_sRemoteTag.isNull() && !fromTag.isNull())))
       {
          isRemoteDialog = TRUE;
       }
