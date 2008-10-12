@@ -211,7 +211,13 @@ SipDialog& SipDialog::operator=(const SipDialog& rhs)
    return *this;
 }
 
-void SipDialog::updateDialogData(const SipMessage& message)
+SipDialog& SipDialog::operator<<(const SipMessage& message)
+{
+   updateDialog(message);
+   return *this;
+}
+
+void SipDialog::updateDialog(const SipMessage& message)
 {
    // get call-id, From, To and both tags
    UtlString messageCallId;
@@ -321,7 +327,7 @@ void SipDialog::updateDialogData(const SipMessage& message)
 
          // A response (e.g. NOTIFY) can come before we get the
          // successful response to the initial transaction
-         if(!m_sLocalInitiatedDialog && !message.isResponse() && m_sRemoteTag.isNull()) // tag not set
+         if(m_sLocalInitiatedDialog && message.isRequest() && m_sRemoteTag.isNull()) // tag not set
          {
             // Change this early dialog to a set up dialog.
             // The tag gets set in the 2xx response
@@ -611,7 +617,8 @@ int SipDialog::getNextLocalCseq()
 /* ============================ INQUIRY =================================== */
 
 
-UtlBoolean SipDialog::isSameDialog(const SipMessage& message) const
+UtlBoolean SipDialog::isSameDialog(const SipMessage& message,
+                                   UtlBoolean strictMatch) const
 {
    UtlString messageCallId;
    UtlString localTag;
@@ -620,39 +627,49 @@ UtlBoolean SipDialog::isSameDialog(const SipMessage& message) const
    message.getCallIdField(&messageCallId);
    getLocalRemoteTag(message, localTag, remoteTag);
 
-   return isSameDialog(messageCallId, localTag, remoteTag);
+   return isSameDialog(messageCallId, localTag, remoteTag, strictMatch);
 }
 
 UtlBoolean SipDialog::isSameDialog(const UtlString& callId,
                                    const UtlString& localTag,
-                                   const UtlString& remoteTag) const
+                                   const UtlString& remoteTag,
+                                   UtlBoolean strictMatch) const
 {
-   // Literal/exact match of tags only
-   // i.e. do not allow a null tag to match a set tag
    UtlBoolean isSameDialog = FALSE;
 
-   if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
+   if (!strictMatch && isInitialDialog())
    {
-      if(localTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 &&
-         remoteTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0)
+      // we are initial dialog, one tag is missing. Use relaxed comparison
+      isSameDialog = isInitialDialogOf(callId, localTag, remoteTag);
+   }
+   else
+   {
+      if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
       {
-         isSameDialog = TRUE;
+         // call-id matches
+         // we are established dialog, compare by both tags
+         if(localTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0 &&
+            remoteTag.compareTo(m_sRemoteTag, UtlString::ignoreCase) == 0)
+         {
+            isSameDialog = TRUE;
+         }
       }
    }
 
    return isSameDialog;
 }
 
-UtlBoolean SipDialog::isSameDialog(const UtlString& dialogHandle)
+UtlBoolean SipDialog::isSameDialog(const UtlString& dialogHandle,
+                                   UtlBoolean strictMatch) const
 {
    UtlString callId;
    UtlString localTag;
    UtlString remoteTag;
    parseHandle(dialogHandle, callId, localTag, remoteTag);
-   return isSameDialog(callId, localTag, remoteTag);
+   return isSameDialog(callId, localTag, remoteTag, strictMatch);
 }
 
-UtlBoolean SipDialog::isInitialDialogFor(const SipMessage& message) const
+UtlBoolean SipDialog::isInitialDialogOf(const SipMessage& message) const
 {
    UtlString messageCallId;
    UtlString localTag;
@@ -661,18 +678,19 @@ UtlBoolean SipDialog::isInitialDialogFor(const SipMessage& message) const
    message.getCallIdField(&messageCallId);
    getLocalRemoteTag(message, localTag, remoteTag);
 
-   return isInitialDialogFor(messageCallId, localTag, remoteTag);
+   return isInitialDialogOf(messageCallId, localTag, remoteTag);
 }
 
-UtlBoolean SipDialog::isInitialDialogFor(const UtlString& callId,
-                                         const UtlString& localTag,
-                                         const UtlString& remoteTag) const
+UtlBoolean SipDialog::isInitialDialogOf(const UtlString& callId,
+                                        const UtlString& localTag,
+                                        const UtlString& remoteTag) const
 {
    UtlBoolean isSameInitialDialog = FALSE;
-
+   // we don't check if we are currently established or initial dialog
    // for initial dialog, callId and localTag must match
    if(this->compareTo(callId, UtlString::ignoreCase) == 0)
    {
+      // if dialog was initiated remotely, then remote tag gets filled first, with local tag being filled later by us
       if (m_sLocalInitiatedDialog)
       {
          if (localTag.compareTo(m_sLocalTag, UtlString::ignoreCase) == 0)
@@ -693,16 +711,9 @@ UtlBoolean SipDialog::isInitialDialogFor(const UtlString& callId,
    return isSameInitialDialog;
 }
 
-UtlBoolean SipDialog::wasInitialDialogFor(const UtlString& callId,
-                                          const UtlString& localTag,
-                                          const UtlString& remoteTag) const
-{
-   return isInitialDialogFor(callId, localTag, remoteTag);
-}
-
 UtlBoolean SipDialog::isTransactionLocallyInitiated(const UtlString& callId,
-                                               const UtlString& fromTag,
-                                               const UtlString& toTag) const
+                                                    const UtlString& fromTag,
+                                                    const UtlString& toTag) const
 {
    UtlBoolean isLocalDialog = FALSE;
    if(callId.compareTo(*this, UtlString::ignoreCase) == 0)
@@ -739,18 +750,17 @@ UtlBoolean SipDialog::isTransactionRemotelyInitiated(const UtlString& callId,
 
 UtlBoolean SipDialog::isInitialDialog() const
 {
-   // For now make the simple assumption that if one of
-   // the tags is not set that this is an early dialog
-   // Note: RFC 2543 clients only needed to optionally
-   // set the tags.  I do not think we need to support
-   // RFC 2543 in this class.
-   UtlBoolean tagNotSet = FALSE;
-   if(m_sLocalTag.isNull() || m_sRemoteTag.isNull())
-   {
-      tagNotSet = TRUE;
-   }
+   return (m_dialogState == DIALOG_STATE_INITIAL);
+}
 
-   return(tagNotSet);
+UtlBoolean SipDialog::isEstablishedDialog() const
+{
+   return (m_dialogState == DIALOG_STATE_ESTABLISHED);
+}
+
+UtlBoolean SipDialog::isTerminatedDialog() const
+{
+   return (m_dialogState == DIALOG_STATE_TERMINATED);
 }
 
 UtlBoolean SipDialog::isInitialDialog(const UtlString& handle)
@@ -772,8 +782,19 @@ UtlBoolean SipDialog::isInitialDialog(const UtlString& handle)
          tagNotSet = TRUE;
       }
    }
-   return(tagNotSet);
+   return tagNotSet;
+}
 
+UtlBoolean SipDialog::isInitialDialog(const UtlString& callId,
+                                      const UtlString& localTag,
+                                      const UtlString& remoteTag)
+{
+   UtlBoolean tagNotSet = FALSE;
+   if(localTag.isNull() || remoteTag.isNull())
+   {
+      tagNotSet = TRUE;
+   }
+   return tagNotSet;
 }
 
 UtlBoolean SipDialog::isSameLocalCseq(const SipMessage& message) const
