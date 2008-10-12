@@ -380,33 +380,33 @@ void sipXtapiTestSuite::doCallBasic(SIPX_INST              hCallingInst,
      */
 
     // Calling Side
-    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
-    CPPUNIT_ASSERT(bRC);
     bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, false);
     CPPUNIT_ASSERT(bRC);
     bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     // Called Side
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
     bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
     bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
     bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     /*
@@ -448,9 +448,9 @@ void sipXtapiTestSuite::doCallBasic(SIPX_INST              hCallingInst,
     CPPUNIT_ASSERT(bRC);
 
     // Validate Called Side
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
     bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
@@ -539,33 +539,33 @@ void sipXtapiTestSuite::doCallBasicSetup(SIPX_INST   hCallingInst,
      */
 
     // Calling Side
-    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCallingCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+    bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
     bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCallingCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCallingCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCallingCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCallingCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalling.waitForCallEvent(hCallingLine, hCallingCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     // Called Side
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
     bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
     bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
     bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
-    bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    bRC = validatorCalled.waitForCallEvent(hCalledLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     hCalledCall = g_hAutoAnswerCallbackCall;
@@ -790,13 +790,13 @@ void sipXtapiTestSuite::testCallPlayAudioFileFast()
 
 
         // Validate Calling Side
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
-        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -804,13 +804,13 @@ void sipXtapiTestSuite::testCallPlayAudioFileFast()
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called Side
-        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
-        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -1295,35 +1295,35 @@ void sipXtapiTestSuite::testCallBasic2()
         sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100");
 
         // Validate Calling Side
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called Side
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
 
         // Drop callee
@@ -1342,9 +1342,9 @@ void sipXtapiTestSuite::testCallBasic2()
         CPPUNIT_ASSERT(bRC);
 
         // Calling side should disconnect
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -1409,11 +1409,11 @@ void sipXtapiTestSuite::testCallBusy()
         sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100");
 
         // Validate Calling Side
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_BUSY, true);
         CPPUNIT_ASSERT(bRC);
@@ -1502,19 +1502,19 @@ void sipXtapiTestSuite::testCallRedirect()
         sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100");
 
         // Validate Calling Side
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
 
         SIPX_CALL hDestroyCall = hCall;
@@ -1523,7 +1523,7 @@ void sipXtapiTestSuite::testCallRedirect()
         // Finally, calling side is cleaned up
         bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -1541,23 +1541,23 @@ void sipXtapiTestSuite::testCallRedirect()
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called UA
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -1756,35 +1756,35 @@ void sipXtapiTestSuite::testCallHoldX(bool bTcp)
         sipxCallConnect(hCall, "<sip:foo@127.0.0.1:9100;transport=tcp>");
 
         // Validate Calling Side
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called Side
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
 
 
@@ -1801,30 +1801,29 @@ void sipXtapiTestSuite::testCallHoldX(bool bTcp)
             // Hold
             CPPUNIT_ASSERT(sipxCallHold(hCall) == SIPX_RESULT_SUCCESS);
 
+            bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
+            CPPUNIT_ASSERT(bRC);
+            bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
+            CPPUNIT_ASSERT(bRC);
             bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, false);
-            CPPUNIT_ASSERT(bRC);
-            bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
-            CPPUNIT_ASSERT(bRC);
-            bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
             CPPUNIT_ASSERT(bRC);
             bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, false);
             CPPUNIT_ASSERT(bRC);
-            bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
+            bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
             CPPUNIT_ASSERT(bRC);
-            bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
+            bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
             CPPUNIT_ASSERT(bRC);
 
             // Unhold
             CPPUNIT_ASSERT(sipxCallUnhold(hCall) == SIPX_RESULT_SUCCESS);
 
-            bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-            CPPUNIT_ASSERT(bRC);
             bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
             CPPUNIT_ASSERT(bRC);
-
             bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
             CPPUNIT_ASSERT(bRC);
             bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+            CPPUNIT_ASSERT(bRC);
+            bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
             CPPUNIT_ASSERT(bRC);
 
 
@@ -1854,9 +1853,9 @@ void sipXtapiTestSuite::testCallHoldX(bool bTcp)
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called Side
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -1929,35 +1928,35 @@ void sipXtapiTestSuite::testCallHoldExceedingIdleTimeout()
         sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100");
 
         // Validate Calling Side
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called Side
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+        bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
 
         // Hold
@@ -1966,17 +1965,17 @@ void sipXtapiTestSuite::testCallHoldExceedingIdleTimeout()
         printf("\nWaiting for 10 seconds! (making sure no idle timeout event gets fired)");
         OsTask::delay(10000);
 
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
+        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
+        CPPUNIT_ASSERT(bRC);
         bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, false);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
-        CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalling.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, false);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
 
         // Unhold
@@ -2017,9 +2016,9 @@ void sipXtapiTestSuite::testCallHoldExceedingIdleTimeout()
         CPPUNIT_ASSERT(bRC);
 
         // Validate Called Side
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
-        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, true);
+        bRC = validatorCalled.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
         CPPUNIT_ASSERT(bRC);
         bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
         CPPUNIT_ASSERT(bRC);
@@ -3230,18 +3229,18 @@ void sipXtapiTestSuite::callMultipleProc1(
     sipxRC = sipxCallHold(hCallingParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, false);
     CPPUNIT_ASSERT(bRC);
 
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, false);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3258,7 +3257,7 @@ void sipXtapiTestSuite::callMultipleProc1(
     sipxRC = sipxCallHold(hCalledParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3276,7 +3275,7 @@ void sipXtapiTestSuite::callMultipleProc1(
     sipxRC = sipxCallUnhold(hCallingParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
     CPPUNIT_ASSERT(bRC);
@@ -3297,19 +3296,18 @@ void sipXtapiTestSuite::callMultipleProc1(
     CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
+    CPPUNIT_ASSERT(bRC);
 
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, true);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3357,18 +3355,18 @@ void sipXtapiTestSuite::callMultipleProc2(
     sipxRC = sipxCallHold(hCalledParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3385,7 +3383,7 @@ void sipXtapiTestSuite::callMultipleProc2(
     sipxRC = sipxCallHold(hCallingParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3403,7 +3401,7 @@ void sipXtapiTestSuite::callMultipleProc2(
     sipxRC = sipxCallUnhold(hCallingParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
     CPPUNIT_ASSERT(bRC);
@@ -3424,9 +3422,9 @@ void sipXtapiTestSuite::callMultipleProc2(
     CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
 
@@ -3434,9 +3432,9 @@ void sipXtapiTestSuite::callMultipleProc2(
     CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
 
@@ -3504,18 +3502,18 @@ void sipXtapiTestSuite::callMultipleProc3(
     sipxRC = sipxCallHold(hCallingParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
 
@@ -3538,9 +3536,9 @@ void sipXtapiTestSuite::callMultipleProc3(
     CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
 
@@ -3548,9 +3546,9 @@ void sipXtapiTestSuite::callMultipleProc3(
     CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_BRIDGED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_BRIDGED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
 
@@ -3569,7 +3567,7 @@ void sipXtapiTestSuite::callMultipleProc3(
     sipxRC = sipxCallUnhold(hCalledParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3618,18 +3616,18 @@ void sipXtapiTestSuite::callMultipleProc4(
     sipxRC = sipxCallHold(hCalledParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO);
+    bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_HOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3646,7 +3644,7 @@ void sipXtapiTestSuite::callMultipleProc4(
     sipxRC = sipxCallHold(hCallingParty, false);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3664,7 +3662,7 @@ void sipXtapiTestSuite::callMultipleProc4(
     sipxRC = sipxCallUnhold(hCallingParty);
     CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
@@ -3686,18 +3684,18 @@ void sipXtapiTestSuite::callMultipleProc4(
     CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCallingPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = pCallingPartyValidator->waitForCallEvent(hCallingPartyLine, hCallingParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
     CPPUNIT_ASSERT(bRC);
-    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
-    CPPUNIT_ASSERT(bRC);
     bRC = pCalledPartyValidator->waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_UNHOLD, MEDIA_TYPE_AUDIO, false);
+    CPPUNIT_ASSERT(bRC);
+    bRC = pCalledPartyValidator->waitForCallEvent(hCalledPartyLine, hCalledParty, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
     CPPUNIT_ASSERT(bRC);
 
     bRC = !pCallingPartyValidator->validateNoWaitingEvent();
