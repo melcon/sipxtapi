@@ -624,14 +624,13 @@ OsStatus MpPortAudioDriver::readStreamSync(MpAudioStreamId stream,
 
    // first verify that stream is synchronous
    UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.findValue(&strm);
+   UtlContainable* res = m_audioStreamMap.find(&strm);
 
    if (res)
    {
-      // cast to UtlPtr
-      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
+      UtlContainable* pValue = m_audioStreamMap.findValue(&strm); // sync streams have NULL value
 
-      if (pStrmPtr->getValue() == NULL)
+      if (pValue == NULL)
       {
          // if NULL, stream is synchronous...
          PaError paError = Pa_ReadStream(stream, buffer, frames);
@@ -659,14 +658,13 @@ OsStatus MpPortAudioDriver::writeStreamSync(MpAudioStreamId stream,
 
    // first verify that stream is synchronous
    UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.findValue(&strm);
+   UtlContainable* res = m_audioStreamMap.find(&strm);
 
    if (res)
    {
-      // cast to UtlPtr
-      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
+      UtlContainable* pValue = m_audioStreamMap.findValue(&strm); // sync streams have NULL value
 
-      if (pStrmPtr->getValue() == NULL)
+      if (pValue == NULL)
       {
          // if NULL, stream is synchronous...
          PaError paError = Pa_WriteStream(stream, buffer, frames);
@@ -949,7 +947,7 @@ UtlBoolean MpPortAudioDriver::isStreamValid(MpAudioStreamId stream) const
    // external lock is assumed
 
    UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.findValue(&strm);
+   UtlContainable* res = m_audioStreamMap.find(&strm); // lookup key not value, as sync streams have NULL value
 
    if (res)
    {
