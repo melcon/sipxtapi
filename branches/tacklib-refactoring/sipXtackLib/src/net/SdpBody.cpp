@@ -1577,12 +1577,12 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                 double priority = (double) (iNumAddresses-i) / (double) iNumAddresses ;
 
                 assert(mediaAddresses[i].length() > 0) ;
-                if (rtpAudioPorts[0] && rtpAudioPorts[i] && mediaAddresses[i])
+                if (rtpAudioPorts[0] && rtpAudioPorts[i] && !mediaAddresses[i].isNull())
                 {
                     addCandidateAttribute(i, "t", szTransportString, priority, mediaAddresses[i], rtpAudioPorts[i]) ;
                 }
 
-                if (rtcpAudioPorts[0] && rtcpAudioPorts[i] && mediaAddresses[i])
+                if (rtcpAudioPorts[0] && rtcpAudioPorts[i] && !mediaAddresses[i].isNull())
                 {
                     addCandidateAttribute(i, "t", szTransportString, priority, mediaAddresses[i], rtcpAudioPorts[i]) ;
                 }
@@ -1701,12 +1701,12 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                     szTransportType = SDP_RTP_TCP_MEDIA_TRANSPORT_TYPE;
                 }
                 assert(mediaAddresses[i].length() > 0) ;
-                if (rtpVideoPorts[0] && rtpVideoPorts[i] && mediaAddresses[i])
+                if (rtpVideoPorts[0] && rtpVideoPorts[i] && !mediaAddresses[i].isNull())
                 {
                     addCandidateAttribute(i, "t", szTransportString, priority, mediaAddresses[i], rtpVideoPorts[i]) ;
                 }
 
-                if (rtcpVideoPorts[0] && rtcpVideoPorts[i] && mediaAddresses[i])
+                if (rtcpVideoPorts[0] && rtcpVideoPorts[i] && !mediaAddresses[i].isNull())
                 {
                     addCandidateAttribute(i, "t", szTransportString, priority, mediaAddresses[i], rtcpVideoPorts[i]) ;
                 }
@@ -2039,12 +2039,12 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                     double priority = (double) (iNumAddresses-i) / (double) iNumAddresses ;
 
                     assert(hostAddresses[i].length() > 0) ;
-                    if (rtpAudioPorts[0] && rtpAudioPorts[i] && hostAddresses[i])
+                    if (rtpAudioPorts[0] && rtpAudioPorts[i] && !hostAddresses[i].isNull())
                     {
                         addCandidateAttribute(i, "t", "UDP", priority, hostAddresses[i], rtpAudioPorts[i]) ;
                     }
 
-                    if (rtcpAudioPorts[0] && rtcpAudioPorts[i] && hostAddresses[i])
+                    if (rtcpAudioPorts[0] && rtcpAudioPorts[i] && !hostAddresses[i].isNull())
                     {
                         addCandidateAttribute(i, "t", "UDP", priority, hostAddresses[i], rtcpAudioPorts[i]) ;
                     }
@@ -2130,12 +2130,12 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                     double priority = (double) (iNumAddresses-i) / (double) iNumAddresses ;
 
                     assert(hostAddresses[i].length() > 0) ;
-                    if (rtpVideoPorts[0] && rtpVideoPorts[i] && hostAddresses[i])
+                    if (rtpVideoPorts[0] && rtpVideoPorts[i] && !hostAddresses[i].isNull())
                     {
                         addCandidateAttribute(i, "t", "UDP", priority, hostAddresses[i], rtpVideoPorts[i]) ;
                     }
 
-                    if (rtcpVideoPorts[0] && rtcpVideoPorts[i] && hostAddresses[i])
+                    if (rtcpVideoPorts[0] && rtcpVideoPorts[i] && !hostAddresses[i].isNull())
                     {
                         addCandidateAttribute(i, "t", "UDP", priority, hostAddresses[i], rtcpVideoPorts[i]) ;
                     }

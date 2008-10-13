@@ -2128,7 +2128,7 @@ UtlBoolean SipConnection::originalCallTransfer(UtlString&  dialString,
         remoteAddr.data(), inviteMsg, dialString.data(),
         dialString.length() ? dialString.data() : "", conState.data());
 #endif
-    if(inviteMsg && dialString && *dialString &&
+    if(inviteMsg && !dialString.isNull() &&
         getState() == CONNECTION_ESTABLISHED)
     {
         // If the transferee (the party at the other end of this

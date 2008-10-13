@@ -269,7 +269,7 @@ OsStatus mergeWaveUrls(UtlString rSourceUrls[], UtlString &rDestFile)
         UtlBoolean bError = FALSE;
 
         WriteWaveHdr(file);
-        while (!bError && rSourceUrls[index] && rSourceUrls[index].length())
+        while (!bError && !rSourceUrls[index].isNull() && rSourceUrls[index].length())
         {
             //for now...assume an error until write occurs ok
             bError = TRUE;
@@ -395,7 +395,7 @@ OsStatus mergeWaveFiles(UtlString rSourceFiles[], UtlString &rDestFile)
         UtlBoolean bError = FALSE;
         int lastCompressionType = -1;
         WriteWaveHdr(file);
-        while (!bError && rSourceFiles[index] && rSourceFiles[index].length())
+        while (!bError && !rSourceFiles[index].isNull() && rSourceFiles[index].length())
         {
             ifstream inputFile(rSourceFiles[index].data(),ios::in|ios::binary);
             if (inputFile)
