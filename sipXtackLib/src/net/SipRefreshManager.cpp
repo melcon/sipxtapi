@@ -104,7 +104,7 @@ void RefreshDialogState::toString(UtlString& dumpString)
     SNPRINTF(numBuf, sizeof(numBuf), "%d", mFailedResponseCode);
     dumpString.append(numBuf);
     dumpString.append("\n\tmFailedResponseText: ");
-    dumpString.append(mFailedResponseText ? mFailedResponseText : "");
+    dumpString.append(mFailedResponseText);
     dumpString.append("\n\tmpRefreshTimer: ");
     SNPRINTF(numBuf, sizeof(numBuf), "%p", mpRefreshTimer);
     dumpString.append(numBuf);

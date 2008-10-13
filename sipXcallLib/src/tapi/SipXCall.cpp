@@ -302,8 +302,8 @@ SIPX_CALL_DATA* sipxCallLookup(const SIPX_CALL hCall,
 UtlBoolean validCallData(SIPX_CALL_DATA* pData)
 {
    return (pData &&
-      pData->callId && 
-      pData->fromURI && 
+      !pData->callId.isNull() && 
+      !pData->fromURI.isNull() && 
       pData->pInst &&
       pData->pInst->pCallManager && 
       pData->pInst->pRefreshManager &&
@@ -1308,8 +1308,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
    {
       if (pData->pInst &&
          pData->pInst->pCallManager &&
-         pData->callId && 
-         pData->remoteAddress)
+         !pData->callId.isNull() && 
+         !pData->remoteAddress.isNull())
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
          UtlString sessionCallId(pData->sessionCallId);
@@ -1576,8 +1576,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
          // find media connectionId
          if (pData->pInst &&
              pData->pInst->pCallManager &&
-             pData->callId && 
-             pData->remoteAddress)
+             !pData->callId.isNull() && 
+             !pData->remoteAddress.isNull())
          {
             CallManager* pCallManager = pData->pInst->pCallManager;
             UtlString callId(pData->callId);
@@ -1626,8 +1626,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
    {
       if (pData->pInst &&
           pData->pInst->pCallManager &&
-          pData->callId &&
-          pData->remoteAddress) 
+          !pData->callId.isNull() &&
+          !pData->remoteAddress.isNull()) 
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
          UtlString sessionCallId(pData->sessionCallId);
@@ -1706,8 +1706,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
    {
       if (pData->pInst &&
           pData->pInst->pCallManager &&
-          pData->callId &&
-          pData->remoteAddress)
+          !pData->callId.isNull() &&
+          !pData->remoteAddress.isNull())
       {
          CallManager* pCallManager = pData->pInst->pCallManager;
          UtlString sessionCallId(pData->sessionCallId);
