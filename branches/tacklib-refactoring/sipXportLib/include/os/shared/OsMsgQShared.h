@@ -94,7 +94,7 @@ public:
    UtlDList& getList() { return mDlist;} 
 #endif
 
-   virtual int numMsgs(void);
+   virtual int numMsgs(void) const;
      //:Return the number of messages in the queue
 
 #ifdef MSGQ_IS_VALID_CHECK 
@@ -125,7 +125,7 @@ private:
    UtlDList  mDlist;  // doubly-linked list used to store messages
    int      mOptions;// message queue options
    int      mHighCnt;// high water mark for the number of msgs in the queue
-   int mQueueSize; // number of messages in the queue
+   volatile int mQueueSize; // number of messages in the queue
 
 #ifdef OS_MSGQ_REPORTING
    int      mIncreaseLevel;   // emit a message to the log when the number
