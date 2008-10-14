@@ -242,7 +242,7 @@ typedef enum SIPX_INTERNAL_CALLSTATE
    SIPX_INTERNAL_CALLSTATE_REMOTE_HELD,        /** Remotely held call */
    SIPX_INTERNAL_CALLSTATE_BRIDGED,            /** Locally held call, bridging */
    SIPX_INTERNAL_CALLSTATE_DISCONNECTED,       /** Disconnected or failed */
-   SIPX_INTERNAL_CALLSTATE_DESTROYING,         /** In the process of being destroyed */
+   SIPX_INTERNAL_CALLSTATE_DESTROYING          /** In the process of being destroyed */
 } SIPX_INTERNAL_CALLSTATE;
 
 typedef enum CONF_HOLD_STATE
