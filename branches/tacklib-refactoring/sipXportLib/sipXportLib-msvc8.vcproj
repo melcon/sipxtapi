@@ -1730,6 +1730,26 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\os\OsSharedServerTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsSharedServerTaskMgr.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsSharedServerTaskMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsSharedServerTaskWorker.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsSharedTaskInfo.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\os\OsSocket.cpp"
 				>
 			</File>
@@ -2374,6 +2394,26 @@
 			</File>
 			<File
 				RelativePath="include\os\wnt\OsSharedLibMgrWnt.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsSharedServerTask.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsSharedServerTaskMgr.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsSharedServerTaskMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsSharedServerTaskWorker.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsSharedTaskInfo.h"
 				>
 			</File>
 			<File
