@@ -45,7 +45,7 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   OsMutexWnt(const unsigned options);
+   OsMutexWnt(const unsigned options = OsMutexBase::Q_FIFO);
      //:Constructor
 
    virtual
@@ -77,9 +77,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    WinMutex mMutexImp;  // Windows NT mutex
-
-   OsMutexWnt();
-     //:Default constructor (not implemented for this class)
 
    OsMutexWnt(const OsMutexWnt& rOsMutexWnt);
      //:Copy constructor (not implemented for this class)
