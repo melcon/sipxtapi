@@ -115,7 +115,7 @@ public:
 
 /* ============================ ACCESSORS ================================= */
 
-   virtual int numMsgs(void) = 0;
+   virtual int numMsgs(void) const = 0;
      //:Return the number of messages in the queue
 
    int maxMsgs() const;

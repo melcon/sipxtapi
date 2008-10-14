@@ -41,7 +41,7 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   OsMutexLinux(const unsigned options);
+   OsMutexLinux(const unsigned options = OsMutexBase::Q_FIFO);
      //:Constructor
 
    virtual
@@ -73,9 +73,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    pt_mutex_t mMutexImp;  // Pingtel-Linux mutex
-
-   OsMutexLinux();
-     //:Default constructor (not implemented for this class)
 
    OsMutexLinux(const OsMutexLinux& rOsMutexLinux);
      //:Copy constructor (not implemented for this class)
