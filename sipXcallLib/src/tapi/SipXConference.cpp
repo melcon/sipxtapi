@@ -655,8 +655,9 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
          {
             SIPX_CALL_DATA* pCallData = sipxCallLookup(*hCall, SIPX_LOCK_WRITE, stackLogger);
 
-            if (pCallData)
+            if (pCallData && pCallData->state != SIPX_INTERNAL_CALLSTATE_DESTROYING)
             {
+               pCallData->state = SIPX_INTERNAL_CALLSTATE_DESTROYING;
                UtlString sessionCallId(pCallData->sessionCallId);
                UtlString remoteAddress(pCallData->remoteAddress);
                SIPX_CONF hCallConf = pCallData->hConf;
