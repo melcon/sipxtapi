@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "os/OsServerTask.h"
+#include <os/OsSharedServerTask.h>
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
 #include "cp/CpMediaEventListener.h"
@@ -119,7 +119,7 @@ public:
 /**
 * Listener for Media events
 */
-class SipXMediaEventListener : public OsServerTask, public CpMediaEventListener
+class SipXMediaEventListener : public OsSharedServerTask, public CpMediaEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 

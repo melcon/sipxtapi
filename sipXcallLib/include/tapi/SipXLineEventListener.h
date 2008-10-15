@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "os/OsServerTask.h"
+#include <os/OsSharedServerTask.h>
 #include <net/SipLineStateEventListener.h>
 #include "tapi/sipXtapi.h"
 #include <tapi/sipXtapiEvents.h>
@@ -38,7 +38,7 @@
 /**
 * Listener for Line state events
 */
-class SipXLineEventListener : public OsServerTask, public SipLineStateEventListener
+class SipXLineEventListener : public OsSharedServerTask, public SipLineStateEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 

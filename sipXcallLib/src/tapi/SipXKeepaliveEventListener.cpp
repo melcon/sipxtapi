@@ -35,7 +35,8 @@
 
 /* ============================ CREATORS ================================== */
 
-SipXKeepaliveEventListener::SipXKeepaliveEventListener(SIPX_INST pInst) : OsServerTask("SipXKeepaliveEventListener-%d")
+SipXKeepaliveEventListener::SipXKeepaliveEventListener(SIPX_INST pInst)
+: OsSharedServerTask("SipXKeepaliveEventListener-%d")
 , OsNatKeepaliveListener()
 {
    m_pInst = pInst;
@@ -43,7 +44,7 @@ SipXKeepaliveEventListener::SipXKeepaliveEventListener(SIPX_INST pInst) : OsServ
 
 SipXKeepaliveEventListener::~SipXKeepaliveEventListener()
 {
-   waitUntilShutDown();
+   release();
 }
 
 /* ============================ MANIPULATORS ============================== */

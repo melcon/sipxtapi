@@ -43,7 +43,7 @@ extern SipXHandleMap gCallHandleMap;   // sipXtapiInternal.cpp
 /* ============================ CREATORS ================================== */
 
 SipXCallEventListener::SipXCallEventListener( SIPX_INST pInst )
-: OsServerTask("SipXCallEventListener-%d")
+: OsSharedServerTask("SipXCallEventListener-%d")
 , CpCallStateEventListener()
 , m_pInst(pInst)
 {
@@ -52,7 +52,7 @@ SipXCallEventListener::SipXCallEventListener( SIPX_INST pInst )
 
 SipXCallEventListener::~SipXCallEventListener()
 {
-   waitUntilShutDown();
+   release();
 }
 
 /* ============================ MANIPULATORS ============================== */

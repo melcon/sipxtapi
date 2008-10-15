@@ -34,7 +34,8 @@
 
 /* ============================ CREATORS ================================== */
 
-SipXInfoStatusEventListener::SipXInfoStatusEventListener(SIPX_INST pInst) : OsServerTask("SipXInfoStatusEventListener-%d")
+SipXInfoStatusEventListener::SipXInfoStatusEventListener(SIPX_INST pInst)
+: OsSharedServerTask("SipXInfoStatusEventListener-%d")
 , SipInfoStatusEventListener()
 , m_pInst(pInst)
 {
@@ -43,7 +44,7 @@ SipXInfoStatusEventListener::SipXInfoStatusEventListener(SIPX_INST pInst) : OsSe
 
 SipXInfoStatusEventListener::~SipXInfoStatusEventListener()
 {
-   waitUntilShutDown();
+   release();
 }
 
 /* ============================ MANIPULATORS ============================== */

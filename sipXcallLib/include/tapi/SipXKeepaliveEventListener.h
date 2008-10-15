@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "os/OsServerTask.h"
+#include <os/OsSharedServerTask.h>
 #include "os/OsNatKeepaliveListener.h"
 #include "tapi/sipXtapi.h"
 #include <tapi/sipXtapiEvents.h>
@@ -35,7 +35,7 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
-class SipXKeepaliveEventListener : public OsServerTask, public OsNatKeepaliveListener
+class SipXKeepaliveEventListener : public OsSharedServerTask, public OsNatKeepaliveListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:

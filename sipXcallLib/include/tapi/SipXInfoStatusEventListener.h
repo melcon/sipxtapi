@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "os/OsServerTask.h"
+#include <os/OsSharedServerTask.h>
 #include "net/SipInfoStatusEventListener.h"
 #include "tapi/sipXtapi.h"
 #include <tapi/sipXtapiEvents.h>
@@ -39,7 +39,7 @@
 /**
 * Listener for Info events
 */
-class SipXInfoStatusEventListener : public OsServerTask, public SipInfoStatusEventListener
+class SipXInfoStatusEventListener : public OsSharedServerTask, public SipInfoStatusEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
