@@ -75,12 +75,12 @@ public:
    /**
     * Starts managing given task.
     */
-   void manage(OsSharedServerTask& serverTask);
+   UtlBoolean manage(OsSharedServerTask& serverTask);
 
    /**
     * Releases managed shared task.
     */
-   void release(OsSharedServerTask& serverTask);
+   UtlBoolean release(OsSharedServerTask& serverTask);
 
    /**
    * Flushes all messages from queue without delivering them, deleting each message.

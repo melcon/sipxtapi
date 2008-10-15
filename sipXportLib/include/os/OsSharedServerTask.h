@@ -55,7 +55,7 @@ public:
     * Releases OsSharedServerTask from its current OsSharedServerTaskMgr in a thread
     * safe manner.
     */
-   void release();
+   UtlBoolean release();
 
    /**
    * Override in subclass. Handles inbound messages.
