@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "os/OsServerTask.h"
+#include <os/OsSharedServerTask.h>
 #include "net/SipSecurityEventListener.h"
 #include "tapi/sipXtapi.h"
 #include <tapi/sipXtapiEvents.h>
@@ -39,7 +39,7 @@
 /**
  * Listener for Security events
  */
-class SipXSecurityEventListener : public OsServerTask, public SipSecurityEventListener
+class SipXSecurityEventListener : public OsSharedServerTask, public SipSecurityEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 

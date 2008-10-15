@@ -64,6 +64,7 @@ class SipXCallEventListener;
 class SipXInfoStatusEventListener;
 class SipXSecurityEventListener;
 class SipXMediaEventListener;
+class OsSharedServerTaskMgr;
 
 // STRUCTS
 // TYPEDEFS
@@ -167,6 +168,7 @@ public:
    SipXMediaEventListener* pMediaEventListener;
    SipXKeepaliveEventListener* pKeepaliveEventListener;
    SipDialogMgr* pDialogManager;
+   OsSharedServerTaskMgr* pSharedTaskMgr;
 
    AUDIO_CODEC_PREFERENCES audioCodecSetting;
    VIDEO_CODEC_PREFERENCES videoCodecSetting;
@@ -218,7 +220,8 @@ public:
       bRtpOverTcp(FALSE),
       pKeepaliveEventListener(NULL),
       nInputAudioDevices(0),
-      nOutputAudioDevices(0)
+      nOutputAudioDevices(0),
+      pSharedTaskMgr(NULL)
    {
       // Clear devices
       for (int i = 0; i < MAX_AUDIO_DEVICES; i++)

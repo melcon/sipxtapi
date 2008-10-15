@@ -36,7 +36,7 @@
 /* ============================ CREATORS ================================== */
 
 SipXMediaEventListener::SipXMediaEventListener(SIPX_INST pInst)
-: OsServerTask("SipXMediaEventListener-%d")
+: OsSharedServerTask("SipXMediaEventListener-%d")
 , CpMediaEventListener()
 , m_pInst(pInst)
 {
@@ -45,7 +45,7 @@ SipXMediaEventListener::SipXMediaEventListener(SIPX_INST pInst)
 
 SipXMediaEventListener::~SipXMediaEventListener()
 {
-   waitUntilShutDown();
+   release();
 }
 
 /* ============================ MANIPULATORS ============================== */
