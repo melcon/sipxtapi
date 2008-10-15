@@ -47,19 +47,19 @@
 #define HINST4_ADDRESS      "sip:hinst4@127.0.0.1:12070" 
 
 #ifdef _WIN32
-#define TEST_AUDIO              0 // tested ok
-#define TEST_LINE               0 // tested ok
-#define TEST_CALL               0 // tested ok
-#define TEST_CALL_HOLD          0 // tested ok, 1 fails, not supported functionality, disabled
-#define TEST_CONF               1 // tested todo
-#define TEST_REG                0 // tested failures
-#define TEST_TRANSFER           0 // tested todo
-#define TEST_TRANSFER_ADVANCED  0 // tested todo
-#define TEST_CONFIG             0 // tested ok
-#define TEST_SUBSCRIBE          0 // tested failed
-#define TEST_NAT                0 // tested ok
-#define TEST_UTILS              0 // tested ok
-#define TEST_PROBLEMATIC_CASES  0 // tested
+#define TEST_AUDIO              1 // tested ok
+#define TEST_LINE               1 // tested ok
+#define TEST_CALL               1 // tested ok
+#define TEST_CALL_HOLD          1 // tested ok (1 fails, not supported functionality, disabled)
+#define TEST_CONF               1 // tested failures
+#define TEST_REG                1 // tested failures
+#define TEST_TRANSFER           1 // tested todo
+#define TEST_TRANSFER_ADVANCED  1 // tested todo
+#define TEST_CONFIG             1 // tested ok
+#define TEST_SUBSCRIBE          1 // tested failed
+#define TEST_NAT                1 // tested ok
+#define TEST_UTILS              1 // tested ok
+#define TEST_PROBLEMATIC_CASES  1 // tested
 #else
 #define TEST_AUDIO              1
 #define TEST_LINE               1
@@ -184,18 +184,18 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
 
 #if TEST_CONF /* [ */
    CPPUNIT_TEST(testConfBasic1);
-   /*CPPUNIT_TEST(testConfBasic2);
+   CPPUNIT_TEST(testConfBasic2);
    CPPUNIT_TEST(testConfBasic3);
    CPPUNIT_TEST(testConfBasic4);
    CPPUNIT_TEST(testConfBasic5);
-   CPPUNIT_TEST(testConfBasic6);    
-   CPPUNIT_TEST(testConferenceDisplayName);
+   CPPUNIT_TEST(testConfBasic6);
+   CPPUNIT_TEST(testConferenceDisplayName); // fails
    CPPUNIT_TEST(testConferenceLegBusy);
-   CPPUNIT_TEST(testConfHoldIndividual);
-   CPPUNIT_TEST(testConfJoin);
-   CPPUNIT_TEST(testConfHoldNoBridge);
+   CPPUNIT_TEST(testConfHoldIndividual); // fails
+   CPPUNIT_TEST(testConfJoin); // fails
+   CPPUNIT_TEST(testConfHoldNoBridge); // fails
    CPPUNIT_TEST(testConfHoldBridge);
-   CPPUNIT_TEST(testConfReAdd);*/
+   CPPUNIT_TEST(testConfReAdd); // fails
 
    // 
    // The following test cases allow you to manually test join/split and
