@@ -80,8 +80,14 @@ void OsSharedServerTaskMgr::shutdown()
    shutdownAllWorkers();
 }
 
-void OsSharedServerTaskMgr::manage(OsSharedServerTask& serverTask)
+UtlBoolean OsSharedServerTaskMgr::manage(OsSharedServerTask& serverTask)
 {
+   if (serverTask.isManaged())
+   {
+      // we cannot manage OsSharedServerTask if its already managed
+      return FALSE;
+   }
+
    UtlInt* pKey = new UtlInt(serverTask.getTaskId());
    OsLock lock(m_memberMutex);
    // first try to find if we are already managing it
@@ -92,6 +98,7 @@ void OsSharedServerTaskMgr::manage(OsSharedServerTask& serverTask)
       pTaskInfo = new OsSharedTaskInfo(serverTask.getTaskId(), &serverTask);
       m_managedTaskInfo.insert(pTaskInfo);
       serverTask.taskAttached(this);
+      return TRUE;
    }
    else
    {
@@ -99,9 +106,11 @@ void OsSharedServerTaskMgr::manage(OsSharedServerTask& serverTask)
       delete pKey;
       pKey = NULL;
    }
+
+   return FALSE;
 }
 
-void OsSharedServerTaskMgr::release(OsSharedServerTask& serverTask)
+UtlBoolean OsSharedServerTaskMgr::release(OsSharedServerTask& serverTask)
 {
    UtlInt key(serverTask.getTaskId());
    m_memberMutex.acquire();
@@ -120,12 +129,15 @@ void OsSharedServerTaskMgr::release(OsSharedServerTask& serverTask)
       delete pTaskInfo; // once all messages have been processed, its safe to delete the task
       pTaskInfo = NULL;
       serverTask.taskReleased();
+      return TRUE;
    }
    else
    {
       // already removed
       m_memberMutex.release();
    }
+
+   return FALSE;
 }
 
 void OsSharedServerTaskMgr::releaseAllSharedTasks()

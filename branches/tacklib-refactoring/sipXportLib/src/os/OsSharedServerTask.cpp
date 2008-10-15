@@ -48,13 +48,15 @@ OsSharedServerTask::~OsSharedServerTask()
 
 /* ============================ MANIPULATORS ============================== */
 
-void OsSharedServerTask::release()
+UtlBoolean OsSharedServerTask::release()
 {
    OsLock lock(m_memberMutex);
    if (m_pSharedServerTaskMgr)
    {
-      m_pSharedServerTaskMgr->release(*this);
+      return m_pSharedServerTaskMgr->release(*this);
    }
+
+   return FALSE;
 }
 
 OsStatus OsSharedServerTask::postMessage(const OsMsg& rMsg,
