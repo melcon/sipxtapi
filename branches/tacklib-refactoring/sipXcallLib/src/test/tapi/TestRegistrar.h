@@ -27,72 +27,72 @@
 
 typedef struct TestRegistrarUsers
 {
-    char szUsername[256];
-    char szPassword[256];
+   char szUsername[256];
+   char szPassword[256];
 } TestRegistrarUsers;
 
 
 /**
- */
+*/
 class TestRegistrar : public OsServerTask
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
-  public:
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
+public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
    /**
-    * Default constructor
-    */
+   * Default constructor
+   */
    TestRegistrar();
-     
+
    /**
-    * Copy constructor
-    */
+   * Copy constructor
+   */
    TestRegistrar(const TestRegistrar& rTestRegistrar);     
 
    /**
-    * Destructor
-    */
+   * Destructor
+   */
    virtual ~TestRegistrar();
-   
+
    /**
-    * Starts the registrar and waits for events
-    */
+   * Starts the registrar and waits for events
+   */
    void init();
-   
-    /**
-     * Implementation of OsServerTask's pure virtual method
-     */
-    UtlBoolean handleMessage(OsMsg& rMsg);   
-
-    void pause(bool bPause);
-/* ============================ MANIPULATORS ============================== */
 
    /**
-    * Assignment operator
-    *
-    * @param rhs right hand side of the equals operator
-    */
+   * Implementation of OsServerTask's pure virtual method
+   */
+   UtlBoolean handleMessage(OsMsg& rMsg);   
+
+   void pause(bool bPause);
+   /* ============================ MANIPULATORS ============================== */
+
+   /**
+   * Assignment operator
+   *
+   * @param rhs right hand side of the equals operator
+   */
    TestRegistrar& operator=(const TestRegistrar& rhs);  
 
-/* ============================ ACCESSORS ================================= */
+   /* ============================ ACCESSORS ================================= */
 
-/* ============================ INQUIRY =================================== */
+   /* ============================ INQUIRY =================================== */
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-  protected:
-    /**
-     * Instance of the user agent object.
-     */
-    SipUserAgent* mpUserAgent;
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-  private:
-    /**
-     * Message handler for register requests.
-     */
-    UtlBoolean handleRegisterRequest(SipMessage message);
-    bool mbPaused;
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
+protected:
+   /**
+   * Instance of the user agent object.
+   */
+   SipUserAgent* mpUserAgent;
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+   /**
+   * Message handler for register requests.
+   */
+   UtlBoolean handleRegisterRequest(SipMessage message);
+   bool mbPaused;
 
 };
 
