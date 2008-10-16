@@ -44,7 +44,7 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
    UtlString userId;
 
    // get LINEID, lineUri, userId from SipMessage
-   extractLineData(sipRequest, FALSE, lineId, lineUri, userId);
+   extractLineData(sipRequest, lineId, lineUri, userId);
 
    // get copy of SipLine
    SipLine sipLine;
@@ -92,19 +92,18 @@ UtlBoolean SipLineProvider::getProxyServersForMessage(const SipMessage& sipReque
    UtlString userId;
 
    // get LINEID, lineUri, userId from SipMessage
-   extractLineData(sipRequest, FALSE, lineId, lineUri, userId);
+   extractLineData(sipRequest, lineId, lineUri, userId);
 
    return getLineProxyServers(lineUri, proxyServer);
 }
 
 void SipLineProvider::extractLineData(const SipMessage& sipMsg,
-                                      UtlBoolean isInboundMessage,
                                       UtlString& lineId,
                                       Url& lineUri,
-                                      UtlString& userId) const
+                                      UtlString& userId)
 {
    // get LINEID, lineUri, userId
-   if (isInboundMessage)
+   if (!sipMsg.isFromThisSide())
    {
       // use requestUri & toUrl
       UtlString requestMethod;
@@ -114,7 +113,7 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
          // this is REGISTER, RequestUri is different from toUri, use toUri
          Url toUrl;
          sipMsg.getToUrl(toUrl);
-         lineUri = toUrl.getUri(); // get lineUri from toUrl
+         lineUri = SipLine::getLineUri(toUrl); // get lineUri from toUrl
       }
       else
       {
@@ -122,9 +121,8 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
          // See RFC-2833 - 8.2.2.1 To and Request-URI
          UtlString requestUri;
          sipMsg.getRequestUri(&requestUri);
-         lineUri = requestUri; // RequestUri is definitely us, To header field not necessarily..
+         lineUri = SipLine::getLineUri(requestUri); // RequestUri is definitely us, To header field not necessarily..
       }
-      lineUri.removeUrlParameter("tag"); // remove tag just in case it was url parameter, case insensitive operation
       lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
       lineUri.getUserId(userId); // get userId from lineUri
    }
@@ -138,22 +136,20 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
       contactUrl.getUrlParameter(SIP_LINE_IDENTIFIER, lineId);
       contactUrl.getUserId(userId);
       sipMsg.getFromUrl(fromUrl);
-      lineUri = fromUrl.getUri(); // get lineUri from fromUrl
-      lineUri.removeUrlParameter("tag"); // remove tag just in case it was url parameter, case insensitive operation
+      lineUri = SipLine::getLineUri(fromUrl); // get lineUri from fromUrl
    }
 }
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean SipLineProvider::lineExists(const SipMessage& sipMsg,
-                                       UtlBoolean isInboundMessage) const
+UtlBoolean SipLineProvider::lineExists(const SipMessage& sipMsg) const
 {
    UtlString lineId;
    Url lineUri;
    UtlString userId;
 
    // get LINEID, lineUri, userId
-   extractLineData(sipMsg, isInboundMessage, lineId, lineUri, userId);
+   extractLineData(sipMsg, lineId, lineUri, userId);
 
    return lineExists(lineId, lineUri, userId);
 }

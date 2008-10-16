@@ -58,6 +58,8 @@ public:
    void getString3Data(UtlString& str3) const;
    void getString4Data(UtlString& str4) const;
    void getString5Data(UtlString& str5) const;
+   void getString6Data(UtlString& str6) const;
+   void setString6Data(const UtlString& str6);
    intptr_t getInt1Data() const;
    intptr_t getInt2Data() const;
    intptr_t getInt3Data() const;
@@ -90,6 +92,7 @@ private:
    UtlString mString3Data;
    UtlString mString4Data;
    UtlString mString5Data;
+   UtlString mString6Data;
 
    CpMultiStringMessage(const CpMultiStringMessage& rCpMultiStringMessage);
    //:disable Copy constructor

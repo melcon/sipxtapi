@@ -487,25 +487,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pCodecFactory = new SdpCodecFactory();
 
    // Instantiate the call processing subsystem
-   UtlString localAddress;
    UtlString utlIdentity(szIdentity);
-   if (!utlIdentity.contains("@"))
-   {
-      OsSocket::getHostIp(&localAddress);
-      char szBuf[500];
-      SNPRINTF(szBuf, sizeof(szBuf), "sip:%s@%s:%d", szIdentity,
-                localAddress.data(),
-                pInst->pSipUserAgent->getUdpPort());
-      localAddress = szBuf;
-   }
-   else
-   {
-      localAddress = utlIdentity;
-   }
-
-   // log default identity
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "Default Identity: %s\n",
-      localAddress.data()) ;
 
    // create call manager
    pInst->pCallManager = new CallManager(FALSE,
@@ -514,8 +496,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pCodecFactory,
       rtpPortStart, // rtp start
       rtpPortStart + (2*maxConnections), // rtp end
-      localAddress.data(),
-      localAddress.data(),
       pInst->pSipUserAgent,
       0, // sipSessionReinviteTimer
       pInst->pCallEventListener,
@@ -538,6 +518,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       QOS_LAYER3_LOW_DELAY_IP_TOS,
       maxConnections, // max calls before we start rejecting inbound calls
       sipXmediaFactoryFactory(NULL));
+   pInst->pCallManager->setBindIPAddress(szBindToAddr);
 
    // Start up the call processing system
    pInst->pCallManager->start();

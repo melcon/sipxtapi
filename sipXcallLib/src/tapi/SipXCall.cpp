@@ -793,7 +793,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                {
                   // only create real call if it is requested
                   // for conference add, we don't create it here
-                  pInst->pCallManager->createCall(&pData->callId, NULL, 0, PtEvent::META_EVENT_NONE, 0, NULL, FALSE);
+                  pInst->pCallManager->createCall(&pData->callId, 0, PtEvent::META_EVENT_NONE, 0, NULL, FALSE);
                }
 
                if (bFireDialtone)
@@ -1462,9 +1462,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
                pInst->pCallManager->unholdLocalTerminalConnection(pData->callId);
                pData->bInFocus = TRUE;
             }
-            // set outbound line
-            // just posts message
-            pInst->pCallManager->setOutboundLineForCall(pData->callId, pData->userEnteredLineUrl);
 
             // create sessionCallId
             pData->sessionCallId = szSessionCallId;
@@ -1491,12 +1488,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
 
             UtlString callId(pData->callId);
             UtlString sessionCallId(pData->sessionCallId);
+            Url fromAddress(pData->userEnteredLineUrl);
             sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 
             // connect just checks address and posts a message
             // cannot hold any locks here
             status = pInst->pCallManager->connect(callId, szAddress,
-                     NULL, sessionCallId, contactId, 
+                     fromAddress.toString(), sessionCallId, contactId, 
                      pDisplay, pSecurity, pLocationHeader, bandWidth,
                      NULL, (RTP_TRANSPORT)rtpTransportOptions);
 

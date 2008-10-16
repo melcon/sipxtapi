@@ -431,9 +431,9 @@ public:
     /// Gets the serialized URL as a string (with no display name or field parameters)
     void getUri(UtlString& Uri);
 
-    ///< Gets the serialized URL as a new URI with no display name or field parameters
-    void getUri(Url& uri) const;
-    Url getUri() const;
+    ///< Gets the serialized URL as a new URI with no display name or field parameters. <> will be removed.
+    void getUri(Url& uri, UtlBoolean bRemoveDisplayName = TRUE, UtlBoolean bRemoveBrackets = TRUE) const;
+    Url getUri(UtlBoolean bRemoveDisplayName = TRUE, UtlBoolean bRemoveBrackets = TRUE) const;
 
 /* ============================ INQUIRY =================================== */
 

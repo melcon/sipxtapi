@@ -50,7 +50,7 @@ public:
 
     /* ============================ CREATORS ================================== */
 
-    SipConnection(const char* outboundLineAddress,
+    SipConnection(const UtlString& localAddress,
         UtlBoolean isEarlyMediaFor180Enabled = TRUE,
         CpCallManager* callMgr = NULL,
         CpCall* call = NULL,
@@ -81,8 +81,8 @@ public:
                             void* responseListenerData = NULL,
                             UtlBoolean bUseSendToTransportType = FALSE);
 
-    virtual UtlBoolean dial(const char* dialString,
-        const char* callerId,
+    virtual UtlBoolean dial(const char* remoteAddress,
+        const UtlString& localAddress,
         const char* callId,
         const char* callController = NULL,
         const char* originalCallConnection = NULL,
@@ -327,7 +327,7 @@ private:
     UtlBoolean inviteFromThisSide;
     UtlString mLastRequestMethod;
     UtlString mRemoteContact; //last contact frield from the other side
-    Url mLineURI; // line URI, will never contain a tag
+    Url mLocalAddress; // SIP address for the local side. Will never contain a tag.
     Url mFromUrl; // SIP address for the local side
     Url mToUrl;  //  SIP address for the remote side
     UtlString mRemoteUriStr;  //  SIP uri string for the remote side

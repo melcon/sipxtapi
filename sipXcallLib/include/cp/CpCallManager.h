@@ -196,9 +196,7 @@ public:
     CpCallManager(const char* taskName,
                  const char* callIdPrefix,
                  int rtpPortStart = 8766,
-                 int rtpPortEnd = -1,
-                 const char* localAddress = NULL,
-                 const char* publicAddress = NULL);
+                 int rtpPortEnd = -1);
 
     //! Destructor
     virtual
@@ -232,7 +230,6 @@ public:
 
     //! Creates a new call with an implicit local connection.
     virtual void createCall(UtlString* callId,
-                            const UtlString& lineURI = NULL, ///< call doesn't have a lineURI, i.e Conference
                             int metaEventId = 0,
                             int metaEventType = PtEvent::META_EVENT_NONE,
                             int numMetaEventCalls = 0,
@@ -255,7 +252,7 @@ public:
      */
     virtual PtStatus connect(const char* callId,
                              const char* toAddress,
-                             const char* fromAddress = NULL,
+                             const UtlString& fromAddress,
                              const char* desiredConnectionCallId = NULL,
                              SIPX_CONTACT_ID contactId = 0,
                              const void* pDisplay = NULL,
@@ -531,11 +528,6 @@ public:
      */
     virtual UtlBoolean getVoiceQualityReportTarget(UtlString& reportSipUrl) ;
 
-    /**
-     * Get the configured local address
-     */
-    virtual void getLocalAddress(UtlString& address) ;
-
 /* ============================ INQUIRY =================================== */
 
     UtlBoolean isCallStateLoggingEnabled();
@@ -558,8 +550,6 @@ protected:
 
     OsRWMutex mCallListMutex;
     UtlHashBag mCallIndices;
-    UtlString mLocalAddress;
-    UtlString mPublicAddress;
     int mRtpPortStart;
     int mRtpPortEnd;
 
