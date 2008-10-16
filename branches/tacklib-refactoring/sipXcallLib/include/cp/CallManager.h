@@ -66,8 +66,6 @@ public:
                SdpCodecFactory* pCodecFactory,
                int rtpPortStart,
                int rtpPortEnd,
-               const char* localAddress,
-               const char* publicAddress,
                SipUserAgent* userAgent,
                int sipSessionReinviteTimer,               // Suggested value: 0
                CpCallStateEventListener* pCallEventListener,
@@ -105,7 +103,6 @@ public:
 
     // Operations for calls
     virtual void createCall(UtlString* callId,
-                            const UtlString& lineURI = NULL, ///< call doesn't have a lineURI, i.e Conference
                             int metaEventId = 0,
                             int metaEventType = PtEvent::META_EVENT_NONE,
                             int numMetaEventCalls = 0,
@@ -118,7 +115,7 @@ public:
 
     virtual PtStatus connect(const char* callId,
                              const char* toAddress,
-                             const char* fromAddress = NULL,
+                             const UtlString& fromAddress, // from url to use without tag
                              const char* desiredConnectionCallId = NULL,
                              SIPX_CONTACT_ID contactId = 0,
                              const void* pDisplay = NULL,
@@ -215,6 +212,9 @@ public:
                                 const char*  szContent);
    //: Sends an INFO message to the other party(s) on the call
 
+    UtlString getBindIPAddress() const { return m_bindIPAddress; }
+    void setBindIPAddress(const UtlString& val) { m_bindIPAddress = val; }
+
 /* ============================ ACCESSORS ================================= */
 
     virtual PtStatus validateAddress(UtlString& address);
@@ -294,7 +294,7 @@ private:
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
 
-   OsMutex m_memberMutex;
+    OsMutex m_memberMutex;
     UtlBoolean dialing;
     UtlBoolean mOffHook;
     UtlBoolean speakerOn;
@@ -303,7 +303,6 @@ private:
     int mSipSessionReinviteTimer;
     CpCall* infocusCall;
     UtlSList callStack;
-    UtlString mDialString;
     int mOutGoingCallType;
     PtMGCP* mpMgcpStackTask;
     int mNumDialPlanDigits;
@@ -326,6 +325,7 @@ private:
     int mTurnPort ;
     UtlString mTurnUsername; 
     UtlString mTurnPassword;
+    UtlString m_bindIPAddress;
     int mTurnKeepAlivePeriodSecs ;
 
     CpMediaInterfaceFactory* mpMediaFactory;
@@ -343,7 +343,6 @@ private:
     void doHold();
 
     void doCreateCall(const char* callId,
-                      const UtlString& lineURI = NULL,
                       int metaEventId = 0,
                       int metaEventType = PtEvent::META_EVENT_NONE,
                       int numMetaEventCalls = 0,
@@ -351,7 +350,8 @@ private:
                       UtlBoolean assumeFocusIfNoInfocusCall = TRUE);
 
     void doConnect(const char* callId,
-                   const char* addressUrl,
+                   const UtlString& fromAddress,
+                   const UtlString& toAddress,
                    const char* szDesiredConnectionCallId,
                    SIPX_CONTACT_ID contactId = 0,
                    const void* pDisplay = NULL,

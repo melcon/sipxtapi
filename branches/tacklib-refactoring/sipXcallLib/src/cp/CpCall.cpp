@@ -44,6 +44,7 @@ CpCall::CpCall(CpCallManager* manager,
                const char* callId)
 : OsServerTask("Call-%d", NULL, DEF_MAX_MSGS, DEF_PRIO, DEF_OPTIONS, CALL_STACK_SIZE)
 , mCallIdMutex(OsMutex::Q_FIFO)
+, m_bindIPAddress("0.0.0.0")
 {
     // add the call task name to a list so we can track leaked calls.
     UtlString strCallTaskName = getName();

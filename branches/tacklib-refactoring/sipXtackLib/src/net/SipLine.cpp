@@ -329,6 +329,26 @@ UtlCopyableContainable* SipLine::clone() const
    return new SipLine(*this);
 }
 
+Url SipLine::getLineUri(const Url& url)
+{
+   Url lineUri(url);
+   lineUri.setDisplayName(NULL);
+   lineUri.removeAngleBrackets();
+   lineUri.removeFieldParameters();
+   lineUri.removeUrlParameter("tag"); // remove tag just in case it was url parameter, case insensitive operation
+   return lineUri;
+}
+
+Url SipLine::getLineUri(const UtlString& sUrl)
+{
+   Url lineUri(sUrl);
+   lineUri.setDisplayName(NULL);
+   lineUri.removeAngleBrackets();
+   lineUri.removeFieldParameters();
+   lineUri.removeUrlParameter("tag"); // remove tag just in case it was url parameter, case insensitive operation
+   return lineUri;
+}
+
 UtlString SipLine::getProxyServers() const
 {
    return m_proxyServers;
@@ -338,3 +358,4 @@ void SipLine::setProxyServers(const UtlString& proxyServers)
 {
    m_proxyServers = proxyServers;
 }
+

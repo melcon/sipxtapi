@@ -734,8 +734,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
    {
       if (szLineUrl && phLine)
       {
-         Url url(szLineUrl); // for example "display name"<sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
-         Url uri = url.getUri(); // for example sip:number@domain;transport=tcp
+         Url userEnteredUrl(szLineUrl); // for example "display name"<sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
+         Url lineUri = SipLine::getLineUri(userEnteredUrl); // for example sip:number@domain;transport=tcp
 
          // Set the preferred contact
          SIPX_CONTACT_ADDRESS* pContact = NULL;
@@ -770,13 +770,13 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
             return sr;
          }
 
-         SipLine line(url, uri, SipLine::LINE_STATE_UNKNOWN);
+         SipLine line(userEnteredUrl, lineUri, SipLine::LINE_STATE_UNKNOWN);
          line.setPreferredContact(contactIp, contactPort);
 
          UtlBoolean bRC = pInst->pLineManager->addLine(line);
          if (bRC)
          {
-            SIPX_LINE_DATA* pData = createLineData(pInst, uri, url);
+            SIPX_LINE_DATA* pData = createLineData(pInst, lineUri, userEnteredUrl);
 
             if (pData)
             {
@@ -793,7 +793,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
 
                   sr = SIPX_RESULT_SUCCESS;
 
-                  pInst->pLineManager->setStateForLine(uri, SipLine::LINE_STATE_PROVISIONED);
+                  pInst->pLineManager->setStateForLine(lineUri, SipLine::LINE_STATE_PROVISIONED);
 
                   pInst->pLineEventListener->sipxFireLineEvent(szLineUrl,
                                                                LINESTATE_PROVISIONED,
@@ -809,7 +809,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
                   delete pData;
 
                   // delete line from line manager
-                  pInst->pLineManager->deleteLine(uri);
+                  pInst->pLineManager->deleteLine(lineUri);
                }
             }
             else

@@ -60,7 +60,6 @@ public:
         const char* callId = NULL,
         SipUserAgent* sipUA = NULL,
         int sipSessionReinviteTimer = 0,
-        const char* defaultCallExtension = NULL,
         int offeringDelayMilliSeconds = Connection::IMMEDIATE,
         int availableBehavior = Connection::RING,
         const char* forwardUnconditionalUrl = NULL,
@@ -94,19 +93,20 @@ public:
 
     //virtual void conferenceAddParty();
 
-    Connection* addParty(const char* partyAddress,
-		const char* callController,
-        const char* originalCallConnectionAddress,
-		const char* pNewCallId,
-        SIPX_CONTACT_ID contactId = 0,
-        const void* pDisplay = NULL,
-        const void* pSecurity = NULL,
-        const char* locationHeader = NULL,
-        const int bandWidth = AUDIO_CODEC_BW_DEFAULT,
-        UtlBoolean bOnHold = false,
-		const char* originalCallId = NULL,
-        SIPX_TRANSPORT_DATA* pTransport = NULL,
-        const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
+    Connection* addParty(const UtlString& localAddress,
+                         const UtlString& remoteAddress,
+                         const char* callController,
+                         const char* originalCallConnectionAddress,
+                         const char* pNewCallId,
+                         SIPX_CONTACT_ID contactId = 0,
+                         const void* pDisplay = NULL,
+                         const void* pSecurity = NULL,
+                         const char* locationHeader = NULL,
+                         const int bandWidth = AUDIO_CODEC_BW_DEFAULT,
+                         UtlBoolean bOnHold = false,
+                         const char* originalCallId = NULL,
+                         SIPX_TRANSPORT_DATA* pTransport = NULL,
+                         const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
 
     Connection* stringDial(OsMsg& eventMessage, UtlString& dialString);
 

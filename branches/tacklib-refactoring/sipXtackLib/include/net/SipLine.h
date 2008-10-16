@@ -86,6 +86,18 @@ public:
    /** Creates a copy of object */
    virtual UtlCopyableContainable* clone() const;
 
+   /**
+    * Constructs line identity uri from given url. <>, field parameters and display name
+    * will be cut off. This is used in general for converting To/From header field into line uri
+    * for line lookup.
+    */
+   static Url getLineUri(const Url& url);
+
+   /**
+    * Constructs line identity uri from given string.
+    */
+   static Url getLineUri(const UtlString& sUrl);
+
    //@}
 
    /* ============================ ACCESSORS ================================= */
@@ -108,9 +120,8 @@ public:
    Url getUserEnteredUrl() const;
 
    /**
-    * Gets line identityUri. It doesn't contain headerParameters
-    * or fieldParameters, display name or brackets. But it can contain
-    * url parameters like transport=tcp
+    * Gets line identityUri. It doesn't fieldParameters, display name or brackets.
+    * But it may contain url parameters like transport=tcp
     */
    Url getIdentityUri() const;
 

@@ -70,7 +70,7 @@ UtlBoolean CpGhostConnection::dequeue(UtlBoolean callInFocus)
     return(FALSE);
 }
 UtlBoolean CpGhostConnection::dial(const char* dialString,
-                                   const char* callerId,
+                                   const UtlString& localAddress,
                                    const char* callId,
                                    const char* callController,
                                    const char* originalCallConnection,

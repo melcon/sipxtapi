@@ -46,9 +46,7 @@ const int    CpCallManager::CALLMANAGER_MAX_REQUEST_MSGS = 1000;
 CpCallManager::CpCallManager(const char* taskName,
                              const char* callIdPrefix,
                              int rtpPortStart,
-                             int rtpPortEnd,
-                             const char* localAddress,
-                             const char* publicAddress) :
+                             int rtpPortEnd) :
 OsServerTask(taskName, NULL, CALLMANAGER_MAX_REQUEST_MSGS),
 mCallListMutex(OsMutex::Q_FIFO),
 m_callIdGenerator(callIdPrefix != NULL ? callIdPrefix : "c"),
@@ -62,27 +60,8 @@ mCallIndices()
    mRtpPortStart = rtpPortStart;
    mRtpPortEnd = rtpPortEnd;
 
-   if(localAddress && *localAddress)
-   {
-       mLocalAddress.append(localAddress);
-   }
-   else
-   {
-       OsSocket::getHostIp(&mLocalAddress);
-   }
-
-   if(publicAddress && *publicAddress)
-   {
-       mPublicAddress.append(publicAddress);
-   }
-   else
-   {
-       OsSocket::getHostIp(&mPublicAddress);
-   }
-
    mLastMetaEventId = 0;
    mbEnableICE = false ;
-
 }
 
 // Destructor
@@ -170,13 +149,6 @@ UtlBoolean CpCallManager::getVoiceQualityReportTarget(UtlString& reportSipUrl)
 
     return bRC ;
 }
-
-void CpCallManager::getLocalAddress(UtlString& address) 
-{
-    address = mLocalAddress ;
-}
-
-
 
 /* ============================ INQUIRY =================================== */
 UtlBoolean CpCallManager::isCallStateLoggingEnabled()

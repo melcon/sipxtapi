@@ -268,6 +268,16 @@ void CpMultiStringMessage::toString(UtlString& dumpString, const char* term) con
 
 }
 
+void CpMultiStringMessage::getString6Data(UtlString& str6) const
+{
+   str6 = mString6Data;
+}
+
+void CpMultiStringMessage::setString6Data(const UtlString& str6)
+{
+   mString6Data = str6;
+}
+
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

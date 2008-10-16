@@ -519,7 +519,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
 
                // Create a CpPeerCall call to hold connection
                // creates callid and posts message
-               pCallData->pInst->pCallManager->createCall(&targetCallId, pCallData->userEnteredLineUrl.toString());
+               pCallData->pInst->pCallManager->createCall(&targetCallId);
 
                pCallData->callId = targetCallId; // set new callId
                pCallData->hConf = SIPX_CALL_NULL;
@@ -686,7 +686,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
 
    return rc;
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConferenceHold(const SIPX_CONF hConf,
                                             int bBridging)

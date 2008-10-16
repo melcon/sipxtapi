@@ -87,8 +87,6 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
                          SdpCodecFactory* pCodecFactory,
                          int rtpPortStart,
                          int rtpPortEnd,
-                         const char* localAddress,
-                         const char* publicAddress,
                          SipUserAgent* userAgent,
                          int sipSessionReinviteTimer,
                          CpCallStateEventListener* pCallEventListener,
@@ -111,15 +109,15 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
                          int expeditedIpTos,
                          int maxCalls,
                          CpMediaInterfaceFactory* pMediaFactory) 
-                         : CpCallManager("CallManager-%d", "c",
-                         rtpPortStart, rtpPortEnd, localAddress, publicAddress)
-                         , mIsEarlyMediaFor180(TRUE)
-                         , mpMediaFactory(NULL)
-                         , m_pCallEventListener(pCallEventListener)
-                         , m_pInfoStatusEventListener(pInfoStatusEventListener)
-                         , m_pSecurityEventListener(pSecurityEventListener)
-                         , m_pMediaEventListener(pMediaEventListener)
-                         , m_memberMutex(OsMutex::Q_FIFO)
+: CpCallManager("CallManager-%d", "c", rtpPortStart, rtpPortEnd)
+, mIsEarlyMediaFor180(TRUE)
+, mpMediaFactory(NULL)
+, m_pCallEventListener(pCallEventListener)
+, m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pSecurityEventListener(pSecurityEventListener)
+, m_pMediaEventListener(pMediaEventListener)
+, m_memberMutex(OsMutex::Q_FIFO)
+, m_bindIPAddress("0.0.0.0")
 {
     OsStackTraceLogger(FAC_CP, PRI_DEBUG, "CallManager");
 
@@ -246,7 +244,6 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
 
     infocusCall = NULL;
     mOutGoingCallType = phonesetOutgoingCallProtocol;
-    mLocalAddress = localAddress;
 
 #ifdef TEST_PRINT
     OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager: localAddress: %s mLocalAddress: %s publicAddress: %s mPublicAddress %s\n",
@@ -347,7 +344,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                         if(m_pLineProvider && mIsRequredUserIdMatch &&
                             method.compareTo(SIP_INVITE_METHOD,UtlString::ignoreCase) == 0)
                         {
-                            isUserValid = m_pLineProvider->lineExists(*sipMsg, TRUE);
+                            isUserValid = m_pLineProvider->lineExists(*sipMsg);
                             if(!isUserValid)
                             {
                                 //no such user - return 404
@@ -438,10 +435,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                 else
                                     inviteExpireSeconds = mInviteExpireSeconds;
 
-                                // ask line provider to extract lineURI from message
-                                Url lineURI;
-                                m_pLineProvider->extractLineData(*sipMsg, TRUE, UtlString(), lineURI, UtlString());
-
                                 handlingCall = new CpPeerCall(mIsEarlyMediaFor180,
                                     this,
                                     pMediaInterface,
@@ -453,7 +446,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     callId.data(),
                                     sipUserAgent,
                                     mSipSessionReinviteTimer,
-                                    lineURI.toString().data(), // sets mLocalAddress for CpPeerCall
                                     mOfferedTimeOut,
                                     mLineAvailableBehavior,
                                     mForwardUnconditional.data(),
@@ -462,6 +454,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     mNoAnswerTimeout,
                                     mForwardOnNoAnswer.data(),
                                     inviteExpireSeconds);
+                                handlingCall->setBindIPAddress(m_bindIPAddress);
 							
                                 // temporary
 								        pMediaInterface->setInterfaceNotificationQueue(handlingCall->getMessageQueue());
@@ -541,21 +534,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                 messageProcessed = TRUE;
                 break;
             }
-
-        case CP_DIAL_STRING:
-            {
-                OsWriteLock lock(mCallListMutex);
-                if(infocusCall && dialing)
-                {
-                    //OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::processMessage posting dial string to infocus call\n");
-                    ((CpMultiStringMessage&)eventMessage).getString1Data(mDialString) ;
-                    infocusCall->postMessage(eventMessage);
-                }
-                dialing = FALSE;
-                messageProcessed = TRUE;
-                break;
-            }
-
         case CP_YIELD_FOCUS:
             {
                 CpCall* call;
@@ -582,7 +560,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_CREATE_CALL:
             {
                 UtlString callId;
-                UtlString lineURI;
                 UtlString metaCallId1;
                 UtlString metaCallId2;
                 const char* metaEventCallIds[2];
@@ -592,7 +569,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                 UtlBoolean assumeFocusIfNoInfocusCall = ((CpMultiStringMessage&)eventMessage).getInt4Data();
 
                 ((CpMultiStringMessage&)eventMessage).getString1Data(callId);
-                ((CpMultiStringMessage&)eventMessage).getString2Data(lineURI);
                 ((CpMultiStringMessage&)eventMessage).getString3Data(metaCallId1);
                 ((CpMultiStringMessage&)eventMessage).getString4Data(metaCallId2);
 
@@ -600,22 +576,23 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
 
                 metaEventCallIds[0] = metaCallId1.data();
                 metaEventCallIds[1] = metaCallId2.data();
-                doCreateCall(callId, lineURI, metaEventId, metaEventType,
+                doCreateCall(callId, metaEventId, metaEventType,
                     numCalls, metaEventCallIds, assumeFocusIfNoInfocusCall);
 
                 messageProcessed = TRUE;
                 break;
             }
-
         case CP_CONNECT:
             {
                 UtlString callId;
-                UtlString addressUrl;
+                UtlString remoteAddress;
+                UtlString localAddress;
                 UtlString desiredConnectionCallId ;
                 UtlString locationHeader;
                 SIPX_CONTACT_ID contactId;
                 ((CpMultiStringMessage&)eventMessage).getString1Data(callId);
-                ((CpMultiStringMessage&)eventMessage).getString2Data(addressUrl);
+                ((CpMultiStringMessage&)eventMessage).getString2Data(remoteAddress);
+                ((CpMultiStringMessage&)eventMessage).getString3Data(localAddress);
                 ((CpMultiStringMessage&)eventMessage).getString4Data(desiredConnectionCallId);
                 ((CpMultiStringMessage&)eventMessage).getString5Data(locationHeader);
                 contactId = (SIPX_CONTACT_ID) ((CpMultiStringMessage&)eventMessage).getInt1Data();
@@ -627,7 +604,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
 
                 const char* locationHeaderData = (locationHeader.length() == 0) ? NULL : locationHeader.data();
 
-                doConnect(callId.data(), addressUrl.data(), desiredConnectionCallId.data(), contactId, pDisplay, pSecurity, 
+                doConnect(callId.data(), localAddress.data(), remoteAddress.data(), desiredConnectionCallId.data(), contactId, pDisplay, pSecurity, 
                           locationHeaderData, bandWidth, pTransport, rtpTransportFlags) ;
                 messageProcessed = TRUE;
                 break;
@@ -836,7 +813,6 @@ void CallManager::requestShutdown()
 }
 
 void CallManager::createCall(UtlString* callId,
-                             const UtlString& lineURI,
                              int metaEventId,
                              int metaEventType,
                              int numCalls,
@@ -851,7 +827,7 @@ void CallManager::createCall(UtlString* callId,
     OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::createCall new Id: %s\n", callId->data());
     CpMultiStringMessage callMessage(CP_CREATE_CALL,
         callId->data(),
-        lineURI,
+        NULL,
         numCalls >= 1 ? callIds[0] : NULL,
         numCalls >= 2 ? callIds[1] : NULL,
         NULL,
@@ -948,7 +924,7 @@ void CallManager::getRemoteUserAgent(const char* callId, const char* remoteAddre
 
 PtStatus CallManager::connect(const char* callId,
                               const char* toAddressString,
-                              const char* fromAddressString,
+                              const UtlString& fromAddress,
                               const char* desiredCallIdString,
                               SIPX_CONTACT_ID contactId,
                               const void* pDisplay,
@@ -959,7 +935,6 @@ PtStatus CallManager::connect(const char* callId,
                               const RTP_TRANSPORT rtpTransportOptions)
 {
     UtlString toAddressUrl(toAddressString ? toAddressString : "");
-    UtlString fromAddressUrl(fromAddressString ? fromAddressString : "");
     UtlString desiredCallId(desiredCallIdString ? desiredCallIdString : "") ;
     
     // create a copy of the transport data
@@ -974,7 +949,7 @@ PtStatus CallManager::connect(const char* callId,
     if(returnCode == PT_SUCCESS)
     {
         CpMultiStringMessage callMessage(CP_CONNECT, callId,
-            toAddressUrl, fromAddressUrl, desiredCallId, locationHeader,
+            toAddressUrl, fromAddress, desiredCallId, locationHeader,
             contactId, (int)pDisplay, (int)pSecurity, 
             (int)bandWidth, (int)pTransportDataCopy, rtpTransportOptions);
         postMessage(callMessage);
@@ -2158,7 +2133,6 @@ CpMediaInterfaceFactory* CallManager::getMediaInterfaceFactory()
 
 // used for outgoing calls
 void CallManager::doCreateCall(const char* callId,
-                               const UtlString& lineURI,
                                int metaEventId,
                                int metaEventType,
                                int numMetaEventCalls,
@@ -2228,7 +2202,6 @@ void CallManager::doCreateCall(const char* callId,
                 callId,
                 sipUserAgent,
                 mSipSessionReinviteTimer,
-                lineURI,
                 mOfferedTimeOut,
                 mLineAvailableBehavior,
                 mForwardUnconditional.data(),
@@ -2236,6 +2209,7 @@ void CallManager::doCreateCall(const char* callId,
                 mSipForwardOnBusy.data(),
                 mNoAnswerTimeout,
                 mForwardOnNoAnswer.data());
+            call->setBindIPAddress(m_bindIPAddress);
 			// temporary
 			mediaInterface->setInterfaceNotificationQueue(call->getMessageQueue());
             // Short term kludge: createCall invoked, this
@@ -2276,7 +2250,8 @@ void CallManager::doCreateCall(const char* callId,
 
 
 void CallManager::doConnect(const char* callId,
-                            const char* addressUrl, 
+                            const UtlString& localAddress,
+                            const UtlString& remoteAddress,
                             const char* desiredConnectionCallId, 
                             SIPX_CONTACT_ID contactId,
                             const void* pDisplay,
@@ -2288,15 +2263,10 @@ void CallManager::doConnect(const char* callId,
 {
     OsWriteLock lock(mCallListMutex);
     CpCall* call = findHandlingCall(callId);
-    if(!call)
-    {
-        // This is generally bad.  The call should exist.
-        OsSysLog::add(FAC_CP, PRI_ERR, "doConnect cannot find CallId: %s\n", callId);
-    }
-    else
+    if(call)
     {
         // For now just send the call a dialString
-        CpMultiStringMessage dialStringMessage(CP_DIAL_STRING, addressUrl, desiredConnectionCallId, NULL, NULL, locationHeader,
+        CpMultiStringMessage dialStringMessage(CP_DIAL_STRING, remoteAddress, desiredConnectionCallId, localAddress, NULL, locationHeader,
                                                contactId, (int)pDisplay, (int)pSecurity, bandWidth, (int) pTransport, rtpTransportOptions) ;
         call->postMessage(dialStringMessage);
         call->setLocalConnectionState(PtEvent::CONNECTION_ESTABLISHED);

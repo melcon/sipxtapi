@@ -54,7 +54,7 @@ public:
    virtual UtlBoolean dequeue(UtlBoolean callInFocus);
 
    virtual UtlBoolean dial(const char* dialString,
-                           const char* callerId,
+                           const UtlString& localAddress,
                            const char* callId,
                            const char* callController = NULL,
                            const char* originalCallConnection = NULL,

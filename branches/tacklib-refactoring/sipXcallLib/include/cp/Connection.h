@@ -214,8 +214,8 @@ public:
 
    virtual UtlBoolean dequeue(UtlBoolean callInFocus) = 0;
 
-   virtual UtlBoolean dial(const char* dialString,
-                           const char* callerId,
+   virtual UtlBoolean dial(const char* remoteAddress,
+                           const UtlString& localAddress,
                            const char* callId,
                            const char* callController = NULL,
                            const char* originalCallConnection = NULL,
@@ -287,8 +287,6 @@ public:
    //:Virtual method signature and default implementation for sendInfo - this should be overridden by
    //:SipConnection.
 
-	void setLocalAddress(const char* address);
-
     void unimplemented(const char* methodName) const;
 
     void markForDeletion() ;
@@ -342,7 +340,6 @@ public:
 
 	UtlBoolean muteInput(UtlBoolean bMute);
 
-	void getLocalAddress(UtlString* address);
 	int getState(int isLocal = 0) const;
 	int getState(int isLocal, int& cause) const;
 	int getTerminalState(int isLocal) const;
@@ -388,6 +385,10 @@ public:
 
    virtual void getRemoteUserAgent(UtlString* pUserAgent) = 0;
 
+   UtlString getBindIPAddress() const { return m_bindIPAddress; }
+   void setBindIPAddress(const UtlString& val) { m_bindIPAddress = val; }
+
+   UtlString getMediaIPAddress() const { return m_mediaIPAddress; }
 /* ============================ INQUIRY =================================== */
 
     UtlBoolean isRemoteCallee();
@@ -464,7 +465,9 @@ protected:
     CpMediaInterface* mpMediaInterface;
     int mConnectionId;
 
-	UtlBoolean mRemoteIsCallee;
+    UtlString m_bindIPAddress;
+    UtlString m_mediaIPAddress;
+    UtlBoolean mRemoteIsCallee;
 	//UtlBoolean mLocalHeld;
 	UtlBoolean mRemoteRequestedHold;
     UtlString mLastToAddress;
@@ -485,7 +488,6 @@ protected:
 	int mResponseCode;		// response code obtained at processResponse, passed through events to upper layer
 	UtlString mResponseText;	// response text obtained at processResponse
 
-	UtlString mLocalAddress;
     UtlString mOriginalCallConnectionAddress;
     UtlString mTargetCallConnectionAddress;
     UtlString mTargetCallId;   

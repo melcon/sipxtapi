@@ -63,13 +63,14 @@ Connection::Connection(CpCallManager* callMgr,
                        const char* forwardUnconditionalUrl,
                        int busyBehavior, const char* forwardOnBusyUrl,
                        int forwardOnNoAnswerSeconds)
-   : mConnectionId(CpMediaInterface::getInvalidConnectionId())
-   , callIdMutex(OsMutex::Q_FIFO)
-   , mDeleteAfter(OsTime::OS_INFINITY)
-   , m_pCallEventListener(pCallEventListener)
-   , m_pInfoStatusEventListener(pInfoStatusEventListener)
-   , m_pSecurityEventListener(pSecurityEventListener)
-   , m_pMediaEventListener(pMediaEventListener)
+: mConnectionId(CpMediaInterface::getInvalidConnectionId())
+, callIdMutex(OsMutex::Q_FIFO)
+, mDeleteAfter(OsTime::OS_INFINITY)
+, m_pCallEventListener(pCallEventListener)
+, m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pSecurityEventListener(pSecurityEventListener)
+, m_pMediaEventListener(pMediaEventListener)
+, m_bindIPAddress("0.0.0.0")
 {
 #ifdef TEST_PRINT
     UtlString callId;
@@ -465,14 +466,6 @@ Connection::operator=(const Connection& rhs)
    return *this;
 }
 
-
-void Connection::setLocalAddress(const char* address)
-{
-    OsLock lock(callIdMutex);
-    mLocalAddress.remove(0);
-    mLocalAddress.append(address);
-}
-
 void Connection::unimplemented(const char* methodName) const
 {
     osPrintf("%s NO IMPLEMENTED\n",methodName);
@@ -784,11 +777,6 @@ void Connection::setTransferHeld(UtlBoolean bHeld)
 }
 
 /* ============================ ACCESSORS ================================= */
-void Connection::getLocalAddress(UtlString* address)
-{
-    *address = mLocalAddress;
-}
-
 
 void Connection::getCallId(UtlString* callId)
 {

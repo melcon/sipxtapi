@@ -156,6 +156,9 @@ public:
 
     int getLocalConnectionStateFromPt(int state);
 
+    UtlString getBindIPAddress() const { return m_bindIPAddress; }
+    void setBindIPAddress(const UtlString& val) { m_bindIPAddress = val; }
+
     /* ============================ INQUIRY =================================== */
 
     virtual UtlBoolean hasCallId(const char* callId) = 0;
@@ -180,6 +183,7 @@ protected:
 
     CpCallManager* mpManager;
     UtlString mCallId;
+    UtlString m_bindIPAddress;
     volatile UtlBoolean mCallInFocus;
     OsRWMutex mCallIdMutex;
     CpMediaInterface* mpMediaInterface;
