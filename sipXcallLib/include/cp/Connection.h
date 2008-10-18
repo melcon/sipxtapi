@@ -502,7 +502,7 @@ private:
    //Private as it must be locked and accessed outside this thread
    UtlString connectionCallId;
    UtlString connectionCallerId;
-   OsMutex  callIdMutex;
+   mutable OsMutex  callIdMutex;
    OsTime   mDeleteAfter;    // Instructs the call to delete this connection
    // after this time period (time since boot)
    UtlBoolean mbTransferHeld;
