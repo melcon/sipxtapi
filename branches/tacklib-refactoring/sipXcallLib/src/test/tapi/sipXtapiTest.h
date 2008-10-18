@@ -51,8 +51,8 @@
 #define TEST_LINE               1 // tested ok
 #define TEST_CALL               1 // tested ok
 #define TEST_CALL_HOLD          1 // tested ok (1 fails, not supported functionality, disabled)
-#define TEST_CONF               1 // tested failures
-#define TEST_REG                1 // tested failures
+#define TEST_CONF               1 // tested ok
+#define TEST_REG                1 // tested ok
 #define TEST_TRANSFER           1 // tested todo
 #define TEST_TRANSFER_ADVANCED  1 // tested todo
 #define TEST_CONFIG             1 // tested ok
@@ -189,13 +189,13 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
    CPPUNIT_TEST(testConfBasic4);
    CPPUNIT_TEST(testConfBasic5);
    CPPUNIT_TEST(testConfBasic6);
-   CPPUNIT_TEST(testConferenceDisplayName); // fails
+   CPPUNIT_TEST(testConferenceDisplayName);
    CPPUNIT_TEST(testConferenceLegBusy);
-   CPPUNIT_TEST(testConfHoldIndividual); // fails
-   CPPUNIT_TEST(testConfJoin); // fails
-   CPPUNIT_TEST(testConfHoldNoBridge); // fails
+   CPPUNIT_TEST(testConfHoldIndividual);
+   CPPUNIT_TEST(testConfJoin);
+   CPPUNIT_TEST(testConfHoldNoBridge);
    CPPUNIT_TEST(testConfHoldBridge);
-   CPPUNIT_TEST(testConfReAdd); // fails
+   CPPUNIT_TEST(testConfReAdd);
 
    // 
    // The following test cases allow you to manually test join/split and
@@ -209,7 +209,7 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
 #endif /* TEST_CONF ] */
 
 #if TEST_REG /* [ */
-   CPPUNIT_TEST(testReRegistrationFailure);        // Has some timing problem (looks like test)
+   CPPUNIT_TEST(testReRegistrationFailure); // Has some timing problem (looks like test), executed only once
    CPPUNIT_TEST(testRegistration);
    CPPUNIT_TEST(testReRegistration);
    CPPUNIT_TEST(testBadRegistrarRegistration);
