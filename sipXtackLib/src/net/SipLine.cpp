@@ -312,6 +312,7 @@ Url SipLine::getLineUri(const Url& url)
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
    lineUri.setPassword(NULL); // line uri cannot have password
+   lineUri.setHostPort(PORT_NONE); // line uri doesn't have port associated with it
    return lineUri;
 }
 
@@ -322,6 +323,7 @@ Url SipLine::getLineUri(const UtlString& sUrl)
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
    lineUri.setPassword(NULL); // line uri cannot have password
+   lineUri.setHostPort(PORT_NONE); // line uri doesn't have port associated with it
    return lineUri;
 }
 

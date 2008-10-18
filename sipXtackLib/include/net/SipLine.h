@@ -38,7 +38,9 @@ class SipLineCredential;
  *
  * Line stores internally so called lineUri and fullLineUrl.
  * - LineURI is meant to be used by hashmaps/hashbags to construct hash, basically uniquely identify
- *  a line. It does't contain any parameters or display name. It is used to match inbound requests to a line.
+ *   a line. It does't contain any parameters or display name. It is used to match inbound requests to a line.
+ *   Additionally, port is not present in LineURI. Our lines are available on all ports of SipUserAgent,
+ *   therefore we don't support matching by port.
  * - FullLineUrl is modified value passed into constructor stripped of transport parameter and field parameters.
  *   This is not a sip uri but full url including <>, display name. It is meant to be used to construct sip message
  *   from field.
