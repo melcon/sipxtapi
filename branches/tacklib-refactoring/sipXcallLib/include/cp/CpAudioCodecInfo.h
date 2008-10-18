@@ -38,8 +38,8 @@ typedef enum CP_AUDIO_BANDWIDTH_ID
 // FORWARD DECLARATIONS
 
 /**
- * Information about audio codec being used by a call. Used in event system.
- */
+* Information about audio codec being used by a call. Used in event system.
+*/
 class CpAudioCodecInfo
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
