@@ -152,9 +152,9 @@ public:
 
    void addMarker(const char* szMarkerText);
 
-   void validateCallMediaStartEvents();
+   void validateCallMediaStartEvents(SIPX_MEDIA_CAUSE cause = MEDIA_CAUSE_NORMAL);
 
-   void validateCallMediaStopEvents();
+   void validateCallMediaStopEvents(SIPX_MEDIA_CAUSE cause = MEDIA_CAUSE_NORMAL);
 
 protected:
    UtlString* allocCallStateEntry(SIPX_CALL hCall,

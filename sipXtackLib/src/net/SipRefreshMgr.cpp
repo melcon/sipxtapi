@@ -157,9 +157,8 @@ void SipRefreshMgr::reRegister(const Url& fromUrl)
 void SipRefreshMgr::unRegisterUser(const Url& fromUrl)
 {
    SipMessage sipMsg;
-   if ( isDuplicateRegister(fromUrl, sipMsg) )
+   if (isDuplicateRegister(fromUrl, sipMsg))
    {
-      Url Uri = fromUrl;
       //dont set a common expires - then you need to send * in contact field
       //sipMsg.setExpiresField(0);
       UtlString contactField;
@@ -186,10 +185,11 @@ void SipRefreshMgr::unRegisterUser(const Url& fromUrl)
       }
       m_pSipUserAgent->getLocalAddress(&localIp, &localPort, protocol);
       sipMsg.setLocalIp(localIp);
+      Url lineUri = SipLine::getLineUri(fromUrl);
 
       if (m_pLineListener) 
       {
-         m_pLineListener->OnLineUnregistering(SipLineStateEvent(fromUrl.toString(), SIPXTACK_LINESTATE_UNREGISTERING_NORMAL));
+         m_pLineListener->OnLineUnregistering(SipLineStateEvent(lineUri.toString(), SIPXTACK_LINESTATE_UNREGISTERING_NORMAL));
       }
 
       // clear out any pending register requests
@@ -265,22 +265,20 @@ SipRefreshMgr::sendRequest (
       syslog(FAC_REFRESH_MGR, PRI_ERR, "unable to send %s message (send failed):\nto: %s",
          method, toField.data()) ;
 
-      UtlString tmpMethod;
-      Url url;
-      UtlString lineId;
-      request.getToUrl(url);
-      url.getIdentity(lineId);
-      lineId = "sip:" + lineId; 
+      Url toUrl;
+      request.getToUrl(toUrl);
+      Url lineUri = SipLine::getLineUri(toUrl);
+
       if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && !isExpiresZero(&request)) 
       {
          if (m_pLineMgr)
          {
-            m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
+            m_pLineMgr->setStateForLine(lineUri, SipLine::LINE_STATE_FAILED);
          }
 
          if (m_pLineListener) 
          {
-            m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_REGISTER_FAILED_COULD_NOT_CONNECT));
+            m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineUri.toString(), SIPXTACK_LINESTATE_REGISTER_FAILED_COULD_NOT_CONNECT));
          }
          rescheduleAfterTime(&request, FAILED_PERCENTAGE_TIMEOUT);
       }
@@ -288,7 +286,7 @@ SipRefreshMgr::sendRequest (
       {
          if (m_pLineListener)
          {
-            m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_UNREGISTER_FAILED_COULD_NOT_CONNECT));
+            m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineUri.toString(), SIPXTACK_LINESTATE_UNREGISTER_FAILED_COULD_NOT_CONNECT));
          }
       }
 
@@ -311,16 +309,14 @@ SipRefreshMgr::sendRequest (
       int sequenceNum = 0;
       UtlString tmpMethod;
       request.getCSeqField(&sequenceNum, &tmpMethod);
-      Url url;
-      UtlString lineId;
-      request.getToUrl(url);
-      url.getIdentity(lineId);
-      lineId = "sip:" + lineId; 
+      Url toUrl;
+      request.getToUrl(toUrl);
+      Url lineUri = SipLine::getLineUri(toUrl);
       if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && !isExpiresZero(&request)) 
       {
          if (m_pLineListener)
          {
-            m_pLineListener->OnLineRegistering(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_REGISTERING_NORMAL));
+            m_pLineListener->OnLineRegistering(SipLineStateEvent(lineUri.toString(), SIPXTACK_LINESTATE_REGISTERING_NORMAL));
          }
       }
       else if ( methodName.compareTo(SIP_REGISTER_METHOD) == 0 && isExpiresZero(&request)) 
@@ -511,18 +507,16 @@ SipRefreshMgr::processResponse(
             // it means we just did an unregister
             if ( method.compareTo(SIP_REGISTER_METHOD) == 0 )
             {
-               Url url;
-               UtlString lineId;
-               requestCopy->getToUrl(url);
-               url.getIdentity(lineId);
-               lineId = "sip:" + lineId; 
+               Url toUrl;
+               requestCopy->getToUrl(toUrl);
+               Url lineUri = SipLine::getLineUri(toUrl);
                UtlString responseStatusText;
                response->getResponseStatusText(&responseStatusText);
                if (responseCode == 401 || responseCode == 403 || responseCode == 407)
                {
                   if (m_pLineListener)
                   {
-                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineUri.toString(),
                         SIPXTACK_LINESTATE_UNREGISTER_FAILED_NOT_AUTHORIZED,
                         responseCode,
                         responseStatusText));
@@ -532,7 +526,7 @@ SipRefreshMgr::processResponse(
                {
                   if (m_pLineListener)
                   {
-                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineUri.toString(),
                         SIPXTACK_LINESTATE_UNREGISTER_FAILED_TIMEOUT,
                         responseCode,
                         responseStatusText));
@@ -542,7 +536,7 @@ SipRefreshMgr::processResponse(
                {
                   if (m_pLineListener)
                   {
-                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineUnregisterFailed(SipLineStateEvent(lineUri.toString(),
                         SIPXTACK_LINESTATE_CAUSE_UNKNOWN,
                         responseCode,
                         responseStatusText));
@@ -554,17 +548,15 @@ SipRefreshMgr::processResponse(
          {
             if ( method.compareTo(SIP_REGISTER_METHOD) == 0 )
             {
-               Url url;
-               UtlString lineId;
-               requestCopy->getToUrl(url);
-               url.getIdentity(lineId);
+               Url toUrl;
+               requestCopy->getToUrl(toUrl);
+               Url lineUri = SipLine::getLineUri(toUrl);
 
                if (m_pLineMgr)
                {
-                  m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
+                  m_pLineMgr->setStateForLine(lineUri, SipLine::LINE_STATE_FAILED);
                }
 
-               lineId = "sip:" + lineId; 
                UtlString responseStatusText;
                response->getResponseStatusText(&responseStatusText);
 
@@ -572,7 +564,7 @@ SipRefreshMgr::processResponse(
                {
                   if (m_pLineListener)
                   {
-                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineUri.toString(),
                         SIPXTACK_LINESTATE_REGISTER_FAILED_NOT_AUTHORIZED,
                         responseCode,
                         responseStatusText));
@@ -582,7 +574,7 @@ SipRefreshMgr::processResponse(
                {
                   if (m_pLineListener)
                   {
-                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineUri.toString(),
                         SIPXTACK_LINESTATE_REGISTER_FAILED_TIMEOUT,
                         responseCode,
                         responseStatusText));
@@ -593,7 +585,7 @@ SipRefreshMgr::processResponse(
                {
                   if (m_pLineListener)
                   {
-                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId,
+                     m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineUri.toString(),
                         SIPXTACK_LINESTATE_CAUSE_UNKNOWN,
                         responseCode,
                         responseStatusText));
@@ -607,24 +599,17 @@ SipRefreshMgr::processResponse(
    }
    else
    {
+      Url toUrl;
+      requestCopy->getToUrl(toUrl);
+      Url lineUri = SipLine::getLineUri(toUrl);
+
       if (m_pLineMgr)
       {
-         Url url;
-         UtlString lineId;
-         requestCopy->getToUrl(url);
-         url.getIdentity(lineId);
-
-         m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_FAILED);
+         m_pLineMgr->setStateForLine(lineUri, SipLine::LINE_STATE_FAILED);
       }
-
-      Url url;
-      UtlString lineId;
-      requestCopy->getToUrl(url);
-      url.getIdentity(lineId);
-      lineId = "sip:" + lineId; 
       if (m_pLineListener)
       {
-         m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineId, SIPXTACK_LINESTATE_CAUSE_UNKNOWN));
+         m_pLineListener->OnLineRegisterFailed(SipLineStateEvent(lineUri.toString(), SIPXTACK_LINESTATE_CAUSE_UNKNOWN));
       }
    }
 
@@ -677,15 +662,13 @@ SipRefreshMgr::processOKResponse(
          response->setCSeqField(-1, method);
          // TODO - should also destroy the timer now
 
-         Url url;
-         UtlString lineId;
-         request->getToUrl(url);
-         url.getIdentity(lineId);
-         lineId = "sip:" + lineId; 
+         Url toUrl;
+         request->getToUrl(toUrl);
+         Url lineUri = SipLine::getLineUri(toUrl);
 
          if (m_pLineMgr)
          {
-            m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_DISABLED);
+            m_pLineMgr->setStateForLine(lineUri, SipLine::LINE_STATE_DISABLED);
          }
          if (m_pLineListener)
          {
@@ -693,7 +676,7 @@ SipRefreshMgr::processOKResponse(
             UtlString responseStatusText;
             response->getResponseStatusText(&responseStatusText);
 
-            m_pLineListener->OnLineUnregistered(SipLineStateEvent(lineId,
+            m_pLineListener->OnLineUnregistered(SipLineStateEvent(lineUri.toString(),
                SIPXTACK_LINESTATE_UNREGISTERED_NORMAL,
                responseCode,
                responseStatusText));
@@ -704,12 +687,9 @@ SipRefreshMgr::processOKResponse(
          // we don't set to tag even if it arrives in 200 response to REGISTER.
          // to,from to tags with callid uniquely identify a sip dialog. But REGISTER
          // doesn't create a sip dialog. Out of dialog requests must not have to tag.
-
-         Url url;
-         UtlString lineId;
-         request->getToUrl(url);
-         url.getIdentity(lineId);            
-         lineId = "sip:" + lineId; 
+         Url toUrl;
+         request->getToUrl(toUrl);
+         Url lineUri = SipLine::getLineUri(toUrl);//get lineUri for toUrl
 
          // extract the Message body and pass to apps
          const char *bodyBytes = NULL;
@@ -719,17 +699,16 @@ SipRefreshMgr::processOKResponse(
          {
             body->getBytes( &bodyBytes, &nBodySize );
          }
-
          if (m_pLineMgr)
          {
-            m_pLineMgr->setStateForLine(url, SipLine::LINE_STATE_REGISTERED);
+            m_pLineMgr->setStateForLine(lineUri, SipLine::LINE_STATE_REGISTERED);
          }
          if (m_pLineListener)
          {
             UtlString responseStatusText;
             response->getResponseStatusText(&responseStatusText);
 
-            m_pLineListener->OnLineRegistered(SipLineStateEvent(lineId,
+            m_pLineListener->OnLineRegistered(SipLineStateEvent(lineUri.toString(),
                SIPXTACK_LINESTATE_REGISTERED_NORMAL,
                response->getResponseStatusCode(),
                responseStatusText));

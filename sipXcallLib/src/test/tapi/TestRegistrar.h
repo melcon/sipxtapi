@@ -91,7 +91,7 @@ private:
    /**
    * Message handler for register requests.
    */
-   UtlBoolean handleRegisterRequest(SipMessage message);
+   UtlBoolean handleRegisterRequest(const SipMessage& message);
    bool mbPaused;
 
 };

@@ -532,85 +532,77 @@ void sipXtapiTestSuite::testLineAliases()
 
 void sipXtapiTestSuite::testRegistration()
 {
+   bool bRC;
+   EventValidator validatorLine("testRegistration.line");
+
    for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
    {
       TestRegistrar testRegistrar;
       SIPX_RESULT rc;
 
+      validatorLine.reset();
+      sipxEventListenerAdd(g_hInst4, UniversalEventValidatorCallback, &validatorLine);
+
       testRegistrar.init();
       printf("\ntestRegistration (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
-      g_lineRecorder.clear();
-
-      rc = sipxEventListenerAdd(g_hInst4, lineCallback, NULL);
-      CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
 
       rc = sipxConfigSetOutboundProxy(g_hInst4, "127.0.0.1:5070");
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
 
       SIPX_LINE hLine;
-      rc =sipxLineAdd(g_hInst4, "sip:anon@127.0.0.1:12070", &hLine);
+      rc = sipxLineAdd(g_hInst4, "sip:anon@127.0.0.1:12070", &hLine);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
-      rc =sipxLineRegister(hLine, true);
+      rc = sipxLineRegister(hLine, true);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
 
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL);
-
-      OsTask::delay(1000);
-
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
-      g_lineRecorder.clear();
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL, true);
 
       sipxLineRegister(hLine, false);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_UNREGISTERING, LINESTATE_UNREGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_UNREGISTERED, LINESTATE_UNREGISTERED_NORMAL);
-      OsTask::delay(1000);
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_UNREGISTERING, LINESTATE_UNREGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_UNREGISTERED, LINESTATE_UNREGISTERED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
 
       rc = sipxLineRemove(hLine); 
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
-
-
-      g_lineRecorder.clear();
 
       rc = sipxLineAdd(g_hInst4, "sip:mike@127.0.0.1:12070", &hLine);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
       rc = sipxLineRegister(hLine, true);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
 
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_NOT_AUTHORIZED);
-
-      OsTask::delay(1000);
-
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
-
-      g_lineRecorder.clear();
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_NOT_AUTHORIZED, true);
+      CPPUNIT_ASSERT(bRC);
 
       rc = sipxLineAddCredential(hLine, "mike", "1234", "TestRegistrar");
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
       rc = sipxLineRegister(hLine, true);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
-
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL);
-
       OsTask::delay(1000);
 
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
 
       sipxLineRegister(hLine, false);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_UNREGISTERING, LINESTATE_UNREGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_UNREGISTERED, LINESTATE_UNREGISTERED_NORMAL);
-      OsTask::delay(1000);
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_UNREGISTERING, LINESTATE_UNREGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_UNREGISTERED, LINESTATE_UNREGISTERED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
 
       rc = sipxLineRemove(hLine); 
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);    
 
-      rc = sipxEventListenerRemove(g_hInst4, lineCallback, NULL);
+      rc = sipxEventListenerRemove(g_hInst4, UniversalEventValidatorCallback, &validatorLine);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
    }    
 
@@ -621,16 +613,18 @@ void sipXtapiTestSuite::testRegistration()
 
 void sipXtapiTestSuite::testBadRegistrarRegistration()
 {
+   bool bRC;
+   EventValidator validatorLine("testRegistration.line");
+
    for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
    {
+      SIPX_RESULT rc;
       TestRegistrar testRegistrar;
 
-      testRegistrar.init();
-
       printf("\ntestBadRegistrarRegistration (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
-      g_lineRecorder.clear();
-
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerAdd(g_hInst4, lineCallback, NULL), SIPX_RESULT_SUCCESS);
+      validatorLine.reset();
+      sipxEventListenerAdd(g_hInst4, UniversalEventValidatorCallback, &validatorLine);
+      testRegistrar.init();
 
       CPPUNIT_ASSERT_EQUAL(sipxConfigSetOutboundProxy(g_hInst4, "127.0.0.1:5070"), SIPX_RESULT_SUCCESS);     
 
@@ -639,37 +633,41 @@ void sipXtapiTestSuite::testBadRegistrarRegistration()
       CPPUNIT_ASSERT_EQUAL(sipxLineAdd(g_hInst4, "sip:xyzzy480@127.0.0.1:12070", &hLine), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxLineRegister(hLine, true), SIPX_RESULT_SUCCESS);
 
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_CAUSE_UNKNOWN);
-      OsTask::delay(1000);
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_CAUSE_UNKNOWN, true);
+      CPPUNIT_ASSERT(bRC);
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
-      g_lineRecorder.clear();
 
       // receiving a 503 response
+      validatorLine.reset();
       CPPUNIT_ASSERT_EQUAL(sipxLineAdd(g_hInst4, "sip:xyzzy503@127.0.0.1:12070", &hLine), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxLineRegister(hLine, true), SIPX_RESULT_SUCCESS);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_CAUSE_UNKNOWN);
-      OsTask::delay(1000);
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_CAUSE_UNKNOWN, true);
+      CPPUNIT_ASSERT(bRC);
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
-      g_lineRecorder.clear();
+      validatorLine.reset();
 
       // receiving a 600 response
       CPPUNIT_ASSERT_EQUAL(sipxLineAdd(g_hInst4, "sip:xyzzy600@127.0.0.1:12070", &hLine), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxLineRegister(hLine, true), SIPX_RESULT_SUCCESS);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_CAUSE_UNKNOWN);
-      OsTask::delay(1000);
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_CAUSE_UNKNOWN, true);
+      CPPUNIT_ASSERT(bRC);
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
-      g_lineRecorder.clear();
+      validatorLine.reset();
 
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst4, lineCallback, NULL), SIPX_RESULT_SUCCESS);    
+      rc = sipxEventListenerRemove(g_hInst4, UniversalEventValidatorCallback, &validatorLine);
+      CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
    }    
 
    OsTask::delay(TEST_DELAY);    
@@ -678,16 +676,17 @@ void sipXtapiTestSuite::testBadRegistrarRegistration()
 
 void sipXtapiTestSuite::testReRegistration()
 {
+   bool bRC;
+   EventValidator validatorLine("testReRegistration.line");
+
    for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
    {
-      TestRegistrar testRegistrar;
-
-      testRegistrar.init();
-
       printf("\ntestReRegistration (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
-      g_lineRecorder.clear();
 
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerAdd(g_hInst4, lineCallback, NULL), SIPX_RESULT_SUCCESS);
+      TestRegistrar testRegistrar;
+      validatorLine.reset();
+      sipxEventListenerAdd(g_hInst4, UniversalEventValidatorCallback, &validatorLine);
+      testRegistrar.init();
 
       CPPUNIT_ASSERT_EQUAL(sipxConfigSetOutboundProxy(g_hInst4, "127.0.0.1:5070"), SIPX_RESULT_SUCCESS);     
 
@@ -697,24 +696,19 @@ void sipXtapiTestSuite::testReRegistration()
       CPPUNIT_ASSERT_EQUAL(sipxLineAddCredential(hLine, "mike", "1234", "TestRegistrar"), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxLineRegister(hLine, true), SIPX_RESULT_SUCCESS);        
 
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL);
-
-      printf("\nWaiting for 12 seconds! (for the re-registration test)");
-      OsTask::delay(12000);
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
+      bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
+      CPPUNIT_ASSERT(bRC);
+      for (int i = 0; i < 3; i++)
+      {
+         bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true);
+         CPPUNIT_ASSERT(bRC);
+         bRC = validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL, true);
+         CPPUNIT_ASSERT(bRC);
+      }
 
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
       OsTask::delay(1000);
-      g_lineRecorder.clear();
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst4, lineCallback, NULL), SIPX_RESULT_SUCCESS);
-
-
+      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst4, UniversalEventValidatorCallback, &validatorLine), SIPX_RESULT_SUCCESS);
    }
 
    OsTask::delay(TEST_DELAY);    
@@ -723,15 +717,16 @@ void sipXtapiTestSuite::testReRegistration()
 
 void sipXtapiTestSuite::testReRegistrationFailure()
 {
-   for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
+   bool bRC;
+   EventValidator validatorLine("testReRegistration.line");
+
+   for (int iStressFactor = 0; iStressFactor < 1; iStressFactor++)
    {
       printf("\ntestReRegistrationFailure (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
-      g_lineRecorder.clear();
-
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerAdd(g_hInst4, lineCallback, NULL), SIPX_RESULT_SUCCESS);
+      validatorLine.reset();
+      sipxEventListenerAdd(g_hInst4, UniversalEventValidatorCallback, &validatorLine);
 
       CPPUNIT_ASSERT_EQUAL(sipxConfigSetOutboundProxy(g_hInst4, "127.0.0.1:5070"), SIPX_RESULT_SUCCESS);     
-
 
       SIPX_LINE hLine;
       CPPUNIT_ASSERT_EQUAL(sipxLineAdd(g_hInst4, "sip:mike@127.0.0.1:12070", &hLine), SIPX_RESULT_SUCCESS);
@@ -739,41 +734,36 @@ void sipXtapiTestSuite::testReRegistrationFailure()
       CPPUNIT_ASSERT_EQUAL(sipxLineAddCredential(hLine, "mike", "1234", "TestRegistrar"), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxLineRegister(hLine, true), SIPX_RESULT_SUCCESS);
 
-      OsTask::delay(9000);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_TIMEOUT);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      TestRegistrar* pTestRegistrar = new TestRegistrar();
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_TIMEOUT, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true));
 
+      TestRegistrar* pTestRegistrar = new TestRegistrar();
       pTestRegistrar->init();
 
-
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL);
-      OsTask::delay(8000);
-
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL, true));
 
       pTestRegistrar->pause(true);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_TIMEOUT);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_TIMEOUT);
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_TIMEOUT, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTER_FAILED, LINESTATE_REGISTER_FAILED_TIMEOUT, true));
 
-      OsTask::delay(20000);
-      CPPUNIT_ASSERT(g_lineRecorder.compare());
       pTestRegistrar->pause(false);
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERING, LINESTATE_REGISTERING_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_REGISTERED, LINESTATE_REGISTERED_NORMAL, true));
 
       sipxLineRegister(hLine, false);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_UNREGISTERING, LINESTATE_UNREGISTERING_NORMAL);
-      g_lineRecorder.addCompareEvent(hLine, LINESTATE_UNREGISTERED, LINESTATE_UNREGISTERED_NORMAL);
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_UNREGISTERING, LINESTATE_UNREGISTERING_NORMAL, true));
+      CPPUNIT_ASSERT(validatorLine.waitForLineEvent(hLine, LINESTATE_UNREGISTERED, LINESTATE_UNREGISTERED_NORMAL, true));
 
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
-      OsTask::delay(3000);
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst4, lineCallback, NULL), SIPX_RESULT_SUCCESS);
+      OsTask::delay(1000);
+      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst4, UniversalEventValidatorCallback, &validatorLine), SIPX_RESULT_SUCCESS);
       delete pTestRegistrar;
-
    }
 
    OsTask::delay(TEST_DELAY);    

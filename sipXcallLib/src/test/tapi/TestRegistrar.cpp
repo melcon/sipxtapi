@@ -142,7 +142,7 @@ TestRegistrar::operator=(const TestRegistrar& rhs)
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean TestRegistrar::handleRegisterRequest(SipMessage message)
+UtlBoolean TestRegistrar::handleRegisterRequest(const SipMessage& message)
 {
    UtlBoolean messageProcessed = false;
    SipMessage finalResponse;
@@ -205,9 +205,9 @@ UtlBoolean TestRegistrar::handleRegisterRequest(SipMessage message)
          finalResponse.setCSeqField(++seqNum, method);
          retrySeqNum = seqNum;
 #ifdef _WIN32
-         finalResponse.setAuthenticationData("md5", "TestRegistrar", NULL, NULL, NULL, HttpMessage::HttpEndpointEnum::SERVER );
+         finalResponse.setAuthenticationData(HTTP_DIGEST_AUTHENTICATION, "TestRegistrar", NULL, NULL, NULL, HttpMessage::HttpEndpointEnum::SERVER );
 #else
-         finalResponse.setAuthenticationData("md5", "TestRegistrar", NULL, NULL, NULL, HttpMessage::SERVER );
+         finalResponse.setAuthenticationData(HTTP_DIGEST_AUTHENTICATION, "TestRegistrar", NULL, NULL, NULL, HttpMessage::SERVER );
 #endif
          finalResponse.setResponseData(&message, 401, "Not authorized");
       }        
