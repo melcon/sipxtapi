@@ -149,7 +149,7 @@ void SipXLineEventListener::handleLineEvent(const UtlString& lineIdentifier,
    SIPX_LINE_DATA* pLineData = NULL;
    SIPX_LINE hLine = SIPX_LINE_NULL;
 
-   hLine = sipxLineLookupHandleByURI(lineIdentifier);
+   hLine = sipxLineLookupHandleByURI((SIPX_INSTANCE_DATA*)m_pInst, lineIdentifier);
 
    // fire event even if line doesn't exist anymore - was destroyed, in that case
    // hLine will be SIPX_LINE_NULL, we can not wait with deletion until LINESTATE_UNREGISTERED

@@ -398,7 +398,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       UtlString requestUri; 
       session.getRemoteRequestUri(requestUri);
 
-      hLine = sipxLineLookupHandle(lineId, requestUri);
+      hLine = sipxLineLookupHandle((SIPX_INSTANCE_DATA*)m_pInst, lineId, requestUri);
       if (hLine == SIPX_LINE_NULL)
       {
          // no line exists for the lineId

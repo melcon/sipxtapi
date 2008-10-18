@@ -147,7 +147,7 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
        UtlString requestUri;
        pMessage->getRequestUri(&requestUri);
 
-       SIPX_LINE hLine = sipxLineLookupHandle(lineUri, requestUri);
+       SIPX_LINE hLine = sipxLineLookupHandle((SIPX_INSTANCE_DATA*)m_hInst, lineUri, requestUri);
         
         if (!pMessage->isResponse())
         {
