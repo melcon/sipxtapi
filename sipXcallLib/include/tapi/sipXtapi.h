@@ -2816,7 +2816,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
  * line url with your line definition and receive real line handles with event
  * callbacks.
  *
- * Line aliases are not used for outbound calls.
+ * Line aliases are not used for outbound calls and are not supported
+ * to use their own sip proxy.
  *
  * @see sipxConfigGetLocalContacts
  */
