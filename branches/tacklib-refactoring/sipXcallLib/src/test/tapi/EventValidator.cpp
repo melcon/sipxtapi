@@ -997,7 +997,7 @@ bool EventValidator::waitForEvent(const char* szEvent, bool bStrictOrderMatch, i
    bool bFound = false;
    OsTime waitTime(iTimeoutInSecs == DEFAULT_TIMEOUT ? m_iDefaultTimeoutInSecs : iTimeoutInSecs, 0);
    int nMaxLookAhead = bStrictOrderMatch ? 1 : m_iMaxLookAhead;
-   int nActualLookAhead;
+   int nActualLookAhead = 0;
    bool bTimedOut = false;
 
    bFound = findEvent(szEvent, nMaxLookAhead, nActualLookAhead);
@@ -1086,9 +1086,9 @@ void EventValidator::validateCallMediaStartEvents()
    bool bRC = false;
    bRC = waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
    CPPUNIT_ASSERT(bRC);
-   /*bRC = waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
-   CPPUNIT_ASSERT(bRC);*/
    bRC = waitForMediaEvent(MEDIA_LOCAL_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+   CPPUNIT_ASSERT(bRC);
+   bRC = waitForMediaEvent(MEDIA_REMOTE_ACTIVE, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
    CPPUNIT_ASSERT(bRC);
 }
 
