@@ -35,48 +35,48 @@
 // information for the leg of a call to a particular address.
 class CpGhostConnection: public Connection
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
    CpGhostConnection(CpCallManager* callMgr = NULL,
-              CpCall* call = NULL, const char* callId = NULL);
-     //:Default constructor
+      CpCall* call = NULL, const char* callId = NULL);
+   //:Default constructor
 
 
    virtual
-   ~CpGhostConnection();
-     //:Destructor
+      ~CpGhostConnection();
+   //:Destructor
 
-/* ============================ MANIPULATORS ============================== */
+   /* ============================ MANIPULATORS ============================== */
 
    virtual UtlBoolean dequeue(UtlBoolean callInFocus);
 
    virtual UtlBoolean dial(const char* dialString,
-                           const UtlString& localAddress,
-                           const char* callId,
-                           const char* callController = NULL,
-                           const char* originalCallConnection = NULL,
-                           UtlBoolean requestQueuedCall = FALSE,
-                           const void* pDisplay = NULL,
-                           const void* pSecurity = NULL,
-                           const char* locationHeader = NULL,
-                           const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
-                           UtlBoolean bOnHold = FALSE,
-                           const char* originalCallId = NULL,
-                           const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
+      const UtlString& localAddress,
+      const char* callId,
+      const char* callController = NULL,
+      const char* originalCallConnection = NULL,
+      UtlBoolean requestQueuedCall = FALSE,
+      const void* pDisplay = NULL,
+      const void* pSecurity = NULL,
+      const char* locationHeader = NULL,
+      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
+      UtlBoolean bOnHold = FALSE,
+      const char* originalCallId = NULL,
+      const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
 
    //! param: requestQueuedCall - indicates that the caller wishes to have the callee queue the call if busy
 
    virtual UtlBoolean originalCallTransfer(UtlString& transferTargetAddress,
-                                                           const char* transferControllerAddress,
-                                   const char* targetCallId);
+      const char* transferControllerAddress,
+      const char* targetCallId);
    // Initiate blind transfer on transfer controller connection in
    // the original call.
 
    virtual UtlBoolean targetCallBlindTransfer(const char* transferTargetAddress,
-                                                           const char* transferControllerAddress);
+      const char* transferControllerAddress);
    // Communicate blind transfer on transfer controller connection in
    // the target call.  This is signaled by the transfer controller in the
    // original call.
@@ -104,17 +104,17 @@ public:
 
    virtual UtlBoolean renegotiateCodecs();
 
-   virtual UtlBoolean silentRemoteHold() ;
+   virtual UtlBoolean silentRemoteHold();
 
    virtual UtlBoolean accept(int forwardOnNoAnswerSeconds, 
-                             const void *pSecurity = NULL,
-                             const char* locationHeader = NULL,
-                             const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
-                             UtlBoolean sendEarlyMedia = FALSE);
+      const void *pSecurity = NULL,
+      const char* locationHeader = NULL,
+      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
+      UtlBoolean sendEarlyMedia = FALSE);
 
    virtual UtlBoolean processMessage(OsMsg& eventMessage, UtlBoolean callInFocus);
 
-/* ============================ ACCESSORS ================================= */
+   /* ============================ ACCESSORS ================================= */
 
    virtual UtlBoolean getRemoteAddress(UtlString* remoteAddress) const;
    //: get Connection address
@@ -123,44 +123,44 @@ public:
    virtual UtlBoolean getRemoteAddress(UtlString* remoteAddress, UtlBoolean leaveFieldParametersIn) const;
    //: get Connection address
    //! returns: TRUE/FALSE if the connection has an address.  The connection may not have an address assigned yet (i.e. if it is not fully setup).
-   
-           virtual UtlBoolean getSession(SipSession& session);
 
-    /**
-     * Enumerate possible contact addresses
-     */
-    virtual void getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
-                                           size_t nMaxContacts,
-                                           size_t& nActualContacts) ;
+   virtual UtlBoolean getSession(SipSession& session);
 
-    virtual void getRemoteUserAgent(UtlString* pUserAgent);
+   /**
+   * Enumerate possible contact addresses
+   */
+   virtual void getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
+      size_t nMaxContacts,
+      size_t& nActualContacts);
+
+   virtual void getRemoteUserAgent(UtlString* pUserAgent);
 
 
-/* ============================ INQUIRY =================================== */
+   /* ============================ INQUIRY =================================== */
 
    virtual UtlBoolean willHandleMessage(OsMsg& eventMessage) const;
 
    virtual UtlBoolean isConnection(const char* callId,
-                                  const char* toTag,
-                                  const char* fromTag,
-                                  UtlBoolean strictCompare) const;
+      const char* toTag,
+      const char* fromTag,
+      UtlBoolean strictCompare) const;
 
    virtual UtlBoolean isSameRemoteAddress(Url& remoteAddress) const;
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
 
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-        CpGhostConnection(const CpGhostConnection& rCpGhostConnection);
-     //:Copy constructor (disabled)
-        CpGhostConnection& operator=(const CpGhostConnection& rhs);
-     //:Assignment operator (disabled)
+   CpGhostConnection(const CpGhostConnection& rCpGhostConnection);
+   //:Copy constructor (disabled)
+   CpGhostConnection& operator=(const CpGhostConnection& rhs);
+   //:Assignment operator (disabled)
 
-    UtlString mRemoteAddress;
+   UtlString mRemoteAddress;
 
 };
 

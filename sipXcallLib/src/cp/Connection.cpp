@@ -41,8 +41,8 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 #define CONN_DELETE_DELAY_SECS  10    // Number of seconds to wait before a
-                                      // connection should be removed from a
-                                      // call and deleted.
+// connection should be removed from a
+// call and deleted.
 
 // STATIC VARIABLE INITIALIZATIONS
 
@@ -63,63 +63,63 @@ Connection::Connection(CpCallManager* callMgr,
                        const char* forwardUnconditionalUrl,
                        int busyBehavior, const char* forwardOnBusyUrl,
                        int forwardOnNoAnswerSeconds)
-: mConnectionId(CpMediaInterface::getInvalidConnectionId())
-, callIdMutex(OsMutex::Q_FIFO)
-, mDeleteAfter(OsTime::OS_INFINITY)
-, m_pCallEventListener(pCallEventListener)
-, m_pInfoStatusEventListener(pInfoStatusEventListener)
-, m_pSecurityEventListener(pSecurityEventListener)
-, m_pMediaEventListener(pMediaEventListener)
-, m_bindIPAddress("0.0.0.0")
+                       : mConnectionId(CpMediaInterface::getInvalidConnectionId())
+                       , callIdMutex(OsMutex::Q_FIFO)
+                       , mDeleteAfter(OsTime::OS_INFINITY)
+                       , m_pCallEventListener(pCallEventListener)
+                       , m_pInfoStatusEventListener(pInfoStatusEventListener)
+                       , m_pSecurityEventListener(pSecurityEventListener)
+                       , m_pMediaEventListener(pMediaEventListener)
+                       , m_bindIPAddress("0.0.0.0")
 {
-    mOfferingDelay = offeringDelayMilliSeconds;
-    mLineAvailableBehavior = availableBehavior;
-    if(mLineAvailableBehavior == FORWARD_UNCONDITIONAL &&
-        forwardUnconditionalUrl != NULL)
-    {
-        mForwardUnconditional.append(forwardUnconditionalUrl);
-    }
-    mLineBusyBehavior = busyBehavior;
-    if(mLineBusyBehavior == FORWARD_ON_BUSY &&
-        forwardOnBusyUrl != NULL)
-    {
-        mForwardOnBusy.append(forwardOnBusyUrl);
-    }
-    mForwardOnNoAnswerSeconds = forwardOnNoAnswerSeconds;
+   mOfferingDelay = offeringDelayMilliSeconds;
+   mLineAvailableBehavior = availableBehavior;
+   if(mLineAvailableBehavior == FORWARD_UNCONDITIONAL &&
+      forwardUnconditionalUrl != NULL)
+   {
+      mForwardUnconditional.append(forwardUnconditionalUrl);
+   }
+   mLineBusyBehavior = busyBehavior;
+   if(mLineBusyBehavior == FORWARD_ON_BUSY &&
+      forwardOnBusyUrl != NULL)
+   {
+      mForwardOnBusy.append(forwardOnBusyUrl);
+   }
+   mForwardOnNoAnswerSeconds = forwardOnNoAnswerSeconds;
 
-    mRemoteIsCallee = FALSE;
-    mRemoteRequestedHold = FALSE;
-    remoteRtpPort = PORT_NONE;
-    remoteRtcpPort = PORT_NONE;
-    remoteVideoRtpPort = PORT_NONE;
-    remoteVideoRtcpPort = PORT_NONE;
-    mLocalConnectionState = CONNECTION_IDLE;
-    mRemoteConnectionState = CONNECTION_IDLE;
-    mConnectionStateCause = CONNECTION_CAUSE_NORMAL;
-    mTerminalConnState = PtTerminalConnection::IDLE;
-    mHoldState = TERMCONNECTION_NONE;
-    mResponseCode = 0;
-    mResponseText.remove(0);
+   mRemoteIsCallee = FALSE;
+   mRemoteRequestedHold = FALSE;
+   remoteRtpPort = PORT_NONE;
+   remoteRtcpPort = PORT_NONE;
+   remoteVideoRtpPort = PORT_NONE;
+   remoteVideoRtcpPort = PORT_NONE;
+   mLocalConnectionState = CONNECTION_IDLE;
+   mRemoteConnectionState = CONNECTION_IDLE;
+   mConnectionStateCause = CONNECTION_CAUSE_NORMAL;
+   mTerminalConnState = PtTerminalConnection::IDLE;
+   mHoldState = TERMCONNECTION_NONE;
+   mResponseCode = 0;
+   mResponseText.remove(0);
 
-    // zero timers
-    mpOfferingTimer = NULL;
-    mpRingingTimer = NULL;
+   // zero timers
+   mpOfferingTimer = NULL;
+   mpRingingTimer = NULL;
 
-    mpCallManager = callMgr;
-    mpCall = call;
-    mpMediaInterface = mediaInterface;
+   mpCallManager = callMgr;
+   mpCall = call;
+   mpMediaInterface = mediaInterface;
 
-    m_eLastMajor = (SIPX_CALLSTATE_EVENT) -1 ;
-    m_eLastMinor = (SIPX_CALLSTATE_CAUSE) -1 ;
+   m_eLastMajor = (SIPX_CALLSTATE_EVENT) -1;
+   m_eLastMinor = (SIPX_CALLSTATE_CAUSE) -1;
 
-    mpCallManager->getNewSessionId(this) ;
-    mbTransferHeld = false ;
+   mpCallManager->getNewSessionId(this);
+   mbTransferHeld = false;
 }
 
 // Copy constructor
 Connection::Connection(const Connection& rConnection)
-    : UtlString(rConnection)
-    , callIdMutex(OsMutex::Q_FIFO)
+: UtlString(rConnection)
+, callIdMutex(OsMutex::Q_FIFO)
 {
 }
 
@@ -137,7 +137,7 @@ Connection::~Connection()
       delete mpOfferingTimer;
       mpOfferingTimer = NULL;
    }
-   
+
    if (mpRingingTimer)
    {
       mpRingingTimer->stop();
@@ -155,42 +155,42 @@ Connection::~Connection()
 
 UtlBoolean Connection::muteInput(UtlBoolean bMute)
 {
-	if(mpMediaInterface)
-	{
-		if(mpMediaInterface->muteInput(mConnectionId, bMute) == OS_SUCCESS)
-		{
-			return TRUE;
-		}
-	}
+   if(mpMediaInterface)
+   {
+      if(mpMediaInterface->muteInput(mConnectionId, bMute) == OS_SUCCESS)
+      {
+         return TRUE;
+      }
+   }
 
-	return FALSE;
+   return FALSE;
 }
 
 void Connection::prepareForSplit()
 {
-    if ((mpMediaInterface) &&
-        mpMediaInterface->isConnectionIdValid(mConnectionId))
-    {
-        mpMediaInterface->deleteConnection(mConnectionId) ;
-    }
+   if ((mpMediaInterface) &&
+      mpMediaInterface->isConnectionIdValid(mConnectionId))
+   {
+      mpMediaInterface->deleteConnection(mConnectionId);
+   }
 
-    mpCall = NULL ;
-    mpMediaInterface = NULL ;
-    mConnectionId = CpMediaInterface::getInvalidConnectionId();
+   mpCall = NULL;
+   mpMediaInterface = NULL;
+   mConnectionId = CpMediaInterface::getInvalidConnectionId();
 }
 
 
 void Connection::prepareForJoin(CpCall* pNewCall, const char* szLocalAddress, CpMediaInterface* pNewMediaInterface)
 {
-    mpCall = pNewCall ;
-    mpMediaInterface = pNewMediaInterface ;
+   mpCall = pNewCall;
+   mpMediaInterface = pNewMediaInterface;
 
-    // WTF is this???
-    mpMediaInterface->createConnection(mConnectionId, szLocalAddress, 0, NULL, NULL, pNewCall->getMessageQueue()) ;
+   // WTF is this???
+   mpMediaInterface->createConnection(mConnectionId, szLocalAddress, 0, NULL, NULL, pNewCall->getMessageQueue());
 
-    // VIDEO: Need to include window handle!
-    // SECURITY:  What about the security attributes?
-    // RTP-over-TCP:  What about rtp-over-tcp?
+   // VIDEO: Need to include window handle!
+   // SECURITY:  What about the security attributes?
+   // RTP-over-TCP:  What about rtp-over-tcp?
 }
 
 
@@ -209,7 +209,7 @@ void Connection::setState(int newState, int isLocal, int newCause, int termState
    if (mpCall)
    {
       mpCall->getMetaEvent(metaEventId, metaEventType, numCalls,
-                           &metaEventCallIds);
+         &metaEventCallIds);
    }
 
    UtlString callId;
@@ -236,18 +236,18 @@ void Connection::setState(int newState, int isLocal, int newCause, int termState
          if (newState == currentState)
          {
             OsSysLog::add(FAC_CP, PRI_DEBUG, "Connection::setState: "
-                          "Questionable connection state change - isLocal %d, for call "
-                          "'%s' with callid '%s' from %s to %s, cause %d",
-                          isLocal, strCallName.data(), callId.data(),
-                          oldStateString.data(), newStateString.data(), newCause);
+               "Questionable connection state change - isLocal %d, for call "
+               "'%s' with callid '%s' from %s to %s, cause %d",
+               isLocal, strCallName.data(), callId.data(),
+               oldStateString.data(), newStateString.data(), newCause);
          }
          else
          {
             OsSysLog::add(FAC_CP, PRI_ERR, "Connection::setState: "
-                          "Invalid connection state change - isLocal %d, for call "
-                          "'%s' with callid '%s' from %s to %s, cause %d",
-                          isLocal, strCallName.data(), callId.data(),
-                          oldStateString.data(), newStateString.data(), newCause);
+               "Invalid connection state change - isLocal %d, for call "
+               "'%s' with callid '%s' from %s to %s, cause %d",
+               isLocal, strCallName.data(), callId.data(),
+               oldStateString.data(), newStateString.data(), newCause);
          }
          return;
       }
@@ -260,7 +260,7 @@ void Connection::setState(int newState, int isLocal, int newCause, int termState
       if (isLocal && newState == CONNECTION_DISCONNECTED)
       {
          if ((mpCall->canDisconnectConnection(this) || newCause == CONNECTION_CAUSE_CANCELLED) &&
-             metaEventType != PtEvent::META_CALL_TRANSFERRING)
+            metaEventType != PtEvent::META_CALL_TRANSFERRING)
          {
             bPostStateChange = TRUE;
          }
@@ -272,14 +272,14 @@ void Connection::setState(int newState, int isLocal, int newCause, int termState
    }
 
    OsSysLog::add(FAC_CP, PRI_DEBUG,
-                 "Call %s %s state isLocal %d\nchange\nfrom %s to\n\t %s\ncause=%d\npost change to upper layer %d",
-            strCallName.data(),
-            callId.data(),
-            isLocal,
-            oldStateString.data(),
-            newStateString.data(),
-            newCause,
-            bPostStateChange);
+      "Call %s %s state isLocal %d\nchange\nfrom %s to\n\t %s\ncause=%d\npost change to upper layer %d",
+      strCallName.data(),
+      callId.data(),
+      isLocal,
+      oldStateString.data(),
+      newStateString.data(),
+      newCause,
+      bPostStateChange);
 
    if (bPostStateChange)
    {
@@ -299,8 +299,8 @@ void Connection::setState(int newState, int isLocal, int newCause, int termState
 
 void Connection::setTerminalConnectionState(int newState, int isLocal, int newCause)
 {
-    mTerminalConnState = newState;
-    mConnectionStateCause = newCause;
+   mTerminalConnState = newState;
+   mConnectionStateCause = newCause;
 }
 
 
@@ -315,7 +315,7 @@ int Connection::getState(int isLocal) const
       state = mLocalConnectionState;
 
    if ((mLocalConnectionState == CONNECTION_FAILED) &&
-       state != mLocalConnectionState)
+      state != mLocalConnectionState)
    {
       UtlString oldStateString, newStateString;
       getStateString(mLocalConnectionState, &oldStateString);
@@ -323,7 +323,7 @@ int Connection::getState(int isLocal) const
       state = mLocalConnectionState;
    }
    else if ((mRemoteConnectionState == CONNECTION_FAILED) &&
-            mRemoteConnectionState != state)
+      mRemoteConnectionState != state)
    {
       UtlString oldStateString, newStateString;
       getStateString(mRemoteConnectionState, &oldStateString);
@@ -345,7 +345,7 @@ int Connection::getState(int isLocal, int& cause) const
       state = mRemoteConnectionState;
 
    if ((mLocalConnectionState == CONNECTION_FAILED) &&
-       state != mLocalConnectionState)
+      state != mLocalConnectionState)
    {
       UtlString oldStateString, newStateString;
       getStateString(mLocalConnectionState, &oldStateString);
@@ -353,7 +353,7 @@ int Connection::getState(int isLocal, int& cause) const
       state = mLocalConnectionState;
    }
    else if ((mRemoteConnectionState == CONNECTION_FAILED) &&
-            mRemoteConnectionState != state)
+      mRemoteConnectionState != state)
    {
       UtlString oldStateString, newStateString;
       getStateString(mRemoteConnectionState, &oldStateString);
@@ -366,59 +366,59 @@ int Connection::getState(int isLocal, int& cause) const
 
 int Connection::getTerminalState(int isLocal) const
 {
-    int state;
+   int state;
 
-    state = mTerminalConnState;
-    return state;
+   state = mTerminalConnState;
+   return state;
 }
 
 void Connection::getStateString(int state, UtlString* stateLabel)
 {
-    stateLabel->remove(0);
+   stateLabel->remove(0);
 
-    switch(state)
-    {
-    case CONNECTION_IDLE:
-        stateLabel->append("CONNECTION_IDLE");
-        break;
+   switch(state)
+   {
+   case CONNECTION_IDLE:
+      stateLabel->append("CONNECTION_IDLE");
+      break;
 
-    case CONNECTION_INITIATED:
-        stateLabel->append("CONNECTION_INITIATED");
-        break;
+   case CONNECTION_INITIATED:
+      stateLabel->append("CONNECTION_INITIATED");
+      break;
 
-    case CONNECTION_QUEUED:
-        stateLabel->append("CONNECTION_QUEUED");
-        break;
+   case CONNECTION_QUEUED:
+      stateLabel->append("CONNECTION_QUEUED");
+      break;
 
-    case CONNECTION_OFFERING:
-        stateLabel->append("CONNECTION_OFFERING");
-        break;
+   case CONNECTION_OFFERING:
+      stateLabel->append("CONNECTION_OFFERING");
+      break;
 
-    case CONNECTION_ALERTING:
-        stateLabel->append("CONNECTION_ALERTING");
-        break;
+   case CONNECTION_ALERTING:
+      stateLabel->append("CONNECTION_ALERTING");
+      break;
 
-    case CONNECTION_ESTABLISHED:
-        stateLabel->append("CONNECTION_ESTABLISHED");
-        break;
+   case CONNECTION_ESTABLISHED:
+      stateLabel->append("CONNECTION_ESTABLISHED");
+      break;
 
-    case CONNECTION_FAILED:
-        stateLabel->append("CONNECTION_FAILED");
-        break;
+   case CONNECTION_FAILED:
+      stateLabel->append("CONNECTION_FAILED");
+      break;
 
-    case CONNECTION_DISCONNECTED:
-        stateLabel->append("CONNECTION_DISCONNECTED");
-        break;
+   case CONNECTION_DISCONNECTED:
+      stateLabel->append("CONNECTION_DISCONNECTED");
+      break;
 
-    case CONNECTION_DIALING:
-        stateLabel->append("CONNECTION_DIALING");
-        break;
+   case CONNECTION_DIALING:
+      stateLabel->append("CONNECTION_DIALING");
+      break;
 
-    default:
-        stateLabel->append("CONNECTION_UNKNOWN");
-        break;
+   default:
+      stateLabel->append("CONNECTION_UNKNOWN");
+      break;
 
-    }
+   }
 
 }
 
@@ -434,51 +434,51 @@ Connection::operator=(const Connection& rhs)
 
 void Connection::unimplemented(const char* methodName) const
 {
-    osPrintf("%s NO IMPLEMENTED\n",methodName);
+   osPrintf("%s NO IMPLEMENTED\n",methodName);
 }
 
 // Is this connection marked for deletion?
 void Connection::markForDeletion()
 {
-   OsTime timeNow ;
-   OsTime deleteAfterSecs(CONN_DELETE_DELAY_SECS, 0) ;
+   OsTime timeNow;
+   OsTime deleteAfterSecs(CONN_DELETE_DELAY_SECS, 0);
 
-   OsDateTime::getCurTimeSinceBoot(deleteAfterSecs) ;
+   OsDateTime::getCurTimeSinceBoot(deleteAfterSecs);
 
-   mDeleteAfter = timeNow + deleteAfterSecs ;
+   mDeleteAfter = timeNow + deleteAfterSecs;
 }
 
 
 void Connection::setMediaInterface(CpMediaInterface* pMediaInterface)
 {
-    mpMediaInterface = pMediaInterface ;
+   mpMediaInterface = pMediaInterface;
 }
 
 
 
 UtlBoolean Connection::validStateTransition(SIPX_CALLSTATE_EVENT eFrom, SIPX_CALLSTATE_EVENT eTo)
 {
-    UtlBoolean bValid = TRUE ;
+   UtlBoolean bValid = TRUE;
 
-    switch (eFrom)
-    {
-        case CALLSTATE_DISCONNECTED:
-            bValid = (eTo == CALLSTATE_DESTROYED) ;
-            break ;
-        case CALLSTATE_DESTROYED:
-            bValid = FALSE ;
-            break ;
-        default:
-            break;
-    }
+   switch (eFrom)
+   {
+   case CALLSTATE_DISCONNECTED:
+      bValid = (eTo == CALLSTATE_DESTROYED);
+      break;
+   case CALLSTATE_DESTROYED:
+      bValid = FALSE;
+      break;
+   default:
+      break;
+   }
 
-    // Make sure a local focus change doesn't kick off an established event
-    if ((eTo == CALLSTATE_CONNECTED) && (getLocalState() != CONNECTION_ESTABLISHED))
-    {
-        bValid = FALSE ;
-    }
+   // Make sure a local focus change doesn't kick off an established event
+   if ((eTo == CALLSTATE_CONNECTED) && (getLocalState() != CONNECTION_ESTABLISHED))
+   {
+      bValid = FALSE;
+   }
 
-    return bValid ;
+   return bValid;
 }
 
 // call events
@@ -560,7 +560,7 @@ void Connection::fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
          m_pCallEventListener->OnTransferEvent(event);
          break;
       default:
-         ;
+        ;
       }
    }
 
@@ -601,7 +601,7 @@ void Connection::fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
          m_pSecurityEventListener->OnTLS(secEvent);
          break;
       default:
-         ;
+        ;
       }
 
       secEvent.m_pCertificate = NULL; // must be zeroed before ~SipSecurityEvent runs
@@ -706,7 +706,7 @@ void Connection::fireSipXMediaEvent(CP_MEDIA_EVENT event,
          m_pMediaEventListener->OnMediaRecordingStop(mediaEvent);
          break;
       default:
-         ;
+        ;
       }
    }
 }
@@ -732,76 +732,76 @@ void Connection::fireSipXInfoStatusEvent(SIPX_INFOSTATUS_EVENT event,
          m_pInfoStatusEventListener->OnNetworkError(infoEvent);
          break;
       default:
-         ;
+        ;
       }
    }
 }
 
 void Connection::setTransferHeld(UtlBoolean bHeld)
 {
-    mbTransferHeld = bHeld ;
+   mbTransferHeld = bHeld;
 }
 
 /* ============================ ACCESSORS ================================= */
 
 void Connection::getCallId(UtlString* callId)
 {
-    OsLock lock(callIdMutex);
+   OsLock lock(callIdMutex);
 
-    *callId = connectionCallId ;
+   *callId = connectionCallId;
 }
 
 void Connection::setCallId(const char* callId)
 {
-    OsLock lock(callIdMutex);
+   OsLock lock(callIdMutex);
 
-    connectionCallId = callId ;
+   connectionCallId = callId;
 }
 
 void Connection::getCallerId(UtlString* callerId)
 {
-    OsLock lock(callIdMutex);
+   OsLock lock(callIdMutex);
 
-    *callerId = connectionCallerId ;
+   *callerId = connectionCallerId;
 }
 
 void Connection::setCallerId(const char* callerId)
 {
-    OsLock lock(callIdMutex);
+   OsLock lock(callIdMutex);
 
-    connectionCallerId = callerId ;
+   connectionCallerId = callerId;
 }
 
 void Connection::getResponseText(UtlString& responseText)
 {
-    responseText.remove(0);
-    responseText.append(mResponseText);
+   responseText.remove(0);
+   responseText.append(mResponseText);
 }
 
 // Get the time after which this connection can be deleted.  This timespan
 // is relative to boot.
 OsStatus Connection::getDeleteAfter(OsTime& time)
 {
-   time = mDeleteAfter ;
-   return OS_SUCCESS ;
+   time = mDeleteAfter;
+   return OS_SUCCESS;
 }
 
 // Get the local state for this connection
 int Connection::getLocalState() const
 {
-   return mLocalConnectionState ;
+   return mLocalConnectionState;
 }
 
 // Get the remote state for this connection
 int Connection::getRemoteState() const
 {
-   return mRemoteConnectionState ;
+   return mRemoteConnectionState;
 }
 
 UtlString Connection::getRemoteRtpAddress() const
 {
    OsLock lock(callIdMutex);
-    return remoteRtpAddress ;
+   return remoteRtpAddress;
 }
 
 UtlString Connection::getBindIPAddress() const
@@ -838,244 +838,244 @@ UtlBoolean Connection::remoteRequestedHold()
 // purged from the call.
 UtlBoolean Connection::isMarkedForDeletion() const
 {
-   return !mDeleteAfter.isInfinite() ;
+   return !mDeleteAfter.isInfinite();
 }
 
 
 UtlBoolean Connection::isHeld() const
 {
-    return mHoldState == TERMCONNECTION_HELD ;
+   return mHoldState == TERMCONNECTION_HELD;
 }
 
 UtlBoolean Connection::isHoldInProgress() const
 {
-    return (mHoldState == TERMCONNECTION_HOLDING ||
-            mHoldState == TERMCONNECTION_UNHOLDING) ;
+   return (mHoldState == TERMCONNECTION_HOLDING ||
+      mHoldState == TERMCONNECTION_UNHOLDING);
 }
 
 UtlBoolean Connection::isTransferHeld() const
 {
-    return mbTransferHeld ;
+   return mbTransferHeld;
 }
 
 UtlBoolean Connection::isLocallyInitiatedRemoteHold() const
 {
-    return false ;
+   return false;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 void Connection::setOfferingTimer(int milliSeconds)
 {
-    UtlString    callId;
-    SipSession  session ;
-    Url         urlTo ;
-    UtlString    remoteAddr;
+   UtlString    callId;
+   SipSession  session;
+   Url         urlTo;
+   UtlString    remoteAddr;
 
-    getSession(session) ;
-    session.getCallId(callId) ;
-    session.getToUrl(urlTo) ;
-    urlTo.toString(remoteAddr) ;
+   getSession(session);
+   session.getCallId(callId);
+   session.getToUrl(urlTo);
+   urlTo.toString(remoteAddr);
 
-    CpMultiStringMessage* offeringExpiredMessage =
-        new CpMultiStringMessage(CpCallManager::CP_OFFERING_EXPIRED,
-                    callId.data(), remoteAddr.data());
+   CpMultiStringMessage* offeringExpiredMessage =
+      new CpMultiStringMessage(CpCallManager::CP_OFFERING_EXPIRED,
+      callId.data(), remoteAddr.data());
 
-    // stops and deletes timer
-    if (mpOfferingTimer)
-    {
-       mpOfferingTimer->stop();
-       if (!mpOfferingTimer->getWasFired())
-       {
-          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpOfferingTimer->getUserData();
-          delete pOldMsg;
-       }
-       delete mpOfferingTimer;
-       mpOfferingTimer = NULL;
-    }
-    mpOfferingTimer = new OsTimer((mpCallManager->getMessageQueue()),
-            (int)offeringExpiredMessage);
-    // Convert from mSeconds to uSeconds
-    OsTime timerTime(milliSeconds / 1000, milliSeconds % 1000);
-    mpOfferingTimer->oneshotAfter(timerTime);
+   // stops and deletes timer
+   if (mpOfferingTimer)
+   {
+      mpOfferingTimer->stop();
+      if (!mpOfferingTimer->getWasFired())
+      {
+         CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpOfferingTimer->getUserData();
+         delete pOldMsg;
+      }
+      delete mpOfferingTimer;
+      mpOfferingTimer = NULL;
+   }
+   mpOfferingTimer = new OsTimer((mpCallManager->getMessageQueue()),
+      (int)offeringExpiredMessage);
+   // Convert from mSeconds to uSeconds
+   OsTime timerTime(milliSeconds / 1000, milliSeconds % 1000);
+   mpOfferingTimer->oneshotAfter(timerTime);
 
-    callId.remove(0);
-    remoteAddr.remove(0);
+   callId.remove(0);
+   remoteAddr.remove(0);
 }
 
 CpMediaInterface* Connection::getMediaInterfacePtr()
 {
-    return mpMediaInterface;
+   return mpMediaInterface;
 }
 
 void Connection::setRingingTimer(int seconds)
 {
-    UtlString callId;
-    mpCall->getCallId(callId);
-    UtlString remoteAddr;
-    getRemoteAddress(&remoteAddr);
-    CpMultiStringMessage* offeringExpiredMessage =
-        new CpMultiStringMessage(CpCallManager::CP_RINGING_EXPIRED,
-                    callId.data(), remoteAddr.data());
+   UtlString callId;
+   mpCall->getCallId(callId);
+   UtlString remoteAddr;
+   getRemoteAddress(&remoteAddr);
+   CpMultiStringMessage* offeringExpiredMessage =
+      new CpMultiStringMessage(CpCallManager::CP_RINGING_EXPIRED,
+      callId.data(), remoteAddr.data());
 
-    if (mpRingingTimer)
-    {
-       mpRingingTimer->stop();
-       if (!mpRingingTimer->getWasFired())
-       {
-          CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpRingingTimer->getUserData();
-          delete pOldMsg;
-       }
-       delete mpRingingTimer;
-       mpRingingTimer = NULL;
-    }
-    mpRingingTimer = new OsTimer((mpCallManager->getMessageQueue()),
-            (int)offeringExpiredMessage);
+   if (mpRingingTimer)
+   {
+      mpRingingTimer->stop();
+      if (!mpRingingTimer->getWasFired())
+      {
+         CpMultiStringMessage* pOldMsg = (CpMultiStringMessage*)mpRingingTimer->getUserData();
+         delete pOldMsg;
+      }
+      delete mpRingingTimer;
+      mpRingingTimer = NULL;
+   }
+   mpRingingTimer = new OsTimer((mpCallManager->getMessageQueue()),
+      (int)offeringExpiredMessage);
 
-    OsTime timerTime(seconds, 0);
-    mpRingingTimer->oneshotAfter(timerTime);
-    callId.remove(0);
-    remoteAddr.remove(0);
+   OsTime timerTime(seconds, 0);
+   mpRingingTimer->oneshotAfter(timerTime);
+   callId.remove(0);
+   remoteAddr.remove(0);
 }
 
 UtlBoolean Connection::isStateTransitionAllowed(int newState, int oldState)
 {
-    UtlBoolean isAllowed = TRUE;
+   UtlBoolean isAllowed = TRUE;
 
-    switch (oldState)
-    {
-    case CONNECTION_IDLE:
-        if (newState == CONNECTION_NETWORK_ALERTING)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_QUEUED:
-    case CONNECTION_OFFERING:
-        if (newState != CONNECTION_ALERTING &&
-            newState != CONNECTION_ESTABLISHED &&
-            newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_FAILED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_ALERTING:
-        if (newState != CONNECTION_ESTABLISHED &&
-            newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_FAILED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_ESTABLISHED:
-        if (newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_FAILED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_FAILED:
-        if (newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_DISCONNECTED:
-        if (newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_INITIATED:
-        if (newState != CONNECTION_DIALING &&
-            newState != CONNECTION_ESTABLISHED &&
-            newState != CONNECTION_OFFERING &&
-            newState != CONNECTION_ALERTING &&
-            newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_FAILED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_DIALING:
-        if (newState != CONNECTION_ESTABLISHED &&
-            newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_FAILED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_NETWORK_REACHED:
-        if (newState != CONNECTION_NETWORK_ALERTING &&
-            newState != CONNECTION_ESTABLISHED &&
-            newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_FAILED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    case CONNECTION_NETWORK_ALERTING:
-        if (newState != CONNECTION_ESTABLISHED &&
-            newState != CONNECTION_DISCONNECTED &&
-            newState != CONNECTION_FAILED &&
-            newState != CONNECTION_UNKNOWN)
-        {
-            isAllowed = FALSE;
-        }
-        break;
-    default:
-    case CONNECTION_UNKNOWN:
-        break;
-    }
+   switch (oldState)
+   {
+   case CONNECTION_IDLE:
+      if (newState == CONNECTION_NETWORK_ALERTING)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_QUEUED:
+   case CONNECTION_OFFERING:
+      if (newState != CONNECTION_ALERTING &&
+         newState != CONNECTION_ESTABLISHED &&
+         newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_FAILED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_ALERTING:
+      if (newState != CONNECTION_ESTABLISHED &&
+         newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_FAILED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_ESTABLISHED:
+      if (newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_FAILED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_FAILED:
+      if (newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_DISCONNECTED:
+      if (newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_INITIATED:
+      if (newState != CONNECTION_DIALING &&
+         newState != CONNECTION_ESTABLISHED &&
+         newState != CONNECTION_OFFERING &&
+         newState != CONNECTION_ALERTING &&
+         newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_FAILED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_DIALING:
+      if (newState != CONNECTION_ESTABLISHED &&
+         newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_FAILED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_NETWORK_REACHED:
+      if (newState != CONNECTION_NETWORK_ALERTING &&
+         newState != CONNECTION_ESTABLISHED &&
+         newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_FAILED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   case CONNECTION_NETWORK_ALERTING:
+      if (newState != CONNECTION_ESTABLISHED &&
+         newState != CONNECTION_DISCONNECTED &&
+         newState != CONNECTION_FAILED &&
+         newState != CONNECTION_UNKNOWN)
+      {
+         isAllowed = FALSE;
+      }
+      break;
+   default:
+   case CONNECTION_UNKNOWN:
+      break;
+   }
 
-    return isAllowed;
+   return isAllowed;
 }
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 int Connection::terminalConnectionState(int connState)
 {
-    int state;
+   int state;
 
-    switch(connState)
-    {
-    case CONNECTION_IDLE:
-    case CONNECTION_OFFERING:
-    case CONNECTION_INITIATED:
-    case CONNECTION_DIALING:
-        state = PtTerminalConnection::IDLE;
-        break;
+   switch(connState)
+   {
+   case CONNECTION_IDLE:
+   case CONNECTION_OFFERING:
+   case CONNECTION_INITIATED:
+   case CONNECTION_DIALING:
+      state = PtTerminalConnection::IDLE;
+      break;
 
-    case CONNECTION_QUEUED:
-        state = PtTerminalConnection::HELD;
-        break;
+   case CONNECTION_QUEUED:
+      state = PtTerminalConnection::HELD;
+      break;
 
-    case CONNECTION_ALERTING:
-        state = PtTerminalConnection::RINGING;
-        break;
+   case CONNECTION_ALERTING:
+      state = PtTerminalConnection::RINGING;
+      break;
 
-    case CONNECTION_ESTABLISHED:
-        state = PtTerminalConnection::TALKING;
-        break;
+   case CONNECTION_ESTABLISHED:
+      state = PtTerminalConnection::TALKING;
+      break;
 
-    case CONNECTION_DISCONNECTED:
-        state = PtTerminalConnection::DROPPED;
-        break;
+   case CONNECTION_DISCONNECTED:
+      state = PtTerminalConnection::DROPPED;
+      break;
 
-    case CONNECTION_FAILED:
-    default:
-        state = PtTerminalConnection::UNKNOWN;
-        break;
-    }
+   case CONNECTION_FAILED:
+   default:
+      state = PtTerminalConnection::UNKNOWN;
+      break;
+   }
 
-    return state;
+   return state;
 }
 
 
