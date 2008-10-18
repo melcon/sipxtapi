@@ -15,7 +15,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsServerTask.h>
-#include <os/OsRWMutex.h>
+#include <os/OsMutex.h>
 #include <ptapi/PtEvent.h>
 
 // DEFINES
@@ -185,7 +185,7 @@ protected:
    UtlString mCallId;
    UtlString m_bindIPAddress;
    volatile UtlBoolean mCallInFocus;
-   OsMutex m_memberMutex;
+   mutable OsMutex m_memberMutex;
    CpMediaInterface* mpMediaInterface;
    int mCallIndex;
    int mCallState;

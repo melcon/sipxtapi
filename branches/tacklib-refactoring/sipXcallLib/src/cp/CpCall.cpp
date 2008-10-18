@@ -19,6 +19,7 @@
 #include <os/OsQueuedEvent.h>
 #include <os/OsEventMsg.h>
 #include "os/OsSysLog.h"
+#include <os/OsLock.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/CpCall.h>
 #include <cp/CpMultiStringMessage.h>
