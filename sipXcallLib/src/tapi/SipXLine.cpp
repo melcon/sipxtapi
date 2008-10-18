@@ -45,15 +45,16 @@ SipXHandleMap gLineHandleMap(1, SIPX_LINE_NULL);  /**< Global Map of line handle
 /* ============================ FUNCTIONS ================================= */
 
 
-SIPX_LINE sipxLineLookupHandle(const char* szLineURI, 
+SIPX_LINE sipxLineLookupHandle(SIPX_INSTANCE_DATA* pInst,
+                               const char* szLineURI, 
                                const char* szRequestUri) 
 { 
    SIPX_LINE hLine = SIPX_LINE_NULL; 
 
-   hLine = sipxLineLookupHandleByURI(szLineURI);
+   hLine = sipxLineLookupHandleByURI(pInst, szLineURI);
    if (!hLine)
    {
-      hLine = sipxLineLookupHandleByURI(szRequestUri);
+      hLine = sipxLineLookupHandleByURI(pInst, szRequestUri);
    }
 
    return hLine;
@@ -238,7 +239,7 @@ UtlBoolean validLineData(const SIPX_LINE_DATA* pData)
 }
 
 
-SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
+SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI)
 {
    gLineHandleMap.lock(); // global lock for line deletion
 
@@ -264,26 +265,29 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
             // got access to line object, lock it
             OsLock lock(pData->m_mutex);
 
-            // Check main line definition
-            if (urlURI.isUserHostPortEqual(pData->m_lineUri))
+            if (pData->m_pInst == pInst)
             {
-               hLine = pIndex->getValue();
-               break;
-            }
-
-            // check for line aliases
-            UtlVoidPtr* pValue;
-            Url* pUrl;
-            UtlSListIterator iterator(pData->m_lineAliases);
-
-            while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
-            {
-               pUrl = (Url*)pValue->getValue();
-
-               if (urlURI.isUserHostPortEqual(*pUrl))
+               // Check main line definition
+               if (urlURI.isUserHostPortEqual(pData->m_lineUri))
                {
                   hLine = pIndex->getValue();
                   break;
+               }
+
+               // check for line aliases
+               UtlVoidPtr* pValue;
+               Url* pUrl;
+               UtlSListIterator iterator(pData->m_lineAliases);
+
+               while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
+               {
+                  pUrl = (Url*)pValue->getValue();
+
+                  if (urlURI.isUserHostPortEqual(*pUrl))
+                  {
+                     hLine = pIndex->getValue();
+                     break;
+                  }
                }
             }
          }
@@ -306,26 +310,29 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                // got access to line object, lock it
                OsLock lock(pData->m_mutex);
 
-               // Check main line definition
-               if (urlURI.isUserHostEqual(pData->m_lineUri))
+               if (pData->m_pInst == pInst)
                {
-                  hLine = pIndex->getValue();
-                  break;
-               }
-
-               // Check for line aliases
-               UtlVoidPtr* pValue;
-               Url* pUrl;
-               UtlSListIterator iterator(pData->m_lineAliases);
-
-               while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
-               {
-                  pUrl = (Url*) pValue->getValue();
-
-                  if (urlURI.isUserHostEqual(*pUrl))
+                  // Check main line definition
+                  if (urlURI.isUserHostEqual(pData->m_lineUri))
                   {
                      hLine = pIndex->getValue();
                      break;
+                  }
+
+                  // Check for line aliases
+                  UtlVoidPtr* pValue;
+                  Url* pUrl;
+                  UtlSListIterator iterator(pData->m_lineAliases);
+
+                  while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
+                  {
+                     pUrl = (Url*) pValue->getValue();
+
+                     if (urlURI.isUserHostEqual(*pUrl))
+                     {
+                        hLine = pIndex->getValue();
+                        break;
+                     }
                   }
                }
             }
@@ -350,34 +357,37 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                // got access to line object, lock it
                OsLock lock(pData->m_mutex);
 
-               UtlString uriUsername;
-               UtlString hostUsername;
-
-               urlURI.getUserId(uriUsername);
-               pData->m_lineUri.getUserId(hostUsername);
-
-               if (uriUsername.compareTo(hostUsername, UtlString::ignoreCase) == 0)
+               if (pData->m_pInst == pInst)
                {
-                  hLine = pIndex->getValue();
-                  break;
-               }
+                  UtlString uriUsername;
+                  UtlString hostUsername;
 
-               // Check for line aliases
-               UtlVoidPtr* pValue;
-               Url* pUrl;
-               UtlSListIterator iterator(pData->m_lineAliases);
+                  urlURI.getUserId(uriUsername);
+                  pData->m_lineUri.getUserId(hostUsername);
 
-               while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
-               {
-                  pUrl = (Url*) pValue->getValue();
-                  UtlString aliasUsername;
-
-                  pUrl->getUserId(aliasUsername);
-
-                  if (uriUsername.compareTo(aliasUsername, UtlString::ignoreCase) == 0)
+                  if (uriUsername.compareTo(hostUsername, UtlString::ignoreCase) == 0)
                   {
                      hLine = pIndex->getValue();
                      break;
+                  }
+
+                  // Check for line aliases
+                  UtlVoidPtr* pValue;
+                  Url* pUrl;
+                  UtlSListIterator iterator(pData->m_lineAliases);
+
+                  while ((pValue = dynamic_cast<UtlVoidPtr*>(iterator())))
+                  {
+                     pUrl = (Url*) pValue->getValue();
+                     UtlString aliasUsername;
+
+                     pUrl->getUserId(aliasUsername);
+
+                     if (uriUsername.compareTo(aliasUsername, UtlString::ignoreCase) == 0)
+                     {
+                        hLine = pIndex->getValue();
+                        break;
+                     }
                   }
                }
             }
@@ -621,7 +631,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineFindByURI(const SIPX_INST hInst,
 
    if (hInst && szURI)
    {
-      *phLine = sipxLineLookupHandleByURI(szURI);
+      *phLine = sipxLineLookupHandleByURI((SIPX_INSTANCE_DATA*)hInst, szURI);
 
       if (*phLine != SIPX_LINE_NULL)
       {
@@ -662,7 +672,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
       // iterate through all lines
       while ((pLine = dynamic_cast<SipLine*>(itor())) != NULL && *actual < max)
       {
-         lines[*actual] = sipxLineLookupHandleByURI(pLine->getLineUri().toString());
+         lines[*actual] = sipxLineLookupHandleByURI(pInst, pLine->getLineUri().toString());
          *actual = *actual + 1;
       }
 

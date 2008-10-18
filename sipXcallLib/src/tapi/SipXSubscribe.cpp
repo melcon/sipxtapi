@@ -594,7 +594,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
          UtlString userId(""); 
 
          fromField = pLineData->m_fullLineUrl.toString();
-         pLineData->m_lineUri.getUserId(userId);
+         pLineData->m_fullLineUrl.getUserId(userId);
 
          sipxLineReleaseLock(pLineData, SIPX_LOCK_READ, stackLogger);
 
