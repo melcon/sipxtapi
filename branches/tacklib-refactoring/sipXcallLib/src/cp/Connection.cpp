@@ -72,16 +72,6 @@ Connection::Connection(CpCallManager* callMgr,
 , m_pMediaEventListener(pMediaEventListener)
 , m_bindIPAddress("0.0.0.0")
 {
-#ifdef TEST_PRINT
-    UtlString callId;
-
-    if (call) {
-       call->getCallId(callId);
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Connection constructed: %s\n", callId.data());
-    } else
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Connection constructed: call is Null\n");
-#endif
-
     mOfferingDelay = offeringDelayMilliSeconds;
     mLineAvailableBehavior = availableBehavior;
     if(mLineAvailableBehavior == FORWARD_UNCONDITIONAL &&
@@ -124,14 +114,6 @@ Connection::Connection(CpCallManager* callMgr,
 
     mpCallManager->getNewSessionId(this) ;
     mbTransferHeld = false ;
-
-
-#ifdef TEST_PRINT
-    if (!callId.isNull())
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Leaving Connection constructed: %s\n", callId.data());
-    else
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Leaving Connection constructed: call is Null\n");
-#endif
 }
 
 // Copy constructor
@@ -144,15 +126,6 @@ Connection::Connection(const Connection& rConnection)
 // Destructor
 Connection::~Connection()
 {
-#ifdef TEST_PRINT
-    UtlString callId;
-    if (mpCall) {
-       mpCall->getCallId(callId);
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Connection destructed: %s\n", callId.data());
-    } else
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Connection destructed: call is Null\n");
-#endif
-
    if (mpOfferingTimer)
    {
       mpOfferingTimer->stop();
@@ -176,13 +149,6 @@ Connection::~Connection()
       delete mpRingingTimer;
       mpRingingTimer = NULL;
    }
-
-#ifdef TEST_PRINT
-    if (!callId.isNull())
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Leaving Connection destructed: %s\n", callId.data());
-    else
-       OsSysLog::add(FAC_CP, PRI_DEBUG, "Leaving Connection destructed: call is Null\n");
-#endif
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -832,9 +798,28 @@ int Connection::getRemoteState() const
    return mRemoteConnectionState ;
 }
 
-const UtlString& Connection::getRemoteRtpAddress() const
+UtlString Connection::getRemoteRtpAddress() const
 {
+   OsLock lock(callIdMutex);
     return remoteRtpAddress ;
+}
+
+UtlString Connection::getBindIPAddress() const
+{
+   OsLock lock(callIdMutex);
+   return m_bindIPAddress;
+}
+
+void Connection::setBindIPAddress(const UtlString& val)
+{
+   OsLock lock(callIdMutex);
+   m_bindIPAddress = val;
+}
+
+UtlString Connection::getMediaIPAddress() const
+{
+   OsLock lock(callIdMutex);
+   return m_mediaIPAddress;
 }
 
 /* ============================ INQUIRY =================================== */
@@ -913,10 +898,6 @@ void Connection::setOfferingTimer(int milliSeconds)
     // Convert from mSeconds to uSeconds
     OsTime timerTime(milliSeconds / 1000, milliSeconds % 1000);
     mpOfferingTimer->oneshotAfter(timerTime);
-#ifdef TEST_PRINT
-    osPrintf("Connection::setOfferingTimer message type: %d %d",
-        OsMsg::PHONE_APP, CpCallManager::CP_OFFERING_EXPIRED);
-#endif
 
     callId.remove(0);
     remoteAddr.remove(0);
@@ -951,17 +932,8 @@ void Connection::setRingingTimer(int seconds)
     mpRingingTimer = new OsTimer((mpCallManager->getMessageQueue()),
             (int)offeringExpiredMessage);
 
-#ifdef TEST_PRINT
-    osPrintf("Setting ringing timeout in %d seconds\n",
-        seconds);
-#endif
-
     OsTime timerTime(seconds, 0);
     mpRingingTimer->oneshotAfter(timerTime);
-#ifdef TEST_PRINT
-    osPrintf("Connection::setRingingTimer message type: %d %d",
-        OsMsg::PHONE_APP, CpCallManager::CP_RINGING_EXPIRED);
-#endif
     callId.remove(0);
     remoteAddr.remove(0);
 }

@@ -156,8 +156,8 @@ public:
 
     int getLocalConnectionStateFromPt(int state);
 
-    UtlString getBindIPAddress() const { return m_bindIPAddress; }
-    void setBindIPAddress(const UtlString& val) { m_bindIPAddress = val; }
+    UtlString getBindIPAddress() const;
+    void setBindIPAddress(const UtlString& val);
 
     /* ============================ INQUIRY =================================== */
 
@@ -185,7 +185,7 @@ protected:
     UtlString mCallId;
     UtlString m_bindIPAddress;
     volatile UtlBoolean mCallInFocus;
-    OsRWMutex mCallIdMutex;
+    OsMutex m_memberMutex;
     CpMediaInterface* mpMediaInterface;
     int mCallIndex;
     int mCallState;
