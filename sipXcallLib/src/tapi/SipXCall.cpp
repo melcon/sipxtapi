@@ -1076,8 +1076,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallHold(const SIPX_CALL hCall,
             {
                // just posts message
                pCallData->pInst->pCallManager->holdTerminalConnection(pCallData->sessionCallId,
-                                                                      pCallData->remoteAddress,
-                                                                      0);
+                                                                      pCallData->remoteAddress);
             }
             // just posts message
             pCallData->pInst->pCallManager->holdLocalTerminalConnection(pCallData->sessionCallId);
@@ -1087,8 +1086,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallHold(const SIPX_CALL hCall,
             // call is part of conference
             // just posts message
             pCallData->pInst->pCallManager->holdTerminalConnection(pCallData->sessionCallId,
-                                                                   pCallData->remoteAddress,
-                                                                   0);
+                                                                   pCallData->remoteAddress);
          }
          pCallData->bCallHoldInvoked = TRUE;
          sr = SIPX_RESULT_SUCCESS;
@@ -1132,8 +1130,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall, int bTakeFocus)
          pCallData->bInFocus = bTakeFocus | pCallData->bInFocus;
          // just posts message
          pCallData->pInst->pCallManager->unholdTerminalConnection(pCallData->sessionCallId,
-                                                                  pCallData->remoteAddress,
-                                                                  NULL);  
+                                                                  pCallData->remoteAddress);  
 
          if (bTakeFocus)
          {
@@ -1191,7 +1188,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
 
          pCallData->pInst->pCallManager->answerTerminalConnection(pCallData->sessionCallId,
                                                                   pCallData->remoteAddress,
-                                                                  "unused",
                                                                   display,
                                                                   security);
 
@@ -2169,7 +2165,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
       if (sipxCallGetCommonData(hCall, &pInst, NULL, &sessionCallId, &remoteAddress, NULL))
       {
          pInst->pCallManager->limitCodecPreferences(sessionCallId, remoteAddress, audioBandwidth, videoBandwidth, szVideoCodecName);
-         pInst->pCallManager->renegotiateCodecsTerminalConnection(sessionCallId, remoteAddress, NULL);
+         pInst->pCallManager->renegotiateCodecsTerminalConnection(sessionCallId, remoteAddress);
 
          sr = SIPX_RESULT_SUCCESS;
       }

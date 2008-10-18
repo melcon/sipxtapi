@@ -128,7 +128,6 @@ public:
       CP_STOP_AUDIO_TERM_CONNECTION,
       CP_PAUSE_AUDIO_PLAYBACK_CONNECTION,
       CP_RESUME_AUDIO_PLAYBACK_CONNECTION,
-      CP_IS_LOCAL_TERM_CONNECTION,
       CP_HOLD_TERM_CONNECTION, 
       CP_UNHOLD_TERM_CONNECTION, //40
       CP_UNHOLD_LOCAL_TERM_CONNECTION,
@@ -142,7 +141,6 @@ public:
       CP_PLAY_BUFFER_TERM_CONNECTION,
       CP_RENEGOTIATE_CODECS_CONNECTION,
       CP_RENEGOTIATE_CODECS_ALL_CONNECTIONS,
-      CP_SET_CALL_OUTBOUND_LINE,
       CP_OUTGOING_INFO,
       CP_GET_MEDIA_CONNECTION_ID,
       CP_GET_CAN_ADD_PARTY,
@@ -351,11 +349,6 @@ public:
       const int bandWidth=AUDIO_CODEC_BW_DEFAULT,
       UtlBoolean sendEarlyMedia = FALSE) = 0;
 
-   virtual void setOutboundLineForCall(const char* callId, 
-      const Url& lineURI,
-      SIPX_CONTACT_TYPE eType = CONTACT_AUTO) = 0;
-
-
    //! Reject the incoming connection
    /*! Progress the connection from the OFFERING state to
    * the FAILED state with the cause of busy. With SIP this
@@ -412,7 +405,6 @@ public:
    */
    virtual void answerTerminalConnection(const char* callId,
       const char* address,
-      const char* terminalId,
       const void* pDisplay = NULL,
       const void* pSecurity = NULL) = 0;
 
@@ -422,8 +414,7 @@ public:
    * no media should be sent.)
    */
    virtual void holdTerminalConnection(const char* callId,
-      const char* address,
-      const char* terminalId) = 0;
+      const char* address) = 0;
 
    //! Convenience method to put all of the terminal connections in
    //! the specified call on hold.
@@ -445,8 +436,7 @@ public:
 
    //! Convenience method to take the local terminal connection off hold.
    virtual void unholdTerminalConnection(const char* callId,
-      const char* addresss,
-      const char* terminalId) = 0;
+      const char* addresss) = 0;
 
    //! Rebuild codec factory on the fly with new audio codec requirements
    //! and one specific video codec
@@ -462,8 +452,7 @@ public:
    * (Sends a SIP re-INVITE.)
    */
    virtual void renegotiateCodecsTerminalConnection(const char* callId,
-      const char* addresss,
-      const char* terminalId) = 0;
+      const char* addresss) = 0;
 
    //! Convenience method to renegotiate the codecs for all of the terminal
    //! connections in the specified call.

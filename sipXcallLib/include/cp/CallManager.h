@@ -99,8 +99,6 @@ public:
 
    virtual void requestShutdown(void);
 
-   virtual void setOutboundLineForCall(const char* callId, const Url& lineURI, SIPX_CONTACT_TYPE eType = CONTACT_AUTO);
-
    // Operations for calls
    virtual void createCall(UtlString* callId,
       int metaEventId = 0,
@@ -179,18 +177,18 @@ public:
       int& numConnections, UtlString addresses[]);
 
    // Operations for calls & terminal connections
-   virtual void answerTerminalConnection(const char* callId, const char* address, const char* terminalId, 
+   virtual void answerTerminalConnection(const char* callId, const char* address, 
       const void* pDisplay = NULL, const void* pSecurity = NULL);
-   virtual void holdTerminalConnection(const char* callId, const char* address, const char* terminalId);
+   virtual void holdTerminalConnection(const char* callId, const char* address);
    virtual void holdAllTerminalConnections(const char* callId);
    virtual void holdLocalTerminalConnection(const char* callId);
    virtual void unholdLocalTerminalConnection(const char* callId);
    virtual void unholdAllTerminalConnections(const char* callId);
-   virtual void unholdTerminalConnection(const char* callId, const char* addresss, const char* terminalId);
+   virtual void unholdTerminalConnection(const char* callId, const char* addresss);
    virtual void limitCodecPreferences(const char* callId, const char* remoteAddr, const int audioBandwidth, const int videoBandwidth, const char* szVideoCodecName);
    virtual void limitCodecPreferences(const char* callId, const int audioBandwidth, const int videoBandwidth, const char* szVideoCodecName);
    virtual void silentRemoteHold(const char* callId);
-   virtual void renegotiateCodecsTerminalConnection(const char* callId, const char* addresss, const char* terminalId);
+   virtual void renegotiateCodecsTerminalConnection(const char* callId, const char* addresss);
    virtual void renegotiateCodecsAllTerminalConnections(const char* callId);
    virtual void doGetFocus(CpCall* call);
 

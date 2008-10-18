@@ -179,8 +179,6 @@ protected:
    virtual UtlBoolean handleInterfaceNotfMessage(OsMsg& eventMessage) = 0;
    virtual void onHook() = 0;
 
-   virtual UtlBoolean getConnectionState(const char* remoteAddress, int& state) = 0;
-
    CpCallManager* mpManager;
    UtlString mCallId;
    UtlString m_bindIPAddress;

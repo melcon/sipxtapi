@@ -628,7 +628,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
       case CP_PLAY_BUFFER_TERM_CONNECTION:
       case CP_GET_CALLED_ADDRESSES:
       case CP_GET_CALLING_ADDRESSES:
-      case CP_IS_LOCAL_TERM_CONNECTION:
       case CP_ACCEPT_CONNECTION:
       case CP_REJECT_CONNECTION:
       case CP_REDIRECT_CONNECTION:
@@ -638,7 +637,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
       case CP_RINGING_EXPIRED:
       case CP_GET_SESSION:
       case CP_CANCEL_TIMER:
-      case CP_SET_CALL_OUTBOUND_LINE:
       case CP_GET_MEDIA_CONNECTION_ID:
       case CP_GET_MEDIA_ENERGY_LEVELS:
       case CP_GET_CALL_MEDIA_ENERGY_LEVELS:
@@ -667,7 +665,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                   callId.data(), msgSubType);
                if( msgSubType == CP_GET_CALLED_ADDRESSES ||
                   msgSubType == CP_GET_CALLING_ADDRESSES ||
-                  msgSubType == CP_IS_LOCAL_TERM_CONNECTION ||
                   msgSubType == CP_GET_SESSION ||
                   msgSubType == CP_GET_MEDIA_CONNECTION_ID ||
                   msgSubType == CP_GET_MEDIA_ENERGY_LEVELS ||
@@ -1271,14 +1268,6 @@ OsStatus CallManager::muteInputTermConnection(const char* callId, const char* sz
    return (OsStatus)result;
 }
 
-void CallManager::setOutboundLineForCall(const char* callId, const Url& lineURI, SIPX_CONTACT_TYPE eType)
-{
-   CpMultiStringMessage outboundLineMessage(CP_SET_CALL_OUTBOUND_LINE, callId, 
-      lineURI.toString(), NULL, NULL, NULL, (int) eType);
-
-   postMessage(outboundLineMessage);
-}
-
 void CallManager::acceptConnection(const char* callId,
                                    const char* address, 
                                    SIPX_CONTACT_ID contactId,
@@ -1583,7 +1572,7 @@ OsStatus CallManager::getSipDialog(const char* callId,
    return(returnCode);
 }
 
-void CallManager::answerTerminalConnection(const char* callId, const char* address, const char* terminalId,
+void CallManager::answerTerminalConnection(const char* callId, const char* address,
                                            const void* pDisplay, const void* pSecurity)
 {
    SIPX_VIDEO_DISPLAY* pDisplayCopy = NULL;
@@ -1604,9 +1593,9 @@ void CallManager::answerTerminalConnection(const char* callId, const char* addre
 
 }
 
-void CallManager::holdTerminalConnection(const char* callId, const char* address, const char* terminalId)
+void CallManager::holdTerminalConnection(const char* callId, const char* address)
 {
-   CpMultiStringMessage holdMessage(CP_HOLD_TERM_CONNECTION, callId, address, terminalId);
+   CpMultiStringMessage holdMessage(CP_HOLD_TERM_CONNECTION, callId, address);
    postMessage(holdMessage);
 }
 
@@ -1637,15 +1626,15 @@ void CallManager::unholdAllTerminalConnections(const char* callId)
    unholdLocalTerminalConnection(callId);
 }
 
-void CallManager::unholdTerminalConnection(const char* callId, const char* address, const char* terminalId)
+void CallManager::unholdTerminalConnection(const char* callId, const char* address)
 {
-   CpMultiStringMessage unholdMessage(CP_UNHOLD_TERM_CONNECTION, callId, address, terminalId);
+   CpMultiStringMessage unholdMessage(CP_UNHOLD_TERM_CONNECTION, callId, address);
    postMessage(unholdMessage);
 }
 
-void CallManager::renegotiateCodecsTerminalConnection(const char* callId, const char* address, const char* terminalId)
+void CallManager::renegotiateCodecsTerminalConnection(const char* callId, const char* address)
 {
-   CpMultiStringMessage unholdMessage(CP_RENEGOTIATE_CODECS_CONNECTION, callId, address, terminalId);
+   CpMultiStringMessage unholdMessage(CP_RENEGOTIATE_CODECS_CONNECTION, callId, address);
    postMessage(unholdMessage);
 }
 
