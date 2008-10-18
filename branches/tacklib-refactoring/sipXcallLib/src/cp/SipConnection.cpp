@@ -3121,12 +3121,12 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
                // Allow unhold
                mpMediaInterface->startRtpReceive(mConnectionId,
                   numMatchingCodecs, decoderCodecs);
-               fireAudioStartEvents(CP_MEDIA_CAUSE_UNHOLD);
                mpMediaInterface->enableRtpReadNotification(mConnectionId);
 
                mpMediaInterface->startRtpSend(mConnectionId,
                   numMatchingCodecs, encoderCodecs);
                mRemoteRequestedHold = FALSE;
+               fireAudioStartEvents(CP_MEDIA_CAUSE_UNHOLD);
 
                mHoldState = TERMCONNECTION_TALKING;
 
@@ -3140,8 +3140,6 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
                {
                   fireSipXCallEvent(CALLSTATE_BRIDGED, CALLSTATE_CAUSE_NORMAL);
                }
-
-               fireAudioStartEvents(CP_MEDIA_CAUSE_UNHOLD);
             }
          }
 
@@ -4793,6 +4791,7 @@ void SipConnection::processInviteResponseNormal(const SipMessage* response)
    int responseCode = response->getResponseStatusCode();
    UtlString responseText;
    response->getResponseStatusText(&responseText);
+   int oldHoldState = mHoldState;
 
    /*
    * Update routing and send ack
@@ -5069,18 +5068,24 @@ void SipConnection::processInviteResponseNormal(const SipMessage* response)
          }
          else
          {
+            CP_MEDIA_CAUSE cause = CP_MEDIA_CAUSE_NORMAL;
+            if (oldHoldState == TERMCONNECTION_UNHOLDING)
+            {
+               cause = CP_MEDIA_CAUSE_UNHOLD;
+            }
             mHoldState = TERMCONNECTION_TALKING;
 
             // mpMediaInterface->stopRtpReceive(mConnectionId);
             mpMediaInterface->startRtpReceive(mConnectionId,
                numMatchingCodecs,
                decoderCodecs);
-            fireAudioStartEvents();
             mpMediaInterface->enableRtpReadNotification(mConnectionId);
 
             mpMediaInterface->startRtpSend(mConnectionId,
                numMatchingCodecs,
                encoderCodecs);
+            
+            fireAudioStartEvents(cause);
 
             if (mpCall->isInFocus())
             {
@@ -5090,8 +5095,6 @@ void SipConnection::processInviteResponseNormal(const SipMessage* response)
             {
                fireSipXCallEvent(CALLSTATE_BRIDGED, CALLSTATE_CAUSE_NORMAL, NULL, responseCode, responseText);
             }
-
-            fireAudioStartEvents();
          }
       }
       else
