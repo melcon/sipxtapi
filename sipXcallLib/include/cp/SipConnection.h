@@ -324,7 +324,7 @@ private:
    OsTimer* mpCancelTimer;
 
    SipMessage* mReferMessage;
-   UtlBoolean inviteFromThisSide;
+   UtlBoolean inviteFromThisSide; // true if original invite was from us
    UtlString mLastRequestMethod;
    UtlString mRemoteContact; //last contact frield from the other side
    Url mLocalAddress; // SIP address for the local side. Will never contain a tag.

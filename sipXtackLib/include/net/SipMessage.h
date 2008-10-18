@@ -486,7 +486,6 @@ public:
     void setReinviteData(SipMessage* invite,
                          const char* farEndContact,
                          const char* contactUrl,
-                         UtlBoolean inviteFromThisSide,
                          const char* routeField,
                          int sequenceNumber,
                          int sessionReinviteTimer);
