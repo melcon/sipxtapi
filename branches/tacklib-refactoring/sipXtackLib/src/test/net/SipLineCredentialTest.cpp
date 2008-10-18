@@ -23,9 +23,9 @@
 #include <CompareHelper.h>
 
 // DEFINES
-#define USER_ENTERED_URI_1 "\"John Doe\"<sip:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
+#define FULL_LINE_URL_1 "\"John Doe\"<sip:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
 #define USER_ID_1 "user1"
-#define IDENTITY_URI_1 "<sip:user1:password1@host1:5060;urlparm=value1"
+#define IDENTITY_URI_1 "sip:user1@host1"
 
 #define CREDENTIAL_USERID "John"
 #define CREDENTIAL_USERID2 "John2"
