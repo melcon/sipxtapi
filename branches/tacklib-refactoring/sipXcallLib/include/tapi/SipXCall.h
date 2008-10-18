@@ -38,71 +38,71 @@ class OsStackTraceLogger;
 class SIPX_CALL_DATA
 {
 public:
-   UtlString callId; ///< Id identifying CpPeerCall instance
-   UtlString sessionCallId; ///< SIP CallId used in SIP Messages, identifies SipConnection
-   UtlString ghostCallId;
-   UtlString remoteAddress;
-   UtlString fromURI; ///< from URI used for call, will contain tag. For outbound calls tag is added later.
-   Url userEnteredLineUrl; ///< like lineURI, but with display name, field parameters or brackets
-   Url lineURI; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag.
-   UtlString remoteContactAddress;///< Remote Contact URI
-   SIPX_LINE hLine;
-   SIPX_INSTANCE_DATA* pInst;
-   OsMutex pMutex;
-   SIPX_CONF hConf;
-   SIPX_SECURITY_ATTRIBUTES security;
-   SIPX_VIDEO_DISPLAY display;
-   UtlBoolean bRemoveInsteadOfDrop;   /** Remove the call instead of dropping it 
+   UtlString m_callId; ///< Id identifying CpPeerCall instance
+   UtlString m_sessionCallId; ///< SIP CallId used in SIP Messages, identifies SipConnection
+   UtlString m_ghostCallId;
+   UtlString m_remoteAddress;
+   UtlString m_fromUrl; ///< from URL used for call, will contain tag. For outbound calls tag is added later.
+   Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets
+   Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag.
+   UtlString m_remoteContactAddress;///< Remote Contact URI
+   SIPX_LINE m_hLine;
+   SIPX_INSTANCE_DATA* m_pInst;
+   OsMutex m_mutex;
+   SIPX_CONF m_hConf;
+   SIPX_SECURITY_ATTRIBUTES m_security;
+   SIPX_VIDEO_DISPLAY m_display;
+   UtlBoolean m_bRemoveInsteadOfDrop;   /** Remove the call instead of dropping it 
                                        -- this is used as part of consultative 
                                        transfer when we are the transfer target 
                                        and need to replace a call leg within 
                                        the same CpPeerCall. */
-   SIPX_CALLSTATE_EVENT lastCallstateEvent;
-   SIPX_CALLSTATE_CAUSE lastCallstateCause;
+   SIPX_CALLSTATE_EVENT m_lastCallstateEvent;
+   SIPX_CALLSTATE_CAUSE m_lastCallstateCause;
 
-   SIPX_MEDIA_EVENT lastLocalMediaAudioEvent;
-   SIPX_MEDIA_EVENT lastLocalMediaVideoEvent;
-   SIPX_MEDIA_EVENT lastRemoteMediaAudioEvent;
-   SIPX_MEDIA_EVENT lastRemoteMediaVideoEvent;
+   SIPX_MEDIA_EVENT m_lastLocalMediaAudioEvent;
+   SIPX_MEDIA_EVENT m_lastLocalMediaVideoEvent;
+   SIPX_MEDIA_EVENT m_lastRemoteMediaAudioEvent;
+   SIPX_MEDIA_EVENT m_lastRemoteMediaVideoEvent;
 
-   SIPX_INTERNAL_CALLSTATE state;
-   UtlBoolean bInFocus;
-   int connectionId;                  /** Cache the connection id */
-   SIPX_TRANSPORT hTransport;
-   bool bHoldAfterConnect;            /** Used if we are the transfer target, and the
+   SIPX_INTERNAL_CALLSTATE m_state;
+   UtlBoolean m_bInFocus;
+   int m_connectionId;                  /** Cache the connection id */
+   SIPX_TRANSPORT m_hTransport;
+   bool m_bHoldAfterConnect;            /** Used if we are the transfer target, and the
                                       replaced call is HELD or REMOTE_HELD, then
                                       this flag is set, and indicates that the call
                                       should be placed on hold after the connection
                                       is established. */
-   UtlBoolean bCallHoldInvoked;             /** Set to true if sipxCallHold has been invoked.
+   UtlBoolean m_bCallHoldInvoked;             /** Set to true if sipxCallHold has been invoked.
                                       Set to fales if sipxCallUnhold has been invoked. */                                          
    SIPX_CALL_DATA()
-      : pMutex(OsMutex::Q_FIFO),
-      callId(NULL),
-      sessionCallId(NULL),
-      ghostCallId(NULL),
-      remoteAddress(NULL),
-      fromURI(NULL),
-      lineURI(),
-      remoteContactAddress(NULL),
-      hLine(0),
-      pInst(NULL),
-      hConf(NULL),
-      security(),
-      display(),
-      bRemoveInsteadOfDrop(false),
-      lastCallstateEvent(CALLSTATE_UNKNOWN),
-      lastCallstateCause(CALLSTATE_CAUSE_UNKNOWN),
-      lastLocalMediaAudioEvent(MEDIA_UNKNOWN),
-      lastLocalMediaVideoEvent(MEDIA_UNKNOWN),
-      lastRemoteMediaAudioEvent(MEDIA_UNKNOWN),
-      lastRemoteMediaVideoEvent(MEDIA_UNKNOWN),
-      state(SIPX_INTERNAL_CALLSTATE_UNKNOWN),
-      bInFocus(false),
-      connectionId(0),
-      hTransport(0),
-      bHoldAfterConnect(false),
-      bCallHoldInvoked(false)
+      : m_mutex(OsMutex::Q_FIFO),
+      m_callId(NULL),
+      m_sessionCallId(NULL),
+      m_ghostCallId(NULL),
+      m_remoteAddress(NULL),
+      m_fromUrl(NULL),
+      m_lineUri(),
+      m_remoteContactAddress(NULL),
+      m_hLine(0),
+      m_pInst(NULL),
+      m_hConf(NULL),
+      m_security(),
+      m_display(),
+      m_bRemoveInsteadOfDrop(false),
+      m_lastCallstateEvent(CALLSTATE_UNKNOWN),
+      m_lastCallstateCause(CALLSTATE_CAUSE_UNKNOWN),
+      m_lastLocalMediaAudioEvent(MEDIA_UNKNOWN),
+      m_lastLocalMediaVideoEvent(MEDIA_UNKNOWN),
+      m_lastRemoteMediaAudioEvent(MEDIA_UNKNOWN),
+      m_lastRemoteMediaVideoEvent(MEDIA_UNKNOWN),
+      m_state(SIPX_INTERNAL_CALLSTATE_UNKNOWN),
+      m_bInFocus(false),
+      m_connectionId(0),
+      m_hTransport(0),
+      m_bHoldAfterConnect(false),
+      m_bCallHoldInvoked(false)
    {
 
    }

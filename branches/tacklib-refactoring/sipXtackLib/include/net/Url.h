@@ -428,12 +428,32 @@ public:
     /// Un-escape a string as a gen_value, which is what field-parameters use for values.
     static void gen_value_unescape(UtlString& escapedText);
 
-    /// Gets the serialized URL as a string (with no display name or field parameters)
+    /**
+     * Converts URL into URI (URIs cannot have display name, <>, field parameters)
+     * URI is defined in RFC 2396
+     *
+     * Examples:
+     * sip:user:password@host:port;urlparm=value?headerParam=value
+     */
     void getUri(UtlString& Uri);
 
-    ///< Gets the serialized URL as a new URI with no display name or field parameters. <> will be removed.
-    void getUri(Url& uri, UtlBoolean bRemoveDisplayName = TRUE, UtlBoolean bRemoveBrackets = TRUE) const;
-    Url getUri(UtlBoolean bRemoveDisplayName = TRUE, UtlBoolean bRemoveBrackets = TRUE) const;
+    /**
+    * Converts URL into URI (URIs cannot have display name, <>, field parameters)
+    * URI is defined in RFC 2396
+    *
+    * Examples:
+    * sip:user:password@host:port;urlparm=value?headerParam=value
+    */
+    void getUri(Url& uri) const;
+
+    /**
+    * Converts URL into URI (URIs cannot have display name, <>, field parameters)
+    * URI is defined in RFC 2396
+    *
+    * Examples:
+    * sip:user:password@host:port;urlparm=value?headerParam=value
+    */
+    Url getUri() const;
 
 /* ============================ INQUIRY =================================== */
 
