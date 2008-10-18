@@ -24,7 +24,6 @@
 #include "utl/UtlRegex.h"
 #include "net/Url.h"
 #include "net/NameValueTokenizer.h"
-#include "net/NameValuePair.h"
 #include "net/NameValuePairInsensitive.h"
 #include "net/SipMessage.h"
 #include "net/HttpRequestContext.h"
@@ -294,10 +293,10 @@ Url::operator=(const Url& rhs)
          mpUrlParameters = new UtlDList;
          
          UtlDListIterator paramIterator(*rhs.mpUrlParameters);
-         NameValuePair* rhsParam;
-         while ((rhsParam = (NameValuePair*) paramIterator()))
+         NameValuePairInsensitive* rhsParam;
+         while ((rhsParam = (NameValuePairInsensitive*) paramIterator()))
          {
-            mpUrlParameters->append(new NameValuePair(*rhsParam));
+            mpUrlParameters->append(new NameValuePairInsensitive(*rhsParam));
          }
       }
       else
@@ -310,10 +309,10 @@ Url::operator=(const Url& rhs)
          mpHeaderOrQueryParameters = new UtlDList;
          
          UtlDListIterator paramIterator(*rhs.mpHeaderOrQueryParameters);
-         NameValuePair* rhsParam;
-         while ((rhsParam = (NameValuePair*) paramIterator()))
+         NameValuePairInsensitive* rhsParam;
+         while ((rhsParam = (NameValuePairInsensitive*) paramIterator()))
          {
-            mpHeaderOrQueryParameters->append(new NameValuePair(*rhsParam));
+            mpHeaderOrQueryParameters->append(new NameValuePairInsensitive(*rhsParam));
          }
       }
       else
@@ -326,11 +325,11 @@ Url::operator=(const Url& rhs)
          mpFieldParameters = new UtlDList;
          
          UtlDListIterator paramIterator(*rhs.mpFieldParameters);
-         NameValuePair* rhsParam;
-         while ((rhsParam = (NameValuePair*) paramIterator()))
+         NameValuePairInsensitive* rhsParam;
+         while ((rhsParam = (NameValuePairInsensitive*) paramIterator()))
          {
-            mpFieldParameters->append(new NameValuePair(*rhsParam));
-         }         
+            mpFieldParameters->append(new NameValuePairInsensitive(*rhsParam));
+         }
       }
       else
       {
@@ -519,11 +518,11 @@ UtlBoolean Url::getPath(UtlString& path, UtlBoolean getStyle)
            )
         {
             UtlDListIterator headerParamIterator(*mpHeaderOrQueryParameters);
-            NameValuePair* headerParam = NULL;
+            NameValuePairInsensitive* headerParam = NULL;
             UtlString headerParamValue ;
             UtlBoolean firstHeader = TRUE;
 
-            while ((headerParam = (NameValuePair*) headerParamIterator()))
+            while ((headerParam = (NameValuePairInsensitive*) headerParamIterator()))
             {
                 // Add separator for first header parameter
                 if(firstHeader)
@@ -578,11 +577,11 @@ UtlBoolean Url::getUrlParameter(const char* name, UtlString& value, int index)
     if(mpUrlParameters || parseUrlParameters())
     {
         UtlDListIterator urlParamIterator(*mpUrlParameters);
-        NameValuePair* urlParam = NULL;
+        NameValuePairInsensitive* urlParam = NULL;
 
         UtlString paramName;
 
-        while ((urlParam = (NameValuePair*) urlParamIterator()))
+        while ((urlParam = (NameValuePairInsensitive*) urlParamIterator()))
         {
             paramName = *urlParam;
             if(paramName.compareTo(name, UtlString::ignoreCase) == 0)
@@ -602,14 +601,14 @@ UtlBoolean Url::getUrlParameter(const char* name, UtlString& value, int index)
 
 UtlBoolean Url::getUrlParameter(int urlIndex, UtlString& name, UtlString& value)
 {
-    NameValuePair* url = NULL;
+    NameValuePairInsensitive* url = NULL;
 
     if (   (urlIndex >= 0)
         && (mpUrlParameters || parseUrlParameters())
         && (((int)(mpUrlParameters->entries())) > urlIndex) 
         )
     {
-       url = (NameValuePair*) mpUrlParameters->at(urlIndex);
+       url = (NameValuePairInsensitive*) mpUrlParameters->at(urlIndex);
     }
     
     if(url)
@@ -641,7 +640,7 @@ UtlBoolean Url::getUrlParameters(int iMaxReturn, UtlString* pNames, UtlString *p
 
         for (int i=0; i<iActualReturn; i++)
         {
-            NameValuePair* pair = (NameValuePair*) mpUrlParameters->at(i) ;
+            NameValuePairInsensitive* pair = (NameValuePairInsensitive*) mpUrlParameters->at(i) ;
             pNames[i] = *pair;
             pValues[i] = pair->getValue() ;
         }
@@ -651,7 +650,7 @@ UtlBoolean Url::getUrlParameters(int iMaxReturn, UtlString* pNames, UtlString *p
 
 void Url::setUrlParameter(const char* name, const char* value)
 {
-    NameValuePair* nv = new NameValuePair(name ? name : "",
+    NameValuePairInsensitive* nv = new NameValuePairInsensitive(name ? name : "",
         value ? value : "");
 
     // ensure that mpUrlParameters is initialized
@@ -660,7 +659,7 @@ void Url::setUrlParameter(const char* name, const char* value)
        mpUrlParameters = new UtlDList;
     }
     
-    NameValuePair* existingParam = dynamic_cast<NameValuePair*>(mpUrlParameters->find(nv));
+    NameValuePairInsensitive* existingParam = dynamic_cast<NameValuePairInsensitive*>(mpUrlParameters->find(nv));
 
     if (existingParam)
     {
@@ -681,11 +680,11 @@ UtlBoolean Url::getHeaderParameter(const char* name, UtlString& value, int index
     if(mpHeaderOrQueryParameters || parseHeaderOrQueryParameters())
     {
         UtlDListIterator headerParamIterator(*mpHeaderOrQueryParameters);
-        NameValuePair* headerParam = NULL;
+        NameValuePairInsensitive* headerParam = NULL;
 
         UtlString paramName;
 
-        while ((headerParam = (NameValuePair*) headerParamIterator()))
+        while ((headerParam = (NameValuePairInsensitive*) headerParamIterator()))
         {
             paramName = *headerParam;
             if(paramName.compareTo(name, UtlString::ignoreCase) == 0)
@@ -723,7 +722,7 @@ UtlBoolean Url::getHeaderParameters(int iMaxReturn, UtlString* pNames, UtlString
 
         for (int i=0; i<iActualReturn; i++)
         {
-            NameValuePair *pair = (NameValuePair*) mpHeaderOrQueryParameters->at(i) ;
+            NameValuePairInsensitive *pair = (NameValuePairInsensitive*) mpHeaderOrQueryParameters->at(i) ;
             pNames[i] = *pair;
             pValues[i] = pair->getValue() ;
         }
@@ -836,10 +835,10 @@ void Url::getUri(UtlString& urlString)
         )
     {
         UtlDListIterator urlParamIterator(*mpUrlParameters);
-        NameValuePair* urlParam = NULL;
+        NameValuePairInsensitive* urlParam = NULL;
         UtlString urlParamValue;
 
-        while ((urlParam = (NameValuePair*) urlParamIterator()))
+        while ((urlParam = dynamic_cast<NameValuePairInsensitive*>(urlParamIterator())))
         {
             urlString.append(";", 1);
             urlString.append(*urlParam);
@@ -892,18 +891,20 @@ void Url::getUri(UtlString& urlString)
 
 void Url::getUri(Url& uri) const
 {
-   uri = getUri();
+   uri = *this;
+   uri.setDisplayName(NULL);
+   uri.removeAngleBrackets();
+   uri.removeFieldParameters();
 }
 
 Url Url::getUri() const
 {
-   Url uri(*this);
-   uri.setDisplayName(NULL);
-   uri.removeAngleBrackets();
-   uri.removeFieldParameters();
+   Url uri;
+   getUri(uri);
 
    return uri;
 }
+
 void Url::setHeaderParameter(const char* name, const char* value)
 {
     if ( name && *name )
@@ -932,7 +933,7 @@ void Url::setHeaderParameter(const char* name, const char* value)
 
 UtlBoolean Url::getHeaderParameter(int headerIndex, UtlString& name, UtlString& value)
 {
-    NameValuePair* header = NULL;
+    NameValuePairInsensitive* header = NULL;
 
     if (   (headerIndex >= 0)
         && (mpHeaderOrQueryParameters || parseHeaderOrQueryParameters())
@@ -986,11 +987,11 @@ UtlBoolean Url::getFieldParameter(const char* name, UtlString& value, int index)
     if(mpFieldParameters || const_cast<Url*>(this)->parseFieldParameters())
     {
         UtlDListIterator fieldParamIterator(*mpFieldParameters);
-        NameValuePair* fieldParam = NULL;
+        NameValuePairInsensitive* fieldParam = NULL;
 
         UtlString paramName;
 
-        while ((fieldParam = (NameValuePair*) fieldParamIterator()))
+        while ((fieldParam = (NameValuePairInsensitive*) fieldParamIterator()))
         {
             paramName = *fieldParam;
             if(paramName.compareTo(name, UtlString::ignoreCase) == 0)
@@ -1010,14 +1011,14 @@ UtlBoolean Url::getFieldParameter(const char* name, UtlString& value, int index)
 
 UtlBoolean Url::getFieldParameter(int fieldIndex, UtlString& name, UtlString& value)
 {
-    NameValuePair* field = NULL;
+    NameValuePairInsensitive* field = NULL;
 
     if (   fieldIndex >= 0
         && (mpFieldParameters || parseFieldParameters())
         && ((int)(mpFieldParameters->entries())) > fieldIndex 
         )
     {
-       field = (NameValuePair*) mpFieldParameters->at(fieldIndex);
+       field = (NameValuePairInsensitive*) mpFieldParameters->at(fieldIndex);
     }
     
     if(field)
@@ -1049,7 +1050,7 @@ UtlBoolean Url::getFieldParameters(int iMaxReturn, UtlString* pNames, UtlString 
 
         for (int i=0; i<iActualReturn; i++)
         {
-            NameValuePair *pair = (NameValuePair*) mpFieldParameters->at(i) ;
+            NameValuePairInsensitive *pair = (NameValuePairInsensitive*) mpFieldParameters->at(i) ;
             pNames[i] = *pair;
             pValues[i] = pair->getValue() ;
 
@@ -1061,7 +1062,7 @@ UtlBoolean Url::getFieldParameters(int iMaxReturn, UtlString* pNames, UtlString 
 
 void Url::setFieldParameter(const char* name, const char* value)
 {
-    NameValuePair* nv = new NameValuePair(name ? name : "",
+    NameValuePairInsensitive* nv = new NameValuePairInsensitive(name ? name : "",
         value ? value : "");
 
     // ensure that mpFieldParameters is initialized
@@ -1070,7 +1071,7 @@ void Url::setFieldParameter(const char* name, const char* value)
        mpFieldParameters = new UtlDList;
     }
     
-    NameValuePair* existingParam = dynamic_cast<NameValuePair*>(mpFieldParameters->find(nv));
+    NameValuePair* existingParam = dynamic_cast<NameValuePairInsensitive*>(mpFieldParameters->find(nv));
 
     if (existingParam)
     {
@@ -1179,13 +1180,13 @@ void Url::toString(UtlString& urlString) const
    }
 
    // Add the field parameters
-   if(haveFldParams)
+   if(isNameAddr && haveFldParams)
    {
       UtlDListIterator fieldParamIterator(*mpFieldParameters);
-      NameValuePair* fieldParam = NULL;
+      NameValuePairInsensitive* fieldParam = NULL;
       UtlString fieldParamValue;
 
-      while ((fieldParam = (NameValuePair*) fieldParamIterator()))
+      while ((fieldParam = dynamic_cast<NameValuePairInsensitive*>(fieldParamIterator())))
       {
          urlString.append(";", 1);
          urlString.append(*fieldParam);
