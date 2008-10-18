@@ -4527,7 +4527,7 @@ UtlBoolean SipUserAgent::buildAuthenticatedRequest(const SipMessage& response, /
       // According to RFC2617: "The server should only set stale to TRUE
       // if it receives a request for which the nonce is invalid but with a
       // valid digest for that nonce" - so there shouldn't be infinite auth loop
-      if (stale.compareTo("TRUE", UtlString::ignoreCase) != 0)
+      if (stale.compareTo("TRUE", UtlString::ignoreCase) == 0)
       {
          // Check to see if we already tried to send the credentials
          alreadyTriedOnce = request.hasDigestAuthorizationData(realm, authorizationEntity);
