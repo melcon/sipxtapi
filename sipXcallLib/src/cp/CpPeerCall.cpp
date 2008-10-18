@@ -482,10 +482,10 @@ UtlBoolean CpPeerCall::handleSipMessage(OsMsg* pEventMessage)
          // extract our localAddress from sip message as we do not know it at this place
          UtlString sRequestUri;
          pSipMsg->getRequestUri(&sRequestUri);
-         Url requestUri(sRequestUri);// parse request uri as normal uri
-         Url localAddress;
-         requestUri.getUri(localAddress, FALSE, FALSE);
-         connection = new SipConnection(localAddress.toString(),
+         Url requestUrl(sRequestUri);// convert request uri into url. Request uri cannot have a field tag
+         // this is not supposed to be a lineUri. Call manager doesn't know about "lines". This requestUrl
+         // needs to keep parameters line transport=tcp from the original request
+         connection = new SipConnection(requestUrl.toString(),
             mIsEarlyMediaFor180,
             mpManager,
             this,

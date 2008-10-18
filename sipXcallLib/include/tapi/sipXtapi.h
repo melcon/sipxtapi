@@ -1208,6 +1208,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreate(const SIPX_INST hInst,
  * @param szLine Arbitrary Line Identity for the outbound call.  The line identity 
  *        defines the "From" caller-id. If this line is not registered with sipxtapi
  *        SIPX_LINE_NULL will be returned in all call events associated with this call.
+ *        "transport" parameter is stripped from szLine, since there is different transport
+ *        selection logic.
  * @param phCall Pointer to a call handle.  Upon success, this value is
  *        replaced with a valid call handle.  Success is determined by
  *        the SIPX_RESULT result code.

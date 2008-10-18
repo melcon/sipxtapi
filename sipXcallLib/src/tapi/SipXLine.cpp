@@ -60,7 +60,7 @@ SIPX_LINE sipxLineLookupHandle(const char* szLineURI,
 }
 
 
-static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& lineUri, const Url& userEnteredUrl)
+static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& lineUri, const Url& fullLineUrl)
 {
    SIPX_LINE_DATA* pData = new SIPX_LINE_DATA();
    // if there is allocation failure, std::bad_alloc exception is thrown
@@ -69,8 +69,8 @@ static SIPX_LINE_DATA* createLineData(SIPX_INSTANCE_DATA* pInst, const Url& line
    // if we want to check for NULL, then we would have to use
    // new(std:::nothrow) instead of just new
 
-   pData->m_userEnteredUrl = userEnteredUrl;
-   pData->m_lineURI = lineUri;
+   pData->m_fullLineUrl = fullLineUrl;
+   pData->m_lineUri = lineUri;
    pData->m_pInst = pInst;
 
    return pData;
@@ -265,7 +265,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
             OsLock lock(pData->m_mutex);
 
             // Check main line definition
-            if (urlURI.isUserHostPortEqual(pData->m_lineURI))
+            if (urlURI.isUserHostPortEqual(pData->m_lineUri))
             {
                hLine = pIndex->getValue();
                break;
@@ -307,7 +307,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                OsLock lock(pData->m_mutex);
 
                // Check main line definition
-               if (urlURI.isUserHostEqual(pData->m_lineURI))
+               if (urlURI.isUserHostEqual(pData->m_lineUri))
                {
                   hLine = pIndex->getValue();
                   break;
@@ -354,7 +354,7 @@ SIPX_LINE sipxLineLookupHandleByURI(const char* szURI)
                UtlString hostUsername;
 
                urlURI.getUserId(uriUsername);
-               pData->m_lineURI.getUserId(hostUsername);
+               pData->m_lineUri.getUserId(hostUsername);
 
                if (uriUsername.compareTo(hostUsername, UtlString::ignoreCase) == 0)
                {
@@ -409,7 +409,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineRemove(SIPX_LINE hLine)
 
       if (pData)
       {
-         Url lineURI(pData->m_lineURI);
+         Url lineURI(pData->m_lineUri);
          SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
 
          sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
@@ -446,7 +446,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineRegister(const SIPX_LINE hLine, const int bRegi
       SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_WRITE, stackLogger);
       if (pData)
       {
-         Url lineURI(pData->m_lineURI);
+         Url lineURI(pData->m_lineUri);
          SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
 
          sipxLineReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
@@ -485,7 +485,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddCredential(const SIPX_LINE hLine,
 
    if (pData)
    {
-      Url lineURI(pData->m_lineURI);
+      Url lineURI(pData->m_lineUri);
       SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
 
       sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
@@ -529,7 +529,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineSetOutboundProxy(const SIPX_LINE hLine,
 
    if (pData)
    {
-      Url lineURI(pData->m_lineURI);
+      Url lineURI(pData->m_lineUri);
       SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
 
       sipxLineReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
@@ -595,8 +595,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetContactInfo(const SIPX_LINE  hLine,
    SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
    if (pData)
    {
-      SAFE_STRNCPY(szContactAddress, pData->m_contactUri.getHostAddress().data(), nContactAddressSize);
-      *contactPort = pData->m_contactUri.getHostPort();
+      SAFE_STRNCPY(szContactAddress, pData->m_contactUrl.getHostAddress().data(), nContactAddressSize);
+      *contactPort = pData->m_contactUrl.getHostPort();
       *contactType = pData->m_contactType;
       *transport = pData->m_transport;
 
@@ -662,7 +662,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
       // iterate through all lines
       while ((pLine = dynamic_cast<SipLine*>(itor())) != NULL && *actual < max)
       {
-         lines[*actual] = sipxLineLookupHandleByURI(pLine->getIdentityUri().toString());
+         lines[*actual] = sipxLineLookupHandleByURI(pLine->getLineUri().toString());
          *actual = *actual + 1;
       }
 
@@ -695,14 +695,14 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
    {
       if (szBuffer)
       {
-         SAFE_STRNCPY(szBuffer, pData->m_lineURI.toString(), nBuffer);
+         SAFE_STRNCPY(szBuffer, pData->m_lineUri.toString(), nBuffer);
 
          *nActual = strlen(szBuffer) + 1;
          sr = SIPX_RESULT_SUCCESS;
       }
       else
       {
-         *nActual = strlen(pData->m_lineURI.toString()) + 1;
+         *nActual = strlen(pData->m_lineUri.toString()) + 1;
          sr = SIPX_RESULT_SUCCESS;
       }
 
@@ -735,7 +735,6 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
       if (szLineUrl && phLine)
       {
          Url userEnteredUrl(szLineUrl); // for example "display name"<sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
-         Url lineUri = SipLine::getLineUri(userEnteredUrl); // for example sip:number@domain;transport=tcp
 
          // Set the preferred contact
          SIPX_CONTACT_ADDRESS* pContact = NULL;
@@ -770,17 +769,19 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
             return sr;
          }
 
-         SipLine line(userEnteredUrl, lineUri, SipLine::LINE_STATE_UNKNOWN);
+         SipLine line(userEnteredUrl, SipLine::LINE_STATE_UNKNOWN);
+         Url lineUri = line.getLineUri(); // gets unique line uri, for line matching
+         Url fullLineUrl = line.getFullLineUrl(); // gets full line url for constructing sip message from field
          line.setPreferredContact(contactIp, contactPort);
 
          UtlBoolean bRC = pInst->pLineManager->addLine(line);
          if (bRC)
          {
-            SIPX_LINE_DATA* pData = createLineData(pInst, lineUri, userEnteredUrl);
+            SIPX_LINE_DATA* pData = createLineData(pInst, lineUri, fullLineUrl);
 
             if (pData)
             {
-               pData->m_contactUri = line.getPreferredContactUri();
+               pData->m_contactUrl = line.getPreferredContactUri();
                pData->m_transport = suggestedTransport;
                pData->m_contactType = contactType;
 

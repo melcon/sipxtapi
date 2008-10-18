@@ -890,22 +890,16 @@ void Url::getUri(UtlString& urlString)
     }
 }
 
-void Url::getUri(Url& uri, UtlBoolean bRemoveDisplayName, UtlBoolean bRemoveBrackets) const
+void Url::getUri(Url& uri) const
 {
-   uri = getUri(bRemoveDisplayName, bRemoveBrackets);
+   uri = getUri();
 }
 
-Url Url::getUri(UtlBoolean bRemoveDisplayName, UtlBoolean bRemoveBrackets) const
+Url Url::getUri() const
 {
    Url uri(*this);
-   if (bRemoveDisplayName)
-   {
-      uri.setDisplayName(NULL);
-   }
-   if (bRemoveBrackets)
-   {
-      uri.removeAngleBrackets();
-   }
+   uri.setDisplayName(NULL);
+   uri.removeAngleBrackets();
    uri.removeFieldParameters();
 
    return uri;

@@ -221,7 +221,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
    if (event == CALLSTATE_NEWCALL)
    {
       pCallData = new SIPX_CALL_DATA();
-      pCallData->pMutex.acquire();
+      pCallData->m_mutex.acquire();
       UtlBoolean res = gCallHandleMap.allocHandle(hCall, pCallData);
       if (!res)
       {
@@ -242,19 +242,19 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
          pSipXInstance->lock.release();
       }
 
-      pCallData->state = SIPX_INTERNAL_CALLSTATE_UNKNOWN;
+      pCallData->m_state = SIPX_INTERNAL_CALLSTATE_UNKNOWN;
 
-      pCallData->callId = sCallId;
-      pCallData->sessionCallId = sSessionCallId;
-      pCallData->remoteAddress = szRemoteAddress;
+      pCallData->m_callId = sCallId;
+      pCallData->m_sessionCallId = sSessionCallId;
+      pCallData->m_remoteAddress = szRemoteAddress;
 
       Url urlFrom;
       session.getFromUrl(urlFrom);
-      session.getContactRequestUri(pCallData->remoteContactAddress);
+      session.getContactRequestUri(pCallData->m_remoteContactAddress);
 
-      pCallData->fromURI = urlFrom.toString();
-      pCallData->pInst = pSipXInstance;
-      pCallData->pMutex.release();
+      pCallData->m_fromUrl = urlFrom.toString();
+      pCallData->m_pInst = pSipXInstance;
+      pCallData->m_mutex.release();
 
       // VERIFY
       if (!sOriginalSessionCallId.isNull()) // event data during newcall => call transfer original call
@@ -273,7 +273,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
             UtlBoolean bCallHoldInvoked = FALSE;
             if (pOldCallData)
             {
-               bCallHoldInvoked = pOldCallData->bCallHoldInvoked;
+               bCallHoldInvoked = pOldCallData->m_bCallHoldInvoked;
                sipxCallReleaseLock(pOldCallData, SIPX_LOCK_READ, stackLogger);
             }
 
@@ -282,7 +282,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
                SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
                if (pData)
                {
-                  pData->bHoldAfterConnect = true;
+                  pData->m_bHoldAfterConnect = true;
                   sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
                }
             }
@@ -346,12 +346,12 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
             // update call fromURI, since for outbound calls, we need to update tag
             Url urlFrom;
             session.getFromUrl(urlFrom);
-            pCallData->fromURI = urlFrom.toString();
+            pCallData->m_fromUrl = urlFrom.toString();
          }
 
-         if (pCallData->remoteContactAddress.isNull())
+         if (pCallData->m_remoteContactAddress.isNull())
          {
-            session.getContactRequestUri(pCallData->remoteContactAddress);
+            session.getContactRequestUri(pCallData->m_remoteContactAddress);
          }
 
          sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
@@ -412,7 +412,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
          pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
          if (pCallData)
          {
-            pCallData->remoteAddress = szRemoteAddress;
+            pCallData->m_remoteAddress = szRemoteAddress;
             sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
          }
       }
@@ -460,37 +460,37 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       if (pCallData)
       {
          // just posts message
-         pCallData->pInst->pCallManager->dropConnection(sSessionCallId, szRemoteAddress);
+         pCallData->m_pInst->pCallManager->dropConnection(sSessionCallId, szRemoteAddress);
          sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
       }
 
       // fire simulated local media events
-      if (pCallData->lastLocalMediaAudioEvent == MEDIA_LOCAL_START)
+      if (pCallData->m_lastLocalMediaAudioEvent == MEDIA_LOCAL_START)
       {
-         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
             MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
-      if (pCallData->lastLocalMediaVideoEvent == MEDIA_LOCAL_START)
+      if (pCallData->m_lastLocalMediaVideoEvent == MEDIA_LOCAL_START)
       {
-         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
             MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
       // fire simulated remote media events
-      if ((pCallData->lastRemoteMediaAudioEvent == MEDIA_REMOTE_START) || 
-         (pCallData->lastRemoteMediaAudioEvent == MEDIA_REMOTE_SILENT) ||
-         (pCallData->lastRemoteMediaAudioEvent == MEDIA_REMOTE_ACTIVE))
+      if ((pCallData->m_lastRemoteMediaAudioEvent == MEDIA_REMOTE_START) || 
+         (pCallData->m_lastRemoteMediaAudioEvent == MEDIA_REMOTE_SILENT) ||
+         (pCallData->m_lastRemoteMediaAudioEvent == MEDIA_REMOTE_ACTIVE))
       {
-         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
             MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
-      if ((pCallData->lastRemoteMediaVideoEvent == MEDIA_REMOTE_START) || 
-         (pCallData->lastRemoteMediaVideoEvent == MEDIA_REMOTE_SILENT) ||
-         (pCallData->lastRemoteMediaVideoEvent == MEDIA_REMOTE_ACTIVE))
+      if ((pCallData->m_lastRemoteMediaVideoEvent == MEDIA_REMOTE_START) || 
+         (pCallData->m_lastRemoteMediaVideoEvent == MEDIA_REMOTE_SILENT) ||
+         (pCallData->m_lastRemoteMediaVideoEvent == MEDIA_REMOTE_ACTIVE))
       {
-         pCallData->pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
             MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
@@ -507,7 +507,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
       if (pCallData)
       {
-         bool bHoldAfterConnect = pCallData->bHoldAfterConnect;
+         bool bHoldAfterConnect = pCallData->m_bHoldAfterConnect;
          sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
 
          if (bHoldAfterConnect)
@@ -519,7 +519,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
             pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
             if (pCallData)
             {
-               pCallData->bHoldAfterConnect = false;
+               pCallData->m_bHoldAfterConnect = false;
                sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
             }
          }
