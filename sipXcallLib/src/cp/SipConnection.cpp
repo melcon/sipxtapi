@@ -845,6 +845,7 @@ UtlBoolean SipConnection::dial(const char* dialString,
     if(getState() == CONNECTION_IDLE && mpMediaInterface != NULL)
     {
         mFromUrl = localAddress;
+        mFromUrl.setFieldParameter("tag", mFromTag);
         mLocalAddress = localAddress;
 
         SIPX_CONTACT_ADDRESS* pAddress = sipUserAgent->getContactDb().getLocalContact(mContactId) ;
@@ -1130,11 +1131,6 @@ void SipConnection::outOfFocus()
 
 UtlBoolean SipConnection::answer(const void* pDisplay)
 {
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_SIP, PRI_WARNING,
-        "Entering SipConnection::answer inviteMsg=0x%08x ", (int)inviteMsg);
-#endif
-
     UtlBoolean answerOk = FALSE;
     const SdpBody* sdpBody = NULL;
     UtlString hostAddresses[MAX_ADDRESS_CANDIDATES] ;
@@ -1252,17 +1248,10 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
             else
             {
                 // Respond with an OK
-    #ifdef TEST_PRINT
-                osPrintf("Sending INVITE OK\n");
-    #endif
-
                 // There was no SDP in the INVITE, so give them all of
                 // the codecs we support.
                 if(!sdpBody)
                 {
-    #ifdef TEST_PRINT
-                    osPrintf("Sending initial SDP in OK\n");
-    #endif
                     // There were no codecs specified in the INVITE
                     // Give the full set of supported codecs
                     supportedCodecs.getCodecs(numMatchingCodecs, decoderCodecs);
@@ -1551,9 +1540,6 @@ UtlBoolean SipConnection::accept(int ringingTimeOutSeconds,
             SipMessage badTransaction;
             badTransaction.setBadTransactionData(inviteMsg);
             send(badTransaction);
-#ifdef TEST_PRINT
-            osPrintf("SipConnection::accept - CONNECTION_FAILED, cause BUSY : 754\n");
-#endif
             OsSysLog::add(FAC_CP, PRI_ERR, "SipConnection::accept - incoming call part of a transfer");
             setState(CONNECTION_FAILED, CONNECTION_REMOTE, CONNECTION_CAUSE_BUSY);
             fireSipXCallEvent(CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_TRANSACTION_DOES_NOT_EXIST) ;
@@ -1716,9 +1702,6 @@ UtlBoolean SipConnection::reject()
                 SipMessage badTransaction;
                 badTransaction.setBadTransactionData(inviteMsg);
                 responseSent = send(badTransaction);
-#ifdef TEST_PRINT
-                osPrintf("SipConnection::reject - CONNECTION_FAILED, cause BUSY : 825\n");
-#endif
                 setState(CONNECTION_FAILED, CONNECTION_REMOTE, CONNECTION_CAUSE_BUSY);
                 fireSipXCallEvent(CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_TRANSACTION_DOES_NOT_EXIST) ;
             }
@@ -1727,9 +1710,6 @@ UtlBoolean SipConnection::reject()
                 SipMessage busyMessage;
                 busyMessage.setInviteBusyData(inviteMsg);
                 responseSent = send(busyMessage);
-#ifdef TEST_PRINT
-                osPrintf("SipConnection::reject - CONNECTION_FAILED, cause BUSY : 833\n");
-#endif
                 setState(CONNECTION_FAILED, CONNECTION_REMOTE, CONNECTION_CAUSE_BUSY);
                 fireSipXCallEvent(CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_REJECTED) ;
             }
@@ -1739,9 +1719,6 @@ UtlBoolean SipConnection::reject()
             SipMessage terminateMessage;
             terminateMessage.setRequestTerminatedResponseData(inviteMsg);
             responseSent = send(terminateMessage);
-#ifdef TEST_PRINT
-            osPrintf("SipConnection::reject - CONNECTION_DISCONNECTED, cause CONNECTION_CAUSE_CANCELLED : 845\n");
-#endif
             setState(CONNECTION_DISCONNECTED, CONNECTION_REMOTE, CONNECTION_CAUSE_CANCELLED);
             fireSipXCallEvent(CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_REJECTED) ;
         }
@@ -1993,11 +1970,6 @@ UtlBoolean SipConnection::doOffHold(UtlBoolean forceReInvite)
 
         // Build an INVITE with the RTP address in the SDP
         // as the real address
-#ifdef TEST_PRINT
-        osPrintf("SipConnection::offHold rtpAddress: %s\n",
-            rtpAddress.data());
-#endif
-
         int iCSeq ;
         mCSeqMgr.startTransaction(CSEQ_ID_INVITE, iCSeq) ;
         SipMessage offHoldMessage;
@@ -4250,10 +4222,6 @@ UtlBoolean SipConnection::processResponse(const SipMessage* response,
         if(mCSeqMgr.getCSeqNumber(CSEQ_ID_INVITE) == sequenceNum &&
                 sequenceMethod.compareTo(mLastRequestMethod) == 0)
         {
-#ifdef TEST_PRINT
-            osPrintf("%s response: %d %s\n", sequenceMethod.data(),
-                responseCode, responseText.data());
-#endif
             if(responseCode >= SIP_OK_CODE)
             {
                 if (mpMediaInterface != NULL)
@@ -4311,10 +4279,6 @@ UtlBoolean SipConnection::processResponse(const SipMessage* response,
                     targetCallId.data(), toField.data(),
                     NULL, NULL, NULL,
                     state, cause);
-#ifdef TEST_PRINT
-                osPrintf("SipConnection::processResponse BYE posting CP_TRANSFER_CONNECTION_STATUS to call: %s\n",
-                    targetCallId.data());
-#endif
                 mpCallManager->postMessage(transferControllerStatus);
 
                 // Reset mTargetCallConnectionAddress so that if this connection
@@ -4401,36 +4365,15 @@ UtlBoolean SipConnection::processResponse(const SipMessage* response,
             // else Ignore provisional responses
             else
             {
-#ifdef TEST_PRINT
-                osPrintf("%s provisional response ignored: %d %s\n",
-                    sequenceMethod.data(),
-                    responseCode,
-                    responseText.data());
-#endif
             }
         }
         else
         {
-#ifdef TEST_PRINT
-            osPrintf("%s response ignored: %d %s invalid cseq last: %d last method: %s\n",
-                sequenceMethod.data(),
-                responseCode,
-                responseText.data(),
-                mCSeqMgr.getCSeqNumber(CSEQ_ID_INVITE),
-                mLastRequestMethod.data());
-#endif
         }
     }//END - else if(strcmp(sequenceMethod.data(), SIP_BYE_METHOD) == 0 || strcmp(sequenceMethod.data(), SIP_CANCEL_METHOD) == 0)
-
     // Unknown method response
     else
     {
-#ifdef TEST_PRINT
-        osPrintf("%s response ignored: %d %s\n",
-            sequenceMethod.data(),
-            responseCode,
-            responseText.data());
-#endif
     }
 
     return(processedOk);
@@ -5599,10 +5542,6 @@ void SipConnection::processReferResponse(const SipMessage* response)
                 targetCallId.data(), toField.data(),
                 NULL, NULL, NULL,
                 state, cause);
-#ifdef TEST_PRINT
-            osPrintf("SipConnection::processResponse REFER posting CP_TRANSFER_CONNECTION_STATUS to call: %s\n",
-                targetCallId.data());
-#endif
             mpCallManager->postMessage(transferControllerStatus);
 
             // Drop this connection, the transfer succeeded
@@ -5610,16 +5549,6 @@ void SipConnection::processReferResponse(const SipMessage* response)
             // both calls have some overlap.
             if(responseCode == SIP_OK_CODE) doHangUp();
         }
-
-#ifdef TEST_PRINT
-        // We ignore provisional response
-        // as they do not indicate any state change
-        else
-        {
-            osPrintf("SipConnection::processResponse ignoring REFER response %d\n",
-                responseCode);
-        }
-#endif
     }
     else
     {
@@ -5851,15 +5780,6 @@ void SipConnection::setCallerId()
             uri = mToUrl;
             inviteMsg->getToUrl(mFromUrl);
             inviteMsg->getRequestUri(&mRemoteUriStr);
-
-#ifdef TEST_PRINT
-            UtlString fromString;
-            UtlString toString;
-            mToUrl.toString(toString);
-            mFromUrl.toString(fromString);
-            osPrintf("SipConnection::setCallerId INBOUND to: %s from: %s\n",
-                toString.data(), fromString.data());
-#endif
         }
         else
         {
@@ -5867,15 +5787,6 @@ void SipConnection::setCallerId()
             uri = mToUrl;
             inviteMsg->getFromUrl(mFromUrl);
             inviteMsg->getRequestUri(&mLocalUriStr);
-
-#ifdef TEST_PRINT
-            UtlString fromString;
-            UtlString toString;
-            mToUrl.toString(toString);
-            mFromUrl.toString(fromString);
-            osPrintf("SipConnection::setCallerId INBOUND to: %s from: %s\n",
-                toString.data(), fromString.data());
-#endif
         }
 
         uri.getHostAddress(addr);
@@ -5889,11 +5800,6 @@ void SipConnection::setCallerId()
         // user id
         // host address
         NameValueTokenizer::frontBackTrim(&userLabel, " \t\n\r");
-#ifdef TEST_PRINT
-        osPrintf("SipConnection::setCallerid label: %s user %s address: %s\n",
-            userLabel.data(), user.data(), addr.data());
-#endif
-
         if(!userLabel.isNull())
         {
             newCallerId.append(userLabel.data());
@@ -6365,10 +6271,6 @@ UtlBoolean SipConnection::isConnection(const char* callId,
                     matches = TRUE;
                 }
             }
-#ifdef TEST_PRINT
-            osPrintf("SipConnection::isConnection toTag=%s\n\t fromTag=%s\n\t thisToTag=%s\n\t thisFromTag=%s\n\t matches=%d\n",
-                toTag, fromTag, thisToTag.data(), thisFromTag.data(), (int)matches) ;
-#endif
         }
     }
 
@@ -6396,12 +6298,6 @@ UtlBoolean SipConnection::isMethodAllowed(const char* method)
     {
         methodSupported = FALSE;
     }
-#ifdef TEST_PRINT
-    osPrintf("SipConnection::isMethodAllowed method: %s allowed: %s return: %d index: %d null?: %d\n",
-        method, mAllowedRemote.data(), methodSupported, methodIndex,
-        mAllowedRemote.isNull());
-#endif
-
     return(methodSupported);
 }
 
@@ -6767,10 +6663,6 @@ void SipConnection::proceedToRinging(const SipMessage* inviteMessage,
                                      int matchingVideoFramerate)
 {
     UtlString name = mpCall->getName();
-#ifdef TEST_PRINT
-    osPrintf("%s SipConnection::proceedToRinging\n", name.data());
-#endif
-
     // Send back a ringing INVITE response
     SipMessage sipResponse;
     sipResponse.setInviteRingingData(inviteMessage);
@@ -6824,18 +6716,7 @@ void SipConnection::proceedToRinging(const SipMessage* inviteMessage,
         prepareInviteSdpForSend(&sipResponse, mConnectionId, mpSecurity) ;
     }
 
-    if(send(sipResponse))
-    {
-#ifdef TEST_PRINT
-        osPrintf("INVITE Ringing sent successfully\n");
-#endif
-    }
-    else
-    {
-#ifdef TEST_PRINT
-        osPrintf("INVITE Ringing send failed\n");
-#endif
-    }
+    send(sipResponse);
 }
 
 UtlBoolean SipConnection::send(SipMessage& message,

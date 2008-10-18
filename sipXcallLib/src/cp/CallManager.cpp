@@ -244,22 +244,9 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
 
     infocusCall = NULL;
     mOutGoingCallType = phonesetOutgoingCallProtocol;
-
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager: localAddress: %s mLocalAddress: %s publicAddress: %s mPublicAddress %s\n",
-        localAddress, mLocalAddress.data(), publicAddress,
-        mPublicAddress.data());
-#endif
-
     mpCodecFactory = pCodecFactory;
-
-#ifdef TEST_PRINT
-    // Default the log on
-    startCallStateLog();
-#else
     // Disable the message log
     stopCallStateLog();
-#endif
 
     // Pre-allocate all of the history memory to minimze fragmentation
     for(int h = 0; h < CP_CALL_HISTORY_LENGTH ; h++)
@@ -746,12 +733,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
 
             if(timer)
             {
-#ifdef TEST_PRINT
-                int eventMessageType = timerMsg->getMsgType();
-                int eventMessageSubType = timerMsg->getMsgSubType();
-                OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::handleMessage deleting timer for message type: %d %d\n",
-                    eventMessageType, eventMessageSubType);
-#endif
                 //timer->stop();
                 // timer gets deleted where it was started, this enables
                 // us to delete timers safely from other class, where
@@ -883,10 +864,6 @@ OsStatus CallManager::getCalls(UtlSList& callIdList)
          }
       }
    }
-
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager:getCalls numCalls = %d\n ", numCalls) ;
-#endif
     return returnCode;
 }
 
@@ -1380,11 +1357,6 @@ OsStatus CallManager::getCalledAddresses(const char* callId, int maxConnections,
             }
             numConnections = addressIndex;
         } // end of interator scope
-#ifdef TEST_PRINT_EVENT
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getCalledAddresses %d addresses\n",
-            numConnections);
-#endif
-
         addressList->destroyAll();
         delete addressList;
         eventMgr->release(numConnectionsSet);
@@ -1441,12 +1413,6 @@ OsStatus CallManager::getCallingAddresses(const char* callId, int maxConnections
             addressCollectable = dynamic_cast<UtlString*>(iterator());
         }
         numConnections = addressIndex;
-
-#ifdef TEST_PRINT_EVENT
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getCallingAddresses %d addresses\n",
-            numConnections);
-#endif
-
         addressList->destroyAll();
         delete addressList;
         eventMgr->release(numConnectionsSet);
@@ -1480,12 +1446,7 @@ OsStatus CallManager::getFromField(const char* callId,
         Url fromUrl;
         session.getFromUrl(fromUrl);
         fromUrl.toString(fromField);
-
-#ifdef TEST_PRINT_EVENT
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getFromField %s\n", fromField.data());
-#endif
     }
-
     else
     {
         fromField.remove(0);
@@ -1534,10 +1495,6 @@ OsStatus CallManager::getSession(const char* callId,
    OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getSession callId = '%s', address = '%s'",
                  callId, address);
     SipSession* sessionPtr = new SipSession;
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getSession allocated session: 0x%x",
-        sessionPtr);
-#endif
     OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
     OsProtectedEvent* getSessionEvent = eventMgr->alloc();
     getSessionEvent->setIntData((int) sessionPtr);
@@ -1568,10 +1525,6 @@ OsStatus CallManager::getSession(const char* callId,
         // If the event has already been signalled, clean up
         if(OS_ALREADY_SIGNALED == getSessionEvent->signal(0))
         {
-#ifdef TEST_PRINT
-            OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::getSession deleting timed out session: 0x%x",
-                sessionPtr);
-#endif
             delete sessionPtr;
             sessionPtr = NULL;
 
@@ -1774,9 +1727,6 @@ CpCall* CallManager::removeCall(CpCall* call)
     if(callCollectable)
     {
         call = (CpCall*) callCollectable->getValue();
-#ifdef TEST_PRINT
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "Found and removed call from stack: %X\r\n", call);
-#endif
         delete callCollectable;
         callCollectable = NULL;
     }
@@ -1878,17 +1828,11 @@ CpCall* CallManager::findHandlingCall(const OsMsg& eventMessage)
 void CallManager::startCallStateLog()
 {
     mCallStateLogEnabled = TRUE;
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "Call State LOGGING ENABLED\n");
-#endif
 }
 
 void CallManager::stopCallStateLog()
 {
     mCallStateLogEnabled = FALSE;
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "Call State LOGGING DISABLED\n");
-#endif
 }
 
 PtStatus CallManager::validateAddress(UtlString& address)
@@ -2154,14 +2098,7 @@ void CallManager::doCreateCall(const char* callId,
         {
             int numCodecs;
             SdpCodec** codecArray = NULL;
-#ifdef TEST_PRINT
-            OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::doCreateCall getting codec array copy\n");
-#endif
             getCodecs(numCodecs, codecArray);
-#ifdef TEST_PRINT
-            OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::doCreateCall got %d codecs, creating CpPhoneMediaInterface\n",
-                numCodecs);
-#endif
             UtlString publicAddress;
             int publicPort;
             //always use sipUserAgent public address, not the mPublicAddress of this call manager.

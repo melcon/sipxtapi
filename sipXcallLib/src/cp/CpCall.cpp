@@ -43,7 +43,7 @@ CpCall::CpCall(CpCallManager* manager,
                int callIndex,
                const char* callId)
 : OsServerTask("Call-%d", NULL, DEF_MAX_MSGS, DEF_PRIO, DEF_OPTIONS, CALL_STACK_SIZE)
-, mCallIdMutex(OsMutex::Q_FIFO)
+, m_memberMutex(OsMutex::Q_FIFO)
 , m_bindIPAddress("0.0.0.0")
 {
     // add the call task name to a list so we can track leaked calls.
@@ -75,10 +75,6 @@ CpCall::CpCall(CpCallManager* manager,
     mpMetaEventCallIds = NULL;
 
     UtlString name = getName();
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "%s Call constructed: %s\n", name.data(), mCallId.data());
-    osPrintf("%s constructed: %s\n", name.data(), mCallId.data());
-#endif
 }
 
 // Destructor
@@ -104,10 +100,6 @@ CpCall::~CpCall()
     }
 
     UtlString name = getName();
-#ifdef TEST_PRINT
-    OsSysLog::add(FAC_CP, PRI_DEBUG, "%s destructed: %s\n", name.data(), mCallId.data());
-    osPrintf("%s destructed: %s\n", name.data(), mCallId.data());
-#endif
     name.remove(0);
     mCallId.remove(0);
     mOriginalCallId.remove(0);
@@ -280,9 +272,6 @@ void CpCall::localHold()
 
 void CpCall::hangUp(UtlString callId, int metaEventId)
 {
-#ifdef TEST_PRINT
-    osPrintf("CpCall::hangUp\n");
-#endif
     mDropping = TRUE;
     mLocalConnectionState = PtEvent::CONNECTION_DISCONNECTED;
     mLocalTermConnectionState = PtTerminalConnection::DROPPED;
@@ -314,13 +303,13 @@ int CpCall::getCallState()
 
 void CpCall::getCallId(UtlString& callId)
 {
-    OsReadLock lock(mCallIdMutex);
+    OsLock lock(m_memberMutex);
     callId = mCallId;
 }
 
 void CpCall::setCallId(const char* callId)
 {
-    OsWriteLock lock(mCallIdMutex);
+    OsLock lock(m_memberMutex);
     mCallId.remove(0);
     if(callId) mCallId.append(callId);
 }
@@ -474,7 +463,7 @@ void CpCall::getOriginalCallId(UtlString& originalCallId) const
 
 UtlBoolean CpCall::isCallIdSet()
 {
-    OsReadLock lock(mCallIdMutex);
+    OsLock lock(m_memberMutex);
     return(!mCallId.isNull());
 }
 
@@ -533,6 +522,17 @@ int CpCall::tcStateFromEventId(int eventId)
     return state;
 }
 
+UtlString CpCall::getBindIPAddress() const
+{
+   OsLock lock(m_memberMutex);
+   return m_bindIPAddress;
+}
+
+void CpCall::setBindIPAddress(const UtlString& val)
+{
+   OsLock lock(m_memberMutex);
+   m_bindIPAddress = val;
+}
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */

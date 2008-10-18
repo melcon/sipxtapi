@@ -381,14 +381,14 @@ public:
     //: Set the held state for a transfer operation (did we put the connection
     // on hold as part of the transfer)
 
-   const UtlString& getRemoteRtpAddress() const ;
+   UtlString getRemoteRtpAddress() const ;
 
    virtual void getRemoteUserAgent(UtlString* pUserAgent) = 0;
 
-   UtlString getBindIPAddress() const { return m_bindIPAddress; }
-   void setBindIPAddress(const UtlString& val) { m_bindIPAddress = val; }
+   UtlString getBindIPAddress() const;
+   void setBindIPAddress(const UtlString& val);
 
-   UtlString getMediaIPAddress() const { return m_mediaIPAddress; }
+   UtlString getMediaIPAddress() const;
 /* ============================ INQUIRY =================================== */
 
     UtlBoolean isRemoteCallee();
