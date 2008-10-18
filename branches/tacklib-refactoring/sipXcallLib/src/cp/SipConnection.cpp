@@ -1814,7 +1814,6 @@ UtlBoolean SipConnection::hold()
       holdMessage.setReinviteData(inviteMsg,
          mRemoteContact,
          mLocalContact.data(),
-         inviteFromThisSide,
          mRouteField,
          iCSeq,
          mDefaultSessionReinviteTimer);
@@ -1976,7 +1975,6 @@ UtlBoolean SipConnection::doOffHold(UtlBoolean forceReInvite)
       offHoldMessage.setReinviteData(inviteMsg,
          mRemoteContact,
          mLocalContact.data(),
-         inviteFromThisSide,
          mRouteField,
          iCSeq,
          mDefaultSessionReinviteTimer);
