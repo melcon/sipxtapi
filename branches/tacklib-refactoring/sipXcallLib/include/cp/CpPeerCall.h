@@ -138,8 +138,6 @@ public:
 
    virtual enum handleWillingness willHandleMessage(const OsMsg& eventMessage);
 
-   virtual UtlBoolean isLocalTerminal(const char* terminalId);
-
    UtlBoolean isConnection(const char* callId, const char* toTag,
       const char* fromTag);
 
@@ -247,9 +245,6 @@ protected:
    UtlBoolean handleGetSession(OsMsg* pEventMessage);
    //: Handles the processing of a CallManager::CP_GET_SESSION
    //: message
-   UtlBoolean handleIsLocalTerminalConnection(OsMsg* pEventMessage);
-   //: Handles the processing of a CallManager::CP_IS_LOCAL_TERM_CONNECTION
-   //: message
    UtlBoolean handleCancelTimer(OsMsg* pEventMessage);
    //: Handles the processing of a CallManager::CP_CANCEL_TIMER
    //: message
@@ -305,8 +300,6 @@ protected:
 
    UtlBoolean handleGetUserAgent(OsMsg* pEventMessage);
 
-   virtual UtlBoolean getConnectionState(const char* remoteAddress, int& state);
-
    virtual void onHook();
    virtual void offHook(const void* hWnd = NULL);
 
@@ -326,9 +319,6 @@ protected:
    UtlBoolean isConnectionLive(int* localConnectionState = NULL);
    void dropIfDead();
    void dropDeadConnections();
-
-   void handleSetOutboundLine(OsMsg* pEventMessage);
-
    void getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
       size_t nMaxContacts,
       size_t& nActualContacts);
@@ -354,8 +344,6 @@ private:
    UtlDList mConnections;
    OsRWMutex mConnectionMutex;
    int mDialMode;
-   UtlString mLocalAddress; ///< contains lineURI, empty for conference !
-   UtlString mLocalTerminalId; ///< contains lineURI, empty for conference !
    UtlBoolean mIsEarlyMediaFor180;
    UtlBoolean mbRequestedDrop;      // Have we requested to be dropped by the CallManager
    SIPXTACK_SECURITY_ATTRIBUTES* mpSecurity;

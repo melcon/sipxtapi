@@ -125,22 +125,6 @@ CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
       noAnswerTimeout = ringingExpireSeconds;
    }
 
-   // Set the local address for the implied connection
-   // This is a bit of a short cut
-   // SIP specific stuff should not be here
-   //UtlString myServerAddress;
-   //UtlString myServerProtocol;
-   //int myServerPort;
-   //sipUserAgent->getDirectoryServer(0, &myServerAddress,
-   //    &myServerPort, &myServerProtocol);
-   //if(myServerAddress.isNull())
-   //{
-   //    sipUserAgent->getFromAddress(&myServerAddress,
-   //        &myServerPort, &myServerProtocol);
-   //}
-   //SipMessage::buildSipUrl(&mLocalAddress, myServerAddress.data(), 
-   //    myServerPort, myServerProtocol.data(), extension.data());
-
    mDialMode = ADD_PARTY;
    setCallType(CP_NORMAL_CALL);
    mbRequestedDrop = false;
@@ -654,7 +638,6 @@ UtlBoolean CpPeerCall::handleGetAddresses(OsMsg* pEventMessage)
    int msgSubType = pEventMessage->getMsgSubType();
 
    int numConnections = 0;
-   UtlBoolean localAdded = FALSE;
    UtlSList* connectionList;
    OsProtectedEvent* getConnEvent = (OsProtectedEvent*) ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
    getConnEvent->getIntData((int&)connectionList);
@@ -676,13 +659,6 @@ UtlBoolean CpPeerCall::handleGetAddresses(OsMsg* pEventMessage)
             {
                connection->getRemoteAddress(&address);
                connectionList->append(new UtlString(address));
-               numConnections++;
-            }
-            else if(!localAdded)
-            {
-               // Add the local connection/address
-               localAdded = TRUE;
-               connectionList->append(new UtlString(mLocalAddress));
                numConnections++;
             }
          }
@@ -867,23 +843,13 @@ UtlBoolean CpPeerCall::handleRedirectConnection(OsMsg* pEventMessage)
 UtlBoolean CpPeerCall::handleHoldTermConnection(OsMsg* pEventMessage)
 {
    UtlString address;
-   UtlString terminalId;
    ((CpMultiStringMessage*)pEventMessage)->getString2Data(address);
-   ((CpMultiStringMessage*)pEventMessage)->getString3Data(terminalId);
 
-   if(isLocalTerminal(terminalId.data()))
+   OsReadLock lock(mConnectionMutex);
+   Connection* connection = findHandlingConnection(address);
+   if(connection)
    {
-      localHold();
-   }
-   else
-   {
-      OsReadLock lock(mConnectionMutex);
-      Connection* connection = findHandlingConnection(address);
-
-      if(connection)
-      {
-         connection->hold();
-      }
+      connection->hold();
    }
 
    return TRUE;
@@ -918,60 +884,40 @@ UtlBoolean CpPeerCall::handleHoldAllTermConnection(OsMsg* pEventMessage)
 UtlBoolean CpPeerCall::handleUnholdTermConnection(OsMsg* pEventMessage)
 {
    UtlString address;
-   UtlString terminalId;
-
    ((CpMultiStringMessage*)pEventMessage)->getString2Data(address);
-   ((CpMultiStringMessage*)pEventMessage)->getString3Data(terminalId);
-
-   if(isLocalTerminal(terminalId.data()))
+   OsReadLock lock(mConnectionMutex);
+   Connection* connection = findHandlingConnection(address);
+   if(connection)
    {
-      // Post a message to the callManager to change focus
-      CpIntMessage localHoldMessage(CallManager::CP_GET_FOCUS,
-         (int)this);
-      mpManager->postMessage(localHoldMessage);
-      mLocalHeld = FALSE;
-   }
-   else
-   {
-      OsReadLock lock(mConnectionMutex);
-      Connection* connection = findHandlingConnection(address);
-
-      if(connection)
+      connection->offHold();
+      UtlString remoteAddress;
+      connection->getRemoteAddress(&remoteAddress);
+      if (mLocalTermConnectionState != PtTerminalConnection::TALKING &&
+         mLocalTermConnectionState != PtTerminalConnection::IDLE)
       {
-         connection->offHold();
-         UtlString remoteAddress;
-         connection->getRemoteAddress(&remoteAddress);
-         if (mLocalTermConnectionState != PtTerminalConnection::TALKING &&
-            mLocalTermConnectionState != PtTerminalConnection::IDLE)
-         {
-            UtlString responseText;
-            connection->getResponseText(responseText);
-            postTaoListenerMessage(connection->getResponseCode(), 
-               responseText, 
-               PtEvent::TERMINAL_CONNECTION_TALKING, 
-               TERMINAL_CONNECTION_STATE, 
-               PtEvent::CAUSE_UNHOLD, 
-               connection->isRemoteCallee(), 
-               remoteAddress);
-         }
+         UtlString responseText;
+         connection->getResponseText(responseText);
+         postTaoListenerMessage(connection->getResponseCode(), 
+            responseText, 
+            PtEvent::TERMINAL_CONNECTION_TALKING, 
+            TERMINAL_CONNECTION_STATE, 
+            PtEvent::CAUSE_UNHOLD, 
+            connection->isRemoteCallee(), 
+            remoteAddress);
       }
    }
    return TRUE;
 }
-
 
 // Handles the processing of a CallManager::CP_RENEGOTIATE_CODECS_CONNECTION 
 // message
 UtlBoolean CpPeerCall::handleRenegotiateCodecsConnection(OsMsg* pEventMessage)
 {
    UtlString address;
-   UtlString terminalId;
-
    ((CpMultiStringMessage*)pEventMessage)->getString2Data(address);
 
    OsReadLock lock(mConnectionMutex);
    Connection* connection = findHandlingConnection(address);
-
    if(connection)
    {
       connection->renegotiateCodecs();
@@ -979,7 +925,6 @@ UtlBoolean CpPeerCall::handleRenegotiateCodecsConnection(OsMsg* pEventMessage)
 
    return TRUE;
 }
-
 
 // Handles the processing of a CallManager::CP_RENEGOTIATE_CODECS_ALL_CONNECTIONS 
 // message
@@ -1241,34 +1186,6 @@ void CpPeerCall::getLocalContactAddresses( SIPX_CONTACT_ADDRESS contacts[],
    }
 }
 
-// Handles the processing of a CallManager::CP_IS_LOCAL_TERM_CONNECTION 
-// message
-UtlBoolean CpPeerCall::handleIsLocalTerminalConnection(OsMsg* pEventMessage)
-{
-   mConnections.entries();
-   UtlString terminalId;
-   ((CpMultiStringMessage*)pEventMessage)->getString3Data(terminalId);
-   OsProtectedEvent* getNumEvent = 
-      (OsProtectedEvent*) ((CpMultiStringMessage*)pEventMessage)->getInt1Data();
-   UtlBoolean isLocal = FALSE;
-
-   if(isLocalTerminal(terminalId) && getNumEvent)
-   {
-      isLocal = TRUE;
-   }
-
-   // If the event has already been signalled, clean up
-   if(OS_ALREADY_SIGNALED == getNumEvent->signal(isLocal))
-   {
-      // The other end must have timed out on the wait
-      OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-      eventMgr->release(getNumEvent);
-   }
-
-   return TRUE;
-}
-
-
 // Handles the processing of a CallManager::CP_CANCEL_TIMER 
 // message
 UtlBoolean CpPeerCall::handleCancelTimer(OsMsg* pEventMessage)
@@ -1501,7 +1418,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          offHook(pDisplay);
          break;
       }
-
    case CallManager::CP_BLIND_TRANSFER:
    case CallManager::CP_CONSULT_TRANSFER:
       handleTransfer(&eventMessage);
@@ -1564,10 +1480,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
       handleGetSession(&eventMessage);
       break;
 
-   case CallManager::CP_IS_LOCAL_TERM_CONNECTION:
-      handleIsLocalTerminalConnection(&eventMessage);
-      break;
-
    case CallManager::CP_ACCEPT_CONNECTION:
       handleAcceptConnection(&eventMessage);
       break;
@@ -1622,10 +1534,6 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
 
    case CallManager::CP_HOLD_LOCAL_TERM_CONNECTION:
       handleHoldLocalTermConnection(&eventMessage);
-      break;
-
-   case CallManager::CP_SET_CALL_OUTBOUND_LINE:
-      handleSetOutboundLine( &eventMessage );   
       break;
 
    case CallManager::CP_GET_USERAGENT:
@@ -2263,15 +2171,6 @@ UtlBoolean CpPeerCall::handleJoinConnection(OsMsg* pEventMessage)
    return true; 
 }
 
-void CpPeerCall::handleSetOutboundLine(OsMsg* pEventMessage)
-{   
-   UtlString strOutboundAddress;
-   ((CpMultiStringMessage*)pEventMessage)->getString2Data(strOutboundAddress);
-
-   mLocalTerminalId = strOutboundAddress;
-   mLocalAddress = mLocalTerminalId;
-}
-
 // Handles the processing of a CP_TRANSFER_OTHER_PARTY_HOLD message
 UtlBoolean CpPeerCall::handleTransferOtherPartyHold(OsMsg* pEventMessage) 
 {
@@ -2899,106 +2798,7 @@ void CpPeerCall::offHook(const void* pDisplay)
    }
 }
 
-
-
 /* ============================ ACCESSORS ================================= */
-UtlBoolean CpPeerCall::getConnectionState(const char* remoteAddress, int& state)
-{
-   OsReadLock lock(mConnectionMutex);
-   Connection* pConnection = findHandlingConnection((UtlString&) remoteAddress);
-
-   if (pConnection)
-   {
-      int connState = pConnection->getRemoteState();
-      switch(connState)
-      {
-      case Connection::CONNECTION_IDLE:
-         state = PtConnection::IDLE;
-         break;
-
-      case Connection::CONNECTION_QUEUED:
-         state = PtConnection::QUEUED;
-         break;
-
-      case Connection::CONNECTION_OFFERING:
-         state = PtConnection::OFFERED;
-         break;
-
-      case Connection::CONNECTION_DIALING:
-         state = PtConnection::DIALING;
-         break;
-
-      case Connection::CONNECTION_ALERTING:
-         state = PtConnection::ALERTING;
-         break;
-
-      case Connection::CONNECTION_ESTABLISHED:
-         state = PtConnection::ESTABLISHED;
-         break;
-
-      case Connection::CONNECTION_FAILED:
-         state = PtConnection::FAILED;
-         break;
-
-      case Connection::CONNECTION_DISCONNECTED:
-         state = PtConnection::DISCONNECTED;
-         break;
-
-      default:
-         state = PtConnection::UNKNOWN;
-         break;
-
-      }
-      return TRUE;
-   }
-   else if (!strcmp(mLocalAddress, remoteAddress))
-   {
-      switch(mLocalConnectionState)
-      {
-      case PtEvent::CONNECTION_IDLE:
-      case PtEvent::CONNECTION_INITIATED:
-      case PtEvent::CONNECTION_CREATED:
-         state = PtConnection::IDLE;
-         break;
-
-      case PtEvent::CONNECTION_QUEUED:
-         state = PtConnection::QUEUED;
-         break;
-
-      case PtEvent::CONNECTION_OFFERED:
-         state = PtConnection::OFFERED;
-         break;
-
-      case PtEvent::CONNECTION_DIALING:
-         state = PtConnection::DIALING;
-         break;
-
-      case PtEvent::CONNECTION_ALERTING:
-         state = PtConnection::ALERTING;
-         break;
-
-      case PtEvent::CONNECTION_ESTABLISHED:
-         state = PtConnection::ESTABLISHED;
-         break;
-
-      case PtEvent::CONNECTION_FAILED:
-         state = PtConnection::FAILED;
-         break;
-
-      case PtEvent::CONNECTION_DISCONNECTED:
-         state = PtConnection::DISCONNECTED;
-         break;
-
-      default:
-         state = PtConnection::UNKNOWN;
-         break;
-
-      }
-      return TRUE;
-   }
-   else
-      return FALSE;
-}
 
 /* ============================ INQUIRY =================================== */
 
@@ -3138,29 +2938,6 @@ UtlBoolean CpPeerCall::isConnection(const char* callId,
       toTag,
       fromTag,
       FALSE));
-}
-
-UtlBoolean CpPeerCall::isLocalTerminal(const char* terminalId)
-{
-   UtlBoolean isLocal = FALSE;
-   if(terminalId)
-   {
-      UtlString term = UtlString(terminalId);
-
-      int pos = term.index("foreign-terminal");
-      if (pos < 0)
-      {
-         UtlString address;
-         UtlString user;
-         UtlString protocol;
-         int port;
-
-         SipMessage::parseAddressFromUri(terminalId, &address, &port, &protocol, &user);
-         isLocal = ((mLocalTerminalId.compareTo(terminalId) == 0) || (mLocalTerminalId.compareTo(user) == 0));
-
-      }
-   }
-   return(isLocal);
 }
 
 UtlBoolean CpPeerCall::canDisconnectConnection(Connection* pConnection)
