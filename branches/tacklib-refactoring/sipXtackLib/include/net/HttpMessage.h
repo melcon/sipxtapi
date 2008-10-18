@@ -349,8 +349,8 @@ public:
     static int getHttpMessageCount();
 
     /** Returns true if this message is outbound, false if inbound. */
-    UtlBoolean isFromThisSide() const { return mbFromThisSide; }
-    void setFromThisSide(const bool bFromThisSide) { mbFromThisSide = bFromThisSide; }
+    UtlBoolean isFromThisSide() const;
+    void setFromThisSide(const bool bFromThisSide);
 
     const char* getFirstHeaderLine() const;
 
@@ -697,6 +697,16 @@ public:
      // Time logging
      void logTimeEvent(const char* eventName);
      void dumpTimeLog() const;
+
+     /**
+      * Prints the SIP Message into string. Doesn't print content of internal class fields.
+      */
+     void toString(UtlString& sOutput) const;
+
+     /**
+     * Prints the SIP Message into string. Doesn't print content of internal class fields.
+     */
+     UtlString toString() const;
 
 /* ============================ INQUIRY =================================== */
 
