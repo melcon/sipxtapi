@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/XCpCall.h>
+#include <net/SipDialog.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,8 +28,8 @@
 
 /* ============================ CREATORS ================================== */
 
-XCpCall::XCpCall()
-: XCpAbstractCall()
+XCpCall::XCpCall(const UtlString& sId)
+: XCpAbstractCall(sId)
 {
 
 }
@@ -40,9 +41,168 @@ XCpCall::~XCpCall()
 
 /* ============================ MANIPULATORS ============================== */
 
+OsStatus XCpCall::connect(const UtlString& sSipCallId,
+                          SipDialog& sSipDialog,
+                          const UtlString& toAddress,
+                          const UtlString& lineURI,
+                          const UtlString& locationHeader,
+                          CP_CONTACT_ID contactId)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::acceptConnection(const UtlString& locationHeader,
+                                   CP_CONTACT_ID contactId)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::rejectConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::redirectConnection(const UtlString& sRedirectSipUri)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::answerConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::dropConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::dropConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::transferBlind(const SipDialog& sSipDialog,
+                                const UtlString& sTransferSipUri)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::holdConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::holdConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::unholdConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::unholdConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::silentHoldRemoteConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::silentUnholdRemoteConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::silentHoldLocalConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::silentUnholdLocalConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                        const UtlString& sAudioCodecs,
+                                        CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                        const UtlString& sVideoCodecs)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sSipDialog,
+                                              CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                              const UtlString& sAudioCodecs,
+                                              CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                              const UtlString& sVideoCodecs)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
+                           const UtlString& sContentType,
+                           const UtlString& sContentEncoding,
+                           const UtlString& sContent)
+{
+   return OS_FAILED;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
+
+UtlBoolean XCpCall::hasSipDialog(const SipDialog& sSipDialog) const
+{
+   return FALSE;
+}
+
+int XCpCall::getCallCount() const
+{
+   return 0;
+}
+
+OsStatus XCpCall::getCallSipCallId(UtlString& sSipCallId) const
+{
+   sSipCallId.remove(0);
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::getAudioEnergyLevels(int& iInputEnergyLevel, int& iOutputEnergyLevel) const
+{
+   iInputEnergyLevel = 0;
+   iOutputEnergyLevel = 0;
+
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::getRemoteUserAgent(const SipDialog& sSipDialog,
+                                     UtlString& userAgent) const
+{
+   userAgent.remove(0);
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpCall::getMediaConnectionId(int& mediaConnID) const
+{
+   mediaConnID = -1;
+
+   return OS_INVALID;
+}
+
+OsStatus XCpCall::getSipDialog(const SipDialog& sSipDialog,
+                               SipDialog& dialog) const
+{
+   dialog = SipDialog(); // assign empty SipDialog
+
+   return OS_NOT_FOUND;
+}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 

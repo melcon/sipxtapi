@@ -255,6 +255,7 @@ public:
         char msg[1024];
         sprintf(msg, "sip url with ip address: %s", szUrl);
         Url url(szUrl); 
+        url.removeAngleBrackets();
         ASSERT_STR_EQUAL_MESSAGE(msg, "10.1.1.89", getHostAddress(url));
         ASSERT_STR_EQUAL_MESSAGE(msg, "sip", getUrlType(url));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(msg, PORT_NONE, url.getHostPort());
@@ -270,6 +271,7 @@ public:
         char msg[1024];
         sprintf(msg, "sip url with port: %s", szUrl);
         Url url(szUrl); 
+        url.removeAngleBrackets();
         ASSERT_STR_EQUAL_MESSAGE(msg, "sipfoundry.org", getHostAddress(url));
         ASSERT_STR_EQUAL_MESSAGE(msg, "sip", getUrlType(url));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(msg, 5555, url.getHostPort());
@@ -290,6 +292,7 @@ public:
         ASSERT_STR_EQUAL_MESSAGE(msg, "rschaaf", getUserId(url));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(msg, PORT_NONE, url.getHostPort());
 
+        url.removeAngleBrackets();
         ASSERT_STR_EQUAL_MESSAGE(msg, "sip:rschaaf@sipfoundry.org", toString(url));
         url.includeAngleBrackets();
 
@@ -546,7 +549,7 @@ public:
 
         ASSERT_STR_EQUAL_MESSAGE(msg, "bar;bing", getHeaderParam("foo", url));
 
-        ASSERT_STR_EQUAL_MESSAGE(msg, withAnglesEscaped, toString(url));
+        ASSERT_STR_EQUAL_MESSAGE(msg, withoutAnglesEscaped, toString(url));
         ASSERT_STR_EQUAL_MESSAGE(msg, withoutAnglesEscaped, getUri(url));
     }
 
@@ -581,6 +584,7 @@ public:
     {
         const char *szUrl = "10.1.1.225";
         Url url(szUrl);
+        url.removeAngleBrackets();
         ASSERT_STR_EQUAL_MESSAGE(szUrl, "sip:10.1.1.225", toString(url));
     }
 
@@ -589,12 +593,12 @@ public:
         const char *szUrl = "somewhere.sipfoundry.org";
         Url url(szUrl);
         ASSERT_STR_EQUAL_MESSAGE(szUrl, "somewhere.sipfoundry.org", getHostAddress(url));
-        ASSERT_STR_EQUAL_MESSAGE(szUrl, "sip:somewhere.sipfoundry.org", toString(url));
+        ASSERT_STR_EQUAL_MESSAGE(szUrl, "<sip:somewhere.sipfoundry.org>", toString(url));
 
         const char *szUrl2 = "some-where.sipfoundry.org";
         Url url2(szUrl2);
         ASSERT_STR_EQUAL_MESSAGE(szUrl, "some-where.sipfoundry.org", getHostAddress(url2));
-        ASSERT_STR_EQUAL_MESSAGE(szUrl, "sip:some-where.sipfoundry.org", toString(url2));
+        ASSERT_STR_EQUAL_MESSAGE(szUrl, "<sip:some-where.sipfoundry.org>", toString(url2));
 
         UtlString hostWithPort;
         url.getHostWithPort(hostWithPort);
@@ -608,7 +612,7 @@ public:
         ASSERT_STR_EQUAL_MESSAGE(szUrl, "somewhere.sipfoundry.org", getHostAddress(url));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(szUrl, 333, url.getHostPort());        
 
-        ASSERT_STR_EQUAL_MESSAGE(szUrl, "sip:somewhere.sipfoundry.org:333", toString(url));
+        ASSERT_STR_EQUAL_MESSAGE(szUrl, "<sip:somewhere.sipfoundry.org:333>", toString(url));
 
         UtlString hostWithPort;
         url.getHostWithPort(hostWithPort);
@@ -619,7 +623,7 @@ public:
     {
         const char *szUrl = "sip:1234@sipserver:abcd";
         Url url(szUrl);
-        ASSERT_STR_EQUAL_MESSAGE(szUrl, "sip:1234@sipserver", toString(url));
+        ASSERT_STR_EQUAL_MESSAGE(szUrl, "<sip:1234@sipserver>", toString(url));
         ASSERT_STR_EQUAL_MESSAGE(szUrl, "sipserver", getHostAddress(url));
 	// The port will be returned as PORT_NONE, because Url::Url()
 	// could not parse it.
@@ -633,7 +637,7 @@ public:
         ASSERT_STR_EQUAL_MESSAGE(szUrl, "[a0:32:44::99]", getHostAddress(url));
         CPPUNIT_ASSERT_EQUAL_MESSAGE(szUrl, 333, url.getHostPort());        
 
-        ASSERT_STR_EQUAL_MESSAGE(szUrl, "sip:[a0:32:44::99]:333", toString(url));
+        ASSERT_STR_EQUAL_MESSAGE(szUrl, "<sip:[a0:32:44::99]:333>", toString(url));
     }
 
 
@@ -662,15 +666,15 @@ public:
         url.setUrlType("sip");
         url.setUserId("someuser") ; 
         url.setHostAddress("main.sip") ; 
-        ASSERT_STR_EQUAL("sip:someuser@main.sip", toString(url));
-        url.includeAngleBrackets() ; 
         ASSERT_STR_EQUAL("<sip:someuser@main.sip>", toString(url));
+        url.removeAngleBrackets() ; 
+        ASSERT_STR_EQUAL("sip:someuser@main.sip", toString(url));
     }
 
     void testHttpConstruction()
     {
         Url url;
-        ASSERT_STR_EQUAL("sip:", toString(url));
+        ASSERT_STR_EQUAL("<sip:>", toString(url));
         url.setUrlType("http") ; 
         url.setHostAddress("web.server") ; 
         url.setPath("/somewhere/in/cyber") ; 
@@ -685,12 +689,12 @@ public:
 
         // Type should be set to sip by default. Verify that by not setting 
         // anything for the type
-        ASSERT_STR_EQUAL("sip:", toString(url));
+        ASSERT_STR_EQUAL("<sip:>", toString(url));
 
         url.setUserId("raghu");
         url.setPassword("rgpwd");
         url.setHostAddress("sf.org");
-        ASSERT_STR_EQUAL("sip:raghu:rgpwd@sf.org", toString(url));
+        ASSERT_STR_EQUAL("<sip:raghu:rgpwd@sf.org>", toString(url));
 
         url.setUrlParameter("up1", "uval1");
         url.setUrlParameter("up2", "uval2");
@@ -801,7 +805,7 @@ public:
         Url url1("<sip:600-3@cdhcp139.pingtel.com;q=0.8>");
         url1.removeUrlParameter("q");
 
-        ASSERT_STR_EQUAL("sip:600-3@cdhcp139.pingtel.com",
+        ASSERT_STR_EQUAL("<sip:600-3@cdhcp139.pingtel.com>",
                          toString(url1));
 
         Url url2("<sip:600-3@cdhcp139.pingtel.com;q=0.8;z=q>");
@@ -824,6 +828,7 @@ public:
 
         Url url5("<sip:600-3@cdhcp139.pingtel.com;mIxEdCaSe=0.8>");
         url5.removeUrlParameter("MiXeDcAsE");
+        url5.removeAngleBrackets();
 
         ASSERT_STR_EQUAL("sip:600-3@cdhcp139.pingtel.com",
                          toString(url5));
@@ -835,7 +840,7 @@ public:
         Url url1("<sip:600-3@cdhcp139.pingtel.com>;q=0.8");
         url1.removeFieldParameter("q");
 
-        ASSERT_STR_EQUAL("sip:600-3@cdhcp139.pingtel.com",
+        ASSERT_STR_EQUAL("<sip:600-3@cdhcp139.pingtel.com>",
                          toString(url1));
 
         Url url2("<sip:600-3@cdhcp139.pingtel.com>;q=0.8;z=q");
@@ -859,7 +864,7 @@ public:
         Url url5("<sip:600-3@cdhcp139.pingtel.com>;mIxEdCaSe=0.8");
         url5.removeFieldParameter("MiXeDcAsE");
 
-        ASSERT_STR_EQUAL("sip:600-3@cdhcp139.pingtel.com",
+        ASSERT_STR_EQUAL("<sip:600-3@cdhcp139.pingtel.com>",
                          toString(url5));
     }
 
@@ -869,7 +874,7 @@ public:
         Url url1("<sip:600-3@cdhcp139.pingtel.com&q=0.8>");
         url1.removeHeaderParameter("q");
 
-        ASSERT_STR_EQUAL("sip:600-3@cdhcp139.pingtel.com",
+        ASSERT_STR_EQUAL("<sip:600-3@cdhcp139.pingtel.com>",
                          toString(url1));
 
         Url url2("<sip:600-3@cdhcp139.pingtel.com?q=0.8&z=q>");
@@ -887,7 +892,7 @@ public:
         Url url5("<sip:600-3@cdhcp139.pingtel.com?mIxEdCaSe=0.8>");
         url5.removeHeaderParameter("MiXeDcAsE");
 
-        ASSERT_STR_EQUAL("sip:600-3@cdhcp139.pingtel.com",
+        ASSERT_STR_EQUAL("<sip:600-3@cdhcp139.pingtel.com>",
                          toString(url5));
     }
 
@@ -1449,6 +1454,7 @@ public:
     {
         const char* szUrl = "sip:192.168.1.102" ;
         Url url(szUrl) ;
+        url.removeAngleBrackets();
         UtlString toString("SHOULD_BE_REPLACED");
         url.toString(toString) ;
 
@@ -1462,6 +1468,7 @@ public:
 
         UtlString inputUrl("sip:192.168.1.102");
         url.fromString(inputUrl);
+        url.removeAngleBrackets();
 
         UtlString firstString("SHOULD_BE_REPLACED");
         url.toString(firstString) ;
@@ -1470,6 +1477,7 @@ public:
 
         UtlString rewrittenUrl("sip:user@host");
         url.fromString(rewrittenUrl);
+        url.removeAngleBrackets();
 
         UtlString secondString("SHOULD_BE_REPLACED");
         url.toString(secondString) ;
@@ -1608,23 +1616,24 @@ public:
 
          UtlString component;
 
-         CPPUNIT_ASSERT(bigschemeUrl.getScheme() == Url::UnknownUrlScheme); 
+         // Url tries to parse even unknown strings, if it succeeds with parsing hostname and port it sets scheme to sip
+         CPPUNIT_ASSERT(bigschemeUrl.getScheme() == Url::SipUrlScheme);
 
          bigschemeUrl.getUserId(component);
          CPPUNIT_ASSERT(component.isNull()); 
          
          bigschemeUrl.getHostAddress(component);
-         CPPUNIT_ASSERT(component.isNull());
+         CPPUNIT_ASSERT(!component.isNull());
          
          Url bigSchemeAddrType(bigscheme, TRUE /* as addr-type */);
 
-         CPPUNIT_ASSERT(bigSchemeAddrType.getScheme() == Url::UnknownUrlScheme); // ?
+         CPPUNIT_ASSERT(bigSchemeAddrType.getScheme() == Url::SipUrlScheme); // ?
 
          bigSchemeAddrType.getUserId(component);
          CPPUNIT_ASSERT(component.isNull()); // bigtoken
          
          bigSchemeAddrType.getHostAddress(component);
-         CPPUNIT_ASSERT(component.isNull());        
+         CPPUNIT_ASSERT(!component.isNull());        
       }
 
    void testBigUriUser()
@@ -1692,14 +1701,6 @@ public:
          bigokUrl.getHostAddress(component);
          CPPUNIT_ASSERT(!component.compareTo(okhost));
 
-         // user@<bigtoken>
-         /*
-          * A really big host name like this causes recursion in the regular expression
-          * that matches a domain name; the limit causes this match to fail.
-          * This is preferable to having the match succeed but either take minutes (yes,
-          * minutes) to do the match and/or overflow the stack, so we let it fail.
-          */
-
          UtlString bighost;
 
          bighost.append("sip:user@");
@@ -1707,7 +1708,7 @@ public:
          
          PARSE(bighost);
 
-         CPPUNIT_ASSERT(bighostUrl.getScheme() == Url::UnknownUrlScheme);
+         CPPUNIT_ASSERT(bighostUrl.getScheme() == Url::SipUrlScheme);
       }
 
     /////////////////////////

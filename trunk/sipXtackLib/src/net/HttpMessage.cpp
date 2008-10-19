@@ -77,6 +77,7 @@ int HttpMessage::smHttpMessageCount = 0;
 
 // Constructor
 HttpMessage::HttpMessage(const char* messageBytes, int byteCount)
+: mbFromThisSide(TRUE)
 {
    smHttpMessageCount++;
 
@@ -101,6 +102,7 @@ HttpMessage::HttpMessage(const char* messageBytes, int byteCount)
 }
 
 HttpMessage::HttpMessage(OsSocket* inSocket, int bufferSize)
+: mbFromThisSide(FALSE)
 {
    smHttpMessageCount++;
 
@@ -127,6 +129,7 @@ HttpMessage::HttpMessage(OsSocket* inSocket, int bufferSize)
 // Copy constructor
 HttpMessage::HttpMessage(const HttpMessage& rHttpMessage)
 {
+   mbFromThisSide = rHttpMessage.mbFromThisSide;
    smHttpMessageCount++;
    //UtlString messageBytes;
    //int len;
@@ -208,6 +211,7 @@ HttpMessage::operator=(const HttpMessage& rHttpMessage)
    if (this == &rHttpMessage)
       return *this;
 
+   mbFromThisSide = rHttpMessage.mbFromThisSide;
    smHttpMessageCount--;
    mHeaderCacheClean = rHttpMessage.mHeaderCacheClean;
    mFirstHeaderLine = rHttpMessage.mFirstHeaderLine;
@@ -1124,6 +1128,7 @@ int HttpMessage::read(OsSocket* inSocket, int bufferSize,
                       UtlString* externalBuffer,
                       int maxContentLength)
 {
+   mbFromThisSide = FALSE; // when we read from socket, it must be inbound message
    //
    // Initialize state variables that keep track of what we have seen
    // of the incoming HTTP message.

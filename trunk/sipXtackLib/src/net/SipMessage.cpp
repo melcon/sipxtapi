@@ -8,6 +8,9 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+// Contributors retain copyright to elements licensed under a Contributor Agreement.
+// Licensed to the User under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -54,8 +57,7 @@ SipMessage::SipMessage(const char* messageBytes,
                        int byteCount) :
    HttpMessage(messageBytes, byteCount),
    mpSecurity(NULL),
-   mpEventData(NULL),
-   mbFromThisSide(true)
+   mpEventData(NULL)
 {
    mbUseShortNames = false ;
    mLocalIp = "";
@@ -71,8 +73,7 @@ SipMessage::SipMessage(OsSocket* inSocket,
                        int bufferSize) :
    HttpMessage(inSocket, bufferSize),
    mpSecurity(NULL),
-   mpEventData(NULL),
-   mbFromThisSide(true)
+   mpEventData(NULL)
 {
 #ifdef TRACK_LIFE
    osPrintf("Created SipMessage @ address:%X\n",this);
@@ -98,7 +99,6 @@ SipMessage::SipMessage(const SipMessage& rSipMessage) :
    m_dnsAddress = rSipMessage.m_dnsAddress;
    m_dnsPort = rSipMessage.m_dnsPort;
    mpSipTransaction = rSipMessage.mpSipTransaction;
-   mbFromThisSide = rSipMessage.mbFromThisSide;
    mCustomRouteId = rSipMessage.mCustomRouteId;
    mbUseShortNames = rSipMessage.mbUseShortNames;
 }
@@ -124,7 +124,6 @@ SipMessage::operator=(const SipMessage& rSipMessage)
       m_dnsAddress = rSipMessage.m_dnsAddress;
       m_dnsPort = rSipMessage.m_dnsPort;
       mpSipTransaction = rSipMessage.mpSipTransaction;
-      mbFromThisSide = rSipMessage.mbFromThisSide;
       mCustomRouteId = rSipMessage.mCustomRouteId;
       mbUseShortNames = rSipMessage.mbUseShortNames;
    }
@@ -3276,27 +3275,6 @@ void SipMessage::getCallIdField(UtlString& callId) const
    getCallIdField(&callId);
 }
 
-void SipMessage::getDialogHandle(UtlString& dialogHandle) const
-{
-    getCallIdField(&dialogHandle);
-    // Separator
-    dialogHandle.append(',');
-
-    Url messageFromUrl;
-    getFromUrl(messageFromUrl);
-    UtlString fromTag;
-    messageFromUrl.getFieldParameter("tag", fromTag);
-    dialogHandle.append(fromTag);
-    // Separator
-    dialogHandle.append(',');
-
-    Url messageToUrl;
-    getToUrl(messageToUrl);
-    UtlString toTag;
-    messageToUrl.getFieldParameter("tag", toTag);
-    dialogHandle.append(toTag);
-}
-
 UtlBoolean SipMessage::getCSeqField(int& sequenceNum, UtlString& sequenceMethod) const
 {
    return getCSeqField(&sequenceNum, &sequenceMethod);
@@ -4571,6 +4549,11 @@ UtlBoolean SipMessage::isResponse() const
    return(responseType);
 }
 
+UtlBoolean SipMessage::isRequest() const
+{
+   return !isResponse();
+}
+
 UtlBoolean SipMessage::isServerTransaction(UtlBoolean isOutgoing) const
 {
     UtlBoolean returnCode;
@@ -4952,6 +4935,37 @@ UtlBoolean SipMessage::isRequireExtensionSet(const char* extension) const
 
     }
     return(alreadySet);
+}
+
+UtlBoolean SipMessage::isRecordRouteAccepted( void ) const
+{ 
+   UtlBoolean isRecordRoutable;
+
+   if( isResponse() )
+   {
+      isRecordRoutable = FALSE;
+   }
+   else
+   {
+      // We are dealing with a request, check if it can
+      // accept a Record-Route header.  If the request
+      // is not REGISTER, MESSAGE or PUBLISH, the request
+      // is assumed to accept Record-Route headers.
+      UtlString method;
+      getRequestMethod(&method);
+
+      if (method.compareTo(SIP_MESSAGE_METHOD)  == 0 ||
+         method.compareTo(SIP_REGISTER_METHOD) == 0 ||
+         method.compareTo(SIP_PUBLISH_METHOD)  == 0 )
+      {
+         isRecordRoutable = FALSE;        
+      }
+      else
+      {
+         isRecordRoutable = TRUE;
+      }
+   }
+   return isRecordRoutable;
 }
 
 UtlBoolean SipMessage::isUrlHeaderAllowed(const char* headerFieldName)

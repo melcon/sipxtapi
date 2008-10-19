@@ -348,6 +348,10 @@ public:
     static int smHttpMessageCount;
     static int getHttpMessageCount();
 
+    /** Returns true if this message is outbound, false if inbound. */
+    UtlBoolean isFromThisSide() const { return mbFromThisSide; }
+    void setFromThisSide(const bool bFromThisSide) { mbFromThisSide = bFromThisSide; }
+
     const char* getFirstHeaderLine() const;
 
     //! Set the header line
@@ -708,6 +712,7 @@ protected:
    UtlDList mNameValues;
    UtlString mFirstHeaderLine;
    UtlBoolean mHeaderCacheClean;
+   UtlBoolean mbFromThisSide;
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
