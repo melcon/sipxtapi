@@ -47,7 +47,6 @@
 #include <mi/CpMediaInterfaceFactory.h>
 #include "tapi/SipXTransport.h"
 
-
 // TO_BE_REMOVED
 #ifndef EXCLUDE_STREAMING
 #include "mp/MpPlayer.h"
@@ -61,6 +60,7 @@
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
+//#define PRINT_SIP_MESSAGE
 #define MAXIMUM_CALLSTATE_LOG_SIZE 100000
 #define CALL_STATUS_FIELD "status"
 #define SEND_KEY '#'
@@ -300,7 +300,14 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
          {
             OsWriteLock lock(mCallListMutex);
             CpCall* handlingCall = NULL;
-
+#ifdef PRINT_SIP_MESSAGE
+            if(msgSubType == CP_SIP_MESSAGE)
+            {
+               const SipMessage* sipMsg = ((SipMessageEvent&)eventMessage).getMessage();
+               enableConsoleOutput(TRUE);
+               osPrintf("\nCallManager::handleMessage %s\n-----------------------------------\n", sipMsg->toString().data());
+            }
+#endif
             handlingCall = findHandlingCall(eventMessage);
 
             // This message does not belong to any of the calls
