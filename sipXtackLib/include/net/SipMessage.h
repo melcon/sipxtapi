@@ -1,5 +1,4 @@
 //
-// 
 // Copyright (C) 2005, 2006 SIPez LLC
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
@@ -9,6 +8,9 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Pingtel Corp., certain elements licensed under a Contributor Agreement.  
+// Contributors retain copyright to elements licensed under a Contributor Agreement.
+// Licensed to the User under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -124,6 +126,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_LINE_IDENTIFIER "LINEID"
 #define SIPX_IMPLIED_SUB "sipx-implied" ///< integer expiration duration for subscription
 // Response codes and text
+#define SIP_1XX_CLASS_CODE 100
+
 #define SIP_TRYING_CODE 100
 #define SIP_TRYING_TEXT "Trying"
 
@@ -921,8 +925,6 @@ public:
     void getCallIdField(UtlString* callId) const;
     void getCallIdField(UtlString& callId) const;
 
-    void getDialogHandle(UtlString& dialogHandle) const;
-
     UtlBoolean getCSeqField(int* sequenceNum, UtlString* sequenceMethod) const;
     UtlBoolean getCSeqField(int& sequenceNum, UtlString& sequenceMethod) const;
 
@@ -1158,6 +1160,8 @@ public:
     //! as opposed to a request.
     UtlBoolean isResponse() const;
 
+    UtlBoolean isRequest() const;
+
     //! @ Transaction and session related inquiry methods
     //@{
     UtlBoolean isSameMessage(const SipMessage* message,
@@ -1183,6 +1187,8 @@ public:
 
     UtlBoolean isRequireExtensionSet(const char* extension) const;
 
+    UtlBoolean isRecordRouteAccepted( void ) const;
+
     //! Is this a header parameter we want to allow users or apps. to
     //  pass through in the URL
     static UtlBoolean isUrlHeaderAllowed(const char*);
@@ -1196,9 +1202,6 @@ public:
     // ISmimeNotifySink implementations                               
     void OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause);
     bool OnSignature(void* pCert, char* szSubjAltName);        
-    UtlBoolean getFromThisSide() const { return mbFromThisSide; }
-    void setFromThisSide(const bool bFromThisSide) { mbFromThisSide = bFromThisSide; }
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -1211,7 +1214,6 @@ private:
     UtlString mCustomRouteId;
 
     UtlString mLocalIp;
-    UtlBoolean mbFromThisSide;
     UtlBoolean mbUseShortNames;
 
     //SDUA

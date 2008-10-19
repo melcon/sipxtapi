@@ -272,7 +272,7 @@ Voice-Message: 0/0 (0/0)\r\n";
        CPPUNIT_ASSERT(notifyBodySize == (int)strlen(mwiStateString));
        CPPUNIT_ASSERT(notifyBodySize > 10);  // just to make sure both aren't null
        UtlString secondNotifyDialogHandle;
-       secondNotify->getDialogHandle(secondNotifyDialogHandle);
+       SipDialog::getDialogHandle(*secondNotify, secondNotifyDialogHandle);
        CPPUNIT_ASSERT(!secondNotifyDialogHandle.isNull());
        CPPUNIT_ASSERT(dialogMgr->dialogExists(secondNotifyDialogHandle));
        CPPUNIT_ASSERT(dialogMgr->countDialogs() == 1);
@@ -367,7 +367,7 @@ Voice-Message: 0/0 (0/0)\r\n";
        oneTimeBodyPtr->getBytes(&oneTimeBodyString, &oneTimeNotifyBodySize);
        ASSERT_STR_EQUAL(mwiStateString, oneTimeBodyString);
        UtlString oneTimeNotifyDialogHandle;
-       secondNotify->getDialogHandle(oneTimeNotifyDialogHandle);
+       SipDialog::getDialogHandle(*secondNotify, oneTimeNotifyDialogHandle);
        CPPUNIT_ASSERT(!oneTimeNotifyDialogHandle.isNull());
        CPPUNIT_ASSERT(dialogMgr->dialogExists(oneTimeNotifyDialogHandle));
        CPPUNIT_ASSERT(dialogMgr->countDialogs() == 2);

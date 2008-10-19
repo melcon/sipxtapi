@@ -125,14 +125,14 @@ const char* SchemeName[ Url::NUM_SUPPORTED_URL_SCHEMES ] =
 //   $1 matches user
 //   $2 matches password
 const RegEx UsernameAndPassword(
-   "("
+    "("
       "(?:"
          "[a-zA-Z0-9_.!~*'()&=+$,;?/-]++"
       "|"
          "%[0-9a-fA-F]{2}"
       ")+"
     ")"
-   "(?:" ":"
+    "(?:" ":"
         "("
         "(?:"
             "[a-zA-Z0-9_.!~*'()&=+$,-]++"
@@ -215,6 +215,10 @@ Url::Url(const char* urlString, UtlBoolean isAddrSpec) :
    if (urlString && *urlString)
    {
       parseString(urlString ,isAddrSpec);
+   }
+   else
+   {
+      initAngleBrackets(isAddrSpec);
    }
 }
 
@@ -374,11 +378,20 @@ void Url::setUrlType(const char* urlProtocol)
       
       mScheme = scheme(schemeName);
 
-      if ( UnknownUrlScheme == mScheme )
+      if (mScheme == SipUrlScheme || mScheme == SipsUrlScheme)
       {
+         mAngleBracketsIncluded = TRUE;
+      }
+      else if (UnknownUrlScheme == mScheme)
+      {
+         mAngleBracketsIncluded = FALSE;
          OsSysLog::add(FAC_SIP, PRI_ERR, "Url::setUrlType unsupported Url scheme '%s'",
                        urlProtocol
                        );
+      }
+      else
+      {
+         mAngleBracketsIncluded = FALSE;
       }
    }
    else
@@ -387,6 +400,7 @@ void Url::setUrlType(const char* urlProtocol)
       OsSysLog::add(FAC_SIP, PRI_CRIT, "Url::setUrlType Url scheme NULL");
       assert(urlProtocol);
       mScheme = UnknownUrlScheme;
+      mAngleBracketsIncluded = FALSE;
    }
 }
 
@@ -887,7 +901,6 @@ Url Url::getUri() const
    uri.setDisplayName(NULL);
    uri.removeAngleBrackets();
    uri.removeFieldParameters();
-   uri.removeHeaderParameters();
 
    return uri;
 }
@@ -1572,11 +1585,7 @@ void Url::parseString(const char* urlString, UtlBoolean isAddrSpec)
       }
    }
 
-   if (!isAddrSpec && (mScheme == SipUrlScheme || mScheme == SipsUrlScheme))
-   {
-      // for not addr spec sip & sips enable angle brackets
-      mAngleBracketsIncluded = TRUE;
-   }
+   initAngleBrackets(isAddrSpec);
 }
 #  ifdef TIME_PARSE
      UtlString timeDump;
@@ -1858,4 +1867,12 @@ void Url::gen_value_escape(UtlString& unEscapedText)
    }
 }
 
+void Url::initAngleBrackets(UtlBoolean isAddrSpec)
+{
+   if (!isAddrSpec && (mScheme == SipUrlScheme || mScheme == SipsUrlScheme))
+   {
+      // for not addr spec sip & sips enable angle brackets
+      mAngleBracketsIncluded = TRUE;
+   }
+}
 /* ============================ FUNCTIONS ================================= */

@@ -23,6 +23,7 @@
 #include <net/HttpBody.h>
 #include <net/SipMessage.h>
 #include <net/SipDialogMgr.h>
+#include <net/SipDialog.h>
 
 
 // Private class to contain event type and event specific utilities
@@ -619,7 +620,7 @@ UtlBoolean SipSubscribeServer::handleNotifyResponse(const SipMessage& notifyResp
     if(responseCode >= SIP_3XX_CLASS_CODE)
     {
         UtlString dialogHandle;
-        notifyResponse.getDialogHandle(dialogHandle);
+        SipDialog::getDialogHandle(notifyResponse, dialogHandle);
 
         // Not modifying the SubscribeServerEventData, just reading it
         lockForRead();
