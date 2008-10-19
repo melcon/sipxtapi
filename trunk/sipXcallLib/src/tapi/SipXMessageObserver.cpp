@@ -38,7 +38,7 @@
 
 /* ============================ CREATORS ================================== */
 
-// CHECKED
+
 SipXMessageObserver::SipXMessageObserver(const SIPX_INST hInst) :
     OsServerTask("SipXMessageObserver%d", NULL, 2000),
     m_iTestResponseCode(0),// if mTestResponseCode is set to a value other than 0,
@@ -48,7 +48,7 @@ SipXMessageObserver::SipXMessageObserver(const SIPX_INST hInst) :
 {
 }
 
-// CHECKED
+
 SipXMessageObserver::~SipXMessageObserver(void)
 {
     waitUntilShutDown();
@@ -56,7 +56,7 @@ SipXMessageObserver::~SipXMessageObserver(void)
 
 /* ============================ MANIPULATORS ============================== */
 
-// CHECKED
+
 UtlBoolean SipXMessageObserver::handleMessage(OsMsg& rMsg)
 {
     UtlBoolean bRet = FALSE;
@@ -107,7 +107,7 @@ UtlBoolean SipXMessageObserver::handleMessage(OsMsg& rMsg)
     return bRet;
 }
 
-// CHECKED
+
 UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoMessage");
@@ -202,7 +202,6 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
     return bRet;
 }
 
-// CHECKED, MINOR PROBLEM
 UtlBoolean SipXMessageObserver::handleIncomingInfoStatus(SipMessage* pSipMessage)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoStatus");
@@ -264,7 +263,7 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoStatus(SipMessage* pSipMessage
    return TRUE;
 }
 
-// CHECKED
+
 UtlBoolean SipXMessageObserver::handleStunOutcome(OsEventMsg* pMsg) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleStunOutcome");

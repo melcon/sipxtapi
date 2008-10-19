@@ -42,7 +42,7 @@ extern SipXHandleMap gCallHandleMap;
 
 /* ============================ FUNCTIONS ================================= */
 
-// CHECKED
+
 // WARNING: This relies on outside locking of conference SIPX_CONF_DATA
 UtlBoolean sipxRemoveCallHandleFromConf(const SIPX_CONF hConf, 
                                         const SIPX_CALL hCall) 
@@ -84,7 +84,7 @@ UtlBoolean sipxRemoveCallHandleFromConf(const SIPX_CONF hConf,
    return bFound;
 }
 
-// CHECKED
+
 SIPX_CONF_DATA* sipxConfLookup(const SIPX_CONF hConf,
                                SIPX_LOCK_TYPE type,
                                const OsStackTraceLogger& oneBackInStack) 
@@ -122,7 +122,7 @@ SIPX_CONF_DATA* sipxConfLookup(const SIPX_CONF hConf,
    return pRC;
 }
 
-// CHECKED
+
 void sipxConfReleaseLock(SIPX_CONF_DATA* pData,
                          SIPX_LOCK_TYPE type,
                          const OsStackTraceLogger& oneBackInStack) 
@@ -156,7 +156,7 @@ void sipxConfReleaseLock(SIPX_CONF_DATA* pData,
    }
 }
 
-// CHECKED
+
 void sipxConfFree(const SIPX_CONF hConf) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfFree");
@@ -190,7 +190,7 @@ void sipxConfFree(const SIPX_CONF hConf)
    }
 }
 
-// CHECKED
+
 void sipxConferenceDestroyAll(const SIPX_INST hInst) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceDestroyAll");
@@ -201,9 +201,9 @@ void sipxConferenceDestroyAll(const SIPX_INST hInst)
    UtlVoidPtr* pValue;
    SIPX_CONF hConf;
 
-   while ((pKey = (UtlInt*)pubIter()))
+   while ((pKey = dynamic_cast<UtlInt*>(pubIter())))
    {
-      pValue = (UtlVoidPtr*)gConfHandleMap.findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(gConfHandleMap.findValue(pKey));
       assert(pValue);
 
       hConf = (SIPX_CONF)pValue->getValue();
@@ -232,7 +232,7 @@ void sipxConferenceDestroyAll(const SIPX_INST hInst)
    gConfHandleMap.unlock();
 }
 
-// CHECKED
+
 UtlBoolean validConfData(const SIPX_CONF_DATA* pData) 
 {
    UtlBoolean bValid = FALSE;
@@ -245,7 +245,7 @@ UtlBoolean validConfData(const SIPX_CONF_DATA* pData)
    return bValid;
 }
 
-// CHECKED
+
 UtlBoolean sipxAddCallHandleToConf(const SIPX_CALL hCall,
                                    const SIPX_CONF hConf)
 {
@@ -287,7 +287,7 @@ UtlBoolean sipxAddCallHandleToConf(const SIPX_CALL hCall,
 * Public Conference Related Functions
 ***************************************************************************/
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceGetCalls(const SIPX_CONF hConf,
                                                 SIPX_CALL hCalls[],
                                                 const size_t iMax,
@@ -326,7 +326,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceGetCalls(const SIPX_CONF hConf,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
                                               SIPX_CONF *phConference)
 {
@@ -387,7 +387,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED, verify split failure
 SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
                                             const SIPX_CALL hCall)
 {
@@ -480,7 +479,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
                                              const SIPX_CALL hCall)
 {
@@ -558,7 +557,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
                                            const SIPX_LINE hLine,
                                            const char* szAddress,
@@ -633,7 +632,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
                                               SIPX_CALL* hCall)
 {
@@ -688,7 +687,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceHold(const SIPX_CONF hConf,
                                             int bBridging)
 {
@@ -734,7 +733,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceHold(const SIPX_CONF hConf,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceUnhold(const SIPX_CONF hConf)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceUnhold");
@@ -778,7 +777,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceUnhold(const SIPX_CONF hConf)
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStart(const SIPX_CONF hConf,
                                                           const char* szFile,
                                                           const int bRepeat,
@@ -826,7 +825,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStart(const SIPX_CONF hConf,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStop(const SIPX_CONF hConf)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferencePlayAudioFileStop");
@@ -856,7 +855,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStop(const SIPX_CONF hConf)
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceDestroy");
@@ -904,7 +903,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf)
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
                                                        int* iInputEnergyLevel,
                                                        int* iOutputEnergyLevel) 
@@ -945,7 +944,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
    return sr;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
                                                              const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                              const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,

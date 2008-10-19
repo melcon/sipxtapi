@@ -36,7 +36,7 @@
 #include <net/Url.h>
 #include <net/SipSession.h>
 #include <net/SipDialog.h>
-#include <net/SipLineMgr.h>
+#include <net/SipLineProvider.h>
 #include <net/NameValueTokenizer.h>
 #include <sdp/SdpCodec.h>
 #include <cp/CpIntMessage.h>
@@ -82,7 +82,7 @@ Flash                 16
 
 // Constructor
 CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
-                         SipLineMgr* pLineMgrTask,
+                         SipLineProvider* pLineProvider,
                          UtlBoolean isEarlyMediaFor180Enabled,
                          SdpCodecFactory* pCodecFactory,
                          int rtpPortStart,
@@ -175,7 +175,7 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
     else
         mInviteExpireSeconds = CP_MAXIMUM_RINGING_EXPIRE_SECONDS;
 
-    mpLineMgrTask = pLineMgrTask;
+    m_pLineProvider = pLineProvider;
     mIsRequredUserIdMatch = isRequredUserIdMatch;
     mExpeditedIpTos = expeditedIpTos;
 
@@ -356,11 +356,11 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                         UtlString method;
                         sipMsg->getRequestMethod(&method);
 
-                        if(mpLineMgrTask && mIsRequredUserIdMatch &&
+                        if(m_pLineProvider && mIsRequredUserIdMatch &&
                             method.compareTo(SIP_INVITE_METHOD,UtlString::ignoreCase) == 0)
                         {
-                            isUserValid = mpLineMgrTask->isUserIdDefined(sipMsg);
-                            if( !isUserValid)
+                            isUserValid = m_pLineProvider->lineExists(*sipMsg, TRUE);
+                            if(!isUserValid)
                             {
                                 //no such user - return 404
                                 SipMessage noSuchUserResponse;
@@ -824,7 +824,7 @@ void CallManager::requestShutdown()
 
     while(! callStack.isEmpty() && ! iterator.atLast())
     {
-        callCollectable = (UtlInt*) iterator();
+        callCollectable = dynamic_cast<UtlInt*>(iterator());
         if(callCollectable)
         {
             call = (CpCall*) callCollectable->getValue();
@@ -896,7 +896,7 @@ OsStatus CallManager::getCalls(UtlSList& callIdList)
 
    // Get the callId for the calls in the stack
    UtlSListIterator iterator(callStack);
-   while(callCollectable = (UtlInt*)iterator())
+   while(callCollectable = dynamic_cast<UtlInt*>(iterator()))
    {
       call = (CpCall*)callCollectable->getValue();
       if(call)
@@ -1392,7 +1392,7 @@ OsStatus CallManager::getCalledAddresses(const char* callId, int maxConnections,
         {  // set the iterator scope
             UtlSListIterator iterator(*addressList);
             UtlString* addressCollectable;
-            addressCollectable = (UtlString*)iterator();
+            addressCollectable = dynamic_cast<UtlString*>(iterator());
             returnCode = OS_SUCCESS;
 
             while (addressCollectable)
@@ -1404,7 +1404,7 @@ OsStatus CallManager::getCalledAddresses(const char* callId, int maxConnections,
                 }
                 addresses[addressIndex] = *addressCollectable;
                 addressIndex++;
-                addressCollectable = (UtlString*)iterator();
+                addressCollectable = dynamic_cast<UtlString*>(iterator());
             }
             numConnections = addressIndex;
         } // end of interator scope
@@ -1454,7 +1454,7 @@ OsStatus CallManager::getCallingAddresses(const char* callId, int maxConnections
         int addressIndex = 0;
         UtlSListIterator iterator(*addressList);
         UtlString* addressCollectable;
-        addressCollectable = (UtlString*)iterator();
+        addressCollectable = dynamic_cast<UtlString*>(iterator());
         returnCode = OS_SUCCESS;
 
         while (addressCollectable)
@@ -1466,7 +1466,7 @@ OsStatus CallManager::getCallingAddresses(const char* callId, int maxConnections
             }
             addresses[addressIndex] = *addressCollectable;
             addressIndex++;
-            addressCollectable = (UtlString*)iterator();
+            addressCollectable = dynamic_cast<UtlString*>(iterator());
         }
         numConnections = addressIndex;
 
@@ -1838,7 +1838,7 @@ CpCall* CallManager::findHandlingCall(const char* callId)
         UtlSListIterator iterator(callStack);
         UtlInt* callCollectable;
         CpCall* call;
-        callCollectable = (UtlInt*)iterator();
+        callCollectable = dynamic_cast<UtlInt*>(iterator());
         while(callCollectable &&
             !handlingCall)
         {
@@ -1847,7 +1847,7 @@ CpCall* CallManager::findHandlingCall(const char* callId)
             {
                 handlingCall = call;
             }
-            callCollectable = (UtlInt*)iterator();
+            callCollectable = dynamic_cast<UtlInt*>(iterator());
         }
 
     }
@@ -1875,7 +1875,7 @@ CpCall* CallManager::findHandlingCall(const OsMsg& eventMessage)
         UtlSListIterator iterator(callStack);
         UtlInt* callCollectable;
         CpCall* call;
-        callCollectable = (UtlInt*)iterator();
+        callCollectable = dynamic_cast<UtlInt*>(iterator());
         while(callCollectable)
         {
             call = (CpCall*)callCollectable->getValue();
@@ -1895,7 +1895,7 @@ CpCall* CallManager::findHandlingCall(const OsMsg& eventMessage)
                     break;
                 }
             }
-            callCollectable = (UtlInt*)iterator();
+            callCollectable = dynamic_cast<UtlInt*>(iterator());
         }
 
     }

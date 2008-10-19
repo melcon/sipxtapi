@@ -363,7 +363,7 @@ UtlBoolean CpPeerCall::handleTransfer(OsMsg* pEventMessage)
 
         OsReadLock lock(mConnectionMutex);
         UtlDListIterator iterator(mConnections);
-        while ((connection = (Connection*) iterator()))
+        while ((connection = dynamic_cast<Connection*>(iterator())))
         {
             // Do the transfer operation on each connection in this call
             UtlBoolean isOk = connection->originalCallTransfer(transferTargetAddress, 
@@ -789,7 +789,7 @@ UtlBoolean CpPeerCall::handleGetAddresses(OsMsg* pEventMessage)
             UtlString address;
             OsReadLock lock(mConnectionMutex);
             UtlDListIterator iterator(mConnections);
-            while ((connection = (Connection*) iterator()))
+            while ((connection = dynamic_cast<Connection*>(iterator())))
             {
                 if((msgSubType == CallManager::CP_GET_CALLED_ADDRESSES &&
                     connection->isRemoteCallee() ) ||
@@ -869,7 +869,7 @@ UtlBoolean CpPeerCall::handleAcceptConnection(OsMsg* pEventMessage)
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
 
-    while ((connection = (SipConnection*) iterator()))
+    while ((connection = dynamic_cast<SipConnection*>(iterator())))
     {
         connectState = connection->getState();
 #ifdef TEST_PRINT
@@ -935,7 +935,7 @@ UtlBoolean CpPeerCall::handleRejectConnection(OsMsg* pEventMessage)
     {
         OsReadLock lock(mConnectionMutex);
         UtlDListIterator iterator(mConnections);
-        while ((connection = (Connection*) iterator()))
+        while ((connection = dynamic_cast<Connection*>(iterator())))
         {
             connectState = connection->getState();
 
@@ -1003,7 +1003,7 @@ UtlBoolean CpPeerCall::handleRedirectConnection(OsMsg* pEventMessage)
     {
         OsReadLock lock(mConnectionMutex);
         UtlDListIterator iterator(mConnections);
-        while ((connection = (Connection*) iterator()))
+        while ((connection = dynamic_cast<Connection*>(iterator())))
         {
             connectState = connection->getState();
 
@@ -1094,7 +1094,7 @@ UtlBoolean CpPeerCall::handleHoldAllTermConnection(OsMsg* pEventMessage)
     UtlDListIterator iterator(mConnections);
 
     Connection* connection = NULL;
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         connection->hold();
     }
@@ -1188,7 +1188,7 @@ UtlBoolean CpPeerCall::handleRenegotiateCodecsAllConnections(OsMsg* pEventMessag
     Connection* connection = NULL;    
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         connection->renegotiateCodecs() ;
     }
@@ -1203,7 +1203,7 @@ UtlBoolean CpPeerCall::handleSilentRemoteHold(OsMsg* pEventMessage)
     Connection* connection = NULL;    
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         connection->silentRemoteHold() ;
     }
@@ -1327,7 +1327,7 @@ UtlBoolean CpPeerCall::handleGetSession(OsMsg* pEventMessage)
     UtlString connCallId;
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         connection->getCallId(&connCallId);
         connection->getLocalAddress(&localAddress);
@@ -1387,7 +1387,7 @@ UtlBoolean CpPeerCall::handleGetUserAgent(OsMsg* pEventMessage)
     Connection* connection = NULL;
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         UtlString connectionRemoteAddress;
         
@@ -1708,7 +1708,7 @@ UtlBoolean CpPeerCall::handleUnholdAllTermConnections(OsMsg* pEventMessage)
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         connection->offHold();
 
@@ -2112,7 +2112,7 @@ void CpPeerCall::forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
    OsReadLock lock(mConnectionMutex);
    UtlDListIterator iterator(mConnections);
 
-   while ((connection = (Connection*) iterator()))
+   while ((connection = dynamic_cast<Connection*>(iterator())))
    {
       connection->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
    }
@@ -2130,7 +2130,7 @@ void CpPeerCall::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
    OsReadLock lock(mConnectionMutex);
    UtlDListIterator iterator(mConnections);
 
-   while ((connection = (Connection*) iterator()))
+   while ((connection = dynamic_cast<Connection*>(iterator())))
    {
       if (connection->getConnectionId() == mediaConnectionId)
       {
@@ -2230,7 +2230,7 @@ UtlBoolean CpPeerCall::handleSendInfo(OsMsg* pEventMessage)
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         UtlString connectionRemoteAddress;
         connection->getRemoteAddress(&connectionRemoteAddress);
@@ -2273,7 +2273,7 @@ UtlBoolean CpPeerCall::handleGetMediaConnectionId(OsMsg* pEventMessage)
     Connection* connection = NULL;
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         UtlString connectionRemoteAddress;
         
@@ -2323,7 +2323,7 @@ UtlBoolean CpPeerCall::handleLimitCodecPreferences(OsMsg* pEventMessage)
     Connection* connection = NULL;
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         UtlString connectionRemoteAddress;
         
@@ -2374,7 +2374,7 @@ UtlBoolean CpPeerCall::handleGetMediaEnergyLevels(OsMsg* pEventMessage)
     Connection* connection = NULL;
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         UtlString connectionRemoteAddress;        
         connection->getRemoteAddress(&connectionRemoteAddress);
@@ -2583,7 +2583,7 @@ UtlBoolean CpPeerCall::handleTransferOtherPartyHold(OsMsg* pEventMessage)
     pMultiMessage->getString2Data(remoteAddress) ;
 
     UtlDListIterator iterator(mConnections);
-    while ((pConnection = (Connection*) iterator()))
+    while ((pConnection = dynamic_cast<Connection*>(iterator())))
     {
         Url remoteUrl(remoteAddress);
 
@@ -2616,7 +2616,7 @@ UtlBoolean CpPeerCall::handleTransferOtherPartyUnhold(OsMsg* pEventMessage)
     pMultiMessage->getString2Data(remoteAddress) ;
 
     UtlDListIterator iterator(mConnections);
-    while ((pConnection = (Connection*) iterator()))
+    while ((pConnection = dynamic_cast<Connection*>(iterator())))
     {
         Url remoteUrl(remoteAddress);
 
@@ -2678,7 +2678,7 @@ UtlBoolean CpPeerCall::handleTransferOtherPartyJoin(OsMsg* pEventMessage)
     pMultiMessage->getString3Data(targetCallId) ;    
 
     UtlDListIterator iterator(mConnections);
-    while ((pConnection = (Connection*) iterator()))
+    while ((pConnection = dynamic_cast<Connection*>(iterator())))
     {
         Url remoteUrl(remoteAddress);
 
@@ -2818,7 +2818,7 @@ UtlBoolean CpPeerCall::hasCallId(const char* callIdString)
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         connection->getCallId(&connectionCallId);
         if(strcmp(callIdString, connectionCallId.data()) == 0)
@@ -2848,7 +2848,7 @@ OsStatus CpPeerCall::getConnectionCallIds(UtlSList& pCallIdList)
    OsReadLock lock(mConnectionMutex);
    UtlDListIterator iterator(mConnections);
 
-   while ((connection = (Connection*)iterator()))
+   while ((connection = dynamic_cast<Connection*>(iterator())))
    {
       connection->getCallId(&connectionCallId);
       pCallIdList.append(new UtlString(connectionCallId));
@@ -2912,7 +2912,7 @@ void CpPeerCall::inFocus(int talking)
     else 
     {
         UtlDListIterator iterator(mConnections);
-        while ((connection = (Connection*) iterator()))
+        while ((connection = dynamic_cast<Connection*>(iterator())))
         {
             int cause = 0;
             int state = connection->getState(cause);
@@ -2926,7 +2926,7 @@ void CpPeerCall::inFocus(int talking)
     }
 
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         int cause = 0;
         int state = connection->getState(cause);
@@ -2957,7 +2957,7 @@ void CpPeerCall::outOfFocus()
     UtlDListIterator iterator(mConnections);
     Connection* connection = NULL;
 
-    while ((connection = (Connection*)iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         if(connection->isHeld())
         {
@@ -3008,7 +3008,7 @@ void CpPeerCall::onHook()
         OsReadLock lock(mConnectionMutex);
         UtlDListIterator iterator(mConnections);
 
-        while ((connection = (Connection*) iterator()))
+        while ((connection = dynamic_cast<Connection*>(iterator())))
         {
             connection->hangUp();
             connection->setMediaInterface(NULL) ;
@@ -3108,7 +3108,7 @@ void CpPeerCall::dropIfDead()
                     // Notify listeners that call is going to be torn down
                     UtlDListIterator iterator(mConnections);
                     Connection* connection = NULL;
-                    while ((connection = (Connection*) iterator()))
+                    while ((connection = dynamic_cast<Connection*>(iterator())))
                     {              
                         // do not fire the taip event if it is a ghost connection
                         CpGhostConnection* pGhost = NULL;
@@ -3162,7 +3162,7 @@ void CpPeerCall::dropDeadConnections()
 #endif
     OsDateTime::getCurTimeSinceBoot(now) ;
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         // 1. Look for newly disconnected/failed connections and fire off events
         // and mark for deletion.
@@ -3250,7 +3250,7 @@ void CpPeerCall::offHook(const void* pDisplay)
     Connection* connection = NULL;
 
     UtlDListIterator iterator(mConnections);
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         if(connection &&
             connection->getState() == Connection::CONNECTION_ALERTING)
@@ -3470,7 +3470,7 @@ UtlBoolean CpPeerCall::isConnectionLive(int* localConnectionState)
     }
 
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         int cause;
         connectionState = connection->getState(0, cause);    // get remote connection state
@@ -3558,7 +3558,7 @@ UtlBoolean CpPeerCall::canDisconnectConnection(Connection* pConnection)
     int cnt = 0;
     int contains = 0;
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         cnt++;
         if (connection == pConnection) contains = 1;
@@ -3598,7 +3598,7 @@ Connection* CpPeerCall::findHandlingConnection(OsMsg& eventMessage)
 
     if (mConnections.entries())
     {
-        while ((connection = (Connection*) iterator()))
+        while ((connection = dynamic_cast<Connection*>(iterator())))
         {
             if(connection->willHandleMessage(eventMessage)) break;
             connection = NULL;
@@ -3617,7 +3617,7 @@ Connection* CpPeerCall::findHandlingConnection(const char* callId,
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         if(connection->isConnection(callId, 
             toTag,
@@ -3635,7 +3635,7 @@ Connection* CpPeerCall::findHandlingConnection(UtlString& remoteAddress)
     UtlDListIterator iterator(mConnections);
     Url remoteUrl(remoteAddress);
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         UtlString connectionRemoteAddress;
 
@@ -3664,7 +3664,7 @@ Connection* CpPeerCall::findHandlingConnection(const UtlString& remoteAddress,
    Connection* connection = NULL;
    UtlDListIterator iterator(mConnections);
 
-   while ((connection = (Connection*) iterator()))
+   while ((connection = dynamic_cast<Connection*>(iterator())))
    {
       Url remoteUrl(remoteAddress);
       UtlString connectionRemoteAddress;
@@ -3711,7 +3711,7 @@ Connection* CpPeerCall::findQueuedConnection()
     OsReadLock lock(mConnectionMutex);
     UtlDListIterator iterator(mConnections);
 
-    while ((connection = (Connection*) iterator()))
+    while ((connection = dynamic_cast<Connection*>(iterator())))
     {
         if(connection->getState() == Connection::CONNECTION_QUEUED) break;
         connection = NULL;

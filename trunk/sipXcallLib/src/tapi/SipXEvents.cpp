@@ -34,7 +34,6 @@
 #include "tapi/SipXConference.h"
 #include "os/OsDefs.h"
 #include "utl/UtlSList.h"
-#include "utl/UtlSListIterator.h"
 #include "utl/UtlVoidPtr.h"
 #include "os/OsMutex.h"
 #include "utl/UtlString.h"
@@ -61,7 +60,7 @@ extern SipXHandleMap gCallHandleMap;   // sipXtapiInternal.cpp
 /*       Conversion of events to strings                             */
 /*********************************************************************/
 
-// CHECKED
+
 static const char* convertEventCategoryToString(SIPX_EVENT_CATEGORY category)
 {
    const char* str = "Unknown";
@@ -108,7 +107,7 @@ static const char* convertEventCategoryToString(SIPX_EVENT_CATEGORY category)
    return str;
 }
 
-// CHECKED
+
 static const char* convertCallstateEventToString(SIPX_CALLSTATE_EVENT eMajor)
 {
    const char* str = "Unknown";
@@ -164,7 +163,7 @@ static const char* convertCallstateEventToString(SIPX_CALLSTATE_EVENT eMajor)
    return str;
 }
 
-// CHECKED
+
 static const char* convertCallstateCauseToString(SIPX_CALLSTATE_CAUSE eMinor)
 {
    const char* str = "Unknown";
@@ -267,7 +266,7 @@ static const char* convertCallstateCauseToString(SIPX_CALLSTATE_CAUSE eMinor)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxMediaEventToString(SIPX_MEDIA_EVENT event)
 {
    const char* str = "Unknown";
@@ -331,7 +330,7 @@ SIPXTAPI_API const char* sipxMediaEventToString(SIPX_MEDIA_EVENT event)
    return str;
 }
 
-// CHECKED
+
 static const char* convertMediaTypeToString(SIPX_MEDIA_TYPE type)
 {
    const char* str = "Unknown";
@@ -350,7 +349,7 @@ static const char* convertMediaTypeToString(SIPX_MEDIA_TYPE type)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxMediaCauseToString(SIPX_MEDIA_CAUSE cause)
 {
    const char* str = "Unknown";
@@ -390,7 +389,7 @@ SIPXTAPI_API const char* sipxMediaCauseToString(SIPX_MEDIA_CAUSE cause)
    return str;
 }
 
-// CHECKED
+
 static const char* convertPIMEventToString(SIPX_PIM_EVENT event)
 {
    const char* str = "Unknown";
@@ -406,7 +405,7 @@ static const char* convertPIMEventToString(SIPX_PIM_EVENT event)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxKeepaliveEventToString(SIPX_KEEPALIVE_EVENT event)
 {
    const char* str = "Unknown";
@@ -431,7 +430,7 @@ SIPXTAPI_API const char* sipxKeepaliveEventToString(SIPX_KEEPALIVE_EVENT event)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxKeepaliveCauseToString(SIPX_KEEPALIVE_CAUSE event)
 {
    const char* str = "Unknown";
@@ -447,7 +446,7 @@ SIPXTAPI_API const char* sipxKeepaliveCauseToString(SIPX_KEEPALIVE_CAUSE event)
    return str;
 }
 
-// CHECKED
+
 static const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
 {
    const char* str = "Unknown";
@@ -472,7 +471,7 @@ static const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
    return str;
 }
 
-// CHECKED
+
 static const char* convertInfoStatusEventToString(SIPX_INFOSTATUS_EVENT event)
 {
    const char* str = "Unknown";
@@ -495,7 +494,7 @@ static const char* convertInfoStatusEventToString(SIPX_INFOSTATUS_EVENT event)
    return str;
 }
 
-// CHECKED
+
 static const char* convertMessageStatusToString(SIPX_MESSAGE_STATUS status)
 {
    const char* str = "Unknown";
@@ -521,7 +520,7 @@ static const char* convertMessageStatusToString(SIPX_MESSAGE_STATUS status)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxConfigEventToString(SIPX_CONFIG_EVENT event)
 {
    const char* str = "Unknown";
@@ -544,7 +543,7 @@ SIPXTAPI_API const char* sipxConfigEventToString(SIPX_CONFIG_EVENT event)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxSubStatusStateToString(SIPX_SUBSCRIPTION_STATE state)
 {
    const char* str = "Unknown";
@@ -570,7 +569,7 @@ SIPXTAPI_API const char* sipxSubStatusStateToString(SIPX_SUBSCRIPTION_STATE stat
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxSubStatusCauseToString(SIPX_SUBSCRIPTION_CAUSE cause)
 {
    const char* str = "Unknown";
@@ -590,7 +589,7 @@ SIPXTAPI_API const char* sipxSubStatusCauseToString(SIPX_SUBSCRIPTION_CAUSE caus
    return str;
 }
 
-// CHECKED
+
 static const char* convertLinestateEventToString(SIPX_LINESTATE_EVENT event)
 {
    const char* str = "Unknown";
@@ -628,7 +627,7 @@ static const char* convertLinestateEventToString(SIPX_LINESTATE_EVENT event)
    return str;
 }
 
-// CHECKED
+
 static const char* convertLinestateCauseToString(SIPX_LINESTATE_CAUSE cause)
 {
    const char* str = "Unknown";
@@ -677,7 +676,7 @@ static const char* convertLinestateCauseToString(SIPX_LINESTATE_CAUSE cause)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxSecurityEventToString(SIPX_SECURITY_EVENT event) 
 {
    const char* str = "Unknown";
@@ -703,7 +702,7 @@ SIPXTAPI_API const char* sipxSecurityEventToString(SIPX_SECURITY_EVENT event)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API const char* sipxSecurityCauseToString(SIPX_SECURITY_CAUSE cause) 
 {
    const char* str = "Unknown";
@@ -780,7 +779,7 @@ SIPXTAPI_API const char* sipxSecurityCauseToString(SIPX_SECURITY_CAUSE cause)
    return str;
 }
 
-// CHECKED
+
 SIPXTAPI_API void sipxCallEventToString(SIPX_CALLSTATE_EVENT event,
                                         SIPX_CALLSTATE_CAUSE cause,
                                         char*  szBuffer,
@@ -790,7 +789,7 @@ SIPXTAPI_API void sipxCallEventToString(SIPX_CALLSTATE_EVENT event,
       convertCallstateCauseToString(cause));
 }
 
-// CHECKED
+
 SIPXTAPI_API void sipxLineEventToString(SIPX_LINESTATE_EVENT event,
                                         SIPX_LINESTATE_CAUSE cause,
                                         char*  szBuffer,
@@ -800,7 +799,7 @@ SIPXTAPI_API void sipxLineEventToString(SIPX_LINESTATE_EVENT event,
       convertLinestateCauseToString(cause));
 }
 
-// CHECKED
+
 SIPXTAPI_API void sipxEventToString(const SIPX_EVENT_CATEGORY category,
                                     const void* pEvent,
                                     char*  szBuffer,
@@ -912,7 +911,7 @@ SIPXTAPI_API void sipxEventToString(const SIPX_EVENT_CATEGORY category,
 /*       Event duplication & freeing                                 */
 /*********************************************************************/
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category, 
                                             const void*         pEventSource, 
                                             void**              pEventCopy) 
@@ -1222,7 +1221,7 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category, 
                                                  void*               pEventCopy) 
 {
@@ -1374,7 +1373,7 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
 /*       Event firing functions                                      */
 /*********************************************************************/
 
-// CHECKED
+
 // userData must be SIPX_INST
 void sipxFirePIMEvent(void* userData,
                       const UtlString& fromAddress,
@@ -1421,7 +1420,7 @@ void sipxFirePIMEvent(void* userData,
    }
 }
 
-// CHECKED
+
 void sipxFireKeepaliveEvent(const SIPX_INST      pInst,                                                        
                             SIPX_KEEPALIVE_EVENT event,
                             SIPX_KEEPALIVE_CAUSE cause,
@@ -1465,7 +1464,7 @@ void sipxFireKeepaliveEvent(const SIPX_INST      pInst,
 }
 
 
-// CHECKED
+
 void sipxFireConfigEvent(const SIPX_INST pInst,                                                        
                          SIPX_CONFIG_EVENT event,
                          void* pEventData)
@@ -1502,7 +1501,7 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
    }
 }
 
-// CHECKED
+
 void sipxFireLineEvent(SIPX_INST pInst,
                        const UtlString& lineIdentifier,
                        SIPX_LINESTATE_EVENT event,
@@ -1886,7 +1885,7 @@ void sipxFireCallEvent(const SIPX_INST pInst,
    }
 }
 
-// CHECKED
+
 void sipxFireMediaEvent(SIPX_INST pInst,
                         const UtlString& sCallId,
                         const UtlString& sSessionCallId,
@@ -2049,7 +2048,7 @@ void sipxFireMediaEvent(SIPX_INST pInst,
    }
 }
 
-// CHECKED
+
 bool sipxFireSubscriptionStatusEvent(const SIPX_INST pInst,
                                      SIPX_SUBSTATUS_INFO* pInfo)
 {
@@ -2062,7 +2061,7 @@ bool sipxFireSubscriptionStatusEvent(const SIPX_INST pInst,
    return true;
 }
 
-// CHECKED
+
 bool sipxFireNotifyEvent(const SIPX_INST pInst,
                          SIPX_NOTIFY_INFO* pInfo)
 {
@@ -2075,7 +2074,7 @@ bool sipxFireNotifyEvent(const SIPX_INST pInst,
    return true;
 }
 
-// CHECKED
+
 bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
                              SIPX_INFO hInfo,
                              SIPX_MESSAGE_STATUS status,
@@ -2098,7 +2097,7 @@ bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
    return true;
 }
 
-// CHECKED
+
 bool sipxFireSecurityEvent(const SIPX_INST pInst,
                            const UtlString& sSRTPkey,
                            void* pCertificate,
@@ -2132,7 +2131,7 @@ bool sipxFireSecurityEvent(const SIPX_INST pInst,
 /*       Event listener management                                   */
 /*********************************************************************/
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxEventListenerAdd(const SIPX_INST hInst,
                                               SIPX_EVENT_CALLBACK_PROC pCallbackProc,
                                               void* pUserData)
@@ -2159,7 +2158,7 @@ SIPXTAPI_API SIPX_RESULT sipxEventListenerAdd(const SIPX_INST hInst,
    return rc ;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxEventListenerRemove(const SIPX_INST hInst, 
                                                  SIPX_EVENT_CALLBACK_PROC pCallbackProc, 
                                                  void* pUserData) 

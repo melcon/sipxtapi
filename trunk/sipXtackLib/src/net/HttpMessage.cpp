@@ -456,6 +456,19 @@ int HttpMessage::findHeaderEnd(const char* headerBytes, int messageLength)
    return(bytesConsumed);
 }
 
+HttpMessage::HttpEndpointEnum HttpMessage::getAuthorizationEntity(int responseCode)
+{
+   if(responseCode == HTTP_UNAUTHORIZED_CODE)
+   {
+      return HttpMessage::SERVER;
+   }
+   else if(responseCode == HTTP_PROXY_UNAUTHORIZED_CODE)
+   {
+      return HttpMessage::PROXY;
+   }
+   else return HttpMessage::UNKNOWN;
+}
+
 int HttpMessage::parseHeaders(const char* headerBytes, int messageLength,
                               UtlDList& headerNameValues)
 {
@@ -2716,6 +2729,25 @@ UtlBoolean HttpMessage::getAuthorizationField(UtlString* authenticationField,
     }
 
     return(fieldValue != NULL);
+}
+
+UtlBoolean HttpMessage::hasDigestAuthorizationData(const UtlString& realm /*= NULL*/,
+                                                   int authorizationEntity /*= PROXY*/) const
+{
+   int requestAuthIndex = 0;
+   UtlString msgUser;
+   UtlString msgRealm;
+
+   while(getDigestAuthorizationData(&msgUser, &msgRealm, NULL, NULL, NULL, NULL, authorizationEntity, requestAuthIndex))
+   {
+      if(!realm.compareTo(msgRealm))
+      {
+         return TRUE;
+      }
+      requestAuthIndex++;
+   }
+
+   return FALSE;
 }
 
 UtlBoolean HttpMessage::getDigestAuthorizationData(UtlString* user,
