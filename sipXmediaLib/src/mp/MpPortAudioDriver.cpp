@@ -624,7 +624,7 @@ OsStatus MpPortAudioDriver::readStreamSync(MpAudioStreamId stream,
 
    // first verify that stream is synchronous
    UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.find(&strm);
+   UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
    if (res)
    {
@@ -659,7 +659,7 @@ OsStatus MpPortAudioDriver::writeStreamSync(MpAudioStreamId stream,
 
    // first verify that stream is synchronous
    UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.find(&strm);
+   UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
    if (res)
    {

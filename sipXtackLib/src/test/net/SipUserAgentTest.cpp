@@ -150,7 +150,7 @@ public:
                               );
 
             sipUA.start();
-            refreshMgr.init(&sipUA);
+            refreshMgr.setSipUserAgent(&sipUA);
 
             sipUA.send(testMsg);
 
@@ -234,7 +234,7 @@ public:
                               );
 
             sipUA.start();
-            refreshMgr.init(&sipUA);
+            refreshMgr.setSipUserAgent(&sipUA);
 
             sipUA.send(testMsg);
 

@@ -2871,6 +2871,22 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddCredential(const SIPX_LINE hLine,
                                                const char* szRealm);
 
 /**
+* Sets line outbound proxy servers. This setting overrides the default
+* outbound proxy servers set by sipxConfigSetOutboundProxy. Works only on
+* lines created by sipxLineAdd.
+* 
+* @param hLine Handle to a line appearance.  Line handles are obtained by
+*        creating a line using the sipxLineAdd function.
+* @param szProxyServers The addresses and ports of proxy servers to use - i.e
+*        hostname.domain:port. Use IP address if possible to avoid unnecessary
+*        DNS lookups. Can be multiple values separated by ,
+*
+* @see sipxConfigSetOutboundProxy
+*/
+SIPXTAPI_API SIPX_RESULT sipxLineSetOutboundProxy(const SIPX_LINE hLine,
+                                                  const char* szProxyServers);
+
+/**
  * Gets the active list of line identities.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
@@ -3007,10 +3023,12 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetUserAgentName(const SIPX_INST hInst,
                                                     const int bIncludePlatformName = 1);
                                                     
 /**
- * Defines the SIP proxy used for outbound requests.
+ * Defines the SIP proxies used for outbound requests. 
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
- * @param szProxy the new outbound proxy
+ * @param szProxy the new outbound proxy. The Format is
+ *        hostname1.domain:port,hostname2.domain:port etc.
+ *        Use IP address if possible, to avoid DNS lookup.
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundProxy(const SIPX_INST hInst,
                                                     const char* szProxy);

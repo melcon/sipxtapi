@@ -17,6 +17,7 @@
 #include "os/OsMutex.h"
 #include "net/SipLine.h"
 #include "net/SipLineList.h"
+#include <net/SipLineProvider.h>
 
 // DEFINES
 // MACROS
@@ -35,7 +36,7 @@ class SipMessage;
 * Line management class. Responsible for managing addition, removal,
 * configuration of new lines, and firing line events.
 */
-class SipLineMgr : public OsServerTask
+class SipLineMgr : public OsServerTask, public SipLineProvider
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -67,9 +68,11 @@ public:
    /** Deletes all lines */
    void deleteAllLines();
 
-   UtlBoolean buildAuthenticatedRequest(const SipMessage* response,
-                                        const SipMessage* request,
-                                        SipMessage* newAuthRequest);
+   /** Sets proxy servers for line. Overrides the default proxy servers. */
+   UtlBoolean setLineProxyServers(const Url& lineUri, const UtlString& proxyServers);
+
+   /** Gets line proxy servers. Returns TRUE if line was found. Proxy servers might be empty. */
+   virtual UtlBoolean getLineProxyServers(const Url& lineUri, UtlString& proxyServers) const;
 
    /** Sets state on given line */
    UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
@@ -93,6 +96,18 @@ public:
    /** Deletes all credentials from given line */
    UtlBoolean deleteAllCredentialsForLine(const Url& lineUri);
 
+   /**
+   * Tries to find line according to given parameters. First try lookup by
+   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+   * not found by identityUri, try by userId.
+   *
+   * If found, then line is copied into line parameter. It is slower than getLineCopy.
+   */
+   virtual UtlBoolean findLineCopy(const UtlString& lineId,
+                                   const Url& lineUri,
+                                   const UtlString& userId,
+                                   SipLine& sipLine) const;
+
    /* ============================ ACCESSORS ================================= */
 
    /** Copies SipLine clones into supplied list */
@@ -109,8 +124,14 @@ public:
 
    /* ============================ INQUIRY =================================== */
 
-   UtlBoolean isUserIdDefined(const SipMessage* request) const;
-
+   /**
+    * Tries to find line according to given parameters. First try lookup by
+    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+    * not found by identityUri, try by userId.
+    */
+   virtual UtlBoolean lineExists(const UtlString& lineId,
+                                 const Url& lineUri,
+                                 const UtlString& userId) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -124,12 +145,19 @@ protected:
    /** Handles message sent to this OsServerTask */
    UtlBoolean handleMessage(OsMsg& eventMessage);
 
-   SipLine* getLineforAuthentication(const SipMessage* request,
-                                     const SipMessage* response,
-                                     UtlBoolean isIncomingRequest = FALSE) const;
-
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   /**
+   * Tries to find line according to given parameters. First try lookup by
+   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+   * not found by identityUri, try by userId.
+   *
+   * This function returns direct pointer, and can only be used internally.
+   */
+   virtual const SipLine* findLine(const UtlString& lineId,
+                                   const Url& lineUri,
+                                   const UtlString& userId) const;
 
    /** Prints all lines in line manager */
    void dumpLines();

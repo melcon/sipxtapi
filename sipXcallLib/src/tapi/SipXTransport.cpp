@@ -55,7 +55,7 @@ SipXHandleMap gTransportHandleMap(1, SIPX_TRANSPORT_NULL);  /**< Global Map of E
 
 /* ============================ FUNCTIONS ================================= */
 
-// CHECKED
+
 SIPX_TRANSPORT_DATA* sipxTransportLookup(const SIPX_TRANSPORT hTransport,
                                          SIPX_LOCK_TYPE type,
                                          const OsStackTraceLogger& oneBackInStack)
@@ -89,7 +89,7 @@ SIPX_TRANSPORT_DATA* sipxTransportLookup(const SIPX_TRANSPORT hTransport,
    return pRC;
 }
 
-// CHECKED
+
 void sipxTransportReleaseLock(SIPX_TRANSPORT_DATA* pData,
                               SIPX_LOCK_TYPE type,
                               const OsStackTraceLogger& oneBackInStack) 
@@ -116,7 +116,7 @@ void sipxTransportReleaseLock(SIPX_TRANSPORT_DATA* pData,
    }
 }
 
-// CHECKED
+
 void sipxTransportObjectFree(SIPX_TRANSPORT hTransport)
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxTransportObjectFree");
@@ -143,7 +143,7 @@ void sipxTransportObjectFree(SIPX_TRANSPORT hTransport)
    }
 }
 
-// CHECKED
+
 void sipxTransportDestroyAll(const SIPX_INST hInst) 
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxTransportDestroyAll");
@@ -154,9 +154,9 @@ void sipxTransportDestroyAll(const SIPX_INST hInst)
    UtlVoidPtr*        pValue;
    SIPX_TRANSPORT     hTransport;
 
-   while ((pKey = (UtlInt*)transportIterator()))
+   while ((pKey = dynamic_cast<UtlInt*>(transportIterator())))
    {
-      pValue = (UtlVoidPtr*) gTransportHandleMap.findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(gTransportHandleMap.findValue(pKey));
       hTransport = (SIPX_TRANSPORT)pValue->getValue();
 
       if (hTransport)
@@ -183,7 +183,7 @@ void sipxTransportDestroyAll(const SIPX_INST hInst)
    gTransportHandleMap.unlock();
 }
 
-// CHECKED
+
 const char* sipxTransportTypeToString(SIPX_TRANSPORT_TYPE type) 
 {
    const char* szResult = "UNKNOWN";

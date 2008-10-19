@@ -29,7 +29,7 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-// CHECKED
+
 SipXHandleMap::SipXHandleMap(int startingHandle, int avoidHandle)
    : mLock(OsMutex::Q_FIFO)
    , mNextHandle(startingHandle)
@@ -38,21 +38,21 @@ SipXHandleMap::SipXHandleMap(int startingHandle, int avoidHandle)
 }
 
 // Destructor
-// CHECKED
+
 SipXHandleMap::~SipXHandleMap()
 {
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-// CHECKED
+
 void SipXHandleMap::addHandleRef(SIPXHANDLE hHandle)
 {
    lock();
 
    UtlInt handle(hHandle);
 
-   UtlInt* count = static_cast<UtlInt*>(mLockCountHash.findValue(&handle));
+   UtlInt* count = dynamic_cast<UtlInt*>(mLockCountHash.findValue(&handle));
 
    if (!count)
    {
@@ -66,14 +66,14 @@ void SipXHandleMap::addHandleRef(SIPXHANDLE hHandle)
    unlock();
 }
 
-// CHECKED
+
 void SipXHandleMap::releaseHandleRef(SIPXHANDLE hHandle)
 {
    lock();
 
    UtlInt handle(hHandle);
 
-   UtlInt* pCount = static_cast<UtlInt*>(mLockCountHash.findValue(&handle));
+   UtlInt* pCount = dynamic_cast<UtlInt*>(mLockCountHash.findValue(&handle));
 
    if (pCount)
    {
@@ -83,19 +83,19 @@ void SipXHandleMap::releaseHandleRef(SIPXHANDLE hHandle)
    unlock();
 }
 
-// CHECKED
+
 void SipXHandleMap::lock() const
 {
    mLock.acquire();
 }
 
-// CHECKED
+
 void SipXHandleMap::unlock() const
 {
    mLock.release();
 }
 
-// CHECKED
+
 UtlBoolean SipXHandleMap::allocHandle(SIPXHANDLE& hHandle, const void* pData)
 {
    UtlBoolean res = FALSE;
@@ -139,7 +139,7 @@ UtlBoolean SipXHandleMap::allocHandle(SIPXHANDLE& hHandle, const void* pData)
    return res;
 }
 
-// CHECKED
+
 const void* SipXHandleMap::findHandle( SIPXHANDLE handle ) const
 {
    lock();
@@ -148,7 +148,7 @@ const void* SipXHandleMap::findHandle( SIPXHANDLE handle ) const
    UtlInt key(handle);
    UtlVoidPtr* pValue;
 
-   pValue = (UtlVoidPtr*)findValue(&key);
+   pValue = dynamic_cast<UtlVoidPtr*>(findValue(&key));
 
    if (pValue)
    {
@@ -160,7 +160,7 @@ const void* SipXHandleMap::findHandle( SIPXHANDLE handle ) const
    return pRC;
 }
 
-// CHECKED
+
 const void* SipXHandleMap::removeHandle(SIPXHANDLE handle) 
 {
    lock();
@@ -169,13 +169,13 @@ const void* SipXHandleMap::removeHandle(SIPXHANDLE handle)
    const void* pRC = NULL;
    UtlInt key(handle);
 
-   UtlInt* pCount = static_cast<UtlInt*>(mLockCountHash.findValue(&key));
+   UtlInt* pCount = dynamic_cast<UtlInt*>(mLockCountHash.findValue(&key));
 
    if (!pCount || pCount->getValue() < 1)
    {
       UtlVoidPtr* pValue;
 
-      pValue = (UtlVoidPtr*)findValue(&key);
+      pValue = dynamic_cast<UtlVoidPtr*>(findValue(&key));
       if (pValue)
       {
          pRC = pValue->getValue();
@@ -202,11 +202,11 @@ void SipXHandleMap::dump()
    UtlInt* pKey;
    UtlVoidPtr* pValue;
 
-   while ((pKey = (UtlInt*)itor()))
+   while ((pKey = dynamic_cast<UtlInt*>(itor())))
    {
-      pValue = (UtlVoidPtr*)findValue(pKey);
+      pValue = dynamic_cast<UtlVoidPtr*>(findValue(pKey));
       printf("\tkey=%08X, value=%08X\n", pKey->getValue(),
-             pValue ? pValue->getValue() : 0) ;
+             pValue ? pValue->getValue() : 0);
    }
 
    unlock();

@@ -82,7 +82,7 @@ static int gSessions = 0;
 
 /* ============================ FUNCTIONS ================================= */
 
-// CHECKED
+
 SIPXTAPI_API void sipxLogEntryAdd(SIPX_LOG_LEVEL priority, 
                                   const char *format,
                                   ...)
@@ -97,27 +97,27 @@ SIPXTAPI_API void sipxLogEntryAdd(SIPX_LOG_LEVEL priority,
    va_end(ap);
 }
 
-// CHECKED
+
 void sipxIncSessionCount()
 {
    OsLock lock(gSessionLock);
    ++gSessions;
 }
 
-// CHECKED
+
 void sipxDecSessionCount()
 {
    OsLock lock(gSessionLock);
    --gSessions;
 }
 
-// CHECKED
+
 int sipxGetSessionCount()
 {
    return gSessions;
 }
 
-// CHECKED
+
 SIPX_RESULT sipxFlushHandles()
 {
    gCallHandleMap.destroyAll();
@@ -131,7 +131,7 @@ SIPX_RESULT sipxFlushHandles()
    return SIPX_RESULT_SUCCESS ;
 }
 
-// CHECKED
+
 SIPX_RESULT sipxCheckForHandleLeaks() 
 {
    SIPX_RESULT rc = SIPX_RESULT_SUCCESS;
@@ -171,7 +171,7 @@ SIPX_RESULT sipxCheckForHandleLeaks()
    return rc;
 }
 
-// CHECKED
+
 const char* sipxContactTypeToString(SIPX_CONTACT_TYPE type) 
 {
    const char* szResult = "UNKNOWN";
@@ -197,7 +197,7 @@ const char* sipxContactTypeToString(SIPX_CONTACT_TYPE type)
    return szResult;
 }
 
-// CHECKED
+
 // Get the external host and port given the contact preference
 void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
                        SIPX_CONTACT_TYPE& contactType,
@@ -264,7 +264,7 @@ void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
    }
 }
 
-// CHECKED
+
 SIPX_RESULT validateNetwork()
 {
    SIPX_RESULT res = SIPX_RESULT_NETWORK_FAILURE;
@@ -298,7 +298,7 @@ SIPX_RESULT validateNetwork()
    return res;
 }
 
-// CHECKED
+
 SIPX_RESULT checkEvalExpiration()
 {
    SIPX_RESULT res = SIPX_RESULT_SUCCESS;
@@ -325,7 +325,6 @@ SIPX_RESULT checkEvalExpiration()
 * Public Initialization Functions
 ***************************************************************************/
 
-// CHECKED, problem in szIdentity processing
 SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
                                         const int udpPort,
                                         const int tcpPort,
@@ -458,7 +457,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    // Startup Line Manager  Refresh Manager
    pInst->pLineManager->start();
-   pInst->pRefreshManager->init(pInst->pSipUserAgent);
+   pInst->pRefreshManager->setSipUserAgent(pInst->pSipUserAgent);
    pInst->pRefreshManager->startRefreshMgr();
 
    // Create and start up a SIP SUBSCRIBE server
@@ -591,7 +590,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
                                           const int udpPort,
                                           const int tcpPort,
@@ -672,7 +671,7 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
                                           int bForceShutdown)
 {

@@ -51,14 +51,14 @@ static bool gbHibernated = false;
 
 // GLOBAL FUNCTIONS
 
-// CHECKED
+
 OsStatus initLogger()
 {
    return OsSysLog::initialize(0, // do not cache any log messages in memory
                                "sipXtapi"); // name for messages from this program
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigAllowMethod(const SIPX_INST hInst, const char* method, const bool bAllow)
 {
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
@@ -72,7 +72,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigAllowMethod(const SIPX_INST hInst, const char
    return res;
 }
 
-// CHECKED
+
 void freeAudioCodecs(SIPX_INSTANCE_DATA& pInst)
 {
    // Did we previously allocate an audio codecs array and store it in our codec settings?
@@ -91,7 +91,7 @@ void freeAudioCodecs(SIPX_INSTANCE_DATA& pInst)
    }
 }
 
-// CHECKED
+
 void freeVideoCodecs(SIPX_INSTANCE_DATA& pInst)
 {
    // Did we previously allocate a video codecs array and store it in our codec settings?
@@ -116,7 +116,7 @@ void freeVideoCodecs(SIPX_INSTANCE_DATA& pInst)
 * Public Config Functions
 ***************************************************************************/
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigInitLogging(const char* szFilename, SIPX_LOG_LEVEL logLevel) 
 {
    SIPX_RESULT res = SIPX_RESULT_FAILURE;
@@ -138,7 +138,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigInitLogging(const char* szFilename, SIPX_LOG_
    return res;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetLogLevel(SIPX_LOG_LEVEL logLevel) 
 {
    SIPX_RESULT res = SIPX_RESULT_FAILURE;
@@ -153,7 +153,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogLevel(SIPX_LOG_LEVEL logLevel)
    return res;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetLogFile(const char* szFilename)
 {
    SIPX_RESULT res = SIPX_RESULT_FAILURE;
@@ -167,7 +167,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogFile(const char* szFilename)
    return res;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetLogCallback(sipxLogCallback pCallback)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetLogCallback");
@@ -185,7 +185,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLogCallback(sipxLogCallback pCallback)
 #endif        
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundProxy(const SIPX_INST hInst,
                                                     const char* szProxy)
 {
@@ -205,7 +205,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundProxy(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setProxyServers(szProxy);
+         pInst->pSipUserAgent->setDefaultProxyServers(szProxy);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -213,7 +213,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundProxy(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetDnsSrvTimeouts(const int initialTimeoutInSecs,
                                                      const int retries)
 {
@@ -235,7 +235,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetDnsSrvTimeouts(const int initialTimeoutInS
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterResponseWaitSeconds(const SIPX_INST hInst,
                                                                   const int seconds)
 {
@@ -261,7 +261,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterResponseWaitSeconds(const SIPX_INS
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableRport(const SIPX_INST hInst,
                                                const int bEnable)
 {
@@ -287,7 +287,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRport(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetUserAgentName(const SIPX_INST hInst,
                                                     const char* szName,
                                                     const int bIncludePlatform)
@@ -315,7 +315,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetUserAgentName(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterExpiration(const SIPX_INST hInst,
                                                          const int nRegisterExpirationSecs)
 {
@@ -341,7 +341,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterExpiration(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetDnsSrvFailoverTimeout(const SIPX_INST hInst,
                                                             const int failoverTimeoutInSecs)
 {
@@ -367,7 +367,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetDnsSrvFailoverTimeout(const SIPX_INST hIns
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableStun(const SIPX_INST hInst,
                                               const char* szServer,
                                               int iServerPort,
@@ -397,7 +397,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableStun(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigDisableStun(const SIPX_INST hInst)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigDisableStun");
@@ -419,7 +419,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigDisableStun(const SIPX_INST hInst)
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableTurn(const SIPX_INST hInst,
                                               const char*     szServer,
                                               const int       iServerPort,
@@ -446,7 +446,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableTurn(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigDisableTurn(const SIPX_INST hInst) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigDisableTurn");
@@ -467,7 +467,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigDisableTurn(const SIPX_INST hInst)
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableIce(const SIPX_INST hInst)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigEnableIce");
@@ -487,7 +487,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableIce(const SIPX_INST hInst)
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigDisableIce(const SIPX_INST hInst) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigDisableIce");
@@ -507,7 +507,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigDisableIce(const SIPX_INST hInst)
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
                                                 SIPX_CONTACT_ID     contactId,
                                                 SIPX_KEEPALIVE_TYPE type,
@@ -605,7 +605,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST     hInst,
                                                    SIPX_CONTACT_ID     contactId,
                                                    SIPX_KEEPALIVE_TYPE type,
@@ -697,7 +697,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST     hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVersion(char* szVersion,
                                               const size_t nBuffer)
 {
@@ -715,7 +715,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVersion(char* szVersion,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipUdpPort(SIPX_INST hInst,
                                                       int* pPort)
 {
@@ -744,7 +744,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipUdpPort(SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTcpPort(SIPX_INST hInst,
                                                       int* pPort)
 {
@@ -773,7 +773,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTcpPort(SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
                                                       int* pPort)
 {
@@ -802,7 +802,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableDnsSrv(const int enable)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigEnableDnsSrv");
@@ -816,7 +816,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableDnsSrv(const int enable)
    return SIPX_RESULT_SUCCESS;
 }
 
-// CHECKED
+
 // TODO: for INFO support in the future, we will need to remember setting in SIPX_INSTANCE_DATA
 SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
                                                        const SIPX_OUTBOUND_DTMF_MODE mode)
@@ -845,7 +845,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
                                                        SIPX_OUTBOUND_DTMF_MODE* mode)
 {
@@ -873,7 +873,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
                                                      SIPX_INBOUND_DTMF_MODE mode,
                                                      int bEnable)
@@ -902,7 +902,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
 	return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigIsInboundDTMFEnabled(const SIPX_INST hInst,
                                                         SIPX_INBOUND_DTMF_MODE mode,
                                                         int* bEnabled)
@@ -931,7 +931,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigIsInboundDTMFEnabled(const SIPX_INST hInst,
 	return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableRTCP(const SIPX_INST hInst,
                                               const int bEnable) 
 {
@@ -958,7 +958,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRTCP(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetTLSSecurityParameters(SIPX_SSL_CRT_VERIFICATION verificationMode,
                                                             const char* szCApath,
                                                             const char* szCAfile,
@@ -997,7 +997,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetTLSSecurityParameters(SIPX_SSL_CRT_VERIFIC
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipShortNames(const SIPX_INST hInst,
                                                        const int bEnabled)
 {
@@ -1024,7 +1024,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipShortNames(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst, 
                                                        const int bEnabled)
 {
@@ -1051,7 +1051,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst,
    return rc;
 }                                                       
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst, 
                                                         const int bEnabled)
 {
@@ -1078,7 +1078,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst, 
                                                         const char* szLanguage)
 {
@@ -1105,7 +1105,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetLocationHeader(const SIPX_INST hInst,
                                                      const char* szHeader)
 {
@@ -1126,7 +1126,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLocationHeader(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetConnectionIdleTimeout(const SIPX_INST hInst,
                                                             const int idleTimeout)
 {
@@ -1158,7 +1158,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetConnectionIdleTimeout(const SIPX_INST hIns
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportAdd(SIPX_INST const hInst,
                                                         SIPX_TRANSPORT* hTransport,
                                                         const int bIsReliable,
@@ -1228,7 +1228,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportAdd(SIPX_INST const hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRemove(const SIPX_TRANSPORT hTransport)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigExternalTransportRemove");
@@ -1265,7 +1265,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRemove(const SIPX_TRANSPORT 
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRouteByUser(const SIPX_TRANSPORT hTransport,
                                                                 int bRouteByUser)
 {
@@ -1284,7 +1284,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRouteByUser(const SIPX_TRANS
    return rc;
 }
 
-// CHECKED, not sure it works
 SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRANSPORT hTransport,
                                                                   const char* szSourceIP,
                                                                   const int iSourcePort,
@@ -1343,7 +1342,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVoiceQualityServer(const SIPX_INST hInst,
                                                          const char* szServer)
 {
@@ -1366,7 +1365,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVoiceQualityServer(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigPrepareToHibernate(const SIPX_INST hInst)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigPrepareToHibernate");
@@ -1424,7 +1423,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigPrepareToHibernate(const SIPX_INST hInst)
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigUnHibernate(const SIPX_INST hInst)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigUnHibernate");
@@ -1483,7 +1482,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigUnHibernate(const SIPX_INST hInst)
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableRtpOverTcp(const SIPX_INST hInst,
                                                     int bEnable)
 {
@@ -1504,7 +1503,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRtpOverTcp(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hInst, 
                                                             const SIPX_AUDIO_BANDWIDTH_ID bandWidth)
 {
@@ -1598,7 +1597,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hIns
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
                                                        const char* szCodecName)
 {
@@ -1664,7 +1663,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodecPreferences(const SIPX_INST hInst,
                                                             SIPX_AUDIO_BANDWIDTH_ID *pBandWidth)
 {
@@ -1686,7 +1685,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodecPreferences(const SIPX_INST hIns
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst, 
                                                      int* pNumCodecs)
 {
@@ -1713,7 +1712,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
                                                  const int index,
                                                  SIPX_AUDIO_CODEC* pCodec)
@@ -1760,7 +1759,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
 * Public Video Config Functions
 ***************************************************************************/
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hInst,
                                                             SIPX_VIDEO_BANDWIDTH_ID *pBandWidth)
 {
@@ -1786,7 +1785,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hIns
 #endif
 }
 
-// CHECKED, doesn't work like for audio codecs, just sets bitrate & framerate
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst,
                                                      SIPX_VIDEO_BANDWIDTH_ID bandWidth)
 {
@@ -1841,7 +1839,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
                                                           char** arrSzCaptureDevices,
                                                           int nDeviceStringLength,
@@ -1876,7 +1874,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
             int index = 0;
             int bytesToCopy;
 
-            while (pDevice = (UtlString*)iterator())
+            while (pDevice = dynamic_cast<UtlString*>(iterator()))
             {
                if (pDevice->length() > 0)
                {
@@ -1910,7 +1908,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
 #endif
 }                                                          
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
                                                          char* szCaptureDevice,
                                                          int nLength)
@@ -1960,7 +1958,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
                                                          const char* szCaptureDevice)
 {
@@ -1996,7 +1994,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetNumVideoCodecs(const SIPX_INST hInst,
                                                      int* pNumCodecs)
 {
@@ -2031,7 +2029,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumVideoCodecs(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst, 
                                                  const int index, 
                                                  SIPX_VIDEO_CODEC* pCodec)
@@ -2077,7 +2075,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst, 
                                                        const char* szCodecName)
 {
@@ -2138,7 +2136,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED, problem pInst->videoCodecSetting.pPreferences will be empty after execution
 SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst)
 {
 #ifdef VIDEO
@@ -2158,7 +2155,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst)
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFormat(const SIPX_INST hInst,
                                                   SIPX_VIDEO_FORMAT videoFormat)
 {
@@ -2191,7 +2188,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFormat(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoPreviewDisplay(const SIPX_INST hInst,
                                                           SIPX_VIDEO_DISPLAY* const pDisplay)
 {
@@ -2225,7 +2222,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoPreviewDisplay(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigUpdatePreviewWindow(const SIPX_INST hInst,
                                                        const SIPX_WINDOW_HANDLE hWnd)
 {
@@ -2243,7 +2240,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigUpdatePreviewWindow(const SIPX_INST hInst,
 
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallResizeWindow(const SIPX_CALL hCall,
                                               const SIPX_WINDOW_HANDLE hWnd)
 {
@@ -2261,7 +2258,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallResizeWindow(const SIPX_CALL hCall,
 
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallUpdateVideoWindow(const SIPX_CALL hCall,
                                                    const SIPX_WINDOW_HANDLE hWnd)
 {
@@ -2289,7 +2286,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallUpdateVideoWindow(const SIPX_CALL hCall,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoQuality(const SIPX_INST hInst,
                                                    const SIPX_VIDEO_QUALITY_ID quality)
 {
@@ -2329,7 +2326,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoQuality(const SIPX_INST hInst,
 
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoParameters(const SIPX_INST hInst,
                                                       const int bitRate,
                                                       const int frameRate)
@@ -2378,7 +2375,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoParameters(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
                                                     const int cpuUsage)
 {
@@ -2412,7 +2409,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBitrate(const SIPX_INST hInst,
                                                    const int bitRate)
 {
@@ -2461,7 +2458,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBitrate(const SIPX_INST hInst,
 #endif
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFramerate(const SIPX_INST hInst,
                                                      const int frameRate)
 {
@@ -2499,7 +2496,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFramerate(const SIPX_INST hInst,
 * Public Misc Config Functions
 ***************************************************************************/
 
-// CHECKED, verify that cbsize of addresses is correct
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalContacts(const SIPX_INST hInst,
                                                     SIPX_CONTACT_ADDRESS addresses[],
                                                     size_t nMaxAddresses,
@@ -2553,7 +2549,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalContacts(const SIPX_INST hInst,
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalFeedbackAddress(const SIPX_INST hInst,
                                                            const char* szRemoteIp,
                                                            const int iRemotePort,
@@ -2589,7 +2585,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalFeedbackAddress(const SIPX_INST hInst
    return rc;
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxConfigGetAllLocalNetworkIps(char* arrAddresses[],
                                                          char* arrAddressAdapter[],
                                                          int* numAddresses)

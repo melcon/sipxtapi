@@ -303,7 +303,7 @@ public:
                                                    );
 
             sipUA->start();
-            refreshMgr->init(sipUA);
+            refreshMgr->setSipUserAgent(sipUA);
 
 
             CallManager *pCallManager =

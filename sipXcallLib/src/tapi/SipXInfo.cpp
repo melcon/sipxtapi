@@ -40,7 +40,7 @@ SipXHandleMap gInfoHandleMap;  /**< Global Map of info handles */
 
 // GLOBAL FUNCTIONS
 
-// CHECKED
+
 SIPX_INFO_DATA* sipxInfoLookup(const SIPX_INFO hInfo,
                                SIPX_LOCK_TYPE type,
                                const OsStackTraceLogger& oneBackInStack)
@@ -74,7 +74,7 @@ SIPX_INFO_DATA* sipxInfoLookup(const SIPX_INFO hInfo,
    return pRC;
 }
 
-// CHECKED
+
 void sipxInfoReleaseLock(SIPX_INFO_DATA* pData,
                          SIPX_LOCK_TYPE type,
                          const OsStackTraceLogger& oneBackInStack) 
@@ -100,7 +100,7 @@ void sipxInfoReleaseLock(SIPX_INFO_DATA* pData,
    }
 }
 
-// CHECKED
+
 void sipxInfoObjectFree(SIPX_INFO hInfo)
 {
    OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxInfoObjectFree");
@@ -136,7 +136,7 @@ void sipxInfoFree(SIPX_INFO_DATA* pData)
    }
 }
 
-// CHECKED
+
 SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
                                           const SIPX_CALL hCall,
                                           const char* szContentType,
