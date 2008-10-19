@@ -158,7 +158,7 @@ void sipXtapiTestSuite::testPublishAndSubscribe(bool bCallContext,
          /*
          * Initiate Call
          */ 
-         rc = sipxCallConnect(hCall1, publisherUrl1.data(), NULL, NULL, false);
+         rc = sipxCallConnect(hCall1, publisherUrl1.data(), NULL, NULL, true);
          CPPUNIT_ASSERT(rc == SIPX_RESULT_SUCCESS);
 
          /*
@@ -199,7 +199,7 @@ void sipXtapiTestSuite::testPublishAndSubscribe(bool bCallContext,
             /*
             * Initiate Call
             */ 
-            rc = sipxCallConnect(hCall2, publisherUrl1.data(), NULL, NULL, false);
+            rc = sipxCallConnect(hCall2, publisherUrl1.data(), NULL, NULL, true);
             CPPUNIT_ASSERT(rc == SIPX_RESULT_SUCCESS);
 
             /*

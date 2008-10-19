@@ -148,7 +148,7 @@ bool SIPX_CALLING_CONVENTION AutoAnswerCallback(SIPX_EVENT_CATEGORY category,
          break;
       case CALLSTATE_ALERTING:
          {
-            int delay = rand() % 500;
+            int delay = rand() % 200;
             OsTask::delay(delay);
             sipxCallAnswer(pCallInfo->hCall);
          }
