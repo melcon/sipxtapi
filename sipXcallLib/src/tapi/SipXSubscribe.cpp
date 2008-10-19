@@ -418,137 +418,142 @@ SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
    UtlString remoteAddress;
    UtlString lineId;
 
-   if (sipxCallGetCommonData(hCall, &pInst, NULL, &sessionCallId, &remoteAddress, &lineId))
+   if (hCall != SIPX_CALL_NULL && phSub && szEventType)
    {
-      SIPX_SUBSCRIPTION_DATA* subscriptionData = new SIPX_SUBSCRIPTION_DATA();
-      subscriptionData->mutex.acquire();
-      UtlBoolean res = gSubHandleMap.allocHandle(*phSub, subscriptionData);
-
-      if (res)
+      if (sipxCallGetCommonData(hCall, &pInst, NULL, &sessionCallId, &remoteAddress, &lineId))
       {
-         subscriptionData->pInst = pInst;
+         SIPX_SUBSCRIPTION_DATA* subscriptionData = new SIPX_SUBSCRIPTION_DATA();
+         subscriptionData->mutex.acquire();
+         UtlBoolean res = gSubHandleMap.allocHandle(*phSub, subscriptionData);
 
-         // Need to get the resourceId, To, From and Contact from
-         // the associated call
-         SipSession session;
-
-         if(pInst->pCallManager->getSession(sessionCallId, remoteAddress, session))
+         if (res)
          {
-            Url toUrl;
-            session.getToUrl(toUrl);
-            toUrl.removeFieldParameters();
-            UtlString toField;
-            toUrl.toString(toField);
-            UtlString contactField;
-            Url contactUrl;
-            session.getLocalContact(contactUrl);
-            contactUrl.toString(contactField);
+            subscriptionData->pInst = pInst;
 
-            // If remoteContactIsGruu is set we assume the
-            // remote contact is a globally routable unique URI (GRUU).
-            // Normally one cannot assume the Contact header is a
-            // publicly addressable address and we assume that the
-            // To or From from the remote side has a better chance of
-            // being globally routable as it typically is an address
-            // of record (AOR).
-            UtlString resourceId;
-            Url requestUri;
+            // Need to get the resourceId, To, From and Contact from
+            // the associated call
+            SipSession session;
 
-            if(bRemoteContactIsGruu)
+            if(pInst->pCallManager->getSession(sessionCallId, remoteAddress, session))
             {
-               requestUri = contactUrl;
+               Url toUrl;
+               session.getToUrl(toUrl);
+               toUrl.removeFieldParameters();
+               UtlString toField;
+               toUrl.toString(toField);
+               UtlString contactField;
+               Url contactUrl;
+               session.getLocalContact(contactUrl);
+               contactUrl.toString(contactField);
+
+               // If remoteContactIsGruu is set we assume the
+               // remote contact is a globally routable unique URI (GRUU).
+               // Normally one cannot assume the Contact header is a
+               // publicly addressable address and we assume that the
+               // To or From from the remote side has a better chance of
+               // being globally routable as it typically is an address
+               // of record (AOR).
+               UtlString resourceId;
+               Url requestUri;
+
+               if(bRemoteContactIsGruu)
+               {
+                  requestUri = contactUrl.getUri();
+               }
+               else
+               {
+                  requestUri = toUrl.getUri();
+               }
+               requestUri.toString(resourceId);
+
+               // May need to get the from field from the line manager
+               // For now, use the From in the session
+               UtlString fromField;
+               Url fromUrl;
+
+               session.getFromUrl(fromUrl);
+               fromUrl.removeFieldParameters();
+               fromUrl.toString(fromField);
+
+               UtlBoolean sessionDataGood = TRUE;
+
+               if(resourceId.length() <= 1 ||
+                  fromField.length() <= 4 ||
+                  toField.length() <= 4 ||
+                  contactField.length() <= 4)
+               {
+                  sessionDataGood = FALSE;
+                  OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
+                     "sipxCallSubscribe bad session data: hCall=%d szEventType=\"%s\" szAcceptType=\"%s\" resourceId=\"%s\" From=\"%s\" To=\"%s\" Contact=\"%s\"", 
+                     hCall,
+                     szEventType ? szEventType : "<null>",
+                     szAcceptType ? szAcceptType : "<null>",
+                     resourceId.data(),
+                     fromField.data(),
+                     toField.data(),
+                     contactField.data());
+               }
+               else
+               {
+                  // Session data is big enough
+                  OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+                     "sipxCallSubscribe subscribing: hCall=%d szEventType=\"%s\" szAcceptType=\"%s\" resourceId=\"%s\" From=\"%s\" To=\"%s\" Contact=\"%s\"", 
+                     hCall,
+                     szEventType ? szEventType : "<null>",
+                     szAcceptType ? szAcceptType : "<null>",
+                     resourceId.data(),
+                     fromField.data(),
+                     toField.data(),
+                     contactField.data());
+               }
+
+               // Subscribe and keep the subscription refreshed
+               if(sessionDataGood &&
+                  pInst->pSubscribeClient->addSubscription(resourceId, 
+                  szEventType, 
+                  szAcceptType,
+                  fromField, 
+                  toField, 
+                  contactField,                                                         
+                  subscriptionPeriod, 
+                  (void*)*phSub, 
+                  sipxSubscribeClientSubCallback,
+                  sipxSubscribeClientNotifyCallback, 
+                  subscriptionData->dialogHandle))
+               {
+                  sipXresult = SIPX_RESULT_SUCCESS;
+               }
             }
             else
             {
-               requestUri = toUrl;
-            }
-
-            requestUri.removeFieldParameters();
-            requestUri.removeUrlParameters();
-            requestUri.toString(resourceId);
-
-            // May need to get the from field from the line manager
-            // For now, use the From in the session
-            UtlString fromField;
-            Url fromUrl;
-
-            session.getFromUrl(fromUrl);
-            fromUrl.removeFieldParameters();
-            fromUrl.toString(fromField);
-
-            UtlBoolean sessionDataGood = TRUE;
-
-            if(resourceId.length() <= 1 ||
-               fromField.length() <= 4 ||
-               toField.length() <= 4 ||
-               contactField.length() <= 4)
-            {
-               sessionDataGood = FALSE;
+               // Could not find session for given call handle
                OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
-                  "sipxCallSubscribe bad session data: hCall=%d szEventType=\"%s\" szAcceptType=\"%s\" resourceId=\"%s\" From=\"%s\" To=\"%s\" Contact=\"%s\"", 
-                  hCall,
-                  szEventType ? szEventType : "<null>",
-                  szAcceptType ? szAcceptType : "<null>",
-                  resourceId.data(),
-                  fromField.data(),
-                  toField.data(),
-                  contactField.data());
-            }
-            else
-            {
-               // Session data is big enough
-               OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-                  "sipxCallSubscribe subscribing: hCall=%d szEventType=\"%s\" szAcceptType=\"%s\" resourceId=\"%s\" From=\"%s\" To=\"%s\" Contact=\"%s\"", 
-                  hCall,
-                  szEventType ? szEventType : "<null>",
-                  szAcceptType ? szAcceptType : "<null>",
-                  resourceId.data(),
-                  fromField.data(),
-                  toField.data(),
-                  contactField.data());
+                  "sipxCallSubscribe: could not get session for call handle: %d callId: %s remote address: %s",
+                  hCall, sessionCallId.data(), remoteAddress.data());
+               sipXresult = SIPX_RESULT_INVALID_ARGS;
             }
 
-            // Subscribe and keep the subscription refreshed
-            if(sessionDataGood &&
-               pInst->pSubscribeClient->addSubscription(resourceId, 
-                     szEventType, 
-                     szAcceptType,
-                     fromField, 
-                     toField, 
-                     contactField,                                                         
-                     subscriptionPeriod, 
-                     (void*)*phSub, 
-                     sipxSubscribeClientSubCallback,
-                     sipxSubscribeClientNotifyCallback, 
-                     subscriptionData->dialogHandle))
-            {
-               sipXresult = SIPX_RESULT_SUCCESS;
-            }
-         }
+            subscriptionData->mutex.release();
+         } 
          else
          {
-            // Could not find session for given call handle
-            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
-               "sipxCallSubscribe: could not get session for call handle: %d callId: %s remote address: %s",
-               hCall, sessionCallId.data(), remoteAddress.data());
-            sipXresult = SIPX_RESULT_INVALID_ARGS;
-         }
-
-         subscriptionData->mutex.release();
-      } 
+            // handle allocation failure
+            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, 
+               "allocHandle failed to allocate a handle");
+            delete subscriptionData;
+            subscriptionData = NULL;
+         }        
+      }
       else
       {
-         // handle allocation failure
-         OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, 
-            "allocHandle failed to allocate a handle");
-         delete subscriptionData;
-      }        
+         OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
+            "sipxCallSubscribe: could not find call data for call handle: %d",
+            hCall);
+         sipXresult = SIPX_RESULT_INVALID_ARGS;
+      }
    }
    else
    {
-      OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
-         "sipxCallSubscribe: could not find call data for call handle: %d",
-         hCall);
       sipXresult = SIPX_RESULT_INVALID_ARGS;
    }
 
@@ -575,7 +580,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
 
    SIPX_RESULT sipXresult = SIPX_RESULT_FAILURE;
 
-   if (hInst)
+   if (hInst && phSub && szTargetUrl && szEventType && szAcceptType)
    {
       UtlString sTargetUrl(szTargetUrl);
       SIPX_INSTANCE_DATA *pInst = (SIPX_INSTANCE_DATA*)hInst;
@@ -586,7 +591,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
       {
          // Need to get the resourceId, To, From and Contact from
          // the associated call
-         UtlString resourceId(sTargetUrl);
+         UtlString resourceId = Url(sTargetUrl).getUri().toString();
          UtlString fromField;
          UtlString toField(sTargetUrl);
          UtlString contactField;
@@ -673,6 +678,10 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
          }
       }// if(pLineData)
    } // if (hInst)
+   else
+   {
+      sipXresult = SIPX_RESULT_INVALID_ARGS;
+   }
 
    return sipXresult;
 }
