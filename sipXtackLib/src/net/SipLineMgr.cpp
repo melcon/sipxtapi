@@ -35,6 +35,7 @@
 #include "net/SipMessage.h"
 #include "net/NetMd5Codec.h"
 #include "net/SipRefreshMgr.h"
+#include <net/SipLineCredential.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -115,6 +116,13 @@ UtlBoolean SipLineMgr::deleteLine(const Url& lineUri)
    return FALSE;
 }
 
+void SipLineMgr::deleteAllLines()
+{
+   OsLock lock(m_mutex);
+
+   m_listList.removeAll();
+}
+
 UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
    Url canonicalUrl;
@@ -187,7 +195,27 @@ void SipLineMgr::getLineCopies(UtlSList& lineList) const
    m_listList.getLineCopies(lineList);
 }
 
-int SipLineMgr::getNumLines() const
+void SipLineMgr::getLineUris(UtlSList& lineUris) const
+{
+   OsLock lock(m_mutex); // scoped lock
+   m_listList.getLineUris(lineUris);
+}
+
+UtlBoolean SipLineMgr::getLineCopy(const Url& lineUri, SipLine& sipLine) const
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (pLine)
+   {
+      sipLine = *pLine;
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+size_t SipLineMgr::getNumLines() const
 {
    OsLock lock(m_mutex); // scoped lock
    return m_listList.getLinesCount();
@@ -579,12 +607,26 @@ UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
    OsLock lock(m_mutex); // scoped lock
 
    SipLine *pLine = m_listList.getLine(lineUri);
-   if (!pLine)
+   if (pLine)
    {
-      return FALSE;
+      return pLine->addCredential(strRealm , strUserID, strPasswd, type);
    }
 
-   return pLine->addCredential(strRealm , strUserID, strPasswd, type);
+   return FALSE;
+}
+
+UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
+                                            const SipLineCredential& credential)
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (pLine)
+   {
+      return pLine->addCredential(credential);
+   }
+
+   return FALSE;
 }
 
 UtlBoolean SipLineMgr::deleteCredentialForLine(const Url& lineUri,
@@ -594,12 +636,26 @@ UtlBoolean SipLineMgr::deleteCredentialForLine(const Url& lineUri,
    OsLock lock(m_mutex); // scoped lock
 
    SipLine *pLine = m_listList.getLine(lineUri);
-   if (!pLine)
+   if (pLine)
    {
-      return FALSE;
+      return pLine->removeCredential(type, strRealm);
    }
 
-   return pLine->removeCredential(type, strRealm);
+   return FALSE;
+}
+
+UtlBoolean SipLineMgr::deleteAllCredentialsForLine(const Url& lineUri)
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   SipLine *pLine = m_listList.getLine(lineUri);
+   if (pLine)
+   {
+      pLine->removeAllCredentials();
+      return TRUE;
+   }
+
+   return FALSE;
 }
 
 UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
@@ -608,13 +664,13 @@ UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
    OsLock lock(m_mutex); // scoped lock
 
    SipLine *pLine = m_listList.getLine(lineUri);
-   if (!pLine)
+   if (pLine)
    {
-      return FALSE;
+      pLine->setState(state);
+      return TRUE;
    }
 
-   pLine->setState(state);
-   return TRUE;
+   return FALSE;
 }
 
 void SipLineMgr::dumpLines()
