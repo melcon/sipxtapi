@@ -157,9 +157,9 @@ protected:
     /**
      * Fires given event to all SipConnections.
      */
-    void forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                            SIPX_MEDIA_CAUSE cause,
-                            SIPX_MEDIA_TYPE type,
+    void forkSipXMediaEvent(CP_MEDIA_EVENT event,
+                            CP_MEDIA_CAUSE cause,
+                            CP_MEDIA_TYPE type,
                             intptr_t pEventData1,
                             intptr_t pEventData2);
 
@@ -167,9 +167,9 @@ protected:
      * Finds the correct SipConnection by mediaConnectionId and fires
      * media event for it.
      */
-    void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                            SIPX_MEDIA_CAUSE cause,
-                            SIPX_MEDIA_TYPE type,
+    void fireSipXMediaEvent(CP_MEDIA_EVENT event,
+                            CP_MEDIA_CAUSE cause,
+                            CP_MEDIA_TYPE type,
                             int mediaConnectionId,
                             intptr_t pEventData1,
                             intptr_t pEventData2);
@@ -354,8 +354,8 @@ private:
     UtlDList mConnections;
     OsRWMutex mConnectionMutex;
     int mDialMode;
-    UtlString mLocalAddress;
-    UtlString mLocalTerminalId;
+    UtlString mLocalAddress; ///< contains lineURI, empty for conference !
+    UtlString mLocalTerminalId; ///< contains lineURI, empty for conference !
     UtlBoolean mIsEarlyMediaFor180;
     UtlBoolean mbRequestedDrop;      // Have we requested to be dropped by the CallManager
     SIPXTACK_SECURITY_ATTRIBUTES* mpSecurity;

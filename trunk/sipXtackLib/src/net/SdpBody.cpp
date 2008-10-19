@@ -2761,7 +2761,7 @@ UtlBoolean SdpBody::findValueInField(const char* pField, const char* pvalue) con
 }
 
 const bool SdpBody::isTransportAvailable(const OsSocket::IpProtocolSocketType protocol,
-                                         const SIPX_MEDIA_TYPE mediaType) const
+                                         const SDP_MEDIA_TYPE mediaType) const
 {
     bool bIsAvailable = false;
     int mediaIndex = 0;
@@ -2798,12 +2798,12 @@ const bool SdpBody::isTransportAvailable(const OsSocket::IpProtocolSocketType pr
             {
                 bTransportTypeMatch = true;
             }
-            if (mediaType == MEDIA_TYPE_AUDIO &&
+            if (mediaType == SDP_MEDIA_TYPE_AUDIO &&
                 sdpMediaType.compareTo(SDP_AUDIO_MEDIA_TYPE, UtlString::ignoreCase) == 0)
             {
                 bMediaTypeMatch = true;
             }                
-            if (mediaType == MEDIA_TYPE_VIDEO &&
+            if (mediaType == SDP_MEDIA_TYPE_VIDEO &&
                 sdpMediaType.compareTo(SDP_VIDEO_MEDIA_TYPE, UtlString::ignoreCase) == 0)
             {
                 bMediaTypeMatch = true;

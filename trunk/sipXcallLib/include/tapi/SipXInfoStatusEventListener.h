@@ -19,8 +19,10 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "tapi/sipXtapi.h"
+#include "os/OsServerTask.h"
 #include "net/SipInfoStatusEventListener.h"
+#include "tapi/sipXtapi.h"
+#include <tapi/sipXtapiEvents.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -37,7 +39,7 @@
 /**
 * Listener for Info events
 */
-class SipXInfoStatusEventListener : public SipInfoStatusEventListener
+class SipXInfoStatusEventListener : public OsServerTask, public SipInfoStatusEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -52,17 +54,34 @@ public:
 
    virtual void OnNetworkError(const SipInfoStatusEvent& event);
 
+   virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   void sipxFireInfoStatusEvent(SIPX_INFO hInfo,
+                                SIPX_MESSAGE_STATUS status,
+                                int responseCode,
+                                const UtlString& sResponseText,
+                                SIPX_INFOSTATUS_EVENT event);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   SIPX_INST m_pInst;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   SipXInfoStatusEventListener(const SipXInfoStatusEventListener& rhs);
 
+   SipXInfoStatusEventListener& operator=(const SipXInfoStatusEventListener& rhs);
+  
+   void handleInfoStatusEvent(SIPX_INFO hInfo,
+                              SIPX_MESSAGE_STATUS status,
+                              int responseCode,
+                              const UtlString& sResponseText,
+                              SIPX_INFOSTATUS_EVENT event);
+
+   SIPX_INST m_pInst;
 };
 
 #endif // SipXInfoStatusEventListener_h__

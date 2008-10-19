@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="sipXtapi-msvc8"
 	ProjectGUID="{85CAC56D-4E3A-4712-91A5-AE724B11AE25}"
 	RootNamespace="sipXtapi"
@@ -607,6 +607,30 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath=".\src\tapi\CallStateEventMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\InfoStatusEventMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\KeepaliveEventMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\LineStateEventMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\MediaEventMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\SecurityEventMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tapi\SecurityHelper.cpp"
 				>
 			</File>
@@ -975,6 +999,30 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\include\tapi\CallStateEventMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\InfoStatusEventMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\KeepaliveEventMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\LineStateEventMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\MediaEventMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\SecurityEventMsg.h"
+				>
+			</File>
 			<File
 				RelativePath=".\include\tapi\SecurityHelper.h"
 				>

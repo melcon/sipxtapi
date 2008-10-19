@@ -17,11 +17,12 @@
 #ifndef SipXSecurityEventListener_h__
 #define SipXSecurityEventListener_h__
 
-
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "tapi/sipXtapi.h"
+#include "os/OsServerTask.h"
 #include "net/SipSecurityEventListener.h"
+#include "tapi/sipXtapi.h"
+#include <tapi/sipXtapiEvents.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -36,9 +37,9 @@
 
 
 /**
-* Listener for Security events
-*/
-class SipXSecurityEventListener : public SipSecurityEventListener
+ * Listener for Security events
+ */
+class SipXSecurityEventListener : public OsServerTask, public SipSecurityEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -57,17 +58,32 @@ public:
 
    virtual void OnTLS(const SipSecurityEvent& event);
 
+   virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   SIPX_INST m_pInst;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   SipXSecurityEventListener(const SipXSecurityEventListener& rhs);
+
+   SipXSecurityEventListener& operator=(const SipXSecurityEventListener& rhs);
+
+   void handleSecurityEvent(const UtlString& sSRTPkey,
+                            void* pCertificate,
+                            size_t nCertificateSize,
+                            SIPX_SECURITY_EVENT event,
+                            SIPX_SECURITY_CAUSE cause,
+                            const UtlString& sSubjAltName,
+                            const UtlString& sSessionCallId,
+                            const UtlString& sRemoteAddress);
+
+   SIPX_INST m_pInst;
 };
 
 #endif // SipXSecurityEventListener_h__

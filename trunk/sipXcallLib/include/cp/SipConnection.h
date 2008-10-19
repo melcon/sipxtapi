@@ -296,8 +296,8 @@ protected:
     void fireIncompatibleCodecsEvent(SdpCodecFactory* pSupportedCodecs,
                                      SdpCodec**       ppMatchedCodecs,
                                      int              nMatchedCodces) ;
-    void fireAudioStartEvents(SIPX_MEDIA_CAUSE cause = MEDIA_CAUSE_NORMAL) ;
-    void fireAudioStopEvents(SIPX_MEDIA_CAUSE cause = MEDIA_CAUSE_NORMAL) ;
+    void fireAudioStartEvents(CP_MEDIA_CAUSE cause = CP_MEDIA_CAUSE_NORMAL);
+    void fireAudioStopEvents(CP_MEDIA_CAUSE cause = CP_MEDIA_CAUSE_NORMAL);
 
     /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -327,6 +327,7 @@ private:
     UtlBoolean inviteFromThisSide;
     UtlString mLastRequestMethod;
     UtlString mRemoteContact; //last contact frield from the other side
+    Url mLineURI; // line URI, will never contain a tag
     Url mFromUrl; // SIP address for the local side
     Url mToUrl;  //  SIP address for the remote side
     UtlString mRemoteUriStr;  //  SIP uri string for the remote side

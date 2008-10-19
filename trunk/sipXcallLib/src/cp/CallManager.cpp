@@ -96,7 +96,6 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
                          SipSecurityEventListener* pSecurityEventListener,
                          CpMediaEventListener* pMediaEventListener,
                          PtMGCP* mgcpStackTask,
-                         const char* defaultCallExtension,
                          int availableBehavior,
                          const char* unconditionalForwardUrl,
                          int forwardOnNoAnswerSeconds,
@@ -242,11 +241,6 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
     }
     mSipSessionReinviteTimer = sipSessionReinviteTimer;
 
-    if(defaultCallExtension)
-    {
-        mOutboundLine = defaultCallExtension;
-    }
-
     // MGCP stack
     mpMgcpStackTask = mgcpStackTask;
 
@@ -304,12 +298,6 @@ CallManager::~CallManager()
 }
 
 /* ============================ MANIPULATORS ============================== */
-
-void CallManager::setOutboundLine(const char* lineUrl)
-{
-    mOutboundLine = lineUrl ? lineUrl : "";
-}
-
 
 UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
 {
@@ -432,7 +420,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                 }
 
                                 pMediaInterface = mpMediaFactory->createMediaInterface(
-									NULL,
+									         NULL,
                                     NULL, 
                                     localAddress, numCodecs, codecArray, 
                                     mLocale.data(), mExpeditedIpTos, stunServer, 
@@ -450,6 +438,10 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                 else
                                     inviteExpireSeconds = mInviteExpireSeconds;
 
+                                // ask line provider to extract lineURI from message
+                                Url lineURI;
+                                m_pLineProvider->extractLineData(*sipMsg, TRUE, UtlString(), lineURI, UtlString());
+
                                 handlingCall = new CpPeerCall(mIsEarlyMediaFor180,
                                     this,
                                     pMediaInterface,
@@ -461,7 +453,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     callId.data(),
                                     sipUserAgent,
                                     mSipSessionReinviteTimer,
-                                    mOutboundLine.data(),
+                                    lineURI.toString().data(), // sets mLocalAddress for CpPeerCall
                                     mOfferedTimeOut,
                                     mLineAvailableBehavior,
                                     mForwardUnconditional.data(),
@@ -470,8 +462,9 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                                     mNoAnswerTimeout,
                                     mForwardOnNoAnswer.data(),
                                     inviteExpireSeconds);
-								// temporary
-								pMediaInterface->setInterfaceNotificationQueue(handlingCall->getMessageQueue());
+							
+                                // temporary
+								        pMediaInterface->setInterfaceNotificationQueue(handlingCall->getMessageQueue());
 
                                 for (int i = 0; i < numCodecs; i++)
                                 {
@@ -589,29 +582,25 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_CREATE_CALL:
             {
                 UtlString callId;
+                UtlString lineURI;
+                UtlString metaCallId1;
+                UtlString metaCallId2;
+                const char* metaEventCallIds[2];
                 int metaEventId = ((CpMultiStringMessage&)eventMessage).getInt1Data();
                 int metaEventType = ((CpMultiStringMessage&)eventMessage).getInt2Data();
                 int numCalls = ((CpMultiStringMessage&)eventMessage).getInt3Data();
                 UtlBoolean assumeFocusIfNoInfocusCall = ((CpMultiStringMessage&)eventMessage).getInt4Data();
-                const char* metaEventCallIds[4];
-                UtlString metaCallId0;
-                UtlString metaCallId1;
-                UtlString metaCallId2;
-                UtlString metaCallId3;
 
                 ((CpMultiStringMessage&)eventMessage).getString1Data(callId);
-                ((CpMultiStringMessage&)eventMessage).getString2Data(metaCallId0);
+                ((CpMultiStringMessage&)eventMessage).getString2Data(lineURI);
                 ((CpMultiStringMessage&)eventMessage).getString3Data(metaCallId1);
                 ((CpMultiStringMessage&)eventMessage).getString4Data(metaCallId2);
-                ((CpMultiStringMessage&)eventMessage).getString5Data(metaCallId3);
 
                 OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager:: create call %s\n", callId.data());
 
-                metaEventCallIds[0] = metaCallId0.data();
-                metaEventCallIds[1] = metaCallId1.data();
-                metaEventCallIds[2] = metaCallId2.data();
-                metaEventCallIds[3] = metaCallId3.data();
-                doCreateCall(callId, metaEventId, metaEventType,
+                metaEventCallIds[0] = metaCallId1.data();
+                metaEventCallIds[1] = metaCallId2.data();
+                doCreateCall(callId, lineURI, metaEventId, metaEventType,
                     numCalls, metaEventCallIds, assumeFocusIfNoInfocusCall);
 
                 messageProcessed = TRUE;
@@ -685,7 +674,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
         case CP_RINGING_EXPIRED:
         case CP_GET_SESSION:
         case CP_CANCEL_TIMER:
-        case CP_SET_OUTBOUND_LINE:
+        case CP_SET_CALL_OUTBOUND_LINE:
         case CP_GET_MEDIA_CONNECTION_ID:
         case CP_GET_MEDIA_ENERGY_LEVELS:
         case CP_GET_CALL_MEDIA_ENERGY_LEVELS:
@@ -847,12 +836,14 @@ void CallManager::requestShutdown()
 }
 
 void CallManager::createCall(UtlString* callId,
+                             const UtlString& lineURI,
                              int metaEventId,
                              int metaEventType,
                              int numCalls,
                              const char* callIds[],
                              UtlBoolean assumeFocusIfNoInfocusCall)
 {
+   // numCalls, callIds are used during call transfer, no more than 2 callIds are passed
     if(callId->isNull())
     {
         getNewCallId(callId);
@@ -860,19 +851,25 @@ void CallManager::createCall(UtlString* callId,
     OsSysLog::add(FAC_CP, PRI_DEBUG, "CallManager::createCall new Id: %s\n", callId->data());
     CpMultiStringMessage callMessage(CP_CREATE_CALL,
         callId->data(),
+        lineURI,
         numCalls >= 1 ? callIds[0] : NULL,
         numCalls >= 2 ? callIds[1] : NULL,
-        numCalls >= 3 ? callIds[2] : NULL,
-        numCalls >= 4 ? callIds[3] : NULL,
+        NULL,
         metaEventId,
         metaEventType,
         numCalls,
         assumeFocusIfNoInfocusCall);
     postMessage(callMessage);
     mnTotalOutgoingCalls++;
-
 }
 
+UtlString CallManager::createConference()
+{
+   UtlString conferenceCallId;
+   getNewCallId(&conferenceCallId); // generate new call Id for CpPeerCall
+   createCall(&conferenceCallId); // create new call
+   return conferenceCallId;
+}
 
 OsStatus CallManager::getCalls(UtlSList& callIdList)
 {
@@ -1322,10 +1319,10 @@ OsStatus CallManager::muteInputTermConnection(const char* callId, const char* sz
    return (OsStatus)result;
 }
 
-void CallManager::setOutboundLineForCall(const char* callId, const char* address, SIPX_CONTACT_TYPE eType)
+void CallManager::setOutboundLineForCall(const char* callId, const Url& lineURI, SIPX_CONTACT_TYPE eType)
 {
-    CpMultiStringMessage outboundLineMessage(CP_SET_OUTBOUND_LINE, callId, 
-            address, NULL, NULL, NULL, (int) eType);
+    CpMultiStringMessage outboundLineMessage(CP_SET_CALL_OUTBOUND_LINE, callId, 
+            lineURI.toString(), NULL, NULL, NULL, (int) eType);
 
     postMessage(outboundLineMessage);
 }
@@ -2161,6 +2158,7 @@ CpMediaInterfaceFactory* CallManager::getMediaInterfaceFactory()
 
 // used for outgoing calls
 void CallManager::doCreateCall(const char* callId,
+                               const UtlString& lineURI,
                                int metaEventId,
                                int metaEventType,
                                int numMetaEventCalls,
@@ -2230,7 +2228,7 @@ void CallManager::doCreateCall(const char* callId,
                 callId,
                 sipUserAgent,
                 mSipSessionReinviteTimer,
-                mOutboundLine.data(),
+                lineURI,
                 mOfferedTimeOut,
                 mLineAvailableBehavior,
                 mForwardUnconditional.data(),

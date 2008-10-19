@@ -14,14 +14,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef SipXCallEventListener_h__
 #define SipXCallEventListener_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "tapi/sipXtapi.h"
+#include "os/OsServerTask.h"
 #include <cp/CpCallStateEventListener.h>
+#include "tapi/sipXtapi.h"
+#include <tapi/sipXtapiEvents.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -37,7 +38,7 @@
 /**
 * Listener for Call state events
 */
-class SipXCallEventListener : public CpCallStateEventListener
+class SipXCallEventListener : public OsServerTask, public CpCallStateEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -74,17 +75,43 @@ public:
 
    virtual void OnTransferEvent(const CpCallStateEvent& event);
 
+   virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   void sipxFireCallEvent(const UtlString& sCallId,
+                          const UtlString& sSessionCallId,
+                          const SipSession& pSession,
+                          const UtlString& szRemoteAddress,
+                          SIPX_CALLSTATE_EVENT event,
+                          SIPX_CALLSTATE_CAUSE cause,
+                          const UtlString& sOriginalSessionCallId = NULL,
+                          int sipResponseCode = 0,
+                          const UtlString& sResponseText = NULL);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   SIPX_INST m_pInst;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   SipXCallEventListener(const SipXCallEventListener& rhs);
+
+   SipXCallEventListener& operator=(const SipXCallEventListener& rhs);
+
+   void handleCallEvent(const UtlString& sCallId, 
+                        const UtlString& sSessionCallId,
+                        const SipSession& session, 
+                        const UtlString& szRemoteAddress, 
+                        SIPX_CALLSTATE_EVENT event, 
+                        SIPX_CALLSTATE_CAUSE cause, 
+                        const UtlString& sOriginalSessionCallId,
+                        int sipResponseCode,
+                        const UtlString& sResponseText);
+
+   SIPX_INST m_pInst;
 };
 
 #endif // SipXCallEventListener_h__

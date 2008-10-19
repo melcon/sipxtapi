@@ -22,6 +22,9 @@
 #include <tapi/sipXtapiEvents.h>
 #include <tapi/SipXTransport.h>
 #include <mi/CpMediaInterface.h>
+#include <cp/CpDefs.h>
+#include <net/SipInfoStatusEventListener.h>
+#include <net/SipSecurityEventListener.h>
 
 // DEFINES
 // MACROS
@@ -302,32 +305,32 @@ public:
     // call events
     void prepareCallStateEvent(CpCallStateEvent& event,
                                SIPX_CALLSTATE_CAUSE eMinor,
-                               void *pEventData = NULL,
+                               const UtlString& sOriginalSessionCallId = NULL,
                                int sipResponseCode = 0,
                                const UtlString& sResponseText = NULL);
 
     void fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
                            SIPX_CALLSTATE_CAUSE causeCode,
-                           void* pEventData = NULL,
+                           const UtlString& sOriginalSessionCallId = NULL,
                            int sipResponseCode = 0,
                            const UtlString& sResponseText = NULL);
 
     // media events
-    void prepareMediaEvent(CpMediaEvent& event, SIPX_MEDIA_CAUSE cause, SIPX_MEDIA_TYPE type, void* pEventData = NULL);
+    void prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type);
 
-    void fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                            SIPX_MEDIA_CAUSE cause,
-                            SIPX_MEDIA_TYPE  type,
+    void fireSipXMediaEvent(CP_MEDIA_EVENT event,
+                            CP_MEDIA_CAUSE cause,
+                            CP_MEDIA_TYPE  type,
                             intptr_t pEventData1 = 0,
                             intptr_t pEventData2 = 0);
 
     void fireSipXInfoStatusEvent(SIPX_INFOSTATUS_EVENT event,
-                                 SIPX_MESSAGE_STATUS status,
+                                 SIPXTACK_MESSAGE_STATUS status,
                                  const UtlString& sResponseText,
                                  int responseCode = 0);
 
-    void fireSipXSecurityEvent(SIPX_SECURITY_EVENT event,
-                               SIPX_SECURITY_CAUSE cause,
+    void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
+                               SIPXTACK_SECURITY_CAUSE cause,
                                const UtlString& sSRTPkey,
                                void* pCertificate,
                                size_t nCertificateSize,

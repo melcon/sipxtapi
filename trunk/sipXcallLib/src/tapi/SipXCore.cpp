@@ -390,10 +390,15 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    // create event listeners
    pInst->pLineEventListener = new SipXLineEventListener(pInst);
+   pInst->pLineEventListener->start();
    pInst->pCallEventListener = new SipXCallEventListener(pInst);
+   pInst->pCallEventListener->start();
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
+   pInst->pInfoStatusEventListener->start();
    pInst->pSecurityEventListener = new SipXSecurityEventListener(pInst);
+   pInst->pSecurityEventListener->start();
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
+   pInst->pMediaEventListener->start();
    // create refresh manager
    pInst->pRefreshManager = new SipRefreshMgr(pInst->pLineEventListener);
    // create Line manager
@@ -515,7 +520,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
       NULL, // mgcpStackTask
-      NULL, // defaultCallExtension
       Connection::RING, // availableBehavior
       NULL, // unconditionalForwardUrl
       -1, // forwardOnNoAnswerSeconds
@@ -533,7 +537,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       sipXmediaFactoryFactory(NULL));
 
    // Start up the call processing system
-   pInst->pCallManager->setOutboundLine(localAddress);
    pInst->pCallManager->start();
 
    CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
@@ -585,7 +588,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    }
 #endif
 
-   pInst->pKeepaliveDispatcher = new SipXKeepaliveEventListener(pInst);
+   pInst->pKeepaliveEventListener = new SipXKeepaliveEventListener(pInst);
+   pInst->pKeepaliveEventListener->start(); // start thread
 
    return rc;
 }
@@ -780,8 +784,8 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          delete pInst->pMessageObserver;
          pInst->pMessageObserver = NULL;
          sipxTransportDestroyAll(pInst);
-         delete pInst->pKeepaliveDispatcher;
-         pInst->pKeepaliveDispatcher = NULL;
+         delete pInst->pKeepaliveEventListener;
+         pInst->pKeepaliveEventListener = NULL;
 #ifdef _WIN32
          Sleep(50); // give it time to dispatch all events
          // this will be removed
