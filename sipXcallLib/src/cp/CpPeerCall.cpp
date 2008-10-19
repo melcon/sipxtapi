@@ -67,7 +67,7 @@
 // Constructor
 CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
                        CpCallManager* callManager,
-                       CpMediaInterface* callMediaInterface,
+                       const UtlString& sMediaInterfaceLocalIp,
                        CpCallStateEventListener* pCallEventListener,
                        SipInfoStatusEventListener* pInfoStatusEventListener,
                        SipSecurityEventListener* pSecurityEventListener,
@@ -84,7 +84,7 @@ CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
                        int forwardOnNoAnswerMilliSeconds, 
                        const char* forwardOnNoAnswerUrl,
                        int ringingExpireSeconds)
-                       : CpCall(callManager, callMediaInterface, callIndex, callId)
+                       : CpCall(callManager, NULL, callIndex, callId)
                        , mConnectionMutex(OsRWMutex::Q_PRIORITY)
                        , mIsEarlyMediaFor180(TRUE)
                        , mpSecurity(NULL)
@@ -131,6 +131,9 @@ CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
    eLastMajor = (SIPX_CALLSTATE_EVENT) -1;
    eLastMinor = (SIPX_CALLSTATE_CAUSE) -1;
 
+   // send a message to ourselves to create media interface
+   CpMultiStringMessage createInterfaceMsg(CpCallManager::CP_CREATE_MEDIA_INTERFACE, sMediaInterfaceLocalIp);
+   postMessage(createInterfaceMsg);
 }
 
 // Copy constructor
@@ -148,7 +151,7 @@ CpPeerCall::~CpPeerCall()
    {
       mpManager->onCallDestroy(this);
    }
-   waitUntilShutDown(20000);
+   waitUntilShutDown(); // shutdown so that connections do not try to process messages
    Connection* connection = NULL;
    while ((connection = (Connection*) mConnections.get()))
    {
@@ -160,8 +163,7 @@ CpPeerCall::~CpPeerCall()
 /* ============================ MANIPULATORS ============================== */
 
 // Assignment operator
-CpPeerCall& 
-CpPeerCall::operator=(const CpPeerCall& rhs)
+CpPeerCall& CpPeerCall::operator=(const CpPeerCall& rhs)
 {
    if (this == &rhs)            // handle the assignment to self case
       return *this;
@@ -1703,7 +1705,9 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
    case CallManager::CP_MUTE_INPUT_TERM_CONNECTION:
       handleMuteInputTermConnection(&eventMessage);
       break;
-
+   case CallManager::CP_CREATE_MEDIA_INTERFACE:
+      handleCreateMediaInterface(&eventMessage);
+      break;
    default:
       processedMessage = FALSE;
       break;
@@ -2264,6 +2268,24 @@ UtlBoolean CpPeerCall::handleMuteInputTermConnection(OsMsg* pEventMessage)
    return true;
 }
 
+// Handles the processing of a CP_CREATE_MEDIA_INTERFACE message
+UtlBoolean CpPeerCall::handleCreateMediaInterface(OsMsg* pEventMessage)
+{
+   if (mpManager)
+   {
+      CpMultiStringMessage* pMsg = dynamic_cast<CpMultiStringMessage*>(pEventMessage);
+      if (!mpMediaInterface && pMsg)
+      {
+         UtlString localIPAddress;
+         pMsg->getString1Data(localIPAddress);
+
+         mpMediaInterface = mpManager->createMediaInterface(localIPAddress);
+         mpMediaInterface->setInterfaceNotificationQueue(getMessageQueue());
+      }
+   }
+   return TRUE;
+}
+
 // Handles the processing of a CP_TRANSFER_OTHER_PARTY_JOIN message
 UtlBoolean CpPeerCall::handleTransferOtherPartyJoin(OsMsg* pEventMessage) 
 {
@@ -2681,12 +2703,14 @@ void CpPeerCall::dropIfDead()
                }
             }
             // Drop the call immediately
+            releaseMediaInterface();
             CpIntMessage ExitMsg(CallManager::CP_CALL_EXITED, (int)this);
             mpManager->postMessage(ExitMsg);
          }
          else
          {
             // Drop the call immediately
+            releaseMediaInterface();
             CpIntMessage ExitMsg(CallManager::CP_CALL_EXITED, (int)this);
             mpManager->postMessage(ExitMsg);
 
@@ -3130,7 +3154,6 @@ UtlBoolean CpPeerCall::checkForTag(UtlString &address)
       return TRUE;
    }
 }
-
 
 /* ============================ FUNCTIONS ================================= */
 

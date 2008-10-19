@@ -81,31 +81,16 @@ CpCall::CpCall(CpCallManager* manager,
 // Destructor
 CpCall::~CpCall()
 {
-   if (isStarted())
-   {
-      waitUntilShutDown();
-   }
-   // remove the call task name from the list (for tracking leaked calls)
-   UtlString strCallTaskName = getName();
+   waitUntilShutDown();
 
-   if(mpMediaInterface)
-   {
-      mpMediaInterface->release();
-      mpMediaInterface = NULL;
-   }
+    // this is only failsafe, we release it when call is dropped from thread
+   releaseMediaInterface();
 
    if(mpMetaEventCallIds)
    {
       delete[] mpMetaEventCallIds;
       mpMetaEventCallIds = NULL;
    }
-
-   UtlString name = getName();
-   name.remove(0);
-   mCallId.remove(0);
-   mOriginalCallId.remove(0);
-   mTargetCallId.remove(0);
-
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -534,6 +519,16 @@ void CpCall::setBindIPAddress(const UtlString& val)
    OsLock lock(m_memberMutex);
    m_bindIPAddress = val;
 }
+
+void CpCall::releaseMediaInterface()
+{
+   if(mpMediaInterface)
+   {
+      mpMediaInterface->release();
+      mpMediaInterface = NULL;
+   }
+}
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
