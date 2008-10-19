@@ -3558,9 +3558,9 @@ void SipConnection::processReferRequest(const SipMessage* request)
       // Create a second call if it does not exist already
       // Set the target call id in this call
       // Set this call's type to transferee original call
-      UtlString targetCallId;
+      UtlString targetSipCallId;
       Url targetUrl(referTo);
-      targetUrl.getHeaderParameter(SIP_CALLID_FIELD, targetCallId);
+      targetUrl.getHeaderParameter(SIP_CALLID_FIELD, targetSipCallId);
       // targetUrl.removeHeaderParameters();
       targetUrl.toString(referTo);
       //SipMessage::parseParameterFromUri(referTo.data(), "Call-ID",
@@ -3571,7 +3571,7 @@ void SipConnection::processReferRequest(const SipMessage* request)
       const char* metaEventCallIds[2];
       UtlString thisCallId;
       getCallId(&thisCallId);
-      metaEventCallIds[0] = targetCallId.data();
+      metaEventCallIds[0] = targetSipCallId.data();
       metaEventCallIds[1] = thisCallId.data();
 
       // Mark the begining of a transfer meta event in this call
@@ -3600,15 +3600,16 @@ void SipConnection::processReferRequest(const SipMessage* request)
 
       // The new call by default assumes focus.
       // Mark the new call as part of this transfer meta event
-      mpCallManager->createCall(&targetCallId, metaEventId,
+      UtlString sCallId; // id of newly created CpPeerCall, not sip call-id!
+      mpCallManager->createCall(&sCallId, metaEventId,
          PtEvent::META_CALL_TRANSFERRING, 2, metaEventCallIds, bTakeFocus);
-      mpCall->setTargetCallId(targetCallId.data());
+      mpCall->setTargetCallId(sCallId.data());
       mpCall->setCallType(CpCall::CP_TRANSFEREE_ORIGINAL_CALL);
 
       // Send a message to the target call to create the
       // connection and send the INVITE
       CpMultiStringMessage transfereeConnect(CallManager::CP_TRANSFEREE_CONNECTION,
-         targetCallId.data(), referTo.data(), referredBy.data(), thisCallId.data(),
+         sCallId.data(), referTo.data(), referredBy.data(), thisCallId.data(),
          remoteAddress.data(), mbLocallyInitiatedRemoteHold, mRtpTransport);
       transfereeConnect.setString6Data(mLocalAddress.toString()); // will be used as fromUrl
       mpCallManager->postMessage(transfereeConnect);
