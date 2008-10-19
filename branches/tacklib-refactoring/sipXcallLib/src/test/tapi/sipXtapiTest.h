@@ -53,8 +53,8 @@
 #define TEST_CALL_HOLD          1 // tested (1 fails, not supported functionality, disabled)
 #define TEST_CONF               1 // tested
 #define TEST_REG                1 // tested
-#define TEST_TRANSFER           1 // tested todo
-#define TEST_TRANSFER_ADVANCED  1 // tested todo
+#define TEST_TRANSFER           1 // tested
+#define TEST_TRANSFER_ADVANCED  1 // tested
 #define TEST_CONFIG             1 // tested
 #define TEST_SUBSCRIBE          1 // tested
 #define TEST_NAT                1 // tested
