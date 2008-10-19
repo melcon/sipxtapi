@@ -47,7 +47,6 @@
 #include <mi/CpMediaInterfaceFactory.h>
 #include "tapi/SipXTransport.h"
 
-
 // TO_BE_REMOVED
 #ifndef EXCLUDE_STREAMING
 #include "mp/MpPlayer.h"
@@ -61,6 +60,7 @@
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
+//#define PRINT_SIP_MESSAGE
 #define MAXIMUM_CALLSTATE_LOG_SIZE 100000
 #define CALL_STATUS_FIELD "status"
 #define SEND_KEY '#'
@@ -290,7 +290,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
    UtlBoolean messageProcessed = TRUE;
    UtlString holdCallId;
    UtlBoolean messageConsumed = FALSE;
-   CpMediaInterface* pMediaInterface;
 
    switch(msgType)
    {
@@ -301,7 +300,14 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
          {
             OsWriteLock lock(mCallListMutex);
             CpCall* handlingCall = NULL;
-
+#ifdef PRINT_SIP_MESSAGE
+            if(msgSubType == CP_SIP_MESSAGE)
+            {
+               const SipMessage* sipMsg = ((SipMessageEvent&)eventMessage).getMessage();
+               enableConsoleOutput(TRUE);
+               osPrintf("\nCallManager::handleMessage %s\n-----------------------------------\n", sipMsg->toString().data());
+            }
+#endif
             handlingCall = findHandlingCall(eventMessage);
 
             // This message does not belong to any of the calls
@@ -369,50 +375,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                      else
                      {
                         // Create a new SIP call
-                        int numCodecs;
-                        SdpCodec** codecArray = NULL;
-                        getCodecs(numCodecs, codecArray);
-                        OsSysLog::add(FAC_CP, PRI_DEBUG, "Creating new call for incoming SIP message\n");
-
-                        UtlString publicAddress;
-                        int publicPort;
-                        //always use sipUserAgent public address, not the mPublicAddress of this call manager.
-                        sipUserAgent->getViaInfo(OsSocket::UDP, publicAddress, publicPort, NULL, NULL);
-
-                        UtlString localAddress;
-                        int port;
-                        UtlString adapterName;
-
-                        localAddress = sipMsg->getLocalIp();
-
-                        getContactAdapterName(adapterName, localAddress);
-
-                        SIPX_CONTACT_ADDRESS contact;
-                        sipUserAgent->getContactDb().getRecordForAdapter(contact, adapterName.data(), CONTACT_LOCAL);
-                        port = contact.iPort;
-
-                        UtlString stunServer;
-                        UtlString turnServer;
-                        UtlString turnUsername; 
-                        UtlString turnPassword;
-                        {
-                           OsLock lock(m_memberMutex);
-                           stunServer = mStunServer;
-                           turnServer = mTurnServer;
-                           turnUsername = mTurnUsername;
-                           turnPassword = mTurnPassword;
-                        }
-
-                        pMediaInterface = mpMediaFactory->createMediaInterface(
-                           NULL,
-                           NULL, 
-                           localAddress, numCodecs, codecArray, 
-                           mLocale.data(), mExpeditedIpTos, stunServer, 
-                           mStunPort, mStunKeepAlivePeriodSecs, turnServer,
-                           mTurnPort, turnUsername, turnPassword,
-                           mTurnKeepAlivePeriodSecs, isIceEnabled());
-
-
                         int inviteExpireSeconds;
                         if (sipMsg->getExpiresField(&inviteExpireSeconds) && inviteExpireSeconds > 0)
                         {
@@ -422,9 +384,10 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                         else
                            inviteExpireSeconds = mInviteExpireSeconds;
 
+                        UtlString localIPAddress = sipMsg->getLocalIp();
                         handlingCall = new CpPeerCall(mIsEarlyMediaFor180,
                            this,
-                           pMediaInterface,
+                           localIPAddress,
                            m_pCallEventListener,
                            m_pInfoStatusEventListener,
                            m_pSecurityEventListener,
@@ -442,15 +405,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                            mForwardOnNoAnswer.data(),
                            inviteExpireSeconds);
                         handlingCall->setBindIPAddress(m_bindIPAddress);
-
-                        // temporary
-                        pMediaInterface->setInterfaceNotificationQueue(handlingCall->getMessageQueue());
-
-                        for (int i = 0; i < numCodecs; i++)
-                        {
-                           delete codecArray[i];
-                        }
-                        delete[] codecArray;
                      }
                   }
                }
@@ -497,6 +451,8 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                (void*)call, (void*) infocusCall);
 
             call->stopMetaEvent();
+            UtlString callId;
+            call->getCallId(callId);
 
             mCallListMutex.acquireWrite();                                                
             releaseCallIndex(call->getCallIndex());
@@ -517,7 +473,6 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
             {
                delete call;                        
             }
-
             messageProcessed = TRUE;
             break;
          }
@@ -981,6 +936,65 @@ UtlBoolean CallManager::sendInfo(const char*  callId,
    }
 
    return bRC;
+}
+
+CpMediaInterface* CallManager::createMediaInterface(const UtlString& sSuggestedLocalIP /*= NULL*/)
+{
+   CpMediaInterface* pMediaInterface = NULL;
+
+   if (mpMediaFactory)
+   {
+      UtlString adapterName;
+      UtlString publicIPAddress;
+      UtlString localIPAddress;
+      SdpCodec** codecArray = NULL;
+      int numCodecs = 0;
+
+      getCodecs(numCodecs, codecArray);
+
+      // select local IP
+      if (!sSuggestedLocalIP.isNull())
+      {
+         localIPAddress = sSuggestedLocalIP;
+      }
+      else
+      {
+         int publicPort = PORT_NONE;
+         int localPort = PORT_NONE;
+         sipUserAgent->getViaInfo(OsSocket::UDP, publicIPAddress, publicPort, NULL, NULL);
+         sipUserAgent->getLocalAddress(&localIPAddress, &localPort, TRANSPORT_UDP);
+      }
+
+      UtlString stunServer;
+      UtlString turnServer;
+      UtlString turnUsername; 
+      UtlString turnPassword;
+      {
+         OsLock lock(m_memberMutex);
+         stunServer = mStunServer;
+         turnServer = mTurnServer;
+         turnUsername = mTurnUsername;
+         turnPassword = mTurnPassword;
+      }
+
+      pMediaInterface = mpMediaFactory->createMediaInterface(
+         NULL,
+         publicIPAddress, 
+         localIPAddress, numCodecs, codecArray, 
+         mLocale.data(), mExpeditedIpTos, stunServer, 
+         mStunPort, mStunKeepAlivePeriodSecs, turnServer,
+         mTurnPort, turnUsername, turnPassword,
+         mTurnKeepAlivePeriodSecs, isIceEnabled());
+
+      // delete codecs
+      for (int i = 0; i < numCodecs; i++)
+      {
+         delete codecArray[i];
+      }
+      delete[] codecArray;
+   }
+
+   return pMediaInterface;
 }
 
 // Transfer an individual participant from one end point to another using 
@@ -2085,41 +2099,10 @@ void CallManager::doCreateCall(const char* callId,
    {
       if(mOutGoingCallType == SIP_CALL)
       {
-         int numCodecs;
-         SdpCodec** codecArray = NULL;
-         getCodecs(numCodecs, codecArray);
-         UtlString publicAddress;
-         int publicPort;
-         //always use sipUserAgent public address, not the mPublicAddress of this call manager.
-         sipUserAgent->getViaInfo(OsSocket::UDP, publicAddress, publicPort, NULL, NULL);
-
-         UtlString localAddress;
-         int dummyPort;
-
-         UtlString stunServer;
-         UtlString turnServer;
-         UtlString turnUsername; 
-         UtlString turnPassword;
-         {
-            OsLock lock(m_memberMutex);
-            stunServer = mStunServer;
-            turnServer = mTurnServer;
-            turnUsername = mTurnUsername;
-            turnPassword = mTurnPassword;
-         }
-         sipUserAgent->getLocalAddress(&localAddress, &dummyPort, TRANSPORT_UDP);
-         CpMediaInterface* mediaInterface = mpMediaFactory->createMediaInterface(
-            NULL,
-            publicAddress.data(), localAddress.data(),
-            numCodecs, codecArray, mLocale.data(), mExpeditedIpTos,
-            stunServer, mStunPort, mStunKeepAlivePeriodSecs, 
-            turnServer, mTurnPort, turnUsername, turnPassword, 
-            mTurnKeepAlivePeriodSecs, isIceEnabled());
-
-         OsSysLog::add(FAC_CP, PRI_DEBUG, "Creating new SIP Call, mediaInterface: 0x%08x\n", (int)mediaInterface);
+         OsSysLog::add(FAC_CP, PRI_DEBUG, "Creating new SIP Call\n");
          call = new CpPeerCall(mIsEarlyMediaFor180,
             this,
-            mediaInterface,
+            NULL,
             m_pCallEventListener,
             m_pInfoStatusEventListener,
             m_pSecurityEventListener,
@@ -2136,8 +2119,6 @@ void CallManager::doCreateCall(const char* callId,
             mNoAnswerTimeout,
             mForwardOnNoAnswer.data());
          call->setBindIPAddress(m_bindIPAddress);
-         // temporary
-         mediaInterface->setInterfaceNotificationQueue(call->getMessageQueue());
          // Short term kludge: createCall invoked, this
          // implys the phone is off hook
          call->start();
@@ -2164,12 +2145,6 @@ void CallManager::doCreateCall(const char* callId,
          {
             pushCall(call);
          }
-
-         for (int i = 0; i < numCodecs; i++)
-         {
-            delete codecArray[i];
-         }
-         delete[] codecArray;
       }
    }
 }
@@ -2301,4 +2276,6 @@ UtlBoolean CallManager::isFocusTaken()
    // no lock is needed
    return (infocusCall != NULL);
 }
+
+
 /* ============================ FUNCTIONS ================================= */

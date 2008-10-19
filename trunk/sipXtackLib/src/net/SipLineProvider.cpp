@@ -35,7 +35,7 @@
 /* ============================ ACCESSORS ================================= */
 
 UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipResponse, // message with authentication request
-                                                    const SipMessage& sipRequest, // about to be sent by us
+                                                    const SipMessage& sipRequest, // original sip request
                                                     SipLineCredential& lineCredential) const
 {
    UtlBoolean result = FALSE;
@@ -105,12 +105,12 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
    // get LINEID, lineUri, userId
    if (!sipMsg.isFromThisSide())
    {
-      // use requestUri & toUrl
+      // inbound message
       UtlString requestMethod;
       sipMsg.getRequestMethod(&requestMethod);
-      if (sipMsg.isResponse() || requestMethod.compareTo(SIP_REGISTER_METHOD))
+      if (requestMethod.compareTo(SIP_REGISTER_METHOD) == 0)
       {
-         // this is REGISTER, RequestUri is different from toUri, use toUri
+         // this is REGISTER request or response, RequestUri is different from toUri, use toUri
          Url toUrl;
          sipMsg.getToUrl(toUrl);
          lineUri = SipLine::getLineUri(toUrl); // get lineUri from toUrl
@@ -119,25 +119,47 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
       {
          // INVITE, INFO... These may also have different RequestUri from toUri, if there is redirection 3xx.
          // See RFC-2833 - 8.2.2.1 To and Request-URI
-         UtlString requestUri;
-         sipMsg.getRequestUri(&requestUri);
-         lineUri = SipLine::getLineUri(requestUri); // RequestUri is definitely us, To header field not necessarily..
+         if (!sipMsg.isResponse())
+         {
+            // this is inbound request, use request-uri
+            UtlString sRequestUri;
+            sipMsg.getRequestUri(&sRequestUri);
+            Url requestUri(sRequestUri);
+            lineUri = SipLine::getLineUri(requestUri); // RequestUri is definitely us, To header field not necessarily..
+         }
+         else
+         {
+            // this is inbound response, use from url
+            Url fromUrl;
+            sipMsg.getFromUrl(fromUrl);
+            lineUri = SipLine::getLineUri(fromUrl); // get lineUri from fromUrl
+         }
       }
-      lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
-      lineUri.getUserId(userId); // get userId from lineUri
    }
    else
    {
       // outbound message
-      Url fromUrl;
-      UtlString contact;
-      sipMsg.getContactEntry(0, &contact);
-      Url contactUrl(contact);
-      contactUrl.getUrlParameter(SIP_LINE_IDENTIFIER, lineId);
-      contactUrl.getUserId(userId);
-      sipMsg.getFromUrl(fromUrl);
-      lineUri = SipLine::getLineUri(fromUrl); // get lineUri from fromUrl
+      UtlString requestMethod;
+      sipMsg.getRequestMethod(&requestMethod);
+      if (!sipMsg.isResponse() || requestMethod.compareTo(SIP_REGISTER_METHOD) == 0)
+      {
+         // this is REGISTER request or response, use fromUrl
+         // or it is some outbound request other than REGISTER
+         Url fromUrl;
+         sipMsg.getFromUrl(fromUrl);
+         lineUri = SipLine::getLineUri(fromUrl); // get lineUri from fromUrl
+      }
+      else
+      {
+         // outbound response, use toUrl
+         Url toUrl;
+         sipMsg.getToUrl(toUrl);
+         lineUri = SipLine::getLineUri(toUrl); // get lineUri from toUrl
+      }
    }
+
+   lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
+   lineUri.getUserId(userId); // get userId from lineUri
 }
 
 /* ============================ INQUIRY =================================== */

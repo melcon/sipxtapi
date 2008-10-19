@@ -177,6 +177,7 @@ protected:
    virtual UtlBoolean handleCallMessage(OsMsg& eventMessage) = 0;
    virtual UtlBoolean handleConnectionNotfMessage(OsMsg& eventMessage) = 0;
    virtual UtlBoolean handleInterfaceNotfMessage(OsMsg& eventMessage) = 0;
+   void releaseMediaInterface();
    virtual void onHook() = 0;
 
    CpCallManager* mpManager;

@@ -146,9 +146,8 @@ void sipXtapiTestSuite::testConfHoldIndividual()
 
       // Hold Call 1
       CPPUNIT_ASSERT_EQUAL(sipxCallHold(hCall1), SIPX_RESULT_SUCCESS);
-
-      validatorCalling.validateCallMediaStopEvents();
-      validatorCalled1.validateCallMediaStopEvents();
+      validatorCalling.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
+      validatorCalled1.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall1, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalled1.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
@@ -156,8 +155,8 @@ void sipXtapiTestSuite::testConfHoldIndividual()
 
       // Hold Call 2
       CPPUNIT_ASSERT_EQUAL(sipxCallHold(hCall2), SIPX_RESULT_SUCCESS);
-      validatorCalling.validateCallMediaStopEvents();
-      validatorCalled2.validateCallMediaStopEvents();
+      validatorCalling.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
+      validatorCalled2.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall2, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalled2.waitForCallEvent(g_hAutoAnswerCallbackLine2, g_hAutoAnswerCallbackCall2, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
@@ -165,21 +164,19 @@ void sipXtapiTestSuite::testConfHoldIndividual()
 
       // Unhold call 1
       CPPUNIT_ASSERT_EQUAL(sipxCallUnhold(hCall1), SIPX_RESULT_SUCCESS);
-      validatorCalling.validateCallMediaStartEvents();
+      validatorCalling.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall1, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
-
-      validatorCalled1.validateCallMediaStartEvents();
+      validatorCalled1.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalled1.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);       
 
       // Unhold call 2
       CPPUNIT_ASSERT_EQUAL(sipxCallUnhold(hCall2), SIPX_RESULT_SUCCESS);
-      validatorCalling.validateCallMediaStartEvents();
+      validatorCalling.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall2, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
-
-      validatorCalled2.validateCallMediaStartEvents();
+      validatorCalled2.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalled2.waitForCallEvent(g_hAutoAnswerCallbackLine2, g_hAutoAnswerCallbackCall2, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
 
@@ -317,11 +314,11 @@ void sipXtapiTestSuite::testConfJoin()
       // hold the call
       CPPUNIT_ASSERT_EQUAL(sipxCallHold(hCall1, TRUE), SIPX_RESULT_SUCCESS);
       OsTask::delay(CALL_DELAY);
-      validatorCalling.validateCallMediaStopEvents();
+      validatorCalling.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall1, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
 
-      validatorCalled1.validateCallMediaStopEvents();
+      validatorCalled1.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
       bRC = validatorCalled1.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
 
@@ -331,11 +328,10 @@ void sipXtapiTestSuite::testConfJoin()
       // unhold the call
       CPPUNIT_ASSERT_EQUAL(sipxCallUnhold(hCall1, TRUE), SIPX_RESULT_SUCCESS);
       OsTask::delay(CALL_DELAY);
-      validatorCalling.validateCallMediaStartEvents();
+      validatorCalling.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall1, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
-
-      validatorCalled1.validateCallMediaStartEvents();
+      validatorCalled1.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalled1.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
 
@@ -1338,8 +1334,8 @@ void sipXtapiTestSuite::testConfHoldNoBridge()
       CPPUNIT_ASSERT_EQUAL(sipxConferenceHold(hConf, false), SIPX_RESULT_SUCCESS);
 
       // Validate Calling side
-      validatorCalling.validateCallMediaStopEvents();
-      validatorCalling.validateCallMediaStopEvents();
+      validatorCalling.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
+      validatorCalling.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall1, CALLSTATE_BRIDGED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall2, CALLSTATE_BRIDGED, CALLSTATE_CAUSE_NORMAL, false);
@@ -1350,8 +1346,8 @@ void sipXtapiTestSuite::testConfHoldNoBridge()
       CPPUNIT_ASSERT(bRC);
 
       // Validate Called Sides
-      validatorCalled1.validateCallMediaStopEvents();
-      validatorCalled2.validateCallMediaStopEvents();
+      validatorCalled1.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
+      validatorCalled2.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
       bRC = validatorCalled1.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
       CPPUNIT_ASSERT(bRC);        
       bRC = validatorCalled2.waitForCallEvent(g_hAutoAnswerCallbackLine2, g_hAutoAnswerCallbackCall2, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, true);
@@ -1366,18 +1362,18 @@ void sipXtapiTestSuite::testConfHoldNoBridge()
       CPPUNIT_ASSERT_EQUAL(sipxConferenceUnhold(hConf), SIPX_RESULT_SUCCESS);
 
       // Validate Called Sides
-      validatorCalled1.validateCallMediaStartEvents();
+      validatorCalled1.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalled1.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
 
-      validatorCalled2.validateCallMediaStartEvents();
+      validatorCalled2.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalled2.waitForCallEvent(g_hAutoAnswerCallbackLine2, g_hAutoAnswerCallbackCall2, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
 
       // Validate Calling Side  
       validatorCalling.setMaxLookhead(12);
-      validatorCalling.validateCallMediaStartEvents();
-      validatorCalling.validateCallMediaStartEvents();
+      validatorCalling.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
+      validatorCalling.validateCallMediaStartEvents(MEDIA_CAUSE_UNHOLD);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall1, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalling.waitForCallEvent(hLine, hCall2, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, false);

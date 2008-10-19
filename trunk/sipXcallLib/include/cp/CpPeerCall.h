@@ -51,7 +51,7 @@ public:
 
    CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled = TRUE,
       CpCallManager* callManger = NULL,
-      CpMediaInterface* callMediaInterface = NULL,
+      const UtlString& sMediaInterfaceLocalIp = NULL,
       CpCallStateEventListener* pCallEventListener = NULL,
       SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
       SipSecurityEventListener* pSecurityEventListener = NULL,
@@ -107,9 +107,6 @@ public:
       const char* originalCallId = NULL,
       SIPX_TRANSPORT_DATA* pTransport = NULL,
       const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
-
-   Connection* stringDial(OsMsg& eventMessage, UtlString& dialString);
-
 
    /* ============================ ACCESSORS ================================= */
 
@@ -297,6 +294,7 @@ protected:
    //: Handles the processing of a CP_TRANSFER_OTHER_PARTY_UNHOLD message
 
    UtlBoolean handleMuteInputTermConnection(OsMsg* pEventMessage);
+   UtlBoolean handleCreateMediaInterface(OsMsg* pEventMessage);
 
    UtlBoolean handleGetUserAgent(OsMsg* pEventMessage);
 
