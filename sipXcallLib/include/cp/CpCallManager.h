@@ -113,7 +113,7 @@ public:
       CP_CONSULT_TRANSFER,
       CP_TRANSFER_CONNECTION,
       CP_TRANSFER_CONNECTION_STATUS,
-      CP_TRANSFEREE_CONNECTION,
+      CP_TRANSFEREE_CONNECTION, // sent from original transferee CpPeerCall to target call so that it can send INVITE
       CP_TRANSFEREE_CONNECTION_STATUS, //20
       CP_DROP,
       CP_DROP_CONNECTION,
