@@ -364,9 +364,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       ((szBindToAddr != NULL) ? szBindToAddr : ""),
       bUseSequentialPorts);
 
-   // Disable Console by default
-   enableConsoleOutput(false);
-
    // check whether we have at least 1 NIC
    if ((res = validateNetwork()) != SIPX_RESULT_SUCCESS)
    {
