@@ -15,6 +15,7 @@
 #include "tapi/SipXCore.h"
 #include "tapi/SipXConfig.h"
 #include "tapi/SipXMessageObserver.h"
+#include <tapi/SipXCall.h>
 #include "EventValidator.h"
 #include "callbacks.h"
 #include "os/OsFS.h"
@@ -130,13 +131,11 @@ void sipXtapiTestSuite::testCallGetID()
 
 void sipXtapiTestSuite::testCallRapidCallAndHangup()
 {
-   for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
+   for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR*2; iStressFactor++)
    {
       SIPX_LINE hLine = SIPX_LINE_NULL;
       SIPX_CALL hCall = SIPX_CALL_NULL;
-
-      printf("\ntestCallRapidCallAndHangup (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
-
+      printf("\ntestCallRapidCallAndHangup (%2d of %2d)", iStressFactor+1, STRESS_FACTOR*2);
 
       CPPUNIT_ASSERT_EQUAL(sipxLineAdd(g_hInst1, "sip:bandreasen@pingtel.com", &hLine), SIPX_RESULT_SUCCESS);
 
@@ -150,7 +149,22 @@ void sipXtapiTestSuite::testCallRapidCallAndHangup()
 
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
    }
-   OsTask::delay(CALL_DELAY*2);
+   UtlSList sessionCallIdList;
+   size_t nCallManagerCalls = 0;
+   int attempt = 0;
+   int maxAttepmpts = 10;
+
+   do
+   {
+      if (attempt > 0)
+      {
+         OsTask::delay(CALL_DELAY*6);
+      }
+      sessionCallIdList.destroyAll(); // empty the list
+      sipxGetAllCallIds(g_hInst1, sessionCallIdList);
+      nCallManagerCalls = sessionCallIdList.entries();
+      printf("\ntestCallRapidCallAndHangup %d calls are still alive, waiting for shutdown...", nCallManagerCalls);
+   } while(nCallManagerCalls > 0 && attempt++ < maxAttepmpts);
 
    checkForLeaks();
 }
