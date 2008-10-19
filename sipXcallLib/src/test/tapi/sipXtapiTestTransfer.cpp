@@ -126,7 +126,6 @@ void sipXtapiTestSuite::testBlindTransferSuccess()
       // Validate Calling Side: Transferee
       bRC = validatorTransferee.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_BRIDGED, CALLSTATE_CAUSE_NORMAL);
       CPPUNIT_ASSERT(bRC);
-
       bRC = validatorTransferee.waitForCallEvent(hReceivingLine1, g_hAutoAnswerCallbackCallOther, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_TRANSFER);
       CPPUNIT_ASSERT(bRC);
       validatorTransferee.validateCallMediaStartEvents();
@@ -259,7 +258,7 @@ void sipXtapiTestSuite::testBlindTransferFailureBusy()
       // Setup call to transfer source (transferee)
       sipxRC = sipxCallCreate(g_hInst1, hLine, &hTransferee);
       CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
-      sipxRC = sipxCallConnect(hTransferee, "blah:foo@127.0.0.1:9100", 0, NULL, false);
+      sipxRC = sipxCallConnect(hTransferee, "blah:foo@127.0.0.1:9100", 0, NULL, true);
       CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
       // Validate Calling Side: Transferee
@@ -307,8 +306,14 @@ void sipXtapiTestSuite::testBlindTransferFailureBusy()
       CPPUNIT_ASSERT(bRC);
       bRC = validatorTransferee.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCallOther, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_TRANSFER);
       CPPUNIT_ASSERT(bRC);
-      validatorTransferee.validateCallMediaStopEvents();
+      // newcall always generates media remote start, since early media could be flowing from remote party
+      bRC = validatorTransferee.waitForMediaEvent(MEDIA_REMOTE_START, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
+      CPPUNIT_ASSERT(bRC);
       bRC = validatorTransferee.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCallOther, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL);
+      CPPUNIT_ASSERT(bRC);
+      // local stop is never fired, call is never established, and doesn't gain focus
+      // so the original call will have focus if transfer failed
+      bRC = validatorTransferee.waitForMediaEvent(MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO, false);
       CPPUNIT_ASSERT(bRC);
       bRC = validatorTransferee.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCallOther, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_BUSY);
       CPPUNIT_ASSERT(bRC);
@@ -1382,9 +1387,9 @@ void sipXtapiTestSuite::testChainedConfTransfer1()
       doRemoveProvisionedLine(g_hInst2, hLinePartyB);
       doRemoveProvisionedLine(g_hInst3, hLinePartyC);
       doRemoveProvisionedLine(g_hInst4, hLinePartyD);
+      OsTask::delay(CALL_DELAY*2);
    }
 
-   OsTask::delay(TEST_DELAY);    
    checkForLeaks();
 }
 
@@ -1489,14 +1494,14 @@ void sipXtapiTestSuite::doRemoteHoldInConf(SIPX_INST hInstRemote,
    /*
    * Validate Call
    */ 
-   validatorRemote.validateCallMediaStopEvents();
+   validatorRemote.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
    bRC = validatorRemote.waitForCallEvent(hLineRemote, hCallRemote, CALLSTATE_HELD, CALLSTATE_CAUSE_NORMAL, false);
    CPPUNIT_ASSERT(bRC);
 
    /*
    * Validate Conf
    */
-   validatorConf.validateCallMediaStopEvents();
+   validatorConf.validateCallMediaStopEvents(MEDIA_CAUSE_HOLD);
    bRC = validatorConf.waitForCallEvent(hLineConf, hCallConf, CALLSTATE_REMOTE_HELD, CALLSTATE_CAUSE_NORMAL, false);
    CPPUNIT_ASSERT(bRC);
 
@@ -1605,9 +1610,9 @@ void sipXtapiTestSuite::testChainedConfTransfer2()
       doRemoveProvisionedLine(g_hInst2, hLinePartyB);
       doRemoveProvisionedLine(g_hInst3, hLinePartyC);
       doRemoveProvisionedLine(g_hInst4, hLinePartyD);
+      OsTask::delay(CALL_DELAY*2);    
    }
 
-   OsTask::delay(TEST_DELAY);    
    checkForLeaks();
 }
 
@@ -1743,9 +1748,9 @@ void sipXtapiTestSuite::testChainedConfTransfer3()
       doRemoveProvisionedLine(g_hInst1, hLinePartyA);
       doRemoveProvisionedLine(g_hInst2, hLinePartyB);
       doRemoveProvisionedLine(g_hInst3, hLinePartyC);
+      OsTask::delay(CALL_DELAY*2);
    }
 
-   OsTask::delay(TEST_DELAY);
    checkForLeaks();
 }
 
