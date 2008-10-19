@@ -36,7 +36,7 @@
 /* ============================ CREATORS ================================== */
 
 SipXSecurityEventListener::SipXSecurityEventListener(SIPX_INST pInst)
-: OsServerTask("SipXSecurityEventListener-%d")
+: OsSharedServerTask("SipXSecurityEventListener-%d")
 , SipSecurityEventListener()
 , m_pInst(pInst)
 {
@@ -45,7 +45,7 @@ SipXSecurityEventListener::SipXSecurityEventListener(SIPX_INST pInst)
 
 SipXSecurityEventListener::~SipXSecurityEventListener()
 {
-   waitUntilShutDown();
+   release();
 }
 
 /* ============================ MANIPULATORS ============================== */

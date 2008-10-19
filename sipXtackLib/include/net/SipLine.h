@@ -35,6 +35,15 @@ class SipLineCredential;
  * Class representing a SIP line. Has identity URI, credentials, contact associated with it.
  * Currently only 1 credential per realm is supported of any type.
  * It is not thread safe.
+ *
+ * Line stores internally so called lineUri and fullLineUrl.
+ * - LineURI is meant to be used by hashmaps/hashbags to construct hash, basically uniquely identify
+ *   a line. It does't contain any parameters or display name. It is used to match inbound requests to a line.
+ *   Additionally, port is not present in LineURI. Our lines are available on all ports of SipUserAgent,
+ *   therefore we don't support matching by port.
+ * - FullLineUrl is modified value passed into constructor stripped of transport parameter and field parameters.
+ *   This is not a sip uri but full url including <>, display name. It is meant to be used to construct sip message
+ *   from field.
  */
 class SipLine : public UtlCopyableContainable
 {
@@ -58,8 +67,7 @@ public:
    ///@name Creators
    //@{
 
-   SipLine(const Url& userEnteredUrl = "", ///< url with parameters like transport=tls
-           const Url& identityUri = "", ///< uri, doesn't contain headerParameters or fieldParameters, display name or brackets
+   SipLine(const Url& fullLineUrl = "", ///< full line url. field parameters will be cut off
            LineStates state = LINE_STATE_UNKNOWN);
 
    virtual ~SipLine();
@@ -86,6 +94,36 @@ public:
    /** Creates a copy of object */
    virtual UtlCopyableContainable* clone() const;
 
+   /**
+    * Constructs line identity uri from given url. <>, field parameters and display name
+    * will be cut off. This is used in general for converting To/From header field into line uri
+    * for line lookup. We deliberately do not adhere strictly to RFC3261 (19.1.4 URI Comparison),
+    * because we want line to be transport independent.
+    * All parameters are stripped from input url:
+    * - transport, method, ttl, user, maddr and also user made ones
+    *
+    * Line having sip: scheme is not the same as sips:
+    */
+   static Url getLineUri(const Url& url);
+
+   /**
+    * Constructs line identity uri from given string.
+    */
+   static Url getLineUri(const UtlString& sUrl);
+
+   /**
+    * Constructs full line url from given url. Keeps display name, sip uri, but strips
+    * transport parameter. Field parameters are removed. Contains <>. Useful for new
+    * sip request messages, can be used in from field.
+    */
+   static Url getFullLineUrl(const Url& url);
+
+   /**
+   * Constructs full line url from given url. Keeps display name, sip uri, but strips
+   * transport parameter. Field parameters are removed. Contains <>. Useful for new
+   * sip request messages, can be used in from field.
+   */
+   static Url getFullLineUrl(const UtlString& sUrl);
    //@}
 
    /* ============================ ACCESSORS ================================= */
@@ -105,17 +143,12 @@ public:
    UtlString getUserId() const;
 
    /** Gets the user entered url used to construct line. */
-   Url getUserEnteredUrl() const;
+   Url getFullLineUrl() const;
 
    /**
-    * Gets line identityUri. It doesn't contain headerParameters
-    * or fieldParameters, display name or brackets. But it can contain
-    * url parameters like transport=tcp
+    * Gets line identityUri. It doesn't fieldParameters, display name or brackets.
     */
-   Url getIdentityUri() const;
-
-   /** Gets canonical line url. It is basically UserEnteredUrl + host:port from identityUri*/
-   Url getCanonicalUrl() const;
+   Url getLineUri() const;
 
    /** Sets line proxy servers. If not set, default proxy servers might be used. */
    UtlString getProxyServers() const;
@@ -176,9 +209,8 @@ public:
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   Url m_identityUri; /// <line key which is the canonical URL stripped of display name, angle brackets and field parameters (basically the URI).
-   Url m_userEnteredUrl; ///< user entered URL string (could be incomplete "sip:444@")
-   Url m_canonicalUrl; ///< The canonical URL which is the URL string with the host and port filled in if they were missing.
+   Url m_lineUri; /// <line key which is the "userEnteredUrl" stripped of display name, angle brackets and all parameters (basically the URI).
+   Url m_fullLineUrl; ///< line Url used to construct sip message from field. Doesn't contain transport parameter
 
    UtlString m_lineId; ///< 12 characters uniquely identifying line. Part of contact as LINE parameter
    LineStates m_currentState; ///< current state of line

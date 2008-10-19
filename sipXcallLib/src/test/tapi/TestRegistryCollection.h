@@ -24,47 +24,47 @@
 // FORWARD DECLARATIONS
 
 /**
- */
+*/
 class TestRegistryCollection : public UtlSList
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
-  public:
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
+public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
    /**
-    * Default constructor
-    */
+   * Default constructor
+   */
    TestRegistryCollection();
-     
+
    /**
-    * Copy constructor
-    */
+   * Copy constructor
+   */
    TestRegistryCollection(const TestRegistryCollection& rTestRegistryCollection);     
 
    /**
-    * Destructor
-    */
+   * Destructor
+   */
    virtual ~TestRegistryCollection();
-   
 
-/* ============================ MANIPULATORS ============================== */
+
+   /* ============================ MANIPULATORS ============================== */
 
    /**
-    * Assignment operator
-    *
-    * @param rhs right hand side of the equals operator
-    */
+   * Assignment operator
+   *
+   * @param rhs right hand side of the equals operator
+   */
    TestRegistryCollection& operator=(const TestRegistryCollection& rhs);  
 
-/* ============================ ACCESSORS ================================= */
+   /* ============================ ACCESSORS ================================= */
 
-/* ============================ INQUIRY =================================== */
+   /* ============================ INQUIRY =================================== */
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-  protected:
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-  private:
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
+protected:
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
 
 };
 

@@ -19,7 +19,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "os/OsServerTask.h"
+#include <os/OsSharedServerTask.h>
 #include <cp/CpCallStateEventListener.h>
 #include "tapi/sipXtapi.h"
 #include <tapi/sipXtapiEvents.h>
@@ -38,7 +38,7 @@
 /**
 * Listener for Call state events
 */
-class SipXCallEventListener : public OsServerTask, public CpCallStateEventListener
+class SipXCallEventListener : public OsSharedServerTask, public CpCallStateEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 

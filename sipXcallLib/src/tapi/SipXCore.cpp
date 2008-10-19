@@ -32,6 +32,7 @@
 #include "os/OsLock.h"
 #include "os/OsTimerTask.h"
 #include "os/OsNatAgentTask.h"
+#include <os/OsSharedServerTaskMgr.h>
 #include "net/SipLineMgr.h"
 #include "net/SipRefreshMgr.h"
 #include "net/SipPimClient.h"
@@ -389,16 +390,18 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    SIPX_INSTANCE_DATA* pInst = new SIPX_INSTANCE_DATA();
 
    // create event listeners
+   pInst->pSharedTaskMgr = new OsSharedServerTaskMgr(1); // use 1 thread
+   pInst->pSharedTaskMgr->start();
    pInst->pLineEventListener = new SipXLineEventListener(pInst);
-   pInst->pLineEventListener->start();
+   pInst->pSharedTaskMgr->manage(*pInst->pLineEventListener);
    pInst->pCallEventListener = new SipXCallEventListener(pInst);
-   pInst->pCallEventListener->start();
+   pInst->pSharedTaskMgr->manage(*pInst->pCallEventListener);
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
-   pInst->pInfoStatusEventListener->start();
+   pInst->pSharedTaskMgr->manage(*pInst->pInfoStatusEventListener);
    pInst->pSecurityEventListener = new SipXSecurityEventListener(pInst);
-   pInst->pSecurityEventListener->start();
+   pInst->pSharedTaskMgr->manage(*pInst->pSecurityEventListener);
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
-   pInst->pMediaEventListener->start();
+   pInst->pSharedTaskMgr->manage(*pInst->pMediaEventListener);
    // create refresh manager
    pInst->pRefreshManager = new SipRefreshMgr(pInst->pLineEventListener);
    // create Line manager
@@ -484,25 +487,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pCodecFactory = new SdpCodecFactory();
 
    // Instantiate the call processing subsystem
-   UtlString localAddress;
    UtlString utlIdentity(szIdentity);
-   if (!utlIdentity.contains("@"))
-   {
-      OsSocket::getHostIp(&localAddress);
-      char szBuf[500];
-      SNPRINTF(szBuf, sizeof(szBuf), "sip:%s@%s:%d", szIdentity,
-                localAddress.data(),
-                pInst->pSipUserAgent->getUdpPort());
-      localAddress = szBuf;
-   }
-   else
-   {
-      localAddress = utlIdentity;
-   }
-
-   // log default identity
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "Default Identity: %s\n",
-      localAddress.data()) ;
 
    // create call manager
    pInst->pCallManager = new CallManager(FALSE,
@@ -511,8 +496,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pCodecFactory,
       rtpPortStart, // rtp start
       rtpPortStart + (2*maxConnections), // rtp end
-      localAddress.data(),
-      localAddress.data(),
       pInst->pSipUserAgent,
       0, // sipSessionReinviteTimer
       pInst->pCallEventListener,
@@ -535,6 +518,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       QOS_LAYER3_LOW_DELAY_IP_TOS,
       maxConnections, // max calls before we start rejecting inbound calls
       sipXmediaFactoryFactory(NULL));
+   pInst->pCallManager->setBindIPAddress(szBindToAddr);
 
    // Start up the call processing system
    pInst->pCallManager->start();
@@ -589,7 +573,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 #endif
 
    pInst->pKeepaliveEventListener = new SipXKeepaliveEventListener(pInst);
-   pInst->pKeepaliveEventListener->start(); // start thread
+   pInst->pSharedTaskMgr->manage(*pInst->pKeepaliveEventListener);
 
    return rc;
 }
@@ -768,6 +752,15 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          delete pInst->pCallManager;
          pInst->pCallManager = NULL;
          delete pInst->pCodecFactory;
+         // release all shared server tasks
+         pInst->pSharedTaskMgr->release(*pInst->pLineEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pCallEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pInfoStatusEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pSecurityEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pMediaEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pKeepaliveEventListener);
+         pInst->pSharedTaskMgr->shutdown();
+         pInst->pSharedTaskMgr->flushMessages();
          // get rid of listeners
          delete pInst->pLineEventListener;
          pInst->pLineEventListener = NULL;

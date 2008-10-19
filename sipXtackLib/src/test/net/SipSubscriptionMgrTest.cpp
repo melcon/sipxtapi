@@ -131,10 +131,15 @@ Voice-Message: 0/0 (0/0)\r\n";
 
         // Set up some subscribe messages
          SipMessage mwiSubRequest(mwiSubscribe);
+         mwiSubRequest.setFromThisSide(false);
          SipMessage mwiSub401Response(mwiSubscribe401);
+         mwiSub401Response.setFromThisSide(true);
          SipMessage mwiSubWithAuthRequest(mwiSubscribeAuth);
+         mwiSubWithAuthRequest.setFromThisSide(false);
          SipMessage mwiSub202Response(mwiSubscribe202);
+         mwiSub202Response.setFromThisSide(true);
          SipMessage mwiNotifyRequest(mwiNotify);
+         mwiNotifyRequest.setFromThisSide(true);
          //CPPUNIT_ASSERT(TRUE);
          //ASSERT_STR_EQUAL("a", "a");
 
@@ -198,7 +203,7 @@ Voice-Message: 0/0 (0/0)\r\n";
          int nextNotifyCseq;
          UtlString nextNotifyMethod;
          nextNotify.getCSeqField(&nextNotifyCseq, &nextNotifyMethod);
-         CPPUNIT_ASSERT(nextNotifyCseq == 0);
+         CPPUNIT_ASSERT(nextNotifyCseq == 1);
          ASSERT_STR_EQUAL(SIP_NOTIFY_METHOD, nextNotifyMethod);
          UtlString nextNotifyDialogHandle;
          SipDialog::getDialogHandle(nextNotify, nextNotifyDialogHandle);
@@ -230,7 +235,7 @@ Voice-Message: 0/0 (0/0)\r\n";
          UtlString arrayNotify0Method;
          CPPUNIT_ASSERT(notify0FromArray->getCSeqField(&arrayNotify0Cseq, 
                                                        &arrayNotify0Method));
-         CPPUNIT_ASSERT(arrayNotify0Cseq == 1);
+         CPPUNIT_ASSERT(arrayNotify0Cseq == 2);
          UtlString arrayNotify0DialogHandle;
          SipDialog::getDialogHandle(*notify0FromArray, arrayNotify0DialogHandle);
          ASSERT_STR_EQUAL(mgrEstablishedDialogHandle, arrayNotify0DialogHandle);

@@ -593,8 +593,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
          // build a contact field 
          UtlString userId(""); 
 
-         pLineData->m_lineURI.getIdentity(fromField);
-         pLineData->m_lineURI.getUserId(userId);
+         fromField = pLineData->m_fullLineUrl.toString();
+         pLineData->m_lineUri.getUserId(userId);
 
          sipxLineReleaseLock(pLineData, SIPX_LOCK_READ, stackLogger);
 

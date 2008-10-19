@@ -262,7 +262,7 @@ UtlBoolean sipxAddCallHandleToConf(const SIPX_CALL hCall,
 
       if (pCallData)
       {
-         pCallData->hConf = hConf;
+         pCallData->m_hConf = hConf;
          res = TRUE;
 
          sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, logItem);
@@ -417,26 +417,26 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
          if (pCallData)
          {
             // call was found and is locked
-            if (pCallData->hConf == SIPX_CALL_NULL)
+            if (pCallData->m_hConf == SIPX_CALL_NULL)
             {
                // call is not yet in conference
 
                // we need to split connection from old CpPeerCall
                // and join it into conference CpPeerCall
-               if ((pCallData->state == SIPX_INTERNAL_CALLSTATE_REMOTE_HELD) ||
-                  (pCallData->state == SIPX_INTERNAL_CALLSTATE_HELD))
+               if ((pCallData->m_state == SIPX_INTERNAL_CALLSTATE_REMOTE_HELD) ||
+                  (pCallData->m_state == SIPX_INTERNAL_CALLSTATE_HELD))
                {
                   // Mark data for split/drop below
                   bDoSplit = TRUE;
-                  sourceSessionCallId = pCallData->sessionCallId;
-                  sourceCallId = pCallData->callId;
-                  sourceAddress = pCallData->remoteAddress;
+                  sourceSessionCallId = pCallData->m_sessionCallId;
+                  sourceCallId = pCallData->m_callId;
+                  sourceAddress = pCallData->m_remoteAddress;
                   targetCallId = confCallId; // conference shell CallId
-                  pInst = pCallData->pInst;
+                  pInst = pCallData->m_pInst;
 
                   // Update data structures
-                  pCallData->callId = targetCallId; // call will be moved to conference
-                  pCallData->hConf = hConf; // store conference handle
+                  pCallData->m_callId = targetCallId; // call will be moved to conference
+                  pCallData->m_hConf = hConf; // store conference handle
                }
                else
                {
@@ -508,21 +508,21 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
          if (pCallData)
          {
             // call was found
-            if ((pCallData->state == SIPX_INTERNAL_CALLSTATE_REMOTE_HELD) || 
-                (pCallData->state == SIPX_INTERNAL_CALLSTATE_HELD))
+            if ((pCallData->m_state == SIPX_INTERNAL_CALLSTATE_REMOTE_HELD) || 
+                (pCallData->m_state == SIPX_INTERNAL_CALLSTATE_HELD))
             {
                doSplit = TRUE;
                // Record data for split
-               pInst = pCallData->pInst;
-               sourceSessionCallId = pCallData->sessionCallId;
-               sourceAddress = pCallData->remoteAddress;
+               pInst = pCallData->m_pInst;
+               sourceSessionCallId = pCallData->m_sessionCallId;
+               sourceAddress = pCallData->m_remoteAddress;
 
                // Create a CpPeerCall call to hold connection
                // creates callid and posts message
-               pCallData->pInst->pCallManager->createCall(&targetCallId, pCallData->lineURI.toString());
+               pCallData->m_pInst->pCallManager->createCall(&targetCallId);
 
-               pCallData->callId = targetCallId; // set new callId
-               pCallData->hConf = SIPX_CALL_NULL;
+               pCallData->m_callId = targetCallId; // set new callId
+               pCallData->m_hConf = SIPX_CALL_NULL;
             }
             else
             {
@@ -655,11 +655,12 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
          {
             SIPX_CALL_DATA* pCallData = sipxCallLookup(*hCall, SIPX_LOCK_WRITE, stackLogger);
 
-            if (pCallData)
+            if (pCallData && pCallData->m_state != SIPX_INTERNAL_CALLSTATE_DESTROYING)
             {
-               UtlString sessionCallId(pCallData->sessionCallId);
-               UtlString remoteAddress(pCallData->remoteAddress);
-               SIPX_CONF hCallConf = pCallData->hConf;
+               pCallData->m_state = SIPX_INTERNAL_CALLSTATE_DESTROYING;
+               UtlString sessionCallId(pCallData->m_sessionCallId);
+               UtlString remoteAddress(pCallData->m_remoteAddress);
+               SIPX_CONF hCallConf = pCallData->m_hConf;
                assert(hCallConf != SIPX_CONF_NULL);
 
                sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
@@ -685,7 +686,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
 
    return rc;
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConferenceHold(const SIPX_CONF hConf,
                                             int bBridging)

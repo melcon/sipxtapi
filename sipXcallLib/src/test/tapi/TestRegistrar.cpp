@@ -21,10 +21,10 @@ const int NUM_USERS = 4;
 // STATIC VARIABLE INITIALIZATIONS
 TestRegistrarUsers gUsers[] = 
 {
-    {"mike", "1234"},
-    {"andy", "3456"},
-    {"bob",  "5678"},
-    {"anon", ""}
+   {"mike", "1234"},
+   {"andy", "3456"},
+   {"bob",  "5678"},
+   {"anon", ""}
 };
 
 
@@ -34,30 +34,30 @@ TestRegistrarUsers gUsers[] =
 
 // Constructor
 TestRegistrar::TestRegistrar() 
-    : OsServerTask("TestRegistrarServer", NULL, 2000)   ,
-      mbPaused(false)
+: OsServerTask("TestRegistrarServer", NULL, 2000)   ,
+mbPaused(false)
 {
-    mpUserAgent = new  SipUserAgent(
-                5070,                    // sipTcpPort
-                5070,                    // sipUdpPort
-                5071,                    // sipTlsPort
-                NULL,                       // publicAddress
-                NULL,                       // defaultUser
-                "127.0.0.1",                       // defaultSipAddress
-                NULL,                       // sipProxyServers
-                NULL,                       // sipDirectoryServers
-                NULL,                       // sipRegistryServers
-                NULL,                       // authenticationScheme
-                NULL,                       // authenicateRealm
-                NULL,                       // authenticateDb
-                NULL,                       // authorizeUserIds
-                NULL,                       // authorizePasswords
-                NULL,                       // lineMgr
-                SIP_DEFAULT_RTT,            // sipFirstResendTimeout
-                TRUE,                       // defaultToUaTransactions
-                -1,                         // readBufferSize
-                OsServerTask::DEF_MAX_MSGS, // queueSize
-                false) ;                    // bUseNextAvailablePort
+   mpUserAgent = new  SipUserAgent(
+      5070,                    // sipTcpPort
+      5070,                    // sipUdpPort
+      5071,                    // sipTlsPort
+      NULL,                       // publicAddress
+      NULL,                       // defaultUser
+      "127.0.0.1",                       // defaultSipAddress
+      NULL,                       // sipProxyServers
+      NULL,                       // sipDirectoryServers
+      NULL,                       // sipRegistryServers
+      NULL,                       // authenticationScheme
+      NULL,                       // authenicateRealm
+      NULL,                       // authenticateDb
+      NULL,                       // authorizeUserIds
+      NULL,                       // authorizePasswords
+      NULL,                       // lineMgr
+      SIP_DEFAULT_RTT,            // sipFirstResendTimeout
+      TRUE,                       // defaultToUaTransactions
+      -1,                         // readBufferSize
+      OsServerTask::DEF_MAX_MSGS, // queueSize
+      false);                    // bUseNextAvailablePort
 }
 
 // Copy constructor
@@ -68,64 +68,64 @@ TestRegistrar::TestRegistrar(const TestRegistrar& rTestRegistrar)
 // Destructor
 TestRegistrar::~TestRegistrar()
 {    
-    mpUserAgent->removeMessageObserver(*this->getMessageQueue()) ;
-    mpUserAgent->shutdown() ;
-    delete mpUserAgent ;
+   mpUserAgent->removeMessageObserver(*this->getMessageQueue());
+   mpUserAgent->shutdown();
+   delete mpUserAgent;
 
-    waitUntilShutDown();
+   waitUntilShutDown();
 }
 
 void TestRegistrar::init()
 {
-    mpUserAgent->addMessageObserver(*this->getMessageQueue(), SIP_REGISTER_METHOD, 1, 0, 1, 0);
-    mpUserAgent->addMessageObserver(*this->getMessageQueue(), SIP_SUBSCRIBE_METHOD, 1, 0, 1, 0);
-    mpUserAgent->start();
-    while(!mpUserAgent->waitUntilReady())
-    {
-        OsTask::delay(100);
-    }
-    
-    this->start();
+   mpUserAgent->addMessageObserver(*this->getMessageQueue(), SIP_REGISTER_METHOD, 1, 0, 1, 0);
+   mpUserAgent->addMessageObserver(*this->getMessageQueue(), SIP_SUBSCRIBE_METHOD, 1, 0, 1, 0);
+   mpUserAgent->start();
+   while(!mpUserAgent->waitUntilReady())
+   {
+      OsTask::delay(100);
+   }
+
+   this->start();
 }
 
 void TestRegistrar::pause(bool bPause)
 {
-    mbPaused = bPause;
+   mbPaused = bPause;
 }
 
 UtlBoolean TestRegistrar::handleMessage(OsMsg& rMsg)
 {
-    int msgType = rMsg.getMsgType();
-    UtlBoolean messageProcessed = FALSE;
+   int msgType = rMsg.getMsgType();
+   UtlBoolean messageProcessed = FALSE;
 
-    switch(msgType)
-    {
-        case OsMsg::PHONE_APP:
-        {
-            if (!mbPaused)
+   switch(msgType)
+   {
+   case OsMsg::PHONE_APP:
+      {
+         if (!mbPaused)
+         {
+            const SipMessage& message = *((SipMessageEvent&)rMsg).getMessage();
+            UtlString method;
+
+            if (!message.isResponse())
             {
-                const SipMessage& message = *((SipMessageEvent&)rMsg).getMessage();
-                UtlString method;
-                
-                if (!message.isResponse())
-                {
-                    message.getRequestMethod(&method);
-                    
-                    if (SIP_REGISTER_METHOD == method)
-                    {
-                        messageProcessed = handleRegisterRequest(message);
-                    }
-                }
+               message.getRequestMethod(&method);
+
+               if (SIP_REGISTER_METHOD == method)
+               {
+                  messageProcessed = handleRegisterRequest(message);
+               }
             }
-            else
-            {
-                messageProcessed = true; // eat it
-            }
-            break;
-        }
-        
-    }    
-    return messageProcessed;
+         }
+         else
+         {
+            messageProcessed = true; // eat it
+         }
+         break;
+      }
+
+   }    
+   return messageProcessed;
 }
 /* ============================ MANIPULATORS ============================== */
 
@@ -133,7 +133,7 @@ UtlBoolean TestRegistrar::handleMessage(OsMsg& rMsg)
 TestRegistrar&
 TestRegistrar::operator=(const TestRegistrar& rhs)
 {
-    return *this;
+   return *this;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -144,93 +144,93 @@ TestRegistrar::operator=(const TestRegistrar& rhs)
 
 UtlBoolean TestRegistrar::handleRegisterRequest(SipMessage message)
 {
-    UtlBoolean messageProcessed = false;
-    SipMessage finalResponse;
-    UtlString responseToAddress;
-    UtlString protocol;
-    int responseToPort;
-    int seqNum;
-    UtlString method;
-    UtlString contactField;
-    int expires;
-    static int retrySeqNum = 0;
-    UtlString callId;
-    
-    message.getCallIdField(&callId);
-    
-    message.getContactField(0, contactField);
-    message.getExpiresField(&expires);
-    
-    message.getCSeqField(&seqNum, &method);
-    message.getFromAddress(&responseToAddress, &responseToPort, &protocol);
-    
-    finalResponse.setContactField(contactField);
-    finalResponse.setExpiresField(expires);
-    finalResponse.setFromField("sip:127.0.0.1:5070", 5070);
-    finalResponse.setSendAddress(contactField, responseToPort);
-    finalResponse.setToField(contactField, responseToPort, protocol);
-    finalResponse.setUserAgentField("TestRegistrar");
-//    finalResponse.setRegisterData(responseToAddress, contactField, "127.0.0.1", contactField, callId, seqNum);
-    
-    if (contactField.contains("anon"))      // anonymous user doesnt need authentication, just say ok
-    {
-        finalResponse.setResponseData(&message, 200, "OK");
-    }
-    else if (contactField.contains("mike"))  // mike requires registration, say 401
-    {
-        UtlString realm;
+   UtlBoolean messageProcessed = false;
+   SipMessage finalResponse;
+   UtlString responseToAddress;
+   UtlString protocol;
+   int responseToPort;
+   int seqNum;
+   UtlString method;
+   UtlString contactField;
+   int expires;
+   static int retrySeqNum = 0;
+   UtlString callId;
 
-        UtlString requestUser;
-        UtlString requestRealm;
-        UtlString requestNonce;
-        UtlString authUser;
-        UtlString uriParam;
-                
-        message.getAuthorizationUser(&authUser);
-        message.getDigestAuthorizationData(
-                   &requestUser, &requestRealm, &requestNonce,
-                   NULL, NULL, &uriParam,
-                   HttpMessage::SERVER, 0);        
+   message.getCallIdField(&callId);
 
-        if (seqNum == retrySeqNum) // if this is a retry response
-        {
-            // if they've sent any auth field, just accept it.
-            // TODO:  figure out if a username and password has been encrypted and sent.
-            finalResponse.setCSeqField(++seqNum, SIP_REGISTER_METHOD);
-            finalResponse.setResponseData(&message, 200, "OK");
-        }
-        else
-        {
-            message.getCSeqField(&seqNum, &method);
-            finalResponse.setCSeqField(++seqNum, method);
-            retrySeqNum = seqNum;
+   message.getContactField(0, contactField);
+   message.getExpiresField(&expires);
+
+   message.getCSeqField(&seqNum, &method);
+   message.getFromAddress(&responseToAddress, &responseToPort, &protocol);
+
+   finalResponse.setContactField(contactField);
+   finalResponse.setExpiresField(expires);
+   finalResponse.setFromField("sip:127.0.0.1:5070", 5070);
+   finalResponse.setSendAddress(contactField, responseToPort);
+   finalResponse.setToField(contactField, responseToPort, protocol);
+   finalResponse.setUserAgentField("TestRegistrar");
+   //    finalResponse.setRegisterData(responseToAddress, contactField, "127.0.0.1", contactField, callId, seqNum);
+
+   if (contactField.contains("anon"))      // anonymous user doesnt need authentication, just say ok
+   {
+      finalResponse.setResponseData(&message, 200, "OK");
+   }
+   else if (contactField.contains("mike"))  // mike requires registration, say 401
+   {
+      UtlString realm;
+
+      UtlString requestUser;
+      UtlString requestRealm;
+      UtlString requestNonce;
+      UtlString authUser;
+      UtlString uriParam;
+
+      message.getAuthorizationUser(&authUser);
+      message.getDigestAuthorizationData(
+         &requestUser, &requestRealm, &requestNonce,
+         NULL, NULL, &uriParam,
+         HttpMessage::SERVER, 0);        
+
+      if (seqNum == retrySeqNum) // if this is a retry response
+      {
+         // if they've sent any auth field, just accept it.
+         // TODO:  figure out if a username and password has been encrypted and sent.
+         finalResponse.setCSeqField(++seqNum, SIP_REGISTER_METHOD);
+         finalResponse.setResponseData(&message, 200, "OK");
+      }
+      else
+      {
+         message.getCSeqField(&seqNum, &method);
+         finalResponse.setCSeqField(++seqNum, method);
+         retrySeqNum = seqNum;
 #ifdef _WIN32
-            finalResponse.setAuthenticationData("md5", "TestRegistrar", NULL, NULL, NULL, HttpMessage::HttpEndpointEnum::SERVER );
+         finalResponse.setAuthenticationData("md5", "TestRegistrar", NULL, NULL, NULL, HttpMessage::HttpEndpointEnum::SERVER );
 #else
-            finalResponse.setAuthenticationData("md5", "TestRegistrar", NULL, NULL, NULL, HttpMessage::SERVER );
+         finalResponse.setAuthenticationData("md5", "TestRegistrar", NULL, NULL, NULL, HttpMessage::SERVER );
 #endif
-            finalResponse.setResponseData(&message, 401, "Not authorized");
-        }        
-    }
-    else if (contactField.contains("xyzzy"))
-    {
-        // this is our special username that will cause a response
-        // to be echoed back with the 3 digit value after xyzzy.
-        // for instance, the contact xyzzy401 will cause a 401 response
-        int pos = contactField.first("xyzzy");
-        char szCode[4];
-        szCode[0] = contactField[pos + 5];
-        szCode[1] = contactField[pos + 6];
-        szCode[2] = contactField[pos + 7];
-        szCode[3] = '\0';
-        
-        finalResponse.setResponseData(&message, atoi(szCode), "OK");
-    }
-    
-    
-    mpUserAgent->send(finalResponse);
-    
-    return messageProcessed;
+         finalResponse.setResponseData(&message, 401, "Not authorized");
+      }        
+   }
+   else if (contactField.contains("xyzzy"))
+   {
+      // this is our special username that will cause a response
+      // to be echoed back with the 3 digit value after xyzzy.
+      // for instance, the contact xyzzy401 will cause a 401 response
+      int pos = contactField.first("xyzzy");
+      char szCode[4];
+      szCode[0] = contactField[pos + 5];
+      szCode[1] = contactField[pos + 6];
+      szCode[2] = contactField[pos + 7];
+      szCode[3] = '\0';
+
+      finalResponse.setResponseData(&message, atoi(szCode), "OK");
+   }
+
+
+   mpUserAgent->send(finalResponse);
+
+   return messageProcessed;
 }
 
 

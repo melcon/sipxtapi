@@ -82,12 +82,12 @@ public:
 
    /**
    * Tries to extract line data from given sip message. Doesn't check if line exists.
+   * Inbound/outbound messages are detected automatically through SipMessage flag.
    */
-   void extractLineData(const SipMessage& sipMsg,
-                        UtlBoolean isInboundMessage,
-                        UtlString& lineId,
-                        Url& lineUri,
-                        UtlString& userId) const;
+   static void extractLineData(const SipMessage& sipMsg,
+                               UtlString& lineId,
+                               Url& lineUri,
+                               UtlString& userId);
 
    /* ============================ INQUIRY =================================== */
 
@@ -103,8 +103,7 @@ public:
    /**
     * Checks if line from SipMessage exists.
     */
-   UtlBoolean lineExists(const SipMessage& sipMsg,
-                         UtlBoolean isInboundMessage) const;
+   UtlBoolean lineExists(const SipMessage& sipMsg) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

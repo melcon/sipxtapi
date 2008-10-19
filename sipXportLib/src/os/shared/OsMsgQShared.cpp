@@ -148,7 +148,7 @@ OsStatus OsMsgQShared::receive(OsMsg*& rpMsg, const OsTime& rTimeout)
 /* ============================ ACCESSORS ================================= */
 
 // Return the number of messages in the queue
-int OsMsgQShared::numMsgs(void)
+int OsMsgQShared::numMsgs(void) const
 {
    return mQueueSize;
 }

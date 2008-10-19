@@ -37,92 +37,92 @@
 // TYPEDEFS
 typedef struct CSEQ_CONTEXT
 {
-    UtlString  identifier ;
-    bool       bInTransaction ;
-    int       iCSeq ;
-} CSEQ_CONTEXT ;
+   UtlString  identifier;
+   bool       bInTransaction;
+   int       iCSeq;
+} CSEQ_CONTEXT;
 
 // FORWARD DECLARATIONS
 
 
 /**
- * CSeqManager manages the CSeq number space for a dialog.  It keeps track of
- * multiple identifiers to handle overlapping transactions (e.g. send a NOTIFY
- * while an INFO transaction is still outstanding).
- */
+* CSeqManager manages the CSeq number space for a dialog.  It keeps track of
+* multiple identifiers to handle overlapping transactions (e.g. send a NOTIFY
+* while an INFO transaction is still outstanding).
+*/
 class CSeqManager
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
-  public:
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
+public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
-    /**
-     * Default constructor
-     */
-    CSeqManager();
-     
-    /**
-     * Destructor
-     */
-    virtual ~CSeqManager();
+   /**
+   * Default constructor
+   */
+   CSeqManager();
 
-/* ============================ MANIPULATORS ============================== */
+   /**
+   * Destructor
+   */
+   virtual ~CSeqManager();
 
-    /**
-     * startTransaction notes that a transaction has been started and will
-     * return FALSE if any other transaction was already started.  It is 
-     * assumed that if startTransaction fails (returns false), the developer
-     * will try to start the transaction again later.  This method will 
-     * increase the CSeq number regardless of success.
-     */
-    bool startTransaction(const char* szIdentifier, int& iCSeq) ;
+   /* ============================ MANIPULATORS ============================== */
 
-    /**
-     * endTransaction marks the end of a transaction.
-     */
-    bool endTransaction(const char* szIdentifier) ;
+   /**
+   * startTransaction notes that a transaction has been started and will
+   * return FALSE if any other transaction was already started.  It is 
+   * assumed that if startTransaction fails (returns false), the developer
+   * will try to start the transaction again later.  This method will 
+   * increase the CSeq number regardless of success.
+   */
+   bool startTransaction(const char* szIdentifier, int& iCSeq);
 
-    /**
-     * Dump state into specified string
-     */
-    void dumpState(UtlString& state) ;
+   /**
+   * endTransaction marks the end of a transaction.
+   */
+   bool endTransaction(const char* szIdentifier);
 
-/* ============================ ACCESSORS ================================= */
-    
-    /**
-     * Get the current csequence number
-     */
-    int getCSeqNumber(const char* szIdentifier) ;
+   /**
+   * Dump state into specified string
+   */
+   void dumpState(UtlString& state);
 
-/* ============================ INQUIRY =================================== */
+   /* ============================ ACCESSORS ================================= */
 
-    /** 
-     * Is the specified identifer in a transaction already?
-     */ 
-    bool isInTransaction(const char* szIdentifier) ;
+   /**
+   * Get the current csequence number
+   */
+   int getCSeqNumber(const char* szIdentifier);
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-  protected:
-    UtlHashMap   mHashMap ;
-    UtlRandom    mRandomGenerator ;
-    OsMutex      mGuard ;
-    int          miCSeq ;
+   /* ============================ INQUIRY =================================== */
 
-    /** 
-     * Gets the context for the specified identifier.  If no context is 
-     * available, one is created.
-     */
-    CSEQ_CONTEXT* getContext(const char* szIdentifier) ;
+   /** 
+   * Is the specified identifer in a transaction already?
+   */ 
+   bool isInTransaction(const char* szIdentifier);
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-  private:
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
+protected:
+   UtlHashMap   mHashMap;
+   UtlRandom    mRandomGenerator;
+   OsMutex      mGuard;
+   int          miCSeq;
 
-    /** Disabled copy constructor */ 
-    CSeqManager(const CSeqManager& rCSeqManager);     
+   /** 
+   * Gets the context for the specified identifier.  If no context is 
+   * available, one is created.
+   */
+   CSEQ_CONTEXT* getContext(const char* szIdentifier);
 
-    /** Disabled assignment operator */
-    CSeqManager& operator=(const CSeqManager& rhs);  
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+
+   /** Disabled copy constructor */ 
+   CSeqManager(const CSeqManager& rCSeqManager);     
+
+   /** Disabled assignment operator */
+   CSeqManager& operator=(const CSeqManager& rhs);  
 
 };
 

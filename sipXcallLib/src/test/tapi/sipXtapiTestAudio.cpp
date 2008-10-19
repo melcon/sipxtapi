@@ -198,7 +198,7 @@ void sipXtapiTestAudio::testAudioSettings()
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetAECMode(m_hInst1, &mode), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(mode, SIPX_AEC_DISABLED);
 
-/*    not supported with sipxmedialib
+      /*    not supported with sipxmedialib
       CPPUNIT_ASSERT_EQUAL(sipxAudioSetAECMode(m_hInst1, SIPX_AEC_SUPPRESS), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetAECMode(m_hInst1, &mode), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(mode, SIPX_AEC_SUPPRESS);*/
@@ -219,11 +219,13 @@ void sipXtapiTestAudio::testAudioSettings()
 
       CPPUNIT_ASSERT_EQUAL(sipxAudioSetNoiseReductionMode(m_hInst1, SIPX_NOISE_REDUCTION_LOW), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNoiseReductionMode(m_hInst1, &nrMode), SIPX_RESULT_SUCCESS);
-      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_LOW);
+      //CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_LOW); // only works with GIPS
+      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_HIGH); // correct for sipxmedialib
 
       CPPUNIT_ASSERT_EQUAL(sipxAudioSetNoiseReductionMode(m_hInst1, SIPX_NOISE_REDUCTION_MEDIUM), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNoiseReductionMode(m_hInst1, &nrMode), SIPX_RESULT_SUCCESS);
-      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_MEDIUM);
+      //CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_MEDIUM); // only works with GIPS
+      CPPUNIT_ASSERT_EQUAL(nrMode, SIPX_NOISE_REDUCTION_HIGH); // correct for sipxmedialib
 
       CPPUNIT_ASSERT_EQUAL(sipxAudioSetNoiseReductionMode(m_hInst1, SIPX_NOISE_REDUCTION_HIGH), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNoiseReductionMode(m_hInst1, &nrMode), SIPX_RESULT_SUCCESS);
@@ -232,7 +234,7 @@ void sipXtapiTestAudio::testAudioSettings()
       int numOfDevices = 0;
       char* null = NULL;
 #define BUFFER_SIZE 200
-      
+
       // Test sipxAudioGetNumInputDevices
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumInputDevices(NULL, NULL), SIPX_RESULT_INVALID_ARGS);
       CPPUNIT_ASSERT_EQUAL(sipxAudioGetNumInputDevices(m_hInst1, &numOfDevices), SIPX_RESULT_SUCCESS);

@@ -25,66 +25,66 @@
 // FORWARD DECLARATIONS
 
 /**
- */
+*/
 class TestRegistryData
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
-  public:
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
+public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
-    /**
-    * Default constructor
-    */
-    TestRegistryData();
-        
-    /**
-    * Copy constructor
-    */
-    TestRegistryData(const TestRegistryData& rTestRegistryData);     
+   /**
+   * Default constructor
+   */
+   TestRegistryData();
 
-    /**
-    * Destructor
-    */
-    virtual ~TestRegistryData();
+   /**
+   * Copy constructor
+   */
+   TestRegistryData(const TestRegistryData& rTestRegistryData);     
+
+   /**
+   * Destructor
+   */
+   virtual ~TestRegistryData();
 
 
-    /* ============================ MANIPULATORS ============================== */
+   /* ============================ MANIPULATORS ============================== */
 
-    /**
-    * Assignment operator
-    *
-    * @param rhs right hand side of the equals operator
-    */
-    TestRegistryData& operator=(const TestRegistryData& rhs);  
+   /**
+   * Assignment operator
+   *
+   * @param rhs right hand side of the equals operator
+   */
+   TestRegistryData& operator=(const TestRegistryData& rhs);  
 
-    /* ============================ ACCESSORS ================================= */
-    const UtlString getIdentity() const;
-    const UtlString getRealm() const;
-    const UtlString getContact() const;
-    const UtlString getCallId() const;
-    const int getExpires() const;
-    const int getBornOnDate() const;
+   /* ============================ ACCESSORS ================================= */
+   const UtlString getIdentity() const;
+   const UtlString getRealm() const;
+   const UtlString getContact() const;
+   const UtlString getCallId() const;
+   const int getExpires() const;
+   const int getBornOnDate() const;
 
-    void setIdentity(const UtlString identity);
-    void setRealm(const UtlString realm);
-    void setContact(const UtlString contact);
-    void setCallId(const UtlString callId);
-    void setExpires(const int expires);
-    void setBornOnDate(const int bornOnDate);
-    
-/* ============================ INQUIRY =================================== */
+   void setIdentity(const UtlString identity);
+   void setRealm(const UtlString realm);
+   void setContact(const UtlString contact);
+   void setCallId(const UtlString callId);
+   void setExpires(const int expires);
+   void setBornOnDate(const int bornOnDate);
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-  protected:
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-  private:
-    UtlString mIdentity;
-    UtlString mRealm;
-    UtlString mContact;
-    UtlString mCallId;
-    int mExpires;
-    int mBornOnDate;    
+   /* ============================ INQUIRY =================================== */
+
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
+protected:
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+   UtlString mIdentity;
+   UtlString mRealm;
+   UtlString mContact;
+   UtlString mCallId;
+   int mExpires;
+   int mBornOnDate;    
 };
 
 /* ============================ INLINE METHODS ============================ */

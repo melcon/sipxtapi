@@ -64,6 +64,7 @@ class SipXCallEventListener;
 class SipXInfoStatusEventListener;
 class SipXSecurityEventListener;
 class SipXMediaEventListener;
+class OsSharedServerTaskMgr;
 
 // STRUCTS
 // TYPEDEFS
@@ -167,6 +168,7 @@ public:
    SipXMediaEventListener* pMediaEventListener;
    SipXKeepaliveEventListener* pKeepaliveEventListener;
    SipDialogMgr* pDialogManager;
+   OsSharedServerTaskMgr* pSharedTaskMgr;
 
    AUDIO_CODEC_PREFERENCES audioCodecSetting;
    VIDEO_CODEC_PREFERENCES videoCodecSetting;
@@ -218,7 +220,8 @@ public:
       bRtpOverTcp(FALSE),
       pKeepaliveEventListener(NULL),
       nInputAudioDevices(0),
-      nOutputAudioDevices(0)
+      nOutputAudioDevices(0),
+      pSharedTaskMgr(NULL)
    {
       // Clear devices
       for (int i = 0; i < MAX_AUDIO_DEVICES; i++)
@@ -242,7 +245,7 @@ typedef enum SIPX_INTERNAL_CALLSTATE
    SIPX_INTERNAL_CALLSTATE_REMOTE_HELD,        /** Remotely held call */
    SIPX_INTERNAL_CALLSTATE_BRIDGED,            /** Locally held call, bridging */
    SIPX_INTERNAL_CALLSTATE_DISCONNECTED,       /** Disconnected or failed */
-   SIPX_INTERNAL_CALLSTATE_DESTROYING,         /** In the process of being destroyed */
+   SIPX_INTERNAL_CALLSTATE_DESTROYING          /** In the process of being destroyed */
 } SIPX_INTERNAL_CALLSTATE;
 
 typedef enum CONF_HOLD_STATE

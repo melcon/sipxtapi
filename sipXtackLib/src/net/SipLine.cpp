@@ -40,32 +40,14 @@ const UtlContainableType SipLine::TYPE = "SipLine";
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-SipLine::SipLine(const Url& userEnteredUrl,
-                 const Url& identityUri,
+SipLine::SipLine(const Url& fullLineUrl,
                  LineStates state)
 {
-   m_userEnteredUrl = userEnteredUrl;
-   if (identityUri.toString().isNull())
-   {
-      //then get uri from user entered url ...uri is complete in it
-      m_identityUri = m_userEnteredUrl.getUri();
-   }
-   else
-   {
-      m_identityUri = identityUri;
-   }
+   m_fullLineUrl = SipLine::getFullLineUrl(fullLineUrl);
+   //then get uri from user entered url ...uri is complete in it
+   m_lineUri = SipLine::getLineUri(fullLineUrl);
    m_currentState = state;
 
-   //construct a complete url from identityUri and userEntered Url.
-   m_canonicalUrl = m_userEnteredUrl;
-   UtlString address = m_canonicalUrl.getHostAddress();
-   if (address.isNull())
-   {
-      UtlString identityHost = m_identityUri.getHostAddress();
-      int identityPort = m_identityUri.getHostPort();
-      m_canonicalUrl.setHostAddress(identityHost);
-      m_canonicalUrl.setHostPort(identityPort);
-   }
    // create new Line Id for this line
    generateLineID(m_lineId);
    // build default contact
@@ -89,9 +71,8 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
       return *this;
    else
    {
-      m_identityUri = rSipLine.m_identityUri;
-      m_userEnteredUrl = rSipLine.m_userEnteredUrl;
-      m_canonicalUrl = rSipLine.m_canonicalUrl;
+      m_lineUri = rSipLine.m_lineUri;
+      m_fullLineUrl = rSipLine.m_fullLineUrl;
       m_currentState = rSipLine.m_currentState;
       m_lineId = rSipLine.m_lineId;
       m_preferredContactUri = rSipLine.m_preferredContactUri;
@@ -138,21 +119,16 @@ void SipLine::setState(SipLine::LineStates state)
 
 UtlString SipLine::getUserId() const
 {
-    return m_userEnteredUrl.getUserId();
+    return m_fullLineUrl.getUserId();
 }
 
-Url SipLine::getUserEnteredUrl() const
+Url SipLine::getFullLineUrl() const
 {
-    return m_userEnteredUrl;
+    return m_fullLineUrl;
 }
-Url SipLine::getIdentityUri() const
+Url SipLine::getLineUri() const
 {
-    return m_identityUri;
-}
-
-Url SipLine::getCanonicalUrl() const
-{
-    return m_canonicalUrl;
+    return m_lineUri;
 }
 
 UtlBoolean SipLine::addCredential(const UtlString& strRealm,
@@ -267,7 +243,7 @@ UtlBoolean SipLine::realmExists(const UtlString& realm) const
 
 void SipLine::generateLineID(UtlString& lineId)
 {
-   lineId = NetMd5Codec::encode(m_identityUri.toString());
+   lineId = NetMd5Codec::encode(m_lineUri.toString());
 
    // Shorten the line Ids to 12 chars (from 32)
    lineId.remove(12);
@@ -275,7 +251,7 @@ void SipLine::generateLineID(UtlString& lineId)
 
 Url SipLine::buildLineContact(const UtlString& address, int port)
 {
-   Url contactUrl(m_canonicalUrl);
+   Url contactUrl(m_fullLineUrl);
 
    if (!address.isNull())
    {
@@ -297,7 +273,7 @@ UtlContainableType SipLine::getContainableType() const
 
 unsigned SipLine::hash() const
 {
-   UtlString strIdentityUri = m_identityUri.toString();
+   UtlString strIdentityUri = m_lineUri.toString();
    strIdentityUri.toLower();
    return strIdentityUri.hash();
 }
@@ -312,7 +288,7 @@ int SipLine::compareTo(UtlContainable const *compareContainable) const
       {
          // for same type compare by identity uri
          SipLine const *pLine = dynamic_cast<SipLine const *>(compareContainable);
-         compareFlag = m_identityUri.toString().compareTo(pLine->getIdentityUri().toString(), UtlString::ignoreCase);
+         compareFlag = m_lineUri.toString().compareTo(pLine->getLineUri().toString(), UtlString::ignoreCase);
       }
       else
       {
@@ -327,6 +303,46 @@ int SipLine::compareTo(UtlContainable const *compareContainable) const
 UtlCopyableContainable* SipLine::clone() const
 {
    return new SipLine(*this);
+}
+
+Url SipLine::getLineUri(const Url& url)
+{
+   Url lineUri(url.toString());
+   lineUri.setDisplayName(NULL);
+   lineUri.removeAngleBrackets();
+   lineUri.removeParameters();
+   lineUri.setPassword(NULL); // line uri cannot have password
+   lineUri.setHostPort(PORT_NONE); // line uri doesn't have port associated with it
+   return lineUri;
+}
+
+Url SipLine::getLineUri(const UtlString& sUrl)
+{
+   Url lineUri(sUrl);
+   lineUri.setDisplayName(NULL);
+   lineUri.removeAngleBrackets();
+   lineUri.removeParameters();
+   lineUri.setPassword(NULL); // line uri cannot have password
+   lineUri.setHostPort(PORT_NONE); // line uri doesn't have port associated with it
+   return lineUri;
+}
+
+Url SipLine::getFullLineUrl(const Url& url)
+{
+   Url fullLineUrl(url.toString());
+   fullLineUrl.includeAngleBrackets();
+   fullLineUrl.removeFieldParameters();
+   fullLineUrl.removeHeaderParameter("transport");
+   return fullLineUrl;
+}
+
+Url SipLine::getFullLineUrl(const UtlString& sUrl)
+{
+   Url fullLineUrl(sUrl);
+   fullLineUrl.includeAngleBrackets();
+   fullLineUrl.removeFieldParameters();
+   fullLineUrl.removeHeaderParameter("transport");
+   return fullLineUrl;
 }
 
 UtlString SipLine::getProxyServers() const

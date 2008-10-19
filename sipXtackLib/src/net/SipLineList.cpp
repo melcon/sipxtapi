@@ -41,7 +41,7 @@ UtlBoolean SipLineList::add(SipLine *pLine)
    if (pLine && !lineExists(*pLine))
    {
       // if it doesn't already exist, add to bag
-      m_lineMap.insertKeyAndValue(pLine->getIdentityUri().toString().clone(), pLine);
+      m_lineMap.insertKeyAndValue(pLine->getLineUri().toString().clone(), pLine);
       return TRUE;
    }
 
@@ -68,7 +68,7 @@ UtlBoolean SipLineList::add(const SipLine& line)
 
 UtlBoolean SipLineList::remove(const SipLine& line)
 {
-   return m_lineMap.destroy(&line.getIdentityUri().toString());
+   return m_lineMap.destroy(&line.getLineUri().toString());
 }
 
 UtlBoolean SipLineList::remove(const Url& lineIdentityUri)
@@ -83,7 +83,7 @@ void SipLineList::removeAll()
 
 UtlBoolean SipLineList::lineExists(const SipLine& line) const
 {
-   return m_lineMap.contains(&line.getIdentityUri().toString());
+   return m_lineMap.contains(&line.getLineUri().toString());
 }
 
 UtlBoolean SipLineList::lineExists(const Url& lineIdentityUri) const
@@ -172,7 +172,7 @@ SipLine* SipLineList::findLine(const UtlString& lineId,
             // lineId match
             return pLine;
          }
-         else if (pLine->getIdentityUri().isUserHostPortEqual(lineUri))
+         else if (pLine->getLineUri().isUserHostPortEqual(lineUri))
          {
             // we found line with matching user, host and port
             pLineMatchingUri = pLine;
@@ -206,7 +206,7 @@ void SipLineList::dumpLines()
       if (pLine)
       {
          OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x [%d]: lineURI=%s, LINEID=%s, lineState=%d",
-            this, i++, pLine->getIdentityUri().toString().data(), pLine->getLineId().data(), (int)pLine->getState());
+            this, i++, pLine->getLineUri().toString().data(), pLine->getLineId().data(), (int)pLine->getState());
       }
    }
 }
@@ -244,7 +244,7 @@ void SipLineList::getLineUris(UtlSList& lineUris) const
       if (pLine)
       {
          // copy line uri into list
-         lineUris.append(pLine->getIdentityUri().toString().clone());
+         lineUris.append(pLine->getLineUri().toString().clone());
       }
    }
 }

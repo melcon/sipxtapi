@@ -94,7 +94,7 @@ UtlBoolean SipLineMgr::addLine(SipLine& line)
    if (m_listList.add(line))
    {
       syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::addLine added line: %s",
-         line.getIdentityUri().toString().data());
+         line.getLineUri().toString().data());
 
       return TRUE;
    }
@@ -127,7 +127,7 @@ void SipLineMgr::deleteAllLines()
 UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
    Url preferredContact;
-   Url canonicalUrl;
+   Url fromUrl;
 
    {
       OsLock lock(m_mutex); // scoped lock
@@ -143,11 +143,11 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 
       pLine->setState(SipLine::LINE_STATE_TRYING);
       preferredContact = pLine->getPreferredContactUri();
-      canonicalUrl = pLine->getCanonicalUrl();
+      fromUrl = pLine->getFullLineUrl();
       pLine = NULL;
    }
 
-   if (!m_pRefreshMgr->newRegisterMsg(canonicalUrl, preferredContact, -1))
+   if (!m_pRefreshMgr->newRegisterMsg(fromUrl, preferredContact, -1))
    {
       //duplicate ...call reregister
       m_pRefreshMgr->reRegister(lineURI);
