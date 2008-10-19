@@ -241,15 +241,7 @@ UtlBoolean SipLine::getCredential(const UtlString& type,
 UtlBoolean SipLine::removeCredential(const UtlString& type,
                                      const UtlString& realm)
 {
-   UtlContainable* wasRemoved = m_credentials.removeReference(&realm);
-   if(wasRemoved)
-   {
-      delete wasRemoved;
-      wasRemoved = NULL;
-      return TRUE;
-   }
-
-   return FALSE;
+   return m_credentials.destroy(&realm);
 }
 
 void SipLine::removeAllCredentials()

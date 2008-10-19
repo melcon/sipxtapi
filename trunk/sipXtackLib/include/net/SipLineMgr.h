@@ -64,12 +64,19 @@ public:
    /** Deletes line from line manager */
    UtlBoolean deleteLine(const Url& lineURI);
 
+   /** Deletes all lines */
+   void deleteAllLines();
+
    UtlBoolean buildAuthenticatedRequest(const SipMessage* response,
                                         const SipMessage* request,
                                         SipMessage* newAuthRequest);
 
    /** Sets state on given line */
    UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
+
+   /** Adds new credentials to given line */
+   UtlBoolean addCredentialForLine(const Url& lineUri,
+                                   const SipLineCredential& credential);
 
    /** Adds new credentials to given line */
    UtlBoolean addCredentialForLine(const Url& lineUri,
@@ -83,13 +90,22 @@ public:
                                       const UtlString& strRealm,
                                       const UtlString& type);
 
+   /** Deletes all credentials from given line */
+   UtlBoolean deleteAllCredentialsForLine(const Url& lineUri);
+
    /* ============================ ACCESSORS ================================= */
 
-   /** Copies line clones into supplied list */
+   /** Copies SipLine clones into supplied list */
    void getLineCopies(UtlSList& lineList) const;
 
+   /** Gets SIP lineURIs of all SipLines */
+   void getLineUris(UtlSList& lineUris) const;
+
+   /** Gets a copy of given line including credentials. Returns FALSE if line was not found */
+   UtlBoolean getLineCopy(const Url& lineUri, SipLine& sipLine) const;
+
    /** Get the current number of lines. */
-   int getNumLines() const;
+   size_t getNumLines() const;
 
    /* ============================ INQUIRY =================================== */
 

@@ -230,3 +230,21 @@ void SipLineList::getLineCopies(UtlSList& lineList) const
    }
 }
 
+void SipLineList::getLineUris(UtlSList& lineUris) const
+{
+   SipLine* pLine = NULL;
+
+   UtlHashMapIterator itor(m_lineMap);
+   UtlContainable* pKey = NULL;
+   int i = 0;
+
+   while ((pKey = itor()) != NULL)
+   {
+      pLine = dynamic_cast<SipLine*>(itor.value());
+      if (pLine)
+      {
+         // copy line uri into list
+         lineUris.append(pLine->getIdentityUri().toString().clone());
+      }
+   }
+}
