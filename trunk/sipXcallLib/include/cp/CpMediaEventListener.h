@@ -50,15 +50,15 @@ public:
    CP_TONE_ID m_toneId; // only for DTMF event
 
    CpMediaEvent() : m_sCallId(NULL)
-   , m_sSessionCallId(NULL)
-   , m_sRemoteAddress(NULL)
-   , m_pCookie(NULL)
-   , m_playBufferIndex(0)
-   , m_cause(CP_MEDIA_CAUSE_NORMAL)
-   , m_mediaType(CP_MEDIA_TYPE_AUDIO)
-   , m_codec()
-   , m_idleTime(0)
-   , m_toneId(CP_ID_DTMF_0)
+      , m_sSessionCallId(NULL)
+      , m_sRemoteAddress(NULL)
+      , m_pCookie(NULL)
+      , m_playBufferIndex(0)
+      , m_cause(CP_MEDIA_CAUSE_NORMAL)
+      , m_mediaType(CP_MEDIA_TYPE_AUDIO)
+      , m_codec()
+      , m_idleTime(0)
+      , m_toneId(CP_ID_DTMF_0)
    {
    }
 

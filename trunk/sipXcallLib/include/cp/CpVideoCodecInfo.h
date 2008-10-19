@@ -38,8 +38,8 @@ typedef enum CP_VIDEO_BANDWIDTH_ID
 // FORWARD DECLARATIONS
 
 /**
- * Information about video codec being used by a call. Used in event system.
- */
+* Information about video codec being used by a call. Used in event system.
+*/
 class CpVideoCodecInfo
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */

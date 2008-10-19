@@ -121,7 +121,7 @@ UtlBoolean SipDialogMgr::updateDialog(const SipMessage& message,
                dialogDump.data());
 #endif
 
-        dialog->updateDialogData(message);
+        dialog->updateDialog(message);
 
 #ifdef TEST_PRINT
         dialog->toString(dialogDump);
@@ -347,7 +347,13 @@ UtlBoolean SipDialogMgr::isLastLocalTransaction(const SipMessage& message,
     UtlString callId;
     UtlString fromTag;
     UtlString toTag;
-    SipDialog::parseHandle(handle, callId, fromTag, toTag);
+    Url fromField;
+    Url toField;
+    message.getFromUrl(fromField);
+    message.getToUrl(toField);
+    message.getCallIdField(callId);
+    fromField.getFieldParameter("tag", fromTag);
+    toField.getFieldParameter("tag", toTag);
 
     lock();
     // Looking for any dialog that matches this handle
@@ -376,7 +382,13 @@ UtlBoolean SipDialogMgr::isNewRemoteTransaction(const SipMessage& message)
     UtlString callId;
     UtlString fromTag;
     UtlString toTag;
-    SipDialog::parseHandle(handle, callId, fromTag, toTag);
+    Url fromField;
+    Url toField;
+    message.getFromUrl(fromField);
+    message.getToUrl(toField);
+    message.getCallIdField(callId);
+    fromField.getFieldParameter("tag", fromTag);
+    toField.getFieldParameter("tag", toTag);
 
     lock();
     // Looking for any dialog that matches this handle
@@ -415,53 +427,40 @@ SipDialog* SipDialogMgr::findDialog(UtlString& dailogHandle,
 }
 
 SipDialog* SipDialogMgr::findDialog(UtlString& callId,
-                                  UtlString& localTag,
-                                  UtlString& remoteTag,
-                                  UtlBoolean ifHandleEstablishedFindEarlyDialog,
-                                  UtlBoolean ifHandleEarlyFindEstablishedDialog)
+                                    UtlString& localTag,
+                                    UtlString& remoteTag,
+                                    UtlBoolean ifHandleEstablishedFindEarlyDialog,
+                                    UtlBoolean ifHandleEarlyFindEstablishedDialog)
 {
     SipDialog* dialog = NULL;
     UtlHashBagIterator iterator(mDialogs, &callId);
+    UtlBoolean isInitialHandle = SipDialog::isInitialDialog(callId, localTag, remoteTag);
 
     // Look at all the dialogs with the same call-id
     while((dialog = (SipDialog*) iterator()))
     {
-        // Check for exact match on the dialog handle
-        if(dialog->isSameDialog(callId,localTag, remoteTag))
-        {
-            break;
-        }
+       // Check for exact match on the dialog handle
+       if(dialog->isSameDialog(callId, localTag, remoteTag, !ifHandleEstablishedFindEarlyDialog))
+       {
+          return dialog;
+       }
     }
 
     // Check if this established dialog handle matches an early dialog
-    if(!dialog && ifHandleEstablishedFindEarlyDialog)
+    if (ifHandleEarlyFindEstablishedDialog)
     {
         iterator.reset();
         while((dialog = (SipDialog*) iterator()))
         {
             // Check for match on the early dialog for the handle
-            if(dialog->isInitialDialogFor(callId, localTag, remoteTag))
+            if(dialog->isInitialDialogOf(callId, localTag, remoteTag))
             {
                 break;
             }
         }
     }
 
-    // Check if this early dialog handle matches an established dialog
-    if(!dialog && ifHandleEarlyFindEstablishedDialog)
-    {
-        iterator.reset();
-        while((dialog = (SipDialog*) iterator()))
-        {
-            // Check for match on the early dialog for the handle
-            if(dialog->wasInitialDialogFor(callId, localTag, remoteTag))
-            {
-                break;
-            }
-        }
-    }
-
-    return(dialog);
+    return dialog;
 }
 
 UtlBoolean SipDialogMgr::deleteDialog(const char* dialogHandle)

@@ -1802,6 +1802,20 @@ void HttpMessage::dumpTimeLog() const
     mTimeLog.dumpLog();
 #endif
 }
+
+void HttpMessage::toString(UtlString& sOutput) const
+{
+   int length;
+   getBytes(&sOutput, &length);
+}
+
+UtlString HttpMessage::toString() const
+{
+   UtlString sOutput;
+   toString(sOutput);
+   return sOutput;
+}
+
 /* ============================ ACCESSORS ================================= */
 int HttpMessage::getHttpMessageCount()
 {
@@ -3496,6 +3510,16 @@ UtlBoolean HttpMessage::isWholeMessage(const char* messageBuffer,
 UtlBoolean HttpMessage::isFirstSend() const
 {
     return(!mFirstSent);
+}
+
+void HttpMessage::setFromThisSide(const bool bFromThisSide)
+{
+   mbFromThisSide = bFromThisSide;
+}
+
+UtlBoolean HttpMessage::isFromThisSide() const
+{
+   return mbFromThisSide;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

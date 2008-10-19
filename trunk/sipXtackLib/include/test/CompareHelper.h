@@ -71,13 +71,12 @@ static UtlBoolean areTheSame(SipLine& line1, SipLine& line2)
 {
    UtlBoolean result = FALSE;
 
-   if (areTheSame(line1.getCanonicalUrl(), line2.getCanonicalUrl()) &&
-      areTheSame(line1.getIdentityUri(), line2.getIdentityUri()) &&
+   if (areTheSame(line1.getLineUri(), line2.getLineUri()) &&
       areTheSame(line1.getLineId(), line2.getLineId()) &&
       areTheSame(line1.getNumOfCredentials(), line2.getNumOfCredentials()) &&
       areTheSame(line1.getPreferredContactUri(), line2.getPreferredContactUri()) &&
       areTheSame(line1.getState(), line2.getState()) &&
-      areTheSame(line1.getUserEnteredUrl(), line2.getUserEnteredUrl()) &&
+      areTheSame(line1.getFullLineUrl(), line2.getFullLineUrl()) &&
       areTheSame(line1.getUserId(), line2.getUserId())
       )
    {

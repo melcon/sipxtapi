@@ -29,8 +29,8 @@
 // FORWARD DECLARATIONS
 
 /**
- * Information about codecs being used by a call. Used in event system.
- */
+* Information about codecs being used by a call. Used in event system.
+*/
 class CpCodecInfo
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */

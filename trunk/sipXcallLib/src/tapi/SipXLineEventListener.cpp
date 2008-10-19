@@ -35,7 +35,8 @@
 
 /* ============================ CREATORS ================================== */
 
-SipXLineEventListener::SipXLineEventListener( SIPX_INST pInst ) : OsServerTask("SipXLineEventListener-%d")
+SipXLineEventListener::SipXLineEventListener( SIPX_INST pInst )
+: OsSharedServerTask("SipXLineEventListener-%d")
 , SipLineStateEventListener()
 , m_pInst(pInst)
 {
@@ -44,7 +45,7 @@ SipXLineEventListener::SipXLineEventListener( SIPX_INST pInst ) : OsServerTask("
 
 SipXLineEventListener::~SipXLineEventListener()
 {
-   waitUntilShutDown();
+   release();
 }
 
 /* ============================ MANIPULATORS ============================== */

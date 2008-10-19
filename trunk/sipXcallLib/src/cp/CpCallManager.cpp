@@ -46,43 +46,22 @@ const int    CpCallManager::CALLMANAGER_MAX_REQUEST_MSGS = 1000;
 CpCallManager::CpCallManager(const char* taskName,
                              const char* callIdPrefix,
                              int rtpPortStart,
-                             int rtpPortEnd,
-                             const char* localAddress,
-                             const char* publicAddress) :
+                             int rtpPortEnd) :
 OsServerTask(taskName, NULL, CALLMANAGER_MAX_REQUEST_MSGS),
 mCallListMutex(OsMutex::Q_FIFO),
 m_callIdGenerator(callIdPrefix != NULL ? callIdPrefix : "c"),
 m_sipCallIdGenerator("s"),
 mCallIndices()
 {
-    mDoNotDisturbFlag = FALSE;
-    mMsgWaitingFlag = FALSE;
-    mOfferedTimeOut = 0;
-    
+   mDoNotDisturbFlag = FALSE;
+   mMsgWaitingFlag = FALSE;
+   mOfferedTimeOut = 0;
+
    mRtpPortStart = rtpPortStart;
    mRtpPortEnd = rtpPortEnd;
 
-   if(localAddress && *localAddress)
-   {
-       mLocalAddress.append(localAddress);
-   }
-   else
-   {
-       OsSocket::getHostIp(&mLocalAddress);
-   }
-
-   if(publicAddress && *publicAddress)
-   {
-       mPublicAddress.append(publicAddress);
-   }
-   else
-   {
-       OsSocket::getHostIp(&mPublicAddress);
-   }
-
    mLastMetaEventId = 0;
-   mbEnableICE = false ;
-
+   mbEnableICE = false;
 }
 
 // Destructor
@@ -104,43 +83,43 @@ void CpCallManager::getNewSessionId(UtlString* callId)
 
 void CpCallManager::appendCall(CpCall* call)
 {
-    OsWriteLock lock(mCallListMutex);
-    UtlInt* callCollectable = new UtlInt((int)call);
-    mCallList.append(callCollectable);
+   OsWriteLock lock(mCallListMutex);
+   UtlInt* callCollectable = new UtlInt((int)call);
+   mCallList.append(callCollectable);
 }
 
 void CpCallManager::pushCall(CpCall* call)
 {
-    OsWriteLock lock(mCallListMutex);
-    UtlInt* callCollectable = new UtlInt((int)call);
-    mCallList.insertAt(0, callCollectable);
+   OsWriteLock lock(mCallListMutex);
+   UtlInt* callCollectable = new UtlInt((int)call);
+   mCallList.insertAt(0, callCollectable);
 }
 
 
 void CpCallManager::setDoNotDisturb(int flag)
 {
-    mDoNotDisturbFlag = flag;
+   mDoNotDisturbFlag = flag;
 }
 
 void CpCallManager::setMessageWaiting(int flag)
 {
-    mMsgWaitingFlag = flag;
+   mMsgWaitingFlag = flag;
 }
 
 void CpCallManager::setOfferedTimeout(int milisec)
 {
-    mOfferedTimeOut = milisec;
+   mOfferedTimeOut = milisec;
 }
 
 void CpCallManager::enableIce(UtlBoolean bEnable) 
 {
-    mbEnableICE = bEnable ;
+   mbEnableICE = bEnable;
 }
 
 
 void CpCallManager::setVoiceQualityReportTarget(const char* szTargetSipUrl) 
 {
-    mVoiceQualityReportTarget = szTargetSipUrl ;
+   mVoiceQualityReportTarget = szTargetSipUrl;
 }
 
 
@@ -148,40 +127,33 @@ void CpCallManager::setVoiceQualityReportTarget(const char* szTargetSipUrl)
 
 int CpCallManager::getNewMetaEventId()
 {
-    mLastMetaEventId++;
-    return(mLastMetaEventId);
+   mLastMetaEventId++;
+   return(mLastMetaEventId);
 }
 
 UtlBoolean CpCallManager::isIceEnabled() const
 {
-    return mbEnableICE ;
+   return mbEnableICE;
 }
 
 
 UtlBoolean CpCallManager::getVoiceQualityReportTarget(UtlString& reportSipUrl) 
 {
-    UtlBoolean bRC = false ;
+   UtlBoolean bRC = false;
 
-    if (!mVoiceQualityReportTarget.isNull())
-    {
-        reportSipUrl = mVoiceQualityReportTarget ;
-        bRC = true ;
-    }
+   if (!mVoiceQualityReportTarget.isNull())
+   {
+      reportSipUrl = mVoiceQualityReportTarget;
+      bRC = true;
+   }
 
-    return bRC ;
+   return bRC;
 }
-
-void CpCallManager::getLocalAddress(UtlString& address) 
-{
-    address = mLocalAddress ;
-}
-
-
 
 /* ============================ INQUIRY =================================== */
 UtlBoolean CpCallManager::isCallStateLoggingEnabled()
 {
-    return(mCallStateLogEnabled);
+   return(mCallStateLogEnabled);
 }
 
 

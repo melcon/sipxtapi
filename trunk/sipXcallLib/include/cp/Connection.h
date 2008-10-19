@@ -57,188 +57,188 @@ class CpMediaEvent;
 // information for the leg of a call to a particular address.
 class Connection: public UtlString
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-	enum connectionStates
-	{
-		CONNECTION_IDLE,
-		CONNECTION_QUEUED,
-		CONNECTION_OFFERING,
-		CONNECTION_ALERTING,
-		CONNECTION_ESTABLISHED,
-		CONNECTION_FAILED,
-		CONNECTION_DISCONNECTED,
+   enum connectionStates
+   {
+      CONNECTION_IDLE,
+      CONNECTION_QUEUED,
+      CONNECTION_OFFERING,
+      CONNECTION_ALERTING,
+      CONNECTION_ESTABLISHED,
+      CONNECTION_FAILED,
+      CONNECTION_DISCONNECTED,
       CONNECTION_UNKNOWN,
       CONNECTION_INITIATED,
       CONNECTION_DIALING,
       CONNECTION_NETWORK_REACHED,
       CONNECTION_NETWORK_ALERTING
-	};
+   };
 
- 	enum termConnectionStates
- 	{
- 		TERMCONNECTION_NONE,
- 		TERMCONNECTION_HOLDING,
- 		TERMCONNECTION_HELD,
- 		TERMCONNECTION_TALKING,
+   enum termConnectionStates
+   {
+      TERMCONNECTION_NONE,
+      TERMCONNECTION_HOLDING,
+      TERMCONNECTION_HELD,
+      TERMCONNECTION_TALKING,
       TERMCONNECTION_UNHOLDING
- 	};
-   
+   };
 
-	enum connectionType
-	{
-		CONNECTION_REMOTE	= 0,
-		CONNECTION_LOCAL	= 1
-	};
 
-	//
-	// WARNING: The order/values of these constants are used in java.  Please 
-	//          do not change these without updating the java world.
-	//
+   enum connectionType
+   {
+      CONNECTION_REMOTE	= 0,
+      CONNECTION_LOCAL	= 1
+   };
 
-    enum connectionStateCauses
-    {
-        // General causes:
-        CONNECTION_CAUSE_NORMAL,
-        CONNECTION_CAUSE_UNKNOWN,
+   //
+   // WARNING: The order/values of these constants are used in java.  Please 
+   //          do not change these without updating the java world.
+   //
 
-        // CONNECTION_IDLE causes:
-		// CONNECTION_QUEUED causes:
+   enum connectionStateCauses
+   {
+      // General causes:
+      CONNECTION_CAUSE_NORMAL,
+      CONNECTION_CAUSE_UNKNOWN,
 
-		// CONNECTION_OFFERING causes:
-        CONNECTION_CAUSE_REDIRECTED,
+      // CONNECTION_IDLE causes:
+      // CONNECTION_QUEUED causes:
 
-		// CONNECTION_ALERTING causes:
-        //CONNECTION_CAUSE_CALL_NOT_ANSWERED,
-        CONNECTION_CAUSE_CALL_PICKUP,
+      // CONNECTION_OFFERING causes:
+      CONNECTION_CAUSE_REDIRECTED,
 
-        //CONNECTION_CAUSE_LOCAL_RINGBACK = CONNECTION_CAUSE_NONE,
-        //CONNECTION_CAUSE_REMOTE_RINGBACK = CONNECTION_CAUSE_UNKNOWN,
+      // CONNECTION_ALERTING causes:
+      //CONNECTION_CAUSE_CALL_NOT_ANSWERED,
+      CONNECTION_CAUSE_CALL_PICKUP,
 
-		// CONNECTION_ESTABLISHED causes:
-		CONNECTION_CAUSE_UNHOLD,
+      //CONNECTION_CAUSE_LOCAL_RINGBACK = CONNECTION_CAUSE_NONE,
+      //CONNECTION_CAUSE_REMOTE_RINGBACK = CONNECTION_CAUSE_UNKNOWN,
 
-		// CONNECTION_FAILED causes:
-        CONNECTION_CAUSE_BUSY,
-        CONNECTION_CAUSE_NETWORK_CONGESTION,
-		CONNECTION_CAUSE_RESOURCES_NOT_AVAILABLE,
-        CONNECTION_CAUSE_NETWORK_NOT_OBTAINABLE,
-        CONNECTION_CAUSE_DEST_NOT_OBTAINABLE,
-        CONNECTION_CAUSE_INCOMPATIBLE_DESTINATION,
-		    CONNECTION_CAUSE_SERVICE_UNAVAILABLE,
-        CONNECTION_CAUSE_NOT_ALLOWED, // unauthorized by endpoint
-        CONNECTION_CAUSE_NETWORK_NOT_ALLOWED, // unauthorized by network/servers
-        CONNECTION_CAUSE_CANCELLED,
+      // CONNECTION_ESTABLISHED causes:
+      CONNECTION_CAUSE_UNHOLD,
 
-		// CONNECTION_DISCONNECTED causes:
-        CONNECTION_CAUSE_TRANSFER
-    };
+      // CONNECTION_FAILED causes:
+      CONNECTION_CAUSE_BUSY,
+      CONNECTION_CAUSE_NETWORK_CONGESTION,
+      CONNECTION_CAUSE_RESOURCES_NOT_AVAILABLE,
+      CONNECTION_CAUSE_NETWORK_NOT_OBTAINABLE,
+      CONNECTION_CAUSE_DEST_NOT_OBTAINABLE,
+      CONNECTION_CAUSE_INCOMPATIBLE_DESTINATION,
+      CONNECTION_CAUSE_SERVICE_UNAVAILABLE,
+      CONNECTION_CAUSE_NOT_ALLOWED, // unauthorized by endpoint
+      CONNECTION_CAUSE_NETWORK_NOT_ALLOWED, // unauthorized by network/servers
+      CONNECTION_CAUSE_CANCELLED,
 
-    enum offeringModes
- 	{
- 		IMMEDIATE = 0,
- 		NEVER = -1
- 	};
+      // CONNECTION_DISCONNECTED causes:
+      CONNECTION_CAUSE_TRANSFER
+   };
 
-    enum lineAvailableBehaviors
-    {
-        RING = 100,
-        FAKE_BUSY,
-        RING_SILENT,
-        AUTO_ANSWER,
-        FORWARD_UNCONDITIONAL,
-		FORWARD_ON_NO_ANSWER
-    };
-    //: Incoming call lineAvailableBehaviors
-    // The following define the different behaviors for an incoming call when the 
-    // phone (and resources) is available to take a call.
-    //
-    //!enumcode: RING - make the phone ring to alert the user
-    //!enumcode: FAKE_BUSY - indicate to the caller that the phone is busy, do not alert the callee
-    //!enumcode: RING_SILENT - indicate to the caller that the phone is ringing, do not alert the callee
-    //!enumcode: AUTO_ANSWER - automatically answer the call, alert the callee and enable the speaker phone
-    //!enumcode: FORWARD_UNCONDITIONAL - forward the call even though the phone is available
+   enum offeringModes
+   {
+      IMMEDIATE = 0,
+      NEVER = -1
+   };
 
-    enum lineBusyBehaviors
-    {
-        BUSY = 200,
-        FAKE_RING,
-        FORCED_ANSWER,
-        FORWARD_ON_BUSY,
-        QUEUE_SILENT,
-        QUEUE_ALERT
-    };
-    //: Incoming call lineBusyBehaviors
-    // The following define the different behaviors for an incoming call when the 
-    // phone (and resources) is busy.
-    //
-    //!enumcode: BUSY - indicate to the caller that the phone is busy
-    //!enumcode: FAKE_RING - indicate to the caller that the phone is ringing, do not alert the callee
-    //!enumcode: FORCED_ANSWER - put the active call on hold, automatically answer the call, alert the callee and enable the speaker phone
-    //!enumcode: FORWARD_ON_BUSY - forward the call
-    //!enumcode: QUEUE_SILENT - indicate to the caller that the call is being queued, do not alert the callee
-    //!enumcode: QUEUE_ALERT - indicate to the caller that the call is being queued, alert the callee
+   enum lineAvailableBehaviors
+   {
+      RING = 100,
+      FAKE_BUSY,
+      RING_SILENT,
+      AUTO_ANSWER,
+      FORWARD_UNCONDITIONAL,
+      FORWARD_ON_NO_ANSWER
+   };
+   //: Incoming call lineAvailableBehaviors
+   // The following define the different behaviors for an incoming call when the 
+   // phone (and resources) is available to take a call.
+   //
+   //!enumcode: RING - make the phone ring to alert the user
+   //!enumcode: FAKE_BUSY - indicate to the caller that the phone is busy, do not alert the callee
+   //!enumcode: RING_SILENT - indicate to the caller that the phone is ringing, do not alert the callee
+   //!enumcode: AUTO_ANSWER - automatically answer the call, alert the callee and enable the speaker phone
+   //!enumcode: FORWARD_UNCONDITIONAL - forward the call even though the phone is available
 
-/* ============================ CREATORS ================================== */
+   enum lineBusyBehaviors
+   {
+      BUSY = 200,
+      FAKE_RING,
+      FORCED_ANSWER,
+      FORWARD_ON_BUSY,
+      QUEUE_SILENT,
+      QUEUE_ALERT
+   };
+   //: Incoming call lineBusyBehaviors
+   // The following define the different behaviors for an incoming call when the 
+   // phone (and resources) is busy.
+   //
+   //!enumcode: BUSY - indicate to the caller that the phone is busy
+   //!enumcode: FAKE_RING - indicate to the caller that the phone is ringing, do not alert the callee
+   //!enumcode: FORCED_ANSWER - put the active call on hold, automatically answer the call, alert the callee and enable the speaker phone
+   //!enumcode: FORWARD_ON_BUSY - forward the call
+   //!enumcode: QUEUE_SILENT - indicate to the caller that the call is being queued, do not alert the callee
+   //!enumcode: QUEUE_ALERT - indicate to the caller that the call is being queued, alert the callee
+
+   /* ============================ CREATORS ================================== */
 
    Connection(CpCallManager* callMgr = NULL,
-              CpCall* call = NULL,
-              CpMediaInterface* mediaInterface = NULL,
-              CpCallStateEventListener* pCallEventListener = NULL,
-              SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
-              SipSecurityEventListener* pSecurityEventListener = NULL,
-              CpMediaEventListener* pMediaEventListener = NULL,
-              int offeringDelayMilliSeconds = IMMEDIATE,
-              int availableBehavior = RING, 
-              const char* forwardUnconditionalUrl = NULL,
-              int busyBehavior = BUSY, 
-              const char* forwardOnBusyUrl = NULL,
-              int fowardOnNoAnswerSeconds = -1);
-     //:Default constructor
+      CpCall* call = NULL,
+      CpMediaInterface* mediaInterface = NULL,
+      CpCallStateEventListener* pCallEventListener = NULL,
+      SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+      SipSecurityEventListener* pSecurityEventListener = NULL,
+      CpMediaEventListener* pMediaEventListener = NULL,
+      int offeringDelayMilliSeconds = IMMEDIATE,
+      int availableBehavior = RING, 
+      const char* forwardUnconditionalUrl = NULL,
+      int busyBehavior = BUSY, 
+      const char* forwardOnBusyUrl = NULL,
+      int fowardOnNoAnswerSeconds = -1);
+   //:Default constructor
 
 
    virtual
-   ~Connection();
-     //:Destructor
+      ~Connection();
+   //:Destructor
 
-/* ============================ MANIPULATORS ============================== */
+   /* ============================ MANIPULATORS ============================== */
 
-   virtual void prepareForSplit() ;
-   virtual void prepareForJoin(CpCall* pNewCall, const char* szLocalAddress, CpMediaInterface* pNewMediaInterface) ;
+   virtual void prepareForSplit();
+   virtual void prepareForJoin(CpCall* pNewCall, const char* szLocalAddress, CpMediaInterface* pNewMediaInterface);
 
    virtual void forceHangUp(int connectionState = CONNECTION_DISCONNECTED)
    {
-	   setState(connectionState, CONNECTION_REMOTE);
+      setState(connectionState, CONNECTION_REMOTE);
       fireSipXCallEvent(CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL);
    }
 
    virtual UtlBoolean dequeue(UtlBoolean callInFocus) = 0;
 
-   virtual UtlBoolean dial(const char* dialString,
-                           const char* callerId,
-                           const char* callId,
-                           const char* callController = NULL,
-                           const char* originalCallConnection = NULL,
-                           UtlBoolean requestQueuedCall = FALSE,
-                           const void* pDisplay = NULL,
-                           const void* pSecurity = NULL,
-                           const char* locationHeader = NULL,
-                           const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
-                           UtlBoolean bOnHold = FALSE,
-                           const char* originalCallId = NULL,
-                           const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP) = 0;
+   virtual UtlBoolean dial(const char* remoteAddress,
+      const UtlString& localAddress,
+      const char* callId,
+      const char* callController = NULL,
+      const char* originalCallConnection = NULL,
+      UtlBoolean requestQueuedCall = FALSE,
+      const void* pDisplay = NULL,
+      const void* pSecurity = NULL,
+      const char* locationHeader = NULL,
+      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
+      UtlBoolean bOnHold = FALSE,
+      const char* originalCallId = NULL,
+      const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP) = 0;
    //! param: requestQueuedCall - indicates that the caller wishes to have the callee queue the call if busy
 
    virtual UtlBoolean originalCallTransfer(UtlString& transferTargetAddress,
-						           const char* transferControllerAddress,
-                                   const char* targetCallId) = 0;
+      const char* transferControllerAddress,
+      const char* targetCallId) = 0;
    // Initiate transfer on transfer controller connection in 
    // the original call.
    // If fromAddress or toAddress are NULL it is assumed to
    // be a blind transfer.
 
    virtual UtlBoolean targetCallBlindTransfer(const char* transferTargetAddress,
-						           const char* transferControllerAddress) = 0;
+      const char* transferControllerAddress) = 0;
    // Communicate blind transfer on transfer controller connection in 
    // the target call.  This is signaled by the transfer controller in the
    // original call.
@@ -262,17 +262,17 @@ public:
 
    virtual UtlBoolean renegotiateCodecs() = 0;
 
-   virtual UtlBoolean silentRemoteHold() = 0 ;
+   virtual UtlBoolean silentRemoteHold() = 0;
 
    /// Accept and incoming INVITE and change from OFFERING to ALERTING state
    /**
-    *  @param sendEarlyMedia - send early media (startRTPSend and send SDP in 183)
-    */
+   *  @param sendEarlyMedia - send early media (startRTPSend and send SDP in 183)
+   */
    virtual UtlBoolean accept(int forwardOnNoAnswerTimeOut, 
-                             const void *pSecurity = NULL, 
-                             const char* locationHeader = NULL,
-                             const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
-                             UtlBoolean sendEarlyMedia = FALSE) = 0;
+      const void *pSecurity = NULL, 
+      const char* locationHeader = NULL,
+      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT,
+      UtlBoolean sendEarlyMedia = FALSE) = 0;
 
    virtual UtlBoolean reject() = 0;
 
@@ -287,70 +287,67 @@ public:
    //:Virtual method signature and default implementation for sendInfo - this should be overridden by
    //:SipConnection.
 
-	void setLocalAddress(const char* address);
+   void unimplemented(const char* methodName) const;
 
-    void unimplemented(const char* methodName) const;
+   void markForDeletion();
+   //: Is this connection marked for deletion?
 
-    void markForDeletion() ;
-      //: Is this connection marked for deletion?
+   void setMediaInterface(CpMediaInterface* pMediaInterface);
+   //:Set the media interface for this connection
 
-    void setMediaInterface(CpMediaInterface* pMediaInterface) ;
-      //:Set the media interface for this connection
-      
-    CpMediaInterface* getMediaInterfacePtr();
-      //:Gets the media interface pointer for this connection.
+   CpMediaInterface* getMediaInterfacePtr();
+   //:Gets the media interface pointer for this connection.
 
-    UtlBoolean validStateTransition(SIPX_CALLSTATE_EVENT eFrom, SIPX_CALLSTATE_EVENT eTo) ;
+   UtlBoolean validStateTransition(SIPX_CALLSTATE_EVENT eFrom, SIPX_CALLSTATE_EVENT eTo);
 
-    // call events
-    void prepareCallStateEvent(CpCallStateEvent& event,
-                               SIPX_CALLSTATE_CAUSE eMinor,
-                               const UtlString& sOriginalSessionCallId = NULL,
-                               int sipResponseCode = 0,
-                               const UtlString& sResponseText = NULL);
+   // call events
+   void prepareCallStateEvent(CpCallStateEvent& event,
+      SIPX_CALLSTATE_CAUSE eMinor,
+      const UtlString& sOriginalSessionCallId = NULL,
+      int sipResponseCode = 0,
+      const UtlString& sResponseText = NULL);
 
-    void fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
-                           SIPX_CALLSTATE_CAUSE causeCode,
-                           const UtlString& sOriginalSessionCallId = NULL,
-                           int sipResponseCode = 0,
-                           const UtlString& sResponseText = NULL);
+   void fireSipXCallEvent(SIPX_CALLSTATE_EVENT eventCode,
+      SIPX_CALLSTATE_CAUSE causeCode,
+      const UtlString& sOriginalSessionCallId = NULL,
+      int sipResponseCode = 0,
+      const UtlString& sResponseText = NULL);
 
-    // media events
-    void prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type);
+   // media events
+   void prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type);
 
-    void fireSipXMediaEvent(CP_MEDIA_EVENT event,
-                            CP_MEDIA_CAUSE cause,
-                            CP_MEDIA_TYPE  type,
-                            intptr_t pEventData1 = 0,
-                            intptr_t pEventData2 = 0);
+   void fireSipXMediaEvent(CP_MEDIA_EVENT event,
+      CP_MEDIA_CAUSE cause,
+      CP_MEDIA_TYPE  type,
+      intptr_t pEventData1 = 0,
+      intptr_t pEventData2 = 0);
 
-    void fireSipXInfoStatusEvent(SIPX_INFOSTATUS_EVENT event,
-                                 SIPXTACK_MESSAGE_STATUS status,
-                                 const UtlString& sResponseText,
-                                 int responseCode = 0);
+   void fireSipXInfoStatusEvent(SIPX_INFOSTATUS_EVENT event,
+      SIPXTACK_MESSAGE_STATUS status,
+      const UtlString& sResponseText,
+      int responseCode = 0);
 
-    void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
-                               SIPXTACK_SECURITY_CAUSE cause,
-                               const UtlString& sSRTPkey,
-                               void* pCertificate,
-                               size_t nCertificateSize,
-                               const UtlString& sSubjAltName,
-                               const UtlString& sSessionCallId,
-                               const UtlString& sRemoteAddress);
+   void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
+      SIPXTACK_SECURITY_CAUSE cause,
+      const UtlString& sSRTPkey,
+      void* pCertificate,
+      size_t nCertificateSize,
+      const UtlString& sSubjAltName,
+      const UtlString& sSessionCallId,
+      const UtlString& sRemoteAddress);
 
-/* ============================ ACCESSORS ================================= */
+   /* ============================ ACCESSORS ================================= */
 
-	UtlBoolean muteInput(UtlBoolean bMute);
+   UtlBoolean muteInput(UtlBoolean bMute);
 
-	void getLocalAddress(UtlString* address);
-	int getState(int isLocal = 0) const;
-	int getState(int isLocal, int& cause) const;
-	int getTerminalState(int isLocal) const;
+   int getState(int isLocal = 0) const;
+   int getState(int isLocal, int& cause) const;
+   int getTerminalState(int isLocal) const;
 
-   int getLocalState() const ;
-     // Get the local state for this connection
-   int getRemoteState() const ;
-     // Get the remote state for this connection
+   int getLocalState() const;
+   // Get the local state for this connection
+   int getRemoteState() const;
+   // Get the remote state for this connection
 
    static void getStateString(int state, UtlString* stateLabel);
 
@@ -368,151 +365,156 @@ public:
    //: get Connection address
    //! returns: TRUE/FALSE if the connection has an address.  The connection may not have an address assigned yet (i.e. if it is not fully setup).
 
- 	virtual UtlBoolean getSession(SipSession& sessioon) = 0;
+   virtual UtlBoolean getSession(SipSession& sessioon) = 0;
 
-	int getResponseCode() { return mResponseCode; };
+   int getResponseCode() { return mResponseCode; };
 
-	void getResponseText(UtlString& responseText);
+   void getResponseText(UtlString& responseText);
 
-	int getConnectionId() { return mConnectionId; };
+   int getConnectionId() { return mConnectionId; };
 
-   OsStatus getDeleteAfter(OsTime& time) ;
-     //: Get the time after which this connection can be deleted.  This 
-     //: timespan is relative to boot.
+   OsStatus getDeleteAfter(OsTime& time);
+   //: Get the time after which this connection can be deleted.  This 
+   //: timespan is relative to boot.
 
-   void setTransferHeld(UtlBoolean bHeld) ;
-    //: Set the held state for a transfer operation (did we put the connection
-    // on hold as part of the transfer)
+   void setTransferHeld(UtlBoolean bHeld);
+   //: Set the held state for a transfer operation (did we put the connection
+   // on hold as part of the transfer)
 
-   const UtlString& getRemoteRtpAddress() const ;
+   UtlString getRemoteRtpAddress() const;
 
    virtual void getRemoteUserAgent(UtlString* pUserAgent) = 0;
 
-/* ============================ INQUIRY =================================== */
+   UtlString getBindIPAddress() const;
+   void setBindIPAddress(const UtlString& val);
 
-    UtlBoolean isRemoteCallee();
+   UtlString getMediaIPAddress() const;
+   /* ============================ INQUIRY =================================== */
 
-    UtlBoolean remoteRequestedHold();
+   UtlBoolean isRemoteCallee();
 
-    virtual UtlBoolean willHandleMessage(OsMsg& eventMessage) const = 0;
+   UtlBoolean remoteRequestedHold();
 
-	static UtlBoolean isStateTransitionAllowed(int newState, int oldState);
+   virtual UtlBoolean willHandleMessage(OsMsg& eventMessage) const = 0;
 
-    virtual UtlBoolean isConnection(const char* callId, 
-                                  const char* toTag,
-                                  const char* fromTag,
-                                  UtlBoolean  strictCompare) const = 0;
+   static UtlBoolean isStateTransitionAllowed(int newState, int oldState);
 
-    virtual UtlBoolean isSameRemoteAddress(Url& remoteAddress) const = 0;
+   virtual UtlBoolean isConnection(const char* callId, 
+      const char* toTag,
+      const char* fromTag,
+      UtlBoolean  strictCompare) const = 0;
 
-    UtlBoolean isMarkedForDeletion() const ;
-      //: Determines if this connection has been marked for deletion and
-      //: should be purged from the call.
+   virtual UtlBoolean isSameRemoteAddress(Url& remoteAddress) const = 0;
 
-    UtlBoolean isHeld() const ;
-      //:Is this connection on remote hold (not sending or receiving audio)
+   UtlBoolean isMarkedForDeletion() const;
+   //: Determines if this connection has been marked for deletion and
+   //: should be purged from the call.
 
-    UtlBoolean isHoldInProgress() const ;
-      //:Is a hold currently in progress?
+   UtlBoolean isHeld() const;
+   //:Is this connection on remote hold (not sending or receiving audio)
 
-    UtlBoolean isTransferHeld() const ;
-     //:Was the connection held for for a transfer operation
+   UtlBoolean isHoldInProgress() const;
+   //:Is a hold currently in progress?
 
-    virtual UtlBoolean isLocallyInitiatedRemoteHold() const ;
+   UtlBoolean isTransferHeld() const;
+   //:Was the connection held for for a transfer operation
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+   virtual UtlBoolean isLocallyInitiatedRemoteHold() const;
+
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
- 
-	//: Set the connection state and notify observer of state change
-	void setState(int newState, 
-					int isLocal, 
-					int cause = CONNECTION_CAUSE_NORMAL, 
-					int termState = -1);
 
- 	//: Set the terminal connection state and notify observer of state change
- 	void setTerminalConnectionState(int newState, int isLocal, int cause = CONNECTION_CAUSE_NORMAL);
+   //: Set the connection state and notify observer of state change
+   void setState(int newState, 
+      int isLocal, 
+      int cause = CONNECTION_CAUSE_NORMAL, 
+      int termState = -1);
 
-    virtual void setOfferingTimer(int milliSeconds);
-    virtual void setRingingTimer(int seconds);
+   //: Set the terminal connection state and notify observer of state change
+   void setTerminalConnectionState(int newState, int isLocal, int cause = CONNECTION_CAUSE_NORMAL);
 
-	//: Behavior of progression from Offering to next state
-	// The connections will:
-	// IMMEDIATE, PAUSE, NEVER go to Alerting
-	// Default is IMMEDIATE (offeringDelay = 0) proceed to Alerting
-	// PAUSE waits upto offeringDealy milliseconds
-	// NEVER (offeringDelay = -1)waits forever in Offering state
-	// If PAUSE or NEVER are set, the connection may be told to
-	// proceed to Failed stated with reject() or redirect() or
-	// to Alerting state with accept(), while the connection is in
-	// Offering state
-	int mOfferingDelay;
+   virtual void setOfferingTimer(int milliSeconds);
+   virtual void setRingingTimer(int seconds);
+
+   //: Behavior of progression from Offering to next state
+   // The connections will:
+   // IMMEDIATE, PAUSE, NEVER go to Alerting
+   // Default is IMMEDIATE (offeringDelay = 0) proceed to Alerting
+   // PAUSE waits upto offeringDealy milliseconds
+   // NEVER (offeringDelay = -1)waits forever in Offering state
+   // If PAUSE or NEVER are set, the connection may be told to
+   // proceed to Failed stated with reject() or redirect() or
+   // to Alerting state with accept(), while the connection is in
+   // Offering state
+   int mOfferingDelay;
    OsTimer* mpOfferingTimer;
    OsTimer* mpRingingTimer;
 
-    // The use and values of the following four members are as defined in Call
-    int mLineAvailableBehavior;
-    UtlString mForwardUnconditional;
-    int mLineBusyBehavior;
-    UtlString mForwardOnBusy;
-    int mForwardOnNoAnswerSeconds;
+   // The use and values of the following four members are as defined in Call
+   int mLineAvailableBehavior;
+   UtlString mForwardUnconditional;
+   int mLineBusyBehavior;
+   UtlString mForwardOnBusy;
+   int mForwardOnNoAnswerSeconds;
 
-    void setCallId(const char* callId);
-    void setCallerId(const char* callId);
+   void setCallId(const char* callId);
+   void setCallerId(const char* callId);
 
-    CpCallManager* mpCallManager;
-    CpCall* mpCall;
-    CpMediaInterface* mpMediaInterface;
-    int mConnectionId;
+   CpCallManager* mpCallManager;
+   CpCall* mpCall;
+   CpMediaInterface* mpMediaInterface;
+   int mConnectionId;
 
-	UtlBoolean mRemoteIsCallee;
-	//UtlBoolean mLocalHeld;
-	UtlBoolean mRemoteRequestedHold;
-    UtlString mLastToAddress;
+   UtlString m_bindIPAddress;
+   UtlString m_mediaIPAddress;
+   UtlBoolean mRemoteIsCallee;
+   //UtlBoolean mLocalHeld;
+   UtlBoolean mRemoteRequestedHold;
+   UtlString mLastToAddress;
 
-	UtlString remoteRtpAddress;
-	int remoteRtpPort;
-    int remoteRtcpPort;
-	int remoteVideoRtpPort;
-	int remoteVideoRtcpPort; 
-	
-	int mLocalConnectionState;
-	int mRemoteConnectionState;
-    int mConnectionStateCause;
-	int mTerminalConnState;
+   UtlString remoteRtpAddress;
+   int remoteRtpPort;
+   int remoteRtcpPort;
+   int remoteVideoRtpPort;
+   int remoteVideoRtcpPort; 
 
-    int mHoldState ;
+   int mLocalConnectionState;
+   int mRemoteConnectionState;
+   int mConnectionStateCause;
+   int mTerminalConnState;
 
-	int mResponseCode;		// response code obtained at processResponse, passed through events to upper layer
-	UtlString mResponseText;	// response text obtained at processResponse
+   int mHoldState;
 
-	UtlString mLocalAddress;
-    UtlString mOriginalCallConnectionAddress;
-    UtlString mTargetCallConnectionAddress;
-    UtlString mTargetCallId;   
+   int mResponseCode;		// response code obtained at processResponse, passed through events to upper layer
+   UtlString mResponseText;	// response text obtained at processResponse
+
+   UtlString mOriginalCallConnectionAddress;
+   UtlString mTargetCallConnectionAddress;
+   UtlString mTargetCallId;   
 
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener;
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-	//Private as it must be locked and accessed outside this thread
-	UtlString connectionCallId;
-    UtlString connectionCallerId;
-	OsMutex  callIdMutex;
-    OsTime   mDeleteAfter ;    // Instructs the call to delete this connection
-                               // after this time period (time since boot)
-    UtlBoolean mbTransferHeld ;
-    SIPX_CALLSTATE_EVENT m_eLastMajor ; 
-    SIPX_CALLSTATE_CAUSE m_eLastMinor ; 
+   //Private as it must be locked and accessed outside this thread
+   UtlString connectionCallId;
+   UtlString connectionCallerId;
+   mutable OsMutex  callIdMutex;
+   OsTime   mDeleteAfter;    // Instructs the call to delete this connection
+   // after this time period (time since boot)
+   UtlBoolean mbTransferHeld;
+   SIPX_CALLSTATE_EVENT m_eLastMajor; 
+   SIPX_CALLSTATE_CAUSE m_eLastMinor; 
 
-	Connection(const Connection& rConnection);
-     //:Copy constructor (disabled)
-	Connection& operator=(const Connection& rhs);
-     //:Assignment operator (disabled)
+   Connection(const Connection& rConnection);
+   //:Copy constructor (disabled)
+   Connection& operator=(const Connection& rhs);
+   //:Assignment operator (disabled)
 
-	int terminalConnectionState(int connState);
+   int terminalConnectionState(int connState);
 
 };
 

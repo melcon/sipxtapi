@@ -48,21 +48,21 @@ public:
    UtlString m_sResponseText;
 
    CpCallStateEvent(const UtlString& sSessionCallId,
-                     const UtlString& sCallId,
-                     const SipSession& session,
-                     const UtlString& sRemoteAddress,
-                     SIPX_CALLSTATE_CAUSE cause,
-                     const UtlString& sOriginalSessionCallId = NULL,
-                     int sipResponseCode = 0,
-                     const UtlString& sResponseText = NULL)
- : m_sSessionCallId(sSessionCallId),
-   m_sCallId(sCallId),
-   m_Session(session),
-   m_sRemoteAddress(sRemoteAddress),
-   m_cause(cause),
-   m_sOriginalSessionCallId(sOriginalSessionCallId),
-   m_sipResponseCode(sipResponseCode),
-   m_sResponseText(sResponseText)
+      const UtlString& sCallId,
+      const SipSession& session,
+      const UtlString& sRemoteAddress,
+      SIPX_CALLSTATE_CAUSE cause,
+      const UtlString& sOriginalSessionCallId = NULL,
+      int sipResponseCode = 0,
+      const UtlString& sResponseText = NULL)
+      : m_sSessionCallId(sSessionCallId),
+      m_sCallId(sCallId),
+      m_Session(session),
+      m_sRemoteAddress(sRemoteAddress),
+      m_cause(cause),
+      m_sOriginalSessionCallId(sOriginalSessionCallId),
+      m_sipResponseCode(sipResponseCode),
+      m_sResponseText(sResponseText)
    {
 
    }

@@ -30,85 +30,85 @@
 // TYPEDEFS
 typedef enum
 {
-    TEST_NORMAL,
-    TEST_NO_RESPONSE,
-    TEST_RETURN_ERROR,
-    TEST_DROP_ODD_REQUEST,
-    TEST_DROP_EVEN_REQUEST,
-    TEST_DELAY_RESPONSE
-} STUN_TEST_MODE ;
+   TEST_NORMAL,
+   TEST_NO_RESPONSE,
+   TEST_RETURN_ERROR,
+   TEST_DROP_ODD_REQUEST,
+   TEST_DROP_EVEN_REQUEST,
+   TEST_DELAY_RESPONSE
+} STUN_TEST_MODE;
 
 // FORWARD DECLARATIONS
-class OsDatagramSocket ;
-class StunMessage ;
-class UtlHashMap ;
+class OsDatagramSocket;
+class StunMessage;
+class UtlHashMap;
 
 /**
- * 
- */
+* 
+*/
 class TestStunServerTask : public OsTask
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
-  public:
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
+public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
-    /**
-     * Default constructor
-     */
-    TestStunServerTask(OsDatagramSocket* pPrimarySocket,
-                       OsDatagramSocket* pPrimarySocket2,
-                       OsDatagramSocket* pSecondarySocket,
-                       OsDatagramSocket* pSecondarySocket2);
+   /**
+   * Default constructor
+   */
+   TestStunServerTask(OsDatagramSocket* pPrimarySocket,
+      OsDatagramSocket* pPrimarySocket2,
+      OsDatagramSocket* pSecondarySocket,
+      OsDatagramSocket* pSecondarySocket2);
 
 
-    /**
-     * Destructor
-     */
-    virtual ~TestStunServerTask();
+   /**
+   * Destructor
+   */
+   virtual ~TestStunServerTask();
 
-/* ============================ MANIPULATORS ============================== */
+   /* ============================ MANIPULATORS ============================== */
 
-    /** 
-     * Entry point for the task 
-     */
-    virtual int run(void* pArg) ;
+   /** 
+   * Entry point for the task 
+   */
+   virtual int run(void* pArg);
 
-    void setEventValidator(EventValidator* pEventValidator) ;
+   void setEventValidator(EventValidator* pEventValidator);
 
-    void setTestMode(STUN_TEST_MODE testMode) ;
+   void setTestMode(STUN_TEST_MODE testMode);
 
-/* ============================ ACCESSORS ================================= */
+   /* ============================ ACCESSORS ================================= */
 
-/* ============================ INQUIRY =================================== */
+   /* ============================ INQUIRY =================================== */
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
-  protected:      
-    OsDatagramSocket* mpPrimarySocket ;
-    OsDatagramSocket* mpPrimarySocket2 ;
-    OsDatagramSocket* mpSecondarySocket ;
-    OsDatagramSocket* mpSecondarySocket2 ;
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
+protected:      
+   OsDatagramSocket* mpPrimarySocket;
+   OsDatagramSocket* mpPrimarySocket2;
+   OsDatagramSocket* mpSecondarySocket;
+   OsDatagramSocket* mpSecondarySocket2;
 
-    EventValidator* mpEventValidator ;
-    STUN_TEST_MODE mTestMode ;
-    int miRequestNumber ;
+   EventValidator* mpEventValidator;
+   STUN_TEST_MODE mTestMode;
+   int miRequestNumber;
 
-    virtual void handleStunMessage(const char* pBuf, int nBuf, const UtlString& fromAddress, unsigned short fromPort) ;
+   virtual void handleStunMessage(const char* pBuf, int nBuf, const UtlString& fromAddress, unsigned short fromPort);
 
-    virtual void handleStunBindRequest(StunMessage* pMsg, const UtlString& fromAddress, unsigned short fromPort) ;
+   virtual void handleStunBindRequest(StunMessage* pMsg, const UtlString& fromAddress, unsigned short fromPort);
 
-    virtual void handleStunSharedSecretRequest(StunMessage* pMsg, const UtlString& fromAddress, unsigned short fromPort) ;
+   virtual void handleStunSharedSecretRequest(StunMessage* pMsg, const UtlString& fromAddress, unsigned short fromPort);
 
-    virtual void sendResponse(StunMessage* pMsg, OsDatagramSocket* pSocket, const UtlString& toAddress, unsigned short toPort) ;
+   virtual void sendResponse(StunMessage* pMsg, OsDatagramSocket* pSocket, const UtlString& toAddress, unsigned short toPort);
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-  private:
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
 
-    /** Copy constructor */
-    TestStunServerTask(const TestStunServerTask& rTestStunServerTask);
+   /** Copy constructor */
+   TestStunServerTask(const TestStunServerTask& rTestStunServerTask);
 
-    /** Assignment operator */
-    TestStunServerTask& operator=(const TestStunServerTask& rhs);
+   /** Assignment operator */
+   TestStunServerTask& operator=(const TestStunServerTask& rhs);
 };
 
 /* ============================ INLINE METHODS ============================ */

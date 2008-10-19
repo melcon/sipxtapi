@@ -156,11 +156,12 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
 
       if (pCall)
       {
-         UtlString sessionCallId(pCall->sessionCallId);
-         UtlString remoteAddress(pCall->remoteAddress);
-         SIPX_INSTANCE_DATA* pInst = pCall->pInst;
-         SIPX_LINE hLine = pCall->hLine;
-         UtlString lineURI(pCall->fromURI);
+         UtlString sessionCallId(pCall->m_sessionCallId);
+         UtlString remoteAddress(pCall->m_remoteAddress);
+         SIPX_INSTANCE_DATA* pInst = pCall->m_pInst;
+         SIPX_LINE hLine = pCall->m_hLine;
+         UtlString fullLineUrl;
+         pCall->m_fullLineUrl.toString(fullLineUrl);
          assert(pInst);
          sipxCallReleaseLock(pCall, SIPX_LOCK_READ, stackLogger);
 
@@ -180,7 +181,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
                pInfoData->infoData.nSize = sizeof(SIPX_INFO_INFO);
                pInfoData->infoData.hCall = hCall;
                pInfoData->infoData.hLine = hLine;
-               pInfoData->infoData.szFromURL = SAFE_STRDUP(lineURI.data());
+               pInfoData->infoData.szFromURL = SAFE_STRDUP(fullLineUrl.data());
                pInfoData->infoData.nContentLength = nContentLength;
                pInfoData->infoData.szContentType = SAFE_STRDUP(szContentType);
                pInfoData->infoData.pContent = SAFE_STRDUP(szContent);

@@ -31,42 +31,42 @@
 // Class detailed description which may extend to multiple lines
 class CpIntMessage : public OsMsg
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
-    CpIntMessage(unsigned char messageSubtype = CallManager::CP_UNSPECIFIED,
-       const int intValue = 0);
-     //:Default constructor
+   CpIntMessage(unsigned char messageSubtype = CallManager::CP_UNSPECIFIED,
+      const int intValue = 0);
+   //:Default constructor
 
 
    virtual
-   ~CpIntMessage();
-     //:Destructor
+      ~CpIntMessage();
+   //:Destructor
 
    virtual OsMsg* createCopy(void) const;
 
-/* ============================ MANIPULATORS ============================== */
+   /* ============================ MANIPULATORS ============================== */
 
 
-/* ============================ ACCESSORS ================================= */
-        void getIntData(int& intValue) const;
+   /* ============================ ACCESSORS ================================= */
+   void getIntData(int& intValue) const;
 
-/* ============================ INQUIRY =================================== */
+   /* ============================ INQUIRY =================================== */
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-        int mIntData;
+   int mIntData;
 
    CpIntMessage(const CpIntMessage& rCpIntMessage);
-     //:disable Copy constructor
+   //:disable Copy constructor
 
    CpIntMessage& operator=(const CpIntMessage& rhs);
-     //:disable Assignment operator
+   //:disable Assignment operator
 
 };
 

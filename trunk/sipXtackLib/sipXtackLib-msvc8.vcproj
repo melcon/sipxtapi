@@ -15685,6 +15685,34 @@
 				Name="net"
 				>
 				<File
+					RelativePath=".\include\net\HttpBody.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\HttpConnection.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\HttpConnectionMap.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\HttpMessage.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\HttpRequestContext.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\HttpServer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\HttpService.h"
+					>
+				</File>
+				<File
 					RelativePath="include\net\MimeBodyPart.h"
 					>
 				</File>

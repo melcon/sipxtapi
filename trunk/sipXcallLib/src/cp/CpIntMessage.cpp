@@ -26,14 +26,14 @@
 CpIntMessage::CpIntMessage(unsigned char messageSubtype, int intData) :
 OsMsg(OsMsg::PHONE_APP, messageSubtype)
 {
-        mIntData = intData;
+   mIntData = intData;
 }
 
 // Copy constructor
 CpIntMessage::CpIntMessage(const CpIntMessage& rCpIntMessage):
 OsMsg(OsMsg::PHONE_APP, rCpIntMessage.getMsgType())
 {
-        mIntData = rCpIntMessage.mIntData;
+   mIntData = rCpIntMessage.mIntData;
 }
 
 // Destructor
@@ -44,7 +44,7 @@ CpIntMessage::~CpIntMessage()
 
 OsMsg* CpIntMessage::createCopy(void) const
 {
-        return(new CpIntMessage(getMsgSubType(), mIntData));
+   return(new CpIntMessage(getMsgSubType(), mIntData));
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -57,7 +57,7 @@ CpIntMessage::operator=(const CpIntMessage& rhs)
       return *this;
 
    OsMsg::operator=(rhs);
-        mIntData = rhs.mIntData;
+   mIntData = rhs.mIntData;
 
    return *this;
 }
@@ -66,7 +66,7 @@ CpIntMessage::operator=(const CpIntMessage& rhs)
 
 void CpIntMessage::getIntData(int& intData) const
 {
-        intData = mIntData;
+   intData = mIntData;
 }
 
 /* ============================ INQUIRY =================================== */

@@ -398,7 +398,7 @@ public:
 
          UtlString* removedRoute;
          CPPUNIT_ASSERT( removedRoute = dynamic_cast<UtlString*>(removedRoutes.get()));
-         ASSERT_STR_EQUAL("<sip:example.com;lr>", removedRoute->data());
+         ASSERT_STR_EQUAL("sip:example.com;lr", removedRoute->data()); // extracted from request uri, no <>
          delete removedRoute;
 
          CPPUNIT_ASSERT(removedRoutes.isEmpty());
@@ -509,7 +509,7 @@ public:
          UtlString* removedRoute;
 
          CPPUNIT_ASSERT( removedRoute = dynamic_cast<UtlString*>(removedRoutes.get()));
-         ASSERT_STR_EQUAL("<sip:user@external.example.net;lr>", removedRoute->data());
+         ASSERT_STR_EQUAL("sip:user@external.example.net;lr", removedRoute->data()); // from request uri, no <>
          delete removedRoute;
 
          CPPUNIT_ASSERT( removedRoute = dynamic_cast<UtlString*>(removedRoutes.get()));
@@ -560,7 +560,7 @@ public:
          UtlString* removedRoute;
 
          CPPUNIT_ASSERT( removedRoute = dynamic_cast<UtlString*>(removedRoutes.get()));
-         ASSERT_STR_EQUAL("<sip:example.com;lr>", removedRoute->data());
+         ASSERT_STR_EQUAL("sip:example.com;lr", removedRoute->data()); // from request uri, no <>
          delete removedRoute;
 
          CPPUNIT_ASSERT( removedRoute = dynamic_cast<UtlString*>(removedRoutes.get()));
