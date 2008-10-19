@@ -142,14 +142,7 @@ CpPeerCall::CpPeerCall(UtlBoolean isEarlyMediaFor180Enabled,
 
     if(defaultCallExtension)
     {
-        //extension.append(phoneExtension);
-        //NameValueTokenizer::frontBackTrim(&extension, " \t\n\r");
-        Url outboundLine(defaultCallExtension);
-
-
-        // For now the terminal id is the extension
-        //mLocalTerminalId.append(extension);
-        outboundLine.toString(mLocalTerminalId);
+        mLocalTerminalId = defaultCallExtension;
         mLocalAddress = mLocalTerminalId;
     }
 
@@ -338,7 +331,7 @@ UtlBoolean CpPeerCall::handleTransfer(OsMsg* pEventMessage)
         startMetaEvent(metaEventId, PtEvent::META_CALL_TRANSFERRING, 2, metaCallIds);
 
         // Create the target call
-        mpManager->createCall(&targetCallId, metaEventId, 
+        mpManager->createCall(&targetCallId, mLocalAddress, metaEventId, 
             PtEvent::META_CALL_TRANSFERRING, 2, metaCallIds,
             FALSE);  // Do  not assume focus if there is no infocus call
         // as this is not a real call.  It is a place holder for call
@@ -612,7 +605,7 @@ UtlBoolean CpPeerCall::handleSipMessage(OsMsg* pEventMessage)
             osPrintf("%s-CpPeerCall::handleSipMessage - connection NULL, shouldCreateConnection TRUE msgType %d msgSubType %d \n", 
                 name.data(), pEventMessage->getMsgType(), pEventMessage->getMsgSubType());
 #endif
-            connection = new SipConnection("", // Get local address from message
+            connection = new SipConnection(mLocalAddress, // use lineURI from mLocalAddress if it is known
                 mIsEarlyMediaFor180,
                 mpManager,
                 this,
@@ -1917,7 +1910,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
         handleHoldLocalTermConnection(&eventMessage);
         break ;
 
-    case CallManager::CP_SET_OUTBOUND_LINE:
+    case CallManager::CP_SET_CALL_OUTBOUND_LINE:
         handleSetOutboundLine( &eventMessage );   
         break;
 
@@ -2058,16 +2051,16 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
             UtlString remoteAddress ;
             ((CpMultiStringMessage&)eventMessage).getString2Data(remoteAddress) ;
             int event = ((CpMultiStringMessage&)eventMessage).getInt1Data() ;
-            int cause = ((CpMultiStringMessage&)eventMessage).getInt2Data() ;
-            int type = ((CpMultiStringMessage&)eventMessage).getInt3Data() ;
+            CP_MEDIA_CAUSE cause = (CP_MEDIA_CAUSE)((CpMultiStringMessage&)eventMessage).getInt2Data() ;
+            CP_MEDIA_TYPE type = (CP_MEDIA_TYPE)((CpMultiStringMessage&)eventMessage).getInt3Data() ;
 
             Connection* connection = findHandlingConnection(remoteAddress);
             if (connection)
-            {   
+            {
                 connection->fireSipXMediaEvent(
-                        (SIPX_MEDIA_EVENT) event,
-                        (SIPX_MEDIA_CAUSE) cause,
-                        (SIPX_MEDIA_TYPE) type,
+                        (CP_MEDIA_EVENT) event,
+                        (CP_MEDIA_CAUSE) cause,
+                        (CP_MEDIA_TYPE) type,
                         NULL) ;            
             }
         }
@@ -2102,9 +2095,9 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
 }
 
 // fires given media event to all SipConnections
-void CpPeerCall::forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                                    SIPX_MEDIA_CAUSE cause,
-                                    SIPX_MEDIA_TYPE type,
+void CpPeerCall::forkSipXMediaEvent(CP_MEDIA_EVENT event,
+                                    CP_MEDIA_CAUSE cause,
+                                    CP_MEDIA_TYPE type,
                                     intptr_t pEventData1,
                                     intptr_t pEventData2)
 {
@@ -2118,9 +2111,9 @@ void CpPeerCall::forkSipXMediaEvent(SIPX_MEDIA_EVENT event,
    }
 }
 
-void CpPeerCall::fireSipXMediaEvent(SIPX_MEDIA_EVENT event,
-                                    SIPX_MEDIA_CAUSE cause,
-                                    SIPX_MEDIA_TYPE type,
+void CpPeerCall::fireSipXMediaEvent(CP_MEDIA_EVENT event,
+                                    CP_MEDIA_CAUSE cause,
+                                    CP_MEDIA_TYPE type,
                                     int mediaConnectionId,
                                     intptr_t pEventData1,
                                     intptr_t pEventData2)
@@ -2153,13 +2146,13 @@ UtlBoolean CpPeerCall::handleConnectionNotfMessage(OsMsg& eventMessage)
    switch(type)
    {
    case CP_NOTIFICATION_DTMF_INBAND:
-      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, MEDIA_CAUSE_DTMF_INBAND, (SIPX_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      fireSipXMediaEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_INBAND, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    case CP_NOTIFICATION_DTMF_RFC2833:
-      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, MEDIA_CAUSE_DTMF_RFC2833, (SIPX_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      fireSipXMediaEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_RFC2833, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    case CP_NOTIFICATION_DTMF_SIPINFO:
-      fireSipXMediaEvent(MEDIA_REMOTE_DTMF, MEDIA_CAUSE_DTMF_SIPINFO, (SIPX_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      fireSipXMediaEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_SIPINFO, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    default:
       assert(false);
@@ -2180,28 +2173,28 @@ UtlBoolean CpPeerCall::handleInterfaceNotfMessage(OsMsg& eventMessage)
    switch(type)
    {
    case CP_NOTIFICATION_START_PLAY_FILE:
-      forkSipXMediaEvent(MEDIA_PLAYFILE_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_PLAYFILE_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_STOP_PLAY_FILE:
-      forkSipXMediaEvent(MEDIA_PLAYFILE_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_PLAYFILE_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_START_PLAY_BUFFER:
-      forkSipXMediaEvent(MEDIA_PLAYBUFFER_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_PLAYBUFFER_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_STOP_PLAY_BUFFER:
-      forkSipXMediaEvent(MEDIA_PLAYBUFFER_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_PLAYBUFFER_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_PAUSE_PLAYBACK:
-      forkSipXMediaEvent(MEDIA_PLAYBACK_PAUSED, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_PLAYBACK_PAUSED, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_RESUME_PLAYBACK:
-      forkSipXMediaEvent(MEDIA_PLAYBACK_RESUMED, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_PLAYBACK_RESUMED, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_RECORDING_STARTED:
-      forkSipXMediaEvent(MEDIA_RECORDING_START, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_RECORDING_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    case CP_NOTIFICATION_RECORDING_STOPPED:
-      forkSipXMediaEvent(MEDIA_RECORDING_STOP, MEDIA_CAUSE_NORMAL, (SIPX_MEDIA_TYPE)media, pData1, pData2);
+      forkSipXMediaEvent(CP_MEDIA_RECORDING_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
    default:
       assert(false);
@@ -2560,16 +2553,14 @@ UtlBoolean CpPeerCall::handleJoinConnection(OsMsg* pEventMessage)
     return true ; 
 }
 
-
 void CpPeerCall::handleSetOutboundLine(OsMsg* pEventMessage)
 {   
     UtlString strOutboundAddress;
     ((CpMultiStringMessage*)pEventMessage)->getString2Data(strOutboundAddress);
 
-    Url outboundLine(strOutboundAddress);
-    outboundLine.toString(mLocalTerminalId);
+    mLocalTerminalId = strOutboundAddress;
     mLocalAddress = mLocalTerminalId;
-}  
+}
 
 // Handles the processing of a CP_TRANSFER_OTHER_PARTY_HOLD message
 UtlBoolean CpPeerCall::handleTransferOtherPartyHold(OsMsg* pEventMessage) 
@@ -2713,7 +2704,7 @@ Connection* CpPeerCall::addParty(const char* transferTargetAddress,
                                  const char* locationHeader,
                                  const int bandWidth,
                                  UtlBoolean bOnHold,
-								 const char* originalCallId,
+								         const char* originalCallId,
                                  SIPX_TRANSPORT_DATA* pTransport,
                                  const RTP_TRANSPORT rtpTransportOptions)
 {

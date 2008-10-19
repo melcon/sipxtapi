@@ -397,21 +397,17 @@ typedef enum SIPX_LINESTATE_CAUSE
                                                                                                 event. */
 } SIPX_LINESTATE_CAUSE;
 
-
-
-
 /**
  * Enumeration of possible INFO status events
  */
-enum SIPX_INFOSTATUS_EVENT
+typedef enum SIPX_INFOSTATUS_EVENT
 {
     INFOSTATUS_UNKNOWN       = 0 ,     /**< This is the initial value for an INFOSTATUS event. */
     INFOSTATUS_RESPONSE      = 30000,  /**< This event is fired if a response is received after an
                                             INFO message has been sent */
     INFOSTATUS_NETWORK_ERROR = 31000   /**< This event is fired in case a network error was encountered
                                             while trying to send an INFO event. */
-};
-
+} SIPX_INFOSTATUS_EVENT;
 
 /**
  * Enumeration of possible configuration events
@@ -424,7 +420,7 @@ typedef enum
                                        the pData pointer of the info structure will point to a
                                        SIPX_CONTACT_ADDRESS structure. */
     CONFIG_STUN_FAILURE  = 41000, /**< Unable to obtain a STUN binding for signaling purposes. */
-}SIPX_CONFIG_EVENT;
+} SIPX_CONFIG_EVENT;
 
 
 /**
@@ -758,7 +754,7 @@ typedef struct
  */
 typedef enum 
 {
-    SIPX_MESSAGE_OK,                  /**< The message was successfully processed (200) */ 
+    SIPX_MESSAGE_OK = 0,                  /**< The message was successfully processed (200) */ 
     SIPX_MESSAGE_FAILURE,             /**< The server received the message, but could or would
                                            not process it. */
     SIPX_MESSAGE_SERVER_FAILURE,      /**< The server encountered an error while trying to process

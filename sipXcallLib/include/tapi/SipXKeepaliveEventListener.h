@@ -14,14 +14,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef SipXKeepaliveEventListener_h__
 #define SipXKeepaliveEventListener_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "tapi/sipXtapi.h"
+#include "os/OsServerTask.h"
 #include "os/OsNatKeepaliveListener.h"
+#include "tapi/sipXtapi.h"
+#include <tapi/sipXtapiEvents.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -34,12 +35,17 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
-class SipXKeepaliveEventListener : public OsNatKeepaliveListener
+class SipXKeepaliveEventListener : public OsServerTask, public OsNatKeepaliveListener
 {
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+   /* ============================ CREATORS ================================== */
+
    SipXKeepaliveEventListener(SIPX_INST pInst);
 
-   virtual ~SipXKeepaliveEventListener() {} ;
+   virtual ~SipXKeepaliveEventListener();
+
+   /* ============================ MANIPULATORS ============================== */
 
    virtual void OnKeepaliveStart(const OsNatKeepaliveEvent& event);
 
@@ -49,7 +55,28 @@ public:
 
    virtual void OnKeepaliveFailure(const OsNatKeepaliveEvent& event);
 
+   virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   /* ============================ INQUIRY =================================== */
+
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+   SipXKeepaliveEventListener(const SipXKeepaliveEventListener& rhs);
+
+   SipXKeepaliveEventListener& operator=(const SipXKeepaliveEventListener& rhs);
+
+   void handleKeepaliveEvent(SIPX_KEEPALIVE_EVENT event,
+                             SIPX_KEEPALIVE_CAUSE cause,
+                             SIPX_KEEPALIVE_TYPE type,
+                             const char* szRemoteAddress,
+                             int remotePort,
+                             int keepAliveSecs,
+                             const char* szFeedbackAddress,
+                             int feedbackPort);
+
    SIPX_INST m_pInst;
 };
 

@@ -21,7 +21,6 @@
 #include "utl/UtlSListIterator.h"
 #include "os/OsSocket.h"
 #include "os/OsNatConnectionSocket.h"
-#include <tapi/sipXtapiEvents.h>
 
 #include <net/HttpBody.h>
 #include <net/NameValuePair.h>
@@ -61,6 +60,11 @@ typedef struct SdpSrtpParameters
     unsigned char masterKey[SRTP_KEY_LENGTH+1];
 } SdpSrtpParameters;
 
+typedef enum
+{
+   SDP_MEDIA_TYPE_AUDIO = 0,
+   SDP_MEDIA_TYPE_VIDEO,
+} SDP_MEDIA_TYPE;
 
 // FORWARD DECLARATIONS
 class SdpCodecFactory;
@@ -334,7 +338,7 @@ class SdpBody : public HttpBody
    /// Inspects whether the given transport type and media type combination is specified 
    /// as an m-line in the sdp
    const bool isTransportAvailable(const OsSocket::IpProtocolSocketType protocol,
-                                   const SIPX_MEDIA_TYPE mediaType) const;
+                                   const SDP_MEDIA_TYPE mediaType) const;
                                    
    /// Read whether the media network type is IP4 or IP6.
    UtlBoolean getMediaNetworkType(int mediaIndex, ///< which media description set to read

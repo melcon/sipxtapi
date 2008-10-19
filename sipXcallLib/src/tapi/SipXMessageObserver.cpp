@@ -14,6 +14,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "tapi/SipXMessageObserver.h"
+#include <tapi/SipXInfoStatusEventListener.h>
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
 #include "tapi/sipXEvents.h"
@@ -250,7 +251,7 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoStatus(SipMessage* pSipMessage
 
       if (pInst)
       {
-         sipxFireInfoStatusEvent(pInst, hInfo, status, responseCode, sResponseText, event);
+         pInst->pInfoStatusEventListener->sipxFireInfoStatusEvent(hInfo, status, responseCode, sResponseText, event);
 
          // TODO: PROBLEM possible collision with observer for inbound INFO, we could remove wrong observer
          pInst->pSipUserAgent->removeMessageObserver(*(this->getMessageQueue()), (void*)hInfo);

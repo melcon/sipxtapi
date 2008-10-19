@@ -21,6 +21,7 @@
 // APPLICATION INCLUDES
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
+#include "tapi/SipXMediaEventListener.h"
 #include "utl/UtlString.h"
 
 // DEFINES
@@ -30,6 +31,7 @@
 // FORWARD DECLARATIONS
 class SipSession;
 class SipMessage;
+class CpMediaEvent;
 
 // STRUCTS
 // TYPEDEFS
@@ -50,38 +52,6 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
                          void* pEventData);
 
 /**
-* Fires a Line Event to the listeners.
-*/
-void sipxFireLineEvent(SIPX_INST pInst,
-                       const UtlString& lineIdentifier,
-                       SIPX_LINESTATE_EVENT event,
-                       SIPX_LINESTATE_CAUSE cause,
-                       int sipResponseCode = 0,
-                       const UtlString& sResponseText = NULL);
-
-void sipxFireCallEvent(const SIPX_INST pInst,
-                       const UtlString& sCallId,
-                       const UtlString& sSessionCallId,
-                       const SipSession& pSession,
-                       const UtlString& szRemoteAddress,
-                       SIPX_CALLSTATE_EVENT event,
-                       SIPX_CALLSTATE_CAUSE cause,
-                       const void* pEventData = NULL,
-                       int sipResponseCode = 0,
-                       const UtlString& sResponseText = NULL);
-
-void sipxFireMediaEvent(SIPX_INST pInst,
-                        const UtlString& sCallId,
-                        const UtlString& sSessionCallId,
-                        const UtlString& sRemoteAddress,
-                        SIPX_MEDIA_EVENT event,
-                        SIPX_MEDIA_CAUSE cause,
-                        SIPX_MEDIA_TYPE type,
-                        void* pEventData = NULL,
-                        void* pCookie = NULL,
-                        int playBufferIndex = 0);
-
-/**
 * Fires SipPimClient events
 */
 void sipxFirePIMEvent(void* userData,
@@ -91,40 +61,14 @@ void sipxFirePIMEvent(void* userData,
                       const char* subject,
                       const SipMessage& messageRequest);
 
-/**
-* Fires events to interested listener (keepalive events only)
-*/
-void sipxFireKeepaliveEvent(const SIPX_INST      pInst,                                                        
-                            SIPX_KEEPALIVE_EVENT event,
-                            SIPX_KEEPALIVE_CAUSE cause,
-                            SIPX_KEEPALIVE_TYPE  type,
-                            const char*          szRemoteAddress,
-                            int                  remotePort,
-                            int                  keepAliveSecs,
-                            const char*          szFeedbackAddress,
-                            int                  feedbackPort);
-
 bool sipxFireSubscriptionStatusEvent(const SIPX_INST pInst,
                                      SIPX_SUBSTATUS_INFO* pInfo);
 
 bool sipxFireNotifyEvent(const SIPX_INST pInst,
                          SIPX_NOTIFY_INFO* pInfo);
 
-bool sipxFireInfoStatusEvent(const SIPX_INST pInst,
-                             SIPX_INFO hInfo,
-                             SIPX_MESSAGE_STATUS status,
-                             int responseCode,
-                             const UtlString& sResponseText,
-                             SIPX_INFOSTATUS_EVENT event);
-
-bool sipxFireSecurityEvent(const SIPX_INST pInst,
-                           const UtlString& sSRTPkey,
-                           void* pCertificate,
-                           size_t nCertificateSize,
-                           SIPX_SECURITY_EVENT event,
-                           SIPX_SECURITY_CAUSE cause,
-                           const UtlString& sSubjAltName,
-                           const UtlString& sSessionCallId,
-                           const UtlString& sRemoteAddress);
+const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type);
+const char* convertCallstateEventToString(SIPX_CALLSTATE_EVENT eMajor);
+const char* convertCallstateCauseToString(SIPX_CALLSTATE_CAUSE eMinor);
 
 #endif // SipXEvents_h__

@@ -360,8 +360,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
             pData->pInst = pInst;
 
             // create shell call for conference
-            pData->pInst->pCallManager->getNewCallId(&pData->confCallId);
-            pData->pInst->pCallManager->createCall(&pData->confCallId);
+            pData->confCallId = pData->pInst->pCallManager->createConference();
 
             pData->mutex.release();
             rc = SIPX_RESULT_SUCCESS;
@@ -520,7 +519,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
 
                // Create a CpPeerCall call to hold connection
                // creates callid and posts message
-               pCallData->pInst->pCallManager->createCall(&targetCallId);
+               pCallData->pInst->pCallManager->createCall(&targetCallId, pCallData->lineURI.toString());
 
                pCallData->callId = targetCallId; // set new callId
                pCallData->hConf = SIPX_CALL_NULL;

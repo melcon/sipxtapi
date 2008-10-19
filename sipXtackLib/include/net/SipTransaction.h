@@ -40,8 +40,6 @@ class OsTimer;
 class SIPX_TRANSPORT_DATA;
 class SipTransactionList;
 
-//#include "tapi/sipXtapiInternal.h"
-
 /** SipTransaction correlates requests and responses.
 * 
 * CallId  + 's' or 'c' (for server or client) is used as

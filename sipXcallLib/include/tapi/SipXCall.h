@@ -20,6 +20,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <net/Url.h>
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
 #include "tapi/SipXCore.h"
@@ -37,11 +38,12 @@ class OsStackTraceLogger;
 class SIPX_CALL_DATA
 {
 public:
-   UtlString callId;
-   UtlString sessionCallId;
-   UtlString ghostCallId;    
+   UtlString callId; ///< Id identifying CpPeerCall instance
+   UtlString sessionCallId; ///< SIP CallId used in SIP Messages, identifies SipConnection
+   UtlString ghostCallId;
    UtlString remoteAddress;
-   UtlString fromURI;
+   UtlString fromURI; ///< from URI used for call, will contain tag. For outbound calls tag is added later.
+   Url lineURI; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag.
    UtlString remoteContactAddress;///< Remote Contact URI
    SIPX_LINE hLine;
    SIPX_INSTANCE_DATA* pInst;
@@ -80,6 +82,7 @@ public:
       ghostCallId(NULL),
       remoteAddress(NULL),
       fromURI(NULL),
+      lineURI(),
       remoteContactAddress(NULL),
       hLine(0),
       pInst(NULL),

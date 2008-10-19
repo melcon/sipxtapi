@@ -19,7 +19,9 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include "os/OsServerTask.h"
 #include "tapi/sipXtapi.h"
+#include "tapi/sipXtapiEvents.h"
 #include "cp/CpMediaEventListener.h"
 
 // DEFINES
@@ -33,11 +35,91 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
+SIPX_CODEC_INFO getSipXCodecInfo(const CpCodecInfo& codecInfo);
+
+class SipXMediaEvent
+{
+public:
+   UtlString m_sCallId;
+   UtlString m_sSessionCallId;
+   UtlString m_sRemoteAddress;
+   void* m_pCookie; // only for audio playback start/stop
+   int m_playBufferIndex; // only for audio playback start/stop
+   SIPX_MEDIA_EVENT m_event;
+   SIPX_MEDIA_CAUSE m_cause;
+   SIPX_MEDIA_TYPE m_mediaType;
+
+   SIPX_CODEC_INFO m_codec; // only for local audio/video start
+   int m_idleTime; // only for RemoteSilent
+   SIPX_TONE_ID m_toneId; // only for DTMF event
+
+   SipXMediaEvent() : m_sCallId(NULL)
+      , m_sSessionCallId(NULL)
+      , m_sRemoteAddress(NULL)
+      , m_pCookie(NULL)
+      , m_playBufferIndex(0)
+      , m_event(MEDIA_UNKNOWN)
+      , m_cause(MEDIA_CAUSE_NORMAL)
+      , m_mediaType(MEDIA_TYPE_AUDIO)
+      , m_idleTime(0)
+      , m_toneId(ID_DTMF_0)
+   {
+      memset(&m_codec, 0, sizeof(SIPX_CODEC_INFO));
+   }
+
+   ~SipXMediaEvent()
+   {
+
+   }
+
+   SipXMediaEvent(const SipXMediaEvent& event)
+   {
+      *this = event;
+   }
+
+   SipXMediaEvent& operator=(const SipXMediaEvent& event)
+   {
+      if (&event == this)
+      {
+         return *this;
+      }
+
+      m_sCallId = event.m_sCallId;
+      m_sSessionCallId = event.m_sSessionCallId;
+      m_sRemoteAddress = event.m_sRemoteAddress;
+      m_pCookie = event.m_pCookie;
+      m_playBufferIndex = event.m_playBufferIndex;
+      m_event = event.m_event;
+      m_cause = event.m_cause;
+      m_mediaType = event.m_mediaType;
+
+      m_codec = event.m_codec;
+      m_idleTime = event.m_idleTime;
+      m_toneId = event.m_toneId;
+
+      return *this;
+   }
+
+   SipXMediaEvent(const CpMediaEvent& eventPayload, SIPX_MEDIA_EVENT event = MEDIA_UNKNOWN)
+   {
+      m_sCallId = eventPayload.m_sCallId;
+      m_sSessionCallId = eventPayload.m_sSessionCallId;
+      m_sRemoteAddress = eventPayload.m_sRemoteAddress;
+      m_pCookie = eventPayload.m_pCookie;
+      m_playBufferIndex = eventPayload.m_playBufferIndex;
+      m_event = event;
+      m_cause = (SIPX_MEDIA_CAUSE)eventPayload.m_cause;
+      m_mediaType = (SIPX_MEDIA_TYPE)eventPayload.m_mediaType;
+      m_codec = getSipXCodecInfo(eventPayload.m_codec);
+      m_idleTime = eventPayload.m_idleTime;
+      m_toneId = (SIPX_TONE_ID)eventPayload.m_toneId;
+   }
+};
 
 /**
 * Listener for Media events
 */
-class SipXMediaEventListener : public CpMediaEventListener
+class SipXMediaEventListener : public OsServerTask, public CpMediaEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -80,17 +162,31 @@ public:
 
    virtual void OnMediaRecordingStop(const CpMediaEvent& event);
 
+   virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   void sipxFireMediaEvent(const UtlString& sCallId,
+                           const UtlString& sSessionCallId,
+                           const UtlString& sRemoteAddress,
+                           SIPX_MEDIA_EVENT event,
+                           SIPX_MEDIA_CAUSE cause,
+                           SIPX_MEDIA_TYPE type);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   SIPX_INST m_pInst;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   SipXMediaEventListener(const SipXMediaEventListener& rhs);
 
+   SipXMediaEventListener& operator=(const SipXMediaEventListener& rhs);
+
+   void handleMediaEvent(const SipXMediaEvent& eventPayload);
+
+   SIPX_INST m_pInst;
 };
 
 #endif // SipXMediaEventListener_h__

@@ -14,14 +14,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef SipXLineEventListener_h__
 #define SipXLineEventListener_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include "tapi/sipXtapi.h"
+#include "os/OsServerTask.h"
 #include <net/SipLineStateEventListener.h>
+#include "tapi/sipXtapi.h"
+#include <tapi/sipXtapiEvents.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -37,7 +38,7 @@
 /**
 * Listener for Line state events
 */
-class SipXLineEventListener : public SipLineStateEventListener
+class SipXLineEventListener : public OsServerTask, public SipLineStateEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -62,17 +63,35 @@ public:
 
    virtual void OnLineProvisioned(const SipLineStateEvent& event);
 
+   virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   void sipxFireLineEvent(const UtlString& lineIdentifier,
+                          SIPX_LINESTATE_EVENT event,
+                          SIPX_LINESTATE_CAUSE cause,
+                          int sipResponseCode = 0,
+                          const UtlString& sResponseText = NULL);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   SIPX_INST m_pInst;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   SipXLineEventListener(const SipXLineEventListener& rhs);
+
+   SipXLineEventListener& operator=(const SipXLineEventListener& rhs);
+
+   void handleLineEvent(const UtlString& lineIdentifier,
+                        SIPX_LINESTATE_EVENT event,
+                        SIPX_LINESTATE_CAUSE cause,
+                        int sipResponseCode,
+                        const UtlString& sResponseText);
+
+   SIPX_INST m_pInst;
 };
 
 #endif // SipXLineEventListener_h__
