@@ -2396,12 +2396,13 @@ Connection* CpPeerCall::addParty(const UtlString& localAddress,
    addConnection(connection);
 
    UtlString callId;
-   // Get the call-id from the call
-   getCallId(callId);
-
    if (newCallId != NULL)
    {
       callId = newCallId;
+   }
+   else
+   {
+      mpManager->getNewCallId(&callId);
    }
 
    connection->dial(remoteAddress,
