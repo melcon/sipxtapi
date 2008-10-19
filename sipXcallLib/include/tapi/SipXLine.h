@@ -63,8 +63,8 @@ SIPX_LINE_DATA* sipxLineLookup(const SIPX_LINE hLine,
                                SIPX_LOCK_TYPE type,
                                const OsStackTraceLogger& oneBackInStack);
 
-SIPX_LINE sipxLineLookupHandle(const char* szLineURI, const char* requestUri);
-SIPX_LINE sipxLineLookupHandleByURI(const char* szURI);
+SIPX_LINE sipxLineLookupHandle(SIPX_INSTANCE_DATA* pInst, const char* szLineURI, const char* requestUri);
+SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI);
 
 void sipxLineReleaseLock(SIPX_LINE_DATA* pData,
                          SIPX_LOCK_TYPE type,

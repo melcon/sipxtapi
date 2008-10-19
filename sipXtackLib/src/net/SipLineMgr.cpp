@@ -127,7 +127,7 @@ void SipLineMgr::deleteAllLines()
 UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
    Url preferredContact;
-   Url fromUrl;
+   Url fullLineUrl;
 
    {
       OsLock lock(m_mutex); // scoped lock
@@ -143,14 +143,14 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 
       pLine->setState(SipLine::LINE_STATE_TRYING);
       preferredContact = pLine->getPreferredContactUri();
-      fromUrl = pLine->getFullLineUrl();
+      fullLineUrl = pLine->getFullLineUrl();
       pLine = NULL;
    }
 
-   if (!m_pRefreshMgr->newRegisterMsg(fromUrl, preferredContact, -1))
+   if (!m_pRefreshMgr->newRegisterMsg(fullLineUrl, preferredContact, -1))
    {
       //duplicate ...call reregister
-      m_pRefreshMgr->reRegister(lineURI);
+      m_pRefreshMgr->reRegister(fullLineUrl);
    }
 
    syslog(FAC_LINE_MGR, PRI_INFO, "enabled line: %s", lineURI.toString().data());
@@ -162,6 +162,7 @@ UtlBoolean SipLineMgr::unregisterLine(const Url& lineURI)
 {
    SipLine::LineStates lineState = SipLine::LINE_STATE_UNKNOWN;
 
+   Url fullLineUrl;
    {
       OsLock lock(m_mutex); // scoped lock
 
@@ -174,13 +175,14 @@ UtlBoolean SipLineMgr::unregisterLine(const Url& lineURI)
       }
 
       lineState = pLine->getState();
+      fullLineUrl = pLine->getFullLineUrl();
       pLine = NULL;
    }
 
    if (lineState == SipLine::LINE_STATE_REGISTERED ||
        lineState == SipLine::LINE_STATE_TRYING)
    {
-      m_pRefreshMgr->unRegisterUser(lineURI);
+      m_pRefreshMgr->unRegisterUser(fullLineUrl);
       syslog(FAC_LINE_MGR, PRI_INFO, "SipLineMgr::unregisterLine disabled line: %s",
          lineURI.toString().data());
       return TRUE;

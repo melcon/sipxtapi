@@ -73,6 +73,7 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 
+//#define PRINT_SIP_MESSAGE
 #define MAXIMUM_SIP_LOG_SIZE 100000
 #define SIP_UA_LOG "sipuseragent.log"
 #define CONFIG_LOG_DIR SIPX_LOGDIR
@@ -648,6 +649,11 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
                               void* responseListenerData,
                               SIPX_TRANSPORT_DATA* pTransport)
 {
+#ifdef PRINT_SIP_MESSAGE
+   enableConsoleOutput(TRUE);
+   osPrintf("\nSipUserAgent::send %s\n-----------------------------------\n", message.toString().data());
+#endif
+
    if(mbShuttingDown)
    {
       return FALSE;

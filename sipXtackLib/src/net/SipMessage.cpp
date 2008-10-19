@@ -275,7 +275,6 @@ void SipMessage::setRegisterData(const char* registererUri,
 void SipMessage::setReinviteData(SipMessage* invite,
                                  const char* farEndContact,
                                  const char* contactUrl,
-                                 UtlBoolean inviteFromThisSide,
                                  const char* routeField,
                                  int sequenceNumber,
                                  int sessionReinviteTimer)
@@ -285,12 +284,11 @@ void SipMessage::setReinviteData(SipMessage* invite,
     UtlString callId;
     UtlString contactUri;
     UtlString lastResponseContact;
-    mbFromThisSide = inviteFromThisSide;
 
     setTransportInfo(invite) ;
 
     // Get the to, from and callId fields
-    if(inviteFromThisSide)
+    if(invite->isFromThisSide())
     {
       invite->getToField(&toField);
       invite->getFromField(&fromField);
@@ -306,7 +304,7 @@ void SipMessage::setReinviteData(SipMessage* invite,
    if (farEndContact)
       lastResponseContact.append(farEndContact);
 
-   if ( !inviteFromThisSide && lastResponseContact.isNull())
+   if (!invite->isFromThisSide() && lastResponseContact.isNull())
    {
       //if invite from other side and LastResponseContact is null because there has not been any
       //final responses from the other side yet ...check the otherside's invite request and get the

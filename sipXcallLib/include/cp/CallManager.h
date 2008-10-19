@@ -50,6 +50,7 @@ class SipSession;
 class SipDialog;
 class SipLineProvider;
 class CpMediaInterfaceFactory;
+class CpMediaInterface;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
@@ -212,6 +213,8 @@ public:
 
    UtlString getBindIPAddress() const { return m_bindIPAddress; }
    void setBindIPAddress(const UtlString& val) { m_bindIPAddress = val; }
+
+   virtual CpMediaInterface* createMediaInterface(const UtlString& sSuggestedLocalIP = NULL);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -51,7 +51,7 @@ public:
     * SipLineCredential returned will be for correct userid, realm and scheme.
     *
     * @param sipResponse Message sent by remote server to us with authentication request
-    * @param sipRequest Message about to be sent by us with authentication data
+    * @param sipRequest Original request which needs to be authenticated
     * @param lineCredentials Returned line credentials if found
     */
    UtlBoolean getCredentialForMessage(const SipMessage& sipResponse,

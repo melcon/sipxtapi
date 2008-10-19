@@ -40,54 +40,35 @@ OsMsg(OsMsg::PHONE_APP, messageSubtype)
    mInt7 = int7;
    mInt8 = int8;
 
-   if (str1)
-      mString1Data.append(str1);
-   if (str2)
-      mString2Data.append(str2);
-   if (str3)
-      mString3Data.append(str3);
-   if (str4)
-      mString4Data.append(str4);
-   if (str5)
-      mString5Data.append(str5);
+   mString1Data = str1;
+   mString2Data = str2;
+   mString3Data = str3;
+   mString4Data = str4;
+   mString5Data = str5;
 }
 
 // Copy constructor
 CpMultiStringMessage::CpMultiStringMessage(const CpMultiStringMessage& rCpMultiStringMessage):
 OsMsg(OsMsg::PHONE_APP, rCpMultiStringMessage.getMsgType())
 {
-   mString1Data = rCpMultiStringMessage.mString1Data;
-   mString2Data = rCpMultiStringMessage.mString2Data;
-   mString3Data = rCpMultiStringMessage.mString3Data;
-   mString4Data = rCpMultiStringMessage.mString4Data;
-   mString5Data = rCpMultiStringMessage.mString5Data;
-   mInt1 = rCpMultiStringMessage.mInt1;
-   mInt2 = rCpMultiStringMessage.mInt2;
-   mInt3 = rCpMultiStringMessage.mInt3;
-   mInt4 = rCpMultiStringMessage.mInt4;
-   mInt5 = rCpMultiStringMessage.mInt5;
-   mInt6 = rCpMultiStringMessage.mInt6;
-   mInt7 = rCpMultiStringMessage.mInt7;
-   mInt8 = rCpMultiStringMessage.mInt8;
+   *this = rCpMultiStringMessage;
 }
 
 // Destructor
 CpMultiStringMessage::~CpMultiStringMessage()
 {
-   mString1Data.remove(0);
-   mString2Data.remove(0);
-   mString3Data.remove(0);
-   mString4Data.remove(0);
-   mString5Data.remove(0);
 }
 
 OsMsg* CpMultiStringMessage::createCopy(void) const
 {
-   return (new CpMultiStringMessage(getMsgSubType(),
+   CpMultiStringMessage* pMsg = new CpMultiStringMessage(getMsgSubType(),
       mString1Data.data(), mString2Data.data(),
       mString3Data.data(), mString4Data.data(),
       mString5Data.data(),
-      mInt1, mInt2,mInt3, mInt4, mInt5, mInt6, mInt7, mInt8));
+      mInt1, mInt2,mInt3, mInt4, mInt5, mInt6, mInt7, mInt8);
+   pMsg->setString6Data(mString6Data);
+
+   return pMsg;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -100,11 +81,13 @@ CpMultiStringMessage::operator=(const CpMultiStringMessage& rhs)
       return *this;
 
    OsMsg::operator=(rhs);
+
    mString1Data = rhs.mString1Data;
    mString2Data = rhs.mString2Data;
    mString3Data = rhs.mString3Data;
    mString4Data = rhs.mString4Data;
    mString5Data = rhs.mString5Data;
+   mString6Data = rhs.mString6Data;
    mInt1 = rhs.mInt1;
    mInt2 = rhs.mInt2;
    mInt3 = rhs.mInt3;
@@ -142,6 +125,11 @@ void CpMultiStringMessage::getString4Data(UtlString& str4) const
 void CpMultiStringMessage::getString5Data(UtlString& str5) const
 {
    str5 = mString5Data;
+}
+
+void CpMultiStringMessage::getString6Data(UtlString& str6) const
+{
+   str6 = mString6Data;
 }
 
 intptr_t CpMultiStringMessage::getInt1Data() const
@@ -197,22 +185,27 @@ void CpMultiStringMessage::toString(UtlString& dumpString, const char* term) con
    }
    if(!mString2Data.isNull())
    {
-      dumpString += "String1:\"" + mString2Data + "\"";
+      dumpString += "String2:\"" + mString2Data + "\"";
       dumpString += terminator;
    }
    if(!mString3Data.isNull())
    {
-      dumpString += "String1:\"" + mString3Data + "\"";
+      dumpString += "String3:\"" + mString3Data + "\"";
       dumpString += terminator;
    }
    if(!mString4Data.isNull())
    {
-      dumpString += "String1:\"" + mString4Data + "\"";
+      dumpString += "String4:\"" + mString4Data + "\"";
       dumpString += terminator;
    }
    if(!mString5Data.isNull())
    {
-      dumpString += "String1:\"" + mString5Data + "\"";
+      dumpString += "String5:\"" + mString5Data + "\"";
+      dumpString += terminator;
+   }
+   if(!mString6Data.isNull())
+   {
+      dumpString += "String6:\"" + mString6Data + "\"";
       dumpString += terminator;
    }
 
@@ -266,11 +259,6 @@ void CpMultiStringMessage::toString(UtlString& dumpString, const char* term) con
       dumpString += terminator;
    }
 
-}
-
-void CpMultiStringMessage::getString6Data(UtlString& str6) const
-{
-   str6 = mString6Data;
 }
 
 void CpMultiStringMessage::setString6Data(const UtlString& str6)

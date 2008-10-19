@@ -113,7 +113,7 @@ public:
       CP_CONSULT_TRANSFER,
       CP_TRANSFER_CONNECTION,
       CP_TRANSFER_CONNECTION_STATUS,
-      CP_TRANSFEREE_CONNECTION,
+      CP_TRANSFEREE_CONNECTION, // sent from original transferee CpPeerCall to target call so that it can send INVITE
       CP_TRANSFEREE_CONNECTION_STATUS, //20
       CP_DROP,
       CP_DROP_CONNECTION,
@@ -162,7 +162,8 @@ public:
       CP_LIMIT_CODEC_PREFERENCES,
       CP_SILENT_REMOTE_HOLD,
       CP_GET_USERAGENT,
-      CP_MUTE_INPUT_TERM_CONNECTION
+      CP_MUTE_INPUT_TERM_CONNECTION,
+      CP_CREATE_MEDIA_INTERFACE
    };
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -493,6 +494,7 @@ public:
    */
    virtual void setVoiceQualityReportTarget(const char* szTargetSipUrl);
 
+   virtual CpMediaInterface* createMediaInterface(const UtlString& sSuggestedLocalIP = NULL) = 0;
 
    /* ============================ ACCESSORS ================================= */
 

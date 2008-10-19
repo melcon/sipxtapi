@@ -24,12 +24,12 @@
 #include <cppunit/TestCase.h>
 
 // DEFINES
-#define USER_ENTERED_URI_1 "\"John Doe\"<sip:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
-#define USER_ENTERED_URI_2 "\"Jane Doe\"<sip:user2:password2@host2:5061;urlparm=value2?headerParam=value2>;fieldParam=value2"
+#define FULL_LINE_URL_1 "\"John Doe\"<sip:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
+#define FULL_LINE_URL_2 "\"Jane Doe\"<sip:user2:password2@host2:5061;urlparm=value2?headerParam=value2>;fieldParam=value2"
 #define USER_ID_1 "user1"
 #define USER_ID_2 "user2"
-#define IDENTITY_URI_1 "<sip:user1:password1@host1:5060;urlparm=value1"
-#define IDENTITY_URI_2 "<sip:user2:password2@host2:5061;urlparm=value2>"
+#define IDENTITY_URI_1 "sip:user1@host1"
+#define IDENTITY_URI_2 "sip:user2@host2"
 
 #define CREDENTIAL_USERID "John"
 #define CREDENTIAL_USERID2 "John2"
@@ -84,56 +84,59 @@ public:
 
    void testAddDeleteLine()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLine line1(FULL_LINE_URL_1);
       SipLineMgr lineMgr;
 
       CPPUNIT_ASSERT(lineMgr.addLine(line1));
       CPPUNIT_ASSERT(!lineMgr.addLine(line1));
       // now try deletion
-      CPPUNIT_ASSERT(lineMgr.deleteLine(line1.getIdentityUri()));
-      CPPUNIT_ASSERT(!lineMgr.deleteLine(line1.getIdentityUri()));
+      CPPUNIT_ASSERT(lineMgr.deleteLine(line1.getLineUri()));
+      CPPUNIT_ASSERT(!lineMgr.deleteLine(line1.getLineUri()));
    }
 
    void testAddDeleteCredentials1()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLine line1(FULL_LINE_URL_1);
+      Url lineUri = line1.getLineUri();
       SipLineCredential credential(CREDENTIAL_REALM, CREDENTIAL_USERID, CREDENTIAL_PASSWORD, CREDENTIAL_TYPE);
       SipLineMgr lineMgr;
 
       lineMgr.addLine(line1);
-      CPPUNIT_ASSERT(lineMgr.addCredentialForLine(IDENTITY_URI_1, credential));
-      CPPUNIT_ASSERT(!lineMgr.addCredentialForLine(IDENTITY_URI_1, credential)); // 2nd must fail
-      CPPUNIT_ASSERT(lineMgr.deleteCredentialForLine(IDENTITY_URI_1, CREDENTIAL_REALM, CREDENTIAL_TYPE));
-      CPPUNIT_ASSERT(!lineMgr.deleteCredentialForLine(IDENTITY_URI_1, CREDENTIAL_REALM, CREDENTIAL_TYPE)); // 2nd must fail
+      CPPUNIT_ASSERT(lineMgr.addCredentialForLine(lineUri, credential));
+      CPPUNIT_ASSERT(!lineMgr.addCredentialForLine(lineUri, credential)); // 2nd must fail
+      CPPUNIT_ASSERT(lineMgr.deleteCredentialForLine(lineUri, CREDENTIAL_REALM, CREDENTIAL_TYPE));
+      CPPUNIT_ASSERT(!lineMgr.deleteCredentialForLine(lineUri, CREDENTIAL_REALM, CREDENTIAL_TYPE)); // 2nd must fail
    }
 
    void testAddDeleteCredentials2()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLine line1(FULL_LINE_URL_1);
+      Url lineUri = line1.getLineUri();
       SipLineCredential credential1(CREDENTIAL_REALM, CREDENTIAL_USERID, CREDENTIAL_PASSWORD, CREDENTIAL_TYPE);
       SipLineCredential credential2(CREDENTIAL_REALM2, CREDENTIAL_USERID2, CREDENTIAL_PASSWORD2, CREDENTIAL_TYPE2);
       SipLineMgr lineMgr;
 
       lineMgr.addLine(line1);
-      lineMgr.addCredentialForLine(IDENTITY_URI_1, credential1);
-      lineMgr.addCredentialForLine(IDENTITY_URI_1, credential2);
-      CPPUNIT_ASSERT(lineMgr.deleteAllCredentialsForLine(IDENTITY_URI_1));
+      lineMgr.addCredentialForLine(lineUri, credential1);
+      lineMgr.addCredentialForLine(lineUri, credential2);
+      CPPUNIT_ASSERT(lineMgr.deleteAllCredentialsForLine(lineUri));
    }
 
    void testAddDeleteCredentials3()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLine line1(FULL_LINE_URL_1);
+      Url lineUri = line1.getLineUri();
       SipLineMgr lineMgr;
 
       lineMgr.addLine(line1);
-      lineMgr.addCredentialForLine(IDENTITY_URI_1, CREDENTIAL_REALM, CREDENTIAL_USERID, CREDENTIAL_PASSWORD, CREDENTIAL_TYPE);
-      CPPUNIT_ASSERT(lineMgr.deleteCredentialForLine(IDENTITY_URI_1, CREDENTIAL_REALM, CREDENTIAL_TYPE));
+      lineMgr.addCredentialForLine(lineUri, CREDENTIAL_REALM, CREDENTIAL_USERID, CREDENTIAL_PASSWORD, CREDENTIAL_TYPE);
+      CPPUNIT_ASSERT(lineMgr.deleteCredentialForLine(lineUri, CREDENTIAL_REALM, CREDENTIAL_TYPE));
    }
 
    void testGetNumLines()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
-      SipLine line2(USER_ENTERED_URI_2, IDENTITY_URI_2);
+      SipLine line1(FULL_LINE_URL_1);
+      SipLine line2(FULL_LINE_URL_2);
       SipLineMgr lineMgr;
 
       CPPUNIT_ASSERT(lineMgr.getNumLines() == 0);
@@ -147,8 +150,8 @@ public:
 
    void testGetLineCopies()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
-      SipLine line2(USER_ENTERED_URI_2, IDENTITY_URI_2);
+      SipLine line1(FULL_LINE_URL_1);
+      SipLine line2(FULL_LINE_URL_2);
       SipLineMgr lineMgr;
       lineMgr.addLine(line1);
       lineMgr.addLine(line2);
@@ -160,19 +163,20 @@ public:
 
    void testGetLineCopy()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
+      SipLine line1(FULL_LINE_URL_1);
+      Url lineUri = line1.getLineUri();
       SipLineMgr lineMgr;
       lineMgr.addLine(line1);
 
       SipLine line2;
-      CPPUNIT_ASSERT(lineMgr.getLineCopy(IDENTITY_URI_1, line2));
+      CPPUNIT_ASSERT(lineMgr.getLineCopy(lineUri, line2));
       CPPUNIT_ASSERT(areTheSame(line1, line2));
    }
 
    void testGetLineUris()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1);
-      SipLine line2(USER_ENTERED_URI_2, IDENTITY_URI_2);
+      SipLine line1(FULL_LINE_URL_1);
+      SipLine line2(FULL_LINE_URL_2);
       SipLineMgr lineMgr;
       lineMgr.addLine(line1);
       lineMgr.addLine(line2);
@@ -184,17 +188,18 @@ public:
 
    void testSetStateForLine()
    {
-      SipLine line1(USER_ENTERED_URI_1, IDENTITY_URI_1, SipLine::LINE_STATE_UNKNOWN);
+      SipLine line1(FULL_LINE_URL_1, SipLine::LINE_STATE_UNKNOWN);
+      Url lineUri = line1.getLineUri();
       line1.setState(SipLine::LINE_STATE_FAILED);
       SipLineMgr lineMgr;
       lineMgr.addLine(line1);
 
       SipLine line2;
-      lineMgr.getLineCopy(IDENTITY_URI_1, line2);
+      lineMgr.getLineCopy(lineUri, line2);
       CPPUNIT_ASSERT(line2.getState() == SipLine::LINE_STATE_FAILED);
 
-      CPPUNIT_ASSERT(lineMgr.setStateForLine(IDENTITY_URI_1, SipLine::LINE_STATE_REGISTERED));
-      lineMgr.getLineCopy(IDENTITY_URI_1, line2);
+      CPPUNIT_ASSERT(lineMgr.setStateForLine(lineUri, SipLine::LINE_STATE_REGISTERED));
+      lineMgr.getLineCopy(lineUri, line2);
       CPPUNIT_ASSERT(line2.getState() == SipLine::LINE_STATE_REGISTERED);
 
    }
