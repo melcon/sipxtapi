@@ -95,21 +95,30 @@ public:
    virtual UtlCopyableContainable* clone() const;
 
    /**
-    * Constructs line identity uri from given url. <>, field parameters and display name
+    * Constructs line identity uri from given url. <>, parameters and display name
     * will be cut off. This is used in general for converting To/From header field into line uri
     * for line lookup. We deliberately do not adhere strictly to RFC3261 (19.1.4 URI Comparison),
-    * because we want line to be transport independent.
+    * because we want line to be transport independent. Url scheme will be overridden to sip if it
+    * is sips, in other cases we keep it. This is because we want line lookups not to take security
+    * into account. For example sip:alice@example.com and sips:alice@example.com must refer to the same
+    * resource. This behaviour has no effect on whether connection is secure or not, it is just to simplify
+    * hashmap lookups.
+    *
     * All parameters are stripped from input url:
     * - transport, method, ttl, user, maddr and also user made ones
     *
-    * Line having sip: scheme is not the same as sips:
     */
    static Url getLineUri(const Url& url);
 
    /**
-    * Constructs line identity uri from given string.
+    * Constructs line identity uri from given string. The same as getLineUri taking Url parameter.
     */
    static Url getLineUri(const UtlString& sUrl);
+
+   /**
+    * Tests if given line uris are equal.
+    */
+   static UtlBoolean areLineUrisEqual(const Url& leftUri, const Url& rightUri);
 
    /**
     * Constructs full line url from given url. Keeps display name, sip uri, but strips

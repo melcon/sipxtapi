@@ -284,11 +284,14 @@ int SipLine::compareTo(UtlContainable const *compareContainable) const
 
    if (compareContainable)
    {
-      if (compareContainable->isInstanceOf(UtlString::TYPE) == TRUE)
+      if (compareContainable->isInstanceOf(SipLine::TYPE) == TRUE)
       {
          // for same type compare by identity uri
          SipLine const *pLine = dynamic_cast<SipLine const *>(compareContainable);
-         compareFlag = m_lineUri.toString().compareTo(pLine->getLineUri().toString(), UtlString::ignoreCase);
+         if (pLine)
+         {
+            compareFlag = m_lineUri.toString().compareTo(pLine->getLineUri().toString(), UtlString::ignoreCase);
+         }
       }
       else
       {
@@ -309,6 +312,10 @@ Url SipLine::getLineUri(const Url& url)
 {
    Url lineUri(url.toString());
    lineUri.setDisplayName(NULL);
+   if (lineUri.getScheme() == Url::SipsUrlScheme)
+   {
+      lineUri.setScheme(Url::SipUrlScheme); // override scheme, we want sip and sips lines to be equivalent
+   }
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
    lineUri.setPassword(NULL); // line uri cannot have password
@@ -320,11 +327,20 @@ Url SipLine::getLineUri(const UtlString& sUrl)
 {
    Url lineUri(sUrl);
    lineUri.setDisplayName(NULL);
+   if (lineUri.getScheme() == Url::SipsUrlScheme)
+   {
+      lineUri.setScheme(Url::SipUrlScheme); // override scheme, we want sip and sips lines to be equivalent
+   }
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
    lineUri.setPassword(NULL); // line uri cannot have password
    lineUri.setHostPort(PORT_NONE); // line uri doesn't have port associated with it
    return lineUri;
+}
+
+UtlBoolean SipLine::areLineUrisEqual(const Url& leftUri, const Url& rightUri)
+{
+   return leftUri.isUserHostEqual(rightUri);
 }
 
 Url SipLine::getFullLineUrl(const Url& url)
@@ -354,3 +370,4 @@ void SipLine::setProxyServers(const UtlString& proxyServers)
 {
    m_proxyServers = proxyServers;
 }
+

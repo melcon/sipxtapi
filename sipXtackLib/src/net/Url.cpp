@@ -1595,6 +1595,18 @@ void Url::parseString(const char* urlString, UtlBoolean isAddrSpec)
 #  endif
 }
 
+UtlBoolean Url::isSchemeUserHostPortEqual(const Url& uri, int impliedPort /*= PORT_NONE*/) const
+{
+   if (uri.getScheme() == this->getScheme())
+   {
+      return isUserHostPortEqual(uri, impliedPort);
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
 UtlBoolean Url::isUserHostPortEqual(const Url &url,
                                     int impliedPort
                                     ) const
@@ -1615,6 +1627,18 @@ UtlBoolean Url::isUserHostPortEqual(const Url &url,
    }
    
    return ((myPort == otherPort) && isUserHostEqual(url));
+}
+
+UtlBoolean Url::isSchemeUserHostEqual(const Url& uri) const
+{
+   if (uri.getScheme() == this->getScheme())
+   {
+      return isUserHostEqual(uri);
+   }
+   else
+   {
+      return FALSE;
+   }
 }
 
 UtlBoolean Url::isUserHostEqual(const Url &url) const
@@ -1876,4 +1900,5 @@ void Url::initAngleBrackets(UtlBoolean isAddrSpec)
       mAngleBracketsIncluded = TRUE;
    }
 }
+
 /* ============================ FUNCTIONS ================================= */

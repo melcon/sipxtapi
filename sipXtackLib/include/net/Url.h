@@ -464,6 +464,10 @@ public:
      */
    static UtlBoolean isDigitString(const char* dialedCharacters);
 
+   /// Compare two URLs to see if the have the same scheme, user, host and port
+   UtlBoolean isSchemeUserHostPortEqual(const Url& uri,
+                                        int impliedPort = PORT_NONE) const;
+
    /// Compare two URLs to see if the have the same user, host and port
    UtlBoolean isUserHostPortEqual(const Url& uri,
                                   int impliedPort = PORT_NONE 
@@ -501,6 +505,9 @@ public:
     *
     * @return TRUE if the user Id, host and port are the same
     */
+
+   /// Compare two URLs to see if the have the same scheme, user, host
+   UtlBoolean isSchemeUserHostEqual(const Url& uri) const;
 
    /// Compare two URLs to see if the have the same user and host
    UtlBoolean isUserHostEqual(const Url& uri) const ;
