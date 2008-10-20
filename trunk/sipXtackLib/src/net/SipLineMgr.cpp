@@ -207,7 +207,7 @@ UtlBoolean SipLineMgr::getLineCopy(const Url& lineUri, SipLine& sipLine) const
 {
    OsLock lock(m_mutex); // scoped lock
 
-   SipLine *pLine = m_listList.getLine(lineUri);
+   SipLine *pLine = m_listList.getLine(lineUri); // this is fast lookup by hashcode
    if (pLine)
    {
       sipLine = *pLine;
@@ -367,3 +367,16 @@ void SipLineMgr::dumpLines()
    m_listList.dumpLines();
 }
 
+UtlBoolean SipLineMgr::addLineAlias(const Url& aliasUri, const Url& lineURI)
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   return m_listList.addAlias(aliasUri, lineURI);
+}
+
+UtlBoolean SipLineMgr::deleteLineAlias(const Url& aliasUri)
+{
+   OsLock lock(m_mutex); // scoped lock
+
+   return m_listList.removeAlias(aliasUri);
+}

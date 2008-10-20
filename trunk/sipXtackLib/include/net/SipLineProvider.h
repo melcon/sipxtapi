@@ -73,12 +73,19 @@ public:
    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
    * not found by identityUri, try by userId.
    *
-   * If found, then line is copied into line parameter.
+   * If found, then line is copied into line parameter. It is slower than getLineCopy.
+   * Line aliases are considered.
    */
    virtual UtlBoolean findLineCopy(const UtlString& lineId,
                                    const Url& lineUri,
                                    const UtlString& userId,
                                    SipLine& line) const = 0;
+
+   /**
+   * Gets a copy of given line including credentials. Returns FALSE if line was not found.
+   * This method uses fast lookup by hashcode. Line aliases are considered.
+   */
+   virtual UtlBoolean getLineCopy(const Url& lineUri, SipLine& sipLine) const = 0;
 
    /**
    * Tries to extract line data from given sip message. Doesn't check if line exists.
