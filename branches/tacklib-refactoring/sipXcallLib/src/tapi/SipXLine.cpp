@@ -571,17 +571,15 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine, const char* szL
       SIPX_LINE_DATA* pData = sipxLineLookup(hLine, SIPX_LOCK_WRITE, stackLogger);
       if (pData)
       {
-         // ??????
-         Url url(szLineURL);
-         UtlString strURI;
-         url.getUri(strURI);
-         Url uri(strURI);
-
-         pData->m_lineAliases.append(new UtlVoidPtr(new Url(uri)));
+         Url aliasUri = SipLine::getLineUri(UtlString(szLineURL));
+         UtlBoolean success = pData->m_pInst->pLineManager->addLineAlias(aliasUri, pData->m_lineUri);
+         if (success)
+         {
+            pData->m_lineAliases.append(new UtlVoidPtr(new Url(aliasUri))); // this always succeeds
+            sr = SIPX_RESULT_SUCCESS;
+         }
 
          sipxLineReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
-
-         sr = SIPX_RESULT_SUCCESS;
       }                
    }
 

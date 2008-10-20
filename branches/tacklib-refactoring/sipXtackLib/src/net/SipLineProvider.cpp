@@ -48,7 +48,7 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
 
    // get copy of SipLine
    SipLine sipLine;
-   UtlBoolean lineFound = findLineCopy(lineId, lineUri, userId, sipLine);
+   UtlBoolean lineFound = findLineCopy(lineId, lineUri, userId, sipLine); // slow lookup during authentication is ok
    if (lineFound)
    {
       // get authentication details from response
@@ -94,6 +94,7 @@ UtlBoolean SipLineProvider::getProxyServersForMessage(const SipMessage& sipReque
    // get LINEID, lineUri, userId from SipMessage
    extractLineData(sipRequest, lineId, lineUri, userId);
 
+   // do fast lookup to get proxy servers
    return getLineProxyServers(lineUri, proxyServer);
 }
 

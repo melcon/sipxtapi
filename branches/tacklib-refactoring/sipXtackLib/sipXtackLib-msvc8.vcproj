@@ -8778,6 +8778,10 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\net\SipLineAlias.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\net\SipLineCredential.cpp"
 					>
 					<FileConfiguration
@@ -15786,6 +15790,10 @@
 				</File>
 				<File
 					RelativePath="include\net\SipLine.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\SipLineAlias.h"
 					>
 				</File>
 				<File
