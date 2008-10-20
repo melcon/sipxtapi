@@ -22,6 +22,7 @@
 
 // DEFINES
 #define FULL_LINE_URL_1 "\"John Doe\"<sip:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
+#define FULL_LINE_URL_1_ALIAS "\"John Doe\"<sip:user3:password3@host3;urlparm=value1?headerParam=value1>;fieldParam=value1"
 #define FULL_LINE_URL_2 "\"Jane Doe\"<sip:user2:password2@host2:5061;urlparm=value2?headerParam=value2>;fieldParam=value2"
 #define USER_ID_1 "user1"
 #define USER_ID_2 "user2"
@@ -41,12 +42,17 @@ class SipLineListTest : public CppUnit::TestCase
 
    CPPUNIT_TEST_SUITE(SipLineListTest);
    CPPUNIT_TEST(testAddRemove);
+   CPPUNIT_TEST(testAddRemoveAlias);
    CPPUNIT_TEST(testAddTwice);
+   CPPUNIT_TEST(testAddAliasTwice);
    CPPUNIT_TEST(testFindLine);
+   CPPUNIT_TEST(testFindLineByAlias);
    CPPUNIT_TEST(testGetLineCount);
    CPPUNIT_TEST(testGetLine);
+   CPPUNIT_TEST(testGetLineByAlias);
    CPPUNIT_TEST(testGetLineByUserId);
    CPPUNIT_TEST(testLineExists);
+   CPPUNIT_TEST(testLineExistsByAlias);
    CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -82,6 +88,21 @@ public:
       CPPUNIT_ASSERT(lineList.remove(line2.getLineUri())); // remove by uri
    }
 
+   void testAddRemoveAlias()
+   {
+      SipLine line1(FULL_LINE_URL_1);
+      SipLineList lineList;
+      Url alias = SipLine::getLineUri(UtlString(FULL_LINE_URL_1_ALIAS));
+
+      CPPUNIT_ASSERT(lineList.add(line1));
+      CPPUNIT_ASSERT(lineList.addAlias(alias, line1.getLineUri()));
+      CPPUNIT_ASSERT(lineList.getLineAliasesCount() == 1);
+      CPPUNIT_ASSERT(lineList.removeAlias(alias));
+      CPPUNIT_ASSERT(!lineList.removeAlias(alias)); // 2nd must fail
+      CPPUNIT_ASSERT(lineList.remove(line1));
+      CPPUNIT_ASSERT(lineList.getLineAliasesCount() == 0);
+   }
+
    void testAddTwice()
    {
       SipLine line1(FULL_LINE_URL_1);
@@ -99,6 +120,22 @@ public:
       CPPUNIT_ASSERT(lineList.add(line1));
    }
 
+   void testAddAliasTwice()
+   {
+      SipLine line1(FULL_LINE_URL_1);
+      SipLineList lineList;
+      Url alias = SipLine::getLineUri(UtlString(FULL_LINE_URL_1_ALIAS));
+
+      CPPUNIT_ASSERT(lineList.add(line1));
+      CPPUNIT_ASSERT(lineList.addAlias(alias, line1.getLineUri()));
+      // try 2nd addition
+      CPPUNIT_ASSERT(!lineList.addAlias(alias, line1.getLineUri()));
+      // remove alias
+      CPPUNIT_ASSERT(lineList.removeAlias(alias));
+      // try adding again
+      CPPUNIT_ASSERT(lineList.addAlias(alias, line1.getLineUri()));
+   }
+
    void testFindLine()
    {
       SipLine line1(FULL_LINE_URL_1);
@@ -112,6 +149,25 @@ public:
       CPPUNIT_ASSERT(lineList.findLine("xxx", lineUri, "xxx"));
       // find by userID
       CPPUNIT_ASSERT(lineList.findLine("xxx", "xxx", USER_ID_1));
+   }
+
+   void testFindLineByAlias()
+   {
+      SipLine line1(FULL_LINE_URL_1);
+      Url alias = SipLine::getLineUri(UtlString(FULL_LINE_URL_1_ALIAS));
+      Url lineUri = line1.getLineUri();
+      SipLineList lineList;
+      lineList.add(line1);
+      lineList.addAlias(alias, line1.getLineUri());
+
+      // find by uri - fail
+      CPPUNIT_ASSERT(!lineList.findLine("xxx", "xxx", "xxx"));
+      // find by alias - pass
+      CPPUNIT_ASSERT(lineList.findLine("xxx", alias, "xxx"));
+      // remove alias
+      lineList.removeAlias(alias);
+      // this must fail
+      CPPUNIT_ASSERT(!lineList.findLine("xxx", alias, "xxx"));
    }
 
    void testGetLineCount()
@@ -139,6 +195,23 @@ public:
       CPPUNIT_ASSERT(lineList.getLine(line1.getLineUri()));
    }
 
+   void testGetLineByAlias()
+   {
+      SipLine line1(FULL_LINE_URL_1);
+      Url alias = SipLine::getLineUri(UtlString(FULL_LINE_URL_1_ALIAS));
+      SipLineList lineList;
+
+      lineList.add(line1);
+      lineList.addAlias(alias, line1.getLineUri());
+
+      // get by alias - pass
+      CPPUNIT_ASSERT(lineList.getLine(alias));
+      // remove alias
+      lineList.removeAlias(alias);
+      // this must fail
+      CPPUNIT_ASSERT(!lineList.getLine(alias));
+   }
+
    void testGetLineByUserId()
    {
       SipLine line1(FULL_LINE_URL_1);
@@ -157,6 +230,22 @@ public:
       lineList.add(line1);
       CPPUNIT_ASSERT(lineList.lineExists(line1.getLineUri()));
       CPPUNIT_ASSERT(!lineList.lineExists("xxx"));
+   }
+
+   void testLineExistsByAlias()
+   {
+      SipLine line1(FULL_LINE_URL_1);
+      Url alias = SipLine::getLineUri(UtlString(FULL_LINE_URL_1_ALIAS));
+      SipLineList lineList;
+
+      lineList.add(line1);
+      lineList.addAlias(alias, line1.getLineUri());
+
+      // must pass
+      CPPUNIT_ASSERT(lineList.lineExists(alias));
+      lineList.removeAlias(alias);
+      // must fail
+      CPPUNIT_ASSERT(!lineList.lineExists(alias));
    }
 };
 

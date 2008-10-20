@@ -15,6 +15,7 @@
 #include <os/OsSysLog.h>
 #include <utl/UtlHashMapIterator.h>
 #include "net/SipLineList.h"
+#include <net/SipLineAlias.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,6 +28,7 @@
 
 SipLineList::SipLineList()
 : m_lineMap()
+, m_lineAliasMap()
 {
 
 }
@@ -34,6 +36,7 @@ SipLineList::SipLineList()
 SipLineList::~SipLineList()
 {    
    m_lineMap.destroyAll();
+   m_lineAliasMap.destroyAll();
 }
 
 UtlBoolean SipLineList::add(SipLine *pLine)
@@ -66,34 +69,85 @@ UtlBoolean SipLineList::add(const SipLine& line)
    }
 }
 
+UtlBoolean SipLineList::addAlias(const Url& aliasUri, const Url& lineUri)
+{
+   UtlBoolean result = FALSE;
+
+   if (m_lineMap.contains(&lineUri.toString()) && !m_lineAliasMap.contains(&aliasUri.toString()))
+   {
+      // line exists and alias doesn't, add alias
+      m_lineAliasMap.insertKeyAndValue(aliasUri.toString().clone(),
+         new SipLineAlias(aliasUri, lineUri));
+      result = TRUE;
+   }
+
+   return result;
+}
+
 UtlBoolean SipLineList::remove(const SipLine& line)
 {
+   removeAliasesForLine(line.getLineUri());
    return m_lineMap.destroy(&line.getLineUri().toString());
 }
 
 UtlBoolean SipLineList::remove(const Url& lineIdentityUri)
 {
+   removeAliasesForLine(lineIdentityUri);
    return m_lineMap.destroy(&lineIdentityUri.toString());
+}
+
+UtlBoolean SipLineList::removeAlias(const Url& aliasUri)
+{
+   return m_lineAliasMap.destroy(&aliasUri.toString());
 }
 
 void SipLineList::removeAll()
 {
    m_lineMap.destroyAll();
+   m_lineAliasMap.destroyAll();
 }
 
-UtlBoolean SipLineList::lineExists(const SipLine& line) const
+UtlBoolean SipLineList::lineExists(const SipLine& line, UtlBoolean bConsiderAliases) const
 {
-   return m_lineMap.contains(&line.getLineUri().toString());
+   UtlBoolean result = m_lineMap.contains(&line.getLineUri().toString());
+   if (!result && bConsiderAliases)
+   {
+      // not found, try aliases
+      result = m_lineAliasMap.contains(&line.getLineUri().toString());
+   }
+
+   return result;
 }
 
-UtlBoolean SipLineList::lineExists(const Url& lineIdentityUri) const
+UtlBoolean SipLineList::lineExists(const Url& lineIdentityUri, UtlBoolean bConsiderAliases) const
 {
-   return m_lineMap.contains(&lineIdentityUri.toString());
+   UtlBoolean result = m_lineMap.contains(&lineIdentityUri.toString());
+
+   if (!result && bConsiderAliases)
+   {
+      // not found, try aliases
+      result = m_lineAliasMap.contains(&lineIdentityUri.toString());
+   }
+
+   return result;
 }
 
-SipLine* SipLineList::getLine(const Url& lineIdentityUri) const
+SipLine* SipLineList::getLine(const Url& lineUri, UtlBoolean bConsiderAliases) const
 {
-   return dynamic_cast<SipLine*>(m_lineMap.findValue(&lineIdentityUri.toString()));
+   SipLine *pLine = dynamic_cast<SipLine*>(m_lineMap.findValue(&lineUri.toString()));
+
+   if (!pLine && bConsiderAliases)
+   {
+      SipLineAlias *pLineAlias = dynamic_cast<SipLineAlias*>(m_lineAliasMap.findValue(&lineUri.toString()));
+      if (pLineAlias)
+      {
+         Url originalLineUri = pLineAlias->getOriginalLineUri();
+         // repeat lookup with alias original line uri
+         pLine = dynamic_cast<SipLine*>(m_lineMap.findValue(&originalLineUri.toString()));
+      }
+   }
+
+   return pLine;
 }
 
 SipLine* SipLineList::getLine(const UtlString& lineId) const
@@ -108,7 +162,7 @@ SipLine* SipLineList::getLine(const UtlString& lineId) const
       while ((pKey = itor()) != NULL)
       {
          pLine = dynamic_cast<SipLine*>(itor.value());
-         if (pLine && !pLine->getLineId().compareTo(lineId, UtlString::ignoreCase))
+         if (pLine && !pLine->getLineId().compareTo(lineId, UtlString::matchCase))
          {
             return pLine;
          }
@@ -130,7 +184,7 @@ SipLine* SipLineList::getLineByUserId(const UtlString& userId) const
       while ((pKey = itor()) != NULL)
       {
          pLine = dynamic_cast<SipLine*>(itor.value());
-         if (pLine && !pLine->getUserId().compareTo(userId, UtlString::ignoreCase))
+         if (pLine && !pLine->getUserId().compareTo(userId))
          {
             return pLine;
          }
@@ -145,15 +199,22 @@ size_t SipLineList::getLinesCount() const
    return m_lineMap.entries();
 }
 
+size_t SipLineList::getLineAliasesCount() const
+{
+   return m_lineAliasMap.entries();
+}
+
 //
 // Priorities:
 //   1. Matches first lineID
 //   2. Matches first lineUri user, host, port
-//   3. Matches first userId
+//   3. Matches line alias
+//   4. Matches first userId
 //
 SipLine* SipLineList::findLine(const UtlString& lineId,
                                const Url& lineUri,
-                               const UtlString& userId) const
+                               const UtlString& userId,
+                               UtlBoolean bConsiderAliases) const
 {
    SipLine* pLineMatchingUri = NULL;
    SipLine* pLineMatchingUserId = NULL;
@@ -174,7 +235,8 @@ SipLine* SipLineList::findLine(const UtlString& lineId,
          }
          else if (pLine->getLineUri().isUserHostPortEqual(lineUri))
          {
-            // we found line with matching user, host and port
+            // we found line with matching user, host and port. We cannot just return here
+            // because in next iteration we could find line with lineID match! Get rid of line Ids?.
             pLineMatchingUri = pLine;
          }
          else if (!pLine->getUserId().compareTo(userId, UtlString::ignoreCase))
@@ -188,6 +250,24 @@ SipLine* SipLineList::findLine(const UtlString& lineId,
    {
       return pLineMatchingUri;
    }
+
+   if (bConsiderAliases)
+   {
+      // nothing was found, try line aliases
+      SipLineAlias *pLineAlias = dynamic_cast<SipLineAlias*>(m_lineAliasMap.findValue(&lineUri.toString()));
+      if (pLineAlias)
+      {
+         Url originalLineUri = pLineAlias->getOriginalLineUri();
+         // repeat lookup with alias original line uri
+         pLine = dynamic_cast<SipLine*>(m_lineMap.findValue(&originalLineUri.toString()));
+         if (pLine)
+         {
+            // only return pLine if not NULL, else use pLineMatchingUserId
+            return pLine;
+         }
+      }
+   }
+
    // is NULL if nothing was found
    return pLineMatchingUserId;
 }
@@ -205,8 +285,27 @@ void SipLineList::dumpLines()
       pLine = dynamic_cast<SipLine*>(itor.value());
       if (pLine)
       {
-         OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x [%d]: lineURI=%s, LINEID=%s, lineState=%d",
+         OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x, Line [%d]: lineURI=%s, LINEID=%s, lineState=%d",
             this, i++, pLine->getLineUri().toString().data(), pLine->getLineId().data(), (int)pLine->getState());
+      }
+   }
+}
+
+void SipLineList::dumpLineAliases()
+{
+   SipLineAlias* pLineAlias = NULL;
+
+   UtlHashMapIterator itor(m_lineAliasMap);
+   UtlContainable* pKey = NULL;
+   int i = 0;
+
+   while ((pKey = itor()) != NULL)
+   {
+      pLineAlias = dynamic_cast<SipLineAlias*>(itor.value());
+      if (pLineAlias)
+      {
+         OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x, Line alias [%d]: aliasURI=%s, lineURI=%s",
+            this, i++, pLineAlias->getAliasUri().toString().data(), pLineAlias->getOriginalLineUri().toString().data());
       }
    }
 }
@@ -245,6 +344,27 @@ void SipLineList::getLineUris(UtlSList& lineUris) const
       {
          // copy line uri into list
          lineUris.append(pLine->getLineUri().toString().clone());
+      }
+   }
+}
+
+void SipLineList::removeAliasesForLine(const Url& lineURI)
+{
+   SipLineAlias* pLineAlias = NULL;
+
+   UtlHashMapIterator itor(m_lineAliasMap);
+   UtlContainable* pKey = NULL;
+   int i = 0;
+
+   while ((pKey = itor()) != NULL)
+   {
+      pLineAlias = dynamic_cast<SipLineAlias*>(itor.value());
+      if (pLineAlias)
+      {
+         if (SipLine::areLineUrisEqual(lineURI, pLineAlias->getOriginalLineUri()))
+         {
+            m_lineAliasMap.destroy(itor.key());
+         }
       }
    }
 }

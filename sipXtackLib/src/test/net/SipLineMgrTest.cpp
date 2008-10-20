@@ -25,6 +25,7 @@
 
 // DEFINES
 #define FULL_LINE_URL_1 "\"John Doe\"<sip:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
+#define FULL_LINE_URL_1_ALIAS "\"John Doe\"<sip:user3:password3@host3;urlparm=value1?headerParam=value1>;fieldParam=value1"
 #define FULL_LINE_URL_2 "\"Jane Doe\"<sip:user2:password2@host2:5061;urlparm=value2?headerParam=value2>;fieldParam=value2"
 #define USER_ID_1 "user1"
 #define USER_ID_2 "user2"
@@ -53,12 +54,14 @@ class SipLineMgrTest : public CppUnit::TestCase
 
    CPPUNIT_TEST_SUITE(SipLineMgrTest);
    CPPUNIT_TEST(testAddDeleteLine);
+   CPPUNIT_TEST(testAddDeleteAlias);
    CPPUNIT_TEST(testAddDeleteCredentials1);
    CPPUNIT_TEST(testAddDeleteCredentials2);
    CPPUNIT_TEST(testAddDeleteCredentials3);
    CPPUNIT_TEST(testGetNumLines);
    CPPUNIT_TEST(testGetLineCopies);
    CPPUNIT_TEST(testGetLineCopy);
+   CPPUNIT_TEST(testGetLineCopyByAlias);
    CPPUNIT_TEST(testGetLineUris);
    CPPUNIT_TEST(testSetStateForLine);
    CPPUNIT_TEST_SUITE_END();
@@ -92,6 +95,27 @@ public:
       // now try deletion
       CPPUNIT_ASSERT(lineMgr.deleteLine(line1.getLineUri()));
       CPPUNIT_ASSERT(!lineMgr.deleteLine(line1.getLineUri()));
+   }
+
+   void testAddDeleteAlias()
+   {
+      SipLine line1(FULL_LINE_URL_1);
+      SipLineMgr lineMgr;
+      Url alias = SipLine::getLineUri(UtlString(FULL_LINE_URL_1_ALIAS));
+
+      lineMgr.addLine(line1);
+      // must fail
+      CPPUNIT_ASSERT(!lineMgr.deleteLineAlias(alias));
+      // must succeed
+      CPPUNIT_ASSERT(lineMgr.addLineAlias(alias, line1.getLineUri()));
+      // must fail
+      CPPUNIT_ASSERT(!lineMgr.addLineAlias(alias, line1.getLineUri()));
+      // must succeed
+      CPPUNIT_ASSERT(lineMgr.deleteLineAlias(alias));
+      // must fail
+      CPPUNIT_ASSERT(!lineMgr.deleteLineAlias(alias));
+
+      lineMgr.deleteLine(line1.getLineUri());
    }
 
    void testAddDeleteCredentials1()
@@ -170,6 +194,20 @@ public:
 
       SipLine line2;
       CPPUNIT_ASSERT(lineMgr.getLineCopy(lineUri, line2));
+      CPPUNIT_ASSERT(areTheSame(line1, line2));
+   }
+
+   void testGetLineCopyByAlias()
+   {
+      SipLine line1(FULL_LINE_URL_1);
+      Url lineUri = line1.getLineUri();
+      Url alias = SipLine::getLineUri(UtlString(FULL_LINE_URL_1_ALIAS));
+      SipLineMgr lineMgr;
+      lineMgr.addLine(line1);
+      lineMgr.addLineAlias(alias, line1.getLineUri());
+
+      SipLine line2;
+      CPPUNIT_ASSERT(lineMgr.getLineCopy(alias, line2));
       CPPUNIT_ASSERT(areTheSame(line1, line2));
    }
 

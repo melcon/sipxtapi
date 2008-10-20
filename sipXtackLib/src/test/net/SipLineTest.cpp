@@ -26,10 +26,13 @@
 
 // DEFINES
 #define FULL_LINE_URL_1 "\"John Doe\"<sip:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
+#define FULL_LINE_URL_1_SIPS "\"John Doe\"<sips:user1:password1@host1:5060;urlparm=value1?headerParam=value1>;fieldParam=value1"
 #define FULL_LINE_URL_2 "\"Jane Doe\"<sip:user2:password2@host2:5061;urlparm=value2?headerParam=value2>;fieldParam=value2"
 #define USER_ID_1 "user1"
 #define USER_ID_2 "user2"
 #define IDENTITY_URI_1 "sip:user1@host1"
+#define IDENTITY_URI_1_PORT "sip:user1@host1:5060"
+#define IDENTITY_URI_1_SIPS "sip:user1@host1"
 #define IDENTITY_URI_2 "sip:user2@host2"
 
 #define CREDENTIAL_USERID "John"
@@ -61,12 +64,14 @@ class SipLineTest : public CppUnit::TestCase
    CPPUNIT_TEST(testSipLineId);
    CPPUNIT_TEST(testSipLineState);
    CPPUNIT_TEST(testSipLineUserId);
-   CPPUNIT_TEST(testSipLineIdentityUri);
-   CPPUNIT_TEST(testSipLineCanonicalUri);
+   CPPUNIT_TEST(testSipLineUri);
+   CPPUNIT_TEST(testSipLineFullUrl);
    CPPUNIT_TEST(testSipLineRealm);
    CPPUNIT_TEST(testSipLineContact);
    CPPUNIT_TEST(testSipLineCredentials1);
    CPPUNIT_TEST(testSipLineCredentials2);
+   CPPUNIT_TEST(testSipLineStaticAreLineUrisEqual);
+   CPPUNIT_TEST(testSipLineStaticGetLineUri);
    CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -159,14 +164,14 @@ public:
       CPPUNIT_ASSERT(areTheSame(line1.getUserId(), USER_ID_1));
    }
 
-   void testSipLineIdentityUri()
+   void testSipLineUri()
    {
       SipLine line1(FULL_LINE_URL_1);
 
       CPPUNIT_ASSERT(areTheSame(line1.getLineUri(), Url(IDENTITY_URI_1, TRUE)));
    }
 
-   void testSipLineCanonicalUri()
+   void testSipLineFullUrl()
    {
       SipLine line1(FULL_LINE_URL_1);
 
@@ -223,6 +228,23 @@ public:
       CPPUNIT_ASSERT(areTheSame(cred.getType(), res.getType()));
    }
 
+   void testSipLineStaticAreLineUrisEqual()
+   {
+      CPPUNIT_ASSERT(SipLine::areLineUrisEqual(FULL_LINE_URL_1, IDENTITY_URI_1));
+      CPPUNIT_ASSERT(SipLine::areLineUrisEqual(FULL_LINE_URL_1, IDENTITY_URI_1_PORT));
+
+      // we consider sips/sip lines to be equal, so that we can use the same authentication password
+      // and route calls to the same line
+      CPPUNIT_ASSERT(SipLine::areLineUrisEqual(FULL_LINE_URL_1_SIPS, IDENTITY_URI_1_SIPS));
+      CPPUNIT_ASSERT(SipLine::areLineUrisEqual(FULL_LINE_URL_1, FULL_LINE_URL_1_SIPS));
+   }
+
+   void testSipLineStaticGetLineUri()
+   {
+      Url lineUri = SipLine::getLineUri(UtlString(FULL_LINE_URL_1));
+      Url correctLineUri(IDENTITY_URI_1, TRUE);
+      CPPUNIT_ASSERT(areTheSame(lineUri, correctLineUri)); // they must be equal
+   }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SipLineTest);
