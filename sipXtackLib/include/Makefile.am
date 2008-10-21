@@ -19,6 +19,8 @@ EXTRA_DIST = \
 
 nobase_include_HEADERS =  \
     net/HttpBody.h \
+    net/HttpConnection.h \
+    net/HttpConnectionMap.h \
     net/HttpMessage.h \
     net/HttpRequestContext.h \
     net/HttpServer.h \
@@ -32,31 +34,29 @@ nobase_include_HEADERS =  \
     net/NetAttributeTokenizer.h \
     net/NetBase64Codec.h \
     net/NetMd5Codec.h \
-    net/ProvisioningAgent.h \
-    net/ProvisioningAgentXmlRpcAdapter.h \
-    net/ProvisioningAttrList.h \
-    net/ProvisioningClass.h \
+    net/PidfBody.h \
     net/QoS.h \
     net/SdpBody.h \
     net/SdpCodecFactory.h \
     net/SdpHelper.h \
+    net/SipCallIdGenerator.h \
     net/SipClient.h \
+    net/SipConfigServerAgent.h \
     net/SipContactDb.h \
     net/SipDialog.h \
     net/SipDialogEvent.h \
     net/SipDialogMgr.h \
-    net/SipDialog.h \
-    net/SipDialogMgr.h \
     net/SipDialogMonitor.h \
-    net/SipDialogEvent.h \
-    net/SipConfigServerAgent.h \
-    net/SipLineCredentials.h \
-    net/SipLineEvent.h \
+    net/SipInfoStatusEventListener.h \
     net/SipLine.h \
+    net/SipLineAlias.h \
+    net/SipLineCredential.h \
     net/SipLineList.h \
     net/SipLineMgr.h \
-    net/SipMessageEvent.h \
+    net/SipLineProvider.h \
+    net/SipLineStateEventListener.h \
     net/SipMessage.h \
+    net/SipMessageEvent.h \
     net/SipMessageList.h \
     net/SipNonceDb.h \
     net/SipNotifyStateTask.h \
@@ -68,12 +68,14 @@ nobase_include_HEADERS =  \
     net/SipPublishServer.h \
     net/SipPublishServerEventStateCompositor.h \
     net/SipPublishServerEventStateMgr.h \
-    net/SipRefreshMgr.h \
     net/SipRefreshManager.h \
+    net/SipRefreshMgr.h \
     net/SipRequestContext.h \
     net/SipResourceList.h \
+    net/SipSecurityEventListener.h \
     net/SipServerBase.h \
     net/SipServerBroker.h \
+    net/SipServerBrokerListener.h \
     net/SipSession.h \
     net/SipSrvLookup.h \
     net/SipSubscribeClient.h \
@@ -84,23 +86,15 @@ nobase_include_HEADERS =  \
     net/SipTlsServer.h \
     net/SipTransaction.h \
     net/SipTransactionList.h \
+    net/SipTransport.h \
     net/SipUdpServer.h \
-    net/SipUserAgentBase.h \
     net/SipUserAgent.h \
+    net/SipUserAgentBase.h \
     net/SipUserAgentStateless.h \
     net/SmimeBody.h \
     net/StateChangeNotifier.h \
-    net/TapiMgr.h \
     net/Url.h \
-    net/version.h \
-    net/XmlRpcBody.h \
-    net/XmlRpcDispatch.h \
-    net/XmlRpcMethod.h \
-    net/XmlRpcRequest.h \
-    net/XmlRpcResponse.h \
-    net/HttpConnection.h \
-    net/HttpConnectionMap.h \
-    net/PidfBody.h \
+    net/pk12wrapper.h \
     resparse/bzero.h \
     resparse/ns_name.h \
     resparse/poll.h \
@@ -113,8 +107,7 @@ nobase_include_HEADERS =  \
     tapi/SipXEventDispatcher.h \
     tapi/doxyfile \
     tapi/sipXtapi.h \
-    tapi/sipXtapiEvents.h \
-    tapi/sipXtapiInternal.h
+    tapi/sipXtapiEvents.h
 
 net/version.h: .FORCE
 	@test -d net || mkdir net

@@ -32,29 +32,55 @@ libsipXcall_la_SOURCES = \
     ../config/sipxcalllib-buildstamp.h \
     ../config/sipxcalllib-buildstamp.cpp \
     cp/CallManager.cpp \
-    cp/CSeqManager.cpp \
     cp/Connection.cpp \
     cp/CpCall.cpp \
     cp/CpCallManager.cpp \
-    cp/CpGatewayManager.cpp \
     cp/CpGhostConnection.cpp \
     cp/CpIntMessage.cpp \
     cp/CpMultiStringMessage.cpp \
     cp/CpPeerCall.cpp \
-    cp/CpStringMessage.cpp \
+    cp/CSeqManager.cpp \
     cp/SipConnection.cpp \
-    tao/TaoEvent.cpp \
-    tao/TaoEventListener.cpp \
-    tao/TaoListenerEventMessage.cpp \
-    tao/TaoMessage.cpp \
-    tao/TaoObjectMap.cpp \
-    tao/TaoReference.cpp \
-    tao/TaoString.cpp \
-    tapi/sipXtapi.cpp \
+    cp/XCpAbstractCall.cpp \
+    cp/XCpAbstractConnection.cpp \
+    cp/XCpCall.cpp \
+    cp/XCpCallManager.cpp \
+    cp/XCpConference.cpp \
+    cp/XCpSipConnection.cpp \
+    ptapi/PtCall.cpp \
+    ptapi/PtConnection.cpp \
+    ptapi/PtEvent.cpp \
+    ptapi/PtSessionDesc.cpp \
+    ptapi/PtTerminalConnection.cpp \
+    tapi/CallStateEventMsg.cpp \
+    tapi/InfoStatusEventMsg.cpp \
+    tapi/KeepaliveEventMsg.cpp \
+    tapi/LineStateEventMsg.cpp \
+    tapi/MediaEventMsg.cpp \
+    tapi/SecurityEventMsg.cpp \
+    tapi/SecurityHelper.cpp \
+    tapi/SipXAudio.cpp \
+    tapi/SipXCall.cpp \
+    tapi/SipXCallEventListener.cpp \
+    tapi/SipXConference.cpp \
+    tapi/SipXConfig.cpp \
+    tapi/SipXCore.cpp \
     tapi/SipXEventDispatcher.cpp \
-    tapi/sipXtapiEvents.cpp \
-    tapi/sipXtapiInternal.cpp \
+    tapi/SipXEvents.cpp \
     tapi/SipXHandleMap.cpp \
-    tapi/SipXMessageObserver.cpp
+    tapi/SipXInfo.cpp \
+    tapi/SipXInfoStatusEventListener.cpp \
+    tapi/SipXKeepaliveEventListener.cpp \
+    tapi/SipXLine.cpp \
+    tapi/SipXLineEventListener.cpp \
+    tapi/SipXMediaEventListener.cpp \
+    tapi/SipXMessageObserver.cpp \
+    tapi/SipXPim.cpp \
+    tapi/SipXPublish.cpp \
+    tapi/SipXSecurityEventListener.cpp \
+    tapi/SipXSubscribe.cpp \
+    tapi/sipXtapi.cpp \
+    tapi/SipXTransport.cpp \
+    tapi/SipXUtil.cpp
 
 DISTCLEANFILES = Makefile.in
