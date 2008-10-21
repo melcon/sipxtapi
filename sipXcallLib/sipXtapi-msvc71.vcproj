@@ -136,173 +136,272 @@ copy ..\sipXtackLib\include\net examples\include\net
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
 			<File
-				RelativePath=".\src\tapi\SecurityHelper.cpp">
+				RelativePath=".\src\tapi\CallStateEventMsg.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXAudio.cpp">
+				RelativePath=".\src\tapi\InfoStatusEventMsg.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXCall.cpp">
+				RelativePath=".\src\tapi\KeepaliveEventMsg.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXCallEventListener.cpp">
+				RelativePath=".\src\tapi\LineStateEventMsg.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXConference.cpp">
+				RelativePath=".\src\tapi\MediaEventMsg.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXConfig.cpp">
+				RelativePath=".\src\tapi\SecurityEventMsg.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXCore.cpp">
+				RelativePath=".\src\tapi\SecurityHelper.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXEventDispatcher.cpp">
+				RelativePath=".\src\tapi\SipXAudio.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXEvents.cpp">
+				RelativePath=".\src\tapi\SipXCall.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXHandleMap.cpp">
+				RelativePath=".\src\tapi\SipXCallEventListener.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXInfo.cpp">
+				RelativePath=".\src\tapi\SipXConference.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXInfoStatusEventListener.cpp">
+				RelativePath=".\src\tapi\SipXConfig.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXKeepaliveEventListener.cpp">
+				RelativePath=".\src\tapi\SipXCore.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXLine.cpp">
+				RelativePath=".\src\tapi\SipXEventDispatcher.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXLineEventListener.cpp">
+				RelativePath=".\src\tapi\SipXEvents.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXMediaEventListener.cpp">
+				RelativePath=".\src\tapi\SipXHandleMap.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXMessageObserver.cpp">
+				RelativePath=".\src\tapi\SipXInfo.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXPim.cpp">
+				RelativePath=".\src\tapi\SipXInfoStatusEventListener.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXPublish.cpp">
+				RelativePath=".\src\tapi\SipXKeepaliveEventListener.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXSecurityEventListener.cpp">
+				RelativePath=".\src\tapi\SipXLine.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXSubscribe.cpp">
+				RelativePath=".\src\tapi\SipXLineEventListener.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\sipXtapi.cpp">
+				RelativePath=".\src\tapi\SipXMediaEventListener.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXTransport.cpp">
+				RelativePath=".\src\tapi\SipXMessageObserver.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXUtil.cpp">
+				RelativePath=".\src\tapi\SipXPim.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\template.cpp">
+				RelativePath=".\src\tapi\SipXPublish.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\SipXSecurityEventListener.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\SipXSubscribe.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\sipXtapi.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\SipXTransport.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\SipXUtil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\template.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<File
-				RelativePath=".\include\tapi\SecurityHelper.h">
+				RelativePath=".\include\tapi\CallStateEventMsg.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXAudio.h">
+				RelativePath=".\include\tapi\InfoStatusEventMsg.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXCall.h">
+				RelativePath=".\include\tapi\KeepaliveEventMsg.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXCallEventListener.h">
+				RelativePath=".\include\tapi\LineStateEventMsg.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXConference.h">
+				RelativePath=".\include\tapi\MediaEventMsg.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXConfig.h">
+				RelativePath=".\include\tapi\SecurityEventMsg.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXCore.h">
+				RelativePath=".\include\tapi\SecurityHelper.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXEventDispatcher.h">
+				RelativePath=".\include\tapi\SipXAudio.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXEvents.h">
+				RelativePath=".\include\tapi\SipXCall.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXHandleMap.h">
+				RelativePath=".\include\tapi\SipXCallEventListener.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXInfo.h">
+				RelativePath=".\include\tapi\SipXConference.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXInfoStatusEventListener.h">
+				RelativePath=".\include\tapi\SipXConfig.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXKeepaliveEventListener.h">
+				RelativePath=".\include\tapi\SipXCore.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXLine.h">
+				RelativePath=".\include\tapi\SipXEventDispatcher.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXLineEventListener.h">
+				RelativePath=".\include\tapi\SipXEvents.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXMediaEventListener.h">
+				RelativePath="include\tapi\SipXHandleMap.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXMessageObserver.h">
+				RelativePath=".\include\tapi\SipXInfo.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXPim.h">
+				RelativePath=".\include\tapi\SipXInfoStatusEventListener.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXPublish.h">
+				RelativePath=".\include\tapi\SipXKeepaliveEventListener.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXSecurityEventListener.h">
+				RelativePath=".\include\tapi\SipXLine.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXSubscribe.h">
+				RelativePath=".\include\tapi\SipXLineEventListener.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\sipXtapi.h">
+				RelativePath=".\include\tapi\SipXMediaEventListener.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\sipXtapiEvents.h">
+				RelativePath="include\tapi\SipXMessageObserver.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXTransport.h">
+				RelativePath=".\include\tapi\SipXPim.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\SipXUtil.h">
+				RelativePath=".\include\tapi\SipXPublish.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\tapi\Template.h">
+				RelativePath=".\include\tapi\SipXSecurityEventListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\SipXSubscribe.h"
+				>
+			</File>
+			<File
+				RelativePath="include\tapi\sipXtapi.h"
+				>
+			</File>
+			<File
+				RelativePath="include\tapi\sipXtapiEvents.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\SipXTransport.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\SipXUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\Template.h"
+				>
 			</File>
 		</Filter>
 		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
+			Name="Resources"
+			>
 			<File
-				RelativePath=".\sipXtapi.rc">
+				RelativePath=".\sipXtapi.rc"
+				>
 			</File>
 		</Filter>
 	</Files>

@@ -99,1038 +99,1371 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
 			<Filter
 				Name="mp"
-				Filter="">
+				>
 				<File
-					RelativePath=".\src\mp\dft.cpp">
+					RelativePath=".\src\mp\dft.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\DSPlib.cpp">
+					RelativePath=".\src\mp\DSPlib.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\DspResampling.cpp">
+					RelativePath=".\src\mp\DspResampling.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\dtmflib.cpp">
+					RelativePath=".\src\mp\dtmflib.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\FilterBank.cpp">
+					RelativePath=".\src\mp\FilterBank.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\HandsetFilterBank.cpp">
+					RelativePath=".\src\mp\HandsetFilterBank.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpArrayBuf.cpp">
+					RelativePath=".\src\mp\MpArrayBuf.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\mpau.cpp">
+					RelativePath=".\src\mp\mpau.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioAbstract.cpp">
+					RelativePath=".\src\mp\MpAudioAbstract.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioBuf.cpp">
+					RelativePath=".\src\mp\MpAudioBuf.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioDeviceInfo.cpp">
+					RelativePath=".\src\mp\MpAudioDeviceInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioDriverBase.cpp">
+					RelativePath=".\src\mp\MpAudioDriverBase.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioDriverFactory.cpp">
+					RelativePath=".\src\mp\MpAudioDriverFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioDriverManager.cpp">
+					RelativePath=".\src\mp\MpAudioDriverManager.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioFileDecompress.cpp">
+					RelativePath=".\src\mp\MpAudioFileDecompress.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioFileOpen.cpp">
+					RelativePath=".\src\mp\MpAudioFileOpen.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioFileUtils.cpp">
+					RelativePath=".\src\mp\MpAudioFileUtils.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioMixerBase.cpp">
+					RelativePath=".\src\mp\MpAudioMixerBase.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioResource.cpp">
+					RelativePath=".\src\mp\MpAudioResource.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioStreamInfo.cpp">
+					RelativePath=".\src\mp\MpAudioStreamInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioStreamParameters.cpp">
+					RelativePath=".\src\mp\MpAudioStreamParameters.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioUtils.cpp">
+					RelativePath=".\src\mp\MpAudioUtils.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpAudioWaveFileRead.cpp">
+					RelativePath=".\src\mp\MpAudioWaveFileRead.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpBuf.cpp">
+					RelativePath=".\src\mp\MpBuf.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpBufferMsg.cpp">
+					RelativePath=".\src\mp\MpBufferMsg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpBufPool.cpp">
+					RelativePath=".\src\mp\MpBufPool.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpCallFlowGraph.cpp">
+					RelativePath=".\src\mp\MpCallFlowGraph.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpCodecFactory.cpp">
+					RelativePath=".\src\mp\MpCodecFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpCodecInfo.cpp">
+					RelativePath=".\src\mp\MpCodecInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpDataBuf.cpp">
+					RelativePath=".\src\mp\MpDataBuf.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpDecodeBuffer.cpp">
+					RelativePath=".\src\mp\MpDecodeBuffer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpDecoderBase.cpp">
+					RelativePath=".\src\mp\MpDecoderBase.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdIPPG7231.cpp">
+					RelativePath=".\src\mp\MpdIPPG7231.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdIPPG729.cpp">
+					RelativePath=".\src\mp\MpdIPPG729.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdPtAVT.cpp">
+					RelativePath=".\src\mp\MpdPtAVT.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdSipxGSM.cpp">
+					RelativePath=".\src\mp\MpdSipxGSM.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdSipxILBC.cpp">
+					RelativePath=".\src\mp\MpdSipxILBC.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdSipxPcma.cpp">
+					RelativePath=".\src\mp\MpdSipxPcma.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdSipxPcmu.cpp">
+					RelativePath=".\src\mp\MpdSipxPcmu.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpdSipxSpeex.cpp">
+					RelativePath=".\src\mp\MpdSipxSpeex.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpDspUtils.cpp">
+					RelativePath=".\src\mp\MpDspUtils.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpeIPPG7231.cpp">
+					RelativePath=".\src\mp\MpeIPPG7231.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpeIPPG729.cpp">
+					RelativePath=".\src\mp\MpeIPPG729.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpEncoderBase.cpp">
+					RelativePath=".\src\mp\MpEncoderBase.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpePtAVT.cpp">
+					RelativePath=".\src\mp\MpePtAVT.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpeSipxGSM.cpp">
+					RelativePath=".\src\mp\MpeSipxGSM.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpeSipxILBC.cpp">
+					RelativePath=".\src\mp\MpeSipxILBC.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpeSipxPcma.cpp">
+					RelativePath=".\src\mp\MpeSipxPcma.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpeSipxPcmu.cpp">
+					RelativePath=".\src\mp\MpeSipxPcmu.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpeSipxSpeex.cpp">
+					RelativePath=".\src\mp\MpeSipxSpeex.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpFlowGraphBase.cpp">
+					RelativePath=".\src\mp\MpFlowGraphBase.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpFlowGraphMsg.cpp">
+					RelativePath=".\src\mp\MpFlowGraphMsg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\mpG711.cpp">
+					RelativePath=".\src\mp\mpG711.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpHostAudioApiInfo.cpp">
+					RelativePath=".\src\mp\MpHostAudioApiInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpJitterBufferBase.cpp">
+					RelativePath=".\src\mp\MpJitterBufferBase.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpJitterBufferDefault.cpp">
+					RelativePath=".\src\mp\MpJitterBufferDefault.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpJitterBufferSpeex.cpp">
+					RelativePath=".\src\mp\MpJitterBufferSpeex.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpMediaTask.cpp">
+					RelativePath=".\src\mp\MpMediaTask.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpMediaTaskHelper.cpp">
+					RelativePath=".\src\mp\MpMediaTaskHelper.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpMediaTaskMsg.cpp">
+					RelativePath=".\src\mp\MpMediaTaskMsg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpMisc.cpp">
+					RelativePath=".\src\mp\MpMisc.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpMMTimer.cpp">
+					RelativePath=".\src\mp\MpMMTimer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpMMTimerWnt.cpp">
+					RelativePath=".\src\mp\MpMMTimerWnt.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPlayer.cpp">
+					RelativePath=".\src\mp\MpPlayer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPlayerEvent.cpp">
+					RelativePath=".\src\mp\MpPlayerEvent.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPortAudioDriver.cpp">
+					RelativePath=".\src\mp\MpPortAudioDriver.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPortAudioMixer.cpp">
+					RelativePath=".\src\mp\MpPortAudioMixer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPortAudioStream.cpp">
+					RelativePath=".\src\mp\MpPortAudioStream.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprAudioFrameBuffer.cpp">
+					RelativePath=".\src\mp\MprAudioFrameBuffer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpRawAudioBuffer.cpp">
+					RelativePath=".\src\mp\MpRawAudioBuffer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprBridge.cpp">
+					RelativePath=".\src\mp\MprBridge.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprBufferRecorder.cpp">
+					RelativePath=".\src\mp\MprBufferRecorder.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprDecode.cpp">
+					RelativePath=".\src\mp\MprDecode.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprDecodeInbandDtmf.cpp">
+					RelativePath=".\src\mp\MprDecodeInbandDtmf.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprDejitter.cpp">
+					RelativePath=".\src\mp\MprDejitter.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprEchoSuppress.cpp">
+					RelativePath=".\src\mp\MprEchoSuppress.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprEncode.cpp">
+					RelativePath=".\src\mp\MprEncode.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResNotificationMsg.cpp">
+					RelativePath=".\src\mp\MpResNotificationMsg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResource.cpp">
+					RelativePath=".\src\mp\MpResource.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResourceFactory.cpp">
+					RelativePath=".\src\mp\MpResourceFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResourceMsg.cpp">
+					RelativePath=".\src\mp\MpResourceMsg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResourceSortAlg.cpp">
+					RelativePath=".\src\mp\MpResourceSortAlg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResourceTopology.cpp">
+					RelativePath=".\src\mp\MpResourceTopology.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprFromFile.cpp">
+					RelativePath=".\src\mp\MprFromFile.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprFromMic.cpp">
+					RelativePath=".\src\mp\MprFromMic.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprFromNet.cpp">
+					RelativePath=".\src\mp\MprFromNet.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprFromStream.cpp">
+					RelativePath=".\src\mp\MprFromStream.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprMixer.cpp">
+					RelativePath=".\src\mp\MprMixer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprNull.cpp">
+					RelativePath=".\src\mp\MprNull.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprNullAec.cpp">
+					RelativePath=".\src\mp\MprNullAec.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprRecorder.cpp">
+					RelativePath=".\src\mp\MprRecorder.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprSpeexEchoCancel.cpp">
+					RelativePath=".\src\mp\MprSpeexEchoCancel.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprSpeexPreProcess.cpp">
+					RelativePath=".\src\mp\MprSpeexPreProcess.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprSplitter.cpp">
+					RelativePath=".\src\mp\MprSplitter.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprToneGen.cpp">
+					RelativePath=".\src\mp\MprToneGen.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprToNet.cpp">
+					RelativePath=".\src\mp\MprToNet.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprToSpkr.cpp">
+					RelativePath=".\src\mp\MprToSpkr.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpRtpBuf.cpp">
+					RelativePath=".\src\mp\MpRtpBuf.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpRtpInputAudioConnection.cpp">
+					RelativePath=".\src\mp\MpRtpInputAudioConnection.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpRtpInputConnection.cpp">
+					RelativePath=".\src\mp\MpRtpInputConnection.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpRtpOutputAudioConnection.cpp">
+					RelativePath=".\src\mp\MpRtpOutputAudioConnection.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpRtpOutputConnection.cpp">
+					RelativePath=".\src\mp\MpRtpOutputConnection.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpSipxDecoders.cpp">
+					RelativePath=".\src\mp\MpSipxDecoders.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpStreamFeeder.cpp">
+					RelativePath=".\src\mp\MpStreamFeeder.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpStreamMsg.cpp">
+					RelativePath=".\src\mp\MpStreamMsg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpStreamPlayer.cpp">
+					RelativePath=".\src\mp\MpStreamPlayer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpStreamPlaylistPlayer.cpp">
+					RelativePath=".\src\mp\MpStreamPlaylistPlayer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpStreamQueuePlayer.cpp">
+					RelativePath=".\src\mp\MpStreamQueuePlayer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpTopologyGraph.cpp">
+					RelativePath=".\src\mp\MpTopologyGraph.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpUdpBuf.cpp">
+					RelativePath=".\src\mp\MpUdpBuf.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\NetInTask.cpp">
+					RelativePath=".\src\mp\NetInTask.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\resamplingby2.cpp">
+					RelativePath=".\src\mp\resamplingby2.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamBufferDataSource.cpp">
+					RelativePath=".\src\mp\StreamBufferDataSource.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamDataSource.cpp">
+					RelativePath=".\src\mp\StreamDataSource.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamDataSourceListener.cpp">
+					RelativePath=".\src\mp\StreamDataSourceListener.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamDecoderListener.cpp">
+					RelativePath=".\src\mp\StreamDecoderListener.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamFileDataSource.cpp">
+					RelativePath=".\src\mp\StreamFileDataSource.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamFormatDecoder.cpp">
+					RelativePath=".\src\mp\StreamFormatDecoder.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamHttpDataSource.cpp">
+					RelativePath=".\src\mp\StreamHttpDataSource.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamQueueingFormatDecoder.cpp">
+					RelativePath=".\src\mp\StreamQueueingFormatDecoder.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamQueueMsg.cpp">
+					RelativePath=".\src\mp\StreamQueueMsg.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamRAWFormatDecoder.cpp">
+					RelativePath=".\src\mp\StreamRAWFormatDecoder.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\mp\StreamWAVFormatDecoder.cpp">
+					RelativePath=".\src\mp\StreamWAVFormatDecoder.cpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="rtcp"
-				Filter="">
+				>
 				<File
-					RelativePath=".\src\rtcp\BaseClass.cpp">
+					RelativePath=".\src\rtcp\BaseClass.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\ByeReport.cpp">
+					RelativePath=".\src\rtcp\ByeReport.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\Message.cpp">
+					RelativePath=".\src\rtcp\Message.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\MsgQueue.cpp">
+					RelativePath=".\src\rtcp\MsgQueue.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\NetworkChannel.cpp">
+					RelativePath=".\src\rtcp\NetworkChannel.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\ReceiverReport.cpp">
+					RelativePath=".\src\rtcp\ReceiverReport.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTCManager.cpp">
+					RelativePath=".\src\rtcp\RTCManager.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTCPConnection.cpp">
+					RelativePath=".\src\rtcp\RTCPConnection.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTCPHeader.cpp">
+					RelativePath=".\src\rtcp\RTCPHeader.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTCPRender.cpp">
+					RelativePath=".\src\rtcp\RTCPRender.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTCPSession.cpp">
+					RelativePath=".\src\rtcp\RTCPSession.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTCPSource.cpp">
+					RelativePath=".\src\rtcp\RTCPSource.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTCPTimer.cpp">
+					RelativePath=".\src\rtcp\RTCPTimer.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\RTPHeader.cpp">
+					RelativePath=".\src\rtcp\RTPHeader.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\SenderReport.cpp">
+					RelativePath=".\src\rtcp\SenderReport.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\src\rtcp\SourceDescription.cpp">
+					RelativePath=".\src\rtcp\SourceDescription.cpp"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<Filter
 				Name="mp"
-				Filter="">
+				>
 				<File
-					RelativePath=".\include\mp\dsplib.h">
+					RelativePath=".\include\mp\dmaTask.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\DspResampling.h">
+					RelativePath=".\include\mp\dsplib.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\dtmflib.h">
+					RelativePath=".\include\mp\DspResampling.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\FilterBank.h">
+					RelativePath=".\include\mp\dtmflib.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\HandsetFilterBank.h">
+					RelativePath=".\include\mp\FilterBank.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\HandsetFilterbankWindows.h">
+					RelativePath=".\include\mp\HandsetFilterBank.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpArrayBuf.h">
+					RelativePath=".\include\mp\HandsetFilterbankWindows.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\mpau.h">
+					RelativePath=".\include\mp\MpArrayBuf.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioAbstract.h">
+					RelativePath=".\include\mp\mpau.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioBuf.h">
+					RelativePath=".\include\mp\MpAudioAbstract.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioDeviceInfo.h">
+					RelativePath=".\include\mp\MpAudioBuf.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioDriverBase.h">
+					RelativePath=".\include\mp\MpAudioDeviceInfo.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioDriverDefs.h">
+					RelativePath=".\include\mp\MpAudioDriverBase.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioDriverFactory.h">
+					RelativePath=".\include\mp\MpAudioDriverDefs.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioDriverManager.h">
+					RelativePath=".\include\mp\MpAudioDriverFactory.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioFileDecompress.h">
+					RelativePath=".\include\mp\MpAudioDriverManager.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioFileOpen.h">
+					RelativePath=".\include\mp\MpAudioFileDecompress.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioFileUtils.h">
+					RelativePath=".\include\mp\MpAudioFileOpen.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioMixerBase.h">
+					RelativePath=".\include\mp\MpAudioFileUtils.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioResource.h">
+					RelativePath=".\include\mp\MpAudioMixerBase.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioResourceConstructor.h">
+					RelativePath=".\include\mp\MpAudioResource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioStreamInfo.h">
+					RelativePath=".\include\mp\MpAudioResourceConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioStreamParameters.h">
+					RelativePath=".\include\mp\MpAudioStreamInfo.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioUtils.h">
+					RelativePath=".\include\mp\MpAudioStreamParameters.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioWaveFileRead.h">
+					RelativePath=".\include\mp\MpAudioUtils.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpBuf.h">
+					RelativePath=".\include\mp\MpAudioWaveFileRead.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpBufferMsg.h">
+					RelativePath=".\include\mp\MpBuf.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpBufPool.h">
+					RelativePath=".\include\mp\MpBufferMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpBufRecStartResourceMsg.h">
+					RelativePath=".\include\mp\MpBufPool.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpCallFlowGraph.h">
+					RelativePath=".\include\mp\MpBufRecStartResourceMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpCodec.h">
+					RelativePath=".\include\mp\MpCallFlowGraph.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpCodecFactory.h">
+					RelativePath=".\include\mp\MpCodec.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpCodecInfo.h">
+					RelativePath=".\include\mp\MpCodecFactory.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpDataBuf.h">
+					RelativePath=".\include\mp\MpCodecInfo.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpDecodeBuffer.h">
+					RelativePath=".\include\mp\MpDataBuf.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpDecoderBase.h">
+					RelativePath=".\include\mp\MpDecodeBuffer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdIPPG7231.h">
+					RelativePath=".\include\mp\MpDecoderBase.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdIPPG729.h">
+					RelativePath=".\include\mp\MpdIPPG7231.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdPtAVT.h">
+					RelativePath=".\include\mp\MpdIPPG729.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdSipxGSM.h">
+					RelativePath=".\include\mp\MpdPtAVT.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdSipxILBC.h">
+					RelativePath=".\include\mp\MpdSipxGSM.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdSipxPcma.h">
+					RelativePath=".\include\mp\MpdSipxILBC.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdSipxPcmu.h">
+					RelativePath=".\include\mp\MpdSipxPcma.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpdSipxSpeex.h">
+					RelativePath=".\include\mp\MpdSipxPcmu.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpDspUtils.h">
+					RelativePath=".\include\mp\MpdSipxSpeex.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpDspUtilsSerials.h">
+					RelativePath=".\include\mp\MpDspUtils.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpDspUtilsShift.h">
+					RelativePath=".\include\mp\MpDspUtilsSerials.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpDspUtilsSum.h">
+					RelativePath=".\include\mp\MpDspUtilsShift.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpeIPPG7231.h">
+					RelativePath=".\include\mp\MpDspUtilsSum.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpeIPPG729.h">
+					RelativePath=".\include\mp\MpeIPPG7231.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpEncoderBase.h">
+					RelativePath=".\include\mp\MpeIPPG729.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpePtAVT.h">
+					RelativePath=".\include\mp\MpEncoderBase.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpeSipxGSM.h">
+					RelativePath=".\include\mp\MpePtAVT.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpeSipxILBC.h">
+					RelativePath=".\include\mp\MpeSipxGSM.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpeSipxPcma.h">
+					RelativePath=".\include\mp\MpeSipxILBC.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpeSipxPcmu.h">
+					RelativePath=".\include\mp\MpeSipxPcma.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpeSipxSpeex.h">
+					RelativePath=".\include\mp\MpeSipxPcmu.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpFlowGraphBase.h">
+					RelativePath=".\include\mp\MpeSipxSpeex.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpFlowGraphMsg.h">
+					RelativePath=".\include\mp\MpFlowGraphBase.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpFromFileStartResourceMsg.h">
+					RelativePath=".\include\mp\MpFlowGraphMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpHostAudioApiInfo.h">
+					RelativePath=".\include\mp\MpFromFileStartResourceMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpJitterBufferBase.h">
+					RelativePath=".\include\mp\MpHostAudioApiInfo.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpJitterBufferDefault.h">
+					RelativePath=".\include\mp\MpJitterBufferBase.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpJitterBufferSpeex.h">
+					RelativePath=".\include\mp\MpJitterBufferDefault.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpMediaTask.h">
+					RelativePath=".\include\mp\MpJitterBufferSpeex.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpMediaTaskHelper.h">
+					RelativePath=".\include\mp\MpMediaTask.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpMediaTaskMsg.h">
+					RelativePath=".\include\mp\MpMediaTaskHelper.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpMisc.h">
+					RelativePath=".\include\mp\MpMediaTaskMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpMMTimer.h">
+					RelativePath=".\include\mp\MpMisc.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpMMTimerWnt.h">
+					RelativePath=".\include\mp\MpMMTimer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpNotificationDispatcher.h">
+					RelativePath=".\include\mp\MpMMTimerWnt.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpNotificationMsgDef.h">
+					RelativePath=".\include\mp\MpNotificationMsgDef.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPlayer.h">
+					RelativePath=".\include\mp\MpPlayer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPlayerEvent.h">
+					RelativePath=".\include\mp\MpPlayerEvent.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPlayerListener.h">
+					RelativePath=".\include\mp\MpPlayerListener.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPortAudioDriver.h">
+					RelativePath=".\include\mp\MpPortAudioDriver.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPortAudioMixer.h">
+					RelativePath=".\include\mp\MpPortAudioMixer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPortAudioStream.h">
+					RelativePath=".\include\mp\MpPortAudioStream.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpQueuePlayerListener.h">
+					RelativePath=".\include\mp\MpQueuePlayerListener.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprAudioFrameBuffer.h">
+					RelativePath=".\include\mp\MprAudioFrameBuffer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpRawAudioBuffer.h">
+					RelativePath=".\include\mp\MpRawAudioBuffer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprBridge.h">
+					RelativePath=".\include\mp\MprBridge.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprBridgeConstructor.h">
+					RelativePath=".\include\mp\MprBridgeConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprBridgeSetGainsMsg.h">
+					RelativePath=".\include\mp\MprBufferRecorder.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprBufferRecorder.h">
+					RelativePath=".\include\mp\MprBufferRecorderConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprBufferRecorderConstructor.h">
+					RelativePath=".\include\mp\MprDecode.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprDecode.h">
+					RelativePath=".\include\mp\MprDecodeInbandDtmf.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprDecodeInbandDtmf.h">
+					RelativePath=".\include\mp\MprDejitter.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprDejitter.h">
+					RelativePath=".\include\mp\MprEchoSuppress.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprEchoSuppress.h">
+					RelativePath=".\include\mp\MprEncode.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprEncode.h">
+					RelativePath=".\include\mp\MpResNotification.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResNotification.h">
+					RelativePath=".\include\mp\MpResNotificationMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResNotificationMsg.h">
+					RelativePath=".\include\mp\MpResource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResource.h">
+					RelativePath=".\include\mp\MpResourceConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceConstructor.h">
+					RelativePath=".\include\mp\MpResourceFactory.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceFactory.h">
+					RelativePath=".\include\mp\MpResourceMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceMsg.h">
+					RelativePath=".\include\mp\MpResourceSortAlg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceSortAlg.h">
+					RelativePath=".\include\mp\MpResourceTopology.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceTopology.h">
+					RelativePath=".\include\mp\MprFromFile.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprFromFile.h">
+					RelativePath=".\include\mp\MprFromFileConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprFromFileConstructor.h">
+					RelativePath=".\include\mp\MprFromMic.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprFromMic.h">
+					RelativePath=".\include\mp\MprFromNet.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprFromNet.h">
+					RelativePath=".\include\mp\MprFromStream.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprFromStream.h">
+					RelativePath=".\include\mp\MprMixer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprMixer.h">
+					RelativePath=".\include\mp\MprNull.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprNull.h">
+					RelativePath=".\include\mp\MprNullAec.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprNullAec.h">
+					RelativePath=".\include\mp\MprNullAecConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprNullAecConstructor.h">
+					RelativePath=".\include\mp\MprNullConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprNullConstructor.h">
+					RelativePath=".\include\mp\MprRecorder.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprRecorder.h">
+					RelativePath=".\include\mp\MprRtpInputAudioConnectionConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprRtpInputAudioConnectionConstructor.h">
+					RelativePath=".\include\mp\MprRtpOutputAudioConnectionConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprRtpOutputAudioConnectionConstructor.h">
+					RelativePath=".\include\mp\MprRtpStartReceiveMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprRtpStartReceiveMsg.h">
+					RelativePath=".\include\mp\MprRtpStartSendMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprRtpStartSendMsg.h">
+					RelativePath=".\include\mp\MprSpeexEchoCancel.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprSpeexEchoCancel.h">
+					RelativePath=".\include\mp\MprSpeexPreProcess.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprSpeexPreProcess.h">
+					RelativePath=".\include\mp\MprSplitter.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprSplitter.h">
+					RelativePath=".\include\mp\MprSplitterConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprSplitterConstructor.h">
+					RelativePath=".\include\mp\MprToneGen.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprToneGen.h">
+					RelativePath=".\include\mp\MprToneGenConstructor.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprToneGenConstructor.h">
+					RelativePath=".\include\mp\MprToNet.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprToNet.h">
+					RelativePath=".\include\mp\MprToSpkr.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprToSpkr.h">
+					RelativePath=".\include\mp\MpRtpBuf.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpRtpBuf.h">
+					RelativePath=".\include\mp\MpRtpInputAudioConnection.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpRtpInputAudioConnection.h">
+					RelativePath=".\include\mp\MpRtpInputConnection.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpRtpInputConnection.h">
+					RelativePath=".\include\mp\MpRtpOutputAudioConnection.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpRtpOutputAudioConnection.h">
+					RelativePath=".\include\mp\MpRtpOutputConnection.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpRtpOutputConnection.h">
+					RelativePath=".\include\mp\MpSipxDecoders.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpSipxDecoders.h">
+					RelativePath=".\include\mp\MpStreamFeeder.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpStreamFeeder.h">
+					RelativePath=".\include\mp\MpStreamMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpStreamMsg.h">
+					RelativePath=".\include\mp\MpStreamPlayer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpStreamPlayer.h">
+					RelativePath=".\include\mp\MpStreamPlaylistPlayer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpStreamPlaylistPlayer.h">
+					RelativePath=".\include\mp\MpStreamQueuePlayer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpStreamQueuePlayer.h">
+					RelativePath=".\include\mp\MpToneResourceMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpToneResourceMsg.h">
+					RelativePath=".\include\mp\MpTopologyGraph.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpTopologyGraph.h">
+					RelativePath=".\include\mp\MpTypes.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpTypes.h">
+					RelativePath=".\include\mp\MpUdpBuf.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpUdpBuf.h">
+					RelativePath=".\include\mp\MpVolumeMeter.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpVolumeMeter.h">
+					RelativePath=".\include\mp\MpVolumeMeterBase.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpVolumeMeterBase.h">
+					RelativePath=".\include\mp\NetInTask.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\NetInTask.h">
+					RelativePath=".\include\mp\resamplingby2.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\resamplingby2.h">
+					RelativePath=".\include\mp\StreamBufferDataSource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamBufferDataSource.h">
+					RelativePath=".\include\mp\StreamDataSource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamDataSource.h">
+					RelativePath=".\include\mp\StreamDataSourceListener.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamDataSourceListener.h">
+					RelativePath=".\include\mp\StreamDecoderListener.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamDecoderListener.h">
+					RelativePath=".\include\mp\StreamDefs.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamDefs.h">
+					RelativePath=".\include\mp\StreamFileDataSource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamFileDataSource.h">
+					RelativePath=".\include\mp\StreamFormatDecoder.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamFormatDecoder.h">
+					RelativePath=".\include\mp\StreamHttpDataSource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamHttpDataSource.h">
+					RelativePath=".\include\mp\StreamQueueingFormatDecoder.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamQueueingFormatDecoder.h">
+					RelativePath=".\include\mp\StreamQueueMsg.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamQueueMsg.h">
+					RelativePath=".\include\mp\StreamRAWFormatDecoder.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\mp\StreamRAWFormatDecoder.h">
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamWAVFormatDecoder.h">
+					RelativePath=".\include\mp\StreamWAVFormatDecoder.h"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="rtcp"
-				Filter="">
+				>
 				<File
-					RelativePath=".\include\rtcp\BaseClass.h">
+					RelativePath=".\include\rtcp\BaseClass.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\ByeReport.h">
+					RelativePath=".\include\rtcp\ByeReport.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IBaseClass.h">
+					RelativePath=".\include\rtcp\IBaseClass.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IByeReport.h">
+					RelativePath=".\include\rtcp\IByeReport.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IGetByeInfo.h">
+					RelativePath=".\include\rtcp\IGetByeInfo.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IGetReceiverStatistics.h">
+					RelativePath=".\include\rtcp\IGetReceiverStatistics.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IGetSenderStatistics.h">
+					RelativePath=".\include\rtcp\IGetSenderStatistics.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IGetSrcDescription.h">
+					RelativePath=".\include\rtcp\IGetSrcDescription.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\INetDispatch.h">
+					RelativePath=".\include\rtcp\INetDispatch.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\INetworkChannel.h">
+					RelativePath=".\include\rtcp\INetworkChannel.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\INetworkRender.h">
+					RelativePath=".\include\rtcp\INetworkRender.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\INetworkSource.h">
+					RelativePath=".\include\rtcp\INetworkSource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IReceiverReport.h">
+					RelativePath=".\include\rtcp\IReceiverReport.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPConnection.h">
+					RelativePath=".\include\rtcp\IRTCPConnection.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPControl.h">
+					RelativePath=".\include\rtcp\IRTCPControl.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPHeader.h">
+					RelativePath=".\include\rtcp\IRTCPHeader.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPNotify.h">
+					RelativePath=".\include\rtcp\IRTCPNotify.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPRegister.h">
+					RelativePath=".\include\rtcp\IRTCPRegister.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPRender.h">
+					RelativePath=".\include\rtcp\IRTCPRender.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPSession.h">
+					RelativePath=".\include\rtcp\IRTCPSession.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTCPStatistics.h">
+					RelativePath=".\include\rtcp\IRTCPStatistics.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTPDispatch.h">
+					RelativePath=".\include\rtcp\IRTPDispatch.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\IRTPHeader.h">
+					RelativePath=".\include\rtcp\IRTPHeader.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\ISDESReport.h">
+					RelativePath=".\include\rtcp\ISDESReport.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\ISenderReport.h">
+					RelativePath=".\include\rtcp\ISenderReport.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\ISetReceiverStatistics.h">
+					RelativePath=".\include\rtcp\ISetReceiverStatistics.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\ISetSenderStatistics.h">
+					RelativePath=".\include\rtcp\ISetSenderStatistics.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\ISetSrcDescription.h">
+					RelativePath=".\include\rtcp\ISetSrcDescription.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\Message.h">
+					RelativePath=".\include\rtcp\Message.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\MsgQueue.h">
+					RelativePath=".\include\rtcp\MsgQueue.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\NetworkChannel.h">
+					RelativePath=".\include\rtcp\NetworkChannel.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\ReceiverReport.h">
+					RelativePath=".\include\rtcp\ReceiverReport.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTCManager.h">
+					RelativePath=".\include\rtcp\RTCManager.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RtcpConfig.h">
+					RelativePath=".\include\rtcp\RtcpConfig.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTCPConnection.h">
+					RelativePath=".\include\rtcp\RTCPConnection.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTCPHeader.h">
+					RelativePath=".\include\rtcp\RTCPHeader.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTCPRender.h">
+					RelativePath=".\include\rtcp\RTCPRender.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTCPSession.h">
+					RelativePath=".\include\rtcp\RTCPSession.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTCPSource.h">
+					RelativePath=".\include\rtcp\RTCPSource.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTCPTimer.h">
+					RelativePath=".\include\rtcp\RTCPTimer.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\RTPHeader.h">
+					RelativePath=".\include\rtcp\RTPHeader.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\SenderReport.h">
+					RelativePath=".\include\rtcp\SenderReport.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\SourceDescription.h">
+					RelativePath=".\include\rtcp\SourceDescription.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\TLink.h">
+					RelativePath=".\include\rtcp\TLink.h"
+					>
 				</File>
 				<File
-					RelativePath=".\include\rtcp\TLinkedList.h">
+					RelativePath=".\include\rtcp\TLinkedList.h"
+					>
 				</File>
 			</Filter>
 		</Filter>

@@ -113,76 +113,116 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
-				RelativePath=".\src\test\net\HttpBodyTest.cpp">
+				RelativePath=".\src\test\net\HttpBodyTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\HttpMessageTest.cpp">
+				RelativePath=".\src\test\net\HttpMessageTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\NameValuePairInsensitiveTest.cpp">
+				RelativePath=".\src\test\net\NameValuePairInsensitiveTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\NameValuePairTest.cpp">
+				RelativePath=".\src\test\net\NameValuePairTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\NetAttributeTokenizerTest.cpp">
+				RelativePath=".\src\test\net\NetAttributeTokenizerTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\NetBase64CodecTest.cpp">
+				RelativePath=".\src\test\net\NetBase64CodecTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\NetMd5CodecTest.cpp">
+				RelativePath=".\src\test\net\NetMd5CodecTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SdpBodyTest.cpp">
+				RelativePath=".\src\test\net\SdpBodyTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipContactDbTest.cpp">
+				RelativePath=".\src\test\net\SipContactDbTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipDialogEventTest.cpp">
+				RelativePath=".\src\test\net\SipDialogEventTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipDialogMonitorTest.cpp">
+				RelativePath=".\src\test\net\SipDialogMonitorTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipDialogTest.cpp">
+				RelativePath=".\src\test\net\SipDialogTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipMessageTest.cpp">
+				RelativePath=".\src\test\net\SipLineCredentialTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipPresenceEventTest.cpp">
+				RelativePath=".\src\test\net\SipLineListTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipProxyMessageTest.cpp">
+				RelativePath=".\src\test\net\SipLineMgrTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipPublishContentMgrTest.cpp">
+				RelativePath=".\src\test\net\SipLineTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipRefreshManagerTest.cpp">
+				RelativePath=".\src\test\net\SipMessageTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipServerShutdownTest.cpp">
+				RelativePath=".\src\test\net\SipPresenceEventTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipSrvLookupTest.cpp">
+				RelativePath=".\src\test\net\SipProxyMessageTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipSubscribeServerTest.cpp">
+				RelativePath=".\src\test\net\SipPublishContentMgrTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipSubscriptionClientTest.cpp">
+				RelativePath=".\src\test\net\SipRefreshManagerTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipSubscriptionMgrTest.cpp">
+				RelativePath=".\src\test\net\SipServerShutdownTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\SipUserAgentTest.cpp">
+				RelativePath=".\src\test\net\SipSrvLookupTest.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\test\net\UrlTest.cpp">
+				RelativePath=".\src\test\net\SipSubscribeServerTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\test\net\SipSubscriptionClientTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\test\net\SipSubscriptionMgrTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\test\net\SipUserAgentTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\test\net\UrlTest.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -190,7 +230,12 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
-				RelativePath="..\sipXportLib\src\test\sipxunit\TestOsSysLogListener.h">
+				RelativePath=".\include\test\CompareHelper.h"
+				>
+			</File>
+			<File
+				RelativePath="..\sipXportLib\src\test\sipxunit\TestOsSysLogListener.h"
+				>
 			</File>
 		</Filter>
 	</Files>
