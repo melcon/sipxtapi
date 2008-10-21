@@ -65,8 +65,6 @@ public:
                                NULL, // CodecFactory
                                9000, // rtp start
                                9002, // rtp end
-                               "sip:153@pingtel.com",
-                               "sip:153@pingtel.com",
                                NULL, //SipUserAgent
                                0, // sipSessionReinviteTimer
                                NULL, // pCallEventListener
@@ -74,7 +72,6 @@ public:
                                NULL, // pSecurityEventListener
                                NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
-                               NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
                                NULL, // unconditionalForwardUrl
                                -1, // forwardOnNoAnswerSeconds
@@ -148,8 +145,6 @@ public:
                                NULL, // CodecFactory
                                9000, // rtp start
                                9002, // rtp end
-                               "sip:153@pingtel.com",
-                               "sip:153@pingtel.com",
                                sipUA, //SipUserAgent
                                0, // sipSessionReinviteTimer
                                NULL, // pCallEventListener
@@ -157,7 +152,6 @@ public:
                                NULL, // pSecurityEventListener
                                NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
-                               NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
                                NULL, // unconditionalForwardUrl
                                -1, // forwardOnNoAnswerSeconds
@@ -226,8 +220,6 @@ public:
                                NULL, // CodecFactory
                                9000, // rtp start
                                9002, // rtp end
-                               "sip:153@pingtel.com",
-                               "sip:153@pingtel.com",
                                sipUA, //SipUserAgent
                                0, // sipSessionReinviteTimer
                                NULL, // pCallEventListener
@@ -235,7 +227,6 @@ public:
                                NULL, // pSecurityEventListener
                                NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
-                               NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
                                NULL, // unconditionalForwardUrl
                                -1, // forwardOnNoAnswerSeconds
@@ -313,8 +304,6 @@ public:
                                NULL, // CodecFactory
                                9000, // rtp start
                                9002, // rtp end
-                               "sip:153@pingtel.com",
-                               "sip:153@pingtel.com",
                                sipUA, //SipUserAgent
                                0, // sipSessionReinviteTimer
                                NULL, // pCallEventListener
@@ -322,7 +311,6 @@ public:
                                NULL, // pSecurityEventListener
                                NULL, // pMediaEventListener
                                NULL, // mgcpStackTask
-                               NULL, // defaultCallExtension
                                Connection::RING, // availableBehavior
                                NULL, // unconditionalForwardUrl
                                -1, // forwardOnNoAnswerSeconds

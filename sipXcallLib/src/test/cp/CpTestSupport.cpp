@@ -66,8 +66,6 @@ CallManager *CpTestSupport::newCallManager(SipUserAgent* sua)
           pCodecFactory,
           9000, //rtp start
           9999, //rtp end
-          localAddress.data(),
-          localAddress.data(),
           sua,
           0,//sipSessionReinviteTimer
           NULL, // pCallEventListener
@@ -75,7 +73,6 @@ CallManager *CpTestSupport::newCallManager(SipUserAgent* sua)
           NULL, // pSecurityEventListener
           NULL, // pMediaEventListener
           NULL, // mgcpStackTask
-          "ivr@sip.pingtel.com", // defaultCallExtension
           Connection::RING, // availableBehavior
           NULL, // unconditionalForwardUrl
           -1, // forwardOnNoAnswerSeconds
