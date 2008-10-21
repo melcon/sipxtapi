@@ -2816,9 +2816,6 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
  * line url with your line definition and receive real line handles with event
  * callbacks.
  *
- * Line aliases are not used for outbound calls and are not supported
- * to use their own sip proxy.
- *
  * @see sipxConfigGetLocalContacts
  */
 SIPXTAPI_API SIPX_RESULT sipxLineAddAlias(const SIPX_LINE hLine,
@@ -2876,7 +2873,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAddCredential(const SIPX_LINE hLine,
 /**
 * Sets line outbound proxy servers. This setting overrides the default
 * outbound proxy servers set by sipxConfigSetOutboundProxy. Works only on
-* lines created by sipxLineAdd.
+* lines created by sipxLineAdd and their aliases.
 * 
 * @param hLine Handle to a line appearance.  Line handles are obtained by
 *        creating a line using the sipxLineAdd function.
