@@ -100,90 +100,168 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
 			<File
-				RelativePath=".\src\cp\CallManager.cpp">
+				RelativePath=".\src\cp\CallManager.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\Connection.cpp">
+				RelativePath=".\src\cp\Connection.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpCall.cpp">
+				RelativePath=".\src\cp\CpCall.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpCallIdGenerator.cpp">
+				RelativePath=".\src\cp\CpCallManager.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpCallManager.cpp">
+				RelativePath=".\src\cp\CpGhostConnection.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpGhostConnection.cpp">
+				RelativePath=".\src\cp\CpIntMessage.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpIntMessage.cpp">
+				RelativePath=".\src\cp\CpMultiStringMessage.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpMultiStringMessage.cpp">
+				RelativePath=".\src\cp\CpPeerCall.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpPeerCall.cpp">
+				RelativePath=".\src\cp\CSeqManager.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CSeqManager.cpp">
+				RelativePath=".\src\cp\SipConnection.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\src\cp\SipConnection.cpp">
+				RelativePath=".\src\cp\XCpAbstractCall.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\XCpAbstractConnection.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\XCpCall.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\XCpCallManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\XCpConference.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\XCpSipConnection.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<File
-				RelativePath=".\include\cp\CallManager.h">
+				RelativePath="include\cp\CallManager.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\Connection.h">
+				RelativePath="include\cp\Connection.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpCall.h">
+				RelativePath=".\include\cp\CpAudioCodecInfo.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpCallIdGenerator.h">
+				RelativePath="include\cp\CpCall.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpCallManager.h">
+				RelativePath="include\cp\CpCallManager.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpCallStateEventListener.h">
+				RelativePath=".\include\cp\CpCallStateEventListener.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpDefs.h">
+				RelativePath=".\include\cp\CpCodecInfo.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpGhostConnection.h">
+				RelativePath=".\include\cp\CpDefs.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpIntMessage.h">
+				RelativePath="include\cp\CpGhostConnection.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpMediaEventListener.h">
+				RelativePath="include\cp\CpIntMessage.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpMultiStringMessage.h">
+				RelativePath=".\include\cp\CpMediaEventListener.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpNotificationMsgDef.h">
+				RelativePath="include\cp\CpMultiStringMessage.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CpPeerCall.h">
+				RelativePath=".\include\cp\CpNotificationMsgDef.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\CSeqManager.h">
+				RelativePath="include\cp\CpPeerCall.h"
+				>
 			</File>
 			<File
-				RelativePath=".\include\cp\SipConnection.h">
+				RelativePath=".\include\cp\CpVideoCodecInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CSeqManager.h"
+				>
+			</File>
+			<File
+				RelativePath="include\cp\SipConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpAbstractCall.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpAbstractConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpCall.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpCallManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpConference.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpSipConnection.h"
+				>
 			</File>
 		</Filter>
 	</Files>
