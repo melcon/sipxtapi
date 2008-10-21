@@ -149,11 +149,15 @@ UtlBoolean SipUserAgentStateless::sendTo(SipMessage& message,
         UtlString messageStatus;
         char messageChars[200];
         if(sendOk)
-            SNPRINTF(messageChars, sizeof(messageChars), "Sent message %s port:%d:\n",
-                sendAddress, sendPort);
+        {
+           SNPRINTF(messageChars, sizeof(messageChars), "Sent message %s port:%d:\n",
+              sendAddress, sendPort);
+        }
         else
-            SNPRINTF(messageChars, sizeof(messageChars), "Failed to send message %s port:%d:\n",
-                sendAddress, sendPort);
+        {
+           SNPRINTF(messageChars, sizeof(messageChars), "Failed to send message %s port:%d:\n",
+              sendAddress, sendPort);
+        }
         messageStatus = messageChars;
         UtlString msgBytes;
         int msgLen;
