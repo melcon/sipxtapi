@@ -5,11 +5,10 @@ INCLUDES = -I$(top_srcdir)/../sipXcallLib/include
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
-    mi/CpMediaInterface.h \
-    mi/CpMediaInterfaceFactoryImpl.h \
-    mi/CpMediaInterfaceFactoryFactory.h \
-    mi/CpMediaInterfaceFactory.h \
-    mi/IMediaSocket.h
+    include/mi/CpAudioDeviceInfo.h \
+    include/mi/CpMediaInterface.h \
+    include/mi/CpMediaInterfaceFactoryFactory.h \
+    include/mi/CpMediaInterfaceFactory.h
     
 noinst_LTLIBRARIES = libmediainterface.la
 
@@ -17,13 +16,6 @@ libmediainterface_la_LIBADD =  \
 	@SIPXMEDIA_LIBS@
 
 libmediainterface_la_SOURCES =  \
-    CpMediaInterface.cpp \
-    CpMediaInterfaceFactoryImpl.cpp \
-    CpMediaInterfaceFactory.cpp \
-    mi/CpMediaInterface.h \
-    mi/CpMediaInterfaceFactoryImpl.h \
-    mi/CpMediaInterfaceFactoryFactory.h \
-    mi/CpMediaInterfaceFactory.h
-
-
-
+    src/mi/CpAudioDeviceInfo.cpp \
+    src/mi/CpMediaInterface.cpp \
+    src/mi/CpMediaInterfaceFactory.cpp

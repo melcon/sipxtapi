@@ -51,6 +51,8 @@ libsipXtack_la_SOURCES =  \
     ../config/sipxtacklib-buildstamp.h \
     ../config/sipxtacklib-buildstamp.cpp \
     net/HttpBody.cpp \
+    net/HttpConnection.cpp \
+    net/HttpConnectionMap.cpp \
     net/HttpMessage.cpp \
     net/HttpRequestContext.cpp \
     net/HttpServer.cpp \
@@ -64,25 +66,24 @@ libsipXtack_la_SOURCES =  \
     net/NetAttributeTokenizer.cpp \
     net/NetBase64Codec.cpp \
     net/NetMd5Codec.cpp \
-    net/ProvisioningAgent.cpp \
-    net/ProvisioningAgentXmlRpcAdapter.cpp \
-    net/ProvisioningAttrList.cpp \
-    net/ProvisioningClass.cpp \
+    net/PidfBody.cpp \
     net/SdpBody.cpp \
     net/SdpCodecFactory.cpp \
     net/SdpHelper.cpp \
+    net/SipCallIdGenerator.cpp \
     net/SipClient.cpp \
-    net/SipContactDb.cpp \
     net/SipConfigServerAgent.cpp \
+    net/SipContactDb.cpp \
     net/SipDialog.cpp \
     net/SipDialogEvent.cpp \
     net/SipDialogMgr.cpp \
     net/SipDialogMonitor.cpp \
     net/SipLine.cpp \
-    net/SipLineCredentials.cpp \
-    net/SipLineEvent.cpp \
+    net/SipLineAlias.cpp \
+    net/SipLineCredential.cpp \
     net/SipLineList.cpp \
     net/SipLineMgr.cpp \
+    net/SipLineProvider.cpp \
     net/SipMessage.cpp \
     net/SipMessageEvent.cpp \
     net/SipMessageList.cpp \
@@ -96,12 +97,13 @@ libsipXtack_la_SOURCES =  \
     net/SipPublishServer.cpp \
     net/SipPublishServerEventStateCompositor.cpp \
     net/SipPublishServerEventStateMgr.cpp \
-    net/SipRefreshMgr.cpp \
     net/SipRefreshManager.cpp \
+    net/SipRefreshMgr.cpp \
     net/SipRequestContext.cpp \
     net/SipResourceList.cpp \
-    net/SipServerBroker.cpp \
     net/SipServerBase.cpp \
+    net/SipServerBroker.cpp \
+    net/SipServerBrokerListener.cpp \
     net/SipSession.cpp \
     net/SipSrvLookup.cpp \
     net/SipSubscribeClient.cpp \
@@ -111,22 +113,15 @@ libsipXtack_la_SOURCES =  \
     net/SipTcpServer.cpp \
     net/SipTransaction.cpp \
     net/SipTransactionList.cpp \
+    net/SipTransport.cpp \
     net/SipUdpServer.cpp \
-    net/SipUserAgentBase.cpp \
     net/SipUserAgent.cpp \
+    net/SipUserAgentBase.cpp \
     net/SipUserAgentStateless.cpp \
     net/SmimeBody.cpp \
     net/StateChangeNotifier.cpp \
-    net/TapiMgr.cpp \
     net/Url.cpp \
-    net/XmlRpcBody.cpp \
-    net/XmlRpcDispatch.cpp \
-    net/XmlRpcMethod.cpp \
-    net/XmlRpcRequest.cpp \
-    net/XmlRpcResponse.cpp \
-    net/HttpConnection.cpp \
-    net/HttpConnectionMap.cpp \
-    net/PidfBody.cpp \
+    net/pk12wrapper.cpp \
     resparse/bzero.c \
     resparse/memset.c \
     resparse/ns_name.c \

@@ -34,6 +34,4 @@ libsipXmediaProcessing_la_LIBADD = \
 
 libsipXmediaProcessing_la_SOURCES =  \
     sipXmediaFactoryImpl.cpp \
-    CpPhoneMediaInterface.cpp \
-    CpTopologyGraphFactoryImpl.cpp \
-    CpTopologyGraphInterface.cpp
+    CpPhoneMediaInterface.cpp

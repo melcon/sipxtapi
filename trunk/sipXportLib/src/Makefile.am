@@ -42,49 +42,17 @@ libsipXport_la_CXXFLAGS = \
 libsipXport_la_SOURCES =  \
     ../config/sipxportlib-buildstamp.h \
     ../config/sipxportlib-buildstamp.cpp \
-    utl/UtlLongLongInt.cpp \
-    utl/UtlBool.cpp \
-    utl/UtlCrc32.cpp \
-    utl/UtlDateTime.cpp \
-    utl/UtlLink.cpp \
-    utl/UtlVoidPtr.cpp \
-    utl/UtlHistogram.cpp \
-    utl/UtlInit.cpp \
-    utl/UtlInt.cpp \
-    utl/UtlString.cpp \
-    utl/UtlChainPool.cpp \
-    utl/UtlContainable.cpp \
-    utl/UtlContainer.cpp \
-    utl/UtlContainableAtomic.cpp \
-    utl/UtlIterator.cpp \
-    utl/UtlList.cpp \
-    utl/UtlListIterator.cpp \
-    utl/UtlSList.cpp \
-    utl/UtlCopyableSList.cpp \
-    utl/UtlSListIterator.cpp \
-    utl/UtlDList.cpp \
-    utl/UtlDListIterator.cpp \
-    utl/UtlCopyableSortedList.cpp \
-    utl/UtlSortedList.cpp \
-    utl/UtlSortedListIterator.cpp \
-    utl/UtlHashMap.cpp \
-    utl/UtlHashMapIterator.cpp \
-    utl/UtlHashBag.cpp \
-    utl/UtlHashBagIterator.cpp \
-    utl/UtlRscStore.cpp \
-    utl/UtlRegex.cpp \
-    utl/UtlTokenizer.cpp \
-    utl/XmlContent.cpp \
-    utl/UtlRandom.cpp \
-    utl/PluginHooks.cpp \
+    hmac-sha1/hmac-sha1.c \
+    hmac-sha1/sha1.c \
+    hmac-sha1/sha1.h \
     os/NatMsg.cpp \
     os/OsAssert.c \
+    os/OsCSemBase.cpp \
     os/OsCallback.cpp \
     os/OsConfigDb.cpp \
+    os/OsConnectionSocket.cpp \
     os/OsContact.cpp \
     os/OsContactList.cpp \
-    os/OsConnectionSocket.cpp \
-    os/OsCSemBase.cpp \
     os/OsDatagramSocket.cpp \
     os/OsDateTime.cpp \
     os/OsDirBase.cpp \
@@ -96,20 +64,21 @@ libsipXport_la_SOURCES =  \
     os/OsFileInfoBase.cpp \
     os/OsFileIteratorBase.cpp \
     os/OsFileSystem.cpp \
+    os/OsIntPtrMsg.cpp \
     os/OsLockingList.cpp \
     os/OsMsg.cpp \
+    os/OsMsgDispatcher.cpp \
     os/OsMsgPool.cpp \
     os/OsMsgQ.cpp \
-    os/OsMsgDispatcher.cpp \
     os/OsMulticastSocket.cpp \
     os/OsNameDb.cpp \
     os/OsNameDbInit.cpp \
     os/OsNatAgentTask.cpp \
-    os/OsNatDatagramSocket.cpp \
     os/OsNatConnectionSocket.cpp \
+    os/OsNatDatagramSocket.cpp \
+    os/OsNatServerSocket.cpp \
     os/OsNatSocketBaseImpl.cpp \
     os/OsPathBase.cpp \
-    os/osPrintf.cpp \
     os/OsProcessBase.cpp \
     os/OsProcessIteratorBase.cpp \
     os/OsProcessMgr.cpp \
@@ -118,15 +87,20 @@ libsipXport_la_SOURCES =  \
     os/OsProtectEventMgrInit.cpp \
     os/OsPtrMsg.cpp \
     os/OsQueuedEvent.cpp \
-    os/OsRpcMsg.cpp \
     os/OsRWMutex.cpp \
-    os/OsServerSocket.cpp \
-    os/OsServerTask.cpp \
-    os/OsSharedLibMgr.cpp \
-    os/OsSocket.cpp \
+    os/OsRpcMsg.cpp \
     os/OsSSL.cpp \
     os/OsSSLConnectionSocket.cpp \
     os/OsSSLServerSocket.cpp \
+    os/OsServerSocket.cpp \
+    os/OsServerTask.cpp \
+    os/OsSharedLibMgr.cpp \
+    os/OsSharedServerTask.cpp \
+    os/OsSharedServerTaskMgr.cpp \
+    os/OsSharedServerTaskMsg.cpp \
+    os/OsSharedServerTaskWorker.cpp \
+    os/OsSharedTaskInfo.cpp \
+    os/OsSocket.cpp \
     os/OsSysLog.cpp \
     os/OsSysLogFacilities.cpp \
     os/OsSysLogMsg.cpp \
@@ -137,18 +111,11 @@ libsipXport_la_SOURCES =  \
     os/OsTimer.cpp \
     os/OsTimerMsg.cpp \
     os/OsTimerTask.cpp \
-    os/OsTLSServerSocket.cpp \
-    os/OsTLSConnectionSocket.cpp \
-    os/OsTLSClientConnectionSocket.cpp \
     os/OsTokenizer.cpp \
     os/OsUtil.cpp \
     os/StunMessage.cpp \
     os/StunUtils.cpp \
     os/TurnMessage.cpp \
-    os/shared/OsMsgQShared.cpp \
-    os/shared/OsTimerMessage.cpp \
-    os/linux/clock_gettime.c \
-    os/linux/host_address.c \
     os/linux/AdapterInfo.cpp \
     os/linux/OsBSemLinux.cpp \
     os/linux/OsCSemLinux.cpp \
@@ -158,22 +125,64 @@ libsipXport_la_SOURCES =  \
     os/linux/OsFileIteratorLinux.cpp \
     os/linux/OsFileLinux.cpp \
     os/linux/OsMutexLinux.cpp \
+    os/linux/OsMutexLinuxC.c \
     os/linux/OsPathLinux.cpp \
     os/linux/OsProcessIteratorLinux.cpp \
     os/linux/OsProcessLinux.cpp \
     os/linux/OsSharedLibMgrLinux.cpp \
     os/linux/OsTaskLinux.cpp \
     os/linux/OsUtilLinux.cpp \
+    os/linux/clock_gettime.c \
+    os/linux/host_address.c \
     os/linux/pt_csem.c \
     os/linux/pt_mutex.c \
+    os/osPrintf.cpp \
+    os/shared/OsMsgQShared.cpp \
+    os/shared/OsTimerMessage.cpp \
+    utl/Plugin.cpp \
+    utl/PluginHooks.cpp \
+    utl/UtlBool.cpp \
+    utl/UtlChainPool.cpp \
+    utl/UtlContainable.cpp \
+    utl/UtlContainableAtomic.cpp \
+    utl/UtlContainer.cpp \
+    utl/UtlCopyableSList.cpp \
+    utl/UtlCopyableSortedList.cpp \
+    utl/UtlCrc32.cpp \
+    utl/UtlDList.cpp \
+    utl/UtlDListIterator.cpp \
+    utl/UtlDateTime.cpp \
+    utl/UtlHashBag.cpp \
+    utl/UtlHashBagIterator.cpp \
+    utl/UtlHashMap.cpp \
+    utl/UtlHashMapIterator.cpp \
+    utl/UtlHistogram.cpp \
+    utl/UtlInit.cpp \
+    utl/UtlInt.cpp \
+    utl/UtlIterator.cpp \
+    utl/UtlLink.cpp \
+    utl/UtlList.cpp \
+    utl/UtlListIterator.cpp \
+    utl/UtlLongLongInt.cpp \
+    utl/UtlObservableImpl.cpp \
+    utl/UtlRandom.cpp \
+    utl/UtlRegex.cpp \
+    utl/UtlRscStore.cpp \
+    utl/UtlRscTrace.cpp \
+    utl/UtlSList.cpp \
+    utl/UtlSListIterator.cpp \
+    utl/UtlSortedList.cpp \
+    utl/UtlSortedListIterator.cpp \
+    utl/UtlString.cpp \
+    utl/UtlTokenizer.cpp \
+    utl/UtlVoidPtr.cpp \
+    utl/XmlContent.cpp \
+    xmlparser/ExtractContent.cpp \
+    xmlparser/TiXmlIterator.cpp \
     xmlparser/tinystr.cpp \
     xmlparser/tinyxml.cpp \
     xmlparser/tinyxmlerror.cpp \
-    xmlparser/tinyxmlparser.cpp \
-    xmlparser/TiXmlIterator.cpp \
-    xmlparser/ExtractContent.cpp \
-    hmac-sha1/hmac-sha1.c \
-    hmac-sha1/sha1.c 
+    xmlparser/tinyxmlparser.cpp
 
 EXTRA_DIST= \
     os/Wnt/getWindowsDNSServers.cpp \
