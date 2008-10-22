@@ -97,14 +97,9 @@ AC_CONFIG_FILES([
   src/test/Makefile
   examples/Makefile
   examples/im/Makefile
-  examples/xmlrpc/Makefile
   syslog2siptrace/Makefile 
   siplog2siptrace/Makefile
   sipviewer/Makefile 
-  siptest/Makefile 
-  siptest/src/Makefile 
-  siptest/include/Makefile 
-  siptest/src/siptest/Makefile
   doc/Makefile  
 ])
 

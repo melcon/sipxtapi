@@ -3,7 +3,7 @@
 SUBDIRS = . test
 
 INCLUDES = \
-	-I$(top_srcdir)/interface \
+	-I$(top_srcdir)/interface/include \
 	-I$(top_srcdir)/sipXmediaMediaProcessing \
 	-I$(top_srcdir)/../sipXcallLib/include
 
@@ -21,9 +21,14 @@ version_Age=0
 
 libsipXmediaProcessing_la_LDFLAGS = -version-info ${version_Current}:${version_Revision}:${version_Age}
 
+if DISABLE_LOCAL_AUDIO
+LOCAL_AUDIO_CXXFLAGS = -DDISABLE_LOCAL_AUDIO
+endif
+
 libsipXmediaProcessing_la_CXXFLAGS = \
 	@SSL_CXXFLAGS@ \
 	-DSIPX_LOGDIR=\"@SIPX_LOGDIR@\" \
+	$(LOCAL_AUDIO_CXXFLAGS) \
 	-DSIPX_CONFDIR=\"@SIPX_CONFDIR@\"
 
 libsipXmediaProcessing_la_LIBADD = \

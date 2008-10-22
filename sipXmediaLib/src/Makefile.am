@@ -2,7 +2,9 @@
 
 SUBDIRS = test
 
-INCLUDES = -I$(top_srcdir)/include 
+INCLUDES = \
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/../sipXportLib/include
 
 lib_LTLIBRARIES = libsipXmedia.la
 
@@ -21,23 +23,27 @@ libsipXmedia_la_LDFLAGS = \
 	-version-info ${version_Current}:${version_Revision}:${version_Age} \
 	@GSM_LDFLAGS@
 
-if ENABLE_LOCAL_AUDIO
-LOCAL_AUDIO_CXXFLAGS = -D_INCLUDE_AUDIO_SUPPORT
+if DISABLE_LOCAL_AUDIO
+LOCAL_AUDIO_CXXFLAGS = -DDISABLE_LOCAL_AUDIO
 endif
 
 libsipXmedia_la_CXXFLAGS = \
 	-D_REALTIME_LINUX_AUDIO_THREADS \
 	$(LOCAL_AUDIO_CXXFLAGS) \
-	@GSM_CXXFLAGS@ \
-	@SPEEX_CFLAGS@
+	@GSM_CXXFLAGS@
+
+# Disabled SPEEX_CFLAGS, broken
+# SPEEX_CFLAGS
 
 libsipXmedia_la_LIBADD = \
 	@SIPXTACK_LIBS@ \
 	@SIPXPORT_LIBS@ \
 	@CA_LIBS@ \
 	@GSM_LIBS@ \
-	@SPEEX_LIBS@ \
 	-lstdc++
+
+# Disabled SPEEX_LIB, broken
+# SPEEX_LIBS@
 
 libsipXmedia_la_SOURCES =  \
     ../config/sipxmedialib-buildstamp.h \
@@ -46,7 +52,6 @@ libsipXmedia_la_SOURCES =  \
     mp/DspResampling.cpp \
     mp/FilterBank.cpp \
     mp/HandsetFilterBank.cpp \
-    mp/MicThreadWnt.cpp \
     mp/MpArrayBuf.cpp \
     mp/MpAudioAbstract.cpp \
     mp/MpAudioBuf.cpp \
@@ -67,7 +72,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MpBufPool.cpp \
     mp/MpBufferMsg.cpp \
     mp/MpCallFlowGraph.cpp \
-    mp/MpCodec.cpp \
     mp/MpCodecFactory.cpp \
     mp/MpCodecInfo.cpp \
     mp/MpDataBuf.cpp \
@@ -82,7 +86,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MpJitterBufferDefault.cpp \
     mp/MpJitterBufferSpeex.cpp \
     mp/MpMMTimer.cpp \
-    mp/MpMMTimerWnt.cpp \
     mp/MpMediaTask.cpp \
     mp/MpMediaTaskHelper.cpp \
     mp/MpMediaTaskMsg.cpp \
@@ -152,7 +155,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MprToSpkr.cpp \
     mp/MprToneGen.cpp \
     mp/NetInTask.cpp \
-    mp/SpeakerThreadWnt.cpp \
     mp/StreamBufferDataSource.cpp \
     mp/StreamDataSource.cpp \
     mp/StreamDataSourceListener.cpp \

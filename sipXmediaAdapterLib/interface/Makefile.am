@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-INCLUDES = -I$(top_srcdir)/../sipXcallLib/include
+INCLUDES = -I$(top_srcdir)/../sipXcallLib/include -I$(top_srcdir)/interface/include
 
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 

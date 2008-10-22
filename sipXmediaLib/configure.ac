@@ -56,7 +56,7 @@ CHECK_CPPUNIT
 
 # Look for GSM and Speex codecs
 CHECK_GSM
-CHECK_SPEEX
+#CHECK_SPEEX
 
 # sipX dependencies
 SFAC_LIB_STACK
@@ -65,13 +65,13 @@ SFAC_FEATURE_SIP_TLS
 
 # Enable local audio support (microphone / speaker)
 AC_ARG_ENABLE(local-audio,
-[  --enable-local-audio    Enable local audio (speaker and microphone)],
+[  --disable-local-audio    Disable local audio (speaker and microphone)],
 [ case "${enableval}" in
-  yes) enable_local_audio=true ;;
-  no) enable_local_audio=false ;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-local-audio) ;;
-esac],[enable_local_audio=false])
-AM_CONDITIONAL(ENABLE_LOCAL_AUDIO, test x$enable_local_audio = xtrue)
+  no) disable_local_audio=true ;;
+  yes) disable_local_audio=false ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --disable-local-audio) ;;
+esac],[disable_local_audio=false])
+AM_CONDITIONAL(DISABLE_LOCAL_AUDIO, test x$disable_local_audio = xtrue)
 
 ENABLE_DOXYGEN
 AM_CONDITIONAL(DOC, test x$enable_doc = xyes)
