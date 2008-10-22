@@ -21,9 +21,9 @@
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 
-MutexC createMutex()
+OsMutexC createMutex()
 {
-  MutexC mutex;
+  OsMutexC mutex;
   
   int res;
 
@@ -33,7 +33,7 @@ MutexC createMutex()
   return mutex;
 }
 
-enum OsStatus acquireMutex(MutexC mutex)
+enum OsStatus acquireMutex(OsMutexC mutex)
 {
   enum OsStatus status;
   
@@ -42,7 +42,7 @@ enum OsStatus acquireMutex(MutexC mutex)
   return status;
 }
 
-enum OsStatus tryAcquireMutex(MutexC mutex)
+enum OsStatus tryAcquireMutex(OsMutexC mutex)
 {
   enum OsStatus status;
   
@@ -51,7 +51,7 @@ enum OsStatus tryAcquireMutex(MutexC mutex)
   return status;
 }
 
-enum OsStatus releaseMutex(MutexC mutex)
+enum OsStatus releaseMutex(OsMutexC mutex)
 {
   enum OsStatus status;
   
