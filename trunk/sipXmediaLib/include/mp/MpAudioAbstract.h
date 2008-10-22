@@ -14,7 +14,6 @@
 #ifndef MP_AUDIO_ABSTRACT_H
 #define MP_AUDIO_ABSTRACT_H
 
-#include <os/iostream>
 #include <stdio.h>
 
 typedef short AudioSample; 
