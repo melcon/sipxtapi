@@ -95,6 +95,7 @@ nobase_include_HEADERS =  \
     net/StateChangeNotifier.h \
     net/Url.h \
     net/pk12wrapper.h \
+    net/version.h \
     resparse/bzero.h \
     resparse/ns_name.h \
     resparse/poll.h \

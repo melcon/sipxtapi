@@ -16,7 +16,6 @@
 #else
 # include <unistd.h>
 #endif
-
 // APPLICATION INCLUDES
 #include <net/SipUserAgent.h>
 #include <net/SipPimClient.h>
