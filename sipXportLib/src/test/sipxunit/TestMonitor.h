@@ -11,6 +11,7 @@
 #ifndef _TestMonitor_h_
 #define _TestMonitor_h_
 
+#include <string.h>
 #include <cppunit/TestResultCollector.h>
 
 class CppUnit::Test;

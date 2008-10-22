@@ -139,7 +139,6 @@ libsipXport_la_SOURCES =  \
     os/osPrintf.cpp \
     os/shared/OsMsgQShared.cpp \
     os/shared/OsTimerMessage.cpp \
-    utl/Plugin.cpp \
     utl/PluginHooks.cpp \
     utl/UtlBool.cpp \
     utl/UtlChainPool.cpp \
