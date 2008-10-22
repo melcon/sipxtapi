@@ -8,13 +8,14 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>
+#include <string.h>
 #include <cppunit/TestCase.h>
 #include <cppunit/SourceLine.h>
 #include <cppunit/Asserter.h>
 #include <cppunit/Message.h>
 #include <cppunit/Exception.h>
 #include <iostream>
-#include <string>
 #include <cstdarg>
 
 // Application Includes
