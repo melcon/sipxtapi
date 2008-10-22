@@ -698,7 +698,7 @@ public:
                                 const char* authenticationRealm,
                                 const char* authenticationNonce = NULL,
                                 const char* authenticationOpaque = NULL,
-                                enum HttpEndpointEnum authEntity = SERVER);
+                                HttpEndpointEnum authEntity = SERVER);
 
     void setTryingResponseData(const SipMessage* request);
 
@@ -1114,7 +1114,7 @@ public:
                                       const char* nonce,
                                       const char* realm,
                                       const char* uri = NULL,
-                                      enum HttpEndpointEnum authEntity = SERVER) const;
+                                      HttpEndpointEnum authEntity = SERVER) const;
 
     //! @name DNS SRV state accessors
     /*! \note this will be deprecated
