@@ -40,13 +40,6 @@ libsipXtack_la_LIBADD = \
 	@SSL_LIBS@ \
 	-lresolv -lstdc++
 
-if BUILDTLS
-SECURITY_FILES=\
-    net/SipTlsServer.cpp
-else
-SECURITY_FILES=
-endif
-
 libsipXtack_la_SOURCES =  \
     ../config/sipxtacklib-buildstamp.h \
     ../config/sipxtacklib-buildstamp.cpp \
@@ -137,5 +130,5 @@ libsipXtack_la_SOURCES =  \
     resparse/res_print.c \
     resparse/res_query.c \
     resparse/res_send.c \
-    $(SECURITY_FILES)
+    net/SipTlsServer.cpp
 
