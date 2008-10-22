@@ -2544,7 +2544,7 @@ void HttpMessage::setAuthenticationData(const char* scheme,
                                         const char* nonce,
                                         const char* opaque,
                                         const char* domain,
-                                        enum HttpEndpointEnum authEntity)
+                                        HttpEndpointEnum authEntity)
 {
     UtlString schemeString;
     UtlString authField;
@@ -2849,7 +2849,7 @@ UtlBoolean HttpMessage::getDigestAuthorizationData(UtlString* user,
 
 
 void HttpMessage::addAuthenticationField(const char* authenticationField,
-                                         enum HttpEndpointEnum authEntity)
+                                         HttpEndpointEnum authEntity)
 {
     const char* fieldName = "bad-auth-entity";
     if(authEntity == PROXY)
@@ -2866,7 +2866,7 @@ void HttpMessage::addAuthenticationField(const char* authenticationField,
 }
 
 UtlBoolean HttpMessage::getAuthenticationField(int index,
-                                         enum HttpEndpointEnum authEntity,
+                                         HttpEndpointEnum authEntity,
                                          const char* authenticationField) const
 {
     const char* fieldName = "bad-auth-entity";
@@ -3158,7 +3158,7 @@ UtlBoolean HttpMessage::verifyMd5Authorization(const char* userId,
                                              const char* realm,
                                              const char* thisMessageMethod,
                                              const char* thisMessageUri,
-                                             enum HttpEndpointEnum authEntity) const
+                                             HttpEndpointEnum authEntity) const
 {
     UtlBoolean allowed = FALSE;
     UtlString uri;

@@ -60,19 +60,19 @@ cd ..
 
 cd sipXtackLib
 autoreconf -fi
-./configure --prefix=/tmp/stage --disable-sipviewer [--disable-codec-gsm] [--disable-codec-speex]
+./configure --prefix=/tmp/stage --disable-sipviewer --disable-codec-gsm [--disable-codec-speex]
 make;make install
 cd ..
 
 cd sipXmediaLib
 autoreconf -fi
-./configure --prefix=/tmp/stage [--disable-local-audio] [--disable-codec-gsm] [--disable-codec-speex]
+./configure --prefix=/tmp/stage --disable-local-audio --disable-codec-gsm [--disable-codec-speex]
 make;make install
 cd ..
 
 cd sipXmediaAdapterLib
 autoreconf -fi
-./configure --prefix=/tmp/stage [--disable-local-audio] [--disable-codec-gsm] [--disable-codec-speex]
+./configure --prefix=/tmp/stage --disable-local-audio --disable-codec-gsm [--disable-codec-speex]
 make;make install
 cd ..
 

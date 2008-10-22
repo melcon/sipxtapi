@@ -554,13 +554,13 @@ public:
     void setAuthenticationData(const char* scheme, const char* realm,
                                 const char* nonce, const char* opaque,
                                 const char* domain = NULL,
-                                enum HttpEndpointEnum authEntity = SERVER);
+                                HttpEndpointEnum authEntity = SERVER);
 
    void addAuthenticationField(const char* authenticationField,
-                               enum HttpEndpointEnum authType);
+                               HttpEndpointEnum authType);
 
    UtlBoolean getAuthenticationField(int index,
-                                    enum HttpEndpointEnum authEntity,
+                                    HttpEndpointEnum authEntity,
                                     const char* authenticationField) const;
 
    void addAuthenticationField(const char * AuthorizeField,
@@ -647,7 +647,7 @@ public:
                                      const char* realm,
                                      const char* thisMessageMethod = NULL,
                                      const char* thisMessageUri = NULL,
-                                     enum HttpEndpointEnum authEntity = SERVER) const;
+                                     HttpEndpointEnum authEntity = SERVER) const;
 
     UtlBoolean verifyMd5Authorization(const char* userPasswordDigest,
                                      const char* nonce,

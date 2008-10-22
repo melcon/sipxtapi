@@ -54,7 +54,7 @@ CHECK_CPPUNIT
 
 # Look for GSM and Speex codecs
 CHECK_GSM
-CHECK_SPEEX
+#CHECK_SPEEX
 
 # Look for SSL libraries
 CHECK_SSL

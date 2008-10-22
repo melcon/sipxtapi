@@ -1305,7 +1305,7 @@ void SipMessage::setRequestUnauthorized(const SipMessage* request,
                             const char* authenticationRealm,
                             const char* authenticationNonce,
                             const char* authenticationOpaque,
-                            enum HttpEndpointEnum authEntity)
+                            HttpEndpointEnum authEntity)
 {
     setTransportInfo(request) ;
 
@@ -1336,7 +1336,7 @@ UtlBoolean SipMessage::verifyMd5Authorization(const char* userId,
                                              const char* nonce,
                                              const char* realm,
                                              const char* uri,
-                                             enum HttpEndpointEnum authEntity) const
+                                             HttpEndpointEnum authEntity) const
 {
     UtlString uriString;
     UtlString method;
