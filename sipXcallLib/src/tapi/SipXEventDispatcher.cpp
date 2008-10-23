@@ -16,8 +16,8 @@
 #include <utl/UtlInit.h>
 
 #include "tapi/SipXEventDispatcher.h"
+#include "tapi/SipXEvents.h"
 #include "tapi/sipXtapi.h"
-#include "tapi/sipXEvents.h"
 #include "tapi/sipXtapiEvents.h"
 #include <utl/UtlPtr.h>
 #include "os/OsPtrMsg.h"

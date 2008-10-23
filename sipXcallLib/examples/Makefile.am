@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-EXTRA_DIST = musicServer CallScript PlaceCall ReceiveCall
+EXTRA_DIST = CallScript PlaceCall ReceiveCall
 
 if BUILDEZPHONE
 optional_SUBDIRS = sipXezPhone
