@@ -23,6 +23,11 @@ This branch was used for replacement of old sipxmedialib audio driver with porta
 
 This branch will be used for adding GIPS support to sipxtapi again.
 
+=== tacklib-refactoring ===
+
+Was used for minor refactoring in sipXtackLib - especially in line area, SipDialog, some minor changes in SipMessage and Url class to make it possible to use sipXtackLib in refactored sipXcallLib correctly without hacks.
+Contains also beginning of complete sipXcallLib rewrite.
+
 === calllib-refactoring ===
 
 This branch was meant to be used for big changes in sipxcalllib that never happened. Only unused code in sipxcalllib was removed, to make bugfixing easier. Not used anymore.
