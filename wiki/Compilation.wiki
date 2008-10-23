@@ -27,4 +27,93 @@ Visual Studio 2005 or later is required. Solution and projects for VS2005 are pr
 
 = Linux =
 
-Googlecode sipxtapi cannot be currently compiled in Linux. Effort was made to use bakefile project for makefile generation, but it solved only few problems and introduced new ones. Originally project was compilable in Linux, all platform dependent code is guarded. In the future bakefiles will be merged with original SIPFoundry makefiles to make the project compilable in Linux again.
+Guide how to build sipXtapi in Linux can be found in readme.txt. This is the shortened version extracted from readme.txt.
+
+=== Basic requirements: ===
+ * gcc, g++, autoconf, automake, libtool, libssl-dev
+
+In Debian run:
+{{{
+apt-get install libtool autoconf automake gcc g++ libssl-dev
+}}}
+
+The Linux build has been tested on Debian 4.0r2. Autoconf is required to generate the configure script. Pcre library is mandatory, while cppunit is only required for unittests.
+
+In Debian run:
+{{{
+apt-get install libpcre3-dev libcppunit-dev
+}}}
+
+Speex library is currently not supported in Linux. Configure script will ignore it.
+
+=== Optional dependencies: ===
+ * gsm-devel, doxygen, graphviz
+
+In Debian run:
+{{{
+apt-get install libgsm1-dev doxygen graphviz
+}}}
+
+Possible problems:
+If you get the following error during autoreconf then install libtool:
+
+    configure.ac:14: error: possibly undefined macro: AC_PROG_LIBTOOL
+    If this token and others are legitimate, please use m4_pattern_allow.
+    See the Autoconf documentation.
+   
+== Build ==
+
+run ./pre_conf.sh to create symlinks for includes
+{{{
+cd sipXportLib
+autoreconf -fi
+./configure --prefix=/tmp/stage
+make;make install
+cd ..
+}}}
+{{{
+cd sipXsdpLib
+autoreconf -fi
+./configure --prefix=/tmp/stage
+make;make install
+cd ..
+}}}
+{{{
+cd sipXtackLib
+autoreconf -fi
+./configure --prefix=/tmp/stage --disable-sipviewer [--disable-codec-gsm]
+make;make install
+cd ..
+}}}
+For sipXmediaLib and sipXmediaAdapterLib, local (speaker, mic) audio must be disabled.
+{{{
+cd sipXmediaLib
+autoreconf -fi
+./configure --prefix=/tmp/stage --disable-local-audio [--disable-codec-gsm]
+make;make install
+cd ..
+}}}
+{{{
+cd sipXmediaAdapterLib
+autoreconf -fi
+./configure --prefix=/tmp/stage --disable-local-audio [--disable-codec-gsm]
+make;make install
+cd ..
+}}}
+{{{
+cd sipXcallLib
+autoreconf -fi
+./configure --prefix=/tmp/stage
+make;make install
+cd ..
+}}}
+=== Test using PlaceCall ===
+{{{
+cd examples/PlaceCall
+make
+./PlaceCall IP
+}}}
+PlaceCall and ReceiveCall are known to build with this source tree.
+sipXezPhone *should* work, but hasn't been tested with the latest source.
+
+For sipXezPhone, wxWidgets 2.6.x is required. wxWidgets 2.8.x is not supported by sipXezPhone.
