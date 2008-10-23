@@ -456,7 +456,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSipUserAgent->getTlsPort());
 
    // create and start SipPimClient
-   pInst->pSipPimClient = new SipPimClient(*pInst->pSipUserAgent, Url(szIdentity));
+   Url pimClientAor(szIdentity);
+   pInst->pSipPimClient = new SipPimClient(*pInst->pSipUserAgent, pimClientAor);
    pInst->pSipPimClient->start();
    pInst->pSipPimClient->setIncomingImTextHandler(&sipxFirePIMEvent, pInst);
 

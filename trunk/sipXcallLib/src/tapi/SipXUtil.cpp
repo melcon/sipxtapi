@@ -20,13 +20,13 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include "os/wnt/mdump.h"
 #endif /* _WIN32 */
 
 // APPLICATION INCLUDES
 #include "tapi/SipXUtil.h"
 #include "tapi/sipXtapi.h"
 #include "net/Url.h"
-#include "os/wnt/mdump.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS

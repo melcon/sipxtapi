@@ -3,9 +3,9 @@
 
 EXTRA_DIST = tapi
 
-SUBDIRS = . test
+SUBDIRS = .
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/../sipXmediaAdapterLib/sipXmediaVoiceEngine
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/../sipXmediaAdapterLib/interface/include
 
 lib_LTLIBRARIES = libsipXcall.la
 
@@ -47,11 +47,6 @@ libsipXcall_la_SOURCES = \
     cp/XCpCallManager.cpp \
     cp/XCpConference.cpp \
     cp/XCpSipConnection.cpp \
-    ptapi/PtCall.cpp \
-    ptapi/PtConnection.cpp \
-    ptapi/PtEvent.cpp \
-    ptapi/PtSessionDesc.cpp \
-    ptapi/PtTerminalConnection.cpp \
     tapi/CallStateEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \

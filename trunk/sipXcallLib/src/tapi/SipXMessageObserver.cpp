@@ -17,7 +17,7 @@
 #include <tapi/SipXInfoStatusEventListener.h>
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
-#include "tapi/sipXEvents.h"
+#include "tapi/SipXEvents.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXCall.h"
 #include "tapi/SipXLine.h"
