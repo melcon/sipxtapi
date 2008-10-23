@@ -1,7 +1,7 @@
 This is the homepage of customized sipXtapi library originally developed on SIP Foundry. The goal of this project is to produce a stable, commercially usable SDK for client side SIP applications. API is designed to be simple but usable to enable rapid development. It is distributed under GNU LGPL license.
 
 = Stability =
-It was reported by a user of customized sipXtapi that revision 28 can handle over 200 000 calls without a crash or noticable memory leak.
+SipXtapi rev. 461 was reported to work from Mar 12 2008 until Oct 20 2008 (when result was posted in mailing list), with total calls 1395953, 557802 calls were established, total duration of conversations 12440 hours. SipXtapi rev. 574 was reported to be capable of handling 1.6 established milion calls without crash or noticable memory leak.
 
 = Differences =
 
@@ -50,12 +50,3 @@ Doxygen generated documentation in html form can be downloaded from http://code.
 There are several mailinglists available:
   * for developers, users - http://groups.google.com/group/sipxtapi
   * for commit messages - http://groups.google.com/group/sipxtapi-commits
- 
- 
- 
- 
- 
- 
- 
- 
- 
