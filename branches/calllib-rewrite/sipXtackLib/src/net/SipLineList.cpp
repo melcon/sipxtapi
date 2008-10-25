@@ -119,14 +119,14 @@ UtlBoolean SipLineList::lineExists(const SipLine& line, UtlBoolean bConsiderAlia
    return result;
 }
 
-UtlBoolean SipLineList::lineExists(const Url& lineIdentityUri, UtlBoolean bConsiderAliases) const
+UtlBoolean SipLineList::lineExists(const Url& lineUri, UtlBoolean bConsiderAliases) const
 {
-   UtlBoolean result = m_lineMap.contains(&lineIdentityUri.toString());
+   UtlBoolean result = m_lineMap.contains(&lineUri.toString());
 
    if (!result && bConsiderAliases)
    {
       // not found, try aliases
-      result = m_lineAliasMap.contains(&lineIdentityUri.toString());
+      result = m_lineAliasMap.contains(&lineUri.toString());
    }
 
    return result;
@@ -184,56 +184,45 @@ size_t SipLineList::getLineAliasesCount() const
 
 //
 // Priorities:
-//   2. Matches first lineUri user, host, port
-//   3. Matches line alias
-//   4. Matches first userId
+//   1. Matches first lineUri
+//   2. Matches line alias
+//   3. Matches first userId
 //
 SipLine* SipLineList::findLine(const Url& lineUri,
                                const UtlString& userId,
                                UtlBoolean bConsiderAliases) const
 {
-   SipLine* pLineMatchingUserId = NULL;
-   SipLine* pLine = NULL;
-
-   UtlHashMapIterator itor(m_lineMap);
-   UtlContainable* pKey = NULL;
-
-   while ((pKey = itor()) != NULL)
+   // firt lookup by lineUri and/or alias
+   SipLine* pLine = getLine(lineUri, bConsiderAliases);
+   if (pLine)
    {
-      pLine = dynamic_cast<SipLine*>(itor.value());
-      if (pLine)
-      {
-         if (pLine->getLineUri().isUserHostPortEqual(lineUri))
-         {
-            // we found line with matching user, host and port. Return it immediately
-            return pLine;
-         }
-         else if (!pLine->getUserId().compareTo(userId, UtlString::ignoreCase))
-         {
-            pLineMatchingUserId = pLine;
-         }
-      }
+      return pLine;
    }
-
-   if (bConsiderAliases)
+   else
    {
-      // nothing was found, try line aliases. Fast lookup by hashmap.
-      SipLineAlias *pLineAlias = dynamic_cast<SipLineAlias*>(m_lineAliasMap.findValue(&lineUri.toString()));
-      if (pLineAlias)
+      // not found, try userId
+      if (!userId.isNull())
       {
-         Url originalLineUri = pLineAlias->getOriginalLineUri();
-         // repeat lookup with alias original line uri
-         pLine = dynamic_cast<SipLine*>(m_lineMap.findValue(&originalLineUri.toString()));
-         if (pLine)
+         // only search by userId if its not empty
+         UtlHashMapIterator itor(m_lineMap);
+         UtlContainable* pKey = NULL;
+
+         while ((pKey = itor()) != NULL)
          {
-            // only return pLine if not NULL, else use pLineMatchingUserId
-            return pLine;
+            pLine = dynamic_cast<SipLine*>(itor.value());
+            if (pLine)
+            {
+               if (pLine->getUserId().compareTo(userId, UtlString::ignoreCase) == 0)
+               {
+                  return pLine;
+               }
+            }
          }
       }
    }
 
    // is NULL if nothing was found
-   return pLineMatchingUserId;
+   return NULL;
 }
 
 void SipLineList::dumpLines()

@@ -162,9 +162,9 @@ protected:
 private:
 
    /**
-   * Tries to find line according to given parameters. First try lookup by
-   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
-   * not found by identityUri, try by userId.
+   * Tries to find line according to given parameters. First hash lookup by lineUri.
+   * If not found by identityUri, try slow scan by userId. This method is slow if userId
+   * is provided and lineUri doesn't match.
    *
    * This function returns direct pointer, and can only be used internally.
    */
