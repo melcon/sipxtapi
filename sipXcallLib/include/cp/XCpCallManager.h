@@ -34,17 +34,20 @@
 // FORWARD DECLARATIONS
 template <class T>
 class OsPtrLock; // forward template class declaration
+class OsNotification;
+class UtlSList;
+class SipDialog;
+class SipUserAgent;
+class SipLineProvider;
+class SdpCodecFactory;
 class XCpAbstractCall;
 class XCpCall;
 class XCpConference;
 class CpMediaInterfaceFactory;
-class UtlSList;
-class SipUserAgent;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
-class SipDialog;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
@@ -60,6 +63,8 @@ public:
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
                   SipUserAgent* pSipUserAgent,
+                  SdpCodecFactory* pSdpCodecFactory,
+                  SipLineProvider* pSipLineProvider,
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
                   UtlBoolean bEnableSipInfo,
@@ -402,12 +407,12 @@ public:
                    const UtlString& sTurnPassword,
                    int iKeepAlivePeriodSecs = 0);
 
-   /** Sends an INFO message to the other party(s) on the call */
+   /** Sends an INFO message to the other party(s) on the call. Allows transfer of binary data. */
    OsStatus sendInfo(const UtlString& sAbstractCallId,
                      const SipDialog& sSipDialog,
                      const UtlString& sContentType,
-                     const UtlString& sContentEncoding,
-                     const UtlString& sContent);
+                     const char* pContent,
+                     const size_t nContentLength);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -612,11 +617,13 @@ private:
    SipCallIdGenerator m_sipCallIdGenerator; ///< generates string sip call-ids
 
    CpMediaInterfaceFactory* m_pMediaFactory;
-   CpCallStateEventListener* m_pCallEventListener;
-   SipInfoStatusEventListener* m_pInfoStatusEventListener;
-   SipSecurityEventListener* m_pSecurityEventListener;
-   CpMediaEventListener* m_pMediaEventListener;
-   SipUserAgent* m_pSipUserAgent;
+   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
+   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
+   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+   SipUserAgent* m_pSipUserAgent; // sends sip messages
+   SdpCodecFactory* m_pSdpCodecFactory;
+   SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
 
    // thread safe atomic
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)

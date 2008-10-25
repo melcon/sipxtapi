@@ -194,8 +194,8 @@ public:
    /** Sends an INFO message to the other party(s) on the call */
    virtual OsStatus sendInfo(const SipDialog& sSipDialog,
                              const UtlString& sContentType,
-                             const UtlString& sContentEncoding,
-                             const UtlString& sContent);
+                             const char* pContent,
+                             const size_t nContentLength);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -49,6 +49,8 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener,
                                SipUserAgent* pSipUserAgent,
+                               SdpCodecFactory* pSdpCodecFactory,
+                               SipLineProvider* pSipLineProvider,
                                UtlBoolean bDoNotDisturb,
                                UtlBoolean bEnableICE,
                                UtlBoolean bEnableSipInfo,
@@ -62,6 +64,8 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_pSipUserAgent(pSipUserAgent)
+, m_pSdpCodecFactory(pSdpCodecFactory)
+, m_pSipLineProvider(pSipLineProvider)
 , m_callIdGenerator(callIdPrefix)
 , m_conferenceIdGenerator(conferenceIdPrefix)
 , m_sipCallIdGenerator(sipCallIdPrefix)
@@ -848,8 +852,8 @@ void XCpCallManager::enableTurn(const UtlString& sTurnServer,
 OsStatus XCpCallManager::sendInfo(const UtlString& sAbstractCallId,
                                   const SipDialog& sSipDialog,
                                   const UtlString& sContentType,
-                                  const UtlString& sContentEncoding,
-                                  const UtlString& sContent)
+                                  const char* pContent,
+                                  const size_t nContentLength)
 {
    OsStatus result = OS_FAILED;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
@@ -857,7 +861,7 @@ OsStatus XCpCallManager::sendInfo(const UtlString& sAbstractCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->sendInfo(sSipDialog, sContentType, sContentEncoding, sContent);
+      return ptrLock->sendInfo(sSipDialog, sContentType, pContent, nContentLength);
    }
 
    return result;

@@ -155,8 +155,8 @@ OsStatus XCpConference::renegotiateCodecsAllConnections(CP_AUDIO_BANDWIDTH_ID au
 
 OsStatus XCpConference::sendInfo(const SipDialog& sSipDialog,
                                  const UtlString& sContentType,
-                                 const UtlString& sContentEncoding,
-                                 const UtlString& sContent)
+                                 const char* pContent,
+                                 const size_t nContentLength)
 {
    return OS_FAILED;
 }

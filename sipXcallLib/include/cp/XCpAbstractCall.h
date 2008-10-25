@@ -249,8 +249,8 @@ public:
    /** Sends an INFO message to the other party(s) on the call */
    virtual OsStatus sendInfo(const SipDialog& sSipDialog,
                              const UtlString& sContentType,
-                             const UtlString& sContentEncoding,
-                             const UtlString& sContent) = 0;
+                             const char* pContent,
+                             const size_t nContentLength) = 0;
 
    /** Block until the sync object is acquired or the timeout expires */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

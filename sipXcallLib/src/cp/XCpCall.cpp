@@ -147,8 +147,8 @@ OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sSipDialog,
 
 OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
                            const UtlString& sContentType,
-                           const UtlString& sContentEncoding,
-                           const UtlString& sContent)
+                           const char* pContent,
+                           const size_t nContentLength)
 {
    return OS_FAILED;
 }
