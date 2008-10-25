@@ -84,9 +84,9 @@ public:
    void dumpLineAliases();
 
    /**
-    * Tries to find line according to given parameters. First lookup by identityUri. If
-    * not found by identityUri, try by userId. This method is slow, but most likely
-    * to find a match. Line aliases have priority before match by userId.
+    * Tries to find line according to given parameters. First hash lookup by lineUri.
+    * If not found by identityUri, try slow scan by userId. This method is slow if userId
+    * is provided and lineUri doesn't match.
     */
    SipLine* findLine(const Url& lineUri,
                      const UtlString& userId,
@@ -128,7 +128,7 @@ public:
    UtlBoolean lineExists(const SipLine& line, UtlBoolean bConsiderAliases = TRUE) const;
 
    /** Checks whether this line is present in line list. Also line aliases may be scanned. */
-   UtlBoolean lineExists(const Url& lineIdentityUri, UtlBoolean bConsiderAliases = TRUE) const;
+   UtlBoolean lineExists(const Url& lineUri, UtlBoolean bConsiderAliases = TRUE) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
