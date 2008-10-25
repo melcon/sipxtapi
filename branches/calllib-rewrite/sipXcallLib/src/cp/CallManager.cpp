@@ -1574,10 +1574,12 @@ OsStatus CallManager::getSipDialog(const char* callId,
       dialog.setInitialMethod(uValue);
 
       ssn.getLocalRequestUri(uValue);
-      dialog.setLocalRequestUri(uValue);
+      Url localRequestUri(uValue, TRUE);
+      dialog.setLocalRequestUri(localRequestUri);
 
       ssn.getRemoteRequestUri(uValue);
-      dialog.setRemoteRequestUri(uValue);
+      Url remoteRequestUri(uValue, TRUE);
+      dialog.setRemoteRequestUri(remoteRequestUri);
 
       dialog.setLastLocalCseq(ssn.getLastFromCseq());
       dialog.setLastRemoteCseq(ssn.getLastToCseq());
