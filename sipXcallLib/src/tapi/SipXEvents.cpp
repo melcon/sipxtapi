@@ -1046,9 +1046,9 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
 
             if (pSourceInfo->nContentLength > 0 && pSourceInfo->pContent)
             {
-               pInfo->pContent = malloc(pSourceInfo->nContentLength);
+               pInfo->pContent = (char*)malloc(pSourceInfo->nContentLength);
                assert(pInfo->pContent);
-               memcpy((void*) pInfo->pContent, pSourceInfo->pContent, pSourceInfo->nContentLength);
+               memcpy((void*) pInfo->pContent, (void*)pSourceInfo->pContent, pSourceInfo->nContentLength);
                pInfo->nContentLength = pSourceInfo->nContentLength;
             }
             else

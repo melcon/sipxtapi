@@ -877,7 +877,7 @@ typedef struct
     const char* szNotiferUserAgent;/**< The User-Agent header field value from
                                         the SIP NOTIFY response (may be NULL) */
     const char* szContentType;     /**< String indicating the info content type */     
-    const void* pContent;          /**< Pointer to the NOTIFY message content */
+    const char* pContent;          /**< Pointer to the NOTIFY message content */
     size_t      nContentLength;    /**< Length of the NOTIFY message content in bytes */
 } SIPX_NOTIFY_INFO;
 

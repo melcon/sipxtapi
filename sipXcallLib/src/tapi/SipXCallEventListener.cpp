@@ -25,7 +25,7 @@
 #include <tapi/SipXCall.h>
 #include <tapi/SipXLine.h>
 #include <tapi/SipXConference.h>
-#include <cp/CallManager.h>
+#include <cp/XCpCallManager.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS

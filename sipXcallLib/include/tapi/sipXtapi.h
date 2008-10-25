@@ -1684,20 +1684,27 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall);
  * you to use the contact address from the remote party as the subscription
  * target (see the bRemoteContactIsGruu parameter).
  *
+ * Successful invocation will result in sending SIP SUBSCRIBE message in a new
+ * sip dialog separate from the sip dialog of the call.
+ *
  * sipXtapi will automatically refresh subscriptions until sipxCallUnsubscribe
  * is called.  Please make sure you call sipxCallUnsubscribe before tearing 
- * down your call.
+ * down your call, although this is only a recommendation and not a requirement.
  *
  * @param hCall The call handle of the call associated with the subscription.
+ *        Used for selection of from and to fields, unless bRemoteContactIsGruu
+ *        is true. It doesn't mean subscription is in any way associated with
+ *        the call.
  * @param szEventType A string representing the type of event that can be 
  *        published.  This string is used to populate the "Event" header in
  *        the SIP SUBSCRIBE request.  For example, if checking voicemail 
- *        status, your would use "message-summary".
+ *        status, your would use "message-summary". For presence, it would be
+ *        "presence". Acceptable values can be found in event package RFCs.
  * @param szAcceptType A string representing the types of NOTIFY events that 
  *        this client will accept.  This string is used to populate the 
  *        "Accept" header in the SIP SUBSCRIBE request.  For example, if
- *        checking voicemail status, you would use 
- *        "application/simple-message-summary"
+ *        checking voicemail status, you would use "application/simple-message-summary".
+ *        This value is optional. Check event package RFC for its meaning.
  * @param phSub Pointer to a subscription handle whose value is set by this 
  *        function.  This handle allows you to cancel the subscription and
  *        differentiate between NOTIFY events.
@@ -1705,7 +1712,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall);
  *        side of the call can be assumed to be a Globally Routable Unique URI
  *        (GRUU).  Normally one cannot assume that a contact is a GRUU and the
  *        To or From address for the remote side is assumed to be an Address Of
- *        Record (AOR) that is globally routable.
+ *        Record (AOR) that is globally routable. 0 value is recommended.
  * @param subscriptionPeriod Subscription expiration period. After this
  *        period, new SUBSCRIBE message will be sent.
  */                                          
@@ -1740,13 +1747,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub);
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
  * @param szContentType String representation of the INFO content type
- * @param szContent Pointer to the INFO messasge's content
- * @param nContentLength Size of the INFO content
+ * @param pContent Pointer to the INFO message's content. Can be a NULL terminated
+ *        string or binary data.
+ * @param nContentLength Length of data in pContent
  */
 SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
                                           const SIPX_CALL hCall,
                                           const char* szContentType,
-                                          const char* szContent,
+                                          const char* pContent,
                                           const size_t nContentLength);
 
 /**
@@ -3860,23 +3868,27 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
  * Subscribe for NOTIFY events which may be published by another end-point or
  * server.
  *
+ * Successful invocation will result in sending SIP SUBSCRIBE message in a new
+ * sip dialog.
+ *
  * sipXtapi will automatically refresh subscriptions until 
  * sipxConfigUnsubscribe is called.  Please make sure you call 
  * sipxCallUnsubscribe before tearing down your instance of sipXtapi.
  * 
  * @param hInst Instance pointer obtained by sipxInitialize
- * @param hLine Line Identity for the outbound call.  The line identity 
- *        helps defines the "From" caller-id.
+ * @param hLine Line Identity for the outbound call. Line identity 
+ *        defines the "From" field.
  * @param szTargetUrl The Url of the publishing end-point. 
  * @param szEventType A string representing the type of event that can be 
  *        published.  This string is used to populate the "Event" header in
  *        the SIP SUBSCRIBE request.  For example, if checking voicemail 
- *        status, your would use "message-summary".
+ *        status, your would use "message-summary". For presence, it would be
+ *        "presence". Acceptable values can be found in event package RFCs.
  * @param szAcceptType A string representing the types of NOTIFY events that 
  *        this client will accept.  This string is used to populate the 
  *        "Accept" header in the SIP SUBSCRIBE request.  For example, if
- *        checking voicemail status, you would use 
- *        "application/simple-message-summary"
+ *        checking voicemail status, you would use "application/simple-message-summary".
+ *        This value is optional. Check event package RFC for its meaning.
  * @param contactId Id of the desired contact record to use for this call.
  *        The id refers to a Contact Record obtained by a call to
  *        sipxConfigGetLocalContacts.  The application can choose a 
@@ -3993,21 +4005,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
                                                                   const void* pData,
                                                                   const size_t nData);
 
-/**
- * Sets the SIP target URL for voice quality reports.  Voice Quality reports 
- * are sent at the completion of each call and give details on the voice 
- * quality (latency, noise, MOS scores, etc).  Presently, this is not 
- * implemented in the open source version.
- *
- * This must be enabled prior to creating a call or receiving a new call 
- * indiciation.  Likewise, changes will not take effect for existing calls.
- *
- * @param hInst An instance handle obtained from sipxInitialize. 
- * @param szServer Target SIP URL for the voice quality reports.  A 
- *        value of NULL will disable voice quality reports.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVoiceQualityServer(const SIPX_INST hInst,
-                                                         const char* szServer);
 
 //@}
 /** @name Utility Functions */
