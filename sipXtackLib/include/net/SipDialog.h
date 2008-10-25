@@ -245,17 +245,17 @@ public:
     * what was received in the last request from the remote 
     * side.
     */
-   void getLocalRequestUri(UtlString& requestUri) const;
+   void getLocalRequestUri(Url& requestUri) const;
 
    /** Set the request URI for the local side */
-   void setLocalRequestUri(const UtlString& requestUri);
+   void setLocalRequestUri(const Url& requestUri);
 
    /**
     *  Gets the requestUri we used in the initial request.
     */
-   void getRemoteRequestUri(UtlString& requestUri) const;
+   void getRemoteRequestUri(Url& requestUri) const;
    //! Set the request URI for the remote side
-   void setRemoteRequestUri(const UtlString& requestUri);
+   void setRemoteRequestUri(const Url& requestUri);
 
    /** Retrieves state of SipDialog. */
    SipDialog::DialogState getDialogState() const { return m_dialogState; }
@@ -309,6 +309,9 @@ public:
     */
    UtlBoolean isSameDialog(const UtlString& dialogHandle,
                            UtlBoolean strictMatch = FALSE) const;
+
+   /** Returns TRUE if dialog was started locally. */
+   UtlBoolean isLocalInitiatedDialog() const { return m_bLocalInitiatedDialog; }
 
    /** Determine if this is an initial (not yet established) dialog */
    UtlBoolean isInitialDialog() const;
@@ -409,13 +412,13 @@ private:
    Url m_remoteContact; // In RFC-2833 described as "remote target", contact of remote party
    UtlString m_sRouteSet; // route set for building Record-Route header
    UtlString m_sInitialMethod; // INVITE etc
-   UtlString m_sLocalRequestUri; // request URI used for first inbound request
-   UtlString m_sRemoteRequestUri; // request URI used for first outbound request
-   UtlBoolean m_sLocalInitiatedDialog; // TRUE if dialog was started locally
+   Url m_localRequestUri; // request URI used for first inbound request
+   Url m_remoteRequestUri; // request URI used for first outbound request
+   UtlBoolean m_bLocalInitiatedDialog; // TRUE if dialog was started locally
    int m_iInitialLocalCseq;
    int m_iInitialRemoteCseq;
    int m_iLastLocalCseq; // last used Cseq for new outbound transactions
-   int m_sLastRemoteCseq; // last used Cseq for inbound transactions
+   int m_iLastRemoteCseq; // last used Cseq for inbound transactions
    UtlBoolean m_bSecure; // TRUE if dialog is secure
    DialogState m_dialogState;
    DialogSubState m_dialogSubState;
