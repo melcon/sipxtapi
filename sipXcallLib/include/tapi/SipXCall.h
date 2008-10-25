@@ -21,6 +21,7 @@
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
 #include <net/Url.h>
+#include <net/SipDialog.h>
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
 #include "tapi/SipXCore.h"
@@ -46,6 +47,7 @@ public:
    Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets
    Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag.
    UtlString m_remoteContactAddress;///< Remote Contact URI
+   SipDialog m_sipDialog; ///< sip dialog of this call
    SIPX_LINE m_hLine;
    SIPX_INSTANCE_DATA* m_pInst;
    OsMutex m_mutex;
@@ -85,6 +87,7 @@ public:
       m_fromUrl(NULL),
       m_lineUri(),
       m_remoteContactAddress(NULL),
+      m_sipDialog(NULL),
       m_hLine(0),
       m_pInst(NULL),
       m_hConf(NULL),
