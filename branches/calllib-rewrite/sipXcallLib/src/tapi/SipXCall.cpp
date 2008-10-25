@@ -29,7 +29,7 @@
 #include "tapi/SipXLine.h"
 #include "tapi/SecurityHelper.h"
 #include "tapi/SipXCallEventListener.h"
-#include "cp/CallManager.h"
+#include "cp/XCpCallManager.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS

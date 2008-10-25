@@ -27,7 +27,7 @@
 #include "tapi/SipXCall.h"
 #include "os/OsDefs.h"
 #include "tapi/SipXMessageObserver.h"
-#include "cp/CallManager.h"
+#include "cp/XCpCallManager.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -140,60 +140,74 @@ void sipxInfoFree(SIPX_INFO_DATA* pData)
 SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
                                           const SIPX_CALL hCall,
                                           const char* szContentType,
-                                          const char* szContent,
+                                          const char* pContent,
                                           const size_t nContentLength)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallSendInfo");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallSendInfo phInfo=%p hCall=%d contentType=%s content=%p contentLength=%d",
-      phInfo, hCall, szContentType, szContent, (int) nContentLength);
+      "sipxCallSendInfo phInfo=%p hCall=%d contentType=%s content=%p nContentLength=%d",
+      phInfo, hCall, szContentType, pContent, nContentLength);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   if (phInfo && szContent && nContentLength > 0)
+   if (phInfo)
    {
+      SipDialog sipDialog;
+      UtlString fullLineUrl;
+      UtlString sCallId; // id of call
       SIPX_CALL_DATA* pCall = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger); 
 
-      if (pCall)
+      if (pCall && nContentLength >=0)
       {
-         UtlString sessionCallId(pCall->m_sessionCallId);
-         UtlString remoteAddress(pCall->m_remoteAddress);
+         sipDialog = pCall->m_sipDialog;
          SIPX_INSTANCE_DATA* pInst = pCall->m_pInst;
          SIPX_LINE hLine = pCall->m_hLine;
-         UtlString fullLineUrl;
+         sCallId = pCall->m_callId;
          pCall->m_fullLineUrl.toString(fullLineUrl);
          assert(pInst);
          sipxCallReleaseLock(pCall, SIPX_LOCK_READ, stackLogger);
 
-         if (!sessionCallId.isNull())
+         if (sipDialog.isEstablishedDialog())
          {
+            UtlString sSipCallId;
+            sipDialog.getCallId(sSipCallId);
+            Url remoteUrl;
+            sipDialog.getRemoteField(remoteUrl);
+            // create sipx info data
             SIPX_INFO_DATA* pInfoData = new SIPX_INFO_DATA();
             pInfoData->mutex.acquire();
 
             UtlBoolean res = gInfoHandleMap.allocHandle(*phInfo, pInfoData);
-
             if (res)
             {
                // handle allocation successful
-
                pInfoData->pInst = pInst;
                // Create Mutex
                pInfoData->infoData.nSize = sizeof(SIPX_INFO_INFO);
                pInfoData->infoData.hCall = hCall;
                pInfoData->infoData.hLine = hLine;
                pInfoData->infoData.szFromURL = SAFE_STRDUP(fullLineUrl.data());
-               pInfoData->infoData.nContentLength = nContentLength;
                pInfoData->infoData.szContentType = SAFE_STRDUP(szContentType);
-               pInfoData->infoData.pContent = SAFE_STRDUP(szContent);
+               pInfoData->infoData.nContentLength = nContentLength;
+               if (nContentLength > 0)
+               {
+                  pInfoData->infoData.pContent = (char*)malloc(nContentLength);
+                  memcpy((void*)pInfoData->infoData.pContent, (void*)pContent, nContentLength);
+               }
+               else
+               {
+                  pInfoData->infoData.pContent = NULL;
+               }
 
-               SipSession* pSession = new SipSession(sessionCallId, remoteAddress, pInfoData->infoData.szFromURL);
+               SipSession* pSession = new SipSession(sSipCallId, remoteUrl.toString(), fullLineUrl.data());
                pInfoData->mutex.release();
 
                pInst->pSipUserAgent->addMessageObserver(*(pInst->pMessageObserver->getMessageQueue()), SIP_INFO_METHOD, 0, 1, 1, 0, 0, pSession, (void*)*phInfo);
                // message observer uses copy of pSession, it's safe to delete
                delete pSession;
 
-               if (pInst->pCallManager->sendInfo(sessionCallId, remoteAddress, szContentType, nContentLength, szContent))
+               if (pInst->pCallManager->sendInfo(sCallId, sipDialog, szContentType,
+                  pContent, nContentLength))
                {
                   sr = SIPX_RESULT_SUCCESS;
                }

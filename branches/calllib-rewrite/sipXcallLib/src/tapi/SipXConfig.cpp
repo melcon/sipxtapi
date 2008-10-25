@@ -27,7 +27,7 @@
 #include "net/SipUserAgent.h"
 #include "net/SdpCodecFactory.h"
 #include "net/SipRefreshMgr.h"
-#include "cp/CallManager.h"
+#include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/sipXtapi.h"
@@ -480,7 +480,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableIce(const SIPX_INST hInst)
 
    if (pInst)
    {
-      pInst->pCallManager->enableIce(true);
+      pInst->pCallManager->setEnableICE(TRUE);
       rc = SIPX_RESULT_SUCCESS;
    }
 
@@ -500,7 +500,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigDisableIce(const SIPX_INST hInst)
 
    if (pInst)
    {
-      pInst->pCallManager->enableIce(false);
+      pInst->pCallManager->setEnableICE(FALSE);
       rc = SIPX_RESULT_SUCCESS;
    }
 
@@ -1341,30 +1341,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
 
    return rc;
 }
-
-
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVoiceQualityServer(const SIPX_INST hInst,
-                                                         const char* szServer)
-{
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetVoiceQualityServer Inst=%p target=%s", hInst, szServer);
-
-   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-   assert(pInst);
-
-   if (pInst)
-   {
-      if (pInst->pCallManager)
-      {
-         pInst->pCallManager->setVoiceQualityReportTarget(szServer);
-         rc = SIPX_RESULT_SUCCESS;
-      }
-   }
-
-   return rc;
-}
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigPrepareToHibernate(const SIPX_INST hInst)
 {

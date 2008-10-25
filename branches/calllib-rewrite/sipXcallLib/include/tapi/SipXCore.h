@@ -47,7 +47,7 @@ class Url;
 class OsNotification;
 class SipSubscribeServer;
 class SipSubscribeClient;
-class CallManager;
+class XCpCallManager;
 class SipLineMgr;
 class SdpCodec;
 class SdpCodecFactory;
@@ -155,7 +155,7 @@ public:
    SipUserAgent*    pSipUserAgent;
    SipPimClient*    pSipPimClient;
    SdpCodecFactory* pCodecFactory;
-   CallManager*     pCallManager;
+   XCpCallManager*     pCallManager;
    SipLineMgr*      pLineManager;
    SipRefreshMgr*   pRefreshManager;
    SipSubscribeServer* pSubscribeServer;

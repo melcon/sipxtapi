@@ -19,14 +19,14 @@
 
 // APPLICATION INCLUDES
 #include <utl/UtlInit.h>
-
+#include <utl/UtlInt.h>
 #include <utl/UtlVoidPtr.h>
 #include <utl/UtlHashMapIterator.h>
 #include "tapi/SipXConference.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXCall.h"
 #include "tapi/SipXCallEventListener.h"
-#include "cp/CallManager.h"
+#include "cp/XCpCallManager.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
