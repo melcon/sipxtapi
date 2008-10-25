@@ -110,15 +110,13 @@ public:
    UtlBoolean deleteAllCredentialsForLine(const Url& lineUri);
 
    /**
-   * Tries to find line according to given parameters. First try lookup by
-   * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+   * Tries to find line according to given parameters. First lookup by identityUri. If
    * not found by identityUri, try by userId.
    *
    * If found, then line is copied into line parameter. It is slower than getLineCopy.
    * Line aliases are considered.
    */
-   virtual UtlBoolean findLineCopy(const UtlString& lineId,
-                                   const Url& lineUri,
+   virtual UtlBoolean findLineCopy(const Url& lineUri,
                                    const UtlString& userId,
                                    SipLine& sipLine) const;
 
@@ -142,12 +140,10 @@ public:
    /* ============================ INQUIRY =================================== */
 
    /**
-    * Tries to find line according to given parameters. First try lookup by
-    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+    * Tries to find line according to given parameters. First lookup by identityUri. If
     * not found by identityUri, try by userId.
     */
-   virtual UtlBoolean lineExists(const UtlString& lineId,
-                                 const Url& lineUri,
+   virtual UtlBoolean lineExists(const Url& lineUri,
                                  const UtlString& userId) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -172,8 +168,7 @@ private:
    *
    * This function returns direct pointer, and can only be used internally.
    */
-   virtual const SipLine* findLine(const UtlString& lineId,
-                                   const Url& lineUri,
+   virtual const SipLine* findLine(const Url& lineUri,
                                    const UtlString& userId) const;
 
    /** Prints all lines in line manager */

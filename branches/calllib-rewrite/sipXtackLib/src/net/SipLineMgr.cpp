@@ -224,19 +224,17 @@ size_t SipLineMgr::getNumLines() const
 }
 
 // requires external m_mutex lock
-const SipLine* SipLineMgr::findLine(const UtlString& lineId,
-                                    const Url& lineUri,
+const SipLine* SipLineMgr::findLine(const Url& lineUri,
                                     const UtlString& userId) const
 {
-   return m_listList.findLine(lineId, lineUri, userId);
+   return m_listList.findLine(lineUri, userId);
 }
 
-UtlBoolean SipLineMgr::lineExists(const UtlString& lineId,
-                                  const Url& lineUri,
+UtlBoolean SipLineMgr::lineExists(const Url& lineUri,
                                   const UtlString& userId) const
 {
    OsLock lock(m_mutex); // scoped lock
-   return findLine(lineId, lineUri, userId) != NULL; // if we found something, then line exists
+   return findLine(lineUri, userId) != NULL; // if we found something, then line exists
 }
 
 UtlBoolean SipLineMgr::addCredentialForLine(const Url& lineUri,
@@ -299,14 +297,13 @@ UtlBoolean SipLineMgr::deleteAllCredentialsForLine(const Url& lineUri)
    return FALSE;
 }
 
-UtlBoolean SipLineMgr::findLineCopy(const UtlString& lineId,
-                                    const Url& lineUri,
+UtlBoolean SipLineMgr::findLineCopy(const Url& lineUri,
                                     const UtlString& userId,
                                     SipLine& sipLine) const
 {
    OsLock lock(m_mutex); // scoped lock
 
-   const SipLine *pLine = findLine(lineId, lineUri, userId);
+   const SipLine *pLine = findLine(lineUri, userId);
    if (pLine)
    {
       // if line was found, copy contents into sipLine

@@ -89,7 +89,7 @@ public:
    OsStatus connectCall(const UtlString& sCallId,
                         SipDialog& sSipDialog,
                         const UtlString& toAddress,
-                        const UtlString& lineURI,
+                        const UtlString& fullLineUrl,// includes display name, SIP URI
                         const UtlString& locationHeader,
                         CP_CONTACT_ID contactId);
 
@@ -100,7 +100,7 @@ public:
    OsStatus connectConferenceCall(const UtlString& sConferenceId,
                                   SipDialog& sSipDialog,
                                   const UtlString& toAddress,
-                                  const UtlString& lineURI,
+                                  const UtlString& fullLineUrl,
                                   const UtlString& locationHeader,
                                   CP_CONTACT_ID contactId);
 
@@ -559,13 +559,13 @@ private:
     * Deletes call identified by Id from stack. Doesn't hang up the call, just shuts
     * media resources and deletes the call.
     */
-   UtlBoolean deleteCall(const UtlString& sId);
+   UtlBoolean deleteCall(const UtlString& sCallId);
 
    /**
     * Deletes conference identified by Id from stack. Doesn't hang up the conference, just shuts
     * media resources and deletes the conference.
     */
-   UtlBoolean deleteConference(const UtlString& sId);
+   UtlBoolean deleteConference(const UtlString& sConferenceId);
 
    /**
    * Deletes abstract call identified by Id from stack. Doesn't hang up the call, just shuts

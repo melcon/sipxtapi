@@ -150,28 +150,6 @@ SipLine* SipLineList::getLine(const Url& lineUri, UtlBoolean bConsiderAliases) c
    return pLine;
 }
 
-SipLine* SipLineList::getLine(const UtlString& lineId) const
-{
-   SipLine* pLine = NULL;
-
-   if (!lineId.isNull())
-   {
-      UtlHashMapIterator itor(m_lineMap);
-      UtlContainable* pKey = NULL;
-
-      while ((pKey = itor()) != NULL)
-      {
-         pLine = dynamic_cast<SipLine*>(itor.value());
-         if (pLine && !pLine->getLineId().compareTo(lineId, UtlString::matchCase))
-         {
-            return pLine;
-         }
-      }
-   }
-
-   return NULL;
-}
-
 SipLine* SipLineList::getLineByUserId(const UtlString& userId) const
 {
    SipLine* pLine = NULL;
@@ -206,17 +184,14 @@ size_t SipLineList::getLineAliasesCount() const
 
 //
 // Priorities:
-//   1. Matches first lineID
 //   2. Matches first lineUri user, host, port
 //   3. Matches line alias
 //   4. Matches first userId
 //
-SipLine* SipLineList::findLine(const UtlString& lineId,
-                               const Url& lineUri,
+SipLine* SipLineList::findLine(const Url& lineUri,
                                const UtlString& userId,
                                UtlBoolean bConsiderAliases) const
 {
-   SipLine* pLineMatchingUri = NULL;
    SipLine* pLineMatchingUserId = NULL;
    SipLine* pLine = NULL;
 
@@ -228,16 +203,10 @@ SipLine* SipLineList::findLine(const UtlString& lineId,
       pLine = dynamic_cast<SipLine*>(itor.value());
       if (pLine)
       {
-         if (!lineId.compareTo(pLine->getLineId(), UtlString::matchCase))
+         if (pLine->getLineUri().isUserHostPortEqual(lineUri))
          {
-            // lineId match
+            // we found line with matching user, host and port. Return it immediately
             return pLine;
-         }
-         else if (pLine->getLineUri().isUserHostPortEqual(lineUri))
-         {
-            // we found line with matching user, host and port. We cannot just return here
-            // because in next iteration we could find line with lineID match! Get rid of line Ids?.
-            pLineMatchingUri = pLine;
          }
          else if (!pLine->getUserId().compareTo(userId, UtlString::ignoreCase))
          {
@@ -246,14 +215,9 @@ SipLine* SipLineList::findLine(const UtlString& lineId,
       }
    }
 
-   if (pLineMatchingUri)
-   {
-      return pLineMatchingUri;
-   }
-
    if (bConsiderAliases)
    {
-      // nothing was found, try line aliases
+      // nothing was found, try line aliases. Fast lookup by hashmap.
       SipLineAlias *pLineAlias = dynamic_cast<SipLineAlias*>(m_lineAliasMap.findValue(&lineUri.toString()));
       if (pLineAlias)
       {
@@ -285,8 +249,8 @@ void SipLineList::dumpLines()
       pLine = dynamic_cast<SipLine*>(itor.value());
       if (pLine)
       {
-         OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x, Line [%d]: lineURI=%s, LINEID=%s, lineState=%d",
-            this, i++, pLine->getLineUri().toString().data(), pLine->getLineId().data(), (int)pLine->getState());
+         OsSysLog::add(FAC_LINE_MGR, PRI_DEBUG, "LineList %x, Line [%d]: lineURI=%s, lineState=%d",
+            this, i++, pLine->getLineUri().toString().data(), (int)pLine->getState());
       }
    }
 }

@@ -44,7 +44,7 @@ XCpConference::~XCpConference()
 OsStatus XCpConference::connect(const UtlString& sSipCallId,
                                 SipDialog& sSipDialog,
                                 const UtlString& toAddress,
-                                const UtlString& lineURI,
+                                const UtlString& fullLineUrl,
                                 const UtlString& locationHeader,
                                 CP_CONTACT_ID contactId)
 {

@@ -139,11 +139,11 @@ public:
    ///@name Accessors
    //@{
 
-   /** Gets 12 characters uniquely identifying this line */
-   UtlString getLineId() const;
-
    /** Gets state of line */
    LineStates getState() const;
+
+   /** Gets state of line as string */
+   UtlString getStateAsString() const;
 
    /** Sets state of line. Changing state doesn't trigger any actions. */
    void setState(LineStates state);
@@ -221,7 +221,6 @@ protected:
    Url m_lineUri; /// <line key which is the "userEnteredUrl" stripped of display name, angle brackets and all parameters (basically the URI).
    Url m_fullLineUrl; ///< line Url used to construct sip message from field. Doesn't contain transport parameter
 
-   UtlString m_lineId; ///< 12 characters uniquely identifying line. Part of contact as LINE parameter
    LineStates m_currentState; ///< current state of line
    Url m_preferredContactUri; ///< contact that will be used in SIP messages
    UtlString m_proxyServers; ///< SIP proxy servers address:port, separated by ,
@@ -229,8 +228,9 @@ protected:
    mutable UtlHashBag m_credentials; ///< bag of SipLineCredential
 
    void copyCredentials(const SipLine& rSipLine);
-   void generateLineID(UtlString& lineId);
    Url buildLineContact(const UtlString& address = NULL, int port = PORT_NONE);
+
+   static const char* convertLineStateToString(LineStates lineState);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
