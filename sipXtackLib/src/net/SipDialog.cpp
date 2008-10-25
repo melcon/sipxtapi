@@ -82,6 +82,7 @@ SipDialog::SipDialog(const SipMessage* initialMessage)
          initialMessage->getRequestUri(&uri);
          if(isFromLocal)
          {
+            // request from us
             m_sRemoteRequestUri = uri;
          }
          else
@@ -122,29 +123,6 @@ SipDialog::SipDialog(const SipMessage* initialMessage)
    updateDialogState(initialMessage);
 }
 
-// Constructor
-SipDialog::SipDialog(const char* szCallId, 
-                     const char* szLocalTag, 
-                     const char* szRemoteTag,
-                     UtlBoolean isFromLocal)
-: UtlString(szCallId)
-, m_dialogState(DIALOG_STATE_INITIAL)
-, m_dialogSubState(DIALOG_SUBSTATE_UNKNOWN)
-{
-   m_sLocalTag = szLocalTag;
-   m_sRemoteTag = szRemoteTag;
-
-   m_sLocalInitiatedDialog = isFromLocal;
-   m_iInitialLocalCseq = 0;
-   m_iInitialRemoteCseq = -1;
-   m_iLastLocalCseq = 0;
-   m_sLastRemoteCseq = -1;
-   m_bSecure = FALSE;
-
-   updateDialogState();
-   updateSecureFlag();
-}
-
 SipDialog::SipDialog(const UtlString& sSipCallId,
                      const UtlString& sLocalTag,
                      const UtlString& sRemoteTag,
@@ -164,7 +142,6 @@ SipDialog::SipDialog(const UtlString& sSipCallId,
    m_bSecure = FALSE;
 
    updateDialogState();
-   updateSecureFlag();
 }
 
 // Copy constructor
@@ -955,7 +932,8 @@ void SipDialog::updateDialogState(const SipMessage* pSipMessage)
          if (pSipMessage && pSipMessage->isResponse())
          {
             int statusCode = pSipMessage->getResponseStatusCode();
-            if (statusCode >= SIP_1XX_CLASS_CODE && statusCode < SIP_2XX_CLASS_CODE)
+            // 100 Trying cannot establish early dialog
+            if (statusCode > SIP_1XX_CLASS_CODE && statusCode < SIP_2XX_CLASS_CODE)
             {
                // we have both tags and 200 response, this is a confirmed dialog
                m_dialogSubState = DIALOG_SUBSTATE_EARLY;
@@ -987,10 +965,9 @@ void SipDialog::updateSecureFlag(const SipMessage* pSipMessage /*= NULL*/)
    if (pSipMessage && pSipMessage->isRequest())
    {
       // init secure flag
-      UtlString sRequestUri;
-      pSipMessage->getRequestUri(&sRequestUri);
-      Url requestUrl(sRequestUri, TRUE);
-      if (requestUrl.getScheme() == Url::SipsUrlScheme)
+      Url requestUri;
+      pSipMessage->getRequestUri(requestUri);
+      if (requestUri.getScheme() == Url::SipsUrlScheme)
       {
          m_bSecure = TRUE;
          return;

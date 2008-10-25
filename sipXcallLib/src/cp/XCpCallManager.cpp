@@ -189,7 +189,7 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
 OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      SipDialog& sSipDialog,
                                      const UtlString& toAddress,
-                                     const UtlString& lineURI,
+                                     const UtlString& fullLineUrl,
                                      const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId)
 {
@@ -202,7 +202,7 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
    {
       UtlString sSipCallId = getNewSipCallId();
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, lineURI, locationHeader, contactId);
+      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
    }
 
    return result;
@@ -211,7 +211,7 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
 OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
                                                SipDialog& sSipDialog,
                                                const UtlString& toAddress,
-                                               const UtlString& lineURI,
+                                               const UtlString& fullLineUrl,
                                                const UtlString& locationHeader,
                                                CP_CONTACT_ID contactId)
 {
@@ -224,7 +224,7 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
    {
       UtlString sSipCallId = getNewSipCallId();
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, lineURI, locationHeader, contactId);
+      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
    }
 
    return result;

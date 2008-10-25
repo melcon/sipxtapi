@@ -71,6 +71,11 @@ class SipMessage;
 *  we can make a call to ourselves or subscribe and send notifications to
 *  ourselves.
 *
+*  Divergence from RFC3261:
+*  - we track localField and remoteField not local URI and remote URI. This also allows
+*    us to track display name.
+*  - remoteContact corresponds to "remote target"
+*
 *  This class is intended to deprecate the SipSession
 *  class.
 */
@@ -114,17 +119,6 @@ public:
    *        is a request.
    */
    SipDialog(const SipMessage* initialMessage = NULL);
-
-   //! Constructor accepting the basic pieces of a session callId, toUrl, and from Url.
-   /*! Optionally construct a dialog from the given message
-   *
-   * \param callId - sip message call-id header value
-   * \param localField - sip message To or From field value representing the 
-   *        local side of the dialog.
-   * \param remoteField - sip message To or From field value representing the 
-   *        remote side of the dialog.
-   */
-   SipDialog(const char* szCallId, const char* szLocalTag, const char* szRemoteTag, UtlBoolean isFromLocal = TRUE); 
 
    //! Constructor accepting the basic pieces of a session callId, toUrl, and from Url.
    /*! Optionally construct a dialog from the given message
@@ -411,18 +405,18 @@ private:
    Url m_remoteField; // To or From depending on who initiated the transaction
    UtlString m_sLocalTag;
    UtlString m_sRemoteTag;
-   Url m_localContact;
-   Url m_remoteContact; // In RFC-2833 described as "remote target"
-   UtlString m_sRouteSet;
-   UtlString m_sInitialMethod;
-   UtlString m_sLocalRequestUri;
-   UtlString m_sRemoteRequestUri;
-   UtlBoolean m_sLocalInitiatedDialog;
+   Url m_localContact; // our contact, we use in outbound messages
+   Url m_remoteContact; // In RFC-2833 described as "remote target", contact of remote party
+   UtlString m_sRouteSet; // route set for building Record-Route header
+   UtlString m_sInitialMethod; // INVITE etc
+   UtlString m_sLocalRequestUri; // request URI used for first inbound request
+   UtlString m_sRemoteRequestUri; // request URI used for first outbound request
+   UtlBoolean m_sLocalInitiatedDialog; // TRUE if dialog was started locally
    int m_iInitialLocalCseq;
    int m_iInitialRemoteCseq;
-   int m_iLastLocalCseq;
-   int m_sLastRemoteCseq;
-   UtlBoolean m_bSecure;
+   int m_iLastLocalCseq; // last used Cseq for new outbound transactions
+   int m_sLastRemoteCseq; // last used Cseq for inbound transactions
+   UtlBoolean m_bSecure; // TRUE if dialog is secure
    DialogState m_dialogState;
    DialogSubState m_dialogSubState;
 };

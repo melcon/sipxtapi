@@ -84,13 +84,11 @@ public:
    void dumpLineAliases();
 
    /**
-    * Tries to find line according to given parameters. First try lookup by
-    * lineId if its supplied. If lineId is not supplied, lookup by identityUri. If
+    * Tries to find line according to given parameters. First lookup by identityUri. If
     * not found by identityUri, try by userId. This method is slow, but most likely
     * to find a match. Line aliases have priority before match by userId.
     */
-   SipLine* findLine(const UtlString& lineId,
-                     const Url& lineUri,
+   SipLine* findLine(const Url& lineUri,
                      const UtlString& userId,
                      UtlBoolean bConsiderAliases = TRUE) const;
 
@@ -114,9 +112,6 @@ public:
     * to match.
     */
    SipLine* getLine(const Url& lineUri, UtlBoolean bConsiderAliases = TRUE) const;
-
-   /** Gets line from the list by lineId. lineId comparison is case sensitive. */
-   SipLine* getLine(const UtlString& lineId) const;
 
    /**
     * Gets line from the list by userID. Multiple lines might match, but
@@ -143,7 +138,7 @@ private:
    void removeAliasesForLine(const Url& lineURI);
 
    mutable UtlHashMap m_lineMap; ///< map of SipLine instances
-   mutable UtlHashMap m_lineAliasMap; ///< map of SipLineAlias instances
+   mutable UtlHashMap m_lineAliasMap; ///< map of SipLineAlias instances. Key is alias URI, value is SipLineAlias
 };
 
 #endif // SipLineList_h__
