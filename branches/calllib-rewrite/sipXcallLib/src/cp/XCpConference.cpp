@@ -77,7 +77,7 @@ OsStatus XCpConference::dropConnection(const SipDialog& sSipDialog)
    return OS_FAILED;
 }
 
-OsStatus XCpConference::dropAllConnections()
+OsStatus XCpConference::dropAllConnections(UtlBoolean bDestroyConference)
 {
    return OS_FAILED;
 }

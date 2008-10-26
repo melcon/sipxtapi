@@ -134,7 +134,7 @@ public:
                           void* pCookie = NULL);
 
    /** Starts playing audio buffer on call connection. Passed buffer will be copied internally. */
-   OsStatus audioBufferPlay(void* pAudiobuf,
+   OsStatus audioBufferPlay(const void* pAudiobuf,
                             size_t iBufSize,
                             int iType,
                             UtlBoolean bRepeat,

@@ -141,8 +141,12 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
    sCallId.remove(0); // clear string
 
    // always allow creation of new call, check for limit only when establishing
-   UtlString sNewCallId = getNewCallId();
-   XCpCall *pCall = new XCpCall(sNewCallId);
+   if (sCallId.isNull())
+   {
+      sCallId = getNewCallId();
+   }
+
+   XCpCall *pCall = new XCpCall(sCallId);
    UtlBoolean resStart = pCall->start();
    if (resStart)
    {
@@ -150,7 +154,6 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
       if (resPush)
       {
          result = OS_SUCCESS;
-         sCallId = sNewCallId;
       }
       else
       {
@@ -169,8 +172,11 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    sConferenceId.remove(0); // clear string
 
    // always allow creation of new conference, check for limit only when establishing
-   UtlString sNewConferenceId = getNewConferenceId();
-   XCpConference *pConference = new XCpConference(sNewConferenceId);
+   if (sConferenceId.isNull())
+   {
+      sConferenceId = getNewConferenceId();
+   }
+   XCpConference *pConference = new XCpConference(sConferenceId);
    UtlBoolean resStart = pConference->start();
    if (resStart)
    {
@@ -178,7 +184,6 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
       if (resPush)
       {
          result = OS_SUCCESS;
-         sConferenceId = sNewConferenceId;
       }
       else
       {
@@ -194,6 +199,7 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      SipDialog& sSipDialog,
                                      const UtlString& toAddress,
                                      const UtlString& fullLineUrl,
+                                     const UtlString& sSipCallId,
                                      const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId)
 {
@@ -204,9 +210,13 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
    UtlBoolean resFind = findCall(sCallId, ptrLock);
    if (resFind)
    {
-      UtlString sSipCallId = getNewSipCallId();
+      UtlString sTmpSipCallId = sSipCallId;
+      if (sTmpSipCallId.isNull())
+      {
+         sTmpSipCallId = getNewSipCallId();
+      }
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
    }
 
    return result;
@@ -216,6 +226,7 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
                                                SipDialog& sSipDialog,
                                                const UtlString& toAddress,
                                                const UtlString& fullLineUrl,
+                                               const UtlString& sSipCallId,
                                                const UtlString& locationHeader,
                                                CP_CONTACT_ID contactId)
 {
@@ -226,9 +237,13 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
    UtlBoolean resFind = findConference(sConferenceId, ptrLock);
    if (resFind)
    {
-      UtlString sSipCallId = getNewSipCallId();
+      UtlString sTmpSipCallId = sSipCallId;
+      if (sTmpSipCallId.isNull())
+      {
+         sTmpSipCallId = getNewSipCallId();
+      }
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
    }
 
    return result;
@@ -313,6 +328,20 @@ OsStatus XCpCallManager::dropAbstractCallConnection(const UtlString& sAbstractCa
    return result;
 }
 
+OsStatus XCpCallManager::dropAllAbstractCallConnections(const UtlString& sAbstractCallId)
+{
+   if (isCallId(sAbstractCallId))
+   {
+      // call has only 1 connection
+      return dropCallConnection(sAbstractCallId);
+   }
+   else
+   {
+      // conference has many connections
+      return dropAllConferenceConnections(sAbstractCallId);
+   }
+}
+
 OsStatus XCpCallManager::dropCallConnection(const UtlString& sCallId)
 {
    OsStatus result = OS_NOT_FOUND;
@@ -323,6 +352,21 @@ OsStatus XCpCallManager::dropCallConnection(const UtlString& sCallId)
    {
       // we found call and have a lock on it
       return ptrLock->dropConnection();
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropConferenceConnection(const UtlString& sConferenceId, const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->dropConnection(sSipDialog);
    }
 
    return result;
@@ -345,6 +389,48 @@ OsStatus XCpCallManager::dropAllConferenceConnections(const UtlString& sConferen
 
 OsStatus XCpCallManager::dropAbstractCall(const UtlString& sAbstractCallId)
 {
+   if (isCallId(sAbstractCallId))
+   {
+      return dropCall(sAbstractCallId);
+   }
+   else
+   {
+      return dropConference(sAbstractCallId);
+   }
+}
+
+OsStatus XCpCallManager::dropCall(const UtlString& sCallId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->dropConnection(TRUE);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropConference(const UtlString& sConferenceId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   if (resFind)
+   {
+      // we found conference and have a lock on it
+      return ptrLock->dropAllConnections(TRUE);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::destroyAbstractCall(const UtlString& sAbstractCallId)
+{
    OsStatus result = OS_NOT_FOUND;
 
    // this deletes it safely, shutting down thread and media resources
@@ -357,7 +443,7 @@ OsStatus XCpCallManager::dropAbstractCall(const UtlString& sAbstractCallId)
    return result;
 }
 
-OsStatus XCpCallManager::dropCall(const UtlString& sCallId)
+OsStatus XCpCallManager::destroyCall(const UtlString& sCallId)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -371,7 +457,7 @@ OsStatus XCpCallManager::dropCall(const UtlString& sCallId)
    return result;
 }
 
-OsStatus XCpCallManager::dropConference(const UtlString& sConferenceId)
+OsStatus XCpCallManager::destroyConference(const UtlString& sConferenceId)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -387,7 +473,7 @@ OsStatus XCpCallManager::dropConference(const UtlString& sConferenceId)
 
 OsStatus XCpCallManager::transferBlindAbstractCall(const UtlString& sAbstractCallId,
                                                    const SipDialog& sSipDialog,
-                                                   const UtlString& sTransferSipUri)
+                                                   const UtlString& sTransferSipUrl)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -396,7 +482,7 @@ OsStatus XCpCallManager::transferBlindAbstractCall(const UtlString& sAbstractCal
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->transferBlind(sSipDialog, sTransferSipUri);
+      return ptrLock->transferBlind(sSipDialog, sTransferSipUrl);
    }
 
    return result;
@@ -468,7 +554,7 @@ OsStatus XCpCallManager::audioFilePlay(const UtlString& sAbstractCallId,
 }
 
 OsStatus XCpCallManager::audioBufferPlay(const UtlString& sAbstractCallId,
-                                         void* pAudiobuf,
+                                         const void* pAudiobuf,
                                          size_t iBufSize,
                                          int iType,
                                          UtlBoolean bRepeat,
@@ -867,6 +953,21 @@ OsStatus XCpCallManager::sendInfo(const UtlString& sAbstractCallId,
    return result;
 }
 
+UtlString XCpCallManager::getNewSipCallId()
+{
+   return m_sipCallIdGenerator.getNewCallId();
+}
+
+UtlString XCpCallManager::getNewCallId()
+{
+   return m_callIdGenerator.getNewCallId();
+}
+
+UtlString XCpCallManager::getNewConferenceId()
+{
+   return m_conferenceIdGenerator.getNewCallId();
+}
+
 /* ============================ ACCESSORS ================================= */
 
 CpMediaInterfaceFactory* XCpCallManager::getMediaInterfaceFactory() const
@@ -907,7 +1008,17 @@ int XCpCallManager::getCallCount() const
    return count;
 }
 
-OsStatus XCpCallManager::getCallIds(UtlSList& idList) const
+OsStatus XCpCallManager::getAbstractCallIds(UtlSList& idList) const
+{
+   // first append call ids
+   getCallIds(idList);
+   // then append conference ids
+   getConferenceIds(idList);
+
+   return OS_SUCCESS;
+}
+
+OsStatus XCpCallManager::getCallIds(UtlSList& callIdList) const
 {
    OsLock lock(m_memberMutex);
 
@@ -919,14 +1030,14 @@ OsStatus XCpCallManager::getCallIds(UtlSList& idList) const
       pCall = dynamic_cast<XCpCall*>(callMapItor.value());
       if (pCall)
       {
-         idList.insert(pCall->getId().clone());
+         callIdList.insert(pCall->getId().clone());
       }
    }
 
    return OS_SUCCESS;
 }
 
-OsStatus XCpCallManager::getConferenceIds(UtlSList& idList) const
+OsStatus XCpCallManager::getConferenceIds(UtlSList& conferenceIdList) const
 {
    OsLock lock(m_memberMutex);
 
@@ -937,7 +1048,7 @@ OsStatus XCpCallManager::getConferenceIds(UtlSList& idList) const
       pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
       if (pConference)
       {
-         idList.insert(pConference->getId().clone());
+         conferenceIdList.insert(pConference->getId().clone());
       }
    }
 
@@ -1045,34 +1156,19 @@ OsStatus XCpCallManager::getSipDialog(const UtlString& sAbstractCallId,
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-UtlString XCpCallManager::getNewCallId()
-{
-   return m_callIdGenerator.getNewCallId();
-}
-
-UtlString XCpCallManager::getNewConferenceId()
-{
-   return m_conferenceIdGenerator.getNewCallId();
-}
-
-UtlString XCpCallManager::getNewSipCallId()
-{
-   return m_sipCallIdGenerator.getNewCallId();
-}
-
-UtlBoolean XCpCallManager::isCallId(const UtlString& sId) const
+UtlBoolean XCpCallManager::isCallId(const UtlString& sId)
 {
    XCpCallManager::ID_TYPE type = getIdType(sId);
    return type == XCpCallManager::ID_TYPE_CALL;
 }
 
-UtlBoolean XCpCallManager::isConferenceId(const UtlString& sId) const
+UtlBoolean XCpCallManager::isConferenceId(const UtlString& sId)
 {
    XCpCallManager::ID_TYPE type = getIdType(sId);
    return type == XCpCallManager::ID_TYPE_CONFERENCE;
 }
 
-XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId) const
+XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId)
 {
    if (sId.first(callIdPrefix) >= 0)
    {

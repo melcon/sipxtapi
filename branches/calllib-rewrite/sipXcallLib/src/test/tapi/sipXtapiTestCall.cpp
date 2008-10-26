@@ -161,7 +161,7 @@ void sipXtapiTestSuite::testCallRapidCallAndHangup()
          OsTask::delay(CALL_DELAY*6);
       }
       sessionCallIdList.destroyAll(); // empty the list
-      sipxGetAllCallIds(g_hInst1, sessionCallIdList);
+      sipxGetAllAbstractCallIds(g_hInst1, sessionCallIdList);
       nCallManagerCalls = sessionCallIdList.entries();
       printf("\ntestCallRapidCallAndHangup %d calls are still alive, waiting for shutdown...", nCallManagerCalls);
    } while(nCallManagerCalls > 0 && attempt++ < maxAttepmpts);

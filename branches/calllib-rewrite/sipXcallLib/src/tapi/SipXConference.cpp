@@ -360,7 +360,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
             pData->pInst = pInst;
 
             // create shell call for conference
-            pData->confCallId = pData->pInst->pCallManager->createConference();
+            pData->pInst->pCallManager->createConference(pData->confCallId);
 
             pData->mutex.release();
             rc = SIPX_RESULT_SUCCESS;
@@ -583,43 +583,38 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
       UtlString confCallId(pData->confCallId);
       sipxConfReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 
-      if (pInst)
+      if (pInst && nCalls < CONF_MAX_CONNECTIONS)
       {
          // conference was found
-         if (nCalls < CONF_MAX_CONNECTIONS && 
-             pInst->pCallManager->canAddConnection(confCallId))
+         // create session call id for conference call
+         UtlString sessionCallId = pInst->pCallManager->getNewSipCallId();         
+
+         // call can be added, create it with confCallId
+         SIPX_RESULT res = sipxCallCreateHelper(pInst,
+            hLine,
+            NULL,
+            hConf,
+            phNewCall,
+            confCallId,
+            sessionCallId,
+            false,// bFireDialtone
+            true);// bIsConferenceCall
+
+         if (res == SIPX_RESULT_SUCCESS)
          {
-            UtlString sessionCallId;
-            // create session call id for conference call
-            pInst->pCallManager->getNewSessionId(&sessionCallId);
+            // call was created, add it to conference
+            sipxAddCallHandleToConf(*phNewCall, hConf);
 
-            // call can be added, create it with confCallId
-            SIPX_RESULT res = sipxCallCreateHelper(pInst,
-               hLine,
-               NULL,
-               hConf,
-               phNewCall,
+            // fire dialtone event manually - used for conferences
+            pInst->pCallEventListener->OnDialTone(CpCallStateEvent(sessionCallId,
                confCallId,
-               sessionCallId,
-               false,
-               false);
+               SipSession(),
+               NULL,
+               CALLSTATE_CAUSE_CONFERENCE));
 
-            if (res == SIPX_RESULT_SUCCESS)
-            {
-               // call was created, add it to conference
-               sipxAddCallHandleToConf(*phNewCall, hConf);
-
-               // fire dialtone event manually - used for conferences
-               pInst->pCallEventListener->OnDialTone(CpCallStateEvent(sessionCallId,
-                  confCallId,
-                  SipSession(),
-                  NULL,
-                  CALLSTATE_CAUSE_CONFERENCE));
-
-               // connect call
-               rc = sipxCallConnect(*phNewCall, szAddress, pDisplay, pSecurity,
-                  bTakeFocus, options, sessionCallId);
-            }
+            // connect call
+            rc = sipxCallConnect(*phNewCall, szAddress, pDisplay, pSecurity,
+               bTakeFocus, options, sessionCallId);
          }
          else
          {
@@ -1008,7 +1003,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStart(const SIPX_CONF hCon
       if (pData)
       {
          // conference was found, just repost message
-         pData->pInst->pCallManager->audioChannelRecordStart(pData->confCallId, NULL, szFile);
+         pData->pInst->pCallManager->audioRecordStart(pData->confCallId, szFile);
          sr = SIPX_RESULT_SUCCESS;
          sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
       }
@@ -1032,7 +1027,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStop(const SIPX_CONF hConf
       if (pData)
       {
          // conference was found, just repost message
-         pData->pInst->pCallManager->audioChannelRecordStop(pData->confCallId, NULL);
+         pData->pInst->pCallManager->audioRecordStop(pData->confCallId);
          sr = SIPX_RESULT_SUCCESS;
          sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
       }

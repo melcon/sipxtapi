@@ -1143,12 +1143,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param errorCode RFC specified error code.
- * @param szErrorText null terminated text string to explain the error code.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall,
-                                        const int errorCode = 400,
-                                        const char* szErrorText = "Bad Request");
+SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall);
 
 
 /**
@@ -1642,7 +1638,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.  Audio can only be played in the context
  *        of a call.
- * @param szBuffer Pointer to the audio data to be played.
+ * @param pBuffer Pointer to the audio data to be played.
  * @param bufSize Length, in bytes, of the audio data.
  * @param bufType The audio encoding format for the data as specified
  *                by the SIPX_AUDIO_DATA_FORMAT enumerations.  Currently
@@ -1655,7 +1651,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
  *               sipxCallPlayBufferStart is called multiple times very fast.
  */
 SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
-                                                 const char* szBuffer,
+                                                 const void* pBuffer,
                                                  const int bufSize,
                                                  const int bufType,
                                                  const int bRepeat,
@@ -2014,19 +2010,21 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
  *        a listener interface.
  * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
  *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
+ * @param szAudioCodecs Codec names that limit the supported audio codecs.
  * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
  *        (see sipxConfigSetVideoBandwidth for an explanation on how 
  *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
  *        to leave these parameters unchanged.
- * @param szVideoCodecName Codec name that limits the supported video codecs
+ * @param szVideoCodecs Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
                                                        const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
+                                                       const char* szAudioCodecs,
                                                        const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
-                                                       const char* szVideoCodecName);
+                                                       const char* szVideoCodecs);
 
 /**
  * Enables/disables discarding of inbound RTP for given call. Should be used

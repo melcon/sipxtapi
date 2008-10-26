@@ -80,7 +80,7 @@ public:
    virtual OsStatus dropConnection(const SipDialog& sSipDialog);
 
    /** Disconnects all calls */
-   OsStatus dropAllConnections();
+   OsStatus dropAllConnections(UtlBoolean bDestroyConference = FALSE);
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sSipDialog,

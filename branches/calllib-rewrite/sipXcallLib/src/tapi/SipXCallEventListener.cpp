@@ -459,8 +459,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
       if (pCallData)
       {
-         // just posts message
-         pCallData->m_pInst->pCallManager->dropConnection(sSessionCallId, szRemoteAddress);
+         pCallData->m_pInst->pCallManager->dropConferenceConnection(pCallData->m_callId, pCallData->m_sipDialog);
          sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
       }
 

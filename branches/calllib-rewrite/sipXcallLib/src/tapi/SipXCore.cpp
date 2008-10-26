@@ -678,7 +678,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->lock.release();
 
          sessionCallIdList.destroyAll(); // empty the list
-         sipxGetAllCallIds(hInst, sessionCallIdList);
+         sipxGetAllAbstractCallIds(hInst, sessionCallIdList);
          nCallManagerCalls = sessionCallIdList.entries();
 
          if ((nCalls != 0) || (nConferences != 0) || (nLines != 0) || (nCallManagerCalls != 0))
