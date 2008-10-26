@@ -157,9 +157,9 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
                                  UtlString* pRemoteContactAddress = NULL);
 
 /**
-* Get the list of active calls for the specified call manager instance
+* Get the list of active calls for the specified sipxtapi instance.
 */
-SIPXTAPI_API SIPX_RESULT sipxGetAllCallIds(SIPX_INST hInst, UtlSList& sessionCallIdList);
+SIPXTAPI_API SIPX_RESULT sipxGetAllAbstractCallIds(SIPX_INST hInst, UtlSList& idList);
 
 void sipxCallDestroyAll(const SIPX_INST hInst);
 
@@ -178,8 +178,8 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                                  SIPX_CALL* phCall,
                                  const UtlString& sCallId = "",
                                  const UtlString& sSessionCallId = "",
-                                 bool bCreateInCallManager = true,
-                                 bool bFireDialtone = true);
+                                 bool bFireDialtone = true,
+                                 bool bIsConferenceCall = false);
 
 
 SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall);

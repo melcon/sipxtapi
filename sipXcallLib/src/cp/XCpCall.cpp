@@ -77,7 +77,7 @@ OsStatus XCpCall::dropConnection(const SipDialog& sSipDialog)
    return OS_FAILED;
 }
 
-OsStatus XCpCall::dropConnection()
+OsStatus XCpCall::dropConnection(UtlBoolean bDestroyCall)
 {
    return OS_FAILED;
 }

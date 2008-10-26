@@ -96,7 +96,7 @@ public:
    virtual OsStatus dropConnection(const SipDialog& sSipDialog);
 
    /** Disconnects call without knowing the sip call-id*/
-   OsStatus dropConnection();
+   OsStatus dropConnection(UtlBoolean bDestroyCall = FALSE);
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sSipDialog,

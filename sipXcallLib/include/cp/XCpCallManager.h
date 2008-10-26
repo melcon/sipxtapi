@@ -81,10 +81,10 @@ public:
 
    virtual void requestShutdown(void);
 
-   /** Creates new empty call, returning id if successful */
+   /** Creates new empty call. If sCallId, new id is generated. Generated id is returned in sCallId */
    OsStatus createCall(UtlString& sCallId);
 
-   /** Creates new empty conference, returning id if successful */
+   /** Creates new empty conference. If sConferenceId, new id is generated. Generated id is returned in sConferenceId */
    OsStatus createConference(UtlString& sConferenceId);
 
    /** 
@@ -95,6 +95,7 @@ public:
                         SipDialog& sSipDialog,
                         const UtlString& toAddress,
                         const UtlString& fullLineUrl,// includes display name, SIP URI
+                        const UtlString& sSipCallId, // can be used to suggest sip call-id
                         const UtlString& locationHeader,
                         CP_CONTACT_ID contactId);
 
@@ -105,7 +106,8 @@ public:
    OsStatus connectConferenceCall(const UtlString& sConferenceId,
                                   SipDialog& sSipDialog,
                                   const UtlString& toAddress,
-                                  const UtlString& fullLineUrl,
+                                  const UtlString& fullLineUrl,// includes display name, SIP URI
+                                  const UtlString& sSipCallId, // can be used to suggest sip call-id
                                   const UtlString& locationHeader,
                                   CP_CONTACT_ID contactId);
 
@@ -159,35 +161,70 @@ public:
    OsStatus dropAbstractCallConnection(const UtlString& sAbstractCallId,
                                        const SipDialog& sSipDialog);
 
+   /**
+    * Disconnects all connections of abstract call (call, conference).
+    *
+    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+    * progresses to disconnected and the connection is removed. The XCpAbstractCall object is not destroyed.
+    */
+   OsStatus dropAllAbstractCallConnections(const UtlString& sAbstractCallId);
+
    /** 
     * Disconnects given simple call not destroying the XCpCall object so that it can be reused.
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
-    * progresses to disconnected and the connection is removed.
+    * progresses to disconnected and the connection is removed. The XCpCall object is not destroyed.
     */
    OsStatus dropCallConnection(const UtlString& sCallId);
+
+   /** 
+   * Disconnects given conference call not destroying the XCpConference object so that it can be reused.
+   *
+   * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+   * progresses to disconnected and the connection is removed. The XCpConference object is not destroyed.
+   */
+   OsStatus dropConferenceConnection(const UtlString& sConferenceId,
+                                     const SipDialog& sSipDialog);
 
    /**
     * Disconnects given all conference calls not destroying the XCpConference object so that it can be reused.
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
-    * progresses to disconnected and the connection is removed.
+    * progresses to disconnected and the connection is removed. The XCpConference object is not destroyed.
     */
    OsStatus dropAllConferenceConnections(const UtlString& sConferenceId);
 
-   /** Deletes the XCpCall/XCpConference object, doesn't disconnect call */
+   /**
+   * Drops all XCpCall/XCpConference connections, and destroys the object once all connections
+   * are disconnected. Asynchronous method.
+   */
    OsStatus dropAbstractCall(const UtlString& sAbstractCallId);
 
-   /** Deletes the XCpCall object, doesn't disconnect call */
+   /**
+   * Drops XCpCall connection, and destroys the object once connection
+   * is disconnected. Asynchronous method.
+   */
    OsStatus dropCall(const UtlString& sCallId);
 
-   /** Deletes the XCpConference object, doesn't disconnect conference calls */
+   /**
+   * Drops all XCpConference connections, and destroys the object once all connections
+   * are disconnected. Asynchronous method.
+   */
    OsStatus dropConference(const UtlString& sConferenceId);
+
+   /** Deletes the XCpCall/XCpConference object, doesn't disconnect call */
+   OsStatus destroyAbstractCall(const UtlString& sAbstractCallId);
+
+   /** Deletes the XCpCall object, doesn't disconnect call */
+   OsStatus destroyCall(const UtlString& sCallId);
+
+   /** Deletes the XCpConference object, doesn't disconnect conference calls */
+   OsStatus destroyConference(const UtlString& sConferenceId);
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    OsStatus transferBlindAbstractCall(const UtlString& sAbstractCallId,
                                       const SipDialog& sSipDialog,
-                                      const UtlString& sTransferSipUri);
+                                      const UtlString& sTransferSipUrl);
 
    /**
     * Transfer an individual participant from one end point to another using REFER w/replaces.
@@ -218,7 +255,7 @@ public:
 
    /** Starts playing audio buffer on call connection. Passed buffer will be copied internally. */
    OsStatus audioBufferPlay(const UtlString& sAbstractCallId,
-                            void* pAudiobuf,
+                            const void* pAudiobuf,
                             size_t iBufSize,
                             int iType,
                             UtlBoolean bRepeat,
@@ -414,6 +451,15 @@ public:
                      const char* pContent,
                      const size_t nContentLength);
 
+   /** Generates new sip call-id */
+   UtlString getNewSipCallId();
+
+   /** Generates new id for call. It is not the call-id field used in sip messages, instead its an internal id */
+   UtlString getNewCallId();
+
+   /** Generates new id for conference */
+   UtlString getNewConferenceId();
+
    /* ============================ ACCESSORS ================================= */
 
    UtlBoolean getDoNotDisturb() const { return m_bDoNotDisturb; }
@@ -436,11 +482,14 @@ public:
    /** gets total amount of calls. Also calls in conference are counted */
    int getCallCount() const;
 
-   /** Gets ids of all calls */
-   OsStatus getCallIds(UtlSList& idList) const;
+   /** Gets ids of all calls and conferences. Ids are appended into list. */
+   OsStatus getAbstractCallIds(UtlSList& idList) const;
 
-   /** Gets ids of all conferences */
-   OsStatus getConferenceIds(UtlSList& idList) const;
+   /** Gets ids of all calls. Ids are appended into list. */
+   OsStatus getCallIds(UtlSList& callIdList) const;
+
+   /** Gets ids of all conferences. Ids are appended into list. */
+   OsStatus getConferenceIds(UtlSList& conferenceIdList) const;
 
    /** Gets sip call-id of call if its available */
    OsStatus getCallSipCallId(const UtlString& sCallId,
@@ -488,23 +537,14 @@ private:
       ID_TYPE_UNKNOWN
    } ID_TYPE;
 
-   /** Generates new id for call. It is not the call-id field used in sip messages, instead its an internal id */
-   UtlString getNewCallId();
-
-   /** Generates new id for conference */
-   UtlString getNewConferenceId();
-
-   /** Generates new sip call-id */
-   UtlString getNewSipCallId();
-
    /** Checks if given Id identifies a call instance */
-   UtlBoolean isCallId(const UtlString& sId) const;
+   static UtlBoolean isCallId(const UtlString& sId);
 
    /** Checks if given Id identifies a conference instance */
-   UtlBoolean isConferenceId(const UtlString& sId) const;
+   static UtlBoolean isConferenceId(const UtlString& sId);
 
    /** Gets the type of Id. Can be call, conference or unknown. */
-   ID_TYPE getIdType(const UtlString& sId) const;
+   static ID_TYPE getIdType(const UtlString& sId);
 
    /**
    * Finds and returns a call or conference as XCpAbstractCall according to given id.

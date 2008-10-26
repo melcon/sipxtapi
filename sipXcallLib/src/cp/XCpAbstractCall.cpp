@@ -82,7 +82,7 @@ OsStatus XCpAbstractCall::audioFilePlay(const UtlString& audioFile,
    return OS_FAILED;
 }
 
-OsStatus XCpAbstractCall::audioBufferPlay(void* pAudiobuf,
+OsStatus XCpAbstractCall::audioBufferPlay(const void* pAudiobuf,
                                           size_t iBufSize,
                                           int iType,
                                           UtlBoolean bRepeat,
