@@ -2386,19 +2386,21 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
  *        by invoking sipxConferenceCreate.
  * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
  *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
+ * @param szVideoCodecNames Codec names that limit the supported audio codecs.
  * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
  *        (see sipxConfigSetVideoBandwidth for an explanation on how 
  *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
  *        to leave these parameters unchanged.
- * @param szVideoCodecName Codec name that limits the supported video codecs
+ * @param szVideoCodecNames Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
                                                              const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
+                                                             const char* szAudioCodecNames,
                                                              const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
-                                                             const char* szVideoCodecName);
+                                                             const char* szVideoCodecNames);
 
 //@}
 

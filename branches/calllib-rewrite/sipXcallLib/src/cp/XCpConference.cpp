@@ -113,7 +113,17 @@ OsStatus XCpConference::silentHoldRemoteConnection(const SipDialog& sSipDialog)
    return OS_FAILED;
 }
 
+OsStatus XCpConference::silentHoldRemoteAllConnections()
+{
+   return OS_FAILED;
+}
+
 OsStatus XCpConference::silentUnholdRemoteConnection(const SipDialog& sSipDialog)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::silentUnholdRemoteAllConnections()
 {
    return OS_FAILED;
 }

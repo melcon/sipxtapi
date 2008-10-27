@@ -361,11 +361,23 @@ public:
                                                    const SipDialog& sSipDialog);
 
    /**
+   * Enables discarding of inbound RTP for given conference.
+   * Useful for server applications without mic/speaker.
+   */
+   OsStatus silentHoldRemoteAllConferenceConnections(const UtlString& sConferenceId);
+
+   /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
    OsStatus silentUnholdRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
                                                      const SipDialog& sSipDialog);
+
+   /**
+   * Disables discarding of inbound RTP for given conference.
+   * Useful for server applications without mic/speaker.
+   */
+   OsStatus silentUnholdRemoteAllConferenceConnections(const UtlString& sConferenceId);
 
    /**
    * Stops outbound RTP for given call or conference.
