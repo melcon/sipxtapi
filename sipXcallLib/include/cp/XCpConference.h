@@ -127,10 +127,22 @@ public:
    virtual OsStatus silentHoldRemoteConnection(const SipDialog& sSipDialog);
 
    /**
+   * Enables discarding of inbound RTP for given conference.
+   * Useful for server applications without mic/speaker.
+   */
+   virtual OsStatus silentHoldRemoteAllConnections();
+
+   /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
    virtual OsStatus silentUnholdRemoteConnection(const SipDialog& sSipDialog);
+
+   /**
+   * Disables discarding of inbound RTP for given conference.
+   * Useful for server applications without mic/speaker.
+   */
+   virtual OsStatus silentUnholdRemoteAllConnections();
 
    /**
    * Stops outbound RTP for given call or conference.

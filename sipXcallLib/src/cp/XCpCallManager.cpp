@@ -789,6 +789,21 @@ OsStatus XCpCallManager::silentHoldRemoteAbstractCallConnection(const UtlString&
    return result;
 }
 
+OsStatus XCpCallManager::silentHoldRemoteAllConferenceConnections(const UtlString& sConferenceId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   if (resFind)
+   {
+      // we found conference and have a lock on it
+      return ptrLock->silentHoldRemoteAllConnections();
+   }
+
+   return result;
+}
+
 OsStatus XCpCallManager::silentUnholdRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
                                                                   const SipDialog& sSipDialog)
 {
@@ -800,6 +815,21 @@ OsStatus XCpCallManager::silentUnholdRemoteAbstractCallConnection(const UtlStrin
    {
       // we found call and have a lock on it
       return ptrLock->silentUnholdRemoteConnection(sSipDialog);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::silentUnholdRemoteAllConferenceConnections(const UtlString& sConferenceId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   if (resFind)
+   {
+      // we found conference and have a lock on it
+      return ptrLock->silentUnholdRemoteAllConnections();
    }
 
    return result;

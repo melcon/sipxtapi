@@ -180,7 +180,7 @@ void sipxConfFree(const SIPX_CONF hConf)
       pData->pInst->lock.release();
 
       // drop conference shell call
-      pData->pInst->pCallManager->drop(pData->confCallId);
+      pData->pInst->pCallManager->dropConference(pData->confCallId);
       delete pData;
    }
    else
@@ -416,6 +416,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
 
          if (pCallData)
          {
+            /*
             // call was found and is locked
             if (pCallData->m_hConf == SIPX_CALL_NULL)
             {
@@ -447,7 +448,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
             {
                // call is already in a conference
                rc = SIPX_RESULT_INVALID_STATE;
-            }
+            }*/
 
             sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
          }
@@ -456,7 +457,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
       if (bDoSplit)
       {
          // Do the split
-         PtStatus status = pInst->pCallManager->split(sourceSessionCallId, sourceAddress, targetCallId);
+/*         PtStatus status = pInst->pCallManager->split(sourceSessionCallId, sourceAddress, targetCallId);
          if (status != PT_SUCCESS)
          {
             rc = SIPX_RESULT_FAILURE;
@@ -471,7 +472,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
          // If the call fails -- hard to recover, drop the call anyways.
          // If split fails, call will be in inconsistent state as we already changed
          // pCallData
-         pInst->pCallManager->drop(sourceCallId);
+         pInst->pCallManager->drop(sourceCallId);*/
       }
    }
 
@@ -506,7 +507,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
          SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
 
          if (pCallData)
-         {
+         {/*
             // call was found
             if ((pCallData->m_state == SIPX_INTERNAL_CALLSTATE_REMOTE_HELD) || 
                 (pCallData->m_state == SIPX_INTERNAL_CALLSTATE_HELD))
@@ -527,14 +528,14 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
             else
             {
                rc = SIPX_RESULT_INVALID_STATE;
-            }
+            }*/
 
             sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
          }
       }
 
       // Initiate Split
-      if (doSplit)
+      /*if (doSplit)
       {
          PtStatus status = pInst->pCallManager->split(sourceSessionCallId, sourceAddress, targetCallId);
          if (status != PT_SUCCESS)
@@ -550,7 +551,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
             // split successful
             rc = SIPX_RESULT_SUCCESS;
          }
-      }
+      }*/
    }
 
    return rc;
@@ -644,6 +645,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
       if (pConfData)
       {
          SIPX_INSTANCE_DATA* pInst = pConfData->pInst;
+         UtlString conferenceId(pConfData->confCallId);
          sipxConfReleaseLock(pConfData, SIPX_LOCK_WRITE, stackLogger);
 
          if (pInst)
@@ -653,8 +655,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
             if (pCallData && pCallData->m_state != SIPX_INTERNAL_CALLSTATE_DESTROYING)
             {
                pCallData->m_state = SIPX_INTERNAL_CALLSTATE_DESTROYING;
-               UtlString sessionCallId(pCallData->m_sessionCallId);
-               UtlString remoteAddress(pCallData->m_remoteAddress);
+               SipDialog sipDialog(pCallData->m_sipDialog);
                SIPX_CONF hCallConf = pCallData->m_hConf;
                assert(hCallConf != SIPX_CONF_NULL);
 
@@ -664,7 +665,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceRemove(const SIPX_CONF hConf,
                {
                   // remove call handle from conference
                   sipxRemoveCallHandleFromConf(hConf, *hCall);
-                  pInst->pCallManager->dropConnection(sessionCallId, remoteAddress);
+                  pInst->pCallManager->dropConferenceConnection(conferenceId, sipDialog);
 
                   *hCall = SIPX_CALL_NULL;
                   rc = SIPX_RESULT_SUCCESS;
@@ -706,15 +707,13 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceHold(const SIPX_CONF hConf,
          {
             if (bBridging)
             {
-               // use bridged (local) hold, just reposts message to thread
-               pData->pInst->pCallManager->holdLocalTerminalConnection(pData->confCallId);
+               pData->pInst->pCallManager->holdLocalAbstractCallConnection(pData->confCallId);
                pData->confHoldState = CONF_STATE_BRIDGING_HOLD;
                sr = SIPX_RESULT_SUCCESS;
             }
             else
             {
-               // just reposts message to thread
-               pData->pInst->pCallManager->holdAllTerminalConnections(pData->confCallId);
+               pData->pInst->pCallManager->holdAllConferenceConnections(pData->confCallId);
                pData->confHoldState = CONF_STATE_NON_BRIDGING_HOLD;
                sr = SIPX_RESULT_SUCCESS;
             }
@@ -751,14 +750,14 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceUnhold(const SIPX_CONF hConf)
             if (pData->confHoldState == CONF_STATE_BRIDGING_HOLD)
             {
                // just posts a message
-               pData->pInst->pCallManager->unholdLocalTerminalConnection(pData->confCallId);
+               pData->pInst->pCallManager->unholdLocalAbstractCallConnection(pData->confCallId);
                pData->confHoldState = CONF_STATE_UNHELD;
                sr = SIPX_RESULT_SUCCESS;
             }
             else if (pData->confHoldState == CONF_STATE_NON_BRIDGING_HOLD)
             {
                // just posts a message
-               pData->pInst->pCallManager->unholdAllTerminalConnections(pData->confCallId);
+               pData->pInst->pCallManager->unholdAllConferenceConnections(pData->confCallId);
                pData->confHoldState = CONF_STATE_UNHELD;
                sr = SIPX_RESULT_SUCCESS;
             }
@@ -808,7 +807,8 @@ SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStart(const SIPX_CONF hConf,
          {
             // conference was found, just repost message
             pData->nNumFilesPlaying++;
-            pData->pInst->pCallManager->audioPlay(pData->confCallId, szFile, bRepeat, bLocal, bRemote, bMixWithMic, (int) (fDownScaling * 100.0));
+            pData->pInst->pCallManager->audioFilePlay(pData->confCallId, szFile, bRepeat,
+               bLocal, bRemote, bMixWithMic, (int) (fDownScaling * 100.0));
 
             sr = SIPX_RESULT_SUCCESS;
          }         
@@ -913,12 +913,12 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
       {
          if (pData->pInst && pData->pInst->pCallManager && !pData->confCallId.isNull())
          {
-            CallManager* pCallManager = pData->pInst->pCallManager;
-            UtlString callId = pData->confCallId;
+            XCpCallManager* pCallManager = pData->pInst->pCallManager;
+            UtlString conferenceId = pData->confCallId;
 
             sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
-            if (pCallManager->getAudioEnergyLevels(callId, *iInputEnergyLevel, *iOutputEnergyLevel))
+            if (pCallManager->getAudioEnergyLevels(conferenceId, *iInputEnergyLevel, *iOutputEnergyLevel))
             {
                sr = SIPX_RESULT_SUCCESS;
             }
@@ -941,8 +941,9 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
 
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
                                                              const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
+                                                             const char* szAudioCodecNames,
                                                              const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
-                                                             const char* szVideoCodecName) 
+                                                             const char* szVideoCodecNames) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceLimitCodecPreferences");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -950,7 +951,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
       hConf,
       audioBandwidth,
       videoBandwidth,
-      (szVideoCodecName) ? szVideoCodecName : "");
+      (szAudioCodecNames) ? szAudioCodecNames : "");
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
@@ -966,9 +967,13 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
          if (!pData->confCallId.isNull())
          {
             // just reposts message
-            pData->pInst->pCallManager->limitCodecPreferences(pData->confCallId, audioBandwidth, videoBandwidth, szVideoCodecName);
-            pData->pInst->pCallManager->silentRemoteHold(pData->confCallId);
-            pData->pInst->pCallManager->renegotiateCodecsAllTerminalConnections(pData->confCallId);
+            pData->pInst->pCallManager->limitAbstractCallCodecPreferences(pData->confCallId,
+               (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecNames,
+               (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecNames);
+            pData->pInst->pCallManager->silentHoldRemoteAllConferenceConnections(pData->confCallId);
+            pData->pInst->pCallManager->renegotiateCodecsAllConferenceConnections(pData->confCallId,
+               (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecNames,
+               (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecNames);
 
             sr = SIPX_RESULT_SUCCESS;
          }
