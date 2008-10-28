@@ -60,7 +60,7 @@ public:
 
 
 /* ============================ ACCESSORS ================================= */
-const SipMessage* getMessage();
+const SipMessage* getMessage() const;
 
 void setMessageStatus(int status);
 int getMessageStatus() const;

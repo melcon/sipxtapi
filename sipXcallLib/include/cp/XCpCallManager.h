@@ -48,9 +48,14 @@ class CpCallStateEventListener;
 class SipInfoStatusEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class SipMessageEvent;
+class SipMessage;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
+ *
+ * maxCalls value is not strictly respected, it is only a soft limit that can be exceeded a little bit if there are
+ * lots of inbound calls at the same time. Set it to number of calls that cause 80% of CPU consumption.
  */
 class XCpCallManager : public OsServerTask
 {
@@ -62,16 +67,18 @@ public:
                   SipInfoStatusEventListener* pInfoStatusEventListener,
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
-                  SipUserAgent* pSipUserAgent,
-                  SdpCodecFactory* pSdpCodecFactory,
+                  SipUserAgent& rSipUserAgent,
+                  SdpCodecFactory& rSdpCodecFactory,
                   SipLineProvider* pSipLineProvider,
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
                   UtlBoolean bEnableSipInfo,
+                  UtlBoolean bIsRequiredLineMatch,
                   int rtpPortStart,
                   int rtpPortEnd,
                   int maxCalls, // max calls before sending busy. -1 means unlimited. Doesn't limit outbound calls.
-                  CpMediaInterfaceFactory* pMediaFactory);
+                  int inviteExpireSeconds, // default use 180
+                  CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
    virtual ~XCpCallManager();
 
@@ -592,6 +599,15 @@ private:
    UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const;
 
    /**
+   * Finds and returns a XCpCall according to given SipDialog.
+   * Returned OsPtrLock unlocks XCpCall automatically, and the object should not
+   * be used outside its scope.
+   *
+   * @return TRUE if a call was found, FALSE otherwise.
+   */
+   UtlBoolean findCall(const SipDialog& sSipDialog, OsPtrLock<XCpCall>& ptrLock) const;
+
+   /**
    * Finds and returns a XCpConference according to given id.
    * Returned OsPtrLock unlocks XCpConference automatically, and the object should not
    * be used outside its scope.
@@ -599,6 +615,22 @@ private:
    * @return TRUE if a conference was found, FALSE otherwise.
    */
    UtlBoolean findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock) const;
+
+   /**
+   * Finds and returns a XCpConference according to given SipDialog.
+   * Returned OsPtrLock unlocks XCpConference automatically, and the object should not
+   * be used outside its scope.
+   *
+   * @return TRUE if a conference was found, FALSE otherwise.
+   */
+   UtlBoolean findConference(const SipDialog& sSipDialog, OsPtrLock<XCpConference>& ptrLock) const;
+
+   /**
+    * Finds and returns XCpAbstractCall capable of handling given SipMessage.
+    *
+    * @return TRUE if an XCpAbstractCall was found, FALSE otherwise.
+    */
+   UtlBoolean findHandlingAbstractCall(const SipMessage& rSipMessage, OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
     * Pushes given XCpCall on the call stack. Call must not be locked to avoid deadlocks.
@@ -643,7 +675,25 @@ private:
    void deleteAllConferences();
 
    /** Checks if we can create new call. Only used when new inbound call is created. */
-   UtlBoolean canCreateNewCall();
+   UtlBoolean checkCallLimit();
+
+   /** Handler for OsMsg::PHONE_APP messages */
+   UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
+
+   /** Handler for inbound SipMessageEvent messages. Tries to find call for event. */
+   UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+
+   /** Handler for inbound SipMessageEvent, for which there is no existing call or conference. */
+   UtlBoolean handleUnknownSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+
+   /** Checks if we should further process SipMessage. Checks are done on the event. Sends response if rejected. */
+   UtlBoolean basicSipMessageEventCheck(const SipMessageEvent& rSipMsgEvent);
+
+   /** Does some basic checks on the SipMessage itself, and sends response if message is rejected. */
+   UtlBoolean basicSipMessageRequestCheck(const SipMessage& rSipMessage);
+
+   /** Creates new XCpCall, starts it and posts message into it for handling. */
+   void createNewCall(const SipMessageEvent& rSipMsgEvent);
 
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
@@ -668,20 +718,22 @@ private:
    SipCallIdGenerator m_conferenceIdGenerator; ///< generates string ids for conferences
    SipCallIdGenerator m_sipCallIdGenerator; ///< generates string sip call-ids
 
-   CpMediaInterfaceFactory* m_pMediaFactory;
+   CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
    CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
    SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
-   SipUserAgent* m_pSipUserAgent; // sends sip messages
-   SdpCodecFactory* m_pSdpCodecFactory;
+   SipUserAgent& m_rSipUserAgent; // sends sip messages
+   SdpCodecFactory& m_rSdpCodecFactory;
    SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
 
    // thread safe atomic
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)
    UtlBoolean m_bEnableICE; 
    UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
+   UtlBoolean m_bIsRequiredLineMatch; ///< if inbound SIP message must correspond to some line to be handled
    int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
+   int m_inviteExpireSeconds;
 
    // read only fields
    const int m_rtpPortStart;
