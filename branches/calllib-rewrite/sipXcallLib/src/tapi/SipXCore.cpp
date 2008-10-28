@@ -492,16 +492,18 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pInfoStatusEventListener,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
-      pInst->pSipUserAgent,
-      pInst->pCodecFactory,
+      *pInst->pSipUserAgent,
+      *pInst->pCodecFactory,
       pInst->pLineManager,
       FALSE, // doNotDisturb
       FALSE, // bEnableICE
       TRUE, // bEnableSipInfo
+      FALSE, // bIsRequiredLineMatch
       rtpPortStart, // rtpPortStart
       rtpPortStart + (2 * maxConnections), // rtpPortEnd
       maxConnections, // maxCalls - max calls before sending busy. -1 means unlimited
-      sipXmediaFactoryFactory(NULL));
+      180, // inviteExpireSeconds
+      *sipXmediaFactoryFactory(NULL));
 
    // Start up the call processing system
    pInst->pCallManager->start();

@@ -35,7 +35,9 @@ class XCpCall : public XCpAbstractCall
 public:
    /* ============================ CREATORS ================================== */
 
-   XCpCall(const UtlString& sId);
+   XCpCall(const UtlString& sId,
+           SipUserAgent& rSipUserAgent,
+           CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
    virtual ~XCpCall();
 
@@ -204,7 +206,7 @@ public:
    /**
    * Checks if this call has given sip dialog.
    */
-   virtual UtlBoolean hasSipDialog(const SipDialog& sSipDialog) const;
+   virtual DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;

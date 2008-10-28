@@ -80,7 +80,7 @@ SipMessageEvent::operator=(const SipMessageEvent& rhs)
 
 /* ============================ ACCESSORS ================================= */
 
-const SipMessage* SipMessageEvent::getMessage()
+const SipMessage* SipMessageEvent::getMessage() const
 {
         return(sipMessage);
 }

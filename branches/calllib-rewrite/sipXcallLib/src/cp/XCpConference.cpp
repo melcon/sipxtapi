@@ -28,15 +28,17 @@
 
 /* ============================ CREATORS ================================== */
 
-XCpConference::XCpConference(const UtlString& sId)
-: XCpAbstractCall(sId)
+XCpConference::XCpConference(const UtlString& sId,
+                             SipUserAgent& rSipUserAgent,
+                             CpMediaInterfaceFactory& rMediaInterfaceFactory)
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory)
 {
 
 }
 
 XCpConference::~XCpConference()
 {
-
+   waitUntilShutDown();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -175,9 +177,9 @@ OsStatus XCpConference::sendInfo(const SipDialog& sSipDialog,
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean XCpConference::hasSipDialog(const SipDialog& sSipDialog) const
+XCpAbstractCall::DialogMatchEnum XCpConference::hasSipDialog(const SipDialog& sSipDialog) const
 {
-   return FALSE;
+   return XCpAbstractCall::MISMATCH;
 }
 
 int XCpConference::getCallCount() const

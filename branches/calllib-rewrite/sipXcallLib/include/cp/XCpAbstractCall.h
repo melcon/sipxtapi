@@ -33,6 +33,12 @@
 // MACROS
 // FORWARD DECLARATIONS
 class SipDialog;
+class SipUserAgent;
+class CpMediaInterfaceFactory;
+class CpCallStateEventListener;
+class SipInfoStatusEventListener;
+class SipSecurityEventListener;
+class CpMediaEventListener;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -48,9 +54,18 @@ class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyn
 public:
    static const UtlContainableType TYPE; /** < Class type used for runtime checking */ 
 
+   typedef enum
+   {
+      ESTABLISHED_MATCH = 0,
+      NOT_ESTABLISHED_MATCH,
+      MISMATCH
+   } DialogMatchEnum;
+
    /* ============================ CREATORS ================================== */
 
-   XCpAbstractCall(const UtlString& sId);
+   XCpAbstractCall(const UtlString& sId,
+                   SipUserAgent& rSipUserAgent,
+                   CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
    virtual ~XCpAbstractCall();
 
@@ -280,6 +295,18 @@ public:
     */
    UtlString getId() const;
 
+   /** Sets event listener for call events */
+   void setCallEventListener(CpCallStateEventListener* val) { m_pCallEventListener = val; }
+
+   /** Sets event listener for sip info events */
+   void setInfoStatusEventListener(SipInfoStatusEventListener* val) { m_pInfoStatusEventListener = val; }
+
+   /** Sets event listener for security events */
+   void setSecurityEventListener(SipSecurityEventListener* val) { m_pSecurityEventListener = val; }
+
+   /** Sets event listener for media events */
+   void setMediaEventListener(CpMediaEventListener* val) { m_pMediaEventListener = val; }
+
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -293,7 +320,7 @@ public:
    /**
     * Checks if this abstract call has given sip dialog.
     */
-   virtual UtlBoolean hasSipDialog(const SipDialog& sSipDialog) const = 0;
+   virtual DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const = 0;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const = 0;
@@ -315,18 +342,22 @@ public:
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+   static const int CALL_MAX_REQUEST_MSGS;
+   mutable OsMutex m_memberMutex; ///< mutex for member synchronization
+
+   SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
+   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
+   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
+   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+   const UtlString m_sId; ///< unique identifier of the abstract call
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpAbstractCall(const XCpAbstractCall& rhs);
 
    XCpAbstractCall& operator=(const XCpAbstractCall& rhs);
-
-   static const int CALL_MAX_REQUEST_MSGS;
-
-   mutable OsMutex m_memberMutex; ///< mutex for member synchronization
-
-   const UtlString m_sId; ///< unique identifier of the abstract call
 };
 
 #endif // XCpAbstractCall_h__

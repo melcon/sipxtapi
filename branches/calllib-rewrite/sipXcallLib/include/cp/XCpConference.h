@@ -35,7 +35,9 @@ class XCpConference : public XCpAbstractCall
 public:
    /* ============================ CREATORS ================================== */
 
-   XCpConference(const UtlString& sId);
+   XCpConference(const UtlString& sId,
+                 SipUserAgent& rSipUserAgent,
+                 CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
    virtual ~XCpConference();
 
@@ -212,7 +214,7 @@ public:
    /**
    * Checks if this conference has given sip dialog.
    */
-   virtual UtlBoolean hasSipDialog(const SipDialog& sSipDialog) const;
+   virtual DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;

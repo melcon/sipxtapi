@@ -30,10 +30,14 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 
 /* ============================ CREATORS ================================== */
 
-XCpAbstractCall::XCpAbstractCall(const UtlString& sId)
+XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
+                                 SipUserAgent& rSipUserAgent,
+                                 CpMediaInterfaceFactory& rMediaInterfaceFactory)
 : OsServerTask("XCpAbstractCall-%d", NULL, CALL_MAX_REQUEST_MSGS)
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
+, m_rSipUserAgent(rSipUserAgent)
+, m_rMediaInterfaceFactory(rMediaInterfaceFactory)
 {
 
 }
