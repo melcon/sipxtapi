@@ -31,7 +31,11 @@ libsipXcall_la_CXXFLAGS = \
 libsipXcall_la_SOURCES = \
     ../config/sipxcalllib-buildstamp.h \
     ../config/sipxcalllib-buildstamp.cpp \
+    cp/AcCommandMsg.cpp \
+    cp/AcNotificationMsg.cpp \
     cp/CallManager.cpp \
+    cp/CmCommandMsg.cpp \
+    cp/CmNotificationMsg.cpp \
     cp/Connection.cpp \
     cp/CpCall.cpp \
     cp/CpCallManager.cpp \
@@ -41,6 +45,8 @@ libsipXcall_la_SOURCES = \
     cp/CpPeerCall.cpp \
     cp/CSeqManager.cpp \
     cp/SipConnection.cpp \
+    cp/ScCommandMsg.cpp \
+    cp/ScNotificationMsg.cpp \
     cp/XCpAbstractCall.cpp \
     cp/XCpAbstractConnection.cpp \
     cp/XCpCall.cpp \

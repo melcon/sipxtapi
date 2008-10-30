@@ -103,7 +103,23 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath=".\src\cp\AcCommandMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\AcNotificationMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CallManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\CmCommandMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\CmNotificationMsg.cpp"
 				>
 			</File>
 			<File
@@ -143,6 +159,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\ScCommandMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\ScNotificationMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\XCpAbstractCall.cpp"
 				>
 			</File>
@@ -172,11 +196,27 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath="include\cp\CallManager.h"
+				RelativePath=".\include\cp\AcCommandMsg.h"
 				>
 			</File>
 			<File
-				RelativePath="include\cp\Connection.h"
+				RelativePath=".\include\cp\AcNotificationMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CallManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CmCommandMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CmNotificationMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\Connection.h"
 				>
 			</File>
 			<File
@@ -184,11 +224,11 @@
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpCall.h"
+				RelativePath=".\include\cp\CpCall.h"
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpCallManager.h"
+				RelativePath=".\include\cp\CpCallManager.h"
 				>
 			</File>
 			<File
@@ -204,11 +244,11 @@
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpGhostConnection.h"
+				RelativePath=".\include\cp\CpGhostConnection.h"
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpIntMessage.h"
+				RelativePath=".\include\cp\CpIntMessage.h"
 				>
 			</File>
 			<File
@@ -216,7 +256,11 @@
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpMultiStringMessage.h"
+				RelativePath=".\include\cp\CpMessageTypes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpMultiStringMessage.h"
 				>
 			</File>
 			<File
@@ -224,7 +268,7 @@
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpPeerCall.h"
+				RelativePath=".\include\cp\CpPeerCall.h"
 				>
 			</File>
 			<File
@@ -236,7 +280,15 @@
 				>
 			</File>
 			<File
-				RelativePath="include\cp\SipConnection.h"
+				RelativePath=".\include\cp\SipConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\ScCommandMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\ScNotificationMsg.h"
 				>
 			</File>
 			<File

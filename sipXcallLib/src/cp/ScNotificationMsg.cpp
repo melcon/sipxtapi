@@ -12,6 +12,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/ScNotificationMsg.h>
+
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -24,6 +26,22 @@
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
+
+ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::SC_NOFITICATION, (unsigned char)subType)
+{
+
+}
+
+ScNotificationMsg::~ScNotificationMsg()
+{
+
+}
+
+OsMsg* ScNotificationMsg::createCopy(void) const
+{
+   return new ScNotificationMsg((SubTypesEnum)getMsgSubType());
+}
 
 /* ============================ MANIPULATORS ============================== */
 

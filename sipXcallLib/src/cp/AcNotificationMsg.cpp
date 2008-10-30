@@ -12,6 +12,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/AcNotificationMsg.h>
+
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -24,6 +26,22 @@
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
+
+AcNotificationMsg::AcNotificationMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::AC_NOTIFICATION, (unsigned char)subType)
+{
+
+}
+
+AcNotificationMsg::~AcNotificationMsg()
+{
+
+}
+
+OsMsg* AcNotificationMsg::createCopy(void) const
+{
+   return new AcNotificationMsg((SubTypesEnum)getMsgSubType());
+}
 
 /* ============================ MANIPULATORS ============================== */
 

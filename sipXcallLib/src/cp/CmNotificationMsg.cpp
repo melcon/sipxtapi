@@ -12,6 +12,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/CmNotificationMsg.h>
+
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -24,6 +26,22 @@
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
+
+CmNotificationMsg::CmNotificationMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::CM_NOFITICATION, (unsigned char)subType)
+{
+
+}
+
+CmNotificationMsg::~CmNotificationMsg()
+{
+
+}
+
+OsMsg* CmNotificationMsg::createCopy(void) const
+{
+   return new CmNotificationMsg((SubTypesEnum)getMsgSubType());
+}
 
 /* ============================ MANIPULATORS ============================== */
 

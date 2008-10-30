@@ -12,6 +12,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/ScCommandMsg.h>
+
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -24,6 +26,22 @@
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
+
+ScCommandMsg::ScCommandMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::SC_COMMAND, (unsigned char)subType)
+{
+
+}
+
+ScCommandMsg::~ScCommandMsg()
+{
+
+}
+
+OsMsg* ScCommandMsg::createCopy(void) const
+{
+   return new ScCommandMsg((SubTypesEnum)getMsgSubType());
+}
 
 /* ============================ MANIPULATORS ============================== */
 

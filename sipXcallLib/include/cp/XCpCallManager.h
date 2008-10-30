@@ -695,9 +695,22 @@ private:
    /** Creates new XCpCall, starts it and posts message into it for handling. */
    void createNewCall(const SipMessageEvent& rSipMsgEvent);
 
+   /** Gains focus for given call, defocusing old focused call. */
+   void doGainFocus(XCpAbstractCall* pAbstractCall);
+
+   /**
+   * Defocuses given call if its focused. Shifts focus to next call if requested.
+   * Has no effect if given call is not focused anymore.
+   */
+   void doYieldFocus(const XCpAbstractCall* pAbstractCall,
+                     UtlBoolean bShiftFocus = TRUE);
+
+   /** Defocuses current call in focus, and lets other call gain focus if requested */
+   void doDefocus(UtlBoolean bShiftFocus = TRUE);
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
-   mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
+   mutable OsMutex m_basicMemberMutex; ///< mutex for member synchronization, delete guard.
 
    // not thread safe fields
    UtlHashMap m_callMap; ///< hashmap with calls
@@ -738,6 +751,10 @@ private:
    // read only fields
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
+
+   // these fields require their own mutex
+   mutable OsMutex m_callInFocusMutex; ///< mutex for accessing m_pAbstractCallInFocus
+   XCpAbstractCall* m_pAbstractCallInFocus; ///< holds call currently in focus. Requires m_callInFocusMutex to be locked.
 };
 
 #endif // XCallManager_h__
