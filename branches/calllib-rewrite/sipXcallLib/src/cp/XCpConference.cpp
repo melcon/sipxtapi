@@ -30,8 +30,9 @@
 
 XCpConference::XCpConference(const UtlString& sId,
                              SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceFactory& rMediaInterfaceFactory)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory)
+                             CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                             OsMsgQ& rCallManagerQueue)
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rCallManagerQueue)
 {
 
 }

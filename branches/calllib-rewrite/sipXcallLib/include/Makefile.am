@@ -4,7 +4,11 @@
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
+    cp/AcCommandMsg.h \
+    cp/AcNotificationMsg.h \
     cp/CallManager.h \
+    cp/CmCommandMsg.h \
+    cp/CmNotificationMsg.h \
     cp/Connection.h \
     cp/CpAudioCodecInfo.h \
     cp/CpCall.h \
@@ -15,12 +19,15 @@ nobase_include_HEADERS =  \
     cp/CpGhostConnection.h \
     cp/CpIntMessage.h \
     cp/CpMediaEventListener.h \
+    cp/CpMessageTypes.h \
     cp/CpMultiStringMessage.h \
     cp/CpNotificationMsgDef.h \
     cp/CpPeerCall.h \
     cp/CpVideoCodecInfo.h \
     cp/CSeqManager.h \
     cp/SipConnection.h \
+    cp/ScCommandMsg.h \
+    cp/ScNotificationMsg.h \
     cp/XCpAbstractCall.h \
     cp/XCpAbstractConnection.h \
     cp/XCpCall.h \

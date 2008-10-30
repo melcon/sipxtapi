@@ -37,7 +37,8 @@ public:
 
    XCpConference(const UtlString& sId,
                  SipUserAgent& rSipUserAgent,
-                 CpMediaInterfaceFactory& rMediaInterfaceFactory);
+                 CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                 OsMsgQ& rCallManagerQueue);
 
    virtual ~XCpConference();
 

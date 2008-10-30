@@ -35,10 +35,13 @@
 class SipDialog;
 class SipUserAgent;
 class CpMediaInterfaceFactory;
+class CpMediaInterface;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class AcCommandMsg;
+class AcNotificationMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -65,7 +68,8 @@ public:
 
    XCpAbstractCall(const UtlString& sId,
                    SipUserAgent& rSipUserAgent,
-                   CpMediaInterfaceFactory& rMediaInterfaceFactory);
+                   CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                   OsMsgQ& rCallManagerQueue);
 
    virtual ~XCpAbstractCall();
 
@@ -180,23 +184,6 @@ public:
    * no media should be sent.)
    */
    virtual OsStatus holdConnection(const SipDialog& sSipDialog) = 0;
-
-   /**
-   * Convenience method to put the local terminal connection on hold.
-   * Can be used for both calls and conferences.
-   * Microphone will be disconnected from the call or conference, local
-   * audio will stop flowing to remote party. Remote party will still
-   * be audible to local user.
-   */
-   OsStatus holdLocalConnection();
-
-   /**
-   * Take the specified local terminal connection off hold,.
-   *
-   * Microphone will be reconnected to the call or conference,
-   * and audio will start flowing from local machine to remote party.
-   */
-   OsStatus unholdLocalConnection();
 
    /**
    * Convenience method to take the terminal connection off hold.
@@ -340,21 +327,44 @@ public:
    virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
                                  SipDialog& sOutputSipDialog) const = 0;
 
+   /** Returns TRUE if call is in focus. */
+   UtlBoolean isFocused() const { return m_bIsFocused; }
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+   /** Handles command messages */
+   virtual UtlBoolean handleCommandMessage(AcCommandMsg& rRawMsg);
+
+   /** Handles command messages */
+   virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
+
+   /** Tries to gain focus on this call asynchronously through call manager. */
+   OsStatus gainFocus();
+
+   /** Tries to yield focus on this call asynchronously through call manager */
+   OsStatus yieldFocus();
+
    static const int CALL_MAX_REQUEST_MSGS;
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
 
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
+   OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
    CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
    SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
    const UtlString m_sId; ///< unique identifier of the abstract call
-
+   CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
+   UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Handles gain focus command from call manager. */
+   OsStatus handleGainFocus();
+
+   /** Handles defocus command from call manager. */
+   OsStatus handleDefocus();
+
    XCpAbstractCall(const XCpAbstractCall& rhs);
 
    XCpAbstractCall& operator=(const XCpAbstractCall& rhs);

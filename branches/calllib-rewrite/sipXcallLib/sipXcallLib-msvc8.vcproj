@@ -677,7 +677,23 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath=".\src\cp\AcCommandMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\AcNotificationMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CallManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\CmCommandMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\CmNotificationMsg.cpp"
 				>
 			</File>
 			<File
@@ -710,6 +726,14 @@
 			</File>
 			<File
 				RelativePath=".\src\cp\CSeqManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\ScCommandMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\ScNotificationMsg.cpp"
 				>
 			</File>
 			<File
@@ -746,7 +770,23 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath=".\include\cp\AcCommandMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\AcNotificationMsg.h"
+				>
+			</File>
+			<File
 				RelativePath="include\cp\CallManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CmCommandMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CmNotificationMsg.h"
 				>
 			</File>
 			<File
@@ -790,6 +830,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpMessageTypes.h"
+				>
+			</File>
+			<File
 				RelativePath="include\cp\CpMultiStringMessage.h"
 				>
 			</File>
@@ -807,6 +851,14 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CSeqManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\ScCommandMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\ScNotificationMsg.h"
 				>
 			</File>
 			<File

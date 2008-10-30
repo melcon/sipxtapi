@@ -226,8 +226,6 @@ void CpCall::inFocus(int talking)
    {
       mpMediaInterface->giveFocus();
    }
-
-
 }
 
 void CpCall::outOfFocus()

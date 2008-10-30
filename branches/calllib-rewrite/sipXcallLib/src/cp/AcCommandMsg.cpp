@@ -12,6 +12,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/AcCommandMsg.h>
+
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -25,6 +27,22 @@
 
 /* ============================ CREATORS ================================== */
 
+AcCommandMsg::AcCommandMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::AC_COMMAND, (unsigned char)subType)
+{
+
+}
+
+AcCommandMsg::~AcCommandMsg()
+{
+
+}
+
+OsMsg* AcCommandMsg::createCopy(void) const
+{
+   return new AcCommandMsg((SubTypesEnum)getMsgSubType());
+}
+
 /* ============================ MANIPULATORS ============================== */
 
 /* ============================ ACCESSORS ================================= */
@@ -36,4 +54,3 @@
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
-

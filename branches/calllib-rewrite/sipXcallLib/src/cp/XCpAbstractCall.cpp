@@ -12,7 +12,14 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsLock.h>
+#include <os/OsMsgQ.h>
+#include <mi/CpMediaInterfaceFactory.h>
+#include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
+#include <cp/CpMessageTypes.h>
+#include <cp/AcCommandMsg.h>
+#include <cp/AcNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -32,12 +39,16 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 
 XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipUserAgent& rSipUserAgent,
-                                 CpMediaInterfaceFactory& rMediaInterfaceFactory)
+                                 CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                                 OsMsgQ& rCallManagerQueue)
 : OsServerTask("XCpAbstractCall-%d", NULL, CALL_MAX_REQUEST_MSGS)
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
+, m_rCallManagerQueue(rCallManagerQueue)
+, m_pMediaInterface(NULL)
+, m_bIsFocused(FALSE)
 {
 
 }
@@ -55,7 +66,24 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
 
    switch (rRawMsg.getMsgType())
    {
-   case 1:
+   case CpMessageTypes::AC_COMMAND:
+      {
+         AcCommandMsg* pAcCommandMsg = dynamic_cast<AcCommandMsg*>(&rRawMsg);
+         if (pAcCommandMsg)
+         {
+            return handleCommandMessage(*pAcCommandMsg);
+         }
+         break;
+      }
+   case CpMessageTypes::AC_NOTIFICATION:
+      {
+         AcNotificationMsg* pAcNotificationMsg = dynamic_cast<AcNotificationMsg*>(&rRawMsg);
+         if (pAcNotificationMsg)
+         {
+            return handleNotificationMessage(*pAcNotificationMsg);
+         }
+         break;
+      }
    default:
       break;
    }
@@ -122,16 +150,6 @@ OsStatus XCpAbstractCall::audioRecordStop()
    return OS_FAILED;
 }
 
-OsStatus XCpAbstractCall::holdLocalConnection()
-{
-   return OS_FAILED;
-}
-
-OsStatus XCpAbstractCall::unholdLocalConnection()
-{
-   return OS_FAILED;
-}
-
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
 {
    return m_memberMutex.acquire(rTimeout);
@@ -184,7 +202,73 @@ int XCpAbstractCall::compareTo(UtlContainable const* inVal) const
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
+UtlBoolean XCpAbstractCall::handleCommandMessage(AcCommandMsg& rRawMsg)
+{
+   switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
+   {
+   case AcCommandMsg::AC_GAIN_LOCAL_FOCUS:
+      handleGainFocus();
+      return TRUE;
+   case AcCommandMsg::AC_DEFOCUS_LOCAL:
+      handleDefocus();
+      return TRUE;
+   default:
+      break;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpAbstractCall::handleNotificationMessage(AcNotificationMsg& rRawMsg)
+{
+   return TRUE;
+}
+
+OsStatus XCpAbstractCall::gainFocus()
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::yieldFocus()
+{
+   return OS_FAILED;
+}
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+OsStatus XCpAbstractCall::handleGainFocus()
+{
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface && !m_bIsFocused)
+   {
+      OsStatus resFocus = m_pMediaInterface->giveFocus();
+      if (resFocus == OS_SUCCESS)
+      {
+         m_bIsFocused = TRUE;
+         return OS_SUCCESS;
+      }
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleDefocus()
+{
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface && m_bIsFocused)
+   {
+      OsStatus resFocus = m_pMediaInterface->defocus();
+      if (resFocus == OS_SUCCESS)
+      {
+         m_bIsFocused = FALSE;
+         return OS_SUCCESS;
+      }
+   }
+
+   return OS_FAILED;
+}
 
 /* ============================ FUNCTIONS ================================= */
 

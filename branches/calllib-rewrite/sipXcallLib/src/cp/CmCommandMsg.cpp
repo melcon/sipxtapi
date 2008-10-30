@@ -12,6 +12,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/CmCommandMsg.h>
+
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -24,6 +26,22 @@
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
+
+CmCommandMsg::CmCommandMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::CM_COMMAND, (unsigned char)subType)
+{
+
+}
+
+CmCommandMsg::~CmCommandMsg()
+{
+
+}
+
+OsMsg* CmCommandMsg::createCopy(void) const
+{
+   return new CmCommandMsg((SubTypesEnum)getMsgSubType());
+}
 
 /* ============================ MANIPULATORS ============================== */
 
