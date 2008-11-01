@@ -359,10 +359,10 @@ protected:
    UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Handles gain focus command from call manager. */
+   /** Handles gain focus command from call manager. Never use directly, go through call manager. */
    OsStatus handleGainFocus();
 
-   /** Handles defocus command from call manager. */
+   /** Handles defocus command from call manager. Never use directly, go through call manager. */
    OsStatus handleDefocus();
 
    XCpAbstractCall(const XCpAbstractCall& rhs);

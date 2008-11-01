@@ -10,14 +10,16 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcCommandMsg_h__
-#define AcCommandMsg_h__
+#ifndef CmGainFocusMsg_h__
+#define CmGainFocusMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
+#include <utl/UtlString.h>
 #include <cp/CpMessageTypes.h>
+#include <cp/CmCommandMsg.h>
 
 // DEFINES
 // MACROS
@@ -29,29 +31,25 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs abstract call to carry out some action.
+* Call manager command message. Instructs call manager to gain focus for given call.
 */
-class AcCommandMsg : public OsMsg
+class CmGainFocusMsg : public CmCommandMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      AC_GAIN_FOCUS = 0,///< gain local focus (mic, speaker)
-      AC_YIELD_FOCUS ///< loose local focus
-   } SubTypesEnum;
-
    /* ============================ CREATORS ================================== */
 
-   AcCommandMsg(SubTypesEnum subType);
+   CmGainFocusMsg(const UtlString& sAbstractCallId);
 
-   virtual ~AcCommandMsg();
+   virtual ~CmGainFocusMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
 
    /* ============================ ACCESSORS ================================= */
+
+   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -60,6 +58,7 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   UtlString m_sAbstractCallId;
 };
 
-#endif // AcCommandMsg_h__
+#endif // CmGainFocusMsg_h__

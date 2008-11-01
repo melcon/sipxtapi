@@ -119,7 +119,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CmGainFocusMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CmNotificationMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\CmYieldFocusMsg.cpp"
 				>
 			</File>
 			<File
@@ -212,7 +220,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CmGainFocusMsg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CmNotificationMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CmYieldFocusMsg.h"
 				>
 			</File>
 			<File

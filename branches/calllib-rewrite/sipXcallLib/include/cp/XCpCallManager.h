@@ -577,6 +577,17 @@ private:
                                OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
+   * Gets some abstract call, which is different from supplied id. Useful when some call
+   * is getting shut down, and some resource needs to move to other call, different from
+   * the old one.
+   * @param sID Identifier of call or conference to avoid. Must not be sip call-id.
+   *
+   * @return TRUE if a call or conference was found, FALSE otherwise.
+   */
+   UtlBoolean findSomeAbstractCall(const UtlString& sAvoidAbstractCallId,
+                                   OsPtrLock<XCpAbstractCall>& ptrLock) const;
+
+   /**
    * Finds and returns a call or conference as XCpAbstractCall according to given sip call-id.
    * Returned OsPtrLock unlocks XCpAbstractCall automatically, and the object should not
    * be used outside its scope.
@@ -696,21 +707,29 @@ private:
    void createNewCall(const SipMessageEvent& rSipMsgEvent);
 
    /** Gains focus for given call, defocusing old focused call. */
-   void doGainFocus(XCpAbstractCall* pAbstractCall);
+   OsStatus doGainFocus(const UtlString& sAbstractCallId,
+                        UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);
+
+   /**
+   * Gains focus for next call, avoiding sAvoidAbstractCallId when looking for next call to focus.
+   * If there is no other call than sAvoidAbstractCallId, then no focus is gained. Meant to be used
+   * from doYieldFocus to gain next focus. Works only if no call has currently focus.
+   */
+   OsStatus doGainNextFocus(const UtlString& sAvoidAbstractCallId);
 
    /**
    * Defocuses given call if its focused. Shifts focus to next call if requested.
    * Has no effect if given call is not focused anymore.
    */
-   void doYieldFocus(const XCpAbstractCall* pAbstractCall,
-                     UtlBoolean bShiftFocus = TRUE);
+   OsStatus doYieldFocus(const UtlString& sAbstractCallId,
+                         UtlBoolean bShiftFocus = TRUE);
 
    /** Defocuses current call in focus, and lets other call gain focus if requested */
-   void doDefocus(UtlBoolean bShiftFocus = TRUE);
+   OsStatus doYieldFocus(UtlBoolean bShiftFocus = TRUE);
 
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
-   mutable OsMutex m_basicMemberMutex; ///< mutex for member synchronization, delete guard.
+   mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
 
    // not thread safe fields
    UtlHashMap m_callMap; ///< hashmap with calls
@@ -725,6 +744,10 @@ private:
    UtlString m_sTurnUsername; ///< turn username
    UtlString m_sTurnPassword; ///< turn password
    int m_iTurnKeepAlivePeriodSecs; ///< turn refresh period
+
+   // focus
+   mutable OsMutex m_focusMutex; ///< required for access to m_sAbstractCallInFocus
+   UtlString m_sAbstractCallInFocus; ///< holds id of call currently in focus.
 
    // thread safe fields
    SipCallIdGenerator m_callIdGenerator; ///< generates string ids for calls
@@ -752,9 +775,6 @@ private:
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
 
-   // these fields require their own mutex
-   mutable OsMutex m_callInFocusMutex; ///< mutex for accessing m_pAbstractCallInFocus
-   XCpAbstractCall* m_pAbstractCallInFocus; ///< holds call currently in focus. Requires m_callInFocusMutex to be locked.
 };
 
 #endif // XCallManager_h__

@@ -20,6 +20,8 @@
 #include <cp/CpMessageTypes.h>
 #include <cp/AcCommandMsg.h>
 #include <cp/AcNotificationMsg.h>
+#include <cp/CmGainFocusMsg.h>
+#include <cp/CmYieldFocusMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -206,10 +208,10 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(AcCommandMsg& rRawMsg)
 {
    switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
    {
-   case AcCommandMsg::AC_GAIN_LOCAL_FOCUS:
+   case AcCommandMsg::AC_GAIN_FOCUS:
       handleGainFocus();
       return TRUE;
-   case AcCommandMsg::AC_DEFOCUS_LOCAL:
+   case AcCommandMsg::AC_YIELD_FOCUS:
       handleDefocus();
       return TRUE;
    default:
@@ -226,18 +228,29 @@ UtlBoolean XCpAbstractCall::handleNotificationMessage(AcNotificationMsg& rRawMsg
 
 OsStatus XCpAbstractCall::gainFocus()
 {
-   return OS_FAILED;
+#ifndef DISABLE_LOCAL_AUDIO
+   CmGainFocusMsg gainFocusMsg(m_sId);
+   return m_rCallManagerQueue.send(gainFocusMsg);
+#else
+   return OS_SUCCESS;
+#endif
 }
 
 OsStatus XCpAbstractCall::yieldFocus()
 {
-   return OS_FAILED;
+#ifndef DISABLE_LOCAL_AUDIO
+   CmYieldFocusMsg yieldFocusMsg(m_sId);
+   return m_rCallManagerQueue.send(yieldFocusMsg);
+#else
+   return OS_SUCCESS;
+#endif
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 OsStatus XCpAbstractCall::handleGainFocus()
 {
+#ifndef DISABLE_LOCAL_AUDIO
    OsLock lock(m_memberMutex);
 
    if (m_pMediaInterface && !m_bIsFocused)
@@ -251,10 +264,14 @@ OsStatus XCpAbstractCall::handleGainFocus()
    }
 
    return OS_FAILED;
+#else
+   return OS_SUCCESS;
+#endif
 }
 
 OsStatus XCpAbstractCall::handleDefocus()
 {
+#ifndef DISABLE_LOCAL_AUDIO
    OsLock lock(m_memberMutex);
 
    if (m_pMediaInterface && m_bIsFocused)
@@ -268,6 +285,9 @@ OsStatus XCpAbstractCall::handleDefocus()
    }
 
    return OS_FAILED;
+#else
+   return OS_SUCCESS;
+#endif
 }
 
 /* ============================ FUNCTIONS ================================= */
