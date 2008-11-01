@@ -223,10 +223,6 @@ public:
    /** Gets sip call-id of conference if its available */
    OsStatus getConferenceSipCallIds(UtlSList& sipCallIdList) const;
 
-   /** Gets audio energy levels for call */
-   virtual OsStatus getAudioEnergyLevels(int& iInputEnergyLevel,
-                                         int& iOutputEnergyLevel) const;
-
    /** Gets remote user agent for call or conference */
    virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
                                        UtlString& userAgent) const;

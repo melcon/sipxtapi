@@ -97,11 +97,25 @@ OsStatus XCpAbstractCall::audioToneStart(int iToneId,
                                          UtlBoolean bLocal,
                                          UtlBoolean bRemote)
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->startTone(iToneId, bLocal, bRemote);
+   }
+
    return OS_FAILED;
 }
 
 OsStatus XCpAbstractCall::audioToneStop()
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->stopTone();
+   }
+
    return OS_FAILED;
 }
 
@@ -113,6 +127,14 @@ OsStatus XCpAbstractCall::audioFilePlay(const UtlString& audioFile,
                                         int iDownScaling /*= 100*/,
                                         void* pCookie /*= NULL*/)
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->playAudio(audioFile, bRepeat, bLocal, bRemote,
+         bMixWithMic, iDownScaling, pCookie);
+   }
+
    return OS_FAILED;
 }
 
@@ -124,31 +146,74 @@ OsStatus XCpAbstractCall::audioBufferPlay(const void* pAudiobuf,
                                           UtlBoolean bRemote,
                                           void* pCookie /*= NULL*/)
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->playBuffer((char*)pAudiobuf, (unsigned long)iBufSize, iType, bRepeat, bLocal, bRemote,
+         FALSE, 100, pCookie);
+   }
+
    return OS_FAILED;
 }
 
 OsStatus XCpAbstractCall::audioStop()
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->stopAudio();
+   }
+
    return OS_FAILED;
 }
 
 OsStatus XCpAbstractCall::pauseAudioPlayback()
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->pausePlayback();
+   }
+
    return OS_FAILED;
 }
 
 OsStatus XCpAbstractCall::resumeAudioPlayback()
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->resumePlayback();
+   }
+
    return OS_FAILED;
 }
 
 OsStatus XCpAbstractCall::audioRecordStart(const UtlString& sFile)
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->recordAudio(sFile);
+   }
+
    return OS_FAILED;
 }
 
 OsStatus XCpAbstractCall::audioRecordStop()
 {
+   OsLock lock(m_memberMutex);
+
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->stopRecording();
+   }
+
    return OS_FAILED;
 }
 

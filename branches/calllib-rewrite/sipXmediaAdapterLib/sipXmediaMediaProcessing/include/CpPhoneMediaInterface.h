@@ -216,6 +216,11 @@ public:
            int& dtmfterm,
            OsProtectedEvent* ev = NULL);
 
+   /**
+   * Starts recording all audio channels into given file.
+   */
+   virtual OsStatus recordAudio(const char* szFile);
+
      /// @copydoc CpMediaInterface::recordMic(UtlString*)
    virtual OsStatus recordMic(UtlString* pAudioBuffer);
 

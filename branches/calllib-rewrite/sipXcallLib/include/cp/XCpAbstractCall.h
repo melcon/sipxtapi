@@ -312,10 +312,6 @@ public:
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const = 0;
 
-   /** Gets audio energy levels for call */
-   virtual OsStatus getAudioEnergyLevels(int& iInputEnergyLevel,
-                                         int& iOutputEnergyLevel) const = 0;
-
    /** gets remote user agent for call or conference */
    virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
                                        UtlString& userAgent) const = 0;

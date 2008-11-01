@@ -176,14 +176,6 @@ OsStatus XCpCall::getCallSipCallId(UtlString& sSipCallId) const
    return OS_FAILED;
 }
 
-OsStatus XCpCall::getAudioEnergyLevels(int& iInputEnergyLevel, int& iOutputEnergyLevel) const
-{
-   iInputEnergyLevel = 0;
-   iOutputEnergyLevel = 0;
-
-   return OS_FAILED;
-}
-
 OsStatus XCpCall::getRemoteUserAgent(const SipDialog& sSipDialog,
                                      UtlString& userAgent) const
 {

@@ -849,7 +849,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStop(const SIPX_CONF hConf)
    return sr;
 }
 
-
 SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceDestroy");
@@ -896,48 +895,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf)
 
    return rc;
 }
-
-
-SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
-                                                       int* iInputEnergyLevel,
-                                                       int* iOutputEnergyLevel) 
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceGetEnergyLevels");
-   SIPX_RESULT sr = SIPX_RESULT_INVALID_ARGS;
-
-   if (hConf > SIPX_CONF_NULL)
-   {
-      SIPX_CONF_DATA* pData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
-
-      if (pData)
-      {
-         if (pData->pInst && pData->pInst->pCallManager && !pData->confCallId.isNull())
-         {
-            XCpCallManager* pCallManager = pData->pInst->pCallManager;
-            UtlString conferenceId = pData->confCallId;
-
-            sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
-
-            if (pCallManager->getAudioEnergyLevels(conferenceId, *iInputEnergyLevel, *iOutputEnergyLevel))
-            {
-               sr = SIPX_RESULT_SUCCESS;
-            }
-            else
-            {
-               sr = SIPX_RESULT_FAILURE;
-            }
-         }
-         else
-         {
-            sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
-            sr = SIPX_RESULT_FAILURE;
-         }
-      }
-   }
-
-   return sr;
-}
-
 
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
                                                              const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
