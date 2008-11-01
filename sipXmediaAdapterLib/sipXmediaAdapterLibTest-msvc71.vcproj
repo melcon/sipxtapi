@@ -1,127 +1,60 @@
-<?xml version="1.0" encoding="Windows-1252"?>
-<VisualStudioProject
-	ProjectType="Visual C++"
-	Version="7.10"
-	Name="sipXmediaAdapterLibTest-msvc71"
-	ProjectGUID="{CF55C648-BAAF-46EC-9605-73BE46E5690E}"
-	RootNamespace="sipXmediaAdapterLibTestmsvc71"
-	Keyword="ManagedCProj">
-	<Platforms>
-		<Platform
-			Name="Win32"/>
-	</Platforms>
-	<Configurations>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="2"
-			ManagedExtensions="FALSE">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
-				MinimalRebuild="FALSE"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="3"
-				WarningLevel="3"
-				DebugInformationFormat="3"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib ksuser.lib dxguid.lib"
-				OutputFile=".\Debug\sipXmediaAdapterLibTest.exe"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\CPPUnit\lib;..\sipXmediaLib\contrib\libgsm\lib;..\sipXmediaLib\contrib\libspeex\lib;..\sipXportLib\contrib\pcre\lib"
-				IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib"
-				GenerateDebugInformation="TRUE"
-				AssemblyDebug="1"
-				SubSystem="1"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="2"
-			ManagedExtensions="FALSE">
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				MinimalRebuild="FALSE"
-				RuntimeLibrary="0"
-				WarningLevel="3"
-				DebugInformationFormat="3"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\$(ProjectName).exe"
-				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-	</Configurations>
-	<References>
-	</References>
-	<Files>
-		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
-			<File
-				RelativePath=".\sipXmediaMediaProcessing\src\test\CpPhoneMediaInterfaceTest.cpp">
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
-		</Filter>
-	</Files>
-	<Globals>
-	</Globals>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<VisualStudioProject Name="sipXmediaAdapterLibTest-msvc71" Keyword="ManagedCProj" RootNamespace="sipXmediaAdapterLibTestmsvc71" ProjectGUID="{CF55C648-BAAF-46EC-9605-73BE46E5690E}" Version="7.10" ProjectType="Visual C++">
+    <Platforms>
+        <Platform Name="Win32"/>
+    </Platforms>
+    <Configurations>
+        <Configuration Name="Debug|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="1" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
+            <Tool Name="VCCLCompilerTool" WarningLevel="3" AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="3" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE" Optimization="0"/>
+            <Tool Name="VCCustomBuildTool"/>
+            <Tool Name="VCLinkerTool" AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" SubSystem="1" AdditionalLibraryDirectories="..\CPPUnit\lib;..\sipXmediaLib\contrib\libgsm\lib;..\sipXmediaLib\contrib\libspeex\lib;..\sipXportLib\contrib\pcre\lib" LinkIncremental="2" GenerateDebugInformation="TRUE" OutputFile=".\Debug\sipXmediaAdapterLibTest.exe" AssemblyDebug="1"/>
+            <Tool Name="VCMIDLTool"/>
+            <Tool Name="VCPostBuildEventTool"/>
+            <Tool Name="VCPreBuildEventTool"/>
+            <Tool Name="VCPreLinkEventTool"/>
+            <Tool Name="VCResourceCompilerTool"/>
+            <Tool Name="VCWebServiceProxyGeneratorTool"/>
+            <Tool Name="VCXMLDataGeneratorTool"/>
+            <Tool Name="VCWebDeploymentTool"/>
+            <Tool Name="VCManagedWrapperGeneratorTool"/>
+            <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+        </Configuration>
+        <Configuration Name="Release|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="1" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
+            <Tool Name="VCCLCompilerTool" WarningLevel="3" AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="0" MinimalRebuild="FALSE" DebugInformationFormat="3" PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"/>
+            <Tool Name="VCCustomBuildTool"/>
+            <Tool Name="VCLinkerTool" LinkIncremental="1" GenerateDebugInformation="TRUE" OutputFile="$(OutDir)\$(ProjectName).exe"/>
+            <Tool Name="VCMIDLTool"/>
+            <Tool Name="VCPostBuildEventTool"/>
+            <Tool Name="VCPreBuildEventTool"/>
+            <Tool Name="VCPreLinkEventTool"/>
+            <Tool Name="VCResourceCompilerTool"/>
+            <Tool Name="VCWebServiceProxyGeneratorTool"/>
+            <Tool Name="VCXMLDataGeneratorTool"/>
+            <Tool Name="VCWebDeploymentTool"/>
+            <Tool Name="VCManagedWrapperGeneratorTool"/>
+            <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+        </Configuration>
+    </Configurations>
+    <References/>
+    <Files>
+        <Filter Name="Source Files" Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+            <File RelativePath="sipXmediaMediaProcessing\src\test\CpPhoneMediaInterfaceTest.cpp">
+                <FileConfiguration Name="Debug|Win32">
+                    <Tool Name="VCCLCompilerTool" AdditionalIncludeDirectories="" BasicRuntimeChecks="3" PreprocessorDefinitions="" Optimization="0"/>
+                </FileConfiguration>
+                <FileConfiguration Name="Debug-TLS|Win32">
+                    <Tool Name="VCCLCompilerTool" AdditionalIncludeDirectories="" BasicRuntimeChecks="3" PreprocessorDefinitions="" Optimization="0"/>
+                </FileConfiguration>
+                <FileConfiguration Name="Release|sipx_CE60_emulator (ARMV4I)">
+                    <Tool Name="VCCLCompilerTool" AdditionalIncludeDirectories="" PreprocessorDefinitions="" Optimization="2"/>
+                </FileConfiguration>
+                <FileConfiguration Name="Debug|sipx_CE60_emulator (ARMV4I)">
+                    <Tool Name="VCCLCompilerTool" AdditionalIncludeDirectories="" PreprocessorDefinitions="" Optimization="0"/>
+                </FileConfiguration>
+            </File>
+        </Filter>
+        <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl"/>
+        <Filter Name="Resource Files" Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
+    </Files>
+    <Globals/>
 </VisualStudioProject>

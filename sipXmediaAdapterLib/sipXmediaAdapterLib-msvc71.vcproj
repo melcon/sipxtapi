@@ -1,162 +1,63 @@
-<?xml version="1.0" encoding="Windows-1252"?>
-<VisualStudioProject
-	ProjectType="Visual C++"
-	Version="7.10"
-	Name="sipXmediaAdapterLib-msvc71"
-	ProjectGUID="{02884137-87A7-4221-B518-D7F7F22F9F7E}"
-	RootNamespace="sipXmediaAdapterLibmsvc71"
-	Keyword="ManagedCProj">
-	<Platforms>
-		<Platform
-			Name="Win32"/>
-	</Platforms>
-	<Configurations>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="2"
-			ManagedExtensions="FALSE">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO"
-				MinimalRebuild="FALSE"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
-				WarningLevel="3"
-				DebugInformationFormat="3"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="Debug\sipXmediaAdapterLib.lib"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="2"
-			ManagedExtensions="FALSE">
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO"
-				MinimalRebuild="FALSE"
-				RuntimeLibrary="2"
-				RuntimeTypeInfo="TRUE"
-				WarningLevel="3"
-				DebugInformationFormat="3"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="Release\sipXmediaAdapterLib.lib"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-	</Configurations>
-	<References>
-	</References>
-	<Files>
-		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
-			<Filter
-				Name="mi"
-				Filter="">
-				<File
-					RelativePath=".\interface\src\mi\CpAudioDeviceInfo.cpp">
-				</File>
-				<File
-					RelativePath=".\interface\src\mi\CpMediaInterface.cpp">
-				</File>
-				<File
-					RelativePath=".\interface\src\mi\CpMediaInterfaceFactory.cpp">
-				</File>
-			</Filter>
-			<Filter
-				Name="sipxmedia"
-				Filter="">
-				<File
-					RelativePath=".\sipXmediaMediaProcessing\src\CpPhoneMediaInterface.cpp">
-				</File>
-				<File
-					RelativePath=".\sipXmediaMediaProcessing\src\sipXmediaFactoryImpl.cpp">
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
-			<Filter
-				Name="mi"
-				Filter="">
-				<File
-					RelativePath=".\interface\include\mi\CpAudioDeviceInfo.h">
-				</File>
-				<File
-					RelativePath=".\interface\include\mi\CpMediaInterface.h">
-				</File>
-				<File
-					RelativePath=".\interface\include\mi\CpMediaInterfaceFactory.h">
-				</File>
-				<File
-					RelativePath=".\interface\include\mi\CpMediaInterfaceFactoryFactory.h">
-				</File>
-			</Filter>
-			<Filter
-				Name="sipxmedia"
-				Filter="">
-				<File
-					RelativePath=".\sipXmediaMediaProcessing\include\CpPhoneMediaInterface.h">
-				</File>
-				<File
-					RelativePath=".\sipXmediaMediaProcessing\include\sipXmediaFactoryImpl.h">
-				</File>
-			</Filter>
-		</Filter>
-	</Files>
-	<Globals>
-	</Globals>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<VisualStudioProject Name="sipXmediaAdapterLib-msvc71" Keyword="ManagedCProj" RootNamespace="sipXmediaAdapterLibmsvc71" ProjectGUID="{02884137-87A7-4221-B518-D7F7F22F9F7E}" Version="7.10" ProjectType="Visual C++">
+    <Platforms>
+        <Platform Name="Win32"/>
+    </Platforms>
+    <Configurations>
+        <Configuration Name="Debug|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="3" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;_DEBUG;_LIB;HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO" Optimization="0"/>
+            <Tool Name="VCCustomBuildTool"/>
+            <Tool Name="VCLibrarianTool" OutputFile="Debug\sipXmediaAdapterLib.lib"/>
+            <Tool Name="VCMIDLTool"/>
+            <Tool Name="VCPostBuildEventTool"/>
+            <Tool Name="VCPreBuildEventTool"/>
+            <Tool Name="VCPreLinkEventTool"/>
+            <Tool Name="VCResourceCompilerTool"/>
+            <Tool Name="VCWebServiceProxyGeneratorTool"/>
+            <Tool Name="VCXMLDataGeneratorTool"/>
+            <Tool Name="VCManagedWrapperGeneratorTool"/>
+            <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+        </Configuration>
+        <Configuration Name="Release|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="2" MinimalRebuild="FALSE" DebugInformationFormat="3" PreprocessorDefinitions="WIN32;NDEBUG;_LIB;HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO"/>
+            <Tool Name="VCCustomBuildTool"/>
+            <Tool Name="VCLibrarianTool" OutputFile="Release\sipXmediaAdapterLib.lib"/>
+            <Tool Name="VCMIDLTool"/>
+            <Tool Name="VCPostBuildEventTool"/>
+            <Tool Name="VCPreBuildEventTool"/>
+            <Tool Name="VCPreLinkEventTool"/>
+            <Tool Name="VCResourceCompilerTool"/>
+            <Tool Name="VCWebServiceProxyGeneratorTool"/>
+            <Tool Name="VCXMLDataGeneratorTool"/>
+            <Tool Name="VCManagedWrapperGeneratorTool"/>
+            <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+        </Configuration>
+    </Configurations>
+    <References/>
+    <Files>
+        <Filter Name="Source Files" Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+            <Filter Name="mi">
+                <File RelativePath=".\interface\src\mi\CpAudioDeviceInfo.cpp"/>
+                <File RelativePath=".\interface\src\mi\CpMediaInterface.cpp"/>
+                <File RelativePath=".\interface\src\mi\CpMediaInterfaceFactory.cpp"/>
+            </Filter>
+            <Filter Name="sipxmedia">
+                <File RelativePath=".\sipXmediaMediaProcessing\src\CpPhoneMediaInterface.cpp"/>
+                <File RelativePath=".\sipXmediaMediaProcessing\src\sipXmediaFactoryImpl.cpp"/>
+            </Filter>
+        </Filter>
+        <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
+            <Filter Name="mi">
+                <File RelativePath=".\interface\include\mi\CpAudioDeviceInfo.h"/>
+                <File RelativePath=".\interface\include\mi\CpMediaInterface.h"/>
+                <File RelativePath=".\interface\include\mi\CpMediaInterfaceFactory.h"/>
+                <File RelativePath=".\interface\include\mi\CpMediaInterfaceFactoryFactory.h"/>
+            </Filter>
+            <Filter Name="sipxmedia">
+                <File RelativePath=".\sipXmediaMediaProcessing\include\CpPhoneMediaInterface.h"/>
+                <File RelativePath=".\sipXmediaMediaProcessing\include\sipXmediaFactoryImpl.h"/>
+            </Filter>
+        </Filter>
+    </Files>
+    <Globals/>
 </VisualStudioProject>
