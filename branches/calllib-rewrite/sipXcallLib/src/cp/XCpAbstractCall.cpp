@@ -18,10 +18,10 @@
 #include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
 #include <cp/CpMessageTypes.h>
-#include <cp/AcCommandMsg.h>
-#include <cp/AcNotificationMsg.h>
-#include <cp/CmGainFocusMsg.h>
-#include <cp/CmYieldFocusMsg.h>
+#include <cp/msg/AcCommandMsg.h>
+#include <cp/msg/AcNotificationMsg.h>
+#include <cp/msg/CmGainFocusMsg.h>
+#include <cp/msg/CmYieldFocusMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS

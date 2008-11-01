@@ -103,31 +103,7 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath=".\src\cp\AcCommandMsg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\AcNotificationMsg.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\cp\CallManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CmCommandMsg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CmGainFocusMsg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CmNotificationMsg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CmYieldFocusMsg.cpp"
 				>
 			</File>
 			<File
@@ -167,14 +143,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\cp\ScCommandMsg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\ScNotificationMsg.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\cp\XCpAbstractCall.cpp"
 				>
 			</File>
@@ -198,37 +166,49 @@
 				RelativePath=".\src\cp\XCpSipConnection.cpp"
 				>
 			</File>
+			<Filter
+				Name="msg"
+				>
+				<File
+					RelativePath=".\src\cp\msg\AcCommandMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\CmCommandMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\CmGainFocusMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\CmNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\CmYieldFocusMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScCommandMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath=".\include\cp\AcCommandMsg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\AcNotificationMsg.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\cp\CallManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CmCommandMsg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CmGainFocusMsg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CmNotificationMsg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CmYieldFocusMsg.h"
 				>
 			</File>
 			<File
@@ -300,14 +280,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\cp\ScCommandMsg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\ScNotificationMsg.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\cp\XCpAbstractCall.h"
 				>
 			</File>
@@ -331,6 +303,42 @@
 				RelativePath=".\include\cp\XCpSipConnection.h"
 				>
 			</File>
+			<Filter
+				Name="msg"
+				>
+				<File
+					RelativePath=".\include\cp\msg\AcCommandMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\CmCommandMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\CmGainFocusMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\CmNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\CmYieldFocusMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScCommandMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScNotificationMsg.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

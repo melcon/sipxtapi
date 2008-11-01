@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef CmYieldFocusMsg_h__
-#define CmYieldFocusMsg_h__
+#ifndef CmGainFocusMsg_h__
+#define CmGainFocusMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -19,7 +19,7 @@
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
 #include <cp/CpMessageTypes.h>
-#include <cp/CmCommandMsg.h>
+#include <cp/msg/CmCommandMsg.h>
 
 // DEFINES
 // MACROS
@@ -31,17 +31,17 @@
 // FORWARD DECLARATIONS
 
 /**
-* Call manager command message. Instructs call manager to yield focus for given call.
+* Call manager command message. Instructs call manager to gain focus for given call.
 */
-class CmYieldFocusMsg : public CmCommandMsg
+class CmGainFocusMsg : public CmCommandMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
 
-   CmYieldFocusMsg(const UtlString& sAbstractCallId);
+   CmGainFocusMsg(const UtlString& sAbstractCallId);
 
-   virtual ~CmYieldFocusMsg();
+   virtual ~CmGainFocusMsg();
 
    virtual OsMsg* createCopy(void) const;
 
@@ -61,4 +61,4 @@ private:
    UtlString m_sAbstractCallId;
 };
 
-#endif // CmYieldFocusMsg_h__
+#endif // CmGainFocusMsg_h__

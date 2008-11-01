@@ -24,7 +24,7 @@
 #include <cp/XCpCall.h>
 #include <cp/XCpConference.h>
 #include <cp/CpMessageTypes.h>
-#include <cp/AcCommandMsg.h>
+#include <cp/msg/AcCommandMsg.h>
 #include <net/SipDialog.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipLineProvider.h>

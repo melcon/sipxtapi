@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/CmYieldFocusMsg.h>
+#include <cp/msg/CmGainFocusMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,21 +27,21 @@
 
 /* ============================ CREATORS ================================== */
 
-CmYieldFocusMsg::CmYieldFocusMsg(const UtlString& sAbstractCallId)
-: CmCommandMsg(CM_YIELD_FOCUS)
+CmGainFocusMsg::CmGainFocusMsg(const UtlString& sAbstractCallId)
+: CmCommandMsg(CM_GAIN_FOCUS)
 , m_sAbstractCallId(sAbstractCallId)
 {
 
 }
 
-CmYieldFocusMsg::~CmYieldFocusMsg()
+CmGainFocusMsg::~CmGainFocusMsg()
 {
 
 }
 
-OsMsg* CmYieldFocusMsg::createCopy(void) const
+OsMsg* CmGainFocusMsg::createCopy(void) const
 {
-   return new CmYieldFocusMsg(m_sAbstractCallId);
+   return new CmGainFocusMsg(m_sAbstractCallId);
 }
 
 /* ============================ MANIPULATORS ============================== */
