@@ -1624,15 +1624,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
  * playback will stop automatically.
  * If call is destroyed but sipxCallPlayBufferStop is not called, MEDIA_PLAYBUFFER_STOP
  * will be missing.
- * Supplied buffer can be freed or reused only after it has been copied
- * internally. This will occur when MEDIA_PLAYBUFFER_START event is fired
- * or call is destroyed. If MEDIA_PLAYBUFFER_START is not received within
- * a reasonable time, playback start probably failed and user can attempt
- * to invoke sipxCallPlayBufferStop. This should fire MEDIA_PLAYBUFFER_STOP
- * event, after which it is safe to dispose the supplied buffer.
- * If MEDIA_PLAYBUFFER_STOP is not fired either, pointer to supplied buffer
- * is not kept anywhere and it is safe to delete.
- * If attention is not paid to this problem, it can result in illegal memory access.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by
  *        invoking sipxCallCreate or passed to your application through
@@ -2350,28 +2341,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStop(const SIPX_CONF hConf
  *        by invoking sipxConferenceCreate.
  */ 
 SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf);
-
-
-/**
- * Gets energy levels for a conference.  The conference must be in the 
- * connected state (not held or bridged) for this request to succeed.
- *
- * This API is only supported when sipXtapi is bundled with VoiceEngine from 
- * GIPS.
- *
- * @param hConf Handle to a conference.  Conference handles are obtained 
- *        by invoking sipxConferenceCreate.
- * @param iInputEnergyLevel Input/Microphone energy level ranging from 0 to 9.
- * @param iOutputEnergyLevel Output/Speaker energy level ranging from 0 to 9. 
- *        The output energy level is post-mixed (after mixing all files/tones
- *        and other parties.  sipxCallGetEnergyLevel provides an API to obtain
- *        pre-mixed energy levels.
- */
-SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
-                                                       int* iInputEnergyLevel,
-                                                       int* iOutputEnergyLevel);
-
-
 
 /**
  * Limits the codec preferences on a conference.  This API will force a 

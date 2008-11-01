@@ -518,11 +518,6 @@ public:
    OsStatus getConferenceSipCallIds(const UtlString& sConferenceId,
                                     UtlSList& sipCallIdList) const;
 
-   /** Gets audio energy levels for call or conference identified by sId */
-   OsStatus getAudioEnergyLevels(const UtlString& sAbstractCallId,
-                                 int& iInputEnergyLevel,
-                                 int& iOutputEnergyLevel) const;
-
    /** Gets remote user agent for call or conference */
    OsStatus getRemoteUserAgent(const UtlString& sAbstractCallId,
                                const SipDialog& sSipDialog,

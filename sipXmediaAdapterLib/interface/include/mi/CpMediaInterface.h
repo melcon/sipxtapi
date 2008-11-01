@@ -540,6 +540,11 @@ public:
      *  @param[in] fileName - The path and name of a file to record to.
      */
 
+   /**
+    * Starts recording all audio channels into given file.
+    */
+   virtual OsStatus recordAudio(const char* szFile) = 0;
+
      /// Record the microphone data
    virtual OsStatus recordMic(UtlString* pAudioBuf);
      /**<

@@ -1424,6 +1424,21 @@ void CpPhoneMediaInterface::setCodecCPULimit(int iLimit)
    }
 }
 
+OsStatus CpPhoneMediaInterface::recordAudio(const char* szFile)
+{
+   if (mpFlowGraph)
+   {
+      /* use new call recorder
+      from now on, call recorder records both mic, speaker and local dtmf      
+      we don't want raw pcm, but wav pcm, raw pcm should be passed to a callback
+      meant for recording, for example for conversion to mp3 or other format */
+      return mpFlowGraph->record(0, -1, NULL, NULL, NULL, NULL, NULL, NULL,
+                                 NULL, NULL, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16);
+   }
+
+   return OS_FAILED;
+}
+
 OsStatus CpPhoneMediaInterface::stopRecording()
 {
    OsStatus ret = OS_UNSPECIFIED;

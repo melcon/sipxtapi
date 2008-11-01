@@ -194,14 +194,6 @@ OsStatus XCpConference::getConferenceSipCallIds(UtlSList& sipCallIdList) const
    return OS_FAILED;
 }
 
-OsStatus XCpConference::getAudioEnergyLevels(int& iInputEnergyLevel, int& iOutputEnergyLevel) const
-{
-   iInputEnergyLevel = 0;
-   iOutputEnergyLevel = 0;
-
-   return OS_FAILED;
-}
-
 OsStatus XCpConference::getRemoteUserAgent(const SipDialog& sSipDialog,
                                            UtlString& userAgent) const
 {

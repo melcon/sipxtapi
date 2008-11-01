@@ -1177,22 +1177,6 @@ OsStatus XCpCallManager::getConferenceSipCallIds(const UtlString& sConferenceId,
    return result;
 }
 
-OsStatus XCpCallManager::getAudioEnergyLevels(const UtlString& sAbstractCallId,
-                                              int& iInputEnergyLevel,
-                                              int& iOutputEnergyLevel) const
-{
-   OsStatus result = OS_NOT_FOUND;
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->getAudioEnergyLevels(iInputEnergyLevel, iOutputEnergyLevel);
-   }
-
-   return result;
-}
-
 OsStatus XCpCallManager::getRemoteUserAgent(const UtlString& sAbstractCallId,
                                             const SipDialog& sSipDialog,
                                             UtlString& userAgent) const
