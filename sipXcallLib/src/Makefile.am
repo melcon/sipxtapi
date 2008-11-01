@@ -35,7 +35,9 @@ libsipXcall_la_SOURCES = \
     cp/AcNotificationMsg.cpp \
     cp/CallManager.cpp \
     cp/CmCommandMsg.cpp \
+    cp/CmGainFocusMsg.cpp \
     cp/CmNotificationMsg.cpp \
+    cp/CmYieldFocusMsg.cpp \
     cp/Connection.cpp \
     cp/CpCall.cpp \
     cp/CpCallManager.cpp \

@@ -37,7 +37,8 @@ class CmCommandMsg : public OsMsg
 public:
    typedef enum
    {
-      CM_EMPTY = 0,
+      CM_GAIN_FOCUS = 0,
+      CM_YIELD_FOCUS
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */

@@ -50,7 +50,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXcallLib\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxDISABLE_LOCAL_AUDIO"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="false"
@@ -123,7 +123,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxDISABLE_LOCAL_AUDIO"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="true"
@@ -693,7 +693,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CmGainFocusMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CmNotificationMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\CmYieldFocusMsg.cpp"
 				>
 			</File>
 			<File
@@ -786,7 +794,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CmGainFocusMsg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CmNotificationMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CmYieldFocusMsg.h"
 				>
 			</File>
 			<File

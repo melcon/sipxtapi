@@ -81,12 +81,12 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_bIsRequiredLineMatch(bIsRequiredLineMatch)
 , m_rtpPortStart(rtpPortStart)
 , m_rtpPortEnd(rtpPortEnd)
-, m_basicMemberMutex(OsMutex::Q_FIFO)
+, m_memberMutex(OsMutex::Q_FIFO)
 , m_maxCalls(maxCalls)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
 , m_inviteExpireSeconds(inviteExpireSeconds)
-, m_callInFocusMutex(OsMutex::Q_FIFO)
-, m_pAbstractCallInFocus(NULL)
+, m_focusMutex(OsMutex::Q_FIFO)
+, m_sAbstractCallInFocus(NULL)
 {
    m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
       SIP_INVITE_METHOD,
@@ -178,7 +178,7 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
 
 void XCpCallManager::requestShutdown(void)
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
 
    UtlHashMapIterator callMapItor(m_callMap);
    XCpCall* pCall = NULL;
@@ -783,32 +783,12 @@ OsStatus XCpCallManager::holdAllConferenceConnections(const UtlString& sConferen
 
 OsStatus XCpCallManager::holdLocalAbstractCallConnection(const UtlString& sAbstractCallId)
 {
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-//      return ptrLock->holdLocalConnection();
-   }
-
-   return result;
+   return doYieldFocus(sAbstractCallId, TRUE);
 }
 
 OsStatus XCpCallManager::unholdLocalAbstractCallConnection(const UtlString& sAbstractCallId)
 {
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-//      return ptrLock->unholdLocalConnection();
-   }
-
-   return result;
+   return doGainFocus(sAbstractCallId, FALSE);
 }
 
 OsStatus XCpCallManager::unholdAllConferenceConnections(const UtlString& sConferenceId)
@@ -1015,7 +995,7 @@ void XCpCallManager::enableStun(const UtlString& sStunServer,
                                 int iKeepAlivePeriodSecs /*= 0*/,
                                 OsNotification* pNotification /*= NULL*/)
 {
-   OsLock lock(m_basicMemberMutex); // use wide lock to make sure we enable stun for the correct server
+   OsLock lock(m_memberMutex); // use wide lock to make sure we enable stun for the correct server
 
    m_sStunServer = sStunServer;
    m_iStunPort = iServerPort;
@@ -1030,7 +1010,7 @@ void XCpCallManager::enableTurn(const UtlString& sTurnServer,
                                 const UtlString& sTurnPassword,
                                 int iKeepAlivePeriodSecs /*= 0*/)
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
 
    bool bEnabled = false;
    m_sTurnServer = sTurnServer;
@@ -1087,7 +1067,7 @@ CpMediaInterfaceFactory* XCpCallManager::getMediaInterfaceFactory() const
 
 int XCpCallManager::getCallCount() const
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
    int count = 0;
 
    UtlHashMapIterator callMapItor(m_callMap);
@@ -1128,7 +1108,7 @@ OsStatus XCpCallManager::getAbstractCallIds(UtlSList& idList) const
 
 OsStatus XCpCallManager::getCallIds(UtlSList& callIdList) const
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
 
    UtlHashMapIterator callMapItor(m_callMap);
    XCpCall* pCall = NULL;
@@ -1147,7 +1127,7 @@ OsStatus XCpCallManager::getCallIds(UtlSList& callIdList) const
 
 OsStatus XCpCallManager::getConferenceIds(UtlSList& conferenceIdList) const
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
 
    UtlHashMapIterator conferenceMapItor(m_conferenceMap);
    XCpConference* pConference = NULL;
@@ -1298,7 +1278,7 @@ UtlBoolean XCpCallManager::findAbstractCall(const UtlString& sAbstractCallId,
    {
    case XCpCallManager::ID_TYPE_CALL:
       {
-         OsLock lock(m_basicMemberMutex);
+         OsLock lock(m_memberMutex);
          // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpCall>&
          XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sAbstractCallId));
          if (pCall)
@@ -1312,7 +1292,7 @@ UtlBoolean XCpCallManager::findAbstractCall(const UtlString& sAbstractCallId,
       }
    case XCpCallManager::ID_TYPE_CONFERENCE:
       {
-         OsLock lock(m_basicMemberMutex);
+         OsLock lock(m_memberMutex);
          // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpConference>&
          XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sAbstractCallId));
          if (pConference)
@@ -1332,10 +1312,52 @@ UtlBoolean XCpCallManager::findAbstractCall(const UtlString& sAbstractCallId,
    return result;
 }
 
+UtlBoolean XCpCallManager::findSomeAbstractCall(const UtlString& sAvoidAbstractCallId,
+                                                OsPtrLock<XCpAbstractCall>& ptrLock) const
+{
+   OsLock lock(m_memberMutex);
+
+   // try to get next call
+   {
+      UtlHashMapIterator callMapItor(m_callMap);
+      XCpCall* pCall = NULL;
+
+      while(callMapItor()) // go to next pair
+      {
+         pCall = dynamic_cast<XCpCall*>(callMapItor.value());
+         if (pCall && sAvoidAbstractCallId.compareTo(pCall->getId()) != 0)
+         {
+            // we found some call and sAvoidAbstractCallId is different than its Id
+            ptrLock = pCall; // lock call
+            return TRUE;
+         }
+      }
+   }
+
+   // try to get next conference
+   {
+      UtlHashMapIterator conferenceMapItor(m_conferenceMap);
+      XCpConference* pConference = NULL;
+      while(conferenceMapItor()) // go to next pair
+      {
+         pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
+         if (pConference && sAvoidAbstractCallId.compareTo(pConference->getId()) != 0)
+         {
+            // we found some conference and sAvoidAbstractCallId is different than its Id
+            ptrLock = pConference; // lock conference
+            return TRUE;
+         }
+      }
+   }
+
+   ptrLock = NULL;
+   return FALSE;
+}
+
 UtlBoolean XCpCallManager::findCall(const SipDialog& sSipDialog,
                                     OsPtrLock<XCpCall>& ptrLock) const
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
    XCpCall* pNotEstablishedMatch = NULL;
 
    // iterate through hashmap and ask every call if it has given sip dialog
@@ -1375,7 +1397,7 @@ UtlBoolean XCpCallManager::findCall(const SipDialog& sSipDialog,
 UtlBoolean XCpCallManager::findConference(const SipDialog& sSipDialog,
                                           OsPtrLock<XCpConference>& ptrLock) const
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
    XCpConference* pNotEstablishedMatch = NULL;
 
    // iterate through hashmap and ask every conference if it has given sip dialog
@@ -1438,7 +1460,7 @@ UtlBoolean XCpCallManager::findAbstractCall(const SipDialog& sSipDialog,
 UtlBoolean XCpCallManager::findCall(const UtlString& sId,
                                     OsPtrLock<XCpCall>& ptrLock) const
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
    XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
    if (pCall)
    {
@@ -1453,7 +1475,7 @@ UtlBoolean XCpCallManager::findCall(const UtlString& sId,
 UtlBoolean XCpCallManager::findConference(const UtlString& sId,
                                           OsPtrLock<XCpConference>& ptrLock) const
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
    XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
    if (pConference)
    {
@@ -1473,7 +1495,7 @@ UtlBoolean XCpCallManager::findHandlingAbstractCall(const SipMessage& rSipMessag
 
 UtlBoolean XCpCallManager::push(XCpCall& call)
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
 
    UtlCopyableContainable *pKey = call.getId().clone();
    UtlContainable *pResult = m_callMap.insertKeyAndValue(pKey, &call);
@@ -1491,7 +1513,7 @@ UtlBoolean XCpCallManager::push(XCpCall& call)
 
 UtlBoolean XCpCallManager::push(XCpConference& conference)
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
 
    UtlCopyableContainable *pKey = conference.getId().clone();
    UtlContainable *pResult = m_conferenceMap.insertKeyAndValue(pKey, &conference);
@@ -1509,7 +1531,7 @@ UtlBoolean XCpCallManager::push(XCpConference& conference)
 
 UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
    // avoid findCall, as we don't need that much locking
    UtlContainable *pValue = NULL;
    UtlContainable *pKey = m_callMap.removeKeyAndValue(&sId, pValue);
@@ -1520,7 +1542,7 @@ UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
       {
          // call was found
          pCall->acquire(); // lock the call
-         doYieldFocus(pCall);
+         doYieldFocus(pCall->getId());
          delete pCall;
          pCall = NULL;
       }
@@ -1537,7 +1559,7 @@ UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
 
 UtlBoolean XCpCallManager::deleteConference(const UtlString& sId)
 {
-   OsLock lock(m_basicMemberMutex);
+   OsLock lock(m_memberMutex);
    // avoid findConference, as we don't need that much locking
    UtlContainable *pValue = NULL;
    UtlContainable *pKey = m_conferenceMap.removeKeyAndValue(&sId, pValue);
@@ -1548,7 +1570,7 @@ UtlBoolean XCpCallManager::deleteConference(const UtlString& sId)
       {
          // conference was found
          pConference->acquire(); // lock the conference
-         doYieldFocus(pConference);
+         doYieldFocus(pConference->getId());
          delete pConference;
          pConference = NULL;
       }
@@ -1587,15 +1609,15 @@ UtlBoolean XCpCallManager::deleteAbstractCall(const UtlString& sAbstractCallId)
 
 void XCpCallManager::deleteAllCalls()
 {
-   doDefocus(FALSE);
-   OsLock lock(m_basicMemberMutex);
+   doYieldFocus(FALSE);
+   OsLock lock(m_memberMutex);
    m_callMap.destroyAll();
 }
 
 void XCpCallManager::deleteAllConferences()
 {
-   doDefocus(FALSE);
-   OsLock lock(m_basicMemberMutex);
+   doYieldFocus(FALSE);
+   OsLock lock(m_memberMutex);
    m_conferenceMap.destroyAll();
 }
 
@@ -1607,7 +1629,7 @@ UtlBoolean XCpCallManager::checkCallLimit()
    }
 
    {
-      OsLock lock(m_basicMemberMutex);
+      OsLock lock(m_memberMutex);
       int callCount = getCallCount();
       if (callCount >= m_maxCalls)
       {
@@ -1839,56 +1861,145 @@ void XCpCallManager::createNewCall(const SipMessageEvent& rSipMsgEvent)
    }
 }
 
-void XCpCallManager::doGainFocus(XCpAbstractCall* pAbstractCall)
+OsStatus XCpCallManager::doGainFocus(const UtlString& sAbstractCallId, UtlBoolean bGainOnlyIfNoFocusedCall)
 {
-   OsLock lock(m_callInFocusMutex);
-   // when deleting calls, doYieldFocus must be called to avoid invalid memory access
-   if (m_pAbstractCallInFocus)
+#ifndef DISABLE_LOCAL_AUDIO
+   OsStatus result = OS_FAILED;
+   OsLock lock(m_focusMutex);
+
+   if (!m_sAbstractCallInFocus.isNull())
    {
-      // send defocus command to old call
-      AcCommandMsg gainFocusCommand(AcCommandMsg::AC_DEFOCUS_LOCAL);
-      m_pAbstractCallInFocus->postMessage(gainFocusCommand);
+      // some call is focused
+      if (bGainOnlyIfNoFocusedCall)
+      {
+         // some call is focused, then we don't want to focus
+         return OS_SUCCESS;
+      }
+      result = doYieldFocus(sAbstractCallId, FALSE); // defocus focused call
    }
-   m_pAbstractCallInFocus = pAbstractCall;
-   // send gain focus command to new call
-   AcCommandMsg gainFocusCommand(AcCommandMsg::AC_GAIN_LOCAL_FOCUS);
-   pAbstractCall->postMessage(gainFocusCommand);
+
+   {
+      OsPtrLock<XCpAbstractCall> ptrLock; // scoped auto pointer lock
+      UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+      if (resFind)
+      {
+         // send gain focus command to new call
+         AcCommandMsg gainFocusCommand(AcCommandMsg::AC_GAIN_FOCUS);
+         // we found call and have a lock on it
+         ptrLock->postMessage(gainFocusCommand);
+         m_sAbstractCallInFocus = sAbstractCallId;
+         result = OS_SUCCESS;
+      }
+   }
+
+   return result;
+#else
+   return OS_SUCCESS;
+#endif
 }
 
-void XCpCallManager::doYieldFocus(const XCpAbstractCall* pAbstractCall,
+OsStatus XCpCallManager::doYieldFocus(const UtlString& sAbstractCallId,
                                   UtlBoolean bShiftFocus)
 {
-   OsLock lock(m_callInFocusMutex);
-   if (m_pAbstractCallInFocus == pAbstractCall)
+#ifndef DISABLE_LOCAL_AUDIO
+   OsStatus result = OS_FAILED;
+   OsLock lock(m_focusMutex); // need to hold lock of the whole time to ensure consistency
+
+   if (m_sAbstractCallInFocus.compareTo(sAbstractCallId) == 0)
    {
-      // send defocus command to old call
-      AcCommandMsg gainFocusCommand(AcCommandMsg::AC_DEFOCUS_LOCAL);
-      m_pAbstractCallInFocus->postMessage(gainFocusCommand);
-      m_pAbstractCallInFocus = NULL;
+      {
+         OsPtrLock<XCpAbstractCall> ptrLock; // scoped auto pointer lock
+         UtlBoolean resFind = findAbstractCall(m_sAbstractCallInFocus, ptrLock);
+         if (resFind)
+         {
+            // send defocus command to old call
+            AcCommandMsg defocusCommand(AcCommandMsg::AC_YIELD_FOCUS);
+            // we found call and have a lock on it
+            ptrLock->postMessage(defocusCommand);
+            result = OS_SUCCESS;
+         }
+      }
 
       if (bShiftFocus)
       {
-         // TODO: find next abstract call, assign it to m_pAbstractCallInFocus and send it gain focus message
+         UtlString sAvoidAbstractCallId(m_sAbstractCallInFocus);
+         m_sAbstractCallInFocus.remove(0);
+         result = doGainNextFocus(sAvoidAbstractCallId);
+      }
+      else
+      {
+         m_sAbstractCallInFocus.remove(0);
       }
    }
+
+   return result;
+#else
+   return OS_SUCCESS;
+#endif
 }
 
-void XCpCallManager::doDefocus(UtlBoolean bShiftFocus)
+OsStatus XCpCallManager::doYieldFocus(UtlBoolean bShiftFocus)
 {
-   OsLock lock(m_callInFocusMutex);
-   // when deleting calls, doYieldFocus must be called to avoid invalid memory access
-   if (m_pAbstractCallInFocus)
+#ifndef DISABLE_LOCAL_AUDIO
+   OsStatus result = OS_FAILED;
+   OsLock lock(m_focusMutex); // need to hold lock of the whole time to ensure consistency
+
    {
-      // send defocus command to old call
-      AcCommandMsg gainFocusCommand(AcCommandMsg::AC_DEFOCUS_LOCAL);
-      m_pAbstractCallInFocus->postMessage(gainFocusCommand);
-      m_pAbstractCallInFocus = NULL;
+      OsPtrLock<XCpAbstractCall> ptrLock; // scoped auto pointer lock
+      UtlBoolean resFind = findAbstractCall(m_sAbstractCallInFocus, ptrLock);
+      if (resFind)
+      {
+         // send defocus command to old call
+         AcCommandMsg defocusCommand(AcCommandMsg::AC_YIELD_FOCUS);
+         // we found call and have a lock on it
+         ptrLock->postMessage(defocusCommand);
+         result = OS_SUCCESS;
+      }
    }
 
    if (bShiftFocus)
    {
-      // TODO: find next abstract call, assign it to m_pAbstractCallInFocus and send it gain focus message
+      UtlString sAvoidAbstractCallId(m_sAbstractCallInFocus);
+      m_sAbstractCallInFocus.remove(0);
+      result = doGainNextFocus(sAvoidAbstractCallId);
    }
+   else
+   {
+      m_sAbstractCallInFocus.remove(0);
+   }
+
+   return result;
+#else
+   return OS_SUCCESS;
+#endif
+}
+
+OsStatus XCpCallManager::doGainNextFocus(const UtlString& sAvoidAbstractCallId)
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   OsStatus result = OS_FAILED;
+   OsLock lock(m_focusMutex); // need to hold lock of the whole time to ensure consistency
+
+   if (m_sAbstractCallInFocus.isNull())
+   {
+      // no call has focus
+      OsPtrLock<XCpAbstractCall> ptrLock; // scoped auto pointer lock
+      UtlBoolean resFind = findSomeAbstractCall(sAvoidAbstractCallId, ptrLock);// avoids sAvoidAbstractCallId when looking for next call
+      if (resFind)
+      {
+         // send gain focus command to new call
+         AcCommandMsg gainFocusCommand(AcCommandMsg::AC_GAIN_FOCUS);
+         // we found call and have a lock on it
+         ptrLock->postMessage(gainFocusCommand);
+         m_sAbstractCallInFocus = ptrLock->getId();
+         result = OS_SUCCESS;
+      }
+   }
+
+   return result;
+#else
+   return OS_SUCCESS;
+#endif
 }
 
 /* ============================ FUNCTIONS ================================= */

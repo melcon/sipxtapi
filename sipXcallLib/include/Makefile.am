@@ -8,7 +8,9 @@ nobase_include_HEADERS =  \
     cp/AcNotificationMsg.h \
     cp/CallManager.h \
     cp/CmCommandMsg.h \
+    cp/CmGainFocusMsg.h \
     cp/CmNotificationMsg.h \
+    cp/CmYieldFocusMsg.h \
     cp/Connection.h \
     cp/CpAudioCodecInfo.h \
     cp/CpCall.h \
