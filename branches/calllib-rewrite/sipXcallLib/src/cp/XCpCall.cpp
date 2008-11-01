@@ -51,83 +51,99 @@ OsStatus XCpCall::connect(const UtlString& sSipCallId,
                           const UtlString& locationHeader,
                           CP_CONTACT_ID contactId)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::acceptConnection(const UtlString& locationHeader,
                                    CP_CONTACT_ID contactId)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::rejectConnection()
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::redirectConnection(const UtlString& sRedirectSipUri)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::answerConnection()
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::dropConnection(const SipDialog& sSipDialog)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::dropConnection(UtlBoolean bDestroyCall)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::transferBlind(const SipDialog& sSipDialog,
                                 const UtlString& sTransferSipUri)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::holdConnection(const SipDialog& sSipDialog)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::holdConnection()
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::unholdConnection(const SipDialog& sSipDialog)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::unholdConnection()
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::silentHoldRemoteConnection(const SipDialog& sSipDialog)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::silentUnholdRemoteConnection(const SipDialog& sSipDialog)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::silentHoldLocalConnection(const SipDialog& sSipDialog)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
 OsStatus XCpCall::silentUnholdLocalConnection(const SipDialog& sSipDialog)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
@@ -136,6 +152,7 @@ OsStatus XCpCall::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                         CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                         const UtlString& sVideoCodecs)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
@@ -145,6 +162,7 @@ OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sSipDialog,
                                               CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                               const UtlString& sVideoCodecs)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
@@ -153,6 +171,7 @@ OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
                            const char* pContent,
                            const size_t nContentLength)
 {
+   // TODO: implement
    return OS_FAILED;
 }
 
@@ -162,16 +181,19 @@ OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
 
 XCpAbstractCall::DialogMatchEnum XCpCall::hasSipDialog(const SipDialog& sSipDialog) const
 {
+   // TODO: implement
    return XCpAbstractCall::MISMATCH;
 }
 
 int XCpCall::getCallCount() const
 {
+   // TODO: implement
    return 0;
 }
 
 OsStatus XCpCall::getCallSipCallId(UtlString& sSipCallId) const
 {
+   // TODO: implement
    sSipCallId.remove(0);
    return OS_FAILED;
 }
@@ -179,6 +201,7 @@ OsStatus XCpCall::getCallSipCallId(UtlString& sSipCallId) const
 OsStatus XCpCall::getRemoteUserAgent(const SipDialog& sSipDialog,
                                      UtlString& userAgent) const
 {
+   // TODO: implement
    userAgent.remove(0);
 
    return OS_NOT_FOUND;
@@ -186,6 +209,7 @@ OsStatus XCpCall::getRemoteUserAgent(const SipDialog& sSipDialog,
 
 OsStatus XCpCall::getMediaConnectionId(int& mediaConnID) const
 {
+   // TODO: implement
    mediaConnID = -1;
 
    return OS_INVALID;
@@ -194,6 +218,7 @@ OsStatus XCpCall::getMediaConnectionId(int& mediaConnID) const
 OsStatus XCpCall::getSipDialog(const SipDialog& sSipDialog,
                                SipDialog& dialog) const
 {
+   // TODO: implement
    dialog = SipDialog(); // assign empty SipDialog
 
    return OS_NOT_FOUND;
