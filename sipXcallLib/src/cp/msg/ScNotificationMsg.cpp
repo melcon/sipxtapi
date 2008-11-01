@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/CmCommandMsg.h>
+#include <cp/msg/ScNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,20 +27,20 @@
 
 /* ============================ CREATORS ================================== */
 
-CmCommandMsg::CmCommandMsg(SubTypesEnum subType)
-: OsMsg(CpMessageTypes::CM_COMMAND, (unsigned char)subType)
+ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::SC_NOFITICATION, (unsigned char)subType)
 {
 
 }
 
-CmCommandMsg::~CmCommandMsg()
+ScNotificationMsg::~ScNotificationMsg()
 {
 
 }
 
-OsMsg* CmCommandMsg::createCopy(void) const
+OsMsg* ScNotificationMsg::createCopy(void) const
 {
-   return new CmCommandMsg((SubTypesEnum)getMsgSubType());
+   return new ScNotificationMsg((SubTypesEnum)getMsgSubType());
 }
 
 /* ============================ MANIPULATORS ============================== */

@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/AcNotificationMsg.h>
+#include <cp/msg/AcCommandMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,20 +27,20 @@
 
 /* ============================ CREATORS ================================== */
 
-AcNotificationMsg::AcNotificationMsg(SubTypesEnum subType)
-: OsMsg(CpMessageTypes::AC_NOTIFICATION, (unsigned char)subType)
+AcCommandMsg::AcCommandMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::AC_COMMAND, (unsigned char)subType)
 {
 
 }
 
-AcNotificationMsg::~AcNotificationMsg()
+AcCommandMsg::~AcCommandMsg()
 {
 
 }
 
-OsMsg* AcNotificationMsg::createCopy(void) const
+OsMsg* AcCommandMsg::createCopy(void) const
 {
-   return new AcNotificationMsg((SubTypesEnum)getMsgSubType());
+   return new AcCommandMsg((SubTypesEnum)getMsgSubType());
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -54,4 +54,3 @@ OsMsg* AcNotificationMsg::createCopy(void) const
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
-

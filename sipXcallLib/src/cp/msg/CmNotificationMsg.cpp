@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/CmNotificationMsg.h>
+#include <cp/msg/CmNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS

@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/AcCommandMsg.h>
+#include <cp/msg/ScCommandMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,20 +27,20 @@
 
 /* ============================ CREATORS ================================== */
 
-AcCommandMsg::AcCommandMsg(SubTypesEnum subType)
-: OsMsg(CpMessageTypes::AC_COMMAND, (unsigned char)subType)
+ScCommandMsg::ScCommandMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::SC_COMMAND, (unsigned char)subType)
 {
 
 }
 
-AcCommandMsg::~AcCommandMsg()
+ScCommandMsg::~ScCommandMsg()
 {
 
 }
 
-OsMsg* AcCommandMsg::createCopy(void) const
+OsMsg* ScCommandMsg::createCopy(void) const
 {
-   return new AcCommandMsg((SubTypesEnum)getMsgSubType());
+   return new ScCommandMsg((SubTypesEnum)getMsgSubType());
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -54,3 +54,4 @@ OsMsg* AcCommandMsg::createCopy(void) const
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
+

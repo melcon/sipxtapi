@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/CmGainFocusMsg.h>
+#include <cp/msg/CmCommandMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,21 +27,20 @@
 
 /* ============================ CREATORS ================================== */
 
-CmGainFocusMsg::CmGainFocusMsg(const UtlString& sAbstractCallId)
-: CmCommandMsg(CM_GAIN_FOCUS)
-, m_sAbstractCallId(sAbstractCallId)
+CmCommandMsg::CmCommandMsg(SubTypesEnum subType)
+: OsMsg(CpMessageTypes::CM_COMMAND, (unsigned char)subType)
 {
 
 }
 
-CmGainFocusMsg::~CmGainFocusMsg()
+CmCommandMsg::~CmCommandMsg()
 {
 
 }
 
-OsMsg* CmGainFocusMsg::createCopy(void) const
+OsMsg* CmCommandMsg::createCopy(void) const
 {
-   return new CmGainFocusMsg(m_sAbstractCallId);
+   return new CmCommandMsg((SubTypesEnum)getMsgSubType());
 }
 
 /* ============================ MANIPULATORS ============================== */

@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/ScNotificationMsg.h>
+#include <cp/msg/CmYieldFocusMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,20 +27,21 @@
 
 /* ============================ CREATORS ================================== */
 
-ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType)
-: OsMsg(CpMessageTypes::SC_NOFITICATION, (unsigned char)subType)
+CmYieldFocusMsg::CmYieldFocusMsg(const UtlString& sAbstractCallId)
+: CmCommandMsg(CM_YIELD_FOCUS)
+, m_sAbstractCallId(sAbstractCallId)
 {
 
 }
 
-ScNotificationMsg::~ScNotificationMsg()
+CmYieldFocusMsg::~CmYieldFocusMsg()
 {
 
 }
 
-OsMsg* ScNotificationMsg::createCopy(void) const
+OsMsg* CmYieldFocusMsg::createCopy(void) const
 {
-   return new ScNotificationMsg((SubTypesEnum)getMsgSubType());
+   return new CmYieldFocusMsg(m_sAbstractCallId);
 }
 
 /* ============================ MANIPULATORS ============================== */

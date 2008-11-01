@@ -4,13 +4,13 @@
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
-    cp/AcCommandMsg.h \
-    cp/AcNotificationMsg.h \
+    cp/msg/AcCommandMsg.h \
+    cp/msg/AcNotificationMsg.h \
     cp/CallManager.h \
-    cp/CmCommandMsg.h \
-    cp/CmGainFocusMsg.h \
-    cp/CmNotificationMsg.h \
-    cp/CmYieldFocusMsg.h \
+    cp/msg/CmCommandMsg.h \
+    cp/msg/CmGainFocusMsg.h \
+    cp/msg/CmNotificationMsg.h \
+    cp/msg/CmYieldFocusMsg.h \
     cp/Connection.h \
     cp/CpAudioCodecInfo.h \
     cp/CpCall.h \
@@ -28,8 +28,8 @@ nobase_include_HEADERS =  \
     cp/CpVideoCodecInfo.h \
     cp/CSeqManager.h \
     cp/SipConnection.h \
-    cp/ScCommandMsg.h \
-    cp/ScNotificationMsg.h \
+    cp/msg/ScCommandMsg.h \
+    cp/msg/ScNotificationMsg.h \
     cp/XCpAbstractCall.h \
     cp/XCpAbstractConnection.h \
     cp/XCpCall.h \
