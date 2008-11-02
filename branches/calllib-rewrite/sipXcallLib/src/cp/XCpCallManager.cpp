@@ -25,6 +25,8 @@
 #include <cp/XCpConference.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
+#include <cp/msg/AcGainFocusMsg.h>
+#include <cp/msg/AcYieldFocusMsg.h>
 #include <net/SipDialog.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipLineProvider.h>
@@ -1817,7 +1819,7 @@ OsStatus XCpCallManager::doGainFocus(const UtlString& sAbstractCallId, UtlBoolea
       if (resFind)
       {
          // send gain focus command to new call
-         AcCommandMsg gainFocusCommand(AcCommandMsg::AC_GAIN_FOCUS);
+         AcGainFocusMsg gainFocusCommand;
          // we found call and have a lock on it
          ptrLock->postMessage(gainFocusCommand);
          m_sAbstractCallInFocus = sAbstractCallId;
@@ -1846,7 +1848,7 @@ OsStatus XCpCallManager::doYieldFocus(const UtlString& sAbstractCallId,
          if (resFind)
          {
             // send defocus command to old call
-            AcCommandMsg defocusCommand(AcCommandMsg::AC_YIELD_FOCUS);
+            AcYieldFocusMsg defocusCommand;
             // we found call and have a lock on it
             ptrLock->postMessage(defocusCommand);
             result = OS_SUCCESS;
@@ -1883,7 +1885,7 @@ OsStatus XCpCallManager::doYieldFocus(UtlBoolean bShiftFocus)
       if (resFind)
       {
          // send defocus command to old call
-         AcCommandMsg defocusCommand(AcCommandMsg::AC_YIELD_FOCUS);
+         AcYieldFocusMsg defocusCommand;
          // we found call and have a lock on it
          ptrLock->postMessage(defocusCommand);
          result = OS_SUCCESS;
@@ -1921,7 +1923,7 @@ OsStatus XCpCallManager::doGainNextFocus(const UtlString& sAvoidAbstractCallId)
       if (resFind)
       {
          // send gain focus command to new call
-         AcCommandMsg gainFocusCommand(AcCommandMsg::AC_GAIN_FOCUS);
+         AcGainFocusMsg gainFocusCommand;
          // we found call and have a lock on it
          ptrLock->postMessage(gainFocusCommand);
          m_sAbstractCallInFocus = ptrLock->getId();
