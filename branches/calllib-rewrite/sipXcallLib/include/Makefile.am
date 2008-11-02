@@ -4,13 +4,24 @@
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
+    cp/msg/AcAcceptConnectionMsg.h \
+    cp/msg/AcAnswerConnectionMsg.h \
     cp/msg/AcCommandMsg.h \
+    cp/msg/AcConnectMsg.h \
+    cp/msg/AcDropConnectionMsg.h \
+    cp/msg/AcHoldConnectionMsg.h \
     cp/msg/AcNotificationMsg.h \
-    cp/CallManager.h \
+    cp/msg/AcRedirectConnectionMsg.h \
+    cp/msg/AcRejectConnectionMsg.h \
+    cp/msg/AcTransferBlindMsg.h \
+    cp/msg/AcUnholdConnectionMsg.h \
     cp/msg/CmCommandMsg.h \
     cp/msg/CmGainFocusMsg.h \
     cp/msg/CmNotificationMsg.h \
     cp/msg/CmYieldFocusMsg.h \
+    cp/msg/ScCommandMsg.h \
+    cp/msg/ScNotificationMsg.h \
+    cp/CallManager.h \
     cp/Connection.h \
     cp/CpAudioCodecInfo.h \
     cp/CpCall.h \
@@ -28,8 +39,6 @@ nobase_include_HEADERS =  \
     cp/CpVideoCodecInfo.h \
     cp/CSeqManager.h \
     cp/SipConnection.h \
-    cp/msg/ScCommandMsg.h \
-    cp/msg/ScNotificationMsg.h \
     cp/XCpAbstractCall.h \
     cp/XCpCall.h \
     cp/XCpCallManager.h \
