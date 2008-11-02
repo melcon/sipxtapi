@@ -36,12 +36,17 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcCommandMsg.cpp \
     cp/msg/AcConnectMsg.cpp \
     cp/msg/AcDropConnectionMsg.cpp \
+    cp/msg/AcGainFocusMsg.cpp \
     cp/msg/AcHoldConnectionMsg.cpp \
+    cp/msg/AcLimitCodecPreferencesMsg.cpp \
     cp/msg/AcNotificationMsg.cpp \
     cp/msg/AcRedirectConnectionMsg.cpp \
     cp/msg/AcRejectConnectionMsg.cpp \
+    cp/msg/AcRenegotiateCodecsMsg.cpp \
+    cp/msg/AcSendInfoMsg.cpp \
     cp/msg/AcTransferBlindMsg.cpp \
     cp/msg/AcUnholdConnectionMsg.cpp \
+    cp/msg/AcYieldFocusMsg.cpp \
     cp/msg/CmCommandMsg.cpp \
     cp/msg/CmGainFocusMsg.cpp \
     cp/msg/CmNotificationMsg.cpp \

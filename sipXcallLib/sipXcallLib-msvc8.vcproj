@@ -326,7 +326,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcGainFocusMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcHoldConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcLimitCodecPreferencesMsg.cpp"
 					>
 				</File>
 				<File
@@ -342,11 +350,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcRenegotiateCodecsMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\AcUnholdConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcYieldFocusMsg.cpp"
 					>
 				</File>
 				<File
@@ -495,7 +515,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcGainFocusMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcHoldConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcLimitCodecPreferencesMsg.h"
 					>
 				</File>
 				<File
@@ -511,11 +539,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcRenegotiateCodecsMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcSendInfoMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"
 					>
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcUnholdConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcYieldFocusMsg.h"
 					>
 				</File>
 				<File

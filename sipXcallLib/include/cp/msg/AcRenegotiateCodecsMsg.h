@@ -10,14 +10,16 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcCommandMsg_h__
-#define AcCommandMsg_h__
+#ifndef AcRenegotiateCodecsMsg_h__
+#define AcRenegotiateCodecsMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
+#include <utl/UtlString.h>
 #include <cp/CpMessageTypes.h>
+#include <cp/msg/AcCommandMsg.h>
 
 // DEFINES
 // MACROS
@@ -29,41 +31,25 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs abstract call to carry out some action.
+* Abstract call command message. Instructs call to carry out some action.
 */
-class AcCommandMsg : public OsMsg
+class AcRenegotiateCodecsMsg : public AcCommandMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      AC_GAIN_FOCUS = 0,///< gain local focus (mic, speaker)
-      AC_YIELD_FOCUS, ///< loose local focus
-      AC_CONNECT, ///< connects existing free call shell
-      AC_ACCEPT_CONNECTION, ///< accepts inbound call
-      AC_REJECT_CONNECTION, ///< rejects inbound call
-      AC_REDIRECT_CONNECTION, ///< redirects inbound call
-      AC_ANSWER_CONNECTION, ///< answers inbound call
-      AC_DROP_CONNECTION, ///< drops inbound connection, optionally also dropping the call
-      AC_TRANSFER_BLIND, ///< initiates blind call transfer
-      AC_HOLD_CONNECTION, ///< holds connection
-      AC_UNHOLD_CONNECTION, ///< unholds connection
-      AC_LIMIT_CODEC_PREFERENCES, ///< limits codec preferences for future calls
-      AC_RENEGOTIATE_CODECS, ///< renegotiates connection codecs
-      AC_SEND_INFO ///< send SIP INFO message
-   } SubTypesEnum;
-
    /* ============================ CREATORS ================================== */
 
-   AcCommandMsg(SubTypesEnum subType);
+   AcRenegotiateCodecsMsg(const UtlString& sAbstractCallId);
 
-   virtual ~AcCommandMsg();
+   virtual ~AcRenegotiateCodecsMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
 
    /* ============================ ACCESSORS ================================= */
+
+   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -72,6 +58,7 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   UtlString m_sAbstractCallId;
 };
 
-#endif // AcCommandMsg_h__
+#endif // AcRenegotiateCodecsMsg_h__
