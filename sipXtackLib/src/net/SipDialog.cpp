@@ -648,6 +648,38 @@ UtlBoolean SipDialog::isSameDialog(const UtlString& dialogHandle,
    return isSameDialog(callId, localTag, remoteTag, strictMatch);
 }
 
+SipDialog::DialogMatchEnum SipDialog::compareDialogs(const SipDialog& sipDialog) const
+{
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlString callId;
+   sipDialog.getLocalTag(localTag);
+   sipDialog.getRemoteTag(remoteTag);
+   sipDialog.getCallId(callId);
+
+   if (isInitialDialog())
+   {
+      // we are initial dialog, one tag is missing. Use relaxed comparison
+      if(isInitialDialogOf(callId, localTag, remoteTag))
+      {
+         return SipDialog::DIALOG_INITIAL_MATCH;
+      }
+      else
+      {
+         return SipDialog::DIALOG_MISMATCH;
+      }
+   }
+   else
+   {
+      if (isSameDialog(callId, localTag, remoteTag, TRUE))
+      {
+         return SipDialog::DIALOG_ESTABLISHED_MATCH;
+      }
+   }
+
+   return SipDialog::DIALOG_MISMATCH;
+}
+
 UtlBoolean SipDialog::isInitialDialogOf(const SipMessage& message) const
 {
    UtlString messageCallId;
