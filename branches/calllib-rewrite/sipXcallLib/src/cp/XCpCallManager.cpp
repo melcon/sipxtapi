@@ -1132,6 +1132,7 @@ OsStatus XCpCallManager::getRemoteUserAgent(const UtlString& sAbstractCallId,
 }
 
 OsStatus XCpCallManager::getMediaConnectionId(const UtlString& sAbstractCallId,
+                                              const SipDialog& sSipDialog,
                                               int& mediaConnID) const
 {
    OsStatus result = OS_NOT_FOUND;
@@ -1140,7 +1141,7 @@ OsStatus XCpCallManager::getMediaConnectionId(const UtlString& sAbstractCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->getMediaConnectionId(mediaConnID);
+      return ptrLock->getMediaConnectionId(sSipDialog, mediaConnID);
    }
 
    return result;
@@ -1292,14 +1293,16 @@ UtlBoolean XCpCallManager::findCall(const SipDialog& sSipDialog,
       pCall = dynamic_cast<XCpCall*>(callMapItor.value());
       if (pCall)
       {
-         XCpAbstractCall::DialogMatchEnum matchResult = pCall->hasSipDialog(sSipDialog);
-         if (matchResult == XCpAbstractCall::ESTABLISHED_MATCH)
+         SipDialog::DialogMatchEnum matchResult = pCall->hasSipDialog(sSipDialog);
+         if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+             (sSipDialog.isInitialDialog() && matchResult == SipDialog::DIALOG_INITIAL_MATCH))
          {
             // perfect match, call-id and both tags match
+            // initial match is also perfect if supplied dialog is initial
             ptrLock = pCall;
             return TRUE;
          }
-         else if (matchResult == XCpAbstractCall::NOT_ESTABLISHED_MATCH)
+         else if (matchResult == SipDialog::DIALOG_INITIAL_MATCH)
          {
             // partial match, call-id match but only 1 tag matches, 2nd tag is not present
             pNotEstablishedMatch = pCall; // lock it later
@@ -1330,14 +1333,16 @@ UtlBoolean XCpCallManager::findConference(const SipDialog& sSipDialog,
       pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
       if (pConference)
       {
-         XCpAbstractCall::DialogMatchEnum matchResult = pConference->hasSipDialog(sSipDialog);
-         if (matchResult == XCpAbstractCall::ESTABLISHED_MATCH)
+         SipDialog::DialogMatchEnum matchResult = pConference->hasSipDialog(sSipDialog);
+         if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+            (sSipDialog.isInitialDialog() && matchResult == SipDialog::DIALOG_INITIAL_MATCH))
          {
             // perfect match, call-id and both tags match
+            // initial match is also perfect if supplied dialog is initial
             ptrLock = pConference;
             return TRUE;
          }
-         else if (matchResult == XCpAbstractCall::NOT_ESTABLISHED_MATCH)
+         else if (matchResult == SipDialog::DIALOG_INITIAL_MATCH)
          {
             // partial match, call-id match but only 1 tag matches, 2nd tag is not present
             pNotEstablishedMatch = pConference; // lock it later

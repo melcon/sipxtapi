@@ -196,7 +196,7 @@ public:
    /**
    * Checks if this call has given sip dialog.
    */
-   virtual DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const;
+   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;
@@ -204,25 +204,22 @@ public:
    /** Gets sip call-id of call if its available */
    OsStatus getCallSipCallId(UtlString& sSipCallId) const;
 
-   /** Gets remote user agent for call or conference */
-   virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
-                                       UtlString& userAgent) const;
-
-   /** Gets internal id of media connection for given call or conference. Only for unit tests */
-   virtual OsStatus getMediaConnectionId(int& mediaConnID) const;
-
-   /** Gets copy of SipDialog for given call */
-   virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
-                                 SipDialog& dialog) const;
-
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+
+   /** Finds connection handling given Sip dialog. */
+   virtual UtlBoolean findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
+
+   /** Gets Sip connection of the call if there is any */
+   virtual UtlBoolean getConnection(OsPtrLock<XSipConnection>& ptrLock) const;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpCall(const XCpCall& rhs);
 
    XCpCall& operator=(const XCpCall& rhs);
+
+   XSipConnection* m_pSipConnection;
 };
 
 #endif // XCpCall_h__

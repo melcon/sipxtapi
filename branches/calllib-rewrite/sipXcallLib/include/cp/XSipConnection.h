@@ -18,6 +18,7 @@
 #include <os/OsMutex.h>
 #include <os/OsSyncBase.h>
 #include <utl/UtlContainable.h>
+#include <net/SipDialog.h>
 
 // DEFINES
 // MACROS
@@ -27,6 +28,7 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class SipDialog;
 
 /**
  * XSipConnection is responsible for SIP communication.
@@ -68,6 +70,24 @@ public:
    */
    virtual UtlContainableType getContainableType() const;
 
+   /**
+   * Gets a copy of connection sip dialog.
+   */
+   void getSipDialog(SipDialog& sSipDialog) const;
+
+   /**
+    * Gets sip call-id of the connection.
+    */
+   void getSipCallId(UtlString& sSipCallId) const;
+
+   /**
+    * Gets user agent of the remote party if known.
+    */
+   void getRemoteUserAgent(UtlString& sRemoteUserAgent) const;
+
+   /** Gets internal id of media connection for connection. Only for unit tests */
+   void getMediaConnectionId(int& mediaConnID) const;
+
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -77,6 +97,11 @@ public:
    * @returns 0 if equal, < 0 if less then and >0 if greater.
    */
    virtual int compareTo(UtlContainable const* inVal) const;
+
+   /**
+   * Checks if this call has given sip dialog.
+   */
+   SipDialog::DialogMatchEnum compareSipDialog(const SipDialog& sSipDialog) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
