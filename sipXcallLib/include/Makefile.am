@@ -31,11 +31,10 @@ nobase_include_HEADERS =  \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScNotificationMsg.h \
     cp/XCpAbstractCall.h \
-    cp/XCpAbstractConnection.h \
     cp/XCpCall.h \
     cp/XCpCallManager.h \
     cp/XCpConference.h \
-    cp/XCpSipConnection.h \
+    cp/XSipConnection.h \
     ptapi/PtCall.h \
     ptapi/PtConnection.h \
     ptapi/PtDefs.h \

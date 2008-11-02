@@ -12,14 +12,14 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/XCpAbstractConnection.h>
+#include <cp/XSipConnection.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-const UtlContainableType XCpAbstractConnection::TYPE = "XCpAbstractConnection";
+const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 
 // MACROS
 // GLOBAL VARIABLES
@@ -29,53 +29,53 @@ const UtlContainableType XCpAbstractConnection::TYPE = "XCpAbstractConnection";
 
 /* ============================ CREATORS ================================== */
 
-XCpAbstractConnection::XCpAbstractConnection()
+XSipConnection::XSipConnection()
 : m_memberMutex(OsMutex::Q_FIFO)
 {
 
 }
 
-XCpAbstractConnection::~XCpAbstractConnection()
+XSipConnection::~XSipConnection()
 {
 
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus XCpAbstractConnection::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
+OsStatus XSipConnection::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
 {
    return m_memberMutex.acquire(rTimeout);
 }
 
-OsStatus XCpAbstractConnection::tryAcquire()
+OsStatus XSipConnection::tryAcquire()
 {
    return m_memberMutex.tryAcquire();
 }
 
-OsStatus XCpAbstractConnection::release()
+OsStatus XSipConnection::release()
 {
    return m_memberMutex.release();
 }
 
 /* ============================ ACCESSORS ================================= */
 
-unsigned XCpAbstractConnection::hash() const
+unsigned XSipConnection::hash() const
 {
    return (unsigned)this;
 }
 
-UtlContainableType XCpAbstractConnection::getContainableType() const
+UtlContainableType XSipConnection::getContainableType() const
 {
-   return XCpAbstractConnection::TYPE;
+   return XSipConnection::TYPE;
 }
 
 /* ============================ INQUIRY =================================== */
 
-int XCpAbstractConnection::compareTo(UtlContainable const* inVal) const
+int XSipConnection::compareTo(UtlContainable const* inVal) const
 {
    int result;
 
-   if (inVal->isInstanceOf(XCpAbstractConnection::TYPE))
+   if (inVal->isInstanceOf(XSipConnection::TYPE))
    {
       result = hash() - inVal->hash();
    }

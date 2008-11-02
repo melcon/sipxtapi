@@ -50,11 +50,10 @@ libsipXcall_la_SOURCES = \
     cp/msg/ScCommandMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
     cp/XCpAbstractCall.cpp \
-    cp/XCpAbstractConnection.cpp \
     cp/XCpCall.cpp \
     cp/XCpCallManager.cpp \
     cp/XCpConference.cpp \
-    cp/XCpSipConnection.cpp \
+    cp/XSipConnection.cpp \
     tapi/CallStateEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \

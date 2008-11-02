@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="sipXcallLib-msvc8"
 	ProjectGUID="{0EADF7C3-7D48-45BF-A00D-ECB94DC912EA}"
 	RootNamespace="sipXcallLib-msvc8"
@@ -287,10 +287,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\cp\XCpAbstractConnection.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\cp\XCpCall.cpp"
 				>
 			</File>
@@ -303,7 +299,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\cp\XCpSipConnection.cpp"
+				RelativePath=".\src\cp\XSipConnection.cpp"
 				>
 			</File>
 			<Filter
@@ -424,10 +420,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\cp\XCpAbstractConnection.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\cp\XCpCall.h"
 				>
 			</File>
@@ -440,7 +432,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\cp\XCpSipConnection.h"
+				RelativePath=".\include\cp\XSipConnection.h"
 				>
 			</File>
 			<Filter

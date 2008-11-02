@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef XCpAbstractConnection_h__
-#define XCpAbstractConnection_h__
+#ifndef XSipConnection_h__
+#define XSipConnection_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -29,10 +29,9 @@
 // FORWARD DECLARATIONS
 
 /**
- * XCpAbstractConnection is the top class for XCpSipConnection and any future subclasses
- * providing common functionality.
+ * XSipConnection is responsible for SIP communication.
  */
-class XCpAbstractConnection : public UtlContainable, public OsSyncBase
+class XSipConnection : public UtlContainable, public OsSyncBase
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -40,9 +39,9 @@ public:
 
    /* ============================ CREATORS ================================== */
 
-   XCpAbstractConnection();
+   XSipConnection();
 
-   virtual ~XCpAbstractConnection();
+   virtual ~XSipConnection();
 
    /* ============================ MANIPULATORS ============================== */
 
@@ -88,4 +87,4 @@ private:
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
 };
 
-#endif // XCpAbstractConnection_h__
+#endif // XSipConnection_h__

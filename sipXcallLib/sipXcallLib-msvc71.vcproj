@@ -47,11 +47,10 @@
             <File RelativePath=".\src\cp\CSeqManager.cpp"/>
             <File RelativePath=".\src\cp\SipConnection.cpp"/>
             <File RelativePath=".\src\cp\XCpAbstractCall.cpp"/>
-            <File RelativePath=".\src\cp\XCpAbstractConnection.cpp"/>
             <File RelativePath=".\src\cp\XCpCall.cpp"/>
             <File RelativePath=".\src\cp\XCpCallManager.cpp"/>
             <File RelativePath=".\src\cp\XCpConference.cpp"/>
-            <File RelativePath=".\src\cp\XCpSipConnection.cpp"/>
+            <File RelativePath=".\src\cp\XSipConnection.cpp"/>
             <Filter Name="msg">
                 <File RelativePath=".\src\cp\msg\AcCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcNotificationMsg.cpp"/>
@@ -83,11 +82,10 @@
             <File RelativePath=".\include\cp\CSeqManager.h"/>
             <File RelativePath="include\cp\SipConnection.h"/>
             <File RelativePath=".\include\cp\XCpAbstractCall.h"/>
-            <File RelativePath=".\include\cp\XCpAbstractConnection.h"/>
             <File RelativePath=".\include\cp\XCpCall.h"/>
             <File RelativePath=".\include\cp\XCpCallManager.h"/>
             <File RelativePath=".\include\cp\XCpConference.h"/>
-            <File RelativePath=".\include\cp\XCpSipConnection.h"/>
+            <File RelativePath=".\include\cp\XSipConnection.h"/>
             <Filter Name="msg">
                 <File RelativePath=".\include\cp\msg\AcCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcNotificationMsg.h"/>
