@@ -1454,6 +1454,10 @@ UtlBoolean XCpCallManager::push(XCpConference& conference)
 UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
 {
    OsLock lock(m_memberMutex);
+   // yield focus
+   // nobody will be able to give us focus back after we yield it, because we hold m_memberMutex
+   doYieldFocus(sId);
+
    // avoid findCall, as we don't need that much locking
    UtlContainable *pValue = NULL;
    UtlContainable *pKey = m_callMap.removeKeyAndValue(&sId, pValue);
@@ -1463,8 +1467,7 @@ UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
       if (pCall)
       {
          // call was found
-         pCall->acquire(); // lock the call
-         doYieldFocus(pCall->getId());
+         pCall->acquireExclusive(); // lock the call exclusively for delete
          delete pCall;
          pCall = NULL;
       }
@@ -1482,6 +1485,10 @@ UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
 UtlBoolean XCpCallManager::deleteConference(const UtlString& sId)
 {
    OsLock lock(m_memberMutex);
+   // yield focus
+   // nobody will be able to give us focus back after we yield it, because we hold m_memberMutex
+   doYieldFocus(sId);
+
    // avoid findConference, as we don't need that much locking
    UtlContainable *pValue = NULL;
    UtlContainable *pKey = m_conferenceMap.removeKeyAndValue(&sId, pValue);
@@ -1491,8 +1498,7 @@ UtlBoolean XCpCallManager::deleteConference(const UtlString& sId)
       if (pConference)
       {
          // conference was found
-         pConference->acquire(); // lock the conference
-         doYieldFocus(pConference->getId());
+         pConference->acquireExclusive(); // lock the conference exclusively for delete
          delete pConference;
          pConference = NULL;
       }
@@ -1821,7 +1827,7 @@ OsStatus XCpCallManager::doGainFocus(const UtlString& sAbstractCallId, UtlBoolea
 }
 
 OsStatus XCpCallManager::doYieldFocus(const UtlString& sAbstractCallId,
-                                  UtlBoolean bShiftFocus)
+                                      UtlBoolean bShiftFocus)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsStatus result = OS_FAILED;

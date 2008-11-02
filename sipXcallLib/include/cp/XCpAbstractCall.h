@@ -17,6 +17,7 @@
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <os/OsMutex.h>
+#include <os/OsRWMutex.h>
 #include <os/OsSyncBase.h>
 #include <os/OsServerTask.h>
 #include <utl/UtlContainable.h>
@@ -50,6 +51,24 @@ class AcNotificationMsg;
  * that its state doesn't change.
  *
  * Most public methods must acquire the object mutex first.
+ *
+ * Locking strategy:
+ * - m_instanceRWMutex - used to implement methods of OsSyncBase. This is normally locked only for reading.
+ * Write lock is used only when instance of this class is about to be deleted. There is normally some global
+ * lock present before this write lock, to make it thread safe with regard to deletion. Using mostly read locking
+ * allows us to execute some audio function taking several ms directly from application thread, having m_instanceRWMutex,
+ * and m_mediaInterfaceRWMutex locked, and at the same time attempt to delete the call safely. Deletion will require
+ * write lock on m_instanceRWMutex, so audio function will have to finish before this class is deleted.
+ * - m_memberMutex - protects all members except instance of CpMediaInterface which uses separate mutex. Mutex
+ * is reentrant.
+ * - m_mediaInterfaceRWMutex - needs to be separate, because calls to CpMediaInterface can take several
+ * ms, and we do not want to block the main mutex so long. Always use read lock. Write lock is taken only
+ * when creating or deleting instance of CpMediaInterface. Parallel access to CpMediaInterface is possible,
+ * so write lock is not needed when executing normal audio operations on it. This mutex is NOT reentrant.
+ *
+ * Locks must be acquired in the following order: 1.) m_instanceRWMutex, 2.) m_memberMutex, 3.) m_mediaInterfaceRWMutex.
+ * If we have some successive mutex, we cannot lock previous mutex!
+ * 
  */
 class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase
 {
@@ -243,8 +262,11 @@ public:
                              const char* pContent,
                              const size_t nContentLength) = 0;
 
-   /** Block until the sync object is acquired or the timeout expires */
+   /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
+
+   /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
+   virtual OsStatus acquireExclusive();
 
    /** Conditionally acquire the semaphore (i.e., don't block) */
    virtual OsStatus tryAcquire();
@@ -340,8 +362,10 @@ protected:
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
    const UtlString m_sId; ///< unique identifier of the abstract call
-   CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
    UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
+
+   mutable OsRWMutex m_mediaInterfaceRWMutex; ///< mutex for synchronization of access to media interface
+   CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    /** Handles gain focus command from call manager. Never use directly, go through call manager. */
@@ -353,6 +377,8 @@ private:
    XCpAbstractCall(const XCpAbstractCall& rhs);
 
    XCpAbstractCall& operator=(const XCpAbstractCall& rhs);
+
+   mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from call manager
 };
 
 #endif // XCpAbstractCall_h__
