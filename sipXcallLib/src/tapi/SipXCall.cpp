@@ -1499,11 +1499,11 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
          {
             XCpCallManager* pCallManager = pData->m_pInst->pCallManager;
             UtlString callId(pData->m_callId);
-            UtlString remoteAddress(pData->m_remoteAddress);
+            SipDialog sipDialog(pData->m_sipDialog);
 
             sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
-            pCallManager->getMediaConnectionId(callId, *connectionId);
+            pCallManager->getMediaConnectionId(callId, sipDialog, *connectionId);
 
             pData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
             if (pData)

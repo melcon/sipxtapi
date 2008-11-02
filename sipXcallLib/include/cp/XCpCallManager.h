@@ -500,6 +500,7 @@ public:
 
    /** Gets internal id of media connection for given call or conference. Only for unit tests */
    OsStatus getMediaConnectionId(const UtlString& sAbstractCallId,
+                                 const SipDialog& sSipDialog,
                                  int& mediaConnID) const;
 
    /** 

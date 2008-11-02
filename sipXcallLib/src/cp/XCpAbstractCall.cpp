@@ -16,9 +16,11 @@
 #include <os/OsReadLock.h>
 #include <os/OsWriteLock.h>
 #include <os/OsMsgQ.h>
+#include <os/OsPtrLock.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
+#include <cp/XSipConnection.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 #include <cp/msg/AcNotificationMsg.h>
@@ -276,6 +278,52 @@ int XCpAbstractCall::compareTo(UtlContainable const* inVal) const
    return result;
 }
 
+OsStatus XCpAbstractCall::getRemoteUserAgent(const SipDialog& sSipDialog, UtlString& userAgent) const
+{
+   OsStatus result = OS_INVALID;
+
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sSipDialog, ptrLock);
+   if (resFind)
+   {
+      ptrLock->getRemoteUserAgent(userAgent);
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
+OsStatus XCpAbstractCall::getMediaConnectionId(const SipDialog& sSipDialog, int& mediaConnID) const
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sSipDialog, ptrLock);
+   if (resFind)
+   {
+      ptrLock->getMediaConnectionId(mediaConnID);
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
+OsStatus XCpAbstractCall::getSipDialog(const SipDialog& sSipDialog,
+                                       SipDialog& sOutputSipDialog) const
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sSipDialog, ptrLock);
+   if (resFind)
+   {
+      ptrLock->getSipDialog(sOutputSipDialog);
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 UtlBoolean XCpAbstractCall::handleCommandMessage(AcCommandMsg& rRawMsg)
@@ -297,7 +345,7 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(AcCommandMsg& rRawMsg)
 
 UtlBoolean XCpAbstractCall::handleNotificationMessage(AcNotificationMsg& rRawMsg)
 {
-   return TRUE;
+   return FALSE;
 }
 
 OsStatus XCpAbstractCall::gainFocus()

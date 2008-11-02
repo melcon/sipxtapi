@@ -69,6 +69,30 @@ UtlContainableType XSipConnection::getContainableType() const
    return XSipConnection::TYPE;
 }
 
+void XSipConnection::getSipDialog(SipDialog& sSipDialog) const
+{
+   // TODO: implement
+   sSipDialog = SipDialog();
+}
+
+void XSipConnection::getSipCallId(UtlString& sSipCallId) const
+{
+   // TODO: implement
+   sSipCallId.remove(0);
+}
+
+void XSipConnection::getRemoteUserAgent(UtlString& sRemoteUserAgent) const
+{
+   // TODO: implement
+   sRemoteUserAgent.remove(0);
+}
+
+void XSipConnection::getMediaConnectionId(int& mediaConnID) const
+{
+   // TODO: implement
+   mediaConnID = -1;
+}
+
 /* ============================ INQUIRY =================================== */
 
 int XSipConnection::compareTo(UtlContainable const* inVal) const
@@ -85,6 +109,11 @@ int XSipConnection::compareTo(UtlContainable const* inVal) const
    }
 
    return result;
+}
+
+SipDialog::DialogMatchEnum XSipConnection::compareSipDialog(const SipDialog& sSipDialog) const
+{
+   return SipDialog::DIALOG_MISMATCH;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

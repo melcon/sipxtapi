@@ -15,6 +15,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <utl/UtlSList.h>
 #include <cp/XCpAbstractCall.h>
 
 // DEFINES
@@ -192,7 +193,7 @@ public:
    /**
    * Checks if this conference has given sip dialog.
    */
-   virtual DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const;
+   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;
@@ -200,19 +201,11 @@ public:
    /** Gets sip call-id of conference if its available */
    OsStatus getConferenceSipCallIds(UtlSList& sipCallIdList) const;
 
-   /** Gets remote user agent for call or conference */
-   virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
-                                       UtlString& userAgent) const;
-
-   /** Gets internal id of media connection for given call or conference. Only for unit tests */
-   virtual OsStatus getMediaConnectionId(int& mediaConnID) const;
-
-   /** Gets copy of SipDialog for given call */
-   virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
-                                 SipDialog& sOutputSipDialog) const;
-
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+
+   /** Finds connection handling given Sip dialog. */
+   virtual UtlBoolean findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -220,6 +213,7 @@ private:
 
    XCpConference& operator=(const XCpConference& rhs);
 
+   UtlSList m_sipConnections;
 };
 
 #endif // XCpConference_h__

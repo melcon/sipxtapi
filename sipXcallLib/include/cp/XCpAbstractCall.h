@@ -21,6 +21,7 @@
 #include <os/OsSyncBase.h>
 #include <os/OsServerTask.h>
 #include <utl/UtlContainable.h>
+#include <net/SipDialog.h>
 #include <cp/CpDefs.h>
 #include <cp/CpAudioCodecInfo.h>
 #include <cp/CpVideoCodecInfo.h>
@@ -33,8 +34,11 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+template <class T>
+class OsPtrLock; // forward template class declaration
 class SipDialog;
 class SipUserAgent;
+class XSipConnection;
 class CpMediaInterfaceFactory;
 class CpMediaInterface;
 class CpCallStateEventListener;
@@ -75,13 +79,6 @@ class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyn
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    static const UtlContainableType TYPE; /** < Class type used for runtime checking */ 
-
-   typedef enum
-   {
-      ESTABLISHED_MATCH = 0,
-      NOT_ESTABLISHED_MATCH,
-      MISMATCH
-   } DialogMatchEnum;
 
    /* ============================ CREATORS ================================== */
 
@@ -318,21 +315,22 @@ public:
    /**
     * Checks if this abstract call has given sip dialog.
     */
-   virtual DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const = 0;
+   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const = 0;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const = 0;
 
    /** gets remote user agent for call or conference */
-   virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
-                                       UtlString& userAgent) const = 0;
+   OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
+                               UtlString& userAgent) const;
 
    /** Gets internal id of media connection for given call or conference. Only for unit tests */
-   virtual OsStatus getMediaConnectionId(int& mediaConnID) const = 0;
+   OsStatus getMediaConnectionId(const SipDialog& sSipDialog,
+                                 int& mediaConnID) const;
 
    /** Gets copy of SipDialog for given call */
-   virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
-                                 SipDialog& sOutputSipDialog) const = 0;
+   OsStatus getSipDialog(const SipDialog& sSipDialog,
+                         SipDialog& sOutputSipDialog) const;
 
    /** Returns TRUE if call is in focus. */
    UtlBoolean isFocused() const { return m_bIsFocused; }
@@ -344,6 +342,9 @@ protected:
 
    /** Handles command messages */
    virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
+
+   /** Finds connection handling given Sip dialog. */
+   virtual UtlBoolean findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
 
    /** Tries to gain focus on this call asynchronously through call manager. */
    OsStatus gainFocus();

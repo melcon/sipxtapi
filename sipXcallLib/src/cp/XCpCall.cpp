@@ -12,8 +12,11 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/XCpCall.h>
+#include <os/OsLock.h>
+#include <os/OsPtrLock.h>
 #include <net/SipDialog.h>
+#include <cp/XCpCall.h>
+#include <cp/XSipConnection.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -33,6 +36,7 @@ XCpCall::XCpCall(const UtlString& sId,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  OsMsgQ& rCallManagerQueue)
 : XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rCallManagerQueue)
+, m_pSipConnection(NULL)
 {
 
 }
@@ -167,52 +171,61 @@ OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
 
 /* ============================ INQUIRY =================================== */
 
-XCpAbstractCall::DialogMatchEnum XCpCall::hasSipDialog(const SipDialog& sSipDialog) const
+SipDialog::DialogMatchEnum XCpCall::hasSipDialog(const SipDialog& sSipDialog) const
 {
-   // TODO: implement
-   return XCpAbstractCall::MISMATCH;
+   OsLock lock(m_memberMutex);
+
+   if (m_pSipConnection)
+   {
+      return m_pSipConnection->compareSipDialog(sSipDialog);
+   }
+
+   return SipDialog::DIALOG_MISMATCH;
 }
 
 int XCpCall::getCallCount() const
 {
-   // TODO: implement
-   return 0;
+   return m_pSipConnection != NULL ? 1 : 0;
 }
 
 OsStatus XCpCall::getCallSipCallId(UtlString& sSipCallId) const
 {
-   // TODO: implement
-   sSipCallId.remove(0);
-   return OS_FAILED;
-}
+   OsStatus result = OS_INVALID;
 
-OsStatus XCpCall::getRemoteUserAgent(const SipDialog& sSipDialog,
-                                     UtlString& userAgent) const
-{
-   // TODO: implement
-   userAgent.remove(0);
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = getConnection(ptrLock);
+   if (resFind)
+   {
+      ptrLock->getSipCallId(sSipCallId);
+      result = OS_SUCCESS;
+   }
 
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::getMediaConnectionId(int& mediaConnID) const
-{
-   // TODO: implement
-   mediaConnID = -1;
-
-   return OS_INVALID;
-}
-
-OsStatus XCpCall::getSipDialog(const SipDialog& sSipDialog,
-                               SipDialog& dialog) const
-{
-   // TODO: implement
-   dialog = SipDialog(); // assign empty SipDialog
-
-   return OS_NOT_FOUND;
+   return result;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+UtlBoolean XCpCall::findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const
+{
+   OsLock lock(m_memberMutex);
+
+   if (m_pSipConnection && m_pSipConnection->compareSipDialog(sSipDialog) != SipDialog::DIALOG_MISMATCH)
+   {
+      // dialog matches
+      ptrLock = m_pSipConnection;
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpCall::getConnection(OsPtrLock<XSipConnection>& ptrLock) const
+{
+   OsLock lock(m_memberMutex);
+
+   ptrLock = m_pSipConnection;
+   return m_pSipConnection != NULL;
+}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

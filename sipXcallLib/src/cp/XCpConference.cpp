@@ -12,8 +12,12 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/XCpConference.h>
+#include <os/OsLock.h>
+#include <os/OsPtrLock.h>
+#include <utl/UtlSListIterator.h>
 #include <net/SipDialog.h>
+#include <cp/XCpConference.h>
+#include <cp/XSipConnection.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -176,52 +180,92 @@ OsStatus XCpConference::sendInfo(const SipDialog& sSipDialog,
 
 /* ============================ INQUIRY =================================== */
 
-XCpAbstractCall::DialogMatchEnum XCpConference::hasSipDialog(const SipDialog& sSipDialog) const
+SipDialog::DialogMatchEnum XCpConference::hasSipDialog(const SipDialog& sSipDialog) const
 {
-   // TODO: implement
-   return XCpAbstractCall::MISMATCH;
+   SipDialog::DialogMatchEnum result = SipDialog::DIALOG_MISMATCH;
+
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         SipDialog::DialogMatchEnum tmpResult = pSipConnection->compareSipDialog(sSipDialog);
+         if (tmpResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+             (sSipDialog.isInitialDialog() && tmpResult == SipDialog::DIALOG_INITIAL_MATCH))
+         {
+            // return immediately if found perfect match for established dialog
+            // initial match is also perfect if supplied dialog is initial
+            return tmpResult;
+         }
+         else if (tmpResult != SipDialog::DIALOG_MISMATCH)
+         {
+            // only override result if we found some match, as we could have some connection at the end of list that would not match
+            result = tmpResult;
+         }
+      }
+   }
+
+   return result;
 }
 
 int XCpConference::getCallCount() const
 {
-   // TODO: implement
-   return 0;
+   // thread safe
+   return (int)m_sipConnections.entries();
 }
 
 OsStatus XCpConference::getConferenceSipCallIds(UtlSList& sipCallIdList) const
 {
-   // TODO: implement
    sipCallIdList.destroyAll();
-   return OS_FAILED;
-}
 
-OsStatus XCpConference::getRemoteUserAgent(const SipDialog& sSipDialog,
-                                           UtlString& userAgent) const
-{
-   // TODO: implement
-   userAgent.remove(0);
+   OsLock lock(m_memberMutex);
 
-   return OS_NOT_FOUND;
-}
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+   UtlString sipCallId;
 
-OsStatus XCpConference::getMediaConnectionId(int& mediaConnID) const
-{
-   // TODO: implement
-   mediaConnID = -1;
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         pSipConnection->getSipCallId(sipCallId);
+         if (!sipCallId.isNull())
+         {
+            sipCallIdList.append(sipCallId.clone());
+         }
+      }
+   }
 
-   return OS_INVALID;
-}
-
-OsStatus XCpConference::getSipDialog(const SipDialog& sSipDialog,
-                                     SipDialog& sOutputSipDialog) const
-{
-   // TODO: implement
-   sOutputSipDialog = SipDialog(); // assign empty SipDialog
-
-   return OS_NOT_FOUND;
+   return OS_SUCCESS;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+UtlBoolean XCpConference::findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const
+{
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection && pSipConnection->compareSipDialog(sSipDialog) != SipDialog::DIALOG_MISMATCH)
+      {
+         ptrLock = pSipConnection;
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
