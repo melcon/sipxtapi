@@ -295,6 +295,7 @@ SIPX_RESULT validateNetwork()
    }
 #else
 #warning "Network availability check not implemented on non-WIN32"
+   res = SIPX_RESULT_SUCCESS;
 #endif
 
    return res;
