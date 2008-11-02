@@ -123,37 +123,13 @@ OsStatus XCpConference::unholdConnection(const SipDialog& sSipDialog)
    return OS_FAILED;
 }
 
-OsStatus XCpConference::silentHoldRemoteConnection(const SipDialog& sSipDialog)
+OsStatus XCpConference::muteInputConnection(const SipDialog& sSipDialog)
 {
    // TODO: implement
    return OS_FAILED;
 }
 
-OsStatus XCpConference::silentHoldRemoteAllConnections()
-{
-   // TODO: implement
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::silentUnholdRemoteConnection(const SipDialog& sSipDialog)
-{
-   // TODO: implement
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::silentUnholdRemoteAllConnections()
-{
-   // TODO: implement
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::silentHoldLocalConnection(const SipDialog& sSipDialog)
-{
-   // TODO: implement
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::silentUnholdLocalConnection(const SipDialog& sSipDialog)
+OsStatus XCpConference::unmuteInputConnection(const SipDialog& sSipDialog)
 {
    // TODO: implement
    return OS_FAILED;
