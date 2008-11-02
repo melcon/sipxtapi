@@ -837,8 +837,8 @@ OsStatus XCpCallManager::unholdCallConnection(const UtlString& sCallId)
    return result;
 }
 
-OsStatus XCpCallManager::silentHoldRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                                const SipDialog& sSipDialog)
+OsStatus XCpCallManager::muteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                                         const SipDialog& sSipDialog)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -847,29 +847,14 @@ OsStatus XCpCallManager::silentHoldRemoteAbstractCallConnection(const UtlString&
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->silentHoldRemoteConnection(sSipDialog);
+      return ptrLock->muteInputConnection(sSipDialog);
    }
 
    return result;
 }
 
-OsStatus XCpCallManager::silentHoldRemoteAllConferenceConnections(const UtlString& sConferenceId)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
-   if (resFind)
-   {
-      // we found conference and have a lock on it
-      return ptrLock->silentHoldRemoteAllConnections();
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::silentUnholdRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                                  const SipDialog& sSipDialog)
+OsStatus XCpCallManager::unmuteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                                           const SipDialog& sSipDialog)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -878,54 +863,7 @@ OsStatus XCpCallManager::silentUnholdRemoteAbstractCallConnection(const UtlStrin
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->silentUnholdRemoteConnection(sSipDialog);
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::silentUnholdRemoteAllConferenceConnections(const UtlString& sConferenceId)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
-   if (resFind)
-   {
-      // we found conference and have a lock on it
-      return ptrLock->silentUnholdRemoteAllConnections();
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::silentHoldLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                               const SipDialog& sSipDialog)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->silentHoldLocalConnection(sSipDialog);
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::silentUnholdLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                                 const SipDialog& sSipDialog)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->silentUnholdLocalConnection(sSipDialog);
+      return ptrLock->unmuteInputConnection(sSipDialog);
    }
 
    return result;

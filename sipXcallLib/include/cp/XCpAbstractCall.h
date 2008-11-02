@@ -195,28 +195,17 @@ public:
    virtual OsStatus unholdConnection(const SipDialog& sSipDialog) = 0;
 
    /**
-   * Enables discarding of inbound RTP for given call
+   * Enables discarding of inbound RTP at bridge for given call
    * or conference. Useful for server applications without mic/speaker.
+   * DTMF on given call will still be decoded.
    */
-   virtual OsStatus silentHoldRemoteConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus muteInputConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentUnholdRemoteConnection(const SipDialog& sSipDialog) = 0;
-
-   /**
-   * Stops outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus silentHoldLocalConnection(const SipDialog& sSipDialog) = 0;
-
-   /**
-   * Starts outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus silentUnholdLocalConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus unmuteInputConnection(const SipDialog& sSipDialog) = 0;
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements

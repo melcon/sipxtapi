@@ -2140,7 +2140,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallMuteInput(const SIPX_CALL hCall, const int bMut
          if (bMute)
          {
             // local hold
-            if (pInst->pCallManager->silentHoldRemoteAbstractCallConnection(callId, sipDialog) == OS_SUCCESS)
+            if (pInst->pCallManager->muteInputAbstractCallConnection(callId, sipDialog) == OS_SUCCESS)
             {
                return SIPX_RESULT_SUCCESS;
             }
@@ -2148,7 +2148,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallMuteInput(const SIPX_CALL hCall, const int bMut
          else
          {
             // local unhold
-            if (pInst->pCallManager->silentUnholdRemoteAbstractCallConnection(callId, sipDialog) == OS_SUCCESS)
+            if (pInst->pCallManager->unmuteInputAbstractCallConnection(callId, sipDialog) == OS_SUCCESS)
             {
                return SIPX_RESULT_SUCCESS;
             }

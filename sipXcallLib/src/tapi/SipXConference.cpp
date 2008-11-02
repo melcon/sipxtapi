@@ -927,7 +927,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
             pData->pInst->pCallManager->limitAbstractCallCodecPreferences(pData->confCallId,
                (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecNames,
                (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecNames);
-            pData->pInst->pCallManager->silentHoldRemoteAllConferenceConnections(pData->confCallId);
             pData->pInst->pCallManager->renegotiateCodecsAllConferenceConnections(pData->confCallId,
                (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecNames,
                (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecNames);

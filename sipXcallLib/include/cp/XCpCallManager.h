@@ -361,44 +361,19 @@ public:
    OsStatus unholdCallConnection(const UtlString& sCallId);
 
    /**
-    * Enables discarding of inbound RTP for given call
+    * Enables discarding of inbound RTP at bridge for given call
     * or conference. Useful for server applications without mic/speaker.
+    * DTMF on given call will still be decoded.
     */
-   OsStatus silentHoldRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                   const SipDialog& sSipDialog);
-
-   /**
-   * Enables discarding of inbound RTP for given conference.
-   * Useful for server applications without mic/speaker.
-   */
-   OsStatus silentHoldRemoteAllConferenceConnections(const UtlString& sConferenceId);
+   OsStatus muteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                            const SipDialog& sSipDialog);
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   OsStatus silentUnholdRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                     const SipDialog& sSipDialog);
-
-   /**
-   * Disables discarding of inbound RTP for given conference.
-   * Useful for server applications without mic/speaker.
-   */
-   OsStatus silentUnholdRemoteAllConferenceConnections(const UtlString& sConferenceId);
-
-   /**
-   * Stops outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   OsStatus silentHoldLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                  const SipDialog& sSipDialog);
-
-   /**
-   * Starts outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   OsStatus silentUnholdLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                    const SipDialog& sSipDialog);
+   OsStatus unmuteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                              const SipDialog& sSipDialog);
 
    /**
     * Rebuild codec factory on the fly with new audio codec requirements
