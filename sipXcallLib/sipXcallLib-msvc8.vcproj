@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="sipXcallLib-msvc8"
 	ProjectGUID="{0EADF7C3-7D48-45BF-A00D-ECB94DC912EA}"
 	RootNamespace="sipXcallLib-msvc8"
@@ -306,11 +306,47 @@
 				Name="msg"
 				>
 				<File
+					RelativePath=".\src\cp\msg\AcAcceptConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAnswerConnectionMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcCommandMsg.cpp"
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcConnectMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcDropConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcHoldConnectionMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcRedirectConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcRejectConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcUnholdConnectionMsg.cpp"
 					>
 				</File>
 				<File
@@ -439,11 +475,47 @@
 				Name="msg"
 				>
 				<File
+					RelativePath=".\include\cp\msg\AcAcceptConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAnswerConnectionMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcCommandMsg.h"
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcConnectMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcDropConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcHoldConnectionMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcRedirectConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcRejectConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcUnholdConnectionMsg.h"
 					>
 				</File>
 				<File

@@ -31,13 +31,24 @@ libsipXcall_la_CXXFLAGS = \
 libsipXcall_la_SOURCES = \
     ../config/sipxcalllib-buildstamp.h \
     ../config/sipxcalllib-buildstamp.cpp \
+    cp/msg/AcAcceptConnectionMsg.cpp \
+    cp/msg/AcAnswerConnectionMsg.cpp \
     cp/msg/AcCommandMsg.cpp \
+    cp/msg/AcConnectMsg.cpp \
+    cp/msg/AcDropConnectionMsg.cpp \
+    cp/msg/AcHoldConnectionMsg.cpp \
     cp/msg/AcNotificationMsg.cpp \
-    cp/CallManager.cpp \
+    cp/msg/AcRedirectConnectionMsg.cpp \
+    cp/msg/AcRejectConnectionMsg.cpp \
+    cp/msg/AcTransferBlindMsg.cpp \
+    cp/msg/AcUnholdConnectionMsg.cpp \
     cp/msg/CmCommandMsg.cpp \
     cp/msg/CmGainFocusMsg.cpp \
     cp/msg/CmNotificationMsg.cpp \
     cp/msg/CmYieldFocusMsg.cpp \
+    cp/msg/ScCommandMsg.cpp \
+    cp/msg/ScNotificationMsg.cpp \
+    cp/CallManager.cpp \
     cp/Connection.cpp \
     cp/CpCall.cpp \
     cp/CpCallManager.cpp \
@@ -47,8 +58,6 @@ libsipXcall_la_SOURCES = \
     cp/CpPeerCall.cpp \
     cp/CSeqManager.cpp \
     cp/SipConnection.cpp \
-    cp/msg/ScCommandMsg.cpp \
-    cp/msg/ScNotificationMsg.cpp \
     cp/XCpAbstractCall.cpp \
     cp/XCpCall.cpp \
     cp/XCpCallManager.cpp \
