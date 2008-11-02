@@ -110,6 +110,16 @@ public:
       DIALOG_SUBSTATE_CONFIRMED
    } DialogSubState;
 
+   /**
+    * Enum for dialog match results.
+    */
+   typedef enum
+   {
+      DIALOG_ESTABLISHED_MATCH = 0, ///< both compared dialogs are established and tags match
+      DIALOG_INITIAL_MATCH, ///< given dialog matches current dialog in initial state
+      DIALOG_MISMATCH ///< dialog mismatch, either tags or call-id is different
+   } DialogMatchEnum;
+
    /* ============================ CREATORS ================================== */
 
    //! Default Dialog constructor
@@ -309,6 +319,12 @@ public:
     */
    UtlBoolean isSameDialog(const UtlString& dialogHandle,
                            UtlBoolean strictMatch = FALSE) const;
+
+   /**
+   * Compares dialogs according to call-id and tags, returning type of match
+   * that was detected.
+   */
+   DialogMatchEnum compareDialogs(const SipDialog& sipDialog) const;
 
    /** Returns TRUE if dialog was started locally. */
    UtlBoolean isLocalInitiatedDialog() const { return m_bLocalInitiatedDialog; }
