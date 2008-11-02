@@ -13,6 +13,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
+#include <os/OsReadLock.h>
+#include <os/OsWriteLock.h>
 #include <os/OsMsgQ.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
@@ -51,6 +53,8 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_rCallManagerQueue(rCallManagerQueue)
 , m_pMediaInterface(NULL)
 , m_bIsFocused(FALSE)
+, m_mediaInterfaceRWMutex(OsRWMutex::Q_FIFO)
+, m_instanceRWMutex(OsRWMutex::Q_FIFO)
 {
 
 }
@@ -97,7 +101,7 @@ OsStatus XCpAbstractCall::audioToneStart(int iToneId,
                                          UtlBoolean bLocal,
                                          UtlBoolean bRemote)
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -109,7 +113,7 @@ OsStatus XCpAbstractCall::audioToneStart(int iToneId,
 
 OsStatus XCpAbstractCall::audioToneStop()
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -127,7 +131,7 @@ OsStatus XCpAbstractCall::audioFilePlay(const UtlString& audioFile,
                                         int iDownScaling /*= 100*/,
                                         void* pCookie /*= NULL*/)
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -146,7 +150,7 @@ OsStatus XCpAbstractCall::audioBufferPlay(const void* pAudiobuf,
                                           UtlBoolean bRemote,
                                           void* pCookie /*= NULL*/)
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -159,7 +163,7 @@ OsStatus XCpAbstractCall::audioBufferPlay(const void* pAudiobuf,
 
 OsStatus XCpAbstractCall::audioStop()
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -171,7 +175,7 @@ OsStatus XCpAbstractCall::audioStop()
 
 OsStatus XCpAbstractCall::pauseAudioPlayback()
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -183,7 +187,7 @@ OsStatus XCpAbstractCall::pauseAudioPlayback()
 
 OsStatus XCpAbstractCall::resumeAudioPlayback()
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -195,7 +199,7 @@ OsStatus XCpAbstractCall::resumeAudioPlayback()
 
 OsStatus XCpAbstractCall::audioRecordStart(const UtlString& sFile)
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -207,7 +211,7 @@ OsStatus XCpAbstractCall::audioRecordStart(const UtlString& sFile)
 
 OsStatus XCpAbstractCall::audioRecordStop()
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface)
    {
@@ -219,17 +223,22 @@ OsStatus XCpAbstractCall::audioRecordStop()
 
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
 {
-   return m_memberMutex.acquire(rTimeout);
+   return m_instanceRWMutex.acquireRead();
+}
+
+OsStatus XCpAbstractCall::acquireExclusive()
+{
+   return m_instanceRWMutex.acquireWrite();
 }
 
 OsStatus XCpAbstractCall::tryAcquire()
 {
-   return m_memberMutex.tryAcquire();
+   return m_instanceRWMutex.tryAcquireRead();
 }
 
 OsStatus XCpAbstractCall::release()
 {
-   return m_memberMutex.release();
+   return m_instanceRWMutex.releaseRead();
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -316,7 +325,7 @@ OsStatus XCpAbstractCall::yieldFocus()
 OsStatus XCpAbstractCall::handleGainFocus()
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface && !m_bIsFocused)
    {
@@ -337,7 +346,7 @@ OsStatus XCpAbstractCall::handleGainFocus()
 OsStatus XCpAbstractCall::handleDefocus()
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_mediaInterfaceRWMutex);
 
    if (m_pMediaInterface && m_bIsFocused)
    {
