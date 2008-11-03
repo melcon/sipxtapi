@@ -120,6 +120,7 @@
                 <File RelativePath=".\src\net\SipSubscribeServer.cpp"/>
                 <File RelativePath=".\src\net\SipSubscribeServerEventHandler.cpp"/>
                 <File RelativePath=".\src\net\SipSubscriptionMgr.cpp"/>
+                <File RelativePath=".\src\net\SipTagGenerator.cpp"/>
                 <File RelativePath=".\src\net\SipTcpServer.cpp"/>
                 <File RelativePath=".\src\net\SipTlsServer.cpp"/>
                 <File RelativePath=".\src\net\SipTransaction.cpp"/>
@@ -220,6 +221,7 @@
                 <File RelativePath="include\net\SipSubscribeServer.h"/>
                 <File RelativePath="include\net\SipSubscribeServerEventHandler.h"/>
                 <File RelativePath="include\net\SipSubscriptionMgr.h"/>
+                <File RelativePath=".\include\net\SipTagGenerator.h"/>
                 <File RelativePath="include\net\SipTcpServer.h"/>
                 <File RelativePath="include\net\SipTlsServer.h"/>
                 <File RelativePath="include\net\SipTransaction.h"/>
