@@ -368,7 +368,7 @@ OsStatus XCpCallManager::rejectCallConnection(const UtlString& sCallId)
 }
 
 OsStatus XCpCallManager::redirectCallConnection(const UtlString& sCallId,
-                                                const UtlString& sRedirectSipUri)
+                                                const UtlString& sRedirectSipUrl)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -377,7 +377,7 @@ OsStatus XCpCallManager::redirectCallConnection(const UtlString& sCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->redirectConnection(sRedirectSipUri);
+      return ptrLock->redirectConnection(sRedirectSipUrl);
    }
 
    return result;

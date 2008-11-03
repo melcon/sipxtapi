@@ -31,7 +31,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
+* Abstract call command message. Configures codecs used for future calls.
 */
 class AcLimitCodecPreferencesMsg : public AcCommandMsg
 {

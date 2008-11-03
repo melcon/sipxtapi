@@ -29,7 +29,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs abstract call to carry out some action.
+* Abstract call command message. Instructs call to carry out some action.
 */
 class AcCommandMsg : public OsMsg
 {

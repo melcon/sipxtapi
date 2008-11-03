@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -31,7 +32,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
+* Abstract call command message. Instructs call to hang up some active call connection.
 */
 class AcDropConnectionMsg : public AcCommandMsg
 {
@@ -39,7 +40,7 @@ class AcDropConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcDropConnectionMsg(const UtlString& sAbstractCallId);
+   AcDropConnectionMsg(const SipDialog& sipDialog, UtlBoolean bDestroyCall = FALSE);
 
    virtual ~AcDropConnectionMsg();
 
@@ -49,7 +50,8 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+   void getSipDialog(SipDialog& sipDialog) const { sipDialog = m_sipDialog; }
+   UtlBoolean getDestroyCall() const { return m_bDestroyCall; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -58,7 +60,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
+   SipDialog m_sipDialog;
+   UtlBoolean m_bDestroyCall;
 };
 
 #endif // AcDropConnectionMsg_h__

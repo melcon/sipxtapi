@@ -147,7 +147,7 @@ public:
     * contact URI.
     */
    OsStatus redirectCallConnection(const UtlString& sCallId,
-                                   const UtlString& sRedirectSipUri);
+                                   const UtlString& sRedirectSipUrl);
 
    /**
     * Answer the incoming terminal connection.

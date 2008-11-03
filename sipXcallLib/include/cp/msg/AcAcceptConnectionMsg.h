@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <cp/CpDefs.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -31,7 +32,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
+* Abstract call command message. Instructs call to accept call connection.
 */
 class AcAcceptConnectionMsg : public AcCommandMsg
 {
@@ -39,7 +40,8 @@ class AcAcceptConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcAcceptConnectionMsg(const UtlString& sAbstractCallId);
+   AcAcceptConnectionMsg(const UtlString& sLocationHeader,
+                         CP_CONTACT_ID contactId);
 
    virtual ~AcAcceptConnectionMsg();
 
@@ -49,7 +51,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+   UtlString getLocationHeader() const { return m_sLocationHeader; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -58,7 +60,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
+   UtlString m_sLocationHeader;
+   CP_CONTACT_ID m_contactId;
 };
 
 #endif // AcAcceptConnectionMsg_h__

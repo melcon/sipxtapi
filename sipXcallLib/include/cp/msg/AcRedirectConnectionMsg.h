@@ -31,7 +31,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
+* Abstract call command message. Instructs call to redirect call connection.
 */
 class AcRedirectConnectionMsg : public AcCommandMsg
 {
@@ -39,7 +39,7 @@ class AcRedirectConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcRedirectConnectionMsg(const UtlString& sAbstractCallId);
+   AcRedirectConnectionMsg(const UtlString& sRedirectSipUrl);
 
    virtual ~AcRedirectConnectionMsg();
 
@@ -49,7 +49,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+   UtlString getRedirectSipUrl() const { return m_sRedirectSipUrl; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -58,7 +58,7 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
+   UtlString m_sRedirectSipUrl;
 };
 
 #endif // AcRedirectConnectionMsg_h__

@@ -31,7 +31,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
+* Abstract call command message. Instructs call to reject inbound call connection.
 */
 class AcRejectConnectionMsg : public AcCommandMsg
 {
@@ -39,7 +39,7 @@ class AcRejectConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcRejectConnectionMsg(const UtlString& sAbstractCallId);
+   AcRejectConnectionMsg();
 
    virtual ~AcRejectConnectionMsg();
 
@@ -49,8 +49,6 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
-
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -58,7 +56,6 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
 };
 
 #endif // AcRejectConnectionMsg_h__

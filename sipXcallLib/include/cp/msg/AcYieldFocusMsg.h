@@ -31,7 +31,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
+* Abstract call command message. Instructs call to yield audio focus.
 */
 class AcYieldFocusMsg : public AcCommandMsg
 {

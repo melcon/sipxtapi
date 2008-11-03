@@ -27,9 +27,8 @@
 
 /* ============================ CREATORS ================================== */
 
-AcAnswerConnectionMsg::AcAnswerConnectionMsg(const UtlString& sAbstractCallId)
+AcAnswerConnectionMsg::AcAnswerConnectionMsg()
 : AcCommandMsg(AC_ANSWER_CONNECTION)
-, m_sAbstractCallId(sAbstractCallId)
 {
 
 }
@@ -41,7 +40,7 @@ AcAnswerConnectionMsg::~AcAnswerConnectionMsg()
 
 OsMsg* AcAnswerConnectionMsg::createCopy(void) const
 {
-   return new AcAnswerConnectionMsg(m_sAbstractCallId);
+   return new AcAnswerConnectionMsg();
 }
 
 /* ============================ MANIPULATORS ============================== */
