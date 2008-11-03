@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <cp/CpDefs.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -31,7 +32,7 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
+* Abstract call command message. Instructs call to start dialing.
 */
 class AcConnectMsg : public AcCommandMsg
 {
@@ -39,7 +40,12 @@ class AcConnectMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcConnectMsg(const UtlString& sAbstractCallId);
+   AcConnectMsg(const UtlString& sSipCallId,
+                const UtlString& sToAddress,
+                const UtlString& sFromTag,
+                const UtlString& sFromAddress,
+                const UtlString& sLocationHeader,
+                CP_CONTACT_ID contactId);
 
    virtual ~AcConnectMsg();
 
@@ -49,7 +55,12 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+   UtlString getSipCallId() const { return m_sSipCallId; }
+   UtlString getToAddress() const { return m_sToAddress; }
+   UtlString getFromTag() const { return m_sFromTag; }
+   UtlString getFromAddress() const { return m_sFromAddress; }
+   UtlString getLocationHeader() const { return m_sLocationHeader; }
+   CP_CONTACT_ID getContactId() const { return m_contactId; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -58,7 +69,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
+   UtlString m_sSipCallId;
+   UtlString m_sToAddress;
+   UtlString m_sFromTag;
+   UtlString m_sFromAddress;
+   UtlString m_sLocationHeader;
+   CP_CONTACT_ID m_contactId;
 };
 
 #endif // AcConnectMsg_h__

@@ -57,6 +57,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_bIsFocused(FALSE)
 , m_mediaInterfaceRWMutex(OsRWMutex::Q_FIFO)
 , m_instanceRWMutex(OsRWMutex::Q_FIFO)
+, m_sipTagGenerator()
 {
 
 }
@@ -278,12 +279,12 @@ int XCpAbstractCall::compareTo(UtlContainable const* inVal) const
    return result;
 }
 
-OsStatus XCpAbstractCall::getRemoteUserAgent(const SipDialog& sSipDialog, UtlString& userAgent) const
+OsStatus XCpAbstractCall::getRemoteUserAgent(const SipDialog& sipDialog, UtlString& userAgent) const
 {
    OsStatus result = OS_INVALID;
 
    OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConnection(sSipDialog, ptrLock);
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
    if (resFind)
    {
       ptrLock->getRemoteUserAgent(userAgent);
@@ -293,12 +294,12 @@ OsStatus XCpAbstractCall::getRemoteUserAgent(const SipDialog& sSipDialog, UtlStr
    return result;
 }
 
-OsStatus XCpAbstractCall::getMediaConnectionId(const SipDialog& sSipDialog, int& mediaConnID) const
+OsStatus XCpAbstractCall::getMediaConnectionId(const SipDialog& sipDialog, int& mediaConnID) const
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConnection(sSipDialog, ptrLock);
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
    if (resFind)
    {
       ptrLock->getMediaConnectionId(mediaConnID);
@@ -308,13 +309,13 @@ OsStatus XCpAbstractCall::getMediaConnectionId(const SipDialog& sSipDialog, int&
    return result;
 }
 
-OsStatus XCpAbstractCall::getSipDialog(const SipDialog& sSipDialog,
+OsStatus XCpAbstractCall::getSipDialog(const SipDialog& sipDialog,
                                        SipDialog& sOutputSipDialog) const
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConnection(sSipDialog, ptrLock);
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
    if (resFind)
    {
       ptrLock->getSipDialog(sOutputSipDialog);

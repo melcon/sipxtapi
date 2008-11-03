@@ -27,9 +27,8 @@
 
 /* ============================ CREATORS ================================== */
 
-AcRejectConnectionMsg::AcRejectConnectionMsg(const UtlString& sAbstractCallId)
+AcRejectConnectionMsg::AcRejectConnectionMsg()
 : AcCommandMsg(AC_REJECT_CONNECTION)
-, m_sAbstractCallId(sAbstractCallId)
 {
 
 }
@@ -41,7 +40,7 @@ AcRejectConnectionMsg::~AcRejectConnectionMsg()
 
 OsMsg* AcRejectConnectionMsg::createCopy(void) const
 {
-   return new AcRejectConnectionMsg(m_sAbstractCallId);
+   return new AcRejectConnectionMsg();
 }
 
 /* ============================ MANIPULATORS ============================== */

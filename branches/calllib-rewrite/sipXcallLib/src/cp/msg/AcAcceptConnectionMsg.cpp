@@ -27,9 +27,11 @@
 
 /* ============================ CREATORS ================================== */
 
-AcAcceptConnectionMsg::AcAcceptConnectionMsg(const UtlString& sAbstractCallId)
+AcAcceptConnectionMsg::AcAcceptConnectionMsg(const UtlString& sLocationHeader,
+                                             CP_CONTACT_ID contactId)
 : AcCommandMsg(AC_ACCEPT_CONNECTION)
-, m_sAbstractCallId(sAbstractCallId)
+, m_sLocationHeader(sLocationHeader)
+, m_contactId(contactId)
 {
 
 }
@@ -41,7 +43,7 @@ AcAcceptConnectionMsg::~AcAcceptConnectionMsg()
 
 OsMsg* AcAcceptConnectionMsg::createCopy(void) const
 {
-   return new AcAcceptConnectionMsg(m_sAbstractCallId);
+   return new AcAcceptConnectionMsg(m_sLocationHeader, m_contactId);
 }
 
 /* ============================ MANIPULATORS ============================== */

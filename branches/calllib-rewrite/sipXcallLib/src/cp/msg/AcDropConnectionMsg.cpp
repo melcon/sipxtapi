@@ -27,9 +27,10 @@
 
 /* ============================ CREATORS ================================== */
 
-AcDropConnectionMsg::AcDropConnectionMsg(const UtlString& sAbstractCallId)
+AcDropConnectionMsg::AcDropConnectionMsg(const SipDialog& sipDialog, UtlBoolean bDestroyCall)
 : AcCommandMsg(AC_DROP_CONNECTION)
-, m_sAbstractCallId(sAbstractCallId)
+, m_sipDialog(sipDialog)
+, m_bDestroyCall(bDestroyCall)
 {
 
 }
@@ -41,7 +42,7 @@ AcDropConnectionMsg::~AcDropConnectionMsg()
 
 OsMsg* AcDropConnectionMsg::createCopy(void) const
 {
-   return new AcDropConnectionMsg(m_sAbstractCallId);
+   return new AcDropConnectionMsg(m_sipDialog, m_bDestroyCall);
 }
 
 /* ============================ MANIPULATORS ============================== */

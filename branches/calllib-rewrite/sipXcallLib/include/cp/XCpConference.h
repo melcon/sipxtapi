@@ -46,10 +46,10 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /** Connects call to given address. Uses supplied sip call-id. */
-   virtual OsStatus connect(const UtlString& sSipCallId,
-                            SipDialog& sSipDialog,
+   virtual OsStatus connect(const UtlString& sipCallId,
+                            SipDialog& sipDialog,
                             const UtlString& toAddress,
-                            const UtlString& fullLineUrl,
+                            const UtlString& fromAddress,
                             const UtlString& locationHeader,
                             CP_CONTACT_ID contactId);
 
@@ -68,7 +68,7 @@ public:
    /**
    * Always fails, as conference cannot redirect inbound connections.
    */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUri);
+   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
 
    /**
    * Always fails, as conference cannot answer inbound connections.
@@ -81,14 +81,14 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const SipDialog& sSipDialog);
+   virtual OsStatus dropConnection(const SipDialog& sipDialog);
 
    /** Disconnects all calls */
    OsStatus dropAllConnections(UtlBoolean bDestroyConference = FALSE);
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
-   virtual OsStatus transferBlind(const SipDialog& sSipDialog,
-                                  const UtlString& sTransferSipUri);
+   virtual OsStatus transferBlind(const SipDialog& sipDialog,
+                                  const UtlString& sTransferSipUrl);
 
    /**
    * Put the specified terminal connection on hold.
@@ -97,7 +97,7 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * no media should be sent.)
    */
-   virtual OsStatus holdConnection(const SipDialog& sSipDialog);
+   virtual OsStatus holdConnection(const SipDialog& sipDialog);
 
    /**
    * Convenience method to put all of the terminal connections in
@@ -122,20 +122,20 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * media should be sent.)
    */
-   virtual OsStatus unholdConnection(const SipDialog& sSipDialog);
+   virtual OsStatus unholdConnection(const SipDialog& sipDialog);
 
    /**
    * Enables discarding of inbound RTP at bridge for given call
    * or conference. Useful for server applications without mic/speaker.
    * DTMF on given call will still be decoded.
    */
-   virtual OsStatus muteInputConnection(const SipDialog& sSipDialog);
+   virtual OsStatus muteInputConnection(const SipDialog& sipDialog);
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus unmuteInputConnection(const SipDialog& sSipDialog);
+   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog);
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -160,7 +160,7 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sSipDialog,
+   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
@@ -181,7 +181,7 @@ public:
                                             const UtlString& sVideoCodecs);
 
    /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const SipDialog& sSipDialog,
+   virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
                              const char* pContent,
                              const size_t nContentLength);
@@ -193,7 +193,7 @@ public:
    /**
    * Checks if this conference has given sip dialog.
    */
-   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const;
+   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sipDialog) const;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;
@@ -205,7 +205,13 @@ public:
 protected:
 
    /** Finds connection handling given Sip dialog. */
-   virtual UtlBoolean findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
+   virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
+
+   /** Handles command messages */
+   virtual UtlBoolean handleCommandMessage(AcCommandMsg& rRawMsg);
+
+   /** Handles command messages */
+   virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -213,6 +219,7 @@ private:
 
    XCpConference& operator=(const XCpConference& rhs);
 
+   // needs m_memberMutex locked
    UtlSList m_sipConnections;
 };
 

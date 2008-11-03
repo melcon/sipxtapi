@@ -22,6 +22,7 @@
 #include <os/OsServerTask.h>
 #include <utl/UtlContainable.h>
 #include <net/SipDialog.h>
+#include <net/SipTagGenerator.h>
 #include <cp/CpDefs.h>
 #include <cp/CpAudioCodecInfo.h>
 #include <cp/CpVideoCodecInfo.h>
@@ -95,9 +96,9 @@ public:
 
    /** Connects call to given address. Uses supplied sip call-id. */
    virtual OsStatus connect(const UtlString& sSipCallId,
-                            SipDialog& sSipDialog,
+                            SipDialog& sipDialog,
                             const UtlString& toAddress,
-                            const UtlString& fullLineUrl,
+                            const UtlString& fromAddress,
                             const UtlString& locationHeader,
                             CP_CONTACT_ID contactId) = 0;
 
@@ -128,7 +129,7 @@ public:
    * Temporarily response to be sent with the specified
    * contact URI.
    */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUri) = 0;
+   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl) = 0;
 
    /**
    * Answer the incoming terminal connection.
@@ -145,11 +146,11 @@ public:
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
     * progresses to disconnected and the connection is removed.
     */
-   virtual OsStatus dropConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus dropConnection(const SipDialog& sipDialog) = 0;
 
-   /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
-   virtual OsStatus transferBlind(const SipDialog& sSipDialog,
-                                  const UtlString& sTransferSipUri) = 0;
+   /** Blind transfer given call to sTransferSipUrl. Works for simple call and call in a conference */
+   virtual OsStatus transferBlind(const SipDialog& sipDialog,
+                                  const UtlString& sTransferSipUrl) = 0;
 
    /** Starts DTMF tone on call connection.*/
    OsStatus audioToneStart(int iToneId,
@@ -199,7 +200,7 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * no media should be sent.)
    */
-   virtual OsStatus holdConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus holdConnection(const SipDialog& sipDialog) = 0;
 
    /**
    * Convenience method to take the terminal connection off hold.
@@ -208,20 +209,20 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * media should be sent.)
    */
-   virtual OsStatus unholdConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus unholdConnection(const SipDialog& sipDialog) = 0;
 
    /**
    * Enables discarding of inbound RTP at bridge for given call
    * or conference. Useful for server applications without mic/speaker.
    * DTMF on given call will still be decoded.
    */
-   virtual OsStatus muteInputConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus muteInputConnection(const SipDialog& sipDialog) = 0;
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus unmuteInputConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog) = 0;
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -246,7 +247,7 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sSipDialog,
+   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
@@ -254,7 +255,7 @@ public:
 
 
    /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const SipDialog& sSipDialog,
+   virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
                              const char* pContent,
                              const size_t nContentLength) = 0;
@@ -315,21 +316,21 @@ public:
    /**
     * Checks if this abstract call has given sip dialog.
     */
-   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sSipDialog) const = 0;
+   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sipDialog) const = 0;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const = 0;
 
    /** gets remote user agent for call or conference */
-   OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
+   OsStatus getRemoteUserAgent(const SipDialog& sipDialog,
                                UtlString& userAgent) const;
 
    /** Gets internal id of media connection for given call or conference. Only for unit tests */
-   OsStatus getMediaConnectionId(const SipDialog& sSipDialog,
+   OsStatus getMediaConnectionId(const SipDialog& sipDialog,
                                  int& mediaConnID) const;
 
    /** Gets copy of SipDialog for given call */
-   OsStatus getSipDialog(const SipDialog& sSipDialog,
+   OsStatus getSipDialog(const SipDialog& sipDialog,
                          SipDialog& sOutputSipDialog) const;
 
    /** Returns TRUE if call is in focus. */
@@ -344,7 +345,7 @@ protected:
    virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
 
    /** Finds connection handling given Sip dialog. */
-   virtual UtlBoolean findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
+   virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
 
    /** Tries to gain focus on this call asynchronously through call manager. */
    OsStatus gainFocus();
@@ -353,20 +354,25 @@ protected:
    OsStatus yieldFocus();
 
    static const int CALL_MAX_REQUEST_MSGS;
-   mutable OsMutex m_memberMutex; ///< mutex for member synchronization
 
-   SipUserAgent& m_rSipUserAgent; // for sending sip messages
-   CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
-   OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
-   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
-   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
-   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
-   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
-   const UtlString m_sId; ///< unique identifier of the abstract call
+   mutable OsMutex m_memberMutex; ///< mutex for member synchronization
    UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
 
    mutable OsRWMutex m_mediaInterfaceRWMutex; ///< mutex for synchronization of access to media interface
    CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
+
+   // thread safe
+   SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
+   const UtlString m_sId; ///< unique identifier of the abstract call
+   SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
+   OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
+   // set only once and thread safe
+   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
+   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
+   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    /** Handles gain focus command from call manager. Never use directly, go through call manager. */

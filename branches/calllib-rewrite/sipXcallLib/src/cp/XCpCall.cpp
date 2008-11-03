@@ -17,6 +17,14 @@
 #include <net/SipDialog.h>
 #include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
+#include <cp/msg/AcConnectMsg.h>
+#include <cp/msg/AcAcceptConnectionMsg.h>
+#include <cp/msg/AcAnswerConnectionMsg.h>
+#include <cp/msg/AcRedirectConnectionMsg.h>
+#include <cp/msg/AcRejectConnectionMsg.h>
+#include <cp/msg/AcDropConnectionMsg.h>
+#include <cp/msg/AcHoldConnectionMsg.h>
+#include <cp/msg/AcUnholdConnectionMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -48,92 +56,100 @@ XCpCall::~XCpCall()
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus XCpCall::connect(const UtlString& sSipCallId,
-                          SipDialog& sSipDialog,
+OsStatus XCpCall::connect(const UtlString& sipCallId,
+                          SipDialog& sipDialog,
                           const UtlString& toAddress,
-                          const UtlString& fullLineUrl,
+                          const UtlString& fromAddress,
                           const UtlString& locationHeader,
                           CP_CONTACT_ID contactId)
 {
-   // TODO: implement
-   return OS_FAILED;
+   if (sipCallId.isNull() || toAddress.isNull() || fromAddress.isNull())
+   {
+      return OS_FAILED;
+   }
+
+   UtlString localTag(m_sipTagGenerator.getNewTag());
+   sipDialog = SipDialog(sipCallId, localTag, NULL);
+
+   AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId);
+   return postMessage(connectMsg);
 }
 
 OsStatus XCpCall::acceptConnection(const UtlString& locationHeader,
                                    CP_CONTACT_ID contactId)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcAcceptConnectionMsg acceptConnectionMsg(locationHeader, contactId);
+   return postMessage(acceptConnectionMsg);
 }
 
 OsStatus XCpCall::rejectConnection()
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcRejectConnectionMsg rejectConnectionMsg;
+   return postMessage(rejectConnectionMsg);
 }
 
-OsStatus XCpCall::redirectConnection(const UtlString& sRedirectSipUri)
+OsStatus XCpCall::redirectConnection(const UtlString& sRedirectSipUrl)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcRedirectConnectionMsg redirectConnectionMsg(sRedirectSipUrl);
+   return postMessage(redirectConnectionMsg);
 }
 
 OsStatus XCpCall::answerConnection()
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcAnswerConnectionMsg answerConnectionMsg;
+   return postMessage(answerConnectionMsg);
 }
 
-OsStatus XCpCall::dropConnection(const SipDialog& sSipDialog)
+OsStatus XCpCall::dropConnection(const SipDialog& sipDialog)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcDropConnectionMsg dropConnectionMsg(sipDialog, FALSE);
+   return postMessage(dropConnectionMsg);
 }
 
 OsStatus XCpCall::dropConnection(UtlBoolean bDestroyCall)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcDropConnectionMsg dropConnectionMsg(NULL, FALSE);
+   return postMessage(dropConnectionMsg);
 }
 
-OsStatus XCpCall::transferBlind(const SipDialog& sSipDialog,
-                                const UtlString& sTransferSipUri)
+OsStatus XCpCall::transferBlind(const SipDialog& sipDialog,
+                                const UtlString& sTransferSipUrl)
 {
    // TODO: implement
    return OS_FAILED;
 }
 
-OsStatus XCpCall::holdConnection(const SipDialog& sSipDialog)
+OsStatus XCpCall::holdConnection(const SipDialog& sipDialog)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcHoldConnectionMsg holdConnectionMsg(sipDialog);
+   return postMessage(holdConnectionMsg);
 }
 
 OsStatus XCpCall::holdConnection()
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcHoldConnectionMsg holdConnectionMsg(NULL);
+   return postMessage(holdConnectionMsg);
 }
 
-OsStatus XCpCall::unholdConnection(const SipDialog& sSipDialog)
+OsStatus XCpCall::unholdConnection(const SipDialog& sipDialog)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcUnholdConnectionMsg unholdConnectionMsg(sipDialog);
+   return postMessage(unholdConnectionMsg);
 }
 
 OsStatus XCpCall::unholdConnection()
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcUnholdConnectionMsg unholdConnectionMsg(NULL);
+   return postMessage(unholdConnectionMsg);
 }
 
-OsStatus XCpCall::muteInputConnection(const SipDialog& sSipDialog)
+OsStatus XCpCall::muteInputConnection(const SipDialog& sipDialog)
 {
    // TODO: implement
    return OS_FAILED;
 }
 
-OsStatus XCpCall::unmuteInputConnection(const SipDialog& sSipDialog)
+OsStatus XCpCall::unmuteInputConnection(const SipDialog& sipDialog)
 {
    // TODO: implement
    return OS_FAILED;
@@ -148,7 +164,7 @@ OsStatus XCpCall::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
    return OS_FAILED;
 }
 
-OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sSipDialog,
+OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sipDialog,
                                               CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                               const UtlString& sAudioCodecs,
                                               CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
@@ -158,7 +174,7 @@ OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sSipDialog,
    return OS_FAILED;
 }
 
-OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
+OsStatus XCpCall::sendInfo(const SipDialog& sipDialog,
                            const UtlString& sContentType,
                            const char* pContent,
                            const size_t nContentLength)
@@ -171,13 +187,13 @@ OsStatus XCpCall::sendInfo(const SipDialog& sSipDialog,
 
 /* ============================ INQUIRY =================================== */
 
-SipDialog::DialogMatchEnum XCpCall::hasSipDialog(const SipDialog& sSipDialog) const
+SipDialog::DialogMatchEnum XCpCall::hasSipDialog(const SipDialog& sipDialog) const
 {
    OsLock lock(m_memberMutex);
 
    if (m_pSipConnection)
    {
-      return m_pSipConnection->compareSipDialog(sSipDialog);
+      return m_pSipConnection->compareSipDialog(sipDialog);
    }
 
    return SipDialog::DIALOG_MISMATCH;
@@ -205,11 +221,11 @@ OsStatus XCpCall::getCallSipCallId(UtlString& sSipCallId) const
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean XCpCall::findConnection(const SipDialog& sSipDialog, OsPtrLock<XSipConnection>& ptrLock) const
+UtlBoolean XCpCall::findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const
 {
    OsLock lock(m_memberMutex);
 
-   if (m_pSipConnection && m_pSipConnection->compareSipDialog(sSipDialog) != SipDialog::DIALOG_MISMATCH)
+   if (m_pSipConnection && m_pSipConnection->compareSipDialog(sipDialog) != SipDialog::DIALOG_MISMATCH)
    {
       // dialog matches
       ptrLock = m_pSipConnection;
@@ -225,6 +241,48 @@ UtlBoolean XCpCall::getConnection(OsPtrLock<XSipConnection>& ptrLock) const
 
    ptrLock = m_pSipConnection;
    return m_pSipConnection != NULL;
+}
+
+UtlBoolean XCpCall::handleCommandMessage(AcCommandMsg& rRawMsg)
+{
+   switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
+   {
+   case AcCommandMsg::AC_CONNECT:
+      return TRUE;
+   case AcCommandMsg::AC_ACCEPT_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_REJECT_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_REDIRECT_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_ANSWER_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_DROP_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_TRANSFER_BLIND:
+      return TRUE;
+   case AcCommandMsg::AC_HOLD_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_UNHOLD_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
+      return TRUE;
+   case AcCommandMsg::AC_RENEGOTIATE_CODECS:
+      return TRUE;
+   case AcCommandMsg::AC_SEND_INFO:
+      return TRUE;
+   default:
+      break;
+   }
+
+   // we couldn't handle it, give chance to parent
+   return XCpAbstractCall::handleCommandMessage(rRawMsg);
+}
+
+UtlBoolean XCpCall::handleNotificationMessage(AcNotificationMsg& rRawMsg)
+{
+   // we couldn't handle it, give chance to parent
+   return XCpAbstractCall::handleNotificationMessage(rRawMsg);
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

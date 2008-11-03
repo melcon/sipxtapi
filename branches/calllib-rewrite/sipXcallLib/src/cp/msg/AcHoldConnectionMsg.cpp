@@ -27,9 +27,9 @@
 
 /* ============================ CREATORS ================================== */
 
-AcHoldConnectionMsg::AcHoldConnectionMsg(const UtlString& sAbstractCallId)
+AcHoldConnectionMsg::AcHoldConnectionMsg(const SipDialog& sipDialog)
 : AcCommandMsg(AC_HOLD_CONNECTION)
-, m_sAbstractCallId(sAbstractCallId)
+, m_sipDialog(sipDialog)
 {
 
 }
@@ -41,7 +41,7 @@ AcHoldConnectionMsg::~AcHoldConnectionMsg()
 
 OsMsg* AcHoldConnectionMsg::createCopy(void) const
 {
-   return new AcHoldConnectionMsg(m_sAbstractCallId);
+   return new AcHoldConnectionMsg(m_sipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

@@ -27,9 +27,19 @@
 
 /* ============================ CREATORS ================================== */
 
-AcConnectMsg::AcConnectMsg(const UtlString& sAbstractCallId)
+AcConnectMsg::AcConnectMsg(const UtlString& sSipCallId,
+                           const UtlString& sToAddress,
+                           const UtlString& sFromTag,
+                           const UtlString& sFromAddress,
+                           const UtlString& sLocationHeader,
+                           CP_CONTACT_ID contactId)
 : AcCommandMsg(AC_CONNECT)
-, m_sAbstractCallId(sAbstractCallId)
+, m_sSipCallId(sSipCallId)
+, m_sToAddress(sToAddress)
+, m_sFromTag(sFromTag)
+, m_sFromAddress(sFromAddress)
+, m_sLocationHeader(sLocationHeader)
+, m_contactId(contactId)
 {
 
 }
@@ -41,7 +51,7 @@ AcConnectMsg::~AcConnectMsg()
 
 OsMsg* AcConnectMsg::createCopy(void) const
 {
-   return new AcConnectMsg(m_sAbstractCallId);
+   return new AcConnectMsg(m_sSipCallId, m_sToAddress, m_sFromTag, m_sFromAddress, m_sLocationHeader, m_contactId);
 }
 
 /* ============================ MANIPULATORS ============================== */

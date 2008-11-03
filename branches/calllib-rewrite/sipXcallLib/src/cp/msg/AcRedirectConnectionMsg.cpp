@@ -27,9 +27,9 @@
 
 /* ============================ CREATORS ================================== */
 
-AcRedirectConnectionMsg::AcRedirectConnectionMsg(const UtlString& sAbstractCallId)
+AcRedirectConnectionMsg::AcRedirectConnectionMsg(const UtlString& sRedirectSipUrl)
 : AcCommandMsg(AC_REDIRECT_CONNECTION)
-, m_sAbstractCallId(sAbstractCallId)
+, m_sRedirectSipUrl(sRedirectSipUrl)
 {
 
 }
@@ -41,7 +41,7 @@ AcRedirectConnectionMsg::~AcRedirectConnectionMsg()
 
 OsMsg* AcRedirectConnectionMsg::createCopy(void) const
 {
-   return new AcRedirectConnectionMsg(m_sAbstractCallId);
+   return new AcRedirectConnectionMsg(m_sRedirectSipUrl);
 }
 
 /* ============================ MANIPULATORS ============================== */
