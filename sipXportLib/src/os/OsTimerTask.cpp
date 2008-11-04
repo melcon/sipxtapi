@@ -206,14 +206,14 @@ UtlBoolean OsTimerTask::handleMessage(OsMsg& rMsg)
 {
    // Process a message.
 
-   // If not an OS_TIMER message, return FALSE to indicate it should be
+   // If not an OS_TIMERTASK_COMMAND message, return FALSE to indicate it should be
    // passed to our superclass.
-   if (rMsg.getMsgType() != OsMsg::OS_TIMER)
+   if (rMsg.getMsgType() != OsMsg::OS_TIMERTASK_COMMAND)
    {
       return FALSE;
    }
 
-   // Process an OS_TIMER message.
+   // Process an OS_TIMERTASK_COMMAND message.
 
    OsTimerMsg& message = dynamic_cast <OsTimerMsg&> (rMsg);
 

@@ -28,7 +28,7 @@
 OsTimerMsg::OsTimerMsg(const unsigned char subType,
                        OsTimer* pTimer,
                        OsEvent* pEvent)
-: OsRpcMsg(OsMsg::OS_TIMER, subType, *pEvent),
+: OsRpcMsg(OsMsg::OS_TIMERTASK_COMMAND, subType, *pEvent),
   mpTimer(pTimer)
 {
    init();
