@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/AcRenegotiateCodecsMsg.h>
+#include <cp/msg/AcUnmuteInputConnectionMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,30 +27,21 @@
 
 /* ============================ CREATORS ================================== */
 
-AcRenegotiateCodecsMsg::AcRenegotiateCodecsMsg(const SipDialog& sipDialog,
-                                               CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                               const UtlString& sAudioCodecs,
-                                               CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                               const UtlString& sVideoCodecs)
-: AcCommandMsg(AC_RENEGOTIATE_CODECS)
+AcUnmuteInputConnectionMsg::AcUnmuteInputConnectionMsg(const SipDialog& sipDialog)
+: AcCommandMsg(AC_UNMUTE_INPUT_CONNECTION)
 , m_sipDialog(sipDialog)
-, m_audioBandwidthId(audioBandwidthId)
-, m_sAudioCodecs(sAudioCodecs)
-, m_videoBandwidthId(videoBandwidthId)
-, m_sVideoCodecs(sVideoCodecs)
 {
 
 }
 
-AcRenegotiateCodecsMsg::~AcRenegotiateCodecsMsg()
+AcUnmuteInputConnectionMsg::~AcUnmuteInputConnectionMsg()
 {
 
 }
 
-OsMsg* AcRenegotiateCodecsMsg::createCopy(void) const
+OsMsg* AcUnmuteInputConnectionMsg::createCopy(void) const
 {
-   return new AcRenegotiateCodecsMsg(m_sipDialog, m_audioBandwidthId, m_sAudioCodecs,
-      m_videoBandwidthId, m_sVideoCodecs);
+   return new AcUnmuteInputConnectionMsg(m_sipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

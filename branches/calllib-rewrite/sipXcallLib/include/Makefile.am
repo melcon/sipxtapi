@@ -8,17 +8,23 @@ nobase_include_HEADERS =  \
     cp/msg/AcAnswerConnectionMsg.h \
     cp/msg/AcCommandMsg.h \
     cp/msg/AcConnectMsg.h \
+    cp/msg/AcDropAllConnectionsMsg.h \
     cp/msg/AcDropConnectionMsg.h \
     cp/msg/AcGainFocusMsg.h \
+    cp/msg/AcHoldAllConnectionsMsg.h \
     cp/msg/AcHoldConnectionMsg.h \
     cp/msg/AcLimitCodecPreferencesMsg.h \
+    cp/msg/AcMuteInputConnectionMsg.h \
     cp/msg/AcNotificationMsg.h \
     cp/msg/AcRedirectConnectionMsg.h \
     cp/msg/AcRejectConnectionMsg.h \
+    cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
     cp/msg/AcTransferBlindMsg.h \
+    cp/msg/AcUnholdAllConnectionsMsg.h \
     cp/msg/AcUnholdConnectionMsg.h \
+    cp/msg/AcUnmuteInputConnectionMsg.h \
     cp/msg/AcYieldFocusMsg.h \
     cp/msg/CmCommandMsg.h \
     cp/msg/CmGainFocusMsg.h \

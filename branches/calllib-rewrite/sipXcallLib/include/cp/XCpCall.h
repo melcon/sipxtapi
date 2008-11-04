@@ -96,7 +96,7 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog);
+   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyCall = FALSE);
 
    /** Disconnects call without knowing the sip call-id*/
    OsStatus dropConnection(UtlBoolean bDestroyCall = FALSE);
@@ -194,7 +194,7 @@ public:
    /* ============================ INQUIRY =================================== */
 
    /**
-   * Checks if this call has given sip dialog.
+   * Checks if this call has given sip dialog. Uses strict dialog matching.
    */
    virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sipDialog) const;
 
@@ -207,7 +207,9 @@ public:
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   /** Finds connection handling given Sip dialog. */
+   /**
+    * Finds connection handling given Sip dialog. Uses strict dialog matching.
+    */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
 
    /** Gets Sip connection of the call if there is any */

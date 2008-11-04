@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/AcRenegotiateCodecsMsg.h>
+#include <cp/msg/AcDropAllConnectionsMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,30 +27,21 @@
 
 /* ============================ CREATORS ================================== */
 
-AcRenegotiateCodecsMsg::AcRenegotiateCodecsMsg(const SipDialog& sipDialog,
-                                               CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                               const UtlString& sAudioCodecs,
-                                               CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                               const UtlString& sVideoCodecs)
-: AcCommandMsg(AC_RENEGOTIATE_CODECS)
-, m_sipDialog(sipDialog)
-, m_audioBandwidthId(audioBandwidthId)
-, m_sAudioCodecs(sAudioCodecs)
-, m_videoBandwidthId(videoBandwidthId)
-, m_sVideoCodecs(sVideoCodecs)
+AcDropAllConnectionsMsg::AcDropAllConnectionsMsg(UtlBoolean bDestroyAbstractCall)
+: AcCommandMsg(AC_DROP_ALL_CONNECTIONS)
+, m_bDestroyAbstractCall(bDestroyAbstractCall)
 {
 
 }
 
-AcRenegotiateCodecsMsg::~AcRenegotiateCodecsMsg()
+AcDropAllConnectionsMsg::~AcDropAllConnectionsMsg()
 {
 
 }
 
-OsMsg* AcRenegotiateCodecsMsg::createCopy(void) const
+OsMsg* AcDropAllConnectionsMsg::createCopy(void) const
 {
-   return new AcRenegotiateCodecsMsg(m_sipDialog, m_audioBandwidthId, m_sAudioCodecs,
-      m_videoBandwidthId, m_sVideoCodecs);
+   return new AcDropAllConnectionsMsg(m_bDestroyAbstractCall);
 }
 
 /* ============================ MANIPULATORS ============================== */

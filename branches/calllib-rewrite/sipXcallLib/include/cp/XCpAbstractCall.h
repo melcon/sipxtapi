@@ -73,6 +73,12 @@ class AcNotificationMsg;
  *
  * Locks must be acquired in the following order: 1.) m_instanceRWMutex, 2.) m_memberMutex, 3.) m_mediaInterfaceRWMutex.
  * If we have some successive mutex, we cannot lock previous mutex!
+ *
+ * Dialog matching:
+ * - hasSipDialog - uses strict dialog matching. If connection dialog is established, then compared dialog must
+ * have both tags and they must match along with callid. If connection dialog is in initial (not established) state
+ * then it can match both initial dialog or established dialog.
+ * - findConnection - uses the same dialog matching like hasSipDialog
  * 
  */
 class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase
@@ -145,8 +151,10 @@ public:
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
     * progresses to disconnected and the connection is removed.
+    * @param bDestroyAbstractCall If true, then abstract call will also be destroyed if last connection
+    *        was dropped
     */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog) = 0;
+   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyAbstractCall = FALSE) = 0;
 
    /** Blind transfer given call to sTransferSipUrl. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
@@ -314,7 +322,7 @@ public:
    virtual int compareTo(UtlContainable const* inVal) const;
 
    /**
-    * Checks if this abstract call has given sip dialog.
+    * Checks if this abstract call has given sip dialog. Uses strict dialog matching.
     */
    virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sipDialog) const = 0;
 
@@ -329,7 +337,7 @@ public:
    OsStatus getMediaConnectionId(const SipDialog& sipDialog,
                                  int& mediaConnID) const;
 
-   /** Gets copy of SipDialog for given call */
+   /** Gets copy of SipDialog for given call. Uses strict dialog matching. */
    OsStatus getSipDialog(const SipDialog& sipDialog,
                          SipDialog& sOutputSipDialog) const;
 
@@ -344,7 +352,7 @@ protected:
    /** Handles command messages */
    virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
 
-   /** Finds connection handling given Sip dialog. */
+   /** Finds connection handling given Sip dialog. Uses strict dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
 
    /** Tries to gain focus on this call asynchronously through call manager. */

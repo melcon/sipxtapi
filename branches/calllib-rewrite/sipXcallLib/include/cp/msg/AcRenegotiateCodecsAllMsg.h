@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcLimitCodecPreferencesMsg_h__
-#define AcLimitCodecPreferencesMsg_h__
+#ifndef AcRenegotiateCodecsAllMsg_h__
+#define AcRenegotiateCodecsAllMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -33,20 +33,20 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Configures codecs used for future calls.
+* Abstract call command message. Instructs all call connections to renegotiate codecs.
 */
-class AcLimitCodecPreferencesMsg : public AcCommandMsg
+class AcRenegotiateCodecsAllMsg : public AcCommandMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
 
-   AcLimitCodecPreferencesMsg(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                              const UtlString& sAudioCodecs,
-                              CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                              const UtlString& sVideoCodecs);
+   AcRenegotiateCodecsAllMsg(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                             const UtlString& sAudioCodecs,
+                             CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                             const UtlString& sVideoCodecs);
 
-   virtual ~AcLimitCodecPreferencesMsg();
+   virtual ~AcRenegotiateCodecsAllMsg();
 
    virtual OsMsg* createCopy(void) const;
 
@@ -72,4 +72,4 @@ private:
    UtlString m_sVideoCodecs;
 };
 
-#endif // AcLimitCodecPreferencesMsg_h__
+#endif // AcRenegotiateCodecsAllMsg_h__

@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -39,7 +40,10 @@ class AcSendInfoMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcSendInfoMsg(const UtlString& sAbstractCallId);
+   AcSendInfoMsg(const SipDialog& sipDialog,
+                 const UtlString& sContentType,
+                 const char* pContent,
+                 const size_t nContentLength);
 
    virtual ~AcSendInfoMsg();
 
@@ -49,7 +53,10 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+   void getSipDialog(SipDialog& val) const { val = m_sipDialog; }
+   UtlString getContentType() const { return m_sContentType; }
+   const char* getContent() const { return m_pContent; }
+   size_t getContentLength() const { return m_nContentLength; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -58,7 +65,10 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
+   SipDialog m_sipDialog;
+   UtlString m_sContentType;
+   char* m_pContent; ///< payload bytes
+   size_t m_nContentLength; ///< length of content
 };
 
 #endif // AcSendInfoMsg_h__
