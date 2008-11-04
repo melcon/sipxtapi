@@ -208,7 +208,6 @@ OsStatus XCpConference::sendInfo(const SipDialog& sipDialog,
 SipDialog::DialogMatchEnum XCpConference::hasSipDialog(const SipDialog& sipDialog) const
 {
    SipDialog::DialogMatchEnum result = SipDialog::DIALOG_MISMATCH;
-
    OsLock lock(m_memberMutex);
 
    UtlSListIterator itor(m_sipConnections);
@@ -221,7 +220,7 @@ SipDialog::DialogMatchEnum XCpConference::hasSipDialog(const SipDialog& sipDialo
       {
          SipDialog::DialogMatchEnum tmpResult = pSipConnection->compareSipDialog(sipDialog);
          if (tmpResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
-             (sipDialog.isInitialDialog() && tmpResult == SipDialog::DIALOG_INITIAL_MATCH))
+             tmpResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
          {
             // return immediately if found perfect match for established dialog
             // initial match is also perfect if supplied dialog is initial
@@ -277,50 +276,87 @@ UtlBoolean XCpConference::findConnection(const SipDialog& sipDialog, OsPtrLock<X
    OsLock lock(m_memberMutex);
 
    UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pPartialMatchSipConnection = NULL;
    XSipConnection* pSipConnection = NULL;
 
    while (itor())
    {
       pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
-      if (pSipConnection && pSipConnection->compareSipDialog(sipDialog) != SipDialog::DIALOG_MISMATCH)
+      if (pSipConnection)
       {
-         ptrLock = pSipConnection;
-         return TRUE;
+         SipDialog::DialogMatchEnum tmpResult = pSipConnection->compareSipDialog(sipDialog);
+         if (tmpResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+             tmpResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
+         {
+            // return immediately if found perfect match for established dialog
+            // initial match is also perfect if supplied dialog is initial
+            ptrLock = pSipConnection;
+            return TRUE;
+         }
+         else if (tmpResult != SipDialog::DIALOG_MISMATCH)
+         {
+            // only override result if we found some match, as we could have some connection at the end of list that would not match
+            pPartialMatchSipConnection = pSipConnection;
+         }
       }
    }
 
+   if (pPartialMatchSipConnection)
+   {
+      // return partial match at the end
+      ptrLock = pPartialMatchSipConnection;
+      return TRUE;
+   }
+
+   // not even partial match was found
    return FALSE;
 }
 
-UtlBoolean XCpConference::handleCommandMessage(AcCommandMsg& rRawMsg)
+UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
 {
    switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
    {
    case AcCommandMsg::AC_CONNECT:
+      handleConnect((const AcConnectMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_DROP_CONNECTION:
+      handleDropConnection((const AcDropConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_DROP_ALL_CONNECTIONS:
+      handleDropAllConnections((const AcDropAllConnectionsMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_TRANSFER_BLIND:
+      handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_HOLD_CONNECTION:
+      handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_HOLD_ALL_CONNECTIONS:
+      handleHoldAllConnections((const AcHoldAllConnectionsMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_UNHOLD_CONNECTION:
+      handleUnholdConnection((const AcUnholdConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_UNHOLD_ALL_CONNECTIONS:
+      handleUnholdAllConnections((const AcUnholdAllConnectionsMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
+      handleLimitCodecPreferences((const AcLimitCodecPreferencesMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_RENEGOTIATE_CODECS:
+      handleRenegotiateCodecs((const AcRenegotiateCodecsMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_RENEGOTIATE_CODECS_ALL:
+      handleRenegotiateCodecsAll((const AcRenegotiateCodecsAllMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_SEND_INFO:
+      handleSendInfo((const AcSendInfoMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
+      handleMuteInputConnection((const AcMuteInputConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
+      handleUnmuteInputConnection((const AcUnmuteInputConnectionMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -330,12 +366,82 @@ UtlBoolean XCpConference::handleCommandMessage(AcCommandMsg& rRawMsg)
    return XCpAbstractCall::handleCommandMessage(rRawMsg);
 }
 
-UtlBoolean XCpConference::handleNotificationMessage(AcNotificationMsg& rRawMsg)
+UtlBoolean XCpConference::handleNotificationMessage(const AcNotificationMsg& rRawMsg)
 {
    // we couldn't handle it, give chance to parent
    return XCpAbstractCall::handleNotificationMessage(rRawMsg);
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+OsStatus XCpConference::handleConnect(const AcConnectMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleDropConnection(const AcDropConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleDropAllConnections(const AcDropAllConnectionsMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleTransferBlind(const AcTransferBlindMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleHoldConnection(const AcHoldConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleHoldAllConnections(const AcHoldAllConnectionsMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleUnholdConnection(const AcUnholdConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleUnholdAllConnections(const AcUnholdAllConnectionsMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleRenegotiateCodecsAll(const AcRenegotiateCodecsAllMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleSendInfo(const AcSendInfoMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
 
 /* ============================ FUNCTIONS ================================= */

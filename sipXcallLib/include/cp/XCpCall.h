@@ -25,9 +25,40 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class AcConnectMsg;
+class AcAcceptConnectionMsg;
+class AcRejectConnectionMsg;
+class AcRedirectConnectionMsg;
+class AcAnswerConnectionMsg;
+class AcDropConnectionMsg;
+class AcTransferBlindMsg;
+class AcHoldConnectionMsg;
+class AcUnholdConnectionMsg;
+class AcLimitCodecPreferencesMsg;
+class AcRenegotiateCodecsMsg;
+class AcSendInfoMsg;
+class AcMuteInputConnectionMsg;
+class AcUnmuteInputConnectionMsg;
 
 /**
- * XCpCall wraps XSipConnection realizing all call functionality.
+ * XCpCall wraps XSipConnection realizing all call functionality. XCpCall is designed to hold
+ * only single XSipConnection, and corresponds to a sip connection and media session.
+ *
+ * Call management functions are asynchronous, and post message to the OsServerTask thread. This is
+ * useful because sending a sip message can take more time, and we don't want to block the call manager
+ * during that time. Also audio functionality can take several 10ms, or even 100ms if media task is
+ * getting overloaded.
+ * Audio functionality is synchronous, except for focus gain/yield. Focus gain/yield always needs to go through
+ * XCpCallManager, since we need a single place to manage focus. It will also ensure that no attept to gain
+ * focus is made before media interface is created.
+ *
+ * Locking strategy:
+ * @see XCpAbstractCall
+ * - local members that require locking are always after comment mentioning which mutex needs to be locked
+ * - const members and pointers/references set from constructor do not require locking, they are deleted by
+ *   caller at suitable time
+ *
+ * This class should have absolute minimum knowledge about sip, all sip communication is done in XSipConnection.
  */
 class XCpCall : public XCpAbstractCall
 {
@@ -216,16 +247,45 @@ protected:
    virtual UtlBoolean getConnection(OsPtrLock<XSipConnection>& ptrLock) const;
 
    /** Handles command messages */
-   virtual UtlBoolean handleCommandMessage(AcCommandMsg& rRawMsg);
+   virtual UtlBoolean handleCommandMessage(const AcCommandMsg& rRawMsg);
 
    /** Handles command messages */
-   virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
+   virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpCall(const XCpCall& rhs);
 
    XCpCall& operator=(const XCpCall& rhs);
+
+   /** Handles message to create new sip connection for call */
+   OsStatus handleConnect(const AcConnectMsg& rMsg);
+   /** Handles message to accept inbound sip connection */
+   OsStatus handleAcceptConnection(const AcAcceptConnectionMsg& rMsg);
+   /** Handles message to reject inbound sip connection */
+   OsStatus handleRejectConnection(const AcRejectConnectionMsg& rMsg);
+   /** Handles message to redirect inbound sip connection */
+   OsStatus handleRedirectConnection(const AcRedirectConnectionMsg& rMsg);
+   /** Handles message to answer inbound sip connection */
+   OsStatus handleAnswerConnection(const AcAnswerConnectionMsg& rMsg);
+   /** Handles message to drop sip connection */
+   OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
+   /** Handles message to initiate blind call transfer */
+   OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
+   /** Handles message to initiate remote hold on sip connection */
+   OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
+   /** Handles message to initiate remote unhold on sip connection */
+   OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
+   /** Handles message to limit codec preferences for future sip connections */
+   OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
+   /** Handles message to renegotiate codecs for some sip connection */
+   OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
+   /** Handles message to send SIP INFO to on given sip connection */
+   OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
+   /** Handles message to mute inbound RTP in audio bridge */
+   OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
+   /** Handles message to unmute inbound RTP in audio bridge */
+   OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
 
    // needs m_memberMutex locked
    XSipConnection* m_pSipConnection;

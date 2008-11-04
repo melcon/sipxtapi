@@ -251,37 +251,51 @@ UtlBoolean XCpCall::getConnection(OsPtrLock<XSipConnection>& ptrLock) const
    return m_pSipConnection != NULL;
 }
 
-UtlBoolean XCpCall::handleCommandMessage(AcCommandMsg& rRawMsg)
+UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
 {
    switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
    {
    case AcCommandMsg::AC_CONNECT:
+      handleConnect((const AcConnectMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_ACCEPT_CONNECTION:
+      handleAcceptConnection((const AcAcceptConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_REJECT_CONNECTION:
+      handleRejectConnection((const AcRejectConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_REDIRECT_CONNECTION:
+      handleRedirectConnection((const AcRedirectConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_ANSWER_CONNECTION:
+      handleAnswerConnection((const AcAnswerConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_DROP_CONNECTION:
+      handleDropConnection((const AcDropConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_TRANSFER_BLIND:
+      handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_HOLD_CONNECTION:
+      handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_UNHOLD_CONNECTION:
+      handleUnholdConnection((const AcUnholdConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
+      handleLimitCodecPreferences((const AcLimitCodecPreferencesMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_RENEGOTIATE_CODECS:
+      handleRenegotiateCodecs((const AcRenegotiateCodecsMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_SEND_INFO:
+      handleSendInfo((const AcSendInfoMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
+      handleMuteInputConnection((const AcMuteInputConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
+      handleUnmuteInputConnection((const AcUnmuteInputConnectionMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -291,12 +305,82 @@ UtlBoolean XCpCall::handleCommandMessage(AcCommandMsg& rRawMsg)
    return XCpAbstractCall::handleCommandMessage(rRawMsg);
 }
 
-UtlBoolean XCpCall::handleNotificationMessage(AcNotificationMsg& rRawMsg)
+UtlBoolean XCpCall::handleNotificationMessage(const AcNotificationMsg& rRawMsg)
 {
    // we couldn't handle it, give chance to parent
    return XCpAbstractCall::handleNotificationMessage(rRawMsg);
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleRejectConnection(const AcRejectConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleRedirectConnection(const AcRedirectConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleAnswerConnection(const AcAnswerConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleDropConnection(const AcDropConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleTransferBlind(const AcTransferBlindMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleHoldConnection(const AcHoldConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleUnholdConnection(const AcUnholdConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleSendInfo(const AcSendInfoMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg)
+{
+   return OS_FAILED;
+}
 
 /* ============================ FUNCTIONS ================================= */

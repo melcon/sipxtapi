@@ -77,21 +77,11 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    {
    case CpMessageTypes::AC_COMMAND:
       {
-         AcCommandMsg* pAcCommandMsg = dynamic_cast<AcCommandMsg*>(&rRawMsg);
-         if (pAcCommandMsg)
-         {
-            return handleCommandMessage(*pAcCommandMsg);
-         }
-         break;
+         return handleCommandMessage((const AcCommandMsg&)rRawMsg);
       }
    case CpMessageTypes::AC_NOTIFICATION:
       {
-         AcNotificationMsg* pAcNotificationMsg = dynamic_cast<AcNotificationMsg*>(&rRawMsg);
-         if (pAcNotificationMsg)
-         {
-            return handleNotificationMessage(*pAcNotificationMsg);
-         }
-         break;
+         return handleNotificationMessage((const AcNotificationMsg&)rRawMsg);
       }
    default:
       break;
@@ -327,15 +317,15 @@ OsStatus XCpAbstractCall::getSipDialog(const SipDialog& sipDialog,
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-UtlBoolean XCpAbstractCall::handleCommandMessage(AcCommandMsg& rRawMsg)
+UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
 {
    switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
    {
    case AcCommandMsg::AC_GAIN_FOCUS:
-      handleGainFocus();
+      handleGainFocus((const AcGainFocusMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_YIELD_FOCUS:
-      handleDefocus();
+      handleDefocus((const AcYieldFocusMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -344,7 +334,7 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(AcCommandMsg& rRawMsg)
    return FALSE;
 }
 
-UtlBoolean XCpAbstractCall::handleNotificationMessage(AcNotificationMsg& rRawMsg)
+UtlBoolean XCpAbstractCall::handleNotificationMessage(const AcNotificationMsg& rRawMsg)
 {
    return FALSE;
 }
@@ -371,7 +361,7 @@ OsStatus XCpAbstractCall::yieldFocus()
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-OsStatus XCpAbstractCall::handleGainFocus()
+OsStatus XCpAbstractCall::handleGainFocus(const AcGainFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsReadLock lock(m_mediaInterfaceRWMutex);
@@ -392,7 +382,7 @@ OsStatus XCpAbstractCall::handleGainFocus()
 #endif
 }
 
-OsStatus XCpAbstractCall::handleDefocus()
+OsStatus XCpAbstractCall::handleDefocus(const AcYieldFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsReadLock lock(m_mediaInterfaceRWMutex);

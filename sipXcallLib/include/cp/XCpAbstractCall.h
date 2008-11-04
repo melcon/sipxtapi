@@ -48,6 +48,8 @@ class SipSecurityEventListener;
 class CpMediaEventListener;
 class AcCommandMsg;
 class AcNotificationMsg;
+class AcGainFocusMsg;
+class AcYieldFocusMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -72,12 +74,18 @@ class AcNotificationMsg;
  * so write lock is not needed when executing normal audio operations on it. This mutex is NOT reentrant.
  *
  * Locks must be acquired in the following order: 1.) m_instanceRWMutex, 2.) m_memberMutex, 3.) m_mediaInterfaceRWMutex.
- * If we have some successive mutex, we cannot lock previous mutex!
+ * If we have some successive mutex, we cannot lock previous mutex! It is not required to hold previous mutex from
+ * the list to lock the next one. m_instanceRWMutex should only be used externally, and never in this class.
+ * m_memberMutex is separate from m_mediaInterfaceRWMutex, because we don't want to block SipDialog comparisons during
+ * audio function execution. Audio functions can take several 10ms to execute, as they are synchronous and sometimes
+ * require flowgraph synchronization (waiting for the next "clock").
  *
  * Dialog matching:
- * - hasSipDialog - uses strict dialog matching. If connection dialog is established, then compared dialog must
- * have both tags and they must match along with callid. If connection dialog is in initial (not established) state
- * then it can match both initial dialog or established dialog.
+ * - hasSipDialog - uses strict dialog matching. First we try to return connection with perfect dialog match.
+ * Perfect dialog match means either established dialog match (callid + both tags), or match of an initial dialog
+ * against an initial dialog (callid + 1 tag). Until such a perfect match is found, we have to go through all connections
+ * and check each one for partial match. Partial match means callid + 1 tag match - either initial against established
+ * or established against initial.
  * - findConnection - uses the same dialog matching like hasSipDialog
  * 
  */
@@ -347,10 +355,10 @@ public:
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
    /** Handles command messages */
-   virtual UtlBoolean handleCommandMessage(AcCommandMsg& rRawMsg);
+   virtual UtlBoolean handleCommandMessage(const AcCommandMsg& rRawMsg);
 
    /** Handles command messages */
-   virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
+   virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
 
    /** Finds connection handling given Sip dialog. Uses strict dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
@@ -384,10 +392,10 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    /** Handles gain focus command from call manager. Never use directly, go through call manager. */
-   OsStatus handleGainFocus();
+   OsStatus handleGainFocus(const AcGainFocusMsg& rMsg);
 
    /** Handles defocus command from call manager. Never use directly, go through call manager. */
-   OsStatus handleDefocus();
+   OsStatus handleDefocus(const AcYieldFocusMsg& rMsg);
 
    XCpAbstractCall(const XCpAbstractCall& rhs);
 
