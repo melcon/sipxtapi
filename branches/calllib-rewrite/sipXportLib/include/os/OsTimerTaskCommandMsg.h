@@ -34,7 +34,7 @@ class OsTimer;
 
 //:Messages used to request timer services
 
-class OsTimerMsg : public OsRpcMsg
+class OsTimerTaskCommandMsg : public OsRpcMsg
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -53,24 +53,24 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   OsTimerMsg(const unsigned char subType,
+   OsTimerTaskCommandMsg(const unsigned char subType,
               OsTimer* pTimer,
               OsEvent* pEvent);
      //:Constructor
 
-   OsTimerMsg(const OsTimerMsg& rOsTimerMsg);
+   OsTimerTaskCommandMsg(const OsTimerTaskCommandMsg& rOsTimerMsg);
      //:Copy constructor
 
    virtual OsMsg* createCopy(void) const;
      //:Create a copy of this msg object (which may be of a derived type)
 
    virtual
-   ~OsTimerMsg();
+   ~OsTimerTaskCommandMsg();
      //:Destructor
 
 /* ============================ MANIPULATORS ============================== */
 
-   OsTimerMsg& operator=(const OsTimerMsg& rhs);
+   OsTimerTaskCommandMsg& operator=(const OsTimerTaskCommandMsg& rhs);
      //:Assignment operator
 
 /* ============================ ACCESSORS ================================= */

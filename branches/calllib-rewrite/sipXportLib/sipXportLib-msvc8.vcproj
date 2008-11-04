@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="sipXportLib-msvc8"
 	ProjectGUID="{14631055-9D3F-47E5-B6A7-16BFC0CC8091}"
 	RootNamespace="sipXportLib-msvc8"
@@ -588,11 +588,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\os\OsTimerMsg.cpp"
+				RelativePath=".\src\os\OsTimerTask.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\os\OsTimerTask.cpp"
+				RelativePath=".\src\os\OsTimerTaskCommandMsg.cpp"
 				>
 			</File>
 			<File
@@ -1153,11 +1153,11 @@
 				>
 			</File>
 			<File
-				RelativePath="include\os\OsTimerMsg.h"
+				RelativePath="include\os\OsTimerTask.h"
 				>
 			</File>
 			<File
-				RelativePath="include\os\OsTimerTask.h"
+				RelativePath=".\include\os\OsTimerTaskCommandMsg.h"
 				>
 			</File>
 			<File

@@ -13,7 +13,7 @@
 #include <assert.h>
 
 // APPLICATION INCLUDES
-#include "os/OsTimerMsg.h"
+#include "os/OsTimerTaskCommandMsg.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -25,7 +25,7 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-OsTimerMsg::OsTimerMsg(const unsigned char subType,
+OsTimerTaskCommandMsg::OsTimerTaskCommandMsg(const unsigned char subType,
                        OsTimer* pTimer,
                        OsEvent* pEvent)
 : OsRpcMsg(OsMsg::OS_TIMERTASK_COMMAND, subType, *pEvent),
@@ -35,20 +35,20 @@ OsTimerMsg::OsTimerMsg(const unsigned char subType,
 }
 
 // Copy constructor
-OsTimerMsg::OsTimerMsg(const OsTimerMsg& rOsTimerMsg)
+OsTimerTaskCommandMsg::OsTimerTaskCommandMsg(const OsTimerTaskCommandMsg& rOsTimerMsg)
 : OsRpcMsg(rOsTimerMsg)
 {
    mpTimer = rOsTimerMsg.mpTimer;
 }
 
 // Create a copy of this msg object (which may be of a derived type)
-OsMsg* OsTimerMsg::createCopy(void) const
+OsMsg* OsTimerTaskCommandMsg::createCopy(void) const
 {
-   return new OsTimerMsg(*this);
+   return new OsTimerTaskCommandMsg(*this);
 }
 
 // Destructor
-OsTimerMsg::~OsTimerMsg()
+OsTimerTaskCommandMsg::~OsTimerTaskCommandMsg()
 {
    // no work required
 }
@@ -56,8 +56,8 @@ OsTimerMsg::~OsTimerMsg()
 /* ============================ MANIPULATORS ============================== */
 
 // Assignment operator
-OsTimerMsg& 
-OsTimerMsg::operator=(const OsTimerMsg& rhs)
+OsTimerTaskCommandMsg& 
+OsTimerTaskCommandMsg::operator=(const OsTimerTaskCommandMsg& rhs)
 {
    if (this == &rhs)            // handle the assignment to self case
       return *this;
@@ -75,7 +75,7 @@ OsTimerMsg::operator=(const OsTimerMsg& rhs)
 // This is a virtual method so that it will return the accurate size for
 // the message object even if that object has been upcast to the type of
 // an ancestor class.
-int OsTimerMsg::getMsgSize(void) const
+int OsTimerTaskCommandMsg::getMsgSize(void) const
 {
    return sizeof(*this);
 }
@@ -87,7 +87,7 @@ int OsTimerMsg::getMsgSize(void) const
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 // Initialization common to all constructors
-void OsTimerMsg::init(void)
+void OsTimerTaskCommandMsg::init(void)
 {
 }
 
