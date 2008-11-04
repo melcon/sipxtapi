@@ -118,8 +118,8 @@
             <File RelativePath=".\src\os\OsTimeLog.cpp"/>
             <File RelativePath=".\src\os\OsTimer.cpp"/>
             <File RelativePath=".\src\os\shared\OsTimerMessage.cpp"/>
-            <File RelativePath=".\src\os\OsTimerMsg.cpp"/>
             <File RelativePath=".\src\os\OsTimerTask.cpp"/>
+            <File RelativePath=".\src\os\OsTimerTaskCommandMsg.cpp"/>
             <File RelativePath=".\src\os\OsTokenizer.cpp"/>
             <File RelativePath=".\src\os\OsUtil.cpp"/>
             <File RelativePath=".\src\os\Wnt\OsUtilWnt.cpp"/>
@@ -260,8 +260,8 @@
             <File RelativePath="include\os\OsTime.h"/>
             <File RelativePath="include\os\OsTimeLog.h"/>
             <File RelativePath="include\os\OsTimer.h"/>
-            <File RelativePath="include\os\OsTimerMsg.h"/>
             <File RelativePath="include\os\OsTimerTask.h"/>
+            <File RelativePath=".\include\os\OsTimerTaskCommandMsg.h"/>
             <File RelativePath="include\os\OsTokenizer.h"/>
             <File RelativePath="include\os\OsUtil.h"/>
             <File RelativePath="include\os\wnt\OsUtilWnt.h"/>

@@ -103,7 +103,7 @@ nobase_include_HEADERS = \
     os/OsTime.h \
     os/OsTimeLog.h \
     os/OsTimer.h \
-    os/OsTimerMsg.h \
+    os/OsTimerTaskCommandMsg.h \
     os/OsTimerTask.h \
     os/OsTokenizer.h \
     os/OsUtil.h \
