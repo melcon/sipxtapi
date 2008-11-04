@@ -44,13 +44,19 @@ public:
       AC_REJECT_CONNECTION, ///< rejects inbound call
       AC_REDIRECT_CONNECTION, ///< redirects inbound call
       AC_ANSWER_CONNECTION, ///< answers inbound call
-      AC_DROP_CONNECTION, ///< drops inbound connection, optionally also dropping the call
+      AC_DROP_CONNECTION, ///< drops connection, optionally also dropping the call
+      AC_DROP_ALL_CONNECTIONS, ///< drops all connections, optionally also dropping the call
       AC_TRANSFER_BLIND, ///< initiates blind call transfer
       AC_HOLD_CONNECTION, ///< holds connection
+      AC_HOLD_ALL_CONNECTIONS, ///< holds all connections
       AC_UNHOLD_CONNECTION, ///< unholds connection
+      AC_UNHOLD_ALL_CONNECTIONS, ///< unholds all connections
       AC_LIMIT_CODEC_PREFERENCES, ///< limits codec preferences for future calls
       AC_RENEGOTIATE_CODECS, ///< renegotiates connection codecs
-      AC_SEND_INFO ///< send SIP INFO message
+      AC_RENEGOTIATE_CODECS_ALL, ///< renegotiates codecs on all connections
+      AC_SEND_INFO, ///< send SIP INFO message
+      AC_MUTE_INPUT_CONNECTION, ///< mutes inbound RTP connection on bridge
+      AC_UNMUTE_INPUT_CONNECTION ///< unmutes inbound RTP connection on bridge
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */

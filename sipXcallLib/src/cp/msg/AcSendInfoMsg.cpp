@@ -27,21 +27,38 @@
 
 /* ============================ CREATORS ================================== */
 
-AcSendInfoMsg::AcSendInfoMsg(const UtlString& sAbstractCallId)
+AcSendInfoMsg::AcSendInfoMsg(const SipDialog& sipDialog,
+                             const UtlString& sContentType,
+                             const char* pContent,
+                             const size_t nContentLength)
 : AcCommandMsg(AC_SEND_INFO)
-, m_sAbstractCallId(sAbstractCallId)
+, m_sipDialog(sipDialog)
+, m_sContentType(sContentType)
+, m_pContent(NULL)
+, m_nContentLength(nContentLength)
 {
-
+   if (m_nContentLength > 0 && pContent)
+   {
+      m_pContent = (char*)malloc(sizeof(char) * m_nContentLength);
+      if (m_pContent)
+      {
+         memcpy(m_pContent, pContent, m_nContentLength);
+      }
+   }
 }
 
 AcSendInfoMsg::~AcSendInfoMsg()
 {
-
+   if (m_pContent)
+   {
+      free((void*)m_pContent);
+      m_pContent = NULL;
+   }
 }
 
 OsMsg* AcSendInfoMsg::createCopy(void) const
 {
-   return new AcSendInfoMsg(m_sAbstractCallId);
+   return new AcSendInfoMsg(m_sipDialog, m_sContentType, m_pContent, m_nContentLength);
 }
 
 /* ============================ MANIPULATORS ============================== */

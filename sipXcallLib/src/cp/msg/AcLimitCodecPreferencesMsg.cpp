@@ -27,9 +27,15 @@
 
 /* ============================ CREATORS ================================== */
 
-AcLimitCodecPreferencesMsg::AcLimitCodecPreferencesMsg(const UtlString& sAbstractCallId)
+AcLimitCodecPreferencesMsg::AcLimitCodecPreferencesMsg(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                                       const UtlString& sAudioCodecs,
+                                                       CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                                       const UtlString& sVideoCodecs)
 : AcCommandMsg(AC_LIMIT_CODEC_PREFERENCES)
-, m_sAbstractCallId(sAbstractCallId)
+, m_audioBandwidthId(audioBandwidthId)
+, m_sAudioCodecs(sAudioCodecs)
+, m_videoBandwidthId(videoBandwidthId)
+, m_sVideoCodecs(sVideoCodecs)
 {
 
 }
@@ -41,7 +47,8 @@ AcLimitCodecPreferencesMsg::~AcLimitCodecPreferencesMsg()
 
 OsMsg* AcLimitCodecPreferencesMsg::createCopy(void) const
 {
-   return new AcLimitCodecPreferencesMsg(m_sAbstractCallId);
+   return new AcLimitCodecPreferencesMsg(m_audioBandwidthId, m_sAudioCodecs,
+      m_videoBandwidthId, m_sVideoCodecs);
 }
 
 /* ============================ MANIPULATORS ============================== */

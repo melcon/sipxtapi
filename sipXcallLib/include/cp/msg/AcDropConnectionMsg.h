@@ -40,7 +40,7 @@ class AcDropConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcDropConnectionMsg(const SipDialog& sipDialog, UtlBoolean bDestroyCall = FALSE);
+   AcDropConnectionMsg(const SipDialog& sipDialog, UtlBoolean bDestroyAbstractCall = FALSE);
 
    virtual ~AcDropConnectionMsg();
 
@@ -51,7 +51,7 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    void getSipDialog(SipDialog& sipDialog) const { sipDialog = m_sipDialog; }
-   UtlBoolean getDestroyCall() const { return m_bDestroyCall; }
+   UtlBoolean getDestroyAbstractCall() const { return m_bDestroyAbstractCall; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -61,7 +61,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    SipDialog m_sipDialog;
-   UtlBoolean m_bDestroyCall;
+   UtlBoolean m_bDestroyAbstractCall;
 };
 
 #endif // AcDropConnectionMsg_h__

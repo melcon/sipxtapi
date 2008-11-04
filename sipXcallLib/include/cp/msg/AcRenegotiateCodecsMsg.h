@@ -18,7 +18,10 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
+#include <cp/CpAudioCodecInfo.h>
+#include <cp/CpVideoCodecInfo.h>
 #include <cp/msg/AcCommandMsg.h>
 
 // DEFINES
@@ -32,6 +35,7 @@
 
 /**
 * Abstract call command message. Instructs call connection to renegotiate codecs.
+* If sipDialog has NULL callid, then command is issued for all connections.
 */
 class AcRenegotiateCodecsMsg : public AcCommandMsg
 {
@@ -39,7 +43,11 @@ class AcRenegotiateCodecsMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcRenegotiateCodecsMsg(const UtlString& sAbstractCallId);
+   AcRenegotiateCodecsMsg(const SipDialog& sipDialog,
+                          CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                          const UtlString& sAudioCodecs,
+                          CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                          const UtlString& sVideoCodecs);
 
    virtual ~AcRenegotiateCodecsMsg();
 
@@ -49,7 +57,11 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+   void setSipDialog(SipDialog& val) const { val = m_sipDialog; }
+   CP_AUDIO_BANDWIDTH_ID getAudioBandwidthId() const { return m_audioBandwidthId; }
+   UtlString getAudioCodecs() const { return m_sAudioCodecs; }
+   CP_VIDEO_BANDWIDTH_ID getVideoBandwidthId() const { return m_videoBandwidthId; }
+   UtlString getVideoCodecs() const { return m_sVideoCodecs; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -58,7 +70,11 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
+   SipDialog m_sipDialog;
+   CP_AUDIO_BANDWIDTH_ID m_audioBandwidthId;
+   UtlString m_sAudioCodecs;
+   CP_VIDEO_BANDWIDTH_ID m_videoBandwidthId;
+   UtlString m_sVideoCodecs;
 };
 
 #endif // AcRenegotiateCodecsMsg_h__

@@ -25,6 +25,12 @@
 #include <cp/msg/AcDropConnectionMsg.h>
 #include <cp/msg/AcHoldConnectionMsg.h>
 #include <cp/msg/AcUnholdConnectionMsg.h>
+#include <cp/msg/AcTransferBlindMsg.h>
+#include <cp/msg/AcLimitCodecPreferencesMsg.h>
+#include <cp/msg/AcRenegotiateCodecsMsg.h>
+#include <cp/msg/AcMuteInputConnectionMsg.h>
+#include <cp/msg/AcUnmuteInputConnectionMsg.h>
+#include <cp/msg/AcSendInfoMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -100,23 +106,23 @@ OsStatus XCpCall::answerConnection()
    return postMessage(answerConnectionMsg);
 }
 
-OsStatus XCpCall::dropConnection(const SipDialog& sipDialog)
+OsStatus XCpCall::dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyCall)
 {
-   AcDropConnectionMsg dropConnectionMsg(sipDialog, FALSE);
+   AcDropConnectionMsg dropConnectionMsg(sipDialog, bDestroyCall);
    return postMessage(dropConnectionMsg);
 }
 
 OsStatus XCpCall::dropConnection(UtlBoolean bDestroyCall)
 {
-   AcDropConnectionMsg dropConnectionMsg(NULL, FALSE);
+   AcDropConnectionMsg dropConnectionMsg(NULL, bDestroyCall);
    return postMessage(dropConnectionMsg);
 }
 
 OsStatus XCpCall::transferBlind(const SipDialog& sipDialog,
                                 const UtlString& sTransferSipUrl)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
+   return postMessage(transferBlindMsg);
 }
 
 OsStatus XCpCall::holdConnection(const SipDialog& sipDialog)
@@ -145,14 +151,14 @@ OsStatus XCpCall::unholdConnection()
 
 OsStatus XCpCall::muteInputConnection(const SipDialog& sipDialog)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcMuteInputConnectionMsg muteInputConnectionMsg(sipDialog);
+   return postMessage(muteInputConnectionMsg);
 }
 
 OsStatus XCpCall::unmuteInputConnection(const SipDialog& sipDialog)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcUnmuteInputConnectionMsg unmuteInputConnectionMsg(sipDialog);
+   return postMessage(unmuteInputConnectionMsg);
 }
 
 OsStatus XCpCall::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
@@ -160,8 +166,9 @@ OsStatus XCpCall::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                         CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                         const UtlString& sVideoCodecs)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcLimitCodecPreferencesMsg limitCodecPreferencesMsg(audioBandwidthId, sAudioCodecs,
+      videoBandwidthId, sVideoCodecs);
+   return postMessage(limitCodecPreferencesMsg);
 }
 
 OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sipDialog,
@@ -170,8 +177,9 @@ OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sipDialog,
                                               CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                               const UtlString& sVideoCodecs)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, audioBandwidthId, sAudioCodecs,
+      videoBandwidthId, sVideoCodecs);
+   return postMessage(renegotiateCodecsMsg);
 }
 
 OsStatus XCpCall::sendInfo(const SipDialog& sipDialog,
@@ -179,8 +187,8 @@ OsStatus XCpCall::sendInfo(const SipDialog& sipDialog,
                            const char* pContent,
                            const size_t nContentLength)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength);
+   return postMessage(sendInfoMsg);
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -270,6 +278,10 @@ UtlBoolean XCpCall::handleCommandMessage(AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_RENEGOTIATE_CODECS:
       return TRUE;
    case AcCommandMsg::AC_SEND_INFO:
+      return TRUE;
+   case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
       return TRUE;
    default:
       break;

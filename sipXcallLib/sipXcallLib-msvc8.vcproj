@@ -322,6 +322,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcDropAllConnectionsMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcDropConnectionMsg.cpp"
 					>
 				</File>
@@ -330,11 +334,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcHoldAllConnectionsMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcHoldConnectionMsg.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\AcLimitCodecPreferencesMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcMuteInputConnectionMsg.cpp"
 					>
 				</File>
 				<File
@@ -350,6 +362,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcRenegotiateCodecsAllMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcRenegotiateCodecsMsg.cpp"
 					>
 				</File>
@@ -362,7 +378,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcUnholdAllConnectionsMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcUnholdConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcUnmuteInputConnectionMsg.cpp"
 					>
 				</File>
 				<File
@@ -511,6 +535,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcDropAllConnectionsMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcDropConnectionMsg.h"
 					>
 				</File>
@@ -519,11 +547,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcHoldAllConnectionsMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcHoldConnectionMsg.h"
 					>
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcLimitCodecPreferencesMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcMuteInputConnectionMsg.h"
 					>
 				</File>
 				<File
@@ -539,6 +575,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcRenegotiateCodecsAllMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcRenegotiateCodecsMsg.h"
 					>
 				</File>
@@ -551,7 +591,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcUnholdAllConnectionsMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcUnholdConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcUnmuteInputConnectionMsg.h"
 					>
 				</File>
 				<File

@@ -81,7 +81,7 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog);
+   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyConference = FALSE);
 
    /** Disconnects all calls */
    OsStatus dropAllConnections(UtlBoolean bDestroyConference = FALSE);
@@ -106,6 +106,15 @@ public:
    OsStatus holdAllConnections();
 
    /**
+   * Convenience method to take the terminal connection off hold.
+   *
+   * Change the terminal connection state from HELD to TALKING.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * media should be sent.)
+   */
+   virtual OsStatus unholdConnection(const SipDialog& sipDialog);
+
+   /**
    * Convenience method to take all of the terminal connections in
    * the specified conference off hold.
    *
@@ -114,15 +123,6 @@ public:
    * media should be sent.)
    */
    OsStatus unholdAllConnections();
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   virtual OsStatus unholdConnection(const SipDialog& sipDialog);
 
    /**
    * Enables discarding of inbound RTP at bridge for given call
@@ -191,7 +191,7 @@ public:
    /* ============================ INQUIRY =================================== */
 
    /**
-   * Checks if this conference has given sip dialog.
+   * Checks if this conference has given sip dialog. Uses strict dialog matching.
    */
    virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sipDialog) const;
 
@@ -204,7 +204,7 @@ public:
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   /** Finds connection handling given Sip dialog. */
+   /** Finds connection handling given Sip dialog. Uses strict dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
 
    /** Handles command messages */

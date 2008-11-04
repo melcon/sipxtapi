@@ -27,9 +27,11 @@
 
 /* ============================ CREATORS ================================== */
 
-AcTransferBlindMsg::AcTransferBlindMsg(const UtlString& sAbstractCallId)
+AcTransferBlindMsg::AcTransferBlindMsg(const SipDialog& sipDialog,
+                                       const UtlString& sTransferSipUrl)
 : AcCommandMsg(AC_TRANSFER_BLIND)
-, m_sAbstractCallId(sAbstractCallId)
+, m_sipDialog(sipDialog)
+, m_sTransferSipUrl(sTransferSipUrl)
 {
 
 }
@@ -41,7 +43,7 @@ AcTransferBlindMsg::~AcTransferBlindMsg()
 
 OsMsg* AcTransferBlindMsg::createCopy(void) const
 {
-   return new AcTransferBlindMsg(m_sAbstractCallId);
+   return new AcTransferBlindMsg(m_sipDialog, m_sTransferSipUrl);
 }
 
 /* ============================ MANIPULATORS ============================== */

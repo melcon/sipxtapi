@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -39,7 +40,8 @@ class AcTransferBlindMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcTransferBlindMsg(const UtlString& sAbstractCallId);
+   AcTransferBlindMsg(const SipDialog& sipDialog,
+                      const UtlString& sTransferSipUrl);
 
    virtual ~AcTransferBlindMsg();
 
@@ -49,7 +51,8 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+   void getSipDialog(SipDialog& val) const { val = m_sipDialog; }
+   UtlString getTransferSipUrl() const { return m_sTransferSipUrl; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -58,7 +61,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   UtlString m_sAbstractCallId;
+   SipDialog m_sipDialog;
+   UtlString m_sTransferSipUrl;
 };
 
 #endif // AcTransferBlindMsg_h__

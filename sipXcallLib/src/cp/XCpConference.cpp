@@ -20,8 +20,18 @@
 #include <cp/XSipConnection.h>
 #include <cp/msg/AcConnectMsg.h>
 #include <cp/msg/AcDropConnectionMsg.h>
+#include <cp/msg/AcDropAllConnectionsMsg.h>
 #include <cp/msg/AcHoldConnectionMsg.h>
+#include <cp/msg/AcHoldAllConnectionsMsg.h>
 #include <cp/msg/AcUnholdConnectionMsg.h>
+#include <cp/msg/AcUnholdAllConnectionsMsg.h>
+#include <cp/msg/AcTransferBlindMsg.h>
+#include <cp/msg/AcLimitCodecPreferencesMsg.h>
+#include <cp/msg/AcRenegotiateCodecsMsg.h>
+#include <cp/msg/AcRenegotiateCodecsAllMsg.h>
+#include <cp/msg/AcMuteInputConnectionMsg.h>
+#include <cp/msg/AcUnmuteInputConnectionMsg.h>
+#include <cp/msg/AcSendInfoMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -96,23 +106,23 @@ OsStatus XCpConference::answerConnection()
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus XCpConference::dropConnection(const SipDialog& sipDialog)
+OsStatus XCpConference::dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyConference)
 {
-   AcDropConnectionMsg dropConnectionMsg(sipDialog, FALSE);
+   AcDropConnectionMsg dropConnectionMsg(sipDialog, bDestroyConference);
    return postMessage(dropConnectionMsg);
 }
 
 OsStatus XCpConference::dropAllConnections(UtlBoolean bDestroyConference)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcDropAllConnectionsMsg dropAllConnectionsMsg(bDestroyConference);
+   return postMessage(dropAllConnectionsMsg);
 }
 
 OsStatus XCpConference::transferBlind(const SipDialog& sipDialog,
                                       const UtlString& sTransferSipUrl)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
+   return postMessage(transferBlindMsg);
 }
 
 OsStatus XCpConference::holdConnection(const SipDialog& sipDialog)
@@ -123,14 +133,8 @@ OsStatus XCpConference::holdConnection(const SipDialog& sipDialog)
 
 OsStatus XCpConference::holdAllConnections()
 {
-   // TODO: implement
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::unholdAllConnections()
-{
-   // TODO: implement
-   return OS_FAILED;
+   AcHoldAllConnectionsMsg holdAllConnectionsMsg;
+   return postMessage(holdAllConnectionsMsg);
 }
 
 OsStatus XCpConference::unholdConnection(const SipDialog& sipDialog)
@@ -139,16 +143,22 @@ OsStatus XCpConference::unholdConnection(const SipDialog& sipDialog)
    return postMessage(unholdConnectionMsg);
 }
 
+OsStatus XCpConference::unholdAllConnections()
+{
+   AcUnholdAllConnectionsMsg unholdAllConnectionsMsg;
+   return postMessage(unholdAllConnectionsMsg);
+}
+
 OsStatus XCpConference::muteInputConnection(const SipDialog& sipDialog)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcMuteInputConnectionMsg muteInputConnectionMsg(sipDialog);
+   return postMessage(muteInputConnectionMsg);
 }
 
 OsStatus XCpConference::unmuteInputConnection(const SipDialog& sipDialog)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcUnmuteInputConnectionMsg unmuteInputConnectionMsg(sipDialog);
+   return postMessage(unmuteInputConnectionMsg);
 }
 
 OsStatus XCpConference::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
@@ -156,8 +166,9 @@ OsStatus XCpConference::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwid
                                               CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                               const UtlString& sVideoCodecs)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcLimitCodecPreferencesMsg limitCodecPreferencesMsg(audioBandwidthId, sAudioCodecs,
+      videoBandwidthId, sVideoCodecs);
+   return postMessage(limitCodecPreferencesMsg);
 }
 
 OsStatus XCpConference::renegotiateCodecsConnection(const SipDialog& sipDialog,
@@ -166,8 +177,9 @@ OsStatus XCpConference::renegotiateCodecsConnection(const SipDialog& sipDialog,
                                                     CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                     const UtlString& sVideoCodecs)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, audioBandwidthId, sAudioCodecs,
+      videoBandwidthId, sVideoCodecs);
+   return postMessage(renegotiateCodecsMsg);
 }
 
 OsStatus XCpConference::renegotiateCodecsAllConnections(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
@@ -175,8 +187,9 @@ OsStatus XCpConference::renegotiateCodecsAllConnections(CP_AUDIO_BANDWIDTH_ID au
                                                         CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                         const UtlString& sVideoCodecs)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcRenegotiateCodecsAllMsg renegotiateCodecsMsg(audioBandwidthId, sAudioCodecs,
+      videoBandwidthId, sVideoCodecs);
+   return postMessage(renegotiateCodecsMsg);
 }
 
 OsStatus XCpConference::sendInfo(const SipDialog& sipDialog,
@@ -184,8 +197,8 @@ OsStatus XCpConference::sendInfo(const SipDialog& sipDialog,
                                  const char* pContent,
                                  const size_t nContentLength)
 {
-   // TODO: implement
-   return OS_FAILED;
+   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength);
+   return postMessage(sendInfoMsg);
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -285,17 +298,29 @@ UtlBoolean XCpConference::handleCommandMessage(AcCommandMsg& rRawMsg)
    {
    case AcCommandMsg::AC_CONNECT:
       return TRUE;
+   case AcCommandMsg::AC_DROP_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_DROP_ALL_CONNECTIONS:
+      return TRUE;
    case AcCommandMsg::AC_TRANSFER_BLIND:
       return TRUE;
    case AcCommandMsg::AC_HOLD_CONNECTION:
       return TRUE;
+   case AcCommandMsg::AC_HOLD_ALL_CONNECTIONS:
+      return TRUE;
    case AcCommandMsg::AC_UNHOLD_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_UNHOLD_ALL_CONNECTIONS:
       return TRUE;
    case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
       return TRUE;
    case AcCommandMsg::AC_RENEGOTIATE_CODECS:
       return TRUE;
    case AcCommandMsg::AC_SEND_INFO:
+      return TRUE;
+   case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
+      return TRUE;
+   case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
       return TRUE;
    default:
       break;
