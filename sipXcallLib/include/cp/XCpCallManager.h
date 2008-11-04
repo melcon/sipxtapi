@@ -675,7 +675,7 @@ private:
    UtlBoolean basicSipMessageRequestCheck(const SipMessage& rSipMessage);
 
    /** Creates new XCpCall, starts it and posts message into it for handling. */
-   void createNewCall(const SipMessageEvent& rSipMsgEvent);
+   void createNewInboundCall(const SipMessageEvent& rSipMsgEvent);
 
    /** Gains focus for given call, defocusing old focused call. */
    OsStatus doGainFocus(const UtlString& sAbstractCallId,

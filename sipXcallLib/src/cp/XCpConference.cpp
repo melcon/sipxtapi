@@ -49,8 +49,13 @@
 XCpConference::XCpConference(const UtlString& sId,
                              SipUserAgent& rSipUserAgent,
                              CpMediaInterfaceFactory& rMediaInterfaceFactory,
-                             OsMsgQ& rCallManagerQueue)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rCallManagerQueue)
+                             OsMsgQ& rCallManagerQueue,
+                             CpCallStateEventListener* pCallEventListener,
+                             SipInfoStatusEventListener* pInfoStatusEventListener,
+                             SipSecurityEventListener* pSecurityEventListener,
+                             CpMediaEventListener* pMediaEventListener)
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rCallManagerQueue,
+                  pCallEventListener, pInfoStatusEventListener, pSecurityEventListener, pMediaEventListener)
 {
 
 }
@@ -370,6 +375,11 @@ UtlBoolean XCpConference::handleNotificationMessage(const AcNotificationMsg& rRa
 {
    // we couldn't handle it, give chance to parent
    return XCpAbstractCall::handleNotificationMessage(rRawMsg);
+}
+
+UtlBoolean XCpConference::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   return TRUE;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

@@ -39,6 +39,7 @@ template <class T>
 class OsPtrLock; // forward template class declaration
 class SipDialog;
 class SipUserAgent;
+class SipMessageEvent;
 class XSipConnection;
 class CpMediaInterfaceFactory;
 class CpMediaInterface;
@@ -100,7 +101,11 @@ public:
    XCpAbstractCall(const UtlString& sId,
                    SipUserAgent& rSipUserAgent,
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
-                   OsMsgQ& rCallManagerQueue);
+                   OsMsgQ& rCallManagerQueue,
+                   CpCallStateEventListener* pCallEventListener = NULL,
+                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+                   SipSecurityEventListener* pSecurityEventListener = NULL,
+                   CpMediaEventListener* pMediaEventListener = NULL);
 
    virtual ~XCpAbstractCall();
 
@@ -307,18 +312,6 @@ public:
     */
    UtlString getId() const;
 
-   /** Sets event listener for call events */
-   void setCallEventListener(CpCallStateEventListener* val) { m_pCallEventListener = val; }
-
-   /** Sets event listener for sip info events */
-   void setInfoStatusEventListener(SipInfoStatusEventListener* val) { m_pInfoStatusEventListener = val; }
-
-   /** Sets event listener for security events */
-   void setSecurityEventListener(SipSecurityEventListener* val) { m_pSecurityEventListener = val; }
-
-   /** Sets event listener for media events */
-   void setMediaEventListener(CpMediaEventListener* val) { m_pMediaEventListener = val; }
-
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -360,6 +353,9 @@ protected:
    /** Handles command messages */
    virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
 
+   /** Handler for inbound SipMessageEvent messages. */
+   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent) = 0;
+
    /** Finds connection handling given Sip dialog. Uses strict dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
 
@@ -396,6 +392,9 @@ private:
 
    /** Handles defocus command from call manager. Never use directly, go through call manager. */
    OsStatus handleDefocus(const AcYieldFocusMsg& rMsg);
+
+   /** Handler for OsMsg::PHONE_APP messages */
+   UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
 
    XCpAbstractCall(const XCpAbstractCall& rhs);
 

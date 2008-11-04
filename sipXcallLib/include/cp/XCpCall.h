@@ -69,7 +69,11 @@ public:
    XCpCall(const UtlString& sId,
            SipUserAgent& rSipUserAgent,
            CpMediaInterfaceFactory& rMediaInterfaceFactory,
-           OsMsgQ& rCallManagerQueue);
+           OsMsgQ& rCallManagerQueue,
+           CpCallStateEventListener* pCallEventListener = NULL,
+           SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+           SipSecurityEventListener* pSecurityEventListener = NULL,
+           CpMediaEventListener* pMediaEventListener = NULL);
 
    virtual ~XCpCall();
 
@@ -251,6 +255,9 @@ protected:
 
    /** Handles command messages */
    virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
+
+   /** Handler for inbound SipMessageEvent messages. */
+   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
