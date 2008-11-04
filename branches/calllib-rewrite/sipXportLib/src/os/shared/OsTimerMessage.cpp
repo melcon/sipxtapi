@@ -25,7 +25,7 @@
 
 // Constructors
 OsTimerMessage::OsTimerMessage(OsTimer* pTimer, OsBSem* pSem)
-:  OsMsg(OsMsg::OS_TIMER, ADD),
+:  OsMsg(OsMsg::OS_TIMERTASK_COMMAND, ADD),
    mID(-1),
    mpTimer(pTimer),
    mpSynchSem(pSem)
@@ -33,7 +33,7 @@ OsTimerMessage::OsTimerMessage(OsTimer* pTimer, OsBSem* pSem)
 }
 
 OsTimerMessage::OsTimerMessage(int ID, OsBSem* pSem)
-:  OsMsg(OsMsg::OS_TIMER, REMOVE),
+:  OsMsg(OsMsg::OS_TIMERTASK_COMMAND, REMOVE),
    mID(ID),
    mpTimer(NULL),
    mpSynchSem(pSem)
@@ -41,7 +41,7 @@ OsTimerMessage::OsTimerMessage(int ID, OsBSem* pSem)
 }
 
 OsTimerMessage::OsTimerMessage(OsBSem* pSem)
-:  OsMsg(OsMsg::OS_TIMER, SHUTDOWN),
+:  OsMsg(OsMsg::OS_TIMERTASK_COMMAND, SHUTDOWN),
    mID(-1),
    mpTimer(NULL),
    mpSynchSem(pSem)

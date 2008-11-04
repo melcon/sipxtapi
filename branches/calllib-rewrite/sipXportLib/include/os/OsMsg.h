@@ -41,9 +41,8 @@ public:
    {
       UNSPECIFIED = 0,
       OS_SHUTDOWN,           // Task shutdown request message
-      OS_TIMER,              // Timer request messages
+      OS_TIMERTASK_COMMAND,  // Timer request messages. Internal for OsTimerTask.
       OS_EVENT,              // Event notification messages
-      PS_MSG,                // Phone set messages
       PHONE_APP,             // Phone application messages
       MP_TASK_MSG,           // Media processing task messages
       MP_FLOWGRAPH_MSG,      // Media processing flowgraph messages
@@ -51,29 +50,10 @@ public:
       MP_CONNECTION_NOTF_MSG,// Media connection notification messages
       MP_INTERFACE_NOTF_MSG, // Media interface notification messages
       MP_BUFFER_MSG,         // Media processing buffer queue messages
-      SIP_PROXY_STATE,       // SIP proxy call state message
-      TAO_MSG,               // Tao messages
-      TAO_EVENT,             // Tao listener event messages
-      TAO_LISTENER_EVENT_MSG,// Tao listener event message (call backs)
-      PINGER_MSG,            // Pinger messages
-           REFRESH_MSG,
-           LINE_MGR_MSG,
       OS_SYSLOG,             // OS SysLog events
       STREAMING_MSG,         // Streaming related messages
       USER_START  = 128
    };
-   //!enumcode: OS_SHUTDOWN - Task shutdown request message
-   //!enumcode: OS_TIMER - Timer request messages
-   //!enumcode: OS_EVENT - Event notification messages
-   //!enumcode: PS_MSG - Phone set messages
-   //!enumcode: PHONE_APP - Phone application class of messages
-   //!enumcode: MP_TASK_MSG - Media processing task class of messages
-   //!enumcode: MP_FLOWGRAPH_MSG - Media processing flowgraph class of messages
-   //!enumcode: MP_RESOURCE_MSG - Media processing resource class of messages for new (2007-03) resource framework
-   //!enumcode: MP_BUFFER_MSG - Media processing buffer queue messages
-   //!enumcode: SIP_PROXY_STATE - SIP proxy call state message
-   //!enumcode: OS_SYSLOG - OS SysLog Messages
-   //!enumcode: USER_START - User defined message type categories start at USER_START
 
    static const UtlContainableType TYPE ;    /** < Class type used for runtime checking */
 /* ============================ CREATORS ================================== */
