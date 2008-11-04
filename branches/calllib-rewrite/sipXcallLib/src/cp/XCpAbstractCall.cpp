@@ -17,6 +17,7 @@
 #include <os/OsWriteLock.h>
 #include <os/OsMsgQ.h>
 #include <os/OsPtrLock.h>
+#include <net/SipMessage.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
@@ -46,7 +47,11 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipUserAgent& rSipUserAgent,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
-                                 OsMsgQ& rCallManagerQueue)
+                                 OsMsgQ& rCallManagerQueue,
+                                 CpCallStateEventListener* pCallEventListener,
+                                 SipInfoStatusEventListener* pInfoStatusEventListener,
+                                 SipSecurityEventListener* pSecurityEventListener,
+                                 CpMediaEventListener* pMediaEventListener)
 : OsServerTask("XCpAbstractCall-%d", NULL, CALL_MAX_REQUEST_MSGS)
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
@@ -58,6 +63,10 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_mediaInterfaceRWMutex(OsRWMutex::Q_FIFO)
 , m_instanceRWMutex(OsRWMutex::Q_FIFO)
 , m_sipTagGenerator()
+, m_pCallEventListener(pCallEventListener)
+, m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pSecurityEventListener(pSecurityEventListener)
+, m_pMediaEventListener(pMediaEventListener)
 {
 
 }
@@ -65,6 +74,13 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 XCpAbstractCall::~XCpAbstractCall()
 {
    waitUntilShutDown();
+   // release media interface if its still present. This should never happen. Only here as the last resort.
+   if (m_pMediaInterface)
+   {
+      // lock is not needed
+      m_pMediaInterface->release();
+      m_pMediaInterface = NULL;
+   }
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -76,13 +92,12 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    switch (rRawMsg.getMsgType())
    {
    case CpMessageTypes::AC_COMMAND:
-      {
-         return handleCommandMessage((const AcCommandMsg&)rRawMsg);
-      }
+      return handleCommandMessage((const AcCommandMsg&)rRawMsg);
    case CpMessageTypes::AC_NOTIFICATION:
-      {
-         return handleNotificationMessage((const AcNotificationMsg&)rRawMsg);
-      }
+      return handleNotificationMessage((const AcNotificationMsg&)rRawMsg);
+   case OsMsg::PHONE_APP:
+      return handlePhoneAppMessage(rRawMsg);
+   case OsMsg::OS_EVENT: // timer event
    default:
       break;
    }
@@ -401,6 +416,25 @@ OsStatus XCpAbstractCall::handleDefocus(const AcYieldFocusMsg& rMsg)
 #else
    return OS_SUCCESS;
 #endif
+}
+
+UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
+{
+   UtlBoolean bResult = FALSE;
+   int msgSubType = rRawMsg.getMsgSubType();
+
+   switch (msgSubType)
+   {
+   case SipMessage::NET_SIP_MESSAGE:
+      return handleSipMessageEvent((const SipMessageEvent&)rRawMsg);
+   default:
+      {
+         OsSysLog::add(FAC_CP, PRI_ERR, "Unknown PHONE_APP XCpAbstractCall message subtype: %d\n", msgSubType);
+         break;
+      }
+   }
+
+   return bResult;
 }
 
 /* ============================ FUNCTIONS ================================= */

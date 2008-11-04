@@ -220,12 +220,8 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
       sCallId = getNewCallId();
    }
 
-   XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, *getMessageQueue());
-   // register listeners
-   pCall->setCallEventListener(m_pCallEventListener);
-   pCall->setInfoStatusEventListener(m_pInfoStatusEventListener);
-   pCall->setSecurityEventListener(m_pSecurityEventListener);
-   pCall->setMediaEventListener(m_pMediaEventListener);
+   XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, *getMessageQueue(),
+      m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start();
    if (resStart)
@@ -256,12 +252,8 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    {
       sConferenceId = getNewConferenceId();
    }
-   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, *getMessageQueue());
-   // register listeners
-   pConference->setCallEventListener(m_pCallEventListener);
-   pConference->setInfoStatusEventListener(m_pInfoStatusEventListener);
-   pConference->setSecurityEventListener(m_pSecurityEventListener);
-   pConference->setMediaEventListener(m_pMediaEventListener);
+   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, *getMessageQueue(),
+      m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pConference->start();
    if (resStart)
@@ -1584,23 +1576,10 @@ UtlBoolean XCpCallManager::handlePhoneAppMessage(const OsMsg& rRawMsg)
    switch (msgSubType)
    {
    case SipMessage::NET_SIP_MESSAGE:
-      {
-         const SipMessageEvent* pSipMsgEvent = dynamic_cast<const SipMessageEvent*>(&rRawMsg);
-         if (pSipMsgEvent)
-         {
-            return handleSipMessageEvent(*pSipMsgEvent);
-         }
-         else
-         {
-            OsSysLog::add(FAC_CP, PRI_ERR, "Invalid SipMessage::NET_SIP_MESSAGE, cannot be cast to SipMessageEvent\n");
-            bResult = TRUE;
-            break;
-         }
-      }
+      return handleSipMessageEvent((const SipMessageEvent&)rRawMsg);
    default:
       {
          OsSysLog::add(FAC_CP, PRI_ERR, "Unknown PHONE_APP CallManager message subtype: %d\n", msgSubType);
-         bResult = TRUE;
          break;
       }
    }
@@ -1665,7 +1644,7 @@ UtlBoolean XCpCallManager::handleUnknownSipMessageEvent(const SipMessageEvent& r
          if (!m_bDoNotDisturb)
          {
             // all checks passed, create new call
-            createNewCall(rSipMsgEvent);
+            createNewInboundCall(rSipMsgEvent);
          }
          else
          {
@@ -1752,19 +1731,15 @@ UtlBoolean XCpCallManager::basicSipMessageRequestCheck(const SipMessage& rSipMes
    return FALSE;
 }
 
-void XCpCallManager::createNewCall(const SipMessageEvent& rSipMsgEvent)
+void XCpCallManager::createNewInboundCall(const SipMessageEvent& rSipMsgEvent)
 {
    const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
    if (pSipMessage)
    {
       UtlString sSipCallId = getNewSipCallId();
 
-      XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, *getMessageQueue());
-      // register listeners
-      pCall->setCallEventListener(m_pCallEventListener);
-      pCall->setInfoStatusEventListener(m_pInfoStatusEventListener);
-      pCall->setSecurityEventListener(m_pSecurityEventListener);
-      pCall->setMediaEventListener(m_pMediaEventListener);
+      XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, *getMessageQueue(),
+         m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
       UtlBoolean resStart = pCall->start(); // start thread
       if (resStart)
