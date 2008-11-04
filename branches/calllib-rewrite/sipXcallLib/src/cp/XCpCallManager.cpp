@@ -1297,14 +1297,14 @@ UtlBoolean XCpCallManager::findCall(const SipDialog& sSipDialog,
       {
          SipDialog::DialogMatchEnum matchResult = pCall->hasSipDialog(sSipDialog);
          if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
-             (sSipDialog.isInitialDialog() && matchResult == SipDialog::DIALOG_INITIAL_MATCH))
+             matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
          {
             // perfect match, call-id and both tags match
             // initial match is also perfect if supplied dialog is initial
             ptrLock = pCall;
             return TRUE;
          }
-         else if (matchResult == SipDialog::DIALOG_INITIAL_MATCH)
+         else if (matchResult != SipDialog::DIALOG_MISMATCH)
          {
             // partial match, call-id match but only 1 tag matches, 2nd tag is not present
             pNotEstablishedMatch = pCall; // lock it later
@@ -1337,14 +1337,14 @@ UtlBoolean XCpCallManager::findConference(const SipDialog& sSipDialog,
       {
          SipDialog::DialogMatchEnum matchResult = pConference->hasSipDialog(sSipDialog);
          if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
-            (sSipDialog.isInitialDialog() && matchResult == SipDialog::DIALOG_INITIAL_MATCH))
+             matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
          {
             // perfect match, call-id and both tags match
             // initial match is also perfect if supplied dialog is initial
             ptrLock = pConference;
             return TRUE;
          }
-         else if (matchResult == SipDialog::DIALOG_INITIAL_MATCH)
+         else if (matchResult != SipDialog::DIALOG_MISMATCH)
          {
             // partial match, call-id match but only 1 tag matches, 2nd tag is not present
             pNotEstablishedMatch = pConference; // lock it later

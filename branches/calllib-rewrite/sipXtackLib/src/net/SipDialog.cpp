@@ -659,21 +659,39 @@ SipDialog::DialogMatchEnum SipDialog::compareDialogs(const SipDialog& sipDialog)
 
    if (isInitialDialog())
    {
-      // we are initial dialog, one tag is missing. Use relaxed comparison
+      // left hand dialog is initial, one tag is missing. Use relaxed comparison
       if(isInitialDialogOf(callId, localTag, remoteTag))
       {
-         return SipDialog::DIALOG_INITIAL_MATCH;
-      }
-      else
-      {
-         return SipDialog::DIALOG_MISMATCH;
+         if (sipDialog.isInitialDialog())
+         {
+            // right hand side dialog is initial
+            return SipDialog::DIALOG_INITIAL_INITIAL_MATCH;
+         }
+         else
+         {
+            // right hand side dialog is established
+            return SipDialog::DIALOG_INITIAL_ESTABLISHED_MATCH;
+         }
       }
    }
    else
    {
-      if (isSameDialog(callId, localTag, remoteTag, TRUE))
+      // left dialog is established
+      if (!sipDialog.isInitialDialog())
       {
-         return SipDialog::DIALOG_ESTABLISHED_MATCH;
+         // right hand side dialog is established, strict comparison
+         if (isSameDialog(callId, localTag, remoteTag, TRUE))
+         {
+            return SipDialog::DIALOG_ESTABLISHED_MATCH;
+         }
+      }
+      else
+      {
+         // right hand side dialog is initial - has only 1 tag, use relaxed comparison
+         if(isInitialDialogOf(callId, localTag, remoteTag))
+         {
+            return SipDialog::DIALOG_ESTABLISHED_INITIAL_MATCH;
+         }
       }
    }
 

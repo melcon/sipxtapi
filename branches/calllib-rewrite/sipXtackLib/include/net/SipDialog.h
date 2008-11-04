@@ -111,13 +111,20 @@ public:
    } DialogSubState;
 
    /**
-    * Enum for dialog match results.
+    * Enum for dialog match results. Typically the best match is returned.
     */
    typedef enum
    {
-      DIALOG_ESTABLISHED_MATCH = 0, ///< both compared dialogs are established and tags match
-      DIALOG_INITIAL_MATCH, ///< given dialog matches current dialog in initial state
-      DIALOG_MISMATCH ///< dialog mismatch, either tags or call-id is different
+      DIALOG_ESTABLISHED_MATCH = 0, /**< both compared dialogs are established and tags match */
+      DIALOG_INITIAL_INITIAL_MATCH, /**< Right hand side initial dialog matches current initial dialog. */
+      DIALOG_INITIAL_ESTABLISHED_MATCH, /**< Right hand side established dialog matches current initial dialog. */
+      DIALOG_ESTABLISHED_INITIAL_MATCH, /**< Right hand side dialog which is initial matches current
+                                         *   established dialog with single tag.
+                                         *   In other words, right hand side initial dialog was the initial
+                                         *   dialog for current established dialog, before 2nd tag
+                                         *   was added.
+                                         */
+      DIALOG_MISMATCH /**< dialog mismatch, either tags or call-id is different */
    } DialogMatchEnum;
 
    /* ============================ CREATORS ================================== */
@@ -329,10 +336,10 @@ public:
    /** Returns TRUE if dialog was started locally. */
    UtlBoolean isLocalInitiatedDialog() const { return m_bLocalInitiatedDialog; }
 
-   /** Determine if this is an initial (not yet established) dialog */
+   /** Determine if this is an initial (not yet established) dialog. Initial dialog has only 1 tag. */
    UtlBoolean isInitialDialog() const;
 
-   /** Determine if this is an established dialog */
+   /** Determine if this is an established dialog. This is NOT a negation of isInitialDialog! */
    UtlBoolean isEstablishedDialog() const;
 
    /** Determine if this is a terminated dialog */
@@ -348,13 +355,13 @@ public:
 
    /**
     * Check if current SipDialog could have been the initial dialog of
-    * given SipMessage dialog.
+    * given SipMessage dialog. Compares callid and 1 tag.
     */
    UtlBoolean isInitialDialogOf(const SipMessage& message) const;
 
    /**
     * Check if current SipDialog could have been the initial dialog of
-    * given dialog.
+    * given dialog. Compares callid and 1 tag.
     */
    UtlBoolean isInitialDialogOf(const UtlString& callId,
                                 const UtlString& localTag,

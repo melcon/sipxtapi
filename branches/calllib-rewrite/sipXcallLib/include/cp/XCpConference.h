@@ -26,9 +26,42 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class AcConnectMsg;
+class AcDropConnectionMsg;
+class AcDropAllConnectionsMsg;
+class AcTransferBlindMsg;
+class AcHoldConnectionMsg;
+class AcHoldAllConnectionsMsg;
+class AcUnholdConnectionMsg;
+class AcUnholdAllConnectionsMsg;
+class AcLimitCodecPreferencesMsg;
+class AcRenegotiateCodecsMsg;
+class AcRenegotiateCodecsAllMsg;
+class AcSendInfoMsg;
+class AcMuteInputConnectionMsg;
+class AcUnmuteInputConnectionMsg;
 
 /**
- * XCpConference wraps several XSipConnections realizing conference functionality.
+ * XCpConference wraps several XSipConnections realizing conference functionality. XCpConference
+ * is designed to hold multiple XSipConnections, sharing single media session. Conference cannot
+ * accept inbound calls, those are routed to XCpCall automatically. Therefore methods related to
+ * inbound call processing are not implemented.
+ *
+ * Call management functions are asynchronous, and post message to the OsServerTask thread. This is
+ * useful because sending a sip message can take more time, and we don't want to block the call manager
+ * during that time. Also audio functionality can take several 10ms, or even 100ms if media task is
+ * getting overloaded.
+ * Audio functionality is synchronous, except for focus gain/yield. Focus gain/yield always needs to go through
+ * XCpCallManager, since we need a single place to manage focus. It will also ensure that no attept to gain
+ * focus is made before media interface is created.
+ *
+ * Locking strategy:
+ * @see XCpAbstractCall
+ * - local members that require locking are always after comment mentioning which mutex needs to be locked
+ * - const members and pointers/references set from constructor do not require locking, they are deleted by
+ *   caller at suitable time
+ *
+ * This class should have absolute minimum knowledge about sip, all sip communication is done in XSipConnection.
  */
 class XCpConference : public XCpAbstractCall
 {
@@ -208,16 +241,45 @@ protected:
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
 
    /** Handles command messages */
-   virtual UtlBoolean handleCommandMessage(AcCommandMsg& rRawMsg);
+   virtual UtlBoolean handleCommandMessage(const AcCommandMsg& rRawMsg);
 
    /** Handles command messages */
-   virtual UtlBoolean handleNotificationMessage(AcNotificationMsg& rRawMsg);
+   virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpConference(const XCpConference& rhs);
 
    XCpConference& operator=(const XCpConference& rhs);
+
+   /** Handles message to create new sip connection for call */
+   OsStatus handleConnect(const AcConnectMsg& rMsg);
+   /** Handles message to drop sip connection */
+   OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
+   /** Handles message to drop all sip connections */
+   OsStatus handleDropAllConnections(const AcDropAllConnectionsMsg& rMsg);
+   /** Handles message to initiate blind call transfer */
+   OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
+   /** Handles message to initiate remote hold on sip connection */
+   OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
+   /** Handles message to initiate remote hold on all sip connections */
+   OsStatus handleHoldAllConnections(const AcHoldAllConnectionsMsg& rMsg);
+   /** Handles message to initiate remote unhold on sip connection */
+   OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
+   /** Handles message to initiate remote unhold on all sip connection */
+   OsStatus handleUnholdAllConnections(const AcUnholdAllConnectionsMsg& rMsg);
+   /** Handles message to limit codec preferences for future sip connections */
+   OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
+   /** Handles message to renegotiate codecs for some sip connection */
+   OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
+   /** Handles message to renegotiate codecs for all sip connections */
+   OsStatus handleRenegotiateCodecsAll(const AcRenegotiateCodecsAllMsg& rMsg);
+   /** Handles message to send SIP INFO to on given sip connection */
+   OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
+   /** Handles message to mute inbound RTP in audio bridge */
+   OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
+   /** Handles message to unmute inbound RTP in audio bridge */
+   OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
 
    // needs m_memberMutex locked
    UtlSList m_sipConnections;
