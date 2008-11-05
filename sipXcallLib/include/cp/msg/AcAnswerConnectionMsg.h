@@ -56,6 +56,11 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcAnswerConnectionMsg(const AcAnswerConnectionMsg& rMsg);
+
+   /** Private assignment operator */
+   AcAnswerConnectionMsg& operator=(const AcAnswerConnectionMsg& rhs);
 };
 
 #endif // AcAnswerConnectionMsg_h__

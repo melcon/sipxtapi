@@ -61,6 +61,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcTransferBlindMsg(const AcTransferBlindMsg& rMsg);
+
+   /** Private assignment operator */
+   AcTransferBlindMsg& operator=(const AcTransferBlindMsg& rhs);
+
    SipDialog m_sipDialog;
    UtlString m_sTransferSipUrl;
 };

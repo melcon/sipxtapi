@@ -56,6 +56,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcGainFocusMsg(const AcGainFocusMsg& rMsg);
+
+   /** Private assignment operator */
+   AcGainFocusMsg& operator=(const AcGainFocusMsg& rhs);
+
 };
 
 #endif // AcGainFocusMsg_h__

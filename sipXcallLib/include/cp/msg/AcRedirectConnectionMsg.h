@@ -58,6 +58,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcRedirectConnectionMsg(const AcRedirectConnectionMsg& rMsg);
+
+   /** Private assignment operator */
+   AcRedirectConnectionMsg& operator=(const AcRedirectConnectionMsg& rhs);
+
    UtlString m_sRedirectSipUrl;
 };
 

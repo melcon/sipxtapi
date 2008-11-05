@@ -59,6 +59,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcMuteInputConnectionMsg(const AcMuteInputConnectionMsg& rMsg);
+
+   /** Private assignment operator */
+   AcMuteInputConnectionMsg& operator=(const AcMuteInputConnectionMsg& rhs);
+
    SipDialog m_sipDialog;
 };
 

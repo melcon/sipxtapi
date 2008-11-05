@@ -59,6 +59,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   ScCommandMsg(const ScCommandMsg& rMsg);
+
+   /** Private assignment operator */
+   ScCommandMsg& operator=(const ScCommandMsg& rhs);
+
 };
 
 #endif // ScCommandMsg_h__

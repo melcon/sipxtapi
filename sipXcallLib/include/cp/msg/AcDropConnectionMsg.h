@@ -60,6 +60,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcDropConnectionMsg(const AcDropConnectionMsg& rMsg);
+
+   /** Private assignment operator */
+   AcDropConnectionMsg& operator=(const AcDropConnectionMsg& rhs);
+
    SipDialog m_sipDialog;
    UtlBoolean m_bDestroyAbstractCall;
 };

@@ -56,6 +56,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcRejectConnectionMsg(const AcRejectConnectionMsg& rMsg);
+
+   /** Private assignment operator */
+   AcRejectConnectionMsg& operator=(const AcRejectConnectionMsg& rhs);
+
 };
 
 #endif // AcRejectConnectionMsg_h__

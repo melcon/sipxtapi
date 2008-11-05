@@ -58,6 +58,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcDropAllConnectionsMsg(const AcDropAllConnectionsMsg& rMsg);
+
+   /** Private assignment operator */
+   AcDropAllConnectionsMsg& operator=(const AcDropAllConnectionsMsg& rhs);
+
    UtlBoolean m_bDestroyAbstractCall;
 };
 

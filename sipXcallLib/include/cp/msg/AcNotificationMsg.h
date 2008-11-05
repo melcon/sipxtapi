@@ -59,6 +59,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcNotificationMsg(const AcNotificationMsg& rMsg);
+
+   /** Private assignment operator */
+   AcNotificationMsg& operator=(const AcNotificationMsg& rhs);
+
 };
 
 #endif // AcNotificationMsg_h__

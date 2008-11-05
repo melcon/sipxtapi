@@ -56,6 +56,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcHoldAllConnectionsMsg(const AcHoldAllConnectionsMsg& rMsg);
+
+   /** Private assignment operator */
+   AcHoldAllConnectionsMsg& operator=(const AcHoldAllConnectionsMsg& rhs);
+
 };
 
 #endif // AcHoldAllConnectionsMsg_h__
