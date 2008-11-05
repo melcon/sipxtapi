@@ -60,6 +60,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   CmCommandMsg(const CmCommandMsg& rMsg);
+
+   /** Private assignment operator */
+   CmCommandMsg& operator=(const CmCommandMsg& rhs);
+
 };
 
 #endif // CmCommandMsg_h__

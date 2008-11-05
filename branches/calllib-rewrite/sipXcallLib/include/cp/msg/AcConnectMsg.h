@@ -69,6 +69,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcConnectMsg(const AcConnectMsg& rMsg);
+
+   /** Private assignment operator */
+   AcConnectMsg& operator=(const AcConnectMsg& rhs);
+
    UtlString m_sSipCallId;
    UtlString m_sToAddress;
    UtlString m_sFromTag;

@@ -70,6 +70,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcRenegotiateCodecsMsg(const AcRenegotiateCodecsMsg& rMsg);
+
+   /** Private assignment operator */
+   AcRenegotiateCodecsMsg& operator=(const AcRenegotiateCodecsMsg& rhs);
+
    SipDialog m_sipDialog;
    CP_AUDIO_BANDWIDTH_ID m_audioBandwidthId;
    UtlString m_sAudioCodecs;

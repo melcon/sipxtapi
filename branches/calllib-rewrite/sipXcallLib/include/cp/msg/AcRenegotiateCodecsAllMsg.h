@@ -66,6 +66,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcRenegotiateCodecsAllMsg(const AcRenegotiateCodecsAllMsg& rMsg);
+
+   /** Private assignment operator */
+   AcRenegotiateCodecsAllMsg& operator=(const AcRenegotiateCodecsAllMsg& rhs);
+
    CP_AUDIO_BANDWIDTH_ID m_audioBandwidthId;
    UtlString m_sAudioCodecs;
    CP_VIDEO_BANDWIDTH_ID m_videoBandwidthId;

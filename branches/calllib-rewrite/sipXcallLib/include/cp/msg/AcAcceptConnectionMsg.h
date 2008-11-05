@@ -60,6 +60,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcAcceptConnectionMsg(const AcAcceptConnectionMsg& rMsg);
+
+   /** Private assignment operator */
+   AcAcceptConnectionMsg& operator=(const AcAcceptConnectionMsg& rhs);
+
    UtlString m_sLocationHeader;
    CP_CONTACT_ID m_contactId;
 };

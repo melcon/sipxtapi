@@ -58,6 +58,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   CmYieldFocusMsg(const CmYieldFocusMsg& rMsg);
+
+   /** Private assignment operator */
+   CmYieldFocusMsg& operator=(const CmYieldFocusMsg& rhs);
+
    UtlString m_sAbstractCallId;
 };
 

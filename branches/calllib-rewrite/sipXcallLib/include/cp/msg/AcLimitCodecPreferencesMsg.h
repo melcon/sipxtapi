@@ -66,6 +66,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcLimitCodecPreferencesMsg(const AcLimitCodecPreferencesMsg& rMsg);
+
+   /** Private assignment operator */
+   AcLimitCodecPreferencesMsg& operator=(const AcLimitCodecPreferencesMsg& rhs);
+
    CP_AUDIO_BANDWIDTH_ID m_audioBandwidthId;
    UtlString m_sAudioCodecs;
    CP_VIDEO_BANDWIDTH_ID m_videoBandwidthId;

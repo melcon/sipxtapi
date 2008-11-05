@@ -56,6 +56,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcYieldFocusMsg(const AcYieldFocusMsg& rMsg);
+
+   /** Private assignment operator */
+   AcYieldFocusMsg& operator=(const AcYieldFocusMsg& rhs);
+
 };
 
 #endif // AcYieldFocusMsg_h__

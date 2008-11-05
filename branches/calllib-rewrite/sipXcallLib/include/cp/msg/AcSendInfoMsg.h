@@ -65,6 +65,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcSendInfoMsg(const AcSendInfoMsg& rMsg);
+
+   /** Private assignment operator */
+   AcSendInfoMsg& operator=(const AcSendInfoMsg& rhs);
+
    SipDialog m_sipDialog;
    UtlString m_sContentType;
    char* m_pContent; ///< payload bytes

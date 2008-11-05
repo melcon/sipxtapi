@@ -59,6 +59,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   ScNotificationMsg(const ScNotificationMsg& rMsg);
+
+   /** Private assignment operator */
+   ScNotificationMsg& operator=(const ScNotificationMsg& rhs);
+
 };
 
 #endif // ScNotificationMsg_h__

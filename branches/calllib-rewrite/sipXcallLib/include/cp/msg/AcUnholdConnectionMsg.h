@@ -59,6 +59,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcUnholdConnectionMsg(const AcUnholdConnectionMsg& rMsg);
+
+   /** Private assignment operator */
+   AcUnholdConnectionMsg& operator=(const AcUnholdConnectionMsg& rhs);
+
    SipDialog m_sipDialog;
 };
 

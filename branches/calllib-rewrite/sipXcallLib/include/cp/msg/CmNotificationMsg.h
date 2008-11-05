@@ -59,6 +59,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   CmNotificationMsg(const CmNotificationMsg& rMsg);
+
+   /** Private assignment operator */
+   CmNotificationMsg& operator=(const CmNotificationMsg& rhs);
+
 };
 
 #endif // CmNotificationMsg_h__

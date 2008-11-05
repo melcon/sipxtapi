@@ -78,6 +78,11 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcCommandMsg(const AcCommandMsg& rMsg);
+
+   /** Private assignment operator */
+   AcCommandMsg& operator=(const AcCommandMsg& rhs);
 };
 
 #endif // AcCommandMsg_h__
