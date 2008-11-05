@@ -133,6 +133,9 @@
                 <File RelativePath=".\src\net\SmimeBody.cpp"/>
                 <File RelativePath=".\src\net\StateChangeNotifier.cpp"/>
                 <File RelativePath=".\src\net\Url.cpp"/>
+                <Filter Name="msg">
+                    <File RelativePath=".\src\net\msg\SipTimerMsg.cpp"/>
+                </Filter>
             </Filter>
         </Filter>
         <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
@@ -233,6 +236,9 @@
                 <File RelativePath="include\net\SipUserAgentStateless.h"/>
                 <File RelativePath=".\include\net\SmimeBody.h"/>
                 <File RelativePath="include\net\Url.h"/>
+                <Filter Name="msg">
+                    <File RelativePath=".\include\net\msg\SipTimerMsg.h"/>
+                </Filter>
             </Filter>
         </Filter>
     </Files>

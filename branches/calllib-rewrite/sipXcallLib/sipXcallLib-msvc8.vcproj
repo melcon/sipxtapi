@@ -410,6 +410,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\CpTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScCommandMsg.cpp"
 					>
 				</File>
@@ -620,6 +624,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\CmYieldFocusMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\CpTimerMsg.h"
 					>
 				</File>
 				<File

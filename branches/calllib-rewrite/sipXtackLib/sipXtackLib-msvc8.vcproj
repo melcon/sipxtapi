@@ -798,6 +798,14 @@
 					RelativePath=".\src\net\Url.cpp"
 					>
 				</File>
+				<Filter
+					Name="msg"
+					>
+					<File
+						RelativePath=".\src\net\msg\SipTimerMsg.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1167,6 +1175,14 @@
 					RelativePath="include\net\Url.h"
 					>
 				</File>
+				<Filter
+					Name="msg"
+					>
+					<File
+						RelativePath=".\include\net\msg\SipTimerMsg.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 	</Files>
