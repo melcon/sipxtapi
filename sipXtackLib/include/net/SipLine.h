@@ -61,14 +61,14 @@ public:
       LINE_STATE_PROVISIONED, ///< don't send registration, but enabled because server provisioned it.
       LINE_STATE_TRYING,      ///< registration message sent, awaiting response
       LINE_STATE_EXPIRED      ///< registration expired on server
-   } LineStates;
+   } LineStateEnum;
 
    /* ============================ CREATORS ================================== */
    ///@name Creators
    //@{
 
    SipLine(const Url& fullLineUrl = "", ///< full line url. field parameters will be cut off
-           LineStates state = LINE_STATE_UNKNOWN);
+           LineStateEnum state = LINE_STATE_UNKNOWN);
 
    virtual ~SipLine();
    SipLine(const SipLine& rSipLine);
@@ -140,13 +140,13 @@ public:
    //@{
 
    /** Gets state of line */
-   LineStates getState() const;
+   LineStateEnum getState() const;
 
    /** Gets state of line as string */
    UtlString getStateAsString() const;
 
    /** Sets state of line. Changing state doesn't trigger any actions. */
-   void setState(LineStates state);
+   void setState(LineStateEnum state);
 
    /** Gets UserId part of userEnteredUrl */
    UtlString getUserId() const;
@@ -221,7 +221,7 @@ protected:
    Url m_lineUri; /// <line key which is the "userEnteredUrl" stripped of display name, angle brackets and all parameters (basically the URI).
    Url m_fullLineUrl; ///< line Url used to construct sip message from field. Doesn't contain transport parameter
 
-   LineStates m_currentState; ///< current state of line
+   LineStateEnum m_currentState; ///< current state of line
    Url m_preferredContactUri; ///< contact that will be used in SIP messages
    UtlString m_proxyServers; ///< SIP proxy servers address:port, separated by ,
 
@@ -230,7 +230,7 @@ protected:
    void copyCredentials(const SipLine& rSipLine);
    Url buildLineContact(const UtlString& address = NULL, int port = PORT_NONE);
 
-   static const char* convertLineStateToString(LineStates lineState);
+   static const char* convertLineStateToString(LineStateEnum lineState);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

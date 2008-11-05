@@ -41,7 +41,7 @@ const UtlContainableType SipLine::TYPE = "SipLine";
 //////////////////////////////////////////////////////////////////////
 
 SipLine::SipLine(const Url& fullLineUrl,
-                 LineStates state)
+                 LineStateEnum state)
 {
    m_fullLineUrl = SipLine::getFullLineUrl(fullLineUrl);
    //then get uri from user entered url ...uri is complete in it
@@ -99,12 +99,12 @@ void SipLine::copyCredentials(const SipLine &rSipLine)
    }
 }
 
-SipLine::LineStates SipLine::getState() const
+SipLine::LineStateEnum SipLine::getState() const
 {
     return m_currentState;
 }
 
-void SipLine::setState(SipLine::LineStates state)
+void SipLine::setState(SipLine::LineStateEnum state)
 {
     m_currentState = state;
 }
@@ -358,7 +358,7 @@ void SipLine::setProxyServers(const UtlString& proxyServers)
    m_proxyServers = proxyServers;
 }
 
-const char* SipLine::convertLineStateToString(LineStates lineState)
+const char* SipLine::convertLineStateToString(LineStateEnum lineState)
 {
    const char* str = "Unknown";
 
