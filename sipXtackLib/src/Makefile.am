@@ -104,6 +104,7 @@ libsipXtack_la_SOURCES =  \
     net/SipSubscribeServerEventHandler.cpp \
     net/SipSubscriptionMgr.cpp \
     net/SipTagGenerator.cpp \
+    net/msg/SipTimerMsg.cpp \
     net/SipTcpServer.cpp \
     net/SipTransaction.cpp \
     net/SipTransactionList.cpp \
