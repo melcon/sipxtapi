@@ -42,7 +42,8 @@ public:
       UNSPECIFIED = 0,
       OS_SHUTDOWN,           // Task shutdown request message
       OS_TIMERTASK_COMMAND,  // Timer request messages. Internal for OsTimerTask.
-      OS_EVENT,              // Event notification messages
+      OS_TIMER_MSG,          // Message sent when timer fires
+      OS_EVENT,              // Event notification messages, old message type when timer fires for OsQueuedEvent
       PHONE_APP,             // Phone application messages
       MP_TASK_MSG,           // Media processing task messages
       MP_FLOWGRAPH_MSG,      // Media processing flowgraph messages

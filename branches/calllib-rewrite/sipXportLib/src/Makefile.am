@@ -87,6 +87,7 @@ libsipXport_la_SOURCES =  \
     os/OsProtectEventMgrInit.cpp \
     os/OsPtrMsg.cpp \
     os/OsQueuedEvent.cpp \
+    os/OsQueuedNotification.cpp \
     os/OsRWMutex.cpp \
     os/OsRpcMsg.cpp \
     os/OsSSL.cpp \
@@ -109,6 +110,8 @@ libsipXport_la_SOURCES =  \
     os/OsTime.cpp \
     os/OsTimeLog.cpp \
     os/OsTimer.cpp \
+    os/OsTimerMsg.cpp \
+    os/OsTimerNotification.cpp \
     os/OsTimerTaskCommandMsg.cpp \
     os/OsTimerTask.cpp \
     os/OsTokenizer.cpp \

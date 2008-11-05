@@ -484,6 +484,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\os\OsQueuedNotification.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\os\OsRpcMsg.cpp"
 				>
 			</File>
@@ -585,6 +589,14 @@
 			</File>
 			<File
 				RelativePath=".\src\os\shared\OsTimerMessage.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsTimerMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsTimerNotification.cpp"
 				>
 			</File>
 			<File
@@ -1037,6 +1049,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\os\OsQueuedNotification.h"
+				>
+			</File>
+			<File
 				RelativePath="include\os\OsReadLock.h"
 				>
 			</File>
@@ -1150,6 +1166,14 @@
 			</File>
 			<File
 				RelativePath="include\os\OsTimer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsTimerMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsTimerNotification.h"
 				>
 			</File>
 			<File
