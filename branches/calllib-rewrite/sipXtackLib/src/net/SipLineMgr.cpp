@@ -160,7 +160,7 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 
 UtlBoolean SipLineMgr::unregisterLine(const Url& lineURI)
 {
-   SipLine::LineStates lineState = SipLine::LINE_STATE_UNKNOWN;
+   SipLine::LineStateEnum lineState = SipLine::LINE_STATE_UNKNOWN;
 
    Url fullLineUrl;
    {
@@ -344,7 +344,7 @@ UtlBoolean SipLineMgr::getLineProxyServers(const Url& lineUri,
 }
 
 UtlBoolean SipLineMgr::setStateForLine(const Url& lineUri,
-                                       SipLine::LineStates state)
+                                       SipLine::LineStateEnum state)
 {
    OsLock lock(m_mutex); // scoped lock
 

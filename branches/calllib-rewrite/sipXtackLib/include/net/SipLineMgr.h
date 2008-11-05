@@ -88,7 +88,7 @@ public:
    virtual UtlBoolean getLineProxyServers(const Url& lineUri, UtlString& proxyServers) const;
 
    /** Sets state on given line. */
-   UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStates state);
+   UtlBoolean setStateForLine(const Url& lineUri, SipLine::LineStateEnum state);
 
    /** Adds new credentials to given line */
    UtlBoolean addCredentialForLine(const Url& lineUri,
