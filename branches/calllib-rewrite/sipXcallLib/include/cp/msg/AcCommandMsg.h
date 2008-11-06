@@ -57,11 +57,11 @@ public:
       AC_SEND_INFO, ///< send SIP INFO message
       AC_MUTE_INPUT_CONNECTION, ///< mutes inbound RTP connection on bridge
       AC_UNMUTE_INPUT_CONNECTION ///< unmutes inbound RTP connection on bridge
-   } SubTypesEnum;
+   } SubTypeEnum;
 
    /* ============================ CREATORS ================================== */
 
-   AcCommandMsg(SubTypesEnum subType);
+   AcCommandMsg(SubTypeEnum subType);
 
    virtual ~AcCommandMsg();
 

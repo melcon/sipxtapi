@@ -32,6 +32,7 @@
 #include <cp/msg/AcMuteInputConnectionMsg.h>
 #include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
+#include <cp/msg/CpTimerMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -319,7 +320,7 @@ UtlBoolean XCpConference::findConnection(const SipDialog& sipDialog, OsPtrLock<X
 
 UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
 {
-   switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
+   switch ((AcCommandMsg::SubTypeEnum)rRawMsg.getMsgSubType())
    {
    case AcCommandMsg::AC_CONNECT:
       handleConnect((const AcConnectMsg&)rRawMsg);
@@ -375,6 +376,12 @@ UtlBoolean XCpConference::handleNotificationMessage(const AcNotificationMsg& rRa
 {
    // we couldn't handle it, give chance to parent
    return XCpAbstractCall::handleNotificationMessage(rRawMsg);
+}
+
+UtlBoolean XCpConference::handleTimerMessage(const CpTimerMsg& rRawMsg)
+{
+   // we couldn't handle it, give chance to parent
+   return XCpAbstractCall::handleTimerMessage(rRawMsg);
 }
 
 UtlBoolean XCpConference::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)

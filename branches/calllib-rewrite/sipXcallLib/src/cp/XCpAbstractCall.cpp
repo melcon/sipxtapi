@@ -27,6 +27,7 @@
 #include <cp/msg/AcNotificationMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
+#include <cp/msg/CpTimerMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -97,6 +98,8 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
       return handleNotificationMessage((const AcNotificationMsg&)rRawMsg);
    case OsMsg::PHONE_APP:
       return handlePhoneAppMessage(rRawMsg);
+   case CpTimerMsg::OS_TIMER_MSG:
+      return handleTimerMessage((const CpTimerMsg&)rRawMsg);
    case OsMsg::OS_EVENT: // timer event
    default:
       break;
@@ -334,7 +337,7 @@ OsStatus XCpAbstractCall::getSipDialog(const SipDialog& sipDialog,
 
 UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
 {
-   switch ((AcCommandMsg::SubTypesEnum)rRawMsg.getMsgSubType())
+   switch ((AcCommandMsg::SubTypeEnum)rRawMsg.getMsgSubType())
    {
    case AcCommandMsg::AC_GAIN_FOCUS:
       handleGainFocus((const AcGainFocusMsg&)rRawMsg);
@@ -351,6 +354,19 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
 
 UtlBoolean XCpAbstractCall::handleNotificationMessage(const AcNotificationMsg& rRawMsg)
 {
+   return FALSE;
+}
+
+UtlBoolean XCpAbstractCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
+{
+   switch ((CpTimerMsg::SubTypeEnum)rRawMsg.getMsgSubType())
+   {
+   case CpTimerMsg::CP_TIMER_FIRST:
+      // handle your message here
+   default:
+      break;
+   }
+
    return FALSE;
 }
 

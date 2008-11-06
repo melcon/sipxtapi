@@ -27,7 +27,7 @@
 
 /* ============================ CREATORS ================================== */
 
-AcCommandMsg::AcCommandMsg(SubTypesEnum subType)
+AcCommandMsg::AcCommandMsg(SubTypeEnum subType)
 : OsMsg(CpMessageTypes::AC_COMMAND, (unsigned char)subType)
 {
 
@@ -40,7 +40,7 @@ AcCommandMsg::~AcCommandMsg()
 
 OsMsg* AcCommandMsg::createCopy(void) const
 {
-   return new AcCommandMsg((SubTypesEnum)getMsgSubType());
+   return new AcCommandMsg((SubTypeEnum)getMsgSubType());
 }
 
 /* ============================ MANIPULATORS ============================== */

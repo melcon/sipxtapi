@@ -51,6 +51,7 @@ class AcCommandMsg;
 class AcNotificationMsg;
 class AcGainFocusMsg;
 class AcYieldFocusMsg;
+class CpTimerMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -352,6 +353,9 @@ protected:
 
    /** Handles command messages */
    virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
+
+   /** Handles timer messages */
+   virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
    /** Handler for inbound SipMessageEvent messages. */
    virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent) = 0;
