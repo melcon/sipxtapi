@@ -1192,8 +1192,8 @@ OsStatus CpPhoneMediaInterface::playAudio(const char* url,
     return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::playBuffer(char* buf,
-                                           unsigned long bufSize,
+OsStatus CpPhoneMediaInterface::playBuffer(void* buf,
+                                           size_t bufSize,
                                            int type, 
                                            UtlBoolean repeat,
                                            UtlBoolean local,

@@ -56,7 +56,16 @@ public:
       AC_RENEGOTIATE_CODECS_ALL, ///< renegotiates codecs on all connections
       AC_SEND_INFO, ///< send SIP INFO message
       AC_MUTE_INPUT_CONNECTION, ///< mutes inbound RTP connection on bridge
-      AC_UNMUTE_INPUT_CONNECTION ///< unmutes inbound RTP connection on bridge
+      AC_UNMUTE_INPUT_CONNECTION, ///< unmutes inbound RTP connection on bridge
+      AC_AUDIO_BUFFER_PLAY, ///< starts playing a sound buffer on call
+      AC_AUDIO_FILE_PLAY, ///< starts playing a file on call
+      AC_AUDIO_STOP_PLAYBACK, ///< stops file/buffer playback
+      AC_AUDIO_PAUSE_PLAYBACK, ///< pauses buffer/file playback
+      AC_AUDIO_RESUME_PLAYBACK, ///< resumes buffer/file playback
+      AC_AUDIO_RECORD_START, ///< starts call/conference recording
+      AC_AUDIO_RECORD_STOP, ///< stops call/conference recording
+      AC_AUDIO_TONE_START, ///< starts DTMF tone
+      AC_AUDIO_TONE_STOP, ///< stops DTMF tone
    } SubTypeEnum;
 
    /* ============================ CREATORS ================================== */

@@ -268,10 +268,12 @@ public:
                             UtlBoolean bRepeat,
                             UtlBoolean bLocal,
                             UtlBoolean bRemote,
+                            UtlBoolean bMixWithMic = FALSE,
+                            int iDownScaling = 100,
                             void* pCookie = NULL);
 
    /** Stops playing audio file or buffer on call connection */
-   OsStatus audioStop(const UtlString& sAbstractCallId);
+   OsStatus audioStopPlayback(const UtlString& sAbstractCallId);
 
    /** Pauses audio playback of file or buffer. */
    OsStatus pauseAudioPlayback(const UtlString& sAbstractCallId);

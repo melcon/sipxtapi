@@ -638,6 +638,8 @@ OsStatus XCpCallManager::audioBufferPlay(const UtlString& sAbstractCallId,
                                          UtlBoolean bRepeat,
                                          UtlBoolean bLocal,
                                          UtlBoolean bRemote,
+                                         UtlBoolean bMixWithMic /*= FALSE*/,
+                                         int iDownScaling /*= 100*/,
                                          void* pCookie /*= NULL*/)
 {
    OsStatus result = OS_NOT_FOUND;
@@ -647,13 +649,14 @@ OsStatus XCpCallManager::audioBufferPlay(const UtlString& sAbstractCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->audioBufferPlay(pAudiobuf, iBufSize, iType, bRepeat, bLocal, bRemote, pCookie);
+      return ptrLock->audioBufferPlay(pAudiobuf, iBufSize, iType, bRepeat, bLocal, bRemote,
+         bMixWithMic, iDownScaling, pCookie);
    }
 
    return result;
 }
 
-OsStatus XCpCallManager::audioStop(const UtlString& sAbstractCallId)
+OsStatus XCpCallManager::audioStopPlayback(const UtlString& sAbstractCallId)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -662,7 +665,7 @@ OsStatus XCpCallManager::audioStop(const UtlString& sAbstractCallId)
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->audioStop();
+      return ptrLock->audioStopPlayback();
    }
 
    return result;

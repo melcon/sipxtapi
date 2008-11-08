@@ -167,8 +167,8 @@ public:
                               void* pCookie = NULL);
 
 
-    virtual OsStatus playBuffer(char* buf, 
-                               unsigned long bufSize,
+    virtual OsStatus playBuffer(void* buf, 
+                               size_t bufSize,
                                int type, 
                               UtlBoolean repeat,
                               UtlBoolean local, 

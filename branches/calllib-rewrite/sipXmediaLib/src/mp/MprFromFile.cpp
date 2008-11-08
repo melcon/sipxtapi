@@ -75,7 +75,7 @@ MprFromFile::~MprFromFile()
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus MprFromFile::playBuffer(const char* audioBuffer, unsigned long bufSize, 
+OsStatus MprFromFile::playBuffer(const void* audioBuffer, size_t bufSize, 
                                  int type, UtlBoolean repeat, void* pCookie)
 {
    UtlString* fgAudBuffer = NULL;
@@ -149,8 +149,8 @@ OsStatus MprFromFile::resumePlayback(void)
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 OsStatus MprFromFile::genericAudioBufToFGAudioBuf(UtlString*& fgAudioBuf, 
-                                                  const char* audioBuffer, 
-                                                  unsigned long bufSize, 
+                                                  const void* audioBuffer, 
+                                                  size_t bufSize, 
                                                   int type)
 {
    OsStatus stat = OS_SUCCESS;
@@ -163,7 +163,7 @@ OsStatus MprFromFile::genericAudioBufToFGAudioBuf(UtlString*& fgAudioBuf,
    {
       switch(type)
       {
-      case 0 : fgAudioBuf->append(audioBuffer,bufSize);
+      case 0 : fgAudioBuf->append((char*)audioBuffer,bufSize);
          break;
 
       case 1 : convertedBuffer = new char[bufSize*2];

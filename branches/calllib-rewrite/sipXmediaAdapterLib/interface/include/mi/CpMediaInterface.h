@@ -447,8 +447,8 @@ public:
                                      void* pCookie = NULL) = 0 ;
 
      /// @brief Play the specified audio buffer to the call. 
-   virtual OsStatus playBuffer(char* buf, 
-                               unsigned long bufSize,
+   virtual OsStatus playBuffer(void* buf, 
+                               size_t bufSize,
                                int type, 
                                UtlBoolean repeat,
                                UtlBoolean local, 

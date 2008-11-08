@@ -51,6 +51,15 @@ class AcCommandMsg;
 class AcNotificationMsg;
 class AcGainFocusMsg;
 class AcYieldFocusMsg;
+class AcAudioBufferPlayMsg;
+class AcAudioFilePlayMsg;
+class AcAudioPausePlaybackMsg;
+class AcAudioResumePlaybackMsg;
+class AcAudioStopPlaybackMsg;
+class AcAudioRecordStartMsg;
+class AcAudioRecordStopMsg;
+class AcAudioToneStartMsg;
+class AcAudioToneStopMsg;
 class CpTimerMsg;
 
 /**
@@ -63,24 +72,9 @@ class CpTimerMsg;
  *
  * Locking strategy:
  * - m_instanceRWMutex - used to implement methods of OsSyncBase. This is normally locked only for reading.
- * Write lock is used only when instance of this class is about to be deleted. There is normally some global
- * lock present before this write lock, to make it thread safe with regard to deletion. Using mostly read locking
- * allows us to execute some audio function taking several ms directly from application thread, having m_instanceRWMutex,
- * and m_mediaInterfaceRWMutex locked, and at the same time attempt to delete the call safely. Deletion will require
- * write lock on m_instanceRWMutex, so audio function will have to finish before this class is deleted.
- * - m_memberMutex - protects all members except instance of CpMediaInterface which uses separate mutex. Mutex
- * is reentrant.
- * - m_mediaInterfaceRWMutex - needs to be separate, because calls to CpMediaInterface can take several
- * ms, and we do not want to block the main mutex so long. Always use read lock. Write lock is taken only
- * when creating or deleting instance of CpMediaInterface. Parallel access to CpMediaInterface is possible,
- * so write lock is not needed when executing normal audio operations on it. This mutex is NOT reentrant.
- *
- * Locks must be acquired in the following order: 1.) m_instanceRWMutex, 2.) m_memberMutex, 3.) m_mediaInterfaceRWMutex.
- * If we have some successive mutex, we cannot lock previous mutex! It is not required to hold previous mutex from
- * the list to lock the next one. m_instanceRWMutex should only be used externally, and never in this class.
- * m_memberMutex is separate from m_mediaInterfaceRWMutex, because we don't want to block SipDialog comparisons during
- * audio function execution. Audio functions can take several 10ms to execute, as they are synchronous and sometimes
- * require flowgraph synchronization (waiting for the next "clock").
+ * Write lock is used only when instance of this class is about to be deleted. This is meant only to be used
+ * outside this class for automatic pointer locking.
+ * - m_memberMutex - protects all members which are marked to be protected by it
  *
  * Dialog matching:
  * - hasSipDialog - uses strict dialog matching. First we try to return connection with perfect dialog match.
@@ -198,10 +192,12 @@ public:
                             UtlBoolean bRepeat,
                             UtlBoolean bLocal,
                             UtlBoolean bRemote,
+                            UtlBoolean bMixWithMic = FALSE,
+                            int iDownScaling = 100,
                             void* pCookie = NULL);
 
    /** Stops playing audio file or buffer on call connection */
-   OsStatus audioStop();
+   OsStatus audioStopPlayback();
 
    /** Pauses audio playback of file or buffer. */
    OsStatus pauseAudioPlayback();
@@ -372,16 +368,18 @@ protected:
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
-   UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
+   // begin of members requiring m_memberMutex
+   // end of members requiring m_memberMutex
 
-   mutable OsRWMutex m_mediaInterfaceRWMutex; ///< mutex for synchronization of access to media interface
+   // no mutex required, used only from OsServerTask
    CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
+   UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
 
    // thread safe
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    const UtlString m_sId; ///< unique identifier of the abstract call
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
-   CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
+   CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
    // set only once and thread safe
    CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
@@ -397,8 +395,38 @@ private:
    /** Handles defocus command from call manager. Never use directly, go through call manager. */
    OsStatus handleDefocus(const AcYieldFocusMsg& rMsg);
 
+   /** Handles command to start playing buffer on call */
+   OsStatus handleAudioBufferPlay(const AcAudioBufferPlayMsg& rMsg);
+
+   /** Handles command to start playing file on call */
+   OsStatus handleAudioFilePlay(const AcAudioFilePlayMsg& rMsg);
+
+   /** Handles command to pause playing file/buffer on call */
+   OsStatus handleAudioPausePlayback(const AcAudioPausePlaybackMsg& rMsg);
+
+   /** Handles command to resume playing file/buffer on call */
+   OsStatus handleAudioResumePlayback(const AcAudioResumePlaybackMsg& rMsg);
+
+   /** Handles command to stop playing file/buffer on call */
+   OsStatus handleAudioStopPlayback(const AcAudioStopPlaybackMsg& rMsg);
+
+   /** Handles command to start recording call */
+   OsStatus handleAudioRecordStart(const AcAudioRecordStartMsg& rMsg);
+
+   /** Handles command to stop recording call */
+   OsStatus handleAudioRecordStop(const AcAudioRecordStopMsg& rMsg);
+
+   /** Handles command to start sending audio DTMF */
+   OsStatus handleAudioToneStart(const AcAudioToneStartMsg& rMsg);
+
+   /** Handles command to stop sending audio DTMF */
+   OsStatus handleAudioToneStop(const AcAudioToneStopMsg& rMsg);
+
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
+
+   /** Releases media interface */
+   void releaseMediaInterface();
 
    XCpAbstractCall(const XCpAbstractCall& rhs);
 
