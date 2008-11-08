@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/XSipConnectionContext.h>
+#include <mi/CpMediaInterface.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -29,6 +30,7 @@
 
 XSipConnectionContext::XSipConnectionContext()
 : m_memberMutex(OsRWMutex::Q_FIFO)
+, m_mediaConnectionId(CpMediaInterface::getInvalidConnectionId())
 {
 
 }

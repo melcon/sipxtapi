@@ -116,7 +116,7 @@ private:
    XSipConnection& operator=(const XSipConnection& rhs);
 
    // needs special locking
-   XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.
+   mutable XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.
 
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall
 };

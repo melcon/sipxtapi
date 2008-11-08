@@ -12,7 +12,9 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsReadLock.h>
 #include <cp/XSipConnection.h>
+#include <cp/XSipConnectionContext.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -76,26 +78,26 @@ UtlContainableType XSipConnection::getContainableType() const
 
 void XSipConnection::getSipDialog(SipDialog& sSipDialog) const
 {
-   // TODO: implement
-   sSipDialog = SipDialog();
+   OsReadLock lock(m_sipConnectionContext);
+   sSipDialog = m_sipConnectionContext.m_sipDialog;
 }
 
 void XSipConnection::getSipCallId(UtlString& sSipCallId) const
 {
-   // TODO: implement
-   sSipCallId.remove(0);
+   OsReadLock lock(m_sipConnectionContext);
+   m_sipConnectionContext.m_sipDialog.getCallId(sSipCallId);
 }
 
 void XSipConnection::getRemoteUserAgent(UtlString& sRemoteUserAgent) const
 {
-   // TODO: implement
-   sRemoteUserAgent.remove(0);
+   OsReadLock lock(m_sipConnectionContext);
+   sRemoteUserAgent = m_sipConnectionContext.m_remoteUserAgent;
 }
 
 void XSipConnection::getMediaConnectionId(int& mediaConnID) const
 {
-   // TODO: implement
-   mediaConnID = -1;
+   OsReadLock lock(m_sipConnectionContext);
+   mediaConnID = m_sipConnectionContext.m_mediaConnectionId;
 }
 
 /* ============================ INQUIRY =================================== */
@@ -118,7 +120,8 @@ int XSipConnection::compareTo(UtlContainable const* inVal) const
 
 SipDialog::DialogMatchEnum XSipConnection::compareSipDialog(const SipDialog& sSipDialog) const
 {
-   return SipDialog::DIALOG_MISMATCH;
+   OsReadLock lock(m_sipConnectionContext);
+   return m_sipConnectionContext.m_sipDialog.compareDialogs(sSipDialog);
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
