@@ -838,7 +838,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferencePlayAudioFileStop(const SIPX_CONF hConf)
          if (pData->nCalls > 0)
          {
             pData->nNumFilesPlaying--;
-            pData->pInst->pCallManager->audioStop(pData->confCallId);
+            pData->pInst->pCallManager->audioStopPlayback(pData->confCallId);
             sr = SIPX_RESULT_SUCCESS;
          }
 

@@ -6,6 +6,15 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 nobase_include_HEADERS =  \
     cp/msg/AcAcceptConnectionMsg.h \
     cp/msg/AcAnswerConnectionMsg.h \
+    cp/msg/AcAudioBufferPlayMsg.h \
+    cp/msg/AcAudioFilePlayMsg.h \
+    cp/msg/AcAudioPausePlaybackMsg.h \
+    cp/msg/AcAudioRecordStartMsg.h \
+    cp/msg/AcAudioRecordStopMsg.h \
+    cp/msg/AcAudioResumePlaybackMsg.h \
+    cp/msg/AcAudioStopPlaybackMsg.h \
+    cp/msg/AcAudioToneStartMsg.h \
+    cp/msg/AcAudioToneStopMsg.h \
     cp/msg/AcCommandMsg.h \
     cp/msg/AcConnectMsg.h \
     cp/msg/AcDropAllConnectionsMsg.h \

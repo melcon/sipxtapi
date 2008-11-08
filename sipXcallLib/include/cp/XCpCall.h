@@ -297,8 +297,9 @@ private:
    /** Handles message to unmute inbound RTP in audio bridge */
    OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
 
-   // needs m_memberMutex locked
+   // begin of members requiring m_memberMutex
    XSipConnection* m_pSipConnection;
+   // end of members requiring m_memberMutex
 };
 
 #endif // XCpCall_h__

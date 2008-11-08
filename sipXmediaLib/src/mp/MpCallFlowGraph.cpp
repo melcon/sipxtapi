@@ -1262,8 +1262,8 @@ OsStatus MpCallFlowGraph::playFile(const char* audioFileName,
 }
 
 // Start playing the indicated audio buffer.
-OsStatus MpCallFlowGraph::playBuffer(char* audioBuf, 
-                                     unsigned long bufSize,
+OsStatus MpCallFlowGraph::playBuffer(void* audioBuf, 
+                                     size_t bufSize,
                                      int type, 
                                      UtlBoolean repeat,
                                      int toneOptions,

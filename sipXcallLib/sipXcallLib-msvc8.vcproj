@@ -314,6 +314,42 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcAudioBufferPlayMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioFilePlayMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioPausePlaybackMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioRecordStartMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioRecordStopMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioResumePlaybackMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioStopPlaybackMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioToneStartMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioToneStopMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcCommandMsg.cpp"
 					>
 				</File>
@@ -528,6 +564,42 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcAnswerConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioBufferPlayMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioFilePlayMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioPausePlaybackMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioRecordStartMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioRecordStopMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioResumePlaybackMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioStopPlaybackMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioToneStartMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioToneStopMsg.h"
 					>
 				</File>
 				<File

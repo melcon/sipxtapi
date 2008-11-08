@@ -33,6 +33,15 @@ libsipXcall_la_SOURCES = \
     ../config/sipxcalllib-buildstamp.cpp \
     cp/msg/AcAcceptConnectionMsg.cpp \
     cp/msg/AcAnswerConnectionMsg.cpp \
+    cp/msg/AcAudioBufferPlayMsg.cpp \
+    cp/msg/AcAudioFilePlayMsg.cpp \
+    cp/msg/AcAudioPausePlaybackMsg.cpp \
+    cp/msg/AcAudioRecordStartMsg.cpp \
+    cp/msg/AcAudioRecordStopMsg.cpp \
+    cp/msg/AcAudioResumePlaybackMsg.cpp \
+    cp/msg/AcAudioStopPlaybackMsg.cpp \
+    cp/msg/AcAudioToneStartMsg.cpp \
+    cp/msg/AcAudioToneStopMsg.cpp \
     cp/msg/AcCommandMsg.cpp \
     cp/msg/AcConnectMsg.cpp \
     cp/msg/AcDropAllConnectionsMsg.cpp \

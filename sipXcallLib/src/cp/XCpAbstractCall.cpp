@@ -25,9 +25,19 @@
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 #include <cp/msg/AcNotificationMsg.h>
+#include <cp/msg/AcAudioBufferPlayMsg.h>
+#include <cp/msg/AcAudioFilePlayMsg.h>
+#include <cp/msg/AcAudioPausePlaybackMsg.h>
+#include <cp/msg/AcAudioResumePlaybackMsg.h>
+#include <cp/msg/AcAudioStopPlaybackMsg.h>
+#include <cp/msg/AcAudioRecordStartMsg.h>
+#include <cp/msg/AcAudioRecordStopMsg.h>
+#include <cp/msg/AcAudioToneStartMsg.h>
+#include <cp/msg/AcAudioToneStopMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
+
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -61,7 +71,6 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_rCallManagerQueue(rCallManagerQueue)
 , m_pMediaInterface(NULL)
 , m_bIsFocused(FALSE)
-, m_mediaInterfaceRWMutex(OsRWMutex::Q_FIFO)
 , m_instanceRWMutex(OsRWMutex::Q_FIFO)
 , m_sipTagGenerator()
 , m_pCallEventListener(pCallEventListener)
@@ -76,12 +85,7 @@ XCpAbstractCall::~XCpAbstractCall()
 {
    waitUntilShutDown();
    // release media interface if its still present. This should never happen. Only here as the last resort.
-   if (m_pMediaInterface)
-   {
-      // lock is not needed
-      m_pMediaInterface->release();
-      m_pMediaInterface = NULL;
-   }
+   releaseMediaInterface();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -112,26 +116,14 @@ OsStatus XCpAbstractCall::audioToneStart(int iToneId,
                                          UtlBoolean bLocal,
                                          UtlBoolean bRemote)
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->startTone(iToneId, bLocal, bRemote);
-   }
-
-   return OS_FAILED;
+   AcAudioToneStartMsg audioToneStartMsg(iToneId, bLocal, bRemote);
+   return postMessage(audioToneStartMsg);
 }
 
 OsStatus XCpAbstractCall::audioToneStop()
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->stopTone();
-   }
-
-   return OS_FAILED;
+   AcAudioToneStopMsg audioToneStopMsg;
+   return postMessage(audioToneStopMsg);
 }
 
 OsStatus XCpAbstractCall::audioFilePlay(const UtlString& audioFile,
@@ -142,15 +134,8 @@ OsStatus XCpAbstractCall::audioFilePlay(const UtlString& audioFile,
                                         int iDownScaling /*= 100*/,
                                         void* pCookie /*= NULL*/)
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->playAudio(audioFile, bRepeat, bLocal, bRemote,
-         bMixWithMic, iDownScaling, pCookie);
-   }
-
-   return OS_FAILED;
+   AcAudioFilePlayMsg audioFilePlayMsg(audioFile, bRepeat, bLocal, bRemote, bMixWithMic, iDownScaling, pCookie);
+   return postMessage(audioFilePlayMsg);
 }
 
 OsStatus XCpAbstractCall::audioBufferPlay(const void* pAudiobuf,
@@ -159,77 +144,43 @@ OsStatus XCpAbstractCall::audioBufferPlay(const void* pAudiobuf,
                                           UtlBoolean bRepeat,
                                           UtlBoolean bLocal,
                                           UtlBoolean bRemote,
+                                          UtlBoolean bMixWithMic /*= FALSE*/,
+                                          int iDownScaling /*= 100*/,
                                           void* pCookie /*= NULL*/)
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->playBuffer((char*)pAudiobuf, (unsigned long)iBufSize, iType, bRepeat, bLocal, bRemote,
-         FALSE, 100, pCookie);
-   }
-
-   return OS_FAILED;
+   AcAudioBufferPlayMsg audioBufferPlayMsg(pAudiobuf, iBufSize, iType, bRepeat, bLocal,
+      bRemote, bMixWithMic, iDownScaling, pCookie);
+   return postMessage(audioBufferPlayMsg);
 }
 
-OsStatus XCpAbstractCall::audioStop()
+OsStatus XCpAbstractCall::audioStopPlayback()
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->stopAudio();
-   }
-
-   return OS_FAILED;
+   AcAudioStopPlaybackMsg audioStopPlaybackMsg;
+   return postMessage(audioStopPlaybackMsg);
 }
 
 OsStatus XCpAbstractCall::pauseAudioPlayback()
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->pausePlayback();
-   }
-
-   return OS_FAILED;
+   AcAudioPausePlaybackMsg audioPausePlaybackMsg;
+   return postMessage(audioPausePlaybackMsg);
 }
 
 OsStatus XCpAbstractCall::resumeAudioPlayback()
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->resumePlayback();
-   }
-
-   return OS_FAILED;
+   AcAudioResumePlaybackMsg audioResumePlaybackMsg;
+   return postMessage(audioResumePlaybackMsg);
 }
 
 OsStatus XCpAbstractCall::audioRecordStart(const UtlString& sFile)
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->recordAudio(sFile);
-   }
-
-   return OS_FAILED;
+   AcAudioRecordStartMsg audioRecordStartMsg(sFile);
+   return postMessage(audioRecordStartMsg);
 }
 
 OsStatus XCpAbstractCall::audioRecordStop()
 {
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->stopRecording();
-   }
-
-   return OS_FAILED;
+   AcAudioRecordStopMsg audioRecordStopMsg;
+   return postMessage(audioRecordStopMsg);
 }
 
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
@@ -345,6 +296,33 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_YIELD_FOCUS:
       handleDefocus((const AcYieldFocusMsg&)rRawMsg);
       return TRUE;
+   case AcCommandMsg::AC_AUDIO_BUFFER_PLAY:
+      handleAudioBufferPlay((const AcAudioBufferPlayMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_FILE_PLAY:
+      handleAudioFilePlay((const AcAudioFilePlayMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_STOP_PLAYBACK:
+      handleAudioStopPlayback((const AcAudioStopPlaybackMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_PAUSE_PLAYBACK:
+      handleAudioPausePlayback((const AcAudioPausePlaybackMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_RESUME_PLAYBACK:
+      handleAudioResumePlayback((const AcAudioResumePlaybackMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_RECORD_START:
+      handleAudioRecordStart((const AcAudioRecordStartMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_RECORD_STOP:
+      handleAudioRecordStop((const AcAudioRecordStopMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_TONE_START:
+      handleAudioToneStart((const AcAudioToneStartMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_AUDIO_TONE_STOP:
+      handleAudioToneStop((const AcAudioToneStopMsg&)rRawMsg);
+      return TRUE;
    default:
       break;
    }
@@ -395,8 +373,6 @@ OsStatus XCpAbstractCall::yieldFocus()
 OsStatus XCpAbstractCall::handleGainFocus(const AcGainFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
    if (m_pMediaInterface && !m_bIsFocused)
    {
       OsStatus resFocus = m_pMediaInterface->giveFocus();
@@ -416,8 +392,6 @@ OsStatus XCpAbstractCall::handleGainFocus(const AcGainFocusMsg& rMsg)
 OsStatus XCpAbstractCall::handleDefocus(const AcYieldFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   OsReadLock lock(m_mediaInterfaceRWMutex);
-
    if (m_pMediaInterface && m_bIsFocused)
    {
       OsStatus resFocus = m_pMediaInterface->defocus();
@@ -432,6 +406,99 @@ OsStatus XCpAbstractCall::handleDefocus(const AcYieldFocusMsg& rMsg)
 #else
    return OS_SUCCESS;
 #endif
+}
+
+OsStatus XCpAbstractCall::handleAudioBufferPlay(const AcAudioBufferPlayMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->playBuffer(rMsg.getAudiobuf(), rMsg.getBufSize(),
+         rMsg.getType(), rMsg.getRepeat(), rMsg.getLocal(), rMsg.getRemote(),
+         rMsg.getMixWithMic(), rMsg.getDownScaling(), rMsg.getCookie());
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioFilePlay(const AcAudioFilePlayMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->playAudio(rMsg.getAudioFile(), rMsg.getRepeat(), rMsg.getLocal(), rMsg.getRemote(),
+         rMsg.getMixWithMic(), rMsg.getDownScaling(), rMsg.getCookie());
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioPausePlayback(const AcAudioPausePlaybackMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->pausePlayback();
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioResumePlayback(const AcAudioResumePlaybackMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->resumePlayback();
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioStopPlayback(const AcAudioStopPlaybackMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->stopAudio();
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioRecordStart(const AcAudioRecordStartMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->recordAudio(rMsg.getFile());
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioRecordStop(const AcAudioRecordStopMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->stopRecording();
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioToneStart(const AcAudioToneStartMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->startTone(rMsg.getToneId(), rMsg.getLocal(), rMsg.getRemote());
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleAudioToneStop(const AcAudioToneStopMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      return m_pMediaInterface->stopTone();
+   }
+
+   return OS_FAILED;
 }
 
 UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
@@ -451,6 +518,16 @@ UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
    }
 
    return bResult;
+}
+
+void XCpAbstractCall::releaseMediaInterface()
+{
+   if (m_pMediaInterface)
+   {
+      // lock is not needed
+      m_pMediaInterface->release();
+      m_pMediaInterface = NULL;
+   }
 }
 
 /* ============================ FUNCTIONS ================================= */

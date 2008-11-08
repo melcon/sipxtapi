@@ -203,8 +203,8 @@ public:
                   int timeMS, int silenceLength, OsNotification* event = NULL,
                   MprRecorder::RecordFileFormat format = MprRecorder::RAW_PCM_16);
 
-   OsStatus playBuffer(char* audioBuf,
-                  unsigned long bufSize,
+   OsStatus playBuffer(void* audioBuf,
+                  size_t bufSize,
                   int type,
                   UtlBoolean repeat,
                   int toneOptions,
