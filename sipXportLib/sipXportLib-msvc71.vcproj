@@ -238,6 +238,7 @@
             <File RelativePath="include\os\OsReadLock.h"/>
             <File RelativePath="include\os\OsRpcMsg.h"/>
             <File RelativePath="include\os\OsRWMutex.h"/>
+            <File RelativePath=".\include\os\OsRWSyncBase.h"/>
             <File RelativePath="include\os\OsServerSocket.h"/>
             <File RelativePath="include\os\OsServerTask.h"/>
             <File RelativePath="include\os\OsSharedLibMgr.h"/>

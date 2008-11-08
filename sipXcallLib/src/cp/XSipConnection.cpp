@@ -30,7 +30,7 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 /* ============================ CREATORS ================================== */
 
 XSipConnection::XSipConnection()
-: m_memberMutex(OsMutex::Q_FIFO)
+: m_instanceRWMutex(OsRWMutex::Q_FIFO)
 {
 
 }
@@ -44,17 +44,22 @@ XSipConnection::~XSipConnection()
 
 OsStatus XSipConnection::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
 {
-   return m_memberMutex.acquire(rTimeout);
+   return m_instanceRWMutex.acquireRead();
+}
+
+OsStatus XSipConnection::acquireExclusive()
+{
+   return m_instanceRWMutex.acquireWrite();
 }
 
 OsStatus XSipConnection::tryAcquire()
 {
-   return m_memberMutex.tryAcquire();
+   return m_instanceRWMutex.tryAcquireRead();
 }
 
 OsStatus XSipConnection::release()
 {
-   return m_memberMutex.release();
+   return m_instanceRWMutex.releaseRead();
 }
 
 /* ============================ ACCESSORS ================================= */

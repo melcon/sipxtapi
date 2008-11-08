@@ -65,16 +65,18 @@ class CpTimerMsg;
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
  * common functionality. This class can be stored in Utl containers.
- * Inherits from OsSyncBase, and can be locked externally. Locking the object ensures
- * that its state doesn't change.
+ * Inherits from OsSyncBase, and can be locked externally. Locking the object with m_instanceRWMutex ensures
+ * that it doesn't get deleted.
  *
- * Most public methods must acquire the object mutex first.
+ * Most public methods must acquire the object mutex m_instanceRWMutex first.
  *
  * Locking strategy:
  * - m_instanceRWMutex - used to implement methods of OsSyncBase. This is normally locked only for reading.
  * Write lock is used only when instance of this class is about to be deleted. This is meant only to be used
  * outside this class for automatic pointer locking.
- * - m_memberMutex - protects all members which are marked to be protected by it
+ * - m_memberMutex - protects all members which are marked to be protected by it. This is the real mutex that
+ * protects against member corruption due to parallel access. Members which require this mutex to be locked
+ * must always be marked.
  *
  * Dialog matching:
  * - hasSipDialog - uses strict dialog matching. First we try to return connection with perfect dialog match.

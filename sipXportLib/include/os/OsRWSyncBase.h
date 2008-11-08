@@ -11,14 +11,13 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _OsSyncBase_h_
-#define _OsSyncBase_h_
+#ifndef OsRWSyncBase_h__
+#define OsRWSyncBase_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
 #include "os/OsStatus.h"
-#include "os/OsTime.h"
 
 // DEFINES
 // MACROS
@@ -32,32 +31,45 @@
 /**
  * @brief Base class for the synchronization mechanisms in the OS abstraction layer
  */
-class OsSyncBase
+class OsRWSyncBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
      /// Destructor
-   virtual ~OsSyncBase() { };
+   virtual ~OsRWSyncBase() { };
 
 /* ============================ CREATORS ================================== */
 
 /* ============================ MANIPULATORS ============================== */
 
      /// Assignment operator
-   OsSyncBase& operator=(const OsSyncBase& rhs);
+   OsRWSyncBase& operator=(const OsRWSyncBase& rhs);
 
-     /// Block until the sync object is acquired or the timeout expires
-   virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY) = 0;
+   virtual OsStatus acquireRead(void) = 0;
+   //:Block (if necessary) until the task acquires the resource for reading
+   // Multiple simultaneous readers are allowed.
 
-     /// Conditionally acquire the semaphore (i.e., don't block)
-   virtual OsStatus tryAcquire(void) = 0;
-     /**
-      * @return OS_BUSY if the sync object is held by some other task.
-      */
+   virtual OsStatus acquireWrite(void) = 0;
+   //:Block (if necessary) until the task acquires the resource for writing
+   // Only one writer at a time is allowed (and no readers).
 
-     /// Release the sync object
-   virtual OsStatus release(void) = 0;
+   virtual OsStatus tryAcquireRead(void) = 0;
+   //:Conditionally acquire the resource for reading (i.e., don't block)
+   // Multiple simultaneous readers are allowed.
+   // Return OS_BUSY if the resource is held for writing by some other task
+
+   virtual OsStatus tryAcquireWrite(void) = 0;
+   //:Conditionally acquire the resource for writing (i.e., don't block).
+   // Only one writer at a time is allowed (and no readers).
+   // Return OS_BUSY if the resource is held for writing by some other task
+   // or if there are running readers.
+
+   virtual OsStatus releaseRead(void) = 0;
+   //:Release the resource for reading
+
+   virtual OsStatus releaseWrite(void) = 0;
+   //:Release the resource for writing
 
 /* ============================ ACCESSORS ================================= */
 
@@ -66,15 +78,14 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 	 /// Default constructor
-   OsSyncBase() { };
+   OsRWSyncBase() { };
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
      /// Copy constructor
-   OsSyncBase(const OsSyncBase& rOsSyncBase);
+   OsRWSyncBase(const OsRWSyncBase& rRWSyncBase);
 };
 
 /* ============================ INLINE METHODS ============================ */
 
-#endif  // _OsSyncBase_h_
-
+#endif // OsRWSyncBase_h__

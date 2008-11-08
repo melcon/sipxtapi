@@ -16,9 +16,10 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsMutex.h>
+#include <os/OsRWMutex.h>
 #include <os/OsSyncBase.h>
 #include <utl/UtlContainable.h>
-#include <net/SipDialog.h>
+#include <cp/XSipConnectionContext.h>
 
 // DEFINES
 // MACROS
@@ -28,7 +29,6 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
-class SipDialog;
 
 /**
  * XSipConnection is responsible for SIP communication.
@@ -47,8 +47,11 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
-   /** Block until the sync object is acquired or the timeout expires */
+   /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
+
+   /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
+   virtual OsStatus acquireExclusive();
 
    /** Conditionally acquire the semaphore (i.e., don't block) */
    virtual OsStatus tryAcquire();
@@ -108,8 +111,14 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   XSipConnection(const XSipConnection& rhs);
 
-   mutable OsMutex m_memberMutex; ///< mutex for member synchronization
+   XSipConnection& operator=(const XSipConnection& rhs);
+
+   // needs special locking
+   XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.
+
+   mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall
 };
 
 #endif // XSipConnection_h__

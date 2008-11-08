@@ -302,6 +302,10 @@
 				RelativePath=".\src\cp\XSipConnection.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\src\cp\XSipConnectionContext.cpp"
+				>
+			</File>
 			<Filter
 				Name="msg"
 				>
@@ -553,6 +557,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\XSipConnection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XSipConnectionContext.h"
 				>
 			</File>
 			<Filter
