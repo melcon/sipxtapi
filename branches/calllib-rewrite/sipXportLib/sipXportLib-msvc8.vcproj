@@ -1065,6 +1065,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\os\OsRWSyncBase.h"
+				>
+			</File>
+			<File
 				RelativePath="include\os\OsServerSocket.h"
 				>
 			</File>

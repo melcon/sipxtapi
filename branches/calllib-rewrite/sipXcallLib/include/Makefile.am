@@ -65,6 +65,7 @@ nobase_include_HEADERS =  \
     cp/XCpCallManager.h \
     cp/XCpConference.h \
     cp/XSipConnection.h \
+    cp/XSipConnectionContext.h \
     ptapi/PtCall.h \
     ptapi/PtConnection.h \
     ptapi/PtDefs.h \

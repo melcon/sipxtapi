@@ -82,6 +82,7 @@ nobase_include_HEADERS = \
     os/OsReadLock.h \
     os/OsRpcMsg.h \
     os/OsRWMutex.h \
+    os/OsRWSyncBase.h \
     os/OsServerSocket.h \
     os/OsServerTask.h \
     os/OsSharedLibMgr.h \

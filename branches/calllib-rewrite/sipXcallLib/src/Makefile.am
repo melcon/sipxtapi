@@ -84,6 +84,7 @@ libsipXcall_la_SOURCES = \
     cp/XCpCallManager.cpp \
     cp/XCpConference.cpp \
     cp/XSipConnection.cpp \
+    cp/XSipConnectionContext.cpp \
     tapi/CallStateEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \

@@ -51,6 +51,7 @@
             <File RelativePath=".\src\cp\XCpCallManager.cpp"/>
             <File RelativePath=".\src\cp\XCpConference.cpp"/>
             <File RelativePath=".\src\cp\XSipConnection.cpp"/>
+            <File RelativePath=".\src\cp\XSipConnectionContext.cpp"/>
             <Filter Name="msg">
                 <File RelativePath=".\src\cp\msg\AcAcceptConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAnswerConnectionMsg.cpp"/>
@@ -116,6 +117,7 @@
             <File RelativePath=".\include\cp\XCpCallManager.h"/>
             <File RelativePath=".\include\cp\XCpConference.h"/>
             <File RelativePath=".\include\cp\XSipConnection.h"/>
+            <File RelativePath=".\include\cp\XSipConnectionContext.h"/>
             <Filter Name="msg">
                 <File RelativePath=".\include\cp\msg\AcAcceptConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAnswerConnectionMsg.h"/>
