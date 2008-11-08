@@ -20,6 +20,8 @@
 #include <os/OsSyncBase.h>
 #include <utl/UtlContainable.h>
 #include <cp/XSipConnectionContext.h>
+#include <cp/state/SipConnectionStateMachine.h>
+#include <cp/state/SipConnectionStateObserver.h>
 
 // DEFINES
 // MACROS
@@ -29,11 +31,16 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class CpMediaInterfaceProvider;
+class SipUserAgent;
 
 /**
  * XSipConnection is responsible for SIP communication.
+ *
+ * All manipulators except OsSyncBase methods must be called from single thread only.
+ * Inquiry and accessor methods may be called from multiple threads.
  */
-class XSipConnection : public UtlContainable, public OsSyncBase
+class XSipConnection : public UtlContainable, public OsSyncBase, public SipConnectionStateObserver
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -41,7 +48,8 @@ public:
 
    /* ============================ CREATORS ================================== */
 
-   XSipConnection();
+   XSipConnection(SipUserAgent& rSipUserAgent,
+                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL);
 
    virtual ~XSipConnection();
 
@@ -115,8 +123,24 @@ private:
 
    XSipConnection& operator=(const XSipConnection& rhs);
 
+   /**
+   * Called when we enter new state. This is typically called after we handle
+   * SipMessageEvent, resulting in new state transition.
+   */
+   virtual void handleStateEntry(ISipConnectionState::StateEnum state);
+
+   /**
+   * Called when we progress to new state, before old state is destroyed.
+   */
+   virtual void handleStateExit(ISipConnectionState::StateEnum state);
+
    // needs special locking
    mutable XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.
+   // not thread safe, must be used from single thread only
+   SipConnectionStateMachine m_stateMachine; ///< state machine for handling commands and SipMessageEvents
+   // thread safe
+   SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
 
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall
 };
