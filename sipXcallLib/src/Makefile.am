@@ -31,6 +31,22 @@ libsipXcall_la_CXXFLAGS = \
 libsipXcall_la_SOURCES = \
     ../config/sipxcalllib-buildstamp.h \
     ../config/sipxcalllib-buildstamp.cpp \
+    cp/CSeqManager.cpp \
+    cp/CallManager.cpp \
+    cp/Connection.cpp \
+    cp/CpCall.cpp \
+    cp/CpCallManager.cpp \
+    cp/CpGhostConnection.cpp \
+    cp/CpIntMessage.cpp \
+    cp/CpMultiStringMessage.cpp \
+    cp/CpPeerCall.cpp \
+    cp/SipConnection.cpp \
+    cp/XCpAbstractCall.cpp \
+    cp/XCpCall.cpp \
+    cp/XCpCallManager.cpp \
+    cp/XCpConference.cpp \
+    cp/XSipConnection.cpp \
+    cp/XSipConnectionContext.cpp \
     cp/msg/AcAcceptConnectionMsg.cpp \
     cp/msg/AcAnswerConnectionMsg.cpp \
     cp/msg/AcAudioBufferPlayMsg.cpp \
@@ -69,22 +85,11 @@ libsipXcall_la_SOURCES = \
     cp/msg/CpTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
-    cp/CallManager.cpp \
-    cp/Connection.cpp \
-    cp/CpCall.cpp \
-    cp/CpCallManager.cpp \
-    cp/CpGhostConnection.cpp \
-    cp/CpIntMessage.cpp \
-    cp/CpMultiStringMessage.cpp \
-    cp/CpPeerCall.cpp \
-    cp/CSeqManager.cpp \
-    cp/SipConnection.cpp \
-    cp/XCpAbstractCall.cpp \
-    cp/XCpCall.cpp \
-    cp/XCpCallManager.cpp \
-    cp/XCpConference.cpp \
-    cp/XSipConnection.cpp \
-    cp/XSipConnectionContext.cpp \
+    cp/state/BaseSipConnectionState.cpp \
+    cp/state/DisconnectedSipConnectionState.cpp \
+    cp/state/IdleSipConnectionState.cpp \
+    cp/state/SipConnectionStateMachine.cpp \
+    cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \

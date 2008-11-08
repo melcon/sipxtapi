@@ -462,6 +462,30 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="state"
+				>
+				<File
+					RelativePath=".\src\cp\state\BaseSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\DisconnectedSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\IdleSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -509,6 +533,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpMediaEventListener.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpMediaInterfaceProvider.h"
 				>
 			</File>
 			<File
@@ -716,6 +744,38 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\ScNotificationMsg.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="state"
+				>
+				<File
+					RelativePath=".\include\cp\state\BaseSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\DisconnectedSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\IdleSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\ISipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\SipConnectionStateMachine.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\SipConnectionStateObserver.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\UnknownSipConnectionState.h"
 					>
 				</File>
 			</Filter>

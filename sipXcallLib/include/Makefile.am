@@ -4,6 +4,31 @@
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
+    cp/CSeqManager.h \
+    cp/CallManager.h \
+    cp/Connection.h \
+    cp/CpAudioCodecInfo.h \
+    cp/CpCall.h \
+    cp/CpCallManager.h \
+    cp/CpCallStateEventListener.h \
+    cp/CpCodecInfo.h \
+    cp/CpDefs.h \
+    cp/CpGhostConnection.h \
+    cp/CpIntMessage.h \
+    cp/CpMediaEventListener.h \
+    cp/CpMediaInterfaceProvider.h \
+    cp/CpMessageTypes.h \
+    cp/CpMultiStringMessage.h \
+    cp/CpNotificationMsgDef.h \
+    cp/CpPeerCall.h \
+    cp/CpVideoCodecInfo.h \
+    cp/SipConnection.h \
+    cp/XCpAbstractCall.h \
+    cp/XCpCall.h \
+    cp/XCpCallManager.h \
+    cp/XCpConference.h \
+    cp/XSipConnection.h \
+    cp/XSipConnectionContext.h \
     cp/msg/AcAcceptConnectionMsg.h \
     cp/msg/AcAnswerConnectionMsg.h \
     cp/msg/AcAudioBufferPlayMsg.h \
@@ -42,30 +67,13 @@ nobase_include_HEADERS =  \
     cp/msg/CpTimerMsg.h \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScNotificationMsg.h \
-    cp/CallManager.h \
-    cp/Connection.h \
-    cp/CpAudioCodecInfo.h \
-    cp/CpCall.h \
-    cp/CpCallManager.h \
-    cp/CpCallStateEventListener.h \
-    cp/CpCodecInfo.h \
-    cp/CpDefs.h \
-    cp/CpGhostConnection.h \
-    cp/CpIntMessage.h \
-    cp/CpMediaEventListener.h \
-    cp/CpMessageTypes.h \
-    cp/CpMultiStringMessage.h \
-    cp/CpNotificationMsgDef.h \
-    cp/CpPeerCall.h \
-    cp/CpVideoCodecInfo.h \
-    cp/CSeqManager.h \
-    cp/SipConnection.h \
-    cp/XCpAbstractCall.h \
-    cp/XCpCall.h \
-    cp/XCpCallManager.h \
-    cp/XCpConference.h \
-    cp/XSipConnection.h \
-    cp/XSipConnectionContext.h \
+    cp/state/BaseSipConnectionState.h \
+    cp/state/DisconnectedSipConnectionState.h \
+    cp/state/ISipConnectionState.h \
+    cp/state/IdleSipConnectionState.h \
+    cp/state/SipConnectionStateMachine.h \
+    cp/state/SipConnectionStateObserver.h \
+    cp/state/UnknownSipConnectionState.h \
     ptapi/PtCall.h \
     ptapi/PtConnection.h \
     ptapi/PtDefs.h \

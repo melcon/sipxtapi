@@ -31,15 +31,19 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 
 /* ============================ CREATORS ================================== */
 
-XSipConnection::XSipConnection()
+XSipConnection::XSipConnection(SipUserAgent& rSipUserAgent,
+                               CpMediaInterfaceProvider* pMediaInterfaceProvider)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
+, m_stateMachine(m_sipConnectionContext, rSipUserAgent, pMediaInterfaceProvider)
+, m_rSipUserAgent(rSipUserAgent)
+, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
 {
-
+   m_stateMachine.setStateObserver(this); // register for state machine state change notifications
 }
 
 XSipConnection::~XSipConnection()
 {
-
+   m_stateMachine.setStateObserver(NULL);
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -127,5 +131,15 @@ SipDialog::DialogMatchEnum XSipConnection::compareSipDialog(const SipDialog& sSi
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void XSipConnection::handleStateEntry(ISipConnectionState::StateEnum state)
+{
+
+}
+
+void XSipConnection::handleStateExit(ISipConnectionState::StateEnum state)
+{
+
+}
 
 /* ============================ FUNCTIONS ================================= */
