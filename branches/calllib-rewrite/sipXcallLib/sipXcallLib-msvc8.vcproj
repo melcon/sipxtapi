@@ -591,6 +591,10 @@
 				RelativePath=".\include\cp\XSipConnectionContext.h"
 				>
 			</File>
+			<File
+				RelativePath=".\include\cp\XSipConnectionEventSink.h"
+				>
+			</File>
 			<Filter
 				Name="msg"
 				>

@@ -414,7 +414,7 @@ void XCpCall::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
    {
       if (ptrLock->getMediaConnectionId() == mediaConnectionId)
       {
-//         ptrLock->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+         ptrLock->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
       }
    }
 }
@@ -429,7 +429,7 @@ void XCpCall::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
    UtlBoolean resFound = getConnection(ptrLock);
    if (resFound)
    {
-//      ptrLock->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+      ptrLock->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
    }
 }
 

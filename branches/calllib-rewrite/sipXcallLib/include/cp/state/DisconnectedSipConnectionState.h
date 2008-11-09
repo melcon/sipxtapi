@@ -37,7 +37,8 @@ public:
 
    DisconnectedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
                                   SipUserAgent& rSipUserAgent,
-                                  CpMediaInterfaceProvider* pMediaInterfaceProvider);
+                                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
+                                  XSipConnectionEventSink* pSipConnectionEventSink = NULL);
 
    virtual ~DisconnectedSipConnectionState();
 

@@ -29,10 +29,12 @@
 
 BaseSipConnectionState::BaseSipConnectionState(XSipConnectionContext& rSipConnectionContext,
                                                SipUserAgent& rSipUserAgent,
-                                               CpMediaInterfaceProvider* pMediaInterfaceProvider)
+                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                                               XSipConnectionEventSink* pSipConnectionEventSink)
 : m_rSipConnectionContext(rSipConnectionContext)
 , m_rSipUserAgent(rSipUserAgent)
 , m_pMediaInterfaceProvider(pMediaInterfaceProvider)
+, m_pSipConnectionEventSink(pSipConnectionEventSink)
 {
 
 }

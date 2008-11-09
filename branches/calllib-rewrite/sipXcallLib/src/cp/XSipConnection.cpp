@@ -60,171 +60,27 @@ XSipConnection::~XSipConnection()
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus XSipConnection::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
-{
-   return m_instanceRWMutex.acquireRead();
-}
-
 OsStatus XSipConnection::acquireExclusive()
 {
    return m_instanceRWMutex.acquireWrite();
 }
 
-OsStatus XSipConnection::tryAcquire()
+void XSipConnection::handleSipXMediaEvent(CP_MEDIA_EVENT event,
+                                          CP_MEDIA_CAUSE cause,
+                                          CP_MEDIA_TYPE type,
+                                          intptr_t pEventData1 /*= 0*/,
+                                          intptr_t pEventData2 /*= 0*/)
 {
-   return m_instanceRWMutex.tryAcquireRead();
+   fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
 }
 
-OsStatus XSipConnection::release()
+void XSipConnection::handleSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
+                                         CP_CALLSTATE_CAUSE causeCode,
+                                         const UtlString& sOriginalSessionCallId /*= NULL*/,
+                                         int sipResponseCode /*= 0*/,
+                                         const UtlString& sResponseText /*= NULL*/)
 {
-   return m_instanceRWMutex.releaseRead();
-}
-
-void XSipConnection::fireSipXMediaEvent(CP_MEDIA_EVENT event,
-                                        CP_MEDIA_CAUSE cause,
-                                        CP_MEDIA_TYPE type,
-                                        intptr_t pEventData1 /*= 0*/,
-                                        intptr_t pEventData2 /*= 0*/)
-{
-   if (m_pMediaEventListener)
-   {
-      CpMediaEvent mediaEvent;
-      prepareMediaEvent(mediaEvent, cause, type);
-
-      switch(event)
-      {
-      case CP_MEDIA_LOCAL_START:
-         if (pEventData1)
-         {
-            mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
-         }
-         m_pMediaEventListener->OnMediaLocalStart(mediaEvent);
-         break;
-      case CP_MEDIA_LOCAL_STOP:
-         if (pEventData1)
-         {
-            mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
-         }
-         m_pMediaEventListener->OnMediaLocalStop(mediaEvent);
-         break;
-      case CP_MEDIA_REMOTE_START:
-         m_pMediaEventListener->OnMediaRemoteStart(mediaEvent);
-         break;
-      case CP_MEDIA_REMOTE_STOP:
-         m_pMediaEventListener->OnMediaRemoteStop(mediaEvent);
-         break;
-      case CP_MEDIA_REMOTE_SILENT:
-         mediaEvent.m_idleTime = (int)pEventData1;
-         m_pMediaEventListener->OnMediaRemoteSilent(mediaEvent);
-         break;
-      case CP_MEDIA_PLAYFILE_START:
-         mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = pEventData2;
-         m_pMediaEventListener->OnMediaPlayfileStart(mediaEvent);
-         break;
-      case CP_MEDIA_PLAYFILE_STOP:
-         mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = pEventData2;
-         m_pMediaEventListener->OnMediaPlayfileStop(mediaEvent);
-         break;
-      case CP_MEDIA_PLAYBUFFER_START:
-         mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = pEventData2;
-         m_pMediaEventListener->OnMediaPlaybufferStart(mediaEvent);
-         break;
-      case CP_MEDIA_PLAYBUFFER_STOP:
-         mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = pEventData2;
-         m_pMediaEventListener->OnMediaPlaybufferStop(mediaEvent);
-         break;
-      case CP_MEDIA_PLAYBACK_PAUSED:
-         mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = (int)pEventData2;
-         m_pMediaEventListener->OnMediaPlaybackPaused(mediaEvent);
-         break;
-      case CP_MEDIA_PLAYBACK_RESUMED:
-         mediaEvent.m_pCookie = (void*)pEventData1;
-         mediaEvent.m_playBufferIndex = (int)pEventData2;
-         m_pMediaEventListener->OnMediaPlaybackResumed(mediaEvent);
-         break;
-      case CP_MEDIA_REMOTE_DTMF:
-         mediaEvent.m_toneId = (CP_TONE_ID)pEventData1;
-         m_pMediaEventListener->OnMediaRemoteDTMF(mediaEvent);
-         break;
-      case CP_MEDIA_DEVICE_FAILURE:
-         m_pMediaEventListener->OnMediaDeviceFailure(mediaEvent);
-         break;
-      case CP_MEDIA_REMOTE_ACTIVE:
-         m_pMediaEventListener->OnMediaRemoteActive(mediaEvent);
-         break;
-      case CP_MEDIA_RECORDING_START:
-         m_pMediaEventListener->OnMediaRecordingStart(mediaEvent);
-         break;
-      case CP_MEDIA_RECORDING_STOP:
-         m_pMediaEventListener->OnMediaRecordingStop(mediaEvent);
-         break;
-      default:
-         ;
-      }
-   }
-}
-
-void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
-                                       CP_CALLSTATE_CAUSE causeCode,
-                                       const UtlString& sOriginalSessionCallId /*= NULL*/,
-                                       int sipResponseCode /*= 0*/,
-                                       const UtlString& sResponseText /*= NULL*/)
-{
-   if (m_pCallEventListener)
-   {
-      CpCallStateEvent event;
-      prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
-
-      switch(eventCode)
-      {
-      case CP_CALLSTATE_NEWCALL:
-         m_pCallEventListener->OnNewCall(event);
-         break;
-      case CP_CALLSTATE_DIALTONE:
-         m_pCallEventListener->OnDialTone(event);
-         break;
-      case CP_CALLSTATE_REMOTE_OFFERING:
-         m_pCallEventListener->OnRemoteOffering(event);
-         break;
-      case CP_CALLSTATE_REMOTE_ALERTING:
-         m_pCallEventListener->OnRemoteAlerting(event);
-         break;
-      case CP_CALLSTATE_CONNECTED:
-         m_pCallEventListener->OnConnected(event);
-         break;
-      case CP_CALLSTATE_BRIDGED:
-         m_pCallEventListener->OnBridged(event);
-         break;
-      case CP_CALLSTATE_HELD:
-         m_pCallEventListener->OnHeld(event);
-         break;
-      case CP_CALLSTATE_REMOTE_HELD:
-         m_pCallEventListener->OnRemoteHeld(event);
-         break;
-      case CP_CALLSTATE_DISCONNECTED:
-         m_pCallEventListener->OnDisconnected(event);
-         break;
-      case CP_CALLSTATE_OFFERING:  
-         m_pCallEventListener->OnOffering(event);
-         break;
-      case CP_CALLSTATE_ALERTING:
-         m_pCallEventListener->OnAlerting(event);
-         break;
-      case CP_CALLSTATE_DESTROYED:
-         m_pCallEventListener->OnDestroyed(event);
-         break;
-      case CP_CALLSTATE_TRANSFER_EVENT:
-         m_pCallEventListener->OnTransferEvent(event);
-         break;
-      default:
-         ;
-      }
-   }
+   fireSipXCallEvent(eventCode, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -416,6 +272,168 @@ void XSipConnection::fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
 
       secEvent.m_pCertificate = NULL; // must be zeroed before ~SipSecurityEvent runs
    }
+}
+
+void XSipConnection::fireSipXMediaEvent(CP_MEDIA_EVENT event,
+                                        CP_MEDIA_CAUSE cause,
+                                        CP_MEDIA_TYPE type,
+                                        intptr_t pEventData1 /*= 0*/,
+                                        intptr_t pEventData2 /*= 0*/)
+{
+   if (m_pMediaEventListener)
+   {
+      CpMediaEvent mediaEvent;
+      prepareMediaEvent(mediaEvent, cause, type);
+
+      switch(event)
+      {
+      case CP_MEDIA_LOCAL_START:
+         if (pEventData1)
+         {
+            mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
+         }
+         m_pMediaEventListener->OnMediaLocalStart(mediaEvent);
+         break;
+      case CP_MEDIA_LOCAL_STOP:
+         if (pEventData1)
+         {
+            mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
+         }
+         m_pMediaEventListener->OnMediaLocalStop(mediaEvent);
+         break;
+      case CP_MEDIA_REMOTE_START:
+         m_pMediaEventListener->OnMediaRemoteStart(mediaEvent);
+         break;
+      case CP_MEDIA_REMOTE_STOP:
+         m_pMediaEventListener->OnMediaRemoteStop(mediaEvent);
+         break;
+      case CP_MEDIA_REMOTE_SILENT:
+         mediaEvent.m_idleTime = (int)pEventData1;
+         m_pMediaEventListener->OnMediaRemoteSilent(mediaEvent);
+         break;
+      case CP_MEDIA_PLAYFILE_START:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
+         m_pMediaEventListener->OnMediaPlayfileStart(mediaEvent);
+         break;
+      case CP_MEDIA_PLAYFILE_STOP:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
+         m_pMediaEventListener->OnMediaPlayfileStop(mediaEvent);
+         break;
+      case CP_MEDIA_PLAYBUFFER_START:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
+         m_pMediaEventListener->OnMediaPlaybufferStart(mediaEvent);
+         break;
+      case CP_MEDIA_PLAYBUFFER_STOP:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = pEventData2;
+         m_pMediaEventListener->OnMediaPlaybufferStop(mediaEvent);
+         break;
+      case CP_MEDIA_PLAYBACK_PAUSED:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = (int)pEventData2;
+         m_pMediaEventListener->OnMediaPlaybackPaused(mediaEvent);
+         break;
+      case CP_MEDIA_PLAYBACK_RESUMED:
+         mediaEvent.m_pCookie = (void*)pEventData1;
+         mediaEvent.m_playBufferIndex = (int)pEventData2;
+         m_pMediaEventListener->OnMediaPlaybackResumed(mediaEvent);
+         break;
+      case CP_MEDIA_REMOTE_DTMF:
+         mediaEvent.m_toneId = (CP_TONE_ID)pEventData1;
+         m_pMediaEventListener->OnMediaRemoteDTMF(mediaEvent);
+         break;
+      case CP_MEDIA_DEVICE_FAILURE:
+         m_pMediaEventListener->OnMediaDeviceFailure(mediaEvent);
+         break;
+      case CP_MEDIA_REMOTE_ACTIVE:
+         m_pMediaEventListener->OnMediaRemoteActive(mediaEvent);
+         break;
+      case CP_MEDIA_RECORDING_START:
+         m_pMediaEventListener->OnMediaRecordingStart(mediaEvent);
+         break;
+      case CP_MEDIA_RECORDING_STOP:
+         m_pMediaEventListener->OnMediaRecordingStop(mediaEvent);
+         break;
+      default:
+         ;
+      }
+   }
+}
+
+void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
+                                       CP_CALLSTATE_CAUSE causeCode,
+                                       const UtlString& sOriginalSessionCallId /*= NULL*/,
+                                       int sipResponseCode /*= 0*/,
+                                       const UtlString& sResponseText /*= NULL*/)
+{
+   if (m_pCallEventListener)
+   {
+      CpCallStateEvent event;
+      prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
+
+      switch(eventCode)
+      {
+      case CP_CALLSTATE_NEWCALL:
+         m_pCallEventListener->OnNewCall(event);
+         break;
+      case CP_CALLSTATE_DIALTONE:
+         m_pCallEventListener->OnDialTone(event);
+         break;
+      case CP_CALLSTATE_REMOTE_OFFERING:
+         m_pCallEventListener->OnRemoteOffering(event);
+         break;
+      case CP_CALLSTATE_REMOTE_ALERTING:
+         m_pCallEventListener->OnRemoteAlerting(event);
+         break;
+      case CP_CALLSTATE_CONNECTED:
+         m_pCallEventListener->OnConnected(event);
+         break;
+      case CP_CALLSTATE_BRIDGED:
+         m_pCallEventListener->OnBridged(event);
+         break;
+      case CP_CALLSTATE_HELD:
+         m_pCallEventListener->OnHeld(event);
+         break;
+      case CP_CALLSTATE_REMOTE_HELD:
+         m_pCallEventListener->OnRemoteHeld(event);
+         break;
+      case CP_CALLSTATE_DISCONNECTED:
+         m_pCallEventListener->OnDisconnected(event);
+         break;
+      case CP_CALLSTATE_OFFERING:  
+         m_pCallEventListener->OnOffering(event);
+         break;
+      case CP_CALLSTATE_ALERTING:
+         m_pCallEventListener->OnAlerting(event);
+         break;
+      case CP_CALLSTATE_DESTROYED:
+         m_pCallEventListener->OnDestroyed(event);
+         break;
+      case CP_CALLSTATE_TRANSFER_EVENT:
+         m_pCallEventListener->OnTransferEvent(event);
+         break;
+      default:
+         ;
+      }
+   }
+}
+
+OsStatus XSipConnection::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
+{
+   return m_instanceRWMutex.acquireRead();
+}
+
+OsStatus XSipConnection::tryAcquire()
+{
+   return m_instanceRWMutex.tryAcquireRead();
+}
+
+OsStatus XSipConnection::release()
+{
+   return m_instanceRWMutex.releaseRead();
 }
 
 /* ============================ FUNCTIONS ================================= */

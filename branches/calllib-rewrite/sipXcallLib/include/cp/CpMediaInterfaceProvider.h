@@ -44,7 +44,7 @@ public:
    /**
     * Gets current CpMediaInterface if it exists.
     */
-   virtual CpMediaInterface* getMediaInterface() = 0;
+   virtual CpMediaInterface* getMediaInterface() const = 0;
 
    /* ============================ INQUIRY =================================== */
 

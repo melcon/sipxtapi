@@ -23,6 +23,7 @@
 #include <net/SipSecurityEventListener.h>
 #include <cp/CpDefs.h>
 #include <cp/XSipConnectionContext.h>
+#include <cp/XSipConnectionEventSink.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/SipConnectionStateObserver.h>
 
@@ -49,7 +50,7 @@ class CpMediaEventListener;
  * All manipulators except OsSyncBase methods must be called from single thread only.
  * Inquiry and accessor methods may be called from multiple threads.
  */
-class XSipConnection : public UtlContainable, public OsSyncBase, public SipConnectionStateObserver
+class XSipConnection : public UtlContainable, public OsSyncBase, public SipConnectionStateObserver, public XSipConnectionEventSink
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -69,31 +70,22 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
-   /** Block until the sync object is acquired. Timeout is not supported! */
-   virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
-
    /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
    virtual OsStatus acquireExclusive();
 
-   /** Conditionally acquire the semaphore (i.e., don't block) */
-   virtual OsStatus tryAcquire();
+   /** Handles sipx media event */
+   virtual void handleSipXMediaEvent(CP_MEDIA_EVENT event,
+                                     CP_MEDIA_CAUSE cause,
+                                     CP_MEDIA_TYPE  type,
+                                     intptr_t pEventData1 = 0,
+                                     intptr_t pEventData2 = 0);
 
-   /** Release the sync object */
-   virtual OsStatus release();
-
-   /** Fires sipx media event to media listener */
-   virtual void fireSipXMediaEvent(CP_MEDIA_EVENT event,
-                                   CP_MEDIA_CAUSE cause,
-                                   CP_MEDIA_TYPE  type,
-                                   intptr_t pEventData1 = 0,
-                                   intptr_t pEventData2 = 0);
-
-   /** Fires sipx call event to call event listener */
-   virtual void fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
-                                  CP_CALLSTATE_CAUSE causeCode,
-                                  const UtlString& sOriginalSessionCallId = NULL,
-                                  int sipResponseCode = 0,
-                                  const UtlString& sResponseText = NULL);
+   /** Handles sipx call event */
+   virtual void handleSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
+                                    CP_CALLSTATE_CAUSE causeCode,
+                                    const UtlString& sOriginalSessionCallId = NULL,
+                                    int sipResponseCode = 0,
+                                    const UtlString& sResponseText = NULL);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -179,20 +171,43 @@ private:
                               const UtlString& sResponseText = NULL);
 
    /** Fire info status event */
-   void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
-                                SIPXTACK_MESSAGE_STATUS status,
-                                const UtlString& sResponseText,
-                                int responseCode = 0);
+   virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
+                                        SIPXTACK_MESSAGE_STATUS status,
+                                        const UtlString& sResponseText,
+                                        int responseCode = 0);
 
    /** Fire security event */
-   void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
-                              SIPXTACK_SECURITY_CAUSE cause,
-                              const UtlString& sSRTPkey,
-                              void* pCertificate,
-                              size_t nCertificateSize,
-                              const UtlString& sSubjAltName,
-                              const UtlString& sSessionCallId,
-                              const UtlString& sRemoteAddress);
+   virtual void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
+                                      SIPXTACK_SECURITY_CAUSE cause,
+                                      const UtlString& sSRTPkey,
+                                      void* pCertificate,
+                                      size_t nCertificateSize,
+                                      const UtlString& sSubjAltName,
+                                      const UtlString& sSessionCallId,
+                                      const UtlString& sRemoteAddress);
+
+   /** Fires sipx media event to media listener */
+   virtual void fireSipXMediaEvent(CP_MEDIA_EVENT event,
+                                   CP_MEDIA_CAUSE cause,
+                                   CP_MEDIA_TYPE  type,
+                                   intptr_t pEventData1 = 0,
+                                   intptr_t pEventData2 = 0);
+
+   /** Fires sipx call event to call event listener */
+   virtual void fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
+                                  CP_CALLSTATE_CAUSE causeCode,
+                                  const UtlString& sOriginalSessionCallId = NULL,
+                                  int sipResponseCode = 0,
+                                  const UtlString& sResponseText = NULL);
+
+   /** Block until the sync object is acquired. Timeout is not supported! */
+   virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
+
+   /** Conditionally acquire the semaphore (i.e., don't block) */
+   virtual OsStatus tryAcquire();
+
+   /** Release the sync object */
+   virtual OsStatus release();
 
    // needs special locking
    mutable XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.

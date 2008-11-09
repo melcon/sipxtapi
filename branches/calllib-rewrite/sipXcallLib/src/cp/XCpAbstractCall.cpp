@@ -189,24 +189,9 @@ OsStatus XCpAbstractCall::audioRecordStop()
    return postMessage(audioRecordStopMsg);
 }
 
-OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
-{
-   return m_instanceRWMutex.acquireRead();
-}
-
 OsStatus XCpAbstractCall::acquireExclusive()
 {
    return m_instanceRWMutex.acquireWrite();
-}
-
-OsStatus XCpAbstractCall::tryAcquire()
-{
-   return m_instanceRWMutex.tryAcquireRead();
-}
-
-OsStatus XCpAbstractCall::release()
-{
-   return m_instanceRWMutex.releaseRead();
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -600,6 +585,26 @@ void XCpAbstractCall::releaseMediaInterface()
       m_pMediaInterface->release();
       m_pMediaInterface = NULL;
    }
+}
+
+CpMediaInterface* XCpAbstractCall::getMediaInterface() const
+{
+   return m_pMediaInterface;
+}
+
+OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
+{
+   return m_instanceRWMutex.acquireRead();
+}
+
+OsStatus XCpAbstractCall::tryAcquire()
+{
+   return m_instanceRWMutex.tryAcquireRead();
+}
+
+OsStatus XCpAbstractCall::release()
+{
+   return m_instanceRWMutex.releaseRead();
 }
 
 /* ============================ FUNCTIONS ================================= */

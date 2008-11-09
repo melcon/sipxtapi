@@ -31,10 +31,14 @@
 /**
  * XSipConnectionContext contains various stateful information about Sip connection,
  * like SipDialog, keeps track of ongoing transactions etc. State machine makes decisions
- * based on values saved in this context and inbound Sip message or command.
+ * based on values saved in this context and inbound Sip message or command. This class
+ * is meant to store only information between states of sip connection. If some memory
+ * is required only for the duration of a single state, then it should be kept in the state
+ * itself.
  *
  * Before this class can be read from, it must be locked externally. External locking is
  * used instead of internal, to avoid frequent locking when accessing multiple members.
+ * Use OsReadLock or OsWriteLock to lock this class.
  *
  * This class is meant to contain public members. Destructor is responsible for freeing
  * any pointers.
@@ -56,39 +60,6 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
-   /**
-    * Block (if necessary) until the task acquires the resource for reading.
-    * Multiple simultaneous readers are allowed.
-    */
-   virtual OsStatus acquireRead();
-
-   /**
-    * Block (if necessary) until the task acquires the resource for writing.
-    * Only one writer at a time is allowed (and no readers).
-    */
-   virtual OsStatus acquireWrite();
-
-   /**
-    * Conditionally acquire the resource for reading (i.e., don't block).
-    * Multiple simultaneous readers are allowed.
-    * Return OS_BUSY if the resource is held for writing by some other task
-    */
-   virtual OsStatus tryAcquireRead();
-
-   /**
-    * Conditionally acquire the resource for writing (i.e., don't block).
-    * Only one writer at a time is allowed (and no readers).
-    * Return OS_BUSY if the resource is held for writing by some other task
-    * or if there are running readers.
-    */
-   virtual OsStatus tryAcquireWrite();
-
-   /** Release the resource for reading */
-   virtual OsStatus releaseRead();
-
-   /** Release the resource for writing */
-   virtual OsStatus releaseWrite();
-
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
@@ -101,6 +72,39 @@ private:
    XSipConnectionContext(const XSipConnectionContext& rhs);
 
    XSipConnectionContext& operator=(const XSipConnectionContext& rhs);
+
+   /**
+   * Block (if necessary) until the task acquires the resource for reading.
+   * Multiple simultaneous readers are allowed.
+   */
+   virtual OsStatus acquireRead();
+
+   /**
+   * Block (if necessary) until the task acquires the resource for writing.
+   * Only one writer at a time is allowed (and no readers).
+   */
+   virtual OsStatus acquireWrite();
+
+   /**
+   * Conditionally acquire the resource for reading (i.e., don't block).
+   * Multiple simultaneous readers are allowed.
+   * Return OS_BUSY if the resource is held for writing by some other task
+   */
+   virtual OsStatus tryAcquireRead();
+
+   /**
+   * Conditionally acquire the resource for writing (i.e., don't block).
+   * Only one writer at a time is allowed (and no readers).
+   * Return OS_BUSY if the resource is held for writing by some other task
+   * or if there are running readers.
+   */
+   virtual OsStatus tryAcquireWrite();
+
+   /** Release the resource for reading */
+   virtual OsStatus releaseRead();
+
+   /** Release the resource for writing */
+   virtual OsStatus releaseWrite();
 
    mutable OsRWMutex m_memberMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall
 };
