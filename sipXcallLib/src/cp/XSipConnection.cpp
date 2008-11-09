@@ -16,6 +16,7 @@
 #include <cp/XSipConnection.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpMediaEventListener.h>
+#include <cp/CpCallStateEventListener.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -168,6 +169,64 @@ void XSipConnection::fireSipXMediaEvent(CP_MEDIA_EVENT event,
    }
 }
 
+void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
+                                       CP_CALLSTATE_CAUSE causeCode,
+                                       const UtlString& sOriginalSessionCallId /*= NULL*/,
+                                       int sipResponseCode /*= 0*/,
+                                       const UtlString& sResponseText /*= NULL*/)
+{
+   if (m_pCallEventListener)
+   {
+      CpCallStateEvent event;
+      prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
+
+      switch(eventCode)
+      {
+      case CP_CALLSTATE_NEWCALL:
+         m_pCallEventListener->OnNewCall(event);
+         break;
+      case CP_CALLSTATE_DIALTONE:
+         m_pCallEventListener->OnDialTone(event);
+         break;
+      case CP_CALLSTATE_REMOTE_OFFERING:
+         m_pCallEventListener->OnRemoteOffering(event);
+         break;
+      case CP_CALLSTATE_REMOTE_ALERTING:
+         m_pCallEventListener->OnRemoteAlerting(event);
+         break;
+      case CP_CALLSTATE_CONNECTED:
+         m_pCallEventListener->OnConnected(event);
+         break;
+      case CP_CALLSTATE_BRIDGED:
+         m_pCallEventListener->OnBridged(event);
+         break;
+      case CP_CALLSTATE_HELD:
+         m_pCallEventListener->OnHeld(event);
+         break;
+      case CP_CALLSTATE_REMOTE_HELD:
+         m_pCallEventListener->OnRemoteHeld(event);
+         break;
+      case CP_CALLSTATE_DISCONNECTED:
+         m_pCallEventListener->OnDisconnected(event);
+         break;
+      case CP_CALLSTATE_OFFERING:  
+         m_pCallEventListener->OnOffering(event);
+         break;
+      case CP_CALLSTATE_ALERTING:
+         m_pCallEventListener->OnAlerting(event);
+         break;
+      case CP_CALLSTATE_DESTROYED:
+         m_pCallEventListener->OnDestroyed(event);
+         break;
+      case CP_CALLSTATE_TRANSFER_EVENT:
+         m_pCallEventListener->OnTransferEvent(event);
+         break;
+      default:
+         ;
+      }
+   }
+}
+
 /* ============================ ACCESSORS ================================= */
 
 unsigned XSipConnection::hash() const
@@ -262,12 +321,35 @@ void XSipConnection::prepareMediaEvent(CpMediaEvent& event,
                                        CP_MEDIA_CAUSE cause,
                                        CP_MEDIA_TYPE type)
 {
-   getSipCallId(event.m_sSessionCallId);
-   getRemoteAddress(event.m_sRemoteAddress);
-   getAbstractCallId(event.m_sCallId);
+   Url remoteField;
+   {
+      OsReadLock lock(m_sipConnectionContext);
+      event.m_sCallId = m_sipConnectionContext.m_sAbstractCallId; // copy id of abstract call
+      m_sipConnectionContext.m_sipDialog.getCallId(event.m_sSessionCallId); // copy sip callid
+      m_sipConnectionContext.m_sipDialog.getRemoteField(remoteField); // copy remote field (From or To) including tag
+   }
+   remoteField.toString(event.m_sRemoteAddress);
 
    event.m_cause = cause;
    event.m_mediaType = type;
+}
+
+void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
+                                           CP_CALLSTATE_CAUSE eMinor,
+                                           const UtlString& sOriginalSessionCallId /*= NULL*/,
+                                           int sipResponseCode /*= 0*/,
+                                           const UtlString& sResponseText /*= NULL*/)
+{
+   {
+      OsReadLock lock(m_sipConnectionContext);
+      event.m_sCallId = m_sipConnectionContext.m_sAbstractCallId; // copy id of abstract call
+      event.m_pSipDialog = new SipDialog(m_sipConnectionContext.m_sipDialog); // assign copy of sip dialog. Gets deleted in destructor.
+   }
+
+   event.m_cause = eMinor;
+   event.m_sOriginalSessionCallId = sOriginalSessionCallId;
+   event.m_sipResponseCode = sipResponseCode;
+   event.m_sResponseText = sResponseText;
 }
 
 void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,

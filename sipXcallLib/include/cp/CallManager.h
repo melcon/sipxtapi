@@ -46,7 +46,6 @@ class TaoObjectMap;
 class TaoReference;
 class SdpCodecFactory;
 class CpMultiStringMessage;
-class SipSession;
 class SipDialog;
 class SipLineProvider;
 class CpMediaInterfaceFactory;

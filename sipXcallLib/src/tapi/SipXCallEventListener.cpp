@@ -16,6 +16,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <net/SipDialog.h>
+#include <cp/XCpCallManager.h>
 #include "tapi/SipXCallEventListener.h"
 #include <tapi/CallStateEventMsg.h>
 #include <tapi/SipXEventDispatcher.h>
@@ -25,7 +27,6 @@
 #include <tapi/SipXCall.h>
 #include <tapi/SipXLine.h>
 #include <tapi/SipXConference.h>
-#include <cp/XCpCallManager.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -148,8 +149,8 @@ UtlBoolean SipXCallEventListener::handleMessage(OsMsg& rRawMsg)
          {
             // cast succeeded
             const CpCallStateEvent& payload = pMsg->getEventPayloadRef();
-            handleCallEvent(payload.m_sCallId, payload.m_sSessionCallId, payload.m_Session, payload.m_sRemoteAddress,
-               pMsg->getEvent(), payload.m_cause, payload.m_sOriginalSessionCallId,
+            handleCallEvent(payload.m_sCallId, payload.m_pSipDialog,
+               pMsg->getEvent(), (SIPX_CALLSTATE_CAUSE)payload.m_cause, payload.m_sOriginalSessionCallId,
                payload.m_sipResponseCode, payload.m_sResponseText);
          }
       }
@@ -162,17 +163,15 @@ UtlBoolean SipXCallEventListener::handleMessage(OsMsg& rRawMsg)
 }
 
 void SipXCallEventListener::sipxFireCallEvent(const UtlString& sCallId,
-                                              const UtlString& sSessionCallId,
-                                              const SipSession& pSession,
-                                              const UtlString& szRemoteAddress,
+                                              const SipDialog* pSipDialog,
                                               SIPX_CALLSTATE_EVENT event,
                                               SIPX_CALLSTATE_CAUSE cause,
                                               const UtlString& sOriginalSessionCallId /*= NULL*/,
                                               int sipResponseCode /*= 0*/,
                                               const UtlString& sResponseText/* = NULL*/)
 {
-   CpCallStateEvent payload(sSessionCallId, sCallId, pSession,
-      szRemoteAddress, cause, sOriginalSessionCallId,
+   CpCallStateEvent payload(sCallId, pSipDialog,
+      (CP_CALLSTATE_CAUSE)cause, sOriginalSessionCallId,
       sipResponseCode, sResponseText);
    CallStateEventMsg msg(event, payload);
    postMessage(msg);
@@ -188,20 +187,25 @@ void SipXCallEventListener::sipxFireCallEvent(const UtlString& sCallId,
 
 // dont forget to fill szRemoteAddress in call after it is connected
 void SipXCallEventListener::handleCallEvent(const UtlString& sCallId, 
-                                            const UtlString& sSessionCallId,
-                                            const SipSession& session, 
-                                            const UtlString& szRemoteAddress, 
+                                            const SipDialog* pSipDialog, 
                                             SIPX_CALLSTATE_EVENT event, 
                                             SIPX_CALLSTATE_CAUSE cause, 
                                             const UtlString& sOriginalSessionCallId,
                                             int sipResponseCode,
                                             const UtlString& sResponseText)
 {
+   UtlString sRemoteAddress;
+   UtlString sSessionCallId;
+   if (pSipDialog)
+   {
+      pSipDialog->getRemoteField(sRemoteAddress);
+      pSipDialog->getCallId(sSessionCallId);
+   }
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxFireCallEvent");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxFireCallEvent CallId=%s RemoteAddress=%s Event=%s:%s",
       sCallId.data(),
-      szRemoteAddress.data(),
+      sRemoteAddress.data(),
       convertCallstateEventToString(event),
       convertCallstateCauseToString(cause));
 
@@ -212,9 +216,13 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
    SIPX_CALL_DATA* pCallData = NULL;
    SIPX_LINE hLine = SIPX_LINE_NULL;
 
-   UtlString remoteAddress;
-   UtlString lineId;
+   UtlString localField;
    SIPX_CALL hAssociatedCall = SIPX_CALL_NULL;
+
+   if (pSipDialog)
+   {
+      pSipDialog->getLocalField(localField);
+   }
 
    // If this is an NEW inbound call (first we are hearing of it), then create
    // a call handle/data structure for it.
@@ -228,7 +236,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
          assert(false);
          // handle allocation failed
          OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, 
-            "allocHandle failed to allocate a handle for sessionCallId=%s", sSessionCallId.data());
+            "allocHandle failed to allocate a handle for sCallId=%s", sCallId.data());
          delete pCallData;
          return;
       }
@@ -244,15 +252,11 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
 
       pCallData->m_state = SIPX_INTERNAL_CALLSTATE_UNKNOWN;
 
-      pCallData->m_callId = sCallId;
-      pCallData->m_sessionCallId = sSessionCallId;
-      pCallData->m_remoteAddress = szRemoteAddress;
-
-      Url urlFrom;
-      session.getFromUrl(urlFrom);
-      session.getContactRequestUri(pCallData->m_remoteContactAddress);
-
-      pCallData->m_fromUrl = urlFrom.toString();
+      pCallData->m_abstractCallId = sCallId;
+      if (pSipDialog)
+      {
+         pCallData->m_sipDialog = *pSipDialog;
+      }
       pCallData->m_pInst = pSipXInstance;
       pCallData->m_mutex.release();
 
@@ -308,8 +312,6 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
             }
          }
       }
-
-      lineId = urlFrom.toString();
    }
    else // it is an existing call
    {
@@ -338,33 +340,26 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
          hCall = sipxCallLookupHandleBySessionCallId(sSessionCallId, m_pInst);
       }
 
-      // try to update contactAddress in the call if its empty
+      // try to update dialog state
       pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
       if (pCallData)
       {
-         if (event == CALLSTATE_REMOTE_OFFERING) {
-            // update call fromURI, since for outbound calls, we need to update tag
-            Url urlFrom;
-            session.getFromUrl(urlFrom);
-            pCallData->m_fromUrl = urlFrom.toString();
-         }
-
-         if (pCallData->m_remoteContactAddress.isNull())
+         // update dialog state
+         if (pSipDialog)
          {
-            session.getContactRequestUri(pCallData->m_remoteContactAddress);
+            pCallData->m_sipDialog = *pSipDialog;
          }
-
          sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
       }
 
       // get some info for call handle to use later
-      if (!sipxCallGetCommonData(hCall, &pSipXInstance, NULL, NULL, &remoteAddress, &lineId))
+      if (!sipxCallGetCommonData(hCall, &pSipXInstance, NULL, NULL, NULL, &localField))
       {
          OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
             "event sipXtapiEvents: Unable to find call data for handle: %d, callid=%s, address=%s, M=%s, m=%s\n", 
             hCall, 
             sCallId.data(), 
-            szRemoteAddress.data(), 
+            sRemoteAddress.data(), 
             convertCallstateEventToString(event), 
             convertCallstateCauseToString(cause));
       }
@@ -396,25 +391,23 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
    {
       // Find Line
       UtlString requestUri; 
-      session.getRemoteRequestUri(requestUri);
+      if (pSipDialog)
+      {
+         if (!pSipDialog->isLocalInitiatedDialog())
+         {
+            // inbound call
+            Url localRequestUri;
+            pSipDialog->getLocalRequestUri(localRequestUri);
+            localRequestUri.toString(requestUri);
+         } // for outbound calls request uri of inbound requests is unknown
+      }
 
-      hLine = sipxLineLookupHandle((SIPX_INSTANCE_DATA*)m_pInst, lineId, requestUri);
+      hLine = sipxLineLookupHandle((SIPX_INSTANCE_DATA*)m_pInst, localField.data(), requestUri.data());
       if (hLine == SIPX_LINE_NULL)
       {
          // no line exists for the lineId
          // log it
-         OsSysLog::add(FAC_SIPXTAPI, PRI_NOTICE, "unknown line id = %s\n", lineId.data());
-      }
-
-      // always update remote address, so that it also contains tag
-      if (!szRemoteAddress.isNull())
-      {
-         pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
-         if (pCallData)
-         {
-            pCallData->m_remoteAddress = szRemoteAddress;
-            sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
-         }
+         OsSysLog::add(FAC_SIPXTAPI, PRI_NOTICE, "unknown line id = %s\n", localField.data());
       }
 
       SIPX_CALLSTATE_INFO callInfo;
@@ -459,20 +452,20 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
       if (pCallData)
       {
-         pCallData->m_pInst->pCallManager->dropConferenceConnection(pCallData->m_callId, pCallData->m_sipDialog);
+         pCallData->m_pInst->pCallManager->dropConferenceConnection(pCallData->m_abstractCallId, pCallData->m_sipDialog);
          sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
       }
 
       // fire simulated local media events
       if (pCallData->m_lastLocalMediaAudioEvent == MEDIA_LOCAL_START)
       {
-         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, sRemoteAddress, 
             MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
       if (pCallData->m_lastLocalMediaVideoEvent == MEDIA_LOCAL_START)
       {
-         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,sRemoteAddress, 
             MEDIA_LOCAL_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
@@ -481,7 +474,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
          (pCallData->m_lastRemoteMediaAudioEvent == MEDIA_REMOTE_SILENT) ||
          (pCallData->m_lastRemoteMediaAudioEvent == MEDIA_REMOTE_ACTIVE))
       {
-         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId,  sSessionCallId,sRemoteAddress, 
             MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_AUDIO);
       }
 
@@ -489,12 +482,12 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
          (pCallData->m_lastRemoteMediaVideoEvent == MEDIA_REMOTE_SILENT) ||
          (pCallData->m_lastRemoteMediaVideoEvent == MEDIA_REMOTE_ACTIVE))
       {
-         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, szRemoteAddress, 
+         pCallData->m_pInst->pMediaEventListener->sipxFireMediaEvent(sCallId, sSessionCallId, sRemoteAddress, 
             MEDIA_REMOTE_STOP, MEDIA_CAUSE_NORMAL, MEDIA_TYPE_VIDEO);
       }
 
       // also fire destroyed event asynchronously
-      sipxFireCallEvent(sCallId, sSessionCallId, session, szRemoteAddress,
+      sipxFireCallEvent(sCallId, pSipDialog,
          CALLSTATE_DESTROYED,
          CALLSTATE_CAUSE_NORMAL,
          sOriginalSessionCallId);

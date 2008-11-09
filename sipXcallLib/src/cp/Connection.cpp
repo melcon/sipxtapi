@@ -488,14 +488,14 @@ void Connection::prepareCallStateEvent(CpCallStateEvent& event,
                                        int sipResponseCode,
                                        const UtlString& sResponseText)
 {
-   getCallId(&event.m_sSessionCallId);
-   getRemoteAddress(&event.m_sRemoteAddress);
-   getSession(event.m_Session);
+   //getCallId(&event.m_sSessionCallId);
+   //getRemoteAddress(&event.m_sRemoteAddress);
+   //getSession(event.m_Session);
    if (mpCall)
    {
       mpCall->getCallId(event.m_sCallId);
    }
-   event.m_cause = eMinor;
+   event.m_cause = (CP_CALLSTATE_CAUSE)eMinor;
    event.m_sOriginalSessionCallId = sOriginalSessionCallId;
    event.m_sipResponseCode = sipResponseCode;
    event.m_sResponseText = sResponseText;
@@ -868,13 +868,13 @@ UtlBoolean Connection::isLocallyInitiatedRemoteHold() const
 void Connection::setOfferingTimer(int milliSeconds)
 {
    UtlString    callId;
-   SipSession  session;
+//   SipSession  session;
    Url         urlTo;
    UtlString    remoteAddr;
 
-   getSession(session);
-   session.getCallId(callId);
-   session.getToUrl(urlTo);
+//   getSession(session);
+/*   session.getCallId(callId);
+   session.getToUrl(urlTo);*/
    urlTo.toString(remoteAddr);
 
    CpMultiStringMessage* offeringExpiredMessage =

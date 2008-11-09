@@ -29,7 +29,6 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
-class SipSession;
 class SipMessage;
 class CpMediaEvent;
 
