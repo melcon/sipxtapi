@@ -47,14 +47,14 @@ public:
    /**
    * State entry handler.
    */
-   virtual void handleStateEntry();
+   virtual void handleStateEntry(StateEnum previousState);
 
    /**
    * State exit handler.
    */
-   virtual void handleStateExit();
+   virtual void handleStateExit(StateEnum nextState);
 
-   virtual ISipConnectionState* handleSipMessageEvent(const SipMessageEvent& rEvent);
+   virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /* ============================ ACCESSORS ================================= */
 

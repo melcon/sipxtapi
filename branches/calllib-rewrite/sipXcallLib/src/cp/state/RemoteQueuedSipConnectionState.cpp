@@ -43,17 +43,17 @@ RemoteQueuedSipConnectionState::~RemoteQueuedSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void RemoteQueuedSipConnectionState::handleStateEntry()
+void RemoteQueuedSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void RemoteQueuedSipConnectionState::handleStateExit()
+void RemoteQueuedSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* RemoteQueuedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* RemoteQueuedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 

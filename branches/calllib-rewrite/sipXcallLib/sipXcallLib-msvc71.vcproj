@@ -107,6 +107,7 @@
                 <File RelativePath=".\src\cp\state\RemoteOfferingSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\RemoteQueuedSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"/>
+                <File RelativePath=".\src\cp\state\SipConnectionStateTransition.cpp"/>
                 <File RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"/>
             </Filter>
         </Filter>
@@ -194,6 +195,7 @@
                 <File RelativePath=".\include\cp\state\RemoteQueuedSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateMachine.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateObserver.h"/>
+                <File RelativePath=".\include\cp\state\SipConnectionStateTransition.h"/>
                 <File RelativePath=".\include\cp\state\UnknownSipConnectionState.h"/>
             </Filter>
         </Filter>

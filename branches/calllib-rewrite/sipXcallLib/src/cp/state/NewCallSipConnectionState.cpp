@@ -43,17 +43,17 @@ NewCallSipConnectionState::~NewCallSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void NewCallSipConnectionState::handleStateEntry()
+void NewCallSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void NewCallSipConnectionState::handleStateExit()
+void NewCallSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* NewCallSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* NewCallSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 

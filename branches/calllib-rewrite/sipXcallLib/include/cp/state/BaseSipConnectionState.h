@@ -29,6 +29,7 @@ class XSipConnectionContext;
 class SipUserAgent;
 class CpMediaInterfaceProvider;
 class XSipConnectionEventSink;
+class SipConnectionStateTransition;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -53,17 +54,22 @@ public:
    /**
     * Default state entry handler.
     */
-   virtual void handleStateEntry();
+   virtual void handleStateEntry(StateEnum previousState);
 
    /**
     * Default state exit handler.
     */
-   virtual void handleStateExit();
+   virtual void handleStateExit(StateEnum nextState);
 
    /**
-    * Default sip message event handler.
-    */
-   virtual ISipConnectionState* handleSipMessageEvent(const SipMessageEvent& rEvent);
+   * Handles SipMessageEvent, which can be inbound sip request/response or error
+   * sending status.
+   * If instance cannot handle this event, it must pass it to parent as the last resort.
+   *
+   * @param rEvent Instance of SipMessageEvent that needs to be handled.
+   * @return Instance of SipConnectionStateTransition if a transition should occur. NULL if no transition should occur.
+   */
+   virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /* ============================ ACCESSORS ================================= */
 

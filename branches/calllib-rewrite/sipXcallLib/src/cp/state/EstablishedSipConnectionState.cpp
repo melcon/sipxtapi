@@ -43,17 +43,17 @@ EstablishedSipConnectionState::~EstablishedSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void EstablishedSipConnectionState::handleStateEntry()
+void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void EstablishedSipConnectionState::handleStateExit()
+void EstablishedSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* EstablishedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* EstablishedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 

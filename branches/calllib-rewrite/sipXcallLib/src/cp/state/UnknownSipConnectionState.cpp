@@ -43,17 +43,17 @@ UnknownSipConnectionState::~UnknownSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void UnknownSipConnectionState::handleStateEntry()
+void UnknownSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void UnknownSipConnectionState::handleStateExit()
+void UnknownSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* UnknownSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* UnknownSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 

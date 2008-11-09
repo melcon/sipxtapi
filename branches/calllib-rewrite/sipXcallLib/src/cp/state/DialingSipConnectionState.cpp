@@ -43,17 +43,17 @@ DialingSipConnectionState::~DialingSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void DialingSipConnectionState::handleStateEntry()
+void DialingSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void DialingSipConnectionState::handleStateExit()
+void DialingSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* DialingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* DialingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 
