@@ -27,7 +27,7 @@
 // FORWARD DECLARATIONS
 
 /**
- * State representing unknown connection state.
+ * Class representing unknown state.
  */
 class UnknownSipConnectionState : public BaseSipConnectionState
 {

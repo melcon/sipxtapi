@@ -27,7 +27,7 @@
 // FORWARD DECLARATIONS
 
 /**
- * State representing idle connection.
+ * Class representing queued state.
  */
 class QueuedSipConnectionState : public BaseSipConnectionState
 {

@@ -27,7 +27,7 @@
 // FORWARD DECLARATIONS
 
 /**
- * State representing idle connection.
+ * Class representing failed state.
  */
 class FailedSipConnectionState : public BaseSipConnectionState
 {
