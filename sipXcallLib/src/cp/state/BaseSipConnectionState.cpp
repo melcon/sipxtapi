@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/BaseSipConnectionState.h>
+#include <cp/state/SipConnectionStateTransition.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -58,6 +59,20 @@ SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(cons
 {
    // TODO: Implement
    return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::getTransition(ISipConnectionState::StateEnum nextState)
+{
+   if (this->getCurrentState() != nextState)
+   {
+      // TODO: construct new state and pass it into transition
+      SipConnectionStateTransition* pTransition = new SipConnectionStateTransition(this, NULL);
+      return pTransition;
+   }
+   else
+   {
+      return NULL;
+   }
 }
 
 /* ============================ ACCESSORS ================================= */
