@@ -172,7 +172,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   virtual UtlBoolean getSession(SipSession& session);
+   //virtual UtlBoolean getSession(SipSession& session);
 
    virtual OsStatus getFromField(UtlString* fromField);
 

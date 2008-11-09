@@ -37,6 +37,7 @@
 class CpMediaInterfaceProvider;
 class SipUserAgent;
 class CpMediaEvent;
+class CpCallStateEvent;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
 class SipSecurityEventListener;
@@ -80,12 +81,19 @@ public:
    /** Release the sync object */
    virtual OsStatus release();
 
-   /** Fires sipxmedia event to media listener */
-   void fireSipXMediaEvent(CP_MEDIA_EVENT event,
-                           CP_MEDIA_CAUSE cause,
-                           CP_MEDIA_TYPE  type,
-                           intptr_t pEventData1 = 0,
-                           intptr_t pEventData2 = 0);
+   /** Fires sipx media event to media listener */
+   virtual void fireSipXMediaEvent(CP_MEDIA_EVENT event,
+                                   CP_MEDIA_CAUSE cause,
+                                   CP_MEDIA_TYPE  type,
+                                   intptr_t pEventData1 = 0,
+                                   intptr_t pEventData2 = 0);
+
+   /** Fires sipx call event to call event listener */
+   virtual void fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
+                                  CP_CALLSTATE_CAUSE causeCode,
+                                  const UtlString& sOriginalSessionCallId = NULL,
+                                  int sipResponseCode = 0,
+                                  const UtlString& sResponseText = NULL);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -162,6 +170,13 @@ private:
 
    /** Sets common properties on media event */
    void prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type);
+
+   /** Sets common properties on call event */
+   void prepareCallStateEvent(CpCallStateEvent& event,
+                              CP_CALLSTATE_CAUSE eMinor,
+                              const UtlString& sOriginalSessionCallId = NULL,
+                              int sipResponseCode = 0,
+                              const UtlString& sResponseText = NULL);
 
    /** Fire info status event */
    void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,

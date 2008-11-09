@@ -162,7 +162,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
          sipDialog = pCall->m_sipDialog;
          SIPX_INSTANCE_DATA* pInst = pCall->m_pInst;
          SIPX_LINE hLine = pCall->m_hLine;
-         sCallId = pCall->m_callId;
+         sCallId = pCall->m_abstractCallId;
          pCall->m_fullLineUrl.toString(fullLineUrl);
          assert(pInst);
          sipxCallReleaseLock(pCall, SIPX_LOCK_READ, stackLogger);

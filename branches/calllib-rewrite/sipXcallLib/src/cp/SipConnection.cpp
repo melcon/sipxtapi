@@ -6124,7 +6124,7 @@ UtlBoolean SipConnection::isSameRemoteAddress(Url& remoteAddress,
    return(isSame);
 }
 
-UtlBoolean SipConnection::getSession(SipSession& session)
+/*UtlBoolean SipConnection::getSession(SipSession& session)
 {
    UtlString callId;
    getCallId(&callId);
@@ -6146,7 +6146,7 @@ UtlBoolean SipConnection::getSession(SipSession& session)
 
    session = ssn;
    return(TRUE);
-}
+}*/
 
 int SipConnection::getNextCseq()
 {

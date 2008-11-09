@@ -607,11 +607,9 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
             sipxAddCallHandleToConf(*phNewCall, hConf);
 
             // fire dialtone event manually - used for conferences
-            pInst->pCallEventListener->OnDialTone(CpCallStateEvent(sessionCallId,
-               confCallId,
-               SipSession(),
-               NULL,
-               CALLSTATE_CAUSE_CONFERENCE));
+            pInst->pCallEventListener->OnDialTone(CpCallStateEvent(confCallId,
+               &SipDialog(sessionCallId),
+               CP_CALLSTATE_CAUSE_CONFERENCE));
 
             // connect call
             rc = sipxCallConnect(*phNewCall, szAddress, pDisplay, pSecurity,

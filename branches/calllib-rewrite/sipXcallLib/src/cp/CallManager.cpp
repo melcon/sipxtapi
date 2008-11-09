@@ -887,7 +887,7 @@ PtStatus CallManager::connect(const char* callId,
    {
       if (m_pCallEventListener)
       {
-         m_pCallEventListener->OnDisconnected(CpCallStateEvent(NULL, callId, SipSession(), toAddressString, CALLSTATE_CAUSE_BAD_ADDRESS));
+         m_pCallEventListener->OnDisconnected(CpCallStateEvent(callId, NULL, CP_CALLSTATE_CAUSE_BAD_ADDRESS));
       }
    }
    return(returnCode);
