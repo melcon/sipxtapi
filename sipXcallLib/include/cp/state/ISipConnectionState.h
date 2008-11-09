@@ -39,18 +39,19 @@ public:
     */
    typedef enum
    {
-      CONNECTION_IDLE = 0,
-      CONNECTION_QUEUED,
-      CONNECTION_OFFERING,
-      CONNECTION_ALERTING,
+      CONNECTION_IDLE = 0, ///< initial state of state machine, is switched to CONNECTION_NEWCALL or CONNECTION_DIALING
+      CONNECTION_NEWCALL, ///< initial state for inbound calls
+      CONNECTION_DIALING, ///< initial state for outbound calls
+      CONNECTION_REMOTE_QUEUED, ///< for outbound calls
+      CONNECTION_REMOTE_OFFERING, ///< for outbound calls
+      CONNECTION_REMOTE_ALERTING, ///< for outbound calls
+      CONNECTION_QUEUED, ///< for inbound calls
+      CONNECTION_OFFERING, ///< for inbound calls
+      CONNECTION_ALERTING, ///< for inbound calls
       CONNECTION_ESTABLISHED,
-      CONNECTION_FAILED,
-      CONNECTION_DISCONNECTED,
-      CONNECTION_UNKNOWN,
-      CONNECTION_INITIATED,
-      CONNECTION_DIALING,
-      CONNECTION_NETWORK_REACHED,
-      CONNECTION_NETWORK_ALERTING
+      CONNECTION_FAILED, ///< reached when error occurs during sending sip message, authorization failure
+      CONNECTION_DISCONNECTED, ///< reached when call is hang up, refused by remote party etc
+      CONNECTION_UNKNOWN ///< this state should never occur, it is only theoretical
    } StateEnum;
 
    /* ============================ CREATORS ================================== */
