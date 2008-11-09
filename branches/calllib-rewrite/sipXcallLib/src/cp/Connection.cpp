@@ -24,7 +24,6 @@
 #include "os/OsDateTime.h"
 #include "os/OsUtil.h"
 #include <sdp/SdpCodec.h>
-#include <net/SipSession.h>
 #include <net/SipSecurityEventListener.h>
 #include <net/SipInfoStatusEventListener.h>
 #include <ptapi/PtTerminalConnection.h>

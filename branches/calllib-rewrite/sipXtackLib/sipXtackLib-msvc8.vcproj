@@ -723,10 +723,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\net\SipSession.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\net\SipSrvLookup.cpp"
 					>
 				</File>
@@ -1101,10 +1097,6 @@
 				</File>
 				<File
 					RelativePath=".\include\net\SipServerBrokerListener.h"
-					>
-				</File>
-				<File
-					RelativePath="include\net\SipSession.h"
 					>
 				</File>
 				<File

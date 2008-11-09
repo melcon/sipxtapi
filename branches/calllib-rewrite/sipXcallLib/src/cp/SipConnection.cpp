@@ -30,7 +30,6 @@
 #include <net/NameValueTokenizer.h>
 #include <net/SdpCodecFactory.h>
 #include <net/Url.h>
-#include <net/SipSession.h>
 #include <net/NetBase64Codec.h>
 #include <cp/SipConnection.h>
 #include <mi/CpMediaInterface.h>

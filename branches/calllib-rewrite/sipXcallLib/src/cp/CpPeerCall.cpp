@@ -41,7 +41,6 @@
 #include <net/SipLineProvider.h>
 #include <net/NameValueTokenizer.h>
 #include <net/Url.h>
-#include <net/SipSession.h>
 #include "net/SmimeBody.h"
 #include "ptapi/PtCall.h"
 #include <ptapi/PtConnection.h>

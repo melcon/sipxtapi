@@ -54,7 +54,7 @@
 class OsConfigDb;
 class OsQueuedEvent;
 class OsTimer;
-class SipSession;
+class SipDialog;
 class SipTcpServer;
 class SipLineProvider;
 class SipUserAgentBase;
@@ -309,7 +309,7 @@ public:
       UtlBoolean wantIncoming = TRUE,
       UtlBoolean wantOutGoing = FALSE,
       const char* eventName = NULL,
-      SipSession* pSession = NULL,
+      const SipDialog* pSipDialog = NULL,
       void* observerData = NULL);
 
 

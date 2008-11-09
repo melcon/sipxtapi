@@ -76,7 +76,6 @@ nobase_include_HEADERS =  \
     net/SipServerBase.h \
     net/SipServerBroker.h \
     net/SipServerBrokerListener.h \
-    net/SipSession.h \
     net/SipSrvLookup.h \
     net/SipSubscribeClient.h \
     net/SipSubscribeServer.h \

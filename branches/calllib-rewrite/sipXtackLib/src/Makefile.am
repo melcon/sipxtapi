@@ -97,7 +97,6 @@ libsipXtack_la_SOURCES =  \
     net/SipServerBase.cpp \
     net/SipServerBroker.cpp \
     net/SipServerBrokerListener.cpp \
-    net/SipSession.cpp \
     net/SipSrvLookup.cpp \
     net/SipSubscribeClient.cpp \
     net/SipSubscribeServer.cpp \
