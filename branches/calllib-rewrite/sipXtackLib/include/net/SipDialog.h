@@ -146,7 +146,10 @@ public:
    * \param remoteField - sip message To or From field value representing the 
    *        remote side of the dialog.
    */
-   SipDialog(const UtlString& sSipCallId, const UtlString& sLocalTag, const UtlString& sRemoteTag, UtlBoolean isFromLocal = TRUE); 
+   SipDialog(const UtlString& sSipCallId,
+             const UtlString& sLocalTag = NULL,
+             const UtlString& sRemoteTag = NULL,
+             UtlBoolean isFromLocal = TRUE); 
 
    //! Copy constructor
    SipDialog(const SipDialog& rSipDialog);
@@ -211,11 +214,17 @@ public:
 
    //! Get the SIP call-id header value for this dialog
    void getCallId(UtlString& callId) const;
+   //! Get the SIP call-id header value for this dialog
+   UtlString getCallId() const;
    //! Set the SIP call-id header value for this dialog
    void setCallId(const char* callId);
 
    //! Get the SIP To/From header value for the local side of this dialog
    void getLocalField(Url& localUrl) const;
+   //! Get the SIP To/From header value for the local side of this dialog
+   void getLocalField(UtlString& sLocalUrl) const;
+   //! Get the SIP To/From header value for the local side of this dialog
+   UtlString getLocalField() const;
    //! Get the tag from the SIP To/From header value for the local side of this dialog
    void getLocalTag(UtlString& localTag) const;
    //! Set the SIP To/From header value for the local side of this dialog
@@ -223,6 +232,10 @@ public:
 
    //! Get the SIP To/From header value for the remote side of this dialog
    void getRemoteField(Url& remoteUrl) const;
+   //! Get the SIP To/From header value for the remote side of this dialog
+   void getRemoteField(UtlString& sRemoteUrl) const;
+   //! Get the SIP To/From header value for the remote side of this dialog
+   UtlString getRemoteField() const;
    //! Get the tag from the SIP To/From header value for the remote side of this dialog
    void getRemoteTag(UtlString& remoteTag) const;
    //! Set the SIP To/From header value for the remote side of this dialog
@@ -230,11 +243,15 @@ public:
 
    //! Get the SIP Contact header value for the remote side of this dialog
    void getRemoteContact(Url& remoteContact) const;
+   //! Get the SIP Contact header value for the remote side of this dialog
+   void getRemoteContact(UtlString& sRemoteContact) const;
    //! Set the SIP Contact header value for the remote side of this dialog
    void setRemoteContact(const Url& remoteContact);
 
    //! Get the SIP Contact header value for the local side of this dialog
    void getLocalContact(Url& localContact) const;
+   //! Get the SIP Contact header value for the local side of this dialog
+   void getLocalContact(UtlString& sLocalContact) const;
    //! Get the SIP Contact header value for the remote side of this dialog
    void setLocalContact(const Url& localContact);
 
