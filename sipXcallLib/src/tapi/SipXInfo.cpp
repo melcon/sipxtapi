@@ -21,7 +21,6 @@
 #include <utl/UtlInit.h>
 
 #include <net/SipUserAgent.h>
-#include <net/SipSession.h>
 #include "tapi/SipXInfo.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXCall.h"
@@ -199,12 +198,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
                   pInfoData->infoData.pContent = NULL;
                }
 
-               SipSession* pSession = new SipSession(sSipCallId, remoteUrl.toString(), fullLineUrl.data());
                pInfoData->mutex.release();
 
-               pInst->pSipUserAgent->addMessageObserver(*(pInst->pMessageObserver->getMessageQueue()), SIP_INFO_METHOD, 0, 1, 1, 0, 0, pSession, (void*)*phInfo);
-               // message observer uses copy of pSession, it's safe to delete
-               delete pSession;
+               pInst->pSipUserAgent->addMessageObserver(*(pInst->pMessageObserver->getMessageQueue()), SIP_INFO_METHOD, 0, 1, 1, 0, 0, &sipDialog, (void*)*phInfo);
 
                if (pInst->pCallManager->sendInfo(sCallId, sipDialog, szContentType,
                   pContent, nContentLength))

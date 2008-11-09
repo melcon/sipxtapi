@@ -31,13 +31,13 @@
 #include <utl/UtlHashBagIterator.h>
 #include <net/SipSrvLookup.h>
 #include <net/SipUserAgent.h>
-#include <net/SipSession.h>
 #include <net/SipMessageEvent.h>
 #include <net/NameValueTokenizer.h>
 #include <net/SipObserverCriteria.h>
 #include <net/NetMd5Codec.h>
 #include <os/HostAdapterAddress.h>
 #include <net/Url.h>
+#include <net/SipDialog.h>
 #ifdef HAVE_SSL
 #include <net/SipTlsServer.h>
 #endif
@@ -566,13 +566,13 @@ void SipUserAgent::addMessageObserver(OsMsgQ& messageQueue,
                                       UtlBoolean wantIncoming,
                                       UtlBoolean wantOutGoing,
                                       const char* eventName,
-                                      SipSession* pSession,
+                                      const SipDialog* pSipDialog,
                                       void* observerData)
 {
    SipObserverCriteria* observer = new SipObserverCriteria(observerData,
       &messageQueue,
       sipMethod, wantRequests, wantResponses, wantIncoming,
-      wantOutGoing, eventName, pSession);
+      wantOutGoing, eventName, pSipDialog);
 
    {
       // Add the observer and its filter criteria to the list lock scope
@@ -2331,13 +2331,13 @@ void SipUserAgent::queueMessageToInterestedObservers(SipMessageEvent& event,
             } // else - this is a response - event filter is not applicable
 
             // Check to see if the session criteria matters
-            SipSession* pCriteriaSession = observerCriteria->getSession() ;
-            bool useSessionFilter = (NULL != pCriteriaSession);
+            const SipDialog* pCriteriaSipDialog = observerCriteria->getSipDialog();
+            bool useSessionFilter = (NULL != pCriteriaSipDialog);
             UtlBoolean matchedSession = FALSE;
             if (useSessionFilter)
             {
                // it matters; see if it matches
-               matchedSession = pCriteriaSession->isSameSession((SipMessage&) *message);
+               matchedSession = pCriteriaSipDialog->isInitialDialogOf(*message);
             }
 
             // We have a message type (req|rsp) the observer wants - apply filters

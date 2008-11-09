@@ -114,7 +114,6 @@
                 <File RelativePath=".\src\net\SipServerBase.cpp"/>
                 <File RelativePath=".\src\net\SipServerBroker.cpp"/>
                 <File RelativePath=".\src\net\SipServerBrokerListener.cpp"/>
-                <File RelativePath=".\src\net\SipSession.cpp"/>
                 <File RelativePath=".\src\net\SipSrvLookup.cpp"/>
                 <File RelativePath=".\src\net\SipSubscribeClient.cpp"/>
                 <File RelativePath=".\src\net\SipSubscribeServer.cpp"/>
@@ -218,7 +217,6 @@
                 <File RelativePath="include\net\SipServerBase.h"/>
                 <File RelativePath="include\net\SipServerBroker.h"/>
                 <File RelativePath=".\include\net\SipServerBrokerListener.h"/>
-                <File RelativePath="include\net\SipSession.h"/>
                 <File RelativePath="include\net\SipSrvLookup.h"/>
                 <File RelativePath="include\net\SipSubscribeClient.h"/>
                 <File RelativePath="include\net\SipSubscribeServer.h"/>

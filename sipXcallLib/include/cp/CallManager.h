@@ -192,13 +192,13 @@ public:
    virtual void renegotiateCodecsAllTerminalConnections(const char* callId);
    virtual void doGetFocus(CpCall* call);
 
-   virtual OsStatus getSession(const char* callId,
+/*   virtual OsStatus getSession(const char* callId,
       const char* address,
-      SipSession& session);
+      SipSession& session);*/
 
-   virtual OsStatus getSipDialog(const char* callId,
+/*   virtual OsStatus getSipDialog(const char* callId,
       const char* address,
-      SipDialog& dialog);
+      SipDialog& dialog);*/
 
    virtual void setMaxCalls(int maxCalls);
    //:Set the maximum number of calls to admit to the system.
