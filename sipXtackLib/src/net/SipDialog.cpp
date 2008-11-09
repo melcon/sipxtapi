@@ -471,6 +471,11 @@ void SipDialog::getCallId(UtlString& callId) const
    callId = *this;
 }
 
+UtlString SipDialog::getCallId() const
+{
+   return *this;
+}
+
 void SipDialog::setCallId(const char* callId)
 {
    remove(0);
@@ -481,6 +486,16 @@ void SipDialog::setCallId(const char* callId)
 void SipDialog::getLocalField(Url& localField) const
 {
    localField = m_localField;
+}
+
+void SipDialog::getLocalField(UtlString& sLocalUrl) const
+{
+   m_localField.toString(sLocalUrl);
+}
+
+UtlString SipDialog::getLocalField() const
+{
+   return m_localField.toString();
 }
 
 void SipDialog::getLocalTag(UtlString& localTag) const
@@ -500,6 +515,16 @@ void SipDialog::getRemoteField(Url& remoteField) const
    remoteField = m_remoteField;
 }
 
+void SipDialog::getRemoteField(UtlString& sRemoteUrl) const
+{
+   m_remoteField.toString(sRemoteUrl);
+}
+
+UtlString SipDialog::getRemoteField() const
+{
+   return m_remoteField.toString();
+}
+
 void SipDialog::getRemoteTag(UtlString& remoteTag) const
 {
    remoteTag = m_sRemoteTag;
@@ -517,6 +542,11 @@ void SipDialog::getRemoteContact(Url& remoteContact) const
    remoteContact = m_remoteContact;
 }
 
+void SipDialog::getRemoteContact(UtlString& sRemoteContact) const
+{
+   m_remoteContact.toString(sRemoteContact);
+}
+
 void SipDialog::setRemoteContact(const Url& remoteContact)
 {
    m_remoteContact = remoteContact;
@@ -525,6 +555,11 @@ void SipDialog::setRemoteContact(const Url& remoteContact)
 void SipDialog::getLocalContact(Url& localContact) const
 {
    localContact = m_localContact;
+}
+
+void SipDialog::getLocalContact(UtlString& sLocalContact) const
+{
+   m_localContact.toString(sLocalContact);
 }
 
 void SipDialog::setLocalContact(const Url& localContact)
