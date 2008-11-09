@@ -46,6 +46,7 @@ public:
    SipDialog m_sipDialog; ///< contains properties of Sip dialog as defined in RFC 3261
    UtlString m_remoteUserAgent;
    int m_mediaConnectionId; ///< contains Id of media connection for CpMediaInterface
+   UtlString m_sAbstractCallId; ///< contains Id of abstract call holding Sip connection
 
    /* ============================ CREATORS ================================== */
 

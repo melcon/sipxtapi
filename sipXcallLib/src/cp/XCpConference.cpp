@@ -14,6 +14,7 @@
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
 #include <os/OsPtrLock.h>
+#include <os/OsIntPtrMsg.h>
 #include <utl/UtlSListIterator.h>
 #include <net/SipDialog.h>
 #include <cp/XCpConference.h>
@@ -459,6 +460,49 @@ OsStatus XCpConference::handleMuteInputConnection(const AcMuteInputConnectionMsg
 OsStatus XCpConference::handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg)
 {
    return OS_FAILED;
+}
+
+void XCpConference::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
+                                                 CP_MEDIA_CAUSE cause,
+                                                 CP_MEDIA_TYPE type,
+                                                 int mediaConnectionId,
+                                                 intptr_t pEventData1,
+                                                 intptr_t pEventData2)
+{
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection && pSipConnection->getMediaConnectionId() == mediaConnectionId)
+      {
+         //pSipConnection->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+      }
+   }
+}
+
+void XCpConference::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
+                                                CP_MEDIA_CAUSE cause,
+                                                CP_MEDIA_TYPE type,
+                                                intptr_t pEventData1,
+                                                intptr_t pEventData2)
+{
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         //pSipConnection->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+      }
+   }
 }
 
 /* ============================ FUNCTIONS ================================= */

@@ -17,11 +17,13 @@
 #include <os/OsWriteLock.h>
 #include <os/OsMsgQ.h>
 #include <os/OsPtrLock.h>
+#include <os/OsIntPtrMsg.h>
 #include <net/SipMessage.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
 #include <cp/XSipConnection.h>
+#include <cp/CpNotificationMsgDef.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 #include <cp/msg/AcNotificationMsg.h>
@@ -104,6 +106,10 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
       return handlePhoneAppMessage(rRawMsg);
    case CpTimerMsg::OS_TIMER_MSG:
       return handleTimerMessage((const CpTimerMsg&)rRawMsg);
+   case OsMsg::MP_CONNECTION_NOTF_MSG:
+      return handleConnectionNotfMessage((const OsIntPtrMsg&)rRawMsg);
+   case OsMsg::MP_INTERFACE_NOTF_MSG:
+      return handleInterfaceNotfMessage((const OsIntPtrMsg&)rRawMsg);
    case OsMsg::OS_EVENT: // timer event
    default:
       break;
@@ -261,7 +267,7 @@ OsStatus XCpAbstractCall::getMediaConnectionId(const SipDialog& sipDialog, int& 
    UtlBoolean resFind = findConnection(sipDialog, ptrLock);
    if (resFind)
    {
-      ptrLock->getMediaConnectionId(mediaConnID);
+      mediaConnID = ptrLock->getMediaConnectionId();
       result = OS_SUCCESS;
    }
 
@@ -518,6 +524,72 @@ UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
    }
 
    return bResult;
+}
+
+UtlBoolean XCpAbstractCall::handleConnectionNotfMessage(const OsIntPtrMsg& rMsg)
+{
+   CpNotificationMsgMedia media = (CpNotificationMsgMedia)rMsg.getMsgSubType();
+   CpNotificationMsgType type = (CpNotificationMsgType)rMsg.getData1();
+   int mediaConnectionId = rMsg.getData2();
+   intptr_t pData1 = rMsg.getData3();
+   intptr_t pData2 = rMsg.getData4();
+
+   switch(type)
+   {
+   case CP_NOTIFICATION_DTMF_INBAND:
+      fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_INBAND, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_DTMF_RFC2833:
+      fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_RFC2833, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_DTMF_SIPINFO:
+      fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_SIPINFO, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      break;
+   default:
+      assert(false);
+   }
+
+   return TRUE;
+}
+
+UtlBoolean XCpAbstractCall::handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg)
+{
+   CpNotificationMsgMedia media = (CpNotificationMsgMedia)rMsg.getMsgSubType();
+   CpNotificationMsgType type = (CpNotificationMsgType)rMsg.getData1();
+   intptr_t pData1 = rMsg.getData2();
+   intptr_t pData2 = rMsg.getData3();
+
+   switch(type)
+   {
+   case CP_NOTIFICATION_START_PLAY_FILE:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_PLAYFILE_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_STOP_PLAY_FILE:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_PLAYFILE_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_START_PLAY_BUFFER:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_PLAYBUFFER_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_STOP_PLAY_BUFFER:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_PLAYBUFFER_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_PAUSE_PLAYBACK:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_PLAYBACK_PAUSED, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_RESUME_PLAYBACK:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_PLAYBACK_RESUMED, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_RECORDING_STARTED:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_RECORDING_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_RECORDING_STOPPED:
+      fireSipXMediaInterfaceEvent(CP_MEDIA_RECORDING_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
+      break;
+   default:
+      assert(false);
+   }
+
+   return TRUE;
 }
 
 void XCpAbstractCall::releaseMediaInterface()

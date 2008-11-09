@@ -14,6 +14,7 @@
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
 #include <os/OsPtrLock.h>
+#include <os/OsIntPtrMsg.h>
 #include <net/SipDialog.h>
 #include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
@@ -398,6 +399,38 @@ OsStatus XCpCall::handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg
 OsStatus XCpCall::handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg)
 {
    return OS_FAILED;
+}
+
+void XCpCall::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
+                                           CP_MEDIA_CAUSE cause,
+                                           CP_MEDIA_TYPE type,
+                                           int mediaConnectionId,
+                                           intptr_t pEventData1,
+                                           intptr_t pEventData2)
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+      if (ptrLock->getMediaConnectionId() == mediaConnectionId)
+      {
+//         ptrLock->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+      }
+   }
+}
+
+void XCpCall::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event, 
+                                          CP_MEDIA_CAUSE cause,
+                                          CP_MEDIA_TYPE type,
+                                          intptr_t pEventData1,
+                                          intptr_t pEventData2)
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+//      ptrLock->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+   }
 }
 
 /* ============================ FUNCTIONS ================================= */
