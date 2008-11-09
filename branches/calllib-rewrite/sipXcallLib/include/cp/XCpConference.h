@@ -291,6 +291,21 @@ private:
    /** Handles message to unmute inbound RTP in audio bridge */
    OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
 
+   /** Finds the correct connection by mediaConnectionId and fires media event for it. */
+   virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
+                                             CP_MEDIA_CAUSE cause,
+                                             CP_MEDIA_TYPE type,
+                                             int mediaConnectionId,
+                                             intptr_t pEventData1,
+                                             intptr_t pEventData2);
+
+   /** Fires given media interface event to listeners. */
+   virtual void fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
+                                            CP_MEDIA_CAUSE cause,
+                                            CP_MEDIA_TYPE type,
+                                            intptr_t pEventData1,
+                                            intptr_t pEventData2);
+
    // begin of members requiring m_memberMutex
    UtlSList m_sipConnections;
    // end of members requiring m_memberMutex

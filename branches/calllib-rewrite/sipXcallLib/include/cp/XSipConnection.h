@@ -19,6 +19,9 @@
 #include <os/OsRWMutex.h>
 #include <os/OsSyncBase.h>
 #include <utl/UtlContainable.h>
+#include <net/SipInfoStatusEventListener.h>
+#include <net/SipSecurityEventListener.h>
+#include <cp/CpDefs.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/SipConnectionStateObserver.h>
@@ -33,6 +36,11 @@
 // FORWARD DECLARATIONS
 class CpMediaInterfaceProvider;
 class SipUserAgent;
+class CpMediaEvent;
+class CpCallStateEventListener;
+class SipInfoStatusEventListener;
+class SipSecurityEventListener;
+class CpMediaEventListener;
 
 /**
  * XSipConnection is responsible for SIP communication.
@@ -48,8 +56,13 @@ public:
 
    /* ============================ CREATORS ================================== */
 
-   XSipConnection(SipUserAgent& rSipUserAgent,
-                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL);
+   XSipConnection(const UtlString& sAbstractCallId,
+                  SipUserAgent& rSipUserAgent,
+                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
+                  CpCallStateEventListener* pCallEventListener = NULL,
+                  SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+                  SipSecurityEventListener* pSecurityEventListener = NULL,
+                  CpMediaEventListener* pMediaEventListener = NULL);
 
    virtual ~XSipConnection();
 
@@ -66,6 +79,13 @@ public:
 
    /** Release the sync object */
    virtual OsStatus release();
+
+   /** Fires sipxmedia event to media listener */
+   void fireSipXMediaEvent(CP_MEDIA_EVENT event,
+                           CP_MEDIA_CAUSE cause,
+                           CP_MEDIA_TYPE  type,
+                           intptr_t pEventData1 = 0,
+                           intptr_t pEventData2 = 0);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -96,8 +116,14 @@ public:
     */
    void getRemoteUserAgent(UtlString& sRemoteUserAgent) const;
 
-   /** Gets internal id of media connection for connection. Only for unit tests */
-   void getMediaConnectionId(int& mediaConnID) const;
+   /** Gets internal id of media connection for connection. */
+   int getMediaConnectionId() const;
+
+   /** Gets id of parent abstract call */
+   void getAbstractCallId(UtlString& sAbstractCallId) const;
+
+   /** Gets Url of the remote connection party field parameters if present (tag)*/
+   void getRemoteAddress(UtlString& sRemoteAddress) const;
 
    /* ============================ INQUIRY =================================== */
 
@@ -134,6 +160,25 @@ private:
    */
    virtual void handleStateExit(ISipConnectionState::StateEnum state);
 
+   /** Sets common properties on media event */
+   void prepareMediaEvent(CpMediaEvent& event, CP_MEDIA_CAUSE cause, CP_MEDIA_TYPE type);
+
+   /** Fire info status event */
+   void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
+                                SIPXTACK_MESSAGE_STATUS status,
+                                const UtlString& sResponseText,
+                                int responseCode = 0);
+
+   /** Fire security event */
+   void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
+                              SIPXTACK_SECURITY_CAUSE cause,
+                              const UtlString& sSRTPkey,
+                              void* pCertificate,
+                              size_t nCertificateSize,
+                              const UtlString& sSubjAltName,
+                              const UtlString& sSessionCallId,
+                              const UtlString& sRemoteAddress);
+
    // needs special locking
    mutable XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.
    // not thread safe, must be used from single thread only
@@ -141,6 +186,11 @@ private:
    // thread safe
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   // thread safe, set only once
+   CpCallStateEventListener* m_pCallEventListener;
+   SipInfoStatusEventListener* m_pInfoStatusEventListener;
+   SipSecurityEventListener* m_pSecurityEventListener;
+   CpMediaEventListener* m_pMediaEventListener;
 
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall
 };

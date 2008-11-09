@@ -61,6 +61,7 @@ class AcAudioRecordStopMsg;
 class AcAudioToneStartMsg;
 class AcAudioToneStopMsg;
 class CpTimerMsg;
+class OsIntPtrMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -426,6 +427,27 @@ private:
 
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
+
+   /** Handle media connection notification message */
+   UtlBoolean handleConnectionNotfMessage(const OsIntPtrMsg& rMsg);
+
+   /** Handle media interface notification message */
+   UtlBoolean handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg);
+
+   /** Fires given media interface event to listeners. */
+   virtual void fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
+                                            CP_MEDIA_CAUSE cause,
+                                            CP_MEDIA_TYPE type,
+                                            intptr_t pEventData1,
+                                            intptr_t pEventData2) = 0;
+
+   /** Finds the correct connection by mediaConnectionId and fires media event for it. */
+   virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
+                                             CP_MEDIA_CAUSE cause,
+                                             CP_MEDIA_TYPE type,
+                                             int mediaConnectionId,
+                                             intptr_t pEventData1,
+                                             intptr_t pEventData2) = 0;
 
    /** Releases media interface */
    void releaseMediaInterface();
