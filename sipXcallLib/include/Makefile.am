@@ -29,6 +29,7 @@ nobase_include_HEADERS =  \
     cp/XCpConference.h \
     cp/XSipConnection.h \
     cp/XSipConnectionContext.h \
+    cp/XSipConnectionEventSink.h \
     cp/msg/AcAcceptConnectionMsg.h \
     cp/msg/AcAnswerConnectionMsg.h \
     cp/msg/AcAudioBufferPlayMsg.h \

@@ -29,8 +29,9 @@
 
 IdleSipConnectionState::IdleSipConnectionState(XSipConnectionContext& rSipConnectionContext,
                                                SipUserAgent& rSipUserAgent,
-                                               CpMediaInterfaceProvider* pMediaInterfaceProvider)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider)
+                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                                               XSipConnectionEventSink* pSipConnectionEventSink)
+: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
 {
 
 }

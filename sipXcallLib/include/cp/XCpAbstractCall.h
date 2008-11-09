@@ -26,6 +26,7 @@
 #include <cp/CpDefs.h>
 #include <cp/CpAudioCodecInfo.h>
 #include <cp/CpVideoCodecInfo.h>
+#include <cp/CpMediaInterfaceProvider.h>
 
 // DEFINES
 // MACROS
@@ -88,7 +89,7 @@ class OsIntPtrMsg;
  * - findConnection - uses the same dialog matching like hasSipDialog
  * 
  */
-class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase
+class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase, CpMediaInterfaceProvider
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -281,17 +282,8 @@ public:
                              const char* pContent,
                              const size_t nContentLength) = 0;
 
-   /** Block until the sync object is acquired. Timeout is not supported! */
-   virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
-
    /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
    virtual OsStatus acquireExclusive();
-
-   /** Conditionally acquire the semaphore (i.e., don't block) */
-   virtual OsStatus tryAcquire();
-
-   /** Release the sync object */
-   virtual OsStatus release();
 
    /* ============================ ACCESSORS ================================= */
 
@@ -451,6 +443,18 @@ private:
 
    /** Releases media interface */
    void releaseMediaInterface();
+
+   /** Gets current media interface of abstract call. Returns NULL if there is none. */
+   virtual CpMediaInterface* getMediaInterface() const;
+
+   /** Block until the sync object is acquired. Timeout is not supported! */
+   virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
+
+   /** Conditionally acquire the semaphore (i.e., don't block) */
+   virtual OsStatus tryAcquire();
+
+   /** Release the sync object */
+   virtual OsStatus release();
 
    XCpAbstractCall(const XCpAbstractCall& rhs);
 

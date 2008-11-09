@@ -31,13 +31,16 @@
 
 SipConnectionStateMachine::SipConnectionStateMachine(XSipConnectionContext& rSipConnectionContext,
                                                      SipUserAgent& rSipUserAgent,
-                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider)
+                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                                                     XSipConnectionEventSink* pSipConnectionEventSink)
 : m_rSipConnectionContext(rSipConnectionContext)
 , m_pSipConnectionState(NULL)
 , m_rSipUserAgent(rSipUserAgent)
 , m_pMediaInterfaceProvider(pMediaInterfaceProvider)
+, m_pSipConnectionEventSink(pSipConnectionEventSink)
 {
-   setStateObject(new IdleSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent, m_pMediaInterfaceProvider));
+   setStateObject(new IdleSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+      m_pMediaInterfaceProvider, m_pSipConnectionEventSink));
 }
 
 SipConnectionStateMachine::~SipConnectionStateMachine()

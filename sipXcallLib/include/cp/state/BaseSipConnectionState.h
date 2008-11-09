@@ -28,6 +28,7 @@
 class XSipConnectionContext;
 class SipUserAgent;
 class CpMediaInterfaceProvider;
+class XSipConnectionEventSink;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -42,7 +43,8 @@ public:
 
    BaseSipConnectionState(XSipConnectionContext& rSipConnectionContext,
                           SipUserAgent& rSipUserAgent,
-                          CpMediaInterfaceProvider* pMediaInterfaceProvider);
+                          CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
+                          XSipConnectionEventSink* pSipConnectionEventSink = NULL);
 
    virtual ~BaseSipConnectionState();
 
@@ -72,6 +74,7 @@ protected:
    XSipConnectionContext& m_rSipConnectionContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   XSipConnectionEventSink* m_pSipConnectionEventSink; ///< event sink (router) for various sip connection event types
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

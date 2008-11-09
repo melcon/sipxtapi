@@ -32,6 +32,7 @@ class XSipConnectionContext;
 class SipConnectionStateObserver;
 class SipUserAgent;
 class CpMediaInterfaceProvider;
+class XSipConnectionEventSink;
 
 /**
  * State machine handling various connection states.
@@ -47,7 +48,8 @@ public:
    
    SipConnectionStateMachine(XSipConnectionContext& rSipConnectionContext,
                              SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL);
+                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
+                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
 
    virtual ~SipConnectionStateMachine();
 
@@ -96,6 +98,7 @@ private:
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
    CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< provider of CpMediaInterface
+   XSipConnectionEventSink* m_pSipConnectionEventSink; ///< event sink (router) for various sip connection event types
 };
 
 #endif // SipConnectionStateMachine_h__

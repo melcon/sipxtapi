@@ -126,6 +126,7 @@
             <File RelativePath=".\include\cp\XCpConference.h"/>
             <File RelativePath=".\include\cp\XSipConnection.h"/>
             <File RelativePath=".\include\cp\XSipConnectionContext.h"/>
+            <File RelativePath=".\include\cp\XSipConnectionEventSink.h"/>
             <Filter Name="msg">
                 <File RelativePath=".\include\cp\msg\AcAcceptConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAnswerConnectionMsg.h"/>
