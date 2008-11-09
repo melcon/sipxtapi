@@ -85,9 +85,19 @@ libsipXcall_la_SOURCES = \
     cp/msg/CpTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
+    cp/state/AlertingSipConnectionState.cpp \
     cp/state/BaseSipConnectionState.cpp \
+    cp/state/DialingSipConnectionState.cpp \
     cp/state/DisconnectedSipConnectionState.cpp \
+    cp/state/EstablishedSipConnectionState.cpp \
+    cp/state/FailedSipConnectionState.cpp \
     cp/state/IdleSipConnectionState.cpp \
+    cp/state/NewCallSipConnectionState.cpp \
+    cp/state/OfferingSipConnectionState.cpp \
+    cp/state/QueuedSipConnectionState.cpp \
+    cp/state/RemoteAlertingSipConnectionState.cpp \
+    cp/state/RemoteOfferingSipConnectionState.cpp \
+    cp/state/RemoteQueuedSipConnectionState.cpp \
     cp/state/SipConnectionStateMachine.cpp \
     cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \

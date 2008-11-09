@@ -68,10 +68,20 @@ nobase_include_HEADERS =  \
     cp/msg/CpTimerMsg.h \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScNotificationMsg.h \
+    cp/state/AlertingSipConnectionState.h \
     cp/state/BaseSipConnectionState.h \
+    cp/state/DialingSipConnectionState.h \
     cp/state/DisconnectedSipConnectionState.h \
+    cp/state/EstablishedSipConnectionState.h \
+    cp/state/FailedSipConnectionState.h \
     cp/state/ISipConnectionState.h \
     cp/state/IdleSipConnectionState.h \
+    cp/state/NewCallSipConnectionState.h \
+    cp/state/OfferingSipConnectionState.h \
+    cp/state/QueuedSipConnectionState.h \
+    cp/state/RemoteAlertingSipConnectionState.h \
+    cp/state/RemoteOfferingSipConnectionState.h \
+    cp/state/RemoteQueuedSipConnectionState.h \
     cp/state/SipConnectionStateMachine.h \
     cp/state/SipConnectionStateObserver.h \
     cp/state/UnknownSipConnectionState.h \

@@ -466,7 +466,15 @@
 				Name="state"
 				>
 				<File
+					RelativePath=".\src\cp\state\AlertingSipConnectionState.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\state\BaseSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\DialingSipConnectionState.cpp"
 					>
 				</File>
 				<File
@@ -474,7 +482,39 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\state\EstablishedSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\FailedSipConnectionState.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\state\IdleSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\NewCallSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\OfferingSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\QueuedSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\RemoteAlertingSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\RemoteOfferingSipConnectionState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\state\RemoteQueuedSipConnectionState.cpp"
 					>
 				</File>
 				<File
@@ -755,11 +795,27 @@
 				Name="state"
 				>
 				<File
+					RelativePath=".\include\cp\state\AlertingSipConnectionState.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\state\BaseSipConnectionState.h"
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\state\DialingSipConnectionState.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\state\DisconnectedSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\EstablishedSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\FailedSipConnectionState.h"
 					>
 				</File>
 				<File
@@ -768,6 +824,30 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\state\ISipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\NewCallSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\OfferingSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\QueuedSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\RemoteAlertingSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\RemoteOfferingSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\RemoteQueuedSipConnectionState.h"
 					>
 				</File>
 				<File

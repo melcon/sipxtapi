@@ -93,9 +93,19 @@
                 <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
             </Filter>
             <Filter Name="state">
+                <File RelativePath=".\src\cp\state\AlertingSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\BaseSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\DialingSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\DisconnectedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\EstablishedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\FailedSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\IdleSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\NewCallSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\OfferingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\QueuedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\RemoteAlertingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\RemoteOfferingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\RemoteQueuedSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"/>
                 <File RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"/>
             </Filter>
@@ -168,10 +178,20 @@
                 <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>
             </Filter>
             <Filter Name="state">
+                <File RelativePath=".\include\cp\state\AlertingSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\BaseSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\DialingSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\DisconnectedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\EstablishedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\FailedSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\IdleSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\ISipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\NewCallSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\OfferingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\QueuedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\RemoteAlertingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\RemoteOfferingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\RemoteQueuedSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateMachine.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateObserver.h"/>
                 <File RelativePath=".\include\cp\state\UnknownSipConnectionState.h"/>
