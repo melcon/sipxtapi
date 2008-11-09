@@ -71,6 +71,11 @@ public:
    */
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
+   /**
+    * Constructs transition from current state into given destination state.
+    */
+   SipConnectionStateTransition* getTransition(ISipConnectionState::StateEnum nextState);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
