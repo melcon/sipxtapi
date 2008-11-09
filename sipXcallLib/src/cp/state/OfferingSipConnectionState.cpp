@@ -43,17 +43,17 @@ OfferingSipConnectionState::~OfferingSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void OfferingSipConnectionState::handleStateEntry()
+void OfferingSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void OfferingSipConnectionState::handleStateExit()
+void OfferingSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* OfferingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* OfferingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 

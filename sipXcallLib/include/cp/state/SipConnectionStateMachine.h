@@ -27,12 +27,14 @@
 // MACROS
 // FORWARD DECLARATIONS
 class ISipConnectionState;
+class BaseSipConnectionState;
 class SipMessageEvent;
 class XSipConnectionContext;
 class SipConnectionStateObserver;
 class SipUserAgent;
 class CpMediaInterfaceProvider;
 class XSipConnectionEventSink;
+class SipConnectionStateTransition;
 
 /**
  * State machine handling various connection states.
@@ -85,7 +87,11 @@ private:
 
    SipConnectionStateMachine& operator=(const SipConnectionStateMachine& rhs);
 
-   void setStateObject(ISipConnectionState* pNewState);
+   /**
+    * Handles state changes. Responsible for deletion of previous state and state change
+    * notifications.
+    */
+   void handleStateTransition(SipConnectionStateTransition& rStateTransition);
 
    /** Notify observer that we entered new state */
    void notifyStateEntry();
@@ -94,7 +100,7 @@ private:
    void notifyStateExit();
 
    XSipConnectionContext& m_rSipConnectionContext; ///< context containing state of sip connection. Needs to be locked when accessed.
-   ISipConnectionState* m_pSipConnectionState; ///< pointer to state object handling commands and SipMessageEvents
+   BaseSipConnectionState* m_pSipConnectionState; ///< pointer to state object handling commands and SipMessageEvents
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
    CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< provider of CpMediaInterface

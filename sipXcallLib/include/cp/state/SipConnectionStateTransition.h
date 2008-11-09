@@ -10,13 +10,11 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RemoteQueuedSipConnectionState_h__
-#define RemoteQueuedSipConnectionState_h__
+#ifndef SipConnectionStateTransition_h__
+#define SipConnectionStateTransition_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/state/BaseSipConnectionState.h>
-
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -25,40 +23,28 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class BaseSipConnectionState;
 
 /**
- * State representing idle connection.
+ * Class Description
  */
-class RemoteQueuedSipConnectionState : public BaseSipConnectionState
+class SipConnectionStateTransition
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
 
-   RemoteQueuedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
-                                  SipUserAgent& rSipUserAgent,
-                                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                  XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+   SipConnectionStateTransition(BaseSipConnectionState* pSource,
+                                BaseSipConnectionState* pDestination);
 
-   virtual ~RemoteQueuedSipConnectionState();
+   ~SipConnectionStateTransition();
 
    /* ============================ MANIPULATORS ============================== */
 
-   /**
-   * State entry handler.
-   */
-   virtual void handleStateEntry(StateEnum previousState);
-
-   /**
-   * State exit handler.
-   */
-   virtual void handleStateExit(StateEnum nextState);
-
-   virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
-
    /* ============================ ACCESSORS ================================= */
 
-   virtual ISipConnectionState::StateEnum getCurrentState() { return ISipConnectionState::CONNECTION_REMOTE_QUEUED; }
+   BaseSipConnectionState* getSource() const { return m_pSource; }
+   BaseSipConnectionState* getDestination() const { return m_pDestination; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -67,6 +53,9 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   BaseSipConnectionState* m_pSource;
+   BaseSipConnectionState* m_pDestination;
 };
 
-#endif // RemoteQueuedSipConnectionState_h__
+#endif // SipConnectionStateTransition_h__

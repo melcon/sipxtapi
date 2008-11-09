@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/state/DisconnectedSipConnectionState.h>
+#include <cp/state/SipConnectionStateTransition.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,37 +27,20 @@
 
 /* ============================ CREATORS ================================== */
 
-DisconnectedSipConnectionState::DisconnectedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
-                                                               SipUserAgent& rSipUserAgent,
-                                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                               XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+SipConnectionStateTransition::SipConnectionStateTransition(BaseSipConnectionState* pSource,
+                                                           BaseSipConnectionState* pDestination)
+: m_pSource(pSource)
+, m_pDestination(pDestination)
 {
 
 }
 
-DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
+SipConnectionStateTransition::~SipConnectionStateTransition()
 {
 
 }
 
 /* ============================ MANIPULATORS ============================== */
-
-void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState)
-{
-}
-
-void DisconnectedSipConnectionState::handleStateExit(StateEnum nextState)
-{
-}
-
-SipConnectionStateTransition* DisconnectedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
-{
-   // handle event here
-
-   // as a last resort, let parent handle event
-   return BaseSipConnectionState::handleSipMessageEvent(rEvent);
-}
 
 /* ============================ ACCESSORS ================================= */
 

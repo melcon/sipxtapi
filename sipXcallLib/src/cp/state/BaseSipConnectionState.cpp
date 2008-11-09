@@ -46,18 +46,18 @@ BaseSipConnectionState::~BaseSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void BaseSipConnectionState::handleStateEntry()
+void BaseSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 }
 
-void BaseSipConnectionState::handleStateExit()
+void BaseSipConnectionState::handleStateExit(StateEnum nextState)
 {
 }
 
-ISipConnectionState* BaseSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // TODO: Implement
-   return this;
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */

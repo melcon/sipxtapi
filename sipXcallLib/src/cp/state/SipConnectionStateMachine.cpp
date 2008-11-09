@@ -12,9 +12,11 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/IdleSipConnectionState.h>
 #include <cp/state/SipConnectionStateObserver.h>
+#include <cp/state/SipConnectionStateTransition.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -39,13 +41,17 @@ SipConnectionStateMachine::SipConnectionStateMachine(XSipConnectionContext& rSip
 , m_pMediaInterfaceProvider(pMediaInterfaceProvider)
 , m_pSipConnectionEventSink(pSipConnectionEventSink)
 {
-   setStateObject(new IdleSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-      m_pMediaInterfaceProvider, m_pSipConnectionEventSink));
+   BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+      m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+   SipConnectionStateTransition transition(NULL, pSipConnectionState);
+
+   handleStateTransition(transition);
 }
 
 SipConnectionStateMachine::~SipConnectionStateMachine()
 {
-   setStateObject(NULL);
+   SipConnectionStateTransition transition(m_pSipConnectionState, NULL);
+   handleStateTransition(transition);
    m_pMediaInterfaceProvider = NULL;
 }
 
@@ -55,7 +61,13 @@ void SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEv
 {
    if (m_pSipConnectionState)
    {
-      setStateObject(m_pSipConnectionState->handleSipMessageEvent(rEvent));
+      SipConnectionStateTransition *pTransition = m_pSipConnectionState->handleSipMessageEvent(rEvent);
+      if (pTransition)
+      {
+         handleStateTransition(*pTransition);
+         delete pTransition;
+         pTransition = NULL;
+      }
    }
 }
 
@@ -79,24 +91,44 @@ ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-void SipConnectionStateMachine::setStateObject(ISipConnectionState* pNewState)
+void SipConnectionStateMachine::handleStateTransition(SipConnectionStateTransition& rStateTransition)
 {
-   if (m_pSipConnectionState != pNewState)
+   if (rStateTransition.getSource() == m_pSipConnectionState)
    {
-      // new state is different than old one
+      // transition seems to be valid
+      ISipConnectionState::StateEnum previousState = ISipConnectionState::CONNECTION_UNKNOWN;
+      ISipConnectionState::StateEnum nextState = ISipConnectionState::CONNECTION_UNKNOWN;
+      BaseSipConnectionState* m_pDestination = rStateTransition.getDestination();
+
+      if (m_pDestination)
+      {
+         nextState = m_pDestination->getCurrentState();
+      }
       if (m_pSipConnectionState)
       {
-         m_pSipConnectionState->handleStateExit();
+         previousState = m_pSipConnectionState->getCurrentState();
+         m_pSipConnectionState->handleStateExit(nextState);
          notifyStateExit(); // also notify observer
          // delete old state
          delete m_pSipConnectionState;
          m_pSipConnectionState = NULL;
       }
-      if (pNewState)
+      if (m_pDestination)
       {
-         m_pSipConnectionState = pNewState;
-         m_pSipConnectionState->handleStateEntry();
+         m_pSipConnectionState = m_pDestination;
+         m_pSipConnectionState->handleStateEntry(previousState);
          notifyStateEntry(); // also notify observer
+      }
+   }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_ERR, "Invalid state transition in SipConnectionStateMachine, source state mismatch.");
+      // delete destination state to avoid leaks
+      BaseSipConnectionState* m_pDestination = rStateTransition.getDestination();
+      if (m_pDestination)
+      {
+         delete m_pDestination;
+         m_pDestination = NULL;
       }
    }
 }

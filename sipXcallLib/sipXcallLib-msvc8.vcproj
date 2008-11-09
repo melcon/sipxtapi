@@ -522,6 +522,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\state\SipConnectionStateTransition.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"
 					>
 				</File>
@@ -856,6 +860,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\state\SipConnectionStateObserver.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\SipConnectionStateTransition.h"
 					>
 				</File>
 				<File

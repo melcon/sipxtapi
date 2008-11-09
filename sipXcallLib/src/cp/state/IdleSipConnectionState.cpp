@@ -43,17 +43,17 @@ IdleSipConnectionState::~IdleSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void IdleSipConnectionState::handleStateEntry()
+void IdleSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void IdleSipConnectionState::handleStateExit()
+void IdleSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* IdleSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* IdleSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 

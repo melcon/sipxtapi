@@ -63,22 +63,12 @@ public:
     * SipMessageEvent, resulting in new state transition. Should not be used to
     * send any sip messages.
     */
-   virtual void handleStateEntry() = 0;
+   virtual void handleStateEntry(StateEnum previousState) = 0;
 
    /**
     * Called before this state is destroyed. Should not be used to send any sip messages.
     */
-   virtual void handleStateExit() = 0;
-
-   /**
-    * Handles SipMessageEvent, which can be inbound sip request/response or error
-    * sending status.
-    * If instance cannot handle this event, it must pass it to parent as the last resort.
-    *
-    * @param rEvent Instance of SipMessageEvent that needs to be handled.
-    * @return New state to progress into or this if no state progression is made.
-    */
-   virtual ISipConnectionState* handleSipMessageEvent(const SipMessageEvent& rEvent) = 0;
+   virtual void handleStateExit(StateEnum nextState) = 0;
 
    /* ============================ ACCESSORS ================================= */
 

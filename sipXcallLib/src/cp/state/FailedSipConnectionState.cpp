@@ -43,17 +43,17 @@ FailedSipConnectionState::~FailedSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void FailedSipConnectionState::handleStateEntry()
+void FailedSipConnectionState::handleStateEntry(StateEnum previousState)
 {
 
 }
 
-void FailedSipConnectionState::handleStateExit()
+void FailedSipConnectionState::handleStateExit(StateEnum nextState)
 {
 
 }
 
-ISipConnectionState* FailedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
+SipConnectionStateTransition* FailedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
 
