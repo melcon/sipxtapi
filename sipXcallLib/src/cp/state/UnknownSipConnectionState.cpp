@@ -13,6 +13,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/UnknownSipConnectionState.h>
+#include <cp/state/FailedSipConnectionState.h>
+#include <cp/state/UnknownSipConnectionState.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -43,12 +45,12 @@ UnknownSipConnectionState::~UnknownSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void UnknownSipConnectionState::handleStateEntry(StateEnum previousState)
+void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
 
 }
 
-void UnknownSipConnectionState::handleStateExit(StateEnum nextState)
+void UnknownSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
 }
@@ -66,6 +68,30 @@ SipConnectionStateTransition* UnknownSipConnectionState::handleSipMessageEvent(c
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+SipConnectionStateTransition* UnknownSipConnectionState::getTransition(ISipConnectionState::StateEnum nextState,
+                                                                       const StateTransitionMemory* pTansitionMemory) const
+{
+   if (this->getCurrentState() != nextState)
+   {
+      BaseSipConnectionState* pDestination = NULL;
+      switch(nextState)
+      {
+      case ISipConnectionState::CONNECTION_UNKNOWN:
+      default:
+         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      }
+
+      return getTransitionObject(pDestination, pTansitionMemory);
+   }
+   else
+   {
+      return NULL;
+   }
+
+}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

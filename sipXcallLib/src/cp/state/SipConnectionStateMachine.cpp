@@ -107,7 +107,7 @@ void SipConnectionStateMachine::handleStateTransition(SipConnectionStateTransiti
       if (m_pSipConnectionState)
       {
          previousState = m_pSipConnectionState->getCurrentState();
-         m_pSipConnectionState->handleStateExit(nextState);
+         m_pSipConnectionState->handleStateExit(nextState, rStateTransition.getMemory());
          notifyStateExit(); // also notify observer
          // delete old state
          delete m_pSipConnectionState;
@@ -116,7 +116,7 @@ void SipConnectionStateMachine::handleStateTransition(SipConnectionStateTransiti
       if (m_pDestination)
       {
          m_pSipConnectionState = m_pDestination;
-         m_pSipConnectionState->handleStateEntry(previousState);
+         m_pSipConnectionState->handleStateEntry(previousState, rStateTransition.getMemory());
          notifyStateEntry(); // also notify observer
       }
    }

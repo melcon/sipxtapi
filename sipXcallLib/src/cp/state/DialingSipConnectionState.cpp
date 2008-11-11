@@ -13,6 +13,12 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/DialingSipConnectionState.h>
+#include <cp/state/FailedSipConnectionState.h>
+#include <cp/state/UnknownSipConnectionState.h>
+#include <cp/state/DisconnectedSipConnectionState.h>
+#include <cp/state/RemoteOfferingSipConnectionState.h>
+#include <cp/state/RemoteAlertingSipConnectionState.h>
+#include <cp/state/RemoteQueuedSipConnectionState.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -43,12 +49,12 @@ DialingSipConnectionState::~DialingSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void DialingSipConnectionState::handleStateEntry(StateEnum previousState)
+void DialingSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
 
 }
 
-void DialingSipConnectionState::handleStateExit(StateEnum nextState)
+void DialingSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
 }
@@ -66,6 +72,49 @@ SipConnectionStateTransition* DialingSipConnectionState::handleSipMessageEvent(c
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+SipConnectionStateTransition* DialingSipConnectionState::getTransition(ISipConnectionState::StateEnum nextState,
+                                                                       const StateTransitionMemory* pTansitionMemory) const
+{
+   if (this->getCurrentState() != nextState)
+   {
+      BaseSipConnectionState* pDestination = NULL;
+      switch(nextState)
+      {
+      case ISipConnectionState::CONNECTION_REMOTE_OFFERING:
+         pDestination = new RemoteOfferingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_REMOTE_ALERTING:
+         pDestination = new RemoteAlertingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_REMOTE_QUEUED:
+         pDestination = new RemoteQueuedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_FAILED:
+         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_DISCONNECTED:
+         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_UNKNOWN:
+      default:
+         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      }
+
+      return getTransitionObject(pDestination, pTansitionMemory);
+   }
+   else
+   {
+      return NULL;
+   }
+}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

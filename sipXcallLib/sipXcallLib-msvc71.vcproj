@@ -196,6 +196,7 @@
                 <File RelativePath=".\include\cp\state\SipConnectionStateMachine.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateObserver.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateTransition.h"/>
+                <File RelativePath=".\include\cp\state\StateTransitionMemory.h"/>
                 <File RelativePath=".\include\cp\state\UnknownSipConnectionState.h"/>
             </Filter>
         </Filter>
