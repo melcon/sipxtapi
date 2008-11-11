@@ -47,23 +47,30 @@ public:
    /**
    * State entry handler.
    */
-   virtual void handleStateEntry(StateEnum previousState);
+   virtual void handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory);
 
    /**
    * State exit handler.
    */
-   virtual void handleStateExit(StateEnum nextState);
+   virtual void handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory);
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /* ============================ ACCESSORS ================================= */
 
-   virtual ISipConnectionState::StateEnum getCurrentState() { return ISipConnectionState::CONNECTION_REMOTE_OFFERING; }
+   virtual ISipConnectionState::StateEnum getCurrentState() const { return ISipConnectionState::CONNECTION_REMOTE_OFFERING; }
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+   /**
+   * Constructs transition from current state into given destination state.
+   * @pTansitionMemory Optional memory object which should be supplied to state transition. Local copy
+   * will be made.
+   */
+   virtual SipConnectionStateTransition* getTransition(ISipConnectionState::StateEnum nextState,
+                                                       const StateTransitionMemory* pTansitionMemory) const;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

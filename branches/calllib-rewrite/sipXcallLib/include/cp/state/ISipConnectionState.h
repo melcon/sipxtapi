@@ -26,6 +26,7 @@
 // MACROS
 // FORWARD DECLARATIONS
 class SipMessageEvent;
+class StateTransitionMemory;
 
 /**
  * Interface for all connection states.
@@ -63,19 +64,19 @@ public:
     * SipMessageEvent, resulting in new state transition. Should not be used to
     * send any sip messages.
     */
-   virtual void handleStateEntry(StateEnum previousState) = 0;
+   virtual void handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory) = 0;
 
    /**
     * Called before this state is destroyed. Should not be used to send any sip messages.
     */
-   virtual void handleStateExit(StateEnum nextState) = 0;
+   virtual void handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory) = 0;
 
    /* ============================ ACCESSORS ================================= */
 
    /**
     * Gets id of current state.
     */
-   virtual ISipConnectionState::StateEnum getCurrentState() = 0;
+   virtual ISipConnectionState::StateEnum getCurrentState() const = 0;
 
    /* ============================ INQUIRY =================================== */
 

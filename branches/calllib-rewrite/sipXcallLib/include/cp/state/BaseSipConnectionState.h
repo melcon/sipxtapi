@@ -30,6 +30,7 @@ class SipUserAgent;
 class CpMediaInterfaceProvider;
 class XSipConnectionEventSink;
 class SipConnectionStateTransition;
+class StateTransitionMemory;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -54,12 +55,12 @@ public:
    /**
     * Default state entry handler.
     */
-   virtual void handleStateEntry(StateEnum previousState);
+   virtual void handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory);
 
    /**
     * Default state exit handler.
     */
-   virtual void handleStateExit(StateEnum nextState);
+   virtual void handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory);
 
    /**
    * Handles SipMessageEvent, which can be inbound sip request/response or error
@@ -71,17 +72,28 @@ public:
    */
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
-   /**
-    * Constructs transition from current state into given destination state.
-    */
-   SipConnectionStateTransition* getTransition(ISipConnectionState::StateEnum nextState);
-
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+   /**
+   * Constructs transition from current state into given destination state.
+   * @pTansitionMemory Optional memory object which should be supplied to state transition. Local copy
+   * will be made.
+   */
+   virtual SipConnectionStateTransition* getTransition(ISipConnectionState::StateEnum nextState,
+                                                       const StateTransitionMemory* pTansitionMemory) const = 0;
+
+   /**
+   * Constructs transition from current state into given destination state.
+   * @pTansitionMemory Optional memory object which should be supplied to state transition. Local copy
+   * will be made.
+   */
+   virtual SipConnectionStateTransition* getTransitionObject(BaseSipConnectionState* pDestination,
+                                                             const StateTransitionMemory* pTansitionMemory) const;
+
    XSipConnectionContext& m_rSipConnectionContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider

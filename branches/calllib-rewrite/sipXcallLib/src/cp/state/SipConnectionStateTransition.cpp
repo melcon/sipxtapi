@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/SipConnectionStateTransition.h>
+#include <cp/state/StateTransitionMemory.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,17 +28,25 @@
 
 /* ============================ CREATORS ================================== */
 
-SipConnectionStateTransition::SipConnectionStateTransition(BaseSipConnectionState* pSource,
-                                                           BaseSipConnectionState* pDestination)
+SipConnectionStateTransition::SipConnectionStateTransition(const BaseSipConnectionState* pSource,
+                                                           BaseSipConnectionState* pDestination,
+                                                           StateTransitionMemory* pMemory)
 : m_pSource(pSource)
 , m_pDestination(pDestination)
+, m_pMemory(pMemory)
 {
 
 }
 
 SipConnectionStateTransition::~SipConnectionStateTransition()
 {
-
+   if (m_pMemory)
+   {
+      delete m_pMemory;
+      m_pMemory = NULL;
+   }
+   m_pSource = NULL;
+   m_pDestination = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */

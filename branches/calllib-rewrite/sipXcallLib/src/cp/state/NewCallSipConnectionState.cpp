@@ -13,6 +13,10 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/NewCallSipConnectionState.h>
+#include <cp/state/FailedSipConnectionState.h>
+#include <cp/state/UnknownSipConnectionState.h>
+#include <cp/state/DisconnectedSipConnectionState.h>
+#include <cp/state/OfferingSipConnectionState.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -43,12 +47,12 @@ NewCallSipConnectionState::~NewCallSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void NewCallSipConnectionState::handleStateEntry(StateEnum previousState)
+void NewCallSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
 
 }
 
-void NewCallSipConnectionState::handleStateExit(StateEnum nextState)
+void NewCallSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
 }
@@ -59,6 +63,41 @@ SipConnectionStateTransition* NewCallSipConnectionState::handleSipMessageEvent(c
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* NewCallSipConnectionState::getTransition(ISipConnectionState::StateEnum nextState,
+                                                                       const StateTransitionMemory* pTansitionMemory) const
+{
+   if (this->getCurrentState() != nextState)
+   {
+      BaseSipConnectionState* pDestination = NULL;
+      switch(nextState)
+      {
+      case ISipConnectionState::CONNECTION_OFFERING:
+         pDestination = new OfferingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_FAILED:
+         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_DISCONNECTED:
+         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      case ISipConnectionState::CONNECTION_UNKNOWN:
+      default:
+         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         break;
+      }
+
+      return getTransitionObject(pDestination, pTansitionMemory);
+   }
+   else
+   {
+      return NULL;
+   }
 }
 
 /* ============================ ACCESSORS ================================= */

@@ -14,6 +14,7 @@
 // APPLICATION INCLUDES
 #include <cp/state/BaseSipConnectionState.h>
 #include <cp/state/SipConnectionStateTransition.h>
+#include <cp/state/StateTransitionMemory.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -47,11 +48,11 @@ BaseSipConnectionState::~BaseSipConnectionState()
 
 /* ============================ MANIPULATORS ============================== */
 
-void BaseSipConnectionState::handleStateEntry(StateEnum previousState)
+void BaseSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
 }
 
-void BaseSipConnectionState::handleStateExit(StateEnum nextState)
+void BaseSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 }
 
@@ -61,12 +62,25 @@ SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(cons
    return NULL;
 }
 
-SipConnectionStateTransition* BaseSipConnectionState::getTransition(ISipConnectionState::StateEnum nextState)
+/* ============================ ACCESSORS ================================= */
+
+/* ============================ INQUIRY =================================== */
+
+/* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+SipConnectionStateTransition* BaseSipConnectionState::getTransitionObject(BaseSipConnectionState* pDestination,
+                                                                          const StateTransitionMemory* pTansitionMemory) const
 {
-   if (this->getCurrentState() != nextState)
+   if (this != pDestination)
    {
-      // TODO: construct new state and pass it into transition
-      SipConnectionStateTransition* pTransition = new SipConnectionStateTransition(this, NULL);
+      StateTransitionMemory* pTansitionMemoryCopy = NULL;
+      if (pTansitionMemory)
+      {
+         pTansitionMemoryCopy = new StateTransitionMemory(*pTansitionMemory);
+      }
+      // construct transition from this to destination state, containing copy of state transition memory object
+      SipConnectionStateTransition* pTransition = new SipConnectionStateTransition(this, pDestination,
+         pTansitionMemoryCopy);
       return pTransition;
    }
    else
@@ -74,12 +88,6 @@ SipConnectionStateTransition* BaseSipConnectionState::getTransition(ISipConnecti
       return NULL;
    }
 }
-
-/* ============================ ACCESSORS ================================= */
-
-/* ============================ INQUIRY =================================== */
-
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

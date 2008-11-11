@@ -867,6 +867,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\state\StateTransitionMemory.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\state\UnknownSipConnectionState.h"
 					>
 				</File>
