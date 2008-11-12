@@ -258,6 +258,7 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
    CPPUNIT_TEST(testPublishAndSubscribeConfig);
    CPPUNIT_TEST(testPublishAndSubscribeCallCustom);
    CPPUNIT_TEST(testPublishAndSubscribeConfigCustom);
+   CPPUNIT_TEST(testPublishAndSubscribeConfigLong);
 #endif /* TEST_SUBSCRIBE ] */ 
 
 #if TEST_NAT /* [ */
@@ -506,6 +507,7 @@ public:
    void testPublishAndSubscribe(bool bCallContext, bool bCustomTransport, const char* szTestName);
    void testPublishAndSubscribeCall();
    void testPublishAndSubscribeConfig();
+   void testPublishAndSubscribeConfigLong();
    void testPublishAndSubscribeCallCustom();
    void testPublishAndSubscribeConfigCustom();
 
