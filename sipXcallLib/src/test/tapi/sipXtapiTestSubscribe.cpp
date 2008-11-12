@@ -47,7 +47,6 @@ void sipXtapiTestSuite::testPublishAndSubscribe(bool bCallContext,
                                                 bool bCustomTransport,
                                                 const char* szTestName) 
 {
-
    for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
    {
       printf("\n%s (%2d of %2d)", szTestName, iStressFactor+1, STRESS_FACTOR);
@@ -537,3 +536,113 @@ void sipXtapiTestSuite::testPublishAndSubscribe(bool bCallContext,
    checkForLeaks();
 }
 
+void sipXtapiTestSuite::testPublishAndSubscribeConfigLong() 
+{
+   for (int iStressFactor = 0; iStressFactor < STRESS_FACTOR; iStressFactor++)
+   {
+      printf("\ntestPublishAndSubscribeConfigLong (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
+
+      EventValidator validatorPublish("testPublishAndSubscribeConfigLong.publish");
+      EventValidator validatorSubscribe("testPublishAndSubscribeConfigLong.subscribe1");
+      SIPX_LINE hLine1 = 0;
+      SIPX_LINE hLine2 = 0;
+      SIPX_RESULT rc;
+      SIPX_PUB hPub_coffee = 0;
+      SIPX_SUB hSub_coffee = 0;
+      SIPX_CONTACT_ID contactId = CONTACT_LOCAL;
+      int subscriptionPeriod = 40;
+
+      validatorPublish.reset();
+      validatorPublish.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
+
+      validatorSubscribe.reset();
+      validatorSubscribe.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
+
+      sipxEventListenerAdd(g_hInst1, UniversalEventValidatorCallback, &validatorPublish);
+      sipxEventListenerAdd(g_hInst2, UniversalEventValidatorCallback, &validatorSubscribe);
+
+      rc = sipxLineAdd(g_hInst1, "sip:foo@127.0.0.1:8000", &hLine1);
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+
+      rc = sipxLineAdd(g_hInst2, "sip:bar@127.0.0.1:9100", &hLine2);
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+
+      validatorPublish.waitForLineEvent(hLine1, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);        
+      validatorSubscribe.waitForLineEvent(hLine2, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL);        
+
+      UtlString publisherUrl("foo@127.0.0.1:8000");
+      UtlString publisherEventType("coffee");
+      UtlString publisherContentType("application/coffeeStuff");
+      UtlString publisherInitialContent("java ready");
+
+      rc = sipxPublisherCreate(g_hInst1, &hPub_coffee, publisherUrl, publisherEventType,
+         publisherContentType, publisherInitialContent, publisherInitialContent.length());
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+
+      // Line2 subscribes to the coffee publisher
+      rc = sipxConfigSubscribe(g_hInst2, hLine2, publisherUrl.data(), publisherEventType,
+         publisherContentType, contactId, &hSub_coffee, subscriptionPeriod);
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+      validatorSubscribe.waitForSubStatusEvent(SIPX_SUBSCRIPTION_ACTIVE, SUBSCRIPTION_CAUSE_NORMAL, true);
+
+      // Line2 receives the initial "java ready" content
+      SIPX_NOTIFY_INFO matchingNotify;
+      matchingNotify.hSub = hSub_coffee;
+      matchingNotify.szContentType = publisherContentType;
+      matchingNotify.pContent = publisherInitialContent;
+      matchingNotify.nContentLength = publisherInitialContent.length();
+      validatorSubscribe.waitForNotifyEvent(&matchingNotify, true);
+
+      for (int loopNum = 0; loopNum < 5; loopNum++)
+      {
+         printf("\nIteration %i, Waiting for 1 refresh", loopNum);
+         OsTask::delay(subscriptionPeriod*1000*1.2);// we cannot verify refresh event
+
+         // start percolating
+         char szPercolatingContent[256];
+         for (int i = 0; i < 20; i++)
+         {
+            sprintf(szPercolatingContent, "Percolating %2.2d", i);
+            printf("\nSending NOTIFY %s", szPercolatingContent);
+            sipxPublisherUpdate(hPub_coffee, publisherContentType, szPercolatingContent, strlen(szPercolatingContent));
+
+            // hCall1 receives percolation content from the coffee publisher
+            matchingNotify.hSub = hSub_coffee;
+            matchingNotify.szContentType = publisherContentType;
+            matchingNotify.pContent = szPercolatingContent;
+            matchingNotify.nContentLength = strlen(szPercolatingContent);
+            validatorSubscribe.waitForNotifyEvent(&matchingNotify, true);
+            OsTask::delay(100); // not needed, only used to simulate real world
+         }
+      }
+
+      // Destroy the coffee Publisher, with "out of order" content
+      UtlString publisherFinalContent("out of order");
+      rc = sipxPublisherDestroy(hPub_coffee, publisherContentType, publisherFinalContent, publisherFinalContent.length());
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+
+      // Line2 receives the final "out of order" content from the coffee publisher
+      matchingNotify.hSub = hSub_coffee;
+      matchingNotify.szContentType = publisherContentType;
+      matchingNotify.pContent = publisherFinalContent;
+      matchingNotify.nContentLength = publisherFinalContent.length();
+      validatorSubscribe.waitForNotifyEvent(&matchingNotify, true);
+
+      // Line2 Unsubscribes from the coffee publisher
+      rc = sipxConfigUnsubscribe(hSub_coffee);
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+      validatorSubscribe.waitForSubStatusEvent(SIPX_SUBSCRIPTION_EXPIRED, SUBSCRIPTION_CAUSE_NORMAL, true);
+
+      rc = sipxLineRemove(hLine1);
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+
+      rc = sipxLineRemove(hLine2);
+      CPPUNIT_ASSERT(SIPX_RESULT_SUCCESS == rc);
+
+      sipxEventListenerRemove(g_hInst1, UniversalEventValidatorCallback, &validatorPublish);
+      sipxEventListenerRemove(g_hInst2, UniversalEventValidatorCallback, &validatorSubscribe);
+   }
+
+   OsTask::delay(TEST_DELAY);    
+   checkForLeaks();
+}
