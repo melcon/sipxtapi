@@ -31,8 +31,9 @@
 class SipMessage;
 class SipUserAgent;
 class SipDialogMgr;
-class RefreshDialogState;
 class OsTimer;
+class RefreshDialogState;
+class RefreshDialogStateHolder;
 
 // TYPEDEFS
 
@@ -226,7 +227,7 @@ private:
     OsMutex mRefreshMgrMutex; // used to lock this 
     SipUserAgent* mpUserAgent;
     SipDialogMgr* mpDialogMgr;
-    UtlHashMap mRefreshes; // state info. for each subscription and registration being maintained.
+    RefreshDialogStateHolder * mp_StateHolder;
     UtlHashMap mEventTypes; // SIP event types that we want SUBSCRIBE responses for
     UtlBoolean mReceivingRegisterResponses;
     int mDefaultExpiration;
