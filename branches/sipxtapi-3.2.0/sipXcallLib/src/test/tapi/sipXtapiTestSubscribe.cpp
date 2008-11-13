@@ -593,7 +593,7 @@ void sipXtapiTestSuite::testPublishAndSubscribeConfigLong()
       matchingNotify.nContentLength = publisherInitialContent.length();
       validatorSubscribe.waitForNotifyEvent(&matchingNotify, true);
 
-      for (int loopNum = 0; loopNum < 5; loopNum++)
+      for (int loopNum = 0; loopNum < 3; loopNum++)
       {
          printf("\nIteration %i, Waiting for 1 refresh", loopNum);
          OsTask::delay(subscriptionPeriod*1000*1.2);// we cannot verify refresh event
