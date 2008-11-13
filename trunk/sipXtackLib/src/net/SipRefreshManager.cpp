@@ -33,11 +33,12 @@ class RefreshDialogState : public UtlString
 public:
 
     RefreshDialogState();
-
     virtual ~RefreshDialogState();
-    void toString(UtlString& dumpString);
 
-    // UtlString::data contains the Dialog Handle;
+    void toString(UtlString& dumpString);
+    int getNextUniqueID( void ) { OsLock take( m_classMutex ); return ms_uidGenerator++; }
+    int getId( void ) { return m_uid; }
+
     void* mpApplicationData;
     SipRefreshManager::RefreshStateCallback mpStateCallback;
     int mExpirationPeriodSeconds; // original expiration
@@ -49,19 +50,50 @@ public:
     UtlString mFailedResponseText;
     OsTimer* mpRefreshTimer;  // Fires when it is time to resend
 
+protected:
+    int m_uid;
+    OsMutex m_instanceMutex;
+    static OsMutex m_classMutex;
+    static int ms_uidGenerator;
+
 private:
-    //! DISALLOWED accendental copying
+    //! DISALLOWED accidental copying
     RefreshDialogState(const RefreshDialogState& rRefreshDialogState);
     RefreshDialogState& operator=(const RefreshDialogState& rhs);
-
 };
+
+class RefreshDialogStateHolder
+{
+  public:
+    RefreshDialogStateHolder();
+    virtual ~RefreshDialogStateHolder();
+    virtual RefreshDialogState * remove ( UtlContainable* key );
+    virtual RefreshDialogState * find ( UtlContainable* key );
+    virtual void destroy ( UtlContainable* key );
+    virtual UtlBoolean insert ( RefreshDialogState * theValue );
+    virtual UtlBoolean contains( UtlContainable* key );
+    virtual UtlHashMap& DialogMap ( ) { return m_DialogMap; }  // ugly, unsafe, but quick
+
+  protected:
+    UtlHashMap m_DialogMap;
+    UtlHashMap m_IDMap;
+    OsMutex m_InstanceMutex;
+};
+
+
+OsMutex RefreshDialogState::m_classMutex(OsMutex::Q_FIFO);
+int RefreshDialogState::ms_uidGenerator = 1;
+
+/* ============================ INLINE METHODS ============================ */
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
 
-RefreshDialogState::RefreshDialogState()
+RefreshDialogState::RefreshDialogState() : m_instanceMutex( OsMutex::Q_PRIORITY )
 {
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "RefreshDialogState::RefreshDialogState");
     mpApplicationData = NULL;
     mpStateCallback = NULL;
     mExpirationPeriodSeconds = -1;
@@ -71,6 +103,7 @@ RefreshDialogState::RefreshDialogState()
     mRequestState = SipRefreshManager::REFRESH_REQUEST_UNKNOWN;
     mFailedResponseCode = -1;
     mpRefreshTimer = NULL;
+    m_uid = getNextUniqueID();
 }
 
 void RefreshDialogState::toString(UtlString& dumpString)
@@ -106,12 +139,15 @@ void RefreshDialogState::toString(UtlString& dumpString)
     dumpString.append("\n\tmFailedResponseText: ");
     dumpString.append(mFailedResponseText);
     dumpString.append("\n\tmpRefreshTimer: ");
-    SNPRINTF(numBuf, sizeof(numBuf), "%p", mpRefreshTimer);
+    sprintf(numBuf, "%p", mpRefreshTimer);
+    dumpString.append(numBuf);
+    dumpString.append("\n\tm_UID: ");
+    sprintf(numBuf, "%d", m_uid);
     dumpString.append(numBuf);
 }
 
 // Copy constructor NOT ALLOWED
-RefreshDialogState::RefreshDialogState(const RefreshDialogState& rRefreshDialogState)
+RefreshDialogState::RefreshDialogState(const RefreshDialogState& rRefreshDialogState) : m_instanceMutex(OsMutex::Q_FIFO)
 {
 }
 
@@ -129,6 +165,101 @@ RefreshDialogState::operator=(const RefreshDialogState& rhs)
    return *this;
 }
 
+RefreshDialogStateHolder::RefreshDialogStateHolder() : m_InstanceMutex ( OsMutex::Q_PRIORITY )
+{
+}
+
+RefreshDialogStateHolder::~RefreshDialogStateHolder()
+{
+  OsLock take( m_InstanceMutex );
+  m_DialogMap.removeAll();
+  m_IDMap.destroyAll();
+}
+
+RefreshDialogState * RefreshDialogStateHolder::remove( UtlContainable * key )
+{
+  OsLock take( m_InstanceMutex );  // Locking only needed when changing both hashmaps at one time
+
+  UtlContainable * pRDS = NULL;
+
+  if ( key->getContainableType() == UtlString::TYPE )
+  {
+    pRDS = m_DialogMap.remove( key );
+
+    if ( pRDS )
+    {
+      UtlInt ID = ((RefreshDialogState *) pRDS)->getId() ;
+      m_IDMap.removeKeyAndValue( & ID, pRDS );  // pRDS will not change value
+    }
+  }
+  else if ( key->getContainableType() == UtlInt::TYPE )
+  {
+    m_IDMap.removeKeyAndValue( key, pRDS );
+    if (pRDS) m_DialogMap.remove( pRDS );
+  }
+  return ( RefreshDialogState * ) pRDS;
+}
+
+void RefreshDialogStateHolder::destroy( UtlContainable * key )
+{
+  RefreshDialogState * pDelete = remove( key );
+  if ( pDelete ) delete pDelete;
+}
+
+UtlBoolean RefreshDialogStateHolder::insert( RefreshDialogState * theValue )
+{
+  UtlInt * ID = new UtlInt( theValue->getId() );
+
+  if ( m_IDMap.contains( ID ) )
+  {
+    OsSysLog::add(FAC_SIP, PRI_ERR,
+                      "RefreshDialogStateHolder::insert ID %d already exists - ABANDON", theValue->getId());
+    delete ID;
+    return FALSE;
+  }
+
+  if ( m_DialogMap.contains( theValue ) )
+  {
+    OsSysLog::add(FAC_SIP, PRI_ERR,
+                      "RefreshDialogStateHolder::insert value %s already exists - ABANDON", theValue->data());
+   delete ID;
+   return FALSE;
+  }
+
+  OsLock take( m_InstanceMutex );  // Locking only needed when changing both hashmaps at one time
+
+  m_IDMap.insertKeyAndValue ( ID, theValue );
+  m_DialogMap.insert ( theValue );
+  return TRUE;
+}
+
+UtlBoolean RefreshDialogStateHolder::contains( UtlContainable* key )
+{
+  if ( key->getContainableType() == UtlString::TYPE )
+  {
+    return ( m_DialogMap.contains ( key ) );
+  }
+  else if ( key->getContainableType() == UtlInt::TYPE )
+  {
+    return ( m_IDMap.contains ( key ) );
+  }
+  return FALSE;
+}
+
+RefreshDialogState * RefreshDialogStateHolder::find( UtlContainable* key )
+{
+  if ( key->getContainableType() == UtlString::TYPE )
+  {
+    return ( ( RefreshDialogState * ) m_DialogMap.find ( key ) );
+  }
+  else if ( key->getContainableType() == UtlInt::TYPE )
+  {
+    return ( ( RefreshDialogState * ) m_IDMap.findValue ( key ) );
+  }
+  return NULL;
+}
+
+
 // Constructor
 SipRefreshManager::SipRefreshManager(SipUserAgent& userAgent, 
                                      SipDialogMgr& dialogMgr)
@@ -139,6 +270,7 @@ SipRefreshManager::SipRefreshManager(SipUserAgent& userAgent,
     mpDialogMgr = &dialogMgr;
     mReceivingRegisterResponses = FALSE;
     mDefaultExpiration = 3600;
+    mp_StateHolder = new RefreshDialogStateHolder();
 }
 
 // Copy constructor
@@ -168,7 +300,9 @@ SipRefreshManager::~SipRefreshManager()
 
     // Unsubscribe to anything that is in the list
     stopAllRefreshes();
-    // mRefreshes should now be empty
+    // mp_StateHolder should now be empty
+
+    if (mp_StateHolder) delete mp_StateHolder;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -188,6 +322,8 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
                                                const RefreshStateCallback refreshStateCallback,
                                                UtlString& earlyDialogHandle)
 {
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::initiateRefresh entry");
 
     UtlBoolean intitialRequestSent = FALSE;
 
@@ -318,7 +454,7 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
         // No need to lock this refreshMgr earlier as this is a new
         // state and no one can touch it until it is in the list.
         lock();
-        mRefreshes.insert(state);
+        mp_StateHolder->insert(state);
         unlock();
         // NOTE: at this point is is no longer safe to touch the state
         // without locking it again.  Avoid locking this refresh mgr
@@ -369,16 +505,25 @@ UtlBoolean SipRefreshManager::initiateRefresh(SipMessage& subscribeOrRegisterReq
                 // when it occurs on the first invokation.  The application
                 // will know by the return.
             }
+            else
+            {
+              OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::initiateRefresh state NOT FOUND - has been deleted");
+            }
             unlock();
         }
     }
-
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::initiateRefresh exit");
     return(intitialRequestSent);
 }
 
 
 UtlBoolean SipRefreshManager::stopRefresh(const char* dialogHandle)
 {
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::stopRefresh entry");
+
     UtlBoolean stateFound = FALSE;
     lock();
     // Find the refresh state
@@ -388,13 +533,16 @@ UtlBoolean SipRefreshManager::stopRefresh(const char* dialogHandle)
     // Remove the state so we can release the lock
     if(state)
     {
-        mRefreshes.removeReference(state);
+        UtlInt ID ( state->getId() );
+        mp_StateHolder->remove( & ID );
     }
     unlock();
 
     // If a matching state exists
     if(state)
     {
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::stopRefresh found state");
         // If the subscription or registration has not expired
         // or there is a pending request
         long now = OsDateTime::getSecsSinceEpoch();
@@ -449,8 +597,13 @@ UtlBoolean SipRefreshManager::stopRefresh(const char* dialogHandle)
 
         stateFound = TRUE;
     }
-
-
+    else
+    {
+    OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::stopRefresh state NOT FOUND");
+    }
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::stopRefresh exit");
     return(stateFound);
 }
 
@@ -463,7 +616,7 @@ void SipRefreshManager::stopAllRefreshes()
     // problem.
     RefreshDialogState* dialogKey = NULL;
     lock();
-    UtlHashMapIterator iterator(mRefreshes);
+    UtlHashMapIterator iterator( mp_StateHolder->DialogMap() );
     while((dialogKey = (RefreshDialogState*) iterator()))
     {
         // Unsubscribe or unregister.
@@ -477,6 +630,8 @@ void SipRefreshManager::stopAllRefreshes()
 
 UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
 {
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::handleMessage enter");
     int msgType = eventMessage.getMsgType();
     int msgSubType = eventMessage.getMsgSubType();
 
@@ -485,15 +640,21 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
        msgSubType == OsEventMsg::NOTIFY)
     {
         int eventData = 0;
+        int eventID = 0;
         RefreshDialogState* state = NULL;
 
-        ((OsEventMsg&)eventMessage).getUserData((int&)state);
+        ((OsEventMsg&)eventMessage).getUserData(eventID);
         ((OsEventMsg&)eventMessage).getEventData(eventData);
 
+        OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::handleMessage got timer message for eventID %08x, eventData %08x", eventID, eventData);
+        UtlInt intId(eventID);
         lock();
+        state = mp_StateHolder->find(&intId);		// Get copy only of object pointer - don't delete!
+
         // If the state is not still in the list we cannot
         // touch it. It may have been deleted.
-        if(state && stateExists(state))
+        if( state )
         {
             // Refresh request failed, need to clean up and
             // schedule a refresh in a short/failed time period
@@ -585,6 +746,12 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
                     eventData, state->mpRefreshTimer);
             }
         }
+        else
+        {
+                            OsSysLog::add(FAC_SIP, PRI_ERR,
+                        "SipRefreshManager::handleMessage did not find state ID : %08x",
+                        eventID);
+        }
         unlock();
     }
 
@@ -593,7 +760,23 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
        msgSubType == SipMessage::NET_SIP_MESSAGE)
     {
         const SipMessage* sipMessage = ((SipMessageEvent&)eventMessage).getMessage();
+        {
+          UtlString eventType, eventID;
+          if (sipMessage)
+          {
+          sipMessage->getEventField(& eventType, & eventID, NULL);
+    OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                                      "SipRefreshManager::handleMessage Got Non-timer message event type %s, eventID %s", eventType.data(), eventID.data());
+          }
+          else
+          {
+    OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                                      "SipRefreshManager::handleMessage Got Non-timer message event but sipMessage was NULL");
+          }
+        }
         int messageType = ((SipMessageEvent&)eventMessage).getMessageStatus();
+    OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                                      "SipRefreshManager::handleMessage Got messageType %d", messageType);
 
         // messageType can be:
         //    SipMessageEvent::TRANSPORT_ERROR for requests that do not get sent
@@ -666,19 +849,19 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
             RefreshDialogState* state = NULL;
             if(foundDialog && matchesLastLocalTransaction)
             {
-                state = (RefreshDialogState*) mRefreshes.find(&dialogHandle);
+                state = (RefreshDialogState*) mp_StateHolder->find(&dialogHandle);
                 // Check if the key has the tags reversed
                 if(state == NULL)
                 {
                     UtlString reversedDialogHandle;
                     SipDialog::reverseTags(dialogHandle, reversedDialogHandle);
                     state = (RefreshDialogState*) 
-                        mRefreshes.find(&reversedDialogHandle);
+                        mp_StateHolder->find(&reversedDialogHandle);
                 }
             }
             else if(foundEarlyDialog && matchesLastLocalTransaction)
             {
-                state = (RefreshDialogState*) mRefreshes.remove(&earlyDialogHandle);
+                state = (RefreshDialogState*) mp_StateHolder->remove(&earlyDialogHandle);
 
                 // See if the key has the tags reversed
                 if(state == NULL)
@@ -686,7 +869,7 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
                     UtlString reversedEarlyDialogHandle;
                     SipDialog::reverseTags(earlyDialogHandle, reversedEarlyDialogHandle);
                     state = (RefreshDialogState*) 
-                        mRefreshes.remove(&reversedEarlyDialogHandle);
+                        mp_StateHolder->remove(&reversedEarlyDialogHandle);
                 }
 
                 if(state)
@@ -699,7 +882,7 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
 #endif
                     // Fix the state handle and put it back in the list
                     *((UtlString*) state) = dialogHandle;
-                    mRefreshes.insert(state);
+                    mp_StateHolder->insert(state);
                 }
             }
 
@@ -800,7 +983,8 @@ UtlBoolean SipRefreshManager::handleMessage(OsMsg &eventMessage)
             unlock();
         }  // endif SUBSCRIBE or REGISTER response
     } // endif SipMessage event
-
+OsSysLog::add(FAC_SIP, PRI_DEBUG,
+                      "SipRefreshManager::handleMessage exit");
             return(TRUE);
 }
 
@@ -841,7 +1025,7 @@ int SipRefreshManager::dumpRefreshStates(UtlString& dumpString)
     int count = 0;
     dumpString.remove(0);
     lock();
-    UtlHashMapIterator iterator(mRefreshes);
+    UtlHashMapIterator iterator( mp_StateHolder->DialogMap() );
     RefreshDialogState* state = NULL;
     UtlString oneStateDump;
 
@@ -875,14 +1059,14 @@ void SipRefreshManager::unlock()
 RefreshDialogState* SipRefreshManager::getAnyDialog(UtlString& messageDialogHandle)
 {
     RefreshDialogState* state = (RefreshDialogState*)
-        mRefreshes.find(&messageDialogHandle);
+        mp_StateHolder->find(&messageDialogHandle);
 
     if(state == NULL)
     {
         UtlString reversedHandle;
         SipDialog::reverseTags(messageDialogHandle, reversedHandle);
         state = (RefreshDialogState*)
-            mRefreshes.find(&reversedHandle);
+            mp_StateHolder->find(&reversedHandle);
     }
 
     // It did not match
@@ -895,13 +1079,13 @@ RefreshDialogState* SipRefreshManager::getAnyDialog(UtlString& messageDialogHand
                                                 establishedDialogHandle))
         {
             state = (RefreshDialogState*) 
-                mRefreshes.find(&establishedDialogHandle);
+                mp_StateHolder->find(&establishedDialogHandle);
             if(state == NULL)
             {
                 UtlString reversedEstablishedDialogHandle;
                 SipDialog::reverseTags(establishedDialogHandle, reversedEstablishedDialogHandle);
                 state = (RefreshDialogState*) 
-                    mRefreshes.find(&reversedEstablishedDialogHandle);
+                    mp_StateHolder->find(&reversedEstablishedDialogHandle);
             }
         }
 
@@ -914,13 +1098,13 @@ RefreshDialogState* SipRefreshManager::getAnyDialog(UtlString& messageDialogHand
                                            earlyDialogHandle);
 
             state = (RefreshDialogState*) 
-                mRefreshes.find(&earlyDialogHandle);
+                mp_StateHolder->find(&earlyDialogHandle);
             if(state == NULL)
             {
                 UtlString reversedEarlyDialogHandle;
                 SipDialog::reverseTags(earlyDialogHandle, reversedEarlyDialogHandle);
                 state = (RefreshDialogState*) 
-                    mRefreshes.find(&reversedEarlyDialogHandle);
+                    mp_StateHolder->find(&reversedEarlyDialogHandle);
             }
         }
     }
@@ -932,18 +1116,7 @@ UtlBoolean SipRefreshManager::stateExists(RefreshDialogState* statePtr)
 {
     // Assume we already have the lock
 
-    // Does not seem to be a method to test if the reference
-    // exists.  If this end up being a performance problem
-    // should probably add a method to UtlHashBag
-    RefreshDialogState* state = (RefreshDialogState*)
-        mRefreshes.removeReference(statePtr);
-
-    if(state)
-    {
-        mRefreshes.insert(state);
-    }
-
-    return(state != NULL);
+    return mp_StateHolder->contains( statePtr );
 }
 
 RefreshDialogState* 
@@ -1009,11 +1182,10 @@ void SipRefreshManager::setRefreshTimer(RefreshDialogState& state,
                   nextResendSeconds);
 
     OsMsgQ* incomingQ = getMessageQueue();
-    OsTimer* resendTimer = new OsTimer(incomingQ,
-        (int)&state);
+    OsTimer* resendTimer = new OsTimer(incomingQ, state.getId());
     state.mpRefreshTimer = resendTimer;
     OsTime timerTime(nextResendSeconds, 0);
-    resendTimer->oneshotAfter(timerTime);                
+    resendTimer->oneshotAfter(timerTime);
 
 }
 
