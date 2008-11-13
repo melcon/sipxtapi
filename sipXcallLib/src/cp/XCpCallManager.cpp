@@ -1716,10 +1716,22 @@ UtlBoolean XCpCallManager::basicSipMessageRequestCheck(const SipMessage& rSipMes
    {
       return FALSE;
    }
-   else if(requestMethod.compareTo(SIP_INVITE_METHOD) == 0 && toTag.isNull())
+   else if(requestMethod.compareTo(SIP_INVITE_METHOD) == 0)
    {
-      // handle INVITE without to tag
-      return TRUE;
+      if (toTag.isNull())
+      {
+         // handle INVITE without to tag
+         return TRUE;
+      }
+      else
+      {
+         // inbound INVITE with both tags, but call was not found
+         // Send a bad callId/transaction message
+         SipMessage badTransactionMessage;
+         badTransactionMessage.setBadTransactionData(&rSipMessage);
+         m_rSipUserAgent.send(badTransactionMessage);
+         return FALSE;
+      }
    }
    else if(requestMethod.compareTo(SIP_REFER_METHOD) == 0)
    {
@@ -1727,10 +1739,8 @@ UtlBoolean XCpCallManager::basicSipMessageRequestCheck(const SipMessage& rSipMes
       return TRUE;
    }
 
-   // Send a bad callId/transaction message
-   SipMessage badTransactionMessage;
-   badTransactionMessage.setBadTransactionData(&rSipMessage);
-   m_rSipUserAgent.send(badTransactionMessage);
+   // 481 Call/Transaction Does Not Exist must be sent automatically by transaction layer
+   // multiple observers may receive the same SipMessage
    return FALSE;
 }
 
