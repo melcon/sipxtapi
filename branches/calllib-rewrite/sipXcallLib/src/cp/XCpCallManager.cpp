@@ -32,6 +32,7 @@
 #include <net/SipLineProvider.h>
 
 // DEFINES
+//#define PRINT_SIP_MESSAGE
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
