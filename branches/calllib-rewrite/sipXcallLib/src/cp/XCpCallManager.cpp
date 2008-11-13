@@ -1725,21 +1725,33 @@ UtlBoolean XCpCallManager::basicSipMessageRequestCheck(const SipMessage& rSipMes
       }
       else
       {
-         // inbound INVITE with both tags, but call was not found
-         // Send a bad callId/transaction message
-         SipMessage badTransactionMessage;
-         badTransactionMessage.setBadTransactionData(&rSipMessage);
-         m_rSipUserAgent.send(badTransactionMessage);
+         sendBadTransactionError(rSipMessage);
+         return FALSE;
+      }
+   }
+   else if(requestMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
+   {
+      if (!toTag.isNull())
+      {
+         sendBadTransactionError(rSipMessage);
          return FALSE;
       }
    }
    else if(requestMethod.compareTo(SIP_REFER_METHOD) == 0)
    {
-      // handle refer
-      return TRUE;
+      if (!toTag.isNull())
+      {
+         sendBadTransactionError(rSipMessage);
+         return FALSE;
+      }
+      else
+      {
+         // handle refer
+         return TRUE;
+      }
    }
 
-   // 481 Call/Transaction Does Not Exist must be sent automatically by transaction layer
+   // 481 Call/Transaction Does Not Exist must be sent automatically by transaction layer for other messages (INFO, NOTIFY)
    // multiple observers may receive the same SipMessage
    return FALSE;
 }
@@ -1923,6 +1935,13 @@ OsStatus XCpCallManager::doGainNextFocus(const UtlString& sAvoidAbstractCallId)
 #else
    return OS_SUCCESS;
 #endif
+}
+
+UtlBoolean XCpCallManager::sendBadTransactionError(const SipMessage& rSipMessage)
+{
+   SipMessage badTransactionMessage;
+   badTransactionMessage.setBadTransactionData(&rSipMessage);
+   return m_rSipUserAgent.send(badTransactionMessage);
 }
 
 /* ============================ FUNCTIONS ================================= */

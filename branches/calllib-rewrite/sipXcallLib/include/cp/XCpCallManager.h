@@ -700,6 +700,9 @@ private:
    /** Defocuses current call in focus, and lets other call gain focus if requested */
    OsStatus doYieldFocus(UtlBoolean bShiftFocus = TRUE);
 
+   /** Sends 481 Call/Transaction Does Not Exist as reply to given message */
+   UtlBoolean sendBadTransactionError(const SipMessage& rSipMessage);
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
