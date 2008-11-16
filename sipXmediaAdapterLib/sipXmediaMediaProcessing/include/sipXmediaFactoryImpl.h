@@ -27,7 +27,6 @@
 #define SIPX_CODEC_ID_PCMA      "PCMA"
 #define SIPX_CODEC_ID_PCMU      "PCMU"
 #define SIPX_CODEC_ID_ILBC      "iLBC"
-#define SIPX_CODEC_ID_G729      "G729"
 #define SIPX_CODEC_ID_G729A     "G729A"
 #define SIPX_CODEC_ID_G723      "G723"
 #define SIPX_CODEC_ID_TELEPHONE "audio/telephone-event"

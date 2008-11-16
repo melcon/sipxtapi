@@ -24,7 +24,7 @@
 
 // Constructor
 SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
-                   int payloadFormat,
+                   int payloadId,
                    const char* mimeType,
                    const char* mimeSubtype,
                    int sampleRate,
@@ -35,7 +35,7 @@ SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
                    const int BWCost,
                    const int videoFormat,
                    const int videoFmtp) :
-   mCodecPayloadFormat(payloadFormat),
+   mCodecPayloadId(payloadId),
    mMimeType(mimeType),
    mMimeSubtype(mimeSubtype),
    mSampleRate(sampleRate),
@@ -52,14 +52,14 @@ SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
    setValue(sdpCodecType);
 }
 
-SdpCodec::SdpCodec(int payloadFormat,
+SdpCodec::SdpCodec(int payloadId,
                    const char* mimeType,
                    const char* mimeSubtype,
                    int sampleRate, // samples per second
                    int preferredPacketLength, // micro seconds
                    int numChannels,
                    const char* formatSpecificData) :
-   mCodecPayloadFormat(payloadFormat),
+   mCodecPayloadId(payloadId),
    mMimeType(mimeType),
    mMimeSubtype(mimeSubtype),
    mSampleRate(sampleRate),
@@ -114,60 +114,22 @@ SdpCodec::SdpCodec(int payloadFormat,
       {
          setValue(SDP_CODEC_L16_8K);
       }
-      else if(mMimeSubtype.compareTo("G729a") == 0)
-      {
-         setValue(SDP_CODEC_G729ACISCO7960);
-         mCPUCost = SDP_CODEC_CPU_HIGH;
-         mBWCost = SDP_CODEC_BANDWIDTH_LOW;
-      }
       else if(mMimeSubtype.compareTo("g729") == 0)
       {
-         if(mFormatSpecificData.compareTo("annexb=no", UtlString::ignoreCase) == 0)
-         {
-            setValue(SDP_CODEC_G729A);
-            mCPUCost = SDP_CODEC_CPU_HIGH;
-            mBWCost = SDP_CODEC_BANDWIDTH_LOW;
-         }
-         else
-         {
-            setValue(SDP_CODEC_G729AB);
-            mCPUCost = SDP_CODEC_CPU_HIGH;
-            mBWCost = SDP_CODEC_BANDWIDTH_LOW;
-         }
+         setValue(SDP_CODEC_G729);
+         mCPUCost = SDP_CODEC_CPU_HIGH;
+         mBWCost = SDP_CODEC_BANDWIDTH_LOW;
       }
       else if(mMimeSubtype.compareTo("telephone-event") == 0)
       {
          setValue(SDP_CODEC_TONES);
          mBWCost = SDP_CODEC_BANDWIDTH_LOW;
       }
-      else if(mMimeSubtype.compareTo("g7221") == 0)
-      {
-         setValue(SDP_CODEC_G7221);
-      }
-      else if(mMimeSubtype.compareTo("eg711a") == 0)
-      {
-         setValue(SDP_CODEC_GIPS_IPCMA);
-      }
-      else if(mMimeSubtype.compareTo("eg711u") == 0)
-      {
-         setValue(SDP_CODEC_GIPS_IPCMU);
-      }
-      else if(mMimeSubtype.compareTo("ipcmwb") == 0)
-      {
-         setValue(SDP_CODEC_GIPS_IPCMWB);
-         mBWCost = SDP_CODEC_BANDWIDTH_HIGH;
-      }
       else if(mMimeSubtype.compareTo("ilbc") == 0)
       {
          setValue(SDP_CODEC_ILBC);
          mCPUCost = SDP_CODEC_CPU_HIGH;
          mBWCost = SDP_CODEC_BANDWIDTH_LOW;
-      }
-      else if(mMimeSubtype.compareTo("isac") == 0)
-      {
-         setValue(SDP_CODEC_GIPS_ISAC);
-         mCPUCost = SDP_CODEC_CPU_HIGH;
-         mBWCost = SDP_CODEC_BANDWIDTH_VARIABLE;
       }
       else if(mMimeSubtype.compareTo("speex") == 0)
       {
@@ -372,7 +334,7 @@ SdpCodec::SdpCodec(int payloadFormat,
 SdpCodec::SdpCodec(const SdpCodec& rSdpCodec)
 {
     setValue(rSdpCodec.getValue());
-    mCodecPayloadFormat = rSdpCodec.mCodecPayloadFormat;
+    mCodecPayloadId = rSdpCodec.mCodecPayloadId;
     mSampleRate = rSdpCodec.mSampleRate;
     mPacketLength = rSdpCodec.mPacketLength;
     mNumChannels = rSdpCodec.mNumChannels;
@@ -401,7 +363,7 @@ SdpCodec::operator=(const SdpCodec& rhs)
    if (this == &rhs)            // handle the assignment to self case
       return *this;
     setValue(rhs.getValue());
-    mCodecPayloadFormat = rhs.mCodecPayloadFormat;
+    mCodecPayloadId = rhs.mCodecPayloadId;
     mSampleRate = rhs.mSampleRate;
     mPacketLength = rhs.mPacketLength;
     mNumChannels = rhs.mNumChannels;
@@ -426,12 +388,12 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType() const
 
 int SdpCodec::getCodecPayloadId() const
 {
-    return(mCodecPayloadFormat);
+    return(mCodecPayloadId);
 }
 
 void SdpCodec::setCodecPayloadId(int formatId)
 {
-    mCodecPayloadFormat = formatId;
+    mCodecPayloadId = formatId;
 }
 
 void SdpCodec::getSdpFmtpField(UtlString& formatSpecificData) const
@@ -521,7 +483,7 @@ void SdpCodec::toString(UtlString& sdpCodecContents) const
 {
     char stringBuffer[256];
     SNPRINTF(stringBuffer, sizeof(stringBuffer), "SdpCodec: codecId=%d, payloadId=%d, mime=\'%s/%s\', rate=%d, pktLen=%d, numCh=%d, fmtData=\'%s\'\n",
-            getValue(), mCodecPayloadFormat,
+            getValue(), mCodecPayloadId,
             mMimeType.data(), mMimeSubtype.data(),
             mSampleRate, mPacketLength, mNumChannels,
             mFormatSpecificData.data());
@@ -575,31 +537,13 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        strcmp(compareString,"257") == 0)
         retType = SdpCodec::SDP_CODEC_GIPS_PCMA;
     else
-    if (strcmp(compareString,"EG711U") == 0 ||
-       strcmp(compareString,"260") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_IPCMU;
-    else
-    if (strcmp(compareString,"EG711A") == 0 ||
-       strcmp(compareString,"259") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_IPCMA;
-    else
-    if (strcmp(compareString,"IPCMWB") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_IPCMWB;
-    else
     if (strcmp(compareString,"G729") == 0 ||
        strcmp(compareString,"G729A") == 0)
-        retType = SdpCodec::SDP_CODEC_G729A;
-    else
-    if (strcmp(compareString,"G729AB") == 0 ||
-       strcmp(compareString,"G729B") == 0)
-        retType = SdpCodec::SDP_CODEC_G729AB;
+        retType = SdpCodec::SDP_CODEC_G729;
     else
     if (strcmp(compareString,"G723") == 0 ||
         strcmp(compareString,"G723.1") == 0)
         retType = SdpCodec::SDP_CODEC_G723;
-    else
-    if (strcmp(compareString,"G729A-FOR-CISCO-7960") == 0)
-        retType = SdpCodec::SDP_CODEC_G729ACISCO7960;
     else
     if (strcmp(compareString,"ILBC") == 0)
         retType = SdpCodec::SDP_CODEC_ILBC;
@@ -607,10 +551,6 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     if (strcmp(compareString,"GSM") == 0)
         retType = SdpCodec::SDP_CODEC_GSM;
    else
-    if (strcmp(compareString,"ISAC") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_ISAC;
-#ifdef HAVE_SPEEX // [
-   else 
       if (strcmp(compareString,"SPEEX") == 0)
          retType = SdpCodec::SDP_CODEC_SPEEX;
    else 
@@ -622,12 +562,9 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
    else 
       if (strcmp(compareString,"SPEEX_24") == 0)
          retType = SdpCodec::SDP_CODEC_SPEEX_24;
-#endif // HAVE_SPEEX ]
-#ifdef HAVE_GSM // [
    else 
       if (strcmp(compareString,"GSM") == 0)
          retType = SdpCodec::SDP_CODEC_GSM;
-#endif // HAVE_GSM ]
    else
     if (strcmp(compareString,"VP71-CIF") == 0)
         retType = SdpCodec::SDP_CODEC_VP71_CIF;
