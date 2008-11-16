@@ -651,9 +651,6 @@ void sipXtapiTestSuite::testConfigCodecPreferences()
       g_recorder.clear();
       g_recorder2.clear();    
 
-      sipxConfigSetAudioCodecPreferences(g_hInst1, AUDIO_CODEC_BW_HIGH);
-      sipxConfigSetAudioCodecPreferences(g_hInst2, AUDIO_CODEC_BW_HIGH);
-
       // Setup Auto-answer call back
       sipxLineAdd(g_hInst2, "sip:foo@127.0.0.1:9100", &hReceivingLine, CONTACT_AUTO);
       sipxEventListenerAdd(g_hInst2, codec_CallBack_Receive, NULL);

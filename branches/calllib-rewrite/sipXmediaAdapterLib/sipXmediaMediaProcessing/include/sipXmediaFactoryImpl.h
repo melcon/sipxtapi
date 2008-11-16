@@ -108,11 +108,15 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
     virtual OsStatus enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable);
 
-    virtual OsStatus buildCodecFactory(SdpCodecFactory *pFactory, 
+    virtual OsStatus buildCodecFactory(SdpCodecFactory& codecFactory, 
                                        const UtlString& sPreferences,
-                                       const UtlString& sVideoPreferences,
-                                       int videoFormat,
-                                       int* iRejected);
+                                       const UtlString& sVideoPreferences);
+
+    virtual OsStatus buildAllCodecFactory(SdpCodecFactory& codecFactory);
+
+    virtual UtlString getAllSupportedAudioCodecs() const;
+
+    virtual UtlString getAllSupportedVideoCodecs() const;
 
     virtual OsStatus updateVideoPreviewWindow(void* displayContext) ;
 
@@ -130,12 +134,6 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
     virtual OsStatus getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const;
     virtual OsStatus getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const;
-
-    virtual OsStatus getNumOfCodecs(int& iCodecs) const;
-    virtual OsStatus getCodec(int iCodec, UtlString& codec, int& bandWidth) const;
-
-    virtual OsStatus getCodecShortNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecShortName) const;
-
     virtual OsStatus getLocalAudioConnectionId(int& connectionId) const ;
 
     virtual OsStatus getAudioInputMixerName(UtlString& name) const;

@@ -25,6 +25,7 @@
 // Constructor
 SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
                    int payloadId,
+                   const UtlString& sCodecName,
                    const char* mimeType,
                    const char* mimeSubtype,
                    int sampleRate,
@@ -45,7 +46,8 @@ SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
    mCPUCost(CPUCost),
    mBWCost(BWCost),
    mVideoFormat(videoFormat),
-   mVideoFmtp(videoFmtp)
+   mVideoFmtp(videoFmtp),
+   m_sCodecName(sCodecName)
 {
    mMimeSubtype.toLower();
    mMimeType.toLower();
@@ -346,6 +348,7 @@ SdpCodec::SdpCodec(const SdpCodec& rSdpCodec)
     mVideoFormat = rSdpCodec.mVideoFormat;
     mVideoFmtp = rSdpCodec.mVideoFmtp;
     mVideoFmtpString = rSdpCodec.mVideoFmtpString;
+    m_sCodecName = rSdpCodec.m_sCodecName;
 }
 
 // Destructor
@@ -375,6 +378,7 @@ SdpCodec::operator=(const SdpCodec& rhs)
     mVideoFormat = rhs.mVideoFormat;
     mVideoFmtp = rhs.mVideoFmtp;
     mVideoFmtpString = rhs.mVideoFmtpString;
+    m_sCodecName = rhs.m_sCodecName;
 
    return *this;
 }

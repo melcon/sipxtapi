@@ -1479,101 +1479,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRtpOverTcp(const SIPX_INST hInst,
    return rc;
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hInst, 
-                                                            const SIPX_AUDIO_BANDWIDTH_ID bandWidth)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetAudioCodecPreferences");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetAudioCodecPreferences hInst=%p bandWidth=%d",
-      hInst, bandWidth);
-
-   if (pInst)
-   {
-      // Check if bandwidth is legal, do not allow variable bandwidth
-      if (bandWidth >= AUDIO_CODEC_BW_LOW && bandWidth <= AUDIO_CODEC_BW_HIGH)
-      {
-         CpMediaInterfaceFactory* pInterface = 
-            pInst->pCallManager->getMediaInterfaceFactory();
-
-         if (pInterface)
-         {
-            int numCodecs;
-            SdpCodec** codecsArray = NULL;
-            UtlString codecName;
-            int iRejected;
-
-            pInst->audioCodecSetting.preferences = "";
-            int codecIndex;
-
-            /* Unconditionally rebuild codec factory with all supported codecs. If we 
-            * don't do this first then only the previously preferred codecs will be used to
-            * build the new factory -> that doesn't work for changing from a lower bandwidth to
-            * a higher bandwidth.
-            */
-            pInterface->buildCodecFactory(pInst->pCodecFactory, 
-               pInst->audioCodecSetting.preferences, // No audio preferences
-               pInst->videoCodecSetting.preferences, // Keep video prefs
-               -1, // Allow all formats
-               &iRejected);
-
-            // Now pick preferences out of all available codecs
-            pInst->pCodecFactory->getCodecs(numCodecs, codecsArray, "audio");
-
-            OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
-               "sipxConfigSetAudioCodecPreferences number of Codec = %d for hInst=%p",
-               numCodecs, hInst);
-
-            // pick codecs which have smaller bandwidth, DTMF has low bandwidth
-            for (int i = 0; i < numCodecs; i++)
-            {
-               if (codecsArray[i]->getBWCost() <= bandWidth)
-               {
-                  if (pInterface->getCodecShortNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
-                  {
-                     pInst->audioCodecSetting.preferences += " " + codecName;
-                  }
-               }
-            }
-            // print selected codecs to logfile
-            OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
-               "sipxConfigSetAudioCodecPreferences: %s", pInst->audioCodecSetting.preferences.data());
-
-            // select codecs by name
-            SIPX_RESULT res = sipxConfigSetAudioCodecByName(hInst, pInst->audioCodecSetting.preferences);
-
-            // override bandwidth, as it was set to AUDIO_CODEC_BW_CUSTOM
-            pInst->audioCodecSetting.codecPref = bandWidth;
-
-            if (res == SIPX_RESULT_SUCCESS)
-            {
-               rc = SIPX_RESULT_SUCCESS;
-            }
-
-            // Free up the codecs and the array
-            for (codecIndex = 0; codecIndex < numCodecs; codecIndex++)
-            {
-               delete codecsArray[codecIndex];
-               codecsArray[codecIndex] = NULL;
-            }
-            delete[] codecsArray;
-            codecsArray = NULL;
-         }
-      }
-      else
-      {
-         rc = SIPX_RESULT_INVALID_ARGS;
-      }
-   }
-
-   return rc;
-}
-
-
 SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
                                                        const char* szCodecNames)
 {
@@ -1588,8 +1493,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
 
    if (pInst)
    {
-      int iRejected;
-
       CpMediaInterfaceFactory* pInterfaceFactory = 
          pInst->pCallManager->getMediaInterfaceFactory();
 
@@ -1601,18 +1504,14 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
          {
             freeAudioCodecs(*pInst);
 
-            pInterfaceFactory->buildCodecFactory(pInst->pCodecFactory,
+            pInterfaceFactory->buildCodecFactory(*pInst->pCodecFactory,
                   pInst->audioCodecSetting.preferences,
-                  pInst->videoCodecSetting.preferences,
-                  pInst->videoCodecSetting.videoFormat, // Allow all formats
-                  &iRejected);
+                  pInst->videoCodecSetting.preferences);
 
             // We've rebuilt the factory, so get the new count of codecs
             pInst->pCodecFactory->getCodecs(pInst->audioCodecSetting.numCodecs,
                   pInst->audioCodecSetting.sdpCodecArray,
                   MIME_TYPE_AUDIO);
-
-            pInst->audioCodecSetting.codecPref = AUDIO_CODEC_BW_CUSTOM;
 
             if (pInst->audioCodecSetting.numCodecs > 1)
             {
@@ -1632,29 +1531,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
 
    return rc;
 }
-
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodecPreferences(const SIPX_INST hInst,
-                                                            SIPX_AUDIO_BANDWIDTH_ID *pBandWidth)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetAudioCodecPreferences");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst && pInst->audioCodecSetting.bInitialized)
-   {
-      *pBandWidth = pInst->audioCodecSetting.codecPref;
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetAudioCodecPreferences hInst=%p bandWidth=%d",
-      hInst, *pBandWidth);
-
-   return rc;
-}
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst, 
                                                      int* pNumCodecs)
@@ -1682,7 +1558,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst,
    return rc;
 }
 
-
 SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
                                                  const int index,
                                                  SIPX_AUDIO_CODEC* pCodec)
@@ -1701,20 +1576,18 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
 
       if (index >= 0 && index < pInst->audioCodecSetting.numCodecs)
       {
-         CpMediaInterfaceFactory* pInterfaceFactory = 
-            pInst->pCallManager->getMediaInterfaceFactory();
+         CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
 
-         // If a name is found for the codec type, copy name and bandwidth cost
-         if (pInterfaceFactory->getCodecShortNameByType(pInst->audioCodecSetting.sdpCodecArray[index]->getCodecType(),
-            codecName))
+         SdpCodec* pSdpCodec = pInst->audioCodecSetting.sdpCodecArray[index];
+         if (pSdpCodec)
          {
-            SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
+            SAFE_STRNCPY(pCodec->cName, pSdpCodec->getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
             pCodec->iBandWidth = 
                (SIPX_AUDIO_BANDWIDTH_ID)pInst->audioCodecSetting.sdpCodecArray[index]->getBWCost();
             pCodec->iPayloadType = pInst->audioCodecSetting.sdpCodecArray[index]->getCodecPayloadId();
-
-            rc = SIPX_RESULT_SUCCESS;
          }
+
+         rc = SIPX_RESULT_SUCCESS;
       }
    }
 
@@ -1728,87 +1601,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
 /***************************************************************************
 * Public Video Config Functions
 ***************************************************************************/
-
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hInst,
-                                                            SIPX_VIDEO_BANDWIDTH_ID *pBandWidth)
-{
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetVideoCodecPreferences");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst && pInst->videoCodecSetting.bInitialized)
-   {
-      *pBandWidth = pInst->videoCodecSetting.codecPref;
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetVideoCodecPreferences hInst=%p bandWidth=%d",
-      hInst, *pBandWidth);
-
-   return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
-}
-
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst,
-                                                     SIPX_VIDEO_BANDWIDTH_ID bandWidth)
-{
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoBandwidth");
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetVideoBandwidth hInst=%p bandWidth=%d",
-      hInst, bandWidth);
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst)
-   {
-      if (!pInst->videoCodecSetting.bInitialized)
-      {
-         sipxConfigResetVideoCodecs(hInst);
-      }
-
-      // Check if bandwidth is legal, do not allow variable bandwidth
-      if (bandWidth >= VIDEO_CODEC_BW_LOW && bandWidth <= VIDEO_CODEC_BW_HIGH)
-      {
-         CpMediaInterfaceFactory* pImpl = 
-            pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
-
-         if (pImpl)
-         {
-            int frameRate;
-            pImpl->getVideoFrameRate(frameRate);
-
-            switch (bandWidth)
-            {
-            case VIDEO_CODEC_BW_LOW:
-               sipxConfigSetVideoParameters(hInst, 5, 10);
-               break;
-            case VIDEO_CODEC_BW_NORMAL:
-               sipxConfigSetVideoParameters(hInst, 70, frameRate);
-               break;
-            case VIDEO_CODEC_BW_HIGH:
-               sipxConfigSetVideoParameters(hInst, 400, frameRate);
-               break;
-            }
-            rc = SIPX_RESULT_SUCCESS;
-         }         
-      }
-   }
-
-   return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
-}
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
                                                           char** arrSzCaptureDevices,
@@ -2061,8 +1853,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
 
    if (pInst)
    {
-      int iRejected;
-
       CpMediaInterfaceFactory* pInterface = 
          pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
@@ -2072,11 +1862,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
 
          pInst->videoCodecSetting.preferences = szCodecName;
 
-         pInterface->buildCodecFactory(pInst->pCodecFactory, 
+         pInterface->buildCodecFactory(*pInst->pCodecFactory, 
                pInst->audioCodecSetting.preferences,
-               pInst->videoCodecSetting.preferences,
-               pInst->videoCodecSetting.videoFormat, // Allow all formats
-               &iRejected);
+               pInst->videoCodecSetting.preferences);
 
          // We've rebuilt the factory, so get the new count of codecs
          pInst->pCodecFactory->getCodecs(pInst->videoCodecSetting.numCodecs,
@@ -2085,7 +1873,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
 
          if (pInst->videoCodecSetting.numCodecs > 0)
          {
-            pInst->videoCodecSetting.codecPref = VIDEO_CODEC_BW_CUSTOM;
             rc = SIPX_RESULT_SUCCESS;
          }
          else

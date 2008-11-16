@@ -717,7 +717,6 @@ void sipXtapiTestSuite::testReRegistration()
 
 void sipXtapiTestSuite::testReRegistrationFailure()
 {
-   bool bRC;
    EventValidator validatorLine("testReRegistration.line");
 
    for (int iStressFactor = 0; iStressFactor < 1; iStressFactor++)
