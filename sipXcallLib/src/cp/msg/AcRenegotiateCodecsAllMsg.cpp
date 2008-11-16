@@ -27,14 +27,10 @@
 
 /* ============================ CREATORS ================================== */
 
-AcRenegotiateCodecsAllMsg::AcRenegotiateCodecsAllMsg(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                                     const UtlString& sAudioCodecs,
-                                                     CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+AcRenegotiateCodecsAllMsg::AcRenegotiateCodecsAllMsg(const UtlString& sAudioCodecs,
                                                      const UtlString& sVideoCodecs)
 : AcCommandMsg(AC_RENEGOTIATE_CODECS_ALL)
-, m_audioBandwidthId(audioBandwidthId)
 , m_sAudioCodecs(sAudioCodecs)
-, m_videoBandwidthId(videoBandwidthId)
 , m_sVideoCodecs(sVideoCodecs)
 {
 
@@ -47,8 +43,7 @@ AcRenegotiateCodecsAllMsg::~AcRenegotiateCodecsAllMsg()
 
 OsMsg* AcRenegotiateCodecsAllMsg::createCopy(void) const
 {
-   return new AcRenegotiateCodecsAllMsg(m_audioBandwidthId, m_sAudioCodecs,
-      m_videoBandwidthId, m_sVideoCodecs);
+   return new AcRenegotiateCodecsAllMsg(m_sAudioCodecs, m_sVideoCodecs);
 }
 
 /* ============================ MANIPULATORS ============================== */

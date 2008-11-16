@@ -144,9 +144,7 @@ OsStatus XSipConnection::unmuteInputConnection()
    return OS_FAILED;
 }
 
-OsStatus XSipConnection::renegotiateCodecsConnection(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                                     const UtlString& sAudioCodecs,
-                                                     CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+OsStatus XSipConnection::renegotiateCodecsConnection(const UtlString& sAudioCodecs,
                                                      const UtlString& sVideoCodecs)
 {
    return OS_FAILED;

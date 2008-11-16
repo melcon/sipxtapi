@@ -34,7 +34,6 @@ class AcHoldConnectionMsg;
 class AcHoldAllConnectionsMsg;
 class AcUnholdConnectionMsg;
 class AcUnholdAllConnectionsMsg;
-class AcLimitCodecPreferencesMsg;
 class AcRenegotiateCodecsMsg;
 class AcRenegotiateCodecsAllMsg;
 class AcSendInfoMsg;
@@ -161,20 +160,6 @@ public:
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
-   * and new video codecs. Preferences will be in effect after the next
-   * INVITE or re-INVITE. Can be called on empty call or conference to limit
-   * codecs for future calls. When called on an established call, hold/unhold
-   * or codec renegotiation needs to be triggered to actually change codecs.
-   * If used on conference, codecs will be applied to all future calls, and all
-   * calls that are unheld.
-   */
-   virtual OsStatus limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                          const UtlString& sAudioCodecs,
-                                          CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                          const UtlString& sVideoCodecs);
-
-   /**
-   * Rebuild codec factory on the fly with new audio codec requirements
    * and one specific video codec.  Renegotiate the codecs to be use for the
    * specified terminal connection.
    *
@@ -183,9 +168,7 @@ public:
    * (Sends a SIP re-INVITE.)
    */
    virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
-                                                CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                 const UtlString& sVideoCodecs);
 
    /**
@@ -197,9 +180,7 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   OsStatus renegotiateCodecsAllConnections(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                            const UtlString& sAudioCodecs,
-                                            CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+   OsStatus renegotiateCodecsAllConnections(const UtlString& sAudioCodecs,
                                             const UtlString& sVideoCodecs);
 
    /** Sends an INFO message to the other party(s) on the call */
@@ -263,8 +244,6 @@ private:
    OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
    /** Handles message to initiate remote unhold on all sip connection */
    OsStatus handleUnholdAllConnections(const AcUnholdAllConnectionsMsg& rMsg);
-   /** Handles message to limit codec preferences for future sip connections */
-   OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
    /** Handles message to renegotiate codecs for some sip connection */
    OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
    /** Handles message to renegotiate codecs for all sip connections */

@@ -564,12 +564,8 @@ public:
    //! Rebuild the codec factory on the fly
    virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) = 0;
 
-   //! Rebuild codec factory with one video codec
-   virtual OsStatus rebuildCodecFactory(int connectionId, 
-                                        int audioBandwidth, 
-                                        int videoBandwidth, 
-                                        UtlString& videoCodec) = 0;
-
+   /** Rebuilds SdpCodecFactory using supplied list of SdpCodec instances */
+   virtual OsStatus rebuildCodecFactory(const UtlSList& sdpCodecList) = 0;
 
    //! Set connection bitrate on the fly
    virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) = 0 ;

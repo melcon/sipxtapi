@@ -16,10 +16,8 @@
 
 // APPLICATION INCLUDES
 #include "utl/UtlDList.h"
-
 #include <os/OsBSem.h>
 #include <os/OsRWMutex.h>
-
 #include <sdp/SdpCodec.h>
 
 // DEFINES
@@ -62,8 +60,15 @@ public:
 
 /* ============================ MANIPULATORS ============================== */
 
-   void addCodec(SdpCodec& newCodec);
-   //: Add a new codec type to the list of known codecs
+   /** Append a new codec type to the list of known codecs */
+   void addCodec(const SdpCodec& newCodec);
+
+   /**
+    * Append a new codec types to the list of known codecs.
+    *
+    * @param sdpCodecList List of SdpCodec instances.
+    */
+   void addCodecs(const UtlSList& sdpCodecList);
 
    void addCodecs(int numCodecs, SdpCodec* newCodecs[]);
    //: Add copies of the array of codecs
@@ -112,6 +117,9 @@ public:
    int getCodecCount(const char* mimeType);
    //: Get the number of codecs by mime type
 
+   /** Gets list of SdpCodec instances */
+   void getCodecs(UtlSList& sdpCodecList);
+
    void getCodecs(int& numCodecs,
                   SdpCodec**& codecArray);
 
@@ -128,8 +136,8 @@ public:
    void toString(UtlString& serializedFactory);
    //: String representation of factory and codecs
    
-   static SdpCodec::SdpCodecTypes getCodecType(const char* pCodecName);
-   //: Converts the readable text codec name into an enum defined in Sdpcodec.h
+   static SdpCodec::SdpCodecTypes getCodecType(const char* pShortCodecName);
+   //: Converts the short codec name into an enum defined in Sdpcodec.h
 
    int getCodecCPULimit();
      //:Gets the codec CPU limit level
@@ -141,11 +149,11 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   void addCodecNoLock(SdpCodec& newCodec);
+   void addCodecNoLock(const SdpCodec& newCodec);
    //: Add a new codec type to the list of known codecs
 
    UtlDList mCodecs;
-   OsRWMutex mReadWriteMutex;
+   mutable OsRWMutex mReadWriteMutex;
    int mCodecCPULimit ;
 
    // Note: the follwing are only needed for the

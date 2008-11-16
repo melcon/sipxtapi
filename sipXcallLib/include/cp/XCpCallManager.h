@@ -378,18 +378,18 @@ public:
                                               const SipDialog& sSipDialog);
 
    /**
-    * Rebuild codec factory on the fly with new audio codec requirements
-    * and new video codecs. Preferences will be in effect after the next
+    * Rebuild codec factory of the call (media interface) on the fly with new audio
+    * codec requirements and new video codecs. Preferences will be in effect after the next
     * INVITE or re-INVITE. Can be called on empty call or conference to limit
     * codecs for future calls. When called on an established call, hold/unhold
     * or codec renegotiation needs to be triggered to actually change codecs.
     * If used on conference, codecs will be applied to all future calls, and all
     * calls that are unheld.
+    *
+    * This method doesn't affect codec factory used for new outbound/inbound calls.
     */
    OsStatus limitAbstractCallCodecPreferences(const UtlString& sAbstractCallId,
-                                              CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                               const UtlString& sAudioCodecs,
-                                              CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                               const UtlString& sVideoCodecs);
 
    /**
@@ -407,9 +407,7 @@ public:
     */
    OsStatus renegotiateCodecsAbstractCallConnection(const UtlString& sAbstractCallId,
                                                     const SipDialog& sSipDialog,
-                                                    CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                     const UtlString& sAudioCodecs,
-                                                    CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                     const UtlString& sVideoCodecs);
 
    /**
@@ -422,9 +420,7 @@ public:
    * (Sends a SIP re-INVITE.)
    */
    OsStatus renegotiateCodecsAllConferenceConnections(const UtlString& sConferenceId,
-                                                      CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                       const UtlString& sAudioCodecs,
-                                                      CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                       const UtlString& sVideoCodecs);
 
    /** Enable STUN for NAT/Firewall traversal */
@@ -742,7 +738,7 @@ private:
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
    SipUserAgent& m_rSipUserAgent; // sends sip messages
-   SdpCodecFactory& m_rSdpCodecFactory;
+   SdpCodecFactory& m_rSdpCodecFactory; ///< factory for SDP codecs supplied to constructor
    SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
 
    // thread safe atomic

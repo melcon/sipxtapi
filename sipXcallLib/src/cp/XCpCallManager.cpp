@@ -822,9 +822,7 @@ OsStatus XCpCallManager::unmuteInputAbstractCallConnection(const UtlString& sAbs
 }
 
 OsStatus XCpCallManager::limitAbstractCallCodecPreferences(const UtlString& sAbstractCallId,
-                                                           CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                            const UtlString& sAudioCodecs,
-                                                           CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                            const UtlString& sVideoCodecs)
 {
    OsStatus result = OS_NOT_FOUND;
@@ -834,7 +832,7 @@ OsStatus XCpCallManager::limitAbstractCallCodecPreferences(const UtlString& sAbs
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->limitCodecPreferences(audioBandwidthId, sAudioCodecs, videoBandwidthId, sVideoCodecs);
+      return ptrLock->limitCodecPreferences(sAudioCodecs, sVideoCodecs);
    }
 
    return result;
@@ -842,9 +840,7 @@ OsStatus XCpCallManager::limitAbstractCallCodecPreferences(const UtlString& sAbs
 
 OsStatus XCpCallManager::renegotiateCodecsAbstractCallConnection(const UtlString& sAbstractCallId,
                                                                  const SipDialog& sSipDialog,
-                                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                                  const UtlString& sAudioCodecs,
-                                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                                  const UtlString& sVideoCodecs)
 {
    OsStatus result = OS_NOT_FOUND;
@@ -855,16 +851,14 @@ OsStatus XCpCallManager::renegotiateCodecsAbstractCallConnection(const UtlString
    {
       // we found call and have a lock on it
       return ptrLock->renegotiateCodecsConnection(sSipDialog,
-         audioBandwidthId, sAudioCodecs, videoBandwidthId, sVideoCodecs);
+         sAudioCodecs, sVideoCodecs);
    }
 
    return result;
 }
 
 OsStatus XCpCallManager::renegotiateCodecsAllConferenceConnections(const UtlString& sConferenceId,
-                                                                   CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                                    const UtlString& sAudioCodecs,
-                                                                   CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                                    const UtlString& sVideoCodecs)
 {
    OsStatus result = OS_NOT_FOUND;
@@ -874,7 +868,7 @@ OsStatus XCpCallManager::renegotiateCodecsAllConferenceConnections(const UtlStri
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->renegotiateCodecsAllConnections(audioBandwidthId, sAudioCodecs, videoBandwidthId, sVideoCodecs);
+      return ptrLock->renegotiateCodecsAllConnections(sAudioCodecs, sVideoCodecs);
    }
 
    return result;

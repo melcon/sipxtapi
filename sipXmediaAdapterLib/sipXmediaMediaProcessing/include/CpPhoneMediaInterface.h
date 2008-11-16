@@ -238,10 +238,11 @@ public:
     //! Rebuild the codec factory on the fly
     virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) ;
 
-   virtual OsStatus rebuildCodecFactory(int connectionId, 
-                                        int audioBandwidth, 
-                                        int videoBandwidth, 
-                                        UtlString& videoCodec);
+    /**
+     * Rebuilds SdpCodecFactory using supplied list of SdpCodec instances
+     * @param sdpCodecList List with instances of SdpCodec
+     */
+    virtual OsStatus rebuildCodecFactory(const UtlSList& sdpCodecList);
 
     //! Set conneection bitrate on the fly
     virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) ;
@@ -432,7 +433,7 @@ private:
    UtlString mLocalAddress;          ///< Address on which ports are bound
    MpCallFlowGraph* mpFlowGraph;     ///< Flowgraph for audio part of call
    UtlBoolean mRingToneFromFile;
-   SdpCodecFactory mSupportedCodecs;
+   SdpCodecFactory mSdpCodecFactory;
    UtlDList mMediaConnections;
    int mExpeditedIpTos;
    UtlString mStunServer ;

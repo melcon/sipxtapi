@@ -27,7 +27,6 @@
 #include <cp/msg/AcHoldConnectionMsg.h>
 #include <cp/msg/AcUnholdConnectionMsg.h>
 #include <cp/msg/AcTransferBlindMsg.h>
-#include <cp/msg/AcLimitCodecPreferencesMsg.h>
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -154,24 +153,12 @@ OsStatus XCpCall::unholdConnection()
    return postMessage(unholdConnectionMsg);
 }
 
-OsStatus XCpCall::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                        const UtlString& sAudioCodecs,
-                                        CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                        const UtlString& sVideoCodecs)
-{
-   AcLimitCodecPreferencesMsg limitCodecPreferencesMsg(audioBandwidthId, sAudioCodecs,
-      videoBandwidthId, sVideoCodecs);
-   return postMessage(limitCodecPreferencesMsg);
-}
-
 OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                              CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                               const UtlString& sAudioCodecs,
-                                              CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                               const UtlString& sVideoCodecs)
 {
-   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, audioBandwidthId, sAudioCodecs,
-      videoBandwidthId, sVideoCodecs);
+   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, sAudioCodecs,
+      sVideoCodecs);
    return postMessage(renegotiateCodecsMsg);
 }
 
@@ -274,9 +261,6 @@ UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_UNHOLD_CONNECTION:
       handleUnholdConnection((const AcUnholdConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
-      handleLimitCodecPreferences((const AcLimitCodecPreferencesMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_RENEGOTIATE_CODECS:
       handleRenegotiateCodecs((const AcRenegotiateCodecsMsg&)rRawMsg);
@@ -463,12 +447,6 @@ OsStatus XCpCall::handleUnholdConnection(const AcUnholdConnectionMsg& rMsg)
    return OS_NOT_FOUND;
 }
 
-OsStatus XCpCall::handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg)
-{
-   // TODO: Implement
-   return OS_FAILED;
-}
-
 OsStatus XCpCall::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
 {
    SipDialog sipDialog;
@@ -477,8 +455,7 @@ OsStatus XCpCall::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
    UtlBoolean resFound = findConnection(sipDialog, ptrLock);
    if (resFound)
    {
-      return ptrLock->renegotiateCodecsConnection(rMsg.getAudioBandwidthId(), rMsg.getAudioCodecs(),
-         rMsg.getVideoBandwidthId(), rMsg.getVideoCodecs());
+      return ptrLock->renegotiateCodecsConnection(rMsg.getAudioCodecs(), rMsg.getVideoCodecs());
    }
 
    return OS_NOT_FOUND;

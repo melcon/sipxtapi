@@ -136,7 +136,7 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus getNumOfCodecs(int& iCodecs) const;
     virtual OsStatus getCodec(int iCodec, UtlString& codec, int& bandWidth) const;
 
-    virtual OsStatus getCodecNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecName) const;
+    virtual OsStatus getCodecShortNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecShortName) const;
 
     virtual OsStatus getLocalAudioConnectionId(int& connectionId) const ;
 
