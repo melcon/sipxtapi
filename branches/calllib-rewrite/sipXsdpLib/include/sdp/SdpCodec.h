@@ -21,7 +21,6 @@
 #include <utl/UtlInt.h>
 #include <utl/UtlString.h>
 
-
 // DEFINES
 
 // Mime major types
@@ -242,14 +241,14 @@ public:
    */
 
    /// Get the SDP/RTP payload id to be used for this codec
-   int getCodecPayloadFormat() const;
+   int getCodecPayloadId() const;
    /**<
    *  This is the id used in the SDP "m" format sub-field
    *  and RTP header.
    */
 
    /// Set the SDP/RTP payload id to be used for this codec
-   void setCodecPayloadFormat(int formatId);
+   void setCodecPayloadId(int formatId);
 
    /// Get the format specific parameters for the SDP
    virtual void getSdpFmtpField(UtlString& formatSpecificData) const;
@@ -331,10 +330,13 @@ public:
 //@{
 
    /// Returns TRUE if this codec is the same definition as the given codec
-   UtlBoolean isSameDefinition(SdpCodec& codec) const;
+   UtlBoolean isSameDefinition(const SdpCodec& codec) const;
    /**<
    *  That is the encoding type and its characteristics, not the payload type.
    */
+
+   /** Converts the short codec name into an enum */
+   static SdpCodec::SdpCodecTypes getCodecType(const UtlString& shortCodecName);
 
 //@}
 

@@ -237,7 +237,7 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
                        "pPrimary->getCodecType() = %d, "
                        "pPrimary->getCodecPayloadFormat() = %d",
                        pPrimary->getCodecType(),
-                       pPrimary->getCodecPayloadFormat());
+                       pPrimary->getCodecPayloadId());
       } else {
          OsSysLog::add(FAC_MP, PRI_DEBUG,
                        "MprEncode::handleSelectCodecs "
@@ -249,13 +249,13 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
                        "pDtmf->getCodecType() = %d, "
                        "pDtmf->getCodecPayloadFormat() = %d",
                        pDtmf->getCodecType(),
-                       pDtmf->getCodecPayloadFormat());
+                       pDtmf->getCodecPayloadId());
       }
    }
 
    if (NULL != pPrimary) {
       ourCodec = pPrimary->getCodecType();
-      payload = pPrimary->getCodecPayloadFormat();
+      payload = pPrimary->getCodecPayloadId();
       ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);
@@ -268,7 +268,7 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
 
    if (NULL != pDtmf) {
       ourCodec = pDtmf->getCodecType();
-      payload = pDtmf->getCodecPayloadFormat();
+      payload = pDtmf->getCodecPayloadId();
       ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);

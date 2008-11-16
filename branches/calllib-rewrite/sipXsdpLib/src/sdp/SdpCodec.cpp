@@ -424,12 +424,12 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType() const
    return((enum SdpCodecTypes) getValue());
 }
 
-int SdpCodec::getCodecPayloadFormat() const
+int SdpCodec::getCodecPayloadId() const
 {
     return(mCodecPayloadFormat);
 }
 
-void SdpCodec::setCodecPayloadFormat(int formatId)
+void SdpCodec::setCodecPayloadId(int formatId)
 {
     mCodecPayloadFormat = formatId;
 }
@@ -542,12 +542,155 @@ int SdpCodec::getBWCost() const
 
 /* ============================ INQUIRY =================================== */
 
-UtlBoolean SdpCodec::isSameDefinition(SdpCodec& codec) const
+UtlBoolean SdpCodec::isSameDefinition(const SdpCodec& codec) const
 {
     return(mSampleRate == codec.mSampleRate &&
            mNumChannels == codec.mNumChannels &&
            mMimeType.compareTo(codec.mMimeType, UtlString::ignoreCase) == 0 &&
            mMimeSubtype.compareTo(codec.mMimeSubtype, UtlString::ignoreCase) == 0);
+}
+
+SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
+{
+    SdpCodec::SdpCodecTypes retType = SdpCodec::SDP_CODEC_UNKNOWN;
+    UtlString compareString(shortCodecName);
+    compareString.toUpper();
+
+    if (strcmp(compareString,"TELEPHONE-EVENT") == 0 ||
+       strcmp(compareString,"AUDIO/TELEPHONE-EVENT") == 0 || 
+       strcmp(compareString,"128") == 0 ||
+       strcmp(compareString,"AVT-TONES") == 0 ||
+       strcmp(compareString,"AVT") == 0)
+        retType = SdpCodec::SDP_CODEC_TONES;
+    else
+    if (strcmp(compareString,"PCMU") == 0 ||
+       strcmp(compareString,"G711U") == 0 || 
+       strcmp(compareString,"0") == 0 ||
+       strcmp(compareString,"258") == 0)
+        retType = SdpCodec::SDP_CODEC_GIPS_PCMU;
+    else
+    if (strcmp(compareString,"PCMA") == 0 ||
+       strcmp(compareString,"G711A") == 0 || 
+       strcmp(compareString,"8") == 0 ||
+       strcmp(compareString,"257") == 0)
+        retType = SdpCodec::SDP_CODEC_GIPS_PCMA;
+    else
+    if (strcmp(compareString,"EG711U") == 0 ||
+       strcmp(compareString,"260") == 0)
+        retType = SdpCodec::SDP_CODEC_GIPS_IPCMU;
+    else
+    if (strcmp(compareString,"EG711A") == 0 ||
+       strcmp(compareString,"259") == 0)
+        retType = SdpCodec::SDP_CODEC_GIPS_IPCMA;
+    else
+    if (strcmp(compareString,"IPCMWB") == 0)
+        retType = SdpCodec::SDP_CODEC_GIPS_IPCMWB;
+    else
+    if (strcmp(compareString,"G729") == 0 ||
+       strcmp(compareString,"G729A") == 0)
+        retType = SdpCodec::SDP_CODEC_G729A;
+    else
+    if (strcmp(compareString,"G729AB") == 0 ||
+       strcmp(compareString,"G729B") == 0)
+        retType = SdpCodec::SDP_CODEC_G729AB;
+    else
+    if (strcmp(compareString,"G723") == 0 ||
+        strcmp(compareString,"G723.1") == 0)
+        retType = SdpCodec::SDP_CODEC_G723;
+    else
+    if (strcmp(compareString,"G729A-FOR-CISCO-7960") == 0)
+        retType = SdpCodec::SDP_CODEC_G729ACISCO7960;
+    else
+    if (strcmp(compareString,"ILBC") == 0)
+        retType = SdpCodec::SDP_CODEC_ILBC;
+    else
+    if (strcmp(compareString,"GSM") == 0)
+        retType = SdpCodec::SDP_CODEC_GSM;
+   else
+    if (strcmp(compareString,"ISAC") == 0)
+        retType = SdpCodec::SDP_CODEC_GIPS_ISAC;
+#ifdef HAVE_SPEEX // [
+   else 
+      if (strcmp(compareString,"SPEEX") == 0)
+         retType = SdpCodec::SDP_CODEC_SPEEX;
+   else 
+      if (strcmp(compareString,"SPEEX_5") == 0)
+         retType = SdpCodec::SDP_CODEC_SPEEX_5;
+   else 
+      if (strcmp(compareString,"SPEEX_15") == 0)
+         retType = SdpCodec::SDP_CODEC_SPEEX_15;
+   else 
+      if (strcmp(compareString,"SPEEX_24") == 0)
+         retType = SdpCodec::SDP_CODEC_SPEEX_24;
+#endif // HAVE_SPEEX ]
+#ifdef HAVE_GSM // [
+   else 
+      if (strcmp(compareString,"GSM") == 0)
+         retType = SdpCodec::SDP_CODEC_GSM;
+#endif // HAVE_GSM ]
+   else
+    if (strcmp(compareString,"VP71-CIF") == 0)
+        retType = SdpCodec::SDP_CODEC_VP71_CIF;
+   else
+    if (strcmp(compareString,"VP71-QCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_VP71_QCIF;
+   else
+    if (strcmp(compareString,"VP71-SQCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_VP71_SQCIF;
+   else
+    if (strcmp(compareString,"VP71-QVGA") == 0)
+        retType = SdpCodec::SDP_CODEC_VP71_QVGA;
+   else
+    if (strcmp(compareString,"IYUV-CIF") == 0)
+        retType = SdpCodec::SDP_CODEC_IYUV_CIF;
+   else
+    if (strcmp(compareString,"IYUV-QCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_IYUV_QCIF;
+   else
+    if (strcmp(compareString,"IYUV-SQCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_IYUV_SQCIF;
+   else
+    if (strcmp(compareString,"IYUV-QVGA") == 0)
+        retType = SdpCodec::SDP_CODEC_IYUV_QVGA;
+   else
+    if (strcmp(compareString,"I420-CIF") == 0)
+        retType = SdpCodec::SDP_CODEC_I420_CIF;
+   else
+    if (strcmp(compareString,"I420-QCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_I420_QCIF;
+   else
+    if (strcmp(compareString,"I420-SQCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_I420_SQCIF;
+   else
+    if (strcmp(compareString,"I420-QVGA") == 0)
+        retType = SdpCodec::SDP_CODEC_I420_QVGA;
+   else
+    if (strcmp(compareString,"H263-CIF") == 0)
+        retType = SdpCodec::SDP_CODEC_H263_CIF;
+   else
+    if (strcmp(compareString,"H263-QCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_H263_QCIF;
+   else
+    if (strcmp(compareString,"H263-SQCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_H263_SQCIF;
+   else
+    if (strcmp(compareString,"H263-QVGA") == 0)
+        retType = SdpCodec::SDP_CODEC_H263_QVGA;
+   else
+    if (strcmp(compareString,"RGB24-CIF") == 0)
+        retType = SdpCodec::SDP_CODEC_RGB24_CIF;
+   else
+    if (strcmp(compareString,"RGB24-QCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_RGB24_QCIF;
+   else
+    if (strcmp(compareString,"RGB24-SQCIF") == 0)
+        retType = SdpCodec::SDP_CODEC_RGB24_SQCIF;
+   else
+    if (strcmp(compareString,"RGB24-QVGA") == 0)
+        retType = SdpCodec::SDP_CODEC_RGB24_QVGA;
+    else
+       retType = SdpCodec::SDP_CODEC_UNKNOWN;
+    return retType;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

@@ -65,7 +65,7 @@ public:
 ///@name Manipulators
 //@{
 
-   OsStatus selectCodecs(SdpCodec* codecs[], int numCodecs);
+   OsStatus selectCodecs(const UtlSList& codecList);
 
    OsStatus selectCodec(SdpCodec& rCodec);
 

@@ -185,10 +185,9 @@ sipXmediaFactoryImpl::~sipXmediaFactoryImpl()
 /* ============================ MANIPULATORS ============================== */
 
 CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-															 const char* publicAddress,
+                                                             const UtlSList* pCodecList,
+															                const char* publicAddress,
                                                              const char* localAddress,
-                                                             int numCodecs,
-                                                             SdpCodec* sdpCodecArray[],
                                                              const char* locale,
                                                              int expeditedIpTos,
                                                              const char* szStunServer,
@@ -201,8 +200,8 @@ CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceN
                                                              int iTurnKeepAlivePeriodSecs,
                                                              UtlBoolean bEnableICE) 
 {
-    return new CpPhoneMediaInterface(this, pInterfaceNotificationQueue, publicAddress, localAddress, 
-            numCodecs, sdpCodecArray, locale, expeditedIpTos, szStunServer,
+    return new CpPhoneMediaInterface(this, pInterfaceNotificationQueue, pCodecList, publicAddress, localAddress, 
+            locale, expeditedIpTos, szStunServer,
             iStunPort, iStunKeepAliveSecs, szTurnServer, iTurnPort, 
             szTurnUsername, szTurnPassword, iTurnKeepAlivePeriodSecs, 
             bEnableICE) ;

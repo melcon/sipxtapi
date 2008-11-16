@@ -74,10 +74,9 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
 /* ============================ MANIPULATORS ============================== */
     virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-													const char* publicAddress,
+                                                   const UtlSList* pCodecList,
+													            const char* publicAddress,
                                                     const char* localAddress,
-                                                    int numCodecs,
-                                                    SdpCodec* sdpCodecArray[],
                                                     const char* locale,
                                                     int expeditedIpTos,
                                                     const char* szStunServer,

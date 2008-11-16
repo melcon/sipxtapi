@@ -291,23 +291,18 @@ public:
 
      /// @brief Start sending RTP using the specified codec list.
    virtual OsStatus startRtpSend(int connectionId, 
-                                 int numCodecs,
-                                 SdpCodec* sendCodec[]) = 0 ;
+                                 const UtlSList& codecList) = 0 ;
      /**<
      *  Generally, this codec list is the intersection between both parties.
      *
      *  @param[in] connectionId - Connection Id for the call leg obtained from 
      *             createConnection
-     *  @param[in] numCodec Number of codecs supplied in the sendCodec array
-     *  @param[in] sendCodec Array of codecs ordered in sending preference.
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070801 >>
+     *  @param codecList List of SdpCodec instances
      */ 
 
      /// @brief Start receiving RTP using the specified codec list.
    virtual OsStatus startRtpReceive(int connectionId,
-                                    int numCodecs,
-                                    SdpCodec* sendCodec[]) = 0;
+                                    const UtlSList& codecList) = 0;
      /**<
      *  Generally, this codec list is the intersection between both parties.
      *  The media processing subsystem should be prepared to receive any of 
@@ -317,8 +312,7 @@ public:
      *
      *  @param[in] connectionId - Connection Id for the call leg obtained from 
      *             createConnection
-     *  @param[in] numCodec - Number of codecs supplied in the sendCodec array
-     *  @param[in] sendCodec - Array of receive codecs 
+     *  @param codecList List of SdpCodec instances
      *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
@@ -511,12 +505,6 @@ public:
      *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
-
-   //! Set the CPU resource limit for the media connections in this call. 
-   /*! This is used to limit the available codecs to only those within 
-    * the designated CPU cost limit. 
-    */
-   virtual void setCodecCPULimit(int iLimit) = 0 ;
 
    //! Start recording audio for this call.
    virtual OsStatus ezRecord(int ms, 

@@ -63,6 +63,7 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipUserAgent& rSipUserAgent,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                                 const SdpCodecFactory& rDefaultSdpCodecFactory,
                                  OsMsgQ& rCallManagerQueue,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -73,6 +74,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_sId(sId)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
+, m_rDefaultSdpCodecFactory(rDefaultSdpCodecFactory)
 , m_rCallManagerQueue(rCallManagerQueue)
 , m_pMediaInterface(NULL)
 , m_bIsFocused(FALSE)
@@ -559,7 +561,11 @@ OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferen
    {
       UtlSList sdpCodecList;
       SdpCodecFactory sdpCodecFactory;
-      m_pMediaInterface->rebuildCodecFactory(sdpCodecList);
+      UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs());
+      sdpCodecFactory.buildSdpCodecFactory(audioCodecs);// appends selected audio codecs
+      sdpCodecFactory.buildSdpCodecFactory(rMsg.getVideoCodecs());// appends selected video codecs
+      sdpCodecFactory.getCodecs(sdpCodecList);
+      return m_pMediaInterface->rebuildCodecFactory(sdpCodecList);
    }
 
    return OS_FAILED;

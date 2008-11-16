@@ -47,12 +47,13 @@
 XCpCall::XCpCall(const UtlString& sId,
                  SipUserAgent& rSipUserAgent,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                 const SdpCodecFactory& rDefaultSdpCodecFactory,
                  OsMsgQ& rCallManagerQueue,
                  CpCallStateEventListener* pCallEventListener,
                  SipInfoStatusEventListener* pInfoStatusEventListener,
                  SipSecurityEventListener* pSecurityEventListener,
                  CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rCallManagerQueue,
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecFactory, rCallManagerQueue,
                   pCallEventListener, pInfoStatusEventListener, pSecurityEventListener, pMediaEventListener)
 , m_pSipConnection(NULL)
 {

@@ -58,11 +58,10 @@ public:
 /* ============================ CREATORS ================================== */
 
    CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
-						 OsMsgQ* pInterfaceNotificationQueue,
+						       OsMsgQ* pInterfaceNotificationQueue,
+                         const UtlSList* pCodecList = NULL,
                          const char* publicAddress = NULL, 
                          const char* localAddress = NULL,
-                         int numCodecs = 0, 
-                         SdpCodec* sdpCodecArray[] = NULL,
                          const char* pLocale = "",
                          int expeditedIpTos = QOS_LAYER3_LOW_DELAY_IP_TOS,
                          const char* szStunServer = NULL,
@@ -138,12 +137,10 @@ public:
                                              int rtcpVideoPort);
 
    virtual OsStatus startRtpSend(int connectionId, 
-                                 int numCodecs,
-                                 SdpCodec* sendCodec[]);
+                                 const UtlSList& codecList);
 
    virtual OsStatus startRtpReceive(int connectionId,
-                                    int numCodecs,
-                                    SdpCodec* sendCodec[]);
+                                    const UtlSList& codecList);
 
    virtual OsStatus stopRtpSend(int connectionId);
    virtual OsStatus stopRtpReceive(int connectionId);
@@ -203,10 +200,6 @@ public:
 
    virtual OsStatus giveFocus();
    virtual OsStatus defocus();
-
-   virtual void setCodecCPULimit(int iLimit);
-     //:Limits the available codecs to only those within the designated
-     //:limit.
 
    virtual OsStatus stopRecording();
    virtual OsStatus ezRecord(int ms, 

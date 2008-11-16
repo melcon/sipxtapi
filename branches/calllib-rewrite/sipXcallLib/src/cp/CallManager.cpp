@@ -978,8 +978,9 @@ CpMediaInterface* CallManager::createMediaInterface(const UtlString& sSuggestedL
 
       pMediaInterface = mpMediaFactory->createMediaInterface(
          NULL,
+         NULL, // list of SdpCodec instances
          publicIPAddress, 
-         localIPAddress, numCodecs, codecArray, 
+         localIPAddress, 
          mLocale.data(), mExpeditedIpTos, stunServer, 
          mStunPort, mStunKeepAlivePeriodSecs, turnServer,
          mTurnPort, turnUsername, turnPassword,

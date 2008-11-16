@@ -255,7 +255,7 @@ public:
    void stopSendRtp(MpConnectionID connID=1);
 
      /// Starts receiving RTP and RTCP packets.
-   void startReceiveRtp(SdpCodec* pCodecs[], int numCodecs,
+   void startReceiveRtp(const UtlSList& codecList,
                   OsSocket& rRtpSocket, OsSocket& rRtcpSocket,
                   MpConnectionID connID=1);
 

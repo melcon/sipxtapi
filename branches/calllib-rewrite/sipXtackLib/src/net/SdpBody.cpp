@@ -1303,7 +1303,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
                commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
 
-               commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadFormat(audioPayloadTypes[typeIndex]);
+               commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadId(audioPayloadTypes[typeIndex]);
                // decoder uses our own SDP payload IDs, not remote
 
                if (frameSize)
@@ -1325,7 +1325,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
       else if(audioPayloadTypes[typeIndex] <=
               SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC)
       {
-         if((matchingCodec = localRtpCodecs.getCodecByType(audioPayloadTypes[typeIndex])))
+         if((matchingCodec = localRtpCodecs.getCodecByPayloadId(audioPayloadTypes[typeIndex])))
          {
             // Create a copy of the SDP codec
             commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
@@ -1407,7 +1407,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                             commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
                             commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
 
-                            commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadFormat(videoPayloadTypes[typeIndex]);
+                            commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadId(videoPayloadTypes[typeIndex]);
                             // decoder will use our SDP payload IDs, not those we received
 
                             numCodecsInCommon++;
@@ -1433,7 +1433,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
             else if(videoPayloadTypes[typeIndex] <=
                     SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC)
             {
-                if((matchingCodec = localRtpCodecs.getCodecByType(videoPayloadTypes[typeIndex])))
+                if((matchingCodec = localRtpCodecs.getCodecByPayloadId(videoPayloadTypes[typeIndex])))
                 {
                     // Create a copy of the SDP codec and set
                     // the payload type for it
@@ -1503,7 +1503,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
             seenMimeType = mimeType;
             ++numAudioCodecs;
             codecArray[destIndex++] =
-                (rtpCodecs[codecIndex])->getCodecPayloadFormat();
+                (rtpCodecs[codecIndex])->getCodecPayloadId();
         }
     }
 
@@ -1624,7 +1624,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                 ++numVideoCodecs;
                 formatArray[destIndex] = (rtpCodecs[codecIndex])->getVideoFormat();
                 codecArray[destIndex] =
-                    (rtpCodecs[codecIndex])->getCodecPayloadFormat();
+                    (rtpCodecs[codecIndex])->getCodecPayloadId();
                 (rtpCodecs[firstMimeSubTypeIndex])->setVideoFmtp(formatArray[destIndex]);
                 (rtpCodecs[firstMimeSubTypeIndex])->clearVideoFmtpString();
                 (rtpCodecs[firstMimeSubTypeIndex])->setVideoFmtpString((rtpCodecs[codecIndex])->getVideoFormat());
@@ -1758,7 +1758,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
          sampleRate = codec->getSampleRate();
          numChannels = codec->getNumChannels();
          codec->getSdpFmtpField(formatParameters);
-         payloadType = codec->getCodecPayloadFormat();
+         payloadType = codec->getCodecPayloadId();
 
          // Not sure what the right heuristic is for determining the
          // correct ptime.  ptime is a media (m line) parameters.  As such
@@ -1777,7 +1777,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
 
          if ((videoFmtp=codec->getVideoFmtp()) != 0)
          {
-             if (codec->getCodecPayloadFormat() != SdpCodec::SDP_CODEC_H263)
+             if (codec->getCodecPayloadId() != SdpCodec::SDP_CODEC_H263)
              {
                  codec->getVideoFmtpString(formatString);
                  formatTemp = "size:" + formatString;
@@ -1999,7 +1999,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
             if (mediaType.compareTo(SDP_AUDIO_MEDIA_TYPE) == 0)
             {
                 supportedPayloadTypes[destIndex++] =
-                        codecsInCommon[payloadIndex]->getCodecPayloadFormat();
+                        codecsInCommon[payloadIndex]->getCodecPayloadId();
             }
         }
         addMediaData(SDP_AUDIO_MEDIA_TYPE, rtpAudioPorts[0], 1,
@@ -2084,7 +2084,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                     firstMimeSubTypeIndex = payloadIndex;
                     formatArray[destIndex] = (codecsInCommon[payloadIndex])->getVideoFormat();
                     supportedPayloadTypes[destIndex] =
-                        codecsInCommon[firstMimeSubTypeIndex]->getCodecPayloadFormat();
+                        codecsInCommon[firstMimeSubTypeIndex]->getCodecPayloadId();
                     (codecsInCommon[firstMimeSubTypeIndex])->setVideoFmtp(formatArray[destIndex]);
                     (codecsInCommon[firstMimeSubTypeIndex])->clearVideoFmtpString();
                     (codecsInCommon[firstMimeSubTypeIndex])->setVideoFmtpString((codecsInCommon[payloadIndex])->getVideoFormat());
