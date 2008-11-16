@@ -544,21 +544,6 @@ void SipUserAgent::enableStun(const char* szStunServer,
    }
 }
 
-void SipUserAgent::addMessageConsumer(OsServerTask* messageEventListener)
-{
-   // Need to do the real thing by keeping a list of consumers
-   // and putting a mutex around the add to list
-   //if(messageListener)
-   //{
-   //      osPrintf("WARNING: message consumer is NOT a LIST\n");
-   //}
-   //messageListener = messageEventListener;
-   if(messageEventListener)
-   {
-      addMessageObserver(*(messageEventListener->getMessageQueue()));
-   }
-}
-
 void SipUserAgent::addMessageObserver(OsMsgQ& messageQueue,
                                       const char* sipMethod,
                                       UtlBoolean wantRequests,

@@ -276,9 +276,6 @@ public:
    //! For internal use only
    virtual UtlBoolean handleMessage(OsMsg& eventMessage);
 
-   //! Deprecated (Add a SIP message recipient)
-   virtual void addMessageConsumer(OsServerTask* messageConsumer);
-
    //! Add a SIP message observer for receiving SIP messages meeting the
    //! given filter criteria
    /*! SIP messages will be added to the \a messageQueue if they meet

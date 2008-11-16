@@ -64,10 +64,6 @@ public:
 
     virtual UtlBoolean handleMessage(OsMsg& eventMessage) = 0;
 
-    virtual void addMessageConsumer(OsServerTask* messageConsumer) = 0;
-    //: Add a SIP message recipient
-
-
     //: Send a SIP message over the net
     // This method sends the SIP message via
     // a SIP UDP or TCP client as dictated by policy and the address
