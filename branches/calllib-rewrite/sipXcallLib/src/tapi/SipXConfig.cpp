@@ -1533,7 +1533,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hIns
             {
                if (codecsArray[i]->getBWCost() <= bandWidth)
                {
-                  if (pInterface->getCodecNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
+                  if (pInterface->getCodecShortNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
                   {
                      pInst->audioCodecSetting.preferences += " " + codecName;
                   }
@@ -1575,7 +1575,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hIns
 
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecName)
+                                                       const char* szCodecNames)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetAudioCodecByName");
 
@@ -1584,7 +1584,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxConfigSetAudioCodecByName hInst=%p codec=%s",
-      hInst, szCodecName);
+      hInst, szCodecNames);
 
    if (pInst)
    {
@@ -1595,12 +1595,12 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
 
       if (pInterface)
       {
-         pInst->audioCodecSetting.preferences = szCodecName;
+         pInst->audioCodecSetting.preferences = szCodecNames;
 
          // maybe add " audio/telephone-event"
-         if (!pInst->audioCodecSetting.preferences.contains("audio/telephone-event"))
+         if (!pInst->audioCodecSetting.preferences.contains(MIME_AUDIO_DTMF_TONES))
          {
-            pInst->audioCodecSetting.preferences += " audio/telephone-event";
+            pInst->audioCodecSetting.preferences += " "MIME_AUDIO_DTMF_TONES;
          }
 
          if (pInst->audioCodecSetting.preferences.length() != 0)
@@ -1616,7 +1616,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
             // We've rebuilt the factory, so get the new count of codecs
             pInst->pCodecFactory->getCodecs(pInst->audioCodecSetting.numCodecs,
                   pInst->audioCodecSetting.sdpCodecArray,
-                  "audio");
+                  MIME_TYPE_AUDIO);
 
             pInst->audioCodecSetting.codecPref = AUDIO_CODEC_BW_CUSTOM;
 
@@ -1628,7 +1628,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
             {
                OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
                   "sipxConfigSetAudioCodecByName: Setting %s failed, only DTMF is active", 
-                  szCodecName);
+                  szCodecNames);
             }
 
             pInst->audioCodecSetting.bInitialized = true;
@@ -1707,11 +1707,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
 
       if (index >= 0 && index < pInst->audioCodecSetting.numCodecs)
       {
-         CpMediaInterfaceFactory* pInterface = 
+         CpMediaInterfaceFactory* pInterfaceFactory = 
             pInst->pCallManager->getMediaInterfaceFactory();
 
          // If a name is found for the codec type, copy name and bandwidth cost
-         if (pInterface->getCodecNameByType(pInst->audioCodecSetting.sdpCodecArray[index]->getCodecType(),
+         if (pInterfaceFactory->getCodecShortNameByType(pInst->audioCodecSetting.sdpCodecArray[index]->getCodecType(),
             codecName))
          {
             SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
@@ -2028,7 +2028,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst,
             pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
 
          // If a name is found for the codec type, copy name and bandwidth cost
-         if (pInterface->getCodecNameByType(pInst->videoCodecSetting.sdpCodecArray[index]->getCodecType(),
+         if (pInterface->getCodecShortNameByType(pInst->videoCodecSetting.sdpCodecArray[index]->getCodecType(),
             codecName))
          {
             SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);

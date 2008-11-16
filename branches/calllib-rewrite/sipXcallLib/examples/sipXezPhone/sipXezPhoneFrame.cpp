@@ -601,7 +601,7 @@ void sipXezPhoneFrame::OnPlayFile(wxCommandEvent& WXUNUSED(event))
 void sipXezPhoneFrame::OnRenegotiate(wxCommandEvent& WXUNUSED(event))
 {
     SIPX_CONF hConf = sipXmgr::getInstance().getCurrentConference();
-    sipxConferenceLimitCodecPreferences(hConf, AUDIO_CODEC_BW_DEFAULT, NULL, VIDEO_CODEC_BW_DEFAULT, "H263-CIF") ;
+    sipxConferenceLimitCodecPreferences(hConf, NULL, "H263-CIF") ;
 }
 
 void sipXezPhoneFrame::OnPrepareForHibernate(wxCommandEvent& WXUNUSED(event))

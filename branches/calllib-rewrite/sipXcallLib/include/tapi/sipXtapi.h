@@ -1988,33 +1988,21 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
                                                    SIPX_RTCP_STATS* pStats);
 
 /**
- * Limits the codec preferences on a per-call basis.  This API will force a 
- * codec renegotiation with the specified call regardless if the codecs 
- * changed.  A renegotiation includes sending a new INVITE with an updated SDP
- * list.  Local audio will be stopped and restarted during this process, 
- * however, hold events are not sent to the application.
- *
- * NOTE: If a call is on remote hold, it will be taken off remote hold.
+ * Limits the codec preferences on given call. Can be used on new call
+ * that has not yet been connected to limit preferences for that call.
+ * When used on a connected call, preferences will take effect after next unhold.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
- *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
  * @param szAudioCodecs Codec names that limit the supported audio codecs.
- * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
- *        (see sipxConfigSetVideoBandwidth for an explanation on how 
- *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
- *        to leave these parameters unchanged.
  * @param szVideoCodecs Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
-                                                       const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                        const char* szAudioCodecs,
-                                                       const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                        const char* szVideoCodecs);
 
 /**
@@ -2343,32 +2331,20 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStop(const SIPX_CONF hConf
 SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf);
 
 /**
- * Limits the codec preferences on a conference.  This API will force a 
- * codec renegotiation with the specified calls regardless if the codecs 
- * changed.  A renegotiation includes sending a new INVITE with an updated SDP
- * list.  Local audio will be stopped and restarted during this process, 
- * however, hold events are not sent to the application.
- *
- * NOTE: If any calls are on remote hold, they will be taken off hold.
+ * Limits the codec preferences on a conference. Supplied settings will be applied
+ * for new conference calls, or calls that are unheld. First supplied audio codec
+ * matching remote party audio codec will be used.
  *
  * @param hConf Handle to a conference.  Conference handles are obtained 
  *        by invoking sipxConferenceCreate.
- * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
- *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
  * @param szVideoCodecNames Codec names that limit the supported audio codecs.
- * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
- *        (see sipxConfigSetVideoBandwidth for an explanation on how 
- *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
- *        to leave these parameters unchanged.
  * @param szVideoCodecNames Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
-                                                             const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                              const char* szAudioCodecNames,
-                                                             const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                              const char* szVideoCodecNames);
 
 //@}
@@ -3355,17 +3331,18 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hIns
                                                             SIPX_AUDIO_BANDWIDTH_ID bandWidth);
 
 /**
- * Set the codec by name. The name must match one of the supported codecs
- * otherwise this function will fail.
- * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec.
+ * Set the codecs by short names. The name must match one of the supported codecs
+ * otherwise this function will fail. Codecs must be separated by " ".
+ *
+ * This method will return SIPX_RESULT_SUCCESS if able to set audio codecs.
  * SIPX_RESULT_FAILURE is returned if the codec is not set.
  * 
  * @param hInst Instance pointer obtained by sipxInitialize
- * @param szCodecName codec name
+ * @param szCodecNames multiple codec names separated by space.
  *
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecName);
+                                                       const char* szCodecNames);
 
 /**
  * Get the current codec preference.

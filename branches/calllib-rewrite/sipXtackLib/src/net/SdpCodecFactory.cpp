@@ -126,7 +126,23 @@ void SdpCodecFactory::addCodecs(int numCodecs, SdpCodec* codecs[])
    }
 }
 
-void SdpCodecFactory::addCodec(SdpCodec& newCodec)
+void SdpCodecFactory::addCodecs(const UtlSList& sdpCodecList)
+{
+   OsWriteLock lock(mReadWriteMutex);
+
+   SdpCodec* pCodec = NULL;
+   UtlSListIterator itor(sdpCodecList);
+   while (itor())
+   {
+      pCodec = dynamic_cast<SdpCodec*>(itor.item());
+      if (pCodec)
+      {
+         addCodecNoLock(*pCodec);
+      }
+   }
+}
+
+void SdpCodecFactory::addCodec(const SdpCodec& newCodec)
 {
     OsWriteLock lock(mReadWriteMutex);
     addCodecNoLock(newCodec);
@@ -213,10 +229,10 @@ void SdpCodecFactory::clearCodecs(void)
     mCodecs.destroyAll();
 }
 
-SdpCodec::SdpCodecTypes SdpCodecFactory::getCodecType(const char* pCodecName)
+SdpCodec::SdpCodecTypes SdpCodecFactory::getCodecType(const char* pShortCodecName)
 {
     SdpCodec::SdpCodecTypes retType = SdpCodec::SDP_CODEC_UNKNOWN;
-    UtlString compareString(pCodecName);
+    UtlString compareString(pShortCodecName);
 
     compareString.toUpper();
 
@@ -1374,6 +1390,20 @@ int SdpCodecFactory::getCodecCount(const char* mimetype)
     return iCount;
 }
 
+void SdpCodecFactory::getCodecs(UtlSList& sdpCodecList)
+{
+   OsReadLock lock(mReadWriteMutex);
+   SdpCodec* pCodec = NULL;
+   UtlDListIterator itor(mCodecs);
+   while (itor())
+   {
+      pCodec = dynamic_cast<SdpCodec*>(itor.item());
+      if (pCodec && pCodec->getCPUCost() <= mCodecCPULimit)
+      {
+         sdpCodecList.append(new SdpCodec(*pCodec));
+      }
+   }
+}
 
 void SdpCodecFactory::getCodecs(int& numCodecs, 
                                 SdpCodec**& codecArray)
@@ -1456,7 +1486,6 @@ void SdpCodecFactory::getCodecs(int& numCodecs,
     numCodecs = index;
 }
 
-
 void SdpCodecFactory::toString(UtlString& serializedFactory)
 {
     serializedFactory.remove(0);
@@ -1484,21 +1513,13 @@ int SdpCodecFactory::getCodecCPULimit()
    return mCodecCPULimit;
 }
 
-
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-void SdpCodecFactory::addCodecNoLock(SdpCodec& newCodec)
+void SdpCodecFactory::addCodecNoLock(const SdpCodec& newCodec)
 {
     mCodecs.insert(new SdpCodec(newCodec));
-
-#ifdef TEST_PRINT
-    UtlString codecDump;
-    newCodec.toString(codecDump);
-    osPrintf("SdpCodecFactory::addCodec adding:\n%s",
-        codecDump.data());
-#endif
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

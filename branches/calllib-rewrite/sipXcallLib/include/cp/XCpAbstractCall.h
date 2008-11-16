@@ -24,8 +24,6 @@
 #include <net/SipDialog.h>
 #include <net/SipTagGenerator.h>
 #include <cp/CpDefs.h>
-#include <cp/CpAudioCodecInfo.h>
-#include <cp/CpVideoCodecInfo.h>
 #include <cp/CpMediaInterfaceProvider.h>
 
 // DEFINES
@@ -63,6 +61,7 @@ class AcAudioToneStartMsg;
 class AcAudioToneStopMsg;
 class AcMuteInputConnectionMsg;
 class AcUnmuteInputConnectionMsg;
+class AcLimitCodecPreferencesMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
 
@@ -249,18 +248,18 @@ public:
    OsStatus unmuteInputConnection(const SipDialog& sipDialog);
 
    /**
-   * Rebuild codec factory on the fly with new audio codec requirements
-   * and new video codecs. Preferences will be in effect after the next
+   * Rebuild codec factory of the call (media interface) on the fly with new audio
+   * codec requirements and new video codecs. Preferences will be in effect after the next
    * INVITE or re-INVITE. Can be called on empty call or conference to limit
    * codecs for future calls. When called on an established call, hold/unhold
    * or codec renegotiation needs to be triggered to actually change codecs.
    * If used on conference, codecs will be applied to all future calls, and all
    * calls that are unheld.
+   *
+   * This method doesn't affect codec factory used for new outbound/inbound calls.
    */
-   virtual OsStatus limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                          const UtlString& sAudioCodecs,
-                                          CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                          const UtlString& sVideoCodecs) = 0;
+   OsStatus limitCodecPreferences(const UtlString& sAudioCodecs,
+                                  const UtlString& sVideoCodecs);
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -272,9 +271,7 @@ public:
    * (Sends a SIP re-INVITE.)
    */
    virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
-                                                CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                 const UtlString& sVideoCodecs) = 0;
 
 
@@ -424,6 +421,9 @@ private:
 
    /** Handles message to unmute inbound RTP in audio bridge */
    OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
+
+   /** Handles message to limit codec preferences for future sip connections */
+   OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
 
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);

@@ -1951,10 +1951,10 @@ UtlBoolean CpPeerCall::handleLimitCodecPreferences(OsMsg* pEventMessage)
 
             if (pInstData != NULL)
             {
-               ((CpMediaInterface*)pInstData)->rebuildCodecFactory(connectionId, 
+/*               ((CpMediaInterface*)pInstData)->rebuildCodecFactory(connectionId, 
                   audioBandwidth, 
                   videoBandwidth, 
-                  videoCodec);
+                  videoCodec);*/
             }
          }
       }

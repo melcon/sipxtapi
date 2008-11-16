@@ -432,7 +432,7 @@ public:
    /** 
    * Get specific codec identified by iCodec
    */
-   virtual OsStatus getCodecNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecName) const = 0;
+   virtual OsStatus getCodecShortNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecName) const = 0;
 
    /** 
    * Get the connection id for the local audio connection

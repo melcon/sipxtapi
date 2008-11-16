@@ -38,6 +38,7 @@
 #include <cp/msg/AcAudioToneStopMsg.h>
 #include <cp/msg/AcMuteInputConnectionMsg.h>
 #include <cp/msg/AcUnmuteInputConnectionMsg.h>
+#include <cp/msg/AcLimitCodecPreferencesMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -203,6 +204,13 @@ OsStatus XCpAbstractCall::unmuteInputConnection(const SipDialog& sipDialog)
    return postMessage(unmuteInputConnectionMsg);
 }
 
+OsStatus XCpAbstractCall::limitCodecPreferences(const UtlString& sAudioCodecs,
+                                                const UtlString& sVideoCodecs)
+{
+   AcLimitCodecPreferencesMsg limitCodecPreferencesMsg(sAudioCodecs, sVideoCodecs);
+   return postMessage(limitCodecPreferencesMsg);
+}
+
 OsStatus XCpAbstractCall::acquireExclusive()
 {
    return m_instanceRWMutex.acquireWrite();
@@ -333,6 +341,9 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
       handleUnmuteInputConnection((const AcUnmuteInputConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
+      handleLimitCodecPreferences((const AcLimitCodecPreferencesMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -540,6 +551,18 @@ OsStatus XCpAbstractCall::handleUnmuteInputConnection(const AcUnmuteInputConnect
    }
 
    return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg)
+{
+   if (m_pMediaInterface)
+   {
+      UtlSList sdpCodecList;
+      SdpCodecFactory sdpCodecFactory;
+      m_pMediaInterface->rebuildCodecFactory(sdpCodecList);
+   }
+
+   return OS_FAILED;
 }
 
 UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)

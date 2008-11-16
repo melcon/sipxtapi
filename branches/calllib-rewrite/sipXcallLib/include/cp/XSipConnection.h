@@ -22,8 +22,6 @@
 #include <net/SipInfoStatusEventListener.h>
 #include <net/SipSecurityEventListener.h>
 #include <cp/CpDefs.h>
-#include <cp/CpAudioCodecInfo.h>
-#include <cp/CpVideoCodecInfo.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/XSipConnectionEventSink.h>
 #include <cp/state/SipConnectionStateMachine.h>
@@ -181,9 +179,7 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   OsStatus renegotiateCodecsConnection(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                        const UtlString& sAudioCodecs,
-                                        CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+   OsStatus renegotiateCodecsConnection(const UtlString& sAudioCodecs,
                                         const UtlString& sVideoCodecs);
 
    /** Sends an INFO message to the other party(s) on the call */

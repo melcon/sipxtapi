@@ -195,10 +195,10 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
 
    if(sdpCodecArray && numCodecs > 0)
    {
-       mSupportedCodecs.addCodecs(numCodecs, sdpCodecArray);
+       mSdpCodecFactory.addCodecs(numCodecs, sdpCodecArray);
 
        // Assign any unset payload types
-       mSupportedCodecs.bindPayloadTypes();
+       mSdpCodecFactory.bindPayloadTypes();
    }
    else
    {
@@ -218,7 +218,7 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
                           "PCMU PCMA TELEPHONE-EVENT";
        OsSysLog::add(FAC_CP, PRI_WARNING, "CpPhoneMediaInterface::CpPhoneMediaInterface hard-coded codec factory %s ...",
                      codecs.data());
-       mSupportedCodecs.buildSdpCodecFactory(codecs);
+       mSdpCodecFactory.buildSdpCodecFactory(codecs);
    }
 
    mExpeditedIpTos = expeditedIpTos;
@@ -344,7 +344,7 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
             mediaConnection->mpRtcpAudioSocket, mediaConnection->mpRtcpAudioSocket->getSocketDescriptor());
 
    // Set codec factory
-   mediaConnection->mpCodecFactory = new SdpCodecFactory(mSupportedCodecs);
+   mediaConnection->mpCodecFactory = new SdpCodecFactory(mSdpCodecFactory);
    mediaConnection->mpCodecFactory->bindPayloadTypes();
    OsSysLog::add(FAC_CP, PRI_DEBUG, 
             "CpPhoneMediaInterface::createConnection creating a new SdpCodecFactory %p",
@@ -1414,7 +1414,7 @@ OsStatus CpPhoneMediaInterface::defocus()
 // Limits the available codecs to only those within the designated limit.
 void CpPhoneMediaInterface::setCodecCPULimit(int iLimit)
 {
-   mSupportedCodecs.setCodecCPULimit(iLimit) ;
+   mSdpCodecFactory.setCodecCPULimit(iLimit) ;
 
    CpPhoneMediaConnection* mediaConnection = NULL;
    UtlDListIterator connectionIterator(mMediaConnections);
@@ -1532,12 +1532,24 @@ OsStatus CpPhoneMediaInterface::setAudioCodecBandwidth(int connectionId, int ban
     return OS_NOT_SUPPORTED ;
 }
 
-OsStatus CpPhoneMediaInterface::rebuildCodecFactory(int connectionId, 
-                                                    int audioBandwidth, 
-                                                    int videoBandwidth, 
-                                                    UtlString& videoCodec)
+OsStatus CpPhoneMediaInterface::rebuildCodecFactory(const UtlSList& sdpCodecList)
 {
-    return OS_NOT_SUPPORTED ;
+   mSdpCodecFactory.clearCodecs();
+   UtlSListIterator itor(sdpCodecList);
+   SdpCodec* pSdpCodec = NULL;
+   while (itor())
+   {
+      pSdpCodec = dynamic_cast<SdpCodec*>(itor.item());
+      if (pSdpCodec)
+      {
+         // add codec
+         mSdpCodecFactory.addCodec(*pSdpCodec);
+      }
+   }
+   // Assign any unset payload types
+   mSdpCodecFactory.bindPayloadTypes();
+
+   return OS_SUCCESS;
 }
 
 OsStatus CpPhoneMediaInterface::setConnectionBitrate(int connectionId, int bitrate) 
@@ -1652,7 +1664,7 @@ int CpPhoneMediaInterface::getCodecCPULimit()
    //
    else
    {
-      mSupportedCodecs.getCodecs(iCodecs, codecs) ;  
+      mSdpCodecFactory.getCodecs(iCodecs, codecs) ;  
       for(int i = 0; i < iCodecs; i++)
       {
          // If the cost is greater than what we have, then make that the cost.

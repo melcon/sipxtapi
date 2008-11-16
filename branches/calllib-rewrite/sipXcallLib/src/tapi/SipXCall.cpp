@@ -2065,56 +2065,37 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
    return rc;
 }
 
-
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
-                                                       const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                        const char* szAudioCodecs,
-                                                       const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                        const char* szVideoCodecs)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallLimitCodecPreferences");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallLimitCodecPreferences hCall=%d audioBandwidth=%d videoBandwidth=%d szAudioCodecs=\"%s\"",
+      "sipxCallLimitCodecPreferences hCall=%d szAudioCodecs=\"%s\"",
       hCall,
-      audioBandwidth,
-      videoBandwidth,
       (szAudioCodecs != NULL) ? szAudioCodecs : "");
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   // Test bandwidth for legal values
-   if (((audioBandwidth >= AUDIO_CODEC_BW_LOW && audioBandwidth <= AUDIO_CODEC_BW_HIGH) || audioBandwidth == AUDIO_CODEC_BW_DEFAULT) &&
-      ((videoBandwidth >= VIDEO_CODEC_BW_LOW && videoBandwidth <= VIDEO_CODEC_BW_HIGH) || videoBandwidth == VIDEO_CODEC_BW_DEFAULT))
+   // get info about source call
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+   if (pData)
    {
-      // get info about source call
-      SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
-      if (pData)
-      {
-         SIPX_INSTANCE_DATA *pInst = pData->m_pInst;
-         UtlString sCallId = pData->m_abstractCallId;
-         SipDialog sipDialog = pData->m_sipDialog;
-         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      SIPX_INSTANCE_DATA *pInst = pData->m_pInst;
+      UtlString sCallId = pData->m_abstractCallId;
+      SipDialog sipDialog = pData->m_sipDialog;
+      sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
-         if (pInst->pCallManager->limitAbstractCallCodecPreferences(sCallId,
-            (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecs,
-            (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecs) == OS_SUCCESS)
-         {
-            if (pInst->pCallManager->renegotiateCodecsAbstractCallConnection(sCallId, sipDialog,
-               (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecs,
-               (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecs) == OS_SUCCESS)
-            {
-               sr = SIPX_RESULT_SUCCESS;
-            }
-         }
-      }
-      else
+      if (pInst->pCallManager->limitAbstractCallCodecPreferences(sCallId,
+         szAudioCodecs,
+         szVideoCodecs) == OS_SUCCESS)
       {
-         return SIPX_RESULT_INVALID_ARGS;
+         sr = SIPX_RESULT_SUCCESS;
       }
    }
    else
    {
-      sr = SIPX_RESULT_INVALID_ARGS;
+      return SIPX_RESULT_INVALID_ARGS;
    }
 
    return sr;

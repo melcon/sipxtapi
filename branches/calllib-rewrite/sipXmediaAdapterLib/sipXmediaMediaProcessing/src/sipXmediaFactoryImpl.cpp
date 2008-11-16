@@ -553,7 +553,7 @@ OsStatus sipXmediaFactoryImpl::buildCodecFactory(SdpCodecFactory *pFactory,
             int i;
             for (i = 0; i < numAudioCodecs; i++)
             {
-                if (getCodecNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
+                if (getCodecShortNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
                 {
                     preferences = preferences + " " + codecName;
                 }
@@ -601,7 +601,7 @@ OsStatus sipXmediaFactoryImpl::buildCodecFactory(SdpCodecFactory *pFactory,
             int i;
             for (i = 0; i < numVideoCodecs; i++)
             {
-                if (getCodecNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
+                if (getCodecShortNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
                 {
                     preferences = preferences + " " + codecName;
                 }
@@ -783,59 +783,59 @@ OsStatus sipXmediaFactoryImpl::getVideoFrameRate(int& frameRate) const
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getCodecNameByType(SdpCodec::SdpCodecTypes type, UtlString& codecName) const
+OsStatus sipXmediaFactoryImpl::getCodecShortNameByType(SdpCodec::SdpCodecTypes type, UtlString& codecShortName) const
 {
     OsStatus rc = OS_FAILED;
 
-    codecName = "";
+    codecShortName = "";
 
     switch (type)
     {
     case SdpCodec::SDP_CODEC_TONES:
-        codecName = SIPX_CODEC_ID_TELEPHONE;
+        codecShortName = SIPX_CODEC_ID_TELEPHONE;
         break;
     case SdpCodec::SDP_CODEC_G729:
     case SdpCodec::SDP_CODEC_G729A:
-        codecName = SIPX_CODEC_ID_G729A;
+        codecShortName = SIPX_CODEC_ID_G729A;
         break;
     case SdpCodec::SDP_CODEC_G723:
-        codecName = SIPX_CODEC_ID_G723;
+        codecShortName = SIPX_CODEC_ID_G723;
         break;
     case SdpCodec::SDP_CODEC_GIPS_PCMA:
-        codecName = SIPX_CODEC_ID_PCMA;
+        codecShortName = SIPX_CODEC_ID_PCMA;
         break;
     case SdpCodec::SDP_CODEC_GIPS_PCMU:
-        codecName = SIPX_CODEC_ID_PCMU;
+        codecShortName = SIPX_CODEC_ID_PCMU;
         break;
     case SdpCodec::SDP_CODEC_GIPS_IPCMA:
-        codecName = SIPX_CODEC_ID_EG711A;
+        codecShortName = SIPX_CODEC_ID_EG711A;
         break;
     case SdpCodec::SDP_CODEC_GIPS_IPCMU:
-        codecName = SIPX_CODEC_ID_EG711U;
+        codecShortName = SIPX_CODEC_ID_EG711U;
         break;
     case SdpCodec::SDP_CODEC_GIPS_IPCMWB:
-        codecName = SIPX_CODEC_ID_IPCMWB;
+        codecShortName = SIPX_CODEC_ID_IPCMWB;
         break;
     case SdpCodec::SDP_CODEC_ILBC:
-        codecName = SIPX_CODEC_ID_ILBC;
+        codecShortName = SIPX_CODEC_ID_ILBC;
         break;
     case SdpCodec::SDP_CODEC_GIPS_ISAC:
-        codecName = SIPX_CODEC_ID_ISAC;
+        codecShortName = SIPX_CODEC_ID_ISAC;
         break;
     case SdpCodec::SDP_CODEC_SPEEX:
-        codecName = SIPX_CODEC_ID_SPEEX;
+        codecShortName = SIPX_CODEC_ID_SPEEX;
         break;
     case SdpCodec::SDP_CODEC_SPEEX_5:
-        codecName = SIPX_CODEC_ID_SPEEX_5;
+        codecShortName = SIPX_CODEC_ID_SPEEX_5;
         break;
     case SdpCodec::SDP_CODEC_SPEEX_15:
-        codecName = SIPX_CODEC_ID_SPEEX_15;
+        codecShortName = SIPX_CODEC_ID_SPEEX_15;
         break;
     case SdpCodec::SDP_CODEC_SPEEX_24:
-        codecName = SIPX_CODEC_ID_SPEEX_24;
+        codecShortName = SIPX_CODEC_ID_SPEEX_24;
         break;
     case SdpCodec::SDP_CODEC_GSM:
-        codecName = SIPX_CODEC_ID_GSM;
+        codecShortName = SIPX_CODEC_ID_GSM;
         break;
     default:
         OsSysLog::add(FAC_MP, PRI_WARNING,
@@ -844,7 +844,7 @@ OsStatus sipXmediaFactoryImpl::getCodecNameByType(SdpCodec::SdpCodecTypes type, 
     
     }
 
-    if (codecName != "")
+    if (codecShortName != "")
     {
         rc = OS_SUCCESS;
     }
