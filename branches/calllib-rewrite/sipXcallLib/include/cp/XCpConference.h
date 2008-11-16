@@ -38,8 +38,6 @@ class AcLimitCodecPreferencesMsg;
 class AcRenegotiateCodecsMsg;
 class AcRenegotiateCodecsAllMsg;
 class AcSendInfoMsg;
-class AcMuteInputConnectionMsg;
-class AcUnmuteInputConnectionMsg;
 
 /**
  * XCpConference wraps several XSipConnections realizing conference functionality. XCpConference
@@ -162,19 +160,6 @@ public:
    OsStatus unholdAllConnections();
 
    /**
-   * Enables discarding of inbound RTP at bridge for given call
-   * or conference. Useful for server applications without mic/speaker.
-   * DTMF on given call will still be decoded.
-   */
-   virtual OsStatus muteInputConnection(const SipDialog& sipDialog);
-
-   /**
-   * Disables discarding of inbound RTP for given call
-   * or conference. Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog);
-
-   /**
    * Rebuild codec factory on the fly with new audio codec requirements
    * and new video codecs. Preferences will be in effect after the next
    * INVITE or re-INVITE. Can be called on empty call or conference to limit
@@ -286,10 +271,6 @@ private:
    OsStatus handleRenegotiateCodecsAll(const AcRenegotiateCodecsAllMsg& rMsg);
    /** Handles message to send SIP INFO to on given sip connection */
    OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
-   /** Handles message to mute inbound RTP in audio bridge */
-   OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
-   /** Handles message to unmute inbound RTP in audio bridge */
-   OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
 
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,

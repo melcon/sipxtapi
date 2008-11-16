@@ -67,6 +67,16 @@ SipConnectionStateTransition* DialingSipConnectionState::handleSipMessageEvent(c
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
 }
 
+OsStatus DialingSipConnectionState::connect(const UtlString& sipCallId,
+                                            const UtlString& localTag,
+                                            const UtlString& toAddress,
+                                            const UtlString& fromAddress,
+                                            const UtlString& locationHeader,
+                                            CP_CONTACT_ID contactId)
+{
+   return OS_NOT_YET_IMPLEMENTED;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */

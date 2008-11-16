@@ -36,6 +36,8 @@
 #include <cp/msg/AcAudioRecordStopMsg.h>
 #include <cp/msg/AcAudioToneStartMsg.h>
 #include <cp/msg/AcAudioToneStopMsg.h>
+#include <cp/msg/AcMuteInputConnectionMsg.h>
+#include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -189,6 +191,18 @@ OsStatus XCpAbstractCall::audioRecordStop()
    return postMessage(audioRecordStopMsg);
 }
 
+OsStatus XCpAbstractCall::muteInputConnection(const SipDialog& sipDialog)
+{
+   AcMuteInputConnectionMsg muteInputConnectionMsg(sipDialog);
+   return postMessage(muteInputConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::unmuteInputConnection(const SipDialog& sipDialog)
+{
+   AcUnmuteInputConnectionMsg unmuteInputConnectionMsg(sipDialog);
+   return postMessage(unmuteInputConnectionMsg);
+}
+
 OsStatus XCpAbstractCall::acquireExclusive()
 {
    return m_instanceRWMutex.acquireWrite();
@@ -313,6 +327,12 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_AUDIO_TONE_STOP:
       handleAudioToneStop((const AcAudioToneStopMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
+      handleMuteInputConnection((const AcMuteInputConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
+      handleUnmuteInputConnection((const AcUnmuteInputConnectionMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -490,6 +510,36 @@ OsStatus XCpAbstractCall::handleAudioToneStop(const AcAudioToneStopMsg& rMsg)
    }
 
    return OS_FAILED;
+}
+
+OsStatus XCpAbstractCall::handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->muteInputConnection();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->unmuteInputConnection();
+   }
+
+   return OS_NOT_FOUND;
 }
 
 UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)

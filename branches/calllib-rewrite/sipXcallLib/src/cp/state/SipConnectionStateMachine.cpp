@@ -17,6 +17,7 @@
 #include <cp/state/IdleSipConnectionState.h>
 #include <cp/state/SipConnectionStateObserver.h>
 #include <cp/state/SipConnectionStateTransition.h>
+#include <cp/state/DialingSipConnectionState.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -41,9 +42,10 @@ SipConnectionStateMachine::SipConnectionStateMachine(XSipConnectionContext& rSip
 , m_pMediaInterfaceProvider(pMediaInterfaceProvider)
 , m_pSipConnectionEventSink(pSipConnectionEventSink)
 {
+   // deleted in handleStateTransition if unsuccessful
    BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
       m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-   SipConnectionStateTransition transition(NULL, pSipConnectionState);
+   SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
 
    handleStateTransition(transition);
 }
@@ -69,6 +71,33 @@ void SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEv
          pTransition = NULL;
       }
    }
+}
+
+OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
+                                            const UtlString& localTag,
+                                            const UtlString& toAddress,
+                                            const UtlString& fromAddress,
+                                            const UtlString& locationHeader,
+                                            CP_CONTACT_ID contactId)
+{
+   if (getCurrentState() == ISipConnectionState::CONNECTION_IDLE)
+   {
+      // switch to dialing
+      // deleted in handleStateTransition if unsuccessful
+      BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
+         m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+      SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
+      handleStateTransition(transition);
+   }
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      return m_pSipConnectionState->connect(sipCallId, localTag, toAddress, fromAddress,
+         locationHeader, contactId);
+   }
+
+   return OS_FAILED;
 }
 
 /* ============================ ACCESSORS ================================= */

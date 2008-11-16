@@ -61,6 +61,8 @@ class AcAudioRecordStartMsg;
 class AcAudioRecordStopMsg;
 class AcAudioToneStartMsg;
 class AcAudioToneStopMsg;
+class AcMuteInputConnectionMsg;
+class AcUnmuteInputConnectionMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
 
@@ -238,13 +240,13 @@ public:
    * or conference. Useful for server applications without mic/speaker.
    * DTMF on given call will still be decoded.
    */
-   virtual OsStatus muteInputConnection(const SipDialog& sipDialog) = 0;
+   OsStatus muteInputConnection(const SipDialog& sipDialog);
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog) = 0;
+   OsStatus unmuteInputConnection(const SipDialog& sipDialog);
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -416,6 +418,12 @@ private:
 
    /** Handles command to stop sending audio DTMF */
    OsStatus handleAudioToneStop(const AcAudioToneStopMsg& rMsg);
+
+   /** Handles message to mute inbound RTP in audio bridge */
+   OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
+
+   /** Handles message to unmute inbound RTP in audio bridge */
+   OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
 
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);

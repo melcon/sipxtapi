@@ -22,6 +22,8 @@
 #include <net/SipInfoStatusEventListener.h>
 #include <net/SipSecurityEventListener.h>
 #include <cp/CpDefs.h>
+#include <cp/CpAudioCodecInfo.h>
+#include <cp/CpVideoCodecInfo.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/XSipConnectionEventSink.h>
 #include <cp/state/SipConnectionStateMachine.h>
@@ -86,6 +88,108 @@ public:
                                     const UtlString& sOriginalSessionCallId = NULL,
                                     int sipResponseCode = 0,
                                     const UtlString& sResponseText = NULL);
+
+   /** Connects call to given address. Uses supplied sip call-id. */
+   OsStatus connect(const UtlString& sipCallId,
+                    const UtlString& localTag,
+                    const UtlString& toAddress,
+                    const UtlString& fromAddress,
+                    const UtlString& locationHeader,
+                    CP_CONTACT_ID contactId);
+
+   /** 
+   * Accepts inbound call connection.
+   *
+   * Progress the connection from the OFFERING state to the
+   * RINGING state. This causes a SIP 180 Ringing provisional
+   * response to be sent.
+   */
+   OsStatus acceptConnection(const UtlString& locationHeader,
+                             CP_CONTACT_ID contactId);
+
+   /**
+   * Reject the incoming connection.
+   *
+   * Progress the connection from the OFFERING state to
+   * the FAILED state with the cause of busy. With SIP this
+   * causes a 486 Busy Here response to be sent.
+   */
+   OsStatus rejectConnection();
+
+   /**
+   * Redirect the incoming connection.
+   *
+   * Progress the connection from the OFFERING state to
+   * the FAILED state. This causes a SIP 302 Moved
+   * Temporarily response to be sent with the specified
+   * contact URI.
+   */
+   OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
+
+   /**
+   * Answer the incoming terminal connection.
+   *
+   * Progress the connection from the OFFERING or RINGING state
+   * to the ESTABLISHED state and also creating the terminal
+   * connection (with SIP a 200 OK response is sent).
+   */
+   OsStatus answerConnection();
+
+   /** Disconnects call */
+   OsStatus dropConnection(UtlBoolean bDestroyCall = FALSE);
+
+   /** Blind transfer given call to sTransferSipUri. */
+   OsStatus transferBlind(const UtlString& sTransferSipUrl);
+
+   /**
+   * Put the specified terminal connection on hold.
+   *
+   * Change the terminal connection state from TALKING to HELD.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * no media should be sent.)
+   */
+   OsStatus holdConnection();
+
+   /**
+   * Convenience method to take the terminal connection off hold.
+   *
+   * Change the terminal connection state from HELD to TALKING.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * media should be sent.)
+   */
+   OsStatus unholdConnection();
+
+   /**
+   * Enables discarding of inbound RTP at bridge for given call
+   * or conference. Useful for server applications without mic/speaker.
+   * DTMF on given call will still be decoded.
+   */
+   OsStatus muteInputConnection();
+
+   /**
+   * Disables discarding of inbound RTP for given call
+   * or conference. Useful for server applications without mic/speaker.
+   */
+   OsStatus unmuteInputConnection();
+
+   /**
+   * Rebuild codec factory on the fly with new audio codec requirements
+   * and one specific video codec.  Renegotiate the codecs to be use for the
+   * specified terminal connection.
+   *
+   * This is typically performed after a capabilities change for the
+   * terminal connection (for example, addition or removal of a codec type).
+   * (Sends a SIP re-INVITE.)
+   */
+   OsStatus renegotiateCodecsConnection(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                        const UtlString& sAudioCodecs,
+                                        CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                        const UtlString& sVideoCodecs);
+
+   /** Sends an INFO message to the other party(s) on the call */
+   OsStatus sendInfo(const UtlString& sContentType,
+                     const char* pContent,
+                     const size_t nContentLength);
 
    /* ============================ ACCESSORS ================================= */
 

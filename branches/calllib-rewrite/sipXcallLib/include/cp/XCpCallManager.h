@@ -703,6 +703,12 @@ private:
    /** Sends 481 Call/Transaction Does Not Exist as reply to given message */
    UtlBoolean sendBadTransactionError(const SipMessage& rSipMessage);
 
+   /** Initializes SipMessage observation on m_rSipUserAgent */
+   void startSipMessageObserving();
+
+   /** Stops observing SipMessages */
+   void stopSipMessageObserving();
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.

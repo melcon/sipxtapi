@@ -57,7 +57,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   void setSipDialog(SipDialog& val) const { val = m_sipDialog; }
+   void getSipDialog(SipDialog& val) const { val = m_sipDialog; }
    CP_AUDIO_BANDWIDTH_ID getAudioBandwidthId() const { return m_audioBandwidthId; }
    UtlString getAudioCodecs() const { return m_sAudioCodecs; }
    CP_VIDEO_BANDWIDTH_ID getVideoBandwidthId() const { return m_videoBandwidthId; }
