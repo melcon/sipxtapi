@@ -1101,8 +1101,8 @@ public:
         int decoderPayloadId;
         for(codecIndex = 0; codecIndex < numCodecsInCommon; codecIndex++)
         {
-            encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadFormat();
-            decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadFormat();
+            encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadId();
+            decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadId();
 
             // decoder codecs keep the payload Id of the factory
             CPPUNIT_ASSERT_EQUAL(-1, decoderPayloadId);
@@ -1230,8 +1230,8 @@ public:
         int decoderPayloadId;
         for(codecIndex = 0; codecIndex < numCodecsInCommon; codecIndex++)
         {
-           encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadFormat();
-           decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadFormat();
+           encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadId();
+           decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadId();
 
            // decoder codecs keep the payload Id of the factory
 

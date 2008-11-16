@@ -25,6 +25,7 @@
 #include "os/OsDefs.h"
 #include "os/OsLock.h"
 #include "os/OsSysLog.h"
+#include <utl/UtlSListIterator.h>
 #include "mp/MpBuf.h"
 #include "mp/MprDejitter.h"
 #include "mp/MpMisc.h"
@@ -64,7 +65,7 @@ MprDejitter::~MprDejitter()
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus MprDejitter::initJitterBuffers(SdpCodec* codecs[], int numCodecs)
+OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
 {
    OsLock lock(m_rtpLock);
 
@@ -77,34 +78,39 @@ OsStatus MprDejitter::initJitterBuffers(SdpCodec* codecs[], int numCodecs)
    }
 
    int listCounter = 0;
-   // now add new jitter buffers
-   for (int i = 0; i < numCodecs; i++)
+   SdpCodec* pCodec = NULL;
+   UtlSListIterator itor(codecList);
+   while (itor())
    {
-      UtlString encodingName;
-      codecs[i]->getEncodingName(encodingName);
-      int codecPayloadType = codecs[i]->getCodecPayloadFormat();
-
-      if (codecPayloadType >=0 && codecPayloadType < MAX_PAYLOADS
-          && !m_jitterBufferArray[codecPayloadType])
+      pCodec = (SdpCodec*)itor.item();
+      if (pCodec)
       {
-         // index is valid and there is no jitter buffer for it
-         // TODO: 80 has to be replaced with ptime from SDP
-         if (codecs[i]->getCodecType() == SdpCodec::SDP_CODEC_TONES)
+         UtlString encodingName;
+         pCodec->getEncodingName(encodingName);
+         int codecPayloadId = pCodec->getCodecPayloadId();
+
+         if (codecPayloadId >=0 && codecPayloadId < MAX_PAYLOADS
+            && !m_jitterBufferArray[codecPayloadId])
          {
-            // for RFC2833, disable prefetch & PLC
-            m_jitterBufferArray[codecPayloadType] = new MpJitterBufferDefault(encodingName,
-                                                            codecPayloadType,
-                                                            MpMisc.m_audioSamplesPerFrame,
-                                                            false);
+            // index is valid and there is no jitter buffer for it
+            // TODO: 80 has to be replaced with ptime from SDP
+            if (pCodec->getCodecType() == SdpCodec::SDP_CODEC_TONES)
+            {
+               // for RFC2833, disable prefetch & PLC
+               m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
+                  codecPayloadId,
+                  MpMisc.m_audioSamplesPerFrame,
+                  false);
+            }
+            else
+            {
+               m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
+                  codecPayloadId,
+                  MpMisc.m_audioSamplesPerFrame,
+                  true, 6, true, 3);
+            }
+            m_jitterBufferList[listCounter++] = m_jitterBufferArray[codecPayloadId];
          }
-         else
-         {
-            m_jitterBufferArray[codecPayloadType] = new MpJitterBufferDefault(encodingName,
-                                                            codecPayloadType,
-                                                            MpMisc.m_audioSamplesPerFrame,
-                                                            true, 6, true, 3);
-         }
-         m_jitterBufferList[listCounter++] = m_jitterBufferArray[codecPayloadType];
       }
    }
 

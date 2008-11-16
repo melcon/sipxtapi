@@ -1590,24 +1590,18 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
    {
       int iRejected;
 
-      CpMediaInterfaceFactory* pInterface = 
+      CpMediaInterfaceFactory* pInterfaceFactory = 
          pInst->pCallManager->getMediaInterfaceFactory();
 
-      if (pInterface)
+      if (pInterfaceFactory)
       {
-         pInst->audioCodecSetting.preferences = szCodecNames;
-
-         // maybe add " audio/telephone-event"
-         if (!pInst->audioCodecSetting.preferences.contains(MIME_AUDIO_DTMF_TONES))
-         {
-            pInst->audioCodecSetting.preferences += " "MIME_AUDIO_DTMF_TONES;
-         }
+         pInst->audioCodecSetting.preferences = SdpCodecFactory::getFixedAudioCodecs(szCodecNames);
 
          if (pInst->audioCodecSetting.preferences.length() != 0)
          {
             freeAudioCodecs(*pInst);
 
-            pInterface->buildCodecFactory(pInst->pCodecFactory,
+            pInterfaceFactory->buildCodecFactory(pInst->pCodecFactory,
                   pInst->audioCodecSetting.preferences,
                   pInst->videoCodecSetting.preferences,
                   pInst->videoCodecSetting.videoFormat, // Allow all formats
@@ -1717,7 +1711,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
             SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
             pCodec->iBandWidth = 
                (SIPX_AUDIO_BANDWIDTH_ID)pInst->audioCodecSetting.sdpCodecArray[index]->getBWCost();
-            pCodec->iPayloadType = pInst->audioCodecSetting.sdpCodecArray[index]->getCodecPayloadFormat();
+            pCodec->iPayloadType = pInst->audioCodecSetting.sdpCodecArray[index]->getCodecPayloadId();
 
             rc = SIPX_RESULT_SUCCESS;
          }
@@ -2034,7 +2028,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst,
             SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
             pCodec->iBandWidth = 
                (SIPX_VIDEO_BANDWIDTH_ID)pInst->videoCodecSetting.sdpCodecArray[index]->getBWCost();
-            pCodec->iPayloadType = pInst->videoCodecSetting.sdpCodecArray[index]->getCodecPayloadFormat();
+            pCodec->iPayloadType = pInst->videoCodecSetting.sdpCodecArray[index]->getCodecPayloadId();
 
             rc = SIPX_RESULT_SUCCESS;
          }

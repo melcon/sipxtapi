@@ -97,8 +97,7 @@ public:
    /// Queue a message to start receiving RTP and RTCP packets.
    static OsStatus startReceiveRtp(OsMsgQ& messageQueue,
                                    const UtlString& resourceName,
-                                   SdpCodec* pCodecs[], 
-                                   int numCodecs,
+                                   const UtlSList& codecList,
                                    OsSocket& rRtpSocket, 
                                    OsSocket& rRtcpSocket);
 
@@ -147,7 +146,7 @@ private:
    void handleStopReceiveRtp(void);
 
    /// Starts receiving RTP and RTCP packets.
-   void handleStartReceiveRtp(SdpCodec* pCodecs[], int numCodecs,
+   void handleStartReceiveRtp(UtlSList& codecList,// list of SdpCodec instances
                         OsSocket& rRtpSocket, OsSocket& rRtcpSocket);
 
      /// Default constructor

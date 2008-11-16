@@ -68,7 +68,7 @@ public:
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
                   SipUserAgent& rSipUserAgent,
-                  SdpCodecFactory& rSdpCodecFactory,
+                  const SdpCodecFactory& rSdpCodecFactory,
                   SipLineProvider* pSipLineProvider,
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
@@ -738,7 +738,7 @@ private:
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
    SipUserAgent& m_rSipUserAgent; // sends sip messages
-   SdpCodecFactory& m_rSdpCodecFactory; ///< factory for SDP codecs supplied to constructor
+   const SdpCodecFactory& m_rDefaultSdpCodecFactory; ///< factory for SDP codecs supplied to constructor
    SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
 
    // thread safe atomic

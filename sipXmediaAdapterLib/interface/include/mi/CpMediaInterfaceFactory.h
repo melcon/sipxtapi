@@ -121,10 +121,9 @@ public:
    * Create a media interface given the designated parameters.
    */
    virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
+      const UtlSList* pCodecList,// list of SdpCodec instances
       const char* publicAddress,
       const char* localAddress,
-      int numCodecs,
-      SdpCodec* sdpCodecArray[],
       const char* locale,
       int expeditedIpTos,
       const char* szStunServer,
