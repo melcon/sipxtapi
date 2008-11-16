@@ -3317,20 +3317,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
 
 
 /**
- * Set the preferred bandwidth requirement for codec selection. Whenever 
- * possible a codec matching that requirement will be selected for a call.
- * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
- * preferences.  SIPX_RESULT_FAILURE is returned if the preference is not set.
- * 
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param bandWidth Valid bandwidth requirements  are AUDIO_CODEC_BW_LOW, 
- *        AUDIO_CODEC_BW_NORMAL, and AUDIO_CODEC_BW_HIGH.
- *
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hInst, 
-                                                            SIPX_AUDIO_BANDWIDTH_ID bandWidth);
-
-/**
  * Set the codecs by short names. The name must match one of the supported codecs
  * otherwise this function will fail. Codecs must be separated by " ".
  *
@@ -3343,18 +3329,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hIns
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
                                                        const char* szCodecNames);
-
-/**
- * Get the current codec preference.
- *
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param pBandWidth pointer to an integer that will contain AUDIO_CODEC_BW_LOW, 
- *        AUDIO_CODEC_BW_NORMAL, or AUDIO_CODEC_BW_HIGH. AUDIO_CODEC_BW_CUSTOM
- *        will be returned if a specific codec was et using the 
- *        sipxConfigSetAudioCodecByName function.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodecPreferences(const SIPX_INST hInst, 
-                                                            SIPX_AUDIO_BANDWIDTH_ID *pBandWidth);
 
 /**
  * Get the number of audio codecs. 
@@ -3387,28 +3361,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst, 
                                                  const int index, 
                                                  SIPX_AUDIO_CODEC* pCodec);
-
-/**
- * Set the bandwidth parameters for video codecs.Depending on the bandwidth
- * parameter that is passed in the settings will be set to:
- *
- * VIDEO_CODEC_BW_LOW     bitrate 5 kbps, framerate 10 fps
- * VIDEO_CODEC_BW_NORMAL  bitrate 70 kbps, framerate is what it was set to
- *                        with sipxConfigSetVideoParameters or 30 if not set.
- * VIDEO_CODEC_BW_HIGH    bitrate 400 kbps, framerate is what it was set to
- *                        with sipxConfigSetVideoParameters or 30 if not set.
- *
- * This method will return SIPX_RESULT_SUCCESS if able to set the video codec
- * preferences.  SIPX_RESULT_FAILURE is returned if the preference is not set.
- * 
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param bandWidth Valid bandwidth requirements  are VIDEO_CODEC_BW_LOW, 
- *        VIDEO_CODEC_BW_NORMAL, and VIDEO_CODEC_BW_HIGH.
- *
- * @see sipxConfigSetVideoParameters
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst, 
-                                                     SIPX_VIDEO_BANDWIDTH_ID bandWidth);
 
 /**
  * Gets the list of video capture devices.
@@ -3473,18 +3425,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
  *
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst);
-
-/**
- * Get the current codec preference.
- *
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param pBandWidth pointer to an integer that will contain AUDIO_CODEC_BW_LOW, 
- *        AUDIO_CODEC_BW_NORMAL, or AUDIO_CODEC_BW_HIGH. AUDIO_CODEC_BW_CUSTOM
- *        will be returned if a specific codec was set using the 
- *        sipxConfigSetVideoCodecByName function.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hInst, 
-                                                            SIPX_VIDEO_BANDWIDTH_ID *pBandWidth);
 
 /**
  * Get the number of video codecs. 

@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _CpMediaInterfaceFactory_h_
 #define _CpMediaInterfaceFactory_h_
 
@@ -263,11 +262,26 @@ public:
    /**
    * Populate the codec factory, return number of rejected codecs
    */
-   virtual OsStatus buildCodecFactory(SdpCodecFactory *pFactory, 
-      const UtlString& sAudioPreferences,
-      const UtlString& sVideoPreferences,
-      int videoFormat,
-      int* iRejected) = 0;
+   virtual OsStatus buildCodecFactory(SdpCodecFactory& codecFactory, 
+                                      const UtlString& sAudioPreferences,
+                                      const UtlString& sVideoPreferences) = 0;
+
+   /**
+   * Populate the codec factory with all available codecs.
+   */
+   virtual OsStatus buildAllCodecFactory(SdpCodecFactory& codecFactory) = 0;
+
+   /**
+    * Gets string with all supported audio codecs. Can be used to build codec factory
+    * with all supported codecs.
+    */
+   virtual UtlString getAllSupportedAudioCodecs() const = 0;
+
+   /**
+   * Gets string with all supported video codecs. Can be used to build codec factory
+   * with all supported codecs.
+   */
+   virtual UtlString getAllSupportedVideoCodecs() const = 0;
 
    /**
    * Sets the RTP port range for this factory
@@ -427,11 +441,6 @@ public:
    {
       return OS_NOT_SUPPORTED;
    }
-
-   /** 
-   * Get specific codec identified by iCodec
-   */
-   virtual OsStatus getCodecShortNameByType(SdpCodec::SdpCodecTypes codecType, UtlString& codecName) const = 0;
 
    /** 
    * Get the connection id for the local audio connection

@@ -42,8 +42,6 @@
 #define MIME_SUBTYPE_RGB24 "RGB24"
 #define MIME_SUBTYPE_H263 "H263"
 
-#define MIME_AUDIO_DTMF_TONES MIME_TYPE_AUDIO"/"MIME_SUBTYPE_DTMF_TONES
-
 // Bandwidth requirements for SDP Codecs
 #define SDP_CODEC_BANDWIDTH_VARIABLE 0
 #define SDP_CODEC_BANDWIDTH_LOW      1
@@ -174,6 +172,7 @@ public:
      ///Default constructor
    SdpCodec(enum SdpCodecTypes sdpCodecType = SDP_CODEC_UNKNOWN,
             int payloadId = SDP_CODEC_UNKNOWN, ///< if SDP_CODEC_UNKNOWN then it is dynamic
+            const UtlString& sCodecName = NULL, ///< codec name which can be used in factory
             const char* mimeType = MIME_TYPE_AUDIO,
             const char* mimeSubtype = "",
             int sampleRate = 8000,             ///< samples per second
@@ -308,6 +307,8 @@ public:
    ///Set the packet size
    void setPacketSize(const int packetSize);
 
+   UtlString getCodecName() const { return m_sCodecName; }
+
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -344,7 +345,7 @@ private:
     int mVideoFormat;
     int mVideoFmtp;
     UtlString mVideoFmtpString;    ///< video format string
-
+    UtlString m_sCodecName; ///< codec name which can be used in factory
 };
 
 /* ============================ INLINE METHODS ============================ */

@@ -77,11 +77,14 @@ public:
    /** Discard all codecs */
    void clearCodecs(void);
 
-   int buildSdpCodecFactory(const UtlString &codecList);
-   //: Function just called other buildSdpCodecFactory. Here for compatibility
+   /**
+    * Adds codecs from given list into codec factory. Codecs are identified by short string name separated
+    * by space or comma.
+    */
+   void buildSdpCodecFactory(const UtlString &codecList);
 
-   int buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecTypes codecTypes[]);
-   //: Add the default set of codecs specified in list; returns 0 if OK.
+   /** Builds SdpCodec instance from given codec type */
+   static SdpCodec* buildSdpCodec(SdpCodec::SdpCodecTypes codecType);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -114,13 +114,11 @@ class AUDIO_CODEC_PREFERENCES
 public:
    UtlBoolean              bInitialized; /**< Is the data valid */
    int               numCodecs;          /**< Number of codecs */
-   SIPX_AUDIO_BANDWIDTH_ID codecPref;    /**< Numeric Id of codec preference */
    UtlString         preferences;        /**< List of preferred codecs */
    SdpCodec**        sdpCodecArray;      /**< Pointer to an array of codecs */
 
    AUDIO_CODEC_PREFERENCES() : bInitialized(FALSE),
       numCodecs(0),
-      codecPref(AUDIO_CODEC_BW_NORMAL),
       preferences(NULL),
       sdpCodecArray(NULL)
    {
@@ -133,14 +131,12 @@ class VIDEO_CODEC_PREFERENCES
 public:
    UtlBoolean              bInitialized; /**< Is the data valid */
    int               numCodecs;          /**< Number of codecs */
-   SIPX_VIDEO_BANDWIDTH_ID codecPref;    /**< Numeric Id of codec preference */
    SIPX_VIDEO_FORMAT videoFormat;        /**< Selected video format */
    UtlString         preferences;        /**< List of preferred codecs */
    SdpCodec**        sdpCodecArray;      /**< Pointer to an array of codecs */
 
    VIDEO_CODEC_PREFERENCES() : bInitialized(FALSE),
       numCodecs(0),
-      codecPref(VIDEO_CODEC_BW_NORMAL),
       videoFormat(VIDEO_FORMAT_ANY),
       preferences(NULL),
       sdpCodecArray(NULL)

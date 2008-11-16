@@ -162,8 +162,8 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
                                              const char* szTurnPassword,
                                              int iTurnKeepAlivePeriodSecs,
                                              UtlBoolean bEnableICE)
-    : CpMediaInterface(pFactoryImpl)
-	, m_pInterfaceNotificationQueue(pInterfaceNotificationQueue)
+: CpMediaInterface(pFactoryImpl)
+, m_pInterfaceNotificationQueue(pInterfaceNotificationQueue)
 {
    OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::CpPhoneMediaInterface creating a new CpMediaInterface %p",
                  this);
@@ -200,23 +200,10 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
    }
    else
    {
-       UtlString codecs = 
-#ifdef HAVE_SPEEX // [
-                          "SPEEX SPEEX_5 SPEEX_15 SPEEX_24 "
-#endif // HAVE_SPEEX ]
-#ifdef HAVE_GSM // [
-                          "GSM "
-#endif // HAVE_GSM ]
-#ifdef HAVE_ILBC // [
-                          "ILBC "
-#endif // HAVE_ILBC ]
-#ifdef HAVE_INTEL_IPP // [
-                          "G729A G723.1 "
-#endif // HAVE_INTEL_IPP ]
-                          "PCMU PCMA TELEPHONE-EVENT";
-       OsSysLog::add(FAC_CP, PRI_WARNING, "CpPhoneMediaInterface::CpPhoneMediaInterface hard-coded codec factory %s ...",
-                     codecs.data());
-       mSdpCodecFactory.buildSdpCodecFactory(codecs);
+      if (pFactoryImpl)
+      {
+         pFactoryImpl->buildAllCodecFactory(mSdpCodecFactory);
+      }
    }
 
    mExpeditedIpTos = expeditedIpTos;

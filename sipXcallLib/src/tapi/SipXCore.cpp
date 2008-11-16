@@ -521,8 +521,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    // init codecs
    pInst->videoCodecSetting.videoFormat = VIDEO_FORMAT_ANY;
-   sipxConfigSetAudioCodecPreferences(pInst, AUDIO_CODEC_BW_NORMAL);
-   sipxConfigSetVideoBandwidth(pInst, VIDEO_CODEC_BW_NORMAL); // also resets video codecs
+   sipxConfigSetAudioCodecByName(pInst, NULL); // select all audio codecs
+   sipxConfigSetVideoCodecByName(pInst, NULL); // select all video codecs
 
    initAudioDevices(*pInst);
 

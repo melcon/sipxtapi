@@ -1168,14 +1168,6 @@ bool sipXmgr::removeConfParty(const char* const szParty)
 bool sipXmgr::getCodecPreferences(int* pCodecPref)
 {
     bool rc = false;
-
-    if (pCodecPref)
-    {
-        if (sipxConfigGetAudioCodecPreferences(m_hInst, (SIPX_AUDIO_BANDWIDTH_ID*)pCodecPref) == SIPX_RESULT_SUCCESS)
-        {
-            rc = true;
-        }
-    }
     return rc;
 }
 
@@ -1362,23 +1354,12 @@ void* sipXmgr::getVideoWindow()
 bool sipXmgr::setCodecPreferences(int codecPref)
 {
     bool rc = false;
-
-    if (sipxConfigSetAudioCodecPreferences(m_hInst, (SIPX_AUDIO_BANDWIDTH_ID)codecPref) == SIPX_RESULT_SUCCESS)
-    {
-        rc = true;
-    }
     return rc;
 }
 
 bool sipXmgr::setVideoCodecPreferences(int codecPref)
 {
     bool rc = false;
-#ifdef VIDEO
-    if (sipxConfigSetVideoBandwidth(m_hInst, (SIPX_VIDEO_BANDWIDTH_ID)codecPref) == SIPX_RESULT_SUCCESS)
-    {
-        rc = true;
-    }
-#endif    
     return rc;
 }
 
