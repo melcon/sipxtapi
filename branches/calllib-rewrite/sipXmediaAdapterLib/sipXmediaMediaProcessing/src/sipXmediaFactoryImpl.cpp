@@ -794,7 +794,6 @@ OsStatus sipXmediaFactoryImpl::getCodecShortNameByType(SdpCodec::SdpCodecTypes t
         codecShortName = SIPX_CODEC_ID_TELEPHONE;
         break;
     case SdpCodec::SDP_CODEC_G729:
-    case SdpCodec::SDP_CODEC_G729A:
         codecShortName = SIPX_CODEC_ID_G729A;
         break;
     case SdpCodec::SDP_CODEC_G723:
@@ -806,20 +805,8 @@ OsStatus sipXmediaFactoryImpl::getCodecShortNameByType(SdpCodec::SdpCodecTypes t
     case SdpCodec::SDP_CODEC_GIPS_PCMU:
         codecShortName = SIPX_CODEC_ID_PCMU;
         break;
-    case SdpCodec::SDP_CODEC_GIPS_IPCMA:
-        codecShortName = SIPX_CODEC_ID_EG711A;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_IPCMU:
-        codecShortName = SIPX_CODEC_ID_EG711U;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_IPCMWB:
-        codecShortName = SIPX_CODEC_ID_IPCMWB;
-        break;
     case SdpCodec::SDP_CODEC_ILBC:
         codecShortName = SIPX_CODEC_ID_ILBC;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_ISAC:
-        codecShortName = SIPX_CODEC_ID_ISAC;
         break;
     case SdpCodec::SDP_CODEC_SPEEX:
         codecShortName = SIPX_CODEC_ID_SPEEX;

@@ -319,11 +319,7 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
 #if 0
          osPrintf("  Old=0x%X/i:%d", (int)pOldDecoder, oldSdpType);
 #endif
-         canReuse = (ourCodec == oldSdpType)
-            || ((SdpCodec::SDP_CODEC_G729AB == ourCodec)
-                            && (SdpCodec::SDP_CODEC_G729A == oldSdpType))
-            || ((SdpCodec::SDP_CODEC_G729A == ourCodec)
-                            && (SdpCodec::SDP_CODEC_G729AB == oldSdpType));
+         canReuse = (ourCodec == oldSdpType);
       } else {
          // osPrintf("  no Old");
          canReuse = 0;

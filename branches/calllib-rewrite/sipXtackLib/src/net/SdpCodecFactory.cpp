@@ -228,12 +228,12 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
          }
          break;
 #ifdef HAVE_INTEL_IPP /* [ */
-      case SdpCodec::SDP_CODEC_G729A:
+      case SdpCodec::SDP_CODEC_G729:
          {
-            SdpCodec aCodec(SdpCodec::SDP_CODEC_G729A,
-               SdpCodec::SDP_CODEC_G729,
+            SdpCodec aCodec(SdpCodec::SDP_CODEC_G729,
+               SdpCodec::SDP_CODEC_UNKNOWN,
                MIME_TYPE_AUDIO,
-               MIME_SUBTYPE_G729A,
+               MIME_SUBTYPE_G729,
                8000,
                20000,
                1,
@@ -328,7 +328,7 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
       case SdpCodec::SDP_CODEC_G723:
          {
             SdpCodec aCodec(SdpCodec::SDP_CODEC_G723,
-               SdpCodec::SDP_CODEC_G723,
+               SdpCodec::SDP_CODEC_UNKNOWN,
                MIME_TYPE_AUDIO,
                MIME_SUBTYPE_G723,
                8000,
@@ -347,7 +347,7 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
       case SdpCodec::SDP_CODEC_SPEEX:
          {
             SdpCodec aCodec(SdpCodec::SDP_CODEC_SPEEX,
-               SdpCodec::SDP_CODEC_SPEEX,
+               SdpCodec::SDP_CODEC_UNKNOWN,
                MIME_TYPE_AUDIO,
                MIME_SUBTYPE_SPEEX,
                8000,
@@ -364,7 +364,7 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
       case SdpCodec::SDP_CODEC_SPEEX_5:
          {
             SdpCodec aCodec(SdpCodec::SDP_CODEC_SPEEX_5,
-               SdpCodec::SDP_CODEC_SPEEX_5,
+               SdpCodec::SDP_CODEC_UNKNOWN,
                MIME_TYPE_AUDIO,
                MIME_SUBTYPE_SPEEX,
                8000,
@@ -381,7 +381,7 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
       case SdpCodec::SDP_CODEC_SPEEX_15:
          {
             SdpCodec aCodec(SdpCodec::SDP_CODEC_SPEEX_15,
-               SdpCodec::SDP_CODEC_SPEEX_15,
+               SdpCodec::SDP_CODEC_UNKNOWN,
                MIME_TYPE_AUDIO,
                MIME_SUBTYPE_SPEEX,
                8000,
@@ -398,7 +398,7 @@ int SdpCodecFactory::buildSdpCodecFactory(int codecCount, SdpCodec::SdpCodecType
       case SdpCodec::SDP_CODEC_SPEEX_24:
          {
             SdpCodec aCodec(SdpCodec::SDP_CODEC_SPEEX_24,
-               SdpCodec::SDP_CODEC_SPEEX_24,
+               SdpCodec::SDP_CODEC_UNKNOWN,
                MIME_TYPE_AUDIO,
                MIME_SUBTYPE_SPEEX,
                8000,
