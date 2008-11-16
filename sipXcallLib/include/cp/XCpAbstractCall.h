@@ -91,7 +91,7 @@ class OsIntPtrMsg;
  * - findConnection - uses the same dialog matching like hasSipDialog
  * 
  */
-class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase, CpMediaInterfaceProvider
+class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase, protected CpMediaInterfaceProvider
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
