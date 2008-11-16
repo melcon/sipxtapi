@@ -314,6 +314,12 @@ UtlBoolean XCpCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
 
 OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
 {
+   // thread safe check, as connection is only created/destroyed in this thread
+   if (!m_pSipConnection)
+   {
+      createSipConnection();
+   }
+
    OsPtrLock<XSipConnection> ptrLock;
    UtlBoolean resFound = getConnection(ptrLock);
    if (resFound)
@@ -490,6 +496,16 @@ OsStatus XCpCall::handleSendInfo(const AcSendInfoMsg& rMsg)
    }
 
    return OS_NOT_FOUND;
+}
+
+void XCpCall::createSipConnection()
+{
+   OsLock lock(m_memberMutex);
+   if (!m_pSipConnection)
+   {
+      m_pSipConnection = new XSipConnection(m_sId, m_rSipUserAgent, this, m_pCallEventListener,
+         m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+   }
 }
 
 void XCpCall::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,

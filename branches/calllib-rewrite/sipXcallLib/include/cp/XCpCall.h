@@ -278,6 +278,9 @@ private:
    /** Handles message to send SIP INFO to on given sip connection */
    OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
 
+   /** Creates new XSipConnection for the call, if it doesn't exist yet */
+   void createSipConnection();
+
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
                                              CP_MEDIA_CAUSE cause,
