@@ -62,6 +62,16 @@ SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(cons
    return NULL;
 }
 
+OsStatus BaseSipConnectionState::connect(const UtlString& sipCallId,
+                                         const UtlString& localTag,
+                                         const UtlString& toAddress,
+                                         const UtlString& fromAddress,
+                                         const UtlString& locationHeader,
+                                         CP_CONTACT_ID contactId)
+{
+   return OS_FAILED;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */

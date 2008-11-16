@@ -56,6 +56,14 @@ public:
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
+   /** Connects call to given address. Uses supplied sip call-id. */
+   virtual OsStatus connect(const UtlString& sipCallId,
+                            const UtlString& localTag,
+                            const UtlString& toAddress,
+                            const UtlString& fromAddress,
+                            const UtlString& locationHeader,
+                            CP_CONTACT_ID contactId);
+
    /* ============================ ACCESSORS ================================= */
 
    virtual ISipConnectionState::StateEnum getCurrentState() const { return ISipConnectionState::CONNECTION_DIALING; }

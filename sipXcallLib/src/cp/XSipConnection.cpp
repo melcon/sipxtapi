@@ -83,6 +83,82 @@ void XSipConnection::handleSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
    fireSipXCallEvent(eventCode, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
 }
 
+OsStatus XSipConnection::connect(const UtlString& sipCallId,
+                                 const UtlString& localTag,
+                                 const UtlString& toAddress,
+                                 const UtlString& fromAddress,
+                                 const UtlString& locationHeader,
+                                 CP_CONTACT_ID contactId)
+{
+   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId);
+}
+
+OsStatus XSipConnection::acceptConnection(const UtlString& locationHeader,
+                                          CP_CONTACT_ID contactId)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::rejectConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::redirectConnection(const UtlString& sRedirectSipUrl)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::answerConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::dropConnection(UtlBoolean bDestroyCall /*= FALSE*/)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::transferBlind(const UtlString& sTransferSipUrl)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::holdConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::unholdConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::muteInputConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::unmuteInputConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::renegotiateCodecsConnection(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
+                                                     const UtlString& sAudioCodecs,
+                                                     CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+                                                     const UtlString& sVideoCodecs)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
+                                  const char* pContent,
+                                  const size_t nContentLength)
+{
+   return OS_FAILED;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 unsigned XSipConnection::hash() const

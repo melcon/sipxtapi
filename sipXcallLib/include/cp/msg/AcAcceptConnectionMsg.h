@@ -52,6 +52,7 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    UtlString getLocationHeader() const { return m_sLocationHeader; }
+   CP_CONTACT_ID getContactId() const { return m_contactId; }
 
    /* ============================ INQUIRY =================================== */
 

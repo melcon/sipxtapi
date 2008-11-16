@@ -30,8 +30,6 @@
 #include <cp/msg/AcLimitCodecPreferencesMsg.h>
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcRenegotiateCodecsAllMsg.h>
-#include <cp/msg/AcMuteInputConnectionMsg.h>
-#include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 
@@ -154,18 +152,6 @@ OsStatus XCpConference::unholdAllConnections()
 {
    AcUnholdAllConnectionsMsg unholdAllConnectionsMsg;
    return postMessage(unholdAllConnectionsMsg);
-}
-
-OsStatus XCpConference::muteInputConnection(const SipDialog& sipDialog)
-{
-   AcMuteInputConnectionMsg muteInputConnectionMsg(sipDialog);
-   return postMessage(muteInputConnectionMsg);
-}
-
-OsStatus XCpConference::unmuteInputConnection(const SipDialog& sipDialog)
-{
-   AcUnmuteInputConnectionMsg unmuteInputConnectionMsg(sipDialog);
-   return postMessage(unmuteInputConnectionMsg);
 }
 
 OsStatus XCpConference::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
@@ -359,12 +345,6 @@ UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_SEND_INFO:
       handleSendInfo((const AcSendInfoMsg&)rRawMsg);
       return TRUE;
-   case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
-      handleMuteInputConnection((const AcMuteInputConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
-      handleUnmuteInputConnection((const AcUnmuteInputConnectionMsg&)rRawMsg);
-      return TRUE;
    default:
       break;
    }
@@ -452,16 +432,6 @@ OsStatus XCpConference::handleSendInfo(const AcSendInfoMsg& rMsg)
    return OS_FAILED;
 }
 
-OsStatus XCpConference::handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg)
-{
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg)
-{
-   return OS_FAILED;
-}
-
 void XCpConference::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
                                                  CP_MEDIA_CAUSE cause,
                                                  CP_MEDIA_TYPE type,
@@ -479,7 +449,7 @@ void XCpConference::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
       pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
       if (pSipConnection && pSipConnection->getMediaConnectionId() == mediaConnectionId)
       {
-         //pSipConnection->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+         pSipConnection->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
       }
    }
 }
@@ -500,7 +470,7 @@ void XCpConference::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
       pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
       if (pSipConnection)
       {
-         //pSipConnection->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+         pSipConnection->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
       }
    }
 }

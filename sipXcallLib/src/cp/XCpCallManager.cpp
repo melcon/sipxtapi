@@ -91,54 +91,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_focusMutex(OsMutex::Q_FIFO)
 , m_sAbstractCallInFocus(NULL)
 {
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_INVITE_METHOD,
-      TRUE, // want to get requests
-      TRUE, // and responses
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_BYE_METHOD,
-      TRUE, // want to get requests
-      TRUE, // and responses
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_CANCEL_METHOD,
-      TRUE, // want to get requests
-      TRUE, // and responses
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_ACK_METHOD,
-      TRUE, // want to get requests
-      FALSE, // no such thing as a ACK response
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_REFER_METHOD,
-      TRUE, // want to get requests
-      TRUE, // and responses
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_OPTIONS_METHOD,
-      FALSE, // don't want to get requests
-      TRUE, // do want responses
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_NOTIFY_METHOD,
-      TRUE, // do want to get requests
-      TRUE, // do want responses
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
-   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
-      SIP_INFO_METHOD,
-      TRUE, // do want to get requests
-      TRUE, // do want responses
-      TRUE, // Incoming messages
-      FALSE); // Don't want to see out going messages
+   startSipMessageObserving();
 
    // Allow the "replaces" extension, because CallManager
    // implements the INVITE-with-Replaces logic.
@@ -150,6 +103,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 
 XCpCallManager::~XCpCallManager()
 {
+   stopSipMessageObserving();
    waitUntilShutDown();
    deleteAllCalls();
    deleteAllConferences();
@@ -1943,6 +1897,63 @@ UtlBoolean XCpCallManager::sendBadTransactionError(const SipMessage& rSipMessage
    SipMessage badTransactionMessage;
    badTransactionMessage.setBadTransactionData(&rSipMessage);
    return m_rSipUserAgent.send(badTransactionMessage);
+}
+
+void XCpCallManager::startSipMessageObserving()
+{
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_INVITE_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_BYE_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_CANCEL_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_ACK_METHOD,
+      TRUE, // want to get requests
+      FALSE, // no such thing as a ACK response
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_REFER_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_OPTIONS_METHOD,
+      FALSE, // don't want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_NOTIFY_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_INFO_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+}
+
+void XCpCallManager::stopSipMessageObserving()
+{
+   m_rSipUserAgent.removeMessageObserver(*(this->getMessageQueue()));
 }
 
 /* ============================ FUNCTIONS ================================= */
