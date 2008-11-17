@@ -23,7 +23,7 @@
 #include <os/OsNatDatagramSocket.h>
 #include <os/OsMulticastSocket.h>
 #include <os/OsProtectEventMgr.h>
-#include "include/CpPhoneMediaInterface.h"
+#include "include/SipXMediaInterfaceImpl.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include <mp/MpMediaTask.h>
 #include <mp/MpCallFlowGraph.h>
@@ -55,11 +55,11 @@
 
 // STATIC VARIABLE INITIALIZATIONS
 
-class CpPhoneMediaConnection : public UtlInt
+class SipXMediaConnection : public UtlInt
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-    CpPhoneMediaConnection(int connectionId = -1)
+    SipXMediaConnection(int connectionId = -1)
     : UtlInt(connectionId)
     , mRtpSendHostAddress()
     , mDestinationSet(FALSE)
@@ -79,14 +79,14 @@ public:
     {
     };
 
-    virtual ~CpPhoneMediaConnection()
+    virtual ~SipXMediaConnection()
     {
         if(mpRtpAudioSocket)
         {
 
 #ifdef TEST_PRINT
             OsSysLog::add(FAC_CP, PRI_DEBUG, 
-                "~CpPhoneMediaConnection deleting RTP socket: %p descriptor: %d",
+                "~SipXMediaConnection deleting RTP socket: %p descriptor: %d",
                 mpRtpAudioSocket, mpRtpAudioSocket->getSocketDescriptor());
 #endif
             delete mpRtpAudioSocket;
@@ -97,7 +97,7 @@ public:
         {
 #ifdef TEST_PRINT
             OsSysLog::add(FAC_CP, PRI_DEBUG, 
-                "~CpPhoneMediaConnection deleting RTCP socket: %p descriptor: %d",
+                "~SipXMediaConnection deleting RTCP socket: %p descriptor: %d",
                 mpRtcpAudioSocket, mpRtcpAudioSocket->getSocketDescriptor());
 #endif
             delete mpRtcpAudioSocket;
@@ -107,7 +107,7 @@ public:
         if(mpCodecFactory)
         {
             OsSysLog::add(FAC_CP, PRI_DEBUG, 
-                "~CpPhoneMediaConnection deleting SdpCodecList %p",
+                "~SipXMediaConnection deleting SdpCodecList %p",
                 mpCodecFactory);
             delete mpCodecFactory;
             mpCodecFactory = NULL;
@@ -146,10 +146,10 @@ public:
 /* ============================ CREATORS ================================== */
 
 // Constructor
-CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
+SipXMediaInterfaceImpl::SipXMediaInterfaceImpl(CpMediaInterfaceFactory* pFactoryImpl,
 											            OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
                                              const SdpCodecList* pCodecList,///< list of SdpCodec instances
-                                             const char* publicAddress,///< ignored
+                                             const char* publicIPAddress,///< ignored
                                              const char* localIPAddress,///< local bind IP address
                                              const char* locale,///< locale for tone generator
                                              int expeditedIpTos,
@@ -165,11 +165,11 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
 : CpMediaInterface(pFactoryImpl)
 , m_pInterfaceNotificationQueue(pInterfaceNotificationQueue)
 {
-   OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::CpPhoneMediaInterface creating a new CpMediaInterface %p",
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "SipXMediaInterfaceImpl::SipXMediaInterfaceImpl creating a new CpMediaInterface %p",
                  this);
 
    mpFlowGraph = new MpCallFlowGraph(locale, pInterfaceNotificationQueue);
-   OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::CpPhoneMediaInterface creating a new MpCallFlowGraph %p",
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "SipXMediaInterfaceImpl::SipXMediaInterfaceImpl creating a new MpCallFlowGraph %p",
                  mpFlowGraph);
    
    mStunServer = szStunServer ;
@@ -212,13 +212,13 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
 
 
 // Destructor
-CpPhoneMediaInterface::~CpPhoneMediaInterface()
+SipXMediaInterfaceImpl::~SipXMediaInterfaceImpl()
 {
-   OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::~CpPhoneMediaInterface deleting the CpMediaInterface %p",
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "SipXMediaInterfaceImpl::~SipXMediaInterfaceImpl deleting the CpMediaInterface %p",
                  this);
 
-    CpPhoneMediaConnection* mediaConnection = NULL;
-    while ((mediaConnection = (CpPhoneMediaConnection*) mMediaConnections.get()))
+    SipXMediaConnection* mediaConnection = NULL;
+    while ((mediaConnection = (SipXMediaConnection*) mMediaConnections.get()))
     {
         doDeleteConnection(mediaConnection);
         delete mediaConnection;
@@ -242,7 +242,7 @@ CpPhoneMediaInterface::~CpPhoneMediaInterface()
             mediaTask->setFocus(NULL);
         }
 
-        OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::~CpPhoneMediaInterface deleting the MpCallFlowGraph %p",
+        OsSysLog::add(FAC_CP, PRI_DEBUG, "SipXMediaInterfaceImpl::~SipXMediaInterfaceImpl deleting the MpCallFlowGraph %p",
                       mpFlowGraph);
         delete mpFlowGraph;
         mpFlowGraph = NULL;
@@ -255,14 +255,14 @@ CpPhoneMediaInterface::~CpPhoneMediaInterface()
 /**
  * public interface for destroying this media interface
  */ 
-void CpPhoneMediaInterface::release()
+void SipXMediaInterfaceImpl::release()
 {
    delete this;
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
+OsStatus SipXMediaInterfaceImpl::createConnection(int& connectionId,
                                                  const char* szLocalAddress,
                                                  int localPort,
                                                  void* videoWindowHandle, 
@@ -271,7 +271,7 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
                                                  const RtpTransportOptions rtpTransportOptions)
 {
    OsStatus retValue = OS_SUCCESS;
-   CpPhoneMediaConnection* mediaConnection=NULL;
+   SipXMediaConnection* mediaConnection=NULL;
 
    connectionId = mpFlowGraph->createConnection(pConnectionNotificationQueue);
    if (connectionId == -1)
@@ -280,9 +280,9 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
    }
 
 
-   mediaConnection = new CpPhoneMediaConnection(connectionId);
+   mediaConnection = new SipXMediaConnection(connectionId);
    OsSysLog::add(FAC_CP, PRI_DEBUG,
-                 "CpPhoneMediaInterface::createConnection "
+                 "SipXMediaInterfaceImpl::createConnection "
                  "creating a new connection %d (%p)",
                  connectionId, mediaConnection);
    mMediaConnections.append(mediaConnection);
@@ -323,10 +323,10 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
    mediaConnection->mRtcpAudioReceivePort = mediaConnection->mpRtcpAudioSocket->getLocalHostPort() ;
 
    OsSysLog::add(FAC_CP, PRI_DEBUG, 
-            "CpPhoneMediaInterface::createConnection creating a new RTP socket: %p descriptor: %d",
+            "SipXMediaInterfaceImpl::createConnection creating a new RTP socket: %p descriptor: %d",
             mediaConnection->mpRtpAudioSocket, mediaConnection->mpRtpAudioSocket->getSocketDescriptor());
    OsSysLog::add(FAC_CP, PRI_DEBUG, 
-            "CpPhoneMediaInterface::createConnection creating a new RTCP socket: %p descriptor: %d",
+            "SipXMediaInterfaceImpl::createConnection creating a new RTCP socket: %p descriptor: %d",
             mediaConnection->mpRtcpAudioSocket, mediaConnection->mpRtcpAudioSocket->getSocketDescriptor());
 
    // Set codec factory
@@ -335,13 +335,13 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
    mediaConnection->mpCodecFactory = new SdpCodecList(codecList);
    mediaConnection->mpCodecFactory->bindPayloadIds();
    OsSysLog::add(FAC_CP, PRI_DEBUG, 
-            "CpPhoneMediaInterface::createConnection creating a new SdpCodecList %p",
+            "SipXMediaInterfaceImpl::createConnection creating a new SdpCodecList %p",
             mediaConnection->mpCodecFactory);
 
     return retValue;
 }
 
-void CpPhoneMediaInterface::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
+void SipXMediaInterfaceImpl::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
 {
 	if (!m_pInterfaceNotificationQueue && mpFlowGraph)
 	{
@@ -351,7 +351,7 @@ void CpPhoneMediaInterface::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNoti
 }
 
 
-OsStatus CpPhoneMediaInterface::getCapabilities(int connectionId,
+OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
                                                 UtlString& rtpHostAddress,
                                                 int& rtpAudioPort,
                                                 int& rtcpAudioPort,
@@ -364,7 +364,7 @@ OsStatus CpPhoneMediaInterface::getCapabilities(int connectionId,
                                                 int& videoFramerate)
 {
     OsStatus rc = OS_FAILED ;
-    CpPhoneMediaConnection* pMediaConn = getMediaConnection(connectionId);
+    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
     rtpAudioPort = 0 ;
     rtcpAudioPort = 0 ;
     rtpVideoPort = 0 ;
@@ -483,7 +483,7 @@ OsStatus CpPhoneMediaInterface::getCapabilities(int connectionId,
 }
 
 
-OsStatus CpPhoneMediaInterface::getCapabilitiesEx(int connectionId, 
+OsStatus SipXMediaInterfaceImpl::getCapabilitiesEx(int connectionId, 
                                                   int nMaxAddresses,
                                                   UtlString rtpHostAddresses[], 
                                                   int rtpAudioPorts[],
@@ -499,7 +499,7 @@ OsStatus CpPhoneMediaInterface::getCapabilitiesEx(int connectionId,
                                                   int& videoFramerate)
 {   
     OsStatus rc = OS_FAILED ;
-    CpPhoneMediaConnection* pMediaConn = getMediaConnection(connectionId);
+    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
     nActualAddresses = 0 ;
 
     // Clear input rtpAudioPorts, rtcpAudioPorts, rtpVideoPorts, rtcpVideoPorts
@@ -582,7 +582,7 @@ OsStatus CpPhoneMediaInterface::getCapabilitiesEx(int connectionId,
 }
 
 OsStatus
-CpPhoneMediaInterface::setMediaNotificationsEnabled(bool enabled, 
+SipXMediaInterfaceImpl::setMediaNotificationsEnabled(bool enabled, 
                                                     const UtlString& resourceName)
 {
    return mpFlowGraph ? 
@@ -590,13 +590,13 @@ CpPhoneMediaInterface::setMediaNotificationsEnabled(bool enabled,
       OS_FAILED;
 }
 
-CpPhoneMediaConnection* CpPhoneMediaInterface::getMediaConnection(int connectionId)
+SipXMediaConnection* SipXMediaInterfaceImpl::getMediaConnection(int connectionId)
 {
    UtlInt matchConnectionId(connectionId);
-   return((CpPhoneMediaConnection*) mMediaConnections.find(&matchConnectionId));
+   return((SipXMediaConnection*) mMediaConnections.find(&matchConnectionId));
 }
 
-OsStatus CpPhoneMediaInterface::setConnectionDestination(int connectionId,
+OsStatus SipXMediaInterfaceImpl::setConnectionDestination(int connectionId,
                                                          const char* remoteRtpHostAddress,
                                                          int remoteAudioRtpPort,
                                                          int remoteAudioRtcpPort,
@@ -604,7 +604,7 @@ OsStatus CpPhoneMediaInterface::setConnectionDestination(int connectionId,
                                                          int remoteVideoRtcpPort)
 {
     OsStatus returnCode = OS_NOT_FOUND;
-    CpPhoneMediaConnection* pMediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* pMediaConnection = getMediaConnection(connectionId);
 
     if(pMediaConnection && remoteRtpHostAddress && *remoteRtpHostAddress)
     {
@@ -710,14 +710,14 @@ OsStatus CpPhoneMediaInterface::setConnectionDestination(int connectionId,
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::addAudioRtpConnectionDestination(int         connectionId,
+OsStatus SipXMediaInterfaceImpl::addAudioRtpConnectionDestination(int         connectionId,
                                                                  int         iPriority,
                                                                  const char* candidateIp, 
                                                                  int         candidatePort) 
 {
     OsStatus returnCode = OS_NOT_FOUND;
 
-    CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
     if (mediaConnection) 
     {
         // This is not applicable to multicast sockets
@@ -749,14 +749,14 @@ OsStatus CpPhoneMediaInterface::addAudioRtpConnectionDestination(int         con
     return returnCode ;
 }
 
-OsStatus CpPhoneMediaInterface::addAudioRtcpConnectionDestination(int         connectionId,
+OsStatus SipXMediaInterfaceImpl::addAudioRtcpConnectionDestination(int         connectionId,
                                                                   int         iPriority,
                                                                   const char* candidateIp, 
                                                                   int         candidatePort) 
 {
     OsStatus returnCode = OS_NOT_FOUND;
 
-    CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
     if (mediaConnection) 
     {        
         // This is not applicable to multicast sockets
@@ -788,14 +788,14 @@ OsStatus CpPhoneMediaInterface::addAudioRtcpConnectionDestination(int         co
     return returnCode ;
 }
 
-OsStatus CpPhoneMediaInterface::addVideoRtpConnectionDestination(int         connectionId,
+OsStatus SipXMediaInterfaceImpl::addVideoRtpConnectionDestination(int         connectionId,
                                                                  int         iPriority,
                                                                  const char* candidateIp, 
                                                                  int         candidatePort) 
 {
     OsStatus returnCode = OS_NOT_FOUND;
 #ifdef VIDEO
-    CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
     if (mediaConnection) 
     {        
         // This is not applicable to multicast sockets
@@ -827,14 +827,14 @@ OsStatus CpPhoneMediaInterface::addVideoRtpConnectionDestination(int         con
     return returnCode ;    
 }
 
-OsStatus CpPhoneMediaInterface::addVideoRtcpConnectionDestination(int         connectionId,
+OsStatus SipXMediaInterfaceImpl::addVideoRtcpConnectionDestination(int         connectionId,
                                                                   int         iPriority,
                                                                   const char* candidateIp, 
                                                                   int         candidatePort) 
 {
     OsStatus returnCode = OS_NOT_FOUND;
 #ifdef VIDEO
-    CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
     if (mediaConnection) 
     {        
         // This is not applicable to multicast sockets
@@ -867,14 +867,14 @@ OsStatus CpPhoneMediaInterface::addVideoRtcpConnectionDestination(int         co
 }
 
 
-OsStatus CpPhoneMediaInterface::startRtpSend(int connectionId,
+OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
                                              const SdpCodecList& sdpCodecList)
 {
    // need to set default payload types in get capabilities
    SdpCodec* audioCodec = NULL;
    SdpCodec* dtmfCodec = NULL;
    OsStatus returnCode = OS_NOT_FOUND;
-   CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+   SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
 
    if (mediaConnection == NULL)
       return returnCode;
@@ -957,12 +957,12 @@ OsStatus CpPhoneMediaInterface::startRtpSend(int connectionId,
 }
 
 
-OsStatus CpPhoneMediaInterface::startRtpReceive(int connectionId,
+OsStatus SipXMediaInterfaceImpl::startRtpReceive(int connectionId,
                                                 const SdpCodecList& sdpCodecList)
 {
    OsStatus returnCode = OS_NOT_FOUND;
 
-   CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+   SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
 
    if (mediaConnection == NULL)
       return OS_NOT_FOUND;
@@ -996,10 +996,10 @@ OsStatus CpPhoneMediaInterface::startRtpReceive(int connectionId,
    return returnCode;
 }
 
-OsStatus CpPhoneMediaInterface::stopRtpSend(int connectionId)
+OsStatus SipXMediaInterfaceImpl::stopRtpSend(int connectionId)
 {
    OsStatus returnCode = OS_NOT_FOUND;
-   CpPhoneMediaConnection* mediaConnection =
+   SipXMediaConnection* mediaConnection =
        getMediaConnection(connectionId);
 
    if (mpFlowGraph && mediaConnection &&
@@ -1012,10 +1012,10 @@ OsStatus CpPhoneMediaInterface::stopRtpSend(int connectionId)
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::stopRtpReceive(int connectionId)
+OsStatus SipXMediaInterfaceImpl::stopRtpReceive(int connectionId)
 {
    OsStatus returnCode = OS_NOT_FOUND;
-   CpPhoneMediaConnection* mediaConnection =
+   SipXMediaConnection* mediaConnection =
        getMediaConnection(connectionId);
 
    if (mpFlowGraph && mediaConnection &&
@@ -1028,10 +1028,10 @@ OsStatus CpPhoneMediaInterface::stopRtpReceive(int connectionId)
    return returnCode;
 }
 
-OsStatus CpPhoneMediaInterface::deleteConnection(int connectionId)
+OsStatus SipXMediaInterfaceImpl::deleteConnection(int connectionId)
 {
    OsStatus returnCode = OS_NOT_FOUND;
-   CpPhoneMediaConnection* mediaConnection =
+   SipXMediaConnection* mediaConnection =
        getMediaConnection(connectionId);
 
    UtlInt matchConnectionId(connectionId);
@@ -1044,18 +1044,18 @@ OsStatus CpPhoneMediaInterface::deleteConnection(int connectionId)
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::doDeleteConnection(CpPhoneMediaConnection* mediaConnection)
+OsStatus SipXMediaInterfaceImpl::doDeleteConnection(SipXMediaConnection* mediaConnection)
 {
    OsStatus returnCode = OS_NOT_FOUND;
 
    if(mediaConnection == NULL)
    {
       OsSysLog::add(FAC_CP, PRI_DEBUG, 
-                  "CpPhoneMediaInterface::doDeleteConnection mediaConnection is NULL!");
+                  "SipXMediaInterfaceImpl::doDeleteConnection mediaConnection is NULL!");
       return OS_NOT_FOUND;
    }
 
-   OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::deleteConnection deleting the connection %p",
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "SipXMediaInterfaceImpl::deleteConnection deleting the connection %p",
       mediaConnection);
 
    returnCode = OS_SUCCESS;
@@ -1088,7 +1088,7 @@ OsStatus CpPhoneMediaInterface::doDeleteConnection(CpPhoneMediaConnection* media
 }
 
 
-OsStatus CpPhoneMediaInterface::playAudio(const char* url,
+OsStatus SipXMediaInterfaceImpl::playAudio(const char* url,
                                           UtlBoolean repeat,
                                           UtlBoolean local,
                                           UtlBoolean remote,
@@ -1128,7 +1128,7 @@ OsStatus CpPhoneMediaInterface::playAudio(const char* url,
     return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::playBuffer(void* buf,
+OsStatus SipXMediaInterfaceImpl::playBuffer(void* buf,
                                            size_t bufSize,
                                            int type, 
                                            UtlBoolean repeat,
@@ -1166,7 +1166,7 @@ OsStatus CpPhoneMediaInterface::playBuffer(void* buf,
 }
 
 
-OsStatus CpPhoneMediaInterface::stopAudio()
+OsStatus SipXMediaInterfaceImpl::stopAudio()
 {
     OsStatus returnCode = OS_NOT_FOUND;
     if(mpFlowGraph)
@@ -1177,7 +1177,7 @@ OsStatus CpPhoneMediaInterface::stopAudio()
     return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::pausePlayback()
+OsStatus SipXMediaInterfaceImpl::pausePlayback()
 {
    OsStatus returnCode = OS_FAILED;
 
@@ -1188,7 +1188,7 @@ OsStatus CpPhoneMediaInterface::pausePlayback()
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::resumePlayback()
+OsStatus SipXMediaInterfaceImpl::resumePlayback()
 {
    OsStatus returnCode = OS_FAILED;
 
@@ -1199,7 +1199,7 @@ OsStatus CpPhoneMediaInterface::resumePlayback()
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::playChannelAudio(int connectionId,
+OsStatus SipXMediaInterfaceImpl::playChannelAudio(int connectionId,
                                                  const char* url,
                                                  UtlBoolean repeat,
                                                  UtlBoolean local,
@@ -1215,7 +1215,7 @@ OsStatus CpPhoneMediaInterface::playChannelAudio(int connectionId,
 }
 
 
-OsStatus CpPhoneMediaInterface::stopChannelAudio(int connectionId) 
+OsStatus SipXMediaInterfaceImpl::stopChannelAudio(int connectionId) 
 {
     // TODO:: This API is designed to record the audio from a single channel.  
     // If the connectionId is -1, record all.
@@ -1224,7 +1224,7 @@ OsStatus CpPhoneMediaInterface::stopChannelAudio(int connectionId)
 }
 
 
-OsStatus CpPhoneMediaInterface::recordChannelAudio(int connectionId,
+OsStatus SipXMediaInterfaceImpl::recordChannelAudio(int connectionId,
                                                    const char* szFile) 
 {
     // TODO:: This API is designed to record the audio from a single channel.  
@@ -1241,7 +1241,7 @@ OsStatus CpPhoneMediaInterface::recordChannelAudio(int connectionId,
                                NULL, NULL, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16) ;
 }
 
-OsStatus CpPhoneMediaInterface::stopRecordChannelAudio(int connectionId) 
+OsStatus SipXMediaInterfaceImpl::stopRecordChannelAudio(int connectionId) 
 {
     // TODO:: This API is designed to record the audio from a single channel.  
     // If the connectionId is -1, record all.
@@ -1251,7 +1251,7 @@ OsStatus CpPhoneMediaInterface::stopRecordChannelAudio(int connectionId)
 }
 
 
-OsStatus CpPhoneMediaInterface::startTone(int toneId,
+OsStatus SipXMediaInterfaceImpl::startTone(int toneId,
                                           UtlBoolean local,
                                           UtlBoolean remote)
 {
@@ -1276,7 +1276,7 @@ OsStatus CpPhoneMediaInterface::startTone(int toneId,
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::stopTone()
+OsStatus SipXMediaInterfaceImpl::stopTone()
 {
    OsStatus returnCode = OS_SUCCESS;
    if(mpFlowGraph)
@@ -1287,17 +1287,17 @@ OsStatus CpPhoneMediaInterface::stopTone()
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::startChannelTone(int connectionId, int toneId, UtlBoolean local, UtlBoolean remote) 
+OsStatus SipXMediaInterfaceImpl::startChannelTone(int connectionId, int toneId, UtlBoolean local, UtlBoolean remote) 
 {
     return startTone(toneId, local, remote) ;
 }
 
-OsStatus CpPhoneMediaInterface::stopChannelTone(int connectionId)
+OsStatus SipXMediaInterfaceImpl::stopChannelTone(int connectionId)
 {
     return stopTone() ;
 }
 
-OsStatus CpPhoneMediaInterface::muteInput(int connectionId, UtlBoolean bMute)
+OsStatus SipXMediaInterfaceImpl::muteInput(int connectionId, UtlBoolean bMute)
 {
    OsStatus returnCode = OS_FAILED;
    if(mpFlowGraph)
@@ -1315,7 +1315,7 @@ OsStatus CpPhoneMediaInterface::muteInput(int connectionId, UtlBoolean bMute)
    return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::giveFocus()
+OsStatus SipXMediaInterfaceImpl::giveFocus()
 {
     if(mpFlowGraph)
     {
@@ -1329,7 +1329,7 @@ OsStatus CpPhoneMediaInterface::giveFocus()
    return OS_SUCCESS ;
 }
 
-OsStatus CpPhoneMediaInterface::defocus()
+OsStatus SipXMediaInterfaceImpl::defocus()
 {
     if(mpFlowGraph)
     {
@@ -1346,7 +1346,7 @@ OsStatus CpPhoneMediaInterface::defocus()
     return OS_SUCCESS ;
 }
 
-OsStatus CpPhoneMediaInterface::recordAudio(const char* szFile)
+OsStatus SipXMediaInterfaceImpl::recordAudio(const char* szFile)
 {
    if (mpFlowGraph)
    {
@@ -1361,14 +1361,14 @@ OsStatus CpPhoneMediaInterface::recordAudio(const char* szFile)
    return OS_FAILED;
 }
 
-OsStatus CpPhoneMediaInterface::stopRecording()
+OsStatus SipXMediaInterfaceImpl::stopRecording()
 {
    OsStatus ret = OS_UNSPECIFIED;
    if (mpFlowGraph)
    {
 #ifdef TEST_PRINT
-     osPrintf("CpPhoneMediaInterface::stopRecording() : calling flowgraph::stoprecorders\n");
-     OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPhoneMediaInterface::stopRecording() : calling flowgraph::stoprecorders");
+     osPrintf("SipXMediaInterfaceImpl::stopRecording() : calling flowgraph::stoprecorders\n");
+     OsSysLog::add(FAC_CP, PRI_DEBUG, "SipXMediaInterfaceImpl::stopRecording() : calling flowgraph::stoprecorders");
 #endif
      mpFlowGraph->closeRecorders();
      ret = OS_SUCCESS;
@@ -1377,7 +1377,7 @@ OsStatus CpPhoneMediaInterface::stopRecording()
    return ret;
 }
 
-OsStatus CpPhoneMediaInterface::recordMic(UtlString* pAudioBuffer)
+OsStatus SipXMediaInterfaceImpl::recordMic(UtlString* pAudioBuffer)
 {
    OsStatus stat = OS_UNSPECIFIED;
    if(mpFlowGraph != NULL)
@@ -1387,7 +1387,7 @@ OsStatus CpPhoneMediaInterface::recordMic(UtlString* pAudioBuffer)
    return stat;
 }
 
-OsStatus CpPhoneMediaInterface::recordMic(int ms,
+OsStatus SipXMediaInterfaceImpl::recordMic(int ms,
                                           int silenceLength,
                                           const char* fileName)
 {
@@ -1400,7 +1400,7 @@ OsStatus CpPhoneMediaInterface::recordMic(int ms,
 }
 
 
-OsStatus CpPhoneMediaInterface::ezRecord(int ms, 
+OsStatus SipXMediaInterfaceImpl::ezRecord(int ms, 
                                          int silenceLength, 
                                          const char* fileName, 
                                          double& duration,
@@ -1430,9 +1430,9 @@ OsStatus CpPhoneMediaInterface::ezRecord(int ms,
    return ret;
 }
 
-void CpPhoneMediaInterface::setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) 
+void SipXMediaInterfaceImpl::setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) 
 {
-    CpPhoneMediaConnection* pMediaConn = getMediaConnection(connectionId);
+    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
 
     if (pMediaConn)
     {
@@ -1449,12 +1449,12 @@ void CpPhoneMediaInterface::setContactType(int connectionId, SIPX_CONTACT_TYPE e
     }
 }
 
-OsStatus CpPhoneMediaInterface::setAudioCodecBandwidth(int connectionId, int bandWidth) 
+OsStatus SipXMediaInterfaceImpl::setAudioCodecBandwidth(int connectionId, int bandWidth) 
 {
     return OS_NOT_SUPPORTED ;
 }
 
-OsStatus CpPhoneMediaInterface::setCodecList(const SdpCodecList& sdpCodecList)
+OsStatus SipXMediaInterfaceImpl::setCodecList(const SdpCodecList& sdpCodecList)
 {
    mSdpCodecList = sdpCodecList;
    // Assign any unset payload types
@@ -1463,30 +1463,30 @@ OsStatus CpPhoneMediaInterface::setCodecList(const SdpCodecList& sdpCodecList)
    return OS_SUCCESS;
 }
 
-OsStatus CpPhoneMediaInterface::getCodecList(SdpCodecList& sdpCodecList)
+OsStatus SipXMediaInterfaceImpl::getCodecList(SdpCodecList& sdpCodecList)
 {
    sdpCodecList = mSdpCodecList;
    return OS_SUCCESS;
 }
 
-OsStatus CpPhoneMediaInterface::setConnectionBitrate(int connectionId, int bitrate) 
+OsStatus SipXMediaInterfaceImpl::setConnectionBitrate(int connectionId, int bitrate) 
 {
     return OS_NOT_SUPPORTED ;
 }
 
 
-OsStatus CpPhoneMediaInterface::setConnectionFramerate(int connectionId, int framerate) 
+OsStatus SipXMediaInterfaceImpl::setConnectionFramerate(int connectionId, int framerate) 
 {
     return OS_NOT_SUPPORTED ;
 }
 
 
-OsStatus CpPhoneMediaInterface::setSecurityAttributes(const void* security) 
+OsStatus SipXMediaInterfaceImpl::setSecurityAttributes(const void* security) 
 {
     return OS_NOT_SUPPORTED ;
 }
 
-OsStatus CpPhoneMediaInterface::generateVoiceQualityReport(int         connectiond,
+OsStatus SipXMediaInterfaceImpl::generateVoiceQualityReport(int         connectiond,
                                                            const char* callId,
                                                            UtlString&  report) 
 {
@@ -1497,29 +1497,29 @@ OsStatus CpPhoneMediaInterface::generateVoiceQualityReport(int         connectio
 /* ============================ ACCESSORS ================================= */
 
 
-OsStatus CpPhoneMediaInterface::setVideoQuality(int quality)
+OsStatus SipXMediaInterfaceImpl::setVideoQuality(int quality)
 {
    return OS_SUCCESS;
 }
 
-OsStatus CpPhoneMediaInterface::setVideoParameters(int bitRate, int frameRate)
+OsStatus SipXMediaInterfaceImpl::setVideoParameters(int bitRate, int frameRate)
 {
    return OS_SUCCESS;
 }
 
 // Calculate the current cost for our sending/receiving codecs
-int CpPhoneMediaInterface::getCodecCPUCost()
+int SipXMediaInterfaceImpl::getCodecCPUCost()
 {   
    int iCost = SdpCodec::SDP_CODEC_CPU_LOW ;   
 
    if (mMediaConnections.entries() > 0)
    {      
-      CpPhoneMediaConnection* mediaConnection = NULL;
+      SipXMediaConnection* mediaConnection = NULL;
 
       // Iterate the connections and determine the most expensive supported 
       // codec.
       UtlDListIterator connectionIterator(mMediaConnections);
-      while ((mediaConnection = (CpPhoneMediaConnection*) connectionIterator()))
+      while ((mediaConnection = (SipXMediaConnection*) connectionIterator()))
       {
          // If the codec is null, assume LOW.
          if (mediaConnection->mpAudioCodec != NULL)
@@ -1540,7 +1540,7 @@ int CpPhoneMediaInterface::getCodecCPUCost()
 
 
 // Calculate the worst case cost for our sending/receiving codecs
-int CpPhoneMediaInterface::getCodecCPULimit()
+int SipXMediaInterfaceImpl::getCodecCPULimit()
 {   
    int iCost = SdpCodec::SDP_CODEC_CPU_LOW ;   
    int         iCodecs = 0 ;
@@ -1552,12 +1552,12 @@ int CpPhoneMediaInterface::getCodecCPULimit()
    //
    if (mMediaConnections.entries() > 0)
    {      
-      CpPhoneMediaConnection* mediaConnection = NULL;
+      SipXMediaConnection* mediaConnection = NULL;
 
       // Iterate the connections and determine the most expensive supported 
       // codec.
       UtlDListIterator connectionIterator(mMediaConnections);
-      while ((mediaConnection = (CpPhoneMediaConnection*) connectionIterator()))
+      while ((mediaConnection = (SipXMediaConnection*) connectionIterator()))
       {
          mediaConnection->mpCodecFactory->getCodecs(iCodecs, codecs) ;      
          for(int i = 0; i < iCodecs; i++)
@@ -1598,17 +1598,17 @@ int CpPhoneMediaInterface::getCodecCPULimit()
 }
 
 // Returns the flowgraph's message queue
-OsMsgQ* CpPhoneMediaInterface::getMsgQ()
+OsMsgQ* SipXMediaInterfaceImpl::getMsgQ()
 {
    return mpFlowGraph->getMsgQ() ;
 }
 
-OsMsgDispatcher* CpPhoneMediaInterface::getMediaNotificationDispatcher()
+OsMsgDispatcher* SipXMediaInterfaceImpl::getMediaNotificationDispatcher()
 {
    return mpFlowGraph ? mpFlowGraph->getNotificationDispatcher() : NULL;
 }
 
-OsStatus CpPhoneMediaInterface::getPrimaryCodec(int connectionId, 
+OsStatus SipXMediaInterfaceImpl::getPrimaryCodec(int connectionId, 
                                                 UtlString& audioCodec,
                                                 UtlString& videoCodec,
                                                 int* audioPayloadType,
@@ -1616,7 +1616,7 @@ OsStatus CpPhoneMediaInterface::getPrimaryCodec(int connectionId,
                                                 bool& isEncrypted)
 {
     UtlString codecType;
-    CpPhoneMediaConnection* pConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* pConnection = getMediaConnection(connectionId);
     if (pConnection == NULL)
        return OS_NOT_FOUND;
 
@@ -1632,30 +1632,30 @@ OsStatus CpPhoneMediaInterface::getPrimaryCodec(int connectionId,
    return OS_SUCCESS;
 }
 
-OsStatus CpPhoneMediaInterface::getVideoQuality(int& quality)
+OsStatus SipXMediaInterfaceImpl::getVideoQuality(int& quality)
 {
    quality = 0;
    return OS_SUCCESS;
 }
 
-OsStatus CpPhoneMediaInterface::getVideoBitRate(int& bitRate)
+OsStatus SipXMediaInterfaceImpl::getVideoBitRate(int& bitRate)
 {
    bitRate = 0;
    return OS_SUCCESS;
 }
 
 
-OsStatus CpPhoneMediaInterface::getVideoFrameRate(int& frameRate)
+OsStatus SipXMediaInterfaceImpl::getVideoFrameRate(int& frameRate)
 {
    frameRate = 0;
    return OS_SUCCESS;
 }
 
 /* ============================ INQUIRY =================================== */
-UtlBoolean CpPhoneMediaInterface::isSendingRtpAudio(int connectionId)
+UtlBoolean SipXMediaInterfaceImpl::isSendingRtpAudio(int connectionId)
 {
    UtlBoolean sending = FALSE;
-   CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+   SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
 
    if(mediaConnection)
    {
@@ -1663,17 +1663,17 @@ UtlBoolean CpPhoneMediaInterface::isSendingRtpAudio(int connectionId)
    }
    else
    {
-       osPrintf("CpPhoneMediaInterface::isSendingRtpAudio invalid connectionId: %d\n",
+       osPrintf("SipXMediaInterfaceImpl::isSendingRtpAudio invalid connectionId: %d\n",
           connectionId);
    }
 
    return(sending);
 }
 
-UtlBoolean CpPhoneMediaInterface::isReceivingRtpAudio(int connectionId)
+UtlBoolean SipXMediaInterfaceImpl::isReceivingRtpAudio(int connectionId)
 {
    UtlBoolean receiving = FALSE;
-   CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+   SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
 
    if(mediaConnection)
    {
@@ -1681,20 +1681,20 @@ UtlBoolean CpPhoneMediaInterface::isReceivingRtpAudio(int connectionId)
    }
    else
    {
-       osPrintf("CpPhoneMediaInterface::isReceivingRtpAudio invalid connectionId: %d\n",
+       osPrintf("SipXMediaInterfaceImpl::isReceivingRtpAudio invalid connectionId: %d\n",
           connectionId);
    }
    return(receiving);
 }
 
-UtlBoolean CpPhoneMediaInterface::isSendingRtpVideo(int connectionId)
+UtlBoolean SipXMediaInterfaceImpl::isSendingRtpVideo(int connectionId)
 {
    UtlBoolean sending = FALSE;
 
    return(sending);
 }
 
-UtlBoolean CpPhoneMediaInterface::isReceivingRtpVideo(int connectionId)
+UtlBoolean SipXMediaInterfaceImpl::isReceivingRtpVideo(int connectionId)
 {
    UtlBoolean receiving = FALSE;
 
@@ -1702,10 +1702,10 @@ UtlBoolean CpPhoneMediaInterface::isReceivingRtpVideo(int connectionId)
 }
 
 
-UtlBoolean CpPhoneMediaInterface::isDestinationSet(int connectionId)
+UtlBoolean SipXMediaInterfaceImpl::isDestinationSet(int connectionId)
 {
     UtlBoolean isSet = FALSE;
-    CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
 
     if(mediaConnection)
     {
@@ -1713,39 +1713,39 @@ UtlBoolean CpPhoneMediaInterface::isDestinationSet(int connectionId)
     }
     else
     {
-       osPrintf("CpPhoneMediaInterface::isDestinationSet invalid connectionId: %d\n",
+       osPrintf("SipXMediaInterfaceImpl::isDestinationSet invalid connectionId: %d\n",
           connectionId);
     }
     return(isSet);
 }
 
-UtlBoolean CpPhoneMediaInterface::canAddParty() 
+UtlBoolean SipXMediaInterfaceImpl::canAddParty() 
 {
     return (mMediaConnections.entries() < MAX_CONFERENCE_PARTICIPANTS);
 }
 
 
-UtlBoolean CpPhoneMediaInterface::isVideoInitialized(int connectionId)
+UtlBoolean SipXMediaInterfaceImpl::isVideoInitialized(int connectionId)
 {
    return false ;
 }
 
-UtlBoolean CpPhoneMediaInterface::isAudioInitialized(int connectionId) 
+UtlBoolean SipXMediaInterfaceImpl::isAudioInitialized(int connectionId) 
 {
     return true ;
 }
 
-UtlBoolean CpPhoneMediaInterface::isAudioAvailable() 
+UtlBoolean SipXMediaInterfaceImpl::isAudioAvailable() 
 {
     return true ;
 }
 
-OsStatus CpPhoneMediaInterface::setVideoWindowDisplay(const void* hWnd)
+OsStatus SipXMediaInterfaceImpl::setVideoWindowDisplay(const void* hWnd)
 {
    return OS_NOT_YET_IMPLEMENTED;
 }
 
-const void* CpPhoneMediaInterface::getVideoWindowDisplay()
+const void* SipXMediaInterfaceImpl::getVideoWindowDisplay()
 {
    return NULL;
 }
@@ -1754,7 +1754,7 @@ const void* CpPhoneMediaInterface::getVideoWindowDisplay()
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 
-UtlBoolean CpPhoneMediaInterface::getLocalAddresses(int connectionId,
+UtlBoolean SipXMediaInterfaceImpl::getLocalAddresses(int connectionId,
                                               UtlString& hostIp,
                                               int& rtpAudioPort,
                                               int& rtcpAudioPort,
@@ -1762,7 +1762,7 @@ UtlBoolean CpPhoneMediaInterface::getLocalAddresses(int connectionId,
                                               int& rtcpVideoPort)
 {
     UtlBoolean bRC = FALSE ;
-    CpPhoneMediaConnection* pMediaConn = getMediaConnection(connectionId);    
+    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);    
 
     hostIp.remove(0) ;
     rtpAudioPort = PORT_NONE ;
@@ -1807,7 +1807,7 @@ UtlBoolean CpPhoneMediaInterface::getLocalAddresses(int connectionId,
     return bRC ;
 }
 
-UtlBoolean CpPhoneMediaInterface::getNatedAddresses(int connectionId,
+UtlBoolean SipXMediaInterfaceImpl::getNatedAddresses(int connectionId,
                                                     UtlString& hostIp,
                                                     int& rtpAudioPort,
                                                     int& rtcpAudioPort,
@@ -1817,7 +1817,7 @@ UtlBoolean CpPhoneMediaInterface::getNatedAddresses(int connectionId,
     UtlBoolean bRC = FALSE ;
     UtlString host ;
     int port ;
-    CpPhoneMediaConnection* pMediaConn = getMediaConnection(connectionId);
+    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
 
     hostIp.remove(0) ;
     rtpAudioPort = PORT_NONE ;
@@ -1893,7 +1893,7 @@ UtlBoolean CpPhoneMediaInterface::getNatedAddresses(int connectionId,
     return bRC ;
 }
 
-UtlBoolean CpPhoneMediaInterface::getRelayAddresses(int connectionId,
+UtlBoolean SipXMediaInterfaceImpl::getRelayAddresses(int connectionId,
                                                     UtlString& hostIp,
                                                     int& rtpAudioPort,
                                                     int& rtcpAudioPort,
@@ -1903,7 +1903,7 @@ UtlBoolean CpPhoneMediaInterface::getRelayAddresses(int connectionId,
     UtlBoolean bRC = FALSE ;
     UtlString host ;
     int port ;
-    CpPhoneMediaConnection* pMediaConn = getMediaConnection(connectionId);
+    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
 
     hostIp.remove(0) ;
     rtpAudioPort = PORT_NONE ;
@@ -1985,7 +1985,7 @@ UtlBoolean CpPhoneMediaInterface::getRelayAddresses(int connectionId,
     return bRC ;
 }
 
-OsStatus CpPhoneMediaInterface::addLocalContacts(int connectionId, 
+OsStatus SipXMediaInterfaceImpl::addLocalContacts(int connectionId, 
                                                  int nMaxAddresses,
                                                  UtlString rtpHostAddresses[], 
                                                  int rtpAudioPorts[],
@@ -2039,7 +2039,7 @@ OsStatus CpPhoneMediaInterface::addLocalContacts(int connectionId,
 }
 
 
-OsStatus CpPhoneMediaInterface::addNatedContacts(int connectionId, 
+OsStatus SipXMediaInterfaceImpl::addNatedContacts(int connectionId, 
                                                  int nMaxAddresses,
                                                  UtlString rtpHostAddresses[], 
                                                  int rtpAudioPorts[],
@@ -2092,7 +2092,7 @@ OsStatus CpPhoneMediaInterface::addNatedContacts(int connectionId,
 }
 
 
-OsStatus CpPhoneMediaInterface::addRelayContacts(int connectionId, 
+OsStatus SipXMediaInterfaceImpl::addRelayContacts(int connectionId, 
                                                  int nMaxAddresses,
                                                  UtlString rtpHostAddresses[], 
                                                  int rtpAudioPorts[],
@@ -2146,12 +2146,12 @@ OsStatus CpPhoneMediaInterface::addRelayContacts(int connectionId,
 }
 
 
-void CpPhoneMediaInterface::applyAlternateDestinations(int connectionId) 
+void SipXMediaInterfaceImpl::applyAlternateDestinations(int connectionId) 
 {
     UtlString destAddress ;
     int       destPort ;
 
-    CpPhoneMediaConnection* pMediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* pMediaConnection = getMediaConnection(connectionId);
 
     if (pMediaConnection)
     {
@@ -2230,11 +2230,11 @@ void CpPhoneMediaInterface::applyAlternateDestinations(int connectionId)
     }
 }
 
-OsStatus CpPhoneMediaInterface::setMediaProperty(const UtlString& propertyName,
+OsStatus SipXMediaInterfaceImpl::setMediaProperty(const UtlString& propertyName,
                                                  const UtlString& propertyValue)
 {
     OsSysLog::add(FAC_CP, PRI_ERR, 
-        "CpPhoneMediaInterface::setMediaProperty %p propertyName=\"%s\" propertyValue=\"%s\"",
+        "SipXMediaInterfaceImpl::setMediaProperty %p propertyName=\"%s\" propertyValue=\"%s\"",
         this, propertyName.data(), propertyValue.data());
 
     UtlString* oldProperty = (UtlString*)mInterfaceProperties.findValue(&propertyValue);
@@ -2252,12 +2252,12 @@ OsStatus CpPhoneMediaInterface::setMediaProperty(const UtlString& propertyName,
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus CpPhoneMediaInterface::getMediaProperty(const UtlString& propertyName,
+OsStatus SipXMediaInterfaceImpl::getMediaProperty(const UtlString& propertyName,
                                                  UtlString& propertyValue)
 {
     OsStatus returnCode = OS_NOT_FOUND;
     OsSysLog::add(FAC_CP, PRI_ERR, 
-        "CpPhoneMediaInterface::getMediaProperty %p propertyName=\"%s\"",
+        "SipXMediaInterfaceImpl::getMediaProperty %p propertyName=\"%s\"",
         this, propertyName.data());
 
     UtlString* foundValue = (UtlString*)mInterfaceProperties.findValue(&propertyName);
@@ -2276,16 +2276,16 @@ OsStatus CpPhoneMediaInterface::getMediaProperty(const UtlString& propertyName,
     return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::setMediaProperty(int connectionId,
+OsStatus SipXMediaInterfaceImpl::setMediaProperty(int connectionId,
                                                  const UtlString& propertyName,
                                                  const UtlString& propertyValue)
 {
     OsStatus returnCode = OS_NOT_YET_IMPLEMENTED;
     OsSysLog::add(FAC_CP, PRI_ERR, 
-        "CpPhoneMediaInterface::setMediaProperty %p connectionId=%d propertyName=\"%s\" propertyValue=\"%s\"",
+        "SipXMediaInterfaceImpl::setMediaProperty %p connectionId=%d propertyName=\"%s\" propertyValue=\"%s\"",
         this, connectionId, propertyName.data(), propertyValue.data());
 
-    CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
     if(mediaConnection)
     {
         UtlString* oldProperty = (UtlString*)(mediaConnection->mConnectionProperties.findValue(&propertyValue));
@@ -2310,7 +2310,7 @@ OsStatus CpPhoneMediaInterface::setMediaProperty(int connectionId,
     return(returnCode);
 }
 
-OsStatus CpPhoneMediaInterface::getMediaProperty(int connectionId,
+OsStatus SipXMediaInterfaceImpl::getMediaProperty(int connectionId,
                                                  const UtlString& propertyName,
                                                  UtlString& propertyValue)
 {
@@ -2318,10 +2318,10 @@ OsStatus CpPhoneMediaInterface::getMediaProperty(int connectionId,
     propertyValue = "";
 
     OsSysLog::add(FAC_CP, PRI_ERR, 
-        "CpPhoneMediaInterface::getMediaProperty %p connectionId=%d propertyName=\"%s\"",
+        "SipXMediaInterfaceImpl::getMediaProperty %p connectionId=%d propertyName=\"%s\"",
         this, connectionId, propertyName.data());
 
-    CpPhoneMediaConnection* mediaConnection = getMediaConnection(connectionId);
+    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
     if(mediaConnection)
     {
         UtlString* oldProperty = (UtlString*)(mediaConnection->mConnectionProperties.findValue(&propertyName));
@@ -2336,7 +2336,7 @@ OsStatus CpPhoneMediaInterface::getMediaProperty(int connectionId,
 }
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-OsStatus CpPhoneMediaInterface::createRtpSocketPair(UtlString localAddress,
+OsStatus SipXMediaInterfaceImpl::createRtpSocketPair(UtlString localAddress,
                                                     int localPort,
                                                     SIPX_CONTACT_TYPE contactType,
                                                     OsDatagramSocket* &rtpSocket,

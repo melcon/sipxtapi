@@ -62,7 +62,7 @@ Connection::Connection(CpCallManager* callMgr,
                        const char* forwardUnconditionalUrl,
                        int busyBehavior, const char* forwardOnBusyUrl,
                        int forwardOnNoAnswerSeconds)
-                       : mConnectionId(CpMediaInterface::getInvalidConnectionId())
+                       : mConnectionId(CpMediaInterface::INVALID_CONNECTION_ID)
                        , callIdMutex(OsMutex::Q_FIFO)
                        , mDeleteAfter(OsTime::OS_INFINITY)
                        , m_pCallEventListener(pCallEventListener)
@@ -175,7 +175,7 @@ void Connection::prepareForSplit()
 
    mpCall = NULL;
    mpMediaInterface = NULL;
-   mConnectionId = CpMediaInterface::getInvalidConnectionId();
+   mConnectionId = CpMediaInterface::INVALID_CONNECTION_ID;
 }
 
 

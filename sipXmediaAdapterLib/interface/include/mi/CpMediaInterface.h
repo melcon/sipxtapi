@@ -117,6 +117,10 @@ class CpMediaInterface : public UtlInt
 {
 /* //////////////////////////// PUBLIC //////////////////////////// */
 public:
+   enum
+   {
+      INVALID_CONNECTION_ID = -1 ///< Id of invalid media connection
+   };
 
 /* =========================== CREATORS =========================== */
 
@@ -138,7 +142,7 @@ public:
      /// @brief Create a media connection in the media processing subsystem.
    virtual OsStatus createConnection(
                int& connectionId,
-               const char* szLocalAddress,
+               const char* szLocalIPAddress,
                int localPort = 0,
                void* videoWindowHandle = NULL,
                void* const pSecurityAttributes = NULL,
@@ -151,7 +155,7 @@ public:
      *  @param[out] connectionId - A newly allocated connection id returned via 
      *              this call.  The connection passed to many other media 
      *              processing methods in this interface.
-     *  @param[in]  szLocalAddress - Local address (interface) that should 
+     *  @param[in]  szLocalIPAddress - Local address (interface) that should 
      *              be used for this connection.
      *  @param[in]  localPort - Local port that should be used for this
      *              connection.
@@ -563,9 +567,6 @@ public:
 
    //! Set connection framerate on the fly
    virtual OsStatus setConnectionFramerate(int connectionId, int framerate) = 0;
-
-    /// Provide an invalid connectionId
-   static int getInvalidConnectionId();
 
    virtual OsStatus setVideoWindowDisplay(const void* hWnd) = 0;
 

@@ -2423,7 +2423,7 @@ UtlBoolean SipConnection::doHangUp(const char* dialString,
          }
          mpMediaInterface->deleteConnection(mConnectionId);
          mpMediaInterface = NULL;
-         mConnectionId = CpMediaInterface::getInvalidConnectionId();
+         mConnectionId = CpMediaInterface::INVALID_CONNECTION_ID;
       }
    }
 
