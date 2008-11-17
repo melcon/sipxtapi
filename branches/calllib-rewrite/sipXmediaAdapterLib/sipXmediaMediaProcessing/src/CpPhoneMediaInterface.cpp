@@ -147,11 +147,11 @@ public:
 
 // Constructor
 CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
-											            OsMsgQ* pInterfaceNotificationQueue,
-                                             const SdpCodecList* pCodecList,
-                                             const char* publicAddress,
-                                             const char* localAddress,
-                                             const char* locale,
+											            OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
+                                             const SdpCodecList* pCodecList,///< list of SdpCodec instances
+                                             const char* publicAddress,///< ignored
+                                             const char* localIPAddress,///< local bind IP address
+                                             const char* locale,///< locale for tone generator
                                              int expeditedIpTos,
                                              const char* szStunServer,
                                              int iStunPort,
@@ -182,14 +182,15 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
    mTurnPassword = szTurnPassword ;
    mEnableIce = bEnableICE ;
 
-   if(localAddress && *localAddress)
+   if(localIPAddress && *localIPAddress)
    {
-       mRtpReceiveHostAddress = localAddress;
-       mLocalAddress = localAddress;
+       mRtpReceiveHostAddress = localIPAddress;
+       mLocalIPAddress = localIPAddress;
    }
    else
    {
-       OsSocket::getHostIp(&mLocalAddress);
+       OsSocket::getHostIp(&mLocalIPAddress);
+       mRtpReceiveHostAddress = mLocalIPAddress;
    }
 
    if(pCodecList && pCodecList->getCodecCount() > 0)
@@ -293,7 +294,7 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
    }
    else
    {
-      mediaConnection->mLocalAddress = mLocalAddress ;
+      mediaConnection->mLocalAddress = mLocalIPAddress ;
    }
 
    mediaConnection->mIsMulticast = OsSocket::isMcastAddr(mediaConnection->mLocalAddress);

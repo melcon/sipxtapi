@@ -119,11 +119,11 @@ public:
    /**
    * Create a media interface given the designated parameters.
    */
-   virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-                                                  const SdpCodecList* pCodecList,// list of SdpCodec instances
-                                                  const char* publicAddress,
-                                                  const char* localAddress,
-                                                  const char* locale,
+   virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
+                                                  const SdpCodecList* pCodecList,///< list of SdpCodec instances
+                                                  const char* publicAddress,///< ignored
+                                                  const char* localIPAddress,///< local bind IP address
+                                                  const char* locale,///< locale for tone generator
                                                   int expeditedIpTos,
                                                   const char* szStunServer,
                                                   int iStunPort,

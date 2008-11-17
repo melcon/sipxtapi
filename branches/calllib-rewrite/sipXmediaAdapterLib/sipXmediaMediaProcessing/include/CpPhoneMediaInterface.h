@@ -58,11 +58,11 @@ public:
 /* ============================ CREATORS ================================== */
 
    CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
-						       OsMsgQ* pInterfaceNotificationQueue,
-                         const SdpCodecList* pCodecList = NULL,
-                         const char* publicAddress = NULL, 
-                         const char* localAddress = NULL,
-                         const char* pLocale = "",
+						       OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
+                         const SdpCodecList* pCodecList = NULL,///< list of SdpCodec instances
+                         const char* publicAddress = NULL,///< ignored
+                         const char* localIPAddress = NULL,///< local bind IP address
+                         const char* pLocale = "",///< locale for tone generator
                          int expeditedIpTos = QOS_LAYER3_LOW_DELAY_IP_TOS,
                          const char* szStunServer = NULL,
                          int iStunPort = PORT_NONE,
@@ -410,7 +410,7 @@ protected:
       /**<
       *  For RTP/RTCP port pair will be set next free port pair.
       *  
-      *  @param[in] localAddress - Address to bind to (for multihomed hosts).
+      *  @param[in] localIPAddress - Address to bind to (for multihomed hosts).
       *  @param[in] localPort - Local port to bind to (0 for auto select).
       *  @param[in] contactType - Contact type (see SIPX_CONTACT_TYPE).
       *  @param[out] rtpSocket - Created socket for RTP stream.
@@ -425,7 +425,7 @@ private:
     OsStatus doDeleteConnection(CpPhoneMediaConnection* mediaConnection);
 
    UtlString mRtpReceiveHostAddress; ///< Advertised as place to send RTP/RTCP
-   UtlString mLocalAddress;          ///< Address on which ports are bound
+   UtlString mLocalIPAddress;          ///< Address on which ports are bound
    MpCallFlowGraph* mpFlowGraph;     ///< Flowgraph for audio part of call
    UtlBoolean mRingToneFromFile;
    SdpCodecList mSdpCodecList;
