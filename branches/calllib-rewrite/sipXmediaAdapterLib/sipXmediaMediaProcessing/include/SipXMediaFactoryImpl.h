@@ -118,7 +118,6 @@ class SipXMediaFactoryImpl : public CpMediaInterfaceFactory
 
     virtual OsStatus getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const;
     virtual OsStatus getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const;
-    virtual OsStatus getLocalAudioConnectionId(int& connectionId) const ;
 
     virtual OsStatus getAudioInputMixerName(UtlString& name) const;
     virtual OsStatus getAudioOutputMixerName(UtlString& name) const;

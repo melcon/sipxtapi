@@ -272,13 +272,13 @@ public:
    virtual OsStatus buildAllCodecList(SdpCodecList& codecList) = 0;
 
    /**
-    * Gets string with all supported audio codecs. Can be used to build codec factory
+    * Gets string with all supported audio codecs. Can be used to build codec list
     * with all supported codecs.
     */
    virtual UtlString getAllSupportedAudioCodecs() const = 0;
 
    /**
-   * Gets string with all supported video codecs. Can be used to build codec factory
+   * Gets string with all supported video codecs. Can be used to build codec list
    * with all supported codecs.
    */
    virtual UtlString getAllSupportedVideoCodecs() const = 0;
@@ -441,11 +441,6 @@ public:
    {
       return OS_NOT_SUPPORTED;
    }
-
-   /** 
-   * Get the connection id for the local audio connection
-   */
-   virtual OsStatus getLocalAudioConnectionId(int& connectionId) const = 0;
 
    /**
    * Gets mode how to send outbound DTMF
