@@ -5,7 +5,7 @@
     </Platforms>
     <Configurations>
         <Configuration Name="Debug|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXcallLib\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="3" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;_DEBUG;TEST_DEBUG;HAVE_SPEEX;HAVE_GSM;_LIB;SIP_STACK_VERSION=\&quot;1.3.0\&quot;;SIPX_CONFDIR=\&quot;.\&quot;;SIPX_LOGDIR=\&quot;.\&quot;;_WINDOWS" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXcallLib\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="3" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;_DEBUG;TEST_DEBUG;_LIB;SIP_STACK_VERSION=\&quot;3.2.0\&quot;;SIPX_CONFDIR=\&quot;.\&quot;;SIPX_LOGDIR=\&quot;.\&quot;;_WINDOWS" Optimization="0"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCLibrarianTool" OutputFile=".\Debug\sipXtackLib.lib"/>
             <Tool Name="VCMIDLTool"/>
@@ -19,7 +19,7 @@
             <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
         </Configuration>
         <Configuration Name="Release|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXcallLib\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="2" MinimalRebuild="FALSE" DebugInformationFormat="3" PreprocessorDefinitions="WIN32;NDEBUG;TEST_DEBUG;HAVE_SPEEX;HAVE_GSM;_LIB;SIP_STACK_VERSION=\&quot;1.3.0\&quot;;SIPX_CONFDIR=\&quot;.\&quot;;SIPX_LOGDIR=\&quot;.\&quot;;_WINDOWS"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXcallLib\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="2" MinimalRebuild="FALSE" DebugInformationFormat="3" PreprocessorDefinitions="WIN32;NDEBUG;TEST_DEBUG;_LIB;SIP_STACK_VERSION=\&quot;3.2.0\&quot;;SIPX_CONFDIR=\&quot;.\&quot;;SIPX_LOGDIR=\&quot;.\&quot;;_WINDOWS"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCLibrarianTool" OutputFile=".\Release\sipXtackLib.lib"/>
             <Tool Name="VCMIDLTool"/>
@@ -78,7 +78,6 @@
                 <File RelativePath=".\src\net\PidfBody.cpp"/>
                 <File RelativePath=".\src\net\pk12wrapper.cpp"/>
                 <File RelativePath=".\src\net\SdpBody.cpp"/>
-                <File RelativePath=".\src\net\SdpCodecFactory.cpp"/>
                 <File RelativePath=".\src\net\SdpHelper.cpp"/>
                 <File RelativePath=".\src\net\SipCallIdGenerator.cpp"/>
                 <File RelativePath=".\src\net\SipClient.cpp"/>
@@ -186,7 +185,6 @@
                 <File RelativePath=".\include\net\PidfBody.h"/>
                 <File RelativePath="include\net\QoS.h"/>
                 <File RelativePath="include\net\SdpBody.h"/>
-                <File RelativePath="include\net\SdpCodecFactory.h"/>
                 <File RelativePath="include\net\SdpHelper.h"/>
                 <File RelativePath=".\include\net\SipCallIdGenerator.h"/>
                 <File RelativePath="include\net\SipClient.h"/>

@@ -25,7 +25,7 @@
 #include "os/OsNatAgentTask.h"
 #include "os/HostAdapterAddress.h"
 #include "net/SipUserAgent.h"
-#include "net/SdpCodecFactory.h"
+#include "sdp/SdpCodecFactory.h"
 #include "net/SipRefreshMgr.h"
 #include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"

@@ -564,6 +564,7 @@ OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferen
       UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs());
       sdpCodecFactory.buildSdpCodecFactory(audioCodecs);// appends selected audio codecs
       sdpCodecFactory.buildSdpCodecFactory(rMsg.getVideoCodecs());// appends selected video codecs
+      sdpCodecFactory.bindPayloadIds();
       sdpCodecFactory.getCodecs(sdpCodecList);
       return m_pMediaInterface->rebuildCodecFactory(sdpCodecList);
    }

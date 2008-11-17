@@ -23,7 +23,7 @@
 #include "mp/MpMisc.h"
 #include "mp/MpCodec.h"
 #include "mp/MpCallFlowGraph.h"
-#include "net/SdpCodecFactory.h"
+#include "sdp/SdpCodecFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "mp/MpAudioDriverDefs.h"
 #include "mp/MpAudioDriverManager.h"

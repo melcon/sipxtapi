@@ -28,7 +28,7 @@
 #include <net/SipMessageEvent.h>
 #include <net/SipUserAgent.h>
 #include <net/NameValueTokenizer.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecFactory.h>
 #include <net/Url.h>
 #include <net/NetBase64Codec.h>
 #include <cp/SipConnection.h>
