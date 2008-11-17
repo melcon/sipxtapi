@@ -112,6 +112,66 @@ void SdpCodecList::addCodecs(const UtlSList& sdpCodecList)
    }
 }
 
+void SdpCodecList::addCodecs(const UtlString &codecList)
+{
+   OsWriteLock lock(mReadWriteMutex);
+   UtlString codecName;
+   int codecStringIndex = 0;
+   SdpCodec::SdpCodecTypes codecType;
+   NameValueTokenizer::getSubField(codecList, codecStringIndex, ", \n\r\t", &codecName);
+
+   while(!codecName.isNull())
+   {
+      codecType = SdpCodec::getCodecType(codecName);
+      if (codecType != SdpCodec::SDP_CODEC_UNKNOWN)
+      {
+         SdpCodec* pCodec = SdpCodecFactory::buildSdpCodec(codecType);
+         if (pCodec)
+         {
+            if (!m_codecsList.find(pCodec))
+            {
+               // codec doesn't exist yet, add it
+               m_codecsList.insert(pCodec);
+            }
+            else
+            {
+               delete pCodec;
+               pCodec = NULL;
+            }
+         }
+      }
+
+      codecStringIndex++;
+      NameValueTokenizer::getSubField(codecList, codecStringIndex, ", \n\r\t", &codecName);
+   }
+}
+
+void SdpCodecList::addCodecs(const SdpCodecList& sdpCodecList)
+{
+   if (this == &sdpCodecList) // handle the assignment to self case
+   {
+      return;
+   }
+
+   UtlSList tmpCodecList; // use tmp list to avoid locking both classes at the same time (deadlock threat)
+   sdpCodecList.getCodecs(tmpCodecList);
+
+   {
+      OsWriteLock lock(mReadWriteMutex);
+      SdpCodec* pCodec = NULL;
+      UtlSListIterator itor(tmpCodecList);
+      while (itor())
+      {
+         pCodec = dynamic_cast<SdpCodec*>(itor.item());
+         if (pCodec)
+         {
+            tmpCodecList.remove(pCodec); // remove from old list
+            m_codecsList.insert(pCodec); // append to new list
+         }
+      }
+   }
+}
+
 void SdpCodecList::addCodec(const SdpCodec& newCodec)
 {
    OsWriteLock lock(mReadWriteMutex);
@@ -186,66 +246,6 @@ void SdpCodecList::clearCodecs(void)
 {
    OsWriteLock lock(mReadWriteMutex);
    m_codecsList.destroyAll();
-}
-
-void SdpCodecList::addCodecs(const UtlString &codecList)
-{
-   OsWriteLock lock(mReadWriteMutex);
-   UtlString codecName;
-   int codecStringIndex = 0;
-   SdpCodec::SdpCodecTypes codecType;
-   NameValueTokenizer::getSubField(codecList, codecStringIndex, ", \n\r\t", &codecName);
-
-   while(!codecName.isNull())
-   {
-      codecType = SdpCodec::getCodecType(codecName);
-      if (codecType != SdpCodec::SDP_CODEC_UNKNOWN)
-      {
-         SdpCodec* pCodec = SdpCodecFactory::buildSdpCodec(codecType);
-         if (pCodec)
-         {
-            if (!m_codecsList.find(pCodec))
-            {
-               // codec doesn't exist yet, add it
-               m_codecsList.insert(pCodec);
-            }
-            else
-            {
-               delete pCodec;
-               pCodec = NULL;
-            }
-         }
-      }
-
-      codecStringIndex++;
-      NameValueTokenizer::getSubField(codecList, codecStringIndex, ", \n\r\t", &codecName);
-   }
-}
-
-void SdpCodecList::addCodecs(const SdpCodecList& sdpCodecList)
-{
-   if (this == &sdpCodecList) // handle the assignment to self case
-   {
-      return;
-   }
-
-   UtlSList tmpCodecList; // use tmp list to avoid locking both classes at the same time (deadlock threat)
-   sdpCodecList.getCodecs(tmpCodecList);
-
-   {
-      OsWriteLock lock(mReadWriteMutex);
-      SdpCodec* pCodec = NULL;
-      UtlSListIterator itor(tmpCodecList);
-      while (itor())
-      {
-         pCodec = dynamic_cast<SdpCodec*>(itor.item());
-         if (pCodec)
-         {
-            tmpCodecList.remove(pCodec); // remove from old list
-            m_codecsList.insert(pCodec); // append to new list
-         }
-      }
-   }
 }
 
 /* ============================ ACCESSORS ================================= */
