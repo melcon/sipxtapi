@@ -2827,7 +2827,7 @@ void CpPeerCall::offHook(const void* pDisplay)
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean CpPeerCall::shouldCreateCall(SipUserAgent& sipUa, OsMsg& eventMessage,
-                                        SdpCodecFactory& codecFactory)
+                                        SdpCodecList& codecFactory)
 {
    UtlBoolean createCall = FALSE;
    int msgType = eventMessage.getMsgType();

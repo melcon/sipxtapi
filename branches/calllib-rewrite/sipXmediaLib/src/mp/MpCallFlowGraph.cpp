@@ -1529,7 +1529,7 @@ void MpCallFlowGraph::stopSendRtp(MpConnectionID connID)
    }
 }
 
-void MpCallFlowGraph::startReceiveRtp(const UtlSList& codecList,
+void MpCallFlowGraph::startReceiveRtp(const SdpCodecList& sdpCodecList,
                                        OsSocket& rRtpSocket,
                                        OsSocket& rRtcpSocket,
                                        MpConnectionID connID)
@@ -1538,7 +1538,7 @@ void MpCallFlowGraph::startReceiveRtp(const UtlSList& codecList,
     {
         MpRtpInputAudioConnection::startReceiveRtp(*(getMsgQ()),
                                 mpInputConnections[connID]->getName(),
-                                codecList, 
+                                sdpCodecList, 
                                 rRtpSocket, 
                                 rRtcpSocket);
     }

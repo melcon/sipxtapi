@@ -13,9 +13,6 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <utl/UtlSList.h>
-#include <os/OsBSem.h>
-#include <os/OsRWMutex.h>
 #include <sdp/SdpCodec.h>
 
 // DEFINES
@@ -28,99 +25,20 @@
 // FORWARD DECLARATIONS
 
 /**
-* Factory and container for all supported codec types
+* Factory for SdpCodec instances.
 */
 class SdpCodecFactory
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-
    /* ============================ CREATORS ================================== */
 
-   /** Default constructor */
-   SdpCodecFactory(int numCodecs = 0, SdpCodec* codecArray[] = NULL);
-
-   /** Constructor from list of SdpCodec instances */
-   SdpCodecFactory(const UtlSList& sdpCodecList);
-
-   /** Destructor */
-   ~SdpCodecFactory();
-
    /* ============================ MANIPULATORS ============================== */
-
-   /** Append a new codec type to the list of known codecs */
-   void addCodec(const SdpCodec& newCodec);
-
-   /**
-   * Append a new codec types to the list of known codecs. Copies of codec items
-   * are made.
-   *
-   * @param sdpCodecList List of SdpCodec instances.
-   */
-   void addCodecs(const UtlSList& sdpCodecList);
-
-   /** Add copies of the array of codecs */
-   void addCodecs(int numCodecs, SdpCodec* newCodecs[]);
-
-   /** Assign any unset payload type ids */
-   void bindPayloadIds();
-
-   /** If there is a matching codec in this factory, set its payload type to that of the given codec */
-   void copyPayloadId(const SdpCodec& codec);
-
-   /** For all matching codecs, copy the payload type from the codecArray to the matching codec in this factory */
-   void copyPayloadIds(int numCodecs, SdpCodec* codecArray[]);
-
-   /** For all matching codecs, copy the payload type from the codecArray to the matching codec in this factory */
-   void copyPayloadIds(const UtlSList& codecList);
-
-   /** Discard all codecs */
-   void clearCodecs(void);
-
-   /**
-    * Adds codecs from given list into codec factory. Codecs are identified by short string name separated
-    * by space or comma.
-    */
-   void buildSdpCodecFactory(const UtlString &codecList);
 
    /** Builds SdpCodec instance from given codec type */
    static SdpCodec* buildSdpCodec(SdpCodec::SdpCodecTypes codecType);
 
    /* ============================ ACCESSORS ================================= */
-
-   /** Get a codec given an internal codec id. Returns internal pointer! */
-   const SdpCodec* getCodec(SdpCodec::SdpCodecTypes internalCodecId);
-
-   /** Get a codec given the payload type id. Returns internal pointer!*/
-   const SdpCodec* getCodecByPayloadId(int payloadTypeId);
-
-   /** Get a codec given the mime type and subtype. Returns internal pointer! */
-   const SdpCodec* getCodec(const char* mimeType, 
-                            const char* mimeSubType);
-
-   /** Get the number of codecs */
-   int getCodecCount();
-
-   /** Get the number of codecs by mime type MIME_TYPE_AUDIO or MIME_TYPE_VIDEO */
-   int getCodecCount(const UtlString& mimeType);
-
-   /** Gets list of SdpCodec instances */
-   void getCodecs(UtlSList& sdpCodecList);
-
-   void getCodecs(int& numCodecs,
-                  SdpCodec**& codecArray);
-
-   void getCodecs(int& numCodecs,
-                  SdpCodec**& codecArray,
-                  const char* mimeType);
-
-   void getCodecs(int& numCodecs, 
-                  SdpCodec**& codecArray,
-                  const char* mimeType,
-                  const char* subMimeType);
-
-   /** String representation of factory and codecs */
-   void toString(UtlString& serializedFactory);
 
    /** Checks if audio/telephone-event is present, and if not adds it */
    static UtlString getFixedAudioCodecs(const UtlString& audioCodecs);
@@ -132,17 +50,14 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Add a new codec type to the list of known codecs */
-   void addCodecNoLock(const SdpCodec& newCodec);
+   /** Default constructor */
+   SdpCodecFactory();
 
    /** Copy constructor */
    SdpCodecFactory(const SdpCodecFactory& rSdpCodecFactory);
 
    /** Assignment operator */
    SdpCodecFactory& operator=(const SdpCodecFactory& rhs);
-
-   UtlSList m_codecsList;
-   mutable OsRWMutex mReadWriteMutex;
 };
 
 /* ============================ INLINE METHODS ============================ */

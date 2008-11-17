@@ -38,7 +38,7 @@
 #include "net/SipPimClient.h"
 #include "net/SipSubscribeServer.h"
 #include "net/SipDialogMgr.h"
-#include "sdp/SdpCodecFactory.h"
+#include "sdp/SdpCodecList.h"
 #include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "tapi/SipXCore.h"
@@ -484,7 +484,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSubscribeClient->start();
 
    // Enable PCMU, PCMA, Tones/RFC2833 codecs
-   pInst->pCodecFactory = new SdpCodecFactory();
+   pInst->pCodecList = new SdpCodecList();
 
    // Instantiate the call processing subsystem
    // create call manager
@@ -494,7 +494,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
       *pInst->pSipUserAgent,
-      *pInst->pCodecFactory,
+      *pInst->pCodecList,
       pInst->pLineManager,
       FALSE, // doNotDisturb
       FALSE, // bEnableICE
@@ -717,7 +717,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSubscribeServer->requestShutdown();
          pInst->pSipRefreshManager->requestShutdown();
          pInst->pMessageObserver->requestShutdown();
-         pInst->pCodecFactory->clearCodecs();
+         pInst->pCodecList->clearCodecs();
 
          delete pInst->pSipPimClient;
          pInst->pSipPimClient = NULL;
@@ -737,7 +737,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pLineManager = NULL;
          delete pInst->pCallManager;
          pInst->pCallManager = NULL;
-         delete pInst->pCodecFactory;
+         delete pInst->pCodecList;
          // release all shared server tasks
          pInst->pSharedTaskMgr->release(*pInst->pLineEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pCallEventListener);

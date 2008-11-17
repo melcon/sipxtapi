@@ -39,7 +39,7 @@ class UtlSList;
 class SipDialog;
 class SipUserAgent;
 class SipLineProvider;
-class SdpCodecFactory;
+class SdpCodecList;
 class XCpAbstractCall;
 class XCpCall;
 class XCpConference;
@@ -68,7 +68,7 @@ public:
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
                   SipUserAgent& rSipUserAgent,
-                  const SdpCodecFactory& rSdpCodecFactory,
+                  const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
@@ -738,7 +738,7 @@ private:
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
    SipUserAgent& m_rSipUserAgent; // sends sip messages
-   const SdpCodecFactory& m_rDefaultSdpCodecFactory; ///< factory for SDP codecs supplied to constructor
+   const SdpCodecList& m_rDefaultSdpCodecList; ///< list for SDP codecs supplied to constructor
    SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
 
    // thread safe atomic

@@ -8,6 +8,7 @@ nobase_include_HEADERS = \
     sdp/SdpCandidate.h \
     sdp/SdpCandidatePair.h \
     sdp/SdpCodec.h \
+    sdp/SdpCodecList.h \
     sdp/SdpCodecFactory.h \
     sdp/SdpMediaLine.h
 

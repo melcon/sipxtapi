@@ -66,7 +66,7 @@ public:
    XCpCall(const UtlString& sId,
            SipUserAgent& rSipUserAgent,
            CpMediaInterfaceFactory& rMediaInterfaceFactory,
-           const SdpCodecFactory& rDefaultSdpCodecFactory,
+           const SdpCodecList& rDefaultSdpCodecList,
            OsMsgQ& rCallManagerQueue,
            CpCallStateEventListener* pCallEventListener = NULL,
            SipInfoStatusEventListener* pInfoStatusEventListener = NULL,

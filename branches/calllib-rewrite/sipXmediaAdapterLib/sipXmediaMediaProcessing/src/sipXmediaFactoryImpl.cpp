@@ -19,11 +19,12 @@
 #include "include/sipXmediaFactoryImpl.h"
 #include "include/CpPhoneMediaInterface.h"
 #include "sdp/SdpCodec.h"
+#include <sdp/SdpCodecFactory.h>
 #include "mp/MpMediaTask.h"
 #include "mp/MpMisc.h"
 #include "mp/MpCodec.h"
 #include "mp/MpCallFlowGraph.h"
-#include "sdp/SdpCodecFactory.h"
+#include "sdp/SdpCodecList.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "mp/MpAudioDriverDefs.h"
 #include "mp/MpAudioDriverManager.h"
@@ -116,7 +117,7 @@ sipXmediaFactoryImpl::~sipXmediaFactoryImpl()
 /* ============================ MANIPULATORS ============================== */
 
 CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-                                                             const UtlSList* pCodecList,
+                                                             const SdpCodecList* pCodecList,
 															                const char* publicAddress,
                                                              const char* localAddress,
                                                              const char* locale,
@@ -442,46 +443,46 @@ UtlString sipXmediaFactoryImpl::getAllSupportedVideoCodecs() const
    return "";
 }
 
-OsStatus sipXmediaFactoryImpl::buildAllCodecFactory(SdpCodecFactory& codecFactory)
+OsStatus sipXmediaFactoryImpl::buildAllCodecList(SdpCodecList& codecList)
 {
-   codecFactory.clearCodecs();
-   codecFactory.buildSdpCodecFactory(getAllSupportedAudioCodecs());
-   codecFactory.buildSdpCodecFactory(getAllSupportedVideoCodecs());
-   codecFactory.bindPayloadIds();
+   codecList.clearCodecs();
+   codecList.addCodecs(getAllSupportedAudioCodecs());
+   codecList.addCodecs(getAllSupportedVideoCodecs());
+   codecList.bindPayloadIds();
    return OS_SUCCESS;
 }
 
-OsStatus sipXmediaFactoryImpl::buildCodecFactory(SdpCodecFactory& codecFactory, 
-                                                 const UtlString& sAudioPreferences,
-                                                 const UtlString& sVideoPreferences)
+OsStatus sipXmediaFactoryImpl::buildCodecList(SdpCodecList& codecList, 
+                                              const UtlString& sAudioPreferences,
+                                              const UtlString& sVideoPreferences)
 {
    OsStatus rc = OS_SUCCESS;
-   codecFactory.clearCodecs();
+   codecList.clearCodecs();
 
    // add preferred audio codecs first
    if (sAudioPreferences.length() > 0)
    {
       UtlString audioCodecs(SdpCodecFactory::getFixedAudioCodecs(sAudioPreferences));
-      codecFactory.buildSdpCodecFactory(audioCodecs);
+      codecList.addCodecs(audioCodecs);
    }
    else
    {
       // Build up all supported audio codecs
-      codecFactory.buildSdpCodecFactory(getAllSupportedAudioCodecs());
+      codecList.addCodecs(getAllSupportedAudioCodecs());
    }
 
    // add preferred video codecs first
    if (sVideoPreferences.length() > 0)
    {
-      codecFactory.buildSdpCodecFactory(sVideoPreferences);
+      codecList.addCodecs(sVideoPreferences);
    }
    else
    {
       // Build up all supported video codecs
-      codecFactory.buildSdpCodecFactory(getAllSupportedVideoCodecs());
+      codecList.addCodecs(getAllSupportedVideoCodecs());
    }
 
-   codecFactory.bindPayloadIds();
+   codecList.bindPayloadIds();
 
    return rc;
 }

@@ -25,7 +25,8 @@
 #include "os/OsNatAgentTask.h"
 #include "os/HostAdapterAddress.h"
 #include "net/SipUserAgent.h"
-#include "sdp/SdpCodecFactory.h"
+#include "sdp/SdpCodecList.h"
+#include <sdp/SdpCodecFactory.h>
 #include "net/SipRefreshMgr.h"
 #include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
@@ -1504,12 +1505,12 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
          {
             freeAudioCodecs(*pInst);
 
-            pInterfaceFactory->buildCodecFactory(*pInst->pCodecFactory,
+            pInterfaceFactory->buildCodecList(*pInst->pCodecList,
                   pInst->audioCodecSetting.preferences,
                   pInst->videoCodecSetting.preferences);
 
             // We've rebuilt the factory, so get the new count of codecs
-            pInst->pCodecFactory->getCodecs(pInst->audioCodecSetting.numCodecs,
+            pInst->pCodecList->getCodecs(pInst->audioCodecSetting.numCodecs,
                   pInst->audioCodecSetting.sdpCodecArray,
                   MIME_TYPE_AUDIO);
 
@@ -1862,12 +1863,12 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
 
          pInst->videoCodecSetting.preferences = szCodecName;
 
-         pInterface->buildCodecFactory(*pInst->pCodecFactory, 
+         pInterface->buildCodecList(*pInst->pCodecList, 
                pInst->audioCodecSetting.preferences,
                pInst->videoCodecSetting.preferences);
 
          // We've rebuilt the factory, so get the new count of codecs
-         pInst->pCodecFactory->getCodecs(pInst->videoCodecSetting.numCodecs,
+         pInst->pCodecList->getCodecs(pInst->videoCodecSetting.numCodecs,
                pInst->videoCodecSetting.sdpCodecArray,
                "video");
 

@@ -85,6 +85,7 @@ class MprSplitter;
 class MprToSpkr;
 class MprToneGen;
 class SdpCodec;
+class SdpCodecList;
 class MpRtpInputAudioConnection;
 class MpRtpOutputAudioConnection;
 
@@ -255,7 +256,7 @@ public:
    void stopSendRtp(MpConnectionID connID=1);
 
      /// Starts receiving RTP and RTCP packets.
-   void startReceiveRtp(const UtlSList& codecList,
+   void startReceiveRtp(const SdpCodecList& sdpCodecList,
                   OsSocket& rRtpSocket, OsSocket& rRtcpSocket,
                   MpConnectionID connID=1);
 
