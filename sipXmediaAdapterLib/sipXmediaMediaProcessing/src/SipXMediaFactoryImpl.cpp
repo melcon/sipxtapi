@@ -579,14 +579,6 @@ OsStatus SipXMediaFactoryImpl::getVideoFrameRate(int& frameRate) const
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus SipXMediaFactoryImpl::getLocalAudioConnectionId(int& connectionId) const 
-{
-    connectionId = -1 ;
-
-    return OS_NOT_SUPPORTED ;
-
-}
-
 OsStatus SipXMediaFactoryImpl::getAudioInputMixerName(UtlString& name) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
