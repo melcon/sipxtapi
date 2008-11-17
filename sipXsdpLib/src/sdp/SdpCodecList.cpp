@@ -71,7 +71,7 @@ SdpCodecList& SdpCodecList::operator=(const SdpCodecList& rhs)
          if (pCodec)
          {
             tmpCodecList.remove(pCodec); // remove from old list
-            m_codecsList.index(pCodec); // append to new list
+            m_codecsList.insert(pCodec); // append to new list
          }
       }
    }
@@ -242,7 +242,7 @@ void SdpCodecList::addCodecs(const SdpCodecList& sdpCodecList)
          if (pCodec)
          {
             tmpCodecList.remove(pCodec); // remove from old list
-            m_codecsList.index(pCodec); // append to new list
+            m_codecsList.insert(pCodec); // append to new list
          }
       }
    }
