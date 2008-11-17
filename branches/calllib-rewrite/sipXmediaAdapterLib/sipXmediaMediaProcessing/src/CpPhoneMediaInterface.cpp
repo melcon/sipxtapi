@@ -1453,23 +1453,18 @@ OsStatus CpPhoneMediaInterface::setAudioCodecBandwidth(int connectionId, int ban
     return OS_NOT_SUPPORTED ;
 }
 
-OsStatus CpPhoneMediaInterface::rebuildCodecList(const UtlSList& sdpCodecList)
+OsStatus CpPhoneMediaInterface::setCodecList(const SdpCodecList& sdpCodecList)
 {
-   mSdpCodecList.clearCodecs();
-   UtlSListIterator itor(sdpCodecList);
-   SdpCodec* pSdpCodec = NULL;
-   while (itor())
-   {
-      pSdpCodec = dynamic_cast<SdpCodec*>(itor.item());
-      if (pSdpCodec)
-      {
-         // add codec
-         mSdpCodecList.addCodec(*pSdpCodec);
-      }
-   }
+   mSdpCodecList = sdpCodecList;
    // Assign any unset payload types
    mSdpCodecList.bindPayloadIds();
 
+   return OS_SUCCESS;
+}
+
+OsStatus CpPhoneMediaInterface::getCodecList(SdpCodecList& sdpCodecList)
+{
+   sdpCodecList = mSdpCodecList;
    return OS_SUCCESS;
 }
 
@@ -2537,7 +2532,6 @@ OsStatus CpPhoneMediaInterface::createRtpSocketPair(UtlString localAddress,
 
    return OS_SUCCESS;
 }
-
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

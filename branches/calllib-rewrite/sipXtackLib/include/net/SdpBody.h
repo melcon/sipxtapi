@@ -457,7 +457,7 @@ class SdpBody : public HttpBody
                           int audioPayloadTypes[],
                           int videoPayloadTypes[],
                           int videoRtpPort,
-                          SdpCodecList& localRtpCodecs,
+                          const SdpCodecList& localRtpCodecs,
                           int& numCodecsInCommon,
                           SdpCodec* commonCodecsForEncoder[],
                           SdpCodec* commonCodecsForDecoder[]) const;
