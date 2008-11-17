@@ -333,7 +333,8 @@ public:
         mSdp.addMediaLine(mediaLine);
         CPPUNIT_ASSERT(mSdp.getMediaLines().entries() == 1);
         mediaLine = new SdpMediaLine();
-        SdpCodec* codec = new SdpCodec(19, MIME_TYPE_AUDIO, MIME_SUBTYPE_G729, 8000, 20000, 1, "annexb=no");
+        SdpCodec* codec = new SdpCodec(SdpCodec::SDP_CODEC_G729, 19, "G729",
+           MIME_TYPE_AUDIO, MIME_SUBTYPE_G729, 8000, 20000, 1, "annexb=no");
         CPPUNIT_ASSERT(codec->getCodecType() == SdpCodec::SDP_CODEC_G729);
         CPPUNIT_ASSERT(codec->getCodecPayloadId() == 19);
         CPPUNIT_ASSERT(codec->getSampleRate() == 8000);
