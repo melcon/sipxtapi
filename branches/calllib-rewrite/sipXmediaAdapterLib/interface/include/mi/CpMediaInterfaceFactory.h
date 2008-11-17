@@ -121,7 +121,7 @@ public:
    */
    virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
                                                   const SdpCodecList* pCodecList,///< list of SdpCodec instances
-                                                  const char* publicAddress,///< ignored
+                                                  const char* publicIPAddress,///< ignored
                                                   const char* localIPAddress,///< local bind IP address
                                                   const char* locale,///< locale for tone generator
                                                   int expeditedIpTos,

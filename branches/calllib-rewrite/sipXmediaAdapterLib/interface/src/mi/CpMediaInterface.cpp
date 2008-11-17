@@ -25,7 +25,7 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-int CpMediaInterface::sInvalidConnectionId = -1;
+int CpMediaInterface::sInvalidConnectionId = CpMediaInterface::INVALID_CONNECTION_ID;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -72,16 +72,11 @@ OsStatus CpMediaInterface::muteInput(int connectionId, UtlBoolean bMute)
 
 /* ============================ ACCESSORS ================================= */
 
-int CpMediaInterface::getInvalidConnectionId()
-{
-    return(sInvalidConnectionId);
-}
-
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean CpMediaInterface::isConnectionIdValid(int connectionId)
 {
-    return(connectionId > sInvalidConnectionId);
+    return connectionId > CpMediaInterface::INVALID_CONNECTION_ID;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

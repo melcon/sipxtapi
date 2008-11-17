@@ -53,7 +53,7 @@ struct IRTCPControl ;
 /**
  *
  */
-class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
+class SipXMediaFactoryImpl : public CpMediaInterfaceFactory
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
   public:
@@ -63,19 +63,19 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
    /**
     * Default constructor
     */
-   sipXmediaFactoryImpl(OsConfigDb* pConfigDb);
+   SipXMediaFactoryImpl(OsConfigDb* pConfigDb);
      
 
    /**
     * Destructor
     */
-   virtual ~sipXmediaFactoryImpl();
+   virtual ~SipXMediaFactoryImpl();
 
 /* ============================ MANIPULATORS ============================== */
     virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
                                                    const SdpCodecList* pCodecList,
-													            const char* publicAddress,
-                                                    const char* localAddress,
+													            const char* publicIPAddress,
+                                                    const char* localIPAddress,
                                                     const char* locale,
                                                     int expeditedIpTos,
                                                     const char* szStunServer,

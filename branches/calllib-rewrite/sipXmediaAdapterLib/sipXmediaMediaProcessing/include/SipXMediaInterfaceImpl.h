@@ -13,8 +13,8 @@
 
 // Author: Dan Petrie (dpetrie AT SIPez DOT com)
 
-#ifndef _CpPhoneMediaInterface_h_
-#define _CpPhoneMediaInterface_h_
+#ifndef _SipXMediaInterfaceImpl_h_
+#define _SipXMediaInterfaceImpl_h_
 
 // SYSTEM INCLUDES
 //#include <>
@@ -37,12 +37,12 @@
 class MpCallFlowGraph;
 class SdpCodec;
 class OsDatagramSocket;
-class CpPhoneMediaConnection;
+class SipXMediaConnection;
 class ISocketEvent;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
-class CpPhoneMediaInterface : public CpMediaInterface
+class SipXMediaInterfaceImpl : public CpMediaInterface
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -57,10 +57,10 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
+   SipXMediaInterfaceImpl(CpMediaInterfaceFactory* pFactoryImpl,
 						       OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
                          const SdpCodecList* pCodecList = NULL,///< list of SdpCodec instances
-                         const char* publicAddress = NULL,///< ignored
+                         const char* publicIPAddress = NULL,///< ignored
                          const char* localIPAddress = NULL,///< local bind IP address
                          const char* pLocale = "",///< locale for tone generator
                          int expeditedIpTos = QOS_LAYER3_LOW_DELAY_IP_TOS,
@@ -77,7 +77,7 @@ public:
 
   protected:
    virtual
-   ~CpPhoneMediaInterface();
+   ~SipXMediaInterfaceImpl();
      //:Destructor
   public:
 
@@ -330,7 +330,7 @@ public:
                                     int* videoPayloadType,
                                     bool& isEncrypted) ;
 
-   virtual UtlString getType() { return "CpPhoneMediaInterface"; };
+   virtual UtlString getType() { return "SipXMediaInterfaceImpl"; };
 
 /* ============================ INQUIRY =================================== */
 
@@ -420,9 +420,9 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-    CpPhoneMediaConnection* getMediaConnection(int connectionId);
-    CpPhoneMediaConnection* removeMediaConnection(int connectionId);
-    OsStatus doDeleteConnection(CpPhoneMediaConnection* mediaConnection);
+    SipXMediaConnection* getMediaConnection(int connectionId);
+    SipXMediaConnection* removeMediaConnection(int connectionId);
+    OsStatus doDeleteConnection(SipXMediaConnection* mediaConnection);
 
    UtlString mRtpReceiveHostAddress; ///< Advertised as place to send RTP/RTCP
    UtlString mLocalIPAddress;          ///< Address on which ports are bound
@@ -444,13 +444,13 @@ private:
    OsMsgQ* m_pInterfaceNotificationQueue;
 
    // Disabled copy constructor
-   CpPhoneMediaInterface(const CpPhoneMediaInterface& rCpPhoneMediaInterface);
+   SipXMediaInterfaceImpl(const SipXMediaInterfaceImpl& rCpPhoneMediaInterface);
 
    // Disabled equals operator
-   CpPhoneMediaInterface& operator=(const CpPhoneMediaInterface& rhs);
+   SipXMediaInterfaceImpl& operator=(const SipXMediaInterfaceImpl& rhs);
      
 
 };
 
 /* ============================ INLINE METHODS ============================ */
-#endif  // _CpPhoneMediaInterface_h_
+#endif  // _SipXMediaInterfaceImpl_h_
