@@ -351,6 +351,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\sdp\SdpCodecList.cpp"
+				>
+			</File>
+			<File
 				RelativePath="src\sdp\SdpHelperResip.cpp"
 				>
 			</File>
@@ -381,6 +385,10 @@
 			</File>
 			<File
 				RelativePath=".\include\sdp\SdpCodecFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\sdp\SdpCodecList.h"
 				>
 			</File>
 			<File

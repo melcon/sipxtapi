@@ -22,7 +22,7 @@
 #include "os/OsStatus.h"
 #include "utl/UtlDefs.h"
 #include "utl/UtlString.h"
-#include "sdp/SdpCodecFactory.h"
+#include "sdp/SdpCodecList.h"
 #include "utl/UtlSList.h"
 #include "os/OsMutex.h"
 
@@ -120,21 +120,21 @@ public:
    * Create a media interface given the designated parameters.
    */
    virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-      const UtlSList* pCodecList,// list of SdpCodec instances
-      const char* publicAddress,
-      const char* localAddress,
-      const char* locale,
-      int expeditedIpTos,
-      const char* szStunServer,
-      int iStunPort,
-      int iStunKeepAliveSecs,
-      const char* szTurnServer,
-      int iTurnPort,
-      const char* szTurnUsername,
-      const char* szTurnPassword,
-      int iTurnKeepAliveSecs,
-      UtlBoolean bEnableICE
-      ) = 0;
+                                                  const SdpCodecList* pCodecList,// list of SdpCodec instances
+                                                  const char* publicAddress,
+                                                  const char* localAddress,
+                                                  const char* locale,
+                                                  int expeditedIpTos,
+                                                  const char* szStunServer,
+                                                  int iStunPort,
+                                                  int iStunKeepAliveSecs,
+                                                  const char* szTurnServer,
+                                                  int iTurnPort,
+                                                  const char* szTurnUsername,
+                                                  const char* szTurnPassword,
+                                                  int iTurnKeepAliveSecs,
+                                                  UtlBoolean bEnableICE
+                                                  ) = 0;
 
    /**
     * Gets number of input audio devices
@@ -260,16 +260,16 @@ public:
    }
 
    /**
-   * Populate the codec factory, return number of rejected codecs
+   * Populate the codec list using supplied string with audio and video codec names.
    */
-   virtual OsStatus buildCodecFactory(SdpCodecFactory& codecFactory, 
-                                      const UtlString& sAudioPreferences,
-                                      const UtlString& sVideoPreferences) = 0;
+   virtual OsStatus buildCodecList(SdpCodecList& codecList, 
+                                   const UtlString& sAudioPreferences,
+                                   const UtlString& sVideoPreferences) = 0;
 
    /**
-   * Populate the codec factory with all available codecs.
+   * Populate the codec list with all available codecs.
    */
-   virtual OsStatus buildAllCodecFactory(SdpCodecFactory& codecFactory) = 0;
+   virtual OsStatus buildAllCodecList(SdpCodecList& codecList) = 0;
 
    /**
     * Gets string with all supported audio codecs. Can be used to build codec factory

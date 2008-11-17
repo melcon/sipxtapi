@@ -168,11 +168,11 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
     {
         CPPUNIT_ASSERT(mpMediaFactory);
 
-        SdpCodecFactory* codecFactory = new SdpCodecFactory();
-        CPPUNIT_ASSERT(codecFactory);
-        UtlSList codecList;
-        codecFactory->getCodecs(codecList);
-        printf("CpPhoneMediaInterfaceTest::testProperties numCodec: %d\n", (int)codecList.entries());
+        SdpCodecList* pSdpCodecList = new SdpCodecList();
+        CPPUNIT_ASSERT(pSdpCodecList);
+        UtlSList utlCodecList;
+        pSdpCodecList->getCodecs(utlCodecList);
+        printf("CpPhoneMediaInterfaceTest::testProperties numCodec: %d\n", (int)utlCodecList.entries());
 
         UtlString localRtpInterfaceAddress("127.0.0.1");
         UtlString locale;
@@ -189,7 +189,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         CpMediaInterface* mediaInterface = 
             mpMediaFactory->createMediaInterface(NULL, // notification queue
-                                                 &codecList,
+                                                 pSdpCodecList,
                                                  NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  locale,
@@ -253,7 +253,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         mediaInterface->release(); 
 
         // delete mpMediaFactory ;
-        delete codecFactory ;
+        delete pSdpCodecList ;
     }
 
     void testRecordPlayback()
@@ -262,10 +262,10 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         CPPUNIT_ASSERT(mpMediaFactory);
 
-        SdpCodecFactory* codecFactory = new SdpCodecFactory();
-        CPPUNIT_ASSERT(codecFactory);
-        UtlSList codecList;
-        codecFactory->getCodecs(codecList);
+        SdpCodecList* pSdpCodecList = new SdpCodecList();
+        CPPUNIT_ASSERT(pSdpCodecList);
+        UtlSList utlCodecList;
+        pSdpCodecList->getCodecs(utlCodecList);
 
         UtlString localRtpInterfaceAddress("127.0.0.1");
         UtlString locale;
@@ -284,7 +284,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         CpMediaInterface* mediaInterface = 
             mpMediaFactory->createMediaInterface(NULL,
-                                                 &codecList,
+                                                 pSdpCodecList,
                                                  NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  locale,
@@ -412,7 +412,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         mediaInterface->deleteConnection(connectionId) ;
 
-        delete codecFactory ;
+        delete pSdpCodecList ;
         // delete interface
         mediaInterface->release(); 
     }
@@ -423,10 +423,10 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         CPPUNIT_ASSERT(mpMediaFactory);
 
-        SdpCodecFactory* codecFactory = new SdpCodecFactory();
-        CPPUNIT_ASSERT(codecFactory);
-        UtlSList codecList;
-        codecFactory->getCodecs(codecList);
+        SdpCodecList* sdpCodecList = new SdpCodecList();
+        CPPUNIT_ASSERT(sdpCodecList);
+        UtlSList utlCodecList;
+        sdpCodecList->getCodecs(utlCodecList);
 
         UtlString localRtpInterfaceAddress("127.0.0.1");
         UtlString locale;
@@ -444,7 +444,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         CpMediaInterface* mediaInterface = 
             mpMediaFactory->createMediaInterface(NULL,
-                                                 &codecList,
+                                                 sdpCodecList,
                                                  NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  locale,
@@ -512,7 +512,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         mediaInterface->release(); 
 
         OsTask::delay(500) ;
-        delete codecFactory ;
+        delete sdpCodecList ;
     };
 
     void testTwoTones()
@@ -526,10 +526,10 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         // interactions or dependencies.
         CPPUNIT_ASSERT(mpMediaFactory);
 
-        SdpCodecFactory* codecFactory = new SdpCodecFactory();
-        CPPUNIT_ASSERT(codecFactory);
-        UtlSList codecList;
-        codecFactory->getCodecs(codecList);
+        SdpCodecList* pSdpCodecList = new SdpCodecList();
+        CPPUNIT_ASSERT(pSdpCodecList);
+        UtlSList utlCodecList;
+        pSdpCodecList->getCodecs(utlCodecList);
 
         UtlString localRtpInterfaceAddress("127.0.0.1");
         OsSocket::getHostIp(&localRtpInterfaceAddress);
@@ -548,7 +548,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         // Create a flowgraph (sink) to receive and mix 2 sources
         CpMediaInterface* mixedInterface = 
             mpMediaFactory->createMediaInterface(NULL,
-                                                 &codecList,
+                                                 pSdpCodecList,
                                                  NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  locale,
@@ -581,7 +581,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         int rtcpVideoPorts1[maxAddresses];
         RTP_TRANSPORT transportTypes1[maxAddresses];
         int numActualAddresses1;
-        SdpCodecFactory supportedCodecs1;
+        SdpCodecList supportedCodecs1;
         SdpSrtpParameters srtpParameters1;
         int bandWidth1 = 0;
         int videoBandwidth1;
@@ -612,7 +612,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         int rtcpVideoPorts2[maxAddresses];
         RTP_TRANSPORT transportTypes2[maxAddresses];
         int numActualAddresses2;
-        SdpCodecFactory supportedCodecs2;
+        SdpCodecList supportedCodecs2;
         SdpSrtpParameters srtpParameters2;
         int bandWidth2 = 0;
         int videoBandwidth2;
@@ -656,7 +656,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         // Second flowgraph to be one of two sources
         CpMediaInterface* source1Interface = 
             mpMediaFactory->createMediaInterface(NULL,
-                                                 &codecList,
+                                                 pSdpCodecList,
                                                  NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  locale,
@@ -704,7 +704,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         // Second flowgraph to be one of two sources
         CpMediaInterface* source2Interface = 
             mpMediaFactory->createMediaInterface(NULL,
-                                                 &codecList,
+                                                 pSdpCodecList,
                                                  NULL, // public mapped RTP IP address
                                                  localRtpInterfaceAddress, 
                                                  locale,
@@ -791,7 +791,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         RTL_WRITE("testTwoTones.rtl");
         RTL_STOP;
 
-        delete codecFactory ;
+        delete pSdpCodecList ;
     };
 };
 

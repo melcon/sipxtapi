@@ -18,7 +18,7 @@
 #include <os/OsDefs.h>
 #include <net/HttpMessage.h>
 #include <net/SdpBody.h>
-#include <sdp/SdpCodecFactory.h>
+#include <sdp/SdpCodecList.h>
 #include <net/NetBase64Codec.h>
 
 
@@ -891,7 +891,7 @@ public:
 
     void testVideoCodecSelection()
     {
-        SdpCodecFactory fac;
+        SdpCodecList fac;
 
         SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 99, "VP71-QVGA","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_QVGA) ;
@@ -1036,7 +1036,7 @@ public:
         CPPUNIT_ASSERT_EQUAL(33, ptimeValue);
 
 
-        SdpCodecFactory sdpFactory;
+        SdpCodecList sdpFactory;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
                                             SdpCodec::SDP_CODEC_UNKNOWN,
                                             "PCMU",
@@ -1170,7 +1170,7 @@ public:
            "c=IN IP4 10.1.1.31\r\n";
         SdpBody sloppyPtimeSdpBody(sloppyPtimeBodyString);
 
-        SdpCodecFactory sdpFactory;
+        SdpCodecList sdpFactory;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
            SdpCodec::SDP_CODEC_PCMU, 
            "PCMU",

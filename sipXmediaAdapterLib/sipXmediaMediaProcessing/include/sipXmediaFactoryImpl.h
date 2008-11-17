@@ -73,7 +73,7 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
 /* ============================ MANIPULATORS ============================== */
     virtual CpMediaInterface* createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-                                                   const UtlSList* pCodecList,
+                                                   const SdpCodecList* pCodecList,
 													            const char* publicAddress,
                                                     const char* localAddress,
                                                     const char* locale,
@@ -108,11 +108,11 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
 
     virtual OsStatus enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable);
 
-    virtual OsStatus buildCodecFactory(SdpCodecFactory& codecFactory, 
-                                       const UtlString& sPreferences,
-                                       const UtlString& sVideoPreferences);
+    virtual OsStatus buildCodecList(SdpCodecList& codecFactory, 
+                                    const UtlString& sPreferences,
+                                    const UtlString& sVideoPreferences);
 
-    virtual OsStatus buildAllCodecFactory(SdpCodecFactory& codecFactory);
+    virtual OsStatus buildAllCodecList(SdpCodecList& codecList);
 
     virtual UtlString getAllSupportedAudioCodecs() const;
 

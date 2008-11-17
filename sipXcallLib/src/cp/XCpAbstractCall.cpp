@@ -19,6 +19,7 @@
 #include <os/OsPtrLock.h>
 #include <os/OsIntPtrMsg.h>
 #include <net/SipMessage.h>
+#include <sdp/SdpCodecFactory.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
@@ -63,7 +64,7 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipUserAgent& rSipUserAgent,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
-                                 const SdpCodecFactory& rDefaultSdpCodecFactory,
+                                 const SdpCodecList& rDefaultSdpCodecList,
                                  OsMsgQ& rCallManagerQueue,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -74,7 +75,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_sId(sId)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
-, m_rDefaultSdpCodecFactory(rDefaultSdpCodecFactory)
+, m_rDefaultSdpCodecList(rDefaultSdpCodecList)
 , m_rCallManagerQueue(rCallManagerQueue)
 , m_pMediaInterface(NULL)
 , m_bIsFocused(FALSE)
@@ -559,14 +560,14 @@ OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferen
 {
    if (m_pMediaInterface)
    {
-      UtlSList sdpCodecList;
-      SdpCodecFactory sdpCodecFactory;
+      UtlSList sdpCodecUtlList;
+      SdpCodecList sdpCodecList;
       UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs());
-      sdpCodecFactory.buildSdpCodecFactory(audioCodecs);// appends selected audio codecs
-      sdpCodecFactory.buildSdpCodecFactory(rMsg.getVideoCodecs());// appends selected video codecs
-      sdpCodecFactory.bindPayloadIds();
-      sdpCodecFactory.getCodecs(sdpCodecList);
-      return m_pMediaInterface->rebuildCodecFactory(sdpCodecList);
+      sdpCodecList.addCodecs(audioCodecs);// appends selected audio codecs
+      sdpCodecList.addCodecs(rMsg.getVideoCodecs());// appends selected video codecs
+      sdpCodecList.bindPayloadIds();
+      sdpCodecList.getCodecs(sdpCodecUtlList);
+      return m_pMediaInterface->rebuildCodecList(sdpCodecUtlList);
    }
 
    return OS_FAILED;

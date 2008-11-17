@@ -37,6 +37,7 @@ class MprDecodeInBandDtmf;
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
+class SdpCodecList;
 
 /**
 *  @brief Connection container for audio part of call.
@@ -97,7 +98,7 @@ public:
    /// Queue a message to start receiving RTP and RTCP packets.
    static OsStatus startReceiveRtp(OsMsgQ& messageQueue,
                                    const UtlString& resourceName,
-                                   const UtlSList& codecList,
+                                   const SdpCodecList& sdpCodecList,
                                    OsSocket& rRtpSocket, 
                                    OsSocket& rRtcpSocket);
 

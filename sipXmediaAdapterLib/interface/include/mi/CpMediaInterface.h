@@ -94,7 +94,7 @@ typedef enum IMediaEvent_DeviceTypes
 
 // FORWARD DECLARATIONS
 class SdpCodec;
-class SdpCodecFactory;
+class SdpCodecList;
 class MpStreamPlaylistPlayer;
 class MpStreamPlayer;
 class MpStreamQueuePlayer;
@@ -291,7 +291,7 @@ public:
 
      /// @brief Start sending RTP using the specified codec list.
    virtual OsStatus startRtpSend(int connectionId, 
-                                 const UtlSList& codecList) = 0 ;
+                                 const SdpCodecList& codecList) = 0 ;
      /**<
      *  Generally, this codec list is the intersection between both parties.
      *
@@ -302,7 +302,7 @@ public:
 
      /// @brief Start receiving RTP using the specified codec list.
    virtual OsStatus startRtpReceive(int connectionId,
-                                    const UtlSList& codecList) = 0;
+                                    const SdpCodecList& codecList) = 0;
      /**<
      *  Generally, this codec list is the intersection between both parties.
      *  The media processing subsystem should be prepared to receive any of 
@@ -552,8 +552,8 @@ public:
    //! Rebuild the codec factory on the fly
    virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) = 0;
 
-   /** Rebuilds SdpCodecFactory using supplied list of SdpCodec instances */
-   virtual OsStatus rebuildCodecFactory(const UtlSList& sdpCodecList) = 0;
+   /** Rebuilds SdpCodecList using supplied list of SdpCodec instances */
+   virtual OsStatus rebuildCodecList(const UtlSList& sdpCodecList) = 0;
 
    //! Set connection bitrate on the fly
    virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) = 0 ;
@@ -599,7 +599,7 @@ public:
                                     int& rtcpAudioPort,
                                     int& rtpVideoPort,
                                     int& rtcpVideoPort, 
-                                    SdpCodecFactory& supportedCodecs,
+                                    SdpCodecList& supportedCodecs,
                                     SdpSrtpParameters& srtpParams,
                                     int bandWidth,
                                     int& videoBandwidth,
@@ -617,7 +617,7 @@ public:
                                       int rtcpVideoPorts[],
                                       RTP_TRANSPORT transportTypes[],
                                       int& nActualAddresses,
-                                      SdpCodecFactory& supportedCodecs,
+                                      SdpCodecList& supportedCodecs,
                                       SdpSrtpParameters& srtpParameters,
                                       int bandWidth,
                                       int& videoBandwidth,

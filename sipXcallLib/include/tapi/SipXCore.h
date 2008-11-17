@@ -50,7 +50,7 @@ class SipSubscribeClient;
 class XCpCallManager;
 class SipLineMgr;
 class SdpCodec;
-class SdpCodecFactory;
+class SdpCodecList;
 class SipUserAgent;
 class SipRefreshMgr;
 class SipDialogMgr;
@@ -150,7 +150,7 @@ class SIPX_INSTANCE_DATA
 public:
    SipUserAgent*    pSipUserAgent;
    SipPimClient*    pSipPimClient;
-   SdpCodecFactory* pCodecFactory;
+   SdpCodecList* pCodecList;
    XCpCallManager*     pCallManager;
    SipLineMgr*      pLineManager;
    SipRefreshMgr*   pRefreshManager;
@@ -191,7 +191,7 @@ public:
    SIPX_INSTANCE_DATA() : lock(OsMutex::Q_FIFO),
       pSipUserAgent(NULL),
       pSipPimClient(NULL),
-      pCodecFactory(NULL),
+      pCodecList(NULL),
       pCallManager(NULL),
       pLineManager(NULL),
       pRefreshManager(NULL),

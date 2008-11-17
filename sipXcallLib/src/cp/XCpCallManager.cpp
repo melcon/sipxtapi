@@ -56,7 +56,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener,
                                SipUserAgent& rSipUserAgent,
-                               const SdpCodecFactory& rSdpCodecFactory,
+                               const SdpCodecList& rSdpCodecList,
                                SipLineProvider* pSipLineProvider,
                                UtlBoolean bDoNotDisturb,
                                UtlBoolean bEnableICE,
@@ -73,7 +73,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_rSipUserAgent(rSipUserAgent)
-, m_rDefaultSdpCodecFactory(rSdpCodecFactory)
+, m_rDefaultSdpCodecList(rSdpCodecList)
 , m_pSipLineProvider(pSipLineProvider)
 , m_callIdGenerator(callIdPrefix)
 , m_conferenceIdGenerator(conferenceIdPrefix)
@@ -175,7 +175,7 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
       sCallId = getNewCallId();
    }
 
-   XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecFactory, *getMessageQueue(),
+   XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
       m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start();
@@ -207,7 +207,7 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    {
       sConferenceId = getNewConferenceId();
    }
-   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecFactory,
+   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
       *getMessageQueue(), m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pConference->start();
@@ -1712,7 +1712,7 @@ void XCpCallManager::createNewInboundCall(const SipMessageEvent& rSipMsgEvent)
    {
       UtlString sSipCallId = getNewSipCallId();
 
-      XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecFactory, 
+      XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
          *getMessageQueue(), m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
       UtlBoolean resStart = pCall->start(); // start thread

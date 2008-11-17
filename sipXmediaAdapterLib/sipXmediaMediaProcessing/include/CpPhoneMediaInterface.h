@@ -23,7 +23,7 @@
 #include <os/OsStatus.h>
 #include <os/OsDefs.h>
 #include <net/QoS.h>
-#include <sdp/SdpCodecFactory.h>
+#include <sdp/SdpCodecList.h>
 #include "mi/CpMediaInterface.h"
 
 // DEFINES
@@ -59,7 +59,7 @@ public:
 
    CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
 						       OsMsgQ* pInterfaceNotificationQueue,
-                         const UtlSList* pCodecList = NULL,
+                         const SdpCodecList* pCodecList = NULL,
                          const char* publicAddress = NULL, 
                          const char* localAddress = NULL,
                          const char* pLocale = "",
@@ -105,7 +105,7 @@ public:
                                     int& rtcpAudioPort,
                                     int& rtpVideoPort,
                                     int& rtcpVideoPort,
-                                    SdpCodecFactory& supportedCodecs,
+                                    SdpCodecList& supportedCodecs,
                                     SdpSrtpParameters& srtpParams,
                                     int bandWidth,
                                     int& videoBandwidth,
@@ -120,7 +120,7 @@ public:
                                       int rtcpVideoPorts[],
                                       RTP_TRANSPORT transportTypes[],
                                       int& nActualAddresses,
-                                      SdpCodecFactory& supportedCodecs,
+                                      SdpCodecList& supportedCodecs,
                                       SdpSrtpParameters& srtpParameters,
                                       int bandWidth,
                                       int& videoBandwidth,
@@ -137,10 +137,10 @@ public:
                                              int rtcpVideoPort);
 
    virtual OsStatus startRtpSend(int connectionId, 
-                                 const UtlSList& codecList);
+                                 const SdpCodecList& codecList);
 
    virtual OsStatus startRtpReceive(int connectionId,
-                                    const UtlSList& codecList);
+                                    const SdpCodecList& codecList);
 
    virtual OsStatus stopRtpSend(int connectionId);
    virtual OsStatus stopRtpReceive(int connectionId);
@@ -232,10 +232,10 @@ public:
     virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) ;
 
     /**
-     * Rebuilds SdpCodecFactory using supplied list of SdpCodec instances
+     * Rebuilds SdpCodecList using supplied list of SdpCodec instances
      * @param sdpCodecList List with instances of SdpCodec
      */
-    virtual OsStatus rebuildCodecFactory(const UtlSList& sdpCodecList);
+    virtual OsStatus rebuildCodecList(const UtlSList& sdpCodecList);
 
     //! Set conneection bitrate on the fly
     virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) ;
@@ -426,7 +426,7 @@ private:
    UtlString mLocalAddress;          ///< Address on which ports are bound
    MpCallFlowGraph* mpFlowGraph;     ///< Flowgraph for audio part of call
    UtlBoolean mRingToneFromFile;
-   SdpCodecFactory mSdpCodecFactory;
+   SdpCodecList mSdpCodecList;
    UtlDList mMediaConnections;
    int mExpeditedIpTos;
    UtlString mStunServer ;

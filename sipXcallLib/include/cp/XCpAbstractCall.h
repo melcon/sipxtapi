@@ -41,7 +41,7 @@ class SipUserAgent;
 class SipMessageEvent;
 class XSipConnection;
 class CpMediaInterfaceFactory;
-class SdpCodecFactory;
+class SdpCodecList;
 class CpMediaInterface;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
@@ -102,7 +102,7 @@ public:
    XCpAbstractCall(const UtlString& sId,
                    SipUserAgent& rSipUserAgent,
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
-                   const SdpCodecFactory& rDefaultSdpCodecFactory,
+                   const SdpCodecList& rDefaultSdpCodecList,
                    OsMsgQ& rCallManagerQueue,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -377,7 +377,7 @@ protected:
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
-   const SdpCodecFactory& m_rDefaultSdpCodecFactory; ///< default globally shared SdpCodec factory for new calls
+   const SdpCodecList& m_rDefaultSdpCodecList; ///< default globally shared SdpCodec factory for new calls
    // set only once and thread safe
    CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
    SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events

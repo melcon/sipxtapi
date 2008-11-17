@@ -27,6 +27,7 @@
 #include "mp/MprDecodeInbandDtmf.h"
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
+#include <sdp/SdpCodecList.h>
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
 #endif
@@ -243,16 +244,16 @@ UtlBoolean MpRtpInputAudioConnection::handleEnable()
 
 OsStatus MpRtpInputAudioConnection::startReceiveRtp(OsMsgQ& messageQueue,
                                                     const UtlString& resourceName,
-                                                    const UtlSList& codecList,
+                                                    const SdpCodecList& sdpCodecList,
                                                     OsSocket& rRtpSocket,
                                                     OsSocket& rRtcpSocket)
 {
     OsStatus result = OS_INVALID_ARGUMENT;
-    if(codecList.entries() > 0)
+    if(sdpCodecList.getCodecCount() > 0)
     {
         // Create a message to contain the startRecieveRtp data
         MprRtpStartReceiveMsg msg(resourceName,
-                                  codecList,
+                                  sdpCodecList,
                                   rRtpSocket,
                                   rRtcpSocket);
 

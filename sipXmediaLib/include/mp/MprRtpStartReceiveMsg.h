@@ -16,6 +16,7 @@
 // APPLICATION INCLUDES
 #include "os/OsMsg.h"
 #include <utl/UtlSListIterator.h>
+#include <sdp/SdpCodecList.h>
 #include "mp/MpResourceMsg.h"
 
 // DEFINES
@@ -39,14 +40,14 @@ public:
 
    /// Constructor
    MprRtpStartReceiveMsg(const UtlString& targetResourceName,
-                         const UtlSList& codecList,
+                         const SdpCodecList& sdpCodecList,
                          OsSocket& rRtpSocket,
                          OsSocket& rRtcpSocket)
       : MpResourceMsg(MPRM_START_RECEIVE_RTP, targetResourceName)
       , mpRtpSocket(&rRtpSocket)
       , mpRtcpSocket(&rRtcpSocket)
+      , mSdpCodecList(sdpCodecList)
    {
-      copyCodecList(codecList, mCodecList);
    };
 
    /// Copy constructor
@@ -54,8 +55,8 @@ public:
       : MpResourceMsg(resourceMsg)
       , mpRtpSocket(resourceMsg.mpRtpSocket)
       , mpRtcpSocket(resourceMsg.mpRtcpSocket)
+      , mSdpCodecList(resourceMsg.mSdpCodecList)
    {
-      copyCodecList(resourceMsg.mCodecList, mCodecList);
    };
 
    /// Create a copy of this msg object (which may be of a derived type)
@@ -67,7 +68,6 @@ public:
    /// Destructor
    ~MprRtpStartReceiveMsg() 
    {
-       mCodecList.destroyAll();
    };
 
    //@}
@@ -83,7 +83,7 @@ public:
          return *this;  // handle the assignment to self case
 
       MpResourceMsg::operator=(rhs);  // assign fields for parent class
-      copyCodecList(rhs.mCodecList, mCodecList);
+      mSdpCodecList = rhs.mSdpCodecList;
       mpRtpSocket = rhs.mpRtpSocket;
       mpRtcpSocket = rhs.mpRtcpSocket;
 
@@ -96,7 +96,7 @@ public:
 
    void getCodecList(UtlSList& codecList)
    {
-      copyCodecList(mCodecList, codecList);
+      mSdpCodecList.getCodecs(codecList);
    }
 
    OsSocket* getRtpSocket(){return(mpRtpSocket);};
@@ -116,23 +116,9 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-    void copyCodecList(const UtlSList& sourceList, UtlSList& dstList)
-    {
-       dstList.destroyAll();
-       UtlSListIterator itor(sourceList);
-       while (itor())
-       {
-          SdpCodec* pCodec = dynamic_cast<SdpCodec*>(itor.item());
-          if (pCodec)
-          {
-             dstList.append(new SdpCodec(*pCodec));
-          }
-       }
-    }
-
     OsSocket* mpRtpSocket;
     OsSocket* mpRtcpSocket;
-    UtlSList mCodecList;
+    SdpCodecList mSdpCodecList;
 };
 
 /* ============================ INLINE METHODS ============================ */

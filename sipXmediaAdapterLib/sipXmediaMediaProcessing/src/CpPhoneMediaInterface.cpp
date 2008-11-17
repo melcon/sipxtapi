@@ -107,7 +107,7 @@ public:
         if(mpCodecFactory)
         {
             OsSysLog::add(FAC_CP, PRI_DEBUG, 
-                "~CpPhoneMediaConnection deleting SdpCodecFactory %p",
+                "~CpPhoneMediaConnection deleting SdpCodecList %p",
                 mpCodecFactory);
             delete mpCodecFactory;
             mpCodecFactory = NULL;
@@ -134,7 +134,7 @@ public:
     UtlBoolean mRtpAudioSending;
     UtlBoolean mRtpAudioReceiving;
     SdpCodec* mpAudioCodec;
-    SdpCodecFactory* mpCodecFactory;
+    SdpCodecList* mpCodecFactory;
     SIPX_CONTACT_TYPE mContactType ;
     UtlString mLocalAddress ;
     UtlBoolean mbAlternateDestinations ;
@@ -148,7 +148,7 @@ public:
 // Constructor
 CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
 											            OsMsgQ* pInterfaceNotificationQueue,
-                                             const UtlSList* pCodecList,
+                                             const SdpCodecList* pCodecList,
                                              const char* publicAddress,
                                              const char* localAddress,
                                              const char* locale,
@@ -192,17 +192,17 @@ CpPhoneMediaInterface::CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryIm
        OsSocket::getHostIp(&mLocalAddress);
    }
 
-   if(pCodecList && pCodecList->entries() > 0)
+   if(pCodecList && pCodecList->getCodecCount() > 0)
    {
-       mSdpCodecFactory.addCodecs(*pCodecList);
+       mSdpCodecList.addCodecs(*pCodecList);
        // Assign any unset payload types
-       mSdpCodecFactory.bindPayloadIds();
+       mSdpCodecList.bindPayloadIds();
    }
    else
    {
       if (pFactoryImpl)
       {
-         pFactoryImpl->buildAllCodecFactory(mSdpCodecFactory);
+         pFactoryImpl->buildAllCodecList(mSdpCodecList);
       }
    }
 
@@ -330,11 +330,11 @@ OsStatus CpPhoneMediaInterface::createConnection(int& connectionId,
 
    // Set codec factory
    UtlSList codecList;
-   mSdpCodecFactory.getCodecs(codecList);
-   mediaConnection->mpCodecFactory = new SdpCodecFactory(codecList);
+   mSdpCodecList.getCodecs(codecList);
+   mediaConnection->mpCodecFactory = new SdpCodecList(codecList);
    mediaConnection->mpCodecFactory->bindPayloadIds();
    OsSysLog::add(FAC_CP, PRI_DEBUG, 
-            "CpPhoneMediaInterface::createConnection creating a new SdpCodecFactory %p",
+            "CpPhoneMediaInterface::createConnection creating a new SdpCodecList %p",
             mediaConnection->mpCodecFactory);
 
     return retValue;
@@ -356,7 +356,7 @@ OsStatus CpPhoneMediaInterface::getCapabilities(int connectionId,
                                                 int& rtcpAudioPort,
                                                 int& rtpVideoPort,
                                                 int& rtcpVideoPort,
-                                                SdpCodecFactory& supportedCodecs,
+                                                SdpCodecList& supportedCodecs,
                                                 SdpSrtpParameters& srtpParams,
                                                 int bandWidth,
                                                 int& videoBandwidth,
@@ -491,7 +491,7 @@ OsStatus CpPhoneMediaInterface::getCapabilitiesEx(int connectionId,
                                                   int rtcpVideoPorts[],
                                                   RTP_TRANSPORT transportTypes[],
                                                   int& nActualAddresses,
-                                                  SdpCodecFactory& supportedCodecs,
+                                                  SdpCodecList& supportedCodecs,
                                                   SdpSrtpParameters& srtpParameters,
                                                   int bandWidth,
                                                   int& videoBandwidth,
@@ -867,7 +867,7 @@ OsStatus CpPhoneMediaInterface::addVideoRtcpConnectionDestination(int         co
 
 
 OsStatus CpPhoneMediaInterface::startRtpSend(int connectionId,
-                                             const UtlSList& codecList)
+                                             const SdpCodecList& sdpCodecList)
 {
    // need to set default payload types in get capabilities
    SdpCodec* audioCodec = NULL;
@@ -878,8 +878,10 @@ OsStatus CpPhoneMediaInterface::startRtpSend(int connectionId,
    if (mediaConnection == NULL)
       return returnCode;
    // find DTMF & primary audio codec
+   UtlSList utlCodecList;
+   sdpCodecList.getCodecs(utlCodecList);
    SdpCodec* pCodec = NULL;
-   UtlSListIterator itor(codecList);
+   UtlSListIterator itor(utlCodecList);
    while (itor())
    {
       pCodec = dynamic_cast<SdpCodec*>(itor.item());
@@ -908,7 +910,7 @@ OsStatus CpPhoneMediaInterface::startRtpSend(int connectionId,
    // side.  Its the friendly thing to do.
    if (mediaConnection->mpCodecFactory)
    {
-      mediaConnection->mpCodecFactory->copyPayloadIds(codecList);
+      mediaConnection->mpCodecFactory->copyPayloadIds(utlCodecList);
    }
 
    if (mpFlowGraph)
@@ -929,7 +931,7 @@ OsStatus CpPhoneMediaInterface::startRtpSend(int connectionId,
        // side.  Its the friendly thing to do.
        if (mediaConnection->mpCodecFactory)
        {
-           mediaConnection->mpCodecFactory->copyPayloadIds(codecList);
+           mediaConnection->mpCodecFactory->copyPayloadIds(utlCodecList);
        }
 
        if (mediaConnection->mRtpAudioSending)
@@ -955,7 +957,7 @@ OsStatus CpPhoneMediaInterface::startRtpSend(int connectionId,
 
 
 OsStatus CpPhoneMediaInterface::startRtpReceive(int connectionId,
-                                                const UtlSList& codecList)
+                                                const SdpCodecList& sdpCodecList)
 {
    OsStatus returnCode = OS_NOT_FOUND;
 
@@ -964,12 +966,14 @@ OsStatus CpPhoneMediaInterface::startRtpReceive(int connectionId,
    if (mediaConnection == NULL)
       return OS_NOT_FOUND;
 
+   UtlSList utlCodecList;
+   sdpCodecList.getCodecs(utlCodecList);
 
    // Make sure we use the same payload types as the remote
    // side.  It's the friendly thing to do.
    if (mediaConnection->mpCodecFactory)
    {
-         mediaConnection->mpCodecFactory->copyPayloadIds(codecList);
+         mediaConnection->mpCodecFactory->copyPayloadIds(utlCodecList);
    }
 
    if (mpFlowGraph)
@@ -981,7 +985,7 @@ OsStatus CpPhoneMediaInterface::startRtpReceive(int connectionId,
          mpFlowGraph->stopReceiveRtp(connectionId);
       }
 
-      mpFlowGraph->startReceiveRtp(codecList,
+      mpFlowGraph->startReceiveRtp(sdpCodecList,
            *(mediaConnection->mpRtpAudioSocket), *(mediaConnection->mpRtcpAudioSocket),
            connectionId);
       mediaConnection->mRtpAudioReceiving = TRUE;
@@ -1449,9 +1453,9 @@ OsStatus CpPhoneMediaInterface::setAudioCodecBandwidth(int connectionId, int ban
     return OS_NOT_SUPPORTED ;
 }
 
-OsStatus CpPhoneMediaInterface::rebuildCodecFactory(const UtlSList& sdpCodecList)
+OsStatus CpPhoneMediaInterface::rebuildCodecList(const UtlSList& sdpCodecList)
 {
-   mSdpCodecFactory.clearCodecs();
+   mSdpCodecList.clearCodecs();
    UtlSListIterator itor(sdpCodecList);
    SdpCodec* pSdpCodec = NULL;
    while (itor())
@@ -1460,11 +1464,11 @@ OsStatus CpPhoneMediaInterface::rebuildCodecFactory(const UtlSList& sdpCodecList
       if (pSdpCodec)
       {
          // add codec
-         mSdpCodecFactory.addCodec(*pSdpCodec);
+         mSdpCodecList.addCodec(*pSdpCodec);
       }
    }
    // Assign any unset payload types
-   mSdpCodecFactory.bindPayloadIds();
+   mSdpCodecList.bindPayloadIds();
 
    return OS_SUCCESS;
 }
@@ -1581,7 +1585,7 @@ int CpPhoneMediaInterface::getCodecCPULimit()
    //
    else
    {
-      mSdpCodecFactory.getCodecs(iCodecs, codecs) ;  
+      mSdpCodecList.getCodecs(iCodecs, codecs) ;  
       for(int i = 0; i < iCodecs; i++)
       {
          // If the cost is greater than what we have, then make that the cost.
