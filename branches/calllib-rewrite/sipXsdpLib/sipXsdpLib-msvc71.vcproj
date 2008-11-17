@@ -5,7 +5,7 @@
     </Platforms>
     <Configurations>
         <Configuration Name="Debug|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" RuntimeLibrary="3" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;_DEBUG;_LIB;DISABLE_MEM_POOLS" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" RuntimeLibrary="3" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;HAVE_SPEEX;HAVE_GSM;_DEBUG;_LIB;DISABLE_MEM_POOLS" Optimization="0"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCLibrarianTool" OutputFile=".\Debug\sipXsdpLib.lib"/>
             <Tool Name="VCMIDLTool"/>
@@ -19,7 +19,7 @@
             <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
         </Configuration>
         <Configuration Name="Release|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" CharacterSet="2">
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" RuntimeLibrary="2" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;NDEBUG;_LIB;DISABLE_MEM_POOLS"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" RuntimeLibrary="2" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;HAVE_SPEEX;HAVE_GSM;NDEBUG;_LIB;DISABLE_MEM_POOLS"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCLibrarianTool" OutputFile=".\Release\sipXsdpLib.lib"/>
             <Tool Name="VCMIDLTool"/>
@@ -40,6 +40,7 @@
             <File RelativePath="src\sdp\SdpCandidate.cpp"/>
             <File RelativePath="src\sdp\SdpCandidatePair.cpp"/>
             <File RelativePath="src\sdp\SdpCodec.cpp"/>
+            <File RelativePath=".\src\sdp\SdpCodecFactory.cpp"/>
             <File RelativePath="src\sdp\SdpHelperResip.cpp"/>
             <File RelativePath="src\sdp\SdpMediaLine.cpp"/>
         </Filter>
@@ -48,6 +49,7 @@
             <File RelativePath="include\sdp\SdpCandidate.h"/>
             <File RelativePath="include\sdp\SdpCandidatePair.h"/>
             <File RelativePath="include\sdp\SdpCodec.h"/>
+            <File RelativePath=".\include\sdp\SdpCodecFactory.h"/>
             <File RelativePath="include\sdp\SdpHelperResip.h"/>
             <File RelativePath="include\sdp\SdpMediaLine.h"/>
         </Filter>

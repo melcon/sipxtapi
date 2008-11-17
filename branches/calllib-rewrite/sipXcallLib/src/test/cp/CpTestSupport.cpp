@@ -15,7 +15,7 @@
 #include <cp/CallManager.h>
 #include <os/OsSocket.h>
 #include <net/SipUserAgent.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecFactory.h>
 #include <cp/CpTestSupport.h>
 #include <mi/CpMediaInterfaceFactoryFactory.h>
 

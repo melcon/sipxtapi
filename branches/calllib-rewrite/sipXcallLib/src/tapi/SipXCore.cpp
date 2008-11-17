@@ -38,7 +38,7 @@
 #include "net/SipPimClient.h"
 #include "net/SipSubscribeServer.h"
 #include "net/SipDialogMgr.h"
-#include "net/SdpCodecFactory.h"
+#include "sdp/SdpCodecFactory.h"
 #include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "tapi/SipXCore.h"

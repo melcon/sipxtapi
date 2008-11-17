@@ -32,7 +32,7 @@
 #include <utl/UtlRegex.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipUserAgent.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecFactory.h>
 #include <net/Url.h>
 #include <net/SipDialog.h>
 #include <net/SipLineProvider.h>

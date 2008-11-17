@@ -54,13 +54,13 @@ cd ..
 
 cd sipXsdpLib
 autoreconf -fi
-./configure --prefix=/tmp/stage
+./configure --prefix=/tmp/stage [--disable-codec-gsm] [--disable-codec-speex]
 make;make install
 cd ..
 
 cd sipXtackLib
 autoreconf -fi
-./configure --prefix=/tmp/stage --disable-sipviewer [--disable-codec-gsm] [--disable-codec-speex]
+./configure --prefix=/tmp/stage --disable-sipviewer
 make;make install
 cd ..
 

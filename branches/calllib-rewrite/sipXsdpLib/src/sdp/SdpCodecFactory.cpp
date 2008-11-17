@@ -19,7 +19,7 @@
 #include <utl/UtlSListIterator.h>
 #include <os/OsWriteLock.h>
 #include <os/OsReadLock.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecFactory.h>
 #include <sdp/SdpCodec.h>
 #include <net/NameValueTokenizer.h>
 
