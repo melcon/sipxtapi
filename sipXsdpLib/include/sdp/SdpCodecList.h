@@ -136,7 +136,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    UtlSList m_codecsList;
-   mutable OsRWMutex mReadWriteMutex;
+   mutable OsRWMutex m_memberMutex;
 };
 
 /* ============================ INLINE METHODS ============================ */

@@ -116,11 +116,11 @@ sipXmediaFactoryImpl::~sipXmediaFactoryImpl()
 
 /* ============================ MANIPULATORS ============================== */
 
-CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-                                                             const SdpCodecList* pCodecList,
-															                const char* publicAddress,
-                                                             const char* localAddress,
-                                                             const char* locale,
+CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
+                                                             const SdpCodecList* pCodecList,///< list of SdpCodec instances
+															                const char* publicAddress,///< ignored
+                                                             const char* localIPAddress,///< local bind IP address
+                                                             const char* locale,///< locale for tone generator
                                                              int expeditedIpTos,
                                                              const char* szStunServer,
                                                              int iStunPort,
@@ -132,7 +132,7 @@ CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceN
                                                              int iTurnKeepAlivePeriodSecs,
                                                              UtlBoolean bEnableICE) 
 {
-    return new CpPhoneMediaInterface(this, pInterfaceNotificationQueue, pCodecList, publicAddress, localAddress, 
+    return new CpPhoneMediaInterface(this, pInterfaceNotificationQueue, pCodecList, publicAddress, localIPAddress, 
             locale, expeditedIpTos, szStunServer,
             iStunPort, iStunKeepAliveSecs, szTurnServer, iTurnPort, 
             szTurnUsername, szTurnPassword, iTurnKeepAlivePeriodSecs, 
