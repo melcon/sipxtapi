@@ -78,7 +78,6 @@
                 <File RelativePath=".\src\net\PidfBody.cpp"/>
                 <File RelativePath=".\src\net\pk12wrapper.cpp"/>
                 <File RelativePath=".\src\net\SdpBody.cpp"/>
-                <File RelativePath=".\src\net\SdpHelper.cpp"/>
                 <File RelativePath=".\src\net\SipCallIdGenerator.cpp"/>
                 <File RelativePath=".\src\net\SipClient.cpp"/>
                 <File RelativePath=".\src\net\SipConfigServerAgent.cpp"/>
@@ -185,7 +184,6 @@
                 <File RelativePath=".\include\net\PidfBody.h"/>
                 <File RelativePath="include\net\QoS.h"/>
                 <File RelativePath="include\net\SdpBody.h"/>
-                <File RelativePath="include\net\SdpHelper.h"/>
                 <File RelativePath=".\include\net\SipCallIdGenerator.h"/>
                 <File RelativePath="include\net\SipClient.h"/>
                 <File RelativePath="include\net\SipConfigServerAgent.h"/>

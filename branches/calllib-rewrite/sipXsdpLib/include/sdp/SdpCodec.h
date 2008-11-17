@@ -184,14 +184,6 @@ public:
             const int videoFormat = SDP_VIDEO_FORMAT_QCIF,
             const int videoFmtp = 0);
 
-   SdpCodec(int payloadId,
-            const char* mimeType,
-            const char* mimeSubType,
-            int sampleRate,
-            int preferredPacketLength,
-            int numChannels,
-            const char* formatSpecificData);
-
      ///Copy constructor
    SdpCodec(const SdpCodec& rSdpCodec);
 

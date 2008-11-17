@@ -421,10 +421,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\net\SdpHelper.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\net\SipCallIdGenerator.cpp"
 					>
 				</File>
@@ -811,10 +807,6 @@
 				</File>
 				<File
 					RelativePath="include\net\SdpBody.h"
-					>
-				</File>
-				<File
-					RelativePath="include\net\SdpHelper.h"
 					>
 				</File>
 				<File
