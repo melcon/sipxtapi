@@ -560,14 +560,12 @@ OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferen
 {
    if (m_pMediaInterface)
    {
-      UtlSList sdpCodecUtlList;
       SdpCodecList sdpCodecList;
       UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs());
       sdpCodecList.addCodecs(audioCodecs);// appends selected audio codecs
       sdpCodecList.addCodecs(rMsg.getVideoCodecs());// appends selected video codecs
       sdpCodecList.bindPayloadIds();
-      sdpCodecList.getCodecs(sdpCodecUtlList);
-      return m_pMediaInterface->rebuildCodecList(sdpCodecUtlList);
+      return m_pMediaInterface->setCodecList(sdpCodecList);
    }
 
    return OS_FAILED;

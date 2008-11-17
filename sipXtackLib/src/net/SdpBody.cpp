@@ -1203,7 +1203,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                                 int audioPayloadTypes[],
                                 int videoPayloadTypes[],
                                 int videoRtpPort,
-                                SdpCodecList& localRtpCodecs,
+                                const SdpCodecList& localRtpCodecs,
                                 int& numCodecsInCommon,
                                 SdpCodec* commonCodecsForEncoder[],
                                 SdpCodec* commonCodecsForDecoder[]) const

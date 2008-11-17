@@ -552,8 +552,11 @@ public:
    //! Rebuild the codec factory on the fly
    virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) = 0;
 
-   /** Rebuilds SdpCodecList using supplied list of SdpCodec instances */
-   virtual OsStatus rebuildCodecList(const UtlSList& sdpCodecList) = 0;
+   /** Rebuilds internal SdpCodecList using supplied SdpCodecList */
+   virtual OsStatus setCodecList(const SdpCodecList& sdpCodecList) = 0;
+
+   /** Copies internal SdpCodecList into supplied SdpCodecList */
+   virtual OsStatus getCodecList(SdpCodecList& sdpCodecList) = 0;
 
    //! Set connection bitrate on the fly
    virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) = 0 ;

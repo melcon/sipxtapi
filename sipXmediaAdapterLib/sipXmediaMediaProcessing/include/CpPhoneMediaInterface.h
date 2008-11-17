@@ -232,10 +232,12 @@ public:
     virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) ;
 
     /**
-     * Rebuilds SdpCodecList using supplied list of SdpCodec instances
-     * @param sdpCodecList List with instances of SdpCodec
+     * Rebuilds internal SdpCodecList using supplied SdpCodecList
      */
-    virtual OsStatus rebuildCodecList(const UtlSList& sdpCodecList);
+    virtual OsStatus setCodecList(const SdpCodecList& sdpCodecList);
+
+    /** Copies internal SdpCodecList into supplied SdpCodecList */
+    virtual OsStatus getCodecList(SdpCodecList& sdpCodecList);
 
     //! Set conneection bitrate on the fly
     virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) ;
