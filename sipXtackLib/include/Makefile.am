@@ -37,7 +37,6 @@ nobase_include_HEADERS =  \
     net/PidfBody.h \
     net/QoS.h \
     net/SdpBody.h \
-    net/SdpHelper.h \
     net/SipCallIdGenerator.h \
     net/SipClient.h \
     net/SipConfigServerAgent.h \
