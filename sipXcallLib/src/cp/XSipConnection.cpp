@@ -34,6 +34,7 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 /* ============================ CREATORS ================================== */
 
 XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
+                               const SipDialog& sipDialog,
                                SipUserAgent& rSipUserAgent,
                                CpMediaInterfaceProvider* pMediaInterfaceProvider,
                                CpCallStateEventListener* pCallEventListener,
@@ -50,6 +51,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
 , m_pMediaEventListener(pMediaEventListener)
 {
    m_sipConnectionContext.m_sAbstractCallId = sAbstractCallId;
+   m_sipConnectionContext.m_sipDialog = sipDialog;
    m_stateMachine.setStateObserver(this); // register for state machine state change notifications
 }
 
@@ -83,14 +85,12 @@ void XSipConnection::handleSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
    fireSipXCallEvent(eventCode, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
 }
 
-OsStatus XSipConnection::connect(const UtlString& sipCallId,
-                                 const UtlString& localTag,
-                                 const UtlString& toAddress,
+OsStatus XSipConnection::connect(const UtlString& toAddress,
                                  const UtlString& fromAddress,
                                  const UtlString& locationHeader,
                                  CP_CONTACT_ID contactId)
 {
-   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId);
+   return m_stateMachine.connect(toAddress, fromAddress, locationHeader, contactId);
 }
 
 OsStatus XSipConnection::acceptConnection(const UtlString& locationHeader,

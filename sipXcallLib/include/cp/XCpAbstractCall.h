@@ -40,6 +40,7 @@ class SipDialog;
 class SipUserAgent;
 class SipMessageEvent;
 class XSipConnection;
+class XCpCallConnectionListener;
 class CpMediaInterfaceFactory;
 class SdpCodecList;
 class CpMediaInterface;
@@ -104,6 +105,7 @@ public:
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
                    const SdpCodecList& rDefaultSdpCodecList,
                    OsMsgQ& rCallManagerQueue,
+                   XCpCallConnectionListener* pCallConnectionListener = NULL,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                    SipSecurityEventListener* pSecurityEventListener = NULL,
@@ -361,6 +363,18 @@ protected:
    /** Tries to yield focus on this call asynchronously through call manager */
    OsStatus yieldFocus();
 
+   /**
+    * Called to notify call stack that we have new sip call-id to route messages to.
+    * May not be called while holding any locks.
+    */
+   void onConnectionAddded(const UtlString& sSipCallId);
+
+   /**
+    * Called to notify call stack that a sip call-id is no longer valid.
+    * May not be called while holding any locks.
+    */
+   void onConnectionRemoved(const UtlString& sSipCallId);
+
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
@@ -379,10 +393,11 @@ protected:
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
    const SdpCodecList& m_rDefaultSdpCodecList; ///< default globally shared SdpCodec factory for new calls
    // set only once and thread safe
-   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
-   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
-   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
-   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+   XCpCallConnectionListener* m_pCallConnectionListener; ///< listener for updating call stack
+   CpCallStateEventListener* m_pCallEventListener; ///< listener for firing call events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< listener for firing info events
+   SipSecurityEventListener* m_pSecurityEventListener; ///< listener for firing security events
+   CpMediaEventListener* m_pMediaEventListener; ///< listener for firing media events
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

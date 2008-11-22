@@ -24,6 +24,7 @@
 #include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
 #include <cp/XSipConnection.h>
+#include <cp/XCpCallConnectionListener.h>
 #include <cp/CpNotificationMsgDef.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
@@ -66,6 +67,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                                  const SdpCodecList& rDefaultSdpCodecList,
                                  OsMsgQ& rCallManagerQueue,
+                                 XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
                                  SipSecurityEventListener* pSecurityEventListener,
@@ -80,7 +82,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pMediaInterface(NULL)
 , m_bIsFocused(FALSE)
 , m_instanceRWMutex(OsRWMutex::Q_FIFO)
-, m_sipTagGenerator()
+, m_pCallConnectionListener(pCallConnectionListener)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
@@ -391,6 +393,22 @@ OsStatus XCpAbstractCall::yieldFocus()
 #else
    return OS_SUCCESS;
 #endif
+}
+
+void XCpAbstractCall::onConnectionAddded(const UtlString& sSipCallId)
+{
+   if (m_pCallConnectionListener)
+   {
+      m_pCallConnectionListener->onConnectionAdded(sSipCallId, this);
+   }
+}
+
+void XCpAbstractCall::onConnectionRemoved(const UtlString& sSipCallId)
+{
+   if (m_pCallConnectionListener)
+   {
+      m_pCallConnectionListener->onConnectionRemoved(sSipCallId, this);
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

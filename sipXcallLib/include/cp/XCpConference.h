@@ -71,6 +71,7 @@ public:
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
+                 XCpCallConnectionListener* pCallConnectionListener = NULL,
                  CpCallStateEventListener* pCallEventListener = NULL,
                  SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                  SipSecurityEventListener* pSecurityEventListener = NULL,

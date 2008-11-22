@@ -628,6 +628,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\XCpCallConnectionListener.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\XCpCallIdUtil.h"
 				>
 			</File>

@@ -15,10 +15,11 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <os/OsMutex.h>
+#include <os/OsRWMutex.h>
 #include <os/OsDefs.h>
 #include <utl/UtlString.h>
 #include <utl/UtlHashMap.h>
+#include <cp/XCpCallConnectionListener.h>
 
 // DEFINES
 // MACROS
@@ -40,7 +41,7 @@ class SipMessage;
  * Class XCpCallStack is a container for XCpCall and XCpConference instances.
  * It supports fast lookup by id, sip call-id, focused call tracking 
  */
-class XCpCallStack
+class XCpCallStack : public XCpCallConnectionListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -48,7 +49,7 @@ public:
 
    XCpCallStack();
 
-   ~XCpCallStack();
+   virtual ~XCpCallStack();
 
    /* ============================ MANIPULATORS ============================== */
 
@@ -161,16 +162,10 @@ public:
    UtlBoolean deleteAbstractCall(const UtlString& sAbstractCallId);
 
    /**
-   * Deletes all calls on the stack, freeing any call resources. Doesn't properly terminate
+   * Deletes all calls & conferences on the stack, freeing any call resources. Doesn't properly terminate
    * the calls.
    */
-   void deleteAllCalls();
-
-   /**
-   * Deletes all conferences on the stack, freeing any call resources. Doesn't properly terminate
-   * the conferences.
-   */
-   void deleteAllConferences();
+   void deleteAllAbstractCalls();
 
    /** Gains focus for given call, defocusing old focused call. */
    OsStatus doGainFocus(const UtlString& sAbstractCallId,
@@ -194,10 +189,19 @@ public:
    OsStatus doYieldFocus(UtlBoolean bShiftFocus = TRUE);
 
    /** Shuts down threads of all calls */
-   void shutdownAllCallThreads();
+   void shutdownAllAbstractCallThreads();
 
-   /** Shuts down threads of all conferences*/
-   void shutdownAllConferenceThreads();
+   /**
+   * Called when a SipConnection is added to some abstract call.
+   */
+   virtual void onConnectionAdded(const UtlString& sSipCallId,
+                                  XCpAbstractCall* pAbstractCall);
+
+   /**
+   * Called before a SipConnection is removed from some abstract call.
+   */
+   virtual void onConnectionRemoved(const UtlString& sSipCallId,
+                                    XCpAbstractCall* pAbstractCall);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -217,11 +221,11 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
+   mutable OsRWMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
 
    // not thread safe fields
-   UtlHashMap m_callMap; ///< hashmap with calls
-   UtlHashMap m_conferenceMap; ///< hashmap with conferences
+   UtlHashMap m_abstractCallIdMap; ///< hashmap with calls & conferences
+   UtlHashMap m_sipCallIdMap; ///< hashmap with sip call-id - UtlSList. UtlSList contains XCpAbstractCall in UtlPtr
 
    // focus
    mutable OsMutex m_focusMutex; ///< required for access to m_sAbstractCallInFocus
