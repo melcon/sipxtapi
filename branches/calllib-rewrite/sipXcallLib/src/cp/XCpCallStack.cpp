@@ -13,8 +13,13 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsLock.h>
+#include <os/OsReadLock.h>
+#include <os/OsWriteLock.h>
 #include <os/OsPtrLock.h>
 #include <utl/UtlHashMapIterator.h>
+#include <utl/UtlSList.h>
+#include <utl/UtlSListIterator.h>
+#include <utl/UtlPtr.h>
 #include <cp/XCpCallIdUtil.h>
 #include <cp/XCpCallStack.h>
 #include <cp/XCpAbstractCall.h>
@@ -46,73 +51,69 @@ XCpCallStack::XCpCallStack()
 
 XCpCallStack::~XCpCallStack()
 {
-
+   deleteAllAbstractCalls();
 }
 
 /* ============================ MANIPULATORS ============================== */
 
 UtlBoolean XCpCallStack::findAbstractCall(const UtlString& sAbstractCallId,
-                                                 OsPtrLock<XCpAbstractCall>& ptrLock) const
+                                          OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
-   XCpCallIdUtil::ID_TYPE type = XCpCallIdUtil::getIdType(sAbstractCallId);
-   UtlBoolean result = FALSE;
-   switch(type)
+   OsReadLock lock(m_memberMutex);
+   // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpCall>&
+   XCpAbstractCall* pAbstractCall = dynamic_cast<XCpAbstractCall*>(m_abstractCallIdMap.findValue(&sAbstractCallId));
+   if (pAbstractCall)
    {
-   case XCpCallIdUtil::ID_TYPE_CALL:
-      {
-         OsLock lock(m_memberMutex);
-         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpCall>&
-         XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sAbstractCallId));
-         if (pCall)
-         {
-            ptrLock = pCall;
-            return TRUE;
-         }
-
-         ptrLock = NULL;
-         return FALSE;
-      }
-   case XCpCallIdUtil::ID_TYPE_CONFERENCE:
-      {
-         OsLock lock(m_memberMutex);
-         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpConference>&
-         XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sAbstractCallId));
-         if (pConference)
-         {
-            ptrLock = pConference;
-            return TRUE;
-         }
-
-         ptrLock = NULL;
-         return FALSE;
-      }
-   default:
-      break;
+      ptrLock = pAbstractCall;
+      return TRUE;
    }
 
    ptrLock = NULL;
-   return result;
+   return FALSE;
 }
 
 UtlBoolean XCpCallStack::findAbstractCall(const SipDialog& sSipDialog,
-                                                 OsPtrLock<XCpAbstractCall>& ptrLock) const
+                                          OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
-   OsPtrLock<XCpCall> ptrCallLock; // auto pointer lock
-   OsPtrLock<XCpConference> ptrConferenceLock; // auto pointer lock
-   UtlBoolean resFind = FALSE;
+   OsReadLock lock(m_memberMutex);
+   XCpAbstractCall* pNotEstablishedMatch = NULL;
+   UtlPtr<XCpAbstractCall>* pAbstractPtr = NULL;
 
-   // first try to find in calls
-   resFind = findCall(sSipDialog, ptrCallLock);
-   if (resFind)
+   // use fast lookup by sip call-id
+   UtlString sSipCallId(sSipDialog.getCallId());
+   UtlSList* pList = dynamic_cast<UtlSList*>(m_sipCallIdMap.findValue(&sSipCallId));
+   if (pList)
    {
-      ptrLock = ptrConferenceLock; // move lock
-      return TRUE;
+      // iterate through list and ask every call if it has given sip dialog
+      UtlSListIterator callListItor(*pList);
+      XCpAbstractCall* pAbstractCall = NULL;
+
+      while(callListItor()) // go to next pair
+      {
+         pAbstractPtr = dynamic_cast<UtlPtr<XCpAbstractCall>*>(callListItor.item());
+         if (pAbstractPtr && pAbstractPtr->getValue())
+         {
+            SipDialog::DialogMatchEnum matchResult = pAbstractCall->hasSipDialog(sSipDialog);
+            if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+               matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
+            {
+               // perfect match, call-id and both tags match
+               // initial match is also perfect if supplied dialog is initial
+               ptrLock = pAbstractCall;
+               return TRUE;
+            }
+            else if (matchResult != SipDialog::DIALOG_MISMATCH)
+            {
+               // partial match, call-id match but only 1 tag matches, 2nd tag is not present
+               pNotEstablishedMatch = pAbstractCall; // lock it later
+            }
+         }
+      }
    }
-   // not found, try conferences
-   resFind = findConference(sSipDialog, ptrConferenceLock);
-   if (resFind)
+
+   if (pNotEstablishedMatch)
    {
-      ptrLock = ptrConferenceLock; // move lock
+      ptrLock = pNotEstablishedMatch;
       return TRUE;
    }
 
@@ -120,38 +121,22 @@ UtlBoolean XCpCallStack::findAbstractCall(const SipDialog& sSipDialog,
 }
 
 UtlBoolean XCpCallStack::findSomeAbstractCall(const UtlString& sAvoidAbstractCallId,
-                                                     OsPtrLock<XCpAbstractCall>& ptrLock) const
+                                              OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex);
 
    // try to get next call
    {
-      UtlHashMapIterator callMapItor(m_callMap);
-      XCpCall* pCall = NULL;
+      UtlHashMapIterator callMapItor(m_abstractCallIdMap);
+      XCpAbstractCall* pAbstractCall = NULL;
 
       while(callMapItor()) // go to next pair
       {
-         pCall = dynamic_cast<XCpCall*>(callMapItor.value());
-         if (pCall && sAvoidAbstractCallId.compareTo(pCall->getId()) != 0)
+         pAbstractCall = dynamic_cast<XCpAbstractCall*>(callMapItor.value());
+         if (pAbstractCall && sAvoidAbstractCallId.compareTo(pAbstractCall->getId()) != 0)
          {
             // we found some call and sAvoidAbstractCallId is different than its Id
-            ptrLock = pCall; // lock call
-            return TRUE;
-         }
-      }
-   }
-
-   // try to get next conference
-   {
-      UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-      XCpConference* pConference = NULL;
-      while(conferenceMapItor()) // go to next pair
-      {
-         pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-         if (pConference && sAvoidAbstractCallId.compareTo(pConference->getId()) != 0)
-         {
-            // we found some conference and sAvoidAbstractCallId is different than its Id
-            ptrLock = pConference; // lock conference
+            ptrLock = pAbstractCall; // lock call
             return TRUE;
          }
       }
@@ -162,10 +147,10 @@ UtlBoolean XCpCallStack::findSomeAbstractCall(const UtlString& sAvoidAbstractCal
 }
 
 UtlBoolean XCpCallStack::findCall(const UtlString& sId,
-                                         OsPtrLock<XCpCall>& ptrLock) const
+                                  OsPtrLock<XCpCall>& ptrLock) const
 {
-   OsLock lock(m_memberMutex);
-   XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
+   OsReadLock lock(m_memberMutex);
+   XCpCall* pCall = dynamic_cast<XCpCall*>(m_abstractCallIdMap.findValue(&sId));
    if (pCall)
    {
       ptrLock = pCall;
@@ -177,34 +162,44 @@ UtlBoolean XCpCallStack::findCall(const UtlString& sId,
 }
 
 UtlBoolean XCpCallStack::findCall(const SipDialog& sSipDialog,
-                                         OsPtrLock<XCpCall>& ptrLock) const
+                                  OsPtrLock<XCpCall>& ptrLock) const
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex);
    XCpCall* pNotEstablishedMatch = NULL;
+   UtlPtr<XCpAbstractCall>* pAbstractPtr = NULL;
 
-   // iterate through hashmap and ask every call if it has given sip dialog
-   UtlHashMapIterator callMapItor(m_callMap);
-   XCpCall* pCall = NULL;
-
-   // TODO: optimize speed by using list in hashmap indexed by call-id. Have to investigate if call-id switch in XCpCall is possible/desirable
-   while(callMapItor()) // go to next pair
+   // use fast lookup by sip call-id
+   UtlString sSipCallId(sSipDialog.getCallId());
+   UtlSList* pList = dynamic_cast<UtlSList*>(m_sipCallIdMap.findValue(&sSipCallId));
+   if (pList)
    {
-      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
-      if (pCall)
+      // iterate through list and ask every call if it has given sip dialog
+      UtlSListIterator callListItor(*pList);
+      XCpCall* pCall = NULL;
+
+      while(callListItor()) // go to next pair
       {
-         SipDialog::DialogMatchEnum matchResult = pCall->hasSipDialog(sSipDialog);
-         if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
-            matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
+         pAbstractPtr = dynamic_cast<UtlPtr<XCpAbstractCall>*>(callListItor.item());
+         if (pAbstractPtr)
          {
-            // perfect match, call-id and both tags match
-            // initial match is also perfect if supplied dialog is initial
-            ptrLock = pCall;
-            return TRUE;
-         }
-         else if (matchResult != SipDialog::DIALOG_MISMATCH)
-         {
-            // partial match, call-id match but only 1 tag matches, 2nd tag is not present
-            pNotEstablishedMatch = pCall; // lock it later
+            pCall = dynamic_cast<XCpCall*>(pAbstractPtr->getValue());
+            if (pCall)
+            {
+               SipDialog::DialogMatchEnum matchResult = pCall->hasSipDialog(sSipDialog);
+               if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+                  matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
+               {
+                  // perfect match, call-id and both tags match
+                  // initial match is also perfect if supplied dialog is initial
+                  ptrLock = pCall;
+                  return TRUE;
+               }
+               else if (matchResult != SipDialog::DIALOG_MISMATCH)
+               {
+                  // partial match, call-id match but only 1 tag matches, 2nd tag is not present
+                  pNotEstablishedMatch = pCall; // lock it later
+               }
+            }
          }
       }
    }
@@ -219,10 +214,10 @@ UtlBoolean XCpCallStack::findCall(const SipDialog& sSipDialog,
 }
 
 UtlBoolean XCpCallStack::findConference(const UtlString& sId,
-                                               OsPtrLock<XCpConference>& ptrLock) const
+                                        OsPtrLock<XCpConference>& ptrLock) const
 {
-   OsLock lock(m_memberMutex);
-   XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
+   OsReadLock lock(m_memberMutex);
+   XCpConference* pConference = dynamic_cast<XCpConference*>(m_abstractCallIdMap.findValue(&sId));
    if (pConference)
    {
       ptrLock = pConference;
@@ -234,32 +229,43 @@ UtlBoolean XCpCallStack::findConference(const UtlString& sId,
 }
 
 UtlBoolean XCpCallStack::findConference(const SipDialog& sSipDialog,
-                                               OsPtrLock<XCpConference>& ptrLock) const
+                                        OsPtrLock<XCpConference>& ptrLock) const
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex);
    XCpConference* pNotEstablishedMatch = NULL;
+   UtlPtr<XCpAbstractCall>* pAbstractPtr = NULL;
 
-   // iterate through hashmap and ask every conference if it has given sip dialog
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-   XCpConference* pConference = NULL;
-   while(conferenceMapItor()) // go to next pair
+   // use fast lookup by sip call-id
+   UtlString sSipCallId(sSipDialog.getCallId());
+   UtlSList* pList = dynamic_cast<UtlSList*>(m_sipCallIdMap.findValue(&sSipCallId));
+   if (pList)
    {
-      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference)
+      // iterate through list and ask every call if it has given sip dialog
+      UtlSListIterator conferenceListItor(*pList);
+      XCpConference* pConference = NULL;
+      while(conferenceListItor()) // go to next pair
       {
-         SipDialog::DialogMatchEnum matchResult = pConference->hasSipDialog(sSipDialog);
-         if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
-            matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
+         pAbstractPtr = dynamic_cast<UtlPtr<XCpAbstractCall>*>(conferenceListItor.item());
+         if (pAbstractPtr)
          {
-            // perfect match, call-id and both tags match
-            // initial match is also perfect if supplied dialog is initial
-            ptrLock = pConference;
-            return TRUE;
-         }
-         else if (matchResult != SipDialog::DIALOG_MISMATCH)
-         {
-            // partial match, call-id match but only 1 tag matches, 2nd tag is not present
-            pNotEstablishedMatch = pConference; // lock it later
+            pConference = dynamic_cast<XCpConference*>(pAbstractPtr->getValue());
+            if (pConference)
+            {
+               SipDialog::DialogMatchEnum matchResult = pConference->hasSipDialog(sSipDialog);
+               if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+                  matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
+               {
+                  // perfect match, call-id and both tags match
+                  // initial match is also perfect if supplied dialog is initial
+                  ptrLock = pConference;
+                  return TRUE;
+               }
+               else if (matchResult != SipDialog::DIALOG_MISMATCH)
+               {
+                  // partial match, call-id match but only 1 tag matches, 2nd tag is not present
+                  pNotEstablishedMatch = pConference; // lock it later
+               }
+            }
          }
       }
    }
@@ -274,7 +280,7 @@ UtlBoolean XCpCallStack::findConference(const SipDialog& sSipDialog,
 }
 
 UtlBoolean XCpCallStack::findHandlingAbstractCall(const SipMessage& rSipMessage,
-                                                         OsPtrLock<XCpAbstractCall>& ptrLock) const
+                                                  OsPtrLock<XCpAbstractCall>& ptrLock) const
 {
    SipDialog sipDialog(&rSipMessage);
    return findAbstractCall(sipDialog, ptrLock);
@@ -282,10 +288,10 @@ UtlBoolean XCpCallStack::findHandlingAbstractCall(const SipMessage& rSipMessage,
 
 UtlBoolean XCpCallStack::push(XCpCall& call)
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex); // we use write lock only when deleting, not needed when adding
 
    UtlCopyableContainable *pKey = call.getId().clone();
-   UtlContainable *pResult = m_callMap.insertKeyAndValue(pKey, &call);
+   UtlContainable *pResult = m_abstractCallIdMap.insertKeyAndValue(pKey, &call);
    if (pResult)
    {
       return TRUE;
@@ -300,10 +306,10 @@ UtlBoolean XCpCallStack::push(XCpCall& call)
 
 UtlBoolean XCpCallStack::push(XCpConference& conference)
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex); // we use write lock only when deleting, not needed when adding
 
    UtlCopyableContainable *pKey = conference.getId().clone();
-   UtlContainable *pResult = m_conferenceMap.insertKeyAndValue(pKey, &conference);
+   UtlContainable *pResult = m_abstractCallIdMap.insertKeyAndValue(pKey, &conference);
    if (pResult)
    {
       return TRUE;
@@ -318,14 +324,14 @@ UtlBoolean XCpCallStack::push(XCpConference& conference)
 
 UtlBoolean XCpCallStack::deleteCall(const UtlString& sCallId)
 {
-   OsLock lock(m_memberMutex);
+   OsWriteLock lock(m_memberMutex);
    // yield focus
    // nobody will be able to give us focus back after we yield it, because we hold m_memberMutex
    doYieldFocus(sCallId);
 
    // avoid findCall, as we don't need that much locking
    UtlContainable *pValue = NULL;
-   UtlContainable *pKey = m_callMap.removeKeyAndValue(&sCallId, pValue);
+   UtlContainable *pKey = m_abstractCallIdMap.removeKeyAndValue(&sCallId, pValue);
    if(pKey)
    {
       XCpCall *pCall = dynamic_cast<XCpCall*>(pValue);
@@ -349,14 +355,14 @@ UtlBoolean XCpCallStack::deleteCall(const UtlString& sCallId)
 
 UtlBoolean XCpCallStack::deleteConference(const UtlString& sConferenceId)
 {
-   OsLock lock(m_memberMutex);
+   OsWriteLock lock(m_memberMutex);
    // yield focus
    // nobody will be able to give us focus back after we yield it, because we hold m_memberMutex
    doYieldFocus(sConferenceId);
 
    // avoid findConference, as we don't need that much locking
    UtlContainable *pValue = NULL;
-   UtlContainable *pKey = m_conferenceMap.removeKeyAndValue(&sConferenceId, pValue);
+   UtlContainable *pKey = m_abstractCallIdMap.removeKeyAndValue(&sConferenceId, pValue);
    if(pKey)
    {
       XCpConference *pConference = dynamic_cast<XCpConference*>(pValue);
@@ -400,22 +406,17 @@ UtlBoolean XCpCallStack::deleteAbstractCall(const UtlString& sAbstractCallId)
    return result;
 }
 
-void XCpCallStack::deleteAllCalls()
+void XCpCallStack::deleteAllAbstractCalls()
 {
    doYieldFocus(FALSE);
-   OsLock lock(m_memberMutex);
-   m_callMap.destroyAll();
-}
+   OsWriteLock lock(m_memberMutex);
 
-void XCpCallStack::deleteAllConferences()
-{
-   doYieldFocus(FALSE);
-   OsLock lock(m_memberMutex);
-   m_conferenceMap.destroyAll();
+   m_abstractCallIdMap.destroyAll();
+   m_sipCallIdMap.destroyAll();
 }
 
 OsStatus XCpCallStack::doGainFocus(const UtlString& sAbstractCallId,
-                                          UtlBoolean bGainOnlyIfNoFocusedCall /*= FALSE*/)
+                                   UtlBoolean bGainOnlyIfNoFocusedCall /*= FALSE*/)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsStatus result = OS_FAILED;
@@ -481,7 +482,7 @@ OsStatus XCpCallStack::doGainNextFocus(const UtlString& sAvoidAbstractCallId)
 }
 
 OsStatus XCpCallStack::doYieldFocus(const UtlString& sAbstractCallId,
-                                           UtlBoolean bShiftFocus /*= TRUE*/)
+                                    UtlBoolean bShiftFocus /*= TRUE*/)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsStatus result = OS_FAILED;
@@ -559,35 +560,19 @@ OsStatus XCpCallStack::doYieldFocus(UtlBoolean bShiftFocus /*= TRUE*/)
 #endif
 }
 
-void XCpCallStack::shutdownAllCallThreads()
+void XCpCallStack::shutdownAllAbstractCallThreads()
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex);
 
-   UtlHashMapIterator callMapItor(m_callMap);
-   XCpCall* pCall = NULL;
+   UtlHashMapIterator callMapItor(m_abstractCallIdMap);
+   XCpAbstractCall* pCall = NULL;
 
    while(callMapItor()) // go to next pair
    {
-      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
+      pCall = dynamic_cast<XCpAbstractCall*>(callMapItor.value());
       if (pCall)
       {
          pCall->requestShutdown();
-      }
-   }
-}
-
-void XCpCallStack::shutdownAllConferenceThreads()
-{
-   OsLock lock(m_memberMutex);
-
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-   XCpConference* pConference = NULL;
-   while(conferenceMapItor()) // go to next pair
-   {
-      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference)
-      {
-         pConference->requestShutdown();
       }
    }
 }
@@ -598,29 +583,18 @@ void XCpCallStack::shutdownAllConferenceThreads()
 
 int XCpCallStack::getCallCount() const
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex);
    int count = 0;
 
-   UtlHashMapIterator callMapItor(m_callMap);
-   XCpCall* pCall = NULL;
+   UtlHashMapIterator callMapItor(m_abstractCallIdMap);
+   XCpAbstractCall* pCall = NULL;
 
    while(callMapItor()) // go to next pair
    {
-      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
+      pCall = dynamic_cast<XCpAbstractCall*>(callMapItor.value());
       if (pCall)
       {
          count += pCall->getCallCount();
-      }
-   }
-
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-   XCpConference* pConference = NULL;
-   while(conferenceMapItor()) // go to next pair
-   {
-      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference)
-      {
-         count += pConference->getCallCount();
       }
    }
 
@@ -629,13 +603,14 @@ int XCpCallStack::getCallCount() const
 
 OsStatus XCpCallStack::getCallIds(UtlSList& callIdList) const
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex);
 
-   UtlHashMapIterator callMapItor(m_callMap);
+   UtlHashMapIterator callMapItor(m_abstractCallIdMap);
    XCpCall* pCall = NULL;
 
    while(callMapItor()) // go to next pair
    {
+      // rely on dynamic cast to return only XCpCall instances
       pCall = dynamic_cast<XCpCall*>(callMapItor.value());
       if (pCall)
       {
@@ -648,12 +623,13 @@ OsStatus XCpCallStack::getCallIds(UtlSList& callIdList) const
 
 OsStatus XCpCallStack::getConferenceIds(UtlSList& conferenceIdList) const
 {
-   OsLock lock(m_memberMutex);
+   OsReadLock lock(m_memberMutex);
 
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
+   UtlHashMapIterator conferenceMapItor(m_abstractCallIdMap);
    XCpConference* pConference = NULL;
    while(conferenceMapItor()) // go to next pair
    {
+      // rely on dynamic cast to return only XCpConference instances
       pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
       if (pConference)
       {
@@ -662,6 +638,40 @@ OsStatus XCpCallStack::getConferenceIds(UtlSList& conferenceIdList) const
    }
 
    return OS_SUCCESS;
+}
+
+void XCpCallStack::onConnectionAdded(const UtlString& sSipCallId,
+                                     XCpAbstractCall* pAbstractCall)
+{
+   OsReadLock lock(m_memberMutex); // we use write lock only when deleting, not needed when adding
+
+   UtlSList* pList = dynamic_cast<UtlSList*>(m_sipCallIdMap.findValue(&sSipCallId));
+   if (!pList)
+   {
+      // list doesn't exist, add it
+      pList = new UtlSList();
+      m_sipCallIdMap.insertKeyAndValue(sSipCallId.clone(), pList);
+   }
+
+   if (pList)
+   {
+      // list exists, just add new item. Wrap it in UtlPtr, as otherwise it would get deleted when m_sipCallIdMap is destroyed
+      // we are not allowed to delete XCpAbstractCall in this list
+      pList->insert(new UtlPtr<XCpAbstractCall>(pAbstractCall, FALSE));
+   }
+}
+
+void XCpCallStack::onConnectionRemoved(const UtlString& sSipCallId,
+                                       XCpAbstractCall* pAbstractCall)
+{
+   OsWriteLock lock(m_memberMutex);
+
+   UtlSList* pList = dynamic_cast<UtlSList*>(m_sipCallIdMap.findValue(&sSipCallId));
+   if (pList)
+   {
+      UtlPtr<XCpAbstractCall> ptr(pAbstractCall, FALSE);
+      pList->destroy(&ptr); // remove object by equality
+   }
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

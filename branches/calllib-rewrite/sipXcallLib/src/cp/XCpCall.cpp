@@ -49,11 +49,12 @@ XCpCall::XCpCall(const UtlString& sId,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
+                 XCpCallConnectionListener* pCallConnectionListener,
                  CpCallStateEventListener* pCallEventListener,
                  SipInfoStatusEventListener* pInfoStatusEventListener,
                  SipSecurityEventListener* pSecurityEventListener,
                  CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue,
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, pCallConnectionListener,
                   pCallEventListener, pInfoStatusEventListener, pSecurityEventListener, pMediaEventListener)
 , m_pSipConnection(NULL)
 {
@@ -62,6 +63,7 @@ XCpCall::XCpCall(const UtlString& sId,
 
 XCpCall::~XCpCall()
 {
+   destroySipConnection(); // destroy connection if it still exists
    waitUntilShutDown();
 }
 
@@ -299,21 +301,23 @@ UtlBoolean XCpCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
 
 OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
 {
+   OsStatus result = OS_FAILED;
    // thread safe check, as connection is only created/destroyed in this thread
    if (!m_pSipConnection)
    {
-      createSipConnection();
+      SipDialog sipDialog(rMsg.getSipCallId(), rMsg.getLocalTag(), NULL, TRUE);
+      createSipConnection(sipDialog);
    }
 
    OsPtrLock<XSipConnection> ptrLock;
    UtlBoolean resFound = getConnection(ptrLock);
    if (resFound)
    {
-      return ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
+      result = ptrLock->connect(rMsg.getToAddress(), rMsg.getFromAddress(),
          rMsg.getLocationHeader(), rMsg.getContactId());
    }
 
-   return OS_NOT_FOUND;
+   return result;
 }
 
 OsStatus XCpCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)
@@ -476,13 +480,42 @@ OsStatus XCpCall::handleSendInfo(const AcSendInfoMsg& rMsg)
    return OS_NOT_FOUND;
 }
 
-void XCpCall::createSipConnection()
+void XCpCall::createSipConnection(const SipDialog& sipDialog)
 {
-   OsLock lock(m_memberMutex);
-   if (!m_pSipConnection)
+   UtlBoolean bAdded = FALSE;
    {
-      m_pSipConnection = new XSipConnection(m_sId, m_rSipUserAgent, this, m_pCallEventListener,
-         m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+      OsLock lock(m_memberMutex);
+      if (!m_pSipConnection)
+      {
+         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, this, m_pCallEventListener,
+            m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+         bAdded = TRUE;
+      }
+   }
+
+   if (bAdded)
+   {
+      onConnectionAddded(sipDialog.getCallId());
+   }
+}
+
+void XCpCall::destroySipConnection()
+{
+   UtlString sSipCallId;
+   {
+      OsLock lock(m_memberMutex);
+      if (m_pSipConnection)
+      {
+         m_pSipConnection->getSipCallId(sSipCallId);
+         delete m_pSipConnection;
+         m_pSipConnection = NULL;
+      }
+   }
+
+   if (!sSipCallId.isNull())
+   {
+      // we destroyed some connection, notify call stack
+      onConnectionRemoved(sSipCallId);
    }
 }
 

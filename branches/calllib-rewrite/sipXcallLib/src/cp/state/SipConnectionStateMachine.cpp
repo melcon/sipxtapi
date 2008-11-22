@@ -73,9 +73,7 @@ void SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEv
    }
 }
 
-OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
-                                            const UtlString& localTag,
-                                            const UtlString& toAddress,
+OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
                                             const UtlString& fromAddress,
                                             const UtlString& locationHeader,
                                             CP_CONTACT_ID contactId)
@@ -93,7 +91,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    // now let state handle request
    if (m_pSipConnectionState)
    {
-      return m_pSipConnectionState->connect(sipCallId, localTag, toAddress, fromAddress,
+      return m_pSipConnectionState->connect(toAddress, fromAddress,
          locationHeader, contactId);
    }
 

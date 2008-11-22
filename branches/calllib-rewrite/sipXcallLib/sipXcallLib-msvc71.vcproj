@@ -135,6 +135,7 @@
             <File RelativePath="include\cp\SipConnection.h"/>
             <File RelativePath=".\include\cp\XCpAbstractCall.h"/>
             <File RelativePath=".\include\cp\XCpCall.h"/>
+            <File RelativePath=".\include\cp\XCpCallConnectionListener.h"/>
             <File RelativePath=".\include\cp\XCpCallIdUtil.h"/>
             <File RelativePath=".\include\cp\XCpCallManager.h"/>
             <File RelativePath=".\include\cp\XCpCallStack.h"/>

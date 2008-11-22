@@ -98,8 +98,6 @@ XCpCallManager::~XCpCallManager()
 {
    stopSipMessageObserving();
    waitUntilShutDown();
-   m_callStack.deleteAllCalls();
-   m_callStack.deleteAllConferences();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -128,8 +126,7 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
 
 void XCpCallManager::requestShutdown(void)
 {
-   m_callStack.shutdownAllCallThreads();
-   m_callStack.shutdownAllConferenceThreads();
+   m_callStack.shutdownAllAbstractCallThreads();
 
    OsServerTask::requestShutdown();
 }
@@ -147,7 +144,7 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
    }
 
    XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
-      m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+      &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start();
    if (resStart)
@@ -179,7 +176,8 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
       sConferenceId = getNewConferenceId();
    }
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
-      *getMessageQueue(), m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+      *getMessageQueue(), &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener,
+      m_pMediaEventListener);
 
    UtlBoolean resStart = pConference->start();
    if (resStart)
@@ -1244,7 +1242,8 @@ void XCpCallManager::createNewInboundCall(const SipMessageEvent& rSipMsgEvent)
       UtlString sSipCallId = getNewSipCallId();
 
       XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
-         *getMessageQueue(), m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+         *getMessageQueue(), &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener,
+         m_pMediaEventListener);
 
       UtlBoolean resStart = pCall->start(); // start thread
       if (resStart)

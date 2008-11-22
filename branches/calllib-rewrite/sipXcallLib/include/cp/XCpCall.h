@@ -68,6 +68,7 @@ public:
            CpMediaInterfaceFactory& rMediaInterfaceFactory,
            const SdpCodecList& rDefaultSdpCodecList,
            OsMsgQ& rCallManagerQueue,
+           XCpCallConnectionListener* pCallConnectionListener = NULL,
            CpCallStateEventListener* pCallEventListener = NULL,
            SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
            SipSecurityEventListener* pSecurityEventListener = NULL,
@@ -261,7 +262,10 @@ private:
    OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
 
    /** Creates new XSipConnection for the call, if it doesn't exist yet */
-   void createSipConnection();
+   void createSipConnection(const SipDialog& sipDialog);
+
+   /** Destroys XSipConnection if it exists */
+   void destroySipConnection();
 
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,

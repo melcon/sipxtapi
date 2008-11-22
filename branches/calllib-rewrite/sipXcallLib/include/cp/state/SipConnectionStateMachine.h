@@ -65,9 +65,7 @@ public:
    void handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /** Connects call to given address. Uses supplied sip call-id. */
-   OsStatus connect(const UtlString& sipCallId,
-                    const UtlString& localTag,
-                    const UtlString& toAddress,
+   OsStatus connect(const UtlString& toAddress,
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId);

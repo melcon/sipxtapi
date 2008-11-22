@@ -50,11 +50,12 @@ XCpConference::XCpConference(const UtlString& sId,
                              CpMediaInterfaceFactory& rMediaInterfaceFactory,
                              const SdpCodecList& rDefaultSdpCodecList,
                              OsMsgQ& rCallManagerQueue,
+                             XCpCallConnectionListener* pCallConnectionListener,
                              CpCallStateEventListener* pCallEventListener,
                              SipInfoStatusEventListener* pInfoStatusEventListener,
                              SipSecurityEventListener* pSecurityEventListener,
                              CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue,
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, pCallConnectionListener,
                   pCallEventListener, pInfoStatusEventListener, pSecurityEventListener, pMediaEventListener)
 {
 

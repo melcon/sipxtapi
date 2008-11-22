@@ -59,6 +59,7 @@ public:
    /* ============================ CREATORS ================================== */
 
    XSipConnection(const UtlString& sAbstractCallId,
+                  const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
                   CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
                   CpCallStateEventListener* pCallEventListener = NULL,
@@ -87,10 +88,11 @@ public:
                                     int sipResponseCode = 0,
                                     const UtlString& sResponseText = NULL);
 
-   /** Connects call to given address. Uses supplied sip call-id. */
-   OsStatus connect(const UtlString& sipCallId,
-                    const UtlString& localTag,
-                    const UtlString& toAddress,
+   /**
+    * Connects call to given address. Sip callId is not supplied here, because
+    * sip connection has a callId assigned to its during creation.
+    */
+   OsStatus connect(const UtlString& toAddress,
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId);

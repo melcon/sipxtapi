@@ -42,6 +42,11 @@
  *
  * This class is meant to contain public members. Destructor is responsible for freeing
  * any pointers.
+ *
+ * When XSipConnection is first constructed, it is immediately assigned a sip dialog.
+ * Sip callId of this sip dialog cannot change during the lifetime of a XSipConnection.
+ * Local tag will also be present if connection was initiated locally, and remote tag will be
+ * present if connection was initiated remotely.
  */
 class XSipConnectionContext : public OsRWSyncBase
 {
