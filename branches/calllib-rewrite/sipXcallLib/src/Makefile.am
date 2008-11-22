@@ -43,8 +43,10 @@ libsipXcall_la_SOURCES = \
     cp/SipConnection.cpp \
     cp/XCpAbstractCall.cpp \
     cp/XCpCall.cpp \
+    cp/XCpCallIdUtil.cpp \
     cp/XCpCallManager.cpp \
     cp/XCpConference.cpp \
+    cp/XCpCallStack.cpp \
     cp/XSipConnection.cpp \
     cp/XSipConnectionContext.cpp \
     cp/msg/AcAcceptConnectionMsg.cpp \
