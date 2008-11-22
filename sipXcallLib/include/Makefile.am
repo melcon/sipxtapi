@@ -25,7 +25,9 @@ nobase_include_HEADERS =  \
     cp/SipConnection.h \
     cp/XCpAbstractCall.h \
     cp/XCpCall.h \
+    cp/XCpCallIdUtil.h \
     cp/XCpCallManager.h \
+    cp/XCpCallStack.h \
     cp/XCpConference.h \
     cp/XSipConnection.h \
     cp/XSipConnectionContext.h \

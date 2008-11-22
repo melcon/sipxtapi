@@ -291,7 +291,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\XCpCallIdUtil.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\XCpCallManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\XCpCallStack.cpp"
 				>
 			</File>
 			<File
@@ -620,7 +628,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\XCpCallIdUtil.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\XCpCallManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpCallStack.h"
 				>
 			</File>
 			<File

@@ -48,7 +48,9 @@
             <File RelativePath=".\src\cp\SipConnection.cpp"/>
             <File RelativePath=".\src\cp\XCpAbstractCall.cpp"/>
             <File RelativePath=".\src\cp\XCpCall.cpp"/>
+            <File RelativePath=".\src\cp\XCpCallIdUtil.cpp"/>
             <File RelativePath=".\src\cp\XCpCallManager.cpp"/>
+            <File RelativePath=".\src\cp\XCpCallStack.cpp"/>
             <File RelativePath=".\src\cp\XCpConference.cpp"/>
             <File RelativePath=".\src\cp\XSipConnection.cpp"/>
             <File RelativePath=".\src\cp\XSipConnectionContext.cpp"/>
@@ -133,7 +135,9 @@
             <File RelativePath="include\cp\SipConnection.h"/>
             <File RelativePath=".\include\cp\XCpAbstractCall.h"/>
             <File RelativePath=".\include\cp\XCpCall.h"/>
+            <File RelativePath=".\include\cp\XCpCallIdUtil.h"/>
             <File RelativePath=".\include\cp\XCpCallManager.h"/>
+            <File RelativePath=".\include\cp\XCpCallStack.h"/>
             <File RelativePath=".\include\cp\XCpConference.h"/>
             <File RelativePath=".\include\cp\XSipConnection.h"/>
             <File RelativePath=".\include\cp\XSipConnectionContext.h"/>
