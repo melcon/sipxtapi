@@ -19,6 +19,7 @@
 #include <utl/UtlSList.h>
 #include <utl/UtlInt.h>
 #include <net/SipUserAgent.h>
+#include <mi/CpMediaInterfaceFactory.h>
 #include <cp/XCpCallManager.h>
 #include <cp/XCpAbstractCall.h>
 #include <cp/XCpCall.h>
@@ -92,6 +93,8 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 
    int defaultInviteExpireSeconds = m_rSipUserAgent.getDefaultExpiresSeconds();
    if (m_inviteExpireSeconds > defaultInviteExpireSeconds) m_inviteExpireSeconds = defaultInviteExpireSeconds;
+
+   m_rMediaInterfaceFactory.setRtpPortRange(m_rtpPortStart, m_rtpPortEnd);
 }
 
 XCpCallManager::~XCpCallManager()
