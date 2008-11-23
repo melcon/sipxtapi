@@ -532,13 +532,16 @@ private:
    UtlBoolean handleUnknownSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /** Handler for inbound INVITE SipMessage, for which there is no existing call or conference. */
-   UtlBoolean handleInboundInviteRequest(const SipMessage& rSipMessage);
+   UtlBoolean handleUnknownInviteRequest(const SipMessage& rSipMessage);
 
    /** Handler for inbound OPTIONS SipMessage, for which there is no existing call or conference. */
-   UtlBoolean handleInboundOptionsRequest(const SipMessage& rSipMessage);
+   UtlBoolean handleUnknownOptionsRequest(const SipMessage& rSipMessage);
 
    /** Handler for inbound REFER SipMessage, for which there is no existing call or conference. */
-   UtlBoolean handleInboundReferRequest(const SipMessage& rSipMessage);
+   UtlBoolean handleUnknownReferRequest(const SipMessage& rSipMessage);
+
+   /** Handler for inbound CANCEL SipMessage, for which there is no existing call or conference. */
+   UtlBoolean handleUnknownCancelRequest(const SipMessage& rSipMessage);
 
    /** Does some basic checks on the SipMessage itself, and sends response if message is rejected. */
    UtlBoolean handleUnknownSipRequest(const SipMessage& rSipMessage);

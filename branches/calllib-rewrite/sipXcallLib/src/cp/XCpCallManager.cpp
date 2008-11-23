@@ -1118,7 +1118,7 @@ UtlBoolean XCpCallManager::handleUnknownSipMessageEvent(const SipMessageEvent& r
 }
 
 // Handler for inbound INVITE SipMessage, for which there is no existing call or conference.
-UtlBoolean XCpCallManager::handleInboundInviteRequest(const SipMessage& rSipMessage)
+UtlBoolean XCpCallManager::handleUnknownInviteRequest(const SipMessage& rSipMessage)
 {
    UtlString toTag;
    rSipMessage.getToFieldTag(toTag);
@@ -1175,12 +1175,12 @@ UtlBoolean XCpCallManager::handleInboundInviteRequest(const SipMessage& rSipMess
    {
       // to tag present but dialog not found -> doesn't exist
       sendBadTransactionError(rSipMessage);
-      return FALSE;
+      return TRUE;
    }
 }
 
 // Handler for inbound OPTIONS SipMessage, for which there is no existing call or conference. 
-UtlBoolean XCpCallManager::handleInboundOptionsRequest(const SipMessage& rSipMessage)
+UtlBoolean XCpCallManager::handleUnknownOptionsRequest(const SipMessage& rSipMessage)
 {
    UtlString fromTag;
    rSipMessage.getFromFieldTag(fromTag);
@@ -1191,7 +1191,7 @@ UtlBoolean XCpCallManager::handleInboundOptionsRequest(const SipMessage& rSipMes
    {
       // to tag present but dialog not found -> doesn't exist
       sendBadTransactionError(rSipMessage);
-      return FALSE;
+      return TRUE;
    }
    else if (fromTag.isNull())
    {
@@ -1201,7 +1201,7 @@ UtlBoolean XCpCallManager::handleInboundOptionsRequest(const SipMessage& rSipMes
    return FALSE;
 }
 
-UtlBoolean XCpCallManager::handleInboundReferRequest(const SipMessage& rSipMessage)
+UtlBoolean XCpCallManager::handleUnknownReferRequest(const SipMessage& rSipMessage)
 {
    UtlString toTag;
    rSipMessage.getToFieldTag(toTag);
@@ -1210,7 +1210,7 @@ UtlBoolean XCpCallManager::handleInboundReferRequest(const SipMessage& rSipMessa
    {
       // to tag present but dialog not found -> doesn't exist
       sendBadTransactionError(rSipMessage);
-      return FALSE;
+      return TRUE;
    }
    else
    {
@@ -1218,6 +1218,13 @@ UtlBoolean XCpCallManager::handleInboundReferRequest(const SipMessage& rSipMessa
       // TODO: Investigate how this should be handled
       return TRUE;
    }
+}
+
+UtlBoolean XCpCallManager::handleUnknownCancelRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown CANCEL requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
 }
 
 // called for inbound request SipMessages, for which calls weren't found
@@ -1229,19 +1236,23 @@ UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage
    // Dangling or delayed ACK
    if(requestMethod.compareTo(SIP_ACK_METHOD) == 0)
    {
-      return FALSE;
+      return TRUE;
    }
    else if(requestMethod.compareTo(SIP_INVITE_METHOD) == 0)
    {
-      return handleInboundInviteRequest(rSipMessage);
+      return handleUnknownInviteRequest(rSipMessage);
    }
    else if(requestMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
    {
-      return handleInboundOptionsRequest(rSipMessage);
+      return handleUnknownOptionsRequest(rSipMessage);
    }
    else if(requestMethod.compareTo(SIP_REFER_METHOD) == 0)
    {
-      return handleInboundReferRequest(rSipMessage);
+      return handleUnknownReferRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_CANCEL_METHOD) == 0)
+   {
+      return handleUnknownCancelRequest(rSipMessage);
    }
 
    // 481 Call/Transaction Does Not Exist must be sent automatically by transaction layer for other messages (INFO, NOTIFY)
