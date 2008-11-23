@@ -73,7 +73,7 @@ public:
     , mRtpAudioSending(FALSE)
     , mRtpAudioReceiving(FALSE)
     , mpAudioCodec(NULL)
-    , mpCodecFactory(NULL)
+    , mpSdpCodecList(NULL)
     , mContactType(CONTACT_AUTO)
     , mbAlternateDestinations(FALSE)
     {
@@ -104,13 +104,13 @@ public:
             mpRtcpAudioSocket = NULL;
         }
 
-        if(mpCodecFactory)
+        if(mpSdpCodecList)
         {
             OsSysLog::add(FAC_CP, PRI_DEBUG, 
                 "~SipXMediaConnection deleting SdpCodecList %p",
-                mpCodecFactory);
-            delete mpCodecFactory;
-            mpCodecFactory = NULL;
+                mpSdpCodecList);
+            delete mpSdpCodecList;
+            mpSdpCodecList = NULL;
         }
 
         if (mpAudioCodec)
@@ -134,9 +134,9 @@ public:
     UtlBoolean mRtpAudioSending;
     UtlBoolean mRtpAudioReceiving;
     SdpCodec* mpAudioCodec;
-    SdpCodecList* mpCodecFactory;
+    SdpCodecList* mpSdpCodecList;
     SIPX_CONTACT_TYPE mContactType ;
-    UtlString mLocalAddress ;
+    UtlString mLocalIPAddress; ///< local bind IP address
     UtlBoolean mbAlternateDestinations ;
     UtlHashMap mConnectionProperties;
 };
@@ -290,21 +290,21 @@ OsStatus SipXMediaInterfaceImpl::createConnection(int& connectionId,
    // Set Local address
    if (szLocalAddress && strlen(szLocalAddress))
    {
-      mediaConnection->mLocalAddress = szLocalAddress ;
+      mediaConnection->mLocalIPAddress = szLocalAddress;
    }
    else
    {
-      mediaConnection->mLocalAddress = mLocalIPAddress ;
+      mediaConnection->mLocalIPAddress = mLocalIPAddress;
    }
 
-   mediaConnection->mIsMulticast = OsSocket::isMcastAddr(mediaConnection->mLocalAddress);
+   mediaConnection->mIsMulticast = OsSocket::isMcastAddr(mediaConnection->mLocalIPAddress);
    if (mediaConnection->mIsMulticast)
    {
       mediaConnection->mContactType = CONTACT_LOCAL;
    }
 
    // Create the sockets for audio stream
-   retValue = createRtpSocketPair(mediaConnection->mLocalAddress, localPort,
+   retValue = createRtpSocketPair(mediaConnection->mLocalIPAddress, localPort,
                                   mediaConnection->mContactType,
                                   mediaConnection->mpRtpAudioSocket, mediaConnection->mpRtcpAudioSocket);
    if (retValue != OS_SUCCESS)
@@ -313,7 +313,7 @@ OsStatus SipXMediaInterfaceImpl::createConnection(int& connectionId,
    }
 
    // Start the audio packet pump
-   mpFlowGraph->startReceiveRtp(UtlSList(), // pass empty list
+   mpFlowGraph->startReceiveRtp(SdpCodecList(), // pass empty list
                                 *mediaConnection->mpRtpAudioSocket,
                                 *mediaConnection->mpRtcpAudioSocket,
                                 connectionId);
@@ -330,13 +330,11 @@ OsStatus SipXMediaInterfaceImpl::createConnection(int& connectionId,
             mediaConnection->mpRtcpAudioSocket, mediaConnection->mpRtcpAudioSocket->getSocketDescriptor());
 
    // Set codec factory
-   UtlSList codecList;
-   mSdpCodecList.getCodecs(codecList);
-   mediaConnection->mpCodecFactory = new SdpCodecList(codecList);
-   mediaConnection->mpCodecFactory->bindPayloadIds();
+   mediaConnection->mpSdpCodecList = new SdpCodecList(mSdpCodecList);
+   mediaConnection->mpSdpCodecList->bindPayloadIds();
    OsSysLog::add(FAC_CP, PRI_DEBUG, 
             "SipXMediaInterfaceImpl::createConnection creating a new SdpCodecList %p",
-            mediaConnection->mpCodecFactory);
+            mediaConnection->mpSdpCodecList);
 
     return retValue;
 }
@@ -469,7 +467,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
         }
         supportedCodecs.clearCodecs();
         UtlSList codecList;
-        pMediaConn->mpCodecFactory->getCodecs(codecList);
+        pMediaConn->mpSdpCodecList->getCodecs(codecList);
         supportedCodecs.addCodecs(codecList);
         supportedCodecs.bindPayloadIds();   
 
@@ -560,9 +558,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilitiesEx(int connectionId,
             setAudioCodecBandwidth(connectionId, bandWidth);
         }
         supportedCodecs.clearCodecs();
-        UtlSList codecList;
-        pMediaConn->mpCodecFactory->getCodecs(codecList);
-        supportedCodecs.addCodecs(codecList);
+        supportedCodecs.addCodecs(*pMediaConn->mpSdpCodecList);
         supportedCodecs.bindPayloadIds();
 
         memset((void*)&srtpParameters, 0, sizeof(SdpSrtpParameters));
@@ -909,9 +905,9 @@ OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
 
    // Make sure we use the same payload types as the remote
    // side.  Its the friendly thing to do.
-   if (mediaConnection->mpCodecFactory)
+   if (mediaConnection->mpSdpCodecList)
    {
-      mediaConnection->mpCodecFactory->copyPayloadIds(utlCodecList);
+      mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
    }
 
    if (mpFlowGraph)
@@ -930,9 +926,9 @@ OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
 
        // Make sure we use the same payload types as the remote
        // side.  Its the friendly thing to do.
-       if (mediaConnection->mpCodecFactory)
+       if (mediaConnection->mpSdpCodecList)
        {
-           mediaConnection->mpCodecFactory->copyPayloadIds(utlCodecList);
+           mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
        }
 
        if (mediaConnection->mRtpAudioSending)
@@ -972,9 +968,9 @@ OsStatus SipXMediaInterfaceImpl::startRtpReceive(int connectionId,
 
    // Make sure we use the same payload types as the remote
    // side.  It's the friendly thing to do.
-   if (mediaConnection->mpCodecFactory)
+   if (mediaConnection->mpSdpCodecList)
    {
-         mediaConnection->mpCodecFactory->copyPayloadIds(utlCodecList);
+         mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
    }
 
    if (mpFlowGraph)
@@ -1199,31 +1195,6 @@ OsStatus SipXMediaInterfaceImpl::resumePlayback()
    return(returnCode);
 }
 
-OsStatus SipXMediaInterfaceImpl::playChannelAudio(int connectionId,
-                                                 const char* url,
-                                                 UtlBoolean repeat,
-                                                 UtlBoolean local,
-                                                 UtlBoolean remote,
-                                                 UtlBoolean mixWithMic,
-                                                 int downScaling,
-                                                 void* pCookie) 
-{
-    // TODO:: This API is designed to record the audio from a single channel.  
-    // If the connectionId is -1, record all.
-
-    return playAudio(url, repeat, local, remote, mixWithMic, downScaling, pCookie) ;
-}
-
-
-OsStatus SipXMediaInterfaceImpl::stopChannelAudio(int connectionId) 
-{
-    // TODO:: This API is designed to record the audio from a single channel.  
-    // If the connectionId is -1, record all.
-
-    return stopAudio() ;
-}
-
-
 OsStatus SipXMediaInterfaceImpl::recordChannelAudio(int connectionId,
                                                    const char* szFile) 
 {
@@ -1285,16 +1256,6 @@ OsStatus SipXMediaInterfaceImpl::stopTone()
    }
 
    return(returnCode);
-}
-
-OsStatus SipXMediaInterfaceImpl::startChannelTone(int connectionId, int toneId, UtlBoolean local, UtlBoolean remote) 
-{
-    return startTone(toneId, local, remote) ;
-}
-
-OsStatus SipXMediaInterfaceImpl::stopChannelTone(int connectionId)
-{
-    return stopTone() ;
 }
 
 OsStatus SipXMediaInterfaceImpl::muteInput(int connectionId, UtlBoolean bMute)
@@ -1397,37 +1358,6 @@ OsStatus SipXMediaInterfaceImpl::recordMic(int ms,
         ret = mpFlowGraph->recordMic(ms, silenceLength, fileName);
     }
     return ret ;
-}
-
-
-OsStatus SipXMediaInterfaceImpl::ezRecord(int ms, 
-                                         int silenceLength, 
-                                         const char* fileName, 
-                                         double& duration,
-                                         int& dtmfterm,
-                                         OsProtectedEvent* ev)
-{
-   OsStatus ret = OS_UNSPECIFIED;
-   if (mpFlowGraph && fileName)
-   {
-     if (!ev) // default behavior
-        ret = mpFlowGraph->ezRecord(ms, 
-                                 silenceLength, 
-                                 fileName, 
-                                 duration, 
-                                 dtmfterm, 
-                                 MprRecorder::WAV_PCM_16);
-     else
-        ret = mpFlowGraph->mediaRecord(ms, 
-                                 silenceLength, 
-                                 fileName, 
-                                 duration, 
-                                 dtmfterm, 
-                                 MprRecorder::WAV_PCM_16,
-                                 ev);
-   }
-   
-   return ret;
 }
 
 void SipXMediaInterfaceImpl::setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) 
@@ -1559,7 +1489,7 @@ int SipXMediaInterfaceImpl::getCodecCPULimit()
       UtlDListIterator connectionIterator(mMediaConnections);
       while ((mediaConnection = (SipXMediaConnection*) connectionIterator()))
       {
-         mediaConnection->mpCodecFactory->getCodecs(iCodecs, codecs) ;      
+         mediaConnection->mpSdpCodecList->getCodecs(iCodecs, codecs) ;      
          for(int i = 0; i < iCodecs; i++)
          {
             // If the cost is greater than what we have, then make that the cost.
@@ -1595,17 +1525,6 @@ int SipXMediaInterfaceImpl::getCodecCPULimit()
    }
 
    return iCost ;
-}
-
-// Returns the flowgraph's message queue
-OsMsgQ* SipXMediaInterfaceImpl::getMsgQ()
-{
-   return mpFlowGraph->getMsgQ() ;
-}
-
-OsMsgDispatcher* SipXMediaInterfaceImpl::getMediaNotificationDispatcher()
-{
-   return mpFlowGraph ? mpFlowGraph->getNotificationDispatcher() : NULL;
 }
 
 OsStatus SipXMediaInterfaceImpl::getPrimaryCodec(int connectionId, 

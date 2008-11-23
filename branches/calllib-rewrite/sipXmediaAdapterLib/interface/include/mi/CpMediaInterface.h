@@ -140,14 +140,13 @@ public:
 
 /* ========================= MANIPULATORS ========================= */
      /// @brief Create a media connection in the media processing subsystem.
-   virtual OsStatus createConnection(
-               int& connectionId,
-               const char* szLocalIPAddress,
-               int localPort = 0,
-               void* videoWindowHandle = NULL,
-               void* const pSecurityAttributes = NULL,
-               OsMsgQ* pConnectionNotificationQueue = NULL,
-               const RtpTransportOptions rtpTransportOptions = RTP_TRANSPORT_UDP) = 0 ;
+   virtual OsStatus createConnection(int& connectionId, ///< will get assigned connection id
+                                     const char* szLocalIPAddress, ///< optionally override local bind address of media interface
+                                     int localPort = 0,
+                                     void* videoWindowHandle = NULL,
+                                     void* const pSecurityAttributes = NULL,
+                                     OsMsgQ* pConnectionNotificationQueue = NULL,
+                                     const RtpTransportOptions rtpTransportOptions = RTP_TRANSPORT_UDP) = 0;
      /**<
      *  One instance of the CpMediaInterface exists for each call, however, 
      *  each leg of the call requires in individual connection.
@@ -191,9 +190,8 @@ public:
      */
 
      /// @brief Enable or disable media notifications for one/all resource(s).
-   virtual OsStatus
-   setMediaNotificationsEnabled(bool enabled, 
-                                const UtlString& resourceName = NULL) = 0;
+   virtual OsStatus setMediaNotificationsEnabled(bool enabled, 
+                                                 const UtlString& resourceName = NULL) = 0;
      /**<
      *  Enable or disable media notifications for a given resource or all resources.
      *
@@ -398,14 +396,6 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
 
-   virtual OsStatus startChannelTone(int connectiondId,
-                                     int toneId, 
-                                     UtlBoolean local, 
-                                     UtlBoolean remote) = 0 ;
-
-   virtual OsStatus stopChannelTone(int connectiondId) = 0 ;
-
-
    virtual OsStatus recordChannelAudio(int connectionId,
                                        const char* szFile) = 0 ;
 
@@ -434,15 +424,6 @@ public:
      *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
-
-   virtual OsStatus playChannelAudio(int connectionId,
-                                     const char* url, 
-                                     UtlBoolean repeat,
-                                     UtlBoolean local, 
-                                     UtlBoolean remote,
-                                     UtlBoolean mixWithMic = false,
-                                     int downScaling = 100,
-                                     void* pCookie = NULL) = 0 ;
 
      /// @brief Play the specified audio buffer to the call. 
    virtual OsStatus playBuffer(void* buf, 
@@ -485,8 +466,6 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
 
-   virtual OsStatus stopChannelAudio(int connectionId) = 0 ;
-
    /**
     * Mute input for given call on bridge.
     */
@@ -509,14 +488,6 @@ public:
      *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
-
-   //! Start recording audio for this call.
-   virtual OsStatus ezRecord(int ms, 
-                             int silenceLength, 
-                             const char* fileName, 
-                             double& duration, 
-                             int& dtmfterm,
-                             OsProtectedEvent* ev = NULL) = 0;
 
      /// @brief Record the microphone data to a file
    virtual OsStatus recordMic(int ms,
@@ -636,12 +607,6 @@ public:
    //! sending/receiving codecs.
    virtual int getCodecCPULimit() = 0 ;
 
-   //!Returns the flowgraph's message queue
-   virtual OsMsgQ* getMsgQ() = 0 ;
-
-      /// Returns the flowgraph's Media Notification dispatcher.
-   virtual OsMsgDispatcher* getMediaNotificationDispatcher() = 0;
-
    // Returns the primary codec for the connection
    virtual OsStatus getPrimaryCodec(int connectionId, 
                                     UtlString& audioCodec,
@@ -714,8 +679,6 @@ public:
      ///< Get the specific type of this media interface
    virtual UtlString getType() = 0;
 
-
-
 /* ============================ INQUIRY =================================== */
 
     /// Query if connectionId is valid
@@ -768,8 +731,6 @@ private:
 
    //! Copy constructor disabled
    CpMediaInterface(const CpMediaInterface& rCpMediaInterface);
-
-   static int sInvalidConnectionId; ///< Number of connection, assigned to invalid connection.
 };
 
 /* ============================ INLINE METHODS ============================ */

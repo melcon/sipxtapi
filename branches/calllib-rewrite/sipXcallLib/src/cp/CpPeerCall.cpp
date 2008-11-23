@@ -1553,7 +1553,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->startChannelTone(connectionId, toneId, local, remote);
+//            mpMediaInterface->startChannelTone(connectionId, toneId, local, remote);
          }                
       }
       break;            
@@ -1566,7 +1566,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->stopChannelTone(connectionId);
+            //mpMediaInterface->stopChannelTone(connectionId);
          }                
       }
       break;
@@ -1587,8 +1587,8 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->playChannelAudio(connectionId, url, repeat, 
-               local, remote, mixWithMic, downScaling, pCookie);
+/*            mpMediaInterface->playChannelAudio(connectionId, url, repeat, 
+               local, remote, mixWithMic, downScaling, pCookie);*/
          }     
          else if (mpMediaInterface)
          {
@@ -1608,7 +1608,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->stopChannelAudio(connectionId);
+//            mpMediaInterface->stopChannelAudio(connectionId);
          }
       }
       break;

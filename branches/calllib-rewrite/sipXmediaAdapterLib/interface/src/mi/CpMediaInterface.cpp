@@ -25,7 +25,6 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-int CpMediaInterface::sInvalidConnectionId = CpMediaInterface::INVALID_CONNECTION_ID;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 

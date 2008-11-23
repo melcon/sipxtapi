@@ -89,8 +89,8 @@ public:
 /* ============================ MANIPULATORS ============================== */
 
 
-   virtual OsStatus createConnection(int& connectionId,
-                                     const char* szLocalAddress,
+   virtual OsStatus createConnection(int& connectionId, ///< will get assigned connection id
+                                     const char* szLocalAddress, ///< optionally override local bind address of media interface
                                      int localPort = 0,
                                      void* videoWindowHandle = NULL,
                                      void* const pSecurityAttributes = NULL,
@@ -150,9 +150,6 @@ public:
    virtual OsStatus startTone(int toneId, UtlBoolean local, UtlBoolean remote);
    virtual OsStatus stopTone();
 
-   virtual OsStatus startChannelTone(int connectionId, int toneId, UtlBoolean local, UtlBoolean remote) ;
-   virtual OsStatus stopChannelTone(int connectionId) ;
-
    virtual OsStatus muteInput(int connectionId, UtlBoolean bMute);
 
    virtual OsStatus playAudio(const char* url, 
@@ -180,19 +177,6 @@ public:
 
     virtual OsStatus resumePlayback();
 
-    virtual OsStatus playChannelAudio(int connectionId,
-                                     const char* url,
-                                     UtlBoolean repeat,
-                                     UtlBoolean local,
-                                     UtlBoolean remote,
-                                     UtlBoolean mixWithMic = false,
-                                     int downScaling = 100,
-                                     void* pCookie = NULL) ;
-
-
-   virtual OsStatus stopChannelAudio(int connectionId) ;
-
-
    virtual OsStatus recordChannelAudio(int connectionId,
                                        const char* szFile) ;
 
@@ -202,12 +186,6 @@ public:
    virtual OsStatus defocus();
 
    virtual OsStatus stopRecording();
-   virtual OsStatus ezRecord(int ms, 
-           int silenceLength, 
-           const char* fileName, 
-           double& duration, 
-           int& dtmfterm,
-           OsProtectedEvent* ev = NULL);
 
    /**
    * Starts recording all audio channels into given file.
@@ -284,12 +262,6 @@ public:
 
    virtual int getCodecCPULimit();
       //:Calculate the worst cost for our sending/receiving codecs
-
-   virtual OsMsgQ* getMsgQ();
-     //:Returns the flowgraph's message queue
-
-     /// @copydoc CpMediaInterface::getMediaNotificationDispatcher()
-   virtual OsMsgDispatcher* getMediaNotificationDispatcher();
 
    virtual OsStatus getVideoQuality(int& quality);
    virtual OsStatus getVideoBitRate(int& bitRate);
