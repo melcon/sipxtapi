@@ -8,9 +8,7 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
-
 // APPLICATION INCLUDES
 #include <net/SipMessageEvent.h>
 
@@ -24,63 +22,64 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-SipMessageEvent::SipMessageEvent(SipMessage* message, int status)
+SipMessageEvent::SipMessageEvent(SipMessage* message, int status /*= APPLICATION*/)
 : OsMsg(OsMsg::PHONE_APP, SipMessage::NET_SIP_MESSAGE)
+, m_messageStatus(status)
+, m_pSipMessage(message) // use supplied message
 {
-   messageStatus = status;
-   sipMessage = message;
 }
 
 SipMessageEvent::SipMessageEvent(const SipMessage& rSipMessage, int status /*= APPLICATION*/)
 : OsMsg(OsMsg::PHONE_APP, SipMessage::NET_SIP_MESSAGE)
-, messageStatus(status)
-, sipMessage(new SipMessage(rSipMessage)) // use a copy
+, m_messageStatus(status)
+, m_pSipMessage(new SipMessage(rSipMessage)) // use a copy
 {
 }
 
 // Destructor
 SipMessageEvent::~SipMessageEvent()
 {
-        if(sipMessage)
-        {
-                delete sipMessage;
-                sipMessage = NULL;
-        }
+   if(m_pSipMessage)
+   {
+      delete m_pSipMessage;
+      m_pSipMessage = NULL;
+   }
 }
 
 OsMsg* SipMessageEvent::createCopy() const
 {
-        // Ineffient but easy coding way to copy message
-        SipMessage* sipMsg = NULL;
+   // Inefficient but easy coding way to copy message
+   SipMessage* sipMsg = NULL;
 
-        if(sipMessage)
-        {
-                sipMsg = new SipMessage(*sipMessage);
-        }
+   if(m_pSipMessage)
+   {
+      sipMsg = new SipMessage(*m_pSipMessage);
+   }
 
-        return(new SipMessageEvent(sipMsg, messageStatus));
+   return new SipMessageEvent(sipMsg, m_messageStatus);
 }
 /* ============================ MANIPULATORS ============================== */
 
 // Assignment operator
-SipMessageEvent&
-SipMessageEvent::operator=(const SipMessageEvent& rhs)
+SipMessageEvent& SipMessageEvent::operator=(const SipMessageEvent& rhs)
 {
    if (this == &rhs)            // handle the assignment to self case
       return *this;
 
    OsMsg::operator=(rhs);
-        messageStatus = rhs.messageStatus;
-        if(sipMessage)
-        {
-                delete sipMessage;
-                sipMessage = NULL;
-        }
 
-        if(rhs.sipMessage)
-        {
-                sipMessage = new SipMessage(*(rhs.sipMessage));
-        }
+   m_messageStatus = rhs.m_messageStatus;
+   
+   if(m_pSipMessage)
+   {
+      delete m_pSipMessage;
+      m_pSipMessage = NULL;
+   }
+
+   if(rhs.m_pSipMessage)
+   {
+      m_pSipMessage = new SipMessage(*(rhs.m_pSipMessage));
+   }
 
    return *this;
 }
@@ -89,17 +88,17 @@ SipMessageEvent::operator=(const SipMessageEvent& rhs)
 
 const SipMessage* SipMessageEvent::getMessage() const
 {
-        return(sipMessage);
+   return(m_pSipMessage);
 }
 
 void SipMessageEvent::setMessageStatus(int status)
 {
-        messageStatus = status;
+   m_messageStatus = status;
 }
 
 int SipMessageEvent::getMessageStatus() const
 {
-        return(messageStatus);
+   return(m_messageStatus);
 }
 
 /* ============================ INQUIRY =================================== */
