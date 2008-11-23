@@ -308,6 +308,8 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
          mpDecodeInBandDtmf->enable();
       }
    }
+
+   sendConnectionNotification(MP_NOTIFICATION_START_RTP_RECEIVE, 0);
 }
 
 OsStatus MpRtpInputAudioConnection::stopReceiveRtp(OsMsgQ& messageQueue,
@@ -337,6 +339,8 @@ void MpRtpInputAudioConnection::handleStopReceiveRtp()
    //mpFlowGraph->synchronize();
 
    mpDecode->disable();
+
+   sendConnectionNotification(MP_NOTIFICATION_STOP_RTP_RECEIVE, 0);
 
    if (mpDecodeInBandDtmf)
    {

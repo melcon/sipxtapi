@@ -1772,9 +1772,9 @@ UtlBoolean CpPeerCall::handleConnectionNotfMessage(OsMsg& eventMessage)
    case CP_NOTIFICATION_DTMF_RFC2833:
       fireSipXMediaEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_RFC2833, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
-   case CP_NOTIFICATION_DTMF_SIPINFO:
+/*   case CP_NOTIFICATION_DTMF_SIPINFO:
       fireSipXMediaEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_SIPINFO, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
-      break;
+      break;*/
    default:
       assert(false);
    }
