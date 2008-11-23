@@ -56,6 +56,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
                                SipUserAgent& rSipUserAgent,
                                const SdpCodecList& rSdpCodecList,
                                SipLineProvider* pSipLineProvider,
+                               const UtlString& sLocalIpAddress,
                                UtlBoolean bDoNotDisturb,
                                UtlBoolean bEnableICE,
                                UtlBoolean bEnableSipInfo,
@@ -75,7 +76,6 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_pSipLineProvider(pSipLineProvider)
 , m_sipCallIdGenerator(sipCallIdPrefix)
 , m_bDoNotDisturb(bDoNotDisturb)
-, m_bEnableICE(bEnableICE)
 , m_bEnableSipInfo(bEnableSipInfo)
 , m_bIsRequiredLineMatch(bIsRequiredLineMatch)
 , m_rtpPortStart(rtpPortStart)
@@ -84,8 +84,11 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_maxCalls(maxCalls)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
 , m_inviteExpireSeconds(inviteExpireSeconds)
+, m_sLocalIpAddress(sLocalIpAddress)
 {
    startSipMessageObserving();
+
+   m_natTraversalConfig.m_bEnableICE = bEnableICE;
 
    // Allow the "replaces" extension, because CallManager
    // implements the INVITE-with-Replaces logic.
@@ -147,7 +150,8 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
    }
 
    XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
-      &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+      m_natTraversalConfig, m_sLocalIpAddress, &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
+      m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start();
    if (resStart)
@@ -179,8 +183,8 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
       sConferenceId = getNewConferenceId();
    }
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
-      *getMessageQueue(), &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener,
-      m_pMediaEventListener);
+      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, &m_callStack, m_pCallEventListener,
+      m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pConference->start();
    if (resStart)
@@ -853,9 +857,9 @@ void XCpCallManager::enableStun(const UtlString& sStunServer,
 {
    OsLock lock(m_memberMutex); // use wide lock to make sure we enable stun for the correct server
 
-   m_sStunServer = sStunServer;
-   m_iStunPort = iServerPort;
-   m_iStunKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
+   m_natTraversalConfig.m_sStunServer = sStunServer;
+   m_natTraversalConfig.m_iStunPort = iServerPort;
+   m_natTraversalConfig.m_iStunKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
 
    m_rSipUserAgent.enableStun(sStunServer, iServerPort, iKeepAlivePeriodSecs, pNotification);
 }
@@ -869,12 +873,12 @@ void XCpCallManager::enableTurn(const UtlString& sTurnServer,
    OsLock lock(m_memberMutex);
 
    bool bEnabled = false;
-   m_sTurnServer = sTurnServer;
-   m_iTurnPort = iTurnPort;
-   m_sTurnUsername = sTurnUsername;
-   m_sTurnPassword = sTurnPassword;
-   m_iTurnKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
-   bEnabled = (m_sTurnServer.length() > 0) && portIsValid(m_iTurnPort);
+   m_natTraversalConfig.m_sTurnServer = sTurnServer;
+   m_natTraversalConfig.m_iTurnPort = iTurnPort;
+   m_natTraversalConfig.m_sTurnUsername = sTurnUsername;
+   m_natTraversalConfig.m_sTurnPassword = sTurnPassword;
+   m_natTraversalConfig.m_iTurnKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
+   bEnabled = (m_natTraversalConfig.m_sTurnServer.length() > 0) && portIsValid(m_natTraversalConfig.m_iTurnPort);
 
    m_rSipUserAgent.getContactDb().enableTurn(bEnabled);
 }
@@ -1268,8 +1272,8 @@ void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
    UtlString sSipCallId = getNewSipCallId();
 
    XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
-      *getMessageQueue(), &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener,
-      m_pMediaEventListener);
+      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, &m_callStack, m_pCallEventListener,
+      m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start(); // start thread
    if (resStart)

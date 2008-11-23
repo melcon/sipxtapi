@@ -19,6 +19,7 @@
 #include <os/OsPtrLock.h>
 #include <os/OsIntPtrMsg.h>
 #include <net/SipMessage.h>
+#include <net/QoS.h>
 #include <sdp/SdpCodecFactory.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
@@ -67,6 +68,8 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                                  const SdpCodecList& rDefaultSdpCodecList,
                                  OsMsgQ& rCallManagerQueue,
+                                 const CpNatTraversalConfig& rNatTraversalConfig,
+                                 const UtlString& sLocalIpAddress,
                                  XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -87,6 +90,8 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
+, m_natTraversalConfig(rNatTraversalConfig)
+, m_sLocalIpAddress(sLocalIpAddress)
 {
 
 }
@@ -693,8 +698,28 @@ void XCpAbstractCall::releaseMediaInterface()
    }
 }
 
-CpMediaInterface* XCpAbstractCall::getMediaInterface() const
+CpMediaInterface* XCpAbstractCall::getMediaInterface()
 {
+   // if called from OsServerTask only, then thread safe
+   if (!m_pMediaInterface)
+   {
+      m_pMediaInterface = m_rMediaInterfaceFactory.createMediaInterface(getMessageQueue(),
+         &m_rDefaultSdpCodecList,
+         NULL, // public IP address is ignored by media interface factory
+         m_sLocalIpAddress,
+         m_sLocale,
+         QOS_LAYER3_LOW_DELAY_IP_TOS,
+         m_natTraversalConfig.m_sStunServer,
+         m_natTraversalConfig.m_iStunPort,
+         m_natTraversalConfig.m_iStunKeepAlivePeriodSecs,
+         m_natTraversalConfig.m_sTurnServer,
+         m_natTraversalConfig.m_iTurnPort,
+         m_natTraversalConfig.m_sTurnUsername,
+         m_natTraversalConfig.m_sTurnPassword,
+         m_natTraversalConfig.m_iTurnKeepAlivePeriodSecs,
+         m_natTraversalConfig.m_bEnableICE);
+   }
+
    return m_pMediaInterface;
 }
 

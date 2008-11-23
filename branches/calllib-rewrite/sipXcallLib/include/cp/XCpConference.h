@@ -71,6 +71,8 @@ public:
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
+                 const CpNatTraversalConfig& rNatTraversalConfig,
+                 const UtlString& sLocalIpAddress,
                  XCpCallConnectionListener* pCallConnectionListener = NULL,
                  CpCallStateEventListener* pCallEventListener = NULL,
                  SipInfoStatusEventListener* pInfoStatusEventListener = NULL,

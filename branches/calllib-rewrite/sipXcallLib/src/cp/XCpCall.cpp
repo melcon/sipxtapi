@@ -49,13 +49,16 @@ XCpCall::XCpCall(const UtlString& sId,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
+                 const CpNatTraversalConfig& rNatTraversalConfig,
+                 const UtlString& sLocalIpAddress,
                  XCpCallConnectionListener* pCallConnectionListener,
                  CpCallStateEventListener* pCallEventListener,
                  SipInfoStatusEventListener* pInfoStatusEventListener,
                  SipSecurityEventListener* pSecurityEventListener,
                  CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, pCallConnectionListener,
-                  pCallEventListener, pInfoStatusEventListener, pSecurityEventListener, pMediaEventListener)
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
+                  sLocalIpAddress, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
+                  pSecurityEventListener, pMediaEventListener)
 , m_pSipConnection(NULL)
 {
 

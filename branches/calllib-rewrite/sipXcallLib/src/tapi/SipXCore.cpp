@@ -496,6 +496,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       *pInst->pSipUserAgent,
       *pInst->pCodecList,
       pInst->pLineManager,
+      szBindToAddr,
       FALSE, // doNotDisturb
       FALSE, // bEnableICE
       TRUE, // bEnableSipInfo

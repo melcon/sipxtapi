@@ -24,6 +24,7 @@
 #include <net/SipDialog.h>
 #include <net/SipTagGenerator.h>
 #include <cp/CpDefs.h>
+#include <cp/CpNatTraversalConfig.h>
 #include <cp/CpMediaInterfaceProvider.h>
 
 // DEFINES
@@ -105,6 +106,8 @@ public:
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
                    const SdpCodecList& rDefaultSdpCodecList,
                    OsMsgQ& rCallManagerQueue,
+                   const CpNatTraversalConfig& rNatTraversalConfig,
+                   const UtlString& sLocalIpAddress,
                    XCpCallConnectionListener* pCallConnectionListener = NULL,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -398,6 +401,9 @@ protected:
    SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< listener for firing info events
    SipSecurityEventListener* m_pSecurityEventListener; ///< listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; ///< listener for firing media events
+   const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
+   const UtlString m_sLocalIpAddress; ///< default local IP for media interface
+   const UtlString m_sLocale; ///< locale for DTMF, empty by default
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -467,11 +473,19 @@ private:
                                              intptr_t pEventData1,
                                              intptr_t pEventData2) = 0;
 
-   /** Releases media interface */
+   /**
+    * Releases media interface.
+    *
+    * Must be called from the OsServerTask only or destructor.
+    */
    void releaseMediaInterface();
 
-   /** Gets current media interface of abstract call. Returns NULL if there is none. */
-   virtual CpMediaInterface* getMediaInterface() const;
+   /**
+    * Gets current media interface of abstract call. Creates one if it doesn't exist.
+    * 
+    * Must be called from the OsServerTask only.
+    */
+   virtual CpMediaInterface* getMediaInterface();
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

@@ -128,6 +128,7 @@
             <File RelativePath=".\include\cp\CpMediaInterfaceProvider.h"/>
             <File RelativePath=".\include\cp\CpMessageTypes.h"/>
             <File RelativePath="include\cp\CpMultiStringMessage.h"/>
+            <File RelativePath=".\include\cp\CpNatTraversalConfig.h"/>
             <File RelativePath=".\include\cp\CpNotificationMsgDef.h"/>
             <File RelativePath="include\cp\CpPeerCall.h"/>
             <File RelativePath=".\include\cp\CpVideoCodecInfo.h"/>
