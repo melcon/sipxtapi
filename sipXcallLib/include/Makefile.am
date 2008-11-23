@@ -19,6 +19,7 @@ nobase_include_HEADERS =  \
     cp/CpMediaInterfaceProvider.h \
     cp/CpMessageTypes.h \
     cp/CpMultiStringMessage.h \
+    cp/CpNatTraversalConfig.h \
     cp/CpNotificationMsgDef.h \
     cp/CpPeerCall.h \
     cp/CpVideoCodecInfo.h \

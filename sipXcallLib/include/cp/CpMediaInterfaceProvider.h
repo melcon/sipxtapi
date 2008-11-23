@@ -42,9 +42,9 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    /**
-    * Gets current CpMediaInterface if it exists.
+    * Gets current CpMediaInterface if it exists. If not then a new one is created.
     */
-   virtual CpMediaInterface* getMediaInterface() const = 0;
+   virtual CpMediaInterface* getMediaInterface() = 0;
 
    /* ============================ INQUIRY =================================== */
 

@@ -21,6 +21,7 @@
 #include <utl/UtlHashMap.h>
 #include <net/SipCallIdGenerator.h>
 #include <cp/CpDefs.h>
+#include <cp/CpNatTraversalConfig.h>
 #include <cp/XCpCallStack.h>
 #include <cp/CpAudioCodecInfo.h>
 #include <cp/CpVideoCodecInfo.h>
@@ -71,6 +72,7 @@ public:
                   SipUserAgent& rSipUserAgent,
                   const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
+                  const UtlString& sLocalIpAddress, // default IP address for CpMediaInterface
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
                   UtlBoolean bEnableSipInfo,
@@ -458,8 +460,8 @@ public:
    UtlBoolean getDoNotDisturb() const { return m_bDoNotDisturb; }
    void setDoNotDisturb(UtlBoolean val) { m_bDoNotDisturb = val; }
 
-   UtlBoolean getEnableICE() const { return m_bEnableICE; }
-   void setEnableICE(UtlBoolean val) { m_bEnableICE = val; }
+   UtlBoolean getEnableICE() const { return m_natTraversalConfig.m_bEnableICE; }
+   void setEnableICE(UtlBoolean val) { m_natTraversalConfig.m_bEnableICE = val; }
 
    /** Enable/disable reception of SIP INFO. Sending is always allowed. Only affects new calls. */
    UtlBoolean getEnableSipInfo() const { return m_bEnableSipInfo; }
@@ -563,15 +565,7 @@ private:
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
 
    // not thread safe fields
-   UtlString m_sStunServer; ///< address or ip of stun server
-   int m_iStunPort; ///< port for stun server
-   int m_iStunKeepAlivePeriodSecs; ///< stun refresh period
-
-   UtlString m_sTurnServer; ///< turn server address or ip
-   int m_iTurnPort; ///< turn server port
-   UtlString m_sTurnUsername; ///< turn username
-   UtlString m_sTurnPassword; ///< turn password
-   int m_iTurnKeepAlivePeriodSecs; ///< turn refresh period
+   CpNatTraversalConfig m_natTraversalConfig; ///< configuration of NAT traversal options
 
    // thread safe fields
    XCpCallStack m_callStack; ///< call stack for storing XCpCall and XCpConference instances
@@ -588,7 +582,6 @@ private:
 
    // thread safe atomic
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)
-   UtlBoolean m_bEnableICE; 
    UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
    UtlBoolean m_bIsRequiredLineMatch; ///< if inbound SIP message must correspond to some line to be handled
    int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
@@ -597,7 +590,7 @@ private:
    // read only fields
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
-
+   const UtlString m_sLocalIpAddress;
 };
 
 #endif // XCallManager_h__
