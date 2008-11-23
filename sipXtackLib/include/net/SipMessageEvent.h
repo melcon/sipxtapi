@@ -47,9 +47,11 @@ public:
 
 /* ============================ CREATORS ================================== */
 
+   /** Default constructor. Uses supplied instance of SipMessage. */
    SipMessageEvent(SipMessage* message = NULL, int status = APPLICATION);
-     //:Default constructor
 
+   /** Default constructor. Makes a copy of supplied sip message */
+   SipMessageEvent(const SipMessage& rSipMessage, int status = APPLICATION);
 
    virtual
    ~SipMessageEvent();

@@ -24,11 +24,18 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-SipMessageEvent::SipMessageEvent(SipMessage* message, int status) :
-OsMsg(OsMsg::PHONE_APP, SipMessage::NET_SIP_MESSAGE)
+SipMessageEvent::SipMessageEvent(SipMessage* message, int status)
+: OsMsg(OsMsg::PHONE_APP, SipMessage::NET_SIP_MESSAGE)
 {
    messageStatus = status;
    sipMessage = message;
+}
+
+SipMessageEvent::SipMessageEvent(const SipMessage& rSipMessage, int status /*= APPLICATION*/)
+: OsMsg(OsMsg::PHONE_APP, SipMessage::NET_SIP_MESSAGE)
+, messageStatus(status)
+, sipMessage(new SipMessage(rSipMessage)) // use a copy
+{
 }
 
 // Destructor

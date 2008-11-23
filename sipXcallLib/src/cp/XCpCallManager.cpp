@@ -1085,34 +1085,56 @@ UtlBoolean XCpCallManager::handleSipMessageEvent(const SipMessageEvent& rSipMsgE
       }
       else
       {
-         // SipMessage must meet certain basic conditions to be processed - be a request (but not ACK)
-         if (basicSipMessageEventCheck(rSipMsgEvent))
-         {
-            // no call found, handle SipMessage
-            return handleUnknownSipMessageEvent(rSipMsgEvent);
-         }
+         return handleUnknownSipMessageEvent(rSipMsgEvent);
       }
    }
 
    return TRUE;
 }
 
-// handles SipMessages that are requests (except ACK)
 UtlBoolean XCpCallManager::handleUnknownSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
 {
-   const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+   int messageType = rSipMsgEvent.getMessageStatus();
 
-   if (pSipMessage)
+   switch(messageType)
    {
+   case SipMessageEvent::APPLICATION:
+      {
+         const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+         if (pSipMessage)
+         {
+            // Its a SIP Request
+            if(pSipMessage->isRequest())
+            {
+               return handleUnknownSipRequest(*pSipMessage);
+            }
+         }
+      }
+   default:
+      ;
+   }
+
+   return FALSE;
+}
+
+// Handler for inbound INVITE SipMessage, for which there is no existing call or conference.
+UtlBoolean XCpCallManager::handleInboundInviteRequest(const SipMessage& rSipMessage)
+{
+   UtlString toTag;
+   rSipMessage.getToFieldTag(toTag);
+
+   if (toTag.isNull())
+   {
+      // handle INVITE without to tag
       // maybe check if line exists
       if(m_pSipLineProvider && m_bIsRequiredLineMatch)
       {
-         UtlBoolean isLineValid = m_pSipLineProvider->lineExists(*pSipMessage);
+         UtlBoolean isLineValid = m_pSipLineProvider->lineExists(rSipMessage);
          if (!isLineValid)
          {
             // no such user - return 404
             SipMessage noSuchUserResponse;
-            noSuchUserResponse.setResponseData(pSipMessage,
+            noSuchUserResponse.setResponseData(&rSipMessage,
                SIP_NOT_FOUND_CODE,
                SIP_NOT_FOUND_TEXT);
             m_rSipUserAgent.send(noSuchUserResponse);
@@ -1125,16 +1147,16 @@ UtlBoolean XCpCallManager::handleUnknownSipMessageEvent(const SipMessageEvent& r
          if (!m_bDoNotDisturb)
          {
             // all checks passed, create new call
-            createNewInboundCall(rSipMsgEvent);
+            createNewInboundCall(rSipMessage);
          }
          else
          {
             UtlString requestUri;
-            pSipMessage->getRequestUri(&requestUri);
+            rSipMessage.getRequestUri(&requestUri);
             OsSysLog::add(FAC_CP, PRI_DEBUG, "XCpCallManager::handleSipMessage - Rejecting inbound call to %s due to DND mode", requestUri.data());
             // send 486 Busy here
             SipMessage busyHereResponse;
-            busyHereResponse.setInviteBusyData(pSipMessage);
+            busyHereResponse.setInviteBusyData(&rSipMessage);
             m_rSipUserAgent.send(busyHereResponse);
          }
       }
@@ -1143,51 +1165,66 @@ UtlBoolean XCpCallManager::handleUnknownSipMessageEvent(const SipMessageEvent& r
          OsSysLog::add(FAC_CP, PRI_WARNING, "XCpCallManager::handleSipMessage - The call stack size as reached it's limit of %d", m_maxCalls);
          // send 486 Busy here
          SipMessage busyHereResponse;
-         busyHereResponse.setInviteBusyData(pSipMessage);
+         busyHereResponse.setInviteBusyData(&rSipMessage);
          m_rSipUserAgent.send(busyHereResponse);
       }
-   }
 
-   return TRUE;
+      return TRUE;
+   }
+   else
+   {
+      // to tag present but dialog not found -> doesn't exist
+      sendBadTransactionError(rSipMessage);
+      return FALSE;
+   }
 }
 
-UtlBoolean XCpCallManager::basicSipMessageEventCheck(const SipMessageEvent& rSipMsgEvent)
+// Handler for inbound OPTIONS SipMessage, for which there is no existing call or conference. 
+UtlBoolean XCpCallManager::handleInboundOptionsRequest(const SipMessage& rSipMessage)
 {
-   int messageType = rSipMsgEvent.getMessageStatus();
+   UtlString fromTag;
+   rSipMessage.getFromFieldTag(fromTag);
+   UtlString toTag;
+   rSipMessage.getToFieldTag(toTag);
 
-   switch(messageType)
+   if (!toTag.isNull())
    {
-      // This is a request which failed to get sent
-   case SipMessageEvent::TRANSPORT_ERROR:
-   case SipMessageEvent::SESSION_REINVITE_TIMER:
-   case SipMessageEvent::AUTHENTICATION_RETRY:
-      // Ignore it and do not create a call
+      // to tag present but dialog not found -> doesn't exist
+      sendBadTransactionError(rSipMessage);
       return FALSE;
-   default:
-      {
-         const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
-         if (pSipMessage)
-         {
-            // Its a SIP Request
-            if(pSipMessage->isRequest())
-            {
-               return basicSipMessageRequestCheck(*pSipMessage);
-            }
-         }
-      }
    }
-
+   else if (fromTag.isNull())
+   {
+      // both tags are NULL
+      // TODO: Investigate if this is the correct place to handle OPTIONS out of dialog
+   }
    return FALSE;
 }
 
-UtlBoolean XCpCallManager::basicSipMessageRequestCheck(const SipMessage& rSipMessage)
+UtlBoolean XCpCallManager::handleInboundReferRequest(const SipMessage& rSipMessage)
+{
+   UtlString toTag;
+   rSipMessage.getToFieldTag(toTag);
+
+   if (!toTag.isNull())
+   {
+      // to tag present but dialog not found -> doesn't exist
+      sendBadTransactionError(rSipMessage);
+      return FALSE;
+   }
+   else
+   {
+      // handle out of dialog REFER
+      // TODO: Investigate how this should be handled
+      return TRUE;
+   }
+}
+
+// called for inbound request SipMessages, for which calls weren't found
+UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage)
 {
    UtlString requestMethod;
    rSipMessage.getRequestMethod(&requestMethod);
-   Url toUrl;
-   rSipMessage.getToUrl(toUrl);
-   UtlString toTag;
-   toUrl.getFieldParameter("tag", toTag);
 
    // Dangling or delayed ACK
    if(requestMethod.compareTo(SIP_ACK_METHOD) == 0)
@@ -1196,37 +1233,15 @@ UtlBoolean XCpCallManager::basicSipMessageRequestCheck(const SipMessage& rSipMes
    }
    else if(requestMethod.compareTo(SIP_INVITE_METHOD) == 0)
    {
-      if (toTag.isNull())
-      {
-         // handle INVITE without to tag
-         return TRUE;
-      }
-      else
-      {
-         sendBadTransactionError(rSipMessage);
-         return FALSE;
-      }
+      return handleInboundInviteRequest(rSipMessage);
    }
    else if(requestMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
    {
-      if (!toTag.isNull())
-      {
-         sendBadTransactionError(rSipMessage);
-         return FALSE;
-      }
+      return handleInboundOptionsRequest(rSipMessage);
    }
    else if(requestMethod.compareTo(SIP_REFER_METHOD) == 0)
    {
-      if (!toTag.isNull())
-      {
-         sendBadTransactionError(rSipMessage);
-         return FALSE;
-      }
-      else
-      {
-         // handle refer
-         return TRUE;
-      }
+      return handleInboundReferRequest(rSipMessage);
    }
 
    // 481 Call/Transaction Does Not Exist must be sent automatically by transaction layer for other messages (INFO, NOTIFY)
@@ -1234,44 +1249,41 @@ UtlBoolean XCpCallManager::basicSipMessageRequestCheck(const SipMessage& rSipMes
    return FALSE;
 }
 
-void XCpCallManager::createNewInboundCall(const SipMessageEvent& rSipMsgEvent)
+void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
 {
-   const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
-   if (pSipMessage)
+   UtlString sSipCallId = getNewSipCallId();
+
+   XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
+      *getMessageQueue(), &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener,
+      m_pMediaEventListener);
+
+   UtlBoolean resStart = pCall->start(); // start thread
+   if (resStart)
    {
-      UtlString sSipCallId = getNewSipCallId();
-
-      XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
-         *getMessageQueue(), &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener,
-         m_pMediaEventListener);
-
-      UtlBoolean resStart = pCall->start(); // start thread
-      if (resStart)
+      SipMessageEvent sipMessageEvent(rSipMessage);
+      pCall->postMessage(sipMessageEvent); // repost message into thread
+      UtlBoolean resPush = m_callStack.push(*pCall); // inserts call into list of calls
+      if (resPush)
       {
-         pCall->postMessage(rSipMsgEvent); // repost message into thread
-         UtlBoolean resPush = m_callStack.push(*pCall); // inserts call into list of calls
-         if (resPush)
+         if (OsSysLog::willLog(FAC_CP, PRI_DEBUG))
          {
-            if (OsSysLog::willLog(FAC_CP, PRI_DEBUG))
-            {
-               UtlString requestUri;
-               pSipMessage->getRequestUri(&requestUri);
-               UtlString fromField;
-               pSipMessage->getFromField(&fromField);
-               OsSysLog::add(FAC_CP, PRI_DEBUG, "XCpCallManager::createNewCall - Creating new call destined to %s from %s", requestUri.data(), fromField.data());
-            }
-         }
-         else
-         {
-            OsSysLog::add(FAC_CP, PRI_ERR, "XCpCallManager::createNewCall - Couldn't push call on stack");
-            pCall->requestShutdown();
-            delete pCall;
+            UtlString requestUri;
+            rSipMessage.getRequestUri(&requestUri);
+            UtlString fromField;
+            rSipMessage.getFromField(&fromField);
+            OsSysLog::add(FAC_CP, PRI_DEBUG, "XCpCallManager::createNewCall - Creating new call destined to %s from %s", requestUri.data(), fromField.data());
          }
       }
       else
       {
-         OsSysLog::add(FAC_CP, PRI_ERR, "XCpCallManager::createNewCall - Call thread could not be started");
+         OsSysLog::add(FAC_CP, PRI_ERR, "XCpCallManager::createNewCall - Couldn't push call on stack");
+         pCall->requestShutdown();
+         delete pCall;
       }
+   }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_ERR, "XCpCallManager::createNewCall - Call thread could not be started");
    }
 }
 
