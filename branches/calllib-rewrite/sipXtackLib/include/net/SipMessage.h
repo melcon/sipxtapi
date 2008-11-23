@@ -851,6 +851,8 @@ public:
 
     void getFromField(UtlString* fromField) const;
 
+    void getFromFieldTag(UtlString& fromTag) const;
+
     void getFromUri(UtlString* uri) const;
 
     void getFromUrl(Url& url) const;
@@ -908,6 +910,8 @@ public:
     UtlBoolean removeLastVia();
 
     void getToField(UtlString* toField) const;
+
+    void getToFieldTag(UtlString& toTag) const;
 
     void getToUri(UtlString* uri) const;
 

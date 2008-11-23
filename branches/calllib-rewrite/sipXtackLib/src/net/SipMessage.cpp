@@ -2545,6 +2545,13 @@ void SipMessage::getFromField(UtlString* field) const
     }
 }
 
+void SipMessage::getFromFieldTag(UtlString& fromTag) const
+{
+   Url fromUrl;
+   getFromUrl(fromUrl);
+   fromUrl.getFieldParameter("tag", fromTag);
+}
+
 void SipMessage::getToField(UtlString* field) const
 {
    const char* value = getHeaderValue(0, SIP_TO_FIELD);
@@ -2557,6 +2564,13 @@ void SipMessage::getToField(UtlString* field) const
    {
       field->remove(0);
    }
+}
+
+void SipMessage::getToFieldTag(UtlString& toTag) const
+{
+   Url toUrl;
+   getToUrl(toUrl);
+   toUrl.getFieldParameter("tag", toTag);
 }
 
 void SipMessage::getToUrl(Url& toUrl) const

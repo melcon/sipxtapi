@@ -528,17 +528,23 @@ private:
    /** Handler for inbound SipMessageEvent messages. Tries to find call for event. */
    UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
-   /** Handler for inbound SipMessageEvent, for which there is no existing call or conference. */
+   /** Handles some inbound SipMessageEvent for which call wasn't found */
    UtlBoolean handleUnknownSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
-   /** Checks if we should further process SipMessage. Checks are done on the event. Sends response if rejected. */
-   UtlBoolean basicSipMessageEventCheck(const SipMessageEvent& rSipMsgEvent);
+   /** Handler for inbound INVITE SipMessage, for which there is no existing call or conference. */
+   UtlBoolean handleInboundInviteRequest(const SipMessage& rSipMessage);
+
+   /** Handler for inbound OPTIONS SipMessage, for which there is no existing call or conference. */
+   UtlBoolean handleInboundOptionsRequest(const SipMessage& rSipMessage);
+
+   /** Handler for inbound REFER SipMessage, for which there is no existing call or conference. */
+   UtlBoolean handleInboundReferRequest(const SipMessage& rSipMessage);
 
    /** Does some basic checks on the SipMessage itself, and sends response if message is rejected. */
-   UtlBoolean basicSipMessageRequestCheck(const SipMessage& rSipMessage);
+   UtlBoolean handleUnknownSipRequest(const SipMessage& rSipMessage);
 
    /** Creates new XCpCall, starts it and posts message into it for handling. */
-   void createNewInboundCall(const SipMessageEvent& rSipMsgEvent);
+   void createNewInboundCall(const SipMessage& rSipMessage);
 
    /** Sends 481 Call/Transaction Does Not Exist as reply to given message */
    UtlBoolean sendBadTransactionError(const SipMessage& rSipMessage);

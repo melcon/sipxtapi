@@ -624,16 +624,16 @@ UtlBoolean XCpAbstractCall::handleConnectionNotfMessage(const OsIntPtrMsg& rMsg)
    case CP_NOTIFICATION_DTMF_RFC2833:
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_RFC2833, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
-   case MP_NOTIFICATION_START_RTP_SEND:
+   case CP_NOTIFICATION_START_RTP_SEND:
       fireSipXMediaConnectionEvent(CP_MEDIA_LOCAL_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
-   case MP_NOTIFICATION_STOP_RTP_SEND:
+   case CP_NOTIFICATION_STOP_RTP_SEND:
       fireSipXMediaConnectionEvent(CP_MEDIA_LOCAL_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
-   case MP_NOTIFICATION_START_RTP_RECEIVE:
+   case CP_NOTIFICATION_START_RTP_RECEIVE:
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
-   case MP_NOTIFICATION_STOP_RTP_RECEIVE:
+   case CP_NOTIFICATION_STOP_RTP_RECEIVE:
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    default:
