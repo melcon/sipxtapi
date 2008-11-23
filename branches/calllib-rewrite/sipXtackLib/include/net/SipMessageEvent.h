@@ -12,8 +12,6 @@
 #define _SipMessageEvent_h_
 
 // SYSTEM INCLUDES
-//#include <...>
-
 // APPLICATION INCLUDES
 #include <net/SipMessage.h>
 #include <os/OsMsg.h>
@@ -27,25 +25,26 @@
 // TYPEDEFS
 // FORWARD DECLARATIONS
 
-//:Class short description which may consist of multiple lines (note the ':')
-// Class detailed description which may extend to multiple lines
+/**
+ * OsMsg wrapper for transporting SipMessage instances between OsServerTasks
+ */
 class SipMessageEvent : public OsMsg
 {
-/* //////////////////////////// PUBLIC //////////////////////////////////// */
+   /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
-        enum MessageStatusTypes
-        {
-                APPLICATION = 0,
-                TRANSPORT_ERROR = 1,
-        AUTHENTICATION_RETRY,
-        SESSION_REINVITE_TIMER,
-        TRANSACTION_GARBAGE_COLLECTION,
-        TRANSACTION_RESEND,
-        TRANSACTION_EXPIRATION
-        };
+   enum MessageStatusTypes
+   {
+      APPLICATION = 0, // payload is normal sip message
+      TRANSPORT_ERROR = 1,
+      AUTHENTICATION_RETRY,
+      SESSION_REINVITE_TIMER,
+      TRANSACTION_GARBAGE_COLLECTION,
+      TRANSACTION_RESEND,
+      TRANSACTION_EXPIRATION
+   };
 
-/* ============================ CREATORS ================================== */
+   /* ============================ CREATORS ================================== */
 
    /** Default constructor. Uses supplied instance of SipMessage. */
    SipMessageEvent(SipMessage* message = NULL, int status = APPLICATION);
@@ -53,36 +52,34 @@ public:
    /** Default constructor. Makes a copy of supplied sip message */
    SipMessageEvent(const SipMessage& rSipMessage, int status = APPLICATION);
 
-   virtual
-   ~SipMessageEvent();
-     //:Destructor
+   /** Destructor */
+   virtual ~SipMessageEvent();
 
    virtual OsMsg* createCopy(void) const;
-/* ============================ MANIPULATORS ============================== */
 
+   /* ============================ MANIPULATORS ============================== */
 
-/* ============================ ACCESSORS ================================= */
-const SipMessage* getMessage() const;
+   /* ============================ ACCESSORS ================================= */
 
-void setMessageStatus(int status);
-int getMessageStatus() const;
+   const SipMessage* getMessage() const;
+   void setMessageStatus(int status);
+   int getMessageStatus() const;
 
-/* ============================ INQUIRY =================================== */
+   /* ============================ INQUIRY =================================== */
 
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+   /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-        SipMessage* sipMessage;
-        int messageStatus;
-
+   // disable Copy constructor
    SipMessageEvent(const SipMessageEvent& rSipMessageEvent);
-     //:disable Copy constructor
 
+   // disable Assignment operator
    SipMessageEvent& operator=(const SipMessageEvent& rhs);
-     //:disable Assignment operator
 
+   SipMessage* m_pSipMessage;
+   int m_messageStatus;
 };
 
 /* ============================ INLINE METHODS ============================ */
