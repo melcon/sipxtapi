@@ -43,16 +43,17 @@ class SipMessage;
  * 
  * This class is NOT meant to resend INVITE, CANCEL, BYE etc. when packet loss occurs.
  * That is done by transaction layer.
-
+ *
  * ACK resend in INVITE transaction after 2xx is done when another 2xx is received.
  * (remote side didn't get ACK, and resent 2xx). ACK is part of INVITE transaction only
  * if final response was non 2xx.
  * 
- * May be used to check that only 1 INVITE transaction is running at time.
+ * To track transaction state correctly for 401 and 407 authentication retry,
+ * startTransaction must be called with cseq, and endTransaction with cseq-1
+ * when authentication retry message is detected.
+ * SipUserAgent automatically just increments cseq for authentication retry.
  *
- * No garbage collection is done, created transaction objects are destroyed when call is destroyed.
- * This is not a problem since we only track outbound transactions, they are small, and there will
- * not be so many of them per call.
+ * Terminated transactions are automatically cleaned up after some time.
  *
  * This class is NOT threadsafe.  
  */
@@ -81,6 +82,16 @@ public:
     * Starts new transaction for given method returning next cseq.
     */
    int startTransaction(const UtlString& sipMethod);
+
+   /**
+    * Starts new transaction for given method and cseq. This method should only
+    * be called as a result of 401 or 407 authentication retry, when cseq is incremented
+    * automatically by SipUserAgent without paying attention to the correct next cseq.
+    *
+    * If supplied cseq is greater or equal to our current cseq, internal next available
+    * cseq is set to cseq + 1.
+    */
+   void startTransaction(const UtlString& sipMethod, int cseq);
 
    /**
     * Marks given transaction as terminated.
@@ -113,10 +124,14 @@ private:
    CpSipTransactionManager(const CpSipTransactionManager& rhs);     
 
    /** Disabled assignment operator */
-   CpSipTransactionManager& operator=(const CpSipTransactionManager& rhs);  
+   CpSipTransactionManager& operator=(const CpSipTransactionManager& rhs);
+
+   /** Cleans terminated transactions older than 60s */
+   void cleanOldTransactions();
 
    UtlHashMap m_transactionMap; ///< hashmap for storing transactions by method name
    int m_iCSeq; ///< current available CSeq number
+   long m_lastCleanUpTime;
 };
 
 #endif // CpSipTransactionManager_h__
