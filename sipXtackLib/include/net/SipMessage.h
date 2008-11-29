@@ -935,6 +935,8 @@ public:
 
     UtlBoolean getCSeqField(int* sequenceNum, UtlString* sequenceMethod) const;
     UtlBoolean getCSeqField(int& sequenceNum, UtlString& sequenceMethod) const;
+    UtlBoolean getRSeqField(int& rsequenceNum) const;
+    UtlBoolean getRAckField(int& rsequenceNum, int& csequenceNum, UtlString& sequenceMethod) const;
 
     UtlBoolean getRequireExtension(int extensionIndex, UtlString* extension) const;
 
