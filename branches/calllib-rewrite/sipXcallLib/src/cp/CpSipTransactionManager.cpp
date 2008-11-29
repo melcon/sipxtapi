@@ -14,10 +14,15 @@
 // APPLICATION INCLUDES
 #include <utl/UtlInt.h>
 #include <utl/UtlHashBag.h>
+#include <utl/UtlHashMapIterator.h>
+#include <utl/UtlHashBagIterator.h>
 #include <net/SipMessage.h>
 #include <cp/CpSipTransactionManager.h>
 
 // DEFINES
+#define CLEAN_PERIOD 100 // in seconds
+#define MAX_DEAD_TRANSACTION_TIME 60
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -33,10 +38,11 @@ public:
       : UtlInt(iCSeq)
       , m_transactionState(CpSipTransactionManager::TRANSACTION_ACTIVE)
    {
-
+      m_startTime = OsDateTime::getSecsSinceEpoch();
    }
 
    CpSipTransactionManager::TransactionState m_transactionState;
+   long m_startTime; ///< start time in seconds since 1/1/1970
 };
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -45,6 +51,7 @@ public:
 
 CpSipTransactionManager::CpSipTransactionManager()
 : m_iCSeq(0)
+, m_lastCleanUpTime(0)
 {
    UtlRandom randomGenerator;
    m_iCSeq = (abs(randomGenerator.rand()) % 65535);
@@ -71,8 +78,33 @@ int CpSipTransactionManager::startTransaction(const UtlString& sipMethod)
    return m_iCSeq++; // post increment cseq
 }
 
+void CpSipTransactionManager::startTransaction(const UtlString& sipMethod, int cseq)
+{
+   UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(m_transactionMap.findValue(&sipMethod));
+   if (!pTransactionBag)
+   {
+      // create new transaction bag
+      pTransactionBag = new UtlHashBag();
+      m_transactionMap.insertKeyAndValue(sipMethod.clone(), pTransactionBag);
+   }
+
+   UtlInt utlCSeq(cseq);
+   CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(pTransactionBag->find(&utlCSeq));
+   if (!pTransactionState)
+   {
+      pTransactionBag->insert(new CpTransactionState(cseq)); // if its not already there then add it
+   }
+
+   if (m_iCSeq <= cseq)
+   {
+      m_iCSeq = cseq + 1; // set next available cseq number
+   }
+}
+
 void CpSipTransactionManager::endTransaction(const UtlString& sipMethod, int cseq)
 {
+   cleanOldTransactions(); // maybe cleanup old terminated transactions
+
    UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(m_transactionMap.findValue(&sipMethod));
    if (pTransactionBag)
    {
@@ -118,5 +150,36 @@ CpSipTransactionManager::TransactionState CpSipTransactionManager::getTransactio
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void CpSipTransactionManager::cleanOldTransactions()
+{
+   // get time in seconds since 1/1/1970
+   long timeNow = OsDateTime::getSecsSinceEpoch();
+
+   if (timeNow - m_lastCleanUpTime >= CLEAN_PERIOD)
+   {
+      m_lastCleanUpTime = timeNow;
+
+      UtlHashMapIterator mapItor(m_transactionMap);
+      while (mapItor())
+      {
+         UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(mapItor.value());
+         if (pTransactionBag)
+         {
+            UtlHashBagIterator bagItor(*pTransactionBag);
+            while (bagItor())
+            {
+               CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(bagItor.key());
+               if (pTransactionState &&
+                  pTransactionState->m_transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
+                  timeNow - pTransactionState->m_startTime >= MAX_DEAD_TRANSACTION_TIME)
+               {
+                  pTransactionBag->destroy(pTransactionState); // destroy transaction
+               }
+            }
+         }
+      }
+   }
+}
 
 /* ============================ FUNCTIONS ================================= */
