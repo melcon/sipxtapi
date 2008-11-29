@@ -1875,6 +1875,20 @@ void SipMessage::setCancelData(const SipMessage* inviteRequest,
                   callId, sequenceNum, localContact);
 }
 
+void SipMessage::setPrackData(const char* fromAddress,
+                              const char* toAddress,
+                              const char* callId,
+                              int sequenceNumber,
+                              int prackRSequenceNumber,
+                              int prackCSequenceNumber,
+                              const char* prackMethod,
+                              const char* localContact)
+{
+   setRequestData(SIP_PRACK_METHOD, toAddress,
+      fromAddress, toAddress,
+      callId, sequenceNumber, localContact);
+   setRAckField(prackRSequenceNumber, prackCSequenceNumber, prackMethod);
+}
 
 void SipMessage::setPublishData(const char* uri,
                                 const char* fromField,
@@ -3339,8 +3353,7 @@ UtlBoolean SipMessage::getCSeqField(int* sequenceNum, UtlString* sequenceMethod)
         int valueStart = strspn(value, SIP_SUBFIELD_SEPARATORS);
 
         // Find the end of the sequence number
-        int numStringLen = strcspn(&value[valueStart], SIP_SUBFIELD_SEPARATORS)
-            - valueStart;
+        int numStringLen = strcspn(&value[valueStart], SIP_SUBFIELD_SEPARATORS);
 
         // Get the method
         if(sequenceMethod)
@@ -3391,7 +3404,7 @@ UtlBoolean SipMessage::getRSeqField(int& rsequenceNum) const
       // Ignore white space in the beginning
       int valueStart = strspn(value, SIP_SUBFIELD_SEPARATORS); // find first char that is not separator
       // Find the end of the sequence number
-      int numStringLen = strcspn(&value[valueStart], SIP_SUBFIELD_SEPARATORS) - valueStart;
+      int numStringLen = strcspn(&value[valueStart], SIP_SUBFIELD_SEPARATORS);
 
       if(numStringLen > MAXIMUM_INTEGER_STRING_LENGTH)
       {
@@ -3415,11 +3428,11 @@ UtlBoolean SipMessage::getRAckField(int& rsequenceNum, int& csequenceNum, UtlStr
    {
       // Ignore white space in the beginning
       int value1Start = strspn(value, SIP_SUBFIELD_SEPARATORS); // find first char that is not separator
-      int value1End = strcspn(&value[value1Start], SIP_SUBFIELD_SEPARATORS); // find next separator for value1
-      int value2Start = strspn(&value[value1End], SIP_SUBFIELD_SEPARATORS); // find first char that is not separator
-      int value2End = strcspn(&value[value2Start], SIP_SUBFIELD_SEPARATORS); // find next separator for value2
-      int value3Start = strspn(&value[value2End], SIP_SUBFIELD_SEPARATORS); // find first char that is not separator
-      int value3End = strcspn(&value[value3Start], SIP_SUBFIELD_SEPARATORS); // find next separator for value3
+      int value1End = strcspn(&value[value1Start], SIP_SUBFIELD_SEPARATORS) + value1Start; // find next separator for value1
+      int value2Start = strspn(&value[value1End], SIP_SUBFIELD_SEPARATORS) + value1End; // find first char that is not separator
+      int value2End = strcspn(&value[value2Start], SIP_SUBFIELD_SEPARATORS) + value2Start; // find next separator for value2
+      int value3Start = strspn(&value[value2End], SIP_SUBFIELD_SEPARATORS) + value2End; // find first char that is not separator
+      int value3End = strcspn(&value[value3Start], SIP_SUBFIELD_SEPARATORS) + value3Start; // find next separator for value3
 
       int numString1Len = value1End - value1Start;
       int numString2Len = value2End - value2Start;

@@ -470,10 +470,19 @@ public:
     void setCancelData(const char* fromAddress, const char* toAddress,
                        const char* callId,
                        int sequenceNumber = 1,
-                       const char* localContact=NULL);
+                       const char* localContact = NULL);
 
     void setCancelData(const SipMessage* inviteResponse,
                        const char* localContact=NULL);
+
+    void setPrackData(const char* fromAddress,
+                      const char* toAddress,
+                      const char* callId,
+                      int sequenceNumber = 1,
+                      int prackRSequenceNumber = 1,
+                      int prackCSequenceNumber = 1,
+                      const char* prackMethod = NULL,
+                      const char* localContact=NULL);
 
     void setInviteData(const char* fromAddress,
                        const char* toAddress,
