@@ -1457,7 +1457,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                              RTP_TRANSPORT transportTypes[],
                              int numRtpCodecs,
                              SdpCodec* rtpCodecs[],
-                             SdpSrtpParameters& srtpParams,
+                             const SdpSrtpParameters& srtpParams,
                              int totalBandwidth,
                              int videoFramerate,
                              RTP_TRANSPORT transportOffering)
@@ -1839,7 +1839,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                              RTP_TRANSPORT transportTypes[],
                              int numRtpCodecs, 
                              SdpCodec* rtpCodecs[], 
-                             SdpSrtpParameters& srtpParams,
+                             const SdpSrtpParameters& srtpParams,
                              int totalBandwidth,
                              int videoFramerate,
                              const SdpBody* sdpRequest)
@@ -2214,7 +2214,7 @@ void SdpBody::addRtpmap(int payloadType,
 }
 
 
-void SdpBody::addSrtpCryptoField(SdpSrtpParameters& params)
+void SdpBody::addSrtpCryptoField(const SdpSrtpParameters& params)
 {
     UtlString fieldValue("crypto:1 ");
 

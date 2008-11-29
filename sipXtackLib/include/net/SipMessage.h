@@ -648,7 +648,7 @@ public:
                     RTP_TRANSPORT transportTypes[],
                     int numRtpCodecs,
                     SdpCodec* rtpCodecs[],
-                    SdpSrtpParameters* srtpParams,
+                    const SdpSrtpParameters& srtpParams,
                     int videoBandwidth,
                     int videoFramerate,
                     const SipMessage* pRequest = NULL,

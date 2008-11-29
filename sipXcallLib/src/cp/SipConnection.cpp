@@ -961,7 +961,7 @@ UtlBoolean SipConnection::dial(const char* dialString,
          sipInvite.addSdpBody(nRtpContacts, hostAddresses, receiveRtpPorts,
             receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
             transportTypes,
-            numCodecs, rtpCodecsArray, &srtpParams, totalBandwidth,
+            numCodecs, rtpCodecsArray, srtpParams, totalBandwidth,
             videoFramerate, NULL, rtpTransportOptions);
 
 
@@ -1309,7 +1309,7 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
                sipResponse.addSdpBody(1, hostAddresses, receiveRtpPorts,
                   receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                   transportTypes,
-                  numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+                  numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                   totalBandwidth, matchingVideoFramerate, inviteMsg);
             }
             else
@@ -1323,7 +1323,7 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
                sipResponse.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
                   receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                   transportTypes,
-                  numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+                  numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                   totalBandwidth, matchingVideoFramerate, inviteMsg);
             }
 
@@ -1825,7 +1825,7 @@ UtlBoolean SipConnection::hold()
       holdMessage.addSdpBody(1, hostAddresses, receiveRtpPorts,
          receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes,
-         numCodecs, codecsArray, &srtpParams, totalBandwidth, videoFramerate);
+         numCodecs, codecsArray, srtpParams, totalBandwidth, videoFramerate);
 
       prepareInviteSdpForSend(&holdMessage, mConnectionId, mpSecurity);
       if(inviteMsg)
@@ -1990,7 +1990,7 @@ UtlBoolean SipConnection::doOffHold(UtlBoolean forceReInvite)
       offHoldMessage.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
          receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes,
-         numCodecs, rtpCodecs, &srtpParams, totalBandwidth, videoFramerate);
+         numCodecs, rtpCodecs, srtpParams, totalBandwidth, videoFramerate);
       mHoldState = TERMCONNECTION_UNHOLDING ;
 
       // Free up the codec copies and array
@@ -3176,7 +3176,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
             sipResponse.addSdpBody(1, hostAddresses, receiveRtpPorts,
                receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                transportTypes,
-               numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+               numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                totalBandwidth, matchingVideoFramerate, inviteMsg);
          }
          else
@@ -3188,7 +3188,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
             sipResponse.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
                receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                transportTypes,
-               numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+               numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                totalBandwidth, matchingVideoFramerate, inviteMsg);
          }
 
@@ -3243,7 +3243,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
          sipResponse.addSdpBody(1, hostAddresses, receiveRtpPorts,
             receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
             transportTypes,
-            numMatchingCodecs, decoderCodecs, &srtpParams,
+            numMatchingCodecs, decoderCodecs, srtpParams,
             totalBandwidth, matchingVideoFramerate, inviteMsg);
          mHoldState = TERMCONNECTION_HELD;
       }
@@ -3256,7 +3256,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
          sipResponse.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
             receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
             transportTypes,
-            numMatchingCodecs, decoderCodecs, &srtpParams,
+            numMatchingCodecs, decoderCodecs, srtpParams,
             totalBandwidth, matchingVideoFramerate, inviteMsg);
          mHoldState = TERMCONNECTION_HELD;
       }
@@ -6690,7 +6690,7 @@ void SipConnection::proceedToRinging(const SipMessage* inviteMessage,
          transportTypes,
          numMatchingCodecs, 
          matchingCodecs, 
-         matchingSrtpParams,
+         *matchingSrtpParams,
          totalBandwidth, 
          matchingVideoFramerate,
          inviteMessage);
