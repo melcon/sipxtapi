@@ -85,22 +85,22 @@ public:
     * commonCodecsForEncoder can be used for startRtpSend
     * commonCodecsForDecoder can be used for startRtpReceive
     */
-   static UtlBoolean getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SDP body
-                                        SdpCodecList& supportedCodecs,
-                                        int& numCodecsInCommon, ///< how many codecs do we have in common
-                                        SdpCodecList& commonCodecsForEncoder,
-                                        SdpCodecList& commonCodecsForDecoder,
-                                        UtlString& remoteRtpAddress,
-                                        int& remoteRtpPort,
-                                        int& remoteRtcpPort,
-                                        int& remoteVideoRtpPort,
-                                        int& remoteVideoRtcpPort,
-                                        SdpSrtpParameters& localSrtpParams,
-                                        SdpSrtpParameters& matchingSrtpParams,
-                                        int localBandwidth,
-                                        int& matchingBandwidth,
-                                        int localVideoFramerate,
-                                        int& matchingVideoFramerate);
+   static void getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SDP body
+                                  const SdpCodecList& supportedCodecs,
+                                  int& numCodecsInCommon, ///< how many codecs do we have in common
+                                  SdpCodecList& commonCodecsForEncoder,
+                                  SdpCodecList& commonCodecsForDecoder,
+                                  UtlString& remoteRtpAddress,
+                                  int& remoteRtpPort,
+                                  int& remoteRtcpPort,
+                                  int& remoteVideoRtpPort,
+                                  int& remoteVideoRtcpPort,
+                                  const SdpSrtpParameters& localSrtpParams,
+                                  SdpSrtpParameters& matchingSrtpParams,
+                                  int localBandwidth,
+                                  int& matchingBandwidth,
+                                  int localVideoFramerate,
+                                  int& matchingVideoFramerate);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -1058,7 +1058,7 @@ void SdpBody::getBestAudioCodecs(int numRtpCodecs, SdpCodec rtpCodecs[],
 }
 
 
-void SdpBody::getBestAudioCodecs(SdpCodecList& localRtpCodecs,
+void SdpBody::getBestAudioCodecs(const SdpCodecList& localRtpCodecs,
                                  int& numCodecsInCommon,
                                  SdpCodec**& commonCodecsForEncoder,
                                  SdpCodec**& commonCodecsForDecoder,
@@ -1067,7 +1067,7 @@ void SdpBody::getBestAudioCodecs(SdpCodecList& localRtpCodecs,
                                  int& rtcpPort,
                                  int& videoRtpPort,
                                  int& videoRtcpPort,
-                                 SdpSrtpParameters& localSrtpParams,
+                                 const SdpSrtpParameters& localSrtpParams,
                                  SdpSrtpParameters& matchingSrtpParams,
                                  int localBandwidth,
                                  int& matchingBandwidth,
@@ -1146,7 +1146,7 @@ void SdpBody::getBestAudioCodecs(SdpCodecList& localRtpCodecs,
 }
 
 
-void SdpBody::getEncryptionInCommon(SdpSrtpParameters& audioParams,
+void SdpBody::getEncryptionInCommon(const SdpSrtpParameters& audioParams,
                                     SdpSrtpParameters& remoteParams,
                                     SdpSrtpParameters& commonAudioParams) const
 {
