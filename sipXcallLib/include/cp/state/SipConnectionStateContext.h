@@ -18,6 +18,7 @@
 #include <net/SipTagGenerator.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpSdpNegotiation.h>
+#include <cp/CpSipTransactionManager.h>
 
 // DEFINES
 // MACROS
@@ -53,9 +54,10 @@ public:
 
    MediaSessionState m_mediaSessionState; ///< keeps track of media session state (active, held etc)
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation
-   UtlString m_allowedRemote;  ///< Methods supported by the other side
-   UtlString m_implicitAllowedRemote; ///< Methods which are allowed implicitly
+   UtlString m_allowedRemote;  ///< methods supported by the other side
+   UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
+   CpSipTransactionManager m_sipTransactionMgr; ///< sip transaction tracking & cseq generator
 
    /* ============================ CREATORS ================================== */
 

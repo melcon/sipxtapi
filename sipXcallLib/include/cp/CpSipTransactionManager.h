@@ -37,9 +37,8 @@
  * old CSeqManager.
  * 
  * This class is NOT meant to resend INVITE, CANCEL, BYE etc. when packet loss occurs.
- * That is done by transaction layer. It is required for resending reliable provisional
- * responses (RFC3262).
- * 
+ * That is done by transaction layer.
+
  * ACK resend in INVITE transaction after 2xx is done when another 2xx is received.
  * (remote side didn't get ACK, and resent 2xx). ACK is part of INVITE transaction only
  * if final response was non 2xx. 
