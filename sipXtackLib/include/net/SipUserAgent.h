@@ -341,9 +341,9 @@ public:
    *        with responses
    */
    virtual UtlBoolean send(SipMessage& message,
-      OsMsgQ* responseListener = NULL,
-      void* responseListenerData = NULL,
-      SIPX_TRANSPORT_DATA* pTransport = NULL);
+                           OsMsgQ* responseListener = NULL,
+                           void* responseListenerData = NULL,
+                           SIPX_TRANSPORT_DATA* pTransport = NULL);
 
    //! Dispatch the SIP message to the message consumer(s)
    /*! This is typically only used by the SipUserAgent and its sub-system.
@@ -753,7 +753,6 @@ private:
    int mMaxSrvRecords; // Max num of DNS SRV records to use before giving up
    int mDnsSrvTimeout; // second to give up & try the next DNS SRV record
 
-   SipMessage* mpLastSipMessage;
    UtlString defaultUserAgentName;
    long mLastCleanUpTime;
    UtlString mAuthenticationScheme;

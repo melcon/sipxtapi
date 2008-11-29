@@ -49,6 +49,10 @@ class CpMediaEventListener;
  *
  * All manipulators except OsSyncBase methods must be called from single thread only.
  * Inquiry and accessor methods may be called from multiple threads.
+ *
+ * Result codes from connect, acceptConnection etc. which are executed in state machine
+ * only mean that the operation was handled. It doesn't mean the operation succeeded.
+ * Failures should be logged, and perhaps a sipxtapi event should be fired.
  */
 class XSipConnection : public UtlContainable, public OsSyncBase, public SipConnectionStateObserver, public XSipConnectionEventSink
 {
@@ -61,7 +65,7 @@ public:
    XSipConnection(const UtlString& sAbstractCallId,
                   const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
-                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
+                  CpMediaInterfaceProvider& pMediaInterfaceProvider,
                   CpCallStateEventListener* pCallEventListener = NULL,
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                   SipSecurityEventListener* pSecurityEventListener = NULL,
@@ -311,13 +315,13 @@ private:
    /** Release the sync object */
    virtual OsStatus release();
 
-   // needs special locking
-   mutable XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.
    // not thread safe, must be used from single thread only
    SipConnectionStateMachine m_stateMachine; ///< state machine for handling commands and SipMessageEvents
+   // needs special external locking
+   XSipConnectionContext& m_rSipConnectionContext; ///< contains stateful information about sip connection.
    // thread safe
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
-   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener;

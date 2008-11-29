@@ -35,10 +35,10 @@ class RemoteOfferingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   RemoteOfferingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   RemoteOfferingSipConnectionState(SipConnectionStateContext& rStateContext,
                                     SipUserAgent& rSipUserAgent,
-                                    CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                    XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                                    CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                    XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~RemoteOfferingSipConnectionState();
 

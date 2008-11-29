@@ -35,10 +35,10 @@ class RemoteQueuedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   RemoteQueuedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   RemoteQueuedSipConnectionState(SipConnectionStateContext& rStateContext,
                                   SipUserAgent& rSipUserAgent,
-                                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                  XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                                  CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                  XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~RemoteQueuedSipConnectionState();
 

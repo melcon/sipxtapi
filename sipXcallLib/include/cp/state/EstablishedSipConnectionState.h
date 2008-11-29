@@ -35,10 +35,10 @@ class EstablishedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   EstablishedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   EstablishedSipConnectionState(SipConnectionStateContext& rStateContext,
                                  SipUserAgent& rSipUserAgent,
-                                 CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                 XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                                 CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                 XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~EstablishedSipConnectionState();
 

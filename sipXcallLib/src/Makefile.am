@@ -100,6 +100,7 @@ libsipXcall_la_SOURCES = \
     cp/state/RemoteAlertingSipConnectionState.cpp \
     cp/state/RemoteOfferingSipConnectionState.cpp \
     cp/state/RemoteQueuedSipConnectionState.cpp \
+    cp/state/SipConnectionStateContext.cpp \
     cp/state/SipConnectionStateMachine.cpp \
     cp/state/SipConnectionStateTransition.cpp \
     cp/state/UnknownSipConnectionState.cpp \

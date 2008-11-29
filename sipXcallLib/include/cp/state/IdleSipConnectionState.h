@@ -35,10 +35,10 @@ class IdleSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   IdleSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   IdleSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
-                          CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                          XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                          CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                          XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~IdleSipConnectionState();
 

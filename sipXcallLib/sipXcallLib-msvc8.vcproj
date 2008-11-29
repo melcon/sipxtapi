@@ -526,6 +526,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\state\SipConnectionStateContext.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"
 					>
 				</File>
@@ -876,6 +880,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\state\RemoteQueuedSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\SipConnectionStateContext.h"
 					>
 				</File>
 				<File

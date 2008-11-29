@@ -35,10 +35,10 @@ class NewCallSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   NewCallSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   NewCallSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~NewCallSipConnectionState();
 

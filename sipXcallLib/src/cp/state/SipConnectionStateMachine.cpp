@@ -32,19 +32,18 @@
 
 /* ============================ CREATORS ================================== */
 
-SipConnectionStateMachine::SipConnectionStateMachine(XSipConnectionContext& rSipConnectionContext,
-                                                     SipUserAgent& rSipUserAgent,
-                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                     XSipConnectionEventSink* pSipConnectionEventSink)
-: m_rSipConnectionContext(rSipConnectionContext)
+SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
+                                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                     XSipConnectionEventSink& rSipConnectionEventSink)
+: m_rStateContext()
 , m_pSipConnectionState(NULL)
 , m_rSipUserAgent(rSipUserAgent)
-, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
-, m_pSipConnectionEventSink(pSipConnectionEventSink)
+, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
+, m_rSipConnectionEventSink(rSipConnectionEventSink)
 {
    // deleted in handleStateTransition if unsuccessful
-   BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-      m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+   BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rStateContext, m_rSipUserAgent,
+      m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
    SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
 
    handleStateTransition(transition);
@@ -54,7 +53,6 @@ SipConnectionStateMachine::~SipConnectionStateMachine()
 {
    SipConnectionStateTransition transition(m_pSipConnectionState, NULL);
    handleStateTransition(transition);
-   m_pMediaInterfaceProvider = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -63,13 +61,7 @@ void SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEv
 {
    if (m_pSipConnectionState)
    {
-      SipConnectionStateTransition *pTransition = m_pSipConnectionState->handleSipMessageEvent(rEvent);
-      if (pTransition)
-      {
-         handleStateTransition(*pTransition);
-         delete pTransition;
-         pTransition = NULL;
-      }
+      handleStateTransition(m_pSipConnectionState->handleSipMessageEvent(rEvent));
    }
 }
 
@@ -81,9 +73,9 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
    if (getCurrentState() == ISipConnectionState::CONNECTION_IDLE)
    {
       // switch to dialing
-      // deleted in handleStateTransition if unsuccessful
-      BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-         m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+      // deleted in doHandleStateTransition if unsuccessful
+      BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rStateContext, m_rSipUserAgent,
+         m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
       SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
       handleStateTransition(transition);
    }
@@ -91,8 +83,9 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
    // now let state handle request
    if (m_pSipConnectionState)
    {
-      return m_pSipConnectionState->connect(toAddress, fromAddress,
-         locationHeader, contactId);
+      handleStateTransition(m_pSipConnectionState->connect(toAddress, fromAddress,
+         locationHeader, contactId));
+      return OS_SUCCESS;
    }
 
    return OS_FAILED;
@@ -112,11 +105,26 @@ ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()
    }
 }
 
+XSipConnectionContext& SipConnectionStateMachine::getSipConnectionContext() const
+{
+   return m_rStateContext;
+}
+
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void SipConnectionStateMachine::handleStateTransition(SipConnectionStateTransition* pStateTransition)
+{
+   if (pStateTransition)
+   {
+      handleStateTransition(*pStateTransition);
+      delete pStateTransition;
+      pStateTransition = NULL;
+   }
+}
 
 void SipConnectionStateMachine::handleStateTransition(SipConnectionStateTransition& rStateTransition)
 {

@@ -35,10 +35,10 @@ class AlertingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   AlertingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   AlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                               SipUserAgent& rSipUserAgent,
-                              CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                              XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                              XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~AlertingSipConnectionState();
 

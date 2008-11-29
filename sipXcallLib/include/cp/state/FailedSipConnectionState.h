@@ -35,10 +35,10 @@ class FailedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   FailedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   FailedSipConnectionState(SipConnectionStateContext& rStateContext,
                             SipUserAgent& rSipUserAgent,
-                            CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                            XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                            CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                            XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~FailedSipConnectionState();
 

@@ -32,11 +32,11 @@
 
 /* ============================ CREATORS ================================== */
 
-OfferingSipConnectionState::OfferingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+OfferingSipConnectionState::OfferingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                        SipUserAgent& rSipUserAgent,
-                                                       CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                       XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                       CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                       XSipConnectionEventSink& rSipConnectionEventSink)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rSipConnectionEventSink)
 {
 
 }
@@ -81,25 +81,25 @@ SipConnectionStateTransition* OfferingSipConnectionState::getTransition(ISipConn
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_QUEUED:
-         pDestination = new QueuedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new QueuedSipConnectionState(m_rStateContext, m_rSipUserAgent,
+            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
          break;
       case ISipConnectionState::CONNECTION_ALERTING:
-         pDestination = new AlertingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new AlertingSipConnectionState(m_rStateContext, m_rSipUserAgent,
+            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
          break;
       case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new FailedSipConnectionState(m_rStateContext, m_rSipUserAgent,
+            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(m_rStateContext, m_rSipUserAgent,
+            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(m_rStateContext, m_rSipUserAgent,
+            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
          break;
       }
 

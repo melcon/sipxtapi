@@ -35,10 +35,10 @@ class DialingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   DialingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   DialingSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~DialingSipConnectionState();
 
@@ -57,12 +57,12 @@ public:
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /** Connects call to given address. Uses supplied sip call-id. */
-   virtual OsStatus connect(const UtlString& sipCallId,
-                            const UtlString& localTag,
-                            const UtlString& toAddress,
-                            const UtlString& fromAddress,
-                            const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId);
+   virtual SipConnectionStateTransition* connect(const UtlString& sipCallId,
+                                                 const UtlString& localTag,
+                                                 const UtlString& toAddress,
+                                                 const UtlString& fromAddress,
+                                                 const UtlString& locationHeader,
+                                                 CP_CONTACT_ID contactId);
 
    /* ============================ ACCESSORS ================================= */
 

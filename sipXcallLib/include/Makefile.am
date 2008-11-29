@@ -86,6 +86,7 @@ nobase_include_HEADERS =  \
     cp/state/RemoteAlertingSipConnectionState.h \
     cp/state/RemoteOfferingSipConnectionState.h \
     cp/state/RemoteQueuedSipConnectionState.h \
+    cp/state/SipConnectionStateContext.h \
     cp/state/SipConnectionStateMachine.h \
     cp/state/SipConnectionStateObserver.h \
     cp/state/SipConnectionStateTransition.h \
