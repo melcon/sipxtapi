@@ -15,6 +15,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <net/SipTagGenerator.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpSdpNegotiation.h>
 
@@ -54,6 +55,7 @@ public:
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation
    UtlString m_allowedRemote;  ///< Methods supported by the other side
    UtlString m_implicitAllowedRemote; ///< Methods which are allowed implicitly
+   SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
 
    /* ============================ CREATORS ================================== */
 
