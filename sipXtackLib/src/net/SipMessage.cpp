@@ -506,9 +506,10 @@ const SdpBody* SipMessage::getSdpBody(SIPXTACK_SECURITY_ATTRIBUTES* const pSecur
     smimeType.toLower();
 
     // If the body is of SDP type, return it
-    if(dynamic_cast<const SdpBody*>(getBody()))
+    body = dynamic_cast<const SdpBody*>(getBody());
+    if (body)
     {
-        body = (const SdpBody*) getBody();
+       return body;
     }
 #if __SMIME
     // If we have a private key and this is a S/MIME body
@@ -570,7 +571,7 @@ const SdpBody* SipMessage::getSdpBody(SIPXTACK_SECURITY_ATTRIBUTES* const pSecur
                 if(strcmp(bodyPart->getContentType(), SDP_CONTENT_TYPE) == 0)
                 {
                     // Temporarily disable while fixing multipart bodies
-                    body = (const SdpBody*) bodyPart;
+                    body = dynamic_cast<const SdpBody*>(bodyPart);
                     break;
                 }
 #ifdef SMIME
