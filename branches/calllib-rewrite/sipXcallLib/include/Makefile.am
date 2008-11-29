@@ -23,6 +23,7 @@ nobase_include_HEADERS =  \
     cp/CpNotificationMsgDef.h \
     cp/CpPeerCall.h \
     cp/CpSdpNegotiation.h \
+    cp/CpSipTransactionManager.h \
     cp/CpVideoCodecInfo.h \
     cp/SipConnection.h \
     cp/XCpAbstractCall.h \
