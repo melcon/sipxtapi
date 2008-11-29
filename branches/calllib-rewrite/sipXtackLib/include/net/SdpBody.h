@@ -434,7 +434,7 @@ class SdpBody : public HttpBody
 
 
    /// Find the send and receive codecs from the rtpCodecs array which are compatible with this SdpBody.
-   void getBestAudioCodecs(SdpCodecList& localRtpCodecs,
+   void getBestAudioCodecs(const SdpCodecList& localRtpCodecs,
                            int& numCodecsInCommon,
                            SdpCodec**& commonCodecsForEncoder,
                            SdpCodec**& commonCodecsForDecoder,
@@ -443,7 +443,7 @@ class SdpBody : public HttpBody
                            int& rtcpPort,
                            int& videoRtpPort,
                            int& videoRtcpPort,
-                           SdpSrtpParameters& localSrtpParams,
+                           const SdpSrtpParameters& localSrtpParams,
                            SdpSrtpParameters& matchingSrtpParams,
                            int localBandwidth,
                            int& matchingBandwidth,
@@ -463,7 +463,7 @@ class SdpBody : public HttpBody
                           SdpCodec* commonCodecsForDecoder[]) const;
 
    // Find common encryption suites
-   void getEncryptionInCommon(SdpSrtpParameters& audioParams,
+   void getEncryptionInCommon(const SdpSrtpParameters& audioParams,
                               SdpSrtpParameters& remoteParams,
                               SdpSrtpParameters& commonAudioParms) const;
 

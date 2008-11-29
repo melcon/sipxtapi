@@ -68,22 +68,22 @@ void CpSdpNegotiation::sdpAnswerFinished()
    }
 }
 
-UtlBoolean CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SDP body
-                                                SdpCodecList& supportedCodecs,
-                                                int& numCodecsInCommon, ///< how many codecs do we have in common
-                                                SdpCodecList& commonCodecsForEncoder,
-                                                SdpCodecList& commonCodecsForDecoder,
-                                                UtlString& remoteRtpAddress,
-                                                int& remoteRtpPort,
-                                                int& remoteRtcpPort,
-                                                int& remoteVideoRtpPort,
-                                                int& remoteVideoRtcpPort,
-                                                SdpSrtpParameters& localSrtpParams,
-                                                SdpSrtpParameters& matchingSrtpParams,
-                                                int localBandwidth,
-                                                int& matchingBandwidth,
-                                                int localVideoFramerate,
-                                                int& matchingVideoFramerate)
+void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SDP body
+                                          const SdpCodecList& supportedCodecs,
+                                          int& numCodecsInCommon, ///< how many codecs do we have in common
+                                          SdpCodecList& commonCodecsForEncoder,
+                                          SdpCodecList& commonCodecsForDecoder,
+                                          UtlString& remoteRtpAddress,
+                                          int& remoteRtpPort,
+                                          int& remoteRtcpPort,
+                                          int& remoteVideoRtpPort,
+                                          int& remoteVideoRtcpPort,
+                                          const SdpSrtpParameters& localSrtpParams,
+                                          SdpSrtpParameters& matchingSrtpParams,
+                                          int localBandwidth,
+                                          int& matchingBandwidth,
+                                          int localVideoFramerate,
+                                          int& matchingVideoFramerate)
 {
    memset((void*)&matchingSrtpParams, 0, sizeof(SdpSrtpParameters));
 
@@ -132,8 +132,6 @@ UtlBoolean CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SD
 
    if(decoderCodecs) delete[] decoderCodecs;
    decoderCodecs = NULL;
-
-   return TRUE;
 }
 
 /* ============================ ACCESSORS ================================= */
