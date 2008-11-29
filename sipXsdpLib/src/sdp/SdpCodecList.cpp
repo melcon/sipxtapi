@@ -92,7 +92,10 @@ void SdpCodecList::addCodecs(int numCodecs, SdpCodec* codecs[])
    OsWriteLock lock(m_memberMutex);
    for(int index = 0; index < numCodecs; index++)
    {
-      m_codecsList.insert(new SdpCodec(*(codecs[index])));
+      if (codecs[index])
+      {
+         m_codecsList.insert(new SdpCodec(*(codecs[index])));
+      }
    }
 }
 
