@@ -2292,6 +2292,34 @@ void SipMessage::setCSeqField(int sequenceNumber, const char* method)
     setHeaderValue(SIP_CSEQ_FIELD, value.data());
 }
 
+void SipMessage::setRSeqField(int sequenceNumber)
+{
+   UtlString value;
+   char numString[HTTP_LONG_INT_CHARS];
+
+   SNPRINTF(numString, sizeof(numString), "%d", sequenceNumber);
+   value.append(numString);
+
+   setHeaderValue(SIP_RSEQ_FIELD, value.data());
+}
+
+void SipMessage::setRAckField(int rsequenceNumber, int csequenceNumber, const char* method)
+{
+   UtlString value;
+   char numString1[HTTP_LONG_INT_CHARS];
+   char numString2[HTTP_LONG_INT_CHARS];
+
+   SNPRINTF(numString1, sizeof(numString1), "%d", rsequenceNumber);
+   SNPRINTF(numString2, sizeof(numString2), "%d", csequenceNumber);
+   value.append(numString1);
+   value.append(SIP_SUBFIELD_SEPARATOR);
+   value.append(numString2);
+   value.append(SIP_SUBFIELD_SEPARATOR);
+   value.append(method);
+
+   setHeaderValue(SIP_RACK_FIELD, value.data());
+}
+
 void SipMessage::incrementCSeqNumber()
 {
     int seqNum;

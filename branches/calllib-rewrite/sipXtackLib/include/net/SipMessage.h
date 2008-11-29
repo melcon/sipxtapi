@@ -43,6 +43,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_SESSION_TIMER_EXTENSION "timer"
 #define SIP_REPLACES_EXTENSION "replaces"
 #define SIP_JOIN_EXTENSION "join"
+#define SIP_PRACK_EXTENSION "100rel"
 
 // SIP Methods
 #define SIP_INVITE_METHOD "INVITE"
@@ -55,7 +56,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_REFER_METHOD "REFER"
 #define SIP_REGISTER_METHOD "REGISTER"
 #define SIP_SUBSCRIBE_METHOD "SUBSCRIBE"
-#define SIP_PING_METHOD         "PING"
+#define SIP_PING_METHOD "PING"
+#define SIP_PRACK_METHOD "PRACK"
 
 
 //Simple Methods
@@ -82,6 +84,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_CONTENT_ENCODING_FIELD "CONTENT-ENCODING"
 #define SIP_SHORT_CONTENT_ENCODING_FIELD "e"
 #define SIP_CSEQ_FIELD "CSEQ"
+#define SIP_RSEQ_FIELD "RSEQ"
+#define SIP_RACK_FIELD "RACK"
 #define SIP_DIVERSION_FIELD "DIVERSION"   // draft-levy-sip-diversion-08 Diversion header
 #define SIP_EVENT_FIELD "EVENT"
 #define SIP_SHORT_EVENT_FIELD "o"
@@ -812,6 +816,8 @@ public:
     void setCallIdField(const char* callId = NULL);
 
     void setCSeqField(int sequenceNumber, const char* method);
+    void setRSeqField(int sequenceNumber);
+    void setRAckField(int rsequenceNumber, int csequenceNumber, const char* method);
     void incrementCSeqNumber();
 
     void setFromField(const char* fromField);
@@ -1204,7 +1210,7 @@ public:
     // ISmimeNotifySink implementations                               
     void OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause);
     bool OnSignature(void* pCert, char* szSubjAltName);        
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
