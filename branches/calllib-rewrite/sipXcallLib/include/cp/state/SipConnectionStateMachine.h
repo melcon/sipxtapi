@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <cp/CpDefs.h>
 #include <cp/state/ISipConnectionState.h>
+#include <cp/state/SipConnectionStateContext.h>
 
 // DEFINES
 // MACROS
@@ -49,10 +50,9 @@ class SipConnectionStateMachine
 public:
    /* ============================ CREATORS ================================== */
    
-   SipConnectionStateMachine(XSipConnectionContext& rSipConnectionContext,
-                             SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+   SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
+                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~SipConnectionStateMachine();
 
@@ -83,6 +83,9 @@ public:
     */
    ISipConnectionState::StateEnum getCurrentState();
 
+   /** Gets public Sip connection context. */
+   XSipConnectionContext& getSipConnectionContext() const;
+
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -96,9 +99,13 @@ private:
 
    /**
     * Handles state changes. Responsible for deletion of previous state and state change
-    * notifications.
+    * notifications. Doesn't attempt to delete passed transition object. Use for static
+    * transition objects.
     */
    void handleStateTransition(SipConnectionStateTransition& rStateTransition);
+
+   /** Handles state transition, including deletion of passed transition object */
+   void handleStateTransition(SipConnectionStateTransition* pStateTransition);
 
    /** Notify observer that we entered new state */
    void notifyStateEntry();
@@ -106,12 +113,12 @@ private:
    /** Notify observer that we left old state */
    void notifyStateExit();
 
-   XSipConnectionContext& m_rSipConnectionContext; ///< context containing state of sip connection. Needs to be locked when accessed.
+   mutable SipConnectionStateContext m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    BaseSipConnectionState* m_pSipConnectionState; ///< pointer to state object handling commands and SipMessageEvents
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
-   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< provider of CpMediaInterface
-   XSipConnectionEventSink* m_pSipConnectionEventSink; ///< event sink (router) for various sip connection event types
+   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
+   XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
 };
 
 #endif // SipConnectionStateMachine_h__

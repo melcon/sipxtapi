@@ -19,6 +19,7 @@
 #include <utl/UtlString.h>
 #include <cp/CpDefs.h>
 #include <cp/state/ISipConnectionState.h>
+#include <cp/state/SipConnectionStateContext.h>
 
 // DEFINES
 // MACROS
@@ -28,12 +29,12 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
-class XSipConnectionContext;
 class SipUserAgent;
 class CpMediaInterfaceProvider;
 class XSipConnectionEventSink;
 class SipConnectionStateTransition;
 class StateTransitionMemory;
+class SipMessage;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -46,10 +47,10 @@ class BaseSipConnectionState : public ISipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   BaseSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
-                          CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                          XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                          CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                          XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~BaseSipConnectionState();
 
@@ -76,10 +77,10 @@ public:
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /** Connects call to given address. Uses supplied sip call-id. */
-   virtual OsStatus connect(const UtlString& toAddress,
-                            const UtlString& fromAddress,
-                            const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId);
+   virtual SipConnectionStateTransition* connect(const UtlString& toAddress,
+                                                 const UtlString& fromAddress,
+                                                 const UtlString& locationHeader,
+                                                 CP_CONTACT_ID contactId);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -103,10 +104,16 @@ protected:
    virtual SipConnectionStateTransition* getTransitionObject(BaseSipConnectionState* pDestination,
                                                              const StateTransitionMemory* pTansitionMemory) const;
 
-   XSipConnectionContext& m_rSipConnectionContext; ///< context containing state of sip connection. Needs to be locked when accessed.
+   /** Updates state of SipDialog with given SipMessage. Use for both inbound and outbound messages. */
+   void updateSipDialog(const SipMessage& sipMessage);
+
+   /** Sends specified sip message, updating the state of SipDialog. SipMessage will be updated. */
+   UtlBoolean sendMessage(SipMessage& sipMessage);
+
+   SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
-   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
-   XSipConnectionEventSink* m_pSipConnectionEventSink; ///< event sink (router) for various sip connection event types
+   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
+   XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

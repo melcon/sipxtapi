@@ -29,11 +29,11 @@
 
 /* ============================ CREATORS ================================== */
 
-DisconnectedSipConnectionState::DisconnectedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+DisconnectedSipConnectionState::DisconnectedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                                SipUserAgent& rSipUserAgent,
-                                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                               XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                               XSipConnectionEventSink& rSipConnectionEventSink)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rSipConnectionEventSink)
 {
 
 }
@@ -77,8 +77,8 @@ SipConnectionStateTransition* DisconnectedSipConnectionState::getTransition(ISip
       {
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(m_rStateContext, m_rSipUserAgent,
+            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
          break;
       }
 

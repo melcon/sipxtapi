@@ -12,6 +12,10 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsWriteLock.h>
+#include <net/SipMessage.h>
+#include <net/SipUserAgent.h>
+#include <cp/XSipConnectionContext.h>
 #include <cp/state/BaseSipConnectionState.h>
 #include <cp/state/SipConnectionStateTransition.h>
 #include <cp/state/StateTransitionMemory.h>
@@ -29,14 +33,14 @@
 
 /* ============================ CREATORS ================================== */
 
-BaseSipConnectionState::BaseSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+BaseSipConnectionState::BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                                                SipUserAgent& rSipUserAgent,
-                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                               XSipConnectionEventSink* pSipConnectionEventSink)
-: m_rSipConnectionContext(rSipConnectionContext)
+                                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                               XSipConnectionEventSink& rSipConnectionEventSink)
+: m_rStateContext(rStateContext)
 , m_rSipUserAgent(rSipUserAgent)
-, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
-, m_pSipConnectionEventSink(pSipConnectionEventSink)
+, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
+, m_rSipConnectionEventSink(rSipConnectionEventSink)
 {
 
 }
@@ -62,12 +66,12 @@ SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(cons
    return NULL;
 }
 
-OsStatus BaseSipConnectionState::connect(const UtlString& toAddress,
-                                         const UtlString& fromAddress,
-                                         const UtlString& locationHeader,
-                                         CP_CONTACT_ID contactId)
+SipConnectionStateTransition* BaseSipConnectionState::connect(const UtlString& toAddress,
+                                                              const UtlString& fromAddress,
+                                                              const UtlString& locationHeader,
+                                                              CP_CONTACT_ID contactId)
 {
-   return OS_FAILED;
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -95,6 +99,18 @@ SipConnectionStateTransition* BaseSipConnectionState::getTransitionObject(BaseSi
    {
       return NULL;
    }
+}
+
+void BaseSipConnectionState::updateSipDialog(const SipMessage& sipMessage)
+{
+   OsWriteLock lock(m_rStateContext);
+   m_rStateContext.m_sipDialog.updateDialog(sipMessage);
+}
+
+UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
+{
+   updateSipDialog(sipMessage);
+   return m_rSipUserAgent.send(sipMessage);
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

@@ -35,10 +35,10 @@ class DisconnectedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   DisconnectedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   DisconnectedSipConnectionState(SipConnectionStateContext& rStateContext,
                                   SipUserAgent& rSipUserAgent,
-                                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                  XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                                  CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                  XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~DisconnectedSipConnectionState();
 

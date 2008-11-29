@@ -35,10 +35,10 @@ class UnknownSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   UnknownSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   UnknownSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~UnknownSipConnectionState();
 

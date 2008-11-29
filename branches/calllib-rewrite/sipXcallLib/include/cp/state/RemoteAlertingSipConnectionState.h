@@ -35,10 +35,10 @@ class RemoteAlertingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   RemoteAlertingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   RemoteAlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                                     SipUserAgent& rSipUserAgent,
-                                    CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                    XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                                    CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                    XSipConnectionEventSink& rSipConnectionEventSink);
 
    virtual ~RemoteAlertingSipConnectionState();
 

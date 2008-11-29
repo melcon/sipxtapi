@@ -148,7 +148,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
                            , mbDateHeader(true)
                            , mbShortNames(false)
                            , mAcceptLanguage("")
-                           , mpLastSipMessage(NULL)
 {    
    OsSysLog::add(FAC_SIP, PRI_DEBUG,
       "SipUserAgent::_ sipTcpPort = %d, sipUdpPort = %d, sipTlsPort = %d",
@@ -646,8 +645,6 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
 
    UtlBoolean sendSucceeded = FALSE;
    UtlBoolean isResponse = message.isResponse();
-
-   mpLastSipMessage = &message;
 
    // ===========================================
 
@@ -2060,7 +2057,6 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                }
                else if(message)
                {
-                  mpLastSipMessage = message;
                   shouldDispatch =
                      transaction->handleIncoming(*message,
                      *this,
