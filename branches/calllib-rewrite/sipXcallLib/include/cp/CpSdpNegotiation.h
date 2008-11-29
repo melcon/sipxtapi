@@ -15,6 +15,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/IStunSocket.h>
 #include <utl/UtlBool.h>
 #include <utl/UtlString.h>
 
@@ -28,11 +29,20 @@
 // FORWARD DECLARATIONS
 class SdpCodecList;
 class SdpBody;
+class SdpCodec;
+class SipMessage;
 struct SdpSrtpParameters;
 
 /**
  * CpSdpNegotiation is a helper class for tracking SDP negotiation state
- * and various SDP handling functions. 
+ * and various SDP handling functions.
+ *
+ * It can:
+ * - add SDP body (offer or answer) to SipMessage
+ * - get common codecs for inbound SDP (offer or answer)
+ *
+ * SDP negotiation tracking is manual, startSdpNegotiation, sdpOfferFinished
+ * and sdpAnswerFinished need to be called.
  */
 class CpSdpNegotiation
 {
@@ -72,7 +82,7 @@ public:
    void startSdpNegotiation(UtlBoolean bLocallyInitiated = TRUE);
 
    /** Call to notify class that SDP offer part of handshake is finished */
-   void sdpOfferFinished();
+   void sdpOfferFinished(const SipMessage& rOfferSipMessage);
 
    /** Call to notify class that SDP answer part of handshake is finished */
    void sdpAnswerFinished();
@@ -85,7 +95,7 @@ public:
     * commonCodecsForEncoder can be used for startRtpSend
     * commonCodecsForDecoder can be used for startRtpReceive
     */
-   static void getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SDP body
+   static void getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound SDP body (offer or answer)
                                   const SdpCodecList& supportedCodecs,
                                   int& numCodecsInCommon, ///< how many codecs do we have in common
                                   SdpCodecList& commonCodecsForEncoder,
@@ -101,6 +111,24 @@ public:
                                   int& matchingBandwidth,
                                   int localVideoFramerate,
                                   int& matchingVideoFramerate);
+
+   /**
+    * Adds SDP body to specified SIP message. Offer/Answer SDP is added automatically depending
+    * on negotiation state.
+    */
+   void addSdpBody(SipMessage& rSipMessage,///< sip message where we want to add SDP body
+                   int nRtpContacts,
+                   UtlString hostAddresses[],
+                   int rtpAudioPorts[],
+                   int rtcpAudiopPorts[],
+                   int rtpVideoPorts[],
+                   int rtcpVideoPorts[],
+                   RTP_TRANSPORT transportTypes[],
+                   const SdpCodecList& sdpCodecList,
+                   const SdpSrtpParameters& srtpParams,
+                   int videoBandwidth,
+                   int videoFramerate,
+                   RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -124,6 +152,9 @@ public:
    /** Returns TRUE if SDP negotiation is in progress */
    UtlBoolean isSdpNegotiationInProgress() const;
 
+   /** Returns TRUE if SDP negotiation is complete */
+   UtlBoolean isSdpNegotiationComplete() const;
+
    /** Returns TRUE if SDP negotiation was initiated locally (offer was sent) */
    UtlBoolean isLocallyInitiated() const { return m_bLocallyInitiated; }
 
@@ -132,6 +163,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   // compatibility with old SdpBody and SipMessage, craziness
+   static void deleteSdpCodecArray(int arraySize, SdpCodec**& sdpCodecArray);
 
    SdpNegotiationState m_negotiationState; ///< keeps track of SDP negotiation state
    UtlBoolean m_bSdpOfferFinished; ///< TRUE if SDP offer was sent or received
@@ -139,6 +172,7 @@ private:
    UtlBoolean m_bLocallyInitiated; ///< TRUE if we are the SDP negotiation initiator
 
    SdpOfferingMode m_sdpOfferingMode; ///< configures SDP negotiation mode - immediate or delayed
+   SipMessage* m_pOfferSipMessage; ///< Sip message with SDP offer if its available
 };
 
 #endif // CpSdpNegotiation_h__

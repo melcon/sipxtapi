@@ -197,7 +197,7 @@ class SdpBody : public HttpBody
                        RTP_TRANSPORT transportTypes[],
                        int numRtpCodecs,
                        SdpCodec* rtpCodecs[],
-                       SdpSrtpParameters& srtpParams,
+                       const SdpSrtpParameters& srtpParams,
                        int videoBandwidth,
                        int videoFramerate,
                        RTP_TRANSPORT transportOffering
@@ -218,7 +218,7 @@ class SdpBody : public HttpBody
                        RTP_TRANSPORT transportTypes[],
                        int numRtpCodecs, 
                        SdpCodec* rtpCodecs[],
-                       SdpSrtpParameters& srtpParams,
+                       const SdpSrtpParameters& srtpParams,
                        int videoBandwidth,
                        int videoFramerate,
                        const SdpBody* sdpRequest  ///< Sdp we are responding to
@@ -282,7 +282,7 @@ class SdpBody : public HttpBody
                   int numChannels
                   );
 
-   void addSrtpCryptoField(SdpSrtpParameters& params);
+   void addSrtpCryptoField(const SdpSrtpParameters& params);
 
    void addFormatParameters(int payloadType,
                             const char* formatParameters

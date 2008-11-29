@@ -12,8 +12,10 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <sdp/SdpCodec.h>
 #include <sdp/SdpCodecList.h>
 #include <net/SdpBody.h>
+#include <net/SipMessage.h>
 #include <cp/CpSdpNegotiation.h>
 
 // DEFINES
@@ -35,6 +37,7 @@ CpSdpNegotiation::CpSdpNegotiation()
 , m_bSdpAnswerFinished(FALSE)
 , m_bLocallyInitiated(FALSE)
 , m_sdpOfferingMode(CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
+, m_pOfferSipMessage(NULL)
 {
 
 }
@@ -52,11 +55,17 @@ void CpSdpNegotiation::startSdpNegotiation(UtlBoolean bLocallyInitiated /*= TRUE
    m_bSdpOfferFinished = FALSE;
    m_bSdpAnswerFinished = FALSE;
    m_bLocallyInitiated = bLocallyInitiated;
+
+   delete m_pOfferSipMessage;
+   m_pOfferSipMessage = NULL;
 }
 
-void CpSdpNegotiation::sdpOfferFinished()
+void CpSdpNegotiation::sdpOfferFinished(const SipMessage& rOfferSipMessage)
 {
    m_bSdpOfferFinished = TRUE;
+
+   delete m_pOfferSipMessage;
+   m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
 }
 
 void CpSdpNegotiation::sdpAnswerFinished()
@@ -68,7 +77,7 @@ void CpSdpNegotiation::sdpAnswerFinished()
    }
 }
 
-void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SDP body
+void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound SDP body (offer or answer)
                                           const SdpCodecList& supportedCodecs,
                                           int& numCodecsInCommon, ///< how many codecs do we have in common
                                           SdpCodecList& commonCodecsForEncoder,
@@ -118,20 +127,45 @@ void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< SDP body
    commonCodecsForDecoder.clearCodecs();
    commonCodecsForDecoder.addCodecs(numCodecsInCommon, decoderCodecs);
 
-   // Free up the codec copies and array
-   for(int codecIndex = 0; codecIndex < numCodecsInCommon; codecIndex++)
-   {
-      delete encoderCodecs[codecIndex];
-      encoderCodecs[codecIndex] = NULL;
+   deleteSdpCodecArray(numCodecsInCommon, encoderCodecs);
+   deleteSdpCodecArray(numCodecsInCommon, decoderCodecs);
+}
 
-      delete decoderCodecs[codecIndex];
-      decoderCodecs[codecIndex] = NULL;
-   }
-   if(encoderCodecs) delete[] encoderCodecs;
-   encoderCodecs = NULL;
+void CpSdpNegotiation::addSdpBody(SipMessage& rSipMessage,///< sip message where we want to add SDP body
+                                  int nRtpContacts,
+                                  UtlString hostAddresses[],
+                                  int rtpAudioPorts[],
+                                  int rtcpAudiopPorts[],
+                                  int rtpVideoPorts[],
+                                  int rtcpVideoPorts[],
+                                  RTP_TRANSPORT transportTypes[],
+                                  const SdpCodecList& sdpCodecList,
+                                  const SdpSrtpParameters& srtpParams,
+                                  int videoBandwidth,
+                                  int videoFramerate,
+                                  RTP_TRANSPORT rtpTransportOptions)
+{
+   int codecCount = sdpCodecList.getCodecCount();
+   SdpCodec** pCodecArray = new SdpCodec*[codecCount];
+   sdpCodecList.getCodecs(codecCount, pCodecArray); // fill array with codec copies
 
-   if(decoderCodecs) delete[] decoderCodecs;
-   decoderCodecs = NULL;
+   // if m_pOfferSipMessage is known, then SDP answer is added, otherwise SDP offer
+   rSipMessage.addSdpBody(nRtpContacts,
+      hostAddresses,
+      rtpAudioPorts,
+      rtcpAudiopPorts,
+      rtpVideoPorts,
+      rtcpVideoPorts,
+      transportTypes,
+      codecCount,
+      pCodecArray,
+      srtpParams,
+      videoBandwidth,
+      videoFramerate,
+      m_pOfferSipMessage, // original SIP message with offer if available
+      rtpTransportOptions);
+
+   deleteSdpCodecArray(codecCount, pCodecArray);
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -148,8 +182,25 @@ UtlBoolean CpSdpNegotiation::isSdpNegotiationInProgress() const
    return m_negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS;
 }
 
+UtlBoolean CpSdpNegotiation::isSdpNegotiationComplete() const
+{
+   return m_negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void CpSdpNegotiation::deleteSdpCodecArray(int arraySize, SdpCodec**& sdpCodecArray)
+{
+   // Free up the codec copies and array
+   for(int codecIndex = 0; codecIndex < arraySize; codecIndex++)
+   {
+      delete sdpCodecArray[codecIndex];
+      sdpCodecArray[codecIndex] = NULL;
+   }
+   if(sdpCodecArray) delete[] sdpCodecArray;
+   sdpCodecArray = NULL;
+}
 
 /* ============================ FUNCTIONS ================================= */
