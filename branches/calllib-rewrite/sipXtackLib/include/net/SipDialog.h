@@ -449,7 +449,7 @@ private:
    UtlString m_sLocalTag;
    UtlString m_sRemoteTag;
    Url m_localContact; // our contact, we use in outbound messages
-   Url m_remoteContact; // In RFC-2833 described as "remote target", contact of remote party
+   Url m_remoteContact; // In RFC-3261 described as "remote target", contact of remote party
    UtlString m_sRouteSet; // route set for building Record-Route header
    UtlString m_sInitialMethod; // INVITE etc
    Url m_localRequestUri; // request URI used for first inbound request
