@@ -113,6 +113,19 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
    return m_rSipUserAgent.send(sipMessage);
 }
 
+UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
+{
+   if (m_rStateContext.m_allowedRemote.index(sMethod) >=0 ||
+       m_rStateContext.m_implicitAllowedRemote.index(sMethod) >= 0)
+   {
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */

@@ -28,6 +28,9 @@
 /* ============================ CREATORS ================================== */
 
 SipConnectionStateContext::SipConnectionStateContext()
+: m_mediaSessionState(SipConnectionStateContext::MEDIA_SESSION_NONE)
+, m_allowedRemote(NULL)
+, m_implicitAllowedRemote("INVITE, ACK, CANCEL, BYE, OPTIONS, REGISTER")
 {
 
 }

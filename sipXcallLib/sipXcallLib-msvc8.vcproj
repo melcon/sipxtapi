@@ -275,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CpSdpNegotiation.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CSeqManager.cpp"
 				>
 			</File>
@@ -613,6 +617,10 @@
 			</File>
 			<File
 				RelativePath="include\cp\CpPeerCall.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpSdpNegotiation.h"
 				>
 			</File>
 			<File
