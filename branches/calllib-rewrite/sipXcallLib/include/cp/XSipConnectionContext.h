@@ -59,8 +59,10 @@ public:
 
    /* ============================ CREATORS ================================== */
 
+   /** Constructor */
    XSipConnectionContext();
 
+   /** Destructor */
    virtual ~XSipConnectionContext();
 
    /* ============================ MANIPULATORS ============================== */

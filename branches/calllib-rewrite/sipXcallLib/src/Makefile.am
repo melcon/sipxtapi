@@ -40,6 +40,7 @@ libsipXcall_la_SOURCES = \
     cp/CpIntMessage.cpp \
     cp/CpMultiStringMessage.cpp \
     cp/CpPeerCall.cpp \
+    cp/CpSdpNegotiation.cpp \
     cp/SipConnection.cpp \
     cp/XCpAbstractCall.cpp \
     cp/XCpCall.cpp \

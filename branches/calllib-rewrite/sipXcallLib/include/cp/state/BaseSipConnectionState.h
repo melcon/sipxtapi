@@ -110,6 +110,9 @@ protected:
    /** Sends specified sip message, updating the state of SipDialog. SipMessage will be updated. */
    UtlBoolean sendMessage(SipMessage& sipMessage);
 
+   /** Returns TRUE if some SIP method is allowed (may be sent) */
+   UtlBoolean isMethodAllowed(const UtlString& sMethod);
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
