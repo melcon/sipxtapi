@@ -1203,6 +1203,9 @@ public:
     //! as opposed to a request.
     UtlBoolean isResponse() const;
 
+    /** TRUE for 100rel responses */
+    UtlBoolean is100RelResponse() const;
+
     UtlBoolean isRequest() const;
 
     //! @ Transaction and session related inquiry methods
