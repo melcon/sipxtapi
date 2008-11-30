@@ -83,6 +83,7 @@
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsAllMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcUnholdAllConnectionsMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcUnholdConnectionMsg.cpp"/>
@@ -95,6 +96,7 @@
                 <File RelativePath=".\src\cp\msg\CpTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScTimerMsg.cpp"/>
             </Filter>
             <Filter Name="state">
                 <File RelativePath=".\src\cp\state\AlertingSipConnectionState.cpp"/>
@@ -176,6 +178,7 @@
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsAllMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcSendInfoMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcUnholdAllConnectionsMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcUnholdConnectionMsg.h"/>
@@ -188,6 +191,7 @@
                 <File RelativePath=".\include\cp\msg\CpTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScTimerMsg.h"/>
             </Filter>
             <Filter Name="state">
                 <File RelativePath=".\include\cp\state\AlertingSipConnectionState.h"/>

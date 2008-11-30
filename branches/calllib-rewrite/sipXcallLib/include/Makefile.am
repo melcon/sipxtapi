@@ -62,6 +62,7 @@ nobase_include_HEADERS =  \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcTimerMsg.h \
     cp/msg/AcTransferBlindMsg.h \
     cp/msg/AcUnholdAllConnectionsMsg.h \
     cp/msg/AcUnholdConnectionMsg.h \
@@ -74,6 +75,7 @@ nobase_include_HEADERS =  \
     cp/msg/CpTimerMsg.h \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScNotificationMsg.h \
+    cp/msg/ScTimerMsg.h \
     cp/state/AlertingSipConnectionState.h \
     cp/state/BaseSipConnectionState.h \
     cp/state/DialingSipConnectionState.h \

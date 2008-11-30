@@ -93,6 +93,19 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
    return OS_FAILED;
 }
 
+UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timerMsg)
+{
+   if (m_pSipConnectionState)
+   {
+      // let the state handle timer message
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
 /* ============================ ACCESSORS ================================= */
 
 ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()

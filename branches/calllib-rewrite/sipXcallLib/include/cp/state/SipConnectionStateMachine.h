@@ -38,6 +38,7 @@ class SipUserAgent;
 class CpMediaInterfaceProvider;
 class XSipConnectionEventSink;
 class SipConnectionStateTransition;
+class ScTimerMsg;
 
 /**
  * State machine handling various connection states.
@@ -71,6 +72,9 @@ public:
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId);
+
+   /** Handles timer message */
+   UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 
    /* ============================ ACCESSORS ================================= */
 

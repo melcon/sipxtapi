@@ -164,6 +164,11 @@ OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
    return OS_FAILED;
 }
 
+UtlBoolean XSipConnection::handleTimerMessage(const ScTimerMsg& timerMsg)
+{
+   return m_stateMachine.handleTimerMessage(timerMsg);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 unsigned XSipConnection::hash() const

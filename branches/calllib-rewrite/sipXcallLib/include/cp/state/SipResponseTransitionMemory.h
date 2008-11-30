@@ -10,12 +10,13 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef CpTimerMsg_h__
-#define CpTimerMsg_h__
+#ifndef SipResponseTransitionMemory_h__
+#define SipResponseTransitionMemory_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <os/OsTimerMsg.h>
+#include <utl/UtlString.h>
+#include <cp/state/StateTransitionMemory.h>
 
 // DEFINES
 // MACROS
@@ -27,43 +28,34 @@
 // FORWARD DECLARATIONS
 
 /**
- * CpTimerMsg represents message which gets sent when a timer fires in sipxcalllib.
- * Never use directly, but subclass to supply msgSubType automatically
- * and transport any user data in subclass.
+ * SipResponseTransitionMemory keeps SIP response code and text.
  */
-class CpTimerMsg : public OsTimerMsg
+class SipResponseTransitionMemory : public StateTransitionMemory
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
-   typedef enum
-   {
-      CP_TIMER_FIRST = 0, ///< Add your own timer ids here
-      CP_ABSTRACT_CALL_TIMER, ///< Timer which is meant to be processed by abstract call
-      CP_SIP_CONNECTION_TIMER, ///< Timer which is meant to be processed by sip connection state machine
-      CP_TIMER_LAST = 255 ///< Keep lower than 255
-   } SubTypeEnum;
 
-   /**
-    * Constructor.
-    */
-   CpTimerMsg(SubTypeEnum msgSubType);
-
-   /** Copy constructor */
-   CpTimerMsg(const CpTimerMsg& rhs);
-
-   /** Create a copy of this msg object (which may be of a derived type) */
-   virtual OsMsg* createCopy(void) const;
+   /** Constructor. */
+   SipResponseTransitionMemory(int sipResponseCode, const UtlString& sipResponseText);
 
    /** Destructor. */
-   virtual ~CpTimerMsg();
+   virtual ~SipResponseTransitionMemory();
 
    /* ============================ MANIPULATORS ============================== */
 
-   /** Assignment operator */
-   CpTimerMsg& operator=(const CpTimerMsg& rhs);
+   /** Creates copy of transition memory. */
+   virtual StateTransitionMemory* clone() const;
 
    /* ============================ ACCESSORS ================================= */
+
+   int getSipResponseCode() const { return m_sipResponseCode; }
+   UtlString getSipResponseText() const { return m_sipResponseText; }
+
+   virtual StateTransitionMemory::Type getType() const
+   {
+      return SIP_RESPONSE_MEMORY;
+   }
 
    /* ============================ INQUIRY =================================== */
 
@@ -72,6 +64,9 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   int m_sipResponseCode; ///< stores sip response code
+   UtlString m_sipResponseText; ///< stores response text
 };
 
-#endif // CpTimerMsg_h__
+#endif // SipResponseTransitionMemory_h__

@@ -23,6 +23,7 @@
 #include <cp/state/StateTransitionMemory.h>
 #include <cp/state/SipResponseTransitionMemory.h>
 #include <cp/CpMediaInterfaceProvider.h>
+#include <cp/msg/ScTimerMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -88,6 +89,12 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(const UtlString& t
                                                               CP_CONTACT_ID contactId)
 {
    return NULL;
+}
+
+UtlBoolean BaseSipConnectionState::handleTimerMessage(const ScTimerMsg& timerMsg)
+{
+   // subclass ScTimerMsg and call specific timer handling function
+   return FALSE;
 }
 
 /* ============================ ACCESSORS ================================= */

@@ -430,6 +430,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"
 					>
 				</File>
@@ -475,6 +479,10 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScTimerMsg.cpp"
 					>
 				</File>
 			</Filter>
@@ -791,6 +799,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcTimerMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"
 					>
 				</File>
@@ -836,6 +848,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\ScNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScTimerMsg.h"
 					>
 				</File>
 			</Filter>

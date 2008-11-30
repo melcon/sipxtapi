@@ -36,6 +36,7 @@ class XSipConnectionEventSink;
 class SipConnectionStateTransition;
 class StateTransitionMemory;
 class SipMessage;
+class ScTimerMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -88,6 +89,9 @@ public:
                                                  const UtlString& fromAddress,
                                                  const UtlString& locationHeader,
                                                  CP_CONTACT_ID contactId);
+
+   /** Handles timer message. When overridden, call parent first. */
+   virtual UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 
    /* ============================ ACCESSORS ================================= */
 
