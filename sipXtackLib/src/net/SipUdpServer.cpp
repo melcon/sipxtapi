@@ -59,7 +59,6 @@ public:
     UtlString   m_method ;
     int         m_iKeepAlive ;
     OsTimer*    m_pTimer ;
-    OsCallback* m_pCallback ;
     SipMessage* m_pSipMessage ;
     OsNatKeepaliveListener* m_pListener ;
 
@@ -79,7 +78,6 @@ public:
         m_method = method ;
         m_iKeepAlive = iKeepAlive ;
         m_pTimer = NULL ;
-        m_pCallback = NULL ;
         m_pSipMessage = NULL ;
         m_pListener = pListener ;
 
@@ -111,9 +109,10 @@ public:
     void start(SipUdpServer* pServer) 
     {
         if (m_pTimer == NULL)
-        {            
-            m_pCallback = new OsCallback((int) pServer, SipUdpServer::SipKeepAliveCallback) ;
-            m_pTimer = new OsTimer(*m_pCallback) ;        
+        {
+            OsCallback* pCallback = new OsCallback((intptr_t) pServer, SipUdpServer::SipKeepAliveCallback) ;
+            // timer manages callback deletion
+            m_pTimer = new OsTimer(pCallback) ;        
         }
 
         // Fire off event
@@ -164,7 +163,6 @@ public:
     {
         stop() ;
         delete m_pTimer ;
-        delete m_pCallback ;
         delete m_pSipMessage ;
     }
 } ;
