@@ -19,6 +19,9 @@
 #include "utl/UtlDefs.h"
 
 // DEFINES
+#define T1_PERIOD_MSEC 500 // 0.5s
+#define T2_PERIOD_MSEC 4000 // 4s
+
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
