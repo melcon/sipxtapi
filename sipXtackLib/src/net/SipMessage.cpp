@@ -4669,6 +4669,23 @@ UtlBoolean SipMessage::isResponse() const
    return(responseType);
 }
 
+UtlBoolean SipMessage::is100RelResponse() const
+{
+   if (isResponse())
+   {
+      int statusCode = getResponseStatusCode();
+
+      if (statusCode > SIP_1XX_CLASS_CODE && // 100 cannot be sent reliably
+          statusCode < SIP_2XX_CLASS_CODE &&
+          isRequireExtensionSet(SIP_PRACK_EXTENSION))
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
 UtlBoolean SipMessage::isRequest() const
 {
    return !isResponse();
