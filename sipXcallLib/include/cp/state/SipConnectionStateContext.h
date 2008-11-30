@@ -55,7 +55,9 @@ public:
    typedef enum
    {
       INVITE_INACTIVE = 0, ///< no INVITE transaction is active
-      INVITE_ACTIVE ///< an INVITE transaction is active
+      INVITE_ACTIVE, ///< initial INVITE transaction is active
+      REINVITE_NORMAL_ACTIVE, ///< a normal re-INVITE transaction is active
+      REINVITE_SESSION_REFRESH_ACTIVE ///< media session re-INVITE transaction is active, cannot fail
    } InviteTransactionState;
 
    MediaSessionState m_mediaSessionState; ///< keeps track of media session state (active, held etc)

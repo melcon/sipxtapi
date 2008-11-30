@@ -102,7 +102,6 @@
                 <File RelativePath=".\src\cp\state\DialingSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\DisconnectedSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\EstablishedSipConnectionState.cpp"/>
-                <File RelativePath=".\src\cp\state\FailedSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\IdleSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\NewCallSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\OfferingSipConnectionState.cpp"/>
@@ -113,6 +112,7 @@
                 <File RelativePath=".\src\cp\state\SipConnectionStateContext.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateTransition.cpp"/>
+                <File RelativePath=".\src\cp\state\SipResponseTransitionMemory.cpp"/>
                 <File RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"/>
             </Filter>
         </Filter>
@@ -195,7 +195,6 @@
                 <File RelativePath=".\include\cp\state\DialingSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\DisconnectedSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\EstablishedSipConnectionState.h"/>
-                <File RelativePath=".\include\cp\state\FailedSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\IdleSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\ISipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\NewCallSipConnectionState.h"/>
@@ -208,6 +207,7 @@
                 <File RelativePath=".\include\cp\state\SipConnectionStateMachine.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateObserver.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateTransition.h"/>
+                <File RelativePath=".\include\cp\state\SipResponseTransitionMemory.h"/>
                 <File RelativePath=".\include\cp\state\StateTransitionMemory.h"/>
                 <File RelativePath=".\include\cp\state\UnknownSipConnectionState.h"/>
             </Filter>

@@ -196,7 +196,7 @@ void XSipConnection::getRemoteUserAgent(UtlString& sRemoteUserAgent) const
 
 int XSipConnection::getMediaConnectionId() const
 {
-   OsReadLock lock(m_rSipConnectionContext);
+   // no need to lock atomic
    return m_rSipConnectionContext.m_mediaConnectionId;
 }
 

@@ -94,7 +94,6 @@ libsipXcall_la_SOURCES = \
     cp/state/DialingSipConnectionState.cpp \
     cp/state/DisconnectedSipConnectionState.cpp \
     cp/state/EstablishedSipConnectionState.cpp \
-    cp/state/FailedSipConnectionState.cpp \
     cp/state/IdleSipConnectionState.cpp \
     cp/state/NewCallSipConnectionState.cpp \
     cp/state/OfferingSipConnectionState.cpp \
@@ -105,6 +104,7 @@ libsipXcall_la_SOURCES = \
     cp/state/SipConnectionStateContext.cpp \
     cp/state/SipConnectionStateMachine.cpp \
     cp/state/SipConnectionStateTransition.cpp \
+    cp/state/SipResponseTransitionMemory.cpp \
     cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \

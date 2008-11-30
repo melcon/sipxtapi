@@ -13,7 +13,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/DisconnectedSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 
 // DEFINES
@@ -55,6 +54,9 @@ DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
 
 void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   stopInviteTransaction();
+   terminateSipDialog();
+   deleteMediaConnection();
 }
 
 void DisconnectedSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)

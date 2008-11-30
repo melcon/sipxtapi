@@ -13,7 +13,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/DialingSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/RemoteOfferingSipConnectionState.h>
@@ -107,9 +106,6 @@ SipConnectionStateTransition* DialingSipConnectionState::getTransition(ISipConne
          break;
       case ISipConnectionState::CONNECTION_REMOTE_QUEUED:
          pDestination = new RemoteQueuedSipConnectionState(*this);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
          pDestination = new DisconnectedSipConnectionState(*this);

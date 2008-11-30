@@ -13,7 +13,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/AlertingSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/EstablishedSipConnectionState.h>
@@ -89,9 +88,6 @@ SipConnectionStateTransition* AlertingSipConnectionState::getTransition(ISipConn
       {
       case ISipConnectionState::CONNECTION_ESTABLISHED:
          pDestination = new EstablishedSipConnectionState(*this);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
          pDestination = new DisconnectedSipConnectionState(*this);
