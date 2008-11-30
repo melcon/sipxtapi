@@ -97,7 +97,33 @@ UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timer
 {
    if (m_pSipConnectionState)
    {
-      // let the state handle timer message
+      handleStateTransition(m_pSipConnectionState->handleTimerMessage(timerMsg));
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean SipConnectionStateMachine::handleCommandMessage(const ScCommandMsg& rMsg)
+{
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->handleCommandMessage(rMsg));
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean SipConnectionStateMachine::handleNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->handleNotificationMessage(rMsg));
       return TRUE;
    }
    else

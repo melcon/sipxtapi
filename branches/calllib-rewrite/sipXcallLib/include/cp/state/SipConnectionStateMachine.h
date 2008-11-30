@@ -39,6 +39,8 @@ class CpMediaInterfaceProvider;
 class XSipConnectionEventSink;
 class SipConnectionStateTransition;
 class ScTimerMsg;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * State machine handling various connection states.
@@ -75,6 +77,12 @@ public:
 
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
+
+   /** Handles CpMessageTypes::SC_COMMAND message */
+   UtlBoolean handleCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handles CpMessageTypes::ScNotificationMsg message */
+   UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
 
    /* ============================ ACCESSORS ================================= */
 

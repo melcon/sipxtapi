@@ -52,6 +52,8 @@ class SipSecurityEventListener;
 class CpMediaEventListener;
 class SipMessageEvent;
 class SipMessage;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
@@ -526,6 +528,12 @@ private:
 
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
+
+   /** Handler for CpMessageTypes::SC_COMMAND messages */
+   UtlBoolean handleSipConnectionCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handler for CpMessageTypes::ScNotificationMsg messages */
+   UtlBoolean handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg);
 
    /** Handler for inbound SipMessageEvent messages. Tries to find call for event. */
    UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);

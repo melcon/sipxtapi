@@ -24,6 +24,8 @@
 #include <cp/state/SipResponseTransitionMemory.h>
 #include <cp/CpMediaInterfaceProvider.h>
 #include <cp/msg/ScTimerMsg.h>
+#include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/ScNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -91,10 +93,22 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(const UtlString& t
    return NULL;
 }
 
-UtlBoolean BaseSipConnectionState::handleTimerMessage(const ScTimerMsg& timerMsg)
+SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    // subclass ScTimerMsg and call specific timer handling function
-   return FALSE;
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleCommandMessage(const ScCommandMsg& rMsg)
+{
+   // subclass ScCommandMsg and call specific handling function
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   // subclass ScNotificationMsg and call specific handling function
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */
