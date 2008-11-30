@@ -26,6 +26,7 @@
 #include <cp/CpDefs.h>
 #include <cp/CpNatTraversalConfig.h>
 #include <cp/CpMediaInterfaceProvider.h>
+#include <cp/CpMessageQueueProvider.h>
 
 // DEFINES
 // MACROS
@@ -97,7 +98,8 @@ class ScNotificationMsg;
  * - findConnection - uses the same dialog matching like hasSipDialog
  * 
  */
-class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase, protected CpMediaInterfaceProvider
+class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase,
+   protected CpMediaInterfaceProvider, protected CpMessageQueueProvider
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -493,6 +495,16 @@ private:
     * Must be called from the OsServerTask only.
     */
    virtual CpMediaInterface* getMediaInterface(UtlBoolean bCreateIfNull = TRUE);
+
+   /**
+   * Gets local call queue for sending messages.
+   */       
+   virtual OsMsgQ& getLocalQueue();
+
+   /**
+   * Gets global queue for inter call communication.
+   */       
+   virtual OsMsgQ& getGlobalQueue();
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

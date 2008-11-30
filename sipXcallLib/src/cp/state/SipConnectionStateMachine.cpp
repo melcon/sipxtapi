@@ -34,18 +34,20 @@
 
 SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                                                      CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                     CpMessageQueueProvider& rMessageQueueProvider,
                                                      XSipConnectionEventSink& rSipConnectionEventSink,
                                                      const CpNatTraversalConfig& natTraversalConfig)
 : m_rStateContext()
 , m_pSipConnectionState(NULL)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
+, m_rMessageQueueProvider(rMessageQueueProvider)
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
 , m_natTraversalConfig(natTraversalConfig)
 {
    // deleted in handleStateTransition if unsuccessful
    BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rStateContext, m_rSipUserAgent,
-      m_rMediaInterfaceProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+      m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
    SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
 
    handleStateTransition(transition);
@@ -77,7 +79,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
       // switch to dialing
       // deleted in doHandleStateTransition if unsuccessful
       BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rStateContext, m_rSipUserAgent,
-         m_rMediaInterfaceProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+         m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
       SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
       handleStateTransition(transition);
    }

@@ -36,6 +36,7 @@ class XSipConnectionContext;
 class SipConnectionStateObserver;
 class SipUserAgent;
 class CpMediaInterfaceProvider;
+class CpMessageQueueProvider;
 class XSipConnectionEventSink;
 class SipConnectionStateTransition;
 class ScTimerMsg;
@@ -54,11 +55,14 @@ class SipConnectionStateMachine
 public:
    /* ============================ CREATORS ================================== */
    
+   /** Constructor. */
    SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             CpMessageQueueProvider& rMessageQueueProvider,
                              XSipConnectionEventSink& rSipConnectionEventSink,
                              const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Destructor. */
    virtual ~SipConnectionStateMachine();
 
    /* ============================ MANIPULATORS ============================== */
@@ -132,6 +136,7 @@ private:
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
+   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
    CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 };

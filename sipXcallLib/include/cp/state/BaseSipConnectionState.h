@@ -32,6 +32,7 @@
 // FORWARD DECLARATIONS
 class SipUserAgent;
 class CpMediaInterfaceProvider;
+class CpMessageQueueProvider;
 class XSipConnectionEventSink;
 class SipConnectionStateTransition;
 class StateTransitionMemory;
@@ -55,6 +56,7 @@ public:
    BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
                           CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                          CpMessageQueueProvider& rMessageQueueProvider,
                           XSipConnectionEventSink& rSipConnectionEventSink,
                           const CpNatTraversalConfig& natTraversalConfig);
 
@@ -178,6 +180,7 @@ protected:
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
+   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
    CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 

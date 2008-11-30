@@ -131,6 +131,7 @@
             <File RelativePath="include\cp\CpIntMessage.h"/>
             <File RelativePath=".\include\cp\CpMediaEventListener.h"/>
             <File RelativePath=".\include\cp\CpMediaInterfaceProvider.h"/>
+            <File RelativePath=".\include\cp\CpMessageQueueProvider.h"/>
             <File RelativePath=".\include\cp\CpMessageTypes.h"/>
             <File RelativePath="include\cp\CpMultiStringMessage.h"/>
             <File RelativePath=".\include\cp\CpNatTraversalConfig.h"/>

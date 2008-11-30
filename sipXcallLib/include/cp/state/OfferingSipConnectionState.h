@@ -39,6 +39,7 @@ public:
    OfferingSipConnectionState(SipConnectionStateContext& rStateContext,
                               SipUserAgent& rSipUserAgent,
                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                              CpMessageQueueProvider& rMessageQueueProvider,
                               XSipConnectionEventSink& rSipConnectionEventSink,
                               const CpNatTraversalConfig& natTraversalConfig);
 

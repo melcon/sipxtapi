@@ -612,6 +612,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpMessageQueueProvider.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CpMessageTypes.h"
 				>
 			</File>
