@@ -42,9 +42,11 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    /**
-    * Gets current CpMediaInterface if it exists. If not then a new one is created.
+    * Gets current CpMediaInterface.
+    *
+    * @param bCreateIfNull If TRUE then a new one is created if it doesn't exist.
     */
-   virtual CpMediaInterface* getMediaInterface() = 0;
+   virtual CpMediaInterface* getMediaInterface(UtlBoolean bCreateIfNull = TRUE) = 0;
 
    /* ============================ INQUIRY =================================== */
 

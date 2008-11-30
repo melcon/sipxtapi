@@ -52,12 +52,19 @@ public:
       MEDIA_SESSION_UNHOLD_REQUESTED ///< unhold operation has been initiated
    } MediaSessionState;
 
+   typedef enum
+   {
+      INVITE_INACTIVE = 0, ///< no INVITE transaction is active
+      INVITE_ACTIVE ///< an INVITE transaction is active
+   } InviteTransactionState;
+
    MediaSessionState m_mediaSessionState; ///< keeps track of media session state (active, held etc)
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation
    UtlString m_allowedRemote;  ///< methods supported by the other side
    UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    CpSipTransactionManager m_sipTransactionMgr; ///< sip transaction tracking & cseq generator
+   InviteTransactionState m_inviteTransactionState; ///< keeps invite transaction state
 
    /* ============================ CREATORS ================================== */
 

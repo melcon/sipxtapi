@@ -31,8 +31,16 @@
 FailedSipConnectionState::FailedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                    SipUserAgent& rSipUserAgent,
                                                    CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                                   XSipConnectionEventSink& rSipConnectionEventSink)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rSipConnectionEventSink)
+                                                   XSipConnectionEventSink& rSipConnectionEventSink,
+                                                   const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rSipConnectionEventSink,
+                         natTraversalConfig)
+{
+
+}
+
+FailedSipConnectionState::FailedSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -77,13 +85,11 @@ SipConnectionStateTransition* FailedSipConnectionState::getTransition(ISipConnec
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
+         pDestination = new FailedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

@@ -20,6 +20,7 @@
 #include <cp/CpDefs.h>
 #include <cp/state/ISipConnectionState.h>
 #include <cp/state/SipConnectionStateContext.h>
+#include <cp/CpNatTraversalConfig.h>
 
 // DEFINES
 // MACROS
@@ -47,11 +48,17 @@ class BaseSipConnectionState : public ISipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
                           CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                          XSipConnectionEventSink& rSipConnectionEventSink);
+                          XSipConnectionEventSink& rSipConnectionEventSink,
+                          const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Copy constructor. */
+   BaseSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~BaseSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */
@@ -113,13 +120,25 @@ protected:
    /** Returns TRUE if some SIP method is allowed (may be sent) */
    UtlBoolean isMethodAllowed(const UtlString& sMethod);
 
+   /** Returns TRUE if an INVITE transaction is active */
+   UtlBoolean isInviteTransactionActive() const;
+
+   /** Starts INVITE transaction. We can allow only 1 INVITE transaction at time, so we need to track it manually. */
+   void startInviteTransaction();
+
+   /** Stops INVITE transaction. We can allow only 1 INVITE transaction at time, so we need to track it manually. */
+   void stopInviteTransaction();
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
+   CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private assignment operator */
+   BaseSipConnectionState& operator=(const BaseSipConnectionState& rhs);
 };
 
 #endif // BaseSipConnectionState_h__

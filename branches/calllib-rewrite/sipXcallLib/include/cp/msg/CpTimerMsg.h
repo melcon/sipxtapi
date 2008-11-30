@@ -27,7 +27,7 @@
 // FORWARD DECLARATIONS
 
 /**
- * CpTimerMsg represents message which gets sent when a timer fires in sipxtacklib.
+ * CpTimerMsg represents message which gets sent when a timer fires in sipxcalllib.
  * Never use directly, but subclass to supply msgSubType automatically
  * and transport any user data in subclass.
  */

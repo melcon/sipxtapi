@@ -698,10 +698,10 @@ void XCpAbstractCall::releaseMediaInterface()
    }
 }
 
-CpMediaInterface* XCpAbstractCall::getMediaInterface()
+CpMediaInterface* XCpAbstractCall::getMediaInterface(UtlBoolean bCreateIfNull)
 {
    // if called from OsServerTask only, then thread safe
-   if (!m_pMediaInterface)
+   if (!m_pMediaInterface && bCreateIfNull)
    {
       m_pMediaInterface = m_rMediaInterfaceFactory.createMediaInterface(getMessageQueue(),
          &m_rDefaultSdpCodecList,

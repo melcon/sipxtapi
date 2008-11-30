@@ -35,11 +35,17 @@ class EstablishedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    EstablishedSipConnectionState(SipConnectionStateContext& rStateContext,
                                  SipUserAgent& rSipUserAgent,
                                  CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                 XSipConnectionEventSink& rSipConnectionEventSink);
+                                 XSipConnectionEventSink& rSipConnectionEventSink,
+                                 const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   EstablishedSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~EstablishedSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */

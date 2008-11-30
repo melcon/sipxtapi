@@ -35,11 +35,17 @@ class RemoteOfferingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    RemoteOfferingSipConnectionState(SipConnectionStateContext& rStateContext,
                                     SipUserAgent& rSipUserAgent,
                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                    XSipConnectionEventSink& rSipConnectionEventSink);
+                                    XSipConnectionEventSink& rSipConnectionEventSink,
+                                    const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   RemoteOfferingSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~RemoteOfferingSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */

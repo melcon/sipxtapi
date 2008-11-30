@@ -53,7 +53,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   virtual Type getType() const
+   virtual StateTransitionMemory::Type getType() const
    {
       return TYPE_UNKNOWN;
    }

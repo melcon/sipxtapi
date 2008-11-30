@@ -26,6 +26,7 @@
 #include <cp/XSipConnectionEventSink.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/SipConnectionStateObserver.h>
+#include <cp/CpNatTraversalConfig.h>
 
 // DEFINES
 // MACROS
@@ -66,6 +67,7 @@ public:
                   const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
                   CpMediaInterfaceProvider& pMediaInterfaceProvider,
+                  const CpNatTraversalConfig& natTraversalConfig,
                   CpCallStateEventListener* pCallEventListener = NULL,
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                   SipSecurityEventListener* pSecurityEventListener = NULL,
@@ -327,6 +329,7 @@ private:
    SipInfoStatusEventListener* m_pInfoStatusEventListener;
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
+   const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall
 };

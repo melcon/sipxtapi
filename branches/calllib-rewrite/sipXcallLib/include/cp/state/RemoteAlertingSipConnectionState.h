@@ -35,11 +35,17 @@ class RemoteAlertingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    RemoteAlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                                     SipUserAgent& rSipUserAgent,
                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                    XSipConnectionEventSink& rSipConnectionEventSink);
+                                    XSipConnectionEventSink& rSipConnectionEventSink,
+                                    const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   RemoteAlertingSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~RemoteAlertingSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */

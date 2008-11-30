@@ -35,11 +35,17 @@ class IdleSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    IdleSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
                           CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                          XSipConnectionEventSink& rSipConnectionEventSink);
+                          XSipConnectionEventSink& rSipConnectionEventSink,
+                          const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   IdleSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~IdleSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */
