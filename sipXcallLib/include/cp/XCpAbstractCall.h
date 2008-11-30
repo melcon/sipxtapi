@@ -69,6 +69,8 @@ class CpTimerMsg;
 class OsIntPtrMsg;
 class AcTimerMsg;
 class ScTimerMsg;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -383,9 +385,6 @@ protected:
    /** Handle call timer notification. When overriding, first call parent */
    virtual UtlBoolean handleCallTimer(const AcTimerMsg& timerMsg);
 
-   /** Handles sip connection timer notification. Lets sip connection to handle the timer. */
-   UtlBoolean handleSipConnectionTimer(const ScTimerMsg& timerMsg);
-
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
@@ -503,6 +502,15 @@ private:
 
    /** Release the sync object */
    virtual OsStatus release();
+
+   /** Handles sip connection timer notification. Lets sip connection to handle the timer. */
+   UtlBoolean handleSipConnectionTimer(const ScTimerMsg& timerMsg);
+
+   /** Handler for CpMessageTypes::SC_COMMAND messages */
+   UtlBoolean handleSipConnectionCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handler for CpMessageTypes::ScNotificationMsg messages */
+   UtlBoolean handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg);
 
    XCpAbstractCall(const XCpAbstractCall& rhs);
 

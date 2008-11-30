@@ -37,6 +37,8 @@ class SipConnectionStateTransition;
 class StateTransitionMemory;
 class SipMessage;
 class ScTimerMsg;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -91,7 +93,13 @@ public:
                                                  CP_CONTACT_ID contactId);
 
    /** Handles timer message. When overridden, call parent first. */
-   virtual UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
+   virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
+
+   /** Handles CpMessageTypes::SC_COMMAND message. When overridden, call parent first. */
+   virtual SipConnectionStateTransition* handleCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handles CpMessageTypes::ScNotificationMsg message. When overridden, call parent first. */
+   virtual SipConnectionStateTransition* handleNotificationMessage(const ScNotificationMsg& rMsg);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -27,6 +27,8 @@
 #include <cp/XCpCallIdUtil.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
+#include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/ScNotificationMsg.h>
 #include <net/SipDialog.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipLineProvider.h>
@@ -118,6 +120,10 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
    {
    case OsMsg::PHONE_APP:
       return handlePhoneAppMessage(rRawMsg);
+   case CpMessageTypes::SC_COMMAND:
+      return handleSipConnectionCommandMessage((const ScCommandMsg&)rRawMsg);
+   case CpMessageTypes::SC_NOFITICATION:
+      return handleSipConnectionNotificationMessage((const ScNotificationMsg&)rRawMsg);
    case OsMsg::OS_EVENT: // timer event
    default:
       {
@@ -1073,6 +1079,42 @@ UtlBoolean XCpCallManager::handlePhoneAppMessage(const OsMsg& rRawMsg)
    }
 
    return bResult;
+}
+
+UtlBoolean XCpCallManager::handleSipConnectionCommandMessage(const ScCommandMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sipDialog, ptrLock);
+   if (resFind)
+   {
+      // post message to call
+      return ptrLock->postMessage(rMsg) == OS_SUCCESS;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean XCpCallManager::handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sipDialog, ptrLock);
+   if (resFind)
+   {
+      // post message to call
+      return ptrLock->postMessage(rMsg) == OS_SUCCESS;
+   }
+   else
+   {
+      return FALSE;
+   }
 }
 
 UtlBoolean XCpCallManager::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)

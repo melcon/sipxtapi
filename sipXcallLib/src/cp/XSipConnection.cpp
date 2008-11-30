@@ -169,6 +169,16 @@ UtlBoolean XSipConnection::handleTimerMessage(const ScTimerMsg& timerMsg)
    return m_stateMachine.handleTimerMessage(timerMsg);
 }
 
+UtlBoolean XSipConnection::handleCommandMessage(const ScCommandMsg& rMsg)
+{
+   return m_stateMachine.handleCommandMessage(rMsg);
+}
+
+UtlBoolean XSipConnection::handleNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   return m_stateMachine.handleNotificationMessage(rMsg);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 unsigned XSipConnection::hash() const

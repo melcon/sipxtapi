@@ -45,6 +45,8 @@ class SipInfoStatusEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
 class ScTimerMsg;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * XSipConnection is responsible for SIP communication.
@@ -198,6 +200,12 @@ public:
 
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
+
+   /** Handles CpMessageTypes::SC_COMMAND message */
+   UtlBoolean handleCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handles CpMessageTypes::ScNotificationMsg message */
+   UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -47,7 +47,8 @@
 #include <cp/msg/CpTimerMsg.h>
 #include <cp/msg/AcTimerMsg.h>
 #include <cp/msg/ScTimerMsg.h>
-
+#include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/ScNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -117,6 +118,10 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
       return handleCommandMessage((const AcCommandMsg&)rRawMsg);
    case CpMessageTypes::AC_NOTIFICATION:
       return handleNotificationMessage((const AcNotificationMsg&)rRawMsg);
+   case CpMessageTypes::SC_COMMAND:
+      return handleSipConnectionCommandMessage((const ScCommandMsg&)rRawMsg);
+   case CpMessageTypes::SC_NOFITICATION:
+      return handleSipConnectionNotificationMessage((const ScNotificationMsg&)rRawMsg);
    case OsMsg::PHONE_APP:
       return handlePhoneAppMessage(rRawMsg);
    case CpTimerMsg::OS_TIMER_MSG:
@@ -430,23 +435,6 @@ UtlBoolean XCpAbstractCall::handleCallTimer(const AcTimerMsg& timerMsg)
    }
 
    return FALSE;
-}
-
-UtlBoolean XCpAbstractCall::handleSipConnectionTimer(const ScTimerMsg& timerMsg)
-{
-   UtlBoolean msgHandled = FALSE;
-
-   SipDialog sipDialog;
-   timerMsg.getSipDialog(sipDialog);
-
-   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
-   if (resFind)
-   {
-      msgHandled = ptrLock->handleTimerMessage(timerMsg);
-   }
-
-   return resFind && msgHandled;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -769,6 +757,57 @@ OsStatus XCpAbstractCall::tryAcquire()
 OsStatus XCpAbstractCall::release()
 {
    return m_instanceRWMutex.releaseRead();
+}
+
+UtlBoolean XCpAbstractCall::handleSipConnectionTimer(const ScTimerMsg& timerMsg)
+{
+   UtlBoolean msgHandled = FALSE;
+
+   SipDialog sipDialog;
+   timerMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
+   if (resFind)
+   {
+      msgHandled = ptrLock->handleTimerMessage(timerMsg);
+   }
+
+   return resFind && msgHandled;
+}
+
+UtlBoolean XCpAbstractCall::handleSipConnectionCommandMessage(const ScCommandMsg& rMsg)
+{
+   UtlBoolean msgHandled = FALSE;
+
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
+   if (resFind)
+   {
+      msgHandled = ptrLock->handleCommandMessage(rMsg);
+   }
+
+   return resFind && msgHandled;
+}
+
+UtlBoolean XCpAbstractCall::handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   UtlBoolean msgHandled = FALSE;
+
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
+   if (resFind)
+   {
+      msgHandled = ptrLock->handleNotificationMessage(rMsg);
+   }
+
+   return resFind && msgHandled;
 }
 
 /* ============================ FUNCTIONS ================================= */
