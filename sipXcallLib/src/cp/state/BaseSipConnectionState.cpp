@@ -36,11 +36,23 @@
 BaseSipConnectionState::BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                                                SipUserAgent& rSipUserAgent,
                                                CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                               XSipConnectionEventSink& rSipConnectionEventSink)
+                                               XSipConnectionEventSink& rSipConnectionEventSink,
+                                               const CpNatTraversalConfig& natTraversalConfig)
 : m_rStateContext(rStateContext)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
+, m_natTraversalConfig(natTraversalConfig)
+{
+
+}
+
+BaseSipConnectionState::BaseSipConnectionState(const BaseSipConnectionState& rhs)
+: m_rStateContext(rhs.m_rStateContext)
+, m_rSipUserAgent(rhs.m_rSipUserAgent)
+, m_rMediaInterfaceProvider(rhs.m_rMediaInterfaceProvider)
+, m_rSipConnectionEventSink(rhs.m_rSipConnectionEventSink)
+, m_natTraversalConfig(rhs.m_natTraversalConfig)
 {
 
 }
@@ -124,6 +136,21 @@ UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
    {
       return FALSE;
    }
+}
+
+UtlBoolean BaseSipConnectionState::isInviteTransactionActive() const
+{
+   return m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_ACTIVE;
+}
+
+void BaseSipConnectionState::startInviteTransaction()
+{
+   m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_ACTIVE;
+}
+
+void BaseSipConnectionState::stopInviteTransaction()
+{
+   m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_INACTIVE;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

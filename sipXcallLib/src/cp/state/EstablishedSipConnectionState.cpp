@@ -33,8 +33,16 @@
 EstablishedSipConnectionState::EstablishedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                              SipUserAgent& rSipUserAgent,
                                                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                                             XSipConnectionEventSink& rSipConnectionEventSink)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rSipConnectionEventSink)
+                                                             XSipConnectionEventSink& rSipConnectionEventSink,
+                                                             const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rSipConnectionEventSink,
+                         natTraversalConfig)
+{
+
+}
+
+EstablishedSipConnectionState::EstablishedSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -79,21 +87,17 @@ SipConnectionStateTransition* EstablishedSipConnectionState::getTransition(ISipC
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_ESTABLISHED:
-         pDestination = new EstablishedSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
+         pDestination = new EstablishedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
+         pDestination = new FailedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rMediaInterfaceProvider, m_rSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

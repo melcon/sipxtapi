@@ -485,7 +485,7 @@ private:
     * 
     * Must be called from the OsServerTask only.
     */
-   virtual CpMediaInterface* getMediaInterface();
+   virtual CpMediaInterface* getMediaInterface(UtlBoolean bCreateIfNull = TRUE);
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

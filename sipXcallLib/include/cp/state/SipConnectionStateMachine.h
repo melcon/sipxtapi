@@ -19,6 +19,7 @@
 #include <cp/CpDefs.h>
 #include <cp/state/ISipConnectionState.h>
 #include <cp/state/SipConnectionStateContext.h>
+#include <cp/CpNatTraversalConfig.h>
 
 // DEFINES
 // MACROS
@@ -52,7 +53,8 @@ public:
    
    SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                             XSipConnectionEventSink& rSipConnectionEventSink);
+                             XSipConnectionEventSink& rSipConnectionEventSink,
+                             const CpNatTraversalConfig& natTraversalConfig);
 
    virtual ~SipConnectionStateMachine();
 
@@ -83,7 +85,7 @@ public:
     */
    ISipConnectionState::StateEnum getCurrentState();
 
-   /** Gets public Sip connection context. */
+   /** Gets reference to public Sip connection context. Must be locked when modified. */
    XSipConnectionContext& getSipConnectionContext() const;
 
    /* ============================ INQUIRY =================================== */
@@ -119,6 +121,7 @@ private:
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
+   CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 };
 
 #endif // SipConnectionStateMachine_h__

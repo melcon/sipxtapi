@@ -490,8 +490,8 @@ void XCpCall::createSipConnection(const SipDialog& sipDialog)
       OsLock lock(m_memberMutex);
       if (!m_pSipConnection)
       {
-         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, *this, m_pCallEventListener,
-            m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, *this, m_natTraversalConfig,
+            m_pCallEventListener, m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
          bAdded = TRUE;
       }
    }

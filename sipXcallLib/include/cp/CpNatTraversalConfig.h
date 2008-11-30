@@ -45,7 +45,7 @@ public:
    int m_iTurnKeepAlivePeriodSecs; ///< turn refresh period
 
    // thread safe atomic
-   UtlBoolean m_bEnableICE; 
+   UtlBoolean m_bEnableICE;
 
    /* ============================ CREATORS ================================== */
 
@@ -60,42 +60,6 @@ public:
 
    }
    
-   /** Copy constructor */
-   CpNatTraversalConfig(const CpNatTraversalConfig& rhs)
-      : m_sStunServer(rhs.m_sStunServer)
-      , m_iStunPort(rhs.m_iStunPort)
-      , m_iStunKeepAlivePeriodSecs(rhs.m_iStunKeepAlivePeriodSecs)
-      , m_sTurnServer(rhs.m_sTurnServer)
-      , m_iTurnPort(rhs.m_iTurnPort)
-      , m_sTurnUsername(rhs.m_sTurnUsername)
-      , m_sTurnPassword(rhs.m_sTurnPassword)
-      , m_iTurnKeepAlivePeriodSecs(rhs.m_iTurnKeepAlivePeriodSecs)
-      , m_bEnableICE(rhs.m_bEnableICE)
-   {
-
-   }
-
-   /** Assignment operator */
-   CpNatTraversalConfig& operator=(const CpNatTraversalConfig& rhs)
-   {
-      if (&rhs == this)
-      {
-         return *this; // handle self assignment
-      }
-
-      m_sStunServer = rhs.m_sStunServer;
-      m_iStunPort = rhs.m_iStunPort;
-      m_iStunKeepAlivePeriodSecs = rhs.m_iStunKeepAlivePeriodSecs;
-      m_sTurnServer = rhs.m_sTurnServer;
-      m_iTurnPort = rhs.m_iTurnPort;
-      m_sTurnUsername = rhs.m_sTurnUsername;
-      m_sTurnPassword = rhs.m_sTurnPassword;
-      m_iTurnKeepAlivePeriodSecs = rhs.m_iTurnKeepAlivePeriodSecs;
-      m_bEnableICE = rhs.m_bEnableICE;
-
-      return *this;
-   }
-
    /* ============================ MANIPULATORS ============================== */
 
    /* ============================ ACCESSORS ================================= */

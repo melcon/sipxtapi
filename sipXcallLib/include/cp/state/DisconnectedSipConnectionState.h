@@ -35,11 +35,17 @@ class DisconnectedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    DisconnectedSipConnectionState(SipConnectionStateContext& rStateContext,
                                   SipUserAgent& rSipUserAgent,
                                   CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                  XSipConnectionEventSink& rSipConnectionEventSink);
+                                  XSipConnectionEventSink& rSipConnectionEventSink,
+                                  const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   DisconnectedSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~DisconnectedSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */

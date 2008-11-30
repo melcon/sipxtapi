@@ -41,12 +41,13 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                const SipDialog& sipDialog,
                                SipUserAgent& rSipUserAgent,
                                CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                               const CpNatTraversalConfig& natTraversalConfig,
                                CpCallStateEventListener* pCallEventListener,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
-, m_stateMachine(rSipUserAgent, rMediaInterfaceProvider, *this)
+, m_stateMachine(rSipUserAgent, rMediaInterfaceProvider, *this, natTraversalConfig)
 , m_rSipConnectionContext(m_stateMachine.getSipConnectionContext())
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
@@ -54,6 +55,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
+, m_natTraversalConfig(natTraversalConfig)
 {
    m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
    m_rSipConnectionContext.m_sipDialog = sipDialog;

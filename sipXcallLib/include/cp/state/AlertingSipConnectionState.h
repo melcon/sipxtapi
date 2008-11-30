@@ -35,11 +35,17 @@ class AlertingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    AlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                               SipUserAgent& rSipUserAgent,
                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                              XSipConnectionEventSink& rSipConnectionEventSink);
+                              XSipConnectionEventSink& rSipConnectionEventSink,
+                              const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   AlertingSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~AlertingSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */

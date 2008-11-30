@@ -35,11 +35,17 @@ class NewCallSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    NewCallSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                             XSipConnectionEventSink& rSipConnectionEventSink);
+                             XSipConnectionEventSink& rSipConnectionEventSink,
+                             const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   NewCallSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~NewCallSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */

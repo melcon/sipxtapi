@@ -35,11 +35,17 @@ class UnknownSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    UnknownSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                             XSipConnectionEventSink& rSipConnectionEventSink);
+                             XSipConnectionEventSink& rSipConnectionEventSink,
+                             const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   UnknownSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~UnknownSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */

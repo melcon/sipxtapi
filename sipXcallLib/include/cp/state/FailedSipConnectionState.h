@@ -35,11 +35,17 @@ class FailedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
+   /** Constructor. */
    FailedSipConnectionState(SipConnectionStateContext& rStateContext,
                             SipUserAgent& rSipUserAgent,
                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                            XSipConnectionEventSink& rSipConnectionEventSink);
+                            XSipConnectionEventSink& rSipConnectionEventSink,
+                            const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   FailedSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~FailedSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */
