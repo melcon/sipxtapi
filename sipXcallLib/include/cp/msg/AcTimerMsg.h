@@ -10,12 +10,12 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef CpTimerMsg_h__
-#define CpTimerMsg_h__
+#ifndef AcTimerMsg_h__
+#define AcTimerMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <os/OsTimerMsg.h>
+#include <cp/msg/CpTimerMsg.h>
 
 // DEFINES
 // MACROS
@@ -27,51 +27,52 @@
 // FORWARD DECLARATIONS
 
 /**
- * CpTimerMsg represents message which gets sent when a timer fires in sipxcalllib.
- * Never use directly, but subclass to supply msgSubType automatically
- * and transport any user data in subclass.
+* AcTimerMsg represents message which gets sent when a timer fires in sipxcalllib.
+* The timer message is meant to be processed by abstract call.
+*
+* Subclass for custom timer message.
  */
-class CpTimerMsg : public OsTimerMsg
+class AcTimerMsg : public CpTimerMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
    typedef enum
    {
-      CP_TIMER_FIRST = 0, ///< Add your own timer ids here
-      CP_ABSTRACT_CALL_TIMER, ///< Timer which is meant to be processed by abstract call
-      CP_SIP_CONNECTION_TIMER, ///< Timer which is meant to be processed by sip connection state machine
-      CP_TIMER_LAST = 255 ///< Keep lower than 255
-   } SubTypeEnum;
+      PAYLOAD_TYPE_FIRST = 0, ///< Add your own payload ids here
+   } PayloadTypeEnum;
 
    /**
     * Constructor.
     */
-   CpTimerMsg(SubTypeEnum msgSubType);
+   AcTimerMsg(PayloadTypeEnum payloadType);
 
    /** Copy constructor */
-   CpTimerMsg(const CpTimerMsg& rhs);
+   AcTimerMsg(const AcTimerMsg& rhs);
 
    /** Create a copy of this msg object (which may be of a derived type) */
    virtual OsMsg* createCopy(void) const;
 
    /** Destructor. */
-   virtual ~CpTimerMsg();
+   virtual ~AcTimerMsg();
 
    /* ============================ MANIPULATORS ============================== */
 
    /** Assignment operator */
-   CpTimerMsg& operator=(const CpTimerMsg& rhs);
+   AcTimerMsg& operator=(const AcTimerMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
+
+   AcTimerMsg::PayloadTypeEnum getPayloadType() const { return m_payloadType; }
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+   PayloadTypeEnum m_payloadType; ///< type of payload
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 };
 
-#endif // CpTimerMsg_h__
+#endif // AcTimerMsg_h__

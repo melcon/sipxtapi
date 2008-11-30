@@ -45,6 +45,8 @@
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
+#include <cp/msg/AcTimerMsg.h>
+#include <cp/msg/ScTimerMsg.h>
 
 
 // DEFINES
@@ -371,8 +373,10 @@ UtlBoolean XCpAbstractCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
 {
    switch ((CpTimerMsg::SubTypeEnum)rRawMsg.getMsgSubType())
    {
-   case CpTimerMsg::CP_TIMER_FIRST:
-      // handle your message here
+   case CpTimerMsg::CP_ABSTRACT_CALL_TIMER:
+      return handleCallTimer((const AcTimerMsg&)rRawMsg);
+   case CpTimerMsg::CP_SIP_CONNECTION_TIMER:
+      return handleSipConnectionTimer((const ScTimerMsg&)rRawMsg);
    default:
       break;
    }
@@ -414,6 +418,35 @@ void XCpAbstractCall::onConnectionRemoved(const UtlString& sSipCallId)
    {
       m_pCallConnectionListener->onConnectionRemoved(sSipCallId, this);
    }
+}
+
+UtlBoolean XCpAbstractCall::handleCallTimer(const AcTimerMsg& timerMsg)
+{
+   switch (timerMsg.getPayloadType())
+   {
+   case AcTimerMsg::PAYLOAD_TYPE_FIRST:
+   default:
+      ;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpAbstractCall::handleSipConnectionTimer(const ScTimerMsg& timerMsg)
+{
+   UtlBoolean msgHandled = FALSE;
+
+   SipDialog sipDialog;
+   timerMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
+   if (resFind)
+   {
+      msgHandled = ptrLock->handleTimerMessage(timerMsg);
+   }
+
+   return resFind && msgHandled;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

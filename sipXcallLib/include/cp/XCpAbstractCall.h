@@ -67,6 +67,8 @@ class AcUnmuteInputConnectionMsg;
 class AcLimitCodecPreferencesMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
+class AcTimerMsg;
+class ScTimerMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -357,7 +359,7 @@ protected:
    /** Handler for inbound SipMessageEvent messages. */
    virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent) = 0;
 
-   /** Finds connection handling given Sip dialog. Uses strict dialog matching. */
+   /** Finds connection handling given Sip dialog. Uses loose dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
 
    /** Tries to gain focus on this call asynchronously through call manager. */
@@ -377,6 +379,12 @@ protected:
     * May not be called while holding any locks.
     */
    void onConnectionRemoved(const UtlString& sSipCallId);
+
+   /** Handle call timer notification. When overriding, first call parent */
+   virtual UtlBoolean handleCallTimer(const AcTimerMsg& timerMsg);
+
+   /** Handles sip connection timer notification. Lets sip connection to handle the timer. */
+   UtlBoolean handleSipConnectionTimer(const ScTimerMsg& timerMsg);
 
    static const int CALL_MAX_REQUEST_MSGS;
 

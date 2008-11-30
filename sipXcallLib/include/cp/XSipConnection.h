@@ -44,6 +44,7 @@ class CpCallStateEventListener;
 class SipInfoStatusEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class ScTimerMsg;
 
 /**
  * XSipConnection is responsible for SIP communication.
@@ -194,6 +195,9 @@ public:
    OsStatus sendInfo(const UtlString& sContentType,
                      const char* pContent,
                      const size_t nContentLength);
+
+   /** Handles timer message */
+   UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 
    /* ============================ ACCESSORS ================================= */
 
