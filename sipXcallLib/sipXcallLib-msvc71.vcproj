@@ -95,6 +95,7 @@
                 <File RelativePath=".\src\cp\msg\CmNotificationMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CmYieldFocusMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CpTimerMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\Sc100RelTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScTimerMsg.cpp"/>
@@ -192,6 +193,7 @@
                 <File RelativePath=".\include\cp\msg\CmNotificationMsg.h"/>
                 <File RelativePath=".\include\cp\msg\CmYieldFocusMsg.h"/>
                 <File RelativePath=".\include\cp\msg\CpTimerMsg.h"/>
+                <File RelativePath=".\include\cp\msg\Sc100RelTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScTimerMsg.h"/>

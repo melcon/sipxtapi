@@ -73,8 +73,10 @@ public:
    /**
     * Notifies tracker than 1xx reliable response was sent by us. This makes
     * it possible to check when we receive PRACK, if this PRACK is valid.
+    *
+    * Returned s100RelId can be used to check if PRACK was already received.
     */
-   void on100RelSent(const SipMessage& sipMessage);
+   void on100RelSent(const SipMessage& sipMessage, UtlString& s100RelId);
 
    /** Returns TRUE if given PRACK is valid - responds to our 100rel */
    UtlBoolean onPrackReceived(const SipMessage& sipMessage);
@@ -93,6 +95,17 @@ public:
     */
    UtlBoolean canSend1xxRel() const;
 
+   /**
+    * Returns TRUE if 100RelId is valid - is being tracked.
+    */
+   UtlBoolean is100RelIdValid(const UtlString& s100RelId) const;
+
+   /**
+    * Returns TRUE if PRACK was received for given 100rel Id. That means retransmission
+    * of 100rel can stop.
+    */
+   UtlBoolean wasPrackReceived(const UtlString& s100RelId) const;
+
    /** Constructs Id for 100rel tracking */
    static UtlString get100RelId(int cSeqNumber, const UtlString& cSeqMethod, int rSeqNumber);
 
@@ -104,6 +117,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Generates random starting RSeq */
+   static int getRandomStartRSeq();
 
    UtlBoolean m_bCanSend100rel; ///< TRUE if we may send 100rel response
    UtlHashBag m_100relBag; ///< bag for tracking 100rel responses and PRACKs

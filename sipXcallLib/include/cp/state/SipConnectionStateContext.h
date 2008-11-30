@@ -67,8 +67,10 @@ public:
    UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    CpSipTransactionManager m_sipTransactionMgr; ///< sip transaction tracking & cseq generator
-   InviteTransactionState m_inviteTransactionState; ///< keeps invite transaction state
    Cp100RelTracker m_100RelTracker; ///< tracker for 100rel responses and PRACKs
+
+   // do not set directly
+   InviteTransactionState m_inviteTransactionState; ///< keeps invite transaction state
 
    /* ============================ CREATORS ================================== */
 

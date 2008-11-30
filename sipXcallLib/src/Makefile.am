@@ -88,6 +88,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/CmNotificationMsg.cpp \
     cp/msg/CmYieldFocusMsg.cpp \
     cp/msg/CpTimerMsg.cpp \
+    cp/msg/Sc100RelTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
     cp/state/AlertingSipConnectionState.cpp \

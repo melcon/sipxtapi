@@ -478,6 +478,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\Sc100RelTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScCommandMsg.cpp"
 					>
 				</File>
@@ -852,6 +856,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\CpTimerMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\Sc100RelTimerMsg.h"
 					>
 				</File>
 				<File
