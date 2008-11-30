@@ -1208,6 +1208,9 @@ public:
 
     UtlBoolean isRequest() const;
 
+    /** TRUE if this message is PRACK request */
+    UtlBoolean isPrackRequest() const;
+
     //! @ Transaction and session related inquiry methods
     //@{
     UtlBoolean isSameMessage(const SipMessage* message,

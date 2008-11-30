@@ -251,6 +251,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\Cp100RelTracker.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CpCall.cpp"
 				>
 			</File>
@@ -569,6 +573,10 @@
 			</File>
 			<File
 				RelativePath="include\cp\Connection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\Cp100RelTracker.h"
 				>
 			</File>
 			<File
