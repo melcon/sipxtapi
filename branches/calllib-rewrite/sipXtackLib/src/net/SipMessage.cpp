@@ -4691,6 +4691,22 @@ UtlBoolean SipMessage::isRequest() const
    return !isResponse();
 }
 
+UtlBoolean SipMessage::isPrackRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_PRACK_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
 UtlBoolean SipMessage::isServerTransaction(UtlBoolean isOutgoing) const
 {
     UtlBoolean returnCode;

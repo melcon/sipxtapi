@@ -17,6 +17,7 @@
 // APPLICATION INCLUDES
 #include <net/SipTagGenerator.h>
 #include <cp/XSipConnectionContext.h>
+#include <cp/Cp100RelTracker.h>
 #include <cp/CpSdpNegotiation.h>
 #include <cp/CpSipTransactionManager.h>
 
@@ -67,6 +68,7 @@ public:
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    CpSipTransactionManager m_sipTransactionMgr; ///< sip transaction tracking & cseq generator
    InviteTransactionState m_inviteTransactionState; ///< keeps invite transaction state
+   Cp100RelTracker m_100RelTracker; ///< tracker for 100rel responses and PRACKs
 
    /* ============================ CREATORS ================================== */
 

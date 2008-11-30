@@ -1,0 +1,189 @@
+//
+// Copyright (C) 2004-2006 SIPfoundry Inc.
+// Licensed by SIPfoundry under the LGPL license.
+//
+// Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
+// Licensed to SIPfoundry under a Contributor Agreement.
+//
+// Copyright (C) 2007 Jaroslav Libak
+// Licensed under the LGPL license.
+// $$
+///////////////////////////////////////////////////////////////////////////////
+
+// SYSTEM INCLUDES
+// APPLICATION INCLUDES
+#include <net/SipMessage.h>
+#include <cp/Cp100RelTracker.h>
+
+// DEFINES
+// EXTERNAL FUNCTIONS
+// EXTERNAL VARIABLES
+// CONSTANTS
+// STATIC VARIABLE INITIALIZATIONS
+// MACROS
+// GLOBAL VARIABLES
+// GLOBAL FUNCTIONS
+
+/**
+ * Private context class for 100rel messages.
+ */
+class Cp100RelContext : public UtlString
+{
+public:
+   Cp100RelContext(int cSeqNumber, const UtlString& cSeqMethod, int rSeqNumber)
+      : UtlString(Cp100RelTracker::get100RelId(cSeqNumber, cSeqMethod, rSeqNumber))
+      , m_bPrackSent(FALSE)
+   {
+
+   }
+
+   Cp100RelContext(const SipMessage& sipMessage)
+      : UtlString(Cp100RelTracker::get100RelId(sipMessage))
+      , m_bPrackSent(FALSE)
+   {
+
+   }
+
+   UtlBoolean m_bPrackSent;
+};
+
+/* //////////////////////////// PUBLIC //////////////////////////////////// */
+
+/* ============================ CREATORS ================================== */
+
+Cp100RelTracker::Cp100RelTracker()
+: m_bCanSend100rel(TRUE)
+, m_rseqNumber(1)
+{
+
+}
+
+Cp100RelTracker::~Cp100RelTracker()
+{
+   m_100relBag.destroyAll();
+}
+
+/* ============================ MANIPULATORS ============================== */
+
+void Cp100RelTracker::reset()
+{
+   m_bCanSend100rel = TRUE;
+   m_rseqNumber = 1;
+   m_100relBag.destroyAll();
+}
+
+UtlBoolean Cp100RelTracker::on100RelReceived(const SipMessage& sipMessage)
+{
+   if (sipMessage.is100RelResponse())
+   {
+      // this response is reliable
+      UtlString s100RelId(get100RelId(sipMessage));
+
+      Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));
+      if (!pContext)
+      {
+         // if this 100rel was received 1st time, also create context for it
+         pContext = new Cp100RelContext(sipMessage);
+         m_100relBag.insert(pContext);
+      }
+
+      if (pContext && !pContext->m_bPrackSent)
+      {
+         pContext->m_bPrackSent = TRUE;
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+void Cp100RelTracker::on100RelSent(const SipMessage& sipMessage)
+{
+   if (sipMessage.is100RelResponse())
+   {
+      m_bCanSend100rel = FALSE;
+      // this response is reliable
+      UtlString s100RelId(get100RelId(sipMessage));
+
+      Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));
+      if (!pContext)
+      {
+         // add context to bag, so that we can identify valid PRACK later
+         pContext = new Cp100RelContext(sipMessage);
+         m_100relBag.insert(pContext);
+      }
+   }
+}
+
+UtlBoolean Cp100RelTracker::onPrackReceived(const SipMessage& sipMessage)
+{
+   if (sipMessage.isPrackRequest())
+   {
+      UtlString s100RelId(get100RelId(sipMessage));
+      Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));
+      if (pContext)
+      {
+         m_bCanSend100rel = TRUE;
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+int Cp100RelTracker::getNextRSeq()
+{
+   return m_rseqNumber++;
+}
+
+/* ============================ ACCESSORS ================================= */
+
+/* ============================ INQUIRY =================================== */
+
+UtlBoolean Cp100RelTracker::canSend1xxRel() const
+{
+   return m_bCanSend100rel;
+}
+
+UtlString Cp100RelTracker::get100RelId(int cSeqNumber, const UtlString& cSeqMethod, int rSeqNumber)
+{
+   UtlString result;
+   result.appendFormat("%d;%s;%d", cSeqNumber, cSeqMethod, rSeqNumber);
+   return result;
+}
+
+UtlString Cp100RelTracker::get100RelId(const SipMessage& sipMessage)
+{
+   UtlString s100RelId;
+
+   if (sipMessage.is100RelResponse())
+   {
+      // this response is reliable
+      int cSeqNumber;
+      UtlString cSeqMethod;
+      sipMessage.getCSeqField(cSeqNumber, cSeqMethod); // CSeq identifies transaction
+      int rSeqNumber;
+      sipMessage.getRSeqField(rSeqNumber); // RSeq identifies 100rel response. They all will have the same CSeq
+
+      s100RelId = get100RelId(cSeqNumber, cSeqMethod, rSeqNumber);
+   }
+   else if (sipMessage.isPrackRequest())
+   {
+      // prack request
+      int rSeqNumber;
+      int cSeqNumber;
+      UtlString cSeqMethod;
+      sipMessage.getRAckField(rSeqNumber, cSeqNumber, cSeqMethod);
+
+      s100RelId = get100RelId(cSeqNumber, cSeqMethod, rSeqNumber);
+   }
+
+   return s100RelId;
+}
+
+/* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+/* ============================ FUNCTIONS ================================= */
+
