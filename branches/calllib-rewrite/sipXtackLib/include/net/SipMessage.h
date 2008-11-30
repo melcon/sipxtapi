@@ -170,6 +170,12 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_BAD_REQUEST_CODE 400
 #define SIP_BAD_REQUEST_TEXT "Bad Request"
 
+#define SIP_UNAUTHORIZED_CODE 401
+#define SIP_UNAUTHORIZED_TEXT "Unauthorized"
+
+#define SIP_PAYMENT_REQUIRED_CODE 402
+#define SIP_PAYMENT_REQUIRED_TEXT "Payment Required"
+
 #define SIP_FORBIDDEN_CODE 403
 #define SIP_FORBIDDEN_TEXT "Forbidden"
 
@@ -181,6 +187,9 @@ class SipRegInfoBody;        // for RFC 3680
 
 #define SIP_REQUEST_TIMEOUT_CODE 408
 #define SIP_REQUEST_TIMEOUT_TEXT "Request timeout"
+
+#define SIP_GONE_CODE 410
+#define SIP_GONE_TEXT "Gone"
 
 #define SIP_CONDITIONAL_REQUEST_FAILED_CODE 412
 #define SIP_CONDITIONAL_REQUEST_FAILED_TEXT "Conditional Request Failed"
@@ -198,6 +207,9 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_TOO_BRIEF_TEXT "Registration Too Brief"
 #define SIP_SUB_TOO_BRIEF_TEXT "Subscription Too Brief"
 
+#define SIP_TEMPORARILY_UNAVAILABLE_CODE 480
+#define SIP_TEMPORARILY_UNAVAILABLE_TEXT "Temporarily Unavailable"
+
 #define SIP_BAD_TRANSACTION_CODE 481
 #define SIP_BAD_TRANSACTION_TEXT "Transaction Does Not Exist"
 
@@ -209,6 +221,9 @@ class SipRegInfoBody;        // for RFC 3680
 
 #define SIP_BAD_ADDRESS_CODE 484
 #define SIP_BAD_ADDRESS_TEXT "Address Incomplete"
+
+#define SIP_AMBIGUOUS_CODE 485
+#define SIP_AMBIGUOUS_TEXT "Ambiguous"
 
 #define SIP_BUSY_CODE 486
 #define SIP_BUSY_TEXT "Busy Here"
@@ -236,6 +251,9 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_UNIMPLEMENTED_METHOD_CODE 501
 #define SIP_UNIMPLEMENTED_METHOD_TEXT "Not Implemented"
 
+#define SIP_BAD_GATEWAY_CODE 502
+#define SIP_BAD_GATEWAY_TEXT "Bad Gateway"
+
 #define SIP_SERVICE_UNAVAILABLE_CODE 503
 #define SIP_SERVICE_UNAVAILABLE_TEXT "Service Unavailable"
 
@@ -247,8 +265,14 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_GLOBAL_BUSY_CODE 600
 #define SIP_GLOBAL_BUSY_TEXT "Busy Everywhere"
 
+#define SIP_DOESNT_EXIST_ANYWHERE_CODE 604
+#define SIP_DOESNT_EXIST_ANYWHERE_TEXT "Does Not Exist Anywhere"
+
 #define SIP_DECLINE_CODE 603
 #define SIP_DECLINE_TEXT "Declined"
+
+// there is no class 7 code, this is only end marker
+#define SIP_7XX_CLASS_CODE 700
 
 // Warning codes
 #define SIP_WARN_MEDIA_NAVAIL_CODE 304

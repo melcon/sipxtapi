@@ -79,7 +79,6 @@ nobase_include_HEADERS =  \
     cp/state/DialingSipConnectionState.h \
     cp/state/DisconnectedSipConnectionState.h \
     cp/state/EstablishedSipConnectionState.h \
-    cp/state/FailedSipConnectionState.h \
     cp/state/ISipConnectionState.h \
     cp/state/IdleSipConnectionState.h \
     cp/state/NewCallSipConnectionState.h \
@@ -92,6 +91,7 @@ nobase_include_HEADERS =  \
     cp/state/SipConnectionStateMachine.h \
     cp/state/SipConnectionStateObserver.h \
     cp/state/SipConnectionStateTransition.h \
+    cp/state/SipResponseTransitionMemory.h \
     cp/state/StateTransitionMemory.h \
     cp/state/UnknownSipConnectionState.h \
     ptapi/PtCall.h \

@@ -13,8 +13,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <cp/state/UnknownSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
-#include <cp/state/UnknownSipConnectionState.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -55,7 +53,9 @@ UnknownSipConnectionState::~UnknownSipConnectionState()
 
 void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
-
+   stopInviteTransaction();
+   terminateSipDialog();
+   deleteMediaConnection();
 }
 
 void UnknownSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)

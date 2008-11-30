@@ -117,17 +117,51 @@ protected:
    /** Sends specified sip message, updating the state of SipDialog. SipMessage will be updated. */
    UtlBoolean sendMessage(SipMessage& sipMessage);
 
+   /**
+    * Processes inbound SIP response message. This is the default handler than needs to
+    * be called first, if this method is overridden. If this method handles the response,
+    * and returns new transition, overriding method or caller must not continue processing,
+    * but return the same transition.
+    *
+    * Implementation of this method is based on RFC5057. This method is responsible for
+    * transition to disconnected state if some error response is received.
+    */
+   virtual SipConnectionStateTransition* processResponse(const SipMessage& sipMessage);
+
    /** Returns TRUE if some SIP method is allowed (may be sent) */
    UtlBoolean isMethodAllowed(const UtlString& sMethod);
 
    /** Returns TRUE if an INVITE transaction is active */
    UtlBoolean isInviteTransactionActive() const;
 
-   /** Starts INVITE transaction. We can allow only 1 INVITE transaction at time, so we need to track it manually. */
+   /** Starts initial INVITE transaction. We can allow only 1 INVITE transaction at time, so we need to track it manually. */
    void startInviteTransaction();
 
-   /** Stops INVITE transaction. We can allow only 1 INVITE transaction at time, so we need to track it manually. */
+   /**
+   * Starts re-INVITE transaction.
+   *
+   * @param bIsSessionRefresh TRUE for session timer initiated refresh. This must succeed,
+   * otherwise call must be dropped. Normal re-INVITE failure can be ignored.
+   */
+   void startReInviteTransaction(UtlBoolean bIsSessionRefresh = FALSE);
+
+   /** Stops INVITE transaction. */
    void stopInviteTransaction();
+
+   /** Deletes media connection if it exists, stopping remote and local audio */
+   void deleteMediaConnection();
+
+   /** Terminates sip dialog */
+   void terminateSipDialog();
+
+   /** Gets the transaction manager */
+   CpSipTransactionManager& getTransactionManager() const;
+
+   /** Gets ID of media connection */
+   int getMediaConnectionId() const;
+
+   /** Sets ID of media connection */
+   void setMediaConnectionId(int mediaConnectionId);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

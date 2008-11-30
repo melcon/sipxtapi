@@ -13,12 +13,16 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsWriteLock.h>
+#include <os/OsReadLock.h>
 #include <net/SipMessage.h>
 #include <net/SipUserAgent.h>
+#include <mi/CpMediaInterface.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/state/BaseSipConnectionState.h>
 #include <cp/state/SipConnectionStateTransition.h>
 #include <cp/state/StateTransitionMemory.h>
+#include <cp/state/SipResponseTransitionMemory.h>
+#include <cp/CpMediaInterfaceProvider.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -100,7 +104,7 @@ SipConnectionStateTransition* BaseSipConnectionState::getTransitionObject(BaseSi
       StateTransitionMemory* pTansitionMemoryCopy = NULL;
       if (pTansitionMemory)
       {
-         pTansitionMemoryCopy = new StateTransitionMemory(*pTansitionMemory);
+         pTansitionMemoryCopy = pTansitionMemory->clone();
       }
       // construct transition from this to destination state, containing copy of state transition memory object
       SipConnectionStateTransition* pTransition = new SipConnectionStateTransition(this, pDestination,
@@ -125,6 +129,79 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
    return m_rSipUserAgent.send(sipMessage);
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipMessage& sipMessage)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   // INVITE transaction termination is handled during disconnected state entry
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+       connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      int iSeqNumber = 0;
+      UtlString seqMethod;
+      sipMessage.getCSeqField(iSeqNumber, seqMethod);
+      int statusCode = sipMessage.getResponseStatusCode();
+      UtlString statusText;
+      sipMessage.getResponseStatusText(&statusText);
+
+      CpSipTransactionManager::TransactionState transactionState = getTransactionManager().getTransactionState(seqMethod, iSeqNumber);
+      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      {
+         switch (iSeqNumber)
+         {
+         // these destroy the whole dialog regardless of method
+         case SIP_NOT_FOUND_CODE: // 404
+         case SIP_GONE_CODE: // 410
+         case SIP_UNSUPPORTED_URI_SCHEME_CODE: // 416
+         case SIP_LOOP_DETECTED_CODE: // 482
+         case SIP_TOO_MANY_HOPS_CODE: // 483
+         case SIP_BAD_ADDRESS_CODE: // 484
+         case SIP_AMBIGUOUS_CODE: // 485
+         case SIP_BAD_GATEWAY_CODE: // 502
+         case SIP_DOESNT_EXIST_ANYWHERE_CODE: // 604
+            {
+               getTransactionManager().endTransaction(seqMethod, iSeqNumber);
+               SipResponseTransitionMemory memory(statusCode, statusText);
+               return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+            }
+         // these destroy dialog usage - if method was INVITE destroy the dialog
+         case SIP_BAD_METHOD_CODE: // 405
+         case SIP_TEMPORARILY_UNAVAILABLE_CODE: // 480
+         case SIP_BAD_TRANSACTION_CODE: // 481
+         case SIP_BAD_EVENT_CODE: // 489
+         case SIP_UNIMPLEMENTED_METHOD_CODE: // 501
+            if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+            {
+               getTransactionManager().endTransaction(seqMethod, iSeqNumber);
+               SipResponseTransitionMemory memory(statusCode, statusText);
+               return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+            }
+            break;
+         // these only affect transaction - if method was INVITE and media session doesn't exist, then destroy dialog
+         // if media session exists, then no need to destroy the dialog - only INVITE failed for some reason, we can keep
+         // the original media session
+         default:
+            // handle unknown 4XX, 5XX, 6XX
+            if (iSeqNumber >= SIP_4XX_CLASS_CODE && iSeqNumber < SIP_7XX_CLASS_CODE &&
+                seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
+                (m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_ACTIVE ||
+                m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::REINVITE_SESSION_REFRESH_ACTIVE))
+            {
+               // failure during initial INVITE, terminate dialog
+               getTransactionManager().endTransaction(seqMethod, iSeqNumber);
+               SipResponseTransitionMemory memory(statusCode, statusText);
+               return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+            }
+            // otherwise re-INVITE failed
+            ;
+         }
+      }
+      // if transaction was not found or is terminated then ignore response
+   }
+
+   return NULL; // no transition
+}
+
 UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
 {
    if (m_rStateContext.m_allowedRemote.index(sMethod) >=0 ||
@@ -145,12 +222,67 @@ UtlBoolean BaseSipConnectionState::isInviteTransactionActive() const
 
 void BaseSipConnectionState::startInviteTransaction()
 {
-   m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_ACTIVE;
+   m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::INVITE_ACTIVE;
+}
+
+void BaseSipConnectionState::startReInviteTransaction(UtlBoolean bIsSessionRefresh)
+{
+   if (bIsSessionRefresh)
+   {
+      m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::REINVITE_SESSION_REFRESH_ACTIVE;
+   }
+   else
+   {
+      m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::REINVITE_NORMAL_ACTIVE;
+   }
 }
 
 void BaseSipConnectionState::stopInviteTransaction()
 {
-   m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_INACTIVE;
+   m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::INVITE_INACTIVE;
+}
+
+void BaseSipConnectionState::deleteMediaConnection()
+{
+   CpMediaInterface* pInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+
+   if (pInterface)
+   {
+      int mediaConnectionId = getMediaConnectionId();
+
+      if (mediaConnectionId != CpMediaInterface::INVALID_CONNECTION_ID)
+      {
+         setMediaConnectionId(CpMediaInterface::INVALID_CONNECTION_ID);
+
+         // media interface exists, shut down media connection
+         pInterface->stopRtpReceive(mediaConnectionId);
+         pInterface->stopRtpSend(mediaConnectionId);
+         pInterface->deleteConnection(mediaConnectionId);
+      }
+   }
+}
+
+void BaseSipConnectionState::terminateSipDialog()
+{
+   OsWriteLock lock(m_rStateContext);
+   m_rStateContext.m_sipDialog.terminateDialog();
+}
+
+CpSipTransactionManager& BaseSipConnectionState::getTransactionManager() const
+{
+   return m_rStateContext.m_sipTransactionMgr;
+}
+
+int BaseSipConnectionState::getMediaConnectionId() const
+{
+   // no need to lock atomic
+   return m_rStateContext.m_mediaConnectionId;
+}
+
+void BaseSipConnectionState::setMediaConnectionId(int mediaConnectionId)
+{
+   // no need to lock atomic
+   m_rStateContext.m_mediaConnectionId = mediaConnectionId;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
