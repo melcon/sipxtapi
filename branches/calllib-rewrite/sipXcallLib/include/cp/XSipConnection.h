@@ -37,6 +37,7 @@
 // MACROS
 // FORWARD DECLARATIONS
 class CpMediaInterfaceProvider;
+class CpMessageQueueProvider;
 class SipUserAgent;
 class CpMediaEvent;
 class CpCallStateEvent;
@@ -69,7 +70,8 @@ public:
    XSipConnection(const UtlString& sAbstractCallId,
                   const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
-                  CpMediaInterfaceProvider& pMediaInterfaceProvider,
+                  CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                  CpMessageQueueProvider& rMessageQueueProvider,
                   const CpNatTraversalConfig& natTraversalConfig,
                   CpCallStateEventListener* pCallEventListener = NULL,
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -336,6 +338,7 @@ private:
    // thread safe
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
+   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener;

@@ -43,11 +43,13 @@
 BaseSipConnectionState::BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                                                SipUserAgent& rSipUserAgent,
                                                CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                               CpMessageQueueProvider& rMessageQueueProvider,
                                                XSipConnectionEventSink& rSipConnectionEventSink,
                                                const CpNatTraversalConfig& natTraversalConfig)
 : m_rStateContext(rStateContext)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
+, m_rMessageQueueProvider(rMessageQueueProvider)
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
 , m_natTraversalConfig(natTraversalConfig)
 {
@@ -58,6 +60,7 @@ BaseSipConnectionState::BaseSipConnectionState(const BaseSipConnectionState& rhs
 : m_rStateContext(rhs.m_rStateContext)
 , m_rSipUserAgent(rhs.m_rSipUserAgent)
 , m_rMediaInterfaceProvider(rhs.m_rMediaInterfaceProvider)
+, m_rMessageQueueProvider(rhs.m_rMessageQueueProvider)
 , m_rSipConnectionEventSink(rhs.m_rSipConnectionEventSink)
 , m_natTraversalConfig(rhs.m_natTraversalConfig)
 {

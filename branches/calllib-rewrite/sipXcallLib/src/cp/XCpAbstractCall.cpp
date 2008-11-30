@@ -744,6 +744,16 @@ CpMediaInterface* XCpAbstractCall::getMediaInterface(UtlBoolean bCreateIfNull)
    return m_pMediaInterface;
 }
 
+OsMsgQ& XCpAbstractCall::getLocalQueue()
+{
+   return mIncomingQ;
+}
+
+OsMsgQ& XCpAbstractCall::getGlobalQueue()
+{
+   return m_rCallManagerQueue;
+}
+
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
 {
    return m_instanceRWMutex.acquireRead();
