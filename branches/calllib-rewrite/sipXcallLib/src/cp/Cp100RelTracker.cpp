@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <utl/UtlRandom.h>
 #include <net/SipMessage.h>
 #include <cp/Cp100RelTracker.h>
 
@@ -25,7 +26,9 @@
 // GLOBAL FUNCTIONS
 
 /**
- * Private context class for 100rel messages.
+ * Private context class for 100rel messages. Can be used for both
+ * inbound and outbound 100rels. Either m_bPrackSent or m_bPrackReceived
+ * is valid.
  */
 class Cp100RelContext : public UtlString
 {
@@ -33,6 +36,7 @@ public:
    Cp100RelContext(int cSeqNumber, const UtlString& cSeqMethod, int rSeqNumber)
       : UtlString(Cp100RelTracker::get100RelId(cSeqNumber, cSeqMethod, rSeqNumber))
       , m_bPrackSent(FALSE)
+      , m_bPrackReceived(FALSE)
    {
 
    }
@@ -40,11 +44,13 @@ public:
    Cp100RelContext(const SipMessage& sipMessage)
       : UtlString(Cp100RelTracker::get100RelId(sipMessage))
       , m_bPrackSent(FALSE)
+      , m_bPrackReceived(FALSE)
    {
 
    }
 
-   UtlBoolean m_bPrackSent;
+   UtlBoolean m_bPrackSent; ///< TRUE if PRACK was sent for 100rel identified by this Id
+   UtlBoolean m_bPrackReceived; ///< TRUE if PRACK was received for 100rel identified by this Id
 };
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -53,7 +59,7 @@ public:
 
 Cp100RelTracker::Cp100RelTracker()
 : m_bCanSend100rel(TRUE)
-, m_rseqNumber(1)
+, m_rseqNumber(getRandomStartRSeq())
 {
 
 }
@@ -68,7 +74,7 @@ Cp100RelTracker::~Cp100RelTracker()
 void Cp100RelTracker::reset()
 {
    m_bCanSend100rel = TRUE;
-   m_rseqNumber = 1;
+   m_rseqNumber = getRandomStartRSeq();
    m_100relBag.destroyAll();
 }
 
@@ -97,7 +103,7 @@ UtlBoolean Cp100RelTracker::on100RelReceived(const SipMessage& sipMessage)
    return FALSE;
 }
 
-void Cp100RelTracker::on100RelSent(const SipMessage& sipMessage)
+void Cp100RelTracker::on100RelSent(const SipMessage& sipMessage, UtlString& s100RelId)
 {
    if (sipMessage.is100RelResponse())
    {
@@ -110,6 +116,7 @@ void Cp100RelTracker::on100RelSent(const SipMessage& sipMessage)
       {
          // add context to bag, so that we can identify valid PRACK later
          pContext = new Cp100RelContext(sipMessage);
+         s100RelId = pContext->data(); // copy string
          m_100relBag.insert(pContext);
       }
    }
@@ -124,6 +131,7 @@ UtlBoolean Cp100RelTracker::onPrackReceived(const SipMessage& sipMessage)
       if (pContext)
       {
          m_bCanSend100rel = TRUE;
+         pContext->m_bPrackReceived = TRUE;
          return TRUE;
       }
    }
@@ -143,6 +151,28 @@ int Cp100RelTracker::getNextRSeq()
 UtlBoolean Cp100RelTracker::canSend1xxRel() const
 {
    return m_bCanSend100rel;
+}
+
+UtlBoolean Cp100RelTracker::is100RelIdValid(const UtlString& s100RelId) const
+{
+   Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));
+   if (pContext)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean Cp100RelTracker::wasPrackReceived(const UtlString& s100RelId) const
+{
+   Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));
+   if (pContext && pContext->m_bPrackReceived)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
 }
 
 UtlString Cp100RelTracker::get100RelId(int cSeqNumber, const UtlString& cSeqMethod, int rSeqNumber)
@@ -184,6 +214,12 @@ UtlString Cp100RelTracker::get100RelId(const SipMessage& sipMessage)
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+int Cp100RelTracker::getRandomStartRSeq()
+{
+   UtlRandom randomGenerator;
+   return (abs(randomGenerator.rand()) % 65535);
+}
 
 /* ============================ FUNCTIONS ================================= */
 

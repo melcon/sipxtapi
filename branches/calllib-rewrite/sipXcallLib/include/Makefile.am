@@ -75,6 +75,7 @@ nobase_include_HEADERS =  \
     cp/msg/CmNotificationMsg.h \
     cp/msg/CmYieldFocusMsg.h \
     cp/msg/CpTimerMsg.h \
+    cp/msg/Sc100RelTimerMsg.h \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScNotificationMsg.h \
     cp/msg/ScTimerMsg.h \

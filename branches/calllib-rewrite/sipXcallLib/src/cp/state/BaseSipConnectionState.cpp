@@ -246,11 +246,14 @@ UtlBoolean BaseSipConnectionState::isInviteTransactionActive() const
 
 void BaseSipConnectionState::startInviteTransaction()
 {
+   m_rStateContext.m_100RelTracker.reset(); // always reset 100rel tracker for new INVITE transaction
    m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::INVITE_ACTIVE;
 }
 
 void BaseSipConnectionState::startReInviteTransaction(UtlBoolean bIsSessionRefresh)
 {
+   m_rStateContext.m_100RelTracker.reset(); // always reset 100rel tracker for new INVITE transaction
+
    if (bIsSessionRefresh)
    {
       m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::REINVITE_SESSION_REFRESH_ACTIVE;
@@ -288,8 +291,12 @@ void BaseSipConnectionState::deleteMediaConnection()
 
 void BaseSipConnectionState::terminateSipDialog()
 {
-   OsWriteLock lock(m_rStateContext);
-   m_rStateContext.m_sipDialog.terminateDialog();
+   stopInviteTransaction();
+
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.terminateDialog();
+   }
 }
 
 CpSipTransactionManager& BaseSipConnectionState::getTransactionManager() const

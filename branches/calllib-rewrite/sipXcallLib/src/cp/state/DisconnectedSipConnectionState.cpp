@@ -55,7 +55,6 @@ DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
 
 void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
-   stopInviteTransaction();
    terminateSipDialog();
    deleteMediaConnection();
 }

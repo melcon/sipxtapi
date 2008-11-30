@@ -45,6 +45,7 @@ public:
    typedef enum
    {
       PAYLOAD_TYPE_FIRST = 0, ///< Add your own payload ids here
+      PAYLOAD_TYPE_100REL ///< 100rel retransmit
    } PayloadTypeEnum;
 
    /**

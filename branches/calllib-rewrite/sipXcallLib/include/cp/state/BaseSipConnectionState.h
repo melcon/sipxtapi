@@ -159,7 +159,10 @@ protected:
    */
    void startReInviteTransaction(UtlBoolean bIsSessionRefresh = FALSE);
 
-   /** Stops INVITE transaction. */
+   /**
+    * Stops INVITE transaction. This doesn't terminate the transaction in transaction manager.
+    * Perhaps unify with transaction manager.
+    */
    void stopInviteTransaction();
 
    /** Deletes media connection if it exists, stopping remote and local audio */
