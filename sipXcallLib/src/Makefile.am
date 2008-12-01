@@ -90,7 +90,10 @@ libsipXcall_la_SOURCES = \
     cp/msg/CpTimerMsg.cpp \
     cp/msg/Sc100RelTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
+    cp/msg/ScDisconnectTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
+    cp/msg/ScReInviteTimerMsg.cpp \
+    cp/msg/ScTimerMsg.cpp \
     cp/state/AlertingSipConnectionState.cpp \
     cp/state/BaseSipConnectionState.cpp \
     cp/state/DialingSipConnectionState.cpp \

@@ -77,7 +77,9 @@ nobase_include_HEADERS =  \
     cp/msg/CpTimerMsg.h \
     cp/msg/Sc100RelTimerMsg.h \
     cp/msg/ScCommandMsg.h \
+    cp/msg/ScDisconnectTimerMsg.h \
     cp/msg/ScNotificationMsg.h \
+    cp/msg/ScReInviteTimerMsg.h \
     cp/msg/ScTimerMsg.h \
     cp/state/AlertingSipConnectionState.h \
     cp/state/BaseSipConnectionState.h \

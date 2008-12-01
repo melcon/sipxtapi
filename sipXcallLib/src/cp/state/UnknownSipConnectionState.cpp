@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/UnknownSipConnectionState.h>
 
 // DEFINES
@@ -56,6 +57,9 @@ void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const 
 {
    terminateSipDialog();
    deleteMediaConnection();
+
+   OsSysLog::add(FAC_CP, PRI_WARNING, "Entry unknown connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void UnknownSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)

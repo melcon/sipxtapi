@@ -486,7 +486,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScReInviteTimerMsg.cpp"
 					>
 				</File>
 				<File
@@ -867,7 +875,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\ScDisconnectTimerMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\ScNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScReInviteTimerMsg.h"
 					>
 				</File>
 				<File
