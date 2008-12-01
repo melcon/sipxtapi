@@ -660,6 +660,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpSipTransactionListener.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CpSipTransactionManager.h"
 				>
 			</File>

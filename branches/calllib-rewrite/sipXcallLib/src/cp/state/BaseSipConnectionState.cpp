@@ -223,10 +223,11 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
          // the original media session
          default:
             // handle unknown 4XX, 5XX, 6XX
+            CpSipTransactionManager::InviteTransactionState inviteState = getTransactionManager().getInviteTransactionState();
             if (iSeqNumber >= SIP_4XX_CLASS_CODE && iSeqNumber < SIP_7XX_CLASS_CODE &&
                 seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
-                (m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_ACTIVE ||
-                m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::REINVITE_SESSION_REFRESH_ACTIVE))
+                (inviteState == CpSipTransactionManager::INVITE_ACTIVE ||
+                 inviteState == CpSipTransactionManager::REINVITE_SESSION_REFRESH_ACTIVE))
             {
                // failure during initial INVITE, terminate dialog
                getTransactionManager().endTransaction(seqMethod, iSeqNumber);
@@ -256,36 +257,6 @@ UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
    }
 }
 
-UtlBoolean BaseSipConnectionState::isInviteTransactionActive() const
-{
-   return m_rStateContext.m_inviteTransactionState == SipConnectionStateContext::INVITE_ACTIVE;
-}
-
-void BaseSipConnectionState::startInviteTransaction()
-{
-   m_rStateContext.m_100RelTracker.reset(); // always reset 100rel tracker for new INVITE transaction
-   m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::INVITE_ACTIVE;
-}
-
-void BaseSipConnectionState::startReInviteTransaction(UtlBoolean bIsSessionRefresh)
-{
-   m_rStateContext.m_100RelTracker.reset(); // always reset 100rel tracker for new INVITE transaction
-
-   if (bIsSessionRefresh)
-   {
-      m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::REINVITE_SESSION_REFRESH_ACTIVE;
-   }
-   else
-   {
-      m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::REINVITE_NORMAL_ACTIVE;
-   }
-}
-
-void BaseSipConnectionState::stopInviteTransaction()
-{
-   m_rStateContext.m_inviteTransactionState = SipConnectionStateContext::INVITE_INACTIVE;
-}
-
 void BaseSipConnectionState::deleteMediaConnection()
 {
    CpMediaInterface* pInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
@@ -308,7 +279,7 @@ void BaseSipConnectionState::deleteMediaConnection()
 
 void BaseSipConnectionState::terminateSipDialog()
 {
-   stopInviteTransaction();
+   getTransactionManager().endInviteTransaction();
 
    {
       OsWriteLock lock(m_rStateContext);

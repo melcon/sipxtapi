@@ -148,26 +148,6 @@ protected:
    /** Returns TRUE if some SIP method is allowed (may be sent) */
    UtlBoolean isMethodAllowed(const UtlString& sMethod);
 
-   /** Returns TRUE if an INVITE transaction is active */
-   UtlBoolean isInviteTransactionActive() const;
-
-   /** Starts initial INVITE transaction. We can allow only 1 INVITE transaction at time, so we need to track it manually. */
-   void startInviteTransaction();
-
-   /**
-   * Starts re-INVITE transaction.
-   *
-   * @param bIsSessionRefresh TRUE for session timer initiated refresh. This must succeed,
-   * otherwise call must be dropped. Normal re-INVITE failure can be ignored.
-   */
-   void startReInviteTransaction(UtlBoolean bIsSessionRefresh = FALSE);
-
-   /**
-    * Stops INVITE transaction. This doesn't terminate the transaction in transaction manager.
-    * Perhaps unify with transaction manager.
-    */
-   void stopInviteTransaction();
-
    /** Deletes media connection if it exists, stopping remote and local audio */
    void deleteMediaConnection();
 

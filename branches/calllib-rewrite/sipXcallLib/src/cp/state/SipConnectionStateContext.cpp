@@ -31,9 +31,8 @@ SipConnectionStateContext::SipConnectionStateContext()
 : m_mediaSessionState(SipConnectionStateContext::MEDIA_SESSION_NONE)
 , m_allowedRemote(NULL)
 , m_implicitAllowedRemote("INVITE, ACK, CANCEL, BYE, OPTIONS, REGISTER")
-, m_inviteTransactionState(SipConnectionStateContext::INVITE_INACTIVE)
 {
-
+   m_sipTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
 
 SipConnectionStateContext::~SipConnectionStateContext()

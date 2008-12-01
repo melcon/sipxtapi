@@ -25,6 +25,7 @@ nobase_include_HEADERS =  \
     cp/CpPeerCall.h \
     cp/Cp100RelTracker.h \
     cp/CpSdpNegotiation.h \
+    cp/CpSipTransactionListener.h \
     cp/CpSipTransactionManager.h \
     cp/CpVideoCodecInfo.h \
     cp/SipConnection.h \

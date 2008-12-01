@@ -18,6 +18,7 @@
 #include <utl/UtlDefs.h>
 #include <utl/UtlString.h>
 #include <utl/UtlHashBag.h>
+#include <cp/CpSipTransactionListener.h>
 
 // DEFINES
 // MACROS
@@ -46,7 +47,7 @@ class SipMessage;
  *
  * Validation of RSeq incrementation by 1 is not implemented for inbound 100rels.
  */
-class Cp100RelTracker
+class Cp100RelTracker : public CpSipTransactionListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -114,6 +115,12 @@ public:
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+
+   /** Called when new transaction is started. */
+   virtual void onTransactionStart(const UtlString& sipMethod, int cseq);
+
+   /** Called when transaction is stopped. */
+   virtual void onTransactionEnd(const UtlString& sipMethod, int cseq);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
