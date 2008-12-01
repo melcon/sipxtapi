@@ -213,6 +213,20 @@ UtlString Cp100RelTracker::get100RelId(const SipMessage& sipMessage)
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
+void Cp100RelTracker::onTransactionStart(const UtlString& sipMethod, int cseq)
+{
+   if (sipMethod.compareTo(SIP_INVITE_METHOD) == 0)
+   {
+      // new INVITE transaction, reset tracker
+      reset();
+   }
+}
+
+void Cp100RelTracker::onTransactionEnd(const UtlString& sipMethod, int cseq)
+{
+   // do nothing
+}
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 int Cp100RelTracker::getRandomStartRSeq()

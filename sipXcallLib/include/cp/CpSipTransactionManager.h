@@ -18,6 +18,7 @@
 #include <utl/UtlDefs.h>
 #include <utl/UtlRandom.h>
 #include <utl/UtlHashMap.h>
+#include <cp/CpSipTransactionListener.h>
 
 // DEFINES
 // MACROS
@@ -49,11 +50,14 @@ class SipMessage;
  * if final response was non 2xx.
  * 
  * To track transaction state correctly for 401 and 407 authentication retry,
- * startTransaction must be called with cseq, and endTransaction with cseq-1
+ * updateActiveTransaction must be called with cseq, and endTransaction with cseq-1
  * when authentication retry message is detected.
  * SipUserAgent automatically just increments cseq for authentication retry.
  *
  * Terminated transactions are automatically cleaned up after some time.
+ *
+ * INVITE transactions are tracked differently. Only 1 INVITE transaction can be ocurring
+ * at time. This class therefore supports tracking only 1 INVITE transaction.
  *
  * This class is NOT threadsafe.  
  */
@@ -68,6 +72,14 @@ public:
       TRANSACTION_TERMINATED
    } TransactionState;
 
+   typedef enum
+   {
+      INVITE_INACTIVE = 0, ///< no INVITE transaction is active
+      INVITE_ACTIVE, ///< initial INVITE transaction is active
+      REINVITE_NORMAL_ACTIVE, ///< a normal re-INVITE transaction is active
+      REINVITE_SESSION_REFRESH_ACTIVE ///< media session re-INVITE transaction is active, cannot fail
+   } InviteTransactionState;
+
    /* ============================ CREATORS ================================== */
 
    /** Constructor. */
@@ -80,6 +92,13 @@ public:
 
    /**
     * Starts new transaction for given method returning next cseq.
+    * For INVITE, this method starts normal INVITE transaction. For starting
+    * re-INVITE transaction, use separate method. We treat re-INVITE transaction
+    * in a different way - failure is not necessarily fatal.
+    *
+    * Only 1 INVITE/re-INVITE transaction may be active at time.
+    *
+    * @return New cseq
     */
    int startTransaction(const UtlString& sipMethod);
 
@@ -90,13 +109,46 @@ public:
     *
     * If supplied cseq is greater or equal to our current cseq, internal next available
     * cseq is set to cseq + 1.
+    *
+    * Old transaction with cseq - 1 and same method is stopped automatically.
     */
-   void startTransaction(const UtlString& sipMethod, int cseq);
+   void updateActiveTransaction(const UtlString& sipMethod, int cseq);
+
+   /**
+    * Starts initial INVITE transaction. We allow only 1 INVITE transaction at time.
+    * New cseq will be returned.
+    */
+   UtlBoolean startInviteTransaction(int& cseq);
+
+   /**
+   * Starts re-INVITE transaction.
+   *
+   * @param bIsSessionRefresh TRUE for session timer initiated refresh. This must succeed,
+   * otherwise call must be dropped. Normal re-INVITE failure can be ignored.
+   */
+   UtlBoolean startReInviteTransaction(int& cseq, UtlBoolean bIsSessionRefresh = FALSE);
+
+   /**
+    * Updates an active INVITE/re-INVITE transaction with new cseq. We need to supply
+    * new cseq after 401/407 authentication retry, when cseq is normally incremented.
+    * Old transaction will be terminated automatically.
+    */
+   UtlBoolean updateActiveInviteTransaction(int cseq);
 
    /**
     * Marks given transaction as terminated.
+    *
+    * This method can be used for INVITE transaction.
     */
    void endTransaction(const UtlString& sipMethod, int cseq);
+
+   /**
+    * Stops INVITE transaction regardless of cseq.
+    */
+   void endInviteTransaction();
+
+   /** Sets listener that should be notified about transaction start/end .*/
+   void setSipTransactionListener(CpSipTransactionListener* pTransactionListener);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -115,6 +167,14 @@ public:
     */
    CpSipTransactionManager::TransactionState getTransactionState(const SipMessage& rSipMessage) const;
 
+   /**
+    * Gets state of invite transaction. This is more accurate than getTransactionState.
+    */
+   CpSipTransactionManager::InviteTransactionState getInviteTransactionState() const;
+
+   /** Returns TRUE if an INVITE transaction is active */
+   UtlBoolean isInviteTransactionActive() const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -129,9 +189,21 @@ private:
    /** Cleans terminated transactions older than 60s */
    void cleanOldTransactions();
 
+   /** Called to notify listeners that a transaction has been started */
+   void notifyTransactionStart(const UtlString& sipMethod, int cseq);
+
+   /** Called to notify listeners that a transaction has been stopped */
+   void notifyTransactionEnd(const UtlString& sipMethod, int cseq);
+
+   // members for generic transactions
    UtlHashMap m_transactionMap; ///< hashmap for storing transactions by method name
    int m_iCSeq; ///< current available CSeq number
    long m_lastCleanUpTime;
+   CpSipTransactionListener* m_pTransactionListener; ///< listener that gets notifications about transaction start/end
+
+   // INVITE transaction specific
+   int m_iInviteCSeq; ///< CSeq of INVITE transaction
+   InviteTransactionState m_inviteTransactionState; ///< keeps invite transaction state
 };
 
 #endif // CpSipTransactionManager_h__

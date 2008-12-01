@@ -143,6 +143,7 @@
             <File RelativePath=".\include\cp\CpNotificationMsgDef.h"/>
             <File RelativePath="include\cp\CpPeerCall.h"/>
             <File RelativePath=".\include\cp\CpSdpNegotiation.h"/>
+            <File RelativePath=".\include\cp\CpSipTransactionListener.h"/>
             <File RelativePath=".\include\cp\CpSipTransactionManager.h"/>
             <File RelativePath=".\include\cp\CpVideoCodecInfo.h"/>
             <File RelativePath=".\include\cp\CSeqManager.h"/>
