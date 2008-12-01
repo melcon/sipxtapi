@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/RemoteAlertingSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
@@ -57,7 +58,8 @@ RemoteAlertingSipConnectionState::~RemoteAlertingSipConnectionState()
 
 void RemoteAlertingSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
-
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry remote alerting connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void RemoteAlertingSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)

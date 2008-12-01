@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <os/OsWriteLock.h>
 #include <os/OsReadLock.h>
 #include <net/SipMessage.h>
@@ -26,6 +27,9 @@
 #include <cp/msg/ScTimerMsg.h>
 #include <cp/msg/ScCommandMsg.h>
 #include <cp/msg/ScNotificationMsg.h>
+#include <cp/msg/Sc100RelTimerMsg.h>
+#include <cp/msg/ScDisconnectTimerMsg.h>
+#include <cp/msg/ScReInviteTimerMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -98,7 +102,20 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(const UtlString& t
 
 SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
-   // subclass ScTimerMsg and call specific timer handling function
+   switch (timerMsg.getPayloadType())
+   {
+   case ScTimerMsg::PAYLOAD_TYPE_100REL:
+      return handle100RelTimerMessage((const Sc100RelTimerMsg&)timerMsg);
+   case ScTimerMsg::PAYLOAD_TYPE_DISCONNECT:
+      return handleDisconnectTimerMessage((const ScDisconnectTimerMsg&)timerMsg);
+   case ScTimerMsg::PAYLOAD_TYPE_REINVITE:
+      return handleReInviteTimerMessage((const ScReInviteTimerMsg&)timerMsg);
+   default:
+      ;
+      OsSysLog::add(FAC_CP, PRI_WARNING, "Unknown timer message received - %d:%d\r\n",
+         (int)timerMsg.getMsgSubType(), (int)timerMsg.getPayloadType());
+   }
+
    return NULL;
 }
 
@@ -314,6 +331,30 @@ void BaseSipConnectionState::setMediaConnectionId(int mediaConnectionId)
 {
    // no need to lock atomic
    m_rStateContext.m_mediaConnectionId = mediaConnectionId;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handle100RelTimerMessage(const Sc100RelTimerMsg& timerMsg)
+{
+   // TODO: implement handler
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleDisconnectTimerMessage(const ScDisconnectTimerMsg& timerMsg)
+{
+   // TODO: implement handler
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg)
+{
+   // TODO: implement handler
+   return NULL;
+}
+
+UtlString BaseSipConnectionState::getCallId() const
+{
+   OsReadLock lock(m_rStateContext);
+   return m_rStateContext.m_sipDialog.getCallId();
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

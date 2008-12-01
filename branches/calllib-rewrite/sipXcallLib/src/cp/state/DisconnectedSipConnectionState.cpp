@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 
@@ -43,7 +44,6 @@ DisconnectedSipConnectionState::DisconnectedSipConnectionState(SipConnectionStat
 DisconnectedSipConnectionState::DisconnectedSipConnectionState(const BaseSipConnectionState& rhs)
 : BaseSipConnectionState(rhs)
 {
-
 }
 
 DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
@@ -57,6 +57,9 @@ void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, c
 {
    terminateSipDialog();
    deleteMediaConnection();
+
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry disconnected connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void DisconnectedSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)

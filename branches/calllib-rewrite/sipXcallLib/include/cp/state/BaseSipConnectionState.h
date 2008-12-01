@@ -40,6 +40,9 @@ class SipMessage;
 class ScTimerMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
+class Sc100RelTimerMsg;
+class ScDisconnectTimerMsg;
+class ScReInviteTimerMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -94,13 +97,13 @@ public:
                                                  const UtlString& locationHeader,
                                                  CP_CONTACT_ID contactId);
 
-   /** Handles timer message. When overridden, call parent first. */
+   /** Handles timer message. */
    virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
 
-   /** Handles CpMessageTypes::SC_COMMAND message. When overridden, call parent first. */
+   /** Handles CpMessageTypes::SC_COMMAND message. */
    virtual SipConnectionStateTransition* handleCommandMessage(const ScCommandMsg& rMsg);
 
-   /** Handles CpMessageTypes::ScNotificationMsg message. When overridden, call parent first. */
+   /** Handles CpMessageTypes::ScNotificationMsg message. */
    virtual SipConnectionStateTransition* handleNotificationMessage(const ScNotificationMsg& rMsg);
 
    /* ============================ ACCESSORS ================================= */
@@ -179,6 +182,18 @@ protected:
 
    /** Sets ID of media connection */
    void setMediaConnectionId(int mediaConnectionId);
+
+   /** Handles 100Rel timer message. */
+   virtual SipConnectionStateTransition* handle100RelTimerMessage(const Sc100RelTimerMsg& timerMsg);
+
+   /** Handles 100Rel timer message. */
+   virtual SipConnectionStateTransition* handleDisconnectTimerMessage(const ScDisconnectTimerMsg& timerMsg);
+
+   /** Handles 100Rel timer message. */
+   virtual SipConnectionStateTransition* handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg);
+
+   /** Quick access to sip call-id */
+   UtlString getCallId() const;
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
