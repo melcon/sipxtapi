@@ -99,6 +99,7 @@ nobase_include_HEADERS =  \
     cp/state/SipConnectionStateMachine.h \
     cp/state/SipConnectionStateObserver.h \
     cp/state/SipConnectionStateTransition.h \
+    cp/state/SipEventTransitionMemory.h \
     cp/state/SipResponseTransitionMemory.h \
     cp/state/StateTransitionMemory.h \
     cp/state/UnknownSipConnectionState.h \

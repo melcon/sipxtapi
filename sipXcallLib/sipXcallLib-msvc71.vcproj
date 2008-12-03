@@ -118,6 +118,7 @@
                 <File RelativePath=".\src\cp\state\SipConnectionStateContext.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateTransition.cpp"/>
+                <File RelativePath=".\src\cp\state\SipEventTransitionMemory.cpp"/>
                 <File RelativePath=".\src\cp\state\SipResponseTransitionMemory.cpp"/>
                 <File RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"/>
             </Filter>
@@ -221,6 +222,7 @@
                 <File RelativePath=".\include\cp\state\SipConnectionStateMachine.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateObserver.h"/>
                 <File RelativePath=".\include\cp\state\SipConnectionStateTransition.h"/>
+                <File RelativePath=".\include\cp\state\SipEventTransitionMemory.h"/>
                 <File RelativePath=".\include\cp\state\SipResponseTransitionMemory.h"/>
                 <File RelativePath=".\include\cp\state\StateTransitionMemory.h"/>
                 <File RelativePath=".\include\cp\state\UnknownSipConnectionState.h"/>
