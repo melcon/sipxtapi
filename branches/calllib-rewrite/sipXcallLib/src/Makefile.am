@@ -109,6 +109,7 @@ libsipXcall_la_SOURCES = \
     cp/state/SipConnectionStateContext.cpp \
     cp/state/SipConnectionStateMachine.cpp \
     cp/state/SipConnectionStateTransition.cpp \
+    cp/state/SipEventTransitionMemory.cpp \
     cp/state/SipResponseTransitionMemory.cpp \
     cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
