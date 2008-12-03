@@ -37,7 +37,8 @@ public:
    typedef enum
    {
       TYPE_UNKNOWN = 0,
-      SIP_RESPONSE_MEMORY
+      SIP_RESPONSE_MEMORY,
+      SIP_MESSAGE_EVENT_MEMORY
    } Type;
 
    /* ============================ CREATORS ================================== */
