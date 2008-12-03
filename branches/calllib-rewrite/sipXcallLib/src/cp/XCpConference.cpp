@@ -351,11 +351,6 @@ UtlBoolean XCpConference::handleTimerMessage(const CpTimerMsg& rRawMsg)
    return XCpAbstractCall::handleTimerMessage(rRawMsg);
 }
 
-UtlBoolean XCpConference::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
-{
-   return TRUE;
-}
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 OsStatus XCpConference::handleConnect(const AcConnectMsg& rMsg)

@@ -39,6 +39,7 @@
 template <class T>
 class OsPtrLock; // forward template class declaration
 class SipDialog;
+class SipMessage;
 class SipUserAgent;
 class SipMessageEvent;
 class XSipConnection;
@@ -361,10 +362,13 @@ protected:
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
    /** Handler for inbound SipMessageEvent messages. */
-   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent) = 0;
+   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /** Finds connection handling given Sip dialog. Uses loose dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
+
+   /** Finds connection handling given Sip message. Uses loose dialog matching. */
+   virtual UtlBoolean findConnection(const SipMessage& sipMessage, OsPtrLock<XSipConnection>& ptrLock) const;
 
    /** Tries to gain focus on this call asynchronously through call manager. */
    OsStatus gainFocus();

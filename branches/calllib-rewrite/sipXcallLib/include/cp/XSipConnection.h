@@ -39,6 +39,7 @@
 class CpMediaInterfaceProvider;
 class CpMessageQueueProvider;
 class SipUserAgent;
+class SipMessageEvent;
 class CpMediaEvent;
 class CpCallStateEvent;
 class CpCallStateEventListener;
@@ -202,6 +203,9 @@ public:
 
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
+
+   /** Handler for inbound SipMessageEvent messages. */
+   UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /** Handles CpMessageTypes::SC_COMMAND message */
    UtlBoolean handleCommandMessage(const ScCommandMsg& rMsg);
