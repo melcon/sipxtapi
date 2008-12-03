@@ -231,9 +231,6 @@ protected:
    /** Handles timer messages */
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
-   /** Handler for inbound SipMessageEvent messages. */
-   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
-
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpCall(const XCpCall& rhs);

@@ -19,6 +19,7 @@
 #include <os/OsPtrLock.h>
 #include <os/OsIntPtrMsg.h>
 #include <net/SipMessage.h>
+#include <net/SipMessageEvent.h>
 #include <net/QoS.h>
 #include <sdp/SdpCodecFactory.h>
 #include <mi/CpMediaInterfaceFactory.h>
@@ -387,6 +388,29 @@ UtlBoolean XCpAbstractCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
    }
 
    return FALSE;
+}
+
+UtlBoolean XCpAbstractCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+   if (pSipMessage)
+   {
+      OsPtrLock<XSipConnection> ptrLock;
+      UtlBoolean resFound = findConnection(*pSipMessage, ptrLock);
+      if (resFound)
+      {
+         return ptrLock->handleSipMessageEvent(rSipMsgEvent);
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpAbstractCall::findConnection(const SipMessage& sipMessage, OsPtrLock<XSipConnection>& ptrLock) const
+{
+   SipDialog sipDialog(&sipMessage);
+
+   return findConnection(sipDialog, ptrLock);
 }
 
 OsStatus XCpAbstractCall::gainFocus()
