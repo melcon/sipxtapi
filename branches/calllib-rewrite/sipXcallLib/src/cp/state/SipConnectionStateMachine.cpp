@@ -61,12 +61,15 @@ SipConnectionStateMachine::~SipConnectionStateMachine()
 
 /* ============================ MANIPULATORS ============================== */
 
-void SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEvent)
+UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    if (m_pSipConnectionState)
    {
       handleStateTransition(m_pSipConnectionState->handleSipMessageEvent(rEvent));
+      return TRUE;
    }
+
+   return FALSE;
 }
 
 OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
