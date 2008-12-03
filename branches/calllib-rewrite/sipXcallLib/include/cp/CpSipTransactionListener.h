@@ -36,10 +36,10 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /** Called when new transaction is started. */
-   virtual void onTransactionStart(const UtlString& sipMethod, int cseq) = 0;
+   virtual void onTransactionStart(const UtlString& sipMethod, int cseqNum) = 0;
 
    /** Called when transaction is stopped. */
-   virtual void onTransactionEnd(const UtlString& sipMethod, int cseq) = 0;
+   virtual void onTransactionEnd(const UtlString& sipMethod, int cseqNum) = 0;
 
    /* ============================ ACCESSORS ================================= */
 
