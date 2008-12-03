@@ -440,6 +440,10 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       OsServerTask::DEF_MAX_MSGS, // queueSize
       bUseSequentialPorts);       // bUseNextAvailablePort
    pInst->pSipUserAgent->allowMethod(SIP_INFO_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_PRACK_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_UPDATE_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_SUBSCRIBE_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_NOTIFY_METHOD);
 
    // set bind address on OsSocket
    UtlString defaultBindAddressString;
