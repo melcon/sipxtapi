@@ -47,6 +47,7 @@ class SipRegInfoBody;        // for RFC 3680
 
 // SIP Methods
 #define SIP_INVITE_METHOD "INVITE"
+#define SIP_UPDATE_METHOD "UPDATE"
 #define SIP_ACK_METHOD "ACK"
 #define SIP_BYE_METHOD "BYE"
 #define SIP_CANCEL_METHOD "CANCEL"
@@ -56,6 +57,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_REFER_METHOD "REFER"
 #define SIP_REGISTER_METHOD "REGISTER"
 #define SIP_SUBSCRIBE_METHOD "SUBSCRIBE"
+// get rid of PING method, it never became RFC - http://tools.ietf.org/draft/draft-fwmiller-ping/
 #define SIP_PING_METHOD "PING"
 #define SIP_PRACK_METHOD "PRACK"
 
