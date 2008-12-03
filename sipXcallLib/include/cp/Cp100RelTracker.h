@@ -117,10 +117,10 @@ public:
 protected:
 
    /** Called when new transaction is started. */
-   virtual void onTransactionStart(const UtlString& sipMethod, int cseq);
+   virtual void onTransactionStart(const UtlString& sipMethod, int cseqNum);
 
    /** Called when transaction is stopped. */
-   virtual void onTransactionEnd(const UtlString& sipMethod, int cseq);
+   virtual void onTransactionEnd(const UtlString& sipMethod, int cseqNum);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

@@ -213,7 +213,7 @@ UtlString Cp100RelTracker::get100RelId(const SipMessage& sipMessage)
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-void Cp100RelTracker::onTransactionStart(const UtlString& sipMethod, int cseq)
+void Cp100RelTracker::onTransactionStart(const UtlString& sipMethod, int cseqNum)
 {
    if (sipMethod.compareTo(SIP_INVITE_METHOD) == 0)
    {
@@ -222,7 +222,7 @@ void Cp100RelTracker::onTransactionStart(const UtlString& sipMethod, int cseq)
    }
 }
 
-void Cp100RelTracker::onTransactionEnd(const UtlString& sipMethod, int cseq)
+void Cp100RelTracker::onTransactionEnd(const UtlString& sipMethod, int cseqNum)
 {
    // do nothing
 }
