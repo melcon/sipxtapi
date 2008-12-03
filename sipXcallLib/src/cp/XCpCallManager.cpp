@@ -95,6 +95,8 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
    // Allow the "replaces" extension, because CallManager
    // implements the INVITE-with-Replaces logic.
    m_rSipUserAgent.allowExtension(SIP_REPLACES_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_SESSION_TIMER_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_PRACK_EXTENSION);
 
    int defaultInviteExpireSeconds = m_rSipUserAgent.getDefaultExpiresSeconds();
    if (m_inviteExpireSeconds > defaultInviteExpireSeconds) m_inviteExpireSeconds = defaultInviteExpireSeconds;
@@ -1228,6 +1230,13 @@ UtlBoolean XCpCallManager::handleUnknownInviteRequest(const SipMessage& rSipMess
    }
 }
 
+UtlBoolean XCpCallManager::handleUnknownUpdateRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown UPDATE requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
+}
+
 // Handler for inbound OPTIONS SipMessage, for which there is no existing call or conference. 
 UtlBoolean XCpCallManager::handleUnknownOptionsRequest(const SipMessage& rSipMessage)
 {
@@ -1276,6 +1285,13 @@ UtlBoolean XCpCallManager::handleUnknownCancelRequest(const SipMessage& rSipMess
    return TRUE;
 }
 
+UtlBoolean XCpCallManager::handleUnknownPrackRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown PRACK requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
+}
+
 // called for inbound request SipMessages, for which calls weren't found
 UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage)
 {
@@ -1285,6 +1301,7 @@ UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage
    // Dangling or delayed ACK
    if(requestMethod.compareTo(SIP_ACK_METHOD) == 0)
    {
+      // ACK has no response
       return TRUE;
    }
    else if(requestMethod.compareTo(SIP_INVITE_METHOD) == 0)
@@ -1293,7 +1310,12 @@ UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage
    }
    else if(requestMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
    {
+      // TODO: currently receiving options requests is disabled in XCpCallManager. This will never get called.
       return handleUnknownOptionsRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_UPDATE_METHOD) == 0)
+   {
+      return handleUnknownUpdateRequest(rSipMessage);
    }
    else if(requestMethod.compareTo(SIP_REFER_METHOD) == 0)
    {
@@ -1302,6 +1324,10 @@ UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage
    else if(requestMethod.compareTo(SIP_CANCEL_METHOD) == 0)
    {
       return handleUnknownCancelRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_PRACK_METHOD) == 0)
+   {
+      return handleUnknownPrackRequest(rSipMessage);
    }
 
    // 481 Call/Transaction Does Not Exist must be sent automatically by transaction layer for other messages (INFO, NOTIFY)
@@ -1363,6 +1389,12 @@ void XCpCallManager::startSipMessageObserving()
       TRUE, // Incoming messages
       FALSE); // Don't want to see out going messages
    m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_UPDATE_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
       SIP_BYE_METHOD,
       TRUE, // want to get requests
       TRUE, // and responses
@@ -1400,6 +1432,12 @@ void XCpCallManager::startSipMessageObserving()
       FALSE); // Don't want to see out going messages
    m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
       SIP_INFO_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_PRACK_METHOD,
       TRUE, // do want to get requests
       TRUE, // do want responses
       TRUE, // Incoming messages
