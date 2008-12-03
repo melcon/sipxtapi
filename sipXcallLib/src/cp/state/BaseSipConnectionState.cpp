@@ -23,6 +23,7 @@
 #include <cp/state/SipConnectionStateTransition.h>
 #include <cp/state/StateTransitionMemory.h>
 #include <cp/state/SipResponseTransitionMemory.h>
+#include <cp/state/SipEventTransitionMemory.h>
 #include <cp/CpMediaInterfaceProvider.h>
 #include <cp/msg/ScTimerMsg.h>
 #include <cp/msg/ScCommandMsg.h>
@@ -32,6 +33,9 @@
 #include <cp/msg/ScReInviteTimerMsg.h>
 
 // DEFINES
+// CANCEL doesn't need transaction tracking
+#define TRACKABLE_METHODS "INVITE UPDATE INFO NOTIFY REFER OPTIONS PRACK"
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -88,7 +92,40 @@ void BaseSipConnectionState::handleStateExit(StateEnum nextState, const StateTra
 
 SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
-   // TODO: Implement
+   const SipMessage* pSipMessage = rEvent.getMessage();
+   int messageType = rEvent.getMessageStatus();
+
+   switch(messageType)
+   {
+      case SipMessageEvent::TRANSPORT_ERROR:
+         {
+            // drop the whole dialog
+            getTransactionManager().endInviteTransaction();
+            SipEventTransitionMemory memory(messageType);
+            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+         }
+      case SipMessageEvent::AUTHENTICATION_RETRY:
+         {
+            if (pSipMessage)
+            {
+               return handleAuthenticationRetryEvent(*pSipMessage);
+            }
+            break;
+         }
+      case SipMessageEvent::APPLICATION:
+         {
+            // normal sip message received
+            if (pSipMessage)
+            {
+               return processSipMessage(*pSipMessage);
+            }
+            break;
+         }
+      default:
+         // ignore, not interesting for us
+         ;
+   }
+
    return NULL;
 }
 
@@ -97,6 +134,7 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(const UtlString& t
                                                               const UtlString& locationHeader,
                                                               CP_CONTACT_ID contactId)
 {
+   // TODO: Implement
    return NULL;
 }
 
@@ -170,6 +208,133 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
    return m_rSipUserAgent.send(sipMessage);
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::processSipMessage(const SipMessage& sipMessage)
+{
+   if (sipMessage.isRequest())
+   {
+      return processRequest(sipMessage);
+   }
+   else
+   {
+      return processResponse(sipMessage);
+   }
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMessage& sipMessage)
+{
+   // process inbound sip message request
+   UtlString method;
+   sipMessage.getRequestMethod(&method);
+
+   if (method.compareTo(SIP_INVITE_METHOD) == 0)
+   {
+      return processInviteRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_UPDATE_METHOD) == 0)
+   {
+      return processUpdateRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_ACK_METHOD) == 0)
+   {
+      return processAckRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_BYE_METHOD) == 0)
+   {
+      return processByeRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_CANCEL_METHOD) == 0)
+   {
+      return processCancelRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_INFO_METHOD) == 0)
+   {
+      return processInfoRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_NOTIFY_METHOD) == 0)
+   {
+      return processNotifyRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_OPTIONS_METHOD) == 0)
+   {
+      // TODO: currently receiving options requests is disabled in XCpCallManager. Test if in dialog OPTIONS works correctly
+   }
+   else if (method.compareTo(SIP_REFER_METHOD) == 0)
+   {
+      return processReferRequest(sipMessage);
+   }
+   else if (method.compareTo(SIP_SUBSCRIBE_METHOD) == 0)
+   {
+      // TODO: receiving in dialog subscribe is currently not enabled in XCpCallManager. Investigate
+   }
+   else if (method.compareTo(SIP_PRACK_METHOD) == 0)
+   {
+      return processPrackRequest(sipMessage);
+   }
+   else
+   {
+      // unsupported seqMethod. This can only occur if in XCpCallManager we observe sip messages that aren't supported here
+      SipMessage notImplemented;
+      notImplemented.setRequestUnimplemented(&sipMessage);
+      m_rSipUserAgent.send(notImplemented);
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processInviteRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processByeRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processInfoRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processNotifyRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processReferRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processPrackRequest(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipMessage& sipMessage)
 {
    ISipConnectionState::StateEnum connectionState = getCurrentState();
@@ -190,7 +355,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
       {
          switch (iSeqNumber)
          {
-         // these destroy the whole dialog regardless of method
+         // these destroy the whole dialog regardless of seqMethod
          case SIP_NOT_FOUND_CODE: // 404
          case SIP_GONE_CODE: // 410
          case SIP_UNSUPPORTED_URI_SCHEME_CODE: // 416
@@ -205,7 +370,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
                SipResponseTransitionMemory memory(statusCode, statusText);
                return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
             }
-         // these destroy dialog usage - if method was INVITE destroy the dialog
+         // these destroy dialog usage - if seqMethod was INVITE destroy the dialog
          case SIP_BAD_METHOD_CODE: // 405
          case SIP_TEMPORARILY_UNAVAILABLE_CODE: // 480
          case SIP_BAD_TRANSACTION_CODE: // 481
@@ -218,7 +383,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
                return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
             }
             break;
-         // these only affect transaction - if method was INVITE and media session doesn't exist, then destroy dialog
+         // these only affect transaction - if seqMethod was INVITE and media session doesn't exist, then destroy dialog
          // if media session exists, then no need to destroy the dialog - only INVITE failed for some reason, we can keep
          // the original media session
          default:
@@ -226,7 +391,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
             CpSipTransactionManager::InviteTransactionState inviteState = getTransactionManager().getInviteTransactionState();
             if (iSeqNumber >= SIP_4XX_CLASS_CODE && iSeqNumber < SIP_7XX_CLASS_CODE &&
                 seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
-                (inviteState == CpSipTransactionManager::INVITE_ACTIVE ||
+                (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE ||
                  inviteState == CpSipTransactionManager::REINVITE_SESSION_REFRESH_ACTIVE))
             {
                // failure during initial INVITE, terminate dialog
@@ -237,11 +402,147 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
             // otherwise re-INVITE failed
             ;
          }
+
+         if (iSeqNumber >= SIP_1XX_CLASS_CODE && iSeqNumber < SIP_4XX_CLASS_CODE)
+         {
+            // for 1xx, 2xx, 3xx call seqMethod specific handlers
+            return processNonErrorResponse(sipMessage);
+         }
       }
       // if transaction was not found or is terminated then ignore response
    }
 
    return NULL; // no transition
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processNonErrorResponse(const SipMessage& sipMessage)
+{
+   // process inbound sip message request
+   int seqNum;
+   UtlString seqMethod;
+   sipMessage.getCSeqField(seqNum, seqMethod);
+
+   if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+   {
+      return processInviteResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_UPDATE_METHOD) == 0)
+   {
+      return processUpdateResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_BYE_METHOD) == 0)
+   {
+      return processByeResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_CANCEL_METHOD) == 0)
+   {
+      return processCancelResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_INFO_METHOD) == 0)
+   {
+      return processInfoResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_NOTIFY_METHOD) == 0)
+   {
+      return processNotifyResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
+   {
+      return processOptionsResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_REFER_METHOD) == 0)
+   {
+      return processReferResponse(sipMessage);
+   }
+   else if (seqMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0)
+   {
+      // TODO: receiving in dialog subscribe is currently not enabled in XCpCallManager. Investigate
+   }
+   else if (seqMethod.compareTo(SIP_PRACK_METHOD) == 0)
+   {
+      return processPrackResponse(sipMessage);
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processByeResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processCancelResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processInfoResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processOptionsResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processNotifyResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processReferResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processPrackResponse(const SipMessage& sipMessage)
+{
+   // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryEvent(const SipMessage& sipMessage)
+{
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      if (sipMessage.isRequest())
+      {
+         int seqNum;
+         UtlString seqMethod;
+         sipMessage.getCSeqField(seqNum, seqMethod);
+
+         if (needsTransactionTracking(seqMethod))
+         {
+            getTransactionManager().updateActiveTransaction(seqMethod, seqNum);
+         }
+      }
+   }
+
+   // no state transition
+   return NULL;
 }
 
 UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
@@ -326,6 +627,18 @@ UtlString BaseSipConnectionState::getCallId() const
 {
    OsReadLock lock(m_rStateContext);
    return m_rStateContext.m_sipDialog.getCallId();
+}
+
+UtlBoolean BaseSipConnectionState::needsTransactionTracking(const UtlString& sipMethod) const
+{
+   UtlString trackable(TRACKABLE_METHODS);
+
+   if (trackable.index(sipMethod) != UtlString::UTLSTRING_NOT_FOUND)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
