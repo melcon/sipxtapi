@@ -71,7 +71,7 @@ public:
     * Handles SipMessageEvent, which can be inbound SipMessage or notification about
     * send failure.
     */
-   void handleSipMessageEvent(const SipMessageEvent& rEvent);
+   UtlBoolean handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /** Connects call to given address. Uses supplied sip call-id. */
    OsStatus connect(const UtlString& toAddress,
