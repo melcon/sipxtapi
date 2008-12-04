@@ -15,6 +15,7 @@
 #include <os/OsSysLog.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -57,6 +58,9 @@ void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, c
 {
    terminateSipDialog();
    deleteMediaConnection();
+
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry disconnected connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());

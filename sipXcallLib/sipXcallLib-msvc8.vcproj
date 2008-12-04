@@ -574,6 +574,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\state\StateTransitionEventDispatcher.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"
 					>
 				</File>
@@ -976,6 +980,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\state\SipResponseTransitionMemory.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\StateTransitionEventDispatcher.h"
 					>
 				</File>
 				<File

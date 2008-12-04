@@ -18,6 +18,7 @@
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/QueuedSipConnectionState.h>
 #include <cp/state/AlertingSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -59,6 +60,9 @@ OfferingSipConnectionState::~OfferingSipConnectionState()
 
 void OfferingSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry offering connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }
