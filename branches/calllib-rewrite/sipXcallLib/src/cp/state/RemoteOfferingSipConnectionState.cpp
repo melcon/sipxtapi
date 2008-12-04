@@ -19,6 +19,7 @@
 #include <cp/state/EstablishedSipConnectionState.h>
 #include <cp/state/RemoteQueuedSipConnectionState.h>
 #include <cp/state/RemoteAlertingSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -60,6 +61,9 @@ RemoteOfferingSipConnectionState::~RemoteOfferingSipConnectionState()
 
 void RemoteOfferingSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry remote offering connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }

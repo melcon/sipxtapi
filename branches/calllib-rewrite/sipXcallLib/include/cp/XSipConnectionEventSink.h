@@ -16,6 +16,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <net/SipInfoStatusEventListener.h>
+#include <net/SipSecurityEventListener.h>
 #include <cp/CpDefs.h>
 
 // DEFINES

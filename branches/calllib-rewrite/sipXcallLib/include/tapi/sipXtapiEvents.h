@@ -239,6 +239,8 @@ typedef enum SIPX_CALLSTATE_EVENT
    CALLSTATE_TRANSFER_EVENT   = 12000, /**< The transfer state indicates a state change in a 
                                        transfer attempt.  Please see the CALLSTATE_TRANSFER_EVENT cause 
                                        codes for details on each state transition */
+   CALLSTATE_QUEUED          = 13000,/**< inbound Call has been queued - is awaiting processing. */
+   CALLSTATE_REMOTE_QUEUED   = 14000, /**< Outbound call has been put into queued state by remote party. */
 } SIPX_CALLSTATE_EVENT;
 
  
@@ -322,6 +324,9 @@ typedef enum SIPX_CALLSTATE_CAUSE
                                                     is part of a transfer. */
    CALLSTATE_CAUSE_CANCEL,        /**< The event was fired in response to a cancel
                                        attempt from the remote party */
+   CALLSTATE_CAUSE_CLIENT_ERROR,/**< Result of unknown 4xx response */
+   CALLSTATE_CAUSE_SERVER_ERROR,/**< Result of unknown 5xx response */
+   CALLSTATE_CAUSE_GLOBAL_ERROR,/**< Result of unknown 6xx response */
 } SIPX_CALLSTATE_CAUSE;
 
 /**

@@ -146,6 +146,12 @@ const char* convertCallstateEventToString(SIPX_CALLSTATE_EVENT eMajor)
    case CALLSTATE_TRANSFER_EVENT:
       str = MAKESTR(CALLSTATE_TRANSFER_EVENT);
       break;
+   case CALLSTATE_QUEUED:
+      str = MAKESTR(CALLSTATE_QUEUED);
+      break;
+   case CALLSTATE_REMOTE_QUEUED:
+      str = MAKESTR(CALLSTATE_REMOTE_QUEUED);
+      break;
    default:
       break;
    }
@@ -249,6 +255,15 @@ const char* convertCallstateCauseToString(SIPX_CALLSTATE_CAUSE eMinor)
       break;
    case CALLSTATE_CAUSE_CANCEL:
       str = MAKESTR(CALLSTATE_CAUSE_CANCEL);
+      break;
+   case CALLSTATE_CAUSE_CLIENT_ERROR:
+      str = MAKESTR(CALLSTATE_CAUSE_CLIENT_ERROR);
+      break;
+   case CALLSTATE_CAUSE_SERVER_ERROR:
+      str = MAKESTR(CALLSTATE_CAUSE_SERVER_ERROR);
+      break;
+   case CALLSTATE_CAUSE_GLOBAL_ERROR:
+      str = MAKESTR(CALLSTATE_CAUSE_GLOBAL_ERROR);
       break;
    default:
       break;

@@ -14,6 +14,7 @@
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
 #include <cp/state/UnknownSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -57,6 +58,9 @@ void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const 
 {
    terminateSipDialog();
    deleteMediaConnection();
+
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
    OsSysLog::add(FAC_CP, PRI_WARNING, "Entry unknown connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());

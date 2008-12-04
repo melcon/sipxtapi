@@ -17,6 +17,7 @@
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/OfferingSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -58,6 +59,9 @@ NewCallSipConnectionState::~NewCallSipConnectionState()
 
 void NewCallSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry newcall connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }
