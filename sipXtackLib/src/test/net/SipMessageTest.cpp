@@ -32,6 +32,7 @@ class SipMessageTest : public CppUnit::TestCase
    CPPUNIT_TEST_SUITE(SipMessageTest);
    CPPUNIT_TEST(testGetRAck);
    CPPUNIT_TEST(testGetRSeq);
+   CPPUNIT_TEST(testGetReasonField);
    CPPUNIT_TEST(testGetVia);
    CPPUNIT_TEST(testGetViaShort);
    CPPUNIT_TEST(testGetAddrVia);
@@ -118,6 +119,44 @@ public:
       testMsg.setRSeqField(25242);
       testMsg.getRSeqField(rsequence);
       CPPUNIT_ASSERT_EQUAL(25242, rsequence);
+   }
+
+   void testGetReasonField()
+   {
+      const char* simpleMessage =
+         "CANCEL sip:65681@testserver.com SIP/2.0\r\n"
+         "To: <sip:65681@testserver.com>;tag=985624-1623\r\n"
+         "From: <sip:10.21.128.204>;tag=15039611-4B5\r\n"
+         "Call-Id: 55147C1E-F6ED11D9-80E3EC05-47D61469@10.21.128.204\r\n"
+         "Via: SIP/2.0/UDP  10.21.128.204:5060;branch=z9hG4bK9E8\r\n"
+         "Date: Mon, 18 Jul 2005 18:05:17 GMT\r\n"
+         "Supported: 100rel,timer\r\n"
+         "Allow: INVITE, OPTIONS, BYE, CANCEL, ACK, PRACK, COMET, REFER, SUBSCRIBE, NOTIFY, INFO, UPDATE, REGISTER\r\n"
+         "Cseq: 101 CANCEL\r\n"
+         "Max-Forwards: 9\r\n"
+         "Reason: SIP ;cause=200 ;text=\"Call completed elsewhere\", Q.850 ;cause=16 ;text=\"Terminated\"\r\n"
+         "Contact: <sip:10.21.128.204:5060>\r\n"
+         "Expires: 180\r\n"
+         "Mime-Version: 1.0\r\n"
+         "Content-Length: 0\r\n"
+         "\r\n";
+      SipMessage testMsg(simpleMessage);
+      int cause;
+      UtlString protocol;
+      UtlString text;
+      // test getting 1st value
+      testMsg.getReasonField(0, protocol, cause, text);
+      ASSERT_STR_EQUAL("SIP", protocol.data());
+      CPPUNIT_ASSERT_EQUAL(200, cause);
+      ASSERT_STR_EQUAL("Call completed elsewhere", text.data());
+      // test getting 2nd value
+      cause = 0;
+      protocol.remove(0);
+      text.remove(0);
+      testMsg.getReasonField(1, protocol, cause, text);
+      ASSERT_STR_EQUAL("Q.850", protocol.data());
+      CPPUNIT_ASSERT_EQUAL(16, cause);
+      ASSERT_STR_EQUAL("Terminated", text.data());
    }
 
    void testGetVia()
