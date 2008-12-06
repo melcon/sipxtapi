@@ -1499,34 +1499,36 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
 
       if (pInterfaceFactory)
       {
-         pInst->audioCodecSetting.preferences = SdpCodecFactory::getFixedAudioCodecs(szCodecNames);
-
-         if (pInst->audioCodecSetting.preferences.length() != 0)
+         pInst->audioCodecSetting.preferences;
+         if (szCodecNames)
          {
-            freeAudioCodecs(*pInst);
-
-            pInterfaceFactory->buildCodecList(*pInst->pCodecList,
-                  pInst->audioCodecSetting.preferences,
-                  pInst->videoCodecSetting.preferences);
-
-            // We've rebuilt the factory, so get the new count of codecs
-            pInst->pCodecList->getCodecs(pInst->audioCodecSetting.numCodecs,
-                  pInst->audioCodecSetting.sdpCodecArray,
-                  MIME_TYPE_AUDIO);
-
-            if (pInst->audioCodecSetting.numCodecs > 1)
-            {
-               rc = SIPX_RESULT_SUCCESS;
-            }
-            else
-            {
-               OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
-                  "sipxConfigSetAudioCodecByName: Setting %s failed, only DTMF is active", 
-                  szCodecNames);
-            }
-
-            pInst->audioCodecSetting.bInitialized = true;
+            // add telephone-event if some codec names were specified
+            pInst->audioCodecSetting.preferences = SdpCodecFactory::getFixedAudioCodecs(szCodecNames);
          }
+
+         freeAudioCodecs(*pInst);
+
+         pInterfaceFactory->buildCodecList(*pInst->pCodecList,
+               pInst->audioCodecSetting.preferences,
+               pInst->videoCodecSetting.preferences);
+
+         // We've rebuilt the factory, so get the new count of codecs
+         pInst->pCodecList->getCodecs(pInst->audioCodecSetting.numCodecs,
+               pInst->audioCodecSetting.sdpCodecArray,
+               MIME_TYPE_AUDIO);
+
+         if (pInst->audioCodecSetting.numCodecs > 1)
+         {
+            rc = SIPX_RESULT_SUCCESS;
+         }
+         else
+         {
+            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
+               "sipxConfigSetAudioCodecByName: Setting %s failed, only DTMF is active", 
+               szCodecNames);
+         }
+
+         pInst->audioCodecSetting.bInitialized = true;
       }
    }
 
@@ -1543,11 +1545,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst,
 
    if (pInst && pNumCodecs)
    {
-      assert(pInst->audioCodecSetting.bInitialized);
+      assert(pInst->pCodecList);
 
-      if (pInst->audioCodecSetting.bInitialized)
+      if (pInst->pCodecList)
       {
-         *pNumCodecs = pInst->audioCodecSetting.numCodecs;
+         *pNumCodecs = pInst->pCodecList->getCodecCount(MIME_TYPE_AUDIO);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
