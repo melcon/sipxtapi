@@ -321,12 +321,14 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-    UtlBoolean getLocalAddresses( int connectionId,
-                                  UtlString& hostIp,
-                                  int& rtpAudioPort,
-                                  int& rtcpAudioPort,
-                                  int& rtpVideoPort,
-                                  int& rtcpVideoPort) ;
+    UtlBoolean getLocalAddresses(int connectionId,
+                                 int nMaxAddresses,
+                                 UtlString hostIps[], ///< host ip addresses to which socket is bound (in case 0.0.0.0 we get real ips)
+                                 int& rtpAudioPort,
+                                 int& rtcpAudioPort,
+                                 int& rtpVideoPort,
+                                 int& rtcpVideoPort,
+                                 int& nActualAddresses);
 
     UtlBoolean getNatedAddresses( int connectionId,
                                   UtlString& hostIp,
