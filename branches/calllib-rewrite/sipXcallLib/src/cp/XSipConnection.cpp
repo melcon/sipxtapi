@@ -94,12 +94,14 @@ void XSipConnection::handleSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
    fireSipXCallEvent(eventCode, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
 }
 
-OsStatus XSipConnection::connect(const UtlString& toAddress,
+OsStatus XSipConnection::connect(const UtlString& sipCallId,
+                                 const UtlString& localTag,
+                                 const UtlString& toAddress,
                                  const UtlString& fromAddress,
                                  const UtlString& locationHeader,
                                  CP_CONTACT_ID contactId)
 {
-   return m_stateMachine.connect(toAddress, fromAddress, locationHeader, contactId);
+   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId);
 }
 
 OsStatus XSipConnection::acceptConnection(const UtlString& locationHeader,

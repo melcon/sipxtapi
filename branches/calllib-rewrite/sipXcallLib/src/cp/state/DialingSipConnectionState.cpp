@@ -13,6 +13,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <net/SipMessage.h>
+#include <cp/CpMediaInterfaceProvider.h>
 #include <cp/state/DialingSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
@@ -20,6 +22,7 @@
 #include <cp/state/RemoteAlertingSipConnectionState.h>
 #include <cp/state/RemoteQueuedSipConnectionState.h>
 #include <cp/state/StateTransitionEventDispatcher.h>
+#include <cp/state/GeneralTransitionMemory.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -88,7 +91,61 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(const UtlString
                                                                  const UtlString& locationHeader,
                                                                  CP_CONTACT_ID contactId)
 {
-   return NULL;
+   m_rStateContext.m_contactId = contactId;
+
+   SipMessage sipInvite;
+   Url fromField(fromAddress);
+   int cseqNum = 0;
+
+   UtlString contactUrl = buildContactUrl(fromField); // fromUrl without tag
+   fromField.setFieldParameter("tag", localTag);
+   secureUrl(fromField);
+   sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
+   getTransactionManager().startInitialInviteTransaction(cseqNum);
+
+   sipInvite.setInviteData(fromField.toString(), toAddress,
+      NULL, contactUrl, sipCallId,
+      cseqNum, m_rStateContext.m_sessionReinviteSec);
+
+   if (!locationHeader.isNull())
+   {
+      m_rStateContext.m_locationHeader = locationHeader;
+      sipInvite.setLocationField(locationHeader);
+   }
+
+   initializeSipDialog(sipInvite);
+
+   // check if some audio device is available
+   if (!m_rMediaInterfaceProvider.getMediaInterface()->isAudioAvailable())
+   {
+      GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_RESOURCE_LIMIT);
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   }
+
+   // add SDP if negotiation mode is immediate, otherwise don't add it
+   if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
+   {
+      if (!startSdpNegotiation(sipInvite))
+      {
+         // SDP negotiation start failed
+         // media connection creation failed
+         GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_RESOURCE_LIMIT);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+      }
+   }
+
+   // try to send sip message
+   UtlBoolean sendSuccess = sendMessage(sipInvite);
+
+   if (sendSuccess)
+   {
+      return getTransition(ISipConnectionState::CONNECTION_REMOTE_OFFERING, NULL);
+   }
+   else
+   {
+      GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NETWORK);
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   }
 }
 
 /* ============================ ACCESSORS ================================= */

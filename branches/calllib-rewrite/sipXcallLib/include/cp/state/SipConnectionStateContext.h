@@ -16,10 +16,12 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <net/SipTagGenerator.h>
+#include <net/SmimeBody.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/Cp100RelTracker.h>
 #include <cp/CpSdpNegotiation.h>
 #include <cp/CpSipTransactionManager.h>
+#include <tapi/sipXtapi.h> // craziness
 
 // DEFINES
 // MACROS
@@ -60,6 +62,11 @@ public:
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    Cp100RelTracker m_100RelTracker; ///< tracker for 100rel responses and PRACKs
    CpSipTransactionManager m_sipTransactionMgr; ///< sip transaction tracking & cseq generator
+   int m_sessionReinviteSec; ///< time in seconds when refresh re-invite should occur
+   UtlString m_locationHeader; ///< value of sip location header
+   int m_contactId; ///< id of contact we use. Can be used to lookup SIPX_CONTACT_ADDRESS
+   SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
+   RTP_TRANSPORT m_rtpTransport;
 
    /* ============================ CREATORS ================================== */
 

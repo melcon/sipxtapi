@@ -93,6 +93,7 @@ UtlBoolean XCpCallStack::findAbstractCall(const SipDialog& sSipDialog,
          pAbstractPtr = dynamic_cast<UtlPtr<XCpAbstractCall>*>(callListItor.item());
          if (pAbstractPtr && pAbstractPtr->getValue())
          {
+            pAbstractCall = pAbstractPtr->getValue();
             SipDialog::DialogMatchEnum matchResult = pAbstractCall->hasSipDialog(sSipDialog);
             if (matchResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
                matchResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)

@@ -15,6 +15,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <mi/CpMediaInterface.h>
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -23,7 +25,6 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
-class CpMediaInterface;
 
 /**
  * Abstraction for CpMediaInterface provider. Sometimes we might need to share

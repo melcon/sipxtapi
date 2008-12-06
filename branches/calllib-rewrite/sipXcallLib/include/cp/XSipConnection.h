@@ -104,7 +104,9 @@ public:
     * Connects call to given address. Sip callId is not supplied here, because
     * sip connection has a callId assigned to its during creation.
     */
-   OsStatus connect(const UtlString& toAddress,
+   OsStatus connect(const UtlString& sipCallId,
+                    const UtlString& localTag,
+                    const UtlString& toAddress,
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId);

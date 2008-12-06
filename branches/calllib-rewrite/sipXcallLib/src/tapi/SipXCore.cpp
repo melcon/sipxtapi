@@ -724,6 +724,8 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pMessageObserver->requestShutdown();
          pInst->pCodecList->clearCodecs();
 
+         delete pInst->pCallManager;
+         pInst->pCallManager = NULL;
          delete pInst->pSipPimClient;
          pInst->pSipPimClient = NULL;
          delete pInst->pSubscribeClient;
@@ -740,8 +742,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSipUserAgent = NULL;
          delete pInst->pLineManager;
          pInst->pLineManager = NULL;
-         delete pInst->pCallManager;
-         pInst->pCallManager = NULL;
          delete pInst->pCodecList;
          // release all shared server tasks
          pInst->pSharedTaskMgr->release(*pInst->pLineEventListener);

@@ -23,6 +23,8 @@
 #include <cp/CpNatTraversalConfig.h>
 
 // DEFINES
+#define MAX_ADDRESS_CANDIDATES      12
+
 // MACROS
 // EXTERNAL FUNCTIONS
 // CONSTANTS
@@ -92,7 +94,9 @@ public:
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /** Connects call to given address. Uses supplied sip call-id. */
-   virtual SipConnectionStateTransition* connect(const UtlString& toAddress,
+   virtual SipConnectionStateTransition* connect(const UtlString& sipCallId,
+                                                 const UtlString& localTag,
+                                                 const UtlString& toAddress,
                                                  const UtlString& fromAddress,
                                                  const UtlString& locationHeader,
                                                  CP_CONTACT_ID contactId);
@@ -130,6 +134,9 @@ protected:
 
    /** Updates state of SipDialog with given SipMessage. Use for both inbound and outbound messages. */
    void updateSipDialog(const SipMessage& sipMessage);
+
+   /** Initializes SipDialog */
+   void initializeSipDialog(const SipMessage& sipMessage);
 
    /** Sends specified sip message, updating the state of SipDialog. SipMessage will be updated. */
    UtlBoolean sendMessage(SipMessage& sipMessage);
@@ -250,6 +257,24 @@ protected:
 
    /** Checks if given sip method needs transaction tracking */
    UtlBoolean needsTransactionTracking(const UtlString& sipMethod) const;
+
+   /** 
+    * Builds contact URL based on contactId. Might be sips if TLS transport is selected. UserId, display name
+    * are filled from fromAddress.
+    */
+   UtlString buildContactUrl(const Url& fromAddress) const;
+
+   /** Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress*/
+   UtlString buildDefaultContactUrl(const Url& fromAddress) const;
+
+   /** Changes scheme to sips: if secured transport is used based on contactId */
+   void secureUrl(Url& fromAddress) const;
+
+   /** Creates media connection from media interface, returning mediaConnectionId */
+   UtlBoolean setupMediaConnection(RTP_TRANSPORT rtpTransportOptions, int& mediaConnectionId);
+
+   /** Starts SDP negotiation, adds SDP offer to given SipMessage and creates a media connection */
+   UtlBoolean startSdpNegotiation(SipMessage& sipMessage);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

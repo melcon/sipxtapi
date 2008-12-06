@@ -302,14 +302,8 @@ SIPX_CALL_DATA* sipxCallLookup(const SIPX_CALL hCall,
 
 UtlBoolean validCallData(SIPX_CALL_DATA* pData)
 {
-   UtlString sipCallId;
-   if (pData)
-   {
-      pData->m_sipDialog.getCallId(sipCallId);
-   }
-
    return (pData &&
-      !sipCallId.isNull() && 
+      !pData->m_abstractCallId.isNull() && 
       pData->m_pInst &&
       pData->m_pInst->pCallManager && 
       pData->m_pInst->pRefreshManager &&
@@ -1402,7 +1396,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
 
             // connect just checks address and posts a message
             // cannot hold any locks here
-            if (pData->m_hConf != SIPX_CONF_NULL)
+            if (pData->m_hConf == SIPX_CONF_NULL)
             {
                // call is not part of conference
                status = pInst->pCallManager->connectCall(pData->m_abstractCallId, pData->m_sipDialog,
