@@ -98,8 +98,11 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
    m_rSipUserAgent.allowExtension(SIP_SESSION_TIMER_EXTENSION);
    m_rSipUserAgent.allowExtension(SIP_PRACK_EXTENSION);
 
-   int defaultInviteExpireSeconds = m_rSipUserAgent.getDefaultExpiresSeconds();
-   if (m_inviteExpireSeconds > defaultInviteExpireSeconds) m_inviteExpireSeconds = defaultInviteExpireSeconds;
+   if (m_inviteExpireSeconds < 90)
+   {
+      // minimum value for session timer is 90 seconds
+      m_inviteExpireSeconds = 90;
+   }
 
    m_rMediaInterfaceFactory.setRtpPortRange(m_rtpPortStart, m_rtpPortEnd);
 }
@@ -158,7 +161,7 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
    }
 
    XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
-      m_natTraversalConfig, m_sLocalIpAddress, &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
+      m_natTraversalConfig, m_sLocalIpAddress, m_inviteExpireSeconds, &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
       m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start();
@@ -191,7 +194,7 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
       sConferenceId = getNewConferenceId();
    }
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
-      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, &m_callStack, m_pCallEventListener,
+      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_inviteExpireSeconds, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pConference->start();
@@ -926,6 +929,18 @@ UtlString XCpCallManager::getNewConferenceId()
 
 /* ============================ ACCESSORS ================================= */
 
+void XCpCallManager::setInviteExpireSeconds(int val)
+{
+   if (val < 90)
+   {
+      m_inviteExpireSeconds = 90;
+   }
+   else
+   {
+      m_inviteExpireSeconds = val;
+   }
+}
+
 CpMediaInterfaceFactory* XCpCallManager::getMediaInterfaceFactory() const
 {
    return &m_rMediaInterfaceFactory;
@@ -1340,7 +1355,7 @@ void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
    UtlString sSipCallId = getNewSipCallId();
 
    XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
-      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, &m_callStack, m_pCallEventListener,
+      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_inviteExpireSeconds, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start(); // start thread

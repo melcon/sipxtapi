@@ -54,8 +54,11 @@ class XSipConnectionContext : public OsRWSyncBase
 public:
    SipDialog m_sipDialog; ///< contains properties of Sip dialog as defined in RFC 3261
    UtlString m_remoteUserAgent;
-   int m_mediaConnectionId; ///< contains Id of media connection for CpMediaInterface
    UtlString m_sAbstractCallId; ///< contains Id of abstract call holding Sip connection
+
+   // thread safe atomic
+   int m_mediaConnectionId; ///< contains Id of media connection for CpMediaInterface
+   int m_inviteExpireSeconds; ///< current session interval according to RFC4028. Negotiated if 422 is received.
 
    /* ============================ CREATORS ================================== */
 

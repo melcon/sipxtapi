@@ -472,6 +472,9 @@ public:
    int getMaxCalls() const { return m_maxCalls; }
    void setMaxCalls(int val) { m_maxCalls = val; }
 
+   int getInviteExpireSeconds() const { return m_inviteExpireSeconds; }
+   void setInviteExpireSeconds(int val);
+
    CpMediaInterfaceFactory* getMediaInterfaceFactory() const;
 
    /* ============================ INQUIRY =================================== */
@@ -599,7 +602,7 @@ private:
    UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
    UtlBoolean m_bIsRequiredLineMatch; ///< if inbound SIP message must correspond to some line to be handled
    int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
-   int m_inviteExpireSeconds;
+   int m_inviteExpireSeconds; ///< session interval (RFC4028) - time between refresh requests (INVITE or UPDATE)
 
    // read only fields
    const int m_rtpPortStart;

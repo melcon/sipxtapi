@@ -2383,3 +2383,33 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAllLocalNetworkIps(char* arrAddresses[],
 
    return rc;
 }
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int* iSessionInterval) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      *iSessionInterval = pInst->pCallManager->getInviteExpireSeconds();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int iSessionInterval) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+
+   if (pInst)
+   {
+      pInst->pCallManager->setInviteExpireSeconds(iSessionInterval);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}

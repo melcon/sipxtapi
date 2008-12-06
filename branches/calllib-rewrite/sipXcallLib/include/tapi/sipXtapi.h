@@ -3892,6 +3892,26 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
                                                                   const size_t nData);
 
 
+/**
+ * Gets current session interval defined in RFC4028 (session timers) - time between
+ * session updates (INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param iSessionInterval Current value of session timer expiration.
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int* iSessionInterval);
+
+/**
+ * Sets current session interval defined in RFC4028 (session timers) - time between
+ * session updates (INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param iSessionInterval New value of session timer expiration. Values lower than 90
+ *        are ignored. Minimum value is 90.
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int iSessionInterval);
 //@}
 /** @name Utility Functions */
 //@{

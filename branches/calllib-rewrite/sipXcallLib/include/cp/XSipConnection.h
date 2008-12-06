@@ -71,6 +71,7 @@ public:
    XSipConnection(const UtlString& sAbstractCallId,
                   const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
+                  int inviteExpireSeconds,
                   CpMediaInterfaceProvider& rMediaInterfaceProvider,
                   CpMessageQueueProvider& rMessageQueueProvider,
                   const CpNatTraversalConfig& natTraversalConfig,

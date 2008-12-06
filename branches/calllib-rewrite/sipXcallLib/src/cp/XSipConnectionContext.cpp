@@ -31,6 +31,7 @@
 XSipConnectionContext::XSipConnectionContext()
 : m_memberMutex(OsRWMutex::Q_FIFO)
 , m_mediaConnectionId(CpMediaInterface::INVALID_CONNECTION_ID)
+, m_inviteExpireSeconds(3600)
 {
 
 }
