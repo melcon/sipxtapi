@@ -223,7 +223,7 @@ Content-Length: 0\r\n\r\n";
          subDialog.getRemoteContact(remoteContactUri);
          remoteContactUri.toString(remoteContactString);
          // Not set yet as we do not have a contact from the other side
-         ASSERT_STR_EQUAL("<sip:>", remoteContactString.data());
+         ASSERT_STR_EQUAL("", remoteContactString.data());
 
          Url localContactUri;
          UtlString localContactString;
