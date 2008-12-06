@@ -161,12 +161,6 @@ public:
    */
    UtlBoolean deleteAbstractCall(const UtlString& sAbstractCallId);
 
-   /**
-   * Deletes all calls & conferences on the stack, freeing any call resources. Doesn't properly terminate
-   * the calls.
-   */
-   void deleteAllAbstractCalls();
-
    /** Gains focus for given call, defocusing old focused call. */
    OsStatus doGainFocus(const UtlString& sAbstractCallId,
                         UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);

@@ -51,7 +51,10 @@ XCpCallStack::XCpCallStack()
 
 XCpCallStack::~XCpCallStack()
 {
-   deleteAllAbstractCalls();
+   doYieldFocus(FALSE);
+   // no lock needed, we are in destructor
+   m_abstractCallIdMap.destroyAll();
+   m_sipCallIdMap.destroyAll();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -405,15 +408,6 @@ UtlBoolean XCpCallStack::deleteAbstractCall(const UtlString& sAbstractCallId)
    }
 
    return result;
-}
-
-void XCpCallStack::deleteAllAbstractCalls()
-{
-   doYieldFocus(FALSE);
-   OsWriteLock lock(m_memberMutex);
-
-   m_abstractCallIdMap.destroyAll();
-   m_sipCallIdMap.destroyAll();
 }
 
 OsStatus XCpCallStack::doGainFocus(const UtlString& sAbstractCallId,
