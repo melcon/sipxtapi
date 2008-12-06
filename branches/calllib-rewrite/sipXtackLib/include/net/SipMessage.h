@@ -1134,8 +1134,15 @@ public:
     // RFC 3326 REASON-header
     void setReasonField(const char* reasonField);
 
+    /** Gets value of whole unparsed Reason: field.*/
     UtlBoolean getReasonField(UtlString& reasonField) const;
 
+    /** 
+     * Gets protocol, first cause and text values from Reason: header field.
+     *
+     * @param index - index of the "reason-value" from RFC3326 to parse. Normally 0 can be used.
+     */
+    UtlBoolean getReasonField(int index, UtlString& protocol, int& cause, UtlString& text) const;
 	
     // Diversion-header
     void addDiversionField(const char* addr, const char* reasonParam,
