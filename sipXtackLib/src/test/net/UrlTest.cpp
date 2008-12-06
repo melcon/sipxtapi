@@ -674,7 +674,7 @@ public:
     void testHttpConstruction()
     {
         Url url;
-        ASSERT_STR_EQUAL("", toString(url));
+        ASSERT_STR_EQUAL("<sip:>", toString(url));
         url.setUrlType("http") ; 
         url.setHostAddress("web.server") ; 
         url.setPath("/somewhere/in/cyber") ; 
@@ -689,7 +689,7 @@ public:
 
         // Type should be set to sip by default. Verify that by not setting 
         // anything for the type
-        ASSERT_STR_EQUAL("", toString(url));
+        ASSERT_STR_EQUAL("<sip:>", toString(url));
 
         url.setUserId("raghu");
         url.setPassword("rgpwd");

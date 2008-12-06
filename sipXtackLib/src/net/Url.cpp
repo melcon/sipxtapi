@@ -369,6 +369,29 @@ void Url::setScheme(Url::Scheme scheme)
    mScheme = scheme;
 }
 
+UtlBoolean Url::isNull() const
+{
+
+   if (mDisplayName.isNull() &&
+       mUserId.isNull() &&
+       mPassword.isNull() &&
+       !mPasswordSet &&
+       mHostAddress.isNull() &&
+       mHostPort == PORT_NONE &&
+       mPath.isNull() &&
+       mRawUrlParameters.isNull() &&
+       mRawHeaderOrQueryParameters.isNull() &&
+       mRawFieldParameters.isNull() &&
+       (mpUrlParameters == NULL || mpUrlParameters->entries() == 0) &&
+       (mpHeaderOrQueryParameters == NULL || mpHeaderOrQueryParameters->entries() == 0) &&
+       (mpFieldParameters == NULL || mpFieldParameters->entries() == 0))
+   {
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
 void Url::setUrlType(const char* urlProtocol)
 {
    if (urlProtocol)
@@ -1131,7 +1154,6 @@ UtlString Url::toString() const
 void Url::toString(UtlString& urlString) const
 {
    UtlBoolean isNameAddr = FALSE;
-   UtlBoolean isEmpty = TRUE;
 
    // This is a replace operation; clear the storage string
    urlString.remove(0);
@@ -1139,7 +1161,6 @@ void Url::toString(UtlString& urlString) const
    if ( !mDisplayName.isNull() )
    {
       urlString.append(mDisplayName);
-      isEmpty = FALSE;
       isNameAddr = TRUE;
    }
 
@@ -1173,10 +1194,6 @@ void Url::toString(UtlString& urlString) const
 
    UtlString theAddrSpec;
    const_cast<Url*>(this)->getUri(theAddrSpec);
-   if (!theAddrSpec.isNull() && theAddrSpec.compareTo("sip:")) // if uri is not just sip:, and is not null then its not empty
-   {
-      isEmpty = FALSE;
-   }
    urlString.append(theAddrSpec);
    
    // Add the terminating angle bracket
@@ -1203,13 +1220,7 @@ void Url::toString(UtlString& urlString) const
             Url::gen_value_escape(fieldParamValue);
             urlString.append(fieldParamValue);
          }
-         isEmpty = FALSE;
       }
-   }
-
-   if (isEmpty)
-   {
-      urlString.remove(0); // url is empty, don't print <sip:>
    }
 }
 

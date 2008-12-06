@@ -224,7 +224,7 @@ public:
    //! Get the SIP To/From header value for the local side of this dialog
    void getLocalField(UtlString& sLocalUrl) const;
    //! Get the SIP To/From header value for the local side of this dialog
-   UtlString getLocalField() const;
+   Url getLocalField() const;
    //! Get the tag from the SIP To/From header value for the local side of this dialog
    void getLocalTag(UtlString& localTag) const;
    //! Set the SIP To/From header value for the local side of this dialog
@@ -235,7 +235,7 @@ public:
    //! Get the SIP To/From header value for the remote side of this dialog
    void getRemoteField(UtlString& sRemoteUrl) const;
    //! Get the SIP To/From header value for the remote side of this dialog
-   UtlString getRemoteField() const;
+   Url getRemoteField() const;
    //! Get the tag from the SIP To/From header value for the remote side of this dialog
    void getRemoteTag(UtlString& remoteTag) const;
    //! Set the SIP To/From header value for the remote side of this dialog
