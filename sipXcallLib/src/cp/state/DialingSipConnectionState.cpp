@@ -105,7 +105,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(const UtlString
 
    sipInvite.setInviteData(fromField.toString(), toAddress,
       NULL, contactUrl, sipCallId,
-      cseqNum, m_rStateContext.m_sessionReinviteSec);
+      cseqNum, m_rStateContext.m_inviteExpireSeconds);
 
    if (!locationHeader.isNull())
    {

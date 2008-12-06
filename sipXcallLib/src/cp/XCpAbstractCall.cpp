@@ -74,6 +74,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  OsMsgQ& rCallManagerQueue,
                                  const CpNatTraversalConfig& rNatTraversalConfig,
                                  const UtlString& sLocalIpAddress,
+                                 int inviteExpireSeconds,
                                  XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -96,6 +97,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pMediaEventListener(pMediaEventListener)
 , m_natTraversalConfig(rNatTraversalConfig)
 , m_sLocalIpAddress(sLocalIpAddress)
+, m_inviteExpireSeconds(inviteExpireSeconds)
 {
 
 }

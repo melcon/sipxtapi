@@ -73,6 +73,7 @@ public:
                  OsMsgQ& rCallManagerQueue,
                  const CpNatTraversalConfig& rNatTraversalConfig,
                  const UtlString& sLocalIpAddress,
+                 int inviteExpireSeconds,
                  XCpCallConnectionListener* pCallConnectionListener = NULL,
                  CpCallStateEventListener* pCallEventListener = NULL,
                  SipInfoStatusEventListener* pInfoStatusEventListener = NULL,

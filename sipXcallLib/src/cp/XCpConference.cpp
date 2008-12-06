@@ -52,13 +52,14 @@ XCpConference::XCpConference(const UtlString& sId,
                              OsMsgQ& rCallManagerQueue,
                              const CpNatTraversalConfig& rNatTraversalConfig,
                              const UtlString& sLocalIpAddress,
+                             int inviteExpireSeconds,
                              XCpCallConnectionListener* pCallConnectionListener,
                              CpCallStateEventListener* pCallEventListener,
                              SipInfoStatusEventListener* pInfoStatusEventListener,
                              SipSecurityEventListener* pSecurityEventListener,
                              CpMediaEventListener* pMediaEventListener)
 : XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
-                  sLocalIpAddress, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
+                  sLocalIpAddress, inviteExpireSeconds, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pSecurityEventListener, pMediaEventListener)
 {
 

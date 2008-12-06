@@ -508,7 +508,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       rtpPortStart, // rtpPortStart
       rtpPortStart + (2 * maxConnections), // rtpPortEnd
       maxConnections, // maxCalls - max calls before sending busy. -1 means unlimited
-      180, // inviteExpireSeconds
+      180, // inviteExpireSeconds - RFC4028 session timer
       *sipXmediaFactoryFactory(NULL));
 
    // Start up the call processing system

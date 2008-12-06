@@ -731,7 +731,6 @@ UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTranspo
    
    if (res == OS_SUCCESS)
    {
-      OsWriteLock lock(m_rStateContext);
       m_rStateContext.m_mediaConnectionId = mediaConnectionId;
       return TRUE;
    }
