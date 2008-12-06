@@ -23,6 +23,7 @@
 #include <os/OsNatDatagramSocket.h>
 #include <os/OsMulticastSocket.h>
 #include <os/OsProtectEventMgr.h>
+#include <os/HostAdapterAddress.h>
 #include "include/SipXMediaInterfaceImpl.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include <mp/MpMediaTask.h>
@@ -33,6 +34,12 @@
 #include <mp/dtmflib.h>
 
 #include <sdp/SdpCodec.h>
+
+#ifdef _WIN32
+#include <os/wnt/getWindowsDNSServers.h>
+#else
+#include <os/linux/AdapterInfo.h>
+#endif
 
 #if defined(_VXWORKS)
 #   include <socket.h>
@@ -1674,27 +1681,60 @@ const void* SipXMediaInterfaceImpl::getVideoWindowDisplay()
 
 
 UtlBoolean SipXMediaInterfaceImpl::getLocalAddresses(int connectionId,
-                                              UtlString& hostIp,
-                                              int& rtpAudioPort,
-                                              int& rtcpAudioPort,
-                                              int& rtpVideoPort,
-                                              int& rtcpVideoPort)
+                                                     int nMaxAddresses,
+                                                     UtlString hostIps[],
+                                                     int& rtpAudioPort,
+                                                     int& rtcpAudioPort,
+                                                     int& rtpVideoPort,
+                                                     int& rtcpVideoPort,
+                                                     int& nActualAddresses)
 {
     UtlBoolean bRC = FALSE ;
-    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);    
+    SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
 
-    hostIp.remove(0) ;
-    rtpAudioPort = PORT_NONE ;
-    rtcpAudioPort = PORT_NONE ;
-    rtpVideoPort = PORT_NONE ;
-    rtcpVideoPort = PORT_NONE ;
+    rtpAudioPort = PORT_NONE;
+    rtcpAudioPort = PORT_NONE;
+    rtpVideoPort = PORT_NONE;
+    rtcpVideoPort = PORT_NONE;
+
+    for (int i = 0; i < nMaxAddresses; i++)
+    {
+       hostIps[i].remove(0);
+    }
 
     if (pMediaConn)
     {
         // Audio rtp port (must exist)
         if (pMediaConn->mpRtpAudioSocket)
         {
-            hostIp = pMediaConn->mpRtpAudioSocket->getLocalIp();
+            UtlString bindIp = pMediaConn->mpRtpAudioSocket->getLocalIp(); // may be 0.0.0.0
+
+            if (bindIp.compareTo("0.0.0.0") == 0) // bound to all
+            {
+               int addressCount = 32;
+               const HostAdapterAddress* utlAddresses[32];
+               if (getAllLocalHostIps(utlAddresses, addressCount)) // changes addressCount
+               {
+                  // this doesn't return 0.0.0.0 or 127.0.0.1
+                  for (int i = 0; (i < addressCount) && (i < nMaxAddresses); i++)
+                  {
+                     hostIps[i] = utlAddresses[i]->mAddress;
+                     delete utlAddresses[i];
+                  }
+                  nActualAddresses = addressCount;
+               }
+               else
+               {
+                  return FALSE;
+               }
+            }
+            else
+            {
+               // bound to single ip
+               hostIps[0] = bindIp;
+               nActualAddresses = 1;
+            }
+
             rtpAudioPort = pMediaConn->mpRtpAudioSocket->getLocalHostPort();
             if (rtpAudioPort > 0)
             {
@@ -1913,48 +1953,49 @@ OsStatus SipXMediaInterfaceImpl::addLocalContacts(int connectionId,
                                                  int rtcpVideoPorts[],
                                                  int& nActualAddresses)
 {
-    UtlString hostIp ;
     int rtpAudioPort = PORT_NONE ;
     int rtcpAudioPort = PORT_NONE ;
     int rtpVideoPort = PORT_NONE ;
     int rtcpVideoPort = PORT_NONE ;
+    const int localIpsMaxCount = 32;
+    UtlString localIps[localIpsMaxCount];
+    int actualLocalIps = 0;
     OsStatus rc = OS_FAILED ;
 
     // Local Addresses
-    if (    (nActualAddresses < nMaxAddresses) && 
-            getLocalAddresses(connectionId, hostIp, rtpAudioPort, 
-            rtcpAudioPort, rtpVideoPort, rtcpVideoPort) )
+    if ((nActualAddresses < nMaxAddresses) && 
+        getLocalAddresses(connectionId, localIpsMaxCount, localIps, rtpAudioPort, 
+                          rtcpAudioPort, rtpVideoPort, rtcpVideoPort, actualLocalIps))
     {
-        UtlBoolean bDuplicate = FALSE ;
-        
-        // Check for duplicates
-        for (int i=0; i<nActualAddresses; i++)
-        {
-            if (    (rtpHostAddresses[i].compareTo(hostIp) == 0) &&
-                    (rtpAudioPorts[i] == rtpAudioPort) &&
-                    (rtcpAudioPorts[i] == rtcpAudioPort) &&
-                    (rtpVideoPorts[i] == rtpVideoPort) &&
-                    (rtcpVideoPorts[i] == rtcpVideoPort))
-            {
-                bDuplicate = TRUE ;
-                break ;
-            }
-        }
+       for (int i = 0; (i < actualLocalIps) && (i < nMaxAddresses); i++)
+       {
+          // Check for duplicates
+          for (int k = 0; k < nActualAddresses; k++)
+          {
+             if ((rtpHostAddresses[k].compareTo(localIps[i]) == 0) &&
+                (rtpAudioPorts[k] == rtpAudioPort) &&
+                (rtcpAudioPorts[k] == rtcpAudioPort) &&
+                (rtpVideoPorts[k] == rtpVideoPort) &&
+                (rtcpVideoPorts[k] == rtcpVideoPort))
+             {
+                // duplicate
+                continue;
+             }
+          }
 
-        if (!bDuplicate)
-        {
-            rtpHostAddresses[nActualAddresses] = hostIp ;
-            rtpAudioPorts[nActualAddresses] = rtpAudioPort ;
-            rtcpAudioPorts[nActualAddresses] = rtcpAudioPort ;
-            rtpVideoPorts[nActualAddresses] = rtpVideoPort ;
-            rtcpVideoPorts[nActualAddresses] = rtcpVideoPort ;
-            nActualAddresses++ ;
+          // not duplicate, add it
+          rtpHostAddresses[nActualAddresses] = localIps[i];
+          rtpAudioPorts[nActualAddresses] = rtpAudioPort;
+          rtcpAudioPorts[nActualAddresses] = rtcpAudioPort;
+          rtpVideoPorts[nActualAddresses] = rtpVideoPort;
+          rtcpVideoPorts[nActualAddresses] = rtcpVideoPort;
+          nActualAddresses++;
 
-            rc = OS_SUCCESS ;
-        }
+          rc = OS_SUCCESS;
+       }
     }
 
-    return rc ;
+    return rc;
 }
 
 
