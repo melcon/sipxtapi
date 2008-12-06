@@ -108,6 +108,7 @@
                 <File RelativePath=".\src\cp\state\DialingSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\DisconnectedSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\EstablishedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\GeneralTransitionMemory.cpp"/>
                 <File RelativePath=".\src\cp\state\IdleSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\NewCallSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\OfferingSipConnectionState.cpp"/>
@@ -211,6 +212,7 @@
                 <File RelativePath=".\include\cp\state\DialingSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\DisconnectedSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\EstablishedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\GeneralTransitionMemory.h"/>
                 <File RelativePath=".\include\cp\state\IdleSipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\ISipConnectionState.h"/>
                 <File RelativePath=".\include\cp\state\NewCallSipConnectionState.h"/>

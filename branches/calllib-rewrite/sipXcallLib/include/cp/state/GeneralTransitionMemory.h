@@ -10,11 +10,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef StateTransitionMemory_h__
-#define StateTransitionMemory_h__
+#ifndef GeneralTransitionMemory_h__
+#define GeneralTransitionMemory_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <utl/UtlString.h>
+#include <cp/CpDefs.h>
+#include <cp/state/StateTransitionMemory.h>
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -25,41 +29,36 @@
 // FORWARD DECLARATIONS
 
 /**
- * Memory object root for transferring information in transition of a state. Do not
- * insert your fields here, subclass it.
- *
- * Subclasses of this class must provide proper copy constructor and assignment operator!
+ * GeneralTransitionMemory keeps call state cause, SIP response code and text.
  */
-class StateTransitionMemory
+class GeneralTransitionMemory : public StateTransitionMemory
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      TYPE_UNKNOWN = 0,
-      SIP_RESPONSE_MEMORY,
-      SIP_MESSAGE_EVENT_MEMORY,
-      GENERAL_EVENT_MEMORY
-   } Type;
-
    /* ============================ CREATORS ================================== */
-   
-   /** Constructor. */
-   StateTransitionMemory() { }
 
-   /** Virtual destructor. */
-   virtual ~StateTransitionMemory() { }
+   /** Constructor. */
+   GeneralTransitionMemory(CP_CALLSTATE_CAUSE cause,
+                           int sipResponseCode = 0,
+                           const UtlString& sipResponseText = NULL);
+
+   /** Destructor. */
+   virtual ~GeneralTransitionMemory();
 
    /* ============================ MANIPULATORS ============================== */
 
    /** Creates copy of transition memory. */
-   virtual StateTransitionMemory* clone() const = 0;
+   virtual StateTransitionMemory* clone() const;
 
    /* ============================ ACCESSORS ================================= */
 
+   int getSipResponseCode() const { return m_sipResponseCode; }
+   UtlString getSipResponseText() const { return m_sipResponseText; }
+   CP_CALLSTATE_CAUSE getCause() const { return m_cause; }
+
    virtual StateTransitionMemory::Type getType() const
    {
-      return TYPE_UNKNOWN;
+      return SIP_RESPONSE_MEMORY;
    }
 
    /* ============================ INQUIRY =================================== */
@@ -70,6 +69,9 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+   CP_CALLSTATE_CAUSE m_cause; ///< cause of event
+   int m_sipResponseCode; ///< stores sip response code
+   UtlString m_sipResponseText; ///< stores response text
 };
 
-#endif // StateTransitionMemory_h__
+#endif // GeneralTransitionMemory_h__

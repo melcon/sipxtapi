@@ -185,8 +185,8 @@ protected:
     */
    virtual SipConnectionStateTransition* processResponse(const SipMessage& sipMessage);
 
-   /** Handles non error inbound SIP responses */
-   virtual SipConnectionStateTransition* processNonErrorResponse(const SipMessage& sipMessage);
+   /** Handles non fatal inbound SIP responses. These do not terminate the dialog. */
+   virtual SipConnectionStateTransition* processNonFatalResponse(const SipMessage& sipMessage);
 
    /** Handles inbound SIP INVITE responses */
    virtual SipConnectionStateTransition* processInviteResponse(const SipMessage& sipMessage);

@@ -99,6 +99,7 @@ libsipXcall_la_SOURCES = \
     cp/state/DialingSipConnectionState.cpp \
     cp/state/DisconnectedSipConnectionState.cpp \
     cp/state/EstablishedSipConnectionState.cpp \
+    cp/state/GeneralTransitionMemory.cpp \
     cp/state/IdleSipConnectionState.cpp \
     cp/state/NewCallSipConnectionState.cpp \
     cp/state/OfferingSipConnectionState.cpp \

@@ -87,6 +87,7 @@ nobase_include_HEADERS =  \
     cp/state/DialingSipConnectionState.h \
     cp/state/DisconnectedSipConnectionState.h \
     cp/state/EstablishedSipConnectionState.h \
+    cp/state/GeneralTransitionMemory.h \
     cp/state/ISipConnectionState.h \
     cp/state/IdleSipConnectionState.h \
     cp/state/NewCallSipConnectionState.h \
