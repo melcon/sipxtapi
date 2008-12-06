@@ -39,6 +39,7 @@ SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent
                                                      const CpNatTraversalConfig& natTraversalConfig)
 : m_rStateContext()
 , m_pSipConnectionState(NULL)
+, m_pStateObserver(NULL)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
 , m_rMessageQueueProvider(rMessageQueueProvider)
@@ -72,7 +73,9 @@ UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEven
    return FALSE;
 }
 
-OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
+OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
+                                            const UtlString& localTag,
+                                            const UtlString& toAddress,
                                             const UtlString& fromAddress,
                                             const UtlString& locationHeader,
                                             CP_CONTACT_ID contactId)
@@ -90,7 +93,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& toAddress,
    // now let state handle request
    if (m_pSipConnectionState)
    {
-      handleStateTransition(m_pSipConnectionState->connect(toAddress, fromAddress,
+      handleStateTransition(m_pSipConnectionState->connect(sipCallId, localTag, toAddress, fromAddress,
          locationHeader, contactId));
       return OS_SUCCESS;
    }

@@ -15,9 +15,11 @@
 #include <os/OsSysLog.h>
 #include <os/OsWriteLock.h>
 #include <os/OsReadLock.h>
+#include <sdp/SdpCodecList.h>
 #include <net/SipMessage.h>
 #include <net/SipUserAgent.h>
 #include <mi/CpMediaInterface.h>
+#include <cp/CpMessageQueueProvider.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/state/BaseSipConnectionState.h>
 #include <cp/state/SipConnectionStateTransition.h>
@@ -129,12 +131,14 @@ SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(cons
    return NULL;
 }
 
-SipConnectionStateTransition* BaseSipConnectionState::connect(const UtlString& toAddress,
+SipConnectionStateTransition* BaseSipConnectionState::connect(const UtlString& sipCallId,
+                                                              const UtlString& localTag,
+                                                              const UtlString& toAddress,
                                                               const UtlString& fromAddress,
                                                               const UtlString& locationHeader,
                                                               CP_CONTACT_ID contactId)
 {
-   // TODO: Implement
+   // we reject connect in all states except for Dialing
    return NULL;
 }
 
@@ -200,6 +204,12 @@ void BaseSipConnectionState::updateSipDialog(const SipMessage& sipMessage)
 {
    OsWriteLock lock(m_rStateContext);
    m_rStateContext.m_sipDialog.updateDialog(sipMessage);
+}
+
+void BaseSipConnectionState::initializeSipDialog(const SipMessage& sipMessage)
+{
+   OsWriteLock lock(m_rStateContext);
+   m_rStateContext.m_sipDialog = SipDialog(&sipMessage);
 }
 
 UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
@@ -632,6 +642,164 @@ UtlBoolean BaseSipConnectionState::needsTransactionTracking(const UtlString& sip
    if (trackable.index(sipMethod) != UtlString::UTLSTRING_NOT_FOUND)
    {
       return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
+{
+   UtlString sContact;
+   if (m_rStateContext.m_contactId != AUTOMATIC_CONTACT_ID)
+   {
+      // contact id is known
+      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+      if (pContact != NULL)
+      {
+         // Get display name and user id from from Url
+         UtlString displayName;
+         UtlString userId;
+         fromUrl.getDisplayName(displayName);
+         fromUrl.getUserId(userId);
+
+         Url contactUrl;
+         contactUrl.setDisplayName(displayName);
+         contactUrl.setUserId(userId);
+         contactUrl.setHostAddress(pContact->cIpAddress);
+         contactUrl.setHostPort(pContact->iPort);
+         contactUrl.includeAngleBrackets();
+         secureUrl(contactUrl);
+         return sContact;
+      }
+   }
+
+   return buildDefaultContactUrl(fromUrl);
+}
+
+UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) const
+{
+   // automatic contact or id not found
+   // Get host and port from default local contact
+   UtlString address;
+   UtlString contactHostPort;
+   m_rSipUserAgent.getContactUri(&contactHostPort);
+   Url hostPort(contactHostPort);
+   hostPort.getHostAddress(address);
+   int port = hostPort.getHostPort();
+
+   // Get display name and user id from from Url
+   UtlString displayName;
+   UtlString userId;
+   fromUrl.getDisplayName(displayName);
+   fromUrl.getUserId(userId);
+
+   // Construct a new contact URL with host/port from local contact
+   // and display name/userid from From URL
+   Url contactUrl;
+   contactUrl.setDisplayName(displayName);
+   contactUrl.setUserId(userId);
+   contactUrl.setHostAddress(address);
+   contactUrl.setHostPort(port);
+   contactUrl.includeAngleBrackets();
+   return contactUrl.toString();
+}
+
+void BaseSipConnectionState::secureUrl(Url& fromUrl) const
+{
+   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+   if (pContact != NULL)
+   {
+      if (pContact->eTransportType == TRANSPORT_TLS)
+      {
+         fromUrl.setScheme(Url::SipsUrlScheme);
+      }
+   }
+
+   delete pContact;
+   pContact = NULL;
+}
+
+UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTransportOptions, int& mediaConnectionId)
+{
+   OsStatus res = m_rMediaInterfaceProvider.getMediaInterface()->createConnection(mediaConnectionId,
+               NULL,
+               0,
+               NULL, // no display settings
+               (void*)m_rStateContext.m_pSecurity,
+               &m_rMessageQueueProvider.getLocalQueue(),
+               rtpTransportOptions);
+   
+   if (res == OS_SUCCESS)
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_mediaConnectionId = mediaConnectionId;
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean BaseSipConnectionState::startSdpNegotiation(SipMessage& sipMessage)
+{
+   m_rStateContext.m_sdpNegotiation.startSdpNegotiation(TRUE); // start locally initiated SDP negotiation
+   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+
+   int mediaConnectionId = CpMediaInterface::INVALID_CONNECTION_ID;
+   if (setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+   {
+      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+      if (pContact != NULL)
+      {
+         pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
+      }
+      else
+      {
+         pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
+      }
+
+      delete pContact;
+      pContact = NULL;
+
+      UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
+      int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
+      int receiveRtcpPorts[MAX_ADDRESS_CANDIDATES];
+      int receiveVideoRtpPorts[MAX_ADDRESS_CANDIDATES];
+      int receiveVideoRtcpPorts[MAX_ADDRESS_CANDIDATES];
+      RTP_TRANSPORT transportTypes[MAX_ADDRESS_CANDIDATES];
+      int nRtpContacts;
+      int totalBandwidth = 0;
+      SdpSrtpParameters srtpParams;
+      SdpCodecList supportedCodecs;
+      int videoFramerate = 0;
+      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
+      OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
+            MAX_ADDRESS_CANDIDATES,
+            hostAddresses,
+            receiveRtpPorts,
+            receiveRtcpPorts,
+            receiveVideoRtpPorts,
+            receiveVideoRtcpPorts,
+            transportTypes,
+            nRtpContacts,
+            supportedCodecs,
+            srtpParams,
+            bandWidth,
+            totalBandwidth,
+            videoFramerate);
+
+      if (res == OS_SUCCESS)
+      {
+         if (!m_natTraversalConfig.m_bEnableICE)
+         {
+            nRtpContacts = 1;
+         }
+
+         m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
+            nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
+            transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
+
+         return TRUE;
+      }
    }
 
    return FALSE;

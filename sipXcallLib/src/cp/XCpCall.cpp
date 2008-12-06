@@ -310,7 +310,7 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    UtlBoolean resFound = getConnection(ptrLock);
    if (resFound)
    {
-      result = ptrLock->connect(rMsg.getToAddress(), rMsg.getFromAddress(),
+      result = ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
          rMsg.getLocationHeader(), rMsg.getContactId());
    }
 

@@ -47,6 +47,7 @@ struct SdpSrtpParameters;
 class CpSdpNegotiation
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
+public:
 
    typedef enum
    {
@@ -67,7 +68,6 @@ class CpSdpNegotiation
       SDP_OFFERING_DELAYED = 1 ///< do not offer SDP in INVITE, offer it only in the first reliable non failure message
    } SdpOfferingMode;
 
-public:
    /* ============================ CREATORS ================================== */
 
    /** Constructor */

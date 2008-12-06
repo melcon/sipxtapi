@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <cp/CpDefs.h>
 #include <cp/state/SipConnectionStateContext.h>
 
 // DEFINES
@@ -31,13 +32,18 @@ SipConnectionStateContext::SipConnectionStateContext()
 : m_mediaSessionState(SipConnectionStateContext::MEDIA_SESSION_NONE)
 , m_allowedRemote(NULL)
 , m_implicitAllowedRemote("INVITE, ACK, CANCEL, BYE, OPTIONS, REGISTER")
+, m_sessionReinviteSec(120) // every 2 minutes
+, m_contactId(AUTOMATIC_CONTACT_ID)
+, m_rtpTransport(RTP_TRANSPORT_UDP)
+, m_pSecurity(NULL)
 {
    m_sipTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
 
 SipConnectionStateContext::~SipConnectionStateContext()
 {
-
+   delete m_pSecurity;
+   m_pSecurity = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
