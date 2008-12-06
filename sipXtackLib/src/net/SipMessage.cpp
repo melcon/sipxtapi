@@ -4521,6 +4521,61 @@ UtlBoolean SipMessage::getReasonField(UtlString& reasonField) const
     }
     return(value != NULL);
 }
+
+UtlBoolean SipMessage::getReasonField(int index, UtlString& protocol, int& cause, UtlString& text) const
+{
+   const char* value;
+   protocol.remove(0);
+   cause = 0;
+   text.remove(0);
+   value = getHeaderValue(0, SIP_REASON_FIELD);
+
+   if(value && *value)
+   {
+      UtlBoolean bCauseFound = FALSE;
+      UtlBoolean bTextFound = FALSE;
+      UtlBoolean bFieldFound = TRUE;
+      UtlString sReasonValue;
+      UtlString sValue;
+      int i = 1;
+      NameValueTokenizer::getSubField(value, index, ",", &sReasonValue);
+      NameValueTokenizer::frontBackTrim(&sReasonValue, SIP_SUBFIELD_SEPARATORS);
+      if (!sReasonValue.isNull())
+      {
+         // get protocol value
+         NameValueTokenizer::getSubField(sReasonValue, 0, ";", &protocol);
+         NameValueTokenizer::frontBackTrim(&protocol, SIP_SUBFIELD_SEPARATORS);
+         // get cause & text
+         while(bFieldFound || (bCauseFound && bTextFound))
+         {
+            sValue.remove(0);
+            bFieldFound = NameValueTokenizer::getSubField(sReasonValue, i++, ";", &sValue);
+            if (bFieldFound)
+            {
+               NameValueTokenizer::frontBackTrim(&sValue, SIP_SUBFIELD_SEPARATORS);
+
+               if (!bCauseFound && sValue.index("cause") == 0)
+               {
+                  UtlString sCause;
+                  NameValueTokenizer::getSubField(sReasonValue, 1, "=", &sCause);
+                  NameValueTokenizer::frontBackTrim(&sCause, SIP_SUBFIELD_SEPARATORS);
+                  cause = atoi(sCause);
+               }
+               else if (!bTextFound && sValue.index("text") == 0)
+               {
+                  NameValueTokenizer::getSubField(sReasonValue, 1, "=", &text);
+                  NameValueTokenizer::frontBackTrim(&text, SIP_SUBFIELD_SEPARATORS);
+               }
+            }
+         }
+
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
 ////////////////////////////////
 
 
