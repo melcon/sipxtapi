@@ -537,6 +537,8 @@ public:
    /// Set the scheme to be used (also see setUrlType).
    void setScheme(Scheme scheme);
    
+   /** Returns TRUE if this URL is empty */
+   UtlBoolean isNull() const;
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

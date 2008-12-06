@@ -493,9 +493,9 @@ void SipDialog::getLocalField(UtlString& sLocalUrl) const
    m_localField.toString(sLocalUrl);
 }
 
-UtlString SipDialog::getLocalField() const
+Url SipDialog::getLocalField() const
 {
-   return m_localField.toString();
+   return m_localField;
 }
 
 void SipDialog::getLocalTag(UtlString& localTag) const
@@ -520,9 +520,9 @@ void SipDialog::getRemoteField(UtlString& sRemoteUrl) const
    m_remoteField.toString(sRemoteUrl);
 }
 
-UtlString SipDialog::getRemoteField() const
+Url SipDialog::getRemoteField() const
 {
-   return m_remoteField.toString();
+   return m_remoteField;
 }
 
 void SipDialog::getRemoteTag(UtlString& remoteTag) const
