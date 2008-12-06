@@ -17,6 +17,7 @@
 #include <cp/state/StateTransitionMemory.h>
 #include <cp/state/SipResponseTransitionMemory.h>
 #include <cp/state/SipEventTransitionMemory.h>
+#include <cp/state/GeneralTransitionMemory.h>
 #include <cp/XSipConnectionEventSink.h>
 
 // DEFINES
@@ -52,8 +53,8 @@ void StateTransitionEventDispatcher::dispatchEvent(ISipConnectionState::StateEnu
    UtlString originalSessionCallId;
    int sipResponseCode = 0;
    UtlString sipResponseText;
-   CP_CALLSTATE_CAUSE cause = CP_CALLSTATE_CAUSE_NORMAL;
    CP_CALLSTATE_EVENT event = getCallEventFromState(state);
+   CP_CALLSTATE_CAUSE cause = CP_CALLSTATE_CAUSE_NORMAL;
 
    getCallEventDetails(cause, originalSessionCallId, sipResponseCode, sipResponseText);
 
@@ -101,6 +102,17 @@ void StateTransitionEventDispatcher::getCallEventDetails(CP_CALLSTATE_CAUSE& cau
                {
                   cause = CP_CALLSTATE_CAUSE_NETWORK;
                }
+            }
+            break;
+         }
+      case StateTransitionMemory::GENERAL_EVENT_MEMORY:
+         {
+            const GeneralTransitionMemory* pSipEventMemory = dynamic_cast<const GeneralTransitionMemory*>(m_pMemory);
+            if (pSipEventMemory)
+            {
+               cause = pSipEventMemory->getCause();
+               sipResponseCode = pSipEventMemory->getSipResponseCode();
+               sipResponseText = pSipEventMemory->getSipResponseText();
             }
             break;
          }

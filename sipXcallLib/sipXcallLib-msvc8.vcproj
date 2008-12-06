@@ -526,6 +526,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\state\GeneralTransitionMemory.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\state\IdleSipConnectionState.cpp"
 					>
 				</File>
@@ -924,6 +928,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\state\EstablishedSipConnectionState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\state\GeneralTransitionMemory.h"
 					>
 				</File>
 				<File

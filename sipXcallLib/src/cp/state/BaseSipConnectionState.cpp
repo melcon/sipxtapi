@@ -353,7 +353,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
       CpSipTransactionManager::TransactionState transactionState = getTransactionManager().getTransactionState(seqMethod, iSeqNumber);
       if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
       {
-         switch (iSeqNumber)
+         switch (statusCode)
          {
          // these destroy the whole dialog regardless of seqMethod
          case SIP_NOT_FOUND_CODE: // 404
@@ -389,7 +389,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
          default:
             // handle unknown 4XX, 5XX, 6XX
             CpSipTransactionManager::InviteTransactionState inviteState = getTransactionManager().getInviteTransactionState();
-            if (iSeqNumber >= SIP_4XX_CLASS_CODE && iSeqNumber < SIP_7XX_CLASS_CODE &&
+            if (statusCode >= SIP_4XX_CLASS_CODE && statusCode < SIP_7XX_CLASS_CODE &&
                 seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
                 (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE ||
                  inviteState == CpSipTransactionManager::REINVITE_SESSION_REFRESH_ACTIVE))
@@ -403,11 +403,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
             ;
          }
 
-         if (iSeqNumber >= SIP_1XX_CLASS_CODE && iSeqNumber < SIP_4XX_CLASS_CODE)
-         {
-            // for 1xx, 2xx, 3xx call seqMethod specific handlers
-            return processNonErrorResponse(sipMessage);
-         }
+         return processNonFatalResponse(sipMessage);
       }
       // if transaction was not found or is terminated then ignore response
    }
@@ -415,7 +411,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
    return NULL; // no transition
 }
 
-SipConnectionStateTransition* BaseSipConnectionState::processNonErrorResponse(const SipMessage& sipMessage)
+SipConnectionStateTransition* BaseSipConnectionState::processNonFatalResponse(const SipMessage& sipMessage)
 {
    // process inbound sip message request
    int seqNum;
