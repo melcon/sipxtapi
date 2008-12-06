@@ -4546,7 +4546,7 @@ UtlBoolean SipMessage::getReasonField(int index, UtlString& protocol, int& cause
          NameValueTokenizer::getSubField(sReasonValue, 0, ";", &protocol);
          NameValueTokenizer::frontBackTrim(&protocol, SIP_SUBFIELD_SEPARATORS);
          // get cause & text
-         while(bFieldFound || (bCauseFound && bTextFound))
+         while(bFieldFound && (!bCauseFound || !bTextFound))
          {
             sValue.remove(0);
             bFieldFound = NameValueTokenizer::getSubField(sReasonValue, i++, ";", &sValue);
@@ -4557,14 +4557,16 @@ UtlBoolean SipMessage::getReasonField(int index, UtlString& protocol, int& cause
                if (!bCauseFound && sValue.index("cause") == 0)
                {
                   UtlString sCause;
-                  NameValueTokenizer::getSubField(sReasonValue, 1, "=", &sCause);
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &sCause);
                   NameValueTokenizer::frontBackTrim(&sCause, SIP_SUBFIELD_SEPARATORS);
                   cause = atoi(sCause);
+                  bCauseFound = TRUE;
                }
                else if (!bTextFound && sValue.index("text") == 0)
                {
-                  NameValueTokenizer::getSubField(sReasonValue, 1, "=", &text);
-                  NameValueTokenizer::frontBackTrim(&text, SIP_SUBFIELD_SEPARATORS);
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &text);
+                  NameValueTokenizer::frontBackTrim(&text, "\t \"");
+                  bTextFound = TRUE;
                }
             }
          }
