@@ -46,6 +46,7 @@
             <File RelativePath=".\src\cp\CpMultiStringMessage.cpp"/>
             <File RelativePath=".\src\cp\CpPeerCall.cpp"/>
             <File RelativePath=".\src\cp\CpSdpNegotiation.cpp"/>
+            <File RelativePath=".\src\cp\CpSessionTimerProperties.cpp"/>
             <File RelativePath=".\src\cp\CpSipTransactionManager.cpp"/>
             <File RelativePath=".\src\cp\CSeqManager.cpp"/>
             <File RelativePath=".\src\cp\SipConnection.cpp"/>
@@ -146,6 +147,7 @@
             <File RelativePath=".\include\cp\CpNotificationMsgDef.h"/>
             <File RelativePath="include\cp\CpPeerCall.h"/>
             <File RelativePath=".\include\cp\CpSdpNegotiation.h"/>
+            <File RelativePath=".\include\cp\CpSessionTimerProperties.h"/>
             <File RelativePath=".\include\cp\CpSipTransactionListener.h"/>
             <File RelativePath=".\include\cp\CpSipTransactionManager.h"/>
             <File RelativePath=".\include\cp\CpVideoCodecInfo.h"/>
