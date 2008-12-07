@@ -58,7 +58,7 @@ public:
 
    // thread safe atomic
    int m_mediaConnectionId; ///< contains Id of media connection for CpMediaInterface
-   int m_inviteExpireSeconds; ///< current session interval according to RFC4028. Negotiated if 422 is received.
+   int m_defaultSessionExpiration; ///< current session interval according to RFC4028. Negotiated if 422 is received.
 
    /* ============================ CREATORS ================================== */
 

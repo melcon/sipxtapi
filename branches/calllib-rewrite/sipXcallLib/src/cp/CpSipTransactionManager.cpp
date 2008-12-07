@@ -152,18 +152,11 @@ UtlBoolean CpSipTransactionManager::startInitialInviteTransaction(int& cseqNum)
    }
 }
 
-UtlBoolean CpSipTransactionManager::startReInviteTransaction(int& cseqNum, UtlBoolean bIsSessionRefresh /*= FALSE*/)
+UtlBoolean CpSipTransactionManager::startReInviteTransaction(int& cseqNum)
 {
    if (m_inviteTransactionState == CpSipTransactionManager::INVITE_INACTIVE)
    {
-      if (bIsSessionRefresh)
-      {
-         m_inviteTransactionState = CpSipTransactionManager::REINVITE_SESSION_REFRESH_ACTIVE;
-      }
-      else
-      {
-         m_inviteTransactionState = CpSipTransactionManager::REINVITE_NORMAL_ACTIVE;
-      }
+      m_inviteTransactionState = CpSipTransactionManager::REINVITE_ACTIVE;
       m_iInviteCSeq = m_iCSeq;
       cseqNum = m_iCSeq++; // post increment cseqNum
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum);
@@ -183,6 +176,7 @@ UtlBoolean CpSipTransactionManager::updateActiveInviteTransaction(int cseqNum)
       notifyTransactionEnd(SIP_INVITE_METHOD, cseqNum); // end old transaction
       m_iInviteCSeq = cseqNum; // update cseqNum
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum); // start new transaction
+      m_iCSeq = cseqNum + 1; // set next available cseqNum number
       return TRUE;
    }
 

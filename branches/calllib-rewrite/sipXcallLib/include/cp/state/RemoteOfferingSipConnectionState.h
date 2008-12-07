@@ -63,6 +63,9 @@ public:
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
+   /** Handles inbound SIP INVITE responses */
+   virtual SipConnectionStateTransition* processInviteResponse(const SipMessage& sipMessage);
+
    /* ============================ ACCESSORS ================================= */
 
    virtual ISipConnectionState::StateEnum getCurrentState() const { return ISipConnectionState::CONNECTION_REMOTE_OFFERING; }

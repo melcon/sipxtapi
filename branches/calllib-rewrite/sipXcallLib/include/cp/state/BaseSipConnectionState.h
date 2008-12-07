@@ -276,6 +276,21 @@ protected:
    /** Starts SDP negotiation, adds SDP offer to given SipMessage and creates a media connection */
    UtlBoolean startSdpNegotiation(SipMessage& sipMessage);
 
+   /** Sets last sent invite */
+   void setLastSentInvite(const SipMessage& sipMessage);
+
+   /** Gets session timer properties */
+   CpSessionTimerProperties& getSessionTimerProperties();
+
+   /** Handles 422 INVITE response */
+   void handleSmallInviteSessionInterval(const SipMessage& sipMessage);
+
+   /** Sends options request */
+   void sendOptionsRequest();
+
+   /** Checks if we know Allow of remote side, and optionally sends options if we don't */
+   void checkRemoteAllow();
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider

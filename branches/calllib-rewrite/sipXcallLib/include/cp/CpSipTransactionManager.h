@@ -76,8 +76,7 @@ public:
    {
       INVITE_INACTIVE = 0, ///< no INVITE transaction is active
       INITIAL_INVITE_ACTIVE, ///< initial INVITE transaction is active
-      REINVITE_NORMAL_ACTIVE, ///< a normal re-INVITE transaction is active
-      REINVITE_SESSION_REFRESH_ACTIVE ///< media session re-INVITE transaction is active, cannot fail
+      REINVITE_ACTIVE, ///< a re-INVITE transaction is active
    } InviteTransactionState;
 
    /* ============================ CREATORS ================================== */
@@ -122,11 +121,8 @@ public:
 
    /**
    * Starts re-INVITE transaction.
-   *
-   * @param bIsSessionRefresh TRUE for session timer initiated refresh. This must succeed,
-   * otherwise call must be dropped. Normal re-INVITE failure can be ignored.
    */
-   UtlBoolean startReInviteTransaction(int& cseqNum, UtlBoolean bIsSessionRefresh = FALSE);
+   UtlBoolean startReInviteTransaction(int& cseqNum);
 
    /**
     * Updates an active INVITE/re-INVITE transaction with new cseqNum. We need to supply

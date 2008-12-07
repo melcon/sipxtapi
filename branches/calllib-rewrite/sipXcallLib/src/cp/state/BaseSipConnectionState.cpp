@@ -215,11 +215,28 @@ void BaseSipConnectionState::initializeSipDialog(const SipMessage& sipMessage)
 UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
 {
    updateSipDialog(sipMessage);
+
+   if (sipMessage.isRequest())
+   {
+      UtlString method;
+      sipMessage.getRequestMethod(&method);
+      if (method.compareTo(SIP_INVITE_METHOD) == 0)
+      {
+         // save invite message
+         setLastSentInvite(sipMessage);
+      }
+   }
+
    return m_rSipUserAgent.send(sipMessage);
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::processSipMessage(const SipMessage& sipMessage)
 {
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.updateDialog(sipMessage); // update dialog with received message
+   }
+
    if (sipMessage.isRequest())
    {
       return processRequest(sipMessage);
@@ -235,6 +252,14 @@ SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMe
    // process inbound sip message request
    UtlString method;
    sipMessage.getRequestMethod(&method);
+
+   // update remote allow
+   UtlString allowField;
+   sipMessage.getAllowField(allowField);
+   if (!allowField.isNull())
+   {
+      m_rStateContext.m_allowedRemote = allowField;
+   }
 
    if (method.compareTo(SIP_INVITE_METHOD) == 0)
    {
@@ -400,9 +425,9 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
             // handle unknown 4XX, 5XX, 6XX
             CpSipTransactionManager::InviteTransactionState inviteState = getTransactionManager().getInviteTransactionState();
             if (statusCode >= SIP_4XX_CLASS_CODE && statusCode < SIP_7XX_CLASS_CODE &&
+                statusCode != SIP_SMALL_SESSION_INTERVAL_CODE && // 422 means we can still retry
                 seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
-                (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE ||
-                 inviteState == CpSipTransactionManager::REINVITE_SESSION_REFRESH_ACTIVE))
+                inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
             {
                // failure during initial INVITE, terminate dialog
                getTransactionManager().endTransaction(seqMethod, iSeqNumber);
@@ -474,6 +499,39 @@ SipConnectionStateTransition* BaseSipConnectionState::processNonFatalResponse(co
 
 SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(const SipMessage& sipMessage)
 {
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   // INVITE transaction termination is handled during disconnected state entry
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      int responseCode = sipMessage.getResponseStatusCode();
+      
+      if (responseCode > SIP_1XX_CLASS_CODE &&
+          responseCode < SIP_3XX_CLASS_CODE)
+      {
+         // update remote allow
+         UtlString allowField;
+         sipMessage.getAllowField(allowField);
+         if (!allowField.isNull())
+         {
+            m_rStateContext.m_allowedRemote = allowField;
+         }
+         else
+         {
+            checkRemoteAllow(); // check if we know remote allow
+         }
+      }
+
+      switch (responseCode)
+      {
+      case SIP_SMALL_SESSION_INTERVAL_CODE:
+         handleSmallInviteSessionInterval(sipMessage);
+         break;
+      default:
+         ;
+      }
+   }
    // TODO: Implement
    return NULL;
 }
@@ -504,7 +562,29 @@ SipConnectionStateTransition* BaseSipConnectionState::processInfoResponse(const 
 
 SipConnectionStateTransition* BaseSipConnectionState::processOptionsResponse(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   int sequenceNum;
+   UtlString sequenceMethod;
+
+   sipMessage.getResponseStatusText(&responseText);
+   sipMessage.getCSeqField(&sequenceNum, &sequenceMethod);
+
+   CpSipTransactionManager::TransactionState transactionState = getTransactionManager().getTransactionState(sequenceMethod, sequenceNum);
+   if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   {
+      if (responseCode == SIP_OK_CODE)
+      {
+         UtlString allowField;
+         sipMessage.getAllowField(allowField);
+         if (!allowField.isNull())
+         {
+            m_rStateContext.m_allowedRemote = allowField;
+         }
+      }
+      getTransactionManager().endTransaction(sequenceMethod, sequenceNum);
+   }
+
    return NULL;
 }
 
@@ -534,7 +614,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
    if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
       connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
    {
-      if (sipMessage.isRequest())
+      if (sipMessage.isResponse())
       {
          int seqNum;
          UtlString seqMethod;
@@ -542,7 +622,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
 
          if (needsTransactionTracking(seqMethod))
          {
-            getTransactionManager().updateActiveTransaction(seqMethod, seqNum);
+            getTransactionManager().updateActiveTransaction(seqMethod, seqNum + 1);
          }
       }
    }
@@ -802,6 +882,90 @@ UtlBoolean BaseSipConnectionState::startSdpNegotiation(SipMessage& sipMessage)
    }
 
    return FALSE;
+}
+
+void BaseSipConnectionState::setLastSentInvite(const SipMessage& sipMessage)
+{
+   if (m_rStateContext.m_pLastSentInvite)
+   {
+      delete m_rStateContext.m_pLastSentInvite;
+      m_rStateContext.m_pLastSentInvite = NULL;
+   }
+
+   m_rStateContext.m_pLastSentInvite = new SipMessage(sipMessage);
+}
+
+CpSessionTimerProperties& BaseSipConnectionState::getSessionTimerProperties()
+{
+   return m_rStateContext.m_sessionTimerProperties;
+}
+
+void BaseSipConnectionState::handleSmallInviteSessionInterval(const SipMessage& sipMessage)
+{
+   int minSe = 90;
+   int iSeqNumber = 0;
+   UtlString seqMethod;
+
+   sipMessage.getCSeqField(iSeqNumber, seqMethod);
+   CpSipTransactionManager::InviteTransactionState inviteState = getTransactionManager().getInviteTransactionState();
+   getTransactionManager().endTransaction(seqMethod, iSeqNumber);
+
+   if (sipMessage.getMinSe(minSe) && inviteState != CpSipTransactionManager::INVITE_INACTIVE)
+   {
+      m_rStateContext.m_sessionTimerProperties.setMinSessionExpires(minSe);
+      m_rStateContext.m_sessionTimerProperties.setSessionExpires(minSe);
+
+      if (m_rStateContext.m_pLastSentInvite && !getTransactionManager().isInviteTransactionActive())
+      {
+         SipMessage sipInvite(*m_rStateContext.m_pLastSentInvite);
+         // update session expires
+         int iSessionExpires;
+         UtlString refresher;
+         sipInvite.getSessionExpires(&iSessionExpires, &refresher);
+         sipInvite.setSessionExpires(minSe, refresher); // set new session expires
+         sipInvite.setMinSe(minSe);
+         // update transaction
+         int cseqNum;
+         if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
+         {
+            getTransactionManager().startInitialInviteTransaction(cseqNum);
+         }
+         else
+         {
+            getTransactionManager().startReInviteTransaction(cseqNum);
+         }
+         sipInvite.setCSeqField(cseqNum, SIP_INVITE_METHOD);
+         sendMessage(sipInvite); // also saves last invite message again
+      }
+   }
+}
+
+void BaseSipConnectionState::sendOptionsRequest()
+{
+   // allow was not set in response, send OPTIONS
+   int iCSeq = getTransactionManager().startTransaction(SIP_OPTIONS_METHOD);
+   SipMessage optionsRequest;
+
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setRequestData(optionsRequest, SIP_OPTIONS_METHOD, iCSeq);
+   }
+   sendMessage(optionsRequest);
+}
+
+void BaseSipConnectionState::checkRemoteAllow()
+{
+   UtlBoolean bIsDialogEstablished = FALSE;
+   {
+      OsReadLock lock(m_rStateContext);
+      bIsDialogEstablished = m_rStateContext.m_sipDialog.isEstablishedDialog();
+   }
+
+   if (m_rStateContext.m_allowedRemote.isNull() && bIsDialogEstablished)
+   {
+      // allow was not set in response, send in dialog OPTIONS
+      sendOptionsRequest();
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

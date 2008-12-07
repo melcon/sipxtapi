@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <net/SipMessage.h>
 #include <cp/CpDefs.h>
 #include <cp/state/SipConnectionStateContext.h>
 
@@ -35,6 +36,7 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_contactId(AUTOMATIC_CONTACT_ID)
 , m_rtpTransport(RTP_TRANSPORT_UDP)
 , m_pSecurity(NULL)
+, m_pLastSentInvite(NULL)
 {
    m_sipTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -43,6 +45,8 @@ SipConnectionStateContext::~SipConnectionStateContext()
 {
    delete m_pSecurity;
    m_pSecurity = NULL;
+   delete m_pLastSentInvite;
+   m_pLastSentInvite = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
