@@ -235,8 +235,7 @@ void SipDialog::updateDialog(const SipMessage& message)
          // Always update the contact if it is set
          UtlString messageContact;
          // Get the Contact value, but as an addr-spec.
-         if(message.getContactUri(0, &messageContact) &&
-            !messageContact.isNull())
+         if(message.getContactUri(0, &messageContact) && !messageContact.isNull())
          {
             if(message.isResponse())
             {
@@ -291,8 +290,7 @@ void SipDialog::updateDialog(const SipMessage& message)
          // Always update the contact if it is set
          UtlString messageContact;
          // Get the Contact value, but as an addr-spec.
-         if(message.getContactUri(0, &messageContact) &&
-            !messageContact.isNull())
+         if(message.getContactUri(0, &messageContact) && !messageContact.isNull())
          {
             if(message.isResponse())
             {
@@ -326,7 +324,7 @@ void SipDialog::updateDialog(const SipMessage& message)
    }
 }
 
-void SipDialog::setRequestData(SipMessage& request, const char* method)
+void SipDialog::setRequestData(SipMessage& request, const char* method, int cseqNum)
 {
    UtlString methodString(method ? method : "");
    if(methodString.isNull())
@@ -364,8 +362,15 @@ void SipDialog::setRequestData(SipMessage& request, const char* method)
    m_remoteField.toString(toField);
    request.setRawToField(toField);
 
-   // Get the next local Cseq, the method should already be set
-   getNextLocalCseq();
+   if (cseqNum == -1)
+   {
+      // Get the next local Cseq, the method should already be set
+      getNextLocalCseq();
+   }
+   else
+   {
+      m_iLastLocalCseq = cseqNum;
+   }
    request.setCSeqField(m_iLastLocalCseq, methodString);
 
    // Set the route header according to the route set
@@ -373,6 +378,10 @@ void SipDialog::setRequestData(SipMessage& request, const char* method)
    {
       request.setRouteField(m_sRouteSet);
    }
+
+   UtlString sLocalContact;
+   m_localContact.toString(sLocalContact);
+   request.setContactField(sLocalContact);
 
    // Set the call-id
    request.setCallIdField(*this);
