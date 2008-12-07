@@ -182,8 +182,9 @@ public:
    *  \param method - the sip request method for this request.
    *  \param request - the request which is to be part of this dialog
    *         and sent as orginating from the local side of the dialog.
+   *  \param cseqNum - allows to specify cseq number from outside.
    */
-   void setRequestData(SipMessage& request, const char* method);
+   void setRequestData(SipMessage& request, const char* method, int cseqNum = -1);
 
    /* ============================ ACCESSORS ================================= */
 
