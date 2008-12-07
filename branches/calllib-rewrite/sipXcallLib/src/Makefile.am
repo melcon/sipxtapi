@@ -42,6 +42,7 @@ libsipXcall_la_SOURCES = \
     cp/CpPeerCall.cpp \
     cp/Cp100RelTracker.cpp \
     cp/CpSdpNegotiation.cpp \
+    cp/CpSessionTimerProperties.cpp \
     cp/CpSipTransactionManager.cpp \
     cp/SipConnection.cpp \
     cp/XCpAbstractCall.cpp \

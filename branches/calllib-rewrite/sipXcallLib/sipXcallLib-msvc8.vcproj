@@ -283,6 +283,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CpSessionTimerProperties.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CpSipTransactionManager.cpp"
 				>
 			</File>
@@ -669,6 +673,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpSdpNegotiation.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpSessionTimerProperties.h"
 				>
 			</File>
 			<File
