@@ -21,6 +21,7 @@
 #include <cp/Cp100RelTracker.h>
 #include <cp/CpSdpNegotiation.h>
 #include <cp/CpSipTransactionManager.h>
+#include <cp/CpSessionTimerProperties.h>
 #include <tapi/sipXtapi.h> // craziness
 
 // DEFINES
@@ -66,6 +67,8 @@ public:
    int m_contactId; ///< id of contact we use. Can be used to lookup SIPX_CONTACT_ADDRESS
    SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
    RTP_TRANSPORT m_rtpTransport;
+   CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)
+   SipMessage* m_pLastSentInvite; ///< last sent INVITE
 
    /* ============================ CREATORS ================================== */
 

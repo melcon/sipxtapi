@@ -103,9 +103,11 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(const UtlString
    sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
    getTransactionManager().startInitialInviteTransaction(cseqNum);
 
+   m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
+
    sipInvite.setInviteData(fromField.toString(), toAddress,
       NULL, contactUrl, sipCallId,
-      cseqNum, m_rStateContext.m_inviteExpireSeconds);
+      cseqNum, m_rStateContext.m_defaultSessionExpiration);
 
    if (!locationHeader.isNull())
    {

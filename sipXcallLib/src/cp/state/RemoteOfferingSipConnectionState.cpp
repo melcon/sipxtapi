@@ -13,6 +13,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <net/SipMessage.h>
+#include <cp/state/SipResponseTransitionMemory.h>
 #include <cp/state/RemoteOfferingSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
@@ -79,6 +81,41 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::handleSipMessage
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteResponse(const SipMessage& sipMessage)
+{
+   // first let parent handle response
+   SipConnectionStateTransition* pTransition = BaseSipConnectionState::processInviteResponse(sipMessage);
+   if (pTransition)
+   {
+      return pTransition;
+   }
+
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   sipMessage.getResponseStatusText(&responseText);
+
+   switch (responseCode)
+   {
+   case SIP_RINGING_CODE:
+      {
+         // proceed to remote alerting state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_REMOTE_ALERTING, &memory);
+      }
+   case SIP_QUEUED_CODE:
+      {
+         // proceed to queued state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_REMOTE_QUEUED, &memory);
+      }
+   default:
+      ;
+   }
+
+   // no transition
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */
