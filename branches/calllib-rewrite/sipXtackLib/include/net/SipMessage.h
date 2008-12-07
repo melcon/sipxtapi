@@ -207,6 +207,9 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_BAD_EXTENSION_CODE 420
 #define SIP_BAD_EXTENSION_TEXT "Extension Not Supported"
 
+#define SIP_SMALL_SESSION_INTERVAL_CODE 422
+#define SIP_SMALL_SESSION_INTERVAL_TEXT "Session Interval Too Small"
+
 #define SIP_TOO_BRIEF_CODE 423
 #define SIP_TOO_BRIEF_TEXT "Registration Too Brief"
 #define SIP_SUB_TOO_BRIEF_TEXT "Subscription Too Brief"
