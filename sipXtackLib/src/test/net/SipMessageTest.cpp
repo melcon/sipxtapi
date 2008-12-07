@@ -33,6 +33,8 @@ class SipMessageTest : public CppUnit::TestCase
    CPPUNIT_TEST(testGetRAck);
    CPPUNIT_TEST(testGetRSeq);
    CPPUNIT_TEST(testGetReasonField);
+   CPPUNIT_TEST(testGetSessionExpires);
+   CPPUNIT_TEST(testGetMinSe);
    CPPUNIT_TEST(testGetVia);
    CPPUNIT_TEST(testGetViaShort);
    CPPUNIT_TEST(testGetAddrVia);
@@ -157,6 +159,77 @@ public:
       ASSERT_STR_EQUAL("Q.850", protocol.data());
       CPPUNIT_ASSERT_EQUAL(16, cause);
       ASSERT_STR_EQUAL("Terminated", text.data());
+   }
+
+   void testGetSessionExpires()
+   {
+      const char* simpleMessage =
+         "INVITE sip:65681@testserver.com SIP/2.0\r\n"
+         "To: <sip:65681@testserver.com>;tag=985624-1623\r\n"
+         "From: <sip:10.21.128.204>;tag=15039611-4B5\r\n"
+         "Call-Id: 55147C1E-F6ED11D9-80E3EC05-47D61469@10.21.128.204\r\n"
+         "Via: SIP/2.0/UDP  10.21.128.204:5060;branch=z9hG4bK9E8\r\n"
+         "Date: Mon, 18 Jul 2005 18:05:17 GMT\r\n"
+         "Supported: 100rel,timer\r\n"
+         "Allow: INVITE, OPTIONS, BYE, CANCEL, ACK, PRACK, COMET, REFER, SUBSCRIBE, NOTIFY, INFO, UPDATE, REGISTER\r\n"
+         "Cseq: 101 INVITE\r\n"
+         "Max-Forwards: 9\r\n"
+         "Contact: <sip:10.21.128.204:5060>\r\n"
+         "Session-Expires: 4000;refresher=uac\r\n"
+         "Expires: 180\r\n"
+         "Mime-Version: 1.0\r\n"
+         "Content-Length: 0\r\n"
+         "\r\n";
+      SipMessage testMsg(simpleMessage);
+
+      int sessionExpiresSeconds;
+      UtlString refresher;
+      // test getting
+      testMsg.getSessionExpires(&sessionExpiresSeconds, &refresher);
+      CPPUNIT_ASSERT_EQUAL(4000, sessionExpiresSeconds);
+      ASSERT_STR_EQUAL("uac", refresher.data());
+      // try changing
+      testMsg.setSessionExpires(120, "uas");
+      sessionExpiresSeconds = -1;
+      refresher.remove(0);
+      // test again
+      testMsg.getSessionExpires(&sessionExpiresSeconds, &refresher);
+      CPPUNIT_ASSERT_EQUAL(120, sessionExpiresSeconds);
+      ASSERT_STR_EQUAL("uas", refresher.data());
+   }
+
+   void testGetMinSe()
+   {
+      const char* simpleMessage =
+         "INVITE sip:65681@testserver.com SIP/2.0\r\n"
+         "To: <sip:65681@testserver.com>;tag=985624-1623\r\n"
+         "From: <sip:10.21.128.204>;tag=15039611-4B5\r\n"
+         "Call-Id: 55147C1E-F6ED11D9-80E3EC05-47D61469@10.21.128.204\r\n"
+         "Via: SIP/2.0/UDP  10.21.128.204:5060;branch=z9hG4bK9E8\r\n"
+         "Date: Mon, 18 Jul 2005 18:05:17 GMT\r\n"
+         "Supported: 100rel,timer\r\n"
+         "Allow: INVITE, OPTIONS, BYE, CANCEL, ACK, PRACK, COMET, REFER, SUBSCRIBE, NOTIFY, INFO, UPDATE, REGISTER\r\n"
+         "Cseq: 101 INVITE\r\n"
+         "Max-Forwards: 9\r\n"
+         "Contact: <sip:10.21.128.204:5060>\r\n"
+         "Session-Expires: 4000;refresher=uac\r\n"
+         "Min-SE: 200\r\n"
+         "Expires: 180\r\n"
+         "Mime-Version: 1.0\r\n"
+         "Content-Length: 0\r\n"
+         "\r\n";
+      SipMessage testMsg(simpleMessage);
+
+      int minSe;
+      // test getting
+      testMsg.getMinSe(minSe);
+      CPPUNIT_ASSERT_EQUAL(200, minSe);
+      // try changing
+      testMsg.setMinSe(120);
+      minSe = -1;
+      // test again
+      testMsg.getMinSe(minSe);
+      CPPUNIT_ASSERT_EQUAL(120, minSe);
    }
 
    void testGetVia()

@@ -112,6 +112,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_ROUTE_FIELD "ROUTE"
 #define SIP_SERVER_FIELD "SERVER"
 #define SIP_SESSION_EXPIRES_FIELD "SESSION-EXPIRES"
+#define SIP_SHORT_SESSION_EXPIRES_FIELD "x"
+#define SIP_MIN_SE_FIELD "MIN-SE"
 #define SIP_IF_MATCH_FIELD "SIP-IF-MATCH"
 #define SIP_ETAG_FIELD "SIP-ETAG"
 #define SIP_SUBJECT_FIELD "SUBJECT"
@@ -1000,7 +1002,23 @@ public:
 
     UtlBoolean getSessionExpires(int* sessionExpiresSeconds, UtlString* refresher) const;
 
-    void setSessionExpires(int sessionExpiresSeconds);
+    /**
+     * Sets Session-Expires header field value. Setting generic parameters is not supported.
+     *
+     * @param sessionExpiresSeconds Value in seconds
+     * @param refresher "uas" or "uac"
+     */
+    void setSessionExpires(int sessionExpiresSeconds, const UtlString& refresher = NULL);
+
+    /**
+     * Sets the value of Min-SE header field used in session timers.
+     */
+    void setMinSe(int minSe);
+
+    /**
+     * Gets the value of Min-SE header field used in session timers.
+     */
+    UtlBoolean getMinSe(int& minSe) const;
 
     UtlBoolean getSupportedField(UtlString& supportedField) const;
 

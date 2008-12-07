@@ -4240,12 +4240,46 @@ UtlBoolean SipMessage::getSessionExpires(int* sessionExpiresSeconds, UtlString* 
     return(value != NULL);
 }
 
-void SipMessage::setSessionExpires(int sessionExpiresSeconds)
+void SipMessage::setSessionExpires(int sessionExpiresSeconds, const UtlString& refresher)
 {
-   char numString[HTTP_LONG_INT_CHARS];
+   UtlString fieldValue;
+   fieldValue.appendFormat("%d", sessionExpiresSeconds);
 
-   SNPRINTF(numString, sizeof(numString), "%d", sessionExpiresSeconds);
-   setHeaderValue(SIP_SESSION_EXPIRES_FIELD, numString);
+   if (!refresher.isNull())
+   {
+      fieldValue.appendFormat(";refresher=%s", refresher.data());
+   }
+
+   setHeaderValue(SIP_SESSION_EXPIRES_FIELD, fieldValue);
+}
+
+void SipMessage::setMinSe(int minSe)
+{
+   UtlString sMinSe;
+   sMinSe.appendFormat("%d", minSe);
+   setHeaderValue(SIP_MIN_SE_FIELD, sMinSe);
+}
+
+UtlBoolean SipMessage::getMinSe(int& minSe) const
+{
+   const char* value = getHeaderValue(0, SIP_MIN_SE_FIELD);
+   if (value)
+   {
+      UtlString sMinSe;
+      NameValueTokenizer::getSubField(value, 0, ";", &sMinSe);
+      NameValueTokenizer::frontBackTrim(&sMinSe, SIP_SUBFIELD_SEPARATORS);
+      if (!sMinSe.isNull())
+      {
+         minSe = atoi(sMinSe.data());
+         return TRUE;
+      }
+   }
+   else
+   {
+      minSe = 0;
+   }
+
+   return FALSE;
 }
 
 bool SipMessage::hasSelfHeader() const
@@ -5547,6 +5581,7 @@ void SipMessage::SipMessageFieldProps::initNames()
    mLongFieldNames.insert(new NameValuePair(SIP_TO_FIELD, SIP_SHORT_TO_FIELD));
    mLongFieldNames.insert(new NameValuePair(SIP_VIA_FIELD, SIP_SHORT_VIA_FIELD));
    mLongFieldNames.insert(new NameValuePair(SIP_EVENT_FIELD, SIP_SHORT_EVENT_FIELD));
+   mLongFieldNames.insert(new NameValuePair(SIP_SESSION_EXPIRES_FIELD, SIP_SHORT_SESSION_EXPIRES_FIELD));
 
    // Reverse the pairs to load the table to translate short header names to
    // long ones.
