@@ -57,6 +57,17 @@ public:
    } SdpNegotiationState;
 
    /**
+    * Used to track if some message contained offer, or answer or none.
+    */
+   typedef enum
+   {
+      SDP_BODY_NONE, ///< message contains no SDP payload
+      SDP_BODY_UNKNOWN, ///< message contains SDP, but we are unable to tell if its offer or answer
+      SDP_BODY_OFFER, ///< message contains SDP offer
+      SDP_BODY_ANSWER ///< message contains SDP answer
+   } SdpBodyType;
+
+   /**
    * We support 2 SDP offering modes - immediate and delayed. Immediate sends
    * offer as soon as possible, to be able to receive early audio.
    * Delayed offering sends SDP offer as late as possible. This saves media
@@ -85,7 +96,7 @@ public:
    void sdpOfferFinished(const SipMessage& rOfferSipMessage);
 
    /** Call to notify class that SDP answer part of handshake is finished */
-   void sdpAnswerFinished();
+   void sdpAnswerFinished(const SipMessage& rAnswerSipMessage);
 
    /**
     * Gets sdp codecs for encoder & decoder which are in common with our supported codecs.
@@ -144,6 +155,11 @@ public:
    CpSdpNegotiation::SdpOfferingMode getSdpOfferingMode() const { return m_sdpOfferingMode; }
    void setSdpOfferingMode(CpSdpNegotiation::SdpOfferingMode val) { m_sdpOfferingMode = val; }
 
+   /**
+    * Sets security attributes object. Local copy is made.
+    */
+   void setSecurity(const SIPXTACK_SECURITY_ATTRIBUTES* val);
+
    /* ============================ INQUIRY =================================== */
 
    /** Returns TRUE if we may start new SDP negotiation */
@@ -158,6 +174,16 @@ public:
    /** Returns TRUE if SDP negotiation was initiated locally (offer was sent) */
    UtlBoolean isLocallyInitiated() const { return m_bLocallyInitiated; }
 
+   /**
+    * Gets type of SDP body - offer or answer. This information is needed to handle
+    * retransmissions with sdp bodies (retransmissions of 200 OK, 100rel).
+    *
+    * This method works for offers only if offer was sent, and for answers only
+    * if answer was sent. This method cannot be used on new inbound sip message
+    * with sdp.
+    */
+   CpSdpNegotiation::SdpBodyType getSdpBodyType(const SipMessage& sipMessage) const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -166,6 +192,8 @@ private:
    // compatibility with old SdpBody and SipMessage, craziness
    static void deleteSdpCodecArray(int arraySize, SdpCodec**& sdpCodecArray);
 
+   UtlBoolean compareSipMessages(const SipMessage& baseSipMessage, const SipMessage& receivedSipMessage) const;
+
    SdpNegotiationState m_negotiationState; ///< keeps track of SDP negotiation state
    UtlBoolean m_bSdpOfferFinished; ///< TRUE if SDP offer was sent or received
    UtlBoolean m_bSdpAnswerFinished; ///< TRUE if SDP answer was sent or received
@@ -173,6 +201,8 @@ private:
 
    SdpOfferingMode m_sdpOfferingMode; ///< configures SDP negotiation mode - immediate or delayed
    SipMessage* m_pOfferSipMessage; ///< Sip message with SDP offer if its available
+   SipMessage* m_pAnswerSipMessage; ///< Sip message with SDP answer if its available
+   SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
 };
 
 #endif // CpSdpNegotiation_h__

@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsDateTime.h>
 #include <sdp/SdpCodec.h>
 #include <sdp/SdpCodecList.h>
 #include <net/SdpBody.h>
@@ -38,13 +39,22 @@ CpSdpNegotiation::CpSdpNegotiation()
 , m_bLocallyInitiated(FALSE)
 , m_sdpOfferingMode(CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
 , m_pOfferSipMessage(NULL)
+, m_pAnswerSipMessage(NULL)
+, m_pSecurity(NULL)
 {
 
 }
 
 CpSdpNegotiation::~CpSdpNegotiation()
 {
+   delete m_pSecurity;
+   m_pSecurity = NULL;
 
+   delete m_pOfferSipMessage;
+   m_pOfferSipMessage = NULL;
+
+   delete m_pAnswerSipMessage;
+   m_pAnswerSipMessage = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -58,6 +68,9 @@ void CpSdpNegotiation::startSdpNegotiation(UtlBoolean bLocallyInitiated /*= TRUE
 
    delete m_pOfferSipMessage;
    m_pOfferSipMessage = NULL;
+
+   delete m_pAnswerSipMessage;
+   m_pAnswerSipMessage = NULL;
 }
 
 void CpSdpNegotiation::sdpOfferFinished(const SipMessage& rOfferSipMessage)
@@ -68,10 +81,13 @@ void CpSdpNegotiation::sdpOfferFinished(const SipMessage& rOfferSipMessage)
    m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
 }
 
-void CpSdpNegotiation::sdpAnswerFinished()
+void CpSdpNegotiation::sdpAnswerFinished(const SipMessage& rAnswerSipMessage)
 {
    if (m_bSdpOfferFinished)
    {
+      delete m_pAnswerSipMessage;
+      m_pAnswerSipMessage = new SipMessage(rAnswerSipMessage); // keep copy of sdp answer
+
       m_bSdpAnswerFinished = TRUE;
       m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
    }
@@ -170,6 +186,17 @@ void CpSdpNegotiation::addSdpBody(SipMessage& rSipMessage,///< sip message where
 
 /* ============================ ACCESSORS ================================= */
 
+void CpSdpNegotiation::setSecurity(const SIPXTACK_SECURITY_ATTRIBUTES* val)
+{
+   delete m_pSecurity;
+   m_pSecurity = NULL;
+
+   if (val)
+   {
+      m_pSecurity = new SIPXTACK_SECURITY_ATTRIBUTES(*val);
+   }
+}
+
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean CpSdpNegotiation::isNewSdpNegotiationAllowed() const
@@ -187,6 +214,37 @@ UtlBoolean CpSdpNegotiation::isSdpNegotiationComplete() const
    return m_negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
 }
 
+CpSdpNegotiation::SdpBodyType CpSdpNegotiation::getSdpBodyType(const SipMessage& sipMessage) const
+{
+   if (m_pOfferSipMessage)
+   {
+      UtlBoolean bMatch = compareSipMessages(*m_pOfferSipMessage, sipMessage);
+      if (bMatch)
+      {
+         return CpSdpNegotiation::SDP_BODY_OFFER; // this is an offer
+      }
+   }
+   if (m_pAnswerSipMessage)
+   {
+      UtlBoolean bMatch = compareSipMessages(*m_pAnswerSipMessage, sipMessage);
+      if (bMatch)
+      {
+         return CpSdpNegotiation::SDP_BODY_ANSWER; // this is an answer
+      }
+   }
+
+   // get pointer to internal sdp body
+   const SdpBody* pSdpBody = sipMessage.getSdpBody(m_pSecurity);
+   if (pSdpBody)
+   {
+      // message has SDP body, but we are unable to tell if its offer or answer
+      return CpSdpNegotiation::SDP_BODY_UNKNOWN;
+   }
+
+   // there is no sdp body
+   return CpSdpNegotiation::SDP_BODY_NONE;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -201,6 +259,49 @@ void CpSdpNegotiation::deleteSdpCodecArray(int arraySize, SdpCodec**& sdpCodecAr
    }
    if(sdpCodecArray) delete[] sdpCodecArray;
    sdpCodecArray = NULL;
+}
+
+UtlBoolean CpSdpNegotiation::compareSipMessages(const SipMessage& baseSipMessage, const SipMessage& receivedSipMessage) const
+{
+   int receivedSeqNum;
+   UtlString receivedSeqMethod;
+   UtlBoolean bReceivedIsRequest;
+   receivedSipMessage.getCSeqField(&receivedSeqNum, &receivedSeqMethod);
+   bReceivedIsRequest = receivedSipMessage.isRequest();
+
+   int baseSeqNum;
+   UtlString baseSeqMethod;
+   UtlBoolean bBaseIsRequest;
+   baseSipMessage.getCSeqField(&baseSeqNum, &baseSeqMethod);
+   bBaseIsRequest = baseSipMessage.isRequest();
+
+   const SdpBody* pBaseSdpBody = baseSipMessage.getSdpBody(m_pSecurity);
+   const SdpBody* pReceivedSdpBody = receivedSipMessage.getSdpBody(m_pSecurity);
+
+   if (pBaseSdpBody && pReceivedSdpBody)
+   {
+      // both messages have SDP body
+      if (baseSeqNum == receivedSeqNum && baseSeqMethod.compareTo(receivedSeqMethod) == 0)
+      {
+         if (bReceivedIsRequest && bBaseIsRequest)
+         {
+            // both are requests
+            return TRUE;
+         }
+         else if (!bReceivedIsRequest && !bBaseIsRequest)
+         {
+            // both are responses, also response codes must match
+            int receivedResponseCode = receivedSipMessage.getResponseStatusCode();
+            int baseResponseCode = baseSipMessage.getResponseStatusCode();
+            if (receivedResponseCode == baseResponseCode)
+            {
+               return TRUE;
+            }
+         }
+      }
+   }
+
+   return FALSE;
 }
 
 /* ============================ FUNCTIONS ================================= */
