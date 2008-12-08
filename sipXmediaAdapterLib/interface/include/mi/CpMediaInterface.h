@@ -533,6 +533,9 @@ public:
    /** Copies internal SdpCodecList into supplied SdpCodecList */
    virtual OsStatus getCodecList(SdpCodecList& sdpCodecList) = 0;
 
+   /** Copies internal SdpCodecList of media connection into supplied SdpCodecList */
+   virtual OsStatus getCodecList(int connectionId, SdpCodecList& sdpCodecList) = 0;
+
    //! Set connection bitrate on the fly
    virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) = 0 ;
 
