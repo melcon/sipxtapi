@@ -169,6 +169,9 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_USE_PROXY_CODE 305
 #define SIP_USE_PROXY_TXT "Use Proxy"
 
+#define SIP_ALTERNATIVE_SERVICE_CODE 380
+#define SIP_ALTERNATIVE_SERVICE_TXT "Alternative Service"
+
 #define SIP_4XX_CLASS_CODE 400
 
 #define SIP_BAD_REQUEST_CODE 400
