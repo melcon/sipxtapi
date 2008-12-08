@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <net/SipMessage.h>
 #include <cp/state/EstablishedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
@@ -76,6 +77,36 @@ SipConnectionStateTransition* EstablishedSipConnectionState::handleSipMessageEve
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::processInviteResponse(const SipMessage& sipMessage)
+{
+   // first let parent handle response
+   SipConnectionStateTransition* pTransition = BaseSipConnectionState::processInviteResponse(sipMessage);
+   if (pTransition)
+   {
+      return pTransition;
+   }
+
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   sipMessage.getResponseStatusText(&responseText);
+
+   switch (responseCode)
+   {
+   case SIP_OK_CODE:
+   case SIP_ACCEPTED_CODE:
+      {
+         // send ACK to retransmitted 200 OK
+         handle2xxResponse(sipMessage);
+         break;
+      }
+   default:
+      ;
+   }
+
+   // no transition
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */

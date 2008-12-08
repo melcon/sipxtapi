@@ -818,67 +818,240 @@ UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTranspo
    return FALSE;
 }
 
-UtlBoolean BaseSipConnectionState::startSdpNegotiation(SipMessage& sipMessage)
+UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
 {
    m_rStateContext.m_sdpNegotiation.startSdpNegotiation(TRUE); // start locally initiated SDP negotiation
    CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
 
-   int mediaConnectionId = CpMediaInterface::INVALID_CONNECTION_ID;
-   if (setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+   int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
+   if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
    {
-      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
-      if (pContact != NULL)
+      if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
       {
-         pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
+         return FALSE;
       }
-      else
+   }
+
+   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+   if (pContact != NULL)
+   {
+      pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
+   }
+   else
+   {
+      pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
+   }
+
+   delete pContact;
+   pContact = NULL;
+
+   UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
+   int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
+   int receiveRtcpPorts[MAX_ADDRESS_CANDIDATES];
+   int receiveVideoRtpPorts[MAX_ADDRESS_CANDIDATES];
+   int receiveVideoRtcpPorts[MAX_ADDRESS_CANDIDATES];
+   RTP_TRANSPORT transportTypes[MAX_ADDRESS_CANDIDATES];
+   int nRtpContacts;
+   int totalBandwidth = 0;
+   SdpSrtpParameters srtpParams;
+   SdpCodecList supportedCodecs;
+   int videoFramerate = 0;
+   const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
+   OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
+         MAX_ADDRESS_CANDIDATES,
+         hostAddresses,
+         receiveRtpPorts,
+         receiveRtcpPorts,
+         receiveVideoRtpPorts,
+         receiveVideoRtcpPorts,
+         transportTypes,
+         nRtpContacts,
+         supportedCodecs,
+         srtpParams,
+         bandWidth,
+         totalBandwidth,
+         videoFramerate);
+
+   if (res == OS_SUCCESS)
+   {
+      if (!m_natTraversalConfig.m_bEnableICE)
       {
-         pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
+         nRtpContacts = 1;
       }
 
-      delete pContact;
-      pContact = NULL;
+      pMediaInterface->startRtpReceive(mediaConnectionId, supportedCodecs);
 
-      UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
-      int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
-      int receiveRtcpPorts[MAX_ADDRESS_CANDIDATES];
-      int receiveVideoRtpPorts[MAX_ADDRESS_CANDIDATES];
-      int receiveVideoRtcpPorts[MAX_ADDRESS_CANDIDATES];
-      RTP_TRANSPORT transportTypes[MAX_ADDRESS_CANDIDATES];
-      int nRtpContacts;
-      int totalBandwidth = 0;
-      SdpSrtpParameters srtpParams;
-      SdpCodecList supportedCodecs;
-      int videoFramerate = 0;
-      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
-      OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
-            MAX_ADDRESS_CANDIDATES,
-            hostAddresses,
-            receiveRtpPorts,
-            receiveRtcpPorts,
-            receiveVideoRtpPorts,
-            receiveVideoRtcpPorts,
-            transportTypes,
-            nRtpContacts,
-            supportedCodecs,
-            srtpParams,
-            bandWidth,
-            totalBandwidth,
-            videoFramerate);
+      m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
+         nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
+         transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
 
-      if (res == OS_SUCCESS)
+      m_rStateContext.m_sdpNegotiation.sdpOfferFinished(sipMessage);
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
+{
+   const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+   if (pSdpBody)
+   {
+      m_rStateContext.m_sdpNegotiation.startSdpNegotiation(TRUE); // start locally initiated SDP negotiation
+      CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+      int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
+
+      if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
       {
-         if (!m_natTraversalConfig.m_bEnableICE)
+         if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
          {
-            nRtpContacts = 1;
+            return FALSE;
          }
-
-         m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
-            nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
-            transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
-
-         return TRUE;
       }
+
+      m_rStateContext.m_sdpNegotiation.sdpOfferFinished(sipMessage);
+      return handleRemoteSdpBody(*pSdpBody);
+   }
+
+   return FALSE;
+}
+
+UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
+{
+   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+
+   int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
+   if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
+   {
+      return FALSE;
+   }
+
+   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+   if (pContact != NULL)
+   {
+      pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
+   }
+   else
+   {
+      pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
+   }
+
+   delete pContact;
+   pContact = NULL;
+
+   UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
+   int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
+   int receiveRtcpPorts[MAX_ADDRESS_CANDIDATES];
+   int receiveVideoRtpPorts[MAX_ADDRESS_CANDIDATES];
+   int receiveVideoRtcpPorts[MAX_ADDRESS_CANDIDATES];
+   RTP_TRANSPORT transportTypes[MAX_ADDRESS_CANDIDATES];
+   int nRtpContacts;
+   int totalBandwidth = 0;
+   SdpSrtpParameters srtpParams;
+   SdpCodecList supportedCodecs;
+   int videoFramerate = 0;
+   const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
+   OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
+      MAX_ADDRESS_CANDIDATES,
+      hostAddresses,
+      receiveRtpPorts,
+      receiveRtcpPorts,
+      receiveVideoRtpPorts,
+      receiveVideoRtcpPorts,
+      transportTypes,
+      nRtpContacts,
+      supportedCodecs,
+      srtpParams,
+      bandWidth,
+      totalBandwidth,
+      videoFramerate);
+
+   if (res == OS_SUCCESS)
+   {
+      if (!m_natTraversalConfig.m_bEnableICE)
+      {
+         nRtpContacts = 1;
+      }
+
+      pMediaInterface->startRtpReceive(mediaConnectionId, supportedCodecs);
+
+      m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
+         nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
+         transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
+      m_rStateContext.m_sdpNegotiation.sdpAnswerFinished(sipMessage);
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
+{
+   const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+
+   if (pSdpBody)
+   {
+      m_rStateContext.m_sdpNegotiation.sdpAnswerFinished(sipMessage);
+      return handleRemoteSdpBody(*pSdpBody);
+   }
+
+   return FALSE;
+}
+
+UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
+{
+   UtlString rtpAddress;
+   int totalBandwidth = 0;
+   int matchingBandwidth = 0;
+   int videoFramerate = 0;
+   int matchingVideoFramerate = 0;
+   SdpCodecList supportedCodecs;
+   SdpCodecList commonCodecsForEncoder;
+   SdpCodecList commonCodecsForDecoder;
+   SdpSrtpParameters srtpParams;
+   memset(&srtpParams, 0, sizeof(srtpParams));
+   int numMatchingCodecs = 0;
+   SdpSrtpParameters matchingSrtpParams;
+   memset(&matchingSrtpParams, 0, sizeof(matchingSrtpParams));
+   UtlString remoteRtpAddress; // only used if ICE is disabled
+   int remoteRtpPort = -1; // only used if ICE is disabled
+   int remoteRtcpPort = -1; // only used if ICE is disabled
+   int remoteVideoRtpPort = -1; // only used if ICE is disabled
+   int remoteVideoRtcpPort = -1; // only used if ICE is disabled
+
+   int mediaConnectionId = getMediaConnectionId();
+   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+   pMediaInterface->getCodecList(mediaConnectionId, supportedCodecs);
+
+   CpSdpNegotiation::getCommonSdpCodecs(sdpBody,
+      supportedCodecs, numMatchingCodecs,
+      commonCodecsForEncoder, commonCodecsForDecoder,
+      remoteRtpAddress, remoteRtpPort, remoteRtcpPort, remoteVideoRtpPort, remoteVideoRtcpPort,
+      srtpParams, matchingSrtpParams,
+      totalBandwidth, matchingBandwidth,
+      videoFramerate, matchingVideoFramerate);
+
+   if (numMatchingCodecs > 0)
+   {
+      if (matchingBandwidth != 0)
+      {
+         pMediaInterface->setConnectionBitrate(mediaConnectionId, matchingBandwidth);
+      }
+      if (matchingVideoFramerate != 0)
+      {
+         pMediaInterface->setConnectionFramerate(mediaConnectionId, matchingVideoFramerate);
+      }
+      // Set up the remote RTP sockets
+      setMediaDestination(remoteRtpAddress.data(),
+         remoteRtpPort,
+         remoteRtcpPort,
+         remoteVideoRtpPort,
+         remoteVideoRtcpPort,
+         &sdpBody);
+
+      pMediaInterface->startRtpSend(mediaConnectionId, commonCodecsForEncoder);
+
+      return TRUE;
    }
 
    return FALSE;
@@ -965,6 +1138,230 @@ void BaseSipConnectionState::checkRemoteAllow()
    {
       // allow was not set in response, send in dialog OPTIONS
       sendOptionsRequest();
+   }
+}
+
+void BaseSipConnectionState::handle2xxResponse(const SipMessage& sipResponse)
+{
+   int responseCode = sipResponse.getResponseStatusCode();
+   int seqNum;
+   UtlString seqMethod;
+   sipResponse.getCSeqField(&seqNum, &seqMethod);
+   UtlBoolean bProtocolError = FALSE;
+
+   // get pointer to internal sdp body
+   const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
+
+   SipMessage sipRequest;
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setRequestData(sipRequest, SIP_ACK_METHOD, seqNum);
+   }
+
+   CpSdpNegotiation::SdpNegotiationState negotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
+
+   if (pSdpBody)
+   {
+      // response has SDP body, we must provide SDP answer
+      if (negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
+      {
+         CpSdpNegotiation::SdpBodyType sdpBodyType = m_rStateContext.m_sdpNegotiation.getSdpBodyType(sipResponse);
+         // this 200 OK is probably a retransmission
+         if (sdpBodyType == CpSdpNegotiation::SDP_BODY_OFFER)
+         {
+            prepareSdpAnswer(sipRequest); // add sdp answer
+         }
+         else if (sdpBodyType == CpSdpNegotiation::SDP_BODY_UNKNOWN)
+         {
+            prepareSdpAnswer(sipRequest);
+            bProtocolError = TRUE; // this is protocol error
+         }
+      }
+      else if (negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
+      {
+         // message has sdp body, and we are in negotiation (SDP was in INVITE)
+         handleSdpAnswer(sipResponse);
+      }
+      else if (negotiationState == CpSdpNegotiation::SDP_NOT_YET_NEGOTIATED)
+      {
+         // delayed SDP negotiation
+         bProtocolError = !handleSdpOffer(sipResponse); // if we get false, we need to terminate call
+         prepareSdpAnswer(sipRequest);
+      }
+      //prepareSdpAnswer
+   }
+
+   sendMessage(sipRequest);
+
+   negotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
+   if (negotiationState != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
+   {
+      bProtocolError = TRUE;
+   }
+
+   if (bProtocolError)
+   {
+      sendBye();
+   }
+}
+
+void BaseSipConnectionState::sendBye()
+{
+   // send BYE
+   SipMessage byeRequest;
+   int seqNum = getTransactionManager().startTransaction(SIP_BYE_METHOD);
+   getTransactionManager().endTransaction(SIP_BYE_METHOD, seqNum); // BYE doesn't have transaction, so end it immediately
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setRequestData(byeRequest, SIP_BYE_METHOD, seqNum);
+   }
+   sendMessage(byeRequest);
+}
+
+void BaseSipConnectionState::setMediaDestination(const char* hostAddress,
+                                                 int audioRtpPort,
+                                                 int audioRtcpPort,
+                                                 int videoRtpPort,
+                                                 int videoRtcpPort,
+                                                 const SdpBody* pRemoteBody)
+{
+   UtlBoolean bSetDestination = FALSE;
+
+   int mediaConnectionId = getMediaConnectionId();
+   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+
+   /*
+   * Assumption: that ICE is either enabled for both audio and video or not
+   * at all.  If you attempt to mix, this won't work correctly.  To fix
+   * this, we need to break setConnectionDestination(...) into two methods
+   * -- one for audio and one for video.
+   */
+   if (pMediaInterface && hostAddress && (strcasecmp(hostAddress, "0.0.0.0") != 0))
+   {
+      if (pRemoteBody && m_natTraversalConfig.m_bEnableICE)
+      {
+         int         candidateIds[MAX_ADDRESS_CANDIDATES];
+         UtlString   transportIds[MAX_ADDRESS_CANDIDATES];
+         UtlString   transportTypes[MAX_ADDRESS_CANDIDATES];
+         double      qValues[MAX_ADDRESS_CANDIDATES];
+         UtlString   candidateIps[MAX_ADDRESS_CANDIDATES];
+         int         candidatePorts[MAX_ADDRESS_CANDIDATES];
+         int         nCandidates = 0;
+
+         // Check for / add audio candidate addresses
+         if (pRemoteBody->getCandidateAttributes(SDP_AUDIO_MEDIA_TYPE,
+            MAX_ADDRESS_CANDIDATES,
+            candidateIds,
+            transportIds,
+            transportTypes,
+            qValues,
+            candidateIps,
+            candidatePorts,
+            nCandidates))
+         {
+            bSetDestination = TRUE;
+
+            int lastId = -1;
+            for (int i=0; i<nCandidates; i++)
+            {
+               if (transportTypes[i].compareTo("UDP") == 0)
+               {
+                  if (candidateIds[i] != lastId)
+                  {
+                     if (pMediaInterface->addAudioRtpConnectionDestination(
+                        mediaConnectionId,
+                        (int) (qValues[i] * 100),
+                        candidateIps[i],
+                        candidatePorts[i]) != OS_SUCCESS)
+                     {
+                        OsSysLog::add(FAC_NET, PRI_ERR,
+                           "Failed to set audio rtp media destination (%d %s %s:%d)",
+                           candidateIds[i], transportIds[i].data(),
+                           candidateIps[i].data(), candidatePorts[i]);
+
+                     }
+                  }
+                  else
+                  {
+                     if (pMediaInterface->addAudioRtcpConnectionDestination(
+                        mediaConnectionId,
+                        (int) (qValues[i] * 100),
+                        candidateIps[i],
+                        candidatePorts[i]) != OS_SUCCESS)
+                     {
+                        OsSysLog::add(FAC_NET, PRI_ERR,
+                           "Failed to set audio rtcp media destination (%d %s %s:%d)",
+                           candidateIds[i], transportIds[i].data(),
+                           candidateIps[i].data(), candidatePorts[i]);
+                     }
+                  }
+                  lastId = candidateIds[i];
+               }
+            }
+         }
+
+         // Check for / add video candidate addresses
+         if (pRemoteBody->getCandidateAttributes(SDP_VIDEO_MEDIA_TYPE,
+            MAX_ADDRESS_CANDIDATES,
+            candidateIds,
+            transportIds,
+            transportTypes,
+            qValues,
+            candidateIps,
+            candidatePorts,
+            nCandidates))
+         {
+            bSetDestination = TRUE;
+
+            int lastId = -1;
+            for (int i=0; i<nCandidates; i++)
+            {
+               if (transportTypes[i].compareTo("UDP") == 0)
+               {
+                  if (candidateIds[i] != lastId)
+                  {
+                     if (pMediaInterface->addVideoRtpConnectionDestination(
+                        mediaConnectionId,
+                        (int) (qValues[i] * 100),
+                        candidateIps[i],
+                        candidatePorts[i]) != OS_SUCCESS)
+                     {
+                        OsSysLog::add(FAC_NET, PRI_ERR,
+                           "Failed to set video rtp media destination (%d %s %s:%d)",
+                           candidateIds[i], transportIds[i].data(),
+                           candidateIps[i].data(), candidatePorts[i]);
+
+                     }
+                  }
+                  else
+                  {
+                     if (pMediaInterface->addVideoRtcpConnectionDestination(
+                        mediaConnectionId,
+                        (int) (qValues[i] * 100),
+                        candidateIps[i],
+                        candidatePorts[i]) != OS_SUCCESS)
+                     {
+                        OsSysLog::add(FAC_NET, PRI_ERR,
+                           "Failed to set video rtcp media destination (%d %s %s:%d)",
+                           candidateIds[i], transportIds[i].data(),
+                           candidateIps[i].data(), candidatePorts[i]);
+                     }
+                  }
+                  lastId = candidateIds[i];
+               }
+            }
+         }
+      }
+
+      if (!bSetDestination)
+      {
+         pMediaInterface->setConnectionDestination(mediaConnectionId,
+            hostAddress,
+            audioRtpPort,
+            audioRtcpPort,
+            videoRtpPort,
+            videoRtcpPort);
+      }
    }
 }
 

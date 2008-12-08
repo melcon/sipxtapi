@@ -127,7 +127,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(const UtlString
    // add SDP if negotiation mode is immediate, otherwise don't add it
    if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
    {
-      if (!startSdpNegotiation(sipInvite))
+      if (!prepareSdpOffer(sipInvite))
       {
          // SDP negotiation start failed
          // media connection creation failed
