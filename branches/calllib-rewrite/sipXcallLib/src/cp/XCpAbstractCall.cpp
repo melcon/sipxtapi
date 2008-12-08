@@ -415,10 +415,10 @@ UtlBoolean XCpAbstractCall::findConnection(const SipMessage& sipMessage, OsPtrLo
    return findConnection(sipDialog, ptrLock);
 }
 
-OsStatus XCpAbstractCall::gainFocus()
+OsStatus XCpAbstractCall::gainFocus(UtlBoolean bGainOnlyIfNoFocusedCall)
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   CmGainFocusMsg gainFocusMsg(m_sId);
+   CmGainFocusMsg gainFocusMsg(m_sId, bGainOnlyIfNoFocusedCall);
    return m_rCallManagerQueue.send(gainFocusMsg);
 #else
    return OS_SUCCESS;
@@ -765,6 +765,8 @@ CpMediaInterface* XCpAbstractCall::getMediaInterface(UtlBoolean bCreateIfNull)
          m_natTraversalConfig.m_sTurnPassword,
          m_natTraversalConfig.m_iTurnKeepAlivePeriodSecs,
          m_natTraversalConfig.m_bEnableICE);
+
+      gainFocus(TRUE); // only gain focus if there is no focused call
    }
 
    return m_pMediaInterface;

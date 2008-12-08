@@ -28,6 +28,9 @@
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 #include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/CmCommandMsg.h>
+#include <cp/msg/CmGainFocusMsg.h>
+#include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/ScNotificationMsg.h>
 #include <net/SipDialog.h>
 #include <net/SipMessageEvent.h>
@@ -125,6 +128,8 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
    {
    case OsMsg::PHONE_APP:
       return handlePhoneAppMessage(rRawMsg);
+   case CpMessageTypes::CM_COMMAND:
+      return handleCallManagerCommandMessage((const CmCommandMsg&)rRawMsg);
    case CpMessageTypes::SC_COMMAND:
       return handleSipConnectionCommandMessage((const ScCommandMsg&)rRawMsg);
    case CpMessageTypes::SC_NOFITICATION:
@@ -1096,6 +1101,34 @@ UtlBoolean XCpCallManager::handlePhoneAppMessage(const OsMsg& rRawMsg)
    }
 
    return bResult;
+}
+
+UtlBoolean XCpCallManager::handleCallManagerCommandMessage(const CmCommandMsg& rMsg)
+{
+   CmCommandMsg::SubTypesEnum subType = (CmCommandMsg::SubTypesEnum)rMsg.getMsgSubType();
+   switch (subType)
+   {
+   case CmCommandMsg::CM_GAIN_FOCUS:
+      return handleGainFocusCommandMessage((const CmGainFocusMsg&)rMsg);
+   case CmCommandMsg::CM_YIELD_FOCUS:
+      return handleYieldFocusCommandMessage((const CmYieldFocusMsg&)rMsg);
+   default:
+      ;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpCallManager::handleGainFocusCommandMessage(const CmGainFocusMsg& rMsg)
+{
+   m_callStack.doGainFocus(rMsg.getAbstractCallId(), rMsg.getGainOnlyIfNoFocusedCall());
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleYieldFocusCommandMessage(const CmYieldFocusMsg& rMsg)
+{
+   m_callStack.doYieldFocus(rMsg.getAbstractCallId(), TRUE);
+   return TRUE;
 }
 
 UtlBoolean XCpCallManager::handleSipConnectionCommandMessage(const ScCommandMsg& rMsg)

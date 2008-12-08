@@ -27,9 +27,10 @@
 
 /* ============================ CREATORS ================================== */
 
-CmGainFocusMsg::CmGainFocusMsg(const UtlString& sAbstractCallId)
+CmGainFocusMsg::CmGainFocusMsg(const UtlString& sAbstractCallId, UtlBoolean bGainOnlyIfNoFocusedCall)
 : CmCommandMsg(CM_GAIN_FOCUS)
 , m_sAbstractCallId(sAbstractCallId)
+, m_bGainOnlyIfNoFocusedCall(bGainOnlyIfNoFocusedCall)
 {
 
 }
@@ -41,7 +42,7 @@ CmGainFocusMsg::~CmGainFocusMsg()
 
 OsMsg* CmGainFocusMsg::createCopy(void) const
 {
-   return new CmGainFocusMsg(m_sAbstractCallId);
+   return new CmGainFocusMsg(m_sAbstractCallId, m_bGainOnlyIfNoFocusedCall);
 }
 
 /* ============================ MANIPULATORS ============================== */

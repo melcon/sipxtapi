@@ -39,7 +39,7 @@ class CmGainFocusMsg : public CmCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   CmGainFocusMsg(const UtlString& sAbstractCallId);
+   CmGainFocusMsg(const UtlString& sAbstractCallId, UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);
 
    virtual ~CmGainFocusMsg();
 
@@ -50,6 +50,8 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    UtlString getAbstractCallId() const { return m_sAbstractCallId; }
+
+   UtlBoolean getGainOnlyIfNoFocusedCall() const { return m_bGainOnlyIfNoFocusedCall; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -65,6 +67,7 @@ private:
    CmGainFocusMsg& operator=(const CmGainFocusMsg& rhs);
 
    UtlString m_sAbstractCallId;
+   UtlBoolean m_bGainOnlyIfNoFocusedCall;
 };
 
 #endif // CmGainFocusMsg_h__
