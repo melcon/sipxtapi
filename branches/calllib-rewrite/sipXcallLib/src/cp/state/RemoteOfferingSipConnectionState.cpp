@@ -98,7 +98,17 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
 
    switch (responseCode)
    {
+   case SIP_OK_CODE:
+   case SIP_ACCEPTED_CODE:
+      {
+         // send ACK to 200 OK
+         handle2xxResponse(sipMessage);
+         // proceed to established state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_ESTABLISHED, &memory);
+      }
    case SIP_RINGING_CODE:
+   case SIP_EARLY_MEDIA_CODE:
       {
          // proceed to remote alerting state
          SipResponseTransitionMemory memory(responseCode, responseText);
@@ -109,6 +119,12 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
          // proceed to queued state
          SipResponseTransitionMemory memory(responseCode, responseText);
          return getTransition(ISipConnectionState::CONNECTION_REMOTE_QUEUED, &memory);
+      }
+   case SIP_ALTERNATIVE_SERVICE_CODE:
+      {
+         // proceed to disconnected state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
       }
    default:
       ;

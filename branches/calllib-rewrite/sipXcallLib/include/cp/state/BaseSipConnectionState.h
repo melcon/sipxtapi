@@ -273,8 +273,26 @@ protected:
    /** Creates media connection from media interface, returning mediaConnectionId */
    UtlBoolean setupMediaConnection(RTP_TRANSPORT rtpTransportOptions, int& mediaConnectionId);
 
-   /** Starts SDP negotiation, adds SDP offer to given SipMessage and creates a media connection */
-   UtlBoolean startSdpNegotiation(SipMessage& sipMessage);
+   /** Starts SDP negotiation, adds SDP offer to given SipMessage and creates a media connection if it doesn't exist */
+   UtlBoolean prepareSdpOffer(SipMessage& sipMessage);
+
+   /**
+    * handles inbound SDP offer, starts SDP negotiation, creating media connection if it doesn't exist
+    * Returns FALSE if an error occurred and connection needs to be disconnected.
+    */
+   UtlBoolean handleSdpOffer(const SipMessage& sipMessage);
+
+   /** adds SDP offer to given SipMessage */
+   UtlBoolean prepareSdpAnswer(SipMessage& sipMessage);
+
+   /**
+    * handles inbound SDP answer, setting media connection destination
+    * Returns FALSE if an error occurred and connection needs to be disconnected.
+    */
+   UtlBoolean handleSdpAnswer(const SipMessage& sipMessage);
+
+   /** Handles remote SDP body, by setting media connection destination and starts sending RTP */
+   UtlBoolean handleRemoteSdpBody(const SdpBody& sdpBody);
 
    /** Sets last sent invite */
    void setLastSentInvite(const SipMessage& sipMessage);
@@ -290,6 +308,23 @@ protected:
 
    /** Checks if we know Allow of remote side, and optionally sends options if we don't */
    void checkRemoteAllow();
+
+   /** Sends ACK to given 200 OK response */
+   void handle2xxResponse(const SipMessage& sipResponse);
+
+   /** Sends BYE to terminate call */
+   void sendBye();
+
+   /**
+    * Sets media connection destination to given host/ports if ICE is disabled, or to all
+    * candidate addresses in SDP body if ICE is enabled.
+    */
+   void setMediaDestination(const char* hostAddress, ///< remote RTP address
+                            int audioRtpPort, ///< remote RTP audio port
+                            int audioRtcpPort, ///< remote RTPC audio port
+                            int videoRtpPort,
+                            int videoRtcpPort,
+                            const SdpBody* pRemoteBody);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
