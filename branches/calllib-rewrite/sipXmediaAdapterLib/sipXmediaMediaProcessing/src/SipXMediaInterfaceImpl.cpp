@@ -1406,6 +1406,22 @@ OsStatus SipXMediaInterfaceImpl::getCodecList(SdpCodecList& sdpCodecList)
    return OS_SUCCESS;
 }
 
+OsStatus SipXMediaInterfaceImpl::getCodecList(int connectionId, SdpCodecList& sdpCodecList)
+{
+   OsStatus rc = OS_FAILED ;
+   SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
+   if (pMediaConn)
+   {
+      sdpCodecList.clearCodecs();
+      sdpCodecList.addCodecs(*pMediaConn->mpSdpCodecList);
+      sdpCodecList.bindPayloadIds();
+
+      rc = OS_SUCCESS;
+   }
+
+   return rc;
+}
+
 OsStatus SipXMediaInterfaceImpl::setConnectionBitrate(int connectionId, int bitrate) 
 {
     return OS_NOT_SUPPORTED ;
