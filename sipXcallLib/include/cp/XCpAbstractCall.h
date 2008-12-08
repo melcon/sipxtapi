@@ -372,7 +372,7 @@ protected:
    virtual UtlBoolean findConnection(const SipMessage& sipMessage, OsPtrLock<XSipConnection>& ptrLock) const;
 
    /** Tries to gain focus on this call asynchronously through call manager. */
-   OsStatus gainFocus();
+   OsStatus gainFocus(UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);
 
    /** Tries to yield focus on this call asynchronously through call manager */
    OsStatus yieldFocus();

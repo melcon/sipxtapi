@@ -52,6 +52,9 @@ class SipSecurityEventListener;
 class CpMediaEventListener;
 class SipMessageEvent;
 class SipMessage;
+class CmCommandMsg;
+class CmGainFocusMsg;
+class CmYieldFocusMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
 
@@ -531,6 +534,15 @@ private:
 
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
+
+   /** Handler for CpMessageTypes::CM_COMMAND messages */
+   UtlBoolean handleCallManagerCommandMessage(const CmCommandMsg& rMsg);
+
+   /** Handler for CmCommandMsg::CM_GAIN_FOCUS message */
+   UtlBoolean handleGainFocusCommandMessage(const CmGainFocusMsg& rMsg);
+
+   /** Handler for CmCommandMsg::CM_YIELD_FOCUS message */
+   UtlBoolean handleYieldFocusCommandMessage(const CmYieldFocusMsg& rMsg);
 
    /** Handler for CpMessageTypes::SC_COMMAND messages */
    UtlBoolean handleSipConnectionCommandMessage(const ScCommandMsg& rMsg);
