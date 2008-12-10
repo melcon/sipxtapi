@@ -187,8 +187,8 @@
 				GenerateMapFile="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				RandomizedBaseAddress="2"
+				DataExecutionPrevention="2"
 				ImportLibrary="lib\sipXtapi.lib"
 				TargetMachine="1"
 			/>
@@ -484,8 +484,8 @@
 				GenerateMapFile="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				RandomizedBaseAddress="2"
+				DataExecutionPrevention="2"
 				ImportLibrary="lib\sipXtapi.lib"
 				TargetMachine="1"
 			/>
