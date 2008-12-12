@@ -10,5 +10,4 @@
 
 After this is all finished, we will enter debugging phase where only bugs will be fixed. The goal is to have a rock stable version that wont let you down.
 
-==== FUTURE: ====
-  * Throw away sipxtacklib and use resiprocate sip stack.
+The version currently in development is sipXtapi 3.3.0. It will address problems in sipXcallLib with difficult/expensive code modifications and bring some new features. See [http://code.google.com/p/sipxtapi/wiki/sipXtapi_3_3_0 sipXtapi 3.3.0]
