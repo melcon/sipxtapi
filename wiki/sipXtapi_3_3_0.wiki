@@ -1,0 +1,20 @@
+sipXtapi 3.3.0 is currently in development in calllib-rewrite branch. At some point, these changes will be merged into trunk and development will continue in trunk.
+
+I estimate that at the beginning of february 2009 refactored sipXcallLib will be usable enough to be merged into trunk and tested by developers, although not yet ready for production.
+
+=== Code changes from 3.2.0 ===
+ * minor refactoring of sipXtackLib - SDP handling (SdpCodecList, SdpCodecFactory), usage of SdpCodecList in sipXmediaAdapterLib whenever possible, avoid passing of arrays
+ * new API in sipXtapi for getting all supported codecs. This was not available in 3.2.0 and had to be worked around
+ * call/media events will not be 100% compatible with 3.2.0. Any changes will be described to make upgrade to 3.3.0 easy.
+ * selection of codecs by bandwidth in sipXtapi will not be supported. Only selection by name will be supported. User may display codecs along with bandwidth requirements, and then choose codecs by name.
+ * conferencing without having to invoke hold/unhold on conference or call - will be handled automatically by call manager. Hold/unhold will still be used but will be automatic.
+ * big refactoring in sipXcallLib, CpCall/CpPeerCall, Connection/SipConnection, CallManager/CpCallManager will be gone. Support for session timer, 100rel (PRACK), UPDATE, redirection of RTP stream by re-INVITE.
+ * minor improvements in sipXportLib - OsSharedServerTask, OsRWMutex inherits from OsRWSyncBase and is write recursive. OsQueuedNotification superseeding OsQueuedEvent. OsTimerNotification for sending timer event messages.
+ * special message classes for messages instead of usage of OsIntPtrMsg or CpMultiStringMessage
+ * less circular dependencies, various OO design defects fixed
+
+=== Possible changes ===
+ * maybe use synchronous portaudio API to get lower latency
+
+=== Will not be addressed ===
+ * TCP/TLS code, custom transport, SRTP, RTP over TCP, S/MIME
