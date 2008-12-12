@@ -1,6 +1,6 @@
 = Windows =
 
-Visual Studio 2005 or later is required. Solution and projects for VS2005 are provided, which can be upgraded to VS2008 projects by user upon opening. VS2003 and VC6 are not supported anymore.
+Visual Studio 2003 or later is required. Solution and projects for VS2005 are provided, which can be upgraded to VS2008 projects by user upon opening. VS2003 projects are available for 3.2.0 release and trunk. VC6 is not supported anymore. VS2008 projects are available in experimental callllib-rewrite branch, and will be present in sipXtapi 3.3.0.
 
 === Libraries included in sipxtapi: ===
  * nspr-4.6.4 - will be removed in the future
@@ -11,7 +11,7 @@ Visual Studio 2005 or later is required. Solution and projects for VS2005 are pr
  * patched portaudio V19
  * patched portmixer from Audacity project
  * speex 1.2beta2
- * wxWidgets 2.6 - used by sipXezPhone
+ * wxWidgets 2.6 - used by sipXezPhone (no upgrade planned, sipXezPhone is obsolete with wxCommunicator)
 
 === Libraries not included in sipxtapi: ===
  * DirectX SDK - required by portaudio. If server version of sipxtapi is compiled, not needed. Download from http://msdn.microsoft.com/en-us/directx/default.aspx
