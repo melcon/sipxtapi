@@ -182,7 +182,7 @@ public:
     * @param bDestroyAbstractCall If true, then abstract call will also be destroyed if last connection
     *        was dropped
     */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyAbstractCall = FALSE) = 0;
+   virtual OsStatus dropConnection(const SipDialog& sipDialog) = 0;
 
    /** Blind transfer given call to sTransferSipUrl. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
@@ -392,6 +392,30 @@ protected:
    /** Handle call timer notification. When overriding, first call parent */
    virtual UtlBoolean handleCallTimer(const AcTimerMsg& timerMsg);
 
+   /**
+   * Releases media interface.
+   *
+   * Must be called from the OsServerTask only or destructor.
+   */
+   void releaseMediaInterface();
+
+   /**
+   * Gets current media interface of abstract call. Creates one if it doesn't exist.
+   * 
+   * Must be called from the OsServerTask only.
+   */
+   virtual CpMediaInterface* getMediaInterface(UtlBoolean bCreateIfNull = TRUE);
+
+   /**
+   * Gets local call queue for sending messages.
+   */       
+   virtual OsMsgQ& getLocalQueue();
+
+   /**
+   * Gets global queue for inter call communication.
+   */       
+   virtual OsMsgQ& getGlobalQueue();
+
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
@@ -487,30 +511,6 @@ private:
                                              int mediaConnectionId,
                                              intptr_t pEventData1,
                                              intptr_t pEventData2) = 0;
-
-   /**
-    * Releases media interface.
-    *
-    * Must be called from the OsServerTask only or destructor.
-    */
-   void releaseMediaInterface();
-
-   /**
-    * Gets current media interface of abstract call. Creates one if it doesn't exist.
-    * 
-    * Must be called from the OsServerTask only.
-    */
-   virtual CpMediaInterface* getMediaInterface(UtlBoolean bCreateIfNull = TRUE);
-
-   /**
-   * Gets local call queue for sending messages.
-   */       
-   virtual OsMsgQ& getLocalQueue();
-
-   /**
-   * Gets global queue for inter call communication.
-   */       
-   virtual OsMsgQ& getGlobalQueue();
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

@@ -31,6 +31,7 @@
 #include <cp/msg/CmCommandMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
+#include <cp/msg/CmDestroyAbstractCallMsg.h>
 #include <cp/msg/ScNotificationMsg.h>
 #include <net/SipDialog.h>
 #include <net/SipMessageEvent.h>
@@ -433,7 +434,7 @@ OsStatus XCpCallManager::dropCall(const UtlString& sCallId)
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->dropConnection(TRUE);
+      return ptrLock->dropConnection();
    }
 
    return result;
@@ -1112,6 +1113,8 @@ UtlBoolean XCpCallManager::handleCallManagerCommandMessage(const CmCommandMsg& r
       return handleGainFocusCommandMessage((const CmGainFocusMsg&)rMsg);
    case CmCommandMsg::CM_YIELD_FOCUS:
       return handleYieldFocusCommandMessage((const CmYieldFocusMsg&)rMsg);
+   case CmCommandMsg::CM_DESTROY_ABSTRACT_CALL:
+      return handleDestroyAbstractCallCommandMessage((const CmDestroyAbstractCallMsg&)rMsg);
    default:
       ;
    }
@@ -1128,6 +1131,14 @@ UtlBoolean XCpCallManager::handleGainFocusCommandMessage(const CmGainFocusMsg& r
 UtlBoolean XCpCallManager::handleYieldFocusCommandMessage(const CmYieldFocusMsg& rMsg)
 {
    m_callStack.doYieldFocus(rMsg.getAbstractCallId(), TRUE);
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleDestroyAbstractCallCommandMessage(const CmDestroyAbstractCallMsg& rMsg)
+{
+   UtlString sAbstractCallId = rMsg.getAbstractCallId();
+   m_callStack.doYieldFocus(sAbstractCallId, TRUE); // give focus to next call
+   m_callStack.deleteAbstractCall(sAbstractCallId);
    return TRUE;
 }
 

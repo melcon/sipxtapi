@@ -120,7 +120,7 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyConference = FALSE);
+   virtual OsStatus dropConnection(const SipDialog& sipDialog);
 
    /** Disconnects all calls */
    OsStatus dropAllConnections(UtlBoolean bDestroyConference = FALSE);
@@ -271,6 +271,7 @@ private:
    // begin of members requiring m_memberMutex
    UtlSList m_sipConnections;
    // end of members requiring m_memberMutex
+   UtlBoolean m_bDestroyConference; ///< flag set when dropping all connections, if also conference should be destroyed
 };
 
 #endif // XCpConference_h__

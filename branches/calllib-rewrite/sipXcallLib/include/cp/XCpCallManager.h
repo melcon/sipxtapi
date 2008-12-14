@@ -55,6 +55,7 @@ class SipMessage;
 class CmCommandMsg;
 class CmGainFocusMsg;
 class CmYieldFocusMsg;
+class CmDestroyAbstractCallMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
 
@@ -543,6 +544,9 @@ private:
 
    /** Handler for CmCommandMsg::CM_YIELD_FOCUS message */
    UtlBoolean handleYieldFocusCommandMessage(const CmYieldFocusMsg& rMsg);
+
+   /** Handler for CmCommandMsg::CM_DESTROY_ABSTRACT_CALL message */
+   UtlBoolean handleDestroyAbstractCallCommandMessage(const CmDestroyAbstractCallMsg& rMsg);
 
    /** Handler for CpMessageTypes::SC_COMMAND messages */
    UtlBoolean handleSipConnectionCommandMessage(const ScCommandMsg& rMsg);

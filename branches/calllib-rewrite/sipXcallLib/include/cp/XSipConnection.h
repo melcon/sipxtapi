@@ -151,7 +151,7 @@ public:
    OsStatus answerConnection();
 
    /** Disconnects call */
-   OsStatus dropConnection(UtlBoolean bDestroyCall = FALSE);
+   OsStatus dropConnection();
 
    /** Blind transfer given call to sTransferSipUri. */
    OsStatus transferBlind(const UtlString& sTransferSipUrl);

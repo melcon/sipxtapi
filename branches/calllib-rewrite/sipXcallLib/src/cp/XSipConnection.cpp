@@ -127,9 +127,9 @@ OsStatus XSipConnection::answerConnection()
    return OS_FAILED;
 }
 
-OsStatus XSipConnection::dropConnection(UtlBoolean bDestroyCall /*= FALSE*/)
+OsStatus XSipConnection::dropConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.dropConnection();
 }
 
 OsStatus XSipConnection::transferBlind(const UtlString& sTransferSipUrl)
