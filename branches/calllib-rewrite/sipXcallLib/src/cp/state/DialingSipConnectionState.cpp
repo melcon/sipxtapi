@@ -102,7 +102,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
    fromField.setFieldParameter("tag", localTag);
    secureUrl(fromField);
    sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
-   getTransactionManager().startInitialInviteTransaction(cseqNum);
+   getOutTransactionManager().startInitialInviteTransaction(cseqNum);
 
    m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
 
@@ -156,7 +156,6 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
 SipConnectionStateTransition* DialingSipConnectionState::dropConnection(OsStatus& result)
 {
    // this is unexpected state
-   requestConnectionDestruction();
    result = OS_SUCCESS;
    return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }

@@ -63,7 +63,8 @@ public:
    UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    Cp100RelTracker m_100RelTracker; ///< tracker for 100rel responses and PRACKs
-   CpSipTransactionManager m_sipTransactionMgr; ///< sip transaction tracking & cseq generator
+   CpSipTransactionManager m_sipOutTransactionMgr; ///< sip outbound transaction tracking & cseq generator
+   CpSipTransactionManager m_sipInTransactionMgr; ///< sip inbound transaction tracking
    UtlString m_locationHeader; ///< value of sip location header
    int m_contactId; ///< id of contact we use. Can be used to lookup SIPX_CONTACT_ADDRESS
    SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME

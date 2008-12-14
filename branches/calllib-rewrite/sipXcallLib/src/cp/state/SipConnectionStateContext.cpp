@@ -45,7 +45,7 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_pCancelTimer(NULL)
 , m_pByeTimer(NULL)
 {
-   m_sipTransactionMgr.setSipTransactionListener(&m_100RelTracker);
+   m_sipOutTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
 
 SipConnectionStateContext::~SipConnectionStateContext()

@@ -18,6 +18,7 @@
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/StateTransitionEventDispatcher.h>
+#include <cp/state/GeneralTransitionMemory.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -93,6 +94,21 @@ SipConnectionStateTransition* EstablishedSipConnectionState::dropConnection(OsSt
       // outbound established call, we may use BYE
       return doByeConnection(result);
    }
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::processByeRequest(const SipMessage& sipMessage)
+{
+   // inbound BYE
+   SipMessage sipResponse;
+   sipResponse.setOkResponseData(&sipMessage);
+   sendMessage(sipResponse);
+
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::processCancelRequest(const SipMessage& sipMessage)
+{
+   return doHandleCancelRequest(sipMessage);
 }
 
 SipConnectionStateTransition* EstablishedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
