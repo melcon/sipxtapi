@@ -100,7 +100,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processByeRequest(c
 {
    // inbound BYE
    SipMessage sipResponse;
-   sipResponse.setOkResponseData(&sipMessage);
+   sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
    sendMessage(sipResponse);
 
    return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
