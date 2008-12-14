@@ -27,10 +27,9 @@
 
 /* ============================ CREATORS ================================== */
 
-AcDropConnectionMsg::AcDropConnectionMsg(const SipDialog& sipDialog, UtlBoolean bDestroyAbstractCall)
+AcDropConnectionMsg::AcDropConnectionMsg(const SipDialog& sipDialog)
 : AcCommandMsg(AC_DROP_CONNECTION)
 , m_sipDialog(sipDialog)
-, m_bDestroyAbstractCall(bDestroyAbstractCall)
 {
 
 }
@@ -42,7 +41,7 @@ AcDropConnectionMsg::~AcDropConnectionMsg()
 
 OsMsg* AcDropConnectionMsg::createCopy(void) const
 {
-   return new AcDropConnectionMsg(m_sipDialog, m_bDestroyAbstractCall);
+   return new AcDropConnectionMsg(m_sipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */
