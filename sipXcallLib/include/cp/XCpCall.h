@@ -31,6 +31,7 @@ class AcRejectConnectionMsg;
 class AcRedirectConnectionMsg;
 class AcAnswerConnectionMsg;
 class AcDropConnectionMsg;
+class AcDestroyConnectionMsg;
 class AcTransferBlindMsg;
 class AcHoldConnectionMsg;
 class AcUnholdConnectionMsg;
@@ -133,10 +134,10 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyCall = FALSE);
+   virtual OsStatus dropConnection(const SipDialog& sipDialog);
 
    /** Disconnects call without knowing the sip call-id*/
-   OsStatus dropConnection(UtlBoolean bDestroyCall = FALSE);
+   OsStatus dropConnection();
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
@@ -250,6 +251,8 @@ private:
    OsStatus handleAnswerConnection(const AcAnswerConnectionMsg& rMsg);
    /** Handles message to drop sip connection */
    OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
+   /** Handles message to destroy sip connection */
+   OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg);
    /** Handles message to initiate blind call transfer */
    OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
    /** Handles message to initiate remote hold on sip connection */
@@ -283,7 +286,7 @@ private:
                                             intptr_t pEventData2);
 
    // begin of members requiring m_memberMutex
-   XSipConnection* m_pSipConnection;
+   XSipConnection* m_pSipConnection; ///< XSipConnection handling Sip messages. Use destroySipConnection to delete it.
    // end of members requiring m_memberMutex
 };
 

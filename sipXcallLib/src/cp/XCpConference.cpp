@@ -116,9 +116,9 @@ OsStatus XCpConference::answerConnection()
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus XCpConference::dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyConference)
+OsStatus XCpConference::dropConnection(const SipDialog& sipDialog)
 {
-   AcDropConnectionMsg dropConnectionMsg(sipDialog, bDestroyConference);
+   AcDropConnectionMsg dropConnectionMsg(sipDialog);
    return postMessage(dropConnectionMsg);
 }
 
@@ -366,6 +366,7 @@ OsStatus XCpConference::handleDropConnection(const AcDropConnectionMsg& rMsg)
 
 OsStatus XCpConference::handleDropAllConnections(const AcDropAllConnectionsMsg& rMsg)
 {
+   m_bDestroyConference = TRUE;
    return OS_FAILED;
 }
 

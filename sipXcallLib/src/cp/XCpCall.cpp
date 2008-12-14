@@ -24,12 +24,14 @@
 #include <cp/msg/AcRedirectConnectionMsg.h>
 #include <cp/msg/AcRejectConnectionMsg.h>
 #include <cp/msg/AcDropConnectionMsg.h>
+#include <cp/msg/AcDestroyConnectionMsg.h>
 #include <cp/msg/AcHoldConnectionMsg.h>
 #include <cp/msg/AcUnholdConnectionMsg.h>
 #include <cp/msg/AcTransferBlindMsg.h>
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
 #include <cp/msg/CpTimerMsg.h>
+#include <cp/msg/CmDestroyAbstractCallMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -117,15 +119,15 @@ OsStatus XCpCall::answerConnection()
    return postMessage(answerConnectionMsg);
 }
 
-OsStatus XCpCall::dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyCall)
+OsStatus XCpCall::dropConnection(const SipDialog& sipDialog)
 {
-   AcDropConnectionMsg dropConnectionMsg(sipDialog, bDestroyCall);
+   AcDropConnectionMsg dropConnectionMsg(sipDialog);
    return postMessage(dropConnectionMsg);
 }
 
-OsStatus XCpCall::dropConnection(UtlBoolean bDestroyCall)
+OsStatus XCpCall::dropConnection()
 {
-   AcDropConnectionMsg dropConnectionMsg(NULL, bDestroyCall);
+   AcDropConnectionMsg dropConnectionMsg(NULL);
    return postMessage(dropConnectionMsg);
 }
 
@@ -260,6 +262,9 @@ UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_DROP_CONNECTION:
       handleDropConnection((const AcDropConnectionMsg&)rRawMsg);
       return TRUE;
+   case AcCommandMsg::AC_DESTROY_CONNECTION:
+      handleDestroyConnection((const AcDestroyConnectionMsg&)rRawMsg);
+      return TRUE;
    case AcCommandMsg::AC_TRANSFER_BLIND:
       handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
       return TRUE;
@@ -383,7 +388,34 @@ OsStatus XCpCall::handleDropConnection(const AcDropConnectionMsg& rMsg)
    }
    if (resFound)
    {
-      return ptrLock->dropConnection(rMsg.getDestroyAbstractCall());
+      return ptrLock->dropConnection();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpCall::handleDestroyConnection(const AcDestroyConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   UtlBoolean resFound = FALSE;
+   // find connection by sip dialog if call-id is not null
+   OsPtrLock<XSipConnection> ptrLock;
+   if (sipDialog.getCallId().isNull())
+   {
+      resFound = getConnection(ptrLock);
+   }
+   else
+   {
+      resFound = findConnection(sipDialog, ptrLock);
+   }
+   if (resFound)
+   {
+      releaseMediaInterface(); // release audio resources
+      destroySipConnection();
+
+      CmDestroyAbstractCallMsg msg(m_sId);
+      getGlobalQueue().send(msg); // instruct call manager to destroy this call
    }
 
    return OS_NOT_FOUND;
