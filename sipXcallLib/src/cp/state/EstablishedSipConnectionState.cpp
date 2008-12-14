@@ -106,11 +106,6 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processByeRequest(c
    return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
-SipConnectionStateTransition* EstablishedSipConnectionState::processCancelRequest(const SipMessage& sipMessage)
-{
-   return doHandleCancelRequest(sipMessage);
-}
-
 SipConnectionStateTransition* EstablishedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here

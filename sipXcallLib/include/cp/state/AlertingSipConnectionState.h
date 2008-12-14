@@ -64,9 +64,6 @@ public:
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
-   /** Handles inbound SIP CANCEL requests */
-   virtual SipConnectionStateTransition* processCancelRequest(const SipMessage& sipMessage);
-
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /* ============================ ACCESSORS ================================= */

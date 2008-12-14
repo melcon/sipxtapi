@@ -242,6 +242,11 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
          setLastSentInvite(sipMessage);
       }
    }
+   else
+   {
+      // this is a response to remote request
+      trackInboundTransactionResponse(sipMessage);
+   }
 
    return m_rSipUserAgent.send(sipMessage);
 }
@@ -276,6 +281,8 @@ SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMe
    {
       m_rStateContext.m_allowedRemote = allowField;
    }
+
+   trackInboundTransactionRequest(sipMessage);
 
    if (method.compareTo(SIP_INVITE_METHOD) == 0)
    {
@@ -354,17 +361,79 @@ SipConnectionStateTransition* BaseSipConnectionState::processByeRequest(const Si
 {
    // default handler for inbound BYE. We only allow BYE in established state.
    SipMessage sipResponse;
-   sipResponse.setInviteForbidden(&sipMessage);
+   // bad request, BYE is handled elsewhere
+   sipResponse.setRequestBadRequest(&sipMessage);
    sendMessage(sipResponse);
    return NULL;
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const SipMessage& sipMessage)
 {
-   // default handler for inbound CANCEL. Proper handlers are localed in correct states.
+   // inbound CANCEL
+   int iSeqNumber = 0;
+   UtlString seqMethod;
+   sipMessage.getCSeqField(iSeqNumber, seqMethod);
    SipMessage sipResponse;
-   sipResponse.setInviteForbidden(&sipMessage);
-   sendMessage(sipResponse);
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(seqMethod, iSeqNumber);
+      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      {
+         if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+         {
+            CpSipTransactionManager::InviteTransactionState inviteState = getInTransactionManager().getInviteTransactionState();
+            if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
+            {
+               // cancel of initial invite, disconnect call, send 487 Request terminated
+               sipResponse.setRequestTerminatedResponseData(&sipMessage);
+               sendMessage(sipResponse);
+               return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+            }
+            else
+            {
+               // cancel of re-invite, just end transaction
+               getInTransactionManager().endTransaction(iSeqNumber);
+               // send 200 OK, not possible to terminate. Has no effect. We already responded to re-INVITE
+               sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+               sendMessage(sipResponse);
+            }
+         }
+         else
+         {
+            // it was some other method
+            getInTransactionManager().endTransaction(iSeqNumber);
+            // send 200 OK, not possible to terminate. Has no effect.
+            sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+            sendMessage(sipResponse);
+         }
+      }
+      else if (transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED)
+      {
+         // send 200 OK. Has no effect.
+         sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+         sendMessage(sipResponse);
+      }
+      else
+      {
+         // transaction was not found
+         sipResponse.setBadTransactionData(&sipMessage);
+         sendMessage(sipResponse);
+
+         GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_TRANSACTION_DOES_NOT_EXIST);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+      }
+   }
+   else
+   {
+      // transaction was not found
+      sipResponse.setBadTransactionData(&sipMessage);
+      sendMessage(sipResponse);
+      // we are already disconnected
+   }
+
    return NULL;
 }
 
@@ -695,7 +764,20 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
 
          if (needsTransactionTracking(seqMethod))
          {
-            getOutTransactionManager().updateActiveTransaction(seqMethod, seqNum + 1);
+            // start next transaction for authentication retry request we never see here
+            if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+            {
+               getOutTransactionManager().updateInviteTransaction(seqNum + 1);
+            }
+            else
+            {
+               // non INVITE transaction
+               getOutTransactionManager().endTransaction(seqNum); // end current transaction
+               // SipUserAgent uses seqNum+1 for authentication retransmission. That works only
+               // if we don't send 2 messages quickly that both need to be authenticated
+               getNextLocalCSeq(); // skip 1 cseq number
+               getOutTransactionManager().startTransaction(seqMethod, seqNum + 1); // start new transaction with the same method
+            }
          }
       }
    }
@@ -740,6 +822,7 @@ void BaseSipConnectionState::deleteMediaConnection()
 void BaseSipConnectionState::terminateSipDialog()
 {
    getOutTransactionManager().endInviteTransaction();
+   getInTransactionManager().endInviteTransaction();
 
    {
       OsWriteLock lock(m_rStateContext);
@@ -1223,7 +1306,7 @@ void BaseSipConnectionState::handleSmallInviteSessionInterval(const SipMessage& 
          sipInvite.setSessionExpires(minSe, refresher); // set new session expires
          sipInvite.setMinSe(minSe);
          // update transaction
-         int cseqNum;
+         int cseqNum = getNextLocalCSeq();
          if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
          {
             getOutTransactionManager().startInitialInviteTransaction(cseqNum);
@@ -1241,7 +1324,8 @@ void BaseSipConnectionState::handleSmallInviteSessionInterval(const SipMessage& 
 void BaseSipConnectionState::sendOptionsRequest()
 {
    // allow was not set in response, send OPTIONS
-   int iCSeq = getOutTransactionManager().startTransaction(SIP_OPTIONS_METHOD);
+   int iCSeq = getNextLocalCSeq();
+   getOutTransactionManager().startTransaction(SIP_OPTIONS_METHOD, iCSeq);
    SipMessage optionsRequest;
 
    {
@@ -1334,7 +1418,8 @@ void BaseSipConnectionState::sendBye()
 {
    // send BYE
    SipMessage byeRequest;
-   int seqNum = getOutTransactionManager().startTransaction(SIP_BYE_METHOD);
+   int seqNum = getNextLocalCSeq();
+   getOutTransactionManager().startTransaction(SIP_BYE_METHOD, seqNum);
    {
       OsWriteLock lock(m_rStateContext);
       m_rStateContext.m_sipDialog.setRequestData(byeRequest, SIP_BYE_METHOD, seqNum);
@@ -1660,42 +1745,67 @@ void BaseSipConnectionState::getSipDialogId(UtlString& sipCallId,
    }
 }
 
-SipConnectionStateTransition* BaseSipConnectionState::doHandleCancelRequest(const SipMessage& sipMessage)
+int BaseSipConnectionState::getNextLocalCSeq()
 {
-   // inbound CANCEL
-   int iSeqNumber = 0;
-   UtlString seqMethod;
-   sipMessage.getCSeqField(iSeqNumber, seqMethod);
+   OsWriteLock lock(m_rStateContext);
+   return m_rStateContext.m_sipDialog.getNextLocalCseq();
+}
 
-   // TODO: implement tracking of inbound transactions
-   CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(SIP_INVITE_METHOD, iSeqNumber);
-   if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+int BaseSipConnectionState::getRandomCSeq() const
+{
+   UtlRandom randomGenerator;
+   return (abs(randomGenerator.rand()) % 65535);
+}
+
+void BaseSipConnectionState::trackInboundTransactionRequest(const SipMessage& sipMessage)
+{
+   int cseqNum;
+   UtlString cseqMethod;
+   sipMessage.getCSeqField(cseqNum, cseqMethod);
+   if (needsTransactionTracking(cseqMethod))
    {
-      SipMessage sipResponse;
-      sipResponse.setRequestTerminatedResponseData(&sipMessage);
-      sendMessage(sipResponse);
+      CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(cseqNum);
 
-      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+      if (transactionState == CpSipTransactionManager::TRANSACTION_NOT_FOUND)
+      {
+         // not found, start new transaction
+         if (cseqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+         {
+            ISipConnectionState::StateEnum connectionState = getCurrentState();
+            if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+            {
+               // this must be a re-INVITE
+               getInTransactionManager().startReInviteTransaction(cseqNum);
+            }
+            else
+            {
+               // this must be the initial INVITE
+               getInTransactionManager().startInitialInviteTransaction(cseqNum);
+            }
+         }
+         else
+         {
+            getInTransactionManager().startTransaction(cseqMethod, cseqNum);
+         }
+      }
    }
-   else if (transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED)
+}
+
+void BaseSipConnectionState::trackInboundTransactionResponse(const SipMessage& sipMessage)
+{
+   int cseqNum;
+   UtlString cseqMethod;
+   sipMessage.getCSeqField(cseqNum, cseqMethod);
+   int statusCode = sipMessage.getResponseStatusCode();
+   if (needsTransactionTracking(cseqMethod))
    {
-      // send 200 OK
-      SipMessage sipResponse;
-      sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
-      sendMessage(sipResponse);
+      if (statusCode >= SIP_2XX_CLASS_CODE)
+      {
+         // checks automatically if transaction exists
+         getInTransactionManager().endTransaction(cseqMethod, cseqNum);
+      }
+      // 1xx don't end transaction
    }
-   else
-   {
-      // transaction was not found
-      SipMessage sipResponse;
-      sipResponse.setBadTransactionData(&sipMessage);
-      sendMessage(sipResponse);
-
-      GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_TRANSACTION_DOES_NOT_EXIST);
-      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
-   }
-
-   return NULL;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

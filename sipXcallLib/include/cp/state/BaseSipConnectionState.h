@@ -395,8 +395,17 @@ protected:
                        UtlString& remoteTag,
                        UtlBoolean& isFromLocal);
 
-   /** Handles inbound SIP CANCEL requests */
-   virtual SipConnectionStateTransition* doHandleCancelRequest(const SipMessage& sipMessage);
+   /** Gets next local CSeq number */
+   int getNextLocalCSeq();
+
+   /** Gets random CSeq number for bootstrap */
+   int getRandomCSeq() const;
+
+   /** Must be called for inbound requests to track inbound transactions */
+   void trackInboundTransactionRequest(const SipMessage& sipMessage);
+
+   /** Must be called for outbound responses to track inbound transactions */
+   void trackInboundTransactionResponse(const SipMessage& sipMessage);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

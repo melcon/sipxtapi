@@ -98,6 +98,9 @@ public:
    /** Call to notify class that SDP answer part of handshake is finished */
    void sdpAnswerFinished(const SipMessage& rAnswerSipMessage);
 
+   /** Resets negotiation of SDP */
+   void resetSdpNegotiation();
+
    /**
     * Gets sdp codecs for encoder & decoder which are in common with our supported codecs.
     * We separate encoder & decoder codecs, as they may use different dynamic payload type.

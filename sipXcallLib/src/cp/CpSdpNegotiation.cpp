@@ -93,6 +93,19 @@ void CpSdpNegotiation::sdpAnswerFinished(const SipMessage& rAnswerSipMessage)
    }
 }
 
+void CpSdpNegotiation::resetSdpNegotiation()
+{
+   m_negotiationState = CpSdpNegotiation::SDP_NOT_YET_NEGOTIATED;
+
+   m_bSdpOfferFinished = FALSE;
+   m_bSdpAnswerFinished = FALSE;
+
+   delete m_pOfferSipMessage;
+   m_pOfferSipMessage = NULL;
+   delete m_pAnswerSipMessage;
+   m_pAnswerSipMessage = NULL;
+}
+
 void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound SDP body (offer or answer)
                                           const SdpCodecList& supportedCodecs,
                                           int& numCodecsInCommon, ///< how many codecs do we have in common

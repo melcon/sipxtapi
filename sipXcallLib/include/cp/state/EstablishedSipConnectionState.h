@@ -67,9 +67,6 @@ public:
    /** Handles inbound SIP BYE requests */
    virtual SipConnectionStateTransition* processByeRequest(const SipMessage& sipMessage);
 
-   /** Handles inbound SIP CANCEL requests */
-   virtual SipConnectionStateTransition* processCancelRequest(const SipMessage& sipMessage);
-
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /** Handles inbound SIP INVITE responses */
