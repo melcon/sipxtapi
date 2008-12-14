@@ -85,6 +85,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::dropConnection(OsSt
       {
          // we may not send BYE, we must wait
          startDelayedByeTimer(); // we will try BYE again later
+         return NULL;
       }
    }
    else
