@@ -38,7 +38,8 @@ public:
    typedef enum
    {
       CM_GAIN_FOCUS = 0,
-      CM_YIELD_FOCUS
+      CM_YIELD_FOCUS,
+      CM_DESTROY_ABSTRACT_CALL
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */
