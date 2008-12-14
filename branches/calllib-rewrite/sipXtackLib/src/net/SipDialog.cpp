@@ -324,32 +324,30 @@ void SipDialog::updateDialog(const SipMessage& message)
    }
 }
 
-void SipDialog::setRequestData(SipMessage& request, const char* method, int cseqNum)
+void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int cseqNum)
 {
-   UtlString methodString(method ? method : "");
-   if(methodString.isNull())
+   Url requestUri;
+   if (m_dialogState != SipDialog::DIALOG_STATE_INITIAL &&
+       m_dialogSubState == SipDialog::DIALOG_SUBSTATE_CONFIRMED)
    {
-      request.getRequestMethod(&methodString);
-   }
-
-   // The request URI should be the remote contact
-   UtlString remoteContact;
-   // Use getUri() to get the contact in addr-spec format.
-   // (mRemoteContact should have no field parameters, but if it has
-   // URI parameters, toString would add <...>, which are not allowed
-   // in URIs.)
-   m_remoteContact.getUri(remoteContact);
-
-   // If the remote contact is empty, use the remote request uri
-   if (remoteContact.compareTo("sip:") == 0)
-   {
-      OsSysLog::add(FAC_ACD, PRI_DEBUG, "SipDialog::setRequestData - using remote request uri %s",
-         m_remoteRequestUri.toString().data());
-      request.setSipRequestFirstHeaderLine(methodString, m_remoteRequestUri.toString());
+      // we are in established confirmed state, request Uri must be constructed from contact
+      m_remoteContact.getUri(requestUri);
+      request.setSipRequestFirstHeaderLine(method, requestUri.toString());
    }
    else
    {
-      request.setSipRequestFirstHeaderLine(methodString, remoteContact);
+      // request Uri must be constructed either from remote request uri, or remote field
+      if (!m_remoteRequestUri.isNull())
+      {
+         // remote request Uri is know, use it. It is known only for outbound dialog
+         request.setSipRequestFirstHeaderLine(method, m_remoteRequestUri.toString());
+      }
+      else
+      {
+         // use remote field - will be used for inbound dialogs that are not yet confirmed
+         m_remoteField.getUri(requestUri);
+         request.setSipRequestFirstHeaderLine(method, requestUri.toString());
+      }
    }
 
    // The local field is the From field
@@ -371,7 +369,7 @@ void SipDialog::setRequestData(SipMessage& request, const char* method, int cseq
    {
       m_iLastLocalCseq = cseqNum;
    }
-   request.setCSeqField(m_iLastLocalCseq, methodString);
+   request.setCSeqField(m_iLastLocalCseq, method);
 
    // Set the route header according to the route set
    if(!m_sRouteSet.isNull())

@@ -184,7 +184,7 @@ public:
    *         and sent as orginating from the local side of the dialog.
    *  \param cseqNum - allows to specify cseq number from outside.
    */
-   void setRequestData(SipMessage& request, const char* method, int cseqNum = -1);
+   void setRequestData(SipMessage& request, const UtlString& method, int cseqNum = -1);
 
    /* ============================ ACCESSORS ================================= */
 
