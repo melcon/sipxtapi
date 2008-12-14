@@ -449,8 +449,8 @@ private:
    Url m_remoteField; // To or From depending on who initiated the transaction
    UtlString m_sLocalTag;
    UtlString m_sRemoteTag;
-   Url m_localContact; // our contact, we use in outbound messages
-   Url m_remoteContact; // In RFC-3261 described as "remote target", contact of remote party
+   Url m_localContactField; // our contact url, we use in outbound messages (including display name)
+   Url m_remoteContactField; // In RFC-3261 described as "remote target", contact url of remote party (including display name)
    UtlString m_sRouteSet; // route set for building Record-Route header
    UtlString m_sInitialMethod; // INVITE etc
    Url m_localRequestUri; // request URI used for first inbound request
