@@ -69,6 +69,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
 XSipConnection::~XSipConnection()
 {
    m_stateMachine.setStateObserver(NULL);
+   fireSipXCallEvent(CP_CALLSTATE_DESTROYED, CP_CALLSTATE_CAUSE_NORMAL);
 }
 
 /* ============================ MANIPULATORS ============================== */
