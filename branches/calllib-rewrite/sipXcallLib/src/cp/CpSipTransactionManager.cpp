@@ -21,7 +21,7 @@
 
 // DEFINES
 #define CLEAN_PERIOD 100 // in seconds
-#define MAX_DEAD_TRANSACTION_TIME 60
+const int maxTransactionStorageTime = T1_PERIOD_MSEC * 128; // 2* invite/non-invite transaction timeout
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -34,15 +34,18 @@
 class CpTransactionState : public UtlInt
 {
 public:
-   CpTransactionState(int cseqNum)
+   CpTransactionState(const UtlString& sipMethod, int cseqNum)
       : UtlInt(cseqNum)
+      , m_sipMethod(sipMethod)
       , m_transactionState(CpSipTransactionManager::TRANSACTION_ACTIVE)
+      , m_lastUsageTime(0)
    {
-      m_startTime = OsDateTime::getSecsSinceEpoch();
+      m_lastUsageTime = OsDateTime::getSecsSinceEpoch();
    }
 
    CpSipTransactionManager::TransactionState m_transactionState;
-   long m_startTime; ///< start time in seconds since 1/1/1970
+   UtlString m_sipMethod; ///< sip method
+   long m_lastUsageTime; ///< start time in seconds since 1/1/1970
 };
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -50,14 +53,11 @@ public:
 /* ============================ CREATORS ================================== */
 
 CpSipTransactionManager::CpSipTransactionManager()
-: m_iCSeq(0)
-, m_lastCleanUpTime(0)
+: m_lastCleanUpTime(0)
 , m_iInviteCSeq(-1)
 , m_inviteTransactionState(CpSipTransactionManager::INVITE_INACTIVE)
 , m_pTransactionListener(NULL)
-{
-   UtlRandom randomGenerator;
-   m_iCSeq = (abs(randomGenerator.rand()) % 65535);
+{   
 }
 
 CpSipTransactionManager::~CpSipTransactionManager()
@@ -68,81 +68,32 @@ CpSipTransactionManager::~CpSipTransactionManager()
 
 /* ============================ MANIPULATORS ============================== */
 
-int CpSipTransactionManager::startTransaction(const UtlString& sipMethod)
+void CpSipTransactionManager::startTransaction(const UtlString& sipMethod, int cseqNum)
 {
    if (sipMethod.compareTo(SIP_INVITE_METHOD) != 0)
    {
       // non INVITE transaction
-      UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(m_transactionMap.findValue(&sipMethod));
-      if (!pTransactionBag)
-      {
-         // create new transaction bag
-         pTransactionBag = new UtlHashBag();
-         m_transactionMap.insertKeyAndValue(sipMethod.clone(), pTransactionBag);
-      }
-      pTransactionBag->insert(new CpTransactionState(m_iCSeq));
-
-      notifyTransactionStart(sipMethod, m_iCSeq);
-      return m_iCSeq++; // post increment cseq
-   }
-   else
-   {
-      int cseq;
-      UtlBoolean success = startInitialInviteTransaction(cseq);
-      if (success)
-      {
-         return cseq;
-      }
-   }
-
-   return -1; // return invalid cseqNum
-}
-
-void CpSipTransactionManager::updateActiveTransaction(const UtlString& sipMethod, int cseqNum)
-{
-   if (sipMethod.compareTo(SIP_INVITE_METHOD) != 0)
-   {
-      // non INVITE transaction
-
-      // automatically stop old transaction
-      endTransaction(sipMethod, cseqNum - 1);
-
-      UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(m_transactionMap.findValue(&sipMethod));
-      if (!pTransactionBag)
-      {
-         // create new transaction bag
-         pTransactionBag = new UtlHashBag();
-         m_transactionMap.insertKeyAndValue(sipMethod.clone(), pTransactionBag);
-      }
-
       UtlInt utlCSeq(cseqNum);
-      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(pTransactionBag->find(&utlCSeq));
+      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
       if (!pTransactionState)
       {
-         pTransactionBag->insert(new CpTransactionState(cseqNum)); // if its not already there then add it
+         m_transactionMap.insert(new CpTransactionState(sipMethod, cseqNum)); // if its not already there then add it
       }
 
       notifyTransactionStart(sipMethod, cseqNum);
-
-      if (m_iCSeq <= cseqNum)
-      {
-         m_iCSeq = cseqNum + 1; // set next available cseqNum number
-      }
    }
    else
    {
-      // INVITE transaction
-      updateActiveInviteTransaction(cseqNum);
+      startInitialInviteTransaction(cseqNum);
    }
 }
 
-UtlBoolean CpSipTransactionManager::startInitialInviteTransaction(int& cseqNum)
+UtlBoolean CpSipTransactionManager::startInitialInviteTransaction(int cseqNum)
 {
    if (m_inviteTransactionState == CpSipTransactionManager::INVITE_INACTIVE)
    {
       m_inviteTransactionState = CpSipTransactionManager::INITIAL_INVITE_ACTIVE;
-      m_iInviteCSeq = m_iCSeq;
-      cseqNum = m_iCSeq++; // post increment cseqNum
+      m_iInviteCSeq = cseqNum;
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum);
       return TRUE;
    }
@@ -152,13 +103,12 @@ UtlBoolean CpSipTransactionManager::startInitialInviteTransaction(int& cseqNum)
    }
 }
 
-UtlBoolean CpSipTransactionManager::startReInviteTransaction(int& cseqNum)
+UtlBoolean CpSipTransactionManager::startReInviteTransaction(int cseqNum)
 {
    if (m_inviteTransactionState == CpSipTransactionManager::INVITE_INACTIVE)
    {
       m_inviteTransactionState = CpSipTransactionManager::REINVITE_ACTIVE;
-      m_iInviteCSeq = m_iCSeq;
-      cseqNum = m_iCSeq++; // post increment cseqNum
+      m_iInviteCSeq = cseqNum;
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum);
       return TRUE;
    }
@@ -168,15 +118,14 @@ UtlBoolean CpSipTransactionManager::startReInviteTransaction(int& cseqNum)
    }
 }
 
-UtlBoolean CpSipTransactionManager::updateActiveInviteTransaction(int cseqNum)
+UtlBoolean CpSipTransactionManager::updateInviteTransaction(int cseqNum)
 {
    if (m_inviteTransactionState != CpSipTransactionManager::INVITE_INACTIVE &&
       m_iInviteCSeq != cseqNum)
    {
-      notifyTransactionEnd(SIP_INVITE_METHOD, cseqNum); // end old transaction
+      notifyTransactionEnd(SIP_INVITE_METHOD, cseqNum - 1); // end old transaction
       m_iInviteCSeq = cseqNum; // update cseqNum
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum); // start new transaction
-      m_iCSeq = cseqNum + 1; // set next available cseqNum number
       return TRUE;
    }
 
@@ -198,12 +147,11 @@ void CpSipTransactionManager::endTransaction(const UtlString& sipMethod, int cse
    else
    {
       // non INVITE transaction
-      UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(m_transactionMap.findValue(&sipMethod));
-      if (pTransactionBag)
+      UtlInt utlCSeq(cseqNum);
+      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
+      if (pTransactionState && pTransactionState->m_transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
       {
-         UtlInt utlCSeq(cseqNum);
-         CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(pTransactionBag->find(&utlCSeq));
-         if (pTransactionState)
+         if (sipMethod.compareTo(pTransactionState->m_sipMethod) == 0)
          {
             notifyTransactionEnd(sipMethod, cseqNum); // end old transaction
             pTransactionState->m_transactionState = CpSipTransactionManager::TRANSACTION_TERMINATED;
@@ -212,11 +160,36 @@ void CpSipTransactionManager::endTransaction(const UtlString& sipMethod, int cse
    }
 }
 
+void CpSipTransactionManager::endTransaction(int cseqNum)
+{
+   cleanOldTransactions(); // maybe cleanup old terminated transactions
+
+   // INVITE transaction
+   if (m_iInviteCSeq == cseqNum)
+   {
+      endInviteTransaction();
+   }
+   else
+   {
+      // non INVITE transaction
+      UtlInt utlCSeq(cseqNum);
+      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
+      if (pTransactionState && pTransactionState->m_transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      {
+         notifyTransactionEnd(pTransactionState->m_sipMethod, cseqNum); // end old transaction
+         pTransactionState->m_transactionState = CpSipTransactionManager::TRANSACTION_TERMINATED;
+      }
+   }
+}
+
 void CpSipTransactionManager::endInviteTransaction()
 {
-   notifyTransactionEnd(SIP_INVITE_METHOD, m_iInviteCSeq); // end old transaction
-   m_iInviteCSeq = -1;
-   m_inviteTransactionState = CpSipTransactionManager::INVITE_INACTIVE;
+   if (m_inviteTransactionState != CpSipTransactionManager::INVITE_INACTIVE)
+   {
+      notifyTransactionEnd(SIP_INVITE_METHOD, m_iInviteCSeq); // end old transaction
+      m_iInviteCSeq = -1;
+      m_inviteTransactionState = CpSipTransactionManager::INVITE_INACTIVE;
+   }
 }
 
 void CpSipTransactionManager::setSipTransactionListener(CpSipTransactionListener* pTransactionListener)
@@ -243,15 +216,33 @@ CpSipTransactionManager::TransactionState CpSipTransactionManager::getTransactio
    else
    {
       // non INVITE transaction
-      UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(m_transactionMap.findValue(&sipMethod));
-      if (pTransactionBag)
+      UtlInt utlCSeq(cseqNum);
+      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
+      if (pTransactionState && pTransactionState->m_sipMethod.compareTo(sipMethod) == 0)
       {
-         UtlInt utlCSeq(cseqNum);
-         CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(pTransactionBag->find(&utlCSeq));
-         if (pTransactionState)
-         {
-            return pTransactionState->m_transactionState;
-         }
+         return pTransactionState->m_transactionState;
+      }
+   }
+
+   return CpSipTransactionManager::TRANSACTION_NOT_FOUND;
+}
+
+CpSipTransactionManager::TransactionState CpSipTransactionManager::getTransactionState(int cseqNum) const
+{
+   // INVITE transaction
+   if (m_iInviteCSeq != -1 && m_iInviteCSeq == cseqNum)
+   {
+      // we do not track terminated INVITE transactions
+      return CpSipTransactionManager::TRANSACTION_ACTIVE;
+   }
+   else
+   {
+      // non INVITE transaction
+      UtlInt utlCSeq(cseqNum);
+      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
+      if (pTransactionState)
+      {
+         return pTransactionState->m_transactionState;
       }
    }
 
@@ -293,20 +284,12 @@ void CpSipTransactionManager::cleanOldTransactions()
       UtlHashMapIterator mapItor(m_transactionMap);
       while (mapItor())
       {
-         UtlHashBag* pTransactionBag = dynamic_cast<UtlHashBag*>(mapItor.value());
-         if (pTransactionBag)
+         CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(mapItor.value());
+         if (pTransactionState &&
+             pTransactionState->m_transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
+             timeNow - pTransactionState->m_lastUsageTime >= maxTransactionStorageTime)
          {
-            UtlHashBagIterator bagItor(*pTransactionBag);
-            while (bagItor())
-            {
-               CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(bagItor.key());
-               if (pTransactionState &&
-                  pTransactionState->m_transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
-                  timeNow - pTransactionState->m_startTime >= MAX_DEAD_TRANSACTION_TIME)
-               {
-                  pTransactionBag->destroy(pTransactionState); // destroy transaction
-               }
-            }
+            m_transactionMap.destroy(mapItor.key()); // destroy transaction
          }
       }
    }

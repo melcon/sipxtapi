@@ -33,9 +33,9 @@ class SipMessage;
 /**
  * CpSipTransactionManager is sipXcallLib layer transaction manager. This one uses Cseq number
  * and method name to differentiate between transactions, and supports transaction
- * tracking for multiple transactions with the same method at time. It is only meant
- * t be used for outbound transactions. Inbound transactions don't need to be tracked
- * in UAC/UAS core layer.
+ * tracking for multiple transactions with the same method at time. Separate transaction
+ * manager is needed for inbound and outbound transactions. Transactions are stored as indexed by
+ * cseq number.
  * 
  * This transaction manager is needed because RFC3261 also requires transaction
  * tracking on UAC/UAS core layer, not only transaction layer. We cannot reuse
@@ -49,17 +49,17 @@ class SipMessage;
  * (remote side didn't get ACK, and resent 2xx). ACK is part of INVITE transaction only
  * if final response was non 2xx.
  * 
- * To track transaction state correctly for 401 and 407 authentication retry,
- * updateActiveTransaction must be called with cseqNum, and endTransaction with cseqNum-1
- * when authentication retry message is detected.
+ * To track transaction state correctly for 401 and 407 authentication retry, for INVITE
+ * updateInviteTransaction must be called with cseqNum+1. For non-INVITE, endTransaction with cseqNum
+ * must be called, and startTransaction with cseqNum+1 when authentication retry message is detected.
  * SipUserAgent automatically just increments cseqNum for authentication retry.
  *
- * Terminated transactions are automatically cleaned up after some time.
+ * Terminated transactions are automatically cleaned up after 2*Timer B time.
  *
- * INVITE transactions are tracked differently. Only 1 INVITE transaction can be ocurring
+ * INVITE transactions are tracked differently. Only 1 INVITE transaction can be occurring
  * at time. This class therefore supports tracking only 1 INVITE transaction.
  *
- * This class is NOT threadsafe.  
+ * This class is NOT thread safe.  
  */
 class CpSipTransactionManager
 {
@@ -90,46 +90,30 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /**
-    * Starts new transaction for given method returning next cseqNum.
+    * Starts new transaction for given method and cseqNum.
     * For INVITE, this method starts normal INVITE transaction. For starting
-    * re-INVITE transaction, use separate method. We treat re-INVITE transaction
-    * in a different way - failure is not necessarily fatal.
+    * re-INVITE transaction, use separate method.
     *
     * Only 1 INVITE/re-INVITE transaction may be active at time.
-    *
-    * @return New cseqNum
     */
-   int startTransaction(const UtlString& sipMethod);
-
-   /**
-    * Starts new transaction for given method and cseqNum. This method should only
-    * be called as a result of 401 or 407 authentication retry, when cseqNum is incremented
-    * automatically by SipUserAgent without paying attention to the correct next cseqNum.
-    *
-    * If supplied cseqNum is greater or equal to our current cseqNum, internal next available
-    * cseqNum is set to cseqNum + 1.
-    *
-    * Old transaction with cseqNum - 1 and same method is stopped automatically.
-    */
-   void updateActiveTransaction(const UtlString& sipMethod, int cseqNum);
+   void startTransaction(const UtlString& sipMethod, int cseqNum);
 
    /**
     * Starts initial INVITE transaction. We allow only 1 INVITE transaction at time.
-    * New cseqNum will be returned.
     */
-   UtlBoolean startInitialInviteTransaction(int& cseqNum);
+   UtlBoolean startInitialInviteTransaction(int cseqNum);
 
    /**
    * Starts re-INVITE transaction.
    */
-   UtlBoolean startReInviteTransaction(int& cseqNum);
+   UtlBoolean startReInviteTransaction(int cseqNum);
 
    /**
     * Updates an active INVITE/re-INVITE transaction with new cseqNum. We need to supply
     * new cseqNum after 401/407 authentication retry, when cseqNum is normally incremented.
     * Old transaction will be terminated automatically.
     */
-   UtlBoolean updateActiveInviteTransaction(int cseqNum);
+   UtlBoolean updateInviteTransaction(int cseqNum);
 
    /**
     * Marks given transaction as terminated.
@@ -137,6 +121,13 @@ public:
     * This method can be used for INVITE transaction.
     */
    void endTransaction(const UtlString& sipMethod, int cseqNum);
+
+   /**
+    * Marks given transaction as terminated.
+    *
+    * This method can be used for INVITE transaction.
+    */
+   void endTransaction(int cseqNum);
 
    /**
     * Stops INVITE transaction regardless of cseqNum.
@@ -157,6 +148,11 @@ public:
    * @param cseqNum CSeq number from Sip message.
    */
    CpSipTransactionManager::TransactionState getTransactionState(const UtlString& sipMethod, int cseqNum) const;
+
+   /**
+    * Finds transaction state for given cseq number.
+    */
+   CpSipTransactionManager::TransactionState getTransactionState(int cseqNum) const;
 
    /**
     * Finds transaction state for given sip message.
@@ -192,8 +188,7 @@ private:
    void notifyTransactionEnd(const UtlString& sipMethod, int cseqNum);
 
    // members for generic transactions
-   UtlHashMap m_transactionMap; ///< hashmap for storing transactions by method name
-   int m_iCSeq; ///< current available CSeq number
+   UtlHashMap m_transactionMap; ///< hashmap for storing transactions by cseq number
    long m_lastCleanUpTime;
    CpSipTransactionListener* m_pTransactionListener; ///< listener that gets notifications about transaction start/end
 

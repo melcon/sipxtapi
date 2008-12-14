@@ -96,7 +96,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
 
    SipMessage sipInvite;
    Url fromField(fromAddress);
-   int cseqNum = 0;
+   int cseqNum = getRandomCSeq();
 
    UtlString contactUrl = buildContactUrl(fromField); // fromUrl without tag
    fromField.setFieldParameter("tag", localTag);

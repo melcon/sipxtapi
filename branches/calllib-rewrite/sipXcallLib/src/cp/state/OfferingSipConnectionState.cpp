@@ -79,11 +79,6 @@ SipConnectionStateTransition* OfferingSipConnectionState::dropConnection(OsStatu
    return doRejectInboundConnectionInProgress(result);
 }
 
-SipConnectionStateTransition* OfferingSipConnectionState::processCancelRequest(const SipMessage& sipMessage)
-{
-   return doHandleCancelRequest(sipMessage);
-}
-
 SipConnectionStateTransition* OfferingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
