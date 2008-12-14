@@ -52,6 +52,7 @@ nobase_include_HEADERS =  \
     cp/msg/AcAudioToneStartMsg.h \
     cp/msg/AcAudioToneStopMsg.h \
     cp/msg/AcCommandMsg.h \
+    cp/msg/AcDestroyConnectionMsg.h \
     cp/msg/AcConnectMsg.h \
     cp/msg/AcDropAllConnectionsMsg.h \
     cp/msg/AcDropConnectionMsg.h \
@@ -73,11 +74,13 @@ nobase_include_HEADERS =  \
     cp/msg/AcUnmuteInputConnectionMsg.h \
     cp/msg/AcYieldFocusMsg.h \
     cp/msg/CmCommandMsg.h \
+    cp/msg/CmDestroyAbstractCallMsg.h \
     cp/msg/CmGainFocusMsg.h \
     cp/msg/CmNotificationMsg.h \
     cp/msg/CmYieldFocusMsg.h \
     cp/msg/CpTimerMsg.h \
     cp/msg/Sc100RelTimerMsg.h \
+    cp/msg/ScByeRetryTimerMsg.h \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScDisconnectTimerMsg.h \
     cp/msg/ScNotificationMsg.h \

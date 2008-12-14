@@ -66,6 +66,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcAudioToneStopMsg.cpp \
     cp/msg/AcCommandMsg.cpp \
     cp/msg/AcConnectMsg.cpp \
+    cp/msg/AcDestroyConnectionMsg.cpp \
     cp/msg/AcDropAllConnectionsMsg.cpp \
     cp/msg/AcDropConnectionMsg.cpp \
     cp/msg/AcGainFocusMsg.cpp \
@@ -85,11 +86,13 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcUnmuteInputConnectionMsg.cpp \
     cp/msg/AcYieldFocusMsg.cpp \
     cp/msg/CmCommandMsg.cpp \
+    cp/msg/CmDestroyAbstractCallMsg.cpp \
     cp/msg/CmGainFocusMsg.cpp \
     cp/msg/CmNotificationMsg.cpp \
     cp/msg/CmYieldFocusMsg.cpp \
     cp/msg/CpTimerMsg.cpp \
     cp/msg/Sc100RelTimerMsg.cpp \
+    cp/msg/ScByeRetryTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
     cp/msg/ScDisconnectTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
