@@ -396,29 +396,13 @@ OsStatus XCpCall::handleDropConnection(const AcDropConnectionMsg& rMsg)
 
 OsStatus XCpCall::handleDestroyConnection(const AcDestroyConnectionMsg& rMsg)
 {
-   SipDialog sipDialog;
-   rMsg.getSipDialog(sipDialog);
-   UtlBoolean resFound = FALSE;
-   // find connection by sip dialog if call-id is not null
-   OsPtrLock<XSipConnection> ptrLock;
-   if (sipDialog.getCallId().isNull())
-   {
-      resFound = getConnection(ptrLock);
-   }
-   else
-   {
-      resFound = findConnection(sipDialog, ptrLock);
-   }
-   if (resFound)
-   {
-      releaseMediaInterface(); // release audio resources
-      destroySipConnection();
+   releaseMediaInterface(); // release audio resources
+   destroySipConnection();
 
-      CmDestroyAbstractCallMsg msg(m_sId);
-      getGlobalQueue().send(msg); // instruct call manager to destroy this call
-   }
+   CmDestroyAbstractCallMsg msg(m_sId);
+   getGlobalQueue().send(msg); // instruct call manager to destroy this call
 
-   return OS_NOT_FOUND;
+   return OS_SUCCESS;
 }
 
 OsStatus XCpCall::handleTransferBlind(const AcTransferBlindMsg& rMsg)
