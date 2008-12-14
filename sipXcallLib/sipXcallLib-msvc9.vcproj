@@ -387,6 +387,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcDestroyConnectionMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcDropAllConnectionsMsg.cpp"
 					>
 				</File>
@@ -467,6 +471,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\CmDestroyAbstractCallMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\CmGainFocusMsg.cpp"
 					>
 				</File>
@@ -484,6 +492,10 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\Sc100RelTimerMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScByeRetryTimerMsg.cpp"
 					>
 				</File>
 				<File
@@ -796,6 +808,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcDestroyConnectionMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcDropAllConnectionsMsg.h"
 					>
 				</File>
@@ -876,6 +892,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\CmDestroyAbstractCallMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\CmGainFocusMsg.h"
 					>
 				</File>
@@ -893,6 +913,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\Sc100RelTimerMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScByeRetryTimerMsg.h"
 					>
 				</File>
 				<File

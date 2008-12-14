@@ -72,6 +72,7 @@
                 <File RelativePath=".\src\cp\msg\AcAudioToneStopMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcConnectMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcDestroyConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcDropAllConnectionsMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcDropConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcGainFocusMsg.cpp"/>
@@ -92,11 +93,13 @@
                 <File RelativePath=".\src\cp\msg\AcUnmuteInputConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcYieldFocusMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CmCommandMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\CmDestroyAbstractCallMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CmGainFocusMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CmNotificationMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CmYieldFocusMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CpTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\Sc100RelTimerMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScByeRetryTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
@@ -177,6 +180,7 @@
                 <File RelativePath=".\include\cp\msg\AcAudioToneStopMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcConnectMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcDestroyConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcDropAllConnectionsMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcDropConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcGainFocusMsg.h"/>
@@ -197,11 +201,13 @@
                 <File RelativePath=".\include\cp\msg\AcUnmuteInputConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcYieldFocusMsg.h"/>
                 <File RelativePath=".\include\cp\msg\CmCommandMsg.h"/>
+                <File RelativePath=".\include\cp\msg\CmDestroyAbstractCallMsg.h"/>
                 <File RelativePath=".\include\cp\msg\CmGainFocusMsg.h"/>
                 <File RelativePath=".\include\cp\msg\CmNotificationMsg.h"/>
                 <File RelativePath=".\include\cp\msg\CmYieldFocusMsg.h"/>
                 <File RelativePath=".\include\cp\msg\CpTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\Sc100RelTimerMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScByeRetryTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScDisconnectTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>
