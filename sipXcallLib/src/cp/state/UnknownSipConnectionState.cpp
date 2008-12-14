@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/StateTransitionEventDispatcher.h>
 
@@ -71,6 +72,13 @@ void UnknownSipConnectionState::handleStateExit(StateEnum nextState, const State
 
 }
 
+SipConnectionStateTransition* UnknownSipConnectionState::dropConnection(OsStatus& result)
+{
+   requestConnectionDestruction();
+   result = OS_SUCCESS;
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+}
+
 SipConnectionStateTransition* UnknownSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
@@ -93,6 +101,9 @@ SipConnectionStateTransition* UnknownSipConnectionState::getTransition(ISipConne
       BaseSipConnectionState* pDestination = NULL;
       switch(nextState)
       {
+      case ISipConnectionState::CONNECTION_DISCONNECTED:
+         pDestination = new DisconnectedSipConnectionState(*this);
+         break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
          pDestination = new UnknownSipConnectionState(*this);

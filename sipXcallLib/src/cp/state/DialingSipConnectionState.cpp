@@ -84,7 +84,8 @@ SipConnectionStateTransition* DialingSipConnectionState::handleSipMessageEvent(c
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
 }
 
-SipConnectionStateTransition* DialingSipConnectionState::connect(const UtlString& sipCallId,
+SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& result,
+                                                                 const UtlString& sipCallId,
                                                                  const UtlString& localTag,
                                                                  const UtlString& toAddress,
                                                                  const UtlString& fromAddress,
@@ -141,13 +142,23 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(const UtlString
 
    if (sendSuccess)
    {
+      result = OS_SUCCESS;
       return getTransition(ISipConnectionState::CONNECTION_REMOTE_OFFERING, NULL);
    }
    else
    {
+      result = OS_FAILED;
       GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NETWORK);
       return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
    }
+}
+
+SipConnectionStateTransition* DialingSipConnectionState::dropConnection(OsStatus& result)
+{
+   // this is unexpected state
+   requestConnectionDestruction();
+   result = OS_SUCCESS;
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
 /* ============================ ACCESSORS ================================= */

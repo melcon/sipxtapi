@@ -45,6 +45,7 @@ class ScNotificationMsg;
 class Sc100RelTimerMsg;
 class ScDisconnectTimerMsg;
 class ScReInviteTimerMsg;
+class ScByeRetryTimerMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -94,12 +95,16 @@ public:
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
    /** Connects call to given address. Uses supplied sip call-id. */
-   virtual SipConnectionStateTransition* connect(const UtlString& sipCallId,
+   virtual SipConnectionStateTransition* connect(OsStatus& result,
+                                                 const UtlString& sipCallId,
                                                  const UtlString& localTag,
                                                  const UtlString& toAddress,
                                                  const UtlString& fromAddress,
                                                  const UtlString& locationHeader,
                                                  CP_CONTACT_ID contactId);
+
+   /** Disconnects call */
+   virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
    /** Handles timer message. */
    virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
@@ -234,6 +239,9 @@ protected:
    /** Terminates sip dialog */
    void terminateSipDialog();
 
+   /** TRUE if dialog was initiated locally */
+   UtlBoolean isLocalInitiatedDialog();
+
    /** Gets the transaction manager */
    CpSipTransactionManager& getTransactionManager() const;
 
@@ -246,11 +254,14 @@ protected:
    /** Handles 100Rel timer message. */
    virtual SipConnectionStateTransition* handle100RelTimerMessage(const Sc100RelTimerMsg& timerMsg);
 
-   /** Handles 100Rel timer message. */
+   /** Handles disconnect timer message. */
    virtual SipConnectionStateTransition* handleDisconnectTimerMessage(const ScDisconnectTimerMsg& timerMsg);
 
-   /** Handles 100Rel timer message. */
+   /** Handles re-invite timer message. */
    virtual SipConnectionStateTransition* handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg);
+
+   /** Handles bye retry timer message. */
+   virtual SipConnectionStateTransition* handleByeRetryTimerMessage(const ScByeRetryTimerMsg& timerMsg);
 
    /** Quick access to sip call-id */
    UtlString getCallId() const;
@@ -315,6 +326,9 @@ protected:
    /** Sends BYE to terminate call */
    void sendBye();
 
+   /** Sends CANCEL to terminate call */
+   void sendInviteCancel();
+
    /**
     * Sets media connection destination to given host/ports if ICE is disabled, or to all
     * candidate addresses in SDP body if ICE is enabled.
@@ -325,6 +339,47 @@ protected:
                             int videoRtpPort,
                             int videoRtcpPort,
                             const SdpBody* pRemoteBody);
+
+   /** Disconnects call. CANCEL should be used if 200 OK was not yet received */
+   SipConnectionStateTransition* doByeConnection(OsStatus& result);
+
+   /** Disconnects outbound call using CANCEL. Cannot be used on inbound call */
+   SipConnectionStateTransition* doCancelConnection(OsStatus& result);
+
+   /** Sends immediate request to call to destroy this connection. */
+   void requestConnectionDestruction();
+
+   /** Starts cancel timer for force dropping connection */
+   void startCancelTimer();
+
+   /** Deletes cancel timer */
+   void deleteCancelTimer();
+
+   /** Starts bye timer for force dropping connection */
+   void startByeTimer();
+
+   /** Deletes bye timer */
+   void deleteByeTimer();
+
+   /** 
+    * Starts bye timer for trying to send BYE later. For inbound call we may not send BYE
+    * after 200 OK unless we receive ACK. Therefore we wait a little bit, and if ACK is not received
+    * then drop the call. If drop was requested we do not want to wait until 200 OK resending gives
+    * a timeout.
+    */
+   void startDelayedByeTimer();
+
+   /** Deletes delayed bye timer */
+   void deleteDelayedByeTimer();
+
+   /** Rejects inbound connection that is in progress (not yet established by sending 403 Forbidden */
+   SipConnectionStateTransition* doRejectInboundConnectionInProgress(OsStatus& result);
+
+   /** Gets Id of sip dialog */
+   void getSipDialogId(UtlString& sipCallId,
+                       UtlString& localTag,
+                       UtlString& remoteTag,
+                       UtlBoolean& isFromLocal);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

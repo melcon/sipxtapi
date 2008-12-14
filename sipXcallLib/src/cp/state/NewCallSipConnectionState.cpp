@@ -71,6 +71,13 @@ void NewCallSipConnectionState::handleStateExit(StateEnum nextState, const State
 
 }
 
+SipConnectionStateTransition* NewCallSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are callee. We received INVITE but haven't responded yet
+   // to drop call, send 403 Forbidden
+   return doRejectInboundConnectionInProgress(result);
+}
+
 SipConnectionStateTransition* NewCallSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here

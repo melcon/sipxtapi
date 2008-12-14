@@ -81,6 +81,9 @@ public:
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId);
 
+   /** Disconnects call */
+   OsStatus dropConnection();
+
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 

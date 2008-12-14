@@ -72,6 +72,13 @@ void RemoteQueuedSipConnectionState::handleStateExit(StateEnum nextState, const 
 
 }
 
+SipConnectionStateTransition* RemoteQueuedSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are caller. We sent INVITE, received 182 Queued, but call was not accepted
+   // to drop call, send CANCEL
+   return doCancelConnection(result);
+}
+
 SipConnectionStateTransition* RemoteQueuedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here

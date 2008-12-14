@@ -82,6 +82,8 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
                                             const UtlString& locationHeader,
                                             CP_CONTACT_ID contactId)
 {
+   OsStatus result = OS_FAILED;
+
    if (getCurrentState() == ISipConnectionState::CONNECTION_IDLE)
    {
       // switch to dialing
@@ -95,12 +97,23 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    // now let state handle request
    if (m_pSipConnectionState)
    {
-      handleStateTransition(m_pSipConnectionState->connect(sipCallId, localTag, toAddress, fromAddress,
+      handleStateTransition(m_pSipConnectionState->connect(result, sipCallId, localTag, toAddress, fromAddress,
          locationHeader, contactId));
-      return OS_SUCCESS;
    }
 
-   return OS_FAILED;
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::dropConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->dropConnection(result));
+   }
+
+   return result;
 }
 
 UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timerMsg)

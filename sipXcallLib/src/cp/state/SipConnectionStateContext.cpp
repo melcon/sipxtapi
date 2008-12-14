@@ -37,6 +37,13 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_rtpTransport(RTP_TRANSPORT_UDP)
 , m_pSecurity(NULL)
 , m_pLastSentInvite(NULL)
+, m_pLastReceivedInvite(NULL)
+, m_bAckReceived(FALSE)
+, m_bCallDisconnecting(FALSE)
+, m_iByeRetryCount(0)
+, m_pByeRetryTimer(NULL)
+, m_pCancelTimer(NULL)
+, m_pByeTimer(NULL)
 {
    m_sipTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -47,6 +54,14 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pSecurity = NULL;
    delete m_pLastSentInvite;
    m_pLastSentInvite = NULL;
+   delete m_pLastReceivedInvite;
+   m_pLastReceivedInvite = NULL;
+   delete m_pByeRetryTimer;
+   m_pByeRetryTimer = NULL;
+   delete m_pCancelTimer;
+   m_pCancelTimer = NULL;
+   delete m_pByeTimer;
+   m_pByeTimer = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
