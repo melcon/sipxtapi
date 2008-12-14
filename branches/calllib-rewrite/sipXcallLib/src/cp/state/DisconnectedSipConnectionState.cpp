@@ -70,6 +70,13 @@ void DisconnectedSipConnectionState::handleStateExit(StateEnum nextState, const 
 {
 }
 
+SipConnectionStateTransition* DisconnectedSipConnectionState::dropConnection(OsStatus& result)
+{
+   requestConnectionDestruction();
+   result = OS_SUCCESS;
+   return NULL;
+}
+
 SipConnectionStateTransition* DisconnectedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here

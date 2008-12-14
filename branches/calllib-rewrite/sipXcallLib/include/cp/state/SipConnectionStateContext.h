@@ -32,6 +32,7 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class OsTimer;
 
 /**
  * SipConnectionStateContext contains public members which are visible only to state itself
@@ -69,6 +70,16 @@ public:
    RTP_TRANSPORT m_rtpTransport;
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)
    SipMessage* m_pLastSentInvite; ///< last sent INVITE
+   SipMessage* m_pLastReceivedInvite; ///< last received INVITE
+
+   // members used during call tear down
+   UtlBoolean m_bAckReceived; ///< TRUE if ACK was received for our sent 200 OK. Needed to make decision for callee if we may send BYE.
+   UtlBoolean m_bCallDisconnecting; ///< call is being disconnected. Either CANCEL, BYE or 403 Forbidden was sent
+   int m_iByeRetryCount; ///< counter when retrying BYE for inbound call
+   // timers
+   OsTimer* m_pByeRetryTimer; ///< timer started if drop is attempted for inbound call, but call cannot be dropped at current state
+   OsTimer* m_pCancelTimer; ///< timer started after CANCEL is sent to force drop connection if timeout
+   OsTimer* m_pByeTimer; ///< timer started after BYE is sent to force drop connection if timeout
 
    /* ============================ CREATORS ================================== */
 

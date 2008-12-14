@@ -73,6 +73,13 @@ void RemoteAlertingSipConnectionState::handleStateExit(StateEnum nextState, cons
 
 }
 
+SipConnectionStateTransition* RemoteAlertingSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are caller. We received 180 ringing, but not 200 OK yet
+   // to drop call, send CANCEL
+   return doCancelConnection(result);
+}
+
 SipConnectionStateTransition* RemoteAlertingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here

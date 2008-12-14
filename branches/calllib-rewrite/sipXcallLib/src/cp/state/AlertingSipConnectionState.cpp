@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <net/SipMessage.h>
 #include <cp/state/AlertingSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
@@ -69,6 +70,13 @@ void AlertingSipConnectionState::handleStateEntry(StateEnum previousState, const
 void AlertingSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* AlertingSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are callee. We sent 180, but not 200 OK yet
+   // to drop call, send 403 Forbidden
+   return doRejectInboundConnectionInProgress(result);
 }
 
 SipConnectionStateTransition* AlertingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)

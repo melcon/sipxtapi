@@ -68,6 +68,13 @@ void IdleSipConnectionState::handleStateExit(StateEnum nextState, const StateTra
 
 }
 
+SipConnectionStateTransition* IdleSipConnectionState::dropConnection(OsStatus& result)
+{
+   requestConnectionDestruction();
+   result = OS_SUCCESS;
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+}
+
 SipConnectionStateTransition* IdleSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here

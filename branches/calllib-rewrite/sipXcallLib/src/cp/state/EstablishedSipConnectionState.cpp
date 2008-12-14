@@ -71,6 +71,29 @@ void EstablishedSipConnectionState::handleStateExit(StateEnum nextState, const S
 
 }
 
+SipConnectionStateTransition* EstablishedSipConnectionState::dropConnection(OsStatus& result)
+{
+   if (!isLocalInitiatedDialog())
+   {
+      // inbound established call
+      if (m_rStateContext.m_bAckReceived)
+      {
+         // we may send BYE
+         return doByeConnection(result);
+      }
+      else
+      {
+         // we may not send BYE, we must wait
+         startDelayedByeTimer(); // we will try BYE again later
+      }
+   }
+   else
+   {
+      // outbound established call, we may use BYE
+      return doByeConnection(result);
+   }
+}
+
 SipConnectionStateTransition* EstablishedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here

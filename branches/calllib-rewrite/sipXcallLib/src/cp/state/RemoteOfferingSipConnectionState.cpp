@@ -75,6 +75,13 @@ void RemoteOfferingSipConnectionState::handleStateExit(StateEnum nextState, cons
 
 }
 
+SipConnectionStateTransition* RemoteOfferingSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are caller. We sent INVITE, maybe received 100 Trying
+   // to drop call, send CANCEL
+   return doCancelConnection(result);
+}
+
 SipConnectionStateTransition* RemoteOfferingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    // handle event here
