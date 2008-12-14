@@ -242,8 +242,11 @@ protected:
    /** TRUE if dialog was initiated locally */
    UtlBoolean isLocalInitiatedDialog();
 
-   /** Gets the transaction manager */
-   CpSipTransactionManager& getTransactionManager() const;
+   /** Gets the outbound transaction manager */
+   CpSipTransactionManager& getOutTransactionManager() const;
+
+   /** Gets the inbound transaction manager */
+   CpSipTransactionManager& getInTransactionManager() const;
 
    /** Gets ID of media connection */
    int getMediaConnectionId() const;
@@ -380,6 +383,9 @@ protected:
                        UtlString& localTag,
                        UtlString& remoteTag,
                        UtlBoolean& isFromLocal);
+
+   /** Handles inbound SIP CANCEL requests */
+   virtual SipConnectionStateTransition* doHandleCancelRequest(const SipMessage& sipMessage);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

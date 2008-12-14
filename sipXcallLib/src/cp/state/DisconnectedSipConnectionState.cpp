@@ -64,6 +64,8 @@ void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, c
 
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry disconnected connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
+
+   requestConnectionDestruction(); // request connection deletion
 }
 
 void DisconnectedSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
@@ -72,7 +74,6 @@ void DisconnectedSipConnectionState::handleStateExit(StateEnum nextState, const 
 
 SipConnectionStateTransition* DisconnectedSipConnectionState::dropConnection(OsStatus& result)
 {
-   requestConnectionDestruction();
    result = OS_SUCCESS;
    return NULL;
 }

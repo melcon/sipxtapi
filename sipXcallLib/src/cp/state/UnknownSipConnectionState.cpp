@@ -65,6 +65,8 @@ void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const 
 
    OsSysLog::add(FAC_CP, PRI_WARNING, "Entry unknown connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
+
+   requestConnectionDestruction();
 }
 
 void UnknownSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
@@ -74,7 +76,6 @@ void UnknownSipConnectionState::handleStateExit(StateEnum nextState, const State
 
 SipConnectionStateTransition* UnknownSipConnectionState::dropConnection(OsStatus& result)
 {
-   requestConnectionDestruction();
    result = OS_SUCCESS;
    return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
