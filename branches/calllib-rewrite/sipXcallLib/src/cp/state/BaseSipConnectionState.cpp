@@ -880,11 +880,7 @@ void BaseSipConnectionState::getLocalContactUrl(Url& contactUrl)
    {
       OsReadLock lock(m_rStateContext);
       m_rStateContext.m_sipDialog.getLocalContact(contactUrl);
-      m_rStateContext.m_sipDialog.getLocalField(localField);
    }
-   UtlString displayName;
-   localField.getDisplayName(displayName);
-   contactUrl.setDisplayName(displayName);
 }
 
 UtlString BaseSipConnectionState::getLocalContactUrl()
