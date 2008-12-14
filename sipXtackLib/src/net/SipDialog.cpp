@@ -377,9 +377,11 @@ void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int
       request.setRouteField(m_sRouteSet);
    }
 
-   UtlString sLocalContact;
-   m_localContact.toString(sLocalContact);
-   request.setContactField(sLocalContact);
+   Url localContactUrl(m_localContact);
+   UtlString displayName;
+   m_localField.getDisplayName(displayName);
+   localContactUrl.setDisplayName(displayName);
+   request.setContactField(localContactUrl.toString());
 
    // Set the call-id
    request.setCallIdField(*this);

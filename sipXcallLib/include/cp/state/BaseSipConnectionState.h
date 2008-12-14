@@ -278,6 +278,17 @@ protected:
     */
    UtlString buildContactUrl(const Url& fromAddress) const;
 
+   /** 
+    * Gets local contact URL from SipDialog. Can only be used once SipDialog has been initialized with first
+    * outbound request. Contact Url will have display name if its available.
+    */
+   void getLocalContactUrl(Url& contactUrl);
+
+   /**
+    * Gets local contact URL as string.
+    */
+   UtlString getLocalContactUrl();
+
    /** Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress*/
    UtlString buildDefaultContactUrl(const Url& fromAddress) const;
 

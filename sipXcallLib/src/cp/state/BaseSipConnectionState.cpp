@@ -850,7 +850,7 @@ UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
    if (m_rStateContext.m_contactId != AUTOMATIC_CONTACT_ID)
    {
       // contact id is known
-      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
       if (pContact != NULL)
       {
          // Get display name and user id from from Url
@@ -866,11 +866,32 @@ UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
          contactUrl.setHostPort(pContact->iPort);
          contactUrl.includeAngleBrackets();
          secureUrl(contactUrl);
+         contactUrl.toString(sContact);
          return sContact;
       }
    }
 
    return buildDefaultContactUrl(fromUrl);
+}
+
+void BaseSipConnectionState::getLocalContactUrl(Url& contactUrl)
+{
+   Url localField;
+   {
+      OsReadLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.getLocalContact(contactUrl);
+      m_rStateContext.m_sipDialog.getLocalField(localField);
+   }
+   UtlString displayName;
+   localField.getDisplayName(displayName);
+   contactUrl.setDisplayName(displayName);
+}
+
+UtlString BaseSipConnectionState::getLocalContactUrl()
+{
+   Url localContactUrl;
+   getLocalContactUrl(localContactUrl);
+   return localContactUrl.toString();
 }
 
 UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) const
@@ -903,7 +924,7 @@ UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) con
 
 void BaseSipConnectionState::secureUrl(Url& fromUrl) const
 {
-   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
    if (pContact != NULL)
    {
       if (pContact->eTransportType == TRANSPORT_TLS)
@@ -911,9 +932,6 @@ void BaseSipConnectionState::secureUrl(Url& fromUrl) const
          fromUrl.setScheme(Url::SipsUrlScheme);
       }
    }
-
-   delete pContact;
-   pContact = NULL;
 }
 
 UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTransportOptions, int& mediaConnectionId)
@@ -949,7 +967,7 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
       }
    }
 
-   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
    if (pContact != NULL)
    {
       pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
@@ -958,9 +976,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
    {
       pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
    }
-
-   delete pContact;
-   pContact = NULL;
 
    UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
    int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
@@ -1043,7 +1058,7 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
       return FALSE;
    }
 
-   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().getLocalContact(m_rStateContext.m_contactId);
+   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
    if (pContact != NULL)
    {
       pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
@@ -1052,9 +1067,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
    {
       pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
    }
-
-   delete pContact;
-   pContact = NULL;
 
    UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
    int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
@@ -1673,7 +1685,7 @@ SipConnectionStateTransition* BaseSipConnectionState::doHandleCancelRequest(cons
    {
       // send 200 OK
       SipMessage sipResponse;
-      sipResponse.setOkResponseData(&sipMessage);
+      sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
       sendMessage(sipResponse);
    }
    else
