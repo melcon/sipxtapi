@@ -442,6 +442,15 @@ protected:
    /** Initiates unhold via re-INVITE */
    UtlBoolean doUnhold();
 
+   /** Sets state of local media connection. Don't update state directly. Use this function. */
+   void setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state);
+
+   /** Sets state of remote media connection. Don't update state directly. Use this function. */
+   void setRemoteMediaConnectionState(SipConnectionStateContext::MediaConnectionState state);
+
+   /** Refreshes state of media session. Must be called after media connection state is changed */
+   void refreshMediaSessionState();
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider

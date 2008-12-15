@@ -51,13 +51,26 @@ public:
    typedef enum
    {
       MEDIA_SESSION_NONE = 0, ///< initial state
-      MEDIA_SESSION_HOLD_REQUESTED, ///< hold operation has been initiated
-      MEDIA_SESSION_HELD, ///< media session is held
+      MEDIA_SESSION_FULLY_HELD, ///< media session is held
+      MEDIA_SESSION_LOCALLY_HELD, ///< media session is held
+      MEDIA_SESSION_REMOTELY_HELD, ///< media session is held
       MEDIA_SESSION_ACTIVE, ///< media session is active
-      MEDIA_SESSION_UNHOLD_REQUESTED ///< unhold operation has been initiated
    } MediaSessionState;
 
+   /**
+   * MediaConnectionState tracks state of media connection. Local represents audio sent from us
+   * remote represents audio sent from remote party.
+   */
+   typedef enum
+   {
+      MEDIA_CONNECTION_NONE = 0, ///< initial state
+      MEDIA_CONNECTION_ACTIVE = 0, ///< initial state
+      MEDIA_CONNECTION_HELD = 0, ///< initial state
+   } MediaConnectionState;
+
    MediaSessionState m_mediaSessionState; ///< keeps track of media session state (active, held etc)
+   MediaConnectionState m_localMediaConnectionState; ///< keeps track of local media connection state
+   MediaConnectionState m_remoteMediaConnectionState; ///< keeps track of remote media connection state
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation
    UtlString m_allowedRemote;  ///< methods supported by the other side
    UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
