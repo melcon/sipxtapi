@@ -167,6 +167,9 @@ public:
    /** Returns TRUE if an INVITE transaction is active */
    UtlBoolean isInviteTransactionActive() const;
 
+   /** Gets number of transactions in given state for given method */
+   int getTransactionCount(const UtlString& method, TransactionState state = TRANSACTION_ACTIVE);
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 

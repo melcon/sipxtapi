@@ -84,6 +84,12 @@ public:
    /** Disconnects call */
    OsStatus dropConnection();
 
+   /** Put the specified terminal connection on hold. */
+   OsStatus holdConnection();
+
+   /** Convenience method to take the terminal connection off hold. */
+   OsStatus unholdConnection();
+
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 

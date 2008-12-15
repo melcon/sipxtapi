@@ -140,12 +140,12 @@ OsStatus XSipConnection::transferBlind(const UtlString& sTransferSipUrl)
 
 OsStatus XSipConnection::holdConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.holdConnection();
 }
 
 OsStatus XSipConnection::unholdConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.unholdConnection();
 }
 
 OsStatus XSipConnection::muteInputConnection()

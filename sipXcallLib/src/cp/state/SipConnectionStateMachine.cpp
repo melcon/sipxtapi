@@ -116,6 +116,30 @@ OsStatus SipConnectionStateMachine::dropConnection()
    return result;
 }
 
+OsStatus SipConnectionStateMachine::holdConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->holdConnection(result));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::unholdConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->unholdConnection(result));
+   }
+
+   return result;
+}
+
 UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    if (m_pSipConnectionState)

@@ -268,6 +268,41 @@ UtlBoolean CpSipTransactionManager::isInviteTransactionActive() const
    return m_inviteTransactionState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE;
 }
 
+int CpSipTransactionManager::getTransactionCount(const UtlString& method,
+                                                 TransactionState state /*= TRANSACTION_ACTIVE*/)
+{
+   if (method.compareTo(SIP_INVITE_METHOD) == 0)
+   {
+      // invite
+      if (m_inviteTransactionState == CpSipTransactionManager::INVITE_INACTIVE)
+      {
+         return 0;
+      }
+      else
+      {
+         return 1;
+      }
+   }
+   else
+   {
+      // non invite transaction
+      int count = 0;
+      UtlHashMapIterator mapItor(m_transactionMap);
+      while (mapItor())
+      {
+         CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(mapItor.value());
+         if (pTransactionState &&
+            pTransactionState->m_transactionState == state &&
+            pTransactionState->m_sipMethod.compareTo(method) == 0)
+         {
+            count++;
+         }
+      }
+
+      return count;
+   }
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

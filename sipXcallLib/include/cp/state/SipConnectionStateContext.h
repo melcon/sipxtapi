@@ -81,6 +81,8 @@ public:
    OsTimer* m_pByeRetryTimer; ///< timer started if drop is attempted for inbound call, but call cannot be dropped at current state
    OsTimer* m_pCancelTimer; ///< timer started after CANCEL is sent to force drop connection if timeout
    OsTimer* m_pByeTimer; ///< timer started after BYE is sent to force drop connection if timeout
+   OsTimer* m_pHoldTimer; ///< timer started when hold/unhold is requested but re-INVITE is in progress
+   int m_iHoldRetryCount; ///< how many times we retried m_pHoldTimer
 
    /* ============================ CREATORS ================================== */
 
