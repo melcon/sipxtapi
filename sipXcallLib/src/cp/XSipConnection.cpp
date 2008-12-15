@@ -267,6 +267,11 @@ SipDialog::DialogMatchEnum XSipConnection::compareSipDialog(const SipDialog& sSi
    return m_rSipConnectionContext.m_sipDialog.compareDialogs(sSipDialog);
 }
 
+SipConnectionStateContext::MediaSessionState XSipConnection::getMediaSessionState() const
+{
+   return m_stateMachine.getMediaSessionState();
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

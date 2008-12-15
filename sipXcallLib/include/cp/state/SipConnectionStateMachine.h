@@ -117,6 +117,9 @@ public:
 
    /* ============================ INQUIRY =================================== */
 
+   /** Gets state of media session */
+   SipConnectionStateContext::MediaSessionState getMediaSessionState() const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
