@@ -145,7 +145,7 @@ void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound 
       matchingVideoFramerate);
 
    // To be compliant with RFC 3264
-   if(rSdpBody.findValueInField("a", "sendonly"))
+   if(rSdpBody.findValueInField("a", "sendonly") || rSdpBody.findValueInField("a", "inactive"))
    {
       remoteRtpAddress = "0.0.0.0";
    }
