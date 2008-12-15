@@ -888,6 +888,9 @@ void BaseSipConnectionState::deleteMediaConnection()
          pInterface->stopRtpReceive(mediaConnectionId);
          pInterface->stopRtpSend(mediaConnectionId);
          pInterface->deleteConnection(mediaConnectionId);
+
+         setLocalMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE);
+         setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE);
       }
    }
 }
@@ -1409,7 +1412,20 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
 
       pMediaInterface->startRtpSend(mediaConnectionId, commonCodecsForEncoder);
 
+      if (remoteRtpAddress.compareTo("0.0.0.0") == 0) // hold address
+      {
+         setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_HELD);
+      }
+      else
+      {
+         setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE);
+      }
+
       return TRUE;
+   }
+   else
+   {
+      setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE);
    }
 
    return FALSE;
@@ -1550,7 +1566,7 @@ void BaseSipConnectionState::handle2xxResponse(const SipMessage& sipResponse)
       //prepareSdpAnswer
    }
 
-   sendMessage(sipRequest);
+   sendMessage(sipRequest); // send ACK
 
    negotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
    if (negotiationState != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
@@ -2040,13 +2056,70 @@ UtlBoolean BaseSipConnectionState::mayRenegotiateMediaSession()
 UtlBoolean BaseSipConnectionState::doHold()
 {
    // start hold via INVITE
+
    return TRUE;
 }
 
 UtlBoolean BaseSipConnectionState::doUnhold()
 {
    // start unhold via INVITE
+
    return TRUE;
+}
+
+void BaseSipConnectionState::setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state)
+{
+   m_rStateContext.m_localMediaConnectionState = state;
+   refreshMediaSessionState();
+}
+
+void BaseSipConnectionState::setRemoteMediaConnectionState(SipConnectionStateContext::MediaConnectionState state)
+{
+   m_rStateContext.m_remoteMediaConnectionState = state;
+   refreshMediaSessionState();
+}
+
+void BaseSipConnectionState::refreshMediaSessionState()
+{
+   SipConnectionStateContext::MediaConnectionState localState = m_rStateContext.m_localMediaConnectionState;
+   SipConnectionStateContext::MediaConnectionState remoteState = m_rStateContext.m_remoteMediaConnectionState;
+
+   if (localState == SipConnectionStateContext::MEDIA_CONNECTION_NONE &&
+       remoteState == SipConnectionStateContext::MEDIA_CONNECTION_NONE)
+   {
+      // session is not active
+      m_rStateContext.m_mediaSessionState = SipConnectionStateContext::MEDIA_SESSION_NONE;
+   }
+   else if (localState == SipConnectionStateContext::MEDIA_CONNECTION_HELD &&
+            remoteState == SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE)
+   {
+      // local held, remote active -> local hold
+      m_rStateContext.m_mediaSessionState = SipConnectionStateContext::MEDIA_SESSION_LOCALLY_HELD;
+   }
+   else if (localState == SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE &&
+            remoteState == SipConnectionStateContext::MEDIA_CONNECTION_HELD)
+   {
+      // local active, remote held -> remote hold
+      m_rStateContext.m_mediaSessionState = SipConnectionStateContext::MEDIA_SESSION_REMOTELY_HELD;
+   }
+   else if (localState == SipConnectionStateContext::MEDIA_CONNECTION_HELD &&
+            remoteState == SipConnectionStateContext::MEDIA_CONNECTION_HELD)
+   {
+      // local held, remote held -> full hold
+      m_rStateContext.m_mediaSessionState = SipConnectionStateContext::MEDIA_SESSION_FULLY_HELD;
+   }
+   else if (localState == SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE ||
+            remoteState == SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE)
+   {
+      // one of connections is active -> session is active
+      m_rStateContext.m_mediaSessionState = SipConnectionStateContext::MEDIA_SESSION_ACTIVE;
+   }
+   else
+   {
+      m_rStateContext.m_mediaSessionState = SipConnectionStateContext::MEDIA_SESSION_NONE;
+   }
+
+   // TODO: fire call hold/local hold/remote hold/connected events
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
