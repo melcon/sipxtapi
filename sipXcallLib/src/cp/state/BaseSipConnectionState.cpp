@@ -2056,6 +2056,7 @@ UtlBoolean BaseSipConnectionState::mayRenegotiateMediaSession()
 UtlBoolean BaseSipConnectionState::doHold()
 {
    // start hold via INVITE
+   m_rStateContext.m_bUseLocalHoldSDP = TRUE;
 
    return TRUE;
 }
@@ -2063,6 +2064,7 @@ UtlBoolean BaseSipConnectionState::doHold()
 UtlBoolean BaseSipConnectionState::doUnhold()
 {
    // start unhold via INVITE
+   m_rStateContext.m_bUseLocalHoldSDP = FALSE;
 
    return TRUE;
 }

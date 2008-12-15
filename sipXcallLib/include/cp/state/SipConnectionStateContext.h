@@ -85,6 +85,7 @@ public:
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)
    SipMessage* m_pLastSentInvite; ///< last sent INVITE
    SipMessage* m_pLastReceivedInvite; ///< last received INVITE
+   UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering
 
    // members used during call tear down
    UtlBoolean m_bAckReceived; ///< TRUE if ACK was received for our sent 200 OK. Needed to make decision for callee if we may send BYE.
