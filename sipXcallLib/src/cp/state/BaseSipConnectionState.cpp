@@ -1410,14 +1410,14 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
          remoteVideoRtcpPort,
          &sdpBody);
 
-      pMediaInterface->startRtpSend(mediaConnectionId, commonCodecsForEncoder);
-
       if (remoteRtpAddress.compareTo("0.0.0.0") == 0) // hold address
       {
+         pMediaInterface->stopRtpSend(mediaConnectionId);
          setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_HELD);
       }
       else
       {
+         pMediaInterface->startRtpSend(mediaConnectionId, commonCodecsForEncoder);
          setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE);
       }
 
