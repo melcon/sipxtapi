@@ -200,6 +200,11 @@ XSipConnectionContext& SipConnectionStateMachine::getSipConnectionContext() cons
 
 /* ============================ INQUIRY =================================== */
 
+SipConnectionStateContext::MediaSessionState SipConnectionStateMachine::getMediaSessionState() const
+{
+   return m_rStateContext.m_mediaSessionState;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

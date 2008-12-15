@@ -269,6 +269,9 @@ public:
    */
    SipDialog::DialogMatchEnum compareSipDialog(const SipDialog& sSipDialog) const;
 
+   /** Gets state of media session */
+   SipConnectionStateContext::MediaSessionState getMediaSessionState() const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
