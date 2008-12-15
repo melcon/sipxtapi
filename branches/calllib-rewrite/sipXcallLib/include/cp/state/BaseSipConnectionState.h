@@ -106,6 +106,12 @@ public:
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
+   /** Put the specified terminal connection on hold. */
+   virtual SipConnectionStateTransition* holdConnection(OsStatus& result);
+
+   /** Convenience method to take the terminal connection off hold. */
+   virtual SipConnectionStateTransition* unholdConnection(OsStatus& result);
+
    /** Handles timer message. */
    virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
 
@@ -263,6 +269,12 @@ protected:
    /** Handles re-invite timer message. */
    virtual SipConnectionStateTransition* handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg);
 
+   /** Handles hold re-invite timer message. */
+   virtual SipConnectionStateTransition* handleHoldTimerMessage(const ScReInviteTimerMsg& timerMsg);
+
+   /** Handles unhold re-invite timer message. */
+   virtual SipConnectionStateTransition* handleUnholdTimerMessage(const ScReInviteTimerMsg& timerMsg);
+
    /** Handles bye retry timer message. */
    virtual SipConnectionStateTransition* handleByeRetryTimerMessage(const ScByeRetryTimerMsg& timerMsg);
 
@@ -406,6 +418,29 @@ protected:
 
    /** Must be called for outbound responses to track inbound transactions */
    void trackInboundTransactionResponse(const SipMessage& sipMessage);
+
+   /**
+    * Gets state of invite transaction. Considers both outbound and inbound invite transactions.
+    */
+   CpSipTransactionManager::InviteTransactionState getInviteTransactionState() const;
+
+   /** Starts hold/unhold timer to execute the action later */
+   void startHoldTimer(UtlBoolean bHold = TRUE);
+
+   /** Deletes hold/unhold timer */
+   void deleteHoldTimer();
+
+   /** Returns TRUE if some UPDATE is active. */
+   UtlBoolean isUpdateActive();
+
+   /** Returns TRUE if we may start renegotiating media session now */
+   UtlBoolean mayRenegotiateMediaSession();
+
+   /** Initiates hold via re-INVITE */
+   UtlBoolean doHold();
+
+   /** Initiates unhold via re-INVITE */
+   UtlBoolean doUnhold();
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

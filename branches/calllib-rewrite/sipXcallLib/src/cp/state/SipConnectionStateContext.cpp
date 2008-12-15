@@ -44,6 +44,8 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_pByeRetryTimer(NULL)
 , m_pCancelTimer(NULL)
 , m_pByeTimer(NULL)
+, m_pHoldTimer(NULL)
+, m_iHoldRetryCount(0)
 {
    m_sipOutTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -62,6 +64,8 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pCancelTimer = NULL;
    delete m_pByeTimer;
    m_pByeTimer = NULL;
+   delete m_pHoldTimer;
+   m_pHoldTimer = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */

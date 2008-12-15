@@ -42,6 +42,7 @@
 // DEFINES
 // CANCEL doesn't need transaction tracking
 #define TRACKABLE_METHODS "INVITE UPDATE INFO NOTIFY REFER OPTIONS PRACK"
+#define MAX_HOLD_RETRY_COUNT 10
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -152,6 +153,78 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(OsStatus& result,
 SipConnectionStateTransition* BaseSipConnectionState::dropConnection(OsStatus& result)
 {
    // implemented in subclasses
+   result = OS_FAILED;
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::holdConnection(OsStatus& result)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (mayRenegotiateMediaSession())
+      {
+         // no invite transaction, we may start hold immediately
+         UtlBoolean res = doHold();
+         if (res)
+         {
+            result = OS_SUCCESS;
+         }
+         else
+         {
+            result = OS_FAILED;
+         }
+         return NULL;
+      }
+      else // some invite is active
+      {
+         if (m_rStateContext.m_pHoldTimer == NULL)
+         {
+            // timer is not started yet, schedule hold
+            startHoldTimer(TRUE);
+            result = OS_SUCCESS;
+            return NULL;
+         } // else fail
+      }
+   }
+
+   result = OS_FAILED;
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::unholdConnection(OsStatus& result)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (mayRenegotiateMediaSession())
+      {
+         // no invite transaction, we may start unhold immediately
+         UtlBoolean res = doUnhold();
+         if (res)
+         {
+            result = OS_SUCCESS;
+         }
+         else
+         {
+            result = OS_FAILED;
+         }
+         return NULL;
+      }
+      else // some invite is active
+      {
+         if (m_rStateContext.m_pHoldTimer == NULL)
+         {
+            // timer is not started yet, schedule unhold
+            startHoldTimer(FALSE);
+            result = OS_SUCCESS;
+            return NULL;
+         } // else fail
+      }
+   }
+
    result = OS_FAILED;
    return NULL;
 }
@@ -871,7 +944,84 @@ SipConnectionStateTransition* BaseSipConnectionState::handleDisconnectTimerMessa
 
 SipConnectionStateTransition* BaseSipConnectionState::handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg)
 {
-   // TODO: implement handler
+   switch (timerMsg.getReason())
+   {
+   case ScReInviteTimerMsg::REASON_NORMAL:
+      // TODO: implement handler
+      break;
+   case ScReInviteTimerMsg::REASON_HOLD:
+      return handleHoldTimerMessage(timerMsg);
+   case ScReInviteTimerMsg::REASON_UNHOLD:
+      return handleUnholdTimerMessage(timerMsg);
+   case ScReInviteTimerMsg::REASON_SESSION_EXTENSION:
+      // TODO: implement handler
+      break;
+   default:
+      break;
+   }
+   
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleHoldTimerMessage(const ScReInviteTimerMsg& timerMsg)
+{
+   deleteHoldTimer();
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      // we are in a state where we can do hold
+      if (mayRenegotiateMediaSession())
+      {
+         doHold();
+      }
+      else
+      {
+         if (m_rStateContext.m_iHoldRetryCount < MAX_HOLD_RETRY_COUNT)
+         {
+            // we may try again
+            startHoldTimer(TRUE);
+         }
+         else
+         {
+            m_rStateContext.m_iHoldRetryCount = 0;
+            OsSysLog::add(FAC_CP, PRI_WARNING, "Giving up hold operation, not ready to renegotiate session after %i tries\n", MAX_HOLD_RETRY_COUNT);
+         }
+      }
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleUnholdTimerMessage(const ScReInviteTimerMsg& timerMsg)
+{
+   deleteHoldTimer();
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      // we are in a state where we can do unhold
+      if (mayRenegotiateMediaSession())
+      {
+         doUnhold();
+      }
+      else
+      {
+         if (m_rStateContext.m_iHoldRetryCount < MAX_HOLD_RETRY_COUNT)
+         {
+            // we may try again
+            startHoldTimer(FALSE);
+         }
+         else
+         {
+            m_rStateContext.m_iHoldRetryCount = 0;
+            OsSysLog::add(FAC_CP, PRI_WARNING, "Giving up unhold operation, not ready to renegotiate session after %i tries\n", MAX_HOLD_RETRY_COUNT);
+         }
+      }
+   }
+
    return NULL;
 }
 
@@ -1806,6 +1956,97 @@ void BaseSipConnectionState::trackInboundTransactionResponse(const SipMessage& s
       }
       // 1xx don't end transaction
    }
+}
+
+CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getInviteTransactionState() const
+{
+   CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
+   if (inviteState == CpSipTransactionManager::INVITE_INACTIVE)
+   {
+      inviteState = getInTransactionManager().getInviteTransactionState();
+   }
+
+   return inviteState;
+}
+
+void BaseSipConnectionState::startHoldTimer(UtlBoolean bHold /*= TRUE*/)
+{
+   deleteHoldTimer();
+
+   UtlString sipCallId;
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlBoolean isFromLocal;
+
+   ScReInviteTimerMsg::ReInviteReason reInviteReason = ScReInviteTimerMsg::REASON_HOLD;
+   if (bHold)
+   {
+      reInviteReason = ScReInviteTimerMsg::REASON_HOLD;
+   }
+   else
+   {
+      reInviteReason = ScReInviteTimerMsg::REASON_UNHOLD;
+   }
+
+   getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
+   ScReInviteTimerMsg msg(reInviteReason, sipCallId, localTag, remoteTag, isFromLocal);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   m_rStateContext.m_pHoldTimer = new OsTimer(pNotification);
+   OsTime timerTime(T1_PERIOD_MSEC); // try again hold in 500ms
+   m_rStateContext.m_pHoldTimer->oneshotAfter(timerTime); // start timer
+   m_rStateContext.m_iHoldRetryCount++;
+}
+
+void BaseSipConnectionState::deleteHoldTimer()
+{
+   if (m_rStateContext.m_pHoldTimer)
+   {
+      delete m_rStateContext.m_pHoldTimer;
+      m_rStateContext.m_pHoldTimer = NULL;
+   }
+}
+
+UtlBoolean BaseSipConnectionState::isUpdateActive()
+{
+   int updateCount = 0;
+   updateCount += getInTransactionManager().getTransactionCount(SIP_UPDATE_METHOD);
+   updateCount += getOutTransactionManager().getTransactionCount(SIP_UPDATE_METHOD);
+
+   return updateCount != 0;
+}
+
+UtlBoolean BaseSipConnectionState::mayRenegotiateMediaSession()
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+       connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      CpSipTransactionManager::InviteTransactionState inviteState = getInviteTransactionState();
+      if (inviteState == CpSipTransactionManager::INVITE_INACTIVE)
+      {
+         // no invite is running, check for UPDATE
+         if (!isUpdateActive())
+         {
+            // also no UPDATE, we may renegotiate
+            return TRUE;
+         }
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean BaseSipConnectionState::doHold()
+{
+   // start hold via INVITE
+   return TRUE;
+}
+
+UtlBoolean BaseSipConnectionState::doUnhold()
+{
+   // start unhold via INVITE
+   return TRUE;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
