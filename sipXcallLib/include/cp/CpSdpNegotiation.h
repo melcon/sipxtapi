@@ -198,6 +198,12 @@ public:
     */
    CpSdpNegotiation::SdpBodyType getSdpBodyType(const SipMessage& sipMessage) const;
 
+   /**
+    * Returns TRUE if given sip message belongs to transaction involved in SDP negotiation.
+    * This can be used to detect retransmits.
+    */
+   UtlBoolean isInSdpNegotiation(const SipMessage& sipMessage) const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -220,6 +226,7 @@ private:
    SipMessage* m_pAnswerSipMessage; ///< Sip message with SDP answer if its available
    SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
    SdpCodecList m_localSdpCodecList; ///< local SDP codec list we used for sending SDP body, and for decoding received RTP
+   int m_cseqNum; ///< cseq number of transaction that is doing SDP negotiation
 };
 
 #endif // CpSdpNegotiation_h__
