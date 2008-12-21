@@ -77,7 +77,7 @@ void CpSipTransactionManager::startTransaction(const UtlString& sipMethod, int c
       CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
       if (!pTransactionState)
       {
-         m_transactionMap.insert(new CpTransactionState(sipMethod, cseqNum)); // if its not already there then add it
+         m_transactionMap.insertKeyAndValue(new UtlInt(cseqNum), new CpTransactionState(sipMethod, cseqNum)); // if its not already there then add it
       }
 
       notifyTransactionStart(sipMethod, cseqNum);
