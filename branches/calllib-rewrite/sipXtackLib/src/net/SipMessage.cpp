@@ -423,7 +423,8 @@ void SipMessage::addSdpBody(int nRtpContacts,
                             int videoBandwidth,
                             int videoFramerate,
                             const SipMessage* pRequest,
-                            RTP_TRANSPORT rtpTransportOptions)
+                            RTP_TRANSPORT rtpTransportOptions,
+                            UtlBoolean bSendOnly)
 {
    if(numRtpCodecs > 0)
    {
@@ -451,7 +452,8 @@ void SipMessage::addSdpBody(int nRtpContacts,
                                 srtpParams,
                                 videoBandwidth,
                                 videoFramerate,
-                                pRequest->getSdpBody());
+                                pRequest->getSdpBody(),
+                                bSendOnly);
       }
       else
       {
@@ -467,7 +469,8 @@ void SipMessage::addSdpBody(int nRtpContacts,
                                 srtpParams,
                                 videoBandwidth,
                                 videoFramerate,
-                                rtpTransportOptions);
+                                rtpTransportOptions,
+                                bSendOnly);
       }
 
       setBody(sdpBody);

@@ -107,6 +107,9 @@ class SdpBody : public HttpBody
    /// Copy constructor
    SdpBody(const SdpBody& rSdpBody);
 
+   /// Assignment operator
+   SdpBody& operator=(const SdpBody& rhs);
+
    /// Destructor
    virtual
       ~SdpBody();
@@ -200,7 +203,8 @@ class SdpBody : public HttpBody
                        const SdpSrtpParameters& srtpParams,
                        int videoBandwidth,
                        int videoFramerate,
-                       RTP_TRANSPORT transportOffering
+                       RTP_TRANSPORT transportOffering,
+                       UtlBoolean bSendOnly = FALSE///< if true then a=sendonly is used
                        );
 
    /**<
@@ -221,7 +225,8 @@ class SdpBody : public HttpBody
                        const SdpSrtpParameters& srtpParams,
                        int videoBandwidth,
                        int videoFramerate,
-                       const SdpBody* sdpRequest  ///< Sdp we are responding to
+                       const SdpBody* sdpRequest,  ///< Sdp we are responding to
+                       UtlBoolean bSendOnly = FALSE ///< if true then a=sendonly is used
                        ); 
    /**<
     * This method is for building a SdpBody which is in response
@@ -246,7 +251,8 @@ class SdpBody : public HttpBody
    void addCodecParameters(int numRtpCodecs,
                            SdpCodec* rtpCodecs[],
                            const char* szMimeType = "audio",
-                           const int videoFramerate = 0
+                           const int videoFramerate = 0,
+                           UtlBoolean bSendOnly = FALSE///< if true then a=sendonly is used
                            );
 
    /// Set address.
@@ -601,9 +607,6 @@ class SdpBody : public HttpBody
    static NameValuePair* findFieldNameBefore(UtlSListIterator* iter,
                                              const char* targetFieldName,
                                              const char* beforeFieldName);
-
-   //! Disabled assignment operator
-   SdpBody& operator=(const SdpBody& rhs);
 
 };
 

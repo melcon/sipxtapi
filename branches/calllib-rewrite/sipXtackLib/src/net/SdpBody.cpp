@@ -113,6 +113,42 @@ SdpBody::SdpBody(const SdpBody& rSdpBody) :
    }
 }
 
+// Assignment operator
+SdpBody& SdpBody::operator=(const SdpBody& rhs)
+{
+   if (this == &rhs)            // handle the assignment to self case
+      return *this;
+
+   // Copy the base class stuff
+   this->HttpBody::operator=((const HttpBody&)rhs);
+
+   if(sdpFields)
+   {
+      sdpFields->destroyAll();
+   }
+
+   if(rhs.sdpFields)
+   {
+      if(sdpFields == NULL)
+      {
+         sdpFields = new UtlSList();
+      }
+
+      NameValuePair* headerField;
+      NameValuePair* copiedHeader = NULL;
+      UtlSListIterator iterator((UtlSList&)(*(rhs.sdpFields)));
+      while((headerField = (NameValuePair*) iterator()))
+      {
+         copiedHeader = new NameValuePair(*headerField);
+         sdpFields->append(copiedHeader);
+      }
+   }
+
+   // Set the class type just to play it safe
+   mClassType = SDP_BODY_CLASS;
+   return *this;
+}
+
 // Destructor
 SdpBody::~SdpBody()
 {
@@ -158,44 +194,6 @@ void SdpBody::parseBody(const char* bodyBytes, int byteCount)
       }
       while(nameFound);
    }
-}
-
-
-// Assignment operator
-SdpBody&
-SdpBody::operator=(const SdpBody& rhs)
-{
-   if (this == &rhs)            // handle the assignment to self case
-      return *this;
-
-   // Copy the base class stuff
-   this->HttpBody::operator=((const HttpBody&)rhs);
-
-   if(sdpFields)
-   {
-      sdpFields->destroyAll();
-   }
-
-   if(rhs.sdpFields)
-   {
-      if(sdpFields == NULL)
-      {
-         sdpFields = new UtlSList();
-      }
-
-      NameValuePair* headerField;
-      NameValuePair* copiedHeader = NULL;
-      UtlSListIterator iterator((UtlSList&)(*(rhs.sdpFields)));
-      while((headerField = (NameValuePair*) iterator()))
-      {
-         copiedHeader = new NameValuePair(*headerField);
-         sdpFields->append(copiedHeader);
-      }
-   }
-
-   // Set the class type just to play it safe
-   mClassType = SDP_BODY_CLASS;
-   return *this;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -1460,7 +1458,8 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                              const SdpSrtpParameters& srtpParams,
                              int totalBandwidth,
                              int videoFramerate,
-                             RTP_TRANSPORT transportOffering)
+                             RTP_TRANSPORT transportOffering,
+                             UtlBoolean bSendOnly)
 {
     int codecArray[MAXIMUM_MEDIA_TYPES];
     int formatArray[MAXIMUM_MEDIA_TYPES];
@@ -1590,7 +1589,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
         }
 
         // add attribute records defining the extended types
-        addCodecParameters(numRtpCodecs, rtpCodecs, seenMimeType.data(), videoFramerate);
+        addCodecParameters(numRtpCodecs, rtpCodecs, seenMimeType.data(), videoFramerate, bSendOnly);
 
     }
 
@@ -1714,7 +1713,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
         }
 
         // add attribute records defining the extended types
-        addCodecParameters(numRtpCodecs, rtpCodecs, SDP_VIDEO_MEDIA_TYPE, videoFramerate);
+        addCodecParameters(numRtpCodecs, rtpCodecs, SDP_VIDEO_MEDIA_TYPE, videoFramerate, bSendOnly);
 
         if (totalBandwidth != 0)
         {
@@ -1730,7 +1729,8 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
 void SdpBody::addCodecParameters(int numRtpCodecs,
                                  SdpCodec* rtpCodecs[],
                                  const char *szMimeType, 
-                                 int videoFramerate)
+                                 int videoFramerate,
+                                 UtlBoolean bSendOnly)
 {
    const SdpCodec* codec = NULL;
    UtlString mimeSubtype;
@@ -1821,6 +1821,11 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
       }
    }
 
+   if (bSendOnly)
+   {
+      addValue("a", "sendonly");    
+   }
+
    // ptime only really make sense for audio
    if(pTime > 0 &&
       strcmp(szMimeType, SDP_AUDIO_MEDIA_TYPE) == 0 )
@@ -1842,7 +1847,8 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                              const SdpSrtpParameters& srtpParams,
                              int totalBandwidth,
                              int videoFramerate,
-                             const SdpBody* sdpRequest)
+                             const SdpBody* sdpRequest,
+                             UtlBoolean bSendOnly)
 {
    int preExistingMedia = getMediaSetCount();
    int mediaIndex = 0;
