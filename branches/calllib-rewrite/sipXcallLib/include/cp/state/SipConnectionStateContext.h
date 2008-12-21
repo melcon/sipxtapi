@@ -86,6 +86,7 @@ public:
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)
    SipMessage* m_pLastSentInvite; ///< last sent INVITE
    SipMessage* m_pLastReceivedInvite; ///< last received INVITE
+   SipMessage* m_pLastSent2xxToInvite; ///< last sent 2xx response to INVITE (sent until ACK is received)
    UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering
 
    // members used during call tear down
@@ -94,10 +95,12 @@ public:
    int m_iByeRetryCount; ///< counter when retrying BYE for inbound call
    // timers
    OsTimer* m_pByeRetryTimer; ///< timer started if drop is attempted for inbound call, but call cannot be dropped at current state
-   OsTimer* m_pCancelTimer; ///< timer started after CANCEL is sent to force drop connection if timeout
-   OsTimer* m_pByeTimer; ///< timer started after BYE is sent to force drop connection if timeout
+   OsTimer* m_pCancelTimeoutTimer; ///< timer started after CANCEL is sent to force drop connection if timeout
+   OsTimer* m_pByeTimeoutTimer; ///< timer started after BYE is sent to force drop connection if timeout
    OsTimer* m_pHoldTimer; ///< timer started when hold/unhold is requested but re-INVITE is in progress
    int m_iHoldRetryCount; ///< how many times we retried m_pHoldTimer
+   OsTimer* m_p2xxInviteRetransmitTimer; ///< timer started when 2xx response to invite is sent, shut down when ack is received
+   int m_i2xxInviteRetransmitCount; ///< how many times we retransmitted 2xx
 
    /* ============================ CREATORS ================================== */
 

@@ -64,6 +64,9 @@ public:
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
+   /** Handles inbound SIP re-INVITE requests. It won't handle initial INVITEs. */
+   virtual SipConnectionStateTransition* processInviteRequest(const SipMessage& sipMessage);
+
    /** Handles inbound SIP BYE requests */
    virtual SipConnectionStateTransition* processByeRequest(const SipMessage& sipMessage);
 

@@ -88,7 +88,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::dropConnection(OsSt
       else
       {
          // we may not send BYE, we must wait
-         startDelayedByeTimer(); // we will try BYE again later
+         startByeRetryTimer(); // we will try BYE again later
          return NULL;
       }
    }
@@ -97,6 +97,85 @@ SipConnectionStateTransition* EstablishedSipConnectionState::dropConnection(OsSt
       // outbound established call, we may use BYE
       return doByeConnection(result);
    }
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::processInviteRequest(const SipMessage& sipMessage)
+{
+   int seqNum;
+   sipMessage.getCSeqField(&seqNum, NULL);
+   UtlBoolean bProtocolError = TRUE;
+   UtlBoolean bSdpNegotiationStarted = FALSE;
+   SipMessage sipResponse;
+
+   CpSipTransactionManager::TransactionState inviteState = getInTransactionManager().getTransactionState(sipMessage);
+
+   // inbound INVITE will always be found, since its started automatically, unless its 2nd INVITE transaction
+   // at time. In that case, 2nd INVITE transaction won't be started.
+   if (inviteState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   {
+      // this is either new transaction or retransmit of re-INVITE
+      UtlBoolean bIsRetransmit = m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage);
+
+      // this is new INVITE transaction, and we are allowed to continue processing
+      if (!isUpdateActive() && getOutInviteTransactionState() == CpSipTransactionManager::INVITE_INACTIVE)
+      {
+         getOutTransactionManager().upgradeInviteToReInviteTransaction(seqNum);
+         bSdpNegotiationStarted = TRUE;
+         UtlString sLocalContact(getLocalContactUrl());
+
+         // prepare and send 200 OK
+         sipResponse.setSecurityAttributes(m_rStateContext.m_pSecurity);
+         sipResponse.setOkResponseData(&sipMessage, sLocalContact);
+         if (!m_rStateContext.m_locationHeader.isNull())
+         {
+            sipResponse.setLocationField(m_rStateContext.m_locationHeader);
+         }
+
+         const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+         if (pSdpBody)
+         {
+            // there is SDP offer
+            handleSdpOffer(sipMessage);
+            // send answer in 200 OK
+            if (prepareSdpAnswer(sipResponse))
+            {
+               commitMediaSessionChanges(); // SDP offer/answer complete, we may commit changes
+               bProtocolError = FALSE;
+            }
+         }
+         else
+         {
+            // there is no SDP offer, send one in 200 OK
+            if (prepareSdpOffer(sipResponse))
+            {
+               bProtocolError = FALSE;
+            }
+         }
+      }
+   }
+
+   if (bProtocolError)
+   {
+      if (bSdpNegotiationStarted)
+      {
+         // only restart if we started it, don't kill negotiation in progress
+         m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+      }
+
+      SipMessage errorResponse;
+      errorResponse.setRequestBadRequest(&sipMessage);
+      sendMessage(errorResponse);
+   }
+   else
+   {
+      m_rStateContext.m_bAckReceived = FALSE;
+      m_rStateContext.m_i2xxInviteRetransmitCount = 0;
+      setLastReceivedInvite(sipMessage);
+      setLastSent2xxToInvite(sipResponse);
+      sendMessage(sipResponse);
+   }
+
+   return NULL;
 }
 
 SipConnectionStateTransition* EstablishedSipConnectionState::processByeRequest(const SipMessage& sipMessage)

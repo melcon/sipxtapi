@@ -109,6 +109,11 @@ public:
    UtlBoolean startReInviteTransaction(int cseqNum);
 
    /**
+    * Marks an initial INVITE transaction with given cseq number as a re-INVITE transaction.
+    */
+   UtlBoolean upgradeInviteToReInviteTransaction(int cseqNum);
+
+   /**
     * Updates an active INVITE/re-INVITE transaction with new cseqNum. We need to supply
     * new cseqNum after 401/407 authentication retry, when cseqNum is normally incremented.
     * Old transaction will be terminated automatically.

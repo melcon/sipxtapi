@@ -41,15 +41,18 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_pSecurity(NULL)
 , m_pLastSentInvite(NULL)
 , m_pLastReceivedInvite(NULL)
+, m_pLastSent2xxToInvite(NULL)
 , m_bUseLocalHoldSDP(FALSE)
 , m_bAckReceived(FALSE)
 , m_bCallDisconnecting(FALSE)
 , m_iByeRetryCount(0)
 , m_pByeRetryTimer(NULL)
-, m_pCancelTimer(NULL)
-, m_pByeTimer(NULL)
+, m_pCancelTimeoutTimer(NULL)
+, m_pByeTimeoutTimer(NULL)
 , m_pHoldTimer(NULL)
 , m_iHoldRetryCount(0)
+, m_p2xxInviteRetransmitTimer(NULL)
+, m_i2xxInviteRetransmitCount(0)
 {
    m_sipOutTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -62,14 +65,18 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pLastSentInvite = NULL;
    delete m_pLastReceivedInvite;
    m_pLastReceivedInvite = NULL;
+   delete m_pLastSent2xxToInvite;
+   m_pLastSent2xxToInvite = NULL;
    delete m_pByeRetryTimer;
    m_pByeRetryTimer = NULL;
-   delete m_pCancelTimer;
-   m_pCancelTimer = NULL;
-   delete m_pByeTimer;
-   m_pByeTimer = NULL;
+   delete m_pCancelTimeoutTimer;
+   m_pCancelTimeoutTimer = NULL;
+   delete m_pByeTimeoutTimer;
+   m_pByeTimeoutTimer = NULL;
    delete m_pHoldTimer;
    m_pHoldTimer = NULL;
+   delete m_p2xxInviteRetransmitTimer;
+   m_p2xxInviteRetransmitTimer = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
