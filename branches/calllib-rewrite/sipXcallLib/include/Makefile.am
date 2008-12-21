@@ -80,6 +80,7 @@ nobase_include_HEADERS =  \
     cp/msg/CmYieldFocusMsg.h \
     cp/msg/CpTimerMsg.h \
     cp/msg/Sc100RelTimerMsg.h \
+    cp/msg/Sc2xxTimerMsg.h \
     cp/msg/ScByeRetryTimerMsg.h \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScDisconnectTimerMsg.h \

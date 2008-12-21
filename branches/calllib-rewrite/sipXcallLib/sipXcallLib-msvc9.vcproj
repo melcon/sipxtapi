@@ -575,6 +575,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\Sc2xxTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\state\SipConnectionStateContext.cpp"
 					>
 				</File>
@@ -913,6 +917,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\Sc100RelTimerMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\Sc2xxTimerMsg.h"
 					>
 				</File>
 				<File
