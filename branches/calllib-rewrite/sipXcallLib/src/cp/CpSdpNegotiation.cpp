@@ -42,6 +42,7 @@ CpSdpNegotiation::CpSdpNegotiation()
 , m_pAnswerSipMessage(NULL)
 , m_pSecurity(NULL)
 , m_bLocalHoldRequest(FALSE)
+, m_cseqNum(-1)
 {
 
 }
@@ -56,6 +57,8 @@ CpSdpNegotiation::~CpSdpNegotiation()
 
    delete m_pAnswerSipMessage;
    m_pAnswerSipMessage = NULL;
+
+   m_cseqNum = -1;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -75,6 +78,8 @@ void CpSdpNegotiation::startSdpNegotiation(UtlBoolean bLocallyInitiated /*= TRUE
 
    m_localSdpCodecList.clearCodecs();
    m_bLocalHoldRequest = FALSE;
+
+   m_cseqNum = -1;
 }
 
 void CpSdpNegotiation::sdpOfferFinished(const SipMessage& rOfferSipMessage)
@@ -83,6 +88,8 @@ void CpSdpNegotiation::sdpOfferFinished(const SipMessage& rOfferSipMessage)
 
    delete m_pOfferSipMessage;
    m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
+
+   rOfferSipMessage.getCSeqField(&m_cseqNum, NULL); // save transaction number
 }
 
 void CpSdpNegotiation::sdpAnswerFinished(const SipMessage& rAnswerSipMessage)
@@ -111,6 +118,8 @@ void CpSdpNegotiation::resetSdpNegotiation()
 
    m_localSdpCodecList.clearCodecs();
    m_bLocalHoldRequest = FALSE;
+
+   m_cseqNum = -1;
 }
 
 void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound SDP body (offer or answer)
@@ -293,6 +302,20 @@ CpSdpNegotiation::SdpBodyType CpSdpNegotiation::getSdpBodyType(const SipMessage&
 
    // there is no sdp body
    return CpSdpNegotiation::SDP_BODY_NONE;
+}
+
+UtlBoolean CpSdpNegotiation::isInSdpNegotiation(const SipMessage& sipMessage) const
+{
+   int tmpSeqNum = -1;
+   sipMessage.getCSeqField(&tmpSeqNum, NULL);
+
+   if (m_cseqNum == tmpSeqNum &&
+       m_cseqNum != -1)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
