@@ -41,6 +41,7 @@ CpSdpNegotiation::CpSdpNegotiation()
 , m_pOfferSipMessage(NULL)
 , m_pAnswerSipMessage(NULL)
 , m_pSecurity(NULL)
+, m_bLocalHoldRequest(FALSE)
 {
 
 }
@@ -71,6 +72,9 @@ void CpSdpNegotiation::startSdpNegotiation(UtlBoolean bLocallyInitiated /*= TRUE
 
    delete m_pAnswerSipMessage;
    m_pAnswerSipMessage = NULL;
+
+   m_localSdpCodecList.clearCodecs();
+   m_bLocalHoldRequest = FALSE;
 }
 
 void CpSdpNegotiation::sdpOfferFinished(const SipMessage& rOfferSipMessage)
@@ -104,6 +108,9 @@ void CpSdpNegotiation::resetSdpNegotiation()
    m_pOfferSipMessage = NULL;
    delete m_pAnswerSipMessage;
    m_pAnswerSipMessage = NULL;
+
+   m_localSdpCodecList.clearCodecs();
+   m_bLocalHoldRequest = FALSE;
 }
 
 void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound SDP body (offer or answer)
@@ -192,7 +199,11 @@ void CpSdpNegotiation::addSdpBody(SipMessage& rSipMessage,///< sip message where
       videoBandwidth,
       videoFramerate,
       m_pOfferSipMessage, // original SIP message with offer if available
-      rtpTransportOptions);
+      rtpTransportOptions,
+      m_bLocalHoldRequest);
+
+   // remember local codec list, needed for starting local audio decoding
+   m_localSdpCodecList = sdpCodecList;
 
    deleteSdpCodecArray(codecCount, pCodecArray);
 }
@@ -208,6 +219,32 @@ void CpSdpNegotiation::setSecurity(const SIPXTACK_SECURITY_ATTRIBUTES* val)
    {
       m_pSecurity = new SIPXTACK_SECURITY_ATTRIBUTES(*val);
    }
+}
+
+UtlBoolean CpSdpNegotiation::getRemoteSdpBody(SdpBody& sdpBody)
+{
+   if (m_pOfferSipMessage && !m_pOfferSipMessage->isFromThisSide())
+   {
+      // offer is from remote side, use its SDP body
+      const SdpBody* pSdpBody = m_pOfferSipMessage->getSdpBody(m_pSecurity);
+      if (pSdpBody)
+      {
+         sdpBody = *pSdpBody;
+         return TRUE;
+      }
+   }
+   else if (m_pAnswerSipMessage && !m_pAnswerSipMessage->isFromThisSide())
+   {
+      // answer is from remote side, use its SDP body
+      const SdpBody* pSdpBody = m_pAnswerSipMessage->getSdpBody(m_pSecurity);
+      if (pSdpBody)
+      {
+         sdpBody = *pSdpBody;
+         return TRUE;
+      }
+   }
+
+   return FALSE;
 }
 
 /* ============================ INQUIRY =================================== */

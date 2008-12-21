@@ -16,6 +16,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/IStunSocket.h>
+#include <sdp/SdpCodecList.h>
 #include <utl/UtlBool.h>
 #include <utl/UtlString.h>
 
@@ -163,6 +164,16 @@ public:
     */
    void setSecurity(const SIPXTACK_SECURITY_ATTRIBUTES* val);
 
+   /** Gets list of local SDP codecs, used for decoding inbound RTP */
+   void getLocalSdpCodecList(SdpCodecList& val) { val = m_localSdpCodecList; }
+
+   /** Gets remote SDP body, and returns TRUE if it was found. */
+   UtlBoolean getRemoteSdpBody(SdpBody& sdpBody);
+
+   UtlBoolean getLocalHoldRequest() const { return m_bLocalHoldRequest; }
+   /** Set to TRUE to generate SDP for initiating local hold. Reset when new negotiation is started. */
+   void setLocalHoldRequest(UtlBoolean val) { m_bLocalHoldRequest = val; }
+
    /* ============================ INQUIRY =================================== */
 
    /** Returns TRUE if we may start new SDP negotiation */
@@ -202,10 +213,13 @@ private:
    UtlBoolean m_bSdpAnswerFinished; ///< TRUE if SDP answer was sent or received
    UtlBoolean m_bLocallyInitiated; ///< TRUE if we are the SDP negotiation initiator
 
+   UtlBoolean m_bLocalHoldRequest; ///< TRUE if SDP with a=sendonly should be used - for initiating hold
+
    SdpOfferingMode m_sdpOfferingMode; ///< configures SDP negotiation mode - immediate or delayed
    SipMessage* m_pOfferSipMessage; ///< Sip message with SDP offer if its available
    SipMessage* m_pAnswerSipMessage; ///< Sip message with SDP answer if its available
    SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
+   SdpCodecList m_localSdpCodecList; ///< local SDP codec list we used for sending SDP body, and for decoding received RTP
 };
 
 #endif // CpSdpNegotiation_h__
