@@ -46,9 +46,10 @@ public:
    {
       PAYLOAD_TYPE_FIRST = 0, ///< Add your own payload ids here
       PAYLOAD_TYPE_100REL, ///< 100rel retransmit
+      PAYLOAD_TYPE_2XX, ///< 2xx retransmit
       PAYLOAD_TYPE_DISCONNECT, ///< force disconnect request
       PAYLOAD_TYPE_REINVITE, ///< delayed re-INVITE requested
-      PAYLOAD_TYPE_BYE_RETRY ///< retrying BYE for inbound call
+      PAYLOAD_TYPE_BYE_RETRY, ///< retrying BYE for inbound call
    } PayloadTypeEnum;
 
    /**
