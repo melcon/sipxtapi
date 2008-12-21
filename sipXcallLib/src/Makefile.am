@@ -92,6 +92,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/CmYieldFocusMsg.cpp \
     cp/msg/CpTimerMsg.cpp \
     cp/msg/Sc100RelTimerMsg.cpp \
+    cp/msg/Sc2xxTimerMsg.cpp \
     cp/msg/ScByeRetryTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
     cp/msg/ScDisconnectTimerMsg.cpp \
