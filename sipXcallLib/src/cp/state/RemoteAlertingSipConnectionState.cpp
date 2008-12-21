@@ -107,7 +107,7 @@ SipConnectionStateTransition* RemoteAlertingSipConnectionState::processInviteRes
    case SIP_ACCEPTED_CODE:
       {
          // send ACK to 200 OK
-         handle2xxResponse(sipMessage);
+         handleInvite2xxResponse(sipMessage);
          // proceed to established state
          SipResponseTransitionMemory memory(responseCode, responseText);
          return getTransition(ISipConnectionState::CONNECTION_ESTABLISHED, &memory);

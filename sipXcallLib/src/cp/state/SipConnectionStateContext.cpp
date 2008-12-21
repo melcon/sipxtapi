@@ -31,6 +31,9 @@
 
 SipConnectionStateContext::SipConnectionStateContext()
 : m_mediaSessionState(SipConnectionStateContext::MEDIA_SESSION_NONE)
+, m_previousMediaSessionState(SipConnectionStateContext::MEDIA_SESSION_NONE)
+, m_localMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE)
+, m_remoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE)
 , m_allowedRemote(NULL)
 , m_implicitAllowedRemote("INVITE, ACK, CANCEL, BYE, OPTIONS, REGISTER")
 , m_contactId(AUTOMATIC_CONTACT_ID)
