@@ -20,8 +20,8 @@
 #include <cp/CpSipTransactionManager.h>
 
 // DEFINES
-#define CLEAN_PERIOD 100 // in seconds
-const int maxTransactionStorageTime = T1_PERIOD_MSEC * 128; // 2* invite/non-invite transaction timeout
+#define CLEAN_PERIOD 50 // in seconds
+const int maxTransactionStorageTime = T1_PERIOD_MSEC * 64; // invite/non-invite transaction timeout
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -110,6 +110,20 @@ UtlBoolean CpSipTransactionManager::startReInviteTransaction(int cseqNum)
       m_inviteTransactionState = CpSipTransactionManager::REINVITE_ACTIVE;
       m_iInviteCSeq = cseqNum;
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum);
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean CpSipTransactionManager::upgradeInviteToReInviteTransaction(int cseqNum)
+{
+   if (m_inviteTransactionState != CpSipTransactionManager::INVITE_INACTIVE &&
+       m_iInviteCSeq == cseqNum)
+   {
+      m_inviteTransactionState = CpSipTransactionManager::REINVITE_ACTIVE;
       return TRUE;
    }
    else

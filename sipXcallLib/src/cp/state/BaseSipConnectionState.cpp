@@ -34,6 +34,7 @@
 #include <cp/msg/ScCommandMsg.h>
 #include <cp/msg/ScNotificationMsg.h>
 #include <cp/msg/Sc100RelTimerMsg.h>
+#include <cp/msg/Sc2xxTimerMsg.h>
 #include <cp/msg/ScDisconnectTimerMsg.h>
 #include <cp/msg/ScReInviteTimerMsg.h>
 #include <cp/msg/ScByeRetryTimerMsg.h>
@@ -236,6 +237,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const S
    {
    case ScTimerMsg::PAYLOAD_TYPE_100REL:
       return handle100RelTimerMessage((const Sc100RelTimerMsg&)timerMsg);
+   case ScTimerMsg::PAYLOAD_TYPE_2XX:
+      return handle2xxTimerMessage((const Sc2xxTimerMsg&)timerMsg);
    case ScTimerMsg::PAYLOAD_TYPE_DISCONNECT:
       return handleDisconnectTimerMessage((const ScDisconnectTimerMsg&)timerMsg);
    case ScTimerMsg::PAYLOAD_TYPE_REINVITE:
@@ -427,7 +430,58 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
 
 SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   UtlBoolean bProtocolError = FALSE;
+   int cseqNumber = 0;
+   UtlString cseqMethod;
+   sipMessage.getCSeqField(cseqNumber, cseqMethod);
+   getInTransactionManager().endTransaction(SIP_INVITE_METHOD, cseqNumber);
+
+   if (m_rStateContext.m_pLastSent2xxToInvite)
+   {
+      int cseqNumber2xx = 0;
+      m_rStateContext.m_pLastSent2xxToInvite->getCSeqField(&cseqNumber2xx, NULL);
+
+      if (cseqNumber2xx == cseqNumber)
+      {
+         m_rStateContext.m_bAckReceived = TRUE;
+         delete2xxRetransmitTimer();
+
+         const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+         if (pSdpBody)
+         {
+            if (m_rStateContext.m_sdpNegotiation.getSdpOfferFinished())
+            {
+               // this must be SDP answer
+               if (handleSdpAnswer(sipMessage))
+               {
+                  commitMediaSessionChanges();
+               }
+               else
+               {
+                  bProtocolError = TRUE;
+               }
+            }
+            else
+            {
+               bProtocolError = TRUE;
+            }
+         }
+         else
+         {
+            // sdp body is missing, check if SDP negotiation is complete. Media session changes are already committed
+            if (m_rStateContext.m_sdpNegotiation.getNegotiationState() != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
+            {
+               bProtocolError = TRUE;
+            }
+         }
+      } // ignore bad acks
+   } // ignore bad acks
+
+   if (bProtocolError)
+   {
+      sendBye();
+   }
+
    return NULL;
 }
 
@@ -941,6 +995,29 @@ SipConnectionStateTransition* BaseSipConnectionState::handle100RelTimerMessage(c
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::handle2xxTimerMessage(const Sc2xxTimerMsg& timerMsg)
+{
+   UtlBoolean bDeleteTimer = TRUE;
+
+   if (!m_rStateContext.m_bAckReceived && m_rStateContext.m_pLastSent2xxToInvite)
+   {
+      if (m_rStateContext.m_i2xxInviteRetransmitCount < 8)
+      {
+         // resend message
+         sendMessage(*m_rStateContext.m_pLastSent2xxToInvite);
+         start2xxRetransmitTimer();
+         bDeleteTimer = FALSE;
+      }
+   }
+
+   if (bDeleteTimer)
+   {
+      delete2xxRetransmitTimer();
+   }
+
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::handleDisconnectTimerMessage(const ScDisconnectTimerMsg& timerMsg)
 {
    return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
@@ -1033,7 +1110,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleByeRetryTimerMessage
 {
    ISipConnectionState::StateEnum connectionState = getCurrentState();
 
-   deleteDelayedByeTimer();
+   deleteByeRetryTimer();
 
    // INVITE transaction termination is handled during disconnected state entry
    if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
@@ -1050,7 +1127,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleByeRetryTimerMessage
          if (m_rStateContext.m_iByeRetryCount < 5)
          {
             // retry again
-            startDelayedByeTimer();
+            startByeRetryTimer();
          }
          else
          {
@@ -1261,7 +1338,7 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
    const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
    if (pSdpBody)
    {
-      m_rStateContext.m_sdpNegotiation.startSdpNegotiation(TRUE); // start locally initiated SDP negotiation
+      m_rStateContext.m_sdpNegotiation.startSdpNegotiation(FALSE); // start remotely initiated SDP negotiation
       m_rStateContext.m_sdpNegotiation.setLocalHoldRequest(m_rStateContext.m_bUseLocalHoldSDP);
       CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
       int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
@@ -1506,6 +1583,28 @@ void BaseSipConnectionState::setLastSentInvite(const SipMessage& sipMessage)
    m_rStateContext.m_pLastSentInvite = new SipMessage(sipMessage);
 }
 
+void BaseSipConnectionState::setLastReceivedInvite(const SipMessage& sipMessage)
+{
+   if (m_rStateContext.m_pLastReceivedInvite)
+   {
+      delete m_rStateContext.m_pLastReceivedInvite;
+      m_rStateContext.m_pLastReceivedInvite = NULL;
+   }
+
+   m_rStateContext.m_pLastReceivedInvite = new SipMessage(sipMessage);
+}
+
+void BaseSipConnectionState::setLastSent2xxToInvite(const SipMessage& sipMessage)
+{
+   if (m_rStateContext.m_pLastSent2xxToInvite)
+   {
+      delete m_rStateContext.m_pLastSent2xxToInvite;
+      m_rStateContext.m_pLastSent2xxToInvite = NULL;
+   }
+
+   m_rStateContext.m_pLastSent2xxToInvite = new SipMessage(sipMessage);
+}
+
 CpSessionTimerProperties& BaseSipConnectionState::getSessionTimerProperties()
 {
    return m_rStateContext.m_sessionTimerProperties;
@@ -1661,7 +1760,7 @@ void BaseSipConnectionState::sendBye()
       m_rStateContext.m_sipDialog.setRequestData(byeRequest, SIP_BYE_METHOD, seqNum);
    }
    sendMessage(byeRequest);
-   startByeTimer(); // start bye timer to force destroy connection after some timeout
+   startByeTimeoutTimer(); // start bye timer to force destroy connection after some timeout
 }
 
 void BaseSipConnectionState::sendInviteCancel()
@@ -1679,7 +1778,7 @@ void BaseSipConnectionState::sendInviteCancel()
          m_rStateContext.m_sipDialog.setRequestData(cancelRequest, SIP_CANCEL_METHOD, seqNum);
       }
       sendMessage(cancelRequest);
-      startCancelTimer(); // start cancel timer to force destroy connection after some timeout
+      startCancelTimeoutTimer(); // start cancel timer to force destroy connection after some timeout
    }
 }
 
@@ -1907,9 +2006,9 @@ void BaseSipConnectionState::requestConnectionDestruction()
    m_rMessageQueueProvider.getLocalQueue().send(msg);
 }
 
-void BaseSipConnectionState::startCancelTimer()
+void BaseSipConnectionState::startCancelTimeoutTimer()
 {
-   deleteCancelTimer();
+   deleteCancelTimeoutTimer();
 
    UtlString sipCallId;
    UtlString localTag;
@@ -1917,26 +2016,26 @@ void BaseSipConnectionState::startCancelTimer()
    UtlBoolean isFromLocal;
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
-   ScByeRetryTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
+   ScDisconnectTimerMsg msg(ScDisconnectTimerMsg::REASON_CANCEL_TIMEOUT, sipCallId, localTag, remoteTag, isFromLocal);
    OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
-   m_rStateContext.m_pCancelTimer = new OsTimer(pNotification);
+   m_rStateContext.m_pCancelTimeoutTimer = new OsTimer(pNotification);
    int sipTransactionTimeout = m_rSipUserAgent.getSipStateTransactionTimeout();
    OsTime timerTime(T1_PERIOD_MSEC * 64);
-   m_rStateContext.m_pCancelTimer->oneshotAfter(timerTime); // start timer
+   m_rStateContext.m_pCancelTimeoutTimer->oneshotAfter(timerTime); // start timer
 }
 
-void BaseSipConnectionState::deleteCancelTimer()
+void BaseSipConnectionState::deleteCancelTimeoutTimer()
 {
-   if (m_rStateContext.m_pCancelTimer)
+   if (m_rStateContext.m_pCancelTimeoutTimer)
    {
-      delete m_rStateContext.m_pCancelTimer;
-      m_rStateContext.m_pCancelTimer = NULL;
+      delete m_rStateContext.m_pCancelTimeoutTimer;
+      m_rStateContext.m_pCancelTimeoutTimer = NULL;
    }
 }
 
-void BaseSipConnectionState::startByeTimer()
+void BaseSipConnectionState::startByeTimeoutTimer()
 {
-   deleteByeTimer();
+   deleteByeTimeoutTimer();
 
    UtlString sipCallId;
    UtlString localTag;
@@ -1944,27 +2043,26 @@ void BaseSipConnectionState::startByeTimer()
    UtlBoolean isFromLocal;
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
-   ScByeRetryTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
+   ScDisconnectTimerMsg msg(ScDisconnectTimerMsg::REASON_BYE_TIMEOUT, sipCallId, localTag, remoteTag, isFromLocal);
    OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
-   m_rStateContext.m_pByeTimer = new OsTimer(pNotification);
+   m_rStateContext.m_pByeTimeoutTimer = new OsTimer(pNotification);
    int sipTransactionTimeoutMs = m_rSipUserAgent.getSipStateTransactionTimeout();
    OsTime timerTime(sipTransactionTimeoutMs);
-   m_rStateContext.m_pByeTimer->oneshotAfter(timerTime); // start timer
+   m_rStateContext.m_pByeTimeoutTimer->oneshotAfter(timerTime); // start timer
 }
 
-void BaseSipConnectionState::deleteByeTimer()
+void BaseSipConnectionState::deleteByeTimeoutTimer()
 {
-   if (m_rStateContext.m_pByeTimer)
+   if (m_rStateContext.m_pByeTimeoutTimer)
    {
-      delete m_rStateContext.m_pByeTimer;
-      m_rStateContext.m_pByeTimer = NULL;
+      delete m_rStateContext.m_pByeTimeoutTimer;
+      m_rStateContext.m_pByeTimeoutTimer = NULL;
    }
 }
 
-
-void BaseSipConnectionState::startDelayedByeTimer()
+void BaseSipConnectionState::startByeRetryTimer()
 {
-   deleteDelayedByeTimer();
+   deleteByeRetryTimer();
 
    UtlString sipCallId;
    UtlString localTag;
@@ -1979,12 +2077,38 @@ void BaseSipConnectionState::startDelayedByeTimer()
    m_rStateContext.m_pByeRetryTimer->oneshotAfter(timerTime); // start timer
 }
 
-void BaseSipConnectionState::deleteDelayedByeTimer()
+void BaseSipConnectionState::deleteByeRetryTimer()
 {
    if (m_rStateContext.m_pByeRetryTimer)
    {
       delete m_rStateContext.m_pByeRetryTimer;
       m_rStateContext.m_pByeRetryTimer = NULL;
+   }
+}
+
+void BaseSipConnectionState::start2xxRetransmitTimer()
+{
+   delete2xxRetransmitTimer();
+
+   UtlString sipCallId;
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlBoolean isFromLocal;
+
+   getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
+   Sc2xxTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   m_rStateContext.m_p2xxInviteRetransmitTimer = new OsTimer(pNotification);
+   OsTime timerTime(max(T1_PERIOD_MSEC * (m_rStateContext.m_i2xxInviteRetransmitCount + 1), T2_PERIOD_MSEC));
+   m_rStateContext.m_p2xxInviteRetransmitTimer->oneshotAfter(timerTime); // start timer
+}
+
+void BaseSipConnectionState::delete2xxRetransmitTimer()
+{
+   if (m_rStateContext.m_p2xxInviteRetransmitTimer)
+   {
+      delete m_rStateContext.m_p2xxInviteRetransmitTimer;
+      m_rStateContext.m_p2xxInviteRetransmitTimer = NULL;
    }
 }
 
@@ -1998,7 +2122,7 @@ SipConnectionStateTransition* BaseSipConnectionState::doRejectInboundConnectionI
          sipResponse.setInviteForbidden(m_rStateContext.m_pLastReceivedInvite);
          sendMessage(sipResponse);
          m_rStateContext.m_bCallDisconnecting = TRUE;
-         startByeTimer();
+         startByeTimeoutTimer();
       }
       else
       {
@@ -2079,7 +2203,13 @@ void BaseSipConnectionState::trackInboundTransactionResponse(const SipMessage& s
    int statusCode = sipMessage.getResponseStatusCode();
    if (needsTransactionTracking(cseqMethod))
    {
-      if (statusCode >= SIP_2XX_CLASS_CODE)
+      if (cseqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
+          statusCode >= SIP_2XX_CLASS_CODE && statusCode < SIP_3XX_CLASS_CODE)
+      {
+         // INVITE transaction with 2xx response ends with ACK
+         // therefore do nothing here
+      }
+      else if (statusCode >= SIP_2XX_CLASS_CODE)
       {
          // checks automatically if transaction exists
          getInTransactionManager().endTransaction(cseqMethod, cseqNum);
@@ -2090,12 +2220,24 @@ void BaseSipConnectionState::trackInboundTransactionResponse(const SipMessage& s
 
 CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getInviteTransactionState() const
 {
-   CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
+   CpSipTransactionManager::InviteTransactionState inviteState = getOutInviteTransactionState();
    if (inviteState == CpSipTransactionManager::INVITE_INACTIVE)
    {
-      inviteState = getInTransactionManager().getInviteTransactionState();
+      inviteState = getInInviteTransactionState();
    }
 
+   return inviteState;
+}
+
+CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getInInviteTransactionState() const
+{
+   CpSipTransactionManager::InviteTransactionState inviteState = getInTransactionManager().getInviteTransactionState();
+   return inviteState;
+}
+
+CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getOutInviteTransactionState() const
+{
+   CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
    return inviteState;
 }
 

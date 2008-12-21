@@ -43,6 +43,7 @@ class ScTimerMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
 class Sc100RelTimerMsg;
+class Sc2xxTimerMsg;
 class ScDisconnectTimerMsg;
 class ScReInviteTimerMsg;
 class ScByeRetryTimerMsg;
@@ -161,13 +162,13 @@ protected:
     */
    virtual SipConnectionStateTransition* processRequest(const SipMessage& sipMessage);
 
-   /** Handles inbound SIP INVITE requests */
+   /** Handles inbound SIP re-INVITE requests. It won't handle initial INVITEs. */
    virtual SipConnectionStateTransition* processInviteRequest(const SipMessage& sipMessage);
 
    /** Handles inbound SIP UPDATE requests */
    virtual SipConnectionStateTransition* processUpdateRequest(const SipMessage& sipMessage);
 
-   /** Handles inbound SIP ACK requests */
+   /** Handles inbound SIP ACK requests. Processes initial INVITES and re-INVITEs */
    virtual SipConnectionStateTransition* processAckRequest(const SipMessage& sipMessage);
 
    /** Handles inbound SIP BYE requests */
@@ -263,6 +264,9 @@ protected:
    /** Handles 100Rel timer message. */
    virtual SipConnectionStateTransition* handle100RelTimerMessage(const Sc100RelTimerMsg& timerMsg);
 
+   /** Handles 2xx timer message. */
+   virtual SipConnectionStateTransition* handle2xxTimerMessage(const Sc2xxTimerMsg& timerMsg);
+
    /** Handles disconnect timer message. */
    virtual SipConnectionStateTransition* handleDisconnectTimerMessage(const ScDisconnectTimerMsg& timerMsg);
 
@@ -337,6 +341,12 @@ protected:
    /** Sets last sent invite */
    void setLastSentInvite(const SipMessage& sipMessage);
 
+   /** Sets last received invite */
+   void setLastReceivedInvite(const SipMessage& sipMessage);
+
+   /** Sets last sent 2xx response to invite */
+   void setLastSent2xxToInvite(const SipMessage& sipMessage);
+
    /** Gets session timer properties */
    CpSessionTimerProperties& getSessionTimerProperties();
 
@@ -382,16 +392,16 @@ protected:
    void requestConnectionDestruction();
 
    /** Starts cancel timer for force dropping connection */
-   void startCancelTimer();
+   void startCancelTimeoutTimer();
 
    /** Deletes cancel timer */
-   void deleteCancelTimer();
+   void deleteCancelTimeoutTimer();
 
    /** Starts bye timer for force dropping connection */
-   void startByeTimer();
+   void startByeTimeoutTimer();
 
    /** Deletes bye timer */
-   void deleteByeTimer();
+   void deleteByeTimeoutTimer();
 
    /** 
     * Starts bye timer for trying to send BYE later. For inbound call we may not send BYE
@@ -399,10 +409,16 @@ protected:
     * then drop the call. If drop was requested we do not want to wait until 200 OK resending gives
     * a timeout.
     */
-   void startDelayedByeTimer();
+   void startByeRetryTimer();
 
    /** Deletes delayed bye timer */
-   void deleteDelayedByeTimer();
+   void deleteByeRetryTimer();
+
+   /** Starts timer to retransmit 2xx messages until ack is received */
+   void start2xxRetransmitTimer();
+
+   /** Deletes timer responsible for retransmit of 2xx invite responses */
+   void delete2xxRetransmitTimer();
 
    /** Rejects inbound connection that is in progress (not yet established by sending 403 Forbidden */
    SipConnectionStateTransition* doRejectInboundConnectionInProgress(OsStatus& result);
@@ -429,6 +445,12 @@ protected:
     * Gets state of invite transaction. Considers both outbound and inbound invite transactions.
     */
    CpSipTransactionManager::InviteTransactionState getInviteTransactionState() const;
+
+   /** Gets state of inbound invite transaction. */
+   CpSipTransactionManager::InviteTransactionState getInInviteTransactionState() const;
+
+   /** Gets state of outbound invite transaction. */
+   CpSipTransactionManager::InviteTransactionState getOutInviteTransactionState() const;
 
    /** Starts hold/unhold timer to execute the action later */
    void startHoldTimer(UtlBoolean bHold = TRUE);
