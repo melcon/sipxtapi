@@ -64,11 +64,12 @@ public:
    typedef enum
    {
       MEDIA_CONNECTION_NONE = 0, ///< initial state
-      MEDIA_CONNECTION_ACTIVE = 0, ///< initial state
-      MEDIA_CONNECTION_HELD = 0, ///< initial state
+      MEDIA_CONNECTION_ACTIVE, ///< initial state
+      MEDIA_CONNECTION_HELD, ///< initial state
    } MediaConnectionState;
 
    MediaSessionState m_mediaSessionState; ///< keeps track of media session state (active, held etc)
+   MediaSessionState m_previousMediaSessionState; ///< keeps track of previous media session state (active, held etc)
    MediaConnectionState m_localMediaConnectionState; ///< keeps track of local media connection state
    MediaConnectionState m_remoteMediaConnectionState; ///< keeps track of remote media connection state
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation

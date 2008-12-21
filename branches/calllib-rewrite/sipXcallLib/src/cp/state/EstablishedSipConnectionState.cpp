@@ -63,6 +63,9 @@ void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState, co
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   // fire held/remotely held events if media session is held
+   fireMediaSessionEvents(TRUE, TRUE);
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry established connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }
@@ -133,7 +136,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteRespon
    case SIP_ACCEPTED_CODE:
       {
          // send ACK to retransmitted 200 OK
-         handle2xxResponse(sipMessage);
+         handleInvite2xxResponse(sipMessage);
          break;
       }
    default:

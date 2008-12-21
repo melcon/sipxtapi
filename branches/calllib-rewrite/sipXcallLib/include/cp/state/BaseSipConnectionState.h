@@ -328,8 +328,11 @@ protected:
     */
    UtlBoolean handleSdpAnswer(const SipMessage& sipMessage);
 
-   /** Handles remote SDP body, by setting media connection destination and starts sending RTP */
+   /** Handles remote SDP body, finds out if there is match between our local codecs and received codecs */
    UtlBoolean handleRemoteSdpBody(const SdpBody& sdpBody);
+
+   /** Commits changes negotiated by SDP offer/answer, starting/stopping RTP flow */
+   UtlBoolean commitMediaSessionChanges();
 
    /** Sets last sent invite */
    void setLastSentInvite(const SipMessage& sipMessage);
@@ -347,13 +350,16 @@ protected:
    void checkRemoteAllow();
 
    /** Sends ACK to given 200 OK response */
-   void handle2xxResponse(const SipMessage& sipResponse);
+   void handleInvite2xxResponse(const SipMessage& sipResponse);
 
    /** Sends BYE to terminate call */
    void sendBye();
 
    /** Sends CANCEL to terminate call */
    void sendInviteCancel();
+
+   /** Sends re-INVITE for hold/unhold/codec renegotiation */
+   void sendReInvite();
 
    /**
     * Sets media connection destination to given host/ports if ICE is disabled, or to all
@@ -436,6 +442,12 @@ protected:
    /** Returns TRUE if we may start renegotiating media session now */
    UtlBoolean mayRenegotiateMediaSession();
 
+   /** Terminates inbound or outbound invite transaction regardless of cseq number */
+   void endInviteTransaction();
+
+   /** Terminates inbound or outbound invite transaction, taking into account cseq number */
+   void endInviteTransaction(UtlBoolean bIsOutboundTransaction, int cseqNumber);
+
    /** Initiates hold via re-INVITE */
    UtlBoolean doHold();
 
@@ -443,13 +455,18 @@ protected:
    UtlBoolean doUnhold();
 
    /** Sets state of local media connection. Don't update state directly. Use this function. */
-   void setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state);
+   void setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,
+                                     UtlBoolean bRefreshMediaSessionState = TRUE);
 
    /** Sets state of remote media connection. Don't update state directly. Use this function. */
-   void setRemoteMediaConnectionState(SipConnectionStateContext::MediaConnectionState state);
+   void setRemoteMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,
+                                      UtlBoolean bRefreshMediaSessionState = TRUE);
 
    /** Refreshes state of media session. Must be called after media connection state is changed */
    void refreshMediaSessionState();
+
+   /** Fires media session events, to notify sipxtapi about held/active/remote held call states */
+   void fireMediaSessionEvents(UtlBoolean bForce = FALSE, UtlBoolean bSupressConnected = FALSE);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

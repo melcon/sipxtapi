@@ -38,6 +38,7 @@
 #include <cp/msg/ScReInviteTimerMsg.h>
 #include <cp/msg/ScByeRetryTimerMsg.h>
 #include <cp/msg/AcDestroyConnectionMsg.h>
+#include <cp/XSipConnectionEventSink.h>
 
 // DEFINES
 // CANCEL doesn't need transaction tracking
@@ -889,8 +890,8 @@ void BaseSipConnectionState::deleteMediaConnection()
          pInterface->stopRtpSend(mediaConnectionId);
          pInterface->deleteConnection(mediaConnectionId);
 
+         setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE, FALSE);
          setLocalMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE);
-         setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE);
       }
    }
 }
@@ -1188,6 +1189,7 @@ UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTranspo
 UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
 {
    m_rStateContext.m_sdpNegotiation.startSdpNegotiation(TRUE); // start locally initiated SDP negotiation
+   m_rStateContext.m_sdpNegotiation.setLocalHoldRequest(m_rStateContext.m_bUseLocalHoldSDP);
    CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
 
    int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
@@ -1243,8 +1245,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
          nRtpContacts = 1;
       }
 
-      pMediaInterface->startRtpReceive(mediaConnectionId, supportedCodecs);
-
       m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
          nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
@@ -1262,6 +1262,7 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
    if (pSdpBody)
    {
       m_rStateContext.m_sdpNegotiation.startSdpNegotiation(TRUE); // start locally initiated SDP negotiation
+      m_rStateContext.m_sdpNegotiation.setLocalHoldRequest(m_rStateContext.m_bUseLocalHoldSDP);
       CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
       int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
 
@@ -1334,8 +1335,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
          nRtpContacts = 1;
       }
 
-      pMediaInterface->startRtpReceive(mediaConnectionId, supportedCodecs);
-
       m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
          nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
@@ -1394,38 +1393,103 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
 
    if (numMatchingCodecs > 0)
    {
-      if (matchingBandwidth != 0)
-      {
-         pMediaInterface->setConnectionBitrate(mediaConnectionId, matchingBandwidth);
-      }
-      if (matchingVideoFramerate != 0)
-      {
-         pMediaInterface->setConnectionFramerate(mediaConnectionId, matchingVideoFramerate);
-      }
-      // Set up the remote RTP sockets
-      setMediaDestination(remoteRtpAddress.data(),
-         remoteRtpPort,
-         remoteRtcpPort,
-         remoteVideoRtpPort,
-         remoteVideoRtcpPort,
-         &sdpBody);
-
-      if (remoteRtpAddress.compareTo("0.0.0.0") == 0) // hold address
-      {
-         pMediaInterface->stopRtpSend(mediaConnectionId);
-         setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_HELD);
-      }
-      else
-      {
-         pMediaInterface->startRtpSend(mediaConnectionId, commonCodecsForEncoder);
-         setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE);
-      }
-
       return TRUE;
    }
-   else
+
+   return FALSE;
+}
+
+UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
+{
+   if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
    {
-      setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE);
+      SdpCodecList localSdpCodecList;
+      m_rStateContext.m_sdpNegotiation.getLocalSdpCodecList(localSdpCodecList);
+      SdpBody sdpBody;
+      UtlBoolean bodyFound = m_rStateContext.m_sdpNegotiation.getRemoteSdpBody(sdpBody);
+
+      if (bodyFound)
+      {
+         UtlString rtpAddress;
+         int totalBandwidth = 0;
+         int matchingBandwidth = 0;
+         int videoFramerate = 0;
+         int matchingVideoFramerate = 0;
+         SdpCodecList supportedCodecs;
+         SdpCodecList commonCodecsForEncoder;
+         SdpCodecList commonCodecsForDecoder;
+         SdpSrtpParameters srtpParams;
+         memset(&srtpParams, 0, sizeof(srtpParams));
+         int numMatchingCodecs = 0;
+         SdpSrtpParameters matchingSrtpParams;
+         memset(&matchingSrtpParams, 0, sizeof(matchingSrtpParams));
+         UtlString remoteRtpAddress; // only used if ICE is disabled
+         int remoteRtpPort = -1; // only used if ICE is disabled
+         int remoteRtcpPort = -1; // only used if ICE is disabled
+         int remoteVideoRtpPort = -1; // only used if ICE is disabled
+         int remoteVideoRtcpPort = -1; // only used if ICE is disabled
+
+         int mediaConnectionId = getMediaConnectionId();
+         CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+         pMediaInterface->getCodecList(mediaConnectionId, supportedCodecs);
+
+         CpSdpNegotiation::getCommonSdpCodecs(sdpBody,
+            supportedCodecs, numMatchingCodecs,
+            commonCodecsForEncoder, commonCodecsForDecoder,
+            remoteRtpAddress, remoteRtpPort, remoteRtcpPort, remoteVideoRtpPort, remoteVideoRtcpPort,
+            srtpParams, matchingSrtpParams,
+            totalBandwidth, matchingBandwidth,
+            videoFramerate, matchingVideoFramerate);
+
+         if (numMatchingCodecs > 0)
+         {
+            if (matchingBandwidth != 0)
+            {
+               pMediaInterface->setConnectionBitrate(mediaConnectionId, matchingBandwidth);
+            }
+            if (matchingVideoFramerate != 0)
+            {
+               pMediaInterface->setConnectionFramerate(mediaConnectionId, matchingVideoFramerate);
+            }
+            // Set up the remote RTP sockets
+            setMediaDestination(remoteRtpAddress.data(),
+               remoteRtpPort,
+               remoteRtcpPort,
+               remoteVideoRtpPort,
+               remoteVideoRtcpPort,
+               &sdpBody);
+
+            if (remoteRtpAddress.compareTo("0.0.0.0") == 0) // hold address
+            {
+               pMediaInterface->stopRtpSend(mediaConnectionId);
+               setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_HELD, FALSE);
+            }
+            else
+            {
+               pMediaInterface->startRtpSend(mediaConnectionId, commonCodecsForEncoder);
+               setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE, FALSE);
+            }
+
+            if (!m_rStateContext.m_bUseLocalHoldSDP)
+            {
+               pMediaInterface->startRtpReceive(mediaConnectionId, localSdpCodecList);
+               setLocalMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE);
+            }
+            else
+            {
+               // local hold was negotiated
+               pMediaInterface->stopRtpReceive(mediaConnectionId);
+               setLocalMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_HELD);
+            }
+
+            return TRUE;
+         }
+         else
+         {
+            setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE, FALSE);
+            setLocalMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE);
+         }
+      }
    }
 
    return FALSE;
@@ -1516,7 +1580,7 @@ void BaseSipConnectionState::checkRemoteAllow()
    }
 }
 
-void BaseSipConnectionState::handle2xxResponse(const SipMessage& sipResponse)
+void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipResponse)
 {
    int responseCode = sipResponse.getResponseStatusCode();
    int seqNum;
@@ -1567,11 +1631,17 @@ void BaseSipConnectionState::handle2xxResponse(const SipMessage& sipResponse)
    }
 
    sendMessage(sipRequest); // send ACK
+   endInviteTransaction(TRUE, seqNum);
 
    negotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
    if (negotiationState != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
    {
       bProtocolError = TRUE;
+   }
+   else
+   {
+      // SDP negotiation is complete, commit changes
+      commitMediaSessionChanges();
    }
 
    if (bProtocolError || m_rStateContext.m_bCallDisconnecting)
@@ -1610,6 +1680,50 @@ void BaseSipConnectionState::sendInviteCancel()
       }
       sendMessage(cancelRequest);
       startCancelTimer(); // start cancel timer to force destroy connection after some timeout
+   }
+}
+
+void BaseSipConnectionState::sendReInvite()
+{
+   SipMessage sipInvite;
+   int seqNum = getNextLocalCSeq();
+
+   sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
+   getOutTransactionManager().startReInviteTransaction(seqNum);
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setRequestData(sipInvite, SIP_INVITE_METHOD, seqNum);
+   }
+
+   int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
+   sipInvite.setSessionExpires(sessionExpires);
+
+   if (!m_rStateContext.m_locationHeader.isNull())
+   {
+      sipInvite.setLocationField(m_rStateContext.m_locationHeader);
+   }
+
+   // add SDP if negotiation mode is immediate, otherwise don't add it
+   if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
+   {
+      if (!prepareSdpOffer(sipInvite))
+      {
+         // SDP negotiation start failed
+         getOutTransactionManager().endInviteTransaction();
+      }
+      else
+      {
+         OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for re-INVITE failed.\n");
+      }
+   }
+
+   // try to send sip message
+   UtlBoolean sendSuccess = sendMessage(sipInvite);
+
+   if (!sendSuccess)
+   {
+      OsSysLog::add(FAC_CP, PRI_ERR, "Sending re-INVITE failed.\n");
+      getOutTransactionManager().endInviteTransaction();
    }
 }
 
@@ -2053,32 +2167,73 @@ UtlBoolean BaseSipConnectionState::mayRenegotiateMediaSession()
    return FALSE;
 }
 
+void BaseSipConnectionState::endInviteTransaction()
+{
+   CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
+   if (inviteState != CpSipTransactionManager::INVITE_INACTIVE)
+   {
+      // terminate it
+      getOutTransactionManager().endInviteTransaction();
+      return;
+   }
+
+   inviteState = getInTransactionManager().getInviteTransactionState();
+   if (inviteState != CpSipTransactionManager::INVITE_INACTIVE)
+   {
+      // terminate it
+      getInTransactionManager().endInviteTransaction();
+      return;
+   }
+}
+
+void BaseSipConnectionState::endInviteTransaction(UtlBoolean bIsOutboundTransaction, int cseqNumber)
+{
+   if (bIsOutboundTransaction)
+   {
+      getOutTransactionManager().endTransaction(SIP_INVITE_METHOD, cseqNumber);
+   }
+   else
+   {
+      getInTransactionManager().endTransaction(SIP_INVITE_METHOD, cseqNumber);
+   }
+}
+
 UtlBoolean BaseSipConnectionState::doHold()
 {
-   // start hold via INVITE
+   // start hold via re-INVITE
    m_rStateContext.m_bUseLocalHoldSDP = TRUE;
+   sendReInvite();
 
    return TRUE;
 }
 
 UtlBoolean BaseSipConnectionState::doUnhold()
 {
-   // start unhold via INVITE
+   // start unhold via re-INVITE
    m_rStateContext.m_bUseLocalHoldSDP = FALSE;
+   sendReInvite();
 
    return TRUE;
 }
 
-void BaseSipConnectionState::setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state)
+void BaseSipConnectionState::setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,
+                                                          UtlBoolean bRefreshMediaSessionState)
 {
    m_rStateContext.m_localMediaConnectionState = state;
-   refreshMediaSessionState();
+   if (bRefreshMediaSessionState)
+   {
+      refreshMediaSessionState();
+   }
 }
 
-void BaseSipConnectionState::setRemoteMediaConnectionState(SipConnectionStateContext::MediaConnectionState state)
+void BaseSipConnectionState::setRemoteMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,
+                                                           UtlBoolean bRefreshMediaSessionState)
 {
    m_rStateContext.m_remoteMediaConnectionState = state;
-   refreshMediaSessionState();
+   if (bRefreshMediaSessionState)
+   {
+      refreshMediaSessionState();
+   }
 }
 
 void BaseSipConnectionState::refreshMediaSessionState()
@@ -2121,7 +2276,42 @@ void BaseSipConnectionState::refreshMediaSessionState()
       m_rStateContext.m_mediaSessionState = SipConnectionStateContext::MEDIA_SESSION_NONE;
    }
 
-   // TODO: fire call hold/local hold/remote hold/connected events
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      fireMediaSessionEvents(FALSE, FALSE);
+   }
+
+   m_rStateContext.m_previousMediaSessionState = m_rStateContext.m_mediaSessionState;
+}
+
+void BaseSipConnectionState::fireMediaSessionEvents(UtlBoolean bForce, UtlBoolean bSupressConnected)
+{
+   if ((m_rStateContext.m_previousMediaSessionState != m_rStateContext.m_mediaSessionState) ||
+       bForce)
+   {
+      // if established then also fire event for hold/remote hold
+      switch (m_rStateContext.m_mediaSessionState)
+      {
+      case SipConnectionStateContext::MEDIA_SESSION_ACTIVE:
+         if (!bSupressConnected)
+         {
+            m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_CONNECTED, CP_CALLSTATE_CAUSE_NORMAL);
+         }
+         break;
+      case SipConnectionStateContext::MEDIA_SESSION_REMOTELY_HELD:
+         m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_REMOTE_HELD, CP_CALLSTATE_CAUSE_NORMAL);
+         break;
+      case SipConnectionStateContext::MEDIA_SESSION_LOCALLY_HELD:
+      case SipConnectionStateContext::MEDIA_SESSION_FULLY_HELD:
+         m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_HELD, CP_CALLSTATE_CAUSE_NORMAL);
+         break;
+      case SipConnectionStateContext::MEDIA_SESSION_NONE:
+      default:
+         // don't fire events
+         break;
+      }
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
