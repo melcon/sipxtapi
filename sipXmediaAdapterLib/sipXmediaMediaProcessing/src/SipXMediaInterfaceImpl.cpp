@@ -938,11 +938,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
            mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
        }
 
-       if (mediaConnection->mRtpAudioSending)
-       {
-           mpFlowGraph->stopSendRtp(connectionId);
-       }
-
       if (!mediaConnection->mRtpSendHostAddress.isNull() && mediaConnection->mRtpSendHostAddress.compareTo("0.0.0.0"))
       {
          // This is the new interface for parallel codecs
@@ -982,13 +977,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpReceive(int connectionId,
 
    if (mpFlowGraph)
    {
-      if(mediaConnection->mRtpAudioReceiving)
-      {
-         // This is not supposed to be necessary and may be
-         // causing an audible glitch when codecs are changed
-         mpFlowGraph->stopReceiveRtp(connectionId);
-      }
-
       mpFlowGraph->startReceiveRtp(sdpCodecList,
            *(mediaConnection->mpRtpAudioSocket), *(mediaConnection->mpRtcpAudioSocket),
            connectionId);
