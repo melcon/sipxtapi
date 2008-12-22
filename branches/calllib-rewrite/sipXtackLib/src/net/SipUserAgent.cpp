@@ -390,7 +390,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
    allowMethod(SIP_BYE_METHOD);
    allowMethod(SIP_REFER_METHOD);
    allowMethod(SIP_OPTIONS_METHOD);
-   allowMethod(SIP_PING_METHOD);
 
    defaultUserAgentName.append( VENDOR );
    defaultUserAgentName.append( "/" );

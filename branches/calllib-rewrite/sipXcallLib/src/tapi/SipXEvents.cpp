@@ -464,9 +464,6 @@ const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
    case SIPX_KEEPALIVE_STUN:
       str = MAKESTR(SIPX_KEEPALIVE_STUN);
       break;
-   case SIPX_KEEPALIVE_SIP_PING:
-      str = MAKESTR(SIPX_KEEPALIVE_SIP_PING);
-      break;
    case SIPX_KEEPALIVE_SIP_OPTIONS:
       str = MAKESTR(SIPX_KEEPALIVE_SIP_OPTIONS);
       break;

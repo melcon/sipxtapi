@@ -901,7 +901,6 @@ typedef enum
 {
     SIPX_KEEPALIVE_CRLF = 0,    /**<Send a Carriage Return/Line Feed to other side */
     SIPX_KEEPALIVE_STUN,        /**<Send a Stun request to the other side */
-    SIPX_KEEPALIVE_SIP_PING,    /**<Send a SIP PING method request to the other side */
     SIPX_KEEPALIVE_SIP_OPTIONS, /**<Send a SIP OPTIONS method request to the other side */
 } SIPX_KEEPALIVE_TYPE;
 
