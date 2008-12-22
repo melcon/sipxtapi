@@ -575,21 +575,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
             rc = SIPX_RESULT_FAILURE;
          }
          break;
-      case SIPX_KEEPALIVE_SIP_PING:
-         // keep alive by sending SIP PING message
-         if (pInst->pSipUserAgent->addSipKeepAlive(localSocket,
-                  remoteIp, remotePort, "PING", keepAliveSecs, pInst->pKeepaliveEventListener))
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         else
-         {
-            rc = SIPX_RESULT_FAILURE;
-         }
-         break;
       case SIPX_KEEPALIVE_SIP_OPTIONS:
          if (pInst->pSipUserAgent->addSipKeepAlive(localSocket,
-                  remoteIp, remotePort, "OPTIONS", keepAliveSecs, pInst->pKeepaliveEventListener))
+                  remoteIp, remotePort, SIP_OPTIONS_METHOD, keepAliveSecs, pInst->pKeepaliveEventListener))
          {
             rc = SIPX_RESULT_SUCCESS;
          }
@@ -628,7 +616,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST     hInst,
    assert(pInst);
    assert(remoteIp);
    assert(remotePort > 0);
-   assert(type >= SIPX_KEEPALIVE_CRLF && type <= SIPX_KEEPALIVE_SIP_OPTIONS);
 
    if (pInst && remoteIp && remotePort > 0)
    {
@@ -668,20 +655,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST     hInst,
             rc = SIPX_RESULT_FAILURE;
          }
          break;
-      case SIPX_KEEPALIVE_SIP_PING:
-         if (pInst->pSipUserAgent->removeSipKeepAlive(localSocket,
-                  remoteIp, remotePort, "PING"))
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         else
-         {
-            rc = SIPX_RESULT_FAILURE;
-         }
-         break;
       case SIPX_KEEPALIVE_SIP_OPTIONS:
          if (pInst->pSipUserAgent->removeSipKeepAlive(localSocket,
-            remoteIp, remotePort, "OPTIONS"))
+            remoteIp, remotePort, SIP_OPTIONS_METHOD))
          {
             rc = SIPX_RESULT_SUCCESS;
          }
