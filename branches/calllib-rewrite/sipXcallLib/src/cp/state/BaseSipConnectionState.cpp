@@ -424,7 +424,56 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteRequest(const
 
 SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   int iSeqNumber = 0;
+   UtlString seqMethod;
+   sipMessage.getCSeqField(iSeqNumber, seqMethod);
+   SipMessage sipResponse;
+   UtlBoolean bProtocolError = TRUE;
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+       connectionState != ISipConnectionState::CONNECTION_UNKNOWN &&
+       connectionState != ISipConnectionState::CONNECTION_IDLE &&
+       connectionState != ISipConnectionState::CONNECTION_DIALING &&
+       connectionState != ISipConnectionState::CONNECTION_NEWCALL)
+   {
+      // sip dialog must be established (early or confirmed)
+      // no SDP negotiation must be taking place
+      SipDialog::DialogState dialogState;
+      {
+         OsReadLock lock(m_rStateContext);
+         dialogState = m_rStateContext.m_sipDialog.getDialogState();
+      }
+      CpSdpNegotiation::SdpNegotiationState sdpNegotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
+
+      if (dialogState == SipDialog::DIALOG_STATE_ESTABLISHED &&
+          sdpNegotiationState == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
+      {
+         if (handleSdpOffer(sipMessage))
+         {
+            sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+            if (prepareSdpAnswer(sipResponse))
+            {
+               if (commitMediaSessionChanges())
+               {
+                  bProtocolError = FALSE;
+               }
+            }
+         }
+      }
+   }
+
+   if (bProtocolError)
+   {
+      SipMessage errorResponse;
+      errorResponse.setRequestBadRequest(&sipMessage);
+      sendMessage(errorResponse);
+   }
+   else
+   {
+      sendMessage(sipResponse);
+   }
+
    return NULL;
 }
 
@@ -757,7 +806,36 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
 
 SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   int responseCode = sipMessage.getResponseStatusCode();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+       connectionState != ISipConnectionState::CONNECTION_UNKNOWN &&
+       connectionState != ISipConnectionState::CONNECTION_IDLE &&
+       connectionState != ISipConnectionState::CONNECTION_DIALING &&
+       connectionState != ISipConnectionState::CONNECTION_NEWCALL)
+   {
+      if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+      {
+         // UPDATE transaction exists (checked in generic response handler), and we are in correct state
+         if (m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage))
+         {
+            if (handleSdpAnswer(sipMessage))
+            {
+               commitMediaSessionChanges();
+            }
+         }
+      } // if error then nothing happens
+   }
+
+   if (responseCode >= SIP_2XX_CLASS_CODE)
+   {
+      int cseqNum = -1;
+      sipMessage.getCSeqField(&cseqNum, NULL);
+      getOutTransactionManager().endTransaction(SIP_UPDATE_METHOD, cseqNum);
+   }
+
    return NULL;
 }
 
@@ -905,6 +983,17 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
                // if we don't send 2 messages quickly that both need to be authenticated
                getNextLocalCSeq(); // skip 1 cseq number
                getOutTransactionManager().startTransaction(seqMethod, seqNum + 1); // start new transaction with the same method
+            }
+
+            // also update sdp negotiation for INVITE & UPDATE
+            if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0 ||
+                seqMethod.compareTo(SIP_UPDATE_METHOD) == 0)
+            {
+               if (m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage))
+               {
+                  // original message was in SDP negotiation
+                  m_rStateContext.m_sdpNegotiation.notifyAuthRetry(seqNum + 1);
+               }
             }
          }
       }
@@ -1420,6 +1509,9 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
       return TRUE;
    }
 
+   // creation of SDP answer failed for some reason, reset SDP negotiation
+   m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+
    return FALSE;
 }
 
@@ -1431,6 +1523,11 @@ UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
    {
       m_rStateContext.m_sdpNegotiation.handleInboundSdpAnswer(sipMessage);
       return handleRemoteSdpBody(*pSdpBody);
+   }
+   else
+   {
+      // no SDP in answer, reset SDP negotiation
+      m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    }
 
    return FALSE;
@@ -1814,6 +1911,7 @@ void BaseSipConnectionState::sendReInvite()
       else
       {
          OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for re-INVITE failed.\n");
+         return;
       }
    }
 
@@ -1824,6 +1922,46 @@ void BaseSipConnectionState::sendReInvite()
    {
       OsSysLog::add(FAC_CP, PRI_ERR, "Sending re-INVITE failed.\n");
       getOutTransactionManager().endInviteTransaction();
+   }
+}
+
+void BaseSipConnectionState::sendUpdate()
+{
+   SipMessage sipUpdate;
+   int seqNum = getNextLocalCSeq();
+
+   sipUpdate.setSecurityAttributes(m_rStateContext.m_pSecurity);
+   getOutTransactionManager().startTransaction(SIP_UPDATE_METHOD, seqNum);
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setRequestData(sipUpdate, SIP_UPDATE_METHOD, seqNum);
+   }
+
+   int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
+   sipUpdate.setSessionExpires(sessionExpires);
+
+   if (!m_rStateContext.m_locationHeader.isNull())
+   {
+      sipUpdate.setLocationField(m_rStateContext.m_locationHeader);
+   }
+
+   if (!prepareSdpOffer(sipUpdate))
+   {
+      // SDP negotiation start failed
+      getOutTransactionManager().endTransaction(SIP_UPDATE_METHOD, seqNum);
+   }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for UPDATE failed.\n");
+   }
+
+   // try to send sip message
+   UtlBoolean sendSuccess = sendMessage(sipUpdate);
+
+   if (!sendSuccess)
+   {
+      OsSysLog::add(FAC_CP, PRI_ERR, "Sending UPDATE failed.\n");
+      getOutTransactionManager().endTransaction(SIP_UPDATE_METHOD, seqNum);
    }
 }
 
@@ -2345,7 +2483,7 @@ UtlBoolean BaseSipConnectionState::doHold()
 {
    // start hold via re-INVITE
    m_rStateContext.m_bUseLocalHoldSDP = TRUE;
-   sendReInvite();
+   renegotiateMediaSession();
 
    return TRUE;
 }
@@ -2354,9 +2492,21 @@ UtlBoolean BaseSipConnectionState::doUnhold()
 {
    // start unhold via re-INVITE
    m_rStateContext.m_bUseLocalHoldSDP = FALSE;
-   sendReInvite();
+   renegotiateMediaSession();
 
    return TRUE;
+}
+
+void BaseSipConnectionState::renegotiateMediaSession()
+{
+   if (m_rStateContext.m_bSdpRenegotiationUseUpdate && isMethodAllowed(SIP_UPDATE_METHOD))
+   {
+      sendUpdate();
+   }
+   else
+   {
+      sendReInvite();
+   }
 }
 
 void BaseSipConnectionState::setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,

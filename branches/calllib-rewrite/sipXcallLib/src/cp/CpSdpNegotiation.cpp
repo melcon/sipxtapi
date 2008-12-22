@@ -121,6 +121,27 @@ void CpSdpNegotiation::resetSdpNegotiation()
    m_cseqNum = -1;
 }
 
+void CpSdpNegotiation::notifyAuthRetry(int newCseqNumber)
+{
+   m_cseqNum = newCseqNumber;
+
+   // also patch offer and answer messages
+   if (m_pOfferSipMessage)
+   {
+      int oldCseqNumber;
+      UtlString cseqMethod;
+      m_pOfferSipMessage->getCSeqField(oldCseqNumber, cseqMethod);
+      m_pOfferSipMessage->setCSeqField(newCseqNumber, cseqMethod);
+   }
+   if (m_pAnswerSipMessage)
+   {
+      int oldCseqNumber;
+      UtlString cseqMethod;
+      m_pAnswerSipMessage->getCSeqField(oldCseqNumber, cseqMethod);
+      m_pAnswerSipMessage->setCSeqField(newCseqNumber, cseqMethod);
+   }
+}
+
 void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound SDP body (offer or answer)
                                           const SdpCodecList& supportedCodecs,
                                           int& numCodecsInCommon, ///< how many codecs do we have in common

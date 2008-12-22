@@ -107,6 +107,9 @@ public:
    /** Resets negotiation of SDP. Not required to start new sdp negotiation. */
    void resetSdpNegotiation();
 
+   /** Notifies sdp negotiation class that authentication retry occurred, and new cseq needs to be used */
+   void notifyAuthRetry(int newCseqNumber);
+
    /**
     * Gets sdp codecs for encoder & decoder which are in common with our supported codecs.
     * We separate encoder & decoder codecs, as they may use different dynamic payload type.

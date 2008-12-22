@@ -371,6 +371,9 @@ protected:
    /** Sends re-INVITE for hold/unhold/codec renegotiation */
    void sendReInvite();
 
+   /** Sends UPDATE for hold/unhold/codec renegotiation */
+   void sendUpdate();
+
    /**
     * Sets media connection destination to given host/ports if ICE is disabled, or to all
     * candidate addresses in SDP body if ICE is enabled.
@@ -470,11 +473,14 @@ protected:
    /** Terminates inbound or outbound invite transaction, taking into account cseq number */
    void endInviteTransaction(UtlBoolean bIsOutboundTransaction, int cseqNumber);
 
-   /** Initiates hold via re-INVITE */
+   /** Initiates hold via re-INVITE or UPDATE */
    UtlBoolean doHold();
 
-   /** Initiates unhold via re-INVITE */
+   /** Initiates unhold via re-INVITE or UPDATE */
    UtlBoolean doUnhold();
+
+   /** Renegotiates media session */
+   void renegotiateMediaSession();
 
    /** Sets state of local media connection. Don't update state directly. Use this function. */
    void setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,
