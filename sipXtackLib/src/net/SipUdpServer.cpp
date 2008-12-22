@@ -1087,7 +1087,7 @@ void SipUdpServer::sendSipKeepAlive(OsTimer* pTimer)
                 from.append(fromTag);
 
                 // Setup To Field
-                Url toUrl ;
+                Url toUrl(NULL, TRUE);
                 toUrl.setScheme(Url::SipUrlScheme) ;
                 toUrl.setHostAddress(pBinding->m_targetIp) ;
                 if (pBinding->m_targetPort != SIP_PORT)
