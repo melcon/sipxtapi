@@ -940,8 +940,8 @@ void BaseSipConnectionState::deleteMediaConnection()
          setMediaConnectionId(CpMediaInterface::INVALID_CONNECTION_ID);
 
          // media interface exists, shut down media connection
-         pInterface->stopRtpReceive(mediaConnectionId);
          pInterface->stopRtpSend(mediaConnectionId);
+         pInterface->stopRtpReceive(mediaConnectionId);
          pInterface->deleteConnection(mediaConnectionId);
 
          setRemoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE, FALSE);
@@ -987,6 +987,12 @@ void BaseSipConnectionState::setMediaConnectionId(int mediaConnectionId)
 {
    // no need to lock atomic
    m_rStateContext.m_mediaConnectionId = mediaConnectionId;
+
+   if (mediaConnectionId != CpMediaInterface::INVALID_CONNECTION_ID)
+   {
+      // this one is only used for routing media events after media connection destruction
+      m_rStateContext.m_mediaEventConnectionId = mediaConnectionId;
+   }
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::handle100RelTimerMessage(const Sc100RelTimerMsg& timerMsg)
@@ -1256,7 +1262,7 @@ UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTranspo
    
    if (res == OS_SUCCESS)
    {
-      m_rStateContext.m_mediaConnectionId = mediaConnectionId;
+      setMediaConnectionId(mediaConnectionId);
       return TRUE;
    }
 
@@ -1269,7 +1275,7 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
    m_rStateContext.m_sdpNegotiation.setLocalHoldRequest(m_rStateContext.m_bUseLocalHoldSDP);
    CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
 
-   int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
+   int mediaConnectionId = getMediaConnectionId();
    if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
    {
       if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
@@ -1341,7 +1347,7 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
       m_rStateContext.m_sdpNegotiation.startSdpNegotiation(FALSE); // start remotely initiated SDP negotiation
       m_rStateContext.m_sdpNegotiation.setLocalHoldRequest(m_rStateContext.m_bUseLocalHoldSDP);
       CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
-      int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
+      int mediaConnectionId = getMediaConnectionId();
 
       if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
       {
@@ -1362,7 +1368,7 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
 {
    CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
 
-   int mediaConnectionId = m_rStateContext.m_mediaConnectionId;
+   int mediaConnectionId = getMediaConnectionId();
    if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
    {
       return FALSE;

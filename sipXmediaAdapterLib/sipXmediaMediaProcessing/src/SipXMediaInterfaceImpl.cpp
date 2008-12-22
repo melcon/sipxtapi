@@ -990,8 +990,7 @@ OsStatus SipXMediaInterfaceImpl::startRtpReceive(int connectionId,
 OsStatus SipXMediaInterfaceImpl::stopRtpSend(int connectionId)
 {
    OsStatus returnCode = OS_NOT_FOUND;
-   SipXMediaConnection* mediaConnection =
-       getMediaConnection(connectionId);
+   SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
 
    if (mpFlowGraph && mediaConnection &&
        mediaConnection->mRtpAudioSending)
@@ -1006,8 +1005,7 @@ OsStatus SipXMediaInterfaceImpl::stopRtpSend(int connectionId)
 OsStatus SipXMediaInterfaceImpl::stopRtpReceive(int connectionId)
 {
    OsStatus returnCode = OS_NOT_FOUND;
-   SipXMediaConnection* mediaConnection =
-       getMediaConnection(connectionId);
+   SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
 
    if (mpFlowGraph && mediaConnection &&
        mediaConnection->mRtpAudioReceiving)

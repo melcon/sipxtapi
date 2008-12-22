@@ -425,7 +425,7 @@ void XCpConference::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
    while (itor())
    {
       pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
-      if (pSipConnection && pSipConnection->getMediaConnectionId() == mediaConnectionId)
+      if (pSipConnection && pSipConnection->getMediaEventConnectionId() == mediaConnectionId)
       {
          pSipConnection->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
       }

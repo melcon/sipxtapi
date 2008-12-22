@@ -221,6 +221,12 @@ void XSipConnection::getRemoteUserAgent(UtlString& sRemoteUserAgent) const
    sRemoteUserAgent = m_rSipConnectionContext.m_remoteUserAgent;
 }
 
+int XSipConnection::getMediaEventConnectionId() const
+{
+   // no need to lock atomic
+   return m_rSipConnectionContext.m_mediaEventConnectionId;
+}
+
 int XSipConnection::getMediaConnectionId() const
 {
    // no need to lock atomic
