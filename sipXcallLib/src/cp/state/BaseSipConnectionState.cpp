@@ -449,7 +449,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
          const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
          if (pSdpBody)
          {
-            if (m_rStateContext.m_sdpNegotiation.getSdpOfferFinished())
+            if (m_rStateContext.m_sdpNegotiation.isSdpOfferFinished())
             {
                // this must be SDP answer
                if (handleSdpAnswer(sipMessage))
@@ -1271,8 +1271,7 @@ UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTranspo
 
 UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
 {
-   m_rStateContext.m_sdpNegotiation.startSdpNegotiation(TRUE); // start locally initiated SDP negotiation
-   m_rStateContext.m_sdpNegotiation.setLocalHoldRequest(m_rStateContext.m_bUseLocalHoldSDP);
+   m_rStateContext.m_sdpNegotiation.startSdpNegotiation(sipMessage, m_rStateContext.m_bUseLocalHoldSDP);
    CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
 
    int mediaConnectionId = getMediaConnectionId();
@@ -1328,11 +1327,9 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
          nRtpContacts = 1;
       }
 
-      m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
+      m_rStateContext.m_sdpNegotiation.addSdpOffer(sipMessage,
          nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
-
-      m_rStateContext.m_sdpNegotiation.sdpOfferFinished(sipMessage);
       return TRUE;
    }
 
@@ -1344,8 +1341,7 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
    const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
    if (pSdpBody)
    {
-      m_rStateContext.m_sdpNegotiation.startSdpNegotiation(FALSE); // start remotely initiated SDP negotiation
-      m_rStateContext.m_sdpNegotiation.setLocalHoldRequest(m_rStateContext.m_bUseLocalHoldSDP);
+      m_rStateContext.m_sdpNegotiation.startSdpNegotiation(sipMessage, m_rStateContext.m_bUseLocalHoldSDP);
       CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
       int mediaConnectionId = getMediaConnectionId();
 
@@ -1357,7 +1353,7 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
          }
       }
 
-      m_rStateContext.m_sdpNegotiation.sdpOfferFinished(sipMessage);
+      m_rStateContext.m_sdpNegotiation.handleInboundSdpOffer(sipMessage);
       return handleRemoteSdpBody(*pSdpBody);
    }
 
@@ -1418,10 +1414,9 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
          nRtpContacts = 1;
       }
 
-      m_rStateContext.m_sdpNegotiation.addSdpBody(sipMessage,
+      m_rStateContext.m_sdpNegotiation.addSdpAnswer(sipMessage,
          nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
-      m_rStateContext.m_sdpNegotiation.sdpAnswerFinished(sipMessage);
       return TRUE;
    }
 
@@ -1434,7 +1429,7 @@ UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
 
    if (pSdpBody)
    {
-      m_rStateContext.m_sdpNegotiation.sdpAnswerFinished(sipMessage);
+      m_rStateContext.m_sdpNegotiation.handleInboundSdpAnswer(sipMessage);
       return handleRemoteSdpBody(*pSdpBody);
    }
 
