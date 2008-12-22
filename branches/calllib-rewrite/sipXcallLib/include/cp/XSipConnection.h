@@ -245,6 +245,14 @@ public:
     */
    void getRemoteUserAgent(UtlString& sRemoteUserAgent) const;
 
+   /**
+    * Gets internal id of media connection for connection for routing media events.
+    * Same as getMediaConnectionId(), but doesn't return -1 once media connection is
+    * destroyed but old value, to allow media event routing even after media connection
+    * is destroyed.
+    */
+   int getMediaEventConnectionId() const;
+
    /** Gets internal id of media connection for connection. */
    int getMediaConnectionId() const;
 

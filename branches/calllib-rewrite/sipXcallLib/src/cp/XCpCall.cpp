@@ -544,7 +544,7 @@ void XCpCall::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
    UtlBoolean resFound = getConnection(ptrLock);
    if (resFound)
    {
-      if (ptrLock->getMediaConnectionId() == mediaConnectionId)
+      if (ptrLock->getMediaEventConnectionId() == mediaConnectionId)
       {
          ptrLock->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
       }
