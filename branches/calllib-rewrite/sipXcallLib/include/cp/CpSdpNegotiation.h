@@ -90,16 +90,21 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
-   /** Call before SDP offer is sent or received to initiate SDP negotiation tracking */
-   void startSdpNegotiation(UtlBoolean bLocallyInitiated = TRUE);
+   /** 
+    * Call before SDP offer is sent or received to initiate SDP negotiation tracking.
+    * This function doesn't add SDP offer or answer, it just initializes SDP negotiation
+    * tracking for given sip transaction.
+    * SipMessage must have a valid cseq number present, for transaction tracking to work!
+    */
+   void startSdpNegotiation(const SipMessage& sipMessage, UtlBoolean bLocalHoldRequest = TRUE);
 
-   /** Call to notify class that SDP offer part of handshake is finished */
-   void sdpOfferFinished(const SipMessage& rOfferSipMessage);
+   /** Call to notify class that SDP offer was received. */
+   void handleInboundSdpOffer(const SipMessage& rOfferSipMessage);
 
-   /** Call to notify class that SDP answer part of handshake is finished */
-   void sdpAnswerFinished(const SipMessage& rAnswerSipMessage);
+   /** Call to notify class that SDP answer was received */
+   void handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage);
 
-   /** Resets negotiation of SDP */
+   /** Resets negotiation of SDP. Not required to start new sdp negotiation. */
    void resetSdpNegotiation();
 
    /**
@@ -128,33 +133,43 @@ public:
                                   int& matchingVideoFramerate);
 
    /**
-    * Adds SDP body to specified SIP message. Offer/Answer SDP is added automatically depending
-    * on negotiation state.
+    * Adds SDP offer to specified SIP message.
     */
-   void addSdpBody(SipMessage& rSipMessage,///< sip message where we want to add SDP body
-                   int nRtpContacts,
-                   UtlString hostAddresses[],
-                   int rtpAudioPorts[],
-                   int rtcpAudiopPorts[],
-                   int rtpVideoPorts[],
-                   int rtcpVideoPorts[],
-                   RTP_TRANSPORT transportTypes[],
-                   const SdpCodecList& sdpCodecList,
-                   const SdpSrtpParameters& srtpParams,
-                   int videoBandwidth,
-                   int videoFramerate,
-                   RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
+   void addSdpOffer(SipMessage& rSipMessage,///< sip message where we want to add SDP body
+                    int nRtpContacts,
+                    UtlString hostAddresses[],
+                    int rtpAudioPorts[],
+                    int rtcpAudiopPorts[],
+                    int rtpVideoPorts[],
+                    int rtcpVideoPorts[],
+                    RTP_TRANSPORT transportTypes[],
+                    const SdpCodecList& sdpCodecList,
+                    const SdpSrtpParameters& srtpParams,
+                    int videoBandwidth,
+                    int videoFramerate,
+                    RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
+
+   /**
+   * Adds SDP answer to specified SIP message.
+   */
+   void addSdpAnswer(SipMessage& rSipMessage,///< sip message where we want to add SDP body
+                     int nRtpContacts,
+                     UtlString hostAddresses[],
+                     int rtpAudioPorts[],
+                     int rtcpAudiopPorts[],
+                     int rtpVideoPorts[],
+                     int rtcpVideoPorts[],
+                     RTP_TRANSPORT transportTypes[],
+                     const SdpCodecList& sdpCodecList,
+                     const SdpSrtpParameters& srtpParams,
+                     int videoBandwidth,
+                     int videoFramerate,
+                     RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
 
    /* ============================ ACCESSORS ================================= */
 
    /** Gets state of SDP negotiation */
    CpSdpNegotiation::SdpNegotiationState getNegotiationState() const { return m_negotiationState; }
-
-   /** Returns TRUE if SDP offer was sent or received */
-   UtlBoolean getSdpOfferFinished() const { return m_bSdpOfferFinished; }
-
-   /** Returns TRUE if SDP answer was sent or received */
-   UtlBoolean getSdpAnswerFinished() const { return m_bSdpAnswerFinished; }
 
    CpSdpNegotiation::SdpOfferingMode getSdpOfferingMode() const { return m_sdpOfferingMode; }
    void setSdpOfferingMode(CpSdpNegotiation::SdpOfferingMode val) { m_sdpOfferingMode = val; }
@@ -170,11 +185,13 @@ public:
    /** Gets remote SDP body, and returns TRUE if it was found. */
    UtlBoolean getRemoteSdpBody(SdpBody& sdpBody);
 
-   UtlBoolean getLocalHoldRequest() const { return m_bLocalHoldRequest; }
-   /** Set to TRUE to generate SDP for initiating local hold. Reset when new negotiation is started. */
-   void setLocalHoldRequest(UtlBoolean val) { m_bLocalHoldRequest = val; }
-
    /* ============================ INQUIRY =================================== */
+
+   /** Returns TRUE if SDP offer was sent or received */
+   UtlBoolean isSdpOfferFinished() const { return m_bSdpOfferFinished; }
+
+   /** Returns TRUE if SDP answer was sent or received */
+   UtlBoolean isSdpAnswerFinished() const { return m_bSdpAnswerFinished; }
 
    /** Returns TRUE if we may start new SDP negotiation */
    UtlBoolean isNewSdpNegotiationAllowed() const;
@@ -187,6 +204,9 @@ public:
 
    /** Returns TRUE if SDP negotiation was initiated locally (offer was sent) */
    UtlBoolean isLocallyInitiated() const { return m_bLocallyInitiated; }
+
+   /** Returns TRUE if we will negotiate locally held session */
+   UtlBoolean isLocalHoldRequest() const { return m_bLocalHoldRequest; }
 
    /**
     * Gets type of SDP body - offer or answer. This information is needed to handle
@@ -213,6 +233,25 @@ private:
    static void deleteSdpCodecArray(int arraySize, SdpCodec**& sdpCodecArray);
 
    UtlBoolean compareSipMessages(const SipMessage& baseSipMessage, const SipMessage& receivedSipMessage) const;
+
+   /**
+   * Adds SDP body to specified SIP message. Offer/Answer SDP is added automatically depending
+   * on negotiation state.
+   */
+   void addSdpBody(SipMessage& rSipMessage,///< sip message where we want to add SDP body
+                   SipMessage* pSdpOfferSipMessage,
+                   int nRtpContacts,
+                   UtlString hostAddresses[],
+                   int rtpAudioPorts[],
+                   int rtcpAudiopPorts[],
+                   int rtpVideoPorts[],
+                   int rtcpVideoPorts[],
+                   RTP_TRANSPORT transportTypes[],
+                   const SdpCodecList& sdpCodecList,
+                   const SdpSrtpParameters& srtpParams,
+                   int videoBandwidth,
+                   int videoFramerate,
+                   RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
 
    SdpNegotiationState m_negotiationState; ///< keeps track of SDP negotiation state
    UtlBoolean m_bSdpOfferFinished; ///< TRUE if SDP offer was sent or received

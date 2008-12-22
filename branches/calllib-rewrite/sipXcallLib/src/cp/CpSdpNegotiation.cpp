@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsDateTime.h>
+#include <os/OsSysLog.h>
 #include <sdp/SdpCodec.h>
 #include <sdp/SdpCodecList.h>
 #include <net/SdpBody.h>
@@ -63,12 +64,12 @@ CpSdpNegotiation::~CpSdpNegotiation()
 
 /* ============================ MANIPULATORS ============================== */
 
-void CpSdpNegotiation::startSdpNegotiation(UtlBoolean bLocallyInitiated /*= TRUE*/)
+void CpSdpNegotiation::startSdpNegotiation(const SipMessage& sipMessage, UtlBoolean bLocalHoldRequest)
 {
    m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS;
    m_bSdpOfferFinished = FALSE;
    m_bSdpAnswerFinished = FALSE;
-   m_bLocallyInitiated = bLocallyInitiated;
+   m_bLocallyInitiated = sipMessage.isFromThisSide();
 
    delete m_pOfferSipMessage;
    m_pOfferSipMessage = NULL;
@@ -77,22 +78,20 @@ void CpSdpNegotiation::startSdpNegotiation(UtlBoolean bLocallyInitiated /*= TRUE
    m_pAnswerSipMessage = NULL;
 
    m_localSdpCodecList.clearCodecs();
-   m_bLocalHoldRequest = FALSE;
+   m_bLocalHoldRequest = bLocalHoldRequest;
 
-   m_cseqNum = -1;
+   sipMessage.getCSeqField(&m_cseqNum, NULL); // save transaction number
 }
 
-void CpSdpNegotiation::sdpOfferFinished(const SipMessage& rOfferSipMessage)
+void CpSdpNegotiation::handleInboundSdpOffer(const SipMessage& rOfferSipMessage)
 {
    m_bSdpOfferFinished = TRUE;
 
    delete m_pOfferSipMessage;
    m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
-
-   rOfferSipMessage.getCSeqField(&m_cseqNum, NULL); // save transaction number
 }
 
-void CpSdpNegotiation::sdpAnswerFinished(const SipMessage& rAnswerSipMessage)
+void CpSdpNegotiation::handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage)
 {
    if (m_bSdpOfferFinished)
    {
@@ -176,45 +175,59 @@ void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound 
    deleteSdpCodecArray(numCodecsInCommon, decoderCodecs);
 }
 
-void CpSdpNegotiation::addSdpBody(SipMessage& rSipMessage,///< sip message where we want to add SDP body
-                                  int nRtpContacts,
-                                  UtlString hostAddresses[],
-                                  int rtpAudioPorts[],
-                                  int rtcpAudiopPorts[],
-                                  int rtpVideoPorts[],
-                                  int rtcpVideoPorts[],
-                                  RTP_TRANSPORT transportTypes[],
-                                  const SdpCodecList& sdpCodecList,
-                                  const SdpSrtpParameters& srtpParams,
-                                  int videoBandwidth,
-                                  int videoFramerate,
-                                  RTP_TRANSPORT rtpTransportOptions)
+void CpSdpNegotiation::addSdpOffer(SipMessage& rSipMessage,
+                                   int nRtpContacts,
+                                   UtlString hostAddresses[],
+                                   int rtpAudioPorts[],
+                                   int rtcpAudiopPorts[],
+                                   int rtpVideoPorts[],
+                                   int rtcpVideoPorts[],
+                                   RTP_TRANSPORT transportTypes[],
+                                   const SdpCodecList& sdpCodecList,
+                                   const SdpSrtpParameters& srtpParams,
+                                   int videoBandwidth,
+                                   int videoFramerate,
+                                   RTP_TRANSPORT rtpTransportOptions)
 {
-   int codecCount = sdpCodecList.getCodecCount();
-   SdpCodec** pCodecArray = new SdpCodec*[codecCount];
-   sdpCodecList.getCodecs(codecCount, pCodecArray); // fill array with codec copies
+   addSdpBody(rSipMessage, NULL, nRtpContacts, hostAddresses, rtpAudioPorts, rtcpAudiopPorts, rtpVideoPorts, rtcpVideoPorts,
+      transportTypes, sdpCodecList, srtpParams, videoBandwidth, videoFramerate, rtpTransportOptions);
 
-   // if m_pOfferSipMessage is known, then SDP answer is added, otherwise SDP offer
-   rSipMessage.addSdpBody(nRtpContacts,
-      hostAddresses,
-      rtpAudioPorts,
-      rtcpAudiopPorts,
-      rtpVideoPorts,
-      rtcpVideoPorts,
-      transportTypes,
-      codecCount,
-      pCodecArray,
-      srtpParams,
-      videoBandwidth,
-      videoFramerate,
-      m_pOfferSipMessage, // original SIP message with offer if available
-      rtpTransportOptions,
-      m_bLocalHoldRequest);
+   delete m_pOfferSipMessage;
+   m_pOfferSipMessage = new SipMessage(rSipMessage);
 
-   // remember local codec list, needed for starting local audio decoding
-   m_localSdpCodecList = sdpCodecList;
+   m_bSdpOfferFinished = TRUE;
+}
 
-   deleteSdpCodecArray(codecCount, pCodecArray);
+void CpSdpNegotiation::addSdpAnswer(SipMessage& rSipMessage,
+                                    int nRtpContacts,
+                                    UtlString hostAddresses[],
+                                    int rtpAudioPorts[],
+                                    int rtcpAudiopPorts[],
+                                    int rtpVideoPorts[],
+                                    int rtcpVideoPorts[],
+                                    RTP_TRANSPORT transportTypes[],
+                                    const SdpCodecList& sdpCodecList,
+                                    const SdpSrtpParameters& srtpParams,
+                                    int videoBandwidth,
+                                    int videoFramerate,
+                                    RTP_TRANSPORT rtpTransportOptions)
+{
+   if (m_pOfferSipMessage)
+   {
+      addSdpBody(rSipMessage, m_pOfferSipMessage, nRtpContacts, hostAddresses, rtpAudioPorts, rtcpAudiopPorts,
+         rtpVideoPorts, rtcpVideoPorts, transportTypes, sdpCodecList, srtpParams, videoBandwidth,
+         videoFramerate, rtpTransportOptions);
+
+      delete m_pAnswerSipMessage;
+      m_pAnswerSipMessage = new SipMessage(rSipMessage); // keep copy of sdp answer
+
+      m_bSdpAnswerFinished = TRUE;
+      m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+   }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_ERR, "Cannot add SDP answer, because SDP offer was never seen.\n");
+   }
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -310,7 +323,8 @@ UtlBoolean CpSdpNegotiation::isInSdpNegotiation(const SipMessage& sipMessage) co
    sipMessage.getCSeqField(&tmpSeqNum, NULL);
 
    if (m_cseqNum == tmpSeqNum &&
-       m_cseqNum != -1)
+       (m_negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE ||
+        m_negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS))
    {
       return TRUE;
    }
@@ -375,6 +389,48 @@ UtlBoolean CpSdpNegotiation::compareSipMessages(const SipMessage& baseSipMessage
    }
 
    return FALSE;
+}
+
+void CpSdpNegotiation::addSdpBody(SipMessage& rSipMessage,///< sip message where we want to add SDP body
+                                  SipMessage* pSdpOfferSipMessage,
+                                  int nRtpContacts,
+                                  UtlString hostAddresses[],
+                                  int rtpAudioPorts[],
+                                  int rtcpAudiopPorts[],
+                                  int rtpVideoPorts[],
+                                  int rtcpVideoPorts[],
+                                  RTP_TRANSPORT transportTypes[],
+                                  const SdpCodecList& sdpCodecList,
+                                  const SdpSrtpParameters& srtpParams,
+                                  int videoBandwidth,
+                                  int videoFramerate,
+                                  RTP_TRANSPORT rtpTransportOptions)
+{
+   int codecCount = sdpCodecList.getCodecCount();
+   SdpCodec** pCodecArray = new SdpCodec*[codecCount];
+   sdpCodecList.getCodecs(codecCount, pCodecArray); // fill array with codec copies
+
+   // if m_pOfferSipMessage is known, then SDP answer is added, otherwise SDP offer
+   rSipMessage.addSdpBody(nRtpContacts,
+      hostAddresses,
+      rtpAudioPorts,
+      rtcpAudiopPorts,
+      rtpVideoPorts,
+      rtcpVideoPorts,
+      transportTypes,
+      codecCount,
+      pCodecArray,
+      srtpParams,
+      videoBandwidth,
+      videoFramerate,
+      pSdpOfferSipMessage, // original SIP message with offer if available
+      rtpTransportOptions,
+      m_bLocalHoldRequest);
+
+   // remember local codec list, needed for starting local audio decoding
+   m_localSdpCodecList = sdpCodecList;
+
+   deleteSdpCodecArray(codecCount, pCodecArray);
 }
 
 /* ============================ FUNCTIONS ================================= */
