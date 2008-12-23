@@ -13,6 +13,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsReadLock.h>
+#include <mi/CpMediaInterface.h>
+#include <cp/CpMediaInterfaceProvider.h>
 #include <cp/XSipConnection.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpMediaEventListener.h>
@@ -150,11 +152,25 @@ OsStatus XSipConnection::unholdConnection()
 
 OsStatus XSipConnection::muteInputConnection()
 {
+   int mediaConnectionId = getMediaConnectionId();
+   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   if (pMediaInterface)
+   {
+      return pMediaInterface->muteInput(mediaConnectionId, TRUE);
+   }
+
    return OS_FAILED;
 }
 
 OsStatus XSipConnection::unmuteInputConnection()
 {
+   int mediaConnectionId = getMediaConnectionId();
+   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   if (pMediaInterface)
+   {
+      return pMediaInterface->muteInput(mediaConnectionId, FALSE);
+   }
+
    return OS_FAILED;
 }
 
