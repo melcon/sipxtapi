@@ -394,15 +394,13 @@ void sipXezPhoneFrame::OnCameraSettings(wxCommandEvent& WXUNUSED(event))
     pDlg->ShowModal();
 }
 
-
 void sipXezPhoneFrame::OnTestInfo(wxCommandEvent& WXUNUSED(event))
 {
     // for testing
-    SIPX_INFO hInfo = 0;
     void* pContent;
     pContent = malloc(256);
     memset(pContent, 42, 256);
-    sipxCallSendInfo(&hInfo, sipXmgr::getInstance().getCurrentCall(), "text/plain", (char*)pContent, 256); 
+    sipxCallSendInfo(sipXmgr::getInstance().getCurrentCall(), "text/plain", (char*)pContent, 256); 
 }
 
 void sipXezPhoneFrame::OnTestDNS(wxCommandEvent& WXUNUSED(event))

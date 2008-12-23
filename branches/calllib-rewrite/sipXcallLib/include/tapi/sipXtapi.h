@@ -822,18 +822,6 @@ typedef unsigned int SIPX_CONF;
 const SIPX_CONF SIPX_CONF_NULL = 0; /**< Represents a null conference handle */
 
 /**
- * The SIPX_INFO handle represents a handle to an INFO message sent by
- * a sipXtapi instance.  INFO messages are useful for communicating 
- * information between user agents within a logical call.  The SIPX_INFO 
- * handle is returned when sending an INFO message via 
- * sipxCallSendInfo(...).  The handle is references as part of the 
- * EVENT_CATEGORY_INFO_STATUS event callback/observer.  sipXtapi will 
- * automatically deallocate this handle immediately after the status
- * call back.
- */
-typedef unsigned int SIPX_INFO;
-
-/**
  * The SIPX_PUB handle represent a publisher context.  Publisher are used
  * to publish application-data to interested parties (Subscribers).  This
  * maps directly to the SIP SUBSCRIBE, and NOTIFY methods.  The handle is
