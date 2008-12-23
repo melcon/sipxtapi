@@ -181,9 +181,10 @@ OsStatus XSipConnection::renegotiateCodecsConnection()
 
 OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
                                   const char* pContent,
-                                  const size_t nContentLength)
+                                  const size_t nContentLength,
+                                  void* pCookie)
 {
-   return OS_FAILED;
+   return m_stateMachine.sendInfo(sContentType, pContent, nContentLength, pCookie);
 }
 
 UtlBoolean XSipConnection::handleTimerMessage(const ScTimerMsg& timerMsg)
@@ -345,14 +346,12 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
 void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                              SIPXTACK_MESSAGE_STATUS status,
                                              const UtlString& sResponseText,
-                                             int responseCode /*= 0*/)
+                                             int responseCode,
+                                             void* pCookie)
 {
    if (m_pInfoStatusEventListener)
    {
-      SipInfoStatusEvent infoEvent;
-      infoEvent.m_status = status;
-      infoEvent.m_sResponseText = sResponseText;
-      infoEvent.m_iResponseCode = responseCode;
+      SipInfoStatusEvent infoEvent(status, responseCode, sResponseText, pCookie);
 
       switch(event)
       {

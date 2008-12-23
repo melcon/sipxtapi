@@ -152,6 +152,21 @@ OsStatus SipConnectionStateMachine::renegotiateCodecsConnection()
    return result;
 }
 
+OsStatus SipConnectionStateMachine::sendInfo(const UtlString& sContentType,
+                                             const char* pContent,
+                                             const size_t nContentLength,
+                                             void* pCookie)
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->sendInfo(result, sContentType, pContent, nContentLength, pCookie));
+   }
+
+   return result;
+}
+
 UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    if (m_pSipConnectionState)

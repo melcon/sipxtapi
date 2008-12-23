@@ -780,13 +780,13 @@ typedef enum
 typedef struct
 {
     size_t              nSize;             /**< the size of this structure in bytes */
-    SIPX_INFO           hInfo;             /**< the handle used to make the outbound info request. */ 
     SIPX_MESSAGE_STATUS status;            /**< Emumerated status for this
                                                  request acknowledgement. */
     int                 responseCode;      /**< Numerical status code for this
                                                  request acknowledgement. */
     const char*         szResponseText;    /**< The text of the request acknowledgement. */
     SIPX_INFOSTATUS_EVENT event;            /**< Event code for this INFO STATUS message */
+    void* pCookie;                          /**< Cookie value passed when sending INFO */
 } SIPX_INFOSTATUS_INFO;
 
 

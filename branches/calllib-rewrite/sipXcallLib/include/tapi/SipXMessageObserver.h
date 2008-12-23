@@ -36,7 +36,6 @@ class OsEventMsg;
 
 /**
  *  Class that is an OsServerTask, and has a message queue that observes SIP messages.
- *  For example, it is used for looking for message responses, like the INFO response.
  */
 class SipXMessageObserver : public OsServerTask
 {
@@ -60,7 +59,6 @@ public:
     
 private:
     UtlBoolean handleIncomingInfoMessage(SipMessage* pMessage);
-    UtlBoolean handleIncomingInfoStatus(SipMessage* pMessage);
     UtlBoolean handleStunOutcome(OsEventMsg* pMsg);
 
     /** 

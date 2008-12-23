@@ -294,7 +294,8 @@ public:
    virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
                              const char* pContent,
-                             const size_t nContentLength) = 0;
+                             const size_t nContentLength,
+                             void* pCookie) = 0;
 
    /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
    virtual OsStatus acquireExclusive();

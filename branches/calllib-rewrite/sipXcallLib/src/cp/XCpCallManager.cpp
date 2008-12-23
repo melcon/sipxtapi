@@ -904,7 +904,8 @@ OsStatus XCpCallManager::sendInfo(const UtlString& sAbstractCallId,
                                   const SipDialog& sSipDialog,
                                   const UtlString& sContentType,
                                   const char* pContent,
-                                  const size_t nContentLength)
+                                  const size_t nContentLength,
+                                  void* pCookie)
 {
    OsStatus result = OS_FAILED;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
@@ -912,7 +913,7 @@ OsStatus XCpCallManager::sendInfo(const UtlString& sAbstractCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->sendInfo(sSipDialog, sContentType, pContent, nContentLength);
+      return ptrLock->sendInfo(sSipDialog, sContentType, pContent, nContentLength, pCookie);
    }
 
    return result;

@@ -51,13 +51,13 @@ SipXInfoStatusEventListener::~SipXInfoStatusEventListener()
 
 void SipXInfoStatusEventListener::OnResponse(const SipInfoStatusEvent& event)
 {
-   InfoStatusEventMsg msg(INFOSTATUS_RESPONSE, 0, event);
+   InfoStatusEventMsg msg(INFOSTATUS_RESPONSE, event);
    postMessage(msg);
 }
 
 void SipXInfoStatusEventListener::OnNetworkError(const SipInfoStatusEvent& event)
 {
-   InfoStatusEventMsg msg(INFOSTATUS_NETWORK_ERROR, 0, event);
+   InfoStatusEventMsg msg(INFOSTATUS_NETWORK_ERROR, event);
    postMessage(msg);
 }
 
@@ -74,8 +74,8 @@ UtlBoolean SipXInfoStatusEventListener::handleMessage(OsMsg& rRawMsg)
          {
             // cast succeeded
             const SipInfoStatusEvent& payload = pMsg->getEventPayloadRef();
-            handleInfoStatusEvent(pMsg->getInfo(), (SIPX_MESSAGE_STATUS)payload.m_status,
-               payload.m_iResponseCode, payload.m_sResponseText, pMsg->getEvent());
+            handleInfoStatusEvent((SIPX_MESSAGE_STATUS)payload.m_status,
+               payload.m_iResponseCode, payload.m_sResponseText, pMsg->getEvent(), payload.m_pCookie);
          }
       }
       bResult = TRUE;
@@ -87,17 +87,6 @@ UtlBoolean SipXInfoStatusEventListener::handleMessage(OsMsg& rRawMsg)
 
 }
 
-void SipXInfoStatusEventListener::sipxFireInfoStatusEvent(SIPX_INFO hInfo,
-                                                          SIPX_MESSAGE_STATUS status,
-                                                          int responseCode,
-                                                          const UtlString& sResponseText,
-                                                          SIPX_INFOSTATUS_EVENT event)
-{
-   SipInfoStatusEvent payload((SIPXTACK_MESSAGE_STATUS)status, responseCode, sResponseText);
-   InfoStatusEventMsg msg(event, hInfo, payload);
-   postMessage(msg);
-}
-
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
@@ -106,21 +95,21 @@ void SipXInfoStatusEventListener::sipxFireInfoStatusEvent(SIPX_INFO hInfo,
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-void SipXInfoStatusEventListener::handleInfoStatusEvent(SIPX_INFO hInfo,
-                                                        SIPX_MESSAGE_STATUS status,
+void SipXInfoStatusEventListener::handleInfoStatusEvent(SIPX_MESSAGE_STATUS status,
                                                         int responseCode,
                                                         const UtlString& sResponseText,
-                                                        SIPX_INFOSTATUS_EVENT event)
+                                                        SIPX_INFOSTATUS_EVENT event,
+                                                        void* pCookie)
 {
    SIPX_INFOSTATUS_INFO infoStatus;
    memset((void*)&infoStatus, 0, sizeof(SIPX_INFOSTATUS_INFO));
 
    infoStatus.nSize = sizeof(SIPX_INFOSTATUS_INFO);
-   infoStatus.hInfo = hInfo;
    infoStatus.status = status;
    infoStatus.responseCode = responseCode;
    infoStatus.szResponseText = sResponseText.data();
    infoStatus.event = event;
+   infoStatus.pCookie = pCookie;
 
    SipXEventDispatcher::dispatchEvent(m_pInst, EVENT_CATEGORY_INFO_STATUS, &infoStatus);
 }

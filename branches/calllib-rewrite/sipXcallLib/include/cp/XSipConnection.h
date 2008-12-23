@@ -199,7 +199,8 @@ public:
    /** Sends an INFO message to the other party(s) on the call */
    OsStatus sendInfo(const UtlString& sContentType,
                      const char* pContent,
-                     const size_t nContentLength);
+                     const size_t nContentLength,
+                     void* pCookie);
 
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
@@ -311,7 +312,8 @@ private:
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                         SIPXTACK_MESSAGE_STATUS status,
                                         const UtlString& sResponseText,
-                                        int responseCode = 0);
+                                        int responseCode = 0,
+                                        void* pCookie = NULL);
 
    /** Fire security event */
    virtual void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,

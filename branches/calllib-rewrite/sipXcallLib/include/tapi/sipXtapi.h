@@ -1721,14 +1721,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub);
 
 
 /**
- * Sends an INFO event to the specified call.  
+ * Sends an INFO event to the specified call.
  *
- * This method will fail with an SIPX_RESULT_INVALID_STATE return code 
- * if an existing INFO message transaction is still outstanding (sipXtapi 
- * has not received a final response to the initial request).
- * 
- * @param phInfo Pointer to an INFO message handle, whose value is set by 
- *        this method.
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
@@ -1736,12 +1730,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub);
  * @param pContent Pointer to the INFO message's content. Can be a NULL terminated
  *        string or binary data.
  * @param nContentLength Length of data in pContent
+ * @param pCookie Optional argument that will be passed into info status
+ *        event to match send requests with responses.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
-                                          const SIPX_CALL hCall,
+SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
                                           const char* szContentType,
                                           const char* pContent,
-                                          const size_t nContentLength);
+                                          const size_t nContentLength,
+                                          void* pCookie = NULL);
 
 /**
  * Blind transfer the specified call to another party.  Monitor the

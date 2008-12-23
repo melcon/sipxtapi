@@ -43,7 +43,6 @@ public:
    InfoStatusEventMsg();
 
    InfoStatusEventMsg(SIPX_INFOSTATUS_EVENT event,
-                      SIPX_INFO hInfo,
                       const SipInfoStatusEvent& eventPayload);
 
    virtual ~InfoStatusEventMsg();
@@ -56,9 +55,6 @@ public:
 
    SIPX_INFOSTATUS_EVENT getEvent() const { return m_event; }
    void setEvent(SIPX_INFOSTATUS_EVENT val) { m_event = val; }
-
-   SIPX_INFO getInfo() const { return m_hInfo; }
-   void setInfo(SIPX_INFO val) { m_hInfo = val; }
 
    SipInfoStatusEvent getEventPayload() const { return m_eventPayload; }
    const SipInfoStatusEvent& getEventPayloadRef() const { return m_eventPayload; }
@@ -77,7 +73,6 @@ private:
    InfoStatusEventMsg& operator=(const InfoStatusEventMsg& rhs);
 
    SIPX_INFOSTATUS_EVENT m_event;
-   SIPX_INFO m_hInfo;
    SipInfoStatusEvent m_eventPayload;
 };
 

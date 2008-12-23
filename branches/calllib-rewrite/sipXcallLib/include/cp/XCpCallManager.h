@@ -450,7 +450,8 @@ public:
                      const SipDialog& sSipDialog,
                      const UtlString& sContentType,
                      const char* pContent,
-                     const size_t nContentLength);
+                     const size_t nContentLength,
+                     void* pCookie);
 
    /** Generates new sip call-id */
    UtlString getNewSipCallId();

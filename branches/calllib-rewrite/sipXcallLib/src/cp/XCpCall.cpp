@@ -175,9 +175,10 @@ OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sipDialog,
 OsStatus XCpCall::sendInfo(const SipDialog& sipDialog,
                            const UtlString& sContentType,
                            const char* pContent,
-                           const size_t nContentLength)
+                           const size_t nContentLength,
+                           void* pCookie)
 {
-   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength);
+   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength, pCookie);
    return postMessage(sendInfoMsg);
 }
 
@@ -497,7 +498,7 @@ OsStatus XCpCall::handleSendInfo(const AcSendInfoMsg& rMsg)
    UtlBoolean resFound = findConnection(sipDialog, ptrLock);
    if (resFound)
    {
-      return ptrLock->sendInfo(rMsg.getContentType(), rMsg.getContent(), rMsg.getContentLength());
+      return ptrLock->sendInfo(rMsg.getContentType(), rMsg.getContent(), rMsg.getContentLength(), rMsg.getCookie());
    }
 
    return OS_NOT_FOUND;

@@ -192,7 +192,8 @@ public:
    virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
                              const char* pContent,
-                             const size_t nContentLength);
+                             const size_t nContentLength,
+                             void* pCookie);
 
    /* ============================ ACCESSORS ================================= */
 

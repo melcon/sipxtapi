@@ -93,6 +93,12 @@ public:
    /** Renegotiates media session codecs */
    OsStatus renegotiateCodecsConnection();
 
+   /** Sends an INFO message to the other party(s) on the call */
+   OsStatus sendInfo(const UtlString& sContentType,
+                     const char* pContent,
+                     const size_t nContentLength,
+                     void* pCookie);
+
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 
