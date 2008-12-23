@@ -189,7 +189,7 @@ typedef enum SIPX_AUDIO_BANDWIDTH_ID
 
     AUDIO_CODEC_BW_CUSTOM,		   /**< Possible return value for sipxConfigGetAudioCodecPreferences.
                                       This ID indicates the available list of codecs was
-                                      overridden by a sipxConfigSetAudioCodecByName call. */
+                                      overridden by a sipxConfigSelectAudioCodecByName call. */
     AUDIO_CODEC_BW_DEFAULT       /**< Value used to signify the default bandwidth level 
                                       when calling sipxCallConnect, sipxCallAccept, or 
                                       sipxConferenceAdd */
@@ -219,7 +219,7 @@ typedef enum SIPX_VIDEO_BANDWIDTH_ID
     VIDEO_CODEC_BW_HIGH,         /**< ID for codecs with high bandwidth requirements */
     VIDEO_CODEC_BW_CUSTOM,       /**< Possible return value for sipxConfigGetVideoCodecPreferences.
                                       This ID indicates the available list of codecs was
-                                      overridden by a sipxConfigSetVideoCodecByName call. */
+                                      overridden by a sipxConfigSelectVideoCodecByName call. */
     VIDEO_CODEC_BW_DEFAULT       /**< Value used to signify the default bandwidth level 
                                       when calling sipxCallLimitCodecPreferences */
 } SIPX_VIDEO_BANDWIDTH_ID;
@@ -3360,11 +3360,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
  * @param szCodecNames multiple codec names separated by space.
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecNames);
+SIPXTAPI_API SIPX_RESULT sipxConfigSelectAudioCodecByName(const SIPX_INST hInst, 
+                                                          const char* szCodecNames);
 
 /**
- * Get the number of audio codecs. 
+ * Get the number of selected audio codecs. 
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
  * no be retrieved.
@@ -3373,14 +3373,29 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
  * @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst, 
-                                                     int* pNumCodecs);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumSelectedAudioCodecs(const SIPX_INST hInst, 
+                                                             int* pNumCodecs);
 
+/**
+* Get the number of all available audio codecs. 
+* This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
+* no be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAvailableAudioCodecs(const SIPX_INST hInst, 
+                                                              int* pNumCodecs);
 
 /**
  * Get the audio codec at a certain index in the list of codecs. Use this 
- * function in conjunction with sipxConfigGetNumAudioCodecs to enumerate
- * the list of audio codecs.
+ * function in conjunction with sipxConfigGetNumSelectedAudioCodecs to enumerate
+ * the list of selected audio codecs. This method in conjunction with 
+ * sipxConfigGetNumSelectedAudioCodecs will enumerate only currently selected codecs,
+ * and not all available codecs.
+ *
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the audio codec can not
  * be retrieved.
@@ -3391,9 +3406,30 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst,
  *        (name, bandwidth requirement) about the codec.
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst, 
-                                                 const int index, 
-                                                 SIPX_AUDIO_CODEC* pCodec);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedAudioCodec(const SIPX_INST hInst, 
+                                                         const int index, 
+                                                         SIPX_AUDIO_CODEC* pCodec);
+
+/**
+* Get the audio codec at a certain index in the list of codecs. Use this 
+* function in conjunction with sipxConfigGetNumSelectedAudioCodecs to enumerate
+* the list of selected audio codecs. This method in conjunction with 
+* sipxConfigGetNumSelectedAudioCodecs will enumerate only currently selected codecs,
+* and not all available codecs.
+*
+* This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the audio codec can not
+* be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param index Index in the list of codecs
+* @param pCodec SIPX_AUDIO_CODEC structure that holds information
+*        (name, bandwidth requirement) about the codec.
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableAudioCodec(const SIPX_INST hInst, 
+                                                          const int index, 
+                                                          SIPX_AUDIO_CODEC* pCodec);
 
 /**
  * Gets the list of video capture devices.
@@ -3445,11 +3481,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
  * @param szCodecName codec name
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecName);
+SIPXTAPI_API SIPX_RESULT sipxConfigSelectVideoCodecByName(const SIPX_INST hInst, 
+                                                          const char* szCodecName);
 
 /**
- * Reset the codec list if it was modified by sipxConfigSetVideoCodecByName. This
+ * Reset the codec list if it was modified by sipxConfigSelectVideoCodecByName. This
  * resets the selection to a full codec list.
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec.
  * SIPX_RESULT_FAILURE is returned if the codec is not set.
@@ -3457,10 +3493,10 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
  * @param hInst Instance pointer obtained by sipxInitialize
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst);
+SIPXTAPI_API SIPX_RESULT sipxConfigResetSelectedVideoCodecs(const SIPX_INST hInst);
 
 /**
- * Get the number of video codecs. 
+ * Get the number of selected video codecs. 
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
  * no be retrieved.
@@ -3469,9 +3505,21 @@ SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst);
  * @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetNumVideoCodecs(const SIPX_INST hInst, 
-                                                     int* pNumCodecs);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumSelectedVideoCodecs(const SIPX_INST hInst, 
+                                                             int* pNumCodecs);
 
+/**
+* Get the number of available video codecs. 
+* This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
+* no be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAvailableVideoCodecs(const SIPX_INST hInst, 
+                                                              int* pNumCodecs);
 
 /**
  * Set the supported video format
@@ -3486,9 +3534,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFormat(const SIPX_INST hInst,
 
 
 /**
- * Get the video codec at a certain index in the list of codecs. Use this 
- * function in conjunction with sipxConfigGetNumVideoCodecs to enumerate
- * the list of video codecs.
+ * Get selected video codec at a certain index in the list of codecs. Use this 
+ * function in conjunction with sipxConfigGetNumSelectedVideoCodecs to enumerate
+ * the list of currently selected video codecs.
  * This method will return SIPX_RESULT_SUCCESS if able to set the video codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the video codec can not
  * be retrieved.
@@ -3499,9 +3547,27 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFormat(const SIPX_INST hInst,
  *        (name, bandwidth requirement) about the codec.
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst, 
-                                                 const int index, 
-                                                 SIPX_VIDEO_CODEC* pCodec);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedVideoCodec(const SIPX_INST hInst, 
+                                                         const int index, 
+                                                         SIPX_VIDEO_CODEC* pCodec);
+
+/**
+* Get available video codec at a certain index in the list of codecs. Use this 
+* function in conjunction with sipxConfigGetNumAvailableVideoCodecs to enumerate
+* the list of all available video codecs.
+* This method will return SIPX_RESULT_SUCCESS if able to set the video codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the video codec can not
+* be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param index Index in the list of codecs
+* @param pCodec SIPX_VIDEO_CODEC structure that holds information
+*        (name, bandwidth requirement) about the codec.
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableVideoCodec(const SIPX_INST hInst, 
+                                                          const int index, 
+                                                          SIPX_VIDEO_CODEC* pCodec);
 
 /**
  * Get the local contact address available for outbound/inbound signaling and

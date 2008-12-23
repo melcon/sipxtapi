@@ -97,6 +97,9 @@ public:
    /** Get a codec given an internal codec id. Returns TRUE if found. */
    UtlBoolean getCodec(SdpCodec::SdpCodecTypes internalCodecId, SdpCodec& sdpCodec) const;
 
+   /** Get a codec with given mimeType and index. Returns TRUE if found. */
+   UtlBoolean getCodecByIndex(const UtlString& mimeType, int index, SdpCodec& sdpCodec) const;
+
    /** Get a codec given the payload type id. Returns internal pointer!*/
    const SdpCodec* getCodecByPayloadId(int payloadTypeId) const;
 

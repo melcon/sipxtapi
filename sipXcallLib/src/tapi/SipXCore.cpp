@@ -488,7 +488,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSubscribeClient->start();
 
    // Enable PCMU, PCMA, Tones/RFC2833 codecs
-   pInst->pCodecList = new SdpCodecList();
+   pInst->pSelectedCodecList = new SdpCodecList();
 
    // Instantiate the call processing subsystem
    // create call manager
@@ -498,7 +498,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
       *pInst->pSipUserAgent,
-      *pInst->pCodecList,
+      *pInst->pSelectedCodecList,
       pInst->pLineManager,
       szBindToAddr,
       FALSE, // doNotDisturb
@@ -514,20 +514,26 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    // Start up the call processing system
    pInst->pCallManager->start();
 
-   CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
-   if (!pInterface)
+   pInst->pAvailableCodecList = new SdpCodecList();
+
+   CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
+   if (!pInterfaceFactory)
    {
       OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Unable to create global media interface");
    }
-   else if (szIdentity)
+   else
    {
-      pInterface->setRTCPName(szIdentity);
+      pInterfaceFactory->buildAllCodecList(*pInst->pAvailableCodecList);
+      if (szIdentity)
+      {
+         pInterfaceFactory->setRTCPName(szIdentity);
+      }
    }
 
    // init codecs
-   pInst->videoCodecSetting.videoFormat = VIDEO_FORMAT_ANY;
-   sipxConfigSetAudioCodecByName(pInst, NULL); // select all audio codecs
-   sipxConfigSetVideoCodecByName(pInst, NULL); // select all video codecs
+   pInst->videoFormat = VIDEO_FORMAT_ANY;
+   sipxConfigSelectAudioCodecByName(pInst, NULL); // select all audio codecs
+   sipxConfigSelectVideoCodecByName(pInst, NULL); // select all video codecs
 
    initAudioDevices(*pInst);
 
@@ -722,7 +728,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSubscribeServer->requestShutdown();
          pInst->pSipRefreshManager->requestShutdown();
          pInst->pMessageObserver->requestShutdown();
-         pInst->pCodecList->clearCodecs();
+         pInst->pSelectedCodecList->clearCodecs();
 
          delete pInst->pCallManager;
          pInst->pCallManager = NULL;
@@ -742,7 +748,10 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSipUserAgent = NULL;
          delete pInst->pLineManager;
          pInst->pLineManager = NULL;
-         delete pInst->pCodecList;
+         delete pInst->pSelectedCodecList;
+         pInst->pSelectedCodecList = NULL;
+         delete pInst->pAvailableCodecList;
+         pInst->pAvailableCodecList = NULL;
          // release all shared server tasks
          pInst->pSharedTaskMgr->release(*pInst->pLineEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pCallEventListener);
@@ -789,13 +798,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
             OsNatAgentTask::releaseInstance();
             OsSysLog::shutdown();
          }
-
-         // free codecs
-         freeAudioCodecs(*pInst);
-         pInst->audioCodecSetting.bInitialized = false;
-
-         freeVideoCodecs(*pInst);
-         pInst->videoCodecSetting.bInitialized = false;
 
          // free audio devices strings
          freeAudioDevices(*pInst);
