@@ -140,6 +140,18 @@ OsStatus SipConnectionStateMachine::unholdConnection()
    return result;
 }
 
+OsStatus SipConnectionStateMachine::renegotiateCodecsConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->renegotiateCodecsConnection(result));
+   }
+
+   return result;
+}
+
 UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    if (m_pSipConnectionState)

@@ -90,6 +90,9 @@ public:
    /** Convenience method to take the terminal connection off hold. */
    OsStatus unholdConnection();
 
+   /** Renegotiates media session codecs */
+   OsStatus renegotiateCodecsConnection();
+
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 

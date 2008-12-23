@@ -188,16 +188,13 @@ public:
    OsStatus unmuteInputConnection();
 
    /**
-   * Rebuild codec factory on the fly with new audio codec requirements
-   * and one specific video codec.  Renegotiate the codecs to be use for the
-   * specified terminal connection.
+   * Renegotiate the codecs to be use for the specified terminal connection.
    *
    * This is typically performed after a capabilities change for the
    * terminal connection (for example, addition or removal of a codec type).
-   * (Sends a SIP re-INVITE.)
+   * (Sends a SIP re-INVITE/UPDATE)
    */
-   OsStatus renegotiateCodecsConnection(const UtlString& sAudioCodecs,
-                                        const UtlString& sVideoCodecs);
+   OsStatus renegotiateCodecsConnection();
 
    /** Sends an INFO message to the other party(s) on the call */
    OsStatus sendInfo(const UtlString& sContentType,

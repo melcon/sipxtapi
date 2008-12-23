@@ -1987,9 +1987,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
                                                    SIPX_RTCP_STATS* pStats);
 
 /**
- * Limits the codec preferences on given call. Can be used on new call
- * that has not yet been connected to limit preferences for that call.
- * When used on a connected call, preferences will take effect after next unhold.
+ * Limits the codec preferences on given call. Can be used on a connected
+ * call to limit preferences for that call.
+ * Preferences will take effect after next unhold.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -2003,6 +2003,24 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
                                                        const char* szAudioCodecs,
                                                        const char* szVideoCodecs);
+
+/**
+* Limits the codec preferences on given call. Can only be used on a connected
+* call. Codec renegotiation will be triggered. If call is held, then after
+* renegotiation it will be held again.
+*
+* @param hCall Handle to a call.  Call handles are obtained either by 
+*        invoking sipxCallCreate or passed to your application through
+*        a listener interface.
+* @param szAudioCodecs Codec names that limit the supported audio codecs.
+* @param szVideoCodecs Codec names that limit the supported video codecs
+*        to this one video codec.
+*        
+* @see sipxConfigSetVideoBandwidth
+*/
+SIPXTAPI_API SIPX_RESULT sipxCallRenegotiateCodecPreferences(const SIPX_CALL hCall,
+                                                             const char* szAudioCodecs,
+                                                             const char* szVideoCodecs);
 
 /**
  * Enables/disables discarding of inbound RTP for given call. Should be used
@@ -2345,6 +2363,22 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf);
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
                                                              const char* szAudioCodecNames,
                                                              const char* szVideoCodecNames);
+
+/**
+* Limits the codec preferences on a conference. Supplied settings will be applied
+* immediately. First supplied audio codec matching remote party audio codec will be used.
+*
+* @param hConf Handle to a conference.  Conference handles are obtained 
+*        by invoking sipxConferenceCreate.
+* @param szVideoCodecNames Codec names that limit the supported audio codecs.
+* @param szVideoCodecNames Codec names that limit the supported video codecs
+*        to this one video codec.
+*        
+* @see sipxConfigSetVideoBandwidth
+*/
+SIPXTAPI_API SIPX_RESULT sipxConferenceRenegotiateCodecPreferences(const SIPX_CONF hConf,
+                                                                   const char* szAudioCodecNames,
+                                                                   const char* szVideoCodecNames);
 
 //@}
 

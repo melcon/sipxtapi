@@ -18,9 +18,10 @@
 #include <os/OsStatus.h>
 #include <utl/UtlString.h>
 #include <cp/CpDefs.h>
+#include <cp/CpNatTraversalConfig.h>
 #include <cp/state/ISipConnectionState.h>
 #include <cp/state/SipConnectionStateContext.h>
-#include <cp/CpNatTraversalConfig.h>
+#include <cp/msg/ScReInviteTimerMsg.h>
 
 // DEFINES
 #define MAX_ADDRESS_CANDIDATES      12
@@ -45,7 +46,6 @@ class ScNotificationMsg;
 class Sc100RelTimerMsg;
 class Sc2xxTimerMsg;
 class ScDisconnectTimerMsg;
-class ScReInviteTimerMsg;
 class ScByeRetryTimerMsg;
 
 /**
@@ -112,6 +112,9 @@ public:
 
    /** Convenience method to take the terminal connection off hold. */
    virtual SipConnectionStateTransition* unholdConnection(OsStatus& result);
+
+   /** Renegotiates media session codecs */
+   virtual SipConnectionStateTransition* renegotiateCodecsConnection(OsStatus& result);
 
    /** Handles timer message. */
    virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
@@ -273,11 +276,8 @@ protected:
    /** Handles re-invite timer message. */
    virtual SipConnectionStateTransition* handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg);
 
-   /** Handles hold re-invite timer message. */
-   virtual SipConnectionStateTransition* handleHoldTimerMessage(const ScReInviteTimerMsg& timerMsg);
-
-   /** Handles unhold re-invite timer message. */
-   virtual SipConnectionStateTransition* handleUnholdTimerMessage(const ScReInviteTimerMsg& timerMsg);
+   /** Handles session renegotiation timer message. */
+   virtual SipConnectionStateTransition* handleRenegotiateTimerMessage(const ScReInviteTimerMsg& timerMsg);
 
    /** Handles bye retry timer message. */
    virtual SipConnectionStateTransition* handleByeRetryTimerMessage(const ScByeRetryTimerMsg& timerMsg);
@@ -455,11 +455,11 @@ protected:
    /** Gets state of outbound invite transaction. */
    CpSipTransactionManager::InviteTransactionState getOutInviteTransactionState() const;
 
-   /** Starts hold/unhold timer to execute the action later */
-   void startHoldTimer(UtlBoolean bHold = TRUE);
+   /** Starts hold/unhold timer to execute the action later. If bCleanStart is TRUE, then restart counting. */
+   void startSessionRenegotiationTimer(ScReInviteTimerMsg::ReInviteReason reason, UtlBoolean bCleanStart = TRUE);
 
    /** Deletes hold/unhold timer */
-   void deleteHoldTimer();
+   void deleteSessionRenegotiationTimer();
 
    /** Returns TRUE if some UPDATE is active. */
    UtlBoolean isUpdateActive();
@@ -474,10 +474,10 @@ protected:
    void endInviteTransaction(UtlBoolean bIsOutboundTransaction, int cseqNumber);
 
    /** Initiates hold via re-INVITE or UPDATE */
-   UtlBoolean doHold();
+   void doHold();
 
    /** Initiates unhold via re-INVITE or UPDATE */
-   UtlBoolean doUnhold();
+   void doUnhold();
 
    /** Renegotiates media session */
    void renegotiateMediaSession();

@@ -2095,6 +2095,43 @@ SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxCallRenegotiateCodecPreferences(const SIPX_CALL hCall,
+                                                             const char* szAudioCodecs,
+                                                             const char* szVideoCodecs)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallRenegotiateCodecPreferences");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxCallRenegotiateCodecPreferences hCall=%d szAudioCodecs=\"%s\"",
+      hCall,
+      (szAudioCodecs != NULL) ? szAudioCodecs : "");
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   // get info about source call
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+   if (pData)
+   {
+      SIPX_INSTANCE_DATA *pInst = pData->m_pInst;
+      UtlString sCallId = pData->m_abstractCallId;
+      SipDialog sipDialog = pData->m_sipDialog;
+      sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+
+      if (pInst->pCallManager->renegotiateCodecsAbstractCallConnection(sCallId,
+         sipDialog,
+         szAudioCodecs,
+         szVideoCodecs) == OS_SUCCESS)
+      {
+         sr = SIPX_RESULT_SUCCESS;
+      }
+   }
+   else
+   {
+      return SIPX_RESULT_INVALID_ARGS;
+   }
+
+   return sr;
+}
+
 SIPXTAPI_API SIPX_RESULT sipxCallMuteInput(const SIPX_CALL hCall, const int bMute)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallMuteInput");

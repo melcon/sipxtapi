@@ -50,8 +50,8 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_pByeRetryTimer(NULL)
 , m_pCancelTimeoutTimer(NULL)
 , m_pByeTimeoutTimer(NULL)
-, m_pHoldTimer(NULL)
-, m_iHoldRetryCount(0)
+, m_pSessionRenegotiationTimer(NULL)
+, m_iRenegotiationRetryCount(0)
 , m_p2xxInviteRetransmitTimer(NULL)
 , m_i2xxInviteRetransmitCount(0)
 {
@@ -74,8 +74,8 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pCancelTimeoutTimer = NULL;
    delete m_pByeTimeoutTimer;
    m_pByeTimeoutTimer = NULL;
-   delete m_pHoldTimer;
-   m_pHoldTimer = NULL;
+   delete m_pSessionRenegotiationTimer;
+   m_pSessionRenegotiationTimer = NULL;
    delete m_p2xxInviteRetransmitTimer;
    m_p2xxInviteRetransmitTimer = NULL;
 }
