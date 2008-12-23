@@ -69,7 +69,8 @@ private:
 
    SipXInfoStatusEventListener& operator=(const SipXInfoStatusEventListener& rhs);
   
-   void handleInfoStatusEvent(SIPX_MESSAGE_STATUS status,
+   void handleInfoStatusEvent(const UtlString& sAbstractCallId,
+                              SIPX_MESSAGE_STATUS status,
                               int responseCode,
                               const UtlString& sResponseText,
                               SIPX_INFOSTATUS_EVENT event,
