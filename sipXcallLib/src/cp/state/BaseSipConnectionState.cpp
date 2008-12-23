@@ -271,11 +271,17 @@ SipConnectionStateTransition* BaseSipConnectionState::sendInfo(OsStatus& result,
          SipMessage infoRequest;
          prepareSipRequest(infoRequest, SIP_INFO_METHOD, iCSeq);
 
-         // set INFO payload
-         infoRequest.setContentType(sContentType);
-         infoRequest.setContentLength(nContentLength);
-         HttpBody* pBody = new HttpBody(pContent, nContentLength);
-         infoRequest.setBody(pBody);
+         if (!sContentType.isNull())
+         {
+            infoRequest.setContentType(sContentType);
+         }
+         if (nContentLength > 0)
+         {
+            // set INFO payload
+            infoRequest.setContentLength(nContentLength);
+            HttpBody* pBody = new HttpBody(pContent, nContentLength);
+            infoRequest.setBody(pBody);
+         }
 
          // try to send
          if (sendMessage(infoRequest))
