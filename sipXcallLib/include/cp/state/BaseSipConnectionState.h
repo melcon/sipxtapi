@@ -116,6 +116,13 @@ public:
    /** Renegotiates media session codecs */
    virtual SipConnectionStateTransition* renegotiateCodecsConnection(OsStatus& result);
 
+   /** Sends an INFO message to the other party(s) on the call */
+   virtual SipConnectionStateTransition* sendInfo(OsStatus& result,
+                                                  const UtlString& sContentType,
+                                                  const char* pContent,
+                                                  const size_t nContentLength,
+                                                  void* pCookie);
+
    /** Handles timer message. */
    virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
 
@@ -495,6 +502,12 @@ protected:
 
    /** Fires media session events, to notify sipxtapi about held/active/remote held call states */
    void fireMediaSessionEvents(UtlBoolean bForce = FALSE, UtlBoolean bSupressConnected = FALSE);
+
+   /**
+    * Prepares a SIP request message, with given method and given cseq number.
+    * From, to, sip uri, contact and other fields are filled automatically.
+    */
+   void prepareSipRequest(SipMessage& sipRequest, const UtlString& method, int cseqNum);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

@@ -93,12 +93,7 @@ UtlBoolean SipXMessageObserver::handleMessage(OsMsg& rMsg)
 
        if (pSipMessage)
        {
-          if (pSipMessage->isResponse())
-          {
-             // ok, the phone has received a response to a sent INFO message.
-             bRet = handleIncomingInfoStatus(pSipMessage);
-          }
-          else if (!pSipMessage->isResponse() && method == SIP_INFO_METHOD)
+          if (pSipMessage->isRequest() && method.compareTo(SIP_INFO_METHOD))
           {
              // ok, the phone has received an INFO message.
              bRet = handleIncomingInfoMessage(pSipMessage);
@@ -107,7 +102,6 @@ UtlBoolean SipXMessageObserver::handleMessage(OsMsg& rMsg)
     }
     return bRet;
 }
-
 
 UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
 {
@@ -120,7 +114,7 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
     {
        if (m_iTestResponseCode != 0)  // for unit testing purposes.
        {
-           if (m_iTestResponseCode == 408)   // a timeout response is being tested
+           if (m_iTestResponseCode == SIP_REQUEST_TIMEOUT_CODE)   // a timeout response is being tested
            {
                // simulate a timeout ....
                OsTask::delay(1000);
@@ -129,7 +123,7 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
 	           sipResponse.setOkResponseData(pMessage);
               sipResponse.setResponseData(pMessage, m_iTestResponseCode, "timed out");	       
 	           pInst->pSipUserAgent->send(sipResponse);
-              return true;
+              return TRUE;
            }
        }
        else
@@ -202,68 +196,6 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
     } // if (NULL != pInst && NULL != pMessage)
     return bRet;
 }
-
-UtlBoolean SipXMessageObserver::handleIncomingInfoStatus(SipMessage* pSipMessage)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoStatus");
-
-   if (!pSipMessage)
-   {
-      // something went wrong
-      return FALSE;
-   }
-
-   SIPX_INFO hInfo = (SIPX_INFO)pSipMessage->getResponseListenerData();
-
-   UtlString sResponseText;
-
-   SIPX_MESSAGE_STATUS status;
-   SIPX_INFOSTATUS_EVENT event;
-   int responseCode = pSipMessage->getResponseStatusCode();
-
-   if (responseCode < 400)
-   {
-      status = SIPX_MESSAGE_OK;
-   }
-   else if (responseCode < 500)
-   {
-      status = SIPX_MESSAGE_FAILURE;
-   }
-   else if (responseCode < 600)
-   {
-      status = SIPX_MESSAGE_SERVER_FAILURE;
-   }
-   else 
-   {
-      status = SIPX_MESSAGE_GLOBAL_FAILURE;
-   }
-
-   pSipMessage->getResponseStatusText(&sResponseText);
-   event = INFOSTATUS_RESPONSE;
-
-   SIPX_INFO_DATA* pInfoData = sipxInfoLookup(hInfo, SIPX_LOCK_READ, stackLogger);
-
-   if (pInfoData)
-   {
-      SIPX_INSTANCE_DATA* pInst = pInfoData->pInst;
-      // release lock
-      sipxInfoReleaseLock(pInfoData, SIPX_LOCK_READ, stackLogger);
-
-      if (pInst)
-      {
-         pInst->pInfoStatusEventListener->sipxFireInfoStatusEvent(hInfo, status, responseCode, sResponseText, event);
-
-         // TODO: PROBLEM possible collision with observer for inbound INFO, we could remove wrong observer
-         pInst->pSipUserAgent->removeMessageObserver(*(this->getMessageQueue()), (void*)hInfo);
-
-         // info message has been handled, so go ahead and delete the object    
-         sipxInfoObjectFree(hInfo);
-      }      
-   }
-   
-   return TRUE;
-}
-
 
 UtlBoolean SipXMessageObserver::handleStunOutcome(OsEventMsg* pMsg) 
 {

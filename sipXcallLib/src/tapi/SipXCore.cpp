@@ -70,7 +70,6 @@ extern SipXHandleMap gPubHandleMap;
 extern SipXHandleMap gLineHandleMap;
 extern SipXHandleMap gCallHandleMap;
 extern SipXHandleMap gConfHandleMap;
-extern SipXHandleMap gInfoHandleMap;
 extern SipXHandleMap gTransportHandleMap;
 
 // CONSTANTS
@@ -125,7 +124,6 @@ SIPX_RESULT sipxFlushHandles()
    gCallHandleMap.destroyAll();
    gLineHandleMap.destroyAll();
    gConfHandleMap.destroyAll();
-   gInfoHandleMap.destroyAll();
    gPubHandleMap.destroyAll();
    gSubHandleMap.destroyAll();
    gTransportHandleMap.destroyAll();
@@ -159,14 +157,6 @@ SIPX_RESULT sipxCheckForHandleLeaks()
       printf("\ngpConfHandleMap Leaks (%d):\n",
          (int) gConfHandleMap.entries());
       gConfHandleMap.dump();
-      rc = SIPX_RESULT_FAILURE;
-   }
-
-   if (gInfoHandleMap.entries() != 0)
-   {
-      printf("\ngpInfoHandleMap Leaks (%d):\n",
-         (int) gInfoHandleMap.entries());
-      gInfoHandleMap.dump();
       rc = SIPX_RESULT_FAILURE;
    }
 

@@ -178,9 +178,10 @@ OsStatus XCpConference::renegotiateCodecsAllConnections(const UtlString& sAudioC
 OsStatus XCpConference::sendInfo(const SipDialog& sipDialog,
                                  const UtlString& sContentType,
                                  const char* pContent,
-                                 const size_t nContentLength)
+                                 const size_t nContentLength,
+                                 void* pCookie)
 {
-   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength);
+   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength, pCookie);
    return postMessage(sendInfoMsg);
 }
 

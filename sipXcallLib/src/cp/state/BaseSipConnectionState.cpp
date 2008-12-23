@@ -246,6 +246,55 @@ SipConnectionStateTransition* BaseSipConnectionState::renegotiateCodecsConnectio
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::sendInfo(OsStatus& result,
+                                                               const UtlString& sContentType,
+                                                               const char* pContent,
+                                                               const size_t nContentLength,
+                                                               void* pCookie)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      SipDialog::DialogState dialogState;
+      {
+         OsReadLock lock(m_rStateContext);
+         dialogState = m_rStateContext.m_sipDialog.getDialogState();
+      }
+      if (dialogState == SipDialog::DIALOG_STATE_ESTABLISHED)
+      {
+         // dialog is established (early or confirmed), we may send info
+         int iCSeq = getNextLocalCSeq();
+         getOutTransactionManager().startTransaction(SIP_INFO_METHOD, iCSeq);
+         getOutTransactionManager().setTransactionData(SIP_INFO_METHOD, iCSeq, pCookie); // assign cookie to transaction
+         SipMessage infoRequest;
+         prepareSipRequest(infoRequest, SIP_INFO_METHOD, iCSeq);
+
+         // set INFO payload
+         infoRequest.setContentType(sContentType);
+         infoRequest.setContentLength(nContentLength);
+         HttpBody* pBody = new HttpBody(pContent, nContentLength);
+         infoRequest.setBody(pBody);
+
+         // try to send
+         if (sendMessage(infoRequest))
+         {
+            result = OS_SUCCESS;
+            return NULL;
+         }
+         else
+         {
+            m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_NETWORK_ERROR, SIPXTACK_MESSAGE_FAILURE,
+               NULL, 0, pCookie);
+         }
+      }
+   }
+
+   result = OS_FAILED;
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    switch (timerMsg.getPayloadType())
@@ -919,7 +968,42 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelResponse(cons
 
 SipConnectionStateTransition* BaseSipConnectionState::processInfoResponse(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   int cseqNum;
+   UtlString cseqMethod;
+
+   sipMessage.getResponseStatusText(&responseText);
+   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
+
+   CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(cseqMethod, cseqNum);
+   if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   {
+      void* pCookie = getOutTransactionManager().getTransactionData(cseqMethod, cseqNum);
+      // ignore 100 Trying
+      if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+      {
+         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_OK, responseText, responseCode, pCookie);
+      }
+      else if (responseCode >= SIP_3XX_CLASS_CODE && responseCode < SIP_5XX_CLASS_CODE)
+      {
+         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_FAILURE, responseText, responseCode, pCookie);
+      }
+      else if (responseCode >= SIP_5XX_CLASS_CODE && responseCode < SIP_6XX_CLASS_CODE)
+      {
+         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_SERVER_FAILURE, responseText, responseCode, pCookie);
+      }
+      else if (responseCode >= SIP_6XX_CLASS_CODE)
+      {
+         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_GLOBAL_FAILURE, responseText, responseCode, pCookie);
+      }
+
+      if (responseCode >= SIP_2XX_CLASS_CODE)
+      {
+         getOutTransactionManager().endTransaction(cseqMethod, cseqNum);
+      }
+   }
+
    return NULL;
 }
 
@@ -927,13 +1011,13 @@ SipConnectionStateTransition* BaseSipConnectionState::processOptionsResponse(con
 {
    int responseCode = sipMessage.getResponseStatusCode();
    UtlString responseText;
-   int sequenceNum;
-   UtlString sequenceMethod;
+   int cseqNum;
+   UtlString cseqMethod;
 
    sipMessage.getResponseStatusText(&responseText);
-   sipMessage.getCSeqField(&sequenceNum, &sequenceMethod);
+   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
 
-   CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(sequenceMethod, sequenceNum);
+   CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(cseqMethod, cseqNum);
    if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
    {
       if (responseCode == SIP_OK_CODE)
@@ -945,7 +1029,11 @@ SipConnectionStateTransition* BaseSipConnectionState::processOptionsResponse(con
             m_rStateContext.m_allowedRemote = allowField;
          }
       }
-      getOutTransactionManager().endTransaction(sequenceMethod, sequenceNum);
+
+      if (responseCode >= SIP_2XX_CLASS_CODE)
+      {
+         getOutTransactionManager().endTransaction(cseqMethod, cseqNum);
+      }
    }
 
    return NULL;
@@ -1748,11 +1836,7 @@ void BaseSipConnectionState::sendOptionsRequest()
    int iCSeq = getNextLocalCSeq();
    getOutTransactionManager().startTransaction(SIP_OPTIONS_METHOD, iCSeq);
    SipMessage optionsRequest;
-
-   {
-      OsWriteLock lock(m_rStateContext);
-      m_rStateContext.m_sipDialog.setRequestData(optionsRequest, SIP_OPTIONS_METHOD, iCSeq);
-   }
+   prepareSipRequest(optionsRequest, SIP_OPTIONS_METHOD, iCSeq);
    sendMessage(optionsRequest);
 }
 
@@ -1781,12 +1865,8 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
 
    // get pointer to internal sdp body
    const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
-
    SipMessage sipRequest;
-   {
-      OsWriteLock lock(m_rStateContext);
-      m_rStateContext.m_sipDialog.setRequestData(sipRequest, SIP_ACK_METHOD, seqNum);
-   }
+   prepareSipRequest(sipRequest, SIP_ACK_METHOD, seqNum);
 
    CpSdpNegotiation::SdpNegotiationState negotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
 
@@ -1847,10 +1927,7 @@ void BaseSipConnectionState::sendBye()
    SipMessage byeRequest;
    int seqNum = getNextLocalCSeq();
    getOutTransactionManager().startTransaction(SIP_BYE_METHOD, seqNum);
-   {
-      OsWriteLock lock(m_rStateContext);
-      m_rStateContext.m_sipDialog.setRequestData(byeRequest, SIP_BYE_METHOD, seqNum);
-   }
+   prepareSipRequest(byeRequest, SIP_BYE_METHOD, seqNum);
    sendMessage(byeRequest);
    startByeTimeoutTimer(); // start bye timer to force destroy connection after some timeout
 }
@@ -1865,10 +1942,7 @@ void BaseSipConnectionState::sendInviteCancel()
       m_rStateContext.m_pLastSentInvite->getCSeqField(seqNum, seqMethod);
 
       SipMessage cancelRequest;
-      {
-         OsWriteLock lock(m_rStateContext);
-         m_rStateContext.m_sipDialog.setRequestData(cancelRequest, SIP_CANCEL_METHOD, seqNum);
-      }
+      prepareSipRequest(cancelRequest, SIP_CANCEL_METHOD, seqNum);
       sendMessage(cancelRequest);
       startCancelTimeoutTimer(); // start cancel timer to force destroy connection after some timeout
    }
@@ -1881,10 +1955,7 @@ void BaseSipConnectionState::sendReInvite()
 
    sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
    getOutTransactionManager().startReInviteTransaction(seqNum);
-   {
-      OsWriteLock lock(m_rStateContext);
-      m_rStateContext.m_sipDialog.setRequestData(sipInvite, SIP_INVITE_METHOD, seqNum);
-   }
+   prepareSipRequest(sipInvite, SIP_INVITE_METHOD, seqNum);
 
    int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
    sipInvite.setSessionExpires(sessionExpires);
@@ -1923,10 +1994,7 @@ void BaseSipConnectionState::sendUpdate()
 
    sipUpdate.setSecurityAttributes(m_rStateContext.m_pSecurity);
    getOutTransactionManager().startTransaction(SIP_UPDATE_METHOD, seqNum);
-   {
-      OsWriteLock lock(m_rStateContext);
-      m_rStateContext.m_sipDialog.setRequestData(sipUpdate, SIP_UPDATE_METHOD, seqNum);
-   }
+   prepareSipRequest(sipUpdate, SIP_UPDATE_METHOD, seqNum);
 
    int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
    sipUpdate.setSessionExpires(sessionExpires);
@@ -2589,6 +2657,12 @@ void BaseSipConnectionState::fireMediaSessionEvents(UtlBoolean bForce, UtlBoolea
          break;
       }
    }
+}
+
+void BaseSipConnectionState::prepareSipRequest(SipMessage& sipRequest, const UtlString& method, int cseqNum)
+{
+   OsWriteLock lock(m_rStateContext);
+   m_rStateContext.m_sipDialog.setRequestData(sipRequest, method, cseqNum);
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
