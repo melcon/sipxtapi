@@ -618,18 +618,17 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
 {
    // inbound CANCEL
    int iSeqNumber = 0;
-   UtlString seqMethod;
-   sipMessage.getCSeqField(iSeqNumber, seqMethod);
+   sipMessage.getCSeqField(&iSeqNumber, NULL); // don't use seqMethod, as it is pretty useless for us (is CANCEL)
    SipMessage sipResponse;
    ISipConnectionState::StateEnum connectionState = getCurrentState();
 
    if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
       connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
    {
-      CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(seqMethod, iSeqNumber);
+      CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(iSeqNumber);
       if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
       {
-         if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+         if (getInTransactionManager().isInviteTransaction(iSeqNumber))
          {
             CpSipTransactionManager::InviteTransactionState inviteState = getInTransactionManager().getInviteTransactionState();
             if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)

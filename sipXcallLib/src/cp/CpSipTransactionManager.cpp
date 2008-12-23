@@ -337,6 +337,11 @@ UtlBoolean CpSipTransactionManager::isInviteTransactionActive() const
    return m_inviteTransactionState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE;
 }
 
+UtlBoolean CpSipTransactionManager::isInviteTransaction(int cseqNum) const
+{
+   return isInviteTransactionActive() && m_iInviteCSeq == cseqNum;
+}
+
 int CpSipTransactionManager::getTransactionCount(const UtlString& method,
                                                  TransactionState state /*= TRANSACTION_ACTIVE*/)
 {
