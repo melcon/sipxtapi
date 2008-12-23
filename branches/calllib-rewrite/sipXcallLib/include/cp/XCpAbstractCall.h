@@ -21,6 +21,7 @@
 #include <os/OsSyncBase.h>
 #include <os/OsServerTask.h>
 #include <utl/UtlContainable.h>
+#include <sdp/SdpCodecList.h>
 #include <net/SipDialog.h>
 #include <net/SipTagGenerator.h>
 #include <cp/CpDefs.h>
@@ -45,7 +46,6 @@ class SipMessageEvent;
 class XSipConnection;
 class XCpCallConnectionListener;
 class CpMediaInterfaceFactory;
-class SdpCodecList;
 class CpMediaInterface;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
@@ -435,7 +435,7 @@ protected:
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
-   const SdpCodecList& m_rDefaultSdpCodecList; ///< default globally shared SdpCodec factory for new calls
+   const SdpCodecList m_rDefaultSdpCodecList; ///< default SdpCodec factory for new calls. Independent of codec list of call manager.
    // set only once and thread safe
    XCpCallConnectionListener* m_pCallConnectionListener; ///< listener for updating call stack
    CpCallStateEventListener* m_pCallEventListener; ///< listener for firing call events

@@ -108,49 +108,18 @@ public:
    }
 };
 
-
-class AUDIO_CODEC_PREFERENCES
-{
-public:
-   UtlBoolean              bInitialized; /**< Is the data valid */
-   int               numCodecs;          /**< Number of codecs */
-   UtlString         preferences;        /**< List of preferred codecs */
-   SdpCodec**        sdpCodecArray;      /**< Pointer to an array of codecs */
-
-   AUDIO_CODEC_PREFERENCES() : bInitialized(FALSE),
-      numCodecs(0),
-      preferences(NULL),
-      sdpCodecArray(NULL)
-   {
-
-   }
-};
-
-class VIDEO_CODEC_PREFERENCES
-{
-public:
-   UtlBoolean              bInitialized; /**< Is the data valid */
-   int               numCodecs;          /**< Number of codecs */
-   SIPX_VIDEO_FORMAT videoFormat;        /**< Selected video format */
-   UtlString         preferences;        /**< List of preferred codecs */
-   SdpCodec**        sdpCodecArray;      /**< Pointer to an array of codecs */
-
-   VIDEO_CODEC_PREFERENCES() : bInitialized(FALSE),
-      numCodecs(0),
-      videoFormat(VIDEO_FORMAT_ANY),
-      preferences(NULL),
-      sdpCodecArray(NULL)
-   {
-
-   }
-};
-
 class SIPX_INSTANCE_DATA
 {
 public:
    SipUserAgent*    pSipUserAgent;
    SipPimClient*    pSipPimClient;
-   SdpCodecList* pCodecList;
+   // codec settings
+   SdpCodecList* pSelectedCodecList; // shared with XCpCallManager, but not XCpAbstractCall. Only for new calls.
+   SdpCodecList* pAvailableCodecList;
+   UtlString selectedAudioCodecNames;
+   UtlString selectedVideoCodecNames;
+   SIPX_VIDEO_FORMAT videoFormat; // selected video format
+
    XCpCallManager*     pCallManager;
    SipLineMgr*      pLineManager;
    SipRefreshMgr*   pRefreshManager;
@@ -165,9 +134,6 @@ public:
    SipXKeepaliveEventListener* pKeepaliveEventListener;
    SipDialogMgr* pDialogManager;
    OsSharedServerTaskMgr* pSharedTaskMgr;
-
-   AUDIO_CODEC_PREFERENCES audioCodecSetting;
-   VIDEO_CODEC_PREFERENCES videoCodecSetting;
 
    char*            inputAudioDevices[MAX_AUDIO_DEVICES];
    int              nInputAudioDevices;
@@ -191,7 +157,8 @@ public:
    SIPX_INSTANCE_DATA() : lock(OsMutex::Q_FIFO),
       pSipUserAgent(NULL),
       pSipPimClient(NULL),
-      pCodecList(NULL),
+      pSelectedCodecList(NULL),
+      pAvailableCodecList(NULL),
       pCallManager(NULL),
       pLineManager(NULL),
       pRefreshManager(NULL),

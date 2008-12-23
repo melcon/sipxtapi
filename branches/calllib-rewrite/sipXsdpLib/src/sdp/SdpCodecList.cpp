@@ -274,6 +274,38 @@ UtlBoolean SdpCodecList::getCodec(SdpCodec::SdpCodecTypes internalCodecId,
    return FALSE;
 }
 
+UtlBoolean SdpCodecList::getCodecByIndex(const UtlString& mimeType, int index, SdpCodec& sdpCodec) const
+{
+   const SdpCodec* pFoundCodec = NULL;
+   const SdpCodec* pTmpCodec = NULL;
+   UtlString foundMimeType;
+
+   OsReadLock lock(m_memberMutex);
+   UtlSListIterator iterator(m_codecsList);
+   int position = 0;
+
+   while((pTmpCodec = (SdpCodec*) iterator()))
+   {
+      pTmpCodec->getMediaType(foundMimeType);
+      // If the mime type matches
+      if (foundMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0)
+      {
+         if (index == position++)
+         {
+            pFoundCodec = pTmpCodec;
+            break;
+         }
+      }
+   }
+
+   if (pFoundCodec)
+   {
+      sdpCodec = *pFoundCodec;
+   }
+
+   return pFoundCodec != NULL;
+}
+
 const SdpCodec* SdpCodecList::getCodecByPayloadId(int payloadTypeId) const
 {
    SdpCodec* pCodecFound = NULL;
