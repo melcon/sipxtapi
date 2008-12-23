@@ -980,6 +980,8 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             memset(pInfo, 0, sizeof(SIPX_INFOSTATUS_INFO));
 
             pInfo->nSize = pSourceInfo->nSize;
+            pInfo->hCall = pSourceInfo->hCall;
+            pInfo->hLine = pSourceInfo->hLine;
             pInfo->status = pSourceInfo->status;
             pInfo->responseCode = pSourceInfo->responseCode;
             pInfo->szResponseText = SAFE_STRDUP(pSourceInfo->szResponseText);

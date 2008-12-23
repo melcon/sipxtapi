@@ -351,7 +351,9 @@ void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
 {
    if (m_pInfoStatusEventListener)
    {
-      SipInfoStatusEvent infoEvent(status, responseCode, sResponseText, pCookie);
+      UtlString sAbstractCallId;
+      getAbstractCallId(sAbstractCallId);
+      SipInfoStatusEvent infoEvent(sAbstractCallId, status, responseCode, sResponseText, pCookie);
 
       switch(event)
       {
