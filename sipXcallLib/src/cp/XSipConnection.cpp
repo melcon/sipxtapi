@@ -158,10 +158,9 @@ OsStatus XSipConnection::unmuteInputConnection()
    return OS_FAILED;
 }
 
-OsStatus XSipConnection::renegotiateCodecsConnection(const UtlString& sAudioCodecs,
-                                                     const UtlString& sVideoCodecs)
+OsStatus XSipConnection::renegotiateCodecsConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.renegotiateCodecsConnection();
 }
 
 OsStatus XSipConnection::sendInfo(const UtlString& sContentType,

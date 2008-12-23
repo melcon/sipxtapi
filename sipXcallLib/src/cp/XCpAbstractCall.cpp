@@ -628,17 +628,8 @@ OsStatus XCpAbstractCall::handleUnmuteInputConnection(const AcUnmuteInputConnect
 
 OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg)
 {
-   if (m_pMediaInterface)
-   {
-      SdpCodecList sdpCodecList;
-      UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs());
-      sdpCodecList.addCodecs(audioCodecs);// appends selected audio codecs
-      sdpCodecList.addCodecs(rMsg.getVideoCodecs());// appends selected video codecs
-      sdpCodecList.bindPayloadIds();
-      return m_pMediaInterface->setCodecList(sdpCodecList);
-   }
-
-   return OS_FAILED;
+   UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs()); // add "telephone-event" if its missing
+   return doLimitCodecPreferences(audioCodecs, rMsg.getVideoCodecs());
 }
 
 UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
@@ -780,6 +771,21 @@ OsMsgQ& XCpAbstractCall::getLocalQueue()
 OsMsgQ& XCpAbstractCall::getGlobalQueue()
 {
    return m_rCallManagerQueue;
+}
+
+OsStatus XCpAbstractCall::doLimitCodecPreferences(const UtlString& sAudioCodecs,
+                                                  const UtlString& sVideoCodecs)
+{
+   if (m_pMediaInterface)
+   {
+      SdpCodecList sdpCodecList;
+      sdpCodecList.addCodecs(sAudioCodecs);// appends selected audio codecs
+      sdpCodecList.addCodecs(sVideoCodecs);// appends selected video codecs
+      sdpCodecList.bindPayloadIds();
+      return m_pMediaInterface->setCodecList(sdpCodecList);
+   }
+
+   return OS_FAILED;
 }
 
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)

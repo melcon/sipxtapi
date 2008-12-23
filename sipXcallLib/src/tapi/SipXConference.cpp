@@ -919,6 +919,46 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
             pData->pInst->pCallManager->limitAbstractCallCodecPreferences(pData->confCallId,
                szAudioCodecNames,
                szVideoCodecNames);
+            sr = SIPX_RESULT_SUCCESS;
+         }
+         else
+         {
+            sr = SIPX_RESULT_INVALID_ARGS;
+         }
+
+         sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      }      
+   }
+   else
+   {
+      sr = SIPX_RESULT_INVALID_ARGS;
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConferenceRenegotiateCodecPreferences(const SIPX_CONF hConf,
+                                                                   const char* szAudioCodecNames,
+                                                                   const char* szVideoCodecNames) 
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceRenegotiateCodecPreferences");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConferenceRenegotiateCodecPreferences hCall=%d szAudioCodecNames=\"%s\"",
+      hConf,
+      (szAudioCodecNames) ? szAudioCodecNames : "");
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   // Test bandwidth for legal values
+   if (hConf != SIPX_CONF_NULL)
+   {
+      SIPX_CONF_DATA* pData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
+
+      if (pData)
+      {
+         if (!pData->confCallId.isNull())
+         {
+            // just reposts message
             pData->pInst->pCallManager->renegotiateCodecsAllConferenceConnections(pData->confCallId,
                szAudioCodecNames,
                szVideoCodecNames);

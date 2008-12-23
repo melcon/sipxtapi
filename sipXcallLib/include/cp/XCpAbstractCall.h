@@ -416,6 +416,9 @@ protected:
    */       
    virtual OsMsgQ& getGlobalQueue();
 
+   /** Limits codec preferences for future renegotiations */
+   OsStatus doLimitCodecPreferences(const UtlString& sAudioCodecs, const UtlString& sVideoCodecs);
+
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization

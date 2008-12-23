@@ -15,6 +15,7 @@
 #include <os/OsLock.h>
 #include <os/OsPtrLock.h>
 #include <os/OsIntPtrMsg.h>
+#include <sdp/SdpCodecFactory.h>
 #include <net/SipDialog.h>
 #include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
@@ -474,7 +475,15 @@ OsStatus XCpCall::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
    UtlBoolean resFound = findConnection(sipDialog, ptrLock);
    if (resFound)
    {
-      return ptrLock->renegotiateCodecsConnection(rMsg.getAudioCodecs(), rMsg.getVideoCodecs());
+      UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs()); // add "telephone-event" if its missing
+      if (doLimitCodecPreferences(audioCodecs, rMsg.getVideoCodecs()) == OS_SUCCESS)
+      {
+         return ptrLock->renegotiateCodecsConnection();
+      }
+      else
+      {
+         return OS_FAILED;
+      }
    }
 
    return OS_NOT_FOUND;
