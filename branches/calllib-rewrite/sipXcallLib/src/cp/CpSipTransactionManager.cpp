@@ -39,6 +39,7 @@ public:
       , m_sipMethod(sipMethod)
       , m_transactionState(CpSipTransactionManager::TRANSACTION_ACTIVE)
       , m_lastUsageTime(0)
+      , m_pCookie(NULL)
    {
       m_lastUsageTime = OsDateTime::getSecsSinceEpoch();
    }
@@ -46,6 +47,7 @@ public:
    CpSipTransactionManager::TransactionState m_transactionState;
    UtlString m_sipMethod; ///< sip method
    long m_lastUsageTime; ///< start time in seconds since 1/1/1970
+   void* m_pCookie; ///< custom data stored with transaction
 };
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -57,6 +59,7 @@ CpSipTransactionManager::CpSipTransactionManager()
 , m_iInviteCSeq(-1)
 , m_inviteTransactionState(CpSipTransactionManager::INVITE_INACTIVE)
 , m_pTransactionListener(NULL)
+, m_pInviteCookie(NULL)
 {   
 }
 
@@ -94,6 +97,7 @@ UtlBoolean CpSipTransactionManager::startInitialInviteTransaction(int cseqNum)
    {
       m_inviteTransactionState = CpSipTransactionManager::INITIAL_INVITE_ACTIVE;
       m_iInviteCSeq = cseqNum;
+      m_pInviteCookie = NULL;
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum);
       return TRUE;
    }
@@ -109,6 +113,7 @@ UtlBoolean CpSipTransactionManager::startReInviteTransaction(int cseqNum)
    {
       m_inviteTransactionState = CpSipTransactionManager::REINVITE_ACTIVE;
       m_iInviteCSeq = cseqNum;
+      m_pInviteCookie = NULL;
       notifyTransactionStart(SIP_INVITE_METHOD, cseqNum);
       return TRUE;
    }
@@ -202,6 +207,7 @@ void CpSipTransactionManager::endInviteTransaction()
    {
       notifyTransactionEnd(SIP_INVITE_METHOD, m_iInviteCSeq); // end old transaction
       m_iInviteCSeq = -1;
+      m_pInviteCookie = NULL;
       m_inviteTransactionState = CpSipTransactionManager::INVITE_INACTIVE;
    }
 }
@@ -212,6 +218,55 @@ void CpSipTransactionManager::setSipTransactionListener(CpSipTransactionListener
 }
 
 /* ============================ ACCESSORS ================================= */
+
+UtlBoolean CpSipTransactionManager::setTransactionData(const UtlString& sipMethod, int cseqNum, void* pCookie)
+{
+   if (sipMethod.compareTo(SIP_INVITE_METHOD) == 0)
+   {
+      // INVITE transaction
+      if (m_iInviteCSeq != -1 && m_iInviteCSeq == cseqNum)
+      {
+         m_pInviteCookie = pCookie;
+         return TRUE;
+      }
+   }
+   else
+   {
+      // non INVITE transaction
+      UtlInt utlCSeq(cseqNum);
+      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
+      if (pTransactionState && pTransactionState->m_sipMethod.compareTo(sipMethod) == 0)
+      {
+         pTransactionState->m_pCookie = pCookie;
+         return TRUE;
+      }
+   }
+   return FALSE;
+}
+
+void* CpSipTransactionManager::getTransactionData(const UtlString& sipMethod, int cseqNum) const
+{
+   if (sipMethod.compareTo(SIP_INVITE_METHOD) == 0)
+   {
+      // INVITE transaction
+      if (m_iInviteCSeq != -1 && m_iInviteCSeq == cseqNum)
+      {
+         return m_pInviteCookie;
+      }
+   }
+   else
+   {
+      // non INVITE transaction
+      UtlInt utlCSeq(cseqNum);
+      CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(m_transactionMap.findValue(&utlCSeq));
+      if (pTransactionState && pTransactionState->m_sipMethod.compareTo(sipMethod) == 0)
+      {
+         return pTransactionState->m_pCookie;
+      }
+   }
+
+   return NULL;
+}
 
 /* ============================ INQUIRY =================================== */
 
@@ -335,9 +390,11 @@ void CpSipTransactionManager::cleanOldTransactions()
       {
          CpTransactionState* pTransactionState = dynamic_cast<CpTransactionState*>(mapItor.value());
          if (pTransactionState &&
-             pTransactionState->m_transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
-             timeNow - pTransactionState->m_lastUsageTime >= maxTransactionStorageTime)
+             ((pTransactionState->m_transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
+             timeNow - pTransactionState->m_lastUsageTime >= maxTransactionStorageTime) ||
+             (timeNow - pTransactionState->m_lastUsageTime >= maxTransactionStorageTime*10)))
          {
+            // transaction is terminated and timeout elapsed, or has been stored for too long
             m_transactionMap.destroy(mapItor.key()); // destroy transaction
          }
       }
