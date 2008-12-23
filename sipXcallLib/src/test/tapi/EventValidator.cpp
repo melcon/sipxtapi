@@ -902,9 +902,6 @@ UtlString* EventValidator::allocKeepaliveEvent(SIPX_KEEPALIVE_EVENT event,
    case SIPX_KEEPALIVE_STUN:
       strcpy(szType, "SIPX_KEEPALIVE_STUN");
       break;
-   case SIPX_KEEPALIVE_SIP_PING:
-      strcpy(szType, "SIPX_KEEPALIVE_SIP_PING");
-      break;
    case SIPX_KEEPALIVE_SIP_OPTIONS:
       strcpy(szType, "SIPX_KEEPALIVE_SIP_OPTIONS");
       break;

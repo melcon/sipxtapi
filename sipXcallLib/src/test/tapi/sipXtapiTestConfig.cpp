@@ -1184,9 +1184,6 @@ void sipXtapiTestSuite::testConfigCrlfKeepAlive()
       rc = sipxConfigKeepAliveRemove(hInst, 1, SIPX_KEEPALIVE_STUN, serverAddress, 5060);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_FAILURE);
 
-      rc = sipxConfigKeepAliveRemove(hInst, 1, SIPX_KEEPALIVE_SIP_PING, serverAddress, 5060);
-      CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_FAILURE);
-
       rc = sipxConfigKeepAliveRemove(hInst, 1, SIPX_KEEPALIVE_SIP_OPTIONS, serverAddress, 5060);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_FAILURE);
 
@@ -1249,9 +1246,6 @@ void sipXtapiTestSuite::testConfigCrlfKeepAliveFailure()
       CPPUNIT_ASSERT(bRC);
 
       rc = sipxConfigKeepAliveRemove(hInst, 1, SIPX_KEEPALIVE_STUN, serverAddress, 5060);
-      CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_FAILURE);
-
-      rc = sipxConfigKeepAliveRemove(hInst, 1, SIPX_KEEPALIVE_SIP_PING, serverAddress, 5060);
       CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_FAILURE);
 
       rc = sipxConfigKeepAliveRemove(hInst, 1, SIPX_KEEPALIVE_SIP_OPTIONS, serverAddress, 5060);
