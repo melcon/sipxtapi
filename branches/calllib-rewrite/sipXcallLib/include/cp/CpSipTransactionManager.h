@@ -54,7 +54,8 @@ class SipMessage;
  * must be called, and startTransaction with cseqNum+1 when authentication retry message is detected.
  * SipUserAgent automatically just increments cseqNum for authentication retry.
  *
- * Terminated transactions are automatically cleaned up after 2*Timer B time.
+ * Terminated transactions are automatically cleaned up after Timer B time. Non terminated transactions
+ * are cleaned up after much longer time.
  *
  * INVITE transactions are tracked differently. Only 1 INVITE transaction can be occurring
  * at time. This class therefore supports tracking only 1 INVITE transaction.
