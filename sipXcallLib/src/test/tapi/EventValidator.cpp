@@ -274,7 +274,7 @@ bool EventValidator::waitForLineEvent(SIPX_LINE hLine,
 }
 
 
-bool EventValidator::waitForInfoStatusEvent(SIPX_INFO hInfo, 
+bool EventValidator::waitForInfoStatusEvent(void* pCookie, 
                                             int status, 
                                             int responseCode, 
                                             const char* szResponseText,
@@ -286,7 +286,7 @@ bool EventValidator::waitForInfoStatusEvent(SIPX_INFO hInfo,
    if (!isIgnoredCateogry(EVENT_CATEGORY_INFO_STATUS))
    {
 
-      UtlString* pString = allocInfoStatusEvent(hInfo, 
+      UtlString* pString = allocInfoStatusEvent(pCookie, 
          status, 
          responseCode, 
          szResponseText);
@@ -605,7 +605,7 @@ void EventValidator::addEvent(SIPX_EVENT_CATEGORY category, void* pInfo)
          {
             SIPX_INFOSTATUS_INFO* pStateInfo = (SIPX_INFOSTATUS_INFO*) pInfo;
 
-            UtlString* pString = allocInfoStatusEvent(pStateInfo->hInfo, 
+            UtlString* pString = allocInfoStatusEvent(pStateInfo->pCookie, 
                pStateInfo->status, 
                pStateInfo->responseCode, 
                pStateInfo->szResponseText);                                
@@ -781,12 +781,12 @@ UtlString* EventValidator::allocMessageEvent(SIPX_LINE hLine, const char* szMess
 }
 
 
-UtlString* EventValidator::allocInfoStatusEvent(SIPX_INFO hInfo, int status, int responseCode, const char* szResponseText) 
+UtlString* EventValidator::allocInfoStatusEvent(void* pCookie, int status, int responseCode, const char* szResponseText) 
 {
    char szBuffer[1024];    
 
-   sprintf(szBuffer, "<INFO STATUS> hInfo=%d: status=%d, responseCode=%d, responseText=%s",
-      hInfo, 
+   sprintf(szBuffer, "<INFO STATUS> pCookie=%d: status=%d, responseCode=%d, responseText=%s",
+      pCookie, 
       status, 
       responseCode, 
       szResponseText ? szResponseText : "");

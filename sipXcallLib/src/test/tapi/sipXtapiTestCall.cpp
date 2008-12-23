@@ -1978,7 +1978,7 @@ void sipXtapiTestSuite::testSendInfo()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
 
       validatorCalling.reset();
       validatorCalling.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
@@ -2026,16 +2026,18 @@ void sipXtapiTestSuite::testSendInfo()
 
       // Send Info
       UtlString payload("abc");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       // Send Another Info
       payload = "soylent green is people!";
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)70;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
@@ -2084,7 +2086,7 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
 
       validatorCalling.reset();
       validatorCalling.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
@@ -2157,16 +2159,18 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
 
       // Send Info
       UtlString payload("abc");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       // Send Another Info
       payload = "soylent green is people!";
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)70;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
       bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
@@ -2218,7 +2222,7 @@ void sipXtapiTestSuite::testSendInfoFailure()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
 
       validatorCalling.reset();
       validatorCalling.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
@@ -2266,8 +2270,9 @@ void sipXtapiTestSuite::testSendInfoFailure()
 
       // Send Info
       UtlString payload("the answer is 42");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 2, 501, "Not Implemented");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 2, 501, "Not Implemented");
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -2315,7 +2320,7 @@ void sipXtapiTestSuite::testSendInfoTimeout()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
       bool bRC;
 
       validatorCalling.reset();
@@ -2364,8 +2369,9 @@ void sipXtapiTestSuite::testSendInfoTimeout()
 
       // Send Info
       UtlString payload("the answer is 42");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 1, 408, "timed out");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 1, 408, "timed out");
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
