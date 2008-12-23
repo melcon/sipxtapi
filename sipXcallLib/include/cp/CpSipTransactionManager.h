@@ -144,6 +144,12 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   /** Assigns custom data to transaction, which can be retrieved later. */
+   UtlBoolean setTransactionData(const UtlString& sipMethod, int cseqNum, void* pCookie);
+
+   /** Gets data stored with transaction */
+   void* getTransactionData(const UtlString& sipMethod, int cseqNum) const;
+
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -203,6 +209,7 @@ private:
    // INVITE transaction specific
    int m_iInviteCSeq; ///< CSeq of INVITE transaction
    InviteTransactionState m_inviteTransactionState; ///< keeps invite transaction state
+   void* m_pInviteCookie; ///< custom data stored with INVITE transaction
 };
 
 #endif // CpSipTransactionManager_h__
