@@ -878,7 +878,7 @@ typedef int (SIPX_CALLING_CONVENTION *SIPX_TRANSPORT_WRITE_PROC)(
  *           - When the registration period is longer then NAT bindings 
  *             timeout
  *
- * The STUN, and SIP_PING and SIP_OPTIONS events may also give you more 
+ * The STUN, and SIP_OPTIONS events may also give you more 
  * information about your network NAT mappings.  When you add a keepalive,
  * you may get KEEPALIVE_FEEDBACK events with the IP/port that your
  * peer thinks is you.  For STUN, this comes from the STUN response, for 
