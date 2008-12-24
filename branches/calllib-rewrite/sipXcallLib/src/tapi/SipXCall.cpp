@@ -527,7 +527,7 @@ SIPXTAPI_API SIPX_RESULT sipxGetAllAbstractCallIds(SIPX_INST hInst, UtlSList& id
 {
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    if (pInst)
    {
       OsStatus status = pInst->pCallManager->getAbstractCallIds(idList);
@@ -554,7 +554,7 @@ void sipxCallDestroyAll(const SIPX_INST hInst)
    UtlSList sessionCallIdList;
    UtlString* pSessionCallId;
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    if (pInst)
    {
       sipxGetAllAbstractCallIds(hInst, sessionCallIdList);
@@ -699,7 +699,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
       hInst, hLine, hConf);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {

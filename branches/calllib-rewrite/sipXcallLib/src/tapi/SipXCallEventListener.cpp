@@ -210,7 +210,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       convertCallstateCauseToString(cause));
 
    SIPX_CALL hCall = SIPX_CALL_NULL;
-   SIPX_INSTANCE_DATA* pSipXInstance = (SIPX_INSTANCE_DATA*)m_pInst;
+   SIPX_INSTANCE_DATA* pSipXInstance = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, m_pInst);
    assert(pSipXInstance);
 
    SIPX_CALL_DATA* pCallData = NULL;
@@ -402,7 +402,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
          } // for outbound calls request uri of inbound requests is unknown
       }
 
-      hLine = sipxLineLookupHandle((SIPX_INSTANCE_DATA*)m_pInst, localField.data(), requestUri.data());
+      hLine = sipxLineLookupHandle(pSipXInstance, localField.data(), requestUri.data());
       if (hLine == SIPX_LINE_NULL)
       {
          // no line exists for the lineId
