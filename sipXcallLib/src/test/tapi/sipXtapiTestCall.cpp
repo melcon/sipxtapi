@@ -11,6 +11,7 @@
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
+#include <cp/state/BaseSipConnectionState.h>
 #include "sipXtapiTest.h"
 #include "tapi/SipXCore.h"
 #include "tapi/SipXConfig.h"
@@ -2030,7 +2031,7 @@ void sipXtapiTestSuite::testSendInfo()
       sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
       bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       // Send Another Info
@@ -2039,7 +2040,7 @@ void sipXtapiTestSuite::testSendInfo()
       sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
       bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -2163,7 +2164,7 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
       sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
       bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       // Send Another Info
@@ -2172,7 +2173,7 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
       sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
       bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -2309,7 +2310,7 @@ void sipXtapiTestSuite::testSendInfoTimeout()
 {
    // TEST HACK: now set the response code for testing
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) g_hInst2;
-   pInst->pMessageObserver->setTestResponseCode(408);
+   BaseSipConnectionState::setInfoTestResponseCode(408);
 
    EventValidator validatorCalling("testSendInfoTimeout.calling");
    EventValidator validatorCalled("testSendInfoTimeout.called");
@@ -2399,7 +2400,7 @@ void sipXtapiTestSuite::testSendInfoTimeout()
    OsTask::delay(TEST_DELAY);
 
    // TEST HACK: Reset changes
-   pInst->pMessageObserver->setTestResponseCode(0);
+   BaseSipConnectionState::setInfoTestResponseCode(0);
 
    checkForLeaks();
 }

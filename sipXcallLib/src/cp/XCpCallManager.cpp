@@ -57,6 +57,7 @@ const int XCpCallManager::CALLMANAGER_MAX_REQUEST_MSGS = 2000;
 
 XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
+                               SipInfoEventListener* pInfoEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener,
                                SipUserAgent& rSipUserAgent,
@@ -75,6 +76,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 : OsServerTask("XCallManager-%d", NULL, CALLMANAGER_MAX_REQUEST_MSGS)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_rSipUserAgent(rSipUserAgent)
@@ -168,7 +170,7 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
 
    XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
       m_natTraversalConfig, m_sLocalIpAddress, m_inviteExpireSeconds, &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
-      m_pSecurityEventListener, m_pMediaEventListener);
+      m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start();
    if (resStart)
@@ -201,7 +203,7 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    }
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
       *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_inviteExpireSeconds, &m_callStack, m_pCallEventListener,
-      m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+      m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pConference->start();
    if (resStart)
@@ -1401,7 +1403,7 @@ void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
 
    XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
       *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_inviteExpireSeconds, &m_callStack, m_pCallEventListener,
-      m_pInfoStatusEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+      m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start(); // start thread
    if (resStart)

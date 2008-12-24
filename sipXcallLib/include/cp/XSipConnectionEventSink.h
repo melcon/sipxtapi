@@ -63,6 +63,11 @@ public:
                                         int responseCode = 0,
                                         void* pCookie = NULL) = 0;
 
+   /** Fire info message event */
+   virtual void fireSipXInfoEvent(const UtlString& sContentType,
+                                  const char* pContent = NULL,
+                                  size_t nContentLength = 0) = 0;
+
    /** Fire security event */
    virtual void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
                                       SIPXTACK_SECURITY_CAUSE cause,

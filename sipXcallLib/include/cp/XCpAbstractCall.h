@@ -49,6 +49,7 @@ class CpMediaInterfaceFactory;
 class CpMediaInterface;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
+class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
 class AcCommandMsg;
@@ -119,6 +120,7 @@ public:
                    XCpCallConnectionListener* pCallConnectionListener = NULL,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+                   SipInfoEventListener* pInfoEventListener = NULL,
                    SipSecurityEventListener* pSecurityEventListener = NULL,
                    CpMediaEventListener* pMediaEventListener = NULL);
 
@@ -440,7 +442,8 @@ protected:
    // set only once and thread safe
    XCpCallConnectionListener* m_pCallConnectionListener; ///< listener for updating call stack
    CpCallStateEventListener* m_pCallEventListener; ///< listener for firing call events
-   SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< listener for firing info events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< listener for firing info status events
+   SipInfoEventListener* m_pInfoEventListener; ///< listener for firing info message events
    SipSecurityEventListener* m_pSecurityEventListener; ///< listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; ///< listener for firing media events
    const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration

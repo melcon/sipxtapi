@@ -120,6 +120,7 @@ libsipXcall_la_SOURCES = \
     cp/state/StateTransitionEventDispatcher.cpp \
     cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
+    tapi/InfoEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \
     tapi/LineStateEventMsg.cpp \
@@ -136,6 +137,7 @@ libsipXcall_la_SOURCES = \
     tapi/SipXEvents.cpp \
     tapi/SipXHandleMap.cpp \
     tapi/SipXInfo.cpp \
+    tapi/SipXInfoEventListener.cpp \
     tapi/SipXInfoStatusEventListener.cpp \
     tapi/SipXKeepaliveEventListener.cpp \
     tapi/SipXLine.cpp \

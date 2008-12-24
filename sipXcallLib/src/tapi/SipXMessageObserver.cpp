@@ -42,9 +42,6 @@
 
 SipXMessageObserver::SipXMessageObserver(const SIPX_INST hInst) :
     OsServerTask("SipXMessageObserver%d", NULL, 2000),
-    m_iTestResponseCode(0),// if mTestResponseCode is set to a value other than 0,
-                         // then this message observer can generate a test response.
-                         // This feature is used by sipXtapiTest
     m_hInst(hInst)
 {
 }
@@ -87,114 +84,8 @@ UtlBoolean SipXMessageObserver::handleMessage(OsMsg& rMsg)
     else if (msgType == OsMsg::PHONE_APP && msgSubType == SipMessage::NET_SIP_MESSAGE)
     {
        SipMessage* pSipMessage = (SipMessage*)((SipMessageEvent&)rMsg).getMessage();
-       UtlString method;
-
-       pSipMessage->getRequestMethod(&method);
-
-       if (pSipMessage)
-       {
-          if (pSipMessage->isRequest() && method.compareTo(SIP_INFO_METHOD))
-          {
-             // ok, the phone has received an INFO message.
-             bRet = handleIncomingInfoMessage(pSipMessage);
-          }
-       }
+       // add handlers for any other messages
     }
-    return bRet;
-}
-
-UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoMessage");
-    bool bRet = FALSE;
-    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, pMessage->getResponseListenerData());
-    assert(pInst);
-    
-    if (pInst && pMessage)
-    {
-       if (m_iTestResponseCode != 0)  // for unit testing purposes.
-       {
-           if (m_iTestResponseCode == SIP_REQUEST_TIMEOUT_CODE)   // a timeout response is being tested
-           {
-               // simulate a timeout ....
-               OsTask::delay(1000);
-               // respond to whomever sent us the message
-	           SipMessage sipResponse;
-	           sipResponse.setOkResponseData(pMessage);
-              sipResponse.setResponseData(pMessage, m_iTestResponseCode, "timed out");	       
-	           pInst->pSipUserAgent->send(sipResponse);
-              return TRUE;
-           }
-       }
-       else
-       {
-            // respond to whomever sent us the message
-	        SipMessage sipResponse;
-	        sipResponse.setOkResponseData(pMessage);
-	        pInst->pSipUserAgent->send(sipResponse);
-	    }
-	    
-       // Find Line
-       UtlString lineUri;
-       pMessage->getToUri(&lineUri);
-
-       UtlString requestUri;
-       pMessage->getRequestUri(&requestUri);
-
-       SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, m_hInst);
-       SIPX_LINE hLine = sipxLineLookupHandle(pInst, lineUri, requestUri);
-        
-        if (!pMessage->isResponse())
-        {
-            // find call
-            UtlString callId;
-            pMessage->getCallIdField(&callId);
-
-            SIPX_CALL hCall = sipxCallLookupHandleBySessionCallId(callId, pInst);
-
-            if (hCall == 0)
-            {
-                // we are unaware of the call context
-            }
-            
-            SIPX_INFO_INFO pInfoInfo;
-            memset((void*)&pInfoInfo, 0, sizeof(SIPX_INFO_INFO));
-            
-            pInfoInfo.nSize = sizeof(SIPX_INFO_INFO);
-            pInfoInfo.hCall = hCall;
-            pInfoInfo.hLine = hLine;
-            Url fromUrl;
-            
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.szFromURL = lineUri.data();
-
-            // get the user agent
-            UtlString userAgent;
-            pMessage->getUserAgentField(&userAgent);
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.szUserAgent = userAgent.data();
-
-            // get and set the content type
-            UtlString contentType;
-            pMessage->getContentType(&contentType) ;
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.szContentType = contentType.data();
-            
-            // get the content
-            UtlString body;
-            int dummyLength = pMessage->getContentLength();
-            const HttpBody* pBody = pMessage->getBody();
-            pBody->getBytes(&body, &dummyLength);
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.pContent = body.data();
-            pInfoInfo.nContentLength = pMessage->getContentLength();
-
-            // dispatcher doesn't delete this event
-            SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_INFO, &pInfoInfo);
-
-            bRet = TRUE;
-        }
-    } // if (NULL != pInst && NULL != pMessage)
     return bRet;
 }
 

@@ -48,6 +48,7 @@ class XCpConference;
 class CpMediaInterfaceFactory;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
+class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
 class SipMessageEvent;
@@ -73,6 +74,7 @@ public:
 
    XCpCallManager(CpCallStateEventListener* pCallEventListener,
                   SipInfoStatusEventListener* pInfoStatusEventListener,
+                  SipInfoEventListener* pInfoEventListener,
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
                   SipUserAgent& rSipUserAgent,
@@ -607,7 +609,8 @@ private:
 
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
    CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
-   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info status events
+   SipInfoEventListener* m_pInfoEventListener; // listener for firing info message events
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
    SipUserAgent& m_rSipUserAgent; // sends sip messages

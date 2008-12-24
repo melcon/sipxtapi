@@ -134,6 +134,9 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   /** Sets response code returned for inbound INFO messages - used in unit tests. */
+   static void setInfoTestResponseCode(int val) { ms_iInfoTestResponseCode = val; }
+
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -520,6 +523,8 @@ protected:
 private:
    /** Private assignment operator */
    BaseSipConnectionState& operator=(const BaseSipConnectionState& rhs);
+
+   static int ms_iInfoTestResponseCode; ///< test response code to INFO request, used in unit tests
 };
 
 #endif // BaseSipConnectionState_h__

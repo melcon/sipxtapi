@@ -51,20 +51,10 @@ public:
      * Implementation of OsServerTask's pure virtual method
      */
     UtlBoolean handleMessage(OsMsg& rMsg);
-    
-    /**
-     * FOR TEST PURPOSES ONLY - a response code to send back to the client
-     */
-    void setTestResponseCode(int code) { m_iTestResponseCode = code; }    
-    
+      
 private:
-    UtlBoolean handleIncomingInfoMessage(SipMessage* pMessage);
     UtlBoolean handleStunOutcome(OsEventMsg* pMsg);
 
-    /** 
-     * Special response code - for test purposes only.
-     */
-    int m_iTestResponseCode;    
     SIPX_INST m_hInst;
 };
 

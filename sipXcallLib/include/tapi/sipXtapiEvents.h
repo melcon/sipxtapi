@@ -793,7 +793,7 @@ typedef struct
 /**
  * An INFO event signals the application layer that an INFO message
  * was sent to this user agent.  If the INFO message was sent to a 
- * call context (session) hCall will desiginate the call session. 
+ * call context (session) hCall will designate the call session. 
  *
  * This information is passed as part of the sipXtapi callback mechanism.  
  * Based on the SIPX_EVENT_CATEGORY, the application developer should cast the
@@ -807,9 +807,7 @@ typedef struct
     size_t      nSize;             /**< Size of structure */
     SIPX_CALL   hCall;             /**< Call handle if available */
     SIPX_LINE   hLine;             /**< Line handle if available */
-    const char* szFromURL;         /**< the URL of the host that originated
-                                         the INFO message */
-    const char* szUserAgent;        /**< the User Agent string of the source agent */
+
     const char* szContentType;     /**< string indicating the info content type */
     const char* pContent;          /**< pointer to the INFO message content */
     size_t      nContentLength;    /**< length of the INFO message content */

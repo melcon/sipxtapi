@@ -78,6 +78,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
+                                 SipInfoEventListener* pInfoEventListener,
                                  SipSecurityEventListener* pSecurityEventListener,
                                  CpMediaEventListener* pMediaEventListener)
 : OsServerTask("XCpAbstractCall-%d", NULL, CALL_MAX_REQUEST_MSGS)
@@ -93,6 +94,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pCallConnectionListener(pCallConnectionListener)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_natTraversalConfig(rNatTraversalConfig)

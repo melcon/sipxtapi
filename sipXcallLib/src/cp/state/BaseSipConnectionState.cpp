@@ -50,6 +50,8 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
+int BaseSipConnectionState::ms_iInfoTestResponseCode = 0;
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
@@ -587,7 +589,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
          }
          else
          {
-            // sdp body is missing, check if SDP negotiation is complete. Media session changes are already committed
+            // sdp bodyContent is missing, check if SDP negotiation is complete. Media session changes are already committed
             if (m_rStateContext.m_sdpNegotiation.getNegotiationState() != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
             {
                bProtocolError = TRUE;
@@ -685,7 +687,51 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
 
 SipConnectionStateTransition* BaseSipConnectionState::processInfoRequest(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   if (ms_iInfoTestResponseCode != 0) // used in unit tests
+   {
+      if (ms_iInfoTestResponseCode == SIP_REQUEST_TIMEOUT_CODE)
+      {
+         OsTask::delay(1000);
+      }
+      SipMessage sipResponse;
+      sipResponse.setResponseData(&sipMessage, ms_iInfoTestResponseCode, "Timed out", getLocalContactUrl());
+      sendMessage(sipResponse);
+      return NULL; // do not fire event if custom response code was requested.
+   }
+   else
+   {
+      // send 200 OK response regardless of content
+      SipMessage sipResponse;
+      sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+      sendMessage(sipResponse);
+   }
+
+   // check for retransmits
+   int cseqNum;
+   UtlString cseqMethod;
+   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
+
+   CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(cseqMethod, cseqNum);
+   if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   {
+      // this is not a retransmit
+      UtlString contentType;
+      sipMessage.getContentType(&contentType);
+      UtlString bodyContent;
+      int contentLength = sipMessage.getContentLength();
+      const HttpBody* pBody = sipMessage.getBody();
+      if (pBody)
+      {
+         pBody->getBytes(&bodyContent, &contentLength);
+      }
+      else
+      {
+         contentLength = 0;
+      }
+
+      m_rSipConnectionEventSink.fireSipXInfoEvent(contentType, bodyContent.data(), contentLength);
+   }
+
    return NULL;
 }
 
@@ -1868,7 +1914,7 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
    sipResponse.getCSeqField(&seqNum, &seqMethod);
    UtlBoolean bProtocolError = FALSE;
 
-   // get pointer to internal sdp body
+   // get pointer to internal sdp bodyContent
    const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
    SipMessage sipRequest;
    prepareSipRequest(sipRequest, SIP_ACK_METHOD, seqNum);
@@ -1877,7 +1923,7 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
 
    if (pSdpBody)
    {
-      // response has SDP body, we must provide SDP answer
+      // response has SDP bodyContent, we must provide SDP answer
       if (negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
       {
          CpSdpNegotiation::SdpBodyType sdpBodyType = m_rStateContext.m_sdpNegotiation.getSdpBodyType(sipResponse);
@@ -1894,7 +1940,7 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
       }
       else if (negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
       {
-         // message has sdp body, and we are in negotiation (SDP was in INVITE)
+         // message has sdp bodyContent, and we are in negotiation (SDP was in INVITE)
          handleSdpAnswer(sipResponse);
       }
       else if (negotiationState == CpSdpNegotiation::SDP_NOT_YET_NEGOTIATED)

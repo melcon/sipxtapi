@@ -190,6 +190,7 @@
                 <File RelativePath="include\net\SipContactDb.h"/>
                 <File RelativePath="include\net\SipDialog.h"/>
                 <File RelativePath="include\net\SipDialogMgr.h"/>
+                <File RelativePath=".\include\net\SipInfoEventListener.h"/>
                 <File RelativePath=".\include\net\SipInfoStatusEventListener.h"/>
                 <File RelativePath="include\net\SipLine.h"/>
                 <File RelativePath=".\include\net\SipLineAlias.h"/>

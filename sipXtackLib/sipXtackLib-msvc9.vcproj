@@ -835,6 +835,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\net\SipInfoEventListener.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\net\SipInfoStatusEventListener.h"
 					>
 				</File>

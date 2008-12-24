@@ -14,6 +14,7 @@
 // APPLICATION INCLUDES
 #include <os/OsReadLock.h>
 #include <mi/CpMediaInterface.h>
+#include <net/SipInfoEventListener.h>
 #include <cp/CpMediaInterfaceProvider.h>
 #include <cp/XSipConnection.h>
 #include <cp/XSipConnectionContext.h>
@@ -48,6 +49,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                const CpNatTraversalConfig& natTraversalConfig,
                                CpCallStateEventListener* pCallEventListener,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
+                               SipInfoEventListener* pInfoEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
@@ -58,6 +60,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
 , m_rMessageQueueProvider(rMessageQueueProvider)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_natTraversalConfig(natTraversalConfig)
@@ -366,6 +369,20 @@ void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
       default:
          ;
       }
+   }
+}
+
+void XSipConnection::fireSipXInfoEvent(const UtlString& sContentType,
+                                       const char* pContent /*= NULL*/,
+                                       size_t nContentLength /*= 0*/)
+{
+   if (m_pInfoEventListener)
+   {
+      UtlString sAbstractCallId;
+      getAbstractCallId(sAbstractCallId);
+      SipInfoEvent infoEvent(sAbstractCallId, sContentType, pContent, nContentLength);
+
+      m_pInfoEventListener->OnInfoMessage(infoEvent);
    }
 }
 

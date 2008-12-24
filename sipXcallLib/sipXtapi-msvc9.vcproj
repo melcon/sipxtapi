@@ -607,6 +607,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\tapi\InfoEventMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tapi\InfoStatusEventMsg.cpp"
 				>
 			</File>
@@ -668,6 +672,10 @@
 			</File>
 			<File
 				RelativePath=".\src\tapi\SipXInfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\SipXInfoEventListener.cpp"
 				>
 			</File>
 			<File
@@ -736,6 +744,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\tapi\InfoEventMsg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\tapi\InfoStatusEventMsg.h"
 				>
 			</File>
@@ -797,6 +809,10 @@
 			</File>
 			<File
 				RelativePath=".\include\tapi\SipXInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\SipXInfoEventListener.h"
 				>
 			</File>
 			<File

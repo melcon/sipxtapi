@@ -1004,8 +1004,6 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->nSize = pSourceInfo->nSize;
             pInfo->hCall = pSourceInfo->hCall;
             pInfo->hLine = pSourceInfo->hLine;
-            pInfo->szFromURL = SAFE_STRDUP(pSourceInfo->szFromURL);
-            pInfo->szUserAgent = SAFE_STRDUP(pSourceInfo->szUserAgent) ;
             pInfo->szContentType = SAFE_STRDUP(pSourceInfo->szContentType);
 
             if (pSourceInfo->nContentLength > 0 && pSourceInfo->pContent)
@@ -1273,8 +1271,6 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
          {
             SIPX_INFO_INFO* pSourceInfo = (SIPX_INFO_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_INFO_INFO));
-            free((void*)pSourceInfo->szFromURL);
-            free((void*)pSourceInfo->szUserAgent);
             free((void*)pSourceInfo->szContentType);
             free((void*)pSourceInfo->pContent);
             delete pSourceInfo;
