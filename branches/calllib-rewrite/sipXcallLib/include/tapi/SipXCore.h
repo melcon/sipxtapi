@@ -62,6 +62,7 @@ class SipXMessageObserver;
 class SipXLineEventListener;
 class SipXCallEventListener;
 class SipXInfoStatusEventListener;
+class SipXInfoEventListener;
 class SipXSecurityEventListener;
 class SipXMediaEventListener;
 class OsSharedServerTaskMgr;
@@ -130,6 +131,7 @@ public:
    SipXLineEventListener* pLineEventListener;
    SipXCallEventListener* pCallEventListener;
    SipXInfoStatusEventListener* pInfoStatusEventListener;
+   SipXInfoEventListener* pInfoEventListener;
    SipXSecurityEventListener* pSecurityEventListener;
    SipXMediaEventListener* pMediaEventListener;
    SipXKeepaliveEventListener* pKeepaliveEventListener;
@@ -171,6 +173,7 @@ public:
       pLineEventListener(NULL),
       pCallEventListener(NULL),
       pInfoStatusEventListener(NULL),
+      pInfoEventListener(NULL),
       pSecurityEventListener(NULL),
       pMediaEventListener(NULL),
       pDialogManager(NULL),

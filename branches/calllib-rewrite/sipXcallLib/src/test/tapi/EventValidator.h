@@ -107,8 +107,6 @@ public:
 
    bool waitForInfoEvent(SIPX_CALL hCall,
       SIPX_LINE hLine,
-      const char* szFromURL,
-      const char* szUserAgent,
       const char* szContentType,
       const char* szContent,
       int nContentLength,
@@ -175,8 +173,6 @@ protected:
 
    UtlString* allocInfoEvent(SIPX_CALL hCall, 
       SIPX_LINE hLine, 
-      const char* szFromURL, 
-      const char* szUserAgent,
       const char* szContentType,
       const char* szContent,
       int nContentLength);

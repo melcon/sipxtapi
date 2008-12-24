@@ -75,6 +75,7 @@ public:
            XCpCallConnectionListener* pCallConnectionListener = NULL,
            CpCallStateEventListener* pCallEventListener = NULL,
            SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+           SipInfoEventListener* pInfoEventListener = NULL,
            SipSecurityEventListener* pSecurityEventListener = NULL,
            CpMediaEventListener* pMediaEventListener = NULL);
 

@@ -44,6 +44,7 @@ class CpMediaEvent;
 class CpCallStateEvent;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
+class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
 class ScTimerMsg;
@@ -77,6 +78,7 @@ public:
                   const CpNatTraversalConfig& natTraversalConfig,
                   CpCallStateEventListener* pCallEventListener = NULL,
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+                  SipInfoEventListener* pInfoEventListener = NULL,
                   SipSecurityEventListener* pSecurityEventListener = NULL,
                   CpMediaEventListener* pMediaEventListener = NULL);
 
@@ -315,6 +317,11 @@ private:
                                         int responseCode = 0,
                                         void* pCookie = NULL);
 
+   /** Fire info message event */
+   virtual void fireSipXInfoEvent(const UtlString& sContentType,
+                                  const char* pContent = NULL,
+                                  size_t nContentLength = 0);
+
    /** Fire security event */
    virtual void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
                                       SIPXTACK_SECURITY_CAUSE cause,
@@ -358,7 +365,8 @@ private:
    CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
-   SipInfoStatusEventListener* m_pInfoStatusEventListener;
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< event listener for INFO responses
+   SipInfoEventListener* m_pInfoEventListener; ///< event listener for inbound INFO messages
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
    const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration

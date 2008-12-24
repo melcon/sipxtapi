@@ -117,6 +117,7 @@ nobase_include_HEADERS =  \
     ptapi/PtSessionDesc.h \
     ptapi/PtTerminalConnection.h \
     tapi/CallStateEventMsg.h \
+    tapi/InfoEventMsg.h \
     tapi/InfoStatusEventMsg.h \
     tapi/KeepaliveEventMsg.h \
     tapi/LineStateEventMsg.h \
@@ -133,6 +134,7 @@ nobase_include_HEADERS =  \
     tapi/SipXEvents.h \
     tapi/SipXHandleMap.h \
     tapi/SipXInfo.h \
+    tapi/SipXInfoEventListener.h \
     tapi/SipXInfoStatusEventListener.h \
     tapi/SipXKeepaliveEventListener.h \
     tapi/SipXLine.h \

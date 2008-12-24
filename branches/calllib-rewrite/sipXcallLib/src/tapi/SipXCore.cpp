@@ -58,6 +58,7 @@
 #include "tapi/SipXLineEventListener.h"
 #include "tapi/SipXCallEventListener.h"
 #include "tapi/SipXInfoStatusEventListener.h"
+#include "tapi/SipXInfoEventListener.h"
 #include "tapi/SipXSecurityEventListener.h"
 #include "tapi/SipXMediaEventListener.h"
 #include <tapi/SipXTransport.h>
@@ -387,6 +388,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSharedTaskMgr->manage(*pInst->pCallEventListener);
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pInfoStatusEventListener);
+   pInst->pInfoEventListener = new SipXInfoEventListener(pInst);
+   pInst->pSharedTaskMgr->manage(*pInst->pInfoEventListener);
    pInst->pSecurityEventListener = new SipXSecurityEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pSecurityEventListener);
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
@@ -485,6 +488,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pCallManager = new XCpCallManager(
       pInst->pCallEventListener,
       pInst->pInfoStatusEventListener,
+      pInst->pInfoEventListener,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
       *pInst->pSipUserAgent,
@@ -746,6 +750,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSharedTaskMgr->release(*pInst->pLineEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pCallEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pInfoStatusEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pInfoEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pSecurityEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pMediaEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pKeepaliveEventListener);
@@ -758,6 +763,8 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pCallEventListener = NULL;
          delete pInst->pInfoStatusEventListener;
          pInst->pInfoStatusEventListener = NULL;
+         delete pInst->pInfoEventListener;
+         pInst->pInfoEventListener = NULL;
          delete pInst->pSecurityEventListener;
          pInst->pSecurityEventListener = NULL;
          delete pInst->pMediaEventListener;

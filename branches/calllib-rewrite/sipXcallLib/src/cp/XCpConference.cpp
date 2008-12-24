@@ -56,11 +56,12 @@ XCpConference::XCpConference(const UtlString& sId,
                              XCpCallConnectionListener* pCallConnectionListener,
                              CpCallStateEventListener* pCallEventListener,
                              SipInfoStatusEventListener* pInfoStatusEventListener,
+                             SipInfoEventListener* pInfoEventListener,
                              SipSecurityEventListener* pSecurityEventListener,
                              CpMediaEventListener* pMediaEventListener)
 : XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
                   sLocalIpAddress, inviteExpireSeconds, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
-                  pSecurityEventListener, pMediaEventListener)
+                  pInfoEventListener, pSecurityEventListener, pMediaEventListener)
 {
 
 }
