@@ -758,6 +758,79 @@ UtlBoolean SdpBody::getBandwidthField(int& bandwidth) const
    return bFound;
 }
 
+SDP_STREAM_DIRECTION SdpBody::getStreamDirection() const
+{
+   SDP_STREAM_DIRECTION streamDirection = SDP_STREAM_SENDRECV;
+
+   if(findValueInField("a", "sendonly"))
+   {
+      return SDP_STREAM_SENDONLY;
+   }
+   else if(findValueInField("a", "recvonly"))
+   {
+      return SDP_STREAM_RECVONLY;
+   }
+   else if(findValueInField("a", "inactive"))
+   {
+      return SDP_STREAM_INACTIVE;
+   }
+
+   return streamDirection;
+}
+
+SDP_STREAM_DIRECTION SdpBody::translateStreamDirection(const SdpBody* offerSdpRequest, UtlBoolean bLocalHold)
+{
+   SDP_STREAM_DIRECTION answerStreamDirection = SDP_STREAM_SENDRECV;
+
+   // ATT: This logic is not very good, it puts all streams on hold regardless which stream
+   // should actually be on hold. The problem is in this class, which is written in a very poor
+   // way and doesn't let us do it the proper way.
+   if (offerSdpRequest)
+   {
+      SDP_STREAM_DIRECTION offerStreamDirection = offerSdpRequest->getStreamDirection();
+      if (bLocalHold)
+      {
+         // we want hold
+         switch (offerStreamDirection)
+         {
+         case SDP_STREAM_SENDONLY:
+            answerStreamDirection = SDP_STREAM_INACTIVE;
+            break;
+         case SDP_STREAM_RECVONLY:
+            answerStreamDirection = SDP_STREAM_SENDONLY;
+            break;
+         case SDP_STREAM_INACTIVE:
+            answerStreamDirection = SDP_STREAM_INACTIVE;
+            break;
+         case SDP_STREAM_SENDRECV:
+            answerStreamDirection = SDP_STREAM_SENDONLY;
+            break;
+         default:
+            ;
+         }
+      }
+      else
+      {
+         // we don't want hold
+         switch (offerStreamDirection)
+         {
+         case SDP_STREAM_SENDONLY:
+            answerStreamDirection = SDP_STREAM_RECVONLY;
+            break;
+         case SDP_STREAM_RECVONLY:
+            answerStreamDirection = SDP_STREAM_SENDONLY;
+            break;
+         case SDP_STREAM_INACTIVE:
+         case SDP_STREAM_SENDRECV:
+         default:
+            answerStreamDirection = offerStreamDirection;
+         }
+      }
+   }
+
+   return answerStreamDirection;
+}
+
 UtlBoolean SdpBody::getValue(int fieldIndex, UtlString* name, UtlString* value) const
 {
    NameValuePair* nv = NULL;
@@ -1459,7 +1532,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                              int totalBandwidth,
                              int videoFramerate,
                              RTP_TRANSPORT transportOffering,
-                             UtlBoolean bSendOnly)
+                             UtlBoolean bLocalHold)
 {
     int codecArray[MAXIMUM_MEDIA_TYPES];
     int formatArray[MAXIMUM_MEDIA_TYPES];
@@ -1589,7 +1662,8 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
         }
 
         // add attribute records defining the extended types
-        addCodecParameters(numRtpCodecs, rtpCodecs, seenMimeType.data(), videoFramerate, bSendOnly);
+        addCodecParameters(numRtpCodecs, rtpCodecs, seenMimeType.data(), videoFramerate,
+           bLocalHold ? SDP_STREAM_SENDONLY : SDP_STREAM_SENDRECV);
 
     }
 
@@ -1713,7 +1787,8 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
         }
 
         // add attribute records defining the extended types
-        addCodecParameters(numRtpCodecs, rtpCodecs, SDP_VIDEO_MEDIA_TYPE, videoFramerate, bSendOnly);
+        addCodecParameters(numRtpCodecs, rtpCodecs, SDP_VIDEO_MEDIA_TYPE, videoFramerate,
+           bLocalHold ? SDP_STREAM_SENDONLY : SDP_STREAM_SENDRECV);
 
         if (totalBandwidth != 0)
         {
@@ -1730,7 +1805,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
                                  SdpCodec* rtpCodecs[],
                                  const char *szMimeType, 
                                  int videoFramerate,
-                                 UtlBoolean bSendOnly)
+                                 SDP_STREAM_DIRECTION streamDirection)
 {
    const SdpCodec* codec = NULL;
    UtlString mimeSubtype;
@@ -1821,9 +1896,22 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
       }
    }
 
-   if (bSendOnly)
+   switch (streamDirection)
    {
-      addValue("a", "sendonly");    
+   case SDP_STREAM_SENDRECV:
+      addValue("a", "sendrecv");
+      break;
+   case SDP_STREAM_SENDONLY:
+      addValue("a", "sendonly");
+      break;
+   case SDP_STREAM_RECVONLY:
+      addValue("a", "recvonly");
+      break;
+   case SDP_STREAM_INACTIVE:
+      addValue("a", "inactive");
+      break;
+   default:
+      ;
    }
 
    // ptime only really make sense for audio
@@ -1848,7 +1936,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                              int totalBandwidth,
                              int videoFramerate,
                              const SdpBody* sdpRequest,
-                             UtlBoolean bSendOnly)
+                             UtlBoolean bLocalHold)
 {
    int preExistingMedia = getMediaSetCount();
    int mediaIndex = 0;
@@ -1904,6 +1992,8 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
    numVideoPayloadTypes = 0 ;
    memset(&videoPayloadTypes, 0, sizeof(int) * MAXIMUM_MEDIA_TYPES) ;
    memset(&receivedVideoSrtpParams,0 , sizeof(SdpSrtpParameters));
+
+   SDP_STREAM_DIRECTION answerStreamDirection = translateStreamDirection(sdpRequest, bLocalHold);
 
    // Loop through the fields in the sdpRequest
    while(fieldFound)
@@ -2059,7 +2149,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
         }
 
         addCodecParameters(supportedPayloadCount,
-                            codecsInCommon, SDP_AUDIO_MEDIA_TYPE, videoFramerate);
+                            codecsInCommon, SDP_AUDIO_MEDIA_TYPE, videoFramerate, answerStreamDirection);
 
         // Then do this for video
         destIndex = -1;
@@ -2149,7 +2239,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
             }
 
             addCodecParameters(supportedPayloadCount,
-                                codecsInCommon, SDP_VIDEO_MEDIA_TYPE, videoFramerate);
+                                codecsInCommon, SDP_VIDEO_MEDIA_TYPE, videoFramerate, answerStreamDirection);
         }
     }
 
@@ -2874,5 +2964,5 @@ UtlString SdpBody::getRtpTcpRole()
     }
     return sRole;
 }
-                                   
+
 /* ============================ FUNCTIONS ================================= */
