@@ -698,7 +698,7 @@ public:
                     int videoFramerate,
                     const SipMessage* pRequest = NULL,
                     const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP,
-                    UtlBoolean bSendOnly = FALSE);///< if true then a=sendonly is used
+                    UtlBoolean bLocalHold = FALSE);
 
     void setSecurityAttributes(const SIPXTACK_SECURITY_ATTRIBUTES* const pSecurity);
     SIPXTACK_SECURITY_ATTRIBUTES* const getSecurityAttributes() const { return mpSecurity; } 

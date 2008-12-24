@@ -66,6 +66,14 @@ typedef enum
    SDP_MEDIA_TYPE_VIDEO,
 } SDP_MEDIA_TYPE;
 
+typedef enum
+{
+   SDP_STREAM_SENDRECV, // a=sendrecv
+   SDP_STREAM_SENDONLY, // a=sendonly
+   SDP_STREAM_RECVONLY, // a=recvonly
+   SDP_STREAM_INACTIVE, // a=inactive
+} SDP_STREAM_DIRECTION;
+
 // FORWARD DECLARATIONS
 class SdpCodecList;
 
@@ -204,7 +212,7 @@ class SdpBody : public HttpBody
                        int videoBandwidth,
                        int videoFramerate,
                        RTP_TRANSPORT transportOffering,
-                       UtlBoolean bSendOnly = FALSE///< if true then a=sendonly is used
+                       UtlBoolean bLocalHold = FALSE///< if true then a=sendonly is used
                        );
 
    /**<
@@ -226,7 +234,7 @@ class SdpBody : public HttpBody
                        int videoBandwidth,
                        int videoFramerate,
                        const SdpBody* sdpRequest,  ///< Sdp we are responding to
-                       UtlBoolean bSendOnly = FALSE ///< if true then a=sendonly is used
+                       UtlBoolean bLocalHold = FALSE
                        ); 
    /**<
     * This method is for building a SdpBody which is in response
@@ -252,7 +260,7 @@ class SdpBody : public HttpBody
                            SdpCodec* rtpCodecs[],
                            const char* szMimeType = "audio",
                            const int videoFramerate = 0,
-                           UtlBoolean bSendOnly = FALSE///< if true then a=sendonly is used
+                           SDP_STREAM_DIRECTION streamDirection = SDP_STREAM_SENDRECV
                            );
 
    /// Set address.
@@ -421,6 +429,19 @@ class SdpBody : public HttpBody
                                 int& videoFramerate) const;
 
    UtlBoolean getBandwidthField(int& bandwidth) const;
+
+   /**
+    * Gets direction of stream in SDP body. This method only tries to find flags like "a=sendonly",
+    * to discover direction of stream. The problem is there can be multiple streams, and this whole
+    * class needs a rewrite.
+    */
+   SDP_STREAM_DIRECTION getStreamDirection() const;
+
+   /**
+   * Translates stream direction from offer into answer, given that we may wish to do hold.
+   */
+   static SDP_STREAM_DIRECTION translateStreamDirection(const SdpBody* offerSdpRequest,
+                                                        UtlBoolean bLocalHold);
 
    /**<
     * Find the "a" record containing an rtpmap for the given
