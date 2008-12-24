@@ -586,7 +586,7 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
 
    if (phInst)
    {
-      SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)*phInst;
+      SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, *phInst);
 
       // remember original filename, as it could be lost when uninitializing sipxtapi
       UtlString logfile;
@@ -658,7 +658,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
       "sipxUnInitialize hInst=%p",
       hInst);
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {

@@ -107,7 +107,7 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoMessage");
     bool bRet = FALSE;
-    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)pMessage->getResponseListenerData();
+    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, pMessage->getResponseListenerData());
     assert(pInst);
     
     if (pInst && pMessage)
@@ -141,7 +141,8 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
        UtlString requestUri;
        pMessage->getRequestUri(&requestUri);
 
-       SIPX_LINE hLine = sipxLineLookupHandle((SIPX_INSTANCE_DATA*)m_hInst, lineUri, requestUri);
+       SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, m_hInst);
+       SIPX_LINE hLine = sipxLineLookupHandle(pInst, lineUri, requestUri);
         
         if (!pMessage->isResponse())
         {
@@ -200,7 +201,7 @@ UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
 UtlBoolean SipXMessageObserver::handleStunOutcome(OsEventMsg* pMsg) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleStunOutcome");
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)m_hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, m_hInst);
    SIPX_CONTACT_ADDRESS* pStunContact = NULL;
    pMsg->getEventData((int&)pStunContact);
 
