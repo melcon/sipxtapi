@@ -540,7 +540,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    // create the message observer
    pInst->pMessageObserver = new SipXMessageObserver(pInst);
    pInst->pMessageObserver->start();
-   pInst->pSipUserAgent->addMessageObserver(*(pInst->pMessageObserver->getMessageQueue()), SIP_INFO_METHOD, 1, 0, 1, 0, 0, 0, (void*)pInst);
 
    // Enable ICE by default (only makes sense with STUN, TURN or with mulitple nics 
    // (multiple nic support still needs work).

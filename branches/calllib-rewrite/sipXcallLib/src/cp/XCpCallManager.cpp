@@ -1354,6 +1354,13 @@ UtlBoolean XCpCallManager::handleUnknownPrackRequest(const SipMessage& rSipMessa
    return TRUE;
 }
 
+UtlBoolean XCpCallManager::handleUnknownInfoRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown INFO requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
+}
+
 // called for inbound request SipMessages, for which calls weren't found
 UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage)
 {
@@ -1391,8 +1398,12 @@ UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage
    {
       return handleUnknownPrackRequest(rSipMessage);
    }
+   else if(requestMethod.compareTo(SIP_INFO_METHOD) == 0)
+   {
+      return handleUnknownInfoRequest(rSipMessage);
+   }
 
-   // 481 Call/Transaction Does Not Exist must be sent automatically by transaction layer for other messages (INFO, NOTIFY)
+   // 481 Call/Transaction Does Not Exist must be sent automatically by somebody else for NOTIFY messages
    // multiple observers may receive the same SipMessage
    return FALSE;
 }
