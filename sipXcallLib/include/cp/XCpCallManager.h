@@ -581,6 +581,9 @@ private:
    /** Handler for inbound PRACK SipMessage, for which there is no existing call or conference. */
    UtlBoolean handleUnknownPrackRequest(const SipMessage& rSipMessage);
 
+   /** Handler for inbound INFO SipMessage, for which there is no existing call or conference. */
+   UtlBoolean handleUnknownInfoRequest(const SipMessage& rSipMessage);
+
    /** Does some basic checks on the SipMessage itself, and sends response if message is rejected. */
    UtlBoolean handleUnknownSipRequest(const SipMessage& rSipMessage);
 
