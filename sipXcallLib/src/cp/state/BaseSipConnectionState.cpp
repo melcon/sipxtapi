@@ -1006,6 +1006,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelResponse(cons
    // 481 and other fatal responses were already handled
    // if CANCEL succeeds, 487 Request Terminated will be sent on INVITE transaction (with cseq method INVITE)
    // and then we terminate INVITE transaction
+
    return NULL;
 }
 
@@ -1957,9 +1958,9 @@ void BaseSipConnectionState::sendInviteCancel()
    // send CANCEL
    if (m_rStateContext.m_pLastSentInvite)
    {
+      m_rStateContext.m_bCallDisconnecting = TRUE;
       int seqNum;
-      UtlString seqMethod;
-      m_rStateContext.m_pLastSentInvite->getCSeqField(seqNum, seqMethod);
+      m_rStateContext.m_pLastSentInvite->getCSeqField(&seqNum);
 
       SipMessage cancelRequest;
       prepareSipRequest(cancelRequest, SIP_CANCEL_METHOD, seqNum);
