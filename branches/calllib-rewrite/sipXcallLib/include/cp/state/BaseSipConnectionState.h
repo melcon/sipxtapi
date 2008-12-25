@@ -506,6 +506,12 @@ protected:
     */
    void prepareSipRequest(SipMessage& sipRequest, const UtlString& method, int cseqNum);
 
+   /** Handles INVITE redirects */
+   virtual SipConnectionStateTransition* handleInviteRedirectResponse(const SipMessage& sipMessage);
+
+   /** Follows next redirect, or terminates call if none are left */
+   virtual SipConnectionStateTransition* followNextRedirect();
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider

@@ -1187,6 +1187,7 @@ UtlBoolean XCpCallManager::handleSipMessageEvent(const SipMessageEvent& rSipMsgE
    if (pSipMessage)
    {
 #ifdef PRINT_SIP_MESSAGE
+      enableConsoleOutput(TRUE);
       osPrintf("\nXCpCallManager::handleSipMessageEvent\n%s\n-----------------------------------\n", pSipMessage->toString().data());
 #endif
       OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock

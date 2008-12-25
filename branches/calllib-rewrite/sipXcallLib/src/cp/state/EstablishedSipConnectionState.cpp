@@ -66,6 +66,9 @@ void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState, co
    // fire held/remotely held events if media session is held
    fireMediaSessionEvents(TRUE, TRUE);
 
+   m_rStateContext.m_bRedirecting = FALSE;
+   m_rStateContext.m_redirectContactList.destroyAll();
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry established connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }

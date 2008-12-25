@@ -133,6 +133,13 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
          SipResponseTransitionMemory memory(responseCode, responseText);
          return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
       }
+   case SIP_MULTI_CHOICE_CODE:
+   case SIP_PERMANENT_MOVE_CODE:
+   case SIP_TEMPORARY_MOVE_CODE:
+   case SIP_USE_PROXY_CODE:
+      {
+         return handleInviteRedirectResponse(sipMessage);
+      }
    default:
       ;
    }
