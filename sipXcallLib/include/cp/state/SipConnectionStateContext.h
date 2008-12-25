@@ -15,6 +15,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <utl/UtlSList.h>
 #include <net/SipTagGenerator.h>
 #include <net/SmimeBody.h>
 #include <cp/XSipConnectionContext.h>
@@ -89,6 +90,8 @@ public:
    SipMessage* m_pLastSent2xxToInvite; ///< last sent 2xx response to INVITE (sent until ACK is received)
    UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering
    UtlBoolean m_bSdpRenegotiationUseUpdate; ///< use UPDATE method for media session renegotiation
+   UtlSList m_redirectContactList; ///< contact URIs which should be followed in redirect
+   UtlBoolean m_bRedirecting; ///< TRUE if we are following redirection
 
    // members used during call tear down
    UtlBoolean m_bAckReceived; ///< TRUE if ACK was received for our sent 200 OK. Needed to make decision for callee if we may send BYE.

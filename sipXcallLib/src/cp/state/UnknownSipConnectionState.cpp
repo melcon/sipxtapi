@@ -63,6 +63,9 @@ void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const 
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   m_rStateContext.m_bRedirecting = FALSE;
+   m_rStateContext.m_redirectContactList.destroyAll();
+
    OsSysLog::add(FAC_CP, PRI_WARNING, "Entry unknown connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 

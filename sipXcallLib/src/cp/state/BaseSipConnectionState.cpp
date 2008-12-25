@@ -834,8 +834,16 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
             {
                // failure during initial INVITE, terminate dialog
                trackTransactionResponse(sipMessage);
-               SipResponseTransitionMemory memory(statusCode, statusText);
-               return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+               if (connectionState == ISipConnectionState::CONNECTION_REMOTE_OFFERING && m_rStateContext.m_bRedirecting)
+               {
+                  // we are redirecting and redirect failed, try next one
+                  return followNextRedirect();
+               }
+               else
+               {
+                  SipResponseTransitionMemory memory(statusCode, statusText);
+                  return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+               }
             }
             // otherwise re-INVITE failed
             ;
@@ -1934,8 +1942,6 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
       //prepareSdpAnswer
    }
 
-   sendMessage(sipRequest); // send ACK
-
    negotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
    if (negotiationState != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
    {
@@ -1946,6 +1952,8 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
       // SDP negotiation is complete, commit changes
       commitMediaSessionChanges();
    }
+
+   sendMessage(sipRequest); // send ACK
 
    if (bProtocolError || m_rStateContext.m_bCallDisconnecting)
    {
@@ -2685,6 +2693,99 @@ void BaseSipConnectionState::prepareSipRequest(SipMessage& sipRequest, const Utl
 {
    OsWriteLock lock(m_rStateContext);
    m_rStateContext.m_sipDialog.setRequestData(sipRequest, method, cseqNum);
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleInviteRedirectResponse(const SipMessage& sipMessage)
+{
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   sipMessage.getResponseStatusText(&responseText);
+
+   UtlString contactUri;
+   int index = 0;
+
+   // go through all contacts
+   while (sipMessage.getContactUri(index++, &contactUri))
+   {
+      m_rStateContext.m_redirectContactList.append(contactUri.clone()); // append duplicate uri
+   }
+
+   if (m_rStateContext.m_redirectContactList.entries() > 0)
+   {
+      // we are redirecting
+      m_rStateContext.m_bRedirecting = TRUE;
+      return followNextRedirect();
+   }
+   else
+   {
+      // no contacts present, give up
+      GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REDIRECTED, responseCode, responseText);
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   }
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::followNextRedirect()
+{
+   if (m_rStateContext.m_redirectContactList.entries() > 0)
+   {
+      Url fromField;
+      Url toField;
+      UtlString sipCallId;
+      UtlString contactUrl(getLocalContactUrl());
+      // get next contact, and construct new INVITE
+      {
+         OsReadLock lock(m_rStateContext);
+         m_rStateContext.m_sipDialog.getLocalField(fromField);
+         m_rStateContext.m_sipDialog.getRemoteField(toField);
+         m_rStateContext.m_sipDialog.getCallId(sipCallId);
+      }
+      // keep tag of from field, but remove it from toField
+      toField.removeFieldParameters();
+      int cseqNum = getRandomCSeq();
+
+      SipMessage sipInvite;
+      sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
+      sipInvite.setInviteData(fromField.toString(), toField.toString(),
+         NULL, contactUrl, sipCallId,
+         cseqNum, m_rStateContext.m_sessionTimerProperties.getSessionExpires());
+
+      UtlString* pRedirectContactUri = dynamic_cast<UtlString*>(m_rStateContext.m_redirectContactList.get());
+      if (pRedirectContactUri)
+      {
+         sipInvite.changeUri(*pRedirectContactUri); // for redirect, change just the URI, not toField
+
+         if (!m_rStateContext.m_locationHeader.isNull())
+         {
+            sipInvite.setLocationField(m_rStateContext.m_locationHeader);
+         }
+
+         initializeSipDialog(sipInvite); // restart sip dialog
+
+         // add SDP if negotiation mode is immediate, otherwise don't add it
+         if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
+         {
+            if (!prepareSdpOffer(sipInvite))
+            {
+               // SDP negotiation start failed
+               // media connection creation failed
+               GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_RESOURCE_LIMIT);
+               return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+            }
+         }
+
+         // try to send sip message
+         UtlBoolean sendSuccess = sendMessage(sipInvite);
+         if (!sendSuccess)
+         {
+            GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NETWORK);
+            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+         }
+      }
+   }
+
+   // no contacts present, give up
+   GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REDIRECTED);
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

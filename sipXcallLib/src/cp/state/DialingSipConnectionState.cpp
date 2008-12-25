@@ -93,14 +93,15 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
                                                                  CP_CONTACT_ID contactId)
 {
    m_rStateContext.m_contactId = contactId;
+   result = OS_FAILED;
 
    SipMessage sipInvite;
    Url fromField(fromAddress);
    int cseqNum = getRandomCSeq();
 
+   secureUrl(fromField);
    UtlString contactUrl = buildContactUrl(fromField); // fromUrl without tag
    fromField.setFieldParameter("tag", localTag);
-   secureUrl(fromField);
    sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
 
    m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
