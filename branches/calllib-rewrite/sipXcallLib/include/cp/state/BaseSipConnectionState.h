@@ -263,10 +263,10 @@ protected:
    UtlBoolean isLocalInitiatedDialog();
 
    /** Gets the outbound transaction manager */
-   CpSipTransactionManager& getOutTransactionManager() const;
+   CpSipTransactionManager& getClientTransactionManager() const;
 
    /** Gets the inbound transaction manager */
-   CpSipTransactionManager& getInTransactionManager() const;
+   CpSipTransactionManager& getServerTransactionManager() const;
 
    /** Gets ID of media connection */
    int getMediaConnectionId() const;
@@ -448,11 +448,11 @@ protected:
    /** Gets random CSeq number for bootstrap */
    int getRandomCSeq() const;
 
-   /** Must be called for inbound requests to track inbound transactions */
-   void trackInboundTransactionRequest(const SipMessage& sipMessage);
+   /** Must be called for requests to track inbound/outbound transactions */
+   void trackTransactionRequest(const SipMessage& sipMessage);
 
-   /** Must be called for outbound responses to track inbound transactions */
-   void trackInboundTransactionResponse(const SipMessage& sipMessage);
+   /** Must be called for responses to track inbound/outbound transactions */
+   void trackTransactionResponse(const SipMessage& sipMessage);
 
    /**
     * Gets state of invite transaction. Considers both outbound and inbound invite transactions.
@@ -460,10 +460,10 @@ protected:
    CpSipTransactionManager::InviteTransactionState getInviteTransactionState() const;
 
    /** Gets state of inbound invite transaction. */
-   CpSipTransactionManager::InviteTransactionState getInInviteTransactionState() const;
+   CpSipTransactionManager::InviteTransactionState getServerInviteTransactionState() const;
 
    /** Gets state of outbound invite transaction. */
-   CpSipTransactionManager::InviteTransactionState getOutInviteTransactionState() const;
+   CpSipTransactionManager::InviteTransactionState getClientInviteTransactionState() const;
 
    /** Starts hold/unhold timer to execute the action later. If bCleanStart is TRUE, then restart counting. */
    void startSessionRenegotiationTimer(ScReInviteTimerMsg::ReInviteReason reason, UtlBoolean bCleanStart = TRUE);
@@ -476,12 +476,6 @@ protected:
 
    /** Returns TRUE if we may start renegotiating media session now */
    UtlBoolean mayRenegotiateMediaSession();
-
-   /** Terminates inbound or outbound invite transaction regardless of cseq number */
-   void endInviteTransaction();
-
-   /** Terminates inbound or outbound invite transaction, taking into account cseq number */
-   void endInviteTransaction(UtlBoolean bIsOutboundTransaction, int cseqNumber);
 
    /** Initiates hold via re-INVITE or UPDATE */
    void doHold();

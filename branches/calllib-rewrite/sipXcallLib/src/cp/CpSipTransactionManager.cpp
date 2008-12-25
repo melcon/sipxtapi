@@ -71,7 +71,7 @@ CpSipTransactionManager::~CpSipTransactionManager()
 
 /* ============================ MANIPULATORS ============================== */
 
-void CpSipTransactionManager::startTransaction(const UtlString& sipMethod, int cseqNum)
+UtlBoolean CpSipTransactionManager::startTransaction(const UtlString& sipMethod, int cseqNum)
 {
    if (sipMethod.compareTo(SIP_INVITE_METHOD) != 0)
    {
@@ -81,14 +81,16 @@ void CpSipTransactionManager::startTransaction(const UtlString& sipMethod, int c
       if (!pTransactionState)
       {
          m_transactionMap.insertKeyAndValue(new UtlInt(cseqNum), new CpTransactionState(sipMethod, cseqNum)); // if its not already there then add it
+         notifyTransactionStart(sipMethod, cseqNum);
+         return TRUE;
       }
-
-      notifyTransactionStart(sipMethod, cseqNum);
    }
    else
    {
-      startInitialInviteTransaction(cseqNum);
+      return startInitialInviteTransaction(cseqNum);
    }
+
+   return FALSE;
 }
 
 UtlBoolean CpSipTransactionManager::startInitialInviteTransaction(int cseqNum)
@@ -123,20 +125,6 @@ UtlBoolean CpSipTransactionManager::startReInviteTransaction(int cseqNum)
    }
 }
 
-UtlBoolean CpSipTransactionManager::upgradeInviteToReInviteTransaction(int cseqNum)
-{
-   if (m_inviteTransactionState != CpSipTransactionManager::INVITE_INACTIVE &&
-       m_iInviteCSeq == cseqNum)
-   {
-      m_inviteTransactionState = CpSipTransactionManager::REINVITE_ACTIVE;
-      return TRUE;
-   }
-   else
-   {
-      return FALSE;
-   }
-}
-
 UtlBoolean CpSipTransactionManager::updateInviteTransaction(int cseqNum)
 {
    if (m_inviteTransactionState != CpSipTransactionManager::INVITE_INACTIVE &&
@@ -151,7 +139,7 @@ UtlBoolean CpSipTransactionManager::updateInviteTransaction(int cseqNum)
    return FALSE;
 }
 
-void CpSipTransactionManager::endTransaction(const UtlString& sipMethod, int cseqNum)
+UtlBoolean CpSipTransactionManager::endTransaction(const UtlString& sipMethod, int cseqNum)
 {
    cleanOldTransactions(); // maybe cleanup old terminated transactions
 
@@ -161,6 +149,7 @@ void CpSipTransactionManager::endTransaction(const UtlString& sipMethod, int cse
       if (m_iInviteCSeq == cseqNum)
       {
          endInviteTransaction();
+         return TRUE;
       }
    }
    else
@@ -174,12 +163,15 @@ void CpSipTransactionManager::endTransaction(const UtlString& sipMethod, int cse
          {
             notifyTransactionEnd(sipMethod, cseqNum); // end old transaction
             pTransactionState->m_transactionState = CpSipTransactionManager::TRANSACTION_TERMINATED;
+            return TRUE;
          }
       }
    }
+
+   return FALSE;
 }
 
-void CpSipTransactionManager::endTransaction(int cseqNum)
+UtlBoolean CpSipTransactionManager::endTransaction(int cseqNum)
 {
    cleanOldTransactions(); // maybe cleanup old terminated transactions
 
@@ -187,6 +179,7 @@ void CpSipTransactionManager::endTransaction(int cseqNum)
    if (m_iInviteCSeq == cseqNum)
    {
       endInviteTransaction();
+      return TRUE;
    }
    else
    {
@@ -197,8 +190,11 @@ void CpSipTransactionManager::endTransaction(int cseqNum)
       {
          notifyTransactionEnd(pTransactionState->m_sipMethod, cseqNum); // end old transaction
          pTransactionState->m_transactionState = CpSipTransactionManager::TRANSACTION_TERMINATED;
+         return TRUE;
       }
    }
+
+   return FALSE;
 }
 
 void CpSipTransactionManager::endInviteTransaction()

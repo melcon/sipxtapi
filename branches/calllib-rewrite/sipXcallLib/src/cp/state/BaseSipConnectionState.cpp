@@ -43,7 +43,7 @@
 
 // DEFINES
 // CANCEL doesn't need transaction tracking
-#define TRACKABLE_METHODS "INVITE UPDATE INFO NOTIFY REFER OPTIONS PRACK"
+#define TRACKABLE_METHODS "INVITE UPDATE INFO NOTIFY REFER OPTIONS PRACK SUBSCRIBE BYE"
 #define MAX_RENEGOTIATION_RETRY_COUNT 10
 
 // EXTERNAL FUNCTIONS
@@ -112,7 +112,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleSipMessageEvent(cons
       case SipMessageEvent::TRANSPORT_ERROR:
          {
             // drop the whole dialog
-            getOutTransactionManager().endInviteTransaction();
+            getClientTransactionManager().endInviteTransaction();
             SipEventTransitionMemory memory(messageType);
             return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
          }
@@ -268,8 +268,9 @@ SipConnectionStateTransition* BaseSipConnectionState::sendInfo(OsStatus& result,
       {
          // dialog is established (early or confirmed), we may send info
          int iCSeq = getNextLocalCSeq();
-         getOutTransactionManager().startTransaction(SIP_INFO_METHOD, iCSeq);
-         getOutTransactionManager().setTransactionData(SIP_INFO_METHOD, iCSeq, pCookie); // assign cookie to transaction
+         // start transaction manually because we need to store custom data in it
+         getClientTransactionManager().startTransaction(SIP_INFO_METHOD, iCSeq);
+         getClientTransactionManager().setTransactionData(SIP_INFO_METHOD, iCSeq, pCookie); // assign cookie to transaction
          SipMessage infoRequest;
          prepareSipRequest(infoRequest, SIP_INFO_METHOD, iCSeq);
 
@@ -383,6 +384,8 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
 
    if (sipMessage.isRequest())
    {
+      trackTransactionRequest(sipMessage);
+
       UtlString method;
       sipMessage.getRequestMethod(&method);
       if (method.compareTo(SIP_INVITE_METHOD) == 0)
@@ -393,11 +396,27 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
    }
    else
    {
-      // this is a response to remote request
-      trackInboundTransactionResponse(sipMessage);
+      trackTransactionResponse(sipMessage);
    }
 
-   return m_rSipUserAgent.send(sipMessage);
+   UtlBoolean res =  m_rSipUserAgent.send(sipMessage);
+   if (!res)
+   {
+      // send failure, terminate transaction
+      int seqNum;
+      UtlString seqMethod;
+      sipMessage.getCSeqField(&seqNum, &seqMethod);
+      if (sipMessage.isRequest())
+      {
+         getClientTransactionManager().endTransaction(seqMethod, seqNum);
+      }
+      else
+      {
+         getServerTransactionManager().endTransaction(seqMethod, seqNum);
+      }
+   }
+
+   return res;
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::processSipMessage(const SipMessage& sipMessage)
@@ -419,6 +438,8 @@ SipConnectionStateTransition* BaseSipConnectionState::processSipMessage(const Si
 
 SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMessage& sipMessage)
 {
+   trackTransactionRequest(sipMessage);
+
    // process inbound sip message request
    UtlString method;
    sipMessage.getRequestMethod(&method);
@@ -430,8 +451,6 @@ SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMe
    {
       m_rStateContext.m_allowedRemote = allowField;
    }
-
-   trackInboundTransactionRequest(sipMessage);
 
    if (method.compareTo(SIP_INVITE_METHOD) == 0)
    {
@@ -555,7 +574,6 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
    int cseqNumber = 0;
    UtlString cseqMethod;
    sipMessage.getCSeqField(cseqNumber, cseqMethod);
-   getInTransactionManager().endTransaction(SIP_INVITE_METHOD, cseqNumber);
 
    if (m_rStateContext.m_pLastSent2xxToInvite)
    {
@@ -627,15 +645,16 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
    if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
       connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
    {
-      CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(iSeqNumber);
+      CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(iSeqNumber);
       if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
       {
-         if (getInTransactionManager().isInviteTransaction(iSeqNumber))
+         if (getServerTransactionManager().isInviteTransaction(iSeqNumber))
          {
-            CpSipTransactionManager::InviteTransactionState inviteState = getInTransactionManager().getInviteTransactionState();
+            CpSipTransactionManager::InviteTransactionState inviteState = getServerTransactionManager().getInviteTransactionState();
             if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
             {
                // cancel of initial invite, disconnect call, send 487 Request terminated
+               getServerTransactionManager().endTransaction(iSeqNumber);
                sipResponse.setRequestTerminatedResponseData(&sipMessage);
                sendMessage(sipResponse);
                return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
@@ -643,7 +662,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
             else
             {
                // cancel of re-invite, just end transaction
-               getInTransactionManager().endTransaction(iSeqNumber);
+               getServerTransactionManager().endTransaction(iSeqNumber);
                // send 200 OK, not possible to terminate. Has no effect. We already responded to re-INVITE
                sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
                sendMessage(sipResponse);
@@ -652,7 +671,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
          else
          {
             // it was some other method
-            getInTransactionManager().endTransaction(iSeqNumber);
+            getServerTransactionManager().endTransaction(iSeqNumber);
             // send 200 OK, not possible to terminate. Has no effect.
             sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
             sendMessage(sipResponse);
@@ -711,7 +730,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processInfoRequest(const S
    UtlString cseqMethod;
    sipMessage.getCSeqField(&cseqNum, &cseqMethod);
 
-   CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(cseqMethod, cseqNum);
+   CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(cseqMethod, cseqNum);
    if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
    {
       // this is not a retransmit
@@ -768,8 +787,9 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
       UtlString statusText;
       sipMessage.getResponseStatusText(&statusText);
 
-      CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(seqMethod, iSeqNumber);
-      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      CpSipTransactionManager::TransactionState transactionState = getClientTransactionManager().getTransactionState(seqMethod, iSeqNumber);
+      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE ||
+          seqMethod.compareTo(SIP_CANCEL_METHOD) == 0) // we don't track CANCEL transactions, allow it implicitly
       {
          switch (statusCode)
          {
@@ -784,7 +804,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
          case SIP_BAD_GATEWAY_CODE: // 502
          case SIP_DOESNT_EXIST_ANYWHERE_CODE: // 604
             {
-               getOutTransactionManager().endTransaction(seqMethod, iSeqNumber);
+               trackTransactionResponse(sipMessage);
                SipResponseTransitionMemory memory(statusCode, statusText);
                return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
             }
@@ -796,7 +816,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
          case SIP_UNIMPLEMENTED_METHOD_CODE: // 501
             if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
             {
-               getOutTransactionManager().endTransaction(seqMethod, iSeqNumber);
+               trackTransactionResponse(sipMessage);
                SipResponseTransitionMemory memory(statusCode, statusText);
                return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
             }
@@ -806,14 +826,14 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
          // the original media session
          default:
             // handle unknown 4XX, 5XX, 6XX
-            CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
+            CpSipTransactionManager::InviteTransactionState inviteState = getClientTransactionManager().getInviteTransactionState();
             if (statusCode >= SIP_4XX_CLASS_CODE && statusCode < SIP_7XX_CLASS_CODE &&
                 statusCode != SIP_SMALL_SESSION_INTERVAL_CODE && // 422 means we can still retry
                 seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
                 inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
             {
                // failure during initial INVITE, terminate dialog
-               getOutTransactionManager().endTransaction(seqMethod, iSeqNumber);
+               trackTransactionResponse(sipMessage);
                SipResponseTransitionMemory memory(statusCode, statusText);
                return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
             }
@@ -821,11 +841,14 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
             ;
          }
 
-         return processNonFatalResponse(sipMessage);
+         SipConnectionStateTransition* pTransition = processNonFatalResponse(sipMessage);
+         trackTransactionResponse(sipMessage);
+         return pTransition;
       }
       // if transaction was not found or is terminated then ignore response
    }
 
+   trackTransactionResponse(sipMessage);
    return NULL; // no transition
 }
 
@@ -944,13 +967,6 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(cons
       } // if error then nothing happens
    }
 
-   if (responseCode >= SIP_2XX_CLASS_CODE)
-   {
-      int cseqNum = -1;
-      sipMessage.getCSeqField(&cseqNum, NULL);
-      getOutTransactionManager().endTransaction(SIP_UPDATE_METHOD, cseqNum);
-   }
-
    return NULL;
 }
 
@@ -963,22 +979,13 @@ SipConnectionStateTransition* BaseSipConnectionState::processByeResponse(const S
    {
       int responseCode = sipMessage.getResponseStatusCode();
       UtlString responseText;
-      int sequenceNum;
-      UtlString sequenceMethod;
-
       sipMessage.getResponseStatusText(&responseText);
-      sipMessage.getCSeqField(&sequenceNum, &sequenceMethod);
 
-      CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(sequenceMethod, sequenceNum);
-      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      if (responseCode == SIP_OK_CODE)
       {
-         getOutTransactionManager().endTransaction(sequenceMethod, sequenceNum);
-         if (responseCode == SIP_OK_CODE)
-         {
-            // progress to disconnected state
-            SipResponseTransitionMemory memory(responseCode, responseText);
-            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
-         }
+         // progress to disconnected state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
       }
    }
 
@@ -1001,11 +1008,11 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelResponse(cons
       sipMessage.getCSeqField(&sequenceNum, &sequenceMethod);
 
       // only CANCEL for INVITE is supported, other methods provide immediate response
-      CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(SIP_INVITE_METHOD, sequenceNum);
+      CpSipTransactionManager::TransactionState transactionState = getClientTransactionManager().getTransactionState(SIP_INVITE_METHOD, sequenceNum);
       if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
       {
-         getOutTransactionManager().endTransaction(SIP_INVITE_METHOD, sequenceNum);
-         if (responseCode == SIP_OK_CODE)
+         getClientTransactionManager().endTransaction(SIP_INVITE_METHOD, sequenceNum);
+         if (responseCode == SIP_REQUEST_TERMINATED_CODE)
          {
             // progress to disconnected state
             SipResponseTransitionMemory memory(responseCode, responseText);
@@ -1027,32 +1034,23 @@ SipConnectionStateTransition* BaseSipConnectionState::processInfoResponse(const 
    sipMessage.getResponseStatusText(&responseText);
    sipMessage.getCSeqField(&cseqNum, &cseqMethod);
 
-   CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(cseqMethod, cseqNum);
-   if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   void* pCookie = getClientTransactionManager().getTransactionData(cseqMethod, cseqNum);
+   // ignore 100 Trying
+   if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
    {
-      void* pCookie = getOutTransactionManager().getTransactionData(cseqMethod, cseqNum);
-      // ignore 100 Trying
-      if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
-      {
-         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_OK, responseText, responseCode, pCookie);
-      }
-      else if (responseCode >= SIP_3XX_CLASS_CODE && responseCode < SIP_5XX_CLASS_CODE)
-      {
-         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_FAILURE, responseText, responseCode, pCookie);
-      }
-      else if (responseCode >= SIP_5XX_CLASS_CODE && responseCode < SIP_6XX_CLASS_CODE)
-      {
-         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_SERVER_FAILURE, responseText, responseCode, pCookie);
-      }
-      else if (responseCode >= SIP_6XX_CLASS_CODE)
-      {
-         m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_GLOBAL_FAILURE, responseText, responseCode, pCookie);
-      }
-
-      if (responseCode >= SIP_2XX_CLASS_CODE)
-      {
-         getOutTransactionManager().endTransaction(cseqMethod, cseqNum);
-      }
+      m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_OK, responseText, responseCode, pCookie);
+   }
+   else if (responseCode >= SIP_3XX_CLASS_CODE && responseCode < SIP_5XX_CLASS_CODE)
+   {
+      m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_FAILURE, responseText, responseCode, pCookie);
+   }
+   else if (responseCode >= SIP_5XX_CLASS_CODE && responseCode < SIP_6XX_CLASS_CODE)
+   {
+      m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_SERVER_FAILURE, responseText, responseCode, pCookie);
+   }
+   else if (responseCode >= SIP_6XX_CLASS_CODE)
+   {
+      m_rSipConnectionEventSink.fireSipXInfoStatusEvent(CP_INFOSTATUS_RESPONSE, SIPXTACK_MESSAGE_GLOBAL_FAILURE, responseText, responseCode, pCookie);
    }
 
    return NULL;
@@ -1061,29 +1059,14 @@ SipConnectionStateTransition* BaseSipConnectionState::processInfoResponse(const 
 SipConnectionStateTransition* BaseSipConnectionState::processOptionsResponse(const SipMessage& sipMessage)
 {
    int responseCode = sipMessage.getResponseStatusCode();
-   UtlString responseText;
-   int cseqNum;
-   UtlString cseqMethod;
 
-   sipMessage.getResponseStatusText(&responseText);
-   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
-
-   CpSipTransactionManager::TransactionState transactionState = getOutTransactionManager().getTransactionState(cseqMethod, cseqNum);
-   if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   if (responseCode == SIP_OK_CODE)
    {
-      if (responseCode == SIP_OK_CODE)
+      UtlString allowField;
+      sipMessage.getAllowField(allowField);
+      if (!allowField.isNull())
       {
-         UtlString allowField;
-         sipMessage.getAllowField(allowField);
-         if (!allowField.isNull())
-         {
-            m_rStateContext.m_allowedRemote = allowField;
-         }
-      }
-
-      if (responseCode >= SIP_2XX_CLASS_CODE)
-      {
-         getOutTransactionManager().endTransaction(cseqMethod, cseqNum);
+         m_rStateContext.m_allowedRemote = allowField;
       }
    }
 
@@ -1127,16 +1110,16 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
             // start next transaction for authentication retry request we never see here
             if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
             {
-               getOutTransactionManager().updateInviteTransaction(seqNum + 1);
+               getClientTransactionManager().updateInviteTransaction(seqNum + 1);
             }
             else
             {
                // non INVITE transaction
-               getOutTransactionManager().endTransaction(seqNum); // end current transaction
+               getClientTransactionManager().endTransaction(seqNum); // end current transaction
                // SipUserAgent uses seqNum+1 for authentication retransmission. That works only
                // if we don't send 2 messages quickly that both need to be authenticated
                getNextLocalCSeq(); // skip 1 cseq number
-               getOutTransactionManager().startTransaction(seqMethod, seqNum + 1); // start new transaction with the same method
+               getClientTransactionManager().startTransaction(seqMethod, seqNum + 1); // start new transaction with the same method
             }
 
             // also update sdp negotiation for INVITE & UPDATE
@@ -1195,9 +1178,6 @@ void BaseSipConnectionState::deleteMediaConnection()
 
 void BaseSipConnectionState::terminateSipDialog()
 {
-   getOutTransactionManager().endInviteTransaction();
-   getInTransactionManager().endInviteTransaction();
-
    {
       OsWriteLock lock(m_rStateContext);
       m_rStateContext.m_sipDialog.terminateDialog();
@@ -1210,14 +1190,14 @@ UtlBoolean BaseSipConnectionState::isLocalInitiatedDialog()
    return m_rStateContext.m_sipDialog.isLocalInitiatedDialog();
 }
 
-CpSipTransactionManager& BaseSipConnectionState::getOutTransactionManager() const
+CpSipTransactionManager& BaseSipConnectionState::getClientTransactionManager() const
 {
-   return m_rStateContext.m_sipOutTransactionMgr;
+   return m_rStateContext.m_sipClientTransactionMgr;
 }
 
-CpSipTransactionManager& BaseSipConnectionState::getInTransactionManager() const
+CpSipTransactionManager& BaseSipConnectionState::getServerTransactionManager() const
 {
-   return m_rStateContext.m_sipInTransactionMgr;
+   return m_rStateContext.m_sipServerTransactionMgr;
 }
 
 int BaseSipConnectionState::getMediaConnectionId() const
@@ -1555,6 +1535,8 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
       return TRUE;
    }
 
+   // creation of SDP offer failed for some reason, reset SDP negotiation
+   m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    return FALSE;
 }
 
@@ -1571,6 +1553,8 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
       {
          if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
          {
+            // handling of SDP offer failed for some reason, reset SDP negotiation
+            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
             return FALSE;
          }
       }
@@ -1579,6 +1563,8 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
       return handleRemoteSdpBody(*pSdpBody);
    }
 
+   // handling of SDP offer failed for some reason, reset SDP negotiation
+   m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    return FALSE;
 }
 
@@ -1704,6 +1690,8 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
       return TRUE;
    }
 
+   // handling of SDP body failed for some reason, reset SDP negotiation
+   m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    return FALSE;
 }
 
@@ -1848,15 +1836,15 @@ void BaseSipConnectionState::handleSmallInviteSessionInterval(const SipMessage& 
    UtlString seqMethod;
 
    sipMessage.getCSeqField(iSeqNumber, seqMethod);
-   CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
-   getOutTransactionManager().endTransaction(seqMethod, iSeqNumber);
+   CpSipTransactionManager::InviteTransactionState inviteState = getClientTransactionManager().getInviteTransactionState();
+   getClientTransactionManager().endTransaction(seqMethod, iSeqNumber);
 
    if (sipMessage.getMinSe(minSe) && inviteState != CpSipTransactionManager::INVITE_INACTIVE)
    {
       m_rStateContext.m_sessionTimerProperties.setMinSessionExpires(minSe);
       m_rStateContext.m_sessionTimerProperties.setSessionExpires(minSe);
 
-      if (m_rStateContext.m_pLastSentInvite && !getOutTransactionManager().isInviteTransactionActive())
+      if (m_rStateContext.m_pLastSentInvite && !getClientTransactionManager().isInviteTransactionActive())
       {
          SipMessage sipInvite(*m_rStateContext.m_pLastSentInvite);
          // update session expires
@@ -1867,14 +1855,6 @@ void BaseSipConnectionState::handleSmallInviteSessionInterval(const SipMessage& 
          sipInvite.setMinSe(minSe);
          // update transaction
          int cseqNum = getNextLocalCSeq();
-         if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
-         {
-            getOutTransactionManager().startInitialInviteTransaction(cseqNum);
-         }
-         else
-         {
-            getOutTransactionManager().startReInviteTransaction(cseqNum);
-         }
          sipInvite.setCSeqField(cseqNum, SIP_INVITE_METHOD);
          sendMessage(sipInvite); // also saves last invite message again
       }
@@ -1885,7 +1865,6 @@ void BaseSipConnectionState::sendOptionsRequest()
 {
    // allow was not set in response, send OPTIONS
    int iCSeq = getNextLocalCSeq();
-   getOutTransactionManager().startTransaction(SIP_OPTIONS_METHOD, iCSeq);
    SipMessage optionsRequest;
    prepareSipRequest(optionsRequest, SIP_OPTIONS_METHOD, iCSeq);
    sendMessage(optionsRequest);
@@ -1943,17 +1922,19 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
          // message has sdp bodyContent, and we are in negotiation (SDP was in INVITE)
          handleSdpAnswer(sipResponse);
       }
-      else if (negotiationState == CpSdpNegotiation::SDP_NOT_YET_NEGOTIATED)
+      else if (negotiationState == CpSdpNegotiation::SDP_NOT_NEGOTIATED)
       {
          // delayed SDP negotiation
          bProtocolError = !handleSdpOffer(sipResponse); // if we get false, we need to terminate call
-         prepareSdpAnswer(sipRequest);
+         if (!bProtocolError)
+         {
+            prepareSdpAnswer(sipRequest);
+         } // if protocol error, then sdp negotiation was reset already, and we cannot send SDP answer in ACK
       }
       //prepareSdpAnswer
    }
 
    sendMessage(sipRequest); // send ACK
-   endInviteTransaction(TRUE, seqNum);
 
    negotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
    if (negotiationState != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
@@ -1974,13 +1955,16 @@ void BaseSipConnectionState::handleInvite2xxResponse(const SipMessage& sipRespon
 
 void BaseSipConnectionState::sendBye()
 {
-   // send BYE
-   SipMessage byeRequest;
-   int seqNum = getNextLocalCSeq();
-   getOutTransactionManager().startTransaction(SIP_BYE_METHOD, seqNum);
-   prepareSipRequest(byeRequest, SIP_BYE_METHOD, seqNum);
-   sendMessage(byeRequest);
-   startByeTimeoutTimer(); // start bye timer to force destroy connection after some timeout
+   if (!m_rStateContext.m_bByeSent)
+   {
+      // send BYE
+      m_rStateContext.m_bByeSent = TRUE;
+      SipMessage byeRequest;
+      int seqNum = getNextLocalCSeq();
+      prepareSipRequest(byeRequest, SIP_BYE_METHOD, seqNum);
+      sendMessage(byeRequest);
+      startByeTimeoutTimer(); // start bye timer to force destroy connection after some timeout
+   }
 }
 
 void BaseSipConnectionState::sendInviteCancel()
@@ -2005,7 +1989,6 @@ void BaseSipConnectionState::sendReInvite()
    int seqNum = getNextLocalCSeq();
 
    sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
-   getOutTransactionManager().startReInviteTransaction(seqNum);
    prepareSipRequest(sipInvite, SIP_INVITE_METHOD, seqNum);
 
    int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
@@ -2022,7 +2005,6 @@ void BaseSipConnectionState::sendReInvite()
       if (!prepareSdpOffer(sipInvite))
       {
          // SDP negotiation start failed
-         getOutTransactionManager().endInviteTransaction();
          OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for re-INVITE failed.\n");
          return;
       }
@@ -2034,7 +2016,6 @@ void BaseSipConnectionState::sendReInvite()
    if (!sendSuccess)
    {
       OsSysLog::add(FAC_CP, PRI_ERR, "Sending re-INVITE failed.\n");
-      getOutTransactionManager().endInviteTransaction();
    }
 }
 
@@ -2044,7 +2025,6 @@ void BaseSipConnectionState::sendUpdate()
    int seqNum = getNextLocalCSeq();
 
    sipUpdate.setSecurityAttributes(m_rStateContext.m_pSecurity);
-   getOutTransactionManager().startTransaction(SIP_UPDATE_METHOD, seqNum);
    prepareSipRequest(sipUpdate, SIP_UPDATE_METHOD, seqNum);
 
    int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
@@ -2058,7 +2038,6 @@ void BaseSipConnectionState::sendUpdate()
    if (!prepareSdpOffer(sipUpdate))
    {
       // SDP negotiation start failed
-      getOutTransactionManager().endTransaction(SIP_UPDATE_METHOD, seqNum);
       OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for UPDATE failed.\n");
       return;
    }
@@ -2069,7 +2048,6 @@ void BaseSipConnectionState::sendUpdate()
    if (!sendSuccess)
    {
       OsSysLog::add(FAC_CP, PRI_ERR, "Sending UPDATE failed.\n");
-      getOutTransactionManager().endTransaction(SIP_UPDATE_METHOD, seqNum);
    }
 }
 
@@ -2408,14 +2386,17 @@ int BaseSipConnectionState::getRandomCSeq() const
    return (abs(randomGenerator.rand()) % 65535);
 }
 
-void BaseSipConnectionState::trackInboundTransactionRequest(const SipMessage& sipMessage)
+void BaseSipConnectionState::trackTransactionRequest(const SipMessage& sipMessage)
 {
    int cseqNum;
    UtlString cseqMethod;
    sipMessage.getCSeqField(cseqNum, cseqMethod);
+
+   CpSipTransactionManager& transactionManager = sipMessage.isFromThisSide() ? getClientTransactionManager() : getServerTransactionManager();
+
    if (needsTransactionTracking(cseqMethod))
    {
-      CpSipTransactionManager::TransactionState transactionState = getInTransactionManager().getTransactionState(cseqNum);
+      CpSipTransactionManager::TransactionState transactionState = transactionManager.getTransactionState(cseqNum);
 
       if (transactionState == CpSipTransactionManager::TRANSACTION_NOT_FOUND)
       {
@@ -2426,40 +2407,61 @@ void BaseSipConnectionState::trackInboundTransactionRequest(const SipMessage& si
             if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
             {
                // this must be a re-INVITE
-               getInTransactionManager().startReInviteTransaction(cseqNum);
+               transactionManager.startReInviteTransaction(cseqNum);
             }
             else
             {
                // this must be the initial INVITE
-               getInTransactionManager().startInitialInviteTransaction(cseqNum);
+               transactionManager.startInitialInviteTransaction(cseqNum);
             }
          }
          else
          {
-            getInTransactionManager().startTransaction(cseqMethod, cseqNum);
+            transactionManager.startTransaction(cseqMethod, cseqNum);
          }
+      }
+   }
+
+   if (cseqMethod.compareTo(SIP_ACK_METHOD) == 0)
+   {
+      // inbound ACK terminates some inbound INVITE transaction, outbound ACK terminates outbound INVITE transaction
+      UtlBoolean res = transactionManager.endTransaction(SIP_INVITE_METHOD, cseqNum);
+      if (res && m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage))
+      {
+         // INVITE transaction that is in SDP negotiation, reset SDP negotiation
+         m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
       }
    }
 }
 
-void BaseSipConnectionState::trackInboundTransactionResponse(const SipMessage& sipMessage)
+void BaseSipConnectionState::trackTransactionResponse(const SipMessage& sipMessage)
 {
    int cseqNum;
    UtlString cseqMethod;
    sipMessage.getCSeqField(cseqNum, cseqMethod);
    int statusCode = sipMessage.getResponseStatusCode();
+
    if (needsTransactionTracking(cseqMethod))
    {
+      CpSipTransactionManager& transactionManager = sipMessage.isFromThisSide() ? getServerTransactionManager() : getClientTransactionManager();
+
       if (cseqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
           statusCode >= SIP_2XX_CLASS_CODE && statusCode < SIP_3XX_CLASS_CODE)
       {
-         // INVITE transaction with 2xx response ends with ACK
+         // INVITE transaction ends with ACK for 2xx code, since it is us who sends the ACK
          // therefore do nothing here
       }
       else if (statusCode >= SIP_2XX_CLASS_CODE)
       {
-         // checks automatically if transaction exists
-         getInTransactionManager().endTransaction(cseqMethod, cseqNum);
+         // also handles INVITE 3xx and greater responses - terminate transaction now, 
+         // since ACK is sent automatically by transaction layer and we will never see it
+         UtlBoolean res = transactionManager.endTransaction(cseqMethod, cseqNum);
+         if (res && (cseqMethod.compareTo(SIP_INVITE_METHOD) == 0 || cseqMethod.compareTo(SIP_UPDATE_METHOD) == 0) &&
+             m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage))
+         {
+            // INVITE/UPDATE transaction that is in SDP negotiation, reset SDP negotiation
+            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+         }
       }
       // 1xx don't end transaction
    }
@@ -2467,24 +2469,24 @@ void BaseSipConnectionState::trackInboundTransactionResponse(const SipMessage& s
 
 CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getInviteTransactionState() const
 {
-   CpSipTransactionManager::InviteTransactionState inviteState = getOutInviteTransactionState();
+   CpSipTransactionManager::InviteTransactionState inviteState = getClientInviteTransactionState();
    if (inviteState == CpSipTransactionManager::INVITE_INACTIVE)
    {
-      inviteState = getInInviteTransactionState();
+      inviteState = getServerInviteTransactionState();
    }
 
    return inviteState;
 }
 
-CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getInInviteTransactionState() const
+CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getServerInviteTransactionState() const
 {
-   CpSipTransactionManager::InviteTransactionState inviteState = getInTransactionManager().getInviteTransactionState();
+   CpSipTransactionManager::InviteTransactionState inviteState = getServerTransactionManager().getInviteTransactionState();
    return inviteState;
 }
 
-CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getOutInviteTransactionState() const
+CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getClientInviteTransactionState() const
 {
-   CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
+   CpSipTransactionManager::InviteTransactionState inviteState = getClientTransactionManager().getInviteTransactionState();
    return inviteState;
 }
 
@@ -2527,8 +2529,8 @@ void BaseSipConnectionState::deleteSessionRenegotiationTimer()
 UtlBoolean BaseSipConnectionState::isUpdateActive()
 {
    int updateCount = 0;
-   updateCount += getInTransactionManager().getTransactionCount(SIP_UPDATE_METHOD);
-   updateCount += getOutTransactionManager().getTransactionCount(SIP_UPDATE_METHOD);
+   updateCount += getServerTransactionManager().getTransactionCount(SIP_UPDATE_METHOD);
+   updateCount += getClientTransactionManager().getTransactionCount(SIP_UPDATE_METHOD);
 
    return updateCount != 0;
 }
@@ -2553,37 +2555,6 @@ UtlBoolean BaseSipConnectionState::mayRenegotiateMediaSession()
    }
 
    return FALSE;
-}
-
-void BaseSipConnectionState::endInviteTransaction()
-{
-   CpSipTransactionManager::InviteTransactionState inviteState = getOutTransactionManager().getInviteTransactionState();
-   if (inviteState != CpSipTransactionManager::INVITE_INACTIVE)
-   {
-      // terminate it
-      getOutTransactionManager().endInviteTransaction();
-      return;
-   }
-
-   inviteState = getInTransactionManager().getInviteTransactionState();
-   if (inviteState != CpSipTransactionManager::INVITE_INACTIVE)
-   {
-      // terminate it
-      getInTransactionManager().endInviteTransaction();
-      return;
-   }
-}
-
-void BaseSipConnectionState::endInviteTransaction(UtlBoolean bIsOutboundTransaction, int cseqNumber)
-{
-   if (bIsOutboundTransaction)
-   {
-      getOutTransactionManager().endTransaction(SIP_INVITE_METHOD, cseqNumber);
-   }
-   else
-   {
-      getInTransactionManager().endTransaction(SIP_INVITE_METHOD, cseqNumber);
-   }
 }
 
 void BaseSipConnectionState::doHold()

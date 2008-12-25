@@ -107,7 +107,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
    UtlBoolean bSdpNegotiationStarted = FALSE;
    SipMessage sipResponse;
 
-   CpSipTransactionManager::TransactionState inviteState = getInTransactionManager().getTransactionState(sipMessage);
+   CpSipTransactionManager::TransactionState inviteState = getServerTransactionManager().getTransactionState(sipMessage);
 
    // inbound INVITE will always be found, since its started automatically, unless its 2nd INVITE transaction
    // at time. In that case, 2nd INVITE transaction won't be started.
@@ -117,9 +117,8 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
       UtlBoolean bIsRetransmit = m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage);
 
       // this is new INVITE transaction, and we are allowed to continue processing
-      if (!isUpdateActive() && getOutInviteTransactionState() == CpSipTransactionManager::INVITE_INACTIVE)
+      if (!isUpdateActive() && getClientInviteTransactionState() == CpSipTransactionManager::INVITE_INACTIVE)
       {
-         getOutTransactionManager().upgradeInviteToReInviteTransaction(seqNum);
          bSdpNegotiationStarted = TRUE;
          UtlString sLocalContact(getLocalContactUrl());
 

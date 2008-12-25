@@ -52,7 +52,7 @@ public:
 
    typedef enum
    {
-      SDP_NOT_YET_NEGOTIATED, ///< SDP has not been negotiated yet
+      SDP_NOT_NEGOTIATED, ///< SDP has not been negotiated yet
       SDP_NEGOTIATION_IN_PROGRESS, ///< SDP offer or answer was sent
       SDP_NEGOTIATION_COMPLETE ///< SDP negotiation has been completed
    } SdpNegotiationState;
