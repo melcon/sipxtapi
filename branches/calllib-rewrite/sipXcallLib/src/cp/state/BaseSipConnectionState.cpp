@@ -650,29 +650,29 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
       {
          if (getServerTransactionManager().isInviteTransaction(iSeqNumber))
          {
-            CpSipTransactionManager::InviteTransactionState inviteState = getServerTransactionManager().getInviteTransactionState();
-            if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
+            // send 200 OK
+            sipResponse.setOkResponseData(&sipMessage);
+            sendMessage(sipResponse);
+
+            if (!m_rStateContext.m_pLastSent2xxToInvite && m_rStateContext.m_pLastReceivedInvite)
             {
-               // cancel of initial invite, disconnect call, send 487 Request terminated
-               getServerTransactionManager().endTransaction(iSeqNumber);
-               sipResponse.setRequestTerminatedResponseData(&sipMessage);
-               sendMessage(sipResponse);
-               return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
-            }
-            else
-            {
-               // cancel of re-invite, just end transaction
-               getServerTransactionManager().endTransaction(iSeqNumber);
-               // send 200 OK, not possible to terminate. Has no effect. We already responded to re-INVITE
-               sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
-               sendMessage(sipResponse);
+               // 2xx was not yet sent, we can terminate INVITE transaction
+               CpSipTransactionManager::InviteTransactionState inviteState = getServerTransactionManager().getInviteTransactionState();
+
+               SipMessage sipInviteResponse;
+               sipInviteResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
+               sendMessage(sipResponse); // terminates INVITE transaction
+
+               if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
+               {
+                  // if we terminated initial INVITE transaction, we also need to disconnect. Otherwise no problem.
+                  return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+               }
             }
          }
          else
          {
-            // it was some other method
-            getServerTransactionManager().endTransaction(iSeqNumber);
-            // send 200 OK, not possible to terminate. Has no effect.
+            // send 200 OK, but not possible to terminate. Has no effect, as we always respond immediately.
             sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
             sendMessage(sipResponse);
          }
@@ -1002,33 +1002,10 @@ SipConnectionStateTransition* BaseSipConnectionState::processByeResponse(const S
 
 SipConnectionStateTransition* BaseSipConnectionState::processCancelResponse(const SipMessage& sipMessage)
 {
-   ISipConnectionState::StateEnum connectionState = getCurrentState();
-
-   // CANCEL is only valid if connection is not disconnected
-   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED)
-   {
-      int responseCode = sipMessage.getResponseStatusCode();
-      UtlString responseText;
-      int sequenceNum;
-      UtlString sequenceMethod;
-
-      sipMessage.getResponseStatusText(&responseText);
-      sipMessage.getCSeqField(&sequenceNum, &sequenceMethod);
-
-      // only CANCEL for INVITE is supported, other methods provide immediate response
-      CpSipTransactionManager::TransactionState transactionState = getClientTransactionManager().getTransactionState(SIP_INVITE_METHOD, sequenceNum);
-      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
-      {
-         getClientTransactionManager().endTransaction(SIP_INVITE_METHOD, sequenceNum);
-         if (responseCode == SIP_REQUEST_TERMINATED_CODE)
-         {
-            // progress to disconnected state
-            SipResponseTransitionMemory memory(responseCode, responseText);
-            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
-         }
-      }
-   }
-
+   // we don't really care if CANCEL request response is 200 OK or not
+   // 481 and other fatal responses were already handled
+   // if CANCEL succeeds, 487 Request Terminated will be sent on INVITE transaction (with cseq method INVITE)
+   // and then we terminate INVITE transaction
    return NULL;
 }
 
@@ -1995,6 +1972,9 @@ void BaseSipConnectionState::sendReInvite()
 {
    SipMessage sipInvite;
    int seqNum = getNextLocalCSeq();
+
+   delete m_rStateContext.m_pLastSent2xxToInvite;
+   m_rStateContext.m_pLastSent2xxToInvite = NULL;
 
    sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
    prepareSipRequest(sipInvite, SIP_INVITE_METHOD, seqNum);
