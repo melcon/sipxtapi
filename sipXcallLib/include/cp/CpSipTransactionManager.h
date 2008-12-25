@@ -97,7 +97,7 @@ public:
     *
     * Only 1 INVITE/re-INVITE transaction may be active at time.
     */
-   void startTransaction(const UtlString& sipMethod, int cseqNum);
+   UtlBoolean startTransaction(const UtlString& sipMethod, int cseqNum);
 
    /**
     * Starts initial INVITE transaction. We allow only 1 INVITE transaction at time.
@@ -108,11 +108,6 @@ public:
    * Starts re-INVITE transaction.
    */
    UtlBoolean startReInviteTransaction(int cseqNum);
-
-   /**
-    * Marks an initial INVITE transaction with given cseq number as a re-INVITE transaction.
-    */
-   UtlBoolean upgradeInviteToReInviteTransaction(int cseqNum);
 
    /**
     * Updates an active INVITE/re-INVITE transaction with new cseqNum. We need to supply
@@ -126,14 +121,14 @@ public:
     *
     * This method can be used for INVITE transaction.
     */
-   void endTransaction(const UtlString& sipMethod, int cseqNum);
+   UtlBoolean endTransaction(const UtlString& sipMethod, int cseqNum);
 
    /**
     * Marks given transaction as terminated.
     *
     * This method can be used for INVITE transaction.
     */
-   void endTransaction(int cseqNum);
+   UtlBoolean endTransaction(int cseqNum);
 
    /**
     * Stops INVITE transaction regardless of cseqNum.

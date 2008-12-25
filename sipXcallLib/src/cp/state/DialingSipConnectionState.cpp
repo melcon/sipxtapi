@@ -102,7 +102,6 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
    fromField.setFieldParameter("tag", localTag);
    secureUrl(fromField);
    sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
-   getOutTransactionManager().startInitialInviteTransaction(cseqNum);
 
    m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
 

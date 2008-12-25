@@ -34,7 +34,7 @@
 /* ============================ CREATORS ================================== */
 
 CpSdpNegotiation::CpSdpNegotiation()
-: m_negotiationState(CpSdpNegotiation::SDP_NOT_YET_NEGOTIATED)
+: m_negotiationState(CpSdpNegotiation::SDP_NOT_NEGOTIATED)
 , m_bSdpOfferFinished(FALSE)
 , m_bSdpAnswerFinished(FALSE)
 , m_bLocallyInitiated(FALSE)
@@ -105,7 +105,7 @@ void CpSdpNegotiation::handleInboundSdpAnswer(const SipMessage& rAnswerSipMessag
 
 void CpSdpNegotiation::resetSdpNegotiation()
 {
-   m_negotiationState = CpSdpNegotiation::SDP_NOT_YET_NEGOTIATED;
+   m_negotiationState = CpSdpNegotiation::SDP_NOT_NEGOTIATED;
 
    m_bSdpOfferFinished = FALSE;
    m_bSdpAnswerFinished = FALSE;

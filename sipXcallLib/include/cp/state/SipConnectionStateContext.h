@@ -77,8 +77,8 @@ public:
    UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    Cp100RelTracker m_100RelTracker; ///< tracker for 100rel responses and PRACKs
-   CpSipTransactionManager m_sipOutTransactionMgr; ///< sip outbound transaction tracking & cseq generator
-   CpSipTransactionManager m_sipInTransactionMgr; ///< sip inbound transaction tracking
+   CpSipTransactionManager m_sipClientTransactionMgr; ///< sip outbound transaction tracking
+   CpSipTransactionManager m_sipServerTransactionMgr; ///< sip inbound transaction tracking
    UtlString m_locationHeader; ///< value of sip location header
    int m_contactId; ///< id of contact we use. Can be used to lookup SIPX_CONTACT_ADDRESS
    SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
@@ -93,6 +93,7 @@ public:
    // members used during call tear down
    UtlBoolean m_bAckReceived; ///< TRUE if ACK was received for our sent 200 OK. Needed to make decision for callee if we may send BYE.
    UtlBoolean m_bCallDisconnecting; ///< call is being disconnected. Either CANCEL, BYE or 403 Forbidden was sent
+   UtlBoolean m_bByeSent; ///< TRUE when we are disconnecting and BYE was already sent
    int m_iByeRetryCount; ///< counter when retrying BYE for inbound call
    // timers
    OsTimer* m_pByeRetryTimer; ///< timer started if drop is attempted for inbound call, but call cannot be dropped at current state

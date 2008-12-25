@@ -46,6 +46,7 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_bSdpRenegotiationUseUpdate(FALSE)
 , m_bAckReceived(FALSE)
 , m_bCallDisconnecting(FALSE)
+, m_bByeSent(FALSE)
 , m_iByeRetryCount(0)
 , m_pByeRetryTimer(NULL)
 , m_pCancelTimeoutTimer(NULL)
@@ -55,7 +56,7 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_p2xxInviteRetransmitTimer(NULL)
 , m_i2xxInviteRetransmitCount(0)
 {
-   m_sipOutTransactionMgr.setSipTransactionListener(&m_100RelTracker);
+   m_sipClientTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
 
 SipConnectionStateContext::~SipConnectionStateContext()
