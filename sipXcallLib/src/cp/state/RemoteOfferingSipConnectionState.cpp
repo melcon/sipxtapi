@@ -99,6 +99,9 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
       return pTransition;
    }
 
+   int cseqNum;
+   UtlString cseqMethod;
+   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
    int responseCode = sipMessage.getResponseStatusCode();
    UtlString responseText;
    sipMessage.getResponseStatusText(&responseText);
@@ -138,6 +141,7 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
    case SIP_TEMPORARY_MOVE_CODE:
    case SIP_USE_PROXY_CODE:
       {
+         getClientTransactionManager().endTransaction(cseqMethod, cseqNum); // end INVITE transaction so that new one can be started
          return handleInviteRedirectResponse(sipMessage);
       }
    default:
