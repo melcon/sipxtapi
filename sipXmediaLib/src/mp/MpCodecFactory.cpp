@@ -132,7 +132,7 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
 #endif // HAVE_ILBC ]
 
 #ifdef HAVE_INTEL_IPP // [
-   case (SdpCodec::SDP_CODEC_G729A):
+   case (SdpCodec::SDP_CODEC_G729):
       rpDecoder = new MpdIPPG729(payloadType);
       break;
    case (SdpCodec::SDP_CODEC_G723): 
@@ -209,7 +209,7 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
 #endif // HAVE_ILBC ]
 
 #ifdef HAVE_INTEL_IPP // [
-   case (SdpCodec::SDP_CODEC_G729A):
+   case (SdpCodec::SDP_CODEC_G729):
       rpEncoder = new MpeIPPG729(payloadType);
       break;
    case (SdpCodec::SDP_CODEC_G723):
