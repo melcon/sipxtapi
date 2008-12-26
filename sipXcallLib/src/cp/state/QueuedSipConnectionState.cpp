@@ -74,8 +74,8 @@ void QueuedSipConnectionState::handleStateExit(StateEnum nextState, const StateT
 SipConnectionStateTransition* QueuedSipConnectionState::dropConnection(OsStatus& result)
 {
    // we are callee. We queued inbound call, but haven't accepted it yet
-   // to drop call, send 403 Forbidden
-   return doRejectInboundConnectionInProgress(result);
+   // to drop call, reject it
+   return rejectConnection(result);
 }
 
 SipConnectionStateTransition* QueuedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)

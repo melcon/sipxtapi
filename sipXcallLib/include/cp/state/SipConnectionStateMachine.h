@@ -81,6 +81,27 @@ public:
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId);
 
+   /** 
+   * Accepts inbound call connection.
+   */
+   OsStatus acceptConnection(const UtlString& locationHeader,
+                             CP_CONTACT_ID contactId);
+
+   /**
+   * Reject the incoming connection.
+   */
+   OsStatus rejectConnection();
+
+   /**
+   * Redirect the incoming connection.
+   */
+   OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
+
+   /**
+   * Answer the incoming terminal connection.
+   */
+   OsStatus answerConnection();
+
    /** Disconnects call */
    OsStatus dropConnection();
 

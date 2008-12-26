@@ -16,6 +16,8 @@
 #include <os/OsPtrLock.h>
 #include <os/OsIntPtrMsg.h>
 #include <sdp/SdpCodecFactory.h>
+#include <net/SipMessageEvent.h>
+#include <net/SipMessage.h>
 #include <net/SipDialog.h>
 #include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
@@ -301,6 +303,38 @@ UtlBoolean XCpCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
 {
    // we couldn't handle it, give chance to parent
    return XCpAbstractCall::handleTimerMessage(rRawMsg);
+}
+
+UtlBoolean XCpCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   const SipMessage* pSipMessage = (SipMessage*)rSipMsgEvent.getMessage();
+   if (pSipMessage)
+   {
+      SipDialog sipDialog(pSipMessage);
+
+      OsPtrLock<XSipConnection> ptrLock;
+      UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+      if (resFound)
+      {
+         return ptrLock->handleSipMessageEvent(rSipMsgEvent);
+      }
+      else
+      {
+         const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+         if (!m_pSipConnection && pSipMessage && pSipMessage->isInviteRequest())
+         {
+            // sip connection doesn't yet exist, and we received new INVITE message
+            createSipConnection(sipDialog); // create sip connection
+            resFound = getConnection(ptrLock);
+            if (resFound)
+            {
+               return ptrLock->handleSipMessageEvent(rSipMsgEvent); // let it handle INVITE
+            }
+         }
+      }
+   }
+
+   return FALSE;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

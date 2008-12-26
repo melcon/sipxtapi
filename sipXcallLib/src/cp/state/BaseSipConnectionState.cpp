@@ -154,6 +154,208 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(OsStatus& result,
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus& result,
+                                                                       const UtlString& locationHeader,
+                                                                       CP_CONTACT_ID contactId)
+{
+   result = OS_FAILED;
+   // here we send either 180 or 183, and may proceed to alerting state
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_OFFERING ||
+      connectionState == ISipConnectionState::CONNECTION_QUEUED)
+   {
+      initDialogContact(contactId);
+      m_rStateContext.m_locationHeader = locationHeader;
+
+      if (m_rStateContext.m_pLastReceivedInvite)
+      {
+         SipMessage sipResponse;
+         UtlBoolean bProtocolError = TRUE;
+         const SdpBody* pSdpBody = m_rStateContext.m_pLastReceivedInvite->getSdpBody(m_rStateContext.m_pSecurity);
+
+         if (pSdpBody)
+         {
+            // there was body in message, handle it
+            if (handleSdpOffer(*m_rStateContext.m_pLastReceivedInvite))
+            {
+               // SDP offer was handled, we may add SDP answer
+               sipResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_EARLY_MEDIA_CODE,
+                  SIP_EARLY_MEDIA_TEXT, getLocalContactUrl());
+               if (prepareSdpAnswer(sipResponse))
+               {
+                  if (commitMediaSessionChanges()) // commit media session changes, so that we can hear early audio
+                  {
+                     bProtocolError = FALSE;
+                  }
+               }
+            }
+         }
+         else
+         {
+            // there was no offer in INVITE, don't generate answer in unreliable 180
+            sipResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_RINGING_CODE,
+               SIP_RINGING_TEXT, getLocalContactUrl());
+            bProtocolError = FALSE;
+         }
+
+         if (bProtocolError)
+         {
+            // reject call
+            SipMessage sipRejectResponse;
+            sipRejectResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
+            sendMessage(sipRejectResponse);
+
+            GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REQUEST_NOT_ACCEPTED);
+            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+         }
+         else
+         {
+            // send prepared message
+            if (sendMessage(sipResponse))
+            {
+               result = OS_SUCCESS;
+               return getTransition(ISipConnectionState::CONNECTION_ALERTING, NULL);
+            }
+         }
+      }
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::rejectConnection(OsStatus& result)
+{
+   result = OS_FAILED;
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_OFFERING ||
+      connectionState == ISipConnectionState::CONNECTION_ALERTING ||
+      connectionState == ISipConnectionState::CONNECTION_QUEUED)
+   {
+      if (m_rStateContext.m_pLastReceivedInvite)
+      {
+         SipMessage sipResponse;
+         if (connectionState == ISipConnectionState::CONNECTION_OFFERING)
+         {
+            sipResponse.setInviteBusyData(m_rStateContext.m_pLastReceivedInvite);
+         }
+         else if (connectionState == ISipConnectionState::CONNECTION_ALERTING)
+         {
+            sipResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
+         }
+         if (sendMessage(sipResponse))
+         {
+            result = OS_SUCCESS;
+         }
+
+         GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REJECTED);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+      }
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::redirectConnection(OsStatus& result,
+                                                                         const UtlString& sRedirectSipUrl)
+{
+   result = OS_FAILED;
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_OFFERING ||
+       connectionState == ISipConnectionState::CONNECTION_ALERTING ||
+       connectionState == ISipConnectionState::CONNECTION_QUEUED)
+   {
+      if (m_rStateContext.m_pLastReceivedInvite)
+      {
+         SipMessage redirectResponse;
+         redirectResponse.setForwardResponseData(m_rStateContext.m_pLastReceivedInvite, sRedirectSipUrl);
+
+         if (sendMessage(redirectResponse))
+         {
+            result = OS_SUCCESS;
+         }
+
+         GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REDIRECTED);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+      }
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus& result)
+{
+   result = OS_FAILED;
+   // here we send 200 OK and proceed to connected state
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ALERTING ||
+      connectionState == ISipConnectionState::CONNECTION_QUEUED)
+   {
+      if (m_rStateContext.m_pLastReceivedInvite)
+      {
+         SipMessage sipResponse;
+         UtlString sLocalContact(getLocalContactUrl());
+         UtlBoolean bProtocolError = TRUE;
+         const SdpBody* pSdpBody = m_rStateContext.m_pLastReceivedInvite->getSdpBody(m_rStateContext.m_pSecurity);
+         sipResponse.setOkResponseData(m_rStateContext.m_pLastReceivedInvite, sLocalContact);
+
+         if (pSdpBody)
+         {
+            // there was body in INVITE message, handle it
+            if (handleSdpOffer(*m_rStateContext.m_pLastReceivedInvite))
+            {
+               // SDP offer was handled, we may add SDP answer
+               if (prepareSdpAnswer(sipResponse))
+               {
+                  if (commitMediaSessionChanges()) // commit media session changes, so that we can hear early audio
+                  {
+                     bProtocolError = FALSE;
+                  }
+               }
+            }
+         }
+         else
+         {
+            // there was no offer in INVITE, send offer in 200 OK
+            if (prepareSdpOffer(sipResponse))
+            {
+               bProtocolError = FALSE;
+            }
+         }
+
+         if (bProtocolError)
+         {
+            // reject call
+            SipMessage sipRejectResponse;
+            sipRejectResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
+            sendMessage(sipRejectResponse);
+
+            GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REQUEST_NOT_ACCEPTED);
+            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+         }
+         else
+         {
+            m_rStateContext.m_bAckReceived = FALSE;
+            m_rStateContext.m_i2xxInviteRetransmitCount = 0;
+            setLastSent2xxToInvite(sipResponse);
+            sendMessage(sipResponse);
+            start2xxRetransmitTimer();
+            result = OS_SUCCESS;
+            return getTransition(ISipConnectionState::CONNECTION_ESTABLISHED, NULL);
+         }
+      }
+   }
+
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::dropConnection(OsStatus& result)
 {
    // implemented in subclasses
@@ -380,6 +582,18 @@ void BaseSipConnectionState::initializeSipDialog(const SipMessage& sipMessage)
 
 UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
 {
+   if (sipMessage.isResponse() && !isLocalInitiatedDialog())
+   {
+      // response & we are responsible for generating to tag
+      int responseCode = sipMessage.getResponseStatusCode();
+      if (responseCode > SIP_1XX_CLASS_CODE)
+      {
+         // responses must have a tag. We add it here so that it is never forgotten
+         UtlString toTag(getLocalTag());
+         sipMessage.setToFieldTag(toTag);
+      }
+   }
+
    updateSipDialog(sipMessage);
 
    if (sipMessage.isRequest())
@@ -397,6 +611,12 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
    else
    {
       trackTransactionResponse(sipMessage);
+   }
+
+   sipMessage.setSecurityAttributes(m_rStateContext.m_pSecurity);
+   if (!m_rStateContext.m_locationHeader.isNull())
+   {
+      sipMessage.setLocationField(m_rStateContext.m_locationHeader);
    }
 
    UtlBoolean res =  m_rSipUserAgent.send(sipMessage);
@@ -608,7 +828,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
          else
          {
             // sdp bodyContent is missing, check if SDP negotiation is complete. Media session changes are already committed
-            if (m_rStateContext.m_sdpNegotiation.getNegotiationState() != CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
+            if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
             {
                bProtocolError = TRUE;
             }
@@ -1217,8 +1437,6 @@ SipConnectionStateTransition* BaseSipConnectionState::handle100RelTimerMessage(c
 
 SipConnectionStateTransition* BaseSipConnectionState::handle2xxTimerMessage(const Sc2xxTimerMsg& timerMsg)
 {
-   UtlBoolean bDeleteTimer = TRUE;
-
    if (!m_rStateContext.m_bAckReceived && m_rStateContext.m_pLastSent2xxToInvite)
    {
       if (m_rStateContext.m_i2xxInviteRetransmitCount < 8)
@@ -1226,15 +1444,17 @@ SipConnectionStateTransition* BaseSipConnectionState::handle2xxTimerMessage(cons
          // resend message
          sendMessage(*m_rStateContext.m_pLastSent2xxToInvite);
          start2xxRetransmitTimer();
-         bDeleteTimer = FALSE;
+         return NULL;
+      }
+      else
+      {
+         delete2xxRetransmitTimer();
+         // we sent 2xx too many times, fail
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
       }
    }
 
-   if (bDeleteTimer)
-   {
-      delete2xxRetransmitTimer();
-   }
-
+   delete2xxRetransmitTimer();
    return NULL;
 }
 
@@ -1387,6 +1607,17 @@ UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
    return buildDefaultContactUrl(fromUrl);
 }
 
+void BaseSipConnectionState::initDialogContact(CP_CONTACT_ID contactId)
+{
+   m_rStateContext.m_contactId = contactId;
+
+   UtlString sContactUrl = buildContactUrl(NULL);
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setLocalContact(sContactUrl.data());
+   }
+}
+
 void BaseSipConnectionState::getLocalContactUrl(Url& contactUrl)
 {
    Url localField;
@@ -1429,6 +1660,38 @@ UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) con
    contactUrl.setHostPort(port);
    contactUrl.includeAngleBrackets();
    return contactUrl.toString();
+}
+
+void BaseSipConnectionState::progressToEarlyEstablishedDialog()
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_NEWCALL)
+   {
+      if (m_rStateContext.m_pLastReceivedInvite)
+      {
+         UtlString toField;
+         m_rStateContext.m_pLastReceivedInvite->getToField(&toField);
+         Url toFieldUrl(toField);
+         toFieldUrl.setFieldParameter("tag", m_rStateContext.m_sipTagGenerator.getNewTag()); // generate new tag
+
+         // generate to tag for sip dialog
+         {
+            OsWriteLock lock(m_rStateContext);
+            m_rStateContext.m_sipDialog.setLocalField(toFieldUrl); // override local field, so that it has a tag
+         }
+      }
+   }
+}
+
+UtlString BaseSipConnectionState::getLocalTag() const
+{
+   UtlString localTag;
+   {
+      OsReadLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.getLocalTag(localTag);
+   }
+   return localTag;
 }
 
 void BaseSipConnectionState::secureUrl(Url& fromUrl) const
@@ -1988,11 +2251,6 @@ void BaseSipConnectionState::sendReInvite()
    int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
    sipInvite.setSessionExpires(sessionExpires);
 
-   if (!m_rStateContext.m_locationHeader.isNull())
-   {
-      sipInvite.setLocationField(m_rStateContext.m_locationHeader);
-   }
-
    // add SDP if negotiation mode is immediate, otherwise don't add it
    if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
    {
@@ -2023,11 +2281,6 @@ void BaseSipConnectionState::sendUpdate()
 
    int sessionExpires = m_rStateContext.m_sessionTimerProperties.getSessionExpires();
    sipUpdate.setSessionExpires(sessionExpires);
-
-   if (!m_rStateContext.m_locationHeader.isNull())
-   {
-      sipUpdate.setLocationField(m_rStateContext.m_locationHeader);
-   }
 
    if (!prepareSdpOffer(sipUpdate))
    {
@@ -2329,29 +2582,6 @@ void BaseSipConnectionState::delete2xxRetransmitTimer()
       delete m_rStateContext.m_p2xxInviteRetransmitTimer;
       m_rStateContext.m_p2xxInviteRetransmitTimer = NULL;
    }
-}
-
-SipConnectionStateTransition* BaseSipConnectionState::doRejectInboundConnectionInProgress(OsStatus& result)
-{
-   if (!m_rStateContext.m_bCallDisconnecting)
-   {
-      if (m_rStateContext.m_pLastReceivedInvite)
-      {
-         SipMessage sipResponse;
-         sipResponse.setInviteForbidden(m_rStateContext.m_pLastReceivedInvite);
-         sendMessage(sipResponse);
-         m_rStateContext.m_bCallDisconnecting = TRUE;
-         startByeTimeoutTimer();
-      }
-      else
-      {
-         // unexpected state
-         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
-      }
-   }
-
-   result = OS_SUCCESS;
-   return NULL;
 }
 
 void BaseSipConnectionState::getSipDialogId(UtlString& sipCallId,
@@ -2742,11 +2972,6 @@ SipConnectionStateTransition* BaseSipConnectionState::followNextRedirect()
       if (pRedirectContactUri)
       {
          sipInvite.changeUri(*pRedirectContactUri); // for redirect, change just the URI, not toField
-
-         if (!m_rStateContext.m_locationHeader.isNull())
-         {
-            sipInvite.setLocationField(m_rStateContext.m_locationHeader);
-         }
 
          initializeSipDialog(sipInvite); // restart sip dialog
 

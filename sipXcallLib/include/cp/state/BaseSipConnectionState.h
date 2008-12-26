@@ -104,6 +104,27 @@ public:
                                                  const UtlString& locationHeader,
                                                  CP_CONTACT_ID contactId);
 
+   /**
+   * Accepts inbound call connection, sends 180 Ringing.
+   */
+   virtual SipConnectionStateTransition* acceptConnection(OsStatus& result,
+                                                          const UtlString& locationHeader,
+                                                          CP_CONTACT_ID contactId);
+   /**
+   * Reject the incoming connection.
+   */
+   virtual SipConnectionStateTransition* rejectConnection(OsStatus& result);
+
+   /**
+   * Redirect the incoming connection.
+   */
+   virtual SipConnectionStateTransition* redirectConnection(OsStatus& result,
+                                                            const UtlString& sRedirectSipUrl);
+   /**
+   * Answer the incoming terminal connection, sends 200 OK.
+   */
+   virtual SipConnectionStateTransition* answerConnection(OsStatus& result);
+
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
@@ -304,6 +325,9 @@ protected:
     */
    UtlString buildContactUrl(const Url& fromAddress) const;
 
+   /** Initializes contact of dialog. Must be called for inbound calls, after we know contact Id */
+   void initDialogContact(CP_CONTACT_ID contactId);
+
    /** 
     * Gets local contact URL from SipDialog. Can only be used once SipDialog has been initialized with first
     * outbound request. Contact Url will have display name if its available.
@@ -317,6 +341,15 @@ protected:
 
    /** Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress*/
    UtlString buildDefaultContactUrl(const Url& fromAddress) const;
+
+   /**
+    * Must be called for inbound calls to progress to early established dialog, which results in local tag being
+    * generated.
+    */
+   void progressToEarlyEstablishedDialog();
+
+   /** Gets local tag from sip dialog */
+   UtlString getLocalTag() const;
 
    /** Changes scheme to sips: if secured transport is used based on contactId */
    void secureUrl(Url& fromAddress) const;
@@ -432,9 +465,6 @@ protected:
 
    /** Deletes timer responsible for retransmit of 2xx invite responses */
    void delete2xxRetransmitTimer();
-
-   /** Rejects inbound connection that is in progress (not yet established by sending 403 Forbidden */
-   SipConnectionStateTransition* doRejectInboundConnectionInProgress(OsStatus& result);
 
    /** Gets Id of sip dialog */
    void getSipDialogId(UtlString& sipCallId,

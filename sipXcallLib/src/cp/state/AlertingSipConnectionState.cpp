@@ -75,8 +75,8 @@ void AlertingSipConnectionState::handleStateExit(StateEnum nextState, const Stat
 SipConnectionStateTransition* AlertingSipConnectionState::dropConnection(OsStatus& result)
 {
    // we are callee. We sent 180, but not 200 OK yet
-   // to drop call, send 403 Forbidden
-   return doRejectInboundConnectionInProgress(result);
+   // to drop call, reject it
+   return rejectConnection(result);
 }
 
 SipConnectionStateTransition* AlertingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)

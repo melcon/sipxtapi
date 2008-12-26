@@ -13,11 +13,14 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <os/OsWriteLock.h>
+#include <net/SipMessageEvent.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/IdleSipConnectionState.h>
 #include <cp/state/SipConnectionStateObserver.h>
 #include <cp/state/SipConnectionStateTransition.h>
 #include <cp/state/DialingSipConnectionState.h>
+#include <cp/state/NewCallSipConnectionState.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -66,6 +69,26 @@ SipConnectionStateMachine::~SipConnectionStateMachine()
 
 UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
+   if (getCurrentState() == ISipConnectionState::CONNECTION_IDLE)
+   {
+      const SipMessage* pSipMessage = rEvent.getMessage();
+      if (pSipMessage && pSipMessage->isInviteRequest())
+      {
+         // we must switch state to newcall
+         SipDialog sipDialog(pSipMessage); // construct new sip dialog
+         {
+            OsWriteLock lock(m_rStateContext);
+            m_rStateContext.m_sipDialog = sipDialog; // save sip dialog
+         }
+         // switch to newcall
+         // deleted in doHandleStateTransition if unsuccessful
+         BaseSipConnectionState* pSipConnectionState = new NewCallSipConnectionState(m_rStateContext, m_rSipUserAgent,
+            m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+         SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
+         handleStateTransition(transition);
+      }
+   }
+
    if (m_pSipConnectionState)
    {
       handleStateTransition(m_pSipConnectionState->handleSipMessageEvent(rEvent));
@@ -99,6 +122,58 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    {
       handleStateTransition(m_pSipConnectionState->connect(result, sipCallId, localTag, toAddress, fromAddress,
          locationHeader, contactId));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::acceptConnection(const UtlString& locationHeader, CP_CONTACT_ID contactId)
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->acceptConnection(result, locationHeader, contactId));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::rejectConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->rejectConnection(result));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::redirectConnection(const UtlString& sRedirectSipUrl)
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->redirectConnection(result, sRedirectSipUrl));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::answerConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->answerConnection(result));
    }
 
    return result;
