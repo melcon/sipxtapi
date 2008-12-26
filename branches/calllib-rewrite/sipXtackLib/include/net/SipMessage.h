@@ -1243,6 +1243,12 @@ public:
     /** TRUE if this message is PRACK request */
     UtlBoolean isPrackRequest() const;
 
+    /** TRUE if this message belongs to INVITE dialog usage */
+    UtlBoolean isInviteDialogUsage() const;
+
+    /** TRUE if this message belongs to SUBSCRIBE dialog usage */
+    UtlBoolean isSubscribeDialogUsage() const;
+
     //! @ Transaction and session related inquiry methods
     //@{
     UtlBoolean isSameMessage(const SipMessage* message,

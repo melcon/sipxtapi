@@ -123,6 +123,7 @@
                 <File RelativePath=".\src\cp\msg\CmYieldFocusMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\CpTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\Sc100RelTimerMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\Sc2xxTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScByeRetryTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"/>
@@ -144,7 +145,6 @@
                 <File RelativePath=".\src\cp\state\RemoteAlertingSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\RemoteOfferingSipConnectionState.cpp"/>
                 <File RelativePath=".\src\cp\state\RemoteQueuedSipConnectionState.cpp"/>
-                <File RelativePath=".\src\cp\msg\Sc2xxTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateContext.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"/>
                 <File RelativePath=".\src\cp\state\SipConnectionStateTransition.cpp"/>

@@ -4801,6 +4801,56 @@ UtlBoolean SipMessage::isPrackRequest() const
    return FALSE;
 }
 
+UtlBoolean SipMessage::isInviteDialogUsage() const
+{
+   UtlString requestMethod;
+
+   if (isRequest())
+   {
+      getRequestMethod(&requestMethod);
+   }
+   else
+   {
+      int seqNum;
+      getCSeqField(seqNum, requestMethod);
+   }
+
+   if (requestMethod.compareTo(SIP_INVITE_METHOD) == 0 ||
+      requestMethod.compareTo(SIP_UPDATE_METHOD) == 0 ||
+      requestMethod.compareTo(SIP_PRACK_METHOD) == 0 ||
+      requestMethod.compareTo(SIP_INFO_METHOD) == 0 ||
+      requestMethod.compareTo(SIP_BYE_METHOD) == 0)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isSubscribeDialogUsage() const
+{
+   UtlString requestMethod;
+
+   if (isRequest())
+   {
+      getRequestMethod(&requestMethod);
+   }
+   else
+   {
+      int seqNum;
+      getCSeqField(seqNum, requestMethod);
+   }
+
+   if (requestMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0 ||
+      requestMethod.compareTo(SIP_NOTIFY_METHOD) == 0 ||
+      requestMethod.compareTo(SIP_REFER_METHOD) == 0)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
 UtlBoolean SipMessage::isServerTransaction(UtlBoolean isOutgoing) const
 {
     UtlBoolean returnCode;
