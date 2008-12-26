@@ -25,7 +25,7 @@ extern "C" {
 }
 
 const MpCodecInfo MpeIPPG729::smCodecInfo(
-   SdpCodec::SDP_CODEC_G729A,    // codecType
+   SdpCodec::SDP_CODEC_G729,    // codecType
    "Intel IPP 5.3",              // codecVersion
    true,                         // usesNetEq
    8000,                         // samplingRate
