@@ -4559,6 +4559,89 @@ UtlBoolean SipMessage::getReasonField(UtlString& reasonField) const
     return(value != NULL);
 }
 
+UtlBoolean SipMessage::getJoinField(UtlString& joinField) const
+{
+   const char* value;
+   joinField.remove(0);
+   value = getHeaderValue(0, SIP_JOIN_FIELD);
+
+   if(value && *value)
+   {
+      joinField.append(value);
+      NameValueTokenizer::frontBackTrim(&joinField, SIP_SUBFIELD_SEPARATORS);
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::getJoinField(UtlString& sipCallId, UtlString& fromTag, UtlString& toTag) const
+{
+   const char* value;
+   sipCallId.remove(0);
+   fromTag.remove(0);
+   toTag.remove(0);
+   value = getHeaderValue(0, SIP_JOIN_FIELD);
+
+   if(value && *value)
+   {
+      UtlBoolean bFromTagFound = FALSE;
+      UtlBoolean bToTagFound = FALSE;
+      UtlBoolean bFieldFound = TRUE;
+      UtlString sJoinValue(value);
+      NameValueTokenizer::frontBackTrim(&sJoinValue, SIP_SUBFIELD_SEPARATORS);
+
+      if (!sJoinValue.isNull())
+      {
+         // get call-id value
+         NameValueTokenizer::getSubField(sJoinValue, 0, ";", &sipCallId);
+         NameValueTokenizer::frontBackTrim(&sipCallId, SIP_SUBFIELD_SEPARATORS);
+         // get from and to tags
+         UtlString sValue;
+         int i = 1;
+         while(bFieldFound && (!bFromTagFound || !bToTagFound))
+         {
+            sValue.remove(0);
+            bFieldFound = NameValueTokenizer::getSubField(sJoinValue, i++, ";", &sValue);
+            if (bFieldFound)
+            {
+               NameValueTokenizer::frontBackTrim(&sValue, SIP_SUBFIELD_SEPARATORS);
+
+               if (!bFromTagFound && sValue.index("from-tag") == 0)
+               {
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &fromTag);
+                  NameValueTokenizer::frontBackTrim(&fromTag, SIP_SUBFIELD_SEPARATORS);
+                  bFromTagFound = TRUE;
+               }
+               else if (!bToTagFound && sValue.index("to-tag") == 0)
+               {
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &toTag);
+                  NameValueTokenizer::frontBackTrim(&toTag, SIP_SUBFIELD_SEPARATORS);
+                  bToTagFound = TRUE;
+               }
+            }
+         }
+
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+void SipMessage::setJoinField(const UtlString& sipCallId, const UtlString& fromTag, const UtlString& toTag)
+{
+   UtlString joinField;
+
+   // Example:
+   // Join: 12adf2f34456gs5;to-tag=12345;from-tag=54321
+   joinField.appendFormat("%s;to-tag=%s;from-tag=%s", sipCallId.data(),
+      toTag.data() != NULL ? toTag.data() : "0",
+      fromTag.data() != NULL ? fromTag.data() : "0");
+
+   setHeaderValue(SIP_JOIN_FIELD, joinField);
+}
+
 UtlBoolean SipMessage::getReasonField(int index, UtlString& protocol, int& cause, UtlString& text) const
 {
    const char* value;
