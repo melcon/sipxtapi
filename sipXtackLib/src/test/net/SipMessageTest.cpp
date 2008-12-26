@@ -33,6 +33,7 @@ class SipMessageTest : public CppUnit::TestCase
    CPPUNIT_TEST(testGetRAck);
    CPPUNIT_TEST(testGetRSeq);
    CPPUNIT_TEST(testGetReasonField);
+   CPPUNIT_TEST(testGetJoinField);
    CPPUNIT_TEST(testGetSessionExpires);
    CPPUNIT_TEST(testGetMinSe);
    CPPUNIT_TEST(testGetVia);
@@ -161,6 +162,49 @@ public:
       ASSERT_STR_EQUAL("Terminated", text.data());
    }
 
+   void testGetJoinField()
+   {
+      const char* simpleMessage =
+         "INVITE sip:65681@testserver.com SIP/2.0\r\n"
+         "To: <sip:65681@testserver.com>;tag=985624-1623\r\n"
+         "From: <sip:10.21.128.204>;tag=15039611-4B5\r\n"
+         "Call-Id: 55147C1E-F6ED11D9-80E3EC05-47D61469@10.21.128.204\r\n"
+         "Via: SIP/2.0/UDP  10.21.128.204:5060;branch=z9hG4bK9E8\r\n"
+         "Date: Mon, 18 Jul 2005 18:05:17 GMT\r\n"
+         "Supported: 100rel,timer\r\n"
+         "Allow: INVITE, OPTIONS, BYE, CANCEL, ACK, PRACK, COMET, REFER, SUBSCRIBE, NOTIFY, INFO, UPDATE, REGISTER\r\n"
+         "Cseq: 101 INVITE\r\n"
+         "Max-Forwards: 9\r\n"
+         "Contact: <sip:10.21.128.204:5060>\r\n"
+         "Session-Expires: 4000;refresher=uac\r\n"
+         "Join: 12adf2f34456gs5;to-tag=12345;from-tag=54321\r\n"
+         "Expires: 180\r\n"
+         "Mime-Version: 1.0\r\n"
+         "Content-Length: 0\r\n"
+         "\r\n";
+      SipMessage testMsg(simpleMessage);
+      UtlString callId;
+      UtlString fromTag;
+      UtlString toTag;
+      // test getting
+      testMsg.getJoinField(callId, fromTag, toTag);
+      ASSERT_STR_EQUAL("12adf2f34456gs5", callId.data());
+      ASSERT_STR_EQUAL("12345", toTag.data());
+      ASSERT_STR_EQUAL("54321", fromTag.data());
+      // test setting and getting
+      callId = "iughx438xg3m762gxfius";
+      fromTag = "7652663";
+      toTag = "8572451";
+      testMsg.setJoinField(callId, fromTag, toTag);
+      callId.remove(0);
+      fromTag.remove(0);
+      toTag.remove(0);
+      // now get again and test
+      testMsg.getJoinField(callId, fromTag, toTag);
+      ASSERT_STR_EQUAL("iughx438xg3m762gxfius", callId.data());
+      ASSERT_STR_EQUAL("8572451", toTag.data());
+      ASSERT_STR_EQUAL("7652663", fromTag.data());
+   }
    void testGetSessionExpires()
    {
       const char* simpleMessage =
