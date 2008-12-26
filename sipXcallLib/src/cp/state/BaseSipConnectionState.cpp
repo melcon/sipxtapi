@@ -693,9 +693,10 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
          // transaction was not found
          sipResponse.setBadTransactionData(&sipMessage);
          sendMessage(sipResponse);
-
-         GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_TRANSACTION_DOES_NOT_EXIST);
-         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+         if (!m_rStateContext.m_bCallDisconnecting)
+         {
+            sendBye(); // terminate dialog
+         }
       }
    }
    else
