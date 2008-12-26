@@ -97,6 +97,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_P_ASSERTED_IDENTITY_FIELD "P-ASSERTED-IDENTITY"
 #define SIP_Q_FIELD "Q"
 #define SIP_REASON_FIELD "REASON"          //  RFC 3326 Reason header
+#define SIP_JOIN_FIELD "JOIN"          //  RFC 3911 Join header
 #define SIP_RECORD_ROUTE_FIELD "RECORD-ROUTE"
 #define SIP_REFER_TO_FIELD "REFER-TO"
 #define SIP_SHORT_REFER_TO_FIELD "r"
@@ -1162,11 +1163,28 @@ public:
 
     /** 
      * Gets protocol, first cause and text values from Reason: header field.
+     * Example:
+     * Reason: SIP ;cause=600 ;text="Busy Everywhere"
      *
      * @param index - index of the "reason-value" from RFC3326 to parse. Normally 0 can be used.
      */
     UtlBoolean getReasonField(int index, UtlString& protocol, int& cause, UtlString& text) const;
-	
+
+    /**
+     * Gets values of Join header field - call-id, from tag, to tag
+     * Example:
+     * Join: 12adf2f34456gs5;to-tag=12345;from-tag=54321
+     */
+    UtlBoolean getJoinField(UtlString& sipCallId, UtlString& fromTag, UtlString& toTag) const;
+
+    /** Gets value of whole unparsed Join: field.*/
+    UtlBoolean getJoinField(UtlString& joinField) const;
+
+    /**
+    * Sets value of Join header field - call-id, from tag, to tag
+    */
+    void setJoinField(const UtlString& sipCallId, const UtlString& fromTag, const UtlString& toTag);
+
     // Diversion-header
     void addDiversionField(const char* addr, const char* reasonParam,
     								UtlBoolean afterOtherDiversions=FALSE);

@@ -103,6 +103,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
    m_rSipUserAgent.allowExtension(SIP_REPLACES_EXTENSION);
    m_rSipUserAgent.allowExtension(SIP_SESSION_TIMER_EXTENSION);
    m_rSipUserAgent.allowExtension(SIP_PRACK_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_JOIN_EXTENSION);
 
    if (m_inviteExpireSeconds < 90)
    {
