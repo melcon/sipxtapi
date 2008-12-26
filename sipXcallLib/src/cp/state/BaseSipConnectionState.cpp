@@ -665,8 +665,13 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
 
                if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
                {
+                  UtlString protocol;
+                  int cause = 0;
+                  UtlString text;
+                  sipResponse.getReasonField(0, protocol, cause, text); // extract 1st reason field
                   // if we terminated initial INVITE transaction, we also need to disconnect. Otherwise no problem.
-                  return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+                  SipResponseTransitionMemory memory(cause, text);
+                  return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
                }
             }
          }
