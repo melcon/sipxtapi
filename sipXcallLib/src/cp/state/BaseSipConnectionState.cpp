@@ -693,10 +693,9 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
          // transaction was not found
          sipResponse.setBadTransactionData(&sipMessage);
          sendMessage(sipResponse);
-         if (!m_rStateContext.m_bCallDisconnecting)
-         {
-            sendBye(); // terminate dialog
-         }
+         // drop connection
+         OsStatus result;
+         return dropConnection(result);
       }
    }
    else
@@ -814,13 +813,13 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
                SipResponseTransitionMemory memory(statusCode, statusText);
                return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
             }
-         // these destroy dialog usage - if seqMethod was INVITE destroy the dialog
+         // these destroy dialog usage - if message belongs to INVITE usage, destroy dialog
          case SIP_BAD_METHOD_CODE: // 405
          case SIP_TEMPORARILY_UNAVAILABLE_CODE: // 480
          case SIP_BAD_TRANSACTION_CODE: // 481
          case SIP_BAD_EVENT_CODE: // 489
          case SIP_UNIMPLEMENTED_METHOD_CODE: // 501
-            if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+            if (sipMessage.isInviteDialogUsage())
             {
                trackTransactionResponse(sipMessage);
                SipResponseTransitionMemory memory(statusCode, statusText);
