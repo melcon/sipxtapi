@@ -48,7 +48,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
 #ifdef HAVE_INTEL_IPP
    case SdpCodec::SDP_CODEC_G729:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G729,
-         SdpCodec::SDP_CODEC_UNKNOWN,
+         SdpCodec::SDP_CODEC_G729,
          "G729A",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G729,
