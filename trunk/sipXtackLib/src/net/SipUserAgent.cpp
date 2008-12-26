@@ -1590,8 +1590,9 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
 
       message->getLastVia(&viaAddr, &viaPort, &viaProtocol, &receivedPort,
          &receivedSet, &maddrSet, &receivedPortSet) ;
-      if (receivedSet || receivedPortSet)
+      if (receivedSet && receivedPortSet)
       {
+         // received=[ip] and rport=[port] were both set, create NAT binding
          UtlString sendAddress ;
          int sendPort ;
 
@@ -1603,7 +1604,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
          // Inform NAT agent (used for lookups)
          message->getSendAddress(&sendAddress, &sendPort) ;
          OsNatAgentTask::getInstance()->addExternalBinding(NULL, 
-            sendAddress, sendPort, viaAddr, viaPort) ;            
+            sendAddress, sendPort, viaAddr, viaPort); // viaAddr will be from received=[ip]
 
          // Inform UDP server (used for events)
          if (mSipUdpServer)
@@ -1615,14 +1616,6 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
             mSipUdpServer->updateSipKeepAlive(message->getLocalIp(),
                method, sendAddress, sendPort, viaAddr, viaPort) ;
          }
-      }
-      else
-      {
-         UtlString sendAddress ;
-         int sendPort ;
-         message->getSendAddress(&sendAddress, &sendPort) ;
-         OsNatAgentTask::getInstance()->clearExternalBinding(NULL, 
-            sendAddress, sendPort, true) ;
       }
    }
 
