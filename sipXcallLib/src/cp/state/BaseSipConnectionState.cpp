@@ -2685,10 +2685,13 @@ SipConnectionStateTransition* BaseSipConnectionState::handleInviteRedirectRespon
    UtlString contactUri;
    int index = 0;
 
-   // go through all contacts
-   while (sipMessage.getContactUri(index++, &contactUri))
+   if (!m_rStateContext.m_bRedirecting)
    {
-      m_rStateContext.m_redirectContactList.append(contactUri.clone()); // append duplicate uri
+      // go through all contacts only if we are not already redirected - to prevent infinite loops
+      while (sipMessage.getContactUri(index++, &contactUri))
+      {
+         m_rStateContext.m_redirectContactList.append(contactUri.clone()); // append duplicate uri
+      }
    }
 
    if (m_rStateContext.m_redirectContactList.entries() > 0)
@@ -2700,7 +2703,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleInviteRedirectRespon
    else
    {
       // no contacts present, give up
-      GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REDIRECTED, responseCode, responseText);
+      SipResponseTransitionMemory memory(responseCode, responseText);
       return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
    }
 }
@@ -2765,8 +2768,7 @@ SipConnectionStateTransition* BaseSipConnectionState::followNextRedirect()
    }
 
    // no contacts present, give up
-   GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REDIRECTED);
-   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
