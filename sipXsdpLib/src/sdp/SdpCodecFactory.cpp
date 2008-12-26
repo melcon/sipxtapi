@@ -61,7 +61,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       break;
    case SdpCodec::SDP_CODEC_G723:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G723,
-         SdpCodec::SDP_CODEC_UNKNOWN,
+         SdpCodec::SDP_CODEC_G723,
          "G723.1",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G723,
