@@ -115,22 +115,22 @@ OsStatus XSipConnection::connect(const UtlString& sipCallId,
 OsStatus XSipConnection::acceptConnection(const UtlString& locationHeader,
                                           CP_CONTACT_ID contactId)
 {
-   return OS_FAILED;
+   return m_stateMachine.acceptConnection(locationHeader, contactId);
 }
 
 OsStatus XSipConnection::rejectConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.rejectConnection();
 }
 
 OsStatus XSipConnection::redirectConnection(const UtlString& sRedirectSipUrl)
 {
-   return OS_FAILED;
+   return m_stateMachine.redirectConnection(sRedirectSipUrl);
 }
 
 OsStatus XSipConnection::answerConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.answerConnection();
 }
 
 OsStatus XSipConnection::dropConnection()

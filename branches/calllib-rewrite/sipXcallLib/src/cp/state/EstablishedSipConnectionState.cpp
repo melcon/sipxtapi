@@ -126,13 +126,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
          UtlString sLocalContact(getLocalContactUrl());
 
          // prepare and send 200 OK
-         sipResponse.setSecurityAttributes(m_rStateContext.m_pSecurity);
          sipResponse.setOkResponseData(&sipMessage, sLocalContact);
-         if (!m_rStateContext.m_locationHeader.isNull())
-         {
-            sipResponse.setLocationField(m_rStateContext.m_locationHeader);
-         }
-
          const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
          if (pSdpBody)
          {
@@ -141,8 +135,10 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
             // send answer in 200 OK
             if (prepareSdpAnswer(sipResponse))
             {
-               commitMediaSessionChanges(); // SDP offer/answer complete, we may commit changes
-               bProtocolError = FALSE;
+               if (commitMediaSessionChanges()) // SDP offer/answer complete, we may commit changes
+               {
+                  bProtocolError = FALSE;
+               }
             }
          }
          else
@@ -165,7 +161,8 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
       }
 
       SipMessage errorResponse;
-      errorResponse.setRequestBadRequest(&sipMessage);
+      errorResponse.setResponseData(&sipMessage, SIP_REQUEST_NOT_ACCEPTABLE_HERE_CODE,
+         SIP_REQUEST_NOT_ACCEPTABLE_HERE_TEXT);
       sendMessage(errorResponse);
    }
    else
@@ -175,6 +172,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
       setLastReceivedInvite(sipMessage);
       setLastSent2xxToInvite(sipResponse);
       sendMessage(sipResponse);
+      start2xxRetransmitTimer();
    }
 
    return NULL;

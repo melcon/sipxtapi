@@ -73,9 +73,7 @@ void NewCallSipConnectionState::handleStateExit(StateEnum nextState, const State
 
 SipConnectionStateTransition* NewCallSipConnectionState::dropConnection(OsStatus& result)
 {
-   // we are callee. We received INVITE but haven't responded yet
-   // to drop call, send 403 Forbidden
-   return doRejectInboundConnectionInProgress(result);
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
 SipConnectionStateTransition* NewCallSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -84,6 +82,21 @@ SipConnectionStateTransition* NewCallSipConnectionState::handleSipMessageEvent(c
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(const SipMessage& sipMessage)
+{
+   // don't call superclass method
+   // here we process the initial INVITE
+   setLastReceivedInvite(sipMessage); // remember the INVITE
+   // Invite transaction was already started automatically
+   // 100 Trying is sent by SipUserAgent
+
+   progressToEarlyEstablishedDialog();
+   m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
+
+   // automatically transition to offering state
+   return getTransition(ISipConnectionState::CONNECTION_OFFERING, NULL);
 }
 
 SipConnectionStateTransition* NewCallSipConnectionState::getTransition(ISipConnectionState::StateEnum nextState,

@@ -66,6 +66,9 @@ public:
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
+   /** Handles initial INVITE request */
+   virtual SipConnectionStateTransition* processInviteRequest(const SipMessage& sipMessage);
+
    /* ============================ ACCESSORS ================================= */
 
    virtual ISipConnectionState::StateEnum getCurrentState() const { return ISipConnectionState::CONNECTION_NEWCALL; }
