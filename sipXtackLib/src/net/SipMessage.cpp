@@ -4801,6 +4801,182 @@ UtlBoolean SipMessage::isPrackRequest() const
    return FALSE;
 }
 
+UtlBoolean SipMessage::isInviteRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_INVITE_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isCancelRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_CANCEL_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isByeRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_BYE_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isOptionsRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isReferRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_REFER_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isUpdateRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_UPDATE_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isInfoRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_INFO_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isSubscribeRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isNotifyRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_NOTIFY_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isRegisterRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_REGISTER_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean SipMessage::isAckRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_ACK_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
 UtlBoolean SipMessage::isInviteDialogUsage() const
 {
    UtlString requestMethod;

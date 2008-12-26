@@ -1243,6 +1243,39 @@ public:
     /** TRUE if this message is PRACK request */
     UtlBoolean isPrackRequest() const;
 
+    /** TRUE if this message is INVITE request */
+    UtlBoolean isInviteRequest() const;
+
+    /** TRUE if this message is CANCEL request */
+    UtlBoolean isCancelRequest() const;
+
+    /** TRUE if this message is BYE request */
+    UtlBoolean isByeRequest() const;
+
+    /** TRUE if this message is OPTIONS request */
+    UtlBoolean isOptionsRequest() const;
+
+    /** TRUE if this message is REFER request */
+    UtlBoolean isReferRequest() const;
+
+    /** TRUE if this message is UPDATE request */
+    UtlBoolean isUpdateRequest() const;
+
+    /** TRUE if this message is INFO request */
+    UtlBoolean isInfoRequest() const;
+
+    /** TRUE if this message is SUBSCRIBE request */
+    UtlBoolean isSubscribeRequest() const;
+
+    /** TRUE if this message is NOTIFY request */
+    UtlBoolean isNotifyRequest() const;
+
+    /** TRUE if this message is REGISTER request */
+    UtlBoolean isRegisterRequest() const;
+
+    /** TRUE if this message is ACK request */
+    UtlBoolean isAckRequest() const;
+
     /** TRUE if this message belongs to INVITE dialog usage */
     UtlBoolean isInviteDialogUsage() const;
 
