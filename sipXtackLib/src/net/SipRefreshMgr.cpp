@@ -111,6 +111,8 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
          fromUrl.toString().data(), registryPeriodSeconds);
 
       Url requestUri = fromUrl.getUri(); // REGISTER request uri
+      requestUri.setUserId(NULL);
+      requestUri.setPassword(NULL); // REGISTER request uri cannot contain userinfo part of sip uri
       UtlString registerCallId = m_callIdGenerator.getNewCallId();
 
       registerUrl(fromUrl, // from
