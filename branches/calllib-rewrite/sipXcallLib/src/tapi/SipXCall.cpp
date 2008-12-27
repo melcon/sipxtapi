@@ -1129,26 +1129,26 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
 }
 
 // returns Sip CallID
-SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
-                                       char* szId,
-                                       const size_t iMaxLength)
+SIPXTAPI_API SIPX_RESULT sipxCallGetSipCallId(const SIPX_CALL hCall,
+                                              char* szSipCallId,
+                                              const size_t iMaxLength)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetID");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetSipCallId");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallGetID hCall=%d",
+      "sipxCallGetSipCallId hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   if (szId)
+   if (szSipCallId)
    {
-      UtlString sessionCallId;
+      UtlString sipCallId;
 
-      if (sipxCallGetCommonData(hCall, NULL, NULL, &sessionCallId, NULL, NULL))
+      if (sipxCallGetCommonData(hCall, NULL, NULL, &sipCallId, NULL, NULL))
       {
          if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szId, sessionCallId, iMaxLength);
+            SAFE_STRNCPY(szSipCallId, sipCallId, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }// no pCallData = call not found
@@ -1158,26 +1158,26 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
 }
 
 // returns Line Uri of the call
-SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
-                                            char* szLineUri,
-                                            const size_t iMaxLength)
+SIPXTAPI_API SIPX_RESULT sipxCallGetLocalField(const SIPX_CALL hCall,
+                                               char* szLocalField,
+                                               const size_t iMaxLength)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetLocalID");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetLocalField");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallGetLocalID hCall=%d",
+      "sipxCallGetLocalField hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   if (szLineUri)
+   if (szLocalField)
    {
-      UtlString fromUri;
+      UtlString localField;
 
-      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, &fromUri))
+      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, NULL, &localField))
       {
          if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szLineUri, fromUri, iMaxLength);
+            SAFE_STRNCPY(szLocalField, localField, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1187,26 +1187,26 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall,
 }
 
 // returns remote address
-SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
-                                             char* szRemoteAddress,
-                                             const size_t iMaxLength)
+SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteField(const SIPX_CALL hCall,
+                                                char* szRemoteField,
+                                                const size_t iMaxLength)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetRemoteID");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetRemoteField");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallGetRemoteID hCall=%d",
+      "sipxCallGetRemoteField hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   if (szRemoteAddress)
+   if (szRemoteField)
    {
-      UtlString remoteAddress;
+      UtlString remoteField;
 
-      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, &remoteAddress, NULL))
+      if (sipxCallGetCommonData(hCall, NULL, NULL, NULL, &remoteField, NULL))
       {
          if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szRemoteAddress, remoteAddress, iMaxLength);
+            SAFE_STRNCPY(szRemoteField, remoteField, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1216,13 +1216,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
 }
 
 
-SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall,
-                                              char* szContactAddress,
-                                              const size_t iMaxLength)
+SIPXTAPI_API SIPX_RESULT sipxCallGetLocalContact(const SIPX_CALL hCall,
+                                                 char* szContactAddress,
+                                                 const size_t iMaxLength)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetContactID");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetLocalContact");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallGetContactID hCall=%d",
+      "sipxCallGetLocalContact hCall=%d",
       hCall);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
@@ -1378,7 +1378,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
                pData->m_bInFocus = TRUE;
             }
 
-            // create sessionCallId
+            // create sipCallId
             pData->m_sipDialog.setCallId(szSessionCallId);
             if (pData->m_sipDialog.getCallId().isNull())
             {
@@ -1463,8 +1463,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall)
 
 
 // internal function used for testing only
-SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
-                                                 int* connectionId)
+SIPXTAPI_API SIPX_RESULT sipxCallGetMediaConnectionId(const SIPX_CALL hCall,
+                                                      int* connectionId)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetMediaConnectionId");
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
@@ -1522,7 +1522,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
 
 
 SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
-                                               char* szUri,
+                                               char* szRequestUri,
                                                const size_t iMaxLength)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetRequestURI");
@@ -1559,7 +1559,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
 
          if (iMaxLength)
          {
-            SAFE_STRNCPY(szUri, sUri.data(), iMaxLength);
+            SAFE_STRNCPY(szRequestUri, sUri.data(), iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }
@@ -1574,7 +1574,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall,
 
 
 SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
-                                                  char* szContact,
+                                                  char* szContactAddress,
                                                   const size_t iMaxLength)
 {
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1583,7 +1583,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   if (szContact)
+   if (szContactAddress)
    {
       UtlString contactAddress;
 
@@ -1591,7 +1591,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall,
       {
          if (iMaxLength > 0)
          {
-            SAFE_STRNCPY(szContact, contactAddress, iMaxLength);
+            SAFE_STRNCPY(szContactAddress, contactAddress, iMaxLength);
             sr = SIPX_RESULT_SUCCESS;
          }
       }

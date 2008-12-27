@@ -525,7 +525,7 @@ PhoneState* sipXezPhoneSettings::OnDial(const wxString phoneNumber)
 PhoneState* sipXezPhoneSettings::OnRinging(SIPX_CALL hCall)
 {
     char szIncomingNumber[256];
-    sipxCallGetRemoteID(hCall, szIncomingNumber, 256);
+    sipxCallGetRemoteField(hCall, szIncomingNumber, 256);
     wxString incomingNumber(szIncomingNumber);
     UtlString* pUtlIncomingNumber = new UtlString(incomingNumber.c_str());
 
