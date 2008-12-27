@@ -50,8 +50,12 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
+   /** Resets session timer properties to initial configuration */
+   void reset();
+
    /* ============================ ACCESSORS ================================= */
 
+   /** Gets negotiated refresher type. Only valid after session timer negotiation */
    CpSessionTimerProperties::RefresherType getRefresherType() const;
 
    UtlString getRefresher() const { return m_sRefresher; }
@@ -63,6 +67,9 @@ public:
    int getMinSessionExpires() const { return m_minSessionExpires; }
    void setMinSessionExpires(int val);
 
+   void setInitialSessionExpires(int val) { m_initialSessionExpires = val; }
+   void setInitialRefresher(UtlString val) { m_sInitialRefresher = val; }
+
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -70,6 +77,10 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   // initial properties, and properties after reset
+   int m_initialSessionExpires; ///< initial time in seconds when session expires
+   UtlString m_sInitialRefresher; ///< initial uas or uac
 
    UtlString m_sRefresher; ///< uas or uac
    int m_sessionExpires; ///< time in seconds when session expires
