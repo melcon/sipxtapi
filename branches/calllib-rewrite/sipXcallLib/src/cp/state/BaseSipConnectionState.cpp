@@ -747,10 +747,14 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
          dialogState = m_rStateContext.m_sipDialog.getDialogState();
       }
       CpSipTransactionManager::InviteTransactionState inviteState = getInviteTransactionState();
+      CpSdpNegotiation::SdpNegotiationState sdpNegotiationState = m_rStateContext.m_sdpNegotiation.getNegotiationState();
 
+      // UPDATE is supported only if there is no re-INVITE transaction, no SDP negotiation in progress (must be completed),
+      // no other outbound update
       if (dialogState == SipDialog::DIALOG_STATE_ESTABLISHED &&
           inviteState != CpSipTransactionManager::REINVITE_ACTIVE &&
-          !isOutboundUpdateActive())
+          !isOutboundUpdateActive() &&
+          sdpNegotiationState != CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
       {
          if (handleSdpOffer(sipMessage))
          {
