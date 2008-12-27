@@ -191,6 +191,12 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_BAD_METHOD_CODE 405
 #define SIP_BAD_METHOD_TEXT "Method Not Allowed"
 
+#define SIP_NOT_ACCEPTABLE_CODE 406
+#define SIP_NOT_ACCEPTABLE_TEXT "Not Acceptable"
+
+#define SIP_PROXY_AUTH_REQUIRED_CODE 407
+#define SIP_PROXY_AUTH_REQUIRED_TEXT "Proxy Authentication Required"
+
 #define SIP_REQUEST_TIMEOUT_CODE 408
 #define SIP_REQUEST_TIMEOUT_TEXT "Request timeout"
 
