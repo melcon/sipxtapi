@@ -27,7 +27,10 @@
 // FORWARD DECLARATIONS
 
 /**
- * Class representing queued state.
+ * Class representing queued state for inbound call.
+ *
+ * This state is here only for completeness, there is no way we can currently progress into it.
+ * We would need a special sipxtapi function for that, that could be called on call in offering state.
  */
 class QueuedSipConnectionState : public BaseSipConnectionState
 {

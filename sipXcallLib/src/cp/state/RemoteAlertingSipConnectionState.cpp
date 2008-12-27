@@ -114,9 +114,9 @@ SipConnectionStateTransition* RemoteAlertingSipConnectionState::processInviteRes
       }
    case SIP_RINGING_CODE:
    case SIP_EARLY_MEDIA_CODE:
+   case SIP_QUEUED_CODE:
       {
-         // TODO: handle provisional responses if they are reliable
-         break;
+         return processProvisionalInviteResponse(sipMessage);
       }
    case SIP_ALTERNATIVE_SERVICE_CODE:
       {

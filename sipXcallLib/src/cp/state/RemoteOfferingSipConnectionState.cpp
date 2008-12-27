@@ -116,16 +116,9 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
       }
    case SIP_RINGING_CODE:
    case SIP_EARLY_MEDIA_CODE:
-      {
-         // proceed to remote alerting state
-         SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_REMOTE_ALERTING, &memory);
-      }
    case SIP_QUEUED_CODE:
       {
-         // proceed to queued state
-         SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_REMOTE_QUEUED, &memory);
+         return processProvisionalInviteResponse(sipMessage);
       }
    case SIP_ALTERNATIVE_SERVICE_CODE:
       {
