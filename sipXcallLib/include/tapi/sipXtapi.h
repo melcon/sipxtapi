@@ -1336,47 +1336,51 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall);
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szId Buffer to store the ID.  A zero-terminated string will be 
+ * @param szSipCallId Buffer to store the call-id.  A zero-terminated string will be 
  *        copied into this buffer on success. Empty string will be passed
  *        if call is not connected.
- * @param iMaxLength Max length of the ID buffer
+ * @param iMaxLength Max length of the szSipCallId buffer
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
-                                       char* szId, 
-                                       const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetSipCallId(const SIPX_CALL hCall,
+                                              char* szSipCallId, 
+                                              const size_t iMaxLength);
 
 /**
  * Get the SIP identity of the local connection. It may contain a tag.
+ * This value is taken from SIP message from field for outbound calls,
+ * and to field for inbound calls.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szLineUri Buffer to store the ID.  A zero-terminated string will be 
+ * @param szLocalField Buffer to store the ID.  A zero-terminated string will be 
  *        copied into this buffer on success.
  * @param iMaxLength Max length of the ID buffer.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall, 
-                                            char* szLineUri, 
-                                            const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetLocalField(const SIPX_CALL hCall, 
+                                               char* szLocalField, 
+                                               const size_t iMaxLength);
 
 
 /**
  * Get the SIP identity of the remote connection. It may contain a tag.
+ * This value is taken from SIP message to field for outbound calls,
+ * and from field for inbound calls.
  * 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szRemoteAddress Buffer to store the ID.  A zero-terminated string will be 
+ * @param szRemoteField Buffer to store the ID.  A zero-terminated string will be 
  *        copied into this buffer on success.
  * @param iMaxLength Max length of the ID buffer.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall, 
-                                             char* szRemoteAddress, 
-                                             const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteField(const SIPX_CALL hCall, 
+                                                char* szRemoteField, 
+                                                const size_t iMaxLength);
 
 /**
- * Get the SIP identity of the contact connection.  The identity represents
- * the originator of the message.
+ * Get the SIP address of local contact.  The identity represents
+ * the originator of the message, and is sent in contact SIP message field.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1385,20 +1389,23 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
  *        copied into this buffer on success.
  * @param iMaxLength Max length of the ID buffer.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall, 
-                                              char* szContactAddress, 
-                                              const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetLocalContact(const SIPX_CALL hCall, 
+                                                 char* szContactAddress, 
+                                                 const size_t iMaxLength);
 
 /**
- * Gets the connection ID. For testing only.
+ * Gets the media connection ID. For testing only.
+ *
+ * Media connection ID is an internal identifier used to manage media
+ * connections of sipXmediaAdapterLib.
  * 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
  * @param connectionId Reference to the returned connection identifier.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
-                                                 int* connectionId);
+SIPXTAPI_API SIPX_RESULT sipxCallGetMediaConnectionId(const SIPX_CALL hCall,
+                                                      int* connectionId);
 
 
 /**
@@ -1420,31 +1427,36 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConference(const SIPX_CALL hCall,
  * from sent or received SIP INVITE depending on whether it is an outbound
  * or inbound call.
  *
- * @param hCall Handle to a call.  Call handles are obtained either by 
- *        invoking sipxCallCreate or passed to your application through
- *        a listener interface.
- * @param szUri Buffer to store the request URI.  A zero-terminated string will
- *        be copied into this buffer on success.
- * @param iMaxLength Max length of the request URI buffer.
- */
-SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall, 
-                                               char* szUri, 
-                                               const size_t iMaxLength);
-
-
-                                                           
-/**
- * Get the SIP remote contact.
+ * If outbound call was redirected, SIP request URI will contain SIP URI
+ * of the correct party. For redirected calls, sipxCallGetRemoteField
+ * and sipxCallGetRequestURI will yield different results, with sipxCallGetRequestURI
+ * being correct.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szContact Buffer to store the remote contact.  A zero-terminated
+ * @param szRequestUri Buffer to store the request URI.  A zero-terminated string will
+ *        be copied into this buffer on success.
+ * @param iMaxLength Max length of the request URI buffer.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall, 
+                                               char* szRequestUri, 
+                                               const size_t iMaxLength);
+
+
+
+/**
+ * Get the SIP remote contact. It may contain a display name.
+ *
+ * @param hCall Handle to a call.  Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ * @param szContactAddress Buffer to store the remote contact.  A zero-terminated
  *        string will be copied into this buffer on success.
  * @param iMaxLength Max length of the remote contact buffer.
  */
 SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall, 
-                                                  char* szContact, 
+                                                  char* szContactAddress, 
                                                   const size_t iMaxLength);
 
                                                            

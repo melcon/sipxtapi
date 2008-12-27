@@ -664,7 +664,7 @@ void sipXtapiTestSuite::testConfigCodecPreferences()
 
       int connectionId = -1;
 
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(connectionId != -1);
 
       destroyCall(hCall);
@@ -1492,7 +1492,7 @@ void sipXtapiTestSuite::testConfigEnableShortNames()
 
       int connectionId = -1;
 
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(connectionId != -1);
 
       SIPX_CALL hDestroyedCall = hCall;
