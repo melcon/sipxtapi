@@ -15,6 +15,9 @@
 #include <cp/CpSessionTimerProperties.h>
 
 // DEFINES
+#define MIN_SESSION_EXPIRES 90
+#define INITIAL_SESSION_EXPIRES 3600
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -28,8 +31,9 @@
 /* ============================ CREATORS ================================== */
 
 CpSessionTimerProperties::CpSessionTimerProperties()
-: m_sessionExpires(120)
-, m_minSessionExpires(90)
+: m_sessionExpires(INITIAL_SESSION_EXPIRES)
+, m_initialSessionExpires(INITIAL_SESSION_EXPIRES)
+, m_minSessionExpires(MIN_SESSION_EXPIRES)
 {
 
 }
@@ -40,6 +44,13 @@ CpSessionTimerProperties::~CpSessionTimerProperties()
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+void CpSessionTimerProperties::reset()
+{
+   m_sessionExpires = m_initialSessionExpires;
+   m_minSessionExpires = MIN_SESSION_EXPIRES;
+   m_sRefresher = m_sInitialRefresher;
+}
 
 /* ============================ ACCESSORS ================================= */
 
@@ -58,10 +69,10 @@ CpSessionTimerProperties::RefresherType CpSessionTimerProperties::getRefresherTy
 
 void CpSessionTimerProperties::setMinSessionExpires(int val)
 {
-   if (val < 90)
+   if (val < MIN_SESSION_EXPIRES)
    {
       // minimum value by RFC4028
-      val = 90;
+      val = MIN_SESSION_EXPIRES;
    }
    m_minSessionExpires = val;
 }
