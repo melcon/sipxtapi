@@ -13,6 +13,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <os/OsWriteLock.h>
+#include <net/SipMessage.h>
 #include <cp/state/NewCallSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
@@ -93,7 +95,6 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
    // 100 Trying is sent by SipUserAgent
 
    progressToEarlyEstablishedDialog();
-   m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
 
    // automatically transition to offering state
    return getTransition(ISipConnectionState::CONNECTION_OFFERING, NULL);
@@ -134,5 +135,22 @@ SipConnectionStateTransition* NewCallSipConnectionState::getTransition(ISipConne
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void NewCallSipConnectionState::progressToEarlyEstablishedDialog()
+{
+   if (m_rStateContext.m_pLastReceivedInvite)
+   {
+      UtlString toField;
+      m_rStateContext.m_pLastReceivedInvite->getToField(&toField);
+      Url toFieldUrl(toField);
+      toFieldUrl.setFieldParameter("tag", m_rStateContext.m_sipTagGenerator.getNewTag()); // generate new tag
+
+      // generate to tag for sip dialog
+      {
+         OsWriteLock lock(m_rStateContext);
+         m_rStateContext.m_sipDialog.setLocalField(toFieldUrl); // override local field, so that it has a tag
+      }
+   }
+}
 
 /* ============================ FUNCTIONS ================================= */

@@ -93,6 +93,8 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
                                                                  CP_CONTACT_ID contactId)
 {
    m_rStateContext.m_contactId = contactId;
+   m_rStateContext.m_locationHeader = locationHeader;
+   m_rStateContext.m_sessionTimerProperties.reset();
    result = OS_FAILED;
 
    SipMessage sipInvite;
@@ -102,19 +104,12 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
    secureUrl(fromField);
    UtlString contactUrl = buildContactUrl(fromField); // fromUrl without tag
    fromField.setFieldParameter("tag", localTag);
-   sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
-
-   m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
 
    sipInvite.setInviteData(fromField.toString(), toAddress,
-      NULL, contactUrl, sipCallId,
-      cseqNum, m_rStateContext.m_defaultSessionExpiration);
-
-   if (!locationHeader.isNull())
-   {
-      m_rStateContext.m_locationHeader = locationHeader;
-      sipInvite.setLocationField(locationHeader);
-   }
+      NULL, contactUrl, sipCallId, cseqNum);
+   sipInvite.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
+      m_rStateContext.m_sessionTimerProperties.getRefresher());
+   sipInvite.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
 
    initializeSipDialog(sipInvite);
 

@@ -39,7 +39,6 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_contactId(AUTOMATIC_CONTACT_ID)
 , m_rtpTransport(RTP_TRANSPORT_UDP)
 , m_pSecurity(NULL)
-, m_pLastSentInvite(NULL)
 , m_pLastReceivedInvite(NULL)
 , m_pLastSent2xxToInvite(NULL)
 , m_bUseLocalHoldSDP(FALSE)
@@ -64,8 +63,6 @@ SipConnectionStateContext::~SipConnectionStateContext()
 {
    delete m_pSecurity;
    m_pSecurity = NULL;
-   delete m_pLastSentInvite;
-   m_pLastSentInvite = NULL;
    delete m_pLastReceivedInvite;
    m_pLastReceivedInvite = NULL;
    delete m_pLastSent2xxToInvite;

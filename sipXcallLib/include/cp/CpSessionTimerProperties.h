@@ -50,8 +50,11 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
-   /** Resets session timer properties to initial configuration */
-   void reset();
+   /**
+    * Resets session timer properties to initial configuration. If full reset,
+    * then also session expiration is reset. Otherwise only refresher is reset.
+    */
+   void reset(UtlBoolean bFullReset = FALSE);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -65,7 +65,6 @@ public:
     * destroyed.
     */
    int m_mediaEventConnectionId;
-   int m_defaultSessionExpiration; ///< current session interval according to RFC4028. Negotiated if 422 is received.
 
    /* ============================ CREATORS ================================== */
 

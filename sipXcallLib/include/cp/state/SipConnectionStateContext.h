@@ -85,7 +85,6 @@ public:
    SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
    RTP_TRANSPORT m_rtpTransport;
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)
-   SipMessage* m_pLastSentInvite; ///< last sent INVITE
    SipMessage* m_pLastReceivedInvite; ///< last received INVITE
    SipMessage* m_pLastSent2xxToInvite; ///< last sent 2xx response to INVITE (sent until ACK is received)
    UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering

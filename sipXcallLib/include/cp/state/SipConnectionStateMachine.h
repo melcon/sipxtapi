@@ -129,6 +129,9 @@ public:
    /** Handles CpMessageTypes::ScNotificationMsg message */
    UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
 
+   /** Configures session timer properties */
+   void configureSessionTimer(int sessionExpiration, const UtlString& refresher);
+
    /* ============================ ACCESSORS ================================= */
 
    /**

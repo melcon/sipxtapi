@@ -97,6 +97,9 @@ SipConnectionStateTransition* RemoteAlertingSipConnectionState::processInviteRes
       return pTransition;
    }
 
+   int cseqNum;
+   UtlString cseqMethod;
+   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
    int responseCode = sipMessage.getResponseStatusCode();
    UtlString responseText;
    sipMessage.getResponseStatusText(&responseText);
@@ -106,11 +109,28 @@ SipConnectionStateTransition* RemoteAlertingSipConnectionState::processInviteRes
    case SIP_OK_CODE:
    case SIP_ACCEPTED_CODE:
       {
-         // send ACK to 200 OK
-         handleInvite2xxResponse(sipMessage);
-         // proceed to established state
+         // send ACK to 200 OK, and progress to established state
+         return handleInvite2xxResponse(sipMessage);
+      }
+   case SIP_RINGING_CODE:
+   case SIP_EARLY_MEDIA_CODE:
+      {
+         // TODO: handle provisional responses if they are reliable
+         break;
+      }
+   case SIP_ALTERNATIVE_SERVICE_CODE:
+      {
+         // proceed to disconnected state
          SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_ESTABLISHED, &memory);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+      }
+   case SIP_MULTI_CHOICE_CODE:
+   case SIP_PERMANENT_MOVE_CODE:
+   case SIP_TEMPORARY_MOVE_CODE:
+   case SIP_USE_PROXY_CODE:
+      {
+         getClientTransactionManager().endTransaction(cseqMethod, cseqNum); // end INVITE transaction so that new one can be started
+         return handleInviteRedirectResponse(sipMessage);
       }
    default:
       ;

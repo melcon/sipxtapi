@@ -281,6 +281,12 @@ UtlBoolean SipConnectionStateMachine::handleNotificationMessage(const ScNotifica
    }
 }
 
+void SipConnectionStateMachine::configureSessionTimer(int sessionExpiration, const UtlString& refresher)
+{
+   m_rStateContext.m_sessionTimerProperties.setInitialSessionExpires(sessionExpiration);
+   m_rStateContext.m_sessionTimerProperties.setInitialRefresher(refresher);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()

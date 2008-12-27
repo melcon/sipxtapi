@@ -87,6 +87,13 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   /**
+   * Must be called for inbound calls to progress to early established dialog, which results in local tag being
+   * generated.
+   */
+   void progressToEarlyEstablishedDialog();
+
 };
 
 #endif // NewCallSipConnectionState_h__
