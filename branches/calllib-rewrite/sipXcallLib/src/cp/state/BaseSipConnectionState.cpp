@@ -1805,16 +1805,15 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
 
       if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
       {
-         if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+         if (setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
          {
-            // handling of SDP offer failed for some reason, reset SDP negotiation
-            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
-            return FALSE;
+            m_rStateContext.m_sdpNegotiation.handleInboundSdpOffer(sipMessage);
+            if (handleRemoteSdpBody(*pSdpBody))
+            {
+               return TRUE;
+            }
          }
       }
-
-      m_rStateContext.m_sdpNegotiation.handleInboundSdpOffer(sipMessage);
-      return handleRemoteSdpBody(*pSdpBody);
    }
 
    // handling of SDP offer failed for some reason, reset SDP negotiation
@@ -1829,6 +1828,7 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
    int mediaConnectionId = getMediaConnectionId();
    if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
    {
+      m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
       return FALSE;
    }
 
@@ -1895,14 +1895,13 @@ UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
    if (pSdpBody)
    {
       m_rStateContext.m_sdpNegotiation.handleInboundSdpAnswer(sipMessage);
-      return handleRemoteSdpBody(*pSdpBody);
-   }
-   else
-   {
-      // no SDP in answer, reset SDP negotiation
-      m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+      if (handleRemoteSdpBody(*pSdpBody))
+      {
+         return TRUE;
+      }
    }
 
+   m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    return FALSE;
 }
 
@@ -1943,9 +1942,6 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
    {
       return TRUE;
    }
-
-   // handling of SDP body failed for some reason, reset SDP negotiation
-   m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    return FALSE;
 }
 
