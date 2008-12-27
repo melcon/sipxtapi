@@ -1197,6 +1197,57 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteResponse(const SipMessage& sipMessage)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_REMOTE_ALERTING ||
+      connectionState == ISipConnectionState::CONNECTION_REMOTE_OFFERING ||
+      connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED)
+   {
+      int responseCode = sipMessage.getResponseStatusCode();
+      UtlString responseText;
+      sipMessage.getResponseStatusText(&responseText);
+      int cseqNum;
+      UtlString cseqMethod;
+      sipMessage.getCSeqField(&cseqNum, &cseqMethod);
+
+      const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+      if (pSdpBody)
+      {
+         if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
+         {
+            // this must be SDP answer
+            if (handleSdpAnswer(sipMessage))
+            {
+               commitMediaSessionChanges();
+            }
+         }
+         else
+         {
+            // TODO: this must be SDP offer in new 1xx or 100rel retransmit with SDP answer
+         }
+      }
+
+      // TODO: if its reliable, then send back a PRACK. If it has an SDP offer, send back SDP answer in PRACK
+      if (responseCode == SIP_RINGING_CODE ||
+          responseCode == SIP_EARLY_MEDIA_CODE)
+      {
+         // proceed to remote alerting state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_REMOTE_ALERTING, &memory);
+      }
+      else if (responseCode == SIP_QUEUED_CODE)
+      {
+         // proceed to remote queued state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_REMOTE_QUEUED, &memory);
+      }
+   }
+
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(const SipMessage& sipResponse)
 {
    ISipConnectionState::StateEnum connectionState = getCurrentState();
@@ -1836,54 +1887,57 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
       return FALSE;
    }
 
-   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
-   if (pContact != NULL)
+   if (m_rStateContext.m_sdpNegotiation.isSdpOfferFinished())
    {
-      pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
-   }
-   else
-   {
-      pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
-   }
-
-   UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
-   int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
-   int receiveRtcpPorts[MAX_ADDRESS_CANDIDATES];
-   int receiveVideoRtpPorts[MAX_ADDRESS_CANDIDATES];
-   int receiveVideoRtcpPorts[MAX_ADDRESS_CANDIDATES];
-   RTP_TRANSPORT transportTypes[MAX_ADDRESS_CANDIDATES];
-   int nRtpContacts;
-   int totalBandwidth = 0;
-   SdpSrtpParameters srtpParams;
-   SdpCodecList supportedCodecs;
-   int videoFramerate = 0;
-   const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
-   OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
-      MAX_ADDRESS_CANDIDATES,
-      hostAddresses,
-      receiveRtpPorts,
-      receiveRtcpPorts,
-      receiveVideoRtpPorts,
-      receiveVideoRtcpPorts,
-      transportTypes,
-      nRtpContacts,
-      supportedCodecs,
-      srtpParams,
-      bandWidth,
-      totalBandwidth,
-      videoFramerate);
-
-   if (res == OS_SUCCESS)
-   {
-      if (!m_natTraversalConfig.m_bEnableICE)
+      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
+      if (pContact != NULL)
       {
-         nRtpContacts = 1;
+         pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
+      }
+      else
+      {
+         pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
       }
 
-      m_rStateContext.m_sdpNegotiation.addSdpAnswer(sipMessage,
-         nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
-         transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
-      return TRUE;
+      UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
+      int receiveRtpPorts[MAX_ADDRESS_CANDIDATES];
+      int receiveRtcpPorts[MAX_ADDRESS_CANDIDATES];
+      int receiveVideoRtpPorts[MAX_ADDRESS_CANDIDATES];
+      int receiveVideoRtcpPorts[MAX_ADDRESS_CANDIDATES];
+      RTP_TRANSPORT transportTypes[MAX_ADDRESS_CANDIDATES];
+      int nRtpContacts;
+      int totalBandwidth = 0;
+      SdpSrtpParameters srtpParams;
+      SdpCodecList supportedCodecs;
+      int videoFramerate = 0;
+      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
+      OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
+         MAX_ADDRESS_CANDIDATES,
+         hostAddresses,
+         receiveRtpPorts,
+         receiveRtcpPorts,
+         receiveVideoRtpPorts,
+         receiveVideoRtcpPorts,
+         transportTypes,
+         nRtpContacts,
+         supportedCodecs,
+         srtpParams,
+         bandWidth,
+         totalBandwidth,
+         videoFramerate);
+
+      if (res == OS_SUCCESS)
+      {
+         if (!m_natTraversalConfig.m_bEnableICE)
+         {
+            nRtpContacts = 1;
+         }
+
+         m_rStateContext.m_sdpNegotiation.addSdpAnswer(sipMessage,
+            nRtpContacts, hostAddresses, receiveRtpPorts, receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
+            transportTypes, supportedCodecs, srtpParams, totalBandwidth, videoFramerate, m_rStateContext.m_rtpTransport);
+         return TRUE;
+      }
    }
 
    // creation of SDP answer failed for some reason, reset SDP negotiation
@@ -1896,7 +1950,7 @@ UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
 {
    const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
 
-   if (pSdpBody)
+   if (pSdpBody && m_rStateContext.m_sdpNegotiation.isSdpOfferFinished())
    {
       m_rStateContext.m_sdpNegotiation.handleInboundSdpAnswer(sipMessage);
       if (handleRemoteSdpBody(*pSdpBody))

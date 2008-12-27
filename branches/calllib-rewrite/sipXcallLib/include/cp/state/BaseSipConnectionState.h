@@ -257,6 +257,9 @@ protected:
    /** Handles inbound SIP INVITE responses */
    virtual SipConnectionStateTransition* processInviteResponse(const SipMessage& sipMessage);
 
+   /** Handles inbound 1xx SIP INVITE responses */
+   virtual SipConnectionStateTransition* processProvisionalInviteResponse(const SipMessage& sipMessage);
+
    /** Handles inbound SIP UPDATE responses */
    virtual SipConnectionStateTransition* processUpdateResponse(const SipMessage& sipMessage);
 
