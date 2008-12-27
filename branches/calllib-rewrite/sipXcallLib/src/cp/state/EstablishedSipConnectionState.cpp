@@ -214,9 +214,8 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteRespon
    case SIP_OK_CODE:
    case SIP_ACCEPTED_CODE:
       {
-         // send ACK to retransmitted 200 OK
-         handleInvite2xxResponse(sipMessage);
-         break;
+         // send ACK to retransmitted 200 OK, or to 200 OK from re-INVITE
+         return handleInvite2xxResponse(sipMessage);
       }
    default:
       ;

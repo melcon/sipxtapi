@@ -45,10 +45,13 @@ CpSessionTimerProperties::~CpSessionTimerProperties()
 
 /* ============================ MANIPULATORS ============================== */
 
-void CpSessionTimerProperties::reset()
+void CpSessionTimerProperties::reset(UtlBoolean bFullReset)
 {
-   m_sessionExpires = m_initialSessionExpires;
-   m_minSessionExpires = MIN_SESSION_EXPIRES;
+   if (bFullReset)
+   {
+      m_sessionExpires = m_initialSessionExpires;
+      m_minSessionExpires = MIN_SESSION_EXPIRES;
+   }
    m_sRefresher = m_sInitialRefresher;
 }
 

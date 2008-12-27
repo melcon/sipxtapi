@@ -13,12 +13,14 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <net/SipMessage.h>
 #include <cp/state/RemoteQueuedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/EstablishedSipConnectionState.h>
 #include <cp/state/RemoteAlertingSipConnectionState.h>
 #include <cp/state/StateTransitionEventDispatcher.h>
+#include <cp/state/SipResponseTransitionMemory.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -85,6 +87,59 @@ SipConnectionStateTransition* RemoteQueuedSipConnectionState::handleSipMessageEv
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* RemoteQueuedSipConnectionState::processInviteResponse(const SipMessage& sipMessage)
+{
+   // first let parent handle response
+   SipConnectionStateTransition* pTransition = BaseSipConnectionState::processInviteResponse(sipMessage);
+   if (pTransition)
+   {
+      return pTransition;
+   }
+
+   int cseqNum;
+   UtlString cseqMethod;
+   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   sipMessage.getResponseStatusText(&responseText);
+
+   switch (responseCode)
+   {
+   case SIP_OK_CODE:
+   case SIP_ACCEPTED_CODE:
+      {
+         // send ACK to 200 OK
+         return handleInvite2xxResponse(sipMessage);
+      }
+   case SIP_RINGING_CODE:
+   case SIP_EARLY_MEDIA_CODE:
+      {
+         // proceed to remote alerting state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_REMOTE_ALERTING, &memory);
+      }
+   case SIP_ALTERNATIVE_SERVICE_CODE:
+      {
+         // proceed to disconnected state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+      }
+   case SIP_MULTI_CHOICE_CODE:
+   case SIP_PERMANENT_MOVE_CODE:
+   case SIP_TEMPORARY_MOVE_CODE:
+   case SIP_USE_PROXY_CODE:
+      {
+         getClientTransactionManager().endTransaction(cseqMethod, cseqNum); // end INVITE transaction so that new one can be started
+         return handleInviteRedirectResponse(sipMessage);
+      }
+   default:
+      ;
+   }
+
+   // no transition
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */

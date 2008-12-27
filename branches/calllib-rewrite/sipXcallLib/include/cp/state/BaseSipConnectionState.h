@@ -52,6 +52,19 @@ class ScByeRetryTimerMsg;
  * Parent to all concrete sip connection states. Should be used for handling
  * common to all states. This should be used as the last resort handler, usually
  * responding with errors to requests.
+ *
+ * Specific response handlers are only called for SIP response messages, for which
+ * an active transaction exists, and not for retransmissions (except for INVITE 200 OK).
+ * There is one common fatal response handler, processResponse() which processes responses
+ * according to rfc5057. Any 4xx, 5xx, 6xx to initial INVITE transaction is also treated
+ * as fatal (with exception 422).
+ * Responses which only affect transaction may be seen in specific response handlers.
+ *
+ * Some additional response codes are treated as fatal responses, and will result in immediate termination
+ * of call for INVITE/UPDATE/BYE/CANCEL methods.
+ * - 401 Unauthorized (will only be received for bad credentials)
+ * - 407 Proxy Authentication Required (will only be received for bad credentials) - for BYE and CANCEL
+ * - 408 Request Timeout (received from SipUserAgent) - for BYE and CANCEL
  */
 class BaseSipConnectionState : public ISipConnectionState
 {
@@ -342,12 +355,6 @@ protected:
    /** Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress*/
    UtlString buildDefaultContactUrl(const Url& fromAddress) const;
 
-   /**
-    * Must be called for inbound calls to progress to early established dialog, which results in local tag being
-    * generated.
-    */
-   void progressToEarlyEstablishedDialog();
-
    /** Gets local tag from sip dialog */
    UtlString getLocalTag() const;
 
@@ -381,9 +388,6 @@ protected:
    /** Commits changes negotiated by SDP offer/answer, starting/stopping RTP flow */
    UtlBoolean commitMediaSessionChanges();
 
-   /** Sets last sent invite */
-   void setLastSentInvite(const SipMessage& sipMessage);
-
    /** Sets last received invite */
    void setLastReceivedInvite(const SipMessage& sipMessage);
 
@@ -393,8 +397,8 @@ protected:
    /** Gets session timer properties */
    CpSessionTimerProperties& getSessionTimerProperties();
 
-   /** Handles 422 INVITE response */
-   void handleSmallInviteSessionInterval(const SipMessage& sipMessage);
+   /** Handles 422 INVITE/UPDATE response */
+   void handleSmallSessionIntervalResponse(const SipMessage& sipMessage);
 
    /** Sends options request */
    void sendOptionsRequest();
@@ -403,7 +407,7 @@ protected:
    void checkRemoteAllow();
 
    /** Sends ACK to given 200 OK response */
-   void handleInvite2xxResponse(const SipMessage& sipResponse);
+   virtual SipConnectionStateTransition* handleInvite2xxResponse(const SipMessage& sipResponse);
 
    /** Sends BYE to terminate call */
    void sendBye();
@@ -411,8 +415,8 @@ protected:
    /** Sends CANCEL to terminate call */
    void sendInviteCancel();
 
-   /** Sends re-INVITE for hold/unhold/codec renegotiation */
-   void sendReInvite();
+   /** Sends re-INVITE for hold/unhold/codec renegotiation, or initial INVITE after 422 response */
+   void sendInvite();
 
    /** Sends UPDATE for hold/unhold/codec renegotiation */
    void sendUpdate();
@@ -504,6 +508,12 @@ protected:
    /** Returns TRUE if some UPDATE is active. */
    UtlBoolean isUpdateActive();
 
+   /** Returns TRUE if some outbound UPDATE is active. */
+   UtlBoolean isOutboundUpdateActive();
+
+   /** Returns TRUE if some inbound UPDATE is active. */
+   UtlBoolean isInboundUpdateActive();
+
    /** Returns TRUE if we may start renegotiating media session now */
    UtlBoolean mayRenegotiateMediaSession();
 
@@ -541,6 +551,9 @@ protected:
 
    /** Follows next redirect, or terminates call if none are left */
    virtual SipConnectionStateTransition* followNextRedirect();
+
+   /** Gets sip call-id. Useful for log messages. */
+   UtlString getSipCallId() const;
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
