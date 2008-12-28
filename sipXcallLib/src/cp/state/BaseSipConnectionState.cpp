@@ -38,6 +38,7 @@
 #include <cp/msg/ScDisconnectTimerMsg.h>
 #include <cp/msg/ScReInviteTimerMsg.h>
 #include <cp/msg/ScByeRetryTimerMsg.h>
+#include <cp/msg/ScSessionTimeoutTimerMsg.h>
 #include <cp/msg/AcDestroyConnectionMsg.h>
 #include <cp/XSipConnectionEventSink.h>
 
@@ -521,6 +522,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const S
       return handleReInviteTimerMessage((const ScReInviteTimerMsg&)timerMsg);
    case ScTimerMsg::PAYLOAD_TYPE_BYE_RETRY:
       return handleByeRetryTimerMessage((const ScByeRetryTimerMsg&)timerMsg);
+   case ScTimerMsg::PAYLOAD_TYPE_SESSION_TIMEOUT_CHECK:
+      return handleSessionTimeoutCheckTimerMessage((const ScSessionTimeoutTimerMsg&)timerMsg);
    default:
       ;
       OsSysLog::add(FAC_CP, PRI_WARNING, "Unknown timer message received - %d:%d\r\n",
@@ -840,7 +843,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
 
    if (bProtocolError)
    {
-      sendBye();
+      sendBye(487, "Request terminated due to protocol error");
    }
 
    return NULL;
@@ -1206,28 +1209,32 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
    return NULL;
 }
 
-SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteResponse(const SipMessage& sipMessage)
+SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteResponse(const SipMessage& sipResponse)
 {
    ISipConnectionState::StateEnum connectionState = getCurrentState();
 
    if (connectionState == ISipConnectionState::CONNECTION_REMOTE_ALERTING ||
       connectionState == ISipConnectionState::CONNECTION_REMOTE_OFFERING ||
-      connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED)
+      connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED ||
+      connectionState == ISipConnectionState::CONNECTION_ESTABLISHED) // re-INVITE can also have 18x response
    {
-      int responseCode = sipMessage.getResponseStatusCode();
+      int responseCode = sipResponse.getResponseStatusCode();
       UtlString responseText;
-      sipMessage.getResponseStatusText(&responseText);
+      sipResponse.getResponseStatusText(&responseText);
       int cseqNum;
       UtlString cseqMethod;
-      sipMessage.getCSeqField(&cseqNum, &cseqMethod);
+      sipResponse.getCSeqField(&cseqNum, &cseqMethod);
 
-      const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
-      if (pSdpBody)
+      // TODO: if its reliable, then send back a PRACK. If it has an SDP offer, send back SDP answer in PRACK
+      const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
+      if (pSdpBody &&
+         (sipResponse.is100RelResponse() || connectionState != ISipConnectionState::CONNECTION_ESTABLISHED))
       {
+         // when in established state, process SDP only if 18x is reliable
          if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
          {
             // this must be SDP answer
-            if (handleSdpAnswer(sipMessage))
+            if (handleSdpAnswer(sipResponse))
             {
                commitMediaSessionChanges();
             }
@@ -1238,19 +1245,20 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
          }
       }
 
-      // TODO: if its reliable, then send back a PRACK. If it has an SDP offer, send back SDP answer in PRACK
-      if (responseCode == SIP_RINGING_CODE ||
-          responseCode == SIP_EARLY_MEDIA_CODE)
+      if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED)
       {
-         // proceed to remote alerting state
-         SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_REMOTE_ALERTING, &memory);
-      }
-      else if (responseCode == SIP_QUEUED_CODE)
-      {
-         // proceed to remote queued state
-         SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_REMOTE_QUEUED, &memory);
+         if (responseCode == SIP_RINGING_CODE || responseCode == SIP_EARLY_MEDIA_CODE)
+         {
+            // proceed to remote alerting state
+            SipResponseTransitionMemory memory(responseCode, responseText);
+            return getTransition(ISipConnectionState::CONNECTION_REMOTE_ALERTING, &memory);
+         }
+         else if (responseCode == SIP_QUEUED_CODE)
+         {
+            // proceed to remote queued state
+            SipResponseTransitionMemory memory(responseCode, responseText);
+            return getTransition(ISipConnectionState::CONNECTION_REMOTE_QUEUED, &memory);
+         }
       }
    }
 
@@ -1560,8 +1568,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleReInviteTimerMessage
    case ScReInviteTimerMsg::REASON_UNHOLD:
       return handleRenegotiateTimerMessage(timerMsg);
    case ScReInviteTimerMsg::REASON_SESSION_EXTENSION:
-      // TODO: implement handler
-      break;
+      return handleRefreshSessionTimerMessage(timerMsg);
    default:
       break;
    }
@@ -1607,6 +1614,57 @@ SipConnectionStateTransition* BaseSipConnectionState::handleRenegotiateTimerMess
             OsSysLog::add(FAC_CP, PRI_WARNING, "Giving up renegotiate (%i) operation, not ready to renegotiate session after %i tries\n",
                (int)timerMsg.getReason(), MAX_RENEGOTIATION_RETRY_COUNT);
          }
+      }
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleRefreshSessionTimerMessage(const ScReInviteTimerMsg& timerMsg)
+{
+   deleteSessionRefreshTimer();
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      // we are in a state where we can do hold
+      if (mayRenegotiateMediaSession())
+      {
+         OsSysLog::add(FAC_CP, PRI_DEBUG, "About to renegotiate session due to session timer for sip call-id %s.\n",
+            getSipCallId().data());
+         renegotiateMediaSession();
+      } // else some renegotiation is in progress, just restart timer, no need to refresh
+
+      startSessionRefreshTimer();
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleSessionTimeoutCheckTimerMessage(const ScSessionTimeoutTimerMsg& timerMsg)
+{
+   deleteSessionTimeoutCheckTimer();
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (m_rStateContext.m_sessionTimerProperties.isSessionStale())
+      {
+         OsSysLog::add(FAC_CP, PRI_WARNING, "Session timeout: session with call-id %s is too old, no session refresh occurred within session expiration time, dropping session.\n",
+            getSipCallId().data());
+
+         // session is stale (too old, not refreshed), terminate it with BYE
+         if (!m_rStateContext.m_bCancelSent)
+         {
+            sendBye(487, "Session Timeout"); // this kicks off bye timeout timer
+         }
+      }
+      else
+      {
+         // session is not stale, restart timeout timer
+         startSessionTimeoutCheckTimer();
       }
    }
 
@@ -2282,9 +2340,13 @@ SipConnectionStateTransition* BaseSipConnectionState::handleInvite2xxResponse(co
       return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
    }
 
-   if (bProtocolError || m_rStateContext.m_bCallDisconnecting)
+   if (bProtocolError)
    {
-      sendBye(); // also send BYE
+      sendBye(487, "Request terminated due to protocol error"); // also send BYE
+   }
+   else if (m_rStateContext.m_bCancelSent)
+   {
+      sendBye(487, "Request Terminated"); // also send BYE
    }
    else if (getCurrentState() != ISipConnectionState::CONNECTION_ESTABLISHED)
    {
@@ -2296,7 +2358,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleInvite2xxResponse(co
    return NULL;
 }
 
-void BaseSipConnectionState::sendBye()
+void BaseSipConnectionState::sendBye(int cause, const UtlString& text)
 {
    if (!m_rStateContext.m_bByeSent)
    {
@@ -2305,6 +2367,10 @@ void BaseSipConnectionState::sendBye()
       SipMessage byeRequest;
       int seqNum = getNextLocalCSeq();
       prepareSipRequest(byeRequest, SIP_BYE_METHOD, seqNum);
+      if (cause && !text.isNull())
+      {
+         byeRequest.setReasonField("SIP", cause, text);
+      }
       sendMessage(byeRequest);
       startByeTimeoutTimer(); // start bye timer to force destroy connection after some timeout
    }
@@ -2313,9 +2379,10 @@ void BaseSipConnectionState::sendBye()
 void BaseSipConnectionState::sendInviteCancel()
 {
    // send CANCEL
-   if (getClientTransactionManager().isInviteTransactionActive())
+   if (!m_rStateContext.m_bCancelSent && // send only 1 CANCEL at time
+       getClientTransactionManager().isInviteTransactionActive())
    {
-      m_rStateContext.m_bCallDisconnecting = TRUE;
+      m_rStateContext.m_bCancelSent = TRUE;
       int seqNum = getClientTransactionManager().getInviteCSeqNum();
 
       SipMessage cancelRequest;
@@ -2531,7 +2598,7 @@ void BaseSipConnectionState::setMediaDestination(const char* hostAddress,
 SipConnectionStateTransition* BaseSipConnectionState::doByeConnection(OsStatus& result)
 {
    // if we are inbound call, sent 200 OK but haven't received ACK yet, we may not do BYE
-   if (!m_rStateContext.m_bCallDisconnecting)
+   if (!m_rStateContext.m_bCancelSent)
    {
       sendBye();
    }
@@ -2541,10 +2608,7 @@ SipConnectionStateTransition* BaseSipConnectionState::doByeConnection(OsStatus& 
 
 SipConnectionStateTransition* BaseSipConnectionState::doCancelConnection(OsStatus& result)
 {
-   if (!m_rStateContext.m_bCallDisconnecting)
-   {
-      sendInviteCancel();
-   }
+   sendInviteCancel();
    result = OS_SUCCESS;
    return NULL;
 }
@@ -2664,6 +2728,58 @@ void BaseSipConnectionState::delete2xxRetransmitTimer()
    {
       delete m_rStateContext.m_p2xxInviteRetransmitTimer;
       m_rStateContext.m_p2xxInviteRetransmitTimer = NULL;
+   }
+}
+
+void BaseSipConnectionState::startSessionTimeoutCheckTimer()
+{
+   deleteSessionTimeoutCheckTimer();
+
+   UtlString sipCallId;
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlBoolean isFromLocal;
+
+   getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
+   ScSessionTimeoutTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   m_rStateContext.m_pSessionTimeoutCheckTimer = new OsTimer(pNotification);
+   OsTime timerTime(m_rStateContext.m_sessionTimerProperties.getSessionExpires() / 2, 0);
+   m_rStateContext.m_pSessionTimeoutCheckTimer->oneshotAfter(timerTime); // start timer
+}
+
+void BaseSipConnectionState::deleteSessionTimeoutCheckTimer()
+{
+   if (m_rStateContext.m_pSessionTimeoutCheckTimer)
+   {
+      delete m_rStateContext.m_pSessionTimeoutCheckTimer;
+      m_rStateContext.m_pSessionTimeoutCheckTimer = NULL;
+   }
+}
+
+void BaseSipConnectionState::startSessionRefreshTimer()
+{
+   deleteSessionRefreshTimer();
+
+   UtlString sipCallId;
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlBoolean isFromLocal;
+
+   getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
+   ScReInviteTimerMsg msg(ScReInviteTimerMsg::REASON_SESSION_EXTENSION, sipCallId, localTag, remoteTag, isFromLocal);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   m_rStateContext.m_pSessionRefreshTimer = new OsTimer(pNotification);
+   OsTime timerTime(m_rStateContext.m_sessionTimerProperties.getSessionExpires() / 2, 0); // refresh in the middle
+   m_rStateContext.m_pSessionRefreshTimer->oneshotAfter(timerTime); // start timer
+}
+
+void BaseSipConnectionState::deleteSessionRefreshTimer()
+{
+   if (m_rStateContext.m_pSessionRefreshTimer)
+   {
+      delete m_rStateContext.m_pSessionRefreshTimer;
+      m_rStateContext.m_pSessionRefreshTimer = NULL;
    }
 }
 
@@ -3119,13 +3235,17 @@ void BaseSipConnectionState::handleSessionTimerResponse(const SipMessage& sipRes
       m_rStateContext.m_sessionTimerProperties.onSessionRefreshed();
 
       CP_SESSION_TIMER_REFRESH refresher = m_rStateContext.m_sessionTimerProperties.getRefresher();
-      if (refresher == CP_SESSION_REFRESH_REMOTE)
+
+      startSessionTimeoutCheckTimer();
+      if (refresher != CP_SESSION_REFRESH_REMOTE)
       {
-         // only start session timeout check timer
+         // start session timeout timer, and session refresh timer
+         startSessionRefreshTimer();
       }
       else
       {
-         // start session timeout timer, and session refresh timer
+         // remote side is refreshing
+         deleteSessionRefreshTimer(); // refresher role changed, get rid of refresh timer
       }
    }
 }

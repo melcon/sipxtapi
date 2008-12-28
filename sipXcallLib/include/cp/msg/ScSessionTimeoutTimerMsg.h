@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ScReInviteTimerMsg_h__
-#define ScReInviteTimerMsg_h__
+#ifndef ScSessionTimeoutTimerMsg_h__
+#define ScSessionTimeoutTimerMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -28,58 +28,45 @@
 // FORWARD DECLARATIONS
 
 /**
- * ScReInviteTimerMsg is sent when re-INVITE timer fires. It is meant to trigger
- * sending re-INVITE message (session refresh, codec negotiation) 
+ * ScSessionTimeoutTimerMsg is meant to trigger check if session timeout occurred (session timer support).
  */
-class ScReInviteTimerMsg : public ScTimerMsg
+class ScSessionTimeoutTimerMsg : public ScTimerMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      REASON_NORMAL, ///< re-INVITE to renegotiate codecs, hold/unhold. Failure will not cause problem.
-      REASON_HOLD,
-      REASON_UNHOLD,
-      REASON_SESSION_EXTENSION ///< re-INVITE to extend session (after session timer fires)
-   } ReInviteReason;
-
    /* ============================ CREATORS ================================== */
 
    /**
     * Constructor.
     */
-   ScReInviteTimerMsg(ReInviteReason reason,
-                      const UtlString& sCallId,
-                      const UtlString& sLocalTag,
-                      const UtlString& sRemoteTag,
-                      UtlBoolean isFromLocal = TRUE);
+   ScSessionTimeoutTimerMsg(const UtlString& sCallId,
+                            const UtlString& sLocalTag,
+                            const UtlString& sRemoteTag,
+                            UtlBoolean isFromLocal = TRUE);
 
    /** Copy constructor */
-   ScReInviteTimerMsg(const ScReInviteTimerMsg& rhs);
+   ScSessionTimeoutTimerMsg(const ScSessionTimeoutTimerMsg& rhs);
 
    /** Create a copy of this msg object (which may be of a derived type) */
    virtual OsMsg* createCopy(void) const;
 
    /** Destructor. */
-   virtual ~ScReInviteTimerMsg();
+   virtual ~ScSessionTimeoutTimerMsg();
 
    /* ============================ MANIPULATORS ============================== */
 
    /** Assignment operator */
-   ScReInviteTimerMsg& operator=(const ScReInviteTimerMsg& rhs);
+   ScSessionTimeoutTimerMsg& operator=(const ScSessionTimeoutTimerMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
-
-   ScReInviteTimerMsg::ReInviteReason getReason() const { return m_reason; }
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   ReInviteReason m_reason; ///< m_reason for re-INVITE
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 };
 
-#endif // ScReInviteTimerMsg_h__
+#endif // ScSessionTimeoutTimerMsg_h__

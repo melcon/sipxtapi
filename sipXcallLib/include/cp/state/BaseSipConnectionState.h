@@ -47,6 +47,7 @@ class Sc100RelTimerMsg;
 class Sc2xxTimerMsg;
 class ScDisconnectTimerMsg;
 class ScByeRetryTimerMsg;
+class ScSessionTimeoutTimerMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -326,6 +327,12 @@ protected:
    /** Handles session renegotiation timer message. */
    virtual SipConnectionStateTransition* handleRenegotiateTimerMessage(const ScReInviteTimerMsg& timerMsg);
 
+   /** Handles session refresh timer message. */
+   virtual SipConnectionStateTransition* handleRefreshSessionTimerMessage(const ScReInviteTimerMsg& timerMsg);
+
+   /** Handles session timeout check timer message. */
+   virtual SipConnectionStateTransition* handleSessionTimeoutCheckTimerMessage(const ScSessionTimeoutTimerMsg& timerMsg);
+
    /** Handles bye retry timer message. */
    virtual SipConnectionStateTransition* handleByeRetryTimerMessage(const ScByeRetryTimerMsg& timerMsg);
 
@@ -412,8 +419,8 @@ protected:
    /** Sends ACK to given 200 OK response */
    virtual SipConnectionStateTransition* handleInvite2xxResponse(const SipMessage& sipResponse);
 
-   /** Sends BYE to terminate call */
-   void sendBye();
+   /** Sends BYE to terminate call. Optionally also specify values of Reason field. */
+   void sendBye(int cause = 0, const UtlString& text = NULL);
 
    /** Sends CANCEL to terminate call */
    void sendInviteCancel();
@@ -472,6 +479,18 @@ protected:
 
    /** Deletes timer responsible for retransmit of 2xx invite responses */
    void delete2xxRetransmitTimer();
+
+   /** Starts timer to check session timeout */
+   void startSessionTimeoutCheckTimer();
+
+   /** Deletes timer for checking session timeout */
+   void deleteSessionTimeoutCheckTimer();
+
+   /** Starts timer to refresh session */
+   void startSessionRefreshTimer();
+
+   /** Deletes timer for refreshing session */
+   void deleteSessionRefreshTimer();
 
    /** Gets Id of sip dialog */
    void getSipDialogId(UtlString& sipCallId,
