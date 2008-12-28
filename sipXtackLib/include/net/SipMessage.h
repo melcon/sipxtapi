@@ -1164,6 +1164,13 @@ public:
     // RFC 3326 REASON-header
     void setReasonField(const char* reasonField);
 
+    /**
+     * Sets RFC 3326 REASON header. Only 1 reason can be specified.
+     * Example:
+     * Reason: SIP ;cause=200 ;text="Call completed elsewhere"
+     */
+    void setReasonField(const UtlString& protocol, int cause, const UtlString& text);
+
     /** Gets value of whole unparsed Reason: field.*/
     UtlBoolean getReasonField(UtlString& reasonField) const;
 
