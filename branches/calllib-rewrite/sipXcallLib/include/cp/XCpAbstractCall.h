@@ -118,6 +118,8 @@ public:
                    const UtlString& sLocalIpAddress,
                    int sessionTimerExpiration,
                    CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                   CP_SIP_UPDATE_CONFIG updateSetting,
+                   CP_100REL_CONFIG c100relSetting,
                    XCpCallConnectionListener* pCallConnectionListener = NULL,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -452,6 +454,8 @@ protected:
    const UtlString m_sLocale; ///< locale for DTMF, empty by default
    const int m_sessionTimerExpiration; ///< time between RFC4028 session refreshes
    const CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
+   const CP_SIP_UPDATE_CONFIG m_updateSetting; ///< configuration of SIP UPDATE method
+   const CP_100REL_CONFIG m_100relSetting; ///< configuration of 100rel support
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

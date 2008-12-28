@@ -94,6 +94,8 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_sLocalIpAddress(sLocalIpAddress)
 , m_sessionTimerExpiration(DEFAULT_SESSION_TIMER_EXPIRATION)
 , m_sessionTimerRefresh(CP_SESSION_REFRESH_AUTO)
+, m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
+, m_100relSetting(CP_100REL_PREFER_RELIABLE)
 {
    startSipMessageObserving();
 
@@ -164,7 +166,7 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
    }
 
    XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
-      m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
+      m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh, m_updateSetting, m_100relSetting,
       &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
       m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
@@ -199,7 +201,7 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    }
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
       *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
-      &m_callStack, m_pCallEventListener,
+      m_updateSetting, m_100relSetting, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pConference->start();
@@ -1420,7 +1422,7 @@ void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
 
    XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
       *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
-      &m_callStack, m_pCallEventListener,
+      m_updateSetting, m_100relSetting, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
    UtlBoolean resStart = pCall->start(); // start thread

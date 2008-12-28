@@ -132,6 +132,12 @@ public:
    /** Configures session timer properties */
    void configureSessionTimer(int sessionExpiration, CP_SESSION_TIMER_REFRESH sessionTimerRefresh);
 
+   /** Configures SIP UPDATE usage */
+   void configureUpdate(CP_SIP_UPDATE_CONFIG updateSetting);
+
+   /** Configures 100rel (PRACK) support */
+   void configure100rel(CP_100REL_CONFIG c100relSetting);
+
    /* ============================ ACCESSORS ================================= */
 
    /**

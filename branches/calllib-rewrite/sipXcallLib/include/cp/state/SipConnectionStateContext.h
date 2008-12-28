@@ -18,6 +18,7 @@
 #include <utl/UtlSList.h>
 #include <net/SipTagGenerator.h>
 #include <net/SmimeBody.h>
+#include <cp/CpDefs.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/Cp100RelTracker.h>
 #include <cp/CpSdpNegotiation.h>
@@ -78,6 +79,7 @@ public:
    UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    Cp100RelTracker m_100RelTracker; ///< tracker for 100rel responses and PRACKs
+   CP_100REL_CONFIG m_100relSetting; ///< configuration of 100rel support
    CpSipTransactionManager m_sipClientTransactionMgr; ///< sip outbound transaction tracking
    CpSipTransactionManager m_sipServerTransactionMgr; ///< sip inbound transaction tracking
    UtlString m_locationHeader; ///< value of sip location header
@@ -88,7 +90,9 @@ public:
    SipMessage* m_pLastReceivedInvite; ///< last received INVITE
    SipMessage* m_pLastSent2xxToInvite; ///< last sent 2xx response to INVITE (sent until ACK is received)
    UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering
-   UtlBoolean m_bSdpRenegotiationUseUpdate; ///< use UPDATE method for media session renegotiation
+   CP_SIP_UPDATE_CONFIG m_updateSetting; ///< whether UPDATE method is enabled
+
+   // redirect member variables
    UtlSList m_redirectContactList; ///< contact URIs which should be followed in redirect
    UtlBoolean m_bRedirecting; ///< TRUE if we are following redirection
 
@@ -97,6 +101,7 @@ public:
    UtlBoolean m_bCallDisconnecting; ///< call is being disconnected. Either CANCEL, BYE or 403 Forbidden was sent
    UtlBoolean m_bByeSent; ///< TRUE when we are disconnecting and BYE was already sent
    int m_iByeRetryCount; ///< counter when retrying BYE for inbound call
+
    // timers
    OsTimer* m_pByeRetryTimer; ///< timer started if drop is attempted for inbound call, but call cannot be dropped at current state
    OsTimer* m_pCancelTimeoutTimer; ///< timer started after CANCEL is sent to force drop connection if timeout

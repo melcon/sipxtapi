@@ -2318,3 +2318,63 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimer(const SIPX_INST hInst,
 
    return rc;
 }
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG* updateConfig)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      *updateConfig = (SIPX_SIP_UPDATE_CONFIG)pInst->pCallManager->getUpdateSetting();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG updateConfig) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      pInst->pCallManager->setUpdateSetting((CP_SIP_UPDATE_CONFIG)updateConfig);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG* relConfig)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      *relConfig = (SIPX_100REL_CONFIG)pInst->pCallManager->get100relSetting();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG relConfig) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      pInst->pCallManager->set100relSetting((CP_100REL_CONFIG)relConfig);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
