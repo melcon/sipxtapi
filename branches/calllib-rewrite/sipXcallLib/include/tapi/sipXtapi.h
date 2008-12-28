@@ -383,6 +383,19 @@ typedef enum SIPX_TONE_ID
 } SIPX_TONE_ID;                 
 
 /**
+ * Configuration of session timer refresher. Refresher is side which is responsible
+ * for periodically refreshing the session with re-INVITE or UPDATE within session
+ * expiration time. If no session refresh occurs until that period, session may be
+ * torn down. Refresher is negotiated by default.
+ */
+typedef enum SIPX_SESSION_TIMER_REFRESH
+{
+   SIPX_SESSION_REFRESH_AUTO = 0, /**< Refresher negotiation is automatic  */
+   SIPX_SESSION_REFRESH_LOCAL,  /**< Our side will carry out session refresh */
+   SIPX_SESSION_REFRESH_REMOTE   /**< Remote side will carry out session refresh */
+} SIPX_SESSION_TIMER_REFRESH;
+
+/**
  * Various log levels available for the sipxConfigEnableLog method.  
  * Developers can choose the amount of detail available in the log.
  * Each level includes messages generated at lower levels.  For 
@@ -3994,19 +4007,25 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
  * @param hInst An instance handle obtained from sipxInitialize.
  * @param iSessionInterval Current value of session timer expiration.
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int* iSessionInterval);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimer(const SIPX_INST hInst,
+                                                   int* iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH* refresh);
 
 /**
  * Sets current session interval defined in RFC4028 (session timers) - time between
- * session updates (INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ * session updates (re-INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ * By default re-INVITE is used unless UPDATE is enabled.
  *
  * @param hInst An instance handle obtained from sipxInitialize.
  * @param iSessionInterval New value of session timer expiration. Values lower than 90
  *        are ignored. Minimum value is 90.
+ * @param refresh Configures side which is responsible for session refresh. Can be automatic,
+ *        local, or remote.
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int iSessionInterval);
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimer(const SIPX_INST hInst,
+                                                   int iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH refresh);
+
 //@}
 /** @name Utility Functions */
 //@{

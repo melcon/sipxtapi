@@ -2318,7 +2318,7 @@ void BaseSipConnectionState::sendInvite()
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher, so that it is negotiated again
 
    sipInvite.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
-      m_rStateContext.m_sessionTimerProperties.getRefresher());
+      m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
    sipInvite.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
 
    // add SDP if negotiation mode is immediate, otherwise don't add it
@@ -2349,7 +2349,7 @@ void BaseSipConnectionState::sendUpdate()
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher
 
    sipUpdate.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(), 
-      m_rStateContext.m_sessionTimerProperties.getRefresher());
+      m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
    sipUpdate.setMinSe(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
 
    if (!prepareSdpOffer(sipUpdate))
@@ -3041,7 +3041,7 @@ SipConnectionStateTransition* BaseSipConnectionState::followNextRedirect()
          NULL, contactUrl, sipCallId,
          cseqNum);
       sipInvite.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
-         m_rStateContext.m_sessionTimerProperties.getRefresher());
+         m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
       sipInvite.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
 
       UtlString* pRedirectContactUri = dynamic_cast<UtlString*>(m_rStateContext.m_redirectContactList.get());
