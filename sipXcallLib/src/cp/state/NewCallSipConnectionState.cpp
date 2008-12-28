@@ -96,6 +96,8 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
 
    progressToEarlyEstablishedDialog();
 
+   m_rStateContext.m_sessionTimerProperties.reset(TRUE);
+
    // automatically transition to offering state
    return getTransition(ISipConnectionState::CONNECTION_OFFERING, NULL);
 }

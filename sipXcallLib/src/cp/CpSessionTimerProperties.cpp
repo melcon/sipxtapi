@@ -12,11 +12,12 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsDateTime.h>
 #include <cp/CpSessionTimerProperties.h>
 
 // DEFINES
 #define MIN_SESSION_EXPIRES 90
-#define INITIAL_SESSION_EXPIRES 300
+#define INITIAL_SESSION_EXPIRES 1800
 #define REFRESHER_UAS "uas"
 #define REFRESHER_UAC "uac"
 
@@ -36,6 +37,7 @@ CpSessionTimerProperties::CpSessionTimerProperties()
 : m_sessionExpires(INITIAL_SESSION_EXPIRES)
 , m_initialSessionExpires(INITIAL_SESSION_EXPIRES)
 , m_minSessionExpires(MIN_SESSION_EXPIRES)
+, m_lastRefreshTimestamp(0)
 {
 
 }
@@ -59,33 +61,46 @@ void CpSessionTimerProperties::reset(UtlBoolean bFullReset)
    m_sRefresher = m_sInitialRefresher;
 }
 
+void CpSessionTimerProperties::onSessionRefreshed()
+{
+   m_lastRefreshTimestamp = OsDateTime::getSecsSinceEpoch();
+}
+
 /* ============================ ACCESSORS ================================= */
 
-void CpSessionTimerProperties::setRefresher(UtlString refresher, UtlBoolean bIsOutboundTransaction)
+void CpSessionTimerProperties::configureRefresher(const UtlString& refresher, UtlBoolean bIsOutboundTransaction)
 {
    if (bIsOutboundTransaction)
    {
-      if (refresher.compareTo(REFRESHER_UAC))
+      if (refresher.compareTo(REFRESHER_UAC) == 0)
       {
          m_sRefresher = CP_SESSION_REFRESH_LOCAL;
       }
-      else if (refresher.compareTo(REFRESHER_UAS))
+      else if (refresher.compareTo(REFRESHER_UAS) == 0)
       {
          m_sRefresher = CP_SESSION_REFRESH_REMOTE;
       }
-      else m_sRefresher = CP_SESSION_REFRESH_AUTO;
+      else
+      {
+         // we may choose refresher
+         m_sRefresher = (m_sInitialRefresher != CP_SESSION_REFRESH_AUTO ? m_sInitialRefresher : CP_SESSION_REFRESH_LOCAL);
+      }
    }
    else
    {
-      if (refresher.compareTo(REFRESHER_UAC))
+      if (refresher.compareTo(REFRESHER_UAC) == 0)
       {
          m_sRefresher = CP_SESSION_REFRESH_REMOTE;
       }
-      else if (refresher.compareTo(REFRESHER_UAS))
+      else if (refresher.compareTo(REFRESHER_UAS) == 0)
       {
          m_sRefresher = CP_SESSION_REFRESH_LOCAL;
       }
-      else m_sRefresher = CP_SESSION_REFRESH_AUTO;
+      else
+      {
+         // we may choose refresher
+         m_sRefresher = (m_sInitialRefresher != CP_SESSION_REFRESH_AUTO ? m_sInitialRefresher : CP_SESSION_REFRESH_LOCAL);
+      }
    }
 }
 
@@ -119,15 +134,40 @@ UtlString CpSessionTimerProperties::getRefresher(UtlBoolean bIsOutboundTransacti
 
 void CpSessionTimerProperties::setMinSessionExpires(int val)
 {
-   if (val < MIN_SESSION_EXPIRES)
+   // minSe can only be increased
+   if (val > m_minSessionExpires &&
+       val > MIN_SESSION_EXPIRES)
    {
-      // minimum value by RFC4028
-      val = MIN_SESSION_EXPIRES;
+      m_minSessionExpires = val;
    }
-   m_minSessionExpires = val;
+
+   // setting minSe also has an effect on session expires
+   setSessionExpires(m_minSessionExpires);
+}
+
+void CpSessionTimerProperties::setSessionExpires(int sessionExpires)
+{
+   // we may not set lower than minSe
+   if (sessionExpires >= m_sessionExpires &&
+       sessionExpires >= m_minSessionExpires)
+   {
+      m_sessionExpires = sessionExpires;
+   }
 }
 
 /* ============================ INQUIRY =================================== */
+
+UtlBoolean CpSessionTimerProperties::isSessionStale() const
+{
+   long timeNow = OsDateTime::getSecsSinceEpoch();
+
+   if (timeNow - m_lastRefreshTimestamp > m_sessionExpires)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
+}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 

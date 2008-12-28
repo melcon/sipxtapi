@@ -558,6 +558,18 @@ protected:
    /** Gets sip call-id. Useful for log messages. */
    UtlString getSipCallId() const;
 
+   /**
+    * Handles answer of session timer request in sip response message. This method can handle
+    * both answers from remote side, but also responses which we are about to send.
+    */
+   void handleSessionTimerResponse(const SipMessage& sipResponse);
+
+   /** Prepares session timer response, based on request */
+   void prepareSessionTimerResponse(const SipMessage& sipRequest, SipMessage& sipResponse);
+
+   /** Prepares session timer request */
+   void prepareSessionTimerRequest(SipMessage& sipRequest);
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
