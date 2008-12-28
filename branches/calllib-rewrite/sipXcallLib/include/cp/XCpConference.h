@@ -94,7 +94,8 @@ public:
                             const UtlString& toAddress,
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId);
+                            CP_CONTACT_ID contactId,
+                            CP_FOCUS_CONFIG focusConfig);
 
    /**
     * Always fails, as conference cannot accept inbound call. Instead, add calls
@@ -272,6 +273,12 @@ private:
                                             CP_MEDIA_TYPE type,
                                             intptr_t pEventData1,
                                             intptr_t pEventData2);
+
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   virtual void onFocusGained();
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   virtual void onFocusLost();
 
    // begin of members requiring m_memberMutex
    UtlSList m_sipConnections;

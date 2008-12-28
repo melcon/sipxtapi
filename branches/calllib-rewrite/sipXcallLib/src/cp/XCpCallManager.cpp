@@ -228,7 +228,8 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      const UtlString& fullLineUrl,
                                      const UtlString& sSipCallId,
                                      const UtlString& locationHeader,
-                                     CP_CONTACT_ID contactId)
+                                     CP_CONTACT_ID contactId,
+                                     CP_FOCUS_CONFIG focusConfig)
 {
    OsStatus result = OS_NOT_FOUND;
    sSipDialog = SipDialog();
@@ -243,7 +244,7 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
          sTmpSipCallId = getNewSipCallId();
       }
       // we found call and have a lock on it
-      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig);
    }
 
    return result;
@@ -255,7 +256,8 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
                                                const UtlString& fullLineUrl,
                                                const UtlString& sSipCallId,
                                                const UtlString& locationHeader,
-                                               CP_CONTACT_ID contactId)
+                                               CP_CONTACT_ID contactId,
+                                               CP_FOCUS_CONFIG focusConfig)
 {
    OsStatus result = OS_NOT_FOUND;
    sSipDialog = SipDialog();
@@ -270,7 +272,7 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
          sTmpSipCallId = getNewSipCallId();
       }
       // we found call and have a lock on it
-      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig);
    }
 
    return result;

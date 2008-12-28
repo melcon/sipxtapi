@@ -1300,6 +1300,23 @@ OsStatus SipXMediaInterfaceImpl::defocus()
     return OS_SUCCESS ;
 }
 
+UtlBoolean SipXMediaInterfaceImpl::hasFocus()
+{
+   if (mpFlowGraph)
+   {
+      MpMediaTask* mediaTask = MpMediaTask::getMediaTask();
+      if (mediaTask)
+      {
+         if (mediaTask->getFocus() == mpFlowGraph)
+         {
+            return TRUE;
+         }
+      }
+   }
+
+   return FALSE;
+}
+
 OsStatus SipXMediaInterfaceImpl::recordAudio(const char* szFile)
 {
    if (mpFlowGraph)

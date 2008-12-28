@@ -106,6 +106,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_sessionTimerRefresh(sessionTimerRefresh)
 , m_updateSetting(updateSetting)
 , m_100relSetting(c100relSetting)
+, m_focusConfig(CP_FOCUS_IF_AVAILABLE)
 {
 
 }
@@ -727,6 +728,12 @@ UtlBoolean XCpAbstractCall::handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg)
    case CP_NOTIFICATION_RECORDING_STOPPED:
       fireSipXMediaInterfaceEvent(CP_MEDIA_RECORDING_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
+   case CP_NOTIFICATION_FOCUS_GAINED:
+      onFocusGained();
+      break;
+   case CP_NOTIFICATION_FOCUS_LOST:
+      onFocusLost();
+      break;
    default:
       assert(false);
    }
@@ -764,8 +771,16 @@ CpMediaInterface* XCpAbstractCall::getMediaInterface(UtlBoolean bCreateIfNull)
          m_natTraversalConfig.m_sTurnPassword,
          m_natTraversalConfig.m_iTurnKeepAlivePeriodSecs,
          m_natTraversalConfig.m_bEnableICE);
-
-      gainFocus(TRUE); // only gain focus if there is no focused call
+#ifndef DISABLE_LOCAL_AUDIO
+      if (m_focusConfig == CP_FOCUS_ALWAYS)
+      {
+         gainFocus(FALSE); // always gain focus
+      }
+      else if (m_focusConfig == CP_FOCUS_IF_AVAILABLE)
+      {
+         gainFocus(TRUE); // only gain focus if there is no focused call
+      }
+#endif
    }
 
    return m_pMediaInterface;

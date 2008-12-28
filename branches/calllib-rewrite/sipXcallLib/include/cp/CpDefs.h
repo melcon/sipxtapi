@@ -351,6 +351,17 @@ typedef enum CP_100REL_CONFIG
                                      */
 } CP_100REL_CONFIG;
 
+/**
+* Configures how sipXcallLib should manage focus for calls. If call is focused then speaker and microphone
+* are available for it.
+*/
+typedef enum CP_FOCUS_CONFIG
+{
+   CP_FOCUS_MANUAL = 0,   /**< Setting focus is completely manual, call will not be put in focus */
+   CP_FOCUS_IF_AVAILABLE, /**< Focus call only if there is no other focused call */
+   CP_FOCUS_ALWAYS        /**< Always focus new call, and defocus previously active call */
+} CP_FOCUS_CONFIG;
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS

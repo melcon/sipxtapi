@@ -139,7 +139,8 @@ public:
                             const UtlString& toAddress,
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId) = 0;
+                            CP_CONTACT_ID contactId,
+                            CP_FOCUS_CONFIG focusConfig) = 0;
 
    /** 
    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
@@ -442,6 +443,9 @@ protected:
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
    const SdpCodecList m_rDefaultSdpCodecList; ///< default SdpCodec factory for new calls. Independent of codec list of call manager.
+   // thread safe, atomic
+   CP_FOCUS_CONFIG m_focusConfig; ///< configuration of media focus policy
+
    // set only once and thread safe
    XCpCallConnectionListener* m_pCallConnectionListener; ///< listener for updating call stack
    CpCallStateEventListener* m_pCallEventListener; ///< listener for firing call events
@@ -524,6 +528,12 @@ private:
                                              int mediaConnectionId,
                                              intptr_t pEventData1,
                                              intptr_t pEventData2) = 0;
+
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   virtual void onFocusGained() = 0;
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   virtual void onFocusLost() = 0;
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

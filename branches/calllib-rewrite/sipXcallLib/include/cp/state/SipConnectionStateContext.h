@@ -24,7 +24,6 @@
 #include <cp/CpSdpNegotiation.h>
 #include <cp/CpSipTransactionManager.h>
 #include <cp/CpSessionTimerProperties.h>
-#include <tapi/sipXtapi.h> // craziness
 
 // DEFINES
 // MACROS

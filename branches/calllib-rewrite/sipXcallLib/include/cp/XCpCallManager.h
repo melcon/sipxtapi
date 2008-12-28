@@ -113,7 +113,8 @@ public:
                         const UtlString& fullLineUrl,// includes display name, SIP URI
                         const UtlString& sSipCallId, // can be used to suggest sip call-id
                         const UtlString& locationHeader,
-                        CP_CONTACT_ID contactId);
+                        CP_CONTACT_ID contactId,
+                        CP_FOCUS_CONFIG focusConfig);
 
    /** 
     * Connects a call in an existing conference identified by id, to given address returning SipDialog.
@@ -125,7 +126,8 @@ public:
                                   const UtlString& fullLineUrl,// includes display name, SIP URI
                                   const UtlString& sSipCallId, // can be used to suggest sip call-id
                                   const UtlString& locationHeader,
-                                  CP_CONTACT_ID contactId);
+                                  CP_CONTACT_ID contactId,
+                                  CP_FOCUS_CONFIG focusConfig);
 
    /** 
     * Accepts inbound call connection. Inbound connections can only be part of XCpCall

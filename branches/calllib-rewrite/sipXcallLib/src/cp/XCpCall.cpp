@@ -88,12 +88,14 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
                           const UtlString& toAddress,
                           const UtlString& fromAddress,
                           const UtlString& locationHeader,
-                          CP_CONTACT_ID contactId)
+                          CP_CONTACT_ID contactId,
+                          CP_FOCUS_CONFIG focusConfig)
 {
    if (sipCallId.isNull() || toAddress.isNull() || fromAddress.isNull())
    {
       return OS_FAILED;
    }
+   m_focusConfig = focusConfig;
 
    UtlString localTag(m_sipTagGenerator.getNewTag());
    sipDialog = SipDialog(sipCallId, localTag, NULL);
@@ -612,6 +614,26 @@ void XCpCall::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
    if (resFound)
    {
       ptrLock->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+   }
+}
+
+void XCpCall::onFocusGained()
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+      ptrLock->onFocusGained();
+   }
+}
+
+void XCpCall::onFocusLost()
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+      ptrLock->onFocusLost();
    }
 }
 

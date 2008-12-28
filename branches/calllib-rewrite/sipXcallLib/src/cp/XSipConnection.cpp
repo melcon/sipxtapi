@@ -67,6 +67,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_natTraversalConfig(natTraversalConfig)
+, m_lastCallEvent(CP_CALLSTATE_UNKNOWN)
 {
    m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
    m_rSipConnectionContext.m_sipDialog = sipDialog;
@@ -211,6 +212,36 @@ UtlBoolean XSipConnection::handleCommandMessage(const ScCommandMsg& rMsg)
 UtlBoolean XSipConnection::handleNotificationMessage(const ScNotificationMsg& rMsg)
 {
    return m_stateMachine.handleNotificationMessage(rMsg);
+}
+
+void XSipConnection::onFocusGained()
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   ISipConnectionState::StateEnum connectionState = m_stateMachine.getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (m_lastCallEvent == CP_CALLSTATE_BRIDGED)
+      {
+         fireSipXCallEvent(CP_CALLSTATE_CONNECTED, CP_CALLSTATE_CAUSE_NORMAL);
+      }
+   }
+#endif
+}
+
+void XSipConnection::onFocusLost()
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   ISipConnectionState::StateEnum connectionState = m_stateMachine.getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (m_lastCallEvent == CP_CALLSTATE_CONNECTED)
+      {
+         fireSipXCallEvent(CP_CALLSTATE_BRIDGED, CP_CALLSTATE_CAUSE_NORMAL);
+      }
+   }
+#endif
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -526,6 +557,19 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
 {
    if (m_pCallEventListener)
    {
+#ifndef DISABLE_LOCAL_AUDIO
+      // intercept CONNECTED event, and change it to BRIDGED if we don't have focus
+      if (eventCode == CP_CALLSTATE_CONNECTED)
+      {
+         CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+         if (pMediaInterface && !pMediaInterface->hasFocus())
+         {
+            eventCode = CP_CALLSTATE_BRIDGED;
+         }
+      }
+#endif
+      m_lastCallEvent = eventCode;
+
       CpCallStateEvent event;
       prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
 

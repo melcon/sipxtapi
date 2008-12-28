@@ -92,7 +92,8 @@ public:
                             const UtlString& toAddress,
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId);
+                            CP_CONTACT_ID contactId,
+                            CP_FOCUS_CONFIG focusConfig);
 
    /** 
    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
@@ -292,6 +293,12 @@ private:
                                             CP_MEDIA_TYPE type,
                                             intptr_t pEventData1,
                                             intptr_t pEventData2);
+
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   virtual void onFocusGained();
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   virtual void onFocusLost();
 
    // begin of members requiring m_memberMutex
    XSipConnection* m_pSipConnection; ///< XSipConnection handling Sip messages. Use destroySipConnection to delete it.
