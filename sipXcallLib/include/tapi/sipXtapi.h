@@ -448,6 +448,17 @@ typedef enum SIPX_100REL_CONFIG
 } SIPX_100REL_CONFIG;
 
 /**
+ * Configures how sipXtapi should manage focus for calls. If call is focused then speaker and microphone
+ * are available for it.
+ */
+typedef enum SIPX_FOCUS_CONFIG
+{
+   SIPX_FOCUS_MANUAL = 0,   /**< Setting focus is completely manual, call will not be put in focus */
+   SIPX_FOCUS_IF_AVAILABLE, /**< Focus call only if there is no other focused call */
+   SIPX_FOCUS_ALWAYS        /**< Always focus new call, and defocus previously active call */
+} SIPX_FOCUS_CONFIG;
+
+/**
  * Various log levels available for the sipxConfigEnableLog method.  
  * Developers can choose the amount of detail available in the log.
  * Each level includes messages generated at lower levels.  For 
@@ -1277,7 +1288,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
  *        rendering remote video.
  * @param pSecurity Pointer to an object describing the security attributes for 
  *        the call.
- * @param bTakeFocus Should SIPxua place the this call in focus (engage 
+ * @param takeFocus Should SIPxua place the this call in focus (engage 
  *        local microphone and speaker).  In some cases, application developer
  *        may want to place the call in the background and play audio while 
  *        the user finishes up with their active (in focus) call. 
@@ -1307,7 +1318,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(const SIPX_CALL hCall,
                                          const char* szAddress,
                                          SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
                                          SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
-                                         int bTakeFocus = 1,
+                                         SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_ALWAYS,
                                          SIPX_CALL_OPTIONS* options = NULL,
                                          const char* szSessionCallId = NULL);
 
@@ -2250,7 +2261,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
  *        rendering remote video.
  * @param pSecurity Pointer to an object describing the security attributes 
  *        for the call.
- * @param bTakeFocus Should SIPxua place the newly answered call in focus
+ * @param takeFocus Should SIPxua place the newly answered call in focus
  *        (engage local microphone and speaker).  In some cases, application
  *        developer may want to answer the call in the background and play
  *        audio while the user finishes up with their active (in focus) call.
@@ -2268,7 +2279,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
                                            SIPX_CONTACT_ID contactId = 0,
                                            SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
                                            SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
-                                           int bTakeFocus = 1,
+                                           SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_IF_AVAILABLE,
                                            SIPX_CALL_OPTIONS* options = NULL);
 
 /**

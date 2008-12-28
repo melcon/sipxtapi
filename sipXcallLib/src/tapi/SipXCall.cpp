@@ -1290,7 +1290,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
                                          const char* szAddress,
                                          SIPX_VIDEO_DISPLAY* const pDisplay,
                                          SIPX_SECURITY_ATTRIBUTES* const pSecurity,
-                                         int bTakeFocus,
+                                         SIPX_FOCUS_CONFIG takeFocus,
                                          SIPX_CALL_OPTIONS* options,
                                          const char* szSessionCallId)
 {
@@ -1370,14 +1370,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
                }
             }
 
-            // maybe take focus
-            if (bTakeFocus)
-            {
-               // just posts message
-               pInst->pCallManager->holdLocalAbstractCallConnection(pData->m_abstractCallId);
-               pData->m_bInFocus = TRUE;
-            }
-
             // create sipCallId
             pData->m_sipDialog.setCallId(szSessionCallId);
             if (pData->m_sipDialog.getCallId().isNull())
@@ -1401,14 +1393,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
                // call is not part of conference
                status = pInst->pCallManager->connectCall(pData->m_abstractCallId, pData->m_sipDialog,
                   szAddress, pData->m_fullLineUrl.toString(), pData->m_sipDialog.getCallId(),
-                  pLocationHeader, contactId);
+                  pLocationHeader, contactId, (CP_FOCUS_CONFIG)takeFocus);
             }
             else
             {
                // call is part of conference
                status = pInst->pCallManager->connectConferenceCall(pData->m_abstractCallId, pData->m_sipDialog,
                   szAddress, pData->m_fullLineUrl.toString(), pData->m_sipDialog.getCallId(),
-                  pLocationHeader, contactId);
+                  pLocationHeader, contactId, (CP_FOCUS_CONFIG)takeFocus);
             }
             sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 

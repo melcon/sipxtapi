@@ -565,7 +565,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
                                            SIPX_CONTACT_ID contactId,
                                            SIPX_VIDEO_DISPLAY* const pDisplay,
                                            SIPX_SECURITY_ATTRIBUTES* const pSecurity,
-                                           int bTakeFocus,
+                                           SIPX_FOCUS_CONFIG takeFocus,
                                            SIPX_CALL_OPTIONS* options)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceAdd");
@@ -613,7 +613,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
 
             // connect call
             rc = sipxCallConnect(*phNewCall, szAddress, pDisplay, pSecurity,
-               bTakeFocus, options, sessionCallId);
+               takeFocus, options, sessionCallId);
          }
          else
          {

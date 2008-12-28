@@ -184,6 +184,7 @@ public:
 
    virtual OsStatus giveFocus();
    virtual OsStatus defocus();
+   virtual UtlBoolean hasFocus();
 
    virtual OsStatus stopRecording();
 

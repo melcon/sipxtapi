@@ -82,12 +82,14 @@ OsStatus XCpConference::connect(const UtlString& sipCallId,
                                 const UtlString& toAddress,
                                 const UtlString& fromAddress,
                                 const UtlString& locationHeader,
-                                CP_CONTACT_ID contactId)
+                                CP_CONTACT_ID contactId,
+                                CP_FOCUS_CONFIG focusConfig)
 {
    if (sipCallId.isNull() || toAddress.isNull() || fromAddress.isNull())
    {
       return OS_FAILED;
    }
+   m_focusConfig = focusConfig;
 
    UtlString localTag(m_sipTagGenerator.getNewTag());
    sipDialog = SipDialog(sipCallId, localTag, NULL);
@@ -455,6 +457,40 @@ void XCpConference::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
       if (pSipConnection)
       {
          pSipConnection->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+      }
+   }
+}
+
+void XCpConference::onFocusGained()
+{
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         pSipConnection->onFocusGained();
+      }
+   }
+}
+
+void XCpConference::onFocusLost()
+{
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         pSipConnection->onFocusLost();
       }
    }
 }

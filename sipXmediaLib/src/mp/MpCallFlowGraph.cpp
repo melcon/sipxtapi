@@ -663,6 +663,8 @@ OsStatus MpCallFlowGraph::gainFocus(void)
 {
    UtlBoolean    boolRes;
 #ifndef DISABLE_LOCAL_AUDIO // ]
+   // also send interface notification if local audio is not disabled
+   sendInterfaceNotification(MP_NOTIFICATION_AUDIO, MP_NOTIFICATION_FOCUS_GAINED);
 
    // enable the FromMic, (EchoCancel), (PreProcessor), and ToSpkr -- we have focus
    boolRes = mpFromMic->enable();       assert(boolRes);
@@ -712,7 +714,8 @@ OsStatus MpCallFlowGraph::loseFocus(void)
    UtlBoolean    boolRes;
 
 #ifndef DISABLE_LOCAL_AUDIO // [
-
+   // also send interface notification if local audio is not disabled
+   sendInterfaceNotification(MP_NOTIFICATION_AUDIO, MP_NOTIFICATION_FOCUS_LOST);
    // disable the FromMic, (EchoCancel), (PreProcessor) and ToSpkr --
    // we no longer have the focus.
 

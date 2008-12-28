@@ -219,6 +219,12 @@ public:
    /** Handles CpMessageTypes::ScNotificationMsg message */
    UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
 
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   void onFocusGained();
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   void onFocusLost();
+
    /* ============================ ACCESSORS ================================= */
 
    /**
@@ -366,6 +372,8 @@ private:
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
    CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
+   // thread safe, atomic
+   CP_CALLSTATE_EVENT m_lastCallEvent; ///< contains code of last call event (used for firing bridged state)
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< event listener for INFO responses
