@@ -1201,7 +1201,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
  * be invoked before the end user is alerted (before sipxCallAccept).
  * Whenever a new call is received, the application developer should ACCEPT 
  * (proceed to ringing), REJECT (send back busy), or REDIRECT the call.
- * Error code and text are currently ignored.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
