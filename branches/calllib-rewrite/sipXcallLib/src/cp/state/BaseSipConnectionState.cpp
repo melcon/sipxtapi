@@ -344,6 +344,8 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
             m_rStateContext.m_bAckReceived = FALSE;
             m_rStateContext.m_i2xxInviteRetransmitCount = 0;
             setLastSent2xxToInvite(sipResponse);
+            prepareSessionTimerResponse(*m_rStateContext.m_pLastReceivedInvite, sipResponse); // construct session timer response
+            handleSessionTimerResponse(sipResponse); // handle our own response, start session timer..
             sendMessage(sipResponse);
             start2xxRetransmitTimer();
             result = OS_SUCCESS;
@@ -780,6 +782,8 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
    }
    else
    {
+      prepareSessionTimerResponse(sipMessage, sipResponse); // construct session timer response
+      handleSessionTimerResponse(sipResponse); // handle our own response, start session timer..
       sendMessage(sipResponse);
    }
 
@@ -1193,6 +1197,10 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
       {
          handleSmallSessionIntervalResponse(sipMessage); // session timeout is too small
       }
+      else if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+      {
+         handleSessionTimerResponse(sipMessage);
+      }
    }
    // TODO: Implement
    return NULL;
@@ -1265,6 +1273,8 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(cons
       {
          if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
          {
+            handleSessionTimerResponse(sipResponse); // handle response, start session timer..
+
             // UPDATE transaction exists (checked in generic response handler), and we are in correct state
             if (handleSdpAnswer(sipResponse))
             {
@@ -1861,14 +1871,17 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
 
       if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
       {
-         if (setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+         if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
          {
-            m_rStateContext.m_sdpNegotiation.handleInboundSdpOffer(sipMessage);
-            if (handleRemoteSdpBody(*pSdpBody))
-            {
-               return TRUE;
-            }
+            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+            return FALSE;
          }
+      }
+
+      m_rStateContext.m_sdpNegotiation.handleInboundSdpOffer(sipMessage);
+      if (handleRemoteSdpBody(*pSdpBody))
+      {
+         return TRUE;
       }
    }
 
@@ -2258,6 +2271,11 @@ SipConnectionStateTransition* BaseSipConnectionState::handleInvite2xxResponse(co
       }
    }
 
+   if (!bProtocolError)
+   {
+      handleSessionTimerResponse(sipResponse);
+   }
+
    if (!sendMessage(sipRequest)) // send ACK
    {
       GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NETWORK);
@@ -2317,10 +2335,7 @@ void BaseSipConnectionState::sendInvite()
 
    prepareSipRequest(sipInvite, SIP_INVITE_METHOD, seqNum);
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher, so that it is negotiated again
-
-   sipInvite.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
-      m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
-   sipInvite.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
+   prepareSessionTimerRequest(sipInvite);
 
    // add SDP if negotiation mode is immediate, otherwise don't add it
    if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
@@ -2348,10 +2363,7 @@ void BaseSipConnectionState::sendUpdate()
    int seqNum = getNextLocalCSeq();
    prepareSipRequest(sipUpdate, SIP_UPDATE_METHOD, seqNum);
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher
-
-   sipUpdate.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(), 
-      m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
-   sipUpdate.setMinSe(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
+   prepareSessionTimerRequest(sipUpdate);
 
    if (!prepareSdpOffer(sipUpdate))
    {
@@ -3042,9 +3054,7 @@ SipConnectionStateTransition* BaseSipConnectionState::followNextRedirect()
       sipInvite.setInviteData(fromField.toString(), toField.toString(),
          NULL, contactUrl, sipCallId,
          cseqNum);
-      sipInvite.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
-         m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
-      sipInvite.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
+      prepareSessionTimerRequest(sipInvite);
 
       UtlString* pRedirectContactUri = dynamic_cast<UtlString*>(m_rStateContext.m_redirectContactList.get());
       if (pRedirectContactUri)
@@ -3083,6 +3093,95 @@ UtlString BaseSipConnectionState::getSipCallId() const
 {
    OsReadLock lock(m_rStateContext);
    return m_rStateContext.m_sipDialog.getCallId();
+}
+
+void BaseSipConnectionState::handleSessionTimerResponse(const SipMessage& sipResponse)
+{
+   // handles INVITE or UPDATE 2xx response, which may have session timer negotiation response
+   int responseCode = sipResponse.getResponseStatusCode();
+   int sessionExpiresSeconds;
+   UtlString refresher;
+   int minSe;
+
+   if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+   {
+      if (sipResponse.getMinSe(minSe))
+      {
+         m_rStateContext.m_sessionTimerProperties.setMinSessionExpires(minSe);
+      }
+      if (sipResponse.getSessionExpires(&sessionExpiresSeconds, &refresher))
+      {
+         // Session-Expires field was present
+         m_rStateContext.m_sessionTimerProperties.setSessionExpires(sessionExpiresSeconds);
+         m_rStateContext.m_sessionTimerProperties.configureRefresher(refresher, !sipResponse.isFromThisSide());
+      }
+
+      m_rStateContext.m_sessionTimerProperties.onSessionRefreshed();
+
+      CP_SESSION_TIMER_REFRESH refresher = m_rStateContext.m_sessionTimerProperties.getRefresher();
+      if (refresher == CP_SESSION_REFRESH_REMOTE)
+      {
+         // only start session timeout check timer
+      }
+      else
+      {
+         // start session timeout timer, and session refresh timer
+      }
+   }
+}
+
+void BaseSipConnectionState::prepareSessionTimerResponse(const SipMessage& sipRequest, SipMessage& sipResponse)
+{
+   int sessionExpiresSeconds;
+   UtlString refresher;
+   int minSe;
+   UtlBoolean bSenderSupportsTimer = FALSE;
+
+   // take original request, find out if it has refresher & refresh timeout set
+   if (sipRequest.getMinSe(minSe))
+   {
+      // update our minSe
+      m_rStateContext.m_sessionTimerProperties.setMinSessionExpires(minSe);
+   }
+
+   sipResponse.setMinSe(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
+
+   // maybe add Require: timer
+   if (sipRequest.isInSupportedField(SIP_SESSION_TIMER_EXTENSION))
+   {
+      bSenderSupportsTimer = TRUE;
+      sipResponse.addRequireExtension(SIP_SESSION_TIMER_EXTENSION);
+   }
+
+   // add Session-Expires header
+   if (sipRequest.getSessionExpires(&sessionExpiresSeconds, &refresher))
+   {
+      m_rStateContext.m_sessionTimerProperties.setSessionExpires(sessionExpiresSeconds);
+      m_rStateContext.m_sessionTimerProperties.configureRefresher(refresher, FALSE); // save refresher from request
+   }
+   else
+   {
+      if (bSenderSupportsTimer)
+      {
+         // save empty refresher. This allows us to select prefered configured refresher
+         m_rStateContext.m_sessionTimerProperties.configureRefresher(NULL, FALSE);
+      }
+      else
+      {
+         // sender doesn't support session timer, so we choose ourselves (we don't want "uac", since
+         // remote side would never refresh session)
+         m_rStateContext.m_sessionTimerProperties.configureRefresher("uas", FALSE);
+      }
+   }
+   sipResponse.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
+      m_rStateContext.m_sessionTimerProperties.getRefresher(FALSE));
+}
+
+void BaseSipConnectionState::prepareSessionTimerRequest(SipMessage& sipRequest)
+{
+   sipRequest.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
+      m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
+   sipRequest.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

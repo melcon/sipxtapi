@@ -94,7 +94,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
 {
    m_rStateContext.m_contactId = contactId;
    m_rStateContext.m_locationHeader = locationHeader;
-   m_rStateContext.m_sessionTimerProperties.reset();
+   m_rStateContext.m_sessionTimerProperties.reset(TRUE);
    result = OS_FAILED;
 
    SipMessage sipInvite;
@@ -107,9 +107,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
 
    sipInvite.setInviteData(fromField.toString(), toAddress,
       NULL, contactUrl, sipCallId, cseqNum);
-   sipInvite.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
-      m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
-   sipInvite.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
+   prepareSessionTimerRequest(sipInvite);
 
    initializeSipDialog(sipInvite);
 

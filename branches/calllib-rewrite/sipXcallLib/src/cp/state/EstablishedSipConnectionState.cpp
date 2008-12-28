@@ -171,6 +171,8 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
       m_rStateContext.m_i2xxInviteRetransmitCount = 0;
       setLastReceivedInvite(sipMessage);
       setLastSent2xxToInvite(sipResponse);
+      prepareSessionTimerResponse(sipMessage, sipResponse); // construct session timer response
+      handleSessionTimerResponse(sipResponse); // handle our own response, start session timer..
       sendMessage(sipResponse);
       start2xxRetransmitTimer();
    }
