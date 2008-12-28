@@ -92,7 +92,6 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_rDefaultSdpCodecList(rDefaultSdpCodecList)
 , m_rCallManagerQueue(rCallManagerQueue)
 , m_pMediaInterface(NULL)
-, m_bIsFocused(FALSE)
 , m_instanceRWMutex(OsRWMutex::Q_FIFO)
 , m_pCallConnectionListener(pCallConnectionListener)
 , m_pCallEventListener(pCallEventListener)
@@ -477,14 +476,9 @@ UtlBoolean XCpAbstractCall::handleCallTimer(const AcTimerMsg& timerMsg)
 OsStatus XCpAbstractCall::handleGainFocus(const AcGainFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   if (m_pMediaInterface && !m_bIsFocused)
+   if (m_pMediaInterface && !m_pMediaInterface->hasFocus())
    {
-      OsStatus resFocus = m_pMediaInterface->giveFocus();
-      if (resFocus == OS_SUCCESS)
-      {
-         m_bIsFocused = TRUE;
-         return OS_SUCCESS;
-      }
+      return m_pMediaInterface->giveFocus();
    }
 
    return OS_FAILED;
@@ -496,14 +490,9 @@ OsStatus XCpAbstractCall::handleGainFocus(const AcGainFocusMsg& rMsg)
 OsStatus XCpAbstractCall::handleDefocus(const AcYieldFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   if (m_pMediaInterface && m_bIsFocused)
+   if (m_pMediaInterface && m_pMediaInterface->hasFocus())
    {
-      OsStatus resFocus = m_pMediaInterface->defocus();
-      if (resFocus == OS_SUCCESS)
-      {
-         m_bIsFocused = FALSE;
-         return OS_SUCCESS;
-      }
+      return m_pMediaInterface->defocus();
    }
 
    return OS_FAILED;
