@@ -98,6 +98,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/ScDisconnectTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
     cp/msg/ScReInviteTimerMsg.cpp \
+    cp/msg/ScSessionTimeoutTimerMsg.cpp \
     cp/msg/ScTimerMsg.cpp \
     cp/state/AlertingSipConnectionState.cpp \
     cp/state/BaseSipConnectionState.cpp \

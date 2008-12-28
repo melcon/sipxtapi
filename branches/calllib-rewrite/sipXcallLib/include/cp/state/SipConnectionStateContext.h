@@ -99,7 +99,7 @@ public:
 
    // members used during call tear down
    UtlBoolean m_bAckReceived; ///< TRUE if ACK was received for our sent 200 OK. Needed to make decision for callee if we may send BYE.
-   UtlBoolean m_bCallDisconnecting; ///< call is being disconnected. Either CANCEL, BYE or 403 Forbidden was sent
+   UtlBoolean m_bCancelSent; ///< call is being disconnected. Set to TRUE when CANCEL to INVITE is sent.
    UtlBoolean m_bByeSent; ///< TRUE when we are disconnecting and BYE was already sent
    int m_iByeRetryCount; ///< counter when retrying BYE for inbound call
 
@@ -111,6 +111,8 @@ public:
    int m_iRenegotiationRetryCount; ///< how many times we retried m_pSessionRenegotiationTimer
    OsTimer* m_p2xxInviteRetransmitTimer; ///< timer started when 2xx response to invite is sent, shut down when ack is received
    int m_i2xxInviteRetransmitCount; ///< how many times we retransmitted 2xx
+   OsTimer* m_pSessionTimeoutCheckTimer; ///< timer for checking if session timeout occurred (session timer support)
+   OsTimer* m_pSessionRefreshTimer; ///< timer for periodically refreshing session (session timer support)
 
    /* ============================ CREATORS ================================== */
 

@@ -519,6 +519,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\ScSessionTimeoutTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScTimerMsg.cpp"
 					>
 				</File>
@@ -941,6 +945,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\ScReInviteTimerMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScSessionTimeoutTimerMsg.h"
 					>
 				</File>
 				<File

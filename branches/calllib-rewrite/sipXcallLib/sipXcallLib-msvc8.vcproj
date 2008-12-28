@@ -129,6 +129,7 @@
                 <File RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScReInviteTimerMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScSessionTimeoutTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScTimerMsg.cpp"/>
             </Filter>
             <Filter Name="state">
@@ -238,6 +239,7 @@
                 <File RelativePath=".\include\cp\msg\ScDisconnectTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScReInviteTimerMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScSessionTimeoutTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScTimerMsg.h"/>
             </Filter>
             <Filter Name="state">

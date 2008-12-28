@@ -46,7 +46,7 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
 , m_bRedirecting(FALSE)
 , m_bAckReceived(FALSE)
-, m_bCallDisconnecting(FALSE)
+, m_bCancelSent(FALSE)
 , m_bByeSent(FALSE)
 , m_iByeRetryCount(0)
 , m_pByeRetryTimer(NULL)
@@ -56,6 +56,8 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_iRenegotiationRetryCount(0)
 , m_p2xxInviteRetransmitTimer(NULL)
 , m_i2xxInviteRetransmitCount(0)
+, m_pSessionTimeoutCheckTimer(NULL)
+, m_pSessionRefreshTimer(NULL)
 {
    m_sipClientTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -78,6 +80,10 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pSessionRenegotiationTimer = NULL;
    delete m_p2xxInviteRetransmitTimer;
    m_p2xxInviteRetransmitTimer = NULL;
+   delete m_pSessionTimeoutCheckTimer;
+   m_pSessionTimeoutCheckTimer = NULL;
+   delete m_pSessionRefreshTimer;
+   m_pSessionRefreshTimer = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */

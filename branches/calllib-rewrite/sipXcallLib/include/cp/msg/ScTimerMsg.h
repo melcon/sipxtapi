@@ -50,6 +50,7 @@ public:
       PAYLOAD_TYPE_DISCONNECT, ///< force disconnect request
       PAYLOAD_TYPE_REINVITE, ///< delayed re-INVITE requested
       PAYLOAD_TYPE_BYE_RETRY, ///< retrying BYE for inbound call
+      PAYLOAD_TYPE_SESSION_TIMEOUT_CHECK, ///< check for session timeout
    } PayloadTypeEnum;
 
    /**
