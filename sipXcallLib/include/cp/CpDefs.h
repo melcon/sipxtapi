@@ -299,6 +299,58 @@ typedef enum CP_SESSION_TIMER_REFRESH
    CP_SESSION_REFRESH_REMOTE   /**< Remote side will carry out session refresh */
 } CP_SESSION_TIMER_REFRESH;
 
+/**
+ * Configuration of SIP UPDATE method. By default, processing of inbound UPDATE
+ * is enabled, but sipXtapi will never send UPDATE itself. It is possible to enable
+ * sending UPDATE instead of re-INVITE for hold/unhold/session refresh/codec renegotiation.
+ * UPDATE is faster than re-INVITE, but requires immediate response without user interaction,
+ * and could therefore be rejected.
+ *
+ * UPDATE will only be sent, if remote party supports it. Otherwise re-INVITE will be used, even
+ * if UPDATE is enabled.
+ */
+typedef enum CP_SIP_UPDATE_CONFIG
+{
+   CP_SIP_UPDATE_DISABLED = 0, /**< UPDATE is completely disabled, UPDATE requests will be rejected,
+                                *   but sipXtapi will continue advertising support for UPDATE
+                                *   method.
+                                */
+   CP_SIP_UPDATE_ONLY_INBOUND, /**< UPDATE is enabled only for inbound requests - default.*/
+   CP_SIP_UPDATE_BOTH          /**< We may send UPDATE if remote side supports it,
+                                *   and accept inbound requests.
+                                */
+} CP_SIP_UPDATE_CONFIG;
+
+/**
+ * Configuration of reliable provisional responses (100rel) support in sipXtapi. Reliable
+ * provisional responses are defined in rfc3262. Reliable 18x responses are important for
+ * interoperability with PTST world, and also bring advantages for early session negotiation.
+ *
+ * SipXtapi supports sending SDP offer in unreliable 18x responses, to enable unreliable early
+ * audio for inbound calls. It is also capable of processing SDP answers in unreliable 18x responses.
+ * This method is unreliable, because the 18x response could be lost, and cannot be used if late SDP
+ * negotiation is employed, when SDP offer of caller not presented in INVITE.
+ *
+ * With reliable 18x responses, it is possible to send SDP offer in the reliable response itself.
+ * Remote side then must send SDP answer in PRACK, and thus early session can be established. Or
+ * if SDP offer was in PRACK, then SDP answer will be in PRACK response.
+ *
+ * 100rel support also enables usage of UPDATE method for negotiation of early session parameters.
+ * So called "early-session" disposition type (rfc3959) is not supported. This however doesn't prevent
+ * negotiation of early session parameters.
+ */
+typedef enum CP_100REL_CONFIG
+{
+   CP_100REL_PREFER_UNRELIABLE = 0, /**< Prefer sending unreliable 18x responses */
+   CP_100REL_PREFER_RELIABLE,       /**< Prefer sending reliable 18x responses, if remote
+                                     *   side supports it - default.
+                                     */
+   CP_100REL_REQUIRE_RELIABLE       /**< We will require support for 100rel when connecting
+                                     *   new outbound calls, and prefer sending reliable 18x
+                                     *   responses when possible for inbound calls.
+                                     */
+} CP_100REL_CONFIG;
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS

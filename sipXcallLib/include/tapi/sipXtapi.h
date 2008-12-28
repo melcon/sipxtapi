@@ -396,6 +396,58 @@ typedef enum SIPX_SESSION_TIMER_REFRESH
 } SIPX_SESSION_TIMER_REFRESH;
 
 /**
+ * Configuration of SIP UPDATE method. By default, processing of inbound UPDATE
+ * is enabled, but sipXtapi will never send UPDATE itself. It is possible to enable
+ * sending UPDATE instead of re-INVITE for hold/unhold/session refresh/codec renegotiation.
+ * UPDATE is faster than re-INVITE, but requires immediate response without user interaction,
+ * and could therefore be rejected.
+ *
+ * UPDATE will only be sent, if remote party supports it. Otherwise re-INVITE will be used, even
+ * if UPDATE is enabled.
+ */
+typedef enum SIPX_SIP_UPDATE_CONFIG
+{
+   SIPX_SIP_UPDATE_DISABLED = 0, /**< UPDATE is completely disabled, UPDATE requests will be rejected,
+                                  *   but sipXtapi will continue advertising support for UPDATE
+                                  *   method.
+                                  */
+   SIPX_SIP_UPDATE_ONLY_INBOUND, /**< UPDATE is enabled only for inbound requests - default.*/
+   SIPX_SIP_UPDATE_BOTH          /**< We may send UPDATE if remote side supports it,
+                                   *  and accept inbound requests.
+                                   */
+} SIPX_SIP_UPDATE_CONFIG;
+
+/**
+ * Configuration of reliable provisional responses (100rel) support in sipXtapi. Reliable
+ * provisional responses are defined in rfc3262. Reliable 18x responses are important for
+ * interoperability with PTST world, and also bring advantages for early session negotiation.
+ *
+ * SipXtapi supports sending SDP offer in unreliable 18x responses, to enable unreliable early
+ * audio for inbound calls. It is also capable of processing SDP answers in unreliable 18x responses.
+ * This method is unreliable, because the 18x response could be lost, and cannot be used if late SDP
+ * negotiation is employed, when SDP offer of caller not presented in INVITE.
+ *
+ * With reliable 18x responses, it is possible to send SDP offer in the reliable response itself.
+ * Remote side then must send SDP answer in PRACK, and thus early session can be established. Or
+ * if SDP offer was in PRACK, then SDP answer will be in PRACK response.
+ *
+ * 100rel support also enables usage of UPDATE method for negotiation of early session parameters.
+ * So called "early-session" disposition type (rfc3959) is not supported. This however doesn't prevent
+ * negotiation of early session parameters.
+ */
+typedef enum SIPX_100REL_CONFIG
+{
+   SIPX_100REL_PREFER_UNRELIABLE = 0, /**< Prefer sending unreliable 18x responses */
+   SIPX_100REL_PREFER_RELIABLE,       /**< Prefer sending reliable 18x responses, if remote
+                                       *   side supports it - default.
+                                       */
+   SIPX_100REL_REQUIRE_RELIABLE       /**< We will require support for 100rel when connecting
+                                       *   new outbound calls, and prefer sending reliable 18x
+                                       *   responses when possible for inbound calls.
+                                       */
+} SIPX_100REL_CONFIG;
+
+/**
  * Various log levels available for the sipxConfigEnableLog method.  
  * Developers can choose the amount of detail available in the log.
  * Each level includes messages generated at lower levels.  For 
@@ -4025,6 +4077,59 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimer(const SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimer(const SIPX_INST hInst,
                                                    int iSessionInterval,
                                                    SIPX_SESSION_TIMER_REFRESH refresh);
+
+/**
+ * Gets configuration of SIP UPDATE method. By default we accept UPDATE, but never send it.
+ * SIP UPDATE is faster, but could potentially be rejected, as it requires an immediate response.
+ * It is possible to enable UPDATE for hold/unhold/session refresh/codec renegotiation. If remote
+ * side doesn't support UPDATE, then re-INVITE will be used.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param updateConfig Configuration of SIP UPDATE method.
+ *
+ * @see SIPX_SIP_UPDATE_CONFIG
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigGetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG* updateConfig);
+
+/**
+ * Sets configuration of SIP UPDATE method.
+ * It is recommended to leave this setting at default value.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param updateConfig Configuration of SIP UPDATE method.
+ *
+ * @see sipxConfigGetUpdateSetting
+ * @see SIPX_SIP_UPDATE_CONFIG
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigSetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG updateConfig);
+
+/**
+* Gets configuration of 100rel (PRACK) support. 100rel enables sending of reliable provisional
+* responses, which are by default unreliable. SDP may also be negotiated in reliable 18x
+* responses and PRACKs.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param relConfig Configuration 100rel support.
+*
+* @see SIPX_100REL_CONFIG
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG* relConfig);
+
+/**
+* Sets configuration of 100rel (PRACK) support. See rfc3262.
+* It is recommended to leave this setting at default value.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param relConfig Configuration 100rel support.
+*
+* @see sipxConfigGet100relSetting
+* @see SIPX_100REL_CONFIG
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigSet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG relConfig);
 
 //@}
 /** @name Utility Functions */

@@ -76,6 +76,8 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  const UtlString& sLocalIpAddress,
                                  int sessionTimerExpiration,
                                  CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                                 CP_SIP_UPDATE_CONFIG updateSetting,
+                                 CP_100REL_CONFIG c100relSetting,
                                  XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -102,6 +104,8 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_sLocalIpAddress(sLocalIpAddress)
 , m_sessionTimerExpiration(sessionTimerExpiration)
 , m_sessionTimerRefresh(sessionTimerRefresh)
+, m_updateSetting(updateSetting)
+, m_100relSetting(c100relSetting)
 {
 
 }

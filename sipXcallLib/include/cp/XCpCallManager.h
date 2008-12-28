@@ -481,6 +481,12 @@ public:
 
    CpMediaInterfaceFactory* getMediaInterfaceFactory() const;
 
+   CP_SIP_UPDATE_CONFIG getUpdateSetting() const { return m_updateSetting; }
+   void setUpdateSetting(CP_SIP_UPDATE_CONFIG val) { m_updateSetting = val; }
+
+   CP_100REL_CONFIG get100relSetting() const { return m_100relSetting; }
+   void set100relSetting(CP_100REL_CONFIG val) { m_100relSetting = val; }
+
    /* ============================ INQUIRY =================================== */
 
    /** gets total amount of calls. Also calls in conference are counted */
@@ -623,6 +629,8 @@ private:
    int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
    int m_sessionTimerExpiration; ///< session interval (RFC4028) - time between refresh requests (INVITE or UPDATE)
    CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
+   CP_SIP_UPDATE_CONFIG m_updateSetting; ///< configuration of SIP UPDATE method
+   CP_100REL_CONFIG m_100relSetting; ///< configuration of 100rel support
 
    // read only fields
    const int m_rtpPortStart;

@@ -288,6 +288,16 @@ void SipConnectionStateMachine::configureSessionTimer(int sessionExpiration,
    m_rStateContext.m_sessionTimerProperties.setInitialRefresher(sessionTimerRefresh);
 }
 
+void SipConnectionStateMachine::configureUpdate(CP_SIP_UPDATE_CONFIG updateSetting)
+{
+   m_rStateContext.m_updateSetting = updateSetting;
+}
+
+void SipConnectionStateMachine::configure100rel(CP_100REL_CONFIG c100relSetting)
+{
+   m_rStateContext.m_100relSetting = c100relSetting;
+}
+
 /* ============================ ACCESSORS ================================= */
 
 ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()

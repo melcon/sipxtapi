@@ -733,7 +733,8 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
    UtlBoolean bProtocolError = TRUE;
    ISipConnectionState::StateEnum connectionState = getCurrentState();
 
-   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+   if (m_rStateContext.m_updateSetting != CP_SIP_UPDATE_DISABLED &&
+       connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
        connectionState != ISipConnectionState::CONNECTION_UNKNOWN &&
        connectionState != ISipConnectionState::CONNECTION_IDLE &&
        connectionState != ISipConnectionState::CONNECTION_DIALING &&
@@ -2869,7 +2870,8 @@ void BaseSipConnectionState::doUnhold()
 
 void BaseSipConnectionState::renegotiateMediaSession()
 {
-   if (m_rStateContext.m_bSdpRenegotiationUseUpdate && isMethodAllowed(SIP_UPDATE_METHOD))
+   if (m_rStateContext.m_updateSetting == CP_SIP_UPDATE_BOTH &&
+       isMethodAllowed(SIP_UPDATE_METHOD))
    {
       sendUpdate();
    }

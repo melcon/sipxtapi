@@ -58,6 +58,8 @@ XCpCall::XCpCall(const UtlString& sId,
                  const UtlString& sLocalIpAddress,
                  int sessionTimerExpiration,
                  CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                 CP_SIP_UPDATE_CONFIG updateSetting,
+                 CP_100REL_CONFIG c100relSetting,
                  XCpCallConnectionListener* pCallConnectionListener,
                  CpCallStateEventListener* pCallEventListener,
                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -65,7 +67,7 @@ XCpCall::XCpCall(const UtlString& sId,
                  SipSecurityEventListener* pSecurityEventListener,
                  CpMediaEventListener* pMediaEventListener)
 : XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
-                  sLocalIpAddress, sessionTimerExpiration, sessionTimerRefresh,
+                  sLocalIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting,
                   pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener)
 , m_pSipConnection(NULL)
@@ -549,7 +551,7 @@ void XCpCall::createSipConnection(const SipDialog& sipDialog)
       if (!m_pSipConnection)
       {
          m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, m_sessionTimerExpiration, m_sessionTimerRefresh,
-            *this, *this, m_natTraversalConfig,
+            m_updateSetting, m_100relSetting, *this, *this, m_natTraversalConfig,
             m_pCallEventListener, m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
          bAdded = TRUE;
       }
