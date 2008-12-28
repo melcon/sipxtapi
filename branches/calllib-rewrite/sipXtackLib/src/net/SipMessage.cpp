@@ -4546,6 +4546,26 @@ void SipMessage::setReasonField(const char* reasonField)
     }
 }
 
+void SipMessage::setReasonField(const UtlString& protocol, int cause, const UtlString& text)
+{
+   if (!protocol.isNull() && (cause || !text.isNull()))
+   {
+      UtlString reasonField;
+      reasonField.append(protocol.data());
+
+      if (cause)
+      {
+         reasonField.appendFormat(" ;cause=%d", cause);
+      }
+      if (!text.isNull())
+      {
+         reasonField.appendFormat(" ;text=\"%s\"", text.data());
+      }
+
+      setHeaderValue(SIP_REASON_FIELD, reasonField);
+   }
+}
+
 UtlBoolean SipMessage::getReasonField(UtlString& reasonField) const
 {
     const char* value;
