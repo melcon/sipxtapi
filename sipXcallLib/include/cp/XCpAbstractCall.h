@@ -355,9 +355,6 @@ public:
    OsStatus getSipDialog(const SipDialog& sipDialog,
                          SipDialog& sOutputSipDialog) const;
 
-   /** Returns TRUE if call is in focus. */
-   UtlBoolean isFocused() const { return m_bIsFocused; }
-
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
    /** Handles command messages */
@@ -434,7 +431,6 @@ protected:
 
    // no mutex required, used only from OsServerTask
    CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
-   UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
 
    // thread safe
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
