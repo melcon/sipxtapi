@@ -286,6 +286,19 @@ typedef enum
    CP_CALLSTATE_CAUSE_GLOBAL_ERROR,/**< Result of unknown 6xx response */
 } CP_CALLSTATE_CAUSE;
 
+/**
+* Configuration of session timer refresher. Refresher is side which is responsible
+* for periodically refreshing the session with re-INVITE or UPDATE within session
+* expiration time. If no session refresh occurs until that period, session may be
+* torn down. Refresher is negotiated by default.
+*/
+typedef enum CP_SESSION_TIMER_REFRESH
+{
+   CP_SESSION_REFRESH_AUTO = 0, /**< Refresher negotiation is automatic  */
+   CP_SESSION_REFRESH_LOCAL,  /**< Our side will carry out session refresh */
+   CP_SESSION_REFRESH_REMOTE   /**< Remote side will carry out session refresh */
+} CP_SESSION_TIMER_REFRESH;
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS

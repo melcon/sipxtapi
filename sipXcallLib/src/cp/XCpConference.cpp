@@ -52,7 +52,8 @@ XCpConference::XCpConference(const UtlString& sId,
                              OsMsgQ& rCallManagerQueue,
                              const CpNatTraversalConfig& rNatTraversalConfig,
                              const UtlString& sLocalIpAddress,
-                             int inviteExpireSeconds,
+                             int sessionTimerExpiration,
+                             CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                              XCpCallConnectionListener* pCallConnectionListener,
                              CpCallStateEventListener* pCallEventListener,
                              SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -60,7 +61,8 @@ XCpConference::XCpConference(const UtlString& sId,
                              SipSecurityEventListener* pSecurityEventListener,
                              CpMediaEventListener* pMediaEventListener)
 : XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
-                  sLocalIpAddress, inviteExpireSeconds, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
+                  sLocalIpAddress, sessionTimerExpiration, sessionTimerRefresh,
+                  pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener)
 {
 

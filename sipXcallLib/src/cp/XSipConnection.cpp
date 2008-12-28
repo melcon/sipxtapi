@@ -43,7 +43,8 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                const SipDialog& sipDialog,
                                SipUserAgent& rSipUserAgent,
-                               int inviteExpireSeconds,
+                               int sessionTimerExpiration,
+                               CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                                CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                CpMessageQueueProvider& rMessageQueueProvider,
                                const CpNatTraversalConfig& natTraversalConfig,
@@ -68,7 +69,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
    m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
    m_rSipConnectionContext.m_sipDialog = sipDialog;
    m_stateMachine.setStateObserver(this); // register for state machine state change notifications
-   m_stateMachine.configureSessionTimer(inviteExpireSeconds, NULL);
+   m_stateMachine.configureSessionTimer(sessionTimerExpiration, sessionTimerRefresh);
 }
 
 XSipConnection::~XSipConnection()

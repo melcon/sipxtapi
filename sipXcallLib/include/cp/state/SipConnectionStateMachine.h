@@ -130,7 +130,7 @@ public:
    UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
 
    /** Configures session timer properties */
-   void configureSessionTimer(int sessionExpiration, const UtlString& refresher);
+   void configureSessionTimer(int sessionExpiration, CP_SESSION_TIMER_REFRESH sessionTimerRefresh);
 
    /* ============================ ACCESSORS ================================= */
 

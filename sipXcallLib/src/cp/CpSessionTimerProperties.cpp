@@ -16,7 +16,9 @@
 
 // DEFINES
 #define MIN_SESSION_EXPIRES 90
-#define INITIAL_SESSION_EXPIRES 3600
+#define INITIAL_SESSION_EXPIRES 300
+#define REFRESHER_UAS "uas"
+#define REFRESHER_UAC "uac"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -52,22 +54,67 @@ void CpSessionTimerProperties::reset(UtlBoolean bFullReset)
       m_sessionExpires = m_initialSessionExpires;
       m_minSessionExpires = MIN_SESSION_EXPIRES;
    }
+
+
    m_sRefresher = m_sInitialRefresher;
 }
 
 /* ============================ ACCESSORS ================================= */
 
-CpSessionTimerProperties::RefresherType CpSessionTimerProperties::getRefresherType() const
+void CpSessionTimerProperties::setRefresher(UtlString refresher, UtlBoolean bIsOutboundTransaction)
 {
-   if (m_sRefresher.compareTo("uas") == 0)
+   if (bIsOutboundTransaction)
    {
-      return CpSessionTimerProperties::REFRESHER_UAS;
+      if (refresher.compareTo(REFRESHER_UAC))
+      {
+         m_sRefresher = CP_SESSION_REFRESH_LOCAL;
+      }
+      else if (refresher.compareTo(REFRESHER_UAS))
+      {
+         m_sRefresher = CP_SESSION_REFRESH_REMOTE;
+      }
+      else m_sRefresher = CP_SESSION_REFRESH_AUTO;
    }
-   else if (m_sRefresher.compareTo("uac") == 0)
+   else
    {
-      return CpSessionTimerProperties::REFRESHER_UAC;
+      if (refresher.compareTo(REFRESHER_UAC))
+      {
+         m_sRefresher = CP_SESSION_REFRESH_REMOTE;
+      }
+      else if (refresher.compareTo(REFRESHER_UAS))
+      {
+         m_sRefresher = CP_SESSION_REFRESH_LOCAL;
+      }
+      else m_sRefresher = CP_SESSION_REFRESH_AUTO;
    }
-   else return CpSessionTimerProperties::REFRESH_DISABLED;
+}
+
+UtlString CpSessionTimerProperties::getRefresher(UtlBoolean bIsOutboundTransaction) const
+{
+   if (bIsOutboundTransaction)
+   {
+      switch (m_sRefresher)
+      {
+      case CP_SESSION_REFRESH_LOCAL:
+         return REFRESHER_UAC;
+      case CP_SESSION_REFRESH_REMOTE:
+         return REFRESHER_UAS;
+      default:
+         return NULL;
+      }
+   }
+   else
+   {
+      switch (m_sRefresher)
+      {
+      case CP_SESSION_REFRESH_LOCAL:
+         return REFRESHER_UAS;
+      case CP_SESSION_REFRESH_REMOTE:
+         return REFRESHER_UAC;
+      default:
+         return NULL;
+      }
+   }
 }
 
 void CpSessionTimerProperties::setMinSessionExpires(int val)

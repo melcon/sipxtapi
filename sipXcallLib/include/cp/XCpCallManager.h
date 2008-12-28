@@ -83,12 +83,10 @@ public:
                   const UtlString& sLocalIpAddress, // default IP address for CpMediaInterface
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
-                  UtlBoolean bEnableSipInfo,
                   UtlBoolean bIsRequiredLineMatch,
                   int rtpPortStart,
                   int rtpPortEnd,
                   int maxCalls, // max calls before sending busy. -1 means unlimited. Doesn't limit outbound calls.
-                  int inviteExpireSeconds, // default use 180
                   CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
    virtual ~XCpCallManager();
@@ -464,6 +462,12 @@ public:
    /** Generates new id for conference */
    UtlString getNewConferenceId();
 
+   /** Gets actual session timer properties for new calls */
+   void getSessionTimerConfig(int& sessionExpiration, CP_SESSION_TIMER_REFRESH& refresh) const;
+
+   /** Configures session timer properties. */
+   void setSessionTimerConfig(int sessionExpiration, CP_SESSION_TIMER_REFRESH refresh);
+
    /* ============================ ACCESSORS ================================= */
 
    UtlBoolean getDoNotDisturb() const { return m_bDoNotDisturb; }
@@ -472,15 +476,8 @@ public:
    UtlBoolean getEnableICE() const { return m_natTraversalConfig.m_bEnableICE; }
    void setEnableICE(UtlBoolean val) { m_natTraversalConfig.m_bEnableICE = val; }
 
-   /** Enable/disable reception of SIP INFO. Sending is always allowed. Only affects new calls. */
-   UtlBoolean getEnableSipInfo() const { return m_bEnableSipInfo; }
-   void setEnableSipInfo(UtlBoolean val) { m_bEnableSipInfo = val; }
-
    int getMaxCalls() const { return m_maxCalls; }
    void setMaxCalls(int val) { m_maxCalls = val; }
-
-   int getInviteExpireSeconds() const { return m_inviteExpireSeconds; }
-   void setInviteExpireSeconds(int val);
 
    CpMediaInterfaceFactory* getMediaInterfaceFactory() const;
 
@@ -622,10 +619,10 @@ private:
 
    // thread safe atomic
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)
-   UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
    UtlBoolean m_bIsRequiredLineMatch; ///< if inbound SIP message must correspond to some line to be handled
    int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
-   int m_inviteExpireSeconds; ///< session interval (RFC4028) - time between refresh requests (INVITE or UPDATE)
+   int m_sessionTimerExpiration; ///< session interval (RFC4028) - time between refresh requests (INVITE or UPDATE)
+   CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
 
    // read only fields
    const int m_rtpPortStart;

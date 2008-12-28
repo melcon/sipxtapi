@@ -2283,30 +2283,36 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAllLocalNetworkIps(char* arrAddresses[],
    return rc;
 }
 
-SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int* iSessionInterval) 
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimer(const SIPX_INST hInst,
+                                                   int* iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH* refresh)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      *iSessionInterval = pInst->pCallManager->getInviteExpireSeconds();
+      CP_SESSION_TIMER_REFRESH cpSessionRefresh = CP_SESSION_REFRESH_AUTO;
+
+      pInst->pCallManager->getSessionTimerConfig(*iSessionInterval, cpSessionRefresh);
+      *refresh = (SIPX_SESSION_TIMER_REFRESH)cpSessionRefresh;
+
       rc = SIPX_RESULT_SUCCESS;
    }
 
    return rc;
 }
 
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int iSessionInterval) 
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimer(const SIPX_INST hInst,
+                                                   int iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH refresh) 
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      pInst->pCallManager->setInviteExpireSeconds(iSessionInterval);
+      pInst->pCallManager->setSessionTimerConfig(iSessionInterval, (CP_SESSION_TIMER_REFRESH)refresh);
       rc = SIPX_RESULT_SUCCESS;
    }
 

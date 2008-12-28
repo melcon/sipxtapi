@@ -108,7 +108,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
    sipInvite.setInviteData(fromField.toString(), toAddress,
       NULL, contactUrl, sipCallId, cseqNum);
    sipInvite.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
-      m_rStateContext.m_sessionTimerProperties.getRefresher());
+      m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
    sipInvite.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
 
    initializeSipDialog(sipInvite);

@@ -16,6 +16,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <cp/CpDefs.h>
 
 // DEFINES
 // MACROS
@@ -33,13 +34,6 @@ class CpSessionTimerProperties
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      REFRESH_DISABLED,
-      REFRESHER_UAC,
-      REFRESHER_UAS
-   } RefresherType;
-
    /* ============================ CREATORS ================================== */
 
    /** Constructor */
@@ -58,11 +52,17 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   /** Gets negotiated refresher type. Only valid after session timer negotiation */
-   CpSessionTimerProperties::RefresherType getRefresherType() const;
+   /** 
+    * Gets refresher value for given transaction direction. Refresher value depends on direction
+    * of transaction.
+    */
+   UtlString getRefresher(UtlBoolean bIsOutboundTransaction) const;
 
-   UtlString getRefresher() const { return m_sRefresher; }
-   void setRefresher(UtlString val) { m_sRefresher = val; }
+   /** Gets negotiated refresher in transaction direction independent way */
+   CP_SESSION_TIMER_REFRESH getRefresher() const { return m_sRefresher; }
+
+   /** Reconfigures current refresher, and stores the value independent of INVITE/UPDATE transaction direction */
+   void setRefresher(UtlString refresher, UtlBoolean bIsOutboundTransaction);
 
    int getSessionExpires() const { return m_sessionExpires; }
    void setSessionExpires(int val) { m_sessionExpires = val; }
@@ -71,7 +71,7 @@ public:
    void setMinSessionExpires(int val);
 
    void setInitialSessionExpires(int val) { m_initialSessionExpires = val; }
-   void setInitialRefresher(UtlString val) { m_sInitialRefresher = val; }
+   void setInitialRefresher(CP_SESSION_TIMER_REFRESH sessionTimerRefresh) { m_sInitialRefresher = sessionTimerRefresh; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -83,9 +83,10 @@ private:
 
    // initial properties, and properties after reset
    int m_initialSessionExpires; ///< initial time in seconds when session expires
-   UtlString m_sInitialRefresher; ///< initial uas or uac
+   CP_SESSION_TIMER_REFRESH m_sInitialRefresher; ///< configuration of initial refresher, independent of call direction
+   UtlBoolean m_bIsLocallyInitiatedCall; ///< TRUE if call is locally initiated
 
-   UtlString m_sRefresher; ///< uas or uac
+   CP_SESSION_TIMER_REFRESH m_sRefresher; ///< current refresher
    int m_sessionExpires; ///< time in seconds when session expires
    int m_minSessionExpires; ///< minimum session expiration time that might be specified in future INVITE/UPDATE messages
 };

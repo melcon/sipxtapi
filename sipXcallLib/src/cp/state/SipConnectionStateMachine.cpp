@@ -281,10 +281,11 @@ UtlBoolean SipConnectionStateMachine::handleNotificationMessage(const ScNotifica
    }
 }
 
-void SipConnectionStateMachine::configureSessionTimer(int sessionExpiration, const UtlString& refresher)
+void SipConnectionStateMachine::configureSessionTimer(int sessionExpiration,
+                                                      CP_SESSION_TIMER_REFRESH sessionTimerRefresh)
 {
    m_rStateContext.m_sessionTimerProperties.setInitialSessionExpires(sessionExpiration);
-   m_rStateContext.m_sessionTimerProperties.setInitialRefresher(refresher);
+   m_rStateContext.m_sessionTimerProperties.setInitialRefresher(sessionTimerRefresh);
 }
 
 /* ============================ ACCESSORS ================================= */
