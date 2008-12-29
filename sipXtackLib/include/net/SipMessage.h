@@ -1313,6 +1313,9 @@ public:
     /** TRUE if this message belongs to SUBSCRIBE dialog usage */
     UtlBoolean isSubscribeDialogUsage() const;
 
+    /** TRUE if this message is target refresh request or response */
+    UtlBoolean isTargetRefresh() const;
+
     //! @ Transaction and session related inquiry methods
     //@{
     UtlBoolean isSameMessage(const SipMessage* message,
