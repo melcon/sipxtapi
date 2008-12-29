@@ -238,7 +238,12 @@ void SipDialog::updateDialog(const SipMessage& message)
          {
             if(message.isResponse())
             {
-               m_remoteContactField.fromString(contactField);
+               if (message.isTargetRefresh() &&
+                   responseCode >= SIP_1XX_CLASS_CODE &&
+                   responseCode < SIP_3XX_CLASS_CODE)
+               {
+                  m_remoteContactField.fromString(contactField);
+               }
             }
             else
             {
@@ -297,7 +302,10 @@ void SipDialog::updateDialog(const SipMessage& message)
             }
             else
             {
-               m_remoteContactField.fromString(contactField);
+               if (message.isTargetRefresh())
+               {
+                  m_remoteContactField.fromString(contactField);
+               }
             }
          }
 
