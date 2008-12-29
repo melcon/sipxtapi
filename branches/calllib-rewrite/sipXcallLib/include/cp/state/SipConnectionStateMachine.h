@@ -138,6 +138,9 @@ public:
    /** Configures 100rel (PRACK) support */
    void configure100rel(CP_100REL_CONFIG c100relSetting);
 
+   /** Configures expiration time for INVITE requests. If no final response is received, INVITE is cancelled. */
+   void configureInviteExpiration(int inviteExpiresSeconds);
+
    /* ============================ ACCESSORS ================================= */
 
    /**

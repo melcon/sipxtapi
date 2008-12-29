@@ -129,6 +129,8 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
          return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
       }
    }
+   sipInvite.setExpiresField(m_rStateContext.m_inviteExpiresSeconds);
+   startInviteExpirationTimer(m_rStateContext.m_inviteExpiresSeconds, cseqNum, TRUE);
 
    // try to send sip message
    UtlBoolean sendSuccess = sendMessage(sipInvite);

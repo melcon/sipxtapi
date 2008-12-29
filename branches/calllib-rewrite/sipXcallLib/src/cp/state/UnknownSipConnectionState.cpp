@@ -59,6 +59,7 @@ void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const 
 {
    terminateSipDialog();
    deleteMediaConnection();
+   deleteAllTimers();
 
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());

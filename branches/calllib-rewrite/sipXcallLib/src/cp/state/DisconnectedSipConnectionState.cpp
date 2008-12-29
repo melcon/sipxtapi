@@ -58,6 +58,7 @@ void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, c
 {
    terminateSipDialog();
    deleteMediaConnection();
+   deleteAllTimers();
 
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());

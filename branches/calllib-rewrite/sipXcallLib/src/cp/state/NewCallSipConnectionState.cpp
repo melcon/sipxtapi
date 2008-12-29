@@ -98,6 +98,14 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
 
    m_rStateContext.m_sessionTimerProperties.reset(TRUE);
 
+   int inviteExpiresSeconds;
+   if (sipMessage.getExpiresField(&inviteExpiresSeconds) && inviteExpiresSeconds > 0)
+   {
+      int seqNum;
+      sipMessage.getCSeqField(&seqNum, NULL);
+      startInviteExpirationTimer(inviteExpiresSeconds, seqNum, FALSE); // it will check again in m_inviteExpiresSeconds, if INVITE is finished
+   }
+
    // automatically transition to offering state
    return getTransition(ISipConnectionState::CONNECTION_OFFERING, NULL);
 }

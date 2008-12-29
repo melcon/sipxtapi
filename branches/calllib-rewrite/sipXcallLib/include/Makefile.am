@@ -84,6 +84,7 @@ nobase_include_HEADERS =  \
     cp/msg/ScByeRetryTimerMsg.h \
     cp/msg/ScCommandMsg.h \
     cp/msg/ScDisconnectTimerMsg.h \
+    cp/msg/ScInviteExpirationTimerMsg.h \
     cp/msg/ScNotificationMsg.h \
     cp/msg/ScReInviteTimerMsg.h \
     cp/msg/ScSessionTimeoutTimerMsg.h \

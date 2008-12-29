@@ -78,6 +78,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                                  CP_SIP_UPDATE_CONFIG updateSetting,
                                  CP_100REL_CONFIG c100relSetting,
+                                 int inviteExpiresSeconds,
                                  XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -106,6 +107,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_updateSetting(updateSetting)
 , m_100relSetting(c100relSetting)
 , m_focusConfig(CP_FOCUS_IF_AVAILABLE)
+, m_inviteExpiresSeconds(inviteExpiresSeconds)
 {
 
 }

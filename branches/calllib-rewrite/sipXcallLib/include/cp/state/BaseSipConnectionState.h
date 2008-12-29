@@ -56,6 +56,7 @@ class Sc2xxTimerMsg;
 class ScDisconnectTimerMsg;
 class ScByeRetryTimerMsg;
 class ScSessionTimeoutTimerMsg;
+class ScInviteExpirationTimerMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -341,6 +342,9 @@ protected:
    /** Handles session timeout check timer message. */
    virtual SipConnectionStateTransition* handleSessionTimeoutCheckTimerMessage(const ScSessionTimeoutTimerMsg& timerMsg);
 
+   /** Handles invite expiration timer message. */
+   virtual SipConnectionStateTransition* handleInviteExpirationTimerMessage(const ScInviteExpirationTimerMsg& timerMsg);
+
    /** Handles bye retry timer message. */
    virtual SipConnectionStateTransition* handleByeRetryTimerMessage(const ScByeRetryTimerMsg& timerMsg);
 
@@ -430,8 +434,8 @@ protected:
    /** Sends BYE to terminate call. Optionally also specify values of Reason field. */
    void sendBye(int cause = 0, const UtlString& text = NULL);
 
-   /** Sends CANCEL to terminate call */
-   void sendInviteCancel();
+   /** Sends CANCEL to terminate call. Optionally also specify values of Reason field. */
+   void sendInviteCancel(int cause = 0, const UtlString& text = NULL);
 
    /** Sends re-INVITE for hold/unhold/codec renegotiation, or initial INVITE after 422 response */
    void sendInvite();
@@ -499,6 +503,12 @@ protected:
 
    /** Deletes timer for refreshing session */
    void deleteSessionRefreshTimer();
+
+   /** Starts timer for checking invite expiration */
+   void startInviteExpirationTimer(int timeoutSec, int cseqNum, UtlBoolean bIsOutbound);
+
+   /** Deletes timer for checking invite expiration */
+   void deleteInviteExpirationTimer();
 
    /** Gets Id of sip dialog */
    void getSipDialogId(UtlString& sipCallId,
@@ -599,6 +609,9 @@ protected:
 
    /** Prepares error response to given sip request, based on enum value. */
    void prepareErrorResponse(const SipMessage& sipRequest, SipMessage& sipResponse, ERROR_RESPONSE_TYPE responseType) const;
+
+   /** Deletes all timers */
+   void deleteAllTimers();
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

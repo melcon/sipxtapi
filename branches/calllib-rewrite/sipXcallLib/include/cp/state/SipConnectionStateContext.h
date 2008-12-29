@@ -87,8 +87,10 @@ public:
    RTP_TRANSPORT m_rtpTransport;
    SipMessage* m_pLastReceivedInvite; ///< last received INVITE
    SipMessage* m_pLastSent2xxToInvite; ///< last sent 2xx response to INVITE (sent until ACK is received)
+   int m_491failureCounter; ///< counts 491 failures, to avoid infinite loops
    UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering
    CP_SIP_UPDATE_CONFIG m_updateSetting; ///< whether UPDATE method is enabled
+   int m_inviteExpiresSeconds; ///< expiration time for INVITE requests. If no final response is received, INVITE is canceled
 
    // session timer member variables
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)
@@ -113,6 +115,7 @@ public:
    int m_i2xxInviteRetransmitCount; ///< how many times we retransmitted 2xx
    OsTimer* m_pSessionTimeoutCheckTimer; ///< timer for checking if session timeout occurred (session timer support)
    OsTimer* m_pSessionRefreshTimer; ///< timer for periodically refreshing session (session timer support)
+   OsTimer* m_pInviteExpiresTimer; ///< timer for checking INVITE expiration (occurs when INVITE is not accepted within value of Expires header)
 
    /* ============================ CREATORS ================================== */
 

@@ -39,10 +39,13 @@
 #include <cp/msg/ScReInviteTimerMsg.h>
 #include <cp/msg/ScByeRetryTimerMsg.h>
 #include <cp/msg/ScSessionTimeoutTimerMsg.h>
+#include <cp/msg/ScInviteExpirationTimerMsg.h>
 #include <cp/msg/AcDestroyConnectionMsg.h>
 #include <cp/XSipConnectionEventSink.h>
 
 // DEFINES
+#define MAX_491_FAILURES 5
+
 // CANCEL doesn't need transaction tracking
 #define TRACKABLE_METHODS "INVITE UPDATE INFO NOTIFY REFER OPTIONS PRACK SUBSCRIBE BYE"
 #define MAX_RENEGOTIATION_RETRY_COUNT 10
@@ -252,6 +255,8 @@ SipConnectionStateTransition* BaseSipConnectionState::rejectConnection(OsStatus&
          {
             sipResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
          }
+         deleteInviteExpirationTimer(); // INVITE was answered
+
          if (sendMessage(sipResponse))
          {
             result = OS_SUCCESS;
@@ -280,6 +285,8 @@ SipConnectionStateTransition* BaseSipConnectionState::redirectConnection(OsStatu
       {
          SipMessage redirectResponse;
          redirectResponse.setForwardResponseData(m_rStateContext.m_pLastReceivedInvite, sRedirectSipUrl);
+
+         deleteInviteExpirationTimer(); // INVITE was answered
 
          if (sendMessage(redirectResponse))
          {
@@ -341,6 +348,8 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
                bProtocolError = FALSE;
             }
          }
+
+         deleteInviteExpirationTimer(); // INVITE was answered
 
          if (bProtocolError)
          {
@@ -536,6 +545,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const S
       return handleByeRetryTimerMessage((const ScByeRetryTimerMsg&)timerMsg);
    case ScTimerMsg::PAYLOAD_TYPE_SESSION_TIMEOUT_CHECK:
       return handleSessionTimeoutCheckTimerMessage((const ScSessionTimeoutTimerMsg&)timerMsg);
+   case ScTimerMsg::PAYLOAD_TYPE_INVITE_EXPIRATION:
+      return handleInviteExpirationTimerMessage((const ScInviteExpirationTimerMsg&)timerMsg);
    default:
       ;
       OsSysLog::add(FAC_CP, PRI_WARNING, "Unknown timer message received - %d:%d\r\n",
@@ -803,16 +814,25 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
           !isOutboundUpdateActive() &&
           sdpNegotiationState != CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
       {
-         if (handleSdpOffer(sipMessage))
+         const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+         if (pSdpBody)
          {
-            sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
-            if (prepareSdpAnswer(sipResponse))
+            if (handleSdpOffer(sipMessage))
             {
-               if (commitMediaSessionChanges())
+               sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+               if (prepareSdpAnswer(sipResponse))
                {
-                  bProtocolError = FALSE;
+                  if (commitMediaSessionChanges())
+                  {
+                     bProtocolError = FALSE;
+                  }
                }
             }
+         }
+         else
+         {
+            // UPDATE without SDP body, maybe just refreshing contact or something else
+            bProtocolError = FALSE;
          }
       }
    }
@@ -1236,6 +1256,11 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
          }
       }
 
+      if (responseCode > SIP_1XX_CLASS_CODE)
+      {
+         deleteInviteExpirationTimer(); // INVITE was answered
+      }
+
       // process 422 for both initial INVITE and re-INVITE
       if (responseCode == SIP_SMALL_SESSION_INTERVAL_CODE)
       {
@@ -1244,6 +1269,17 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
       else if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
       {
          handleSessionTimerResponse(sipMessage);
+      }
+      else if (responseCode == SIP_REQUEST_PENDING_CODE &&
+               connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+      {
+         // we got 491 for outbound re-INVITE/UPDATE, retry it after some time, if timer is not already running
+         if (!m_rStateContext.m_pSessionRenegotiationTimer &&
+             m_rStateContext.m_491failureCounter < MAX_491_FAILURES)
+         {
+            m_rStateContext.m_491failureCounter++;
+            startSessionRenegotiationTimer(ScReInviteTimerMsg::REASON_NORMAL, TRUE);
+         }
       }
    }
    // TODO: Implement
@@ -1322,6 +1358,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(cons
       {
          if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
          {
+            m_rStateContext.m_491failureCounter = 0;
             handleSessionTimerResponse(sipResponse); // handle response, start session timer..
 
             // UPDATE transaction exists (checked in generic response handler), and we are in correct state
@@ -1333,6 +1370,17 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(cons
          else if (responseCode == SIP_SMALL_SESSION_INTERVAL_CODE)
          {
             handleSmallSessionIntervalResponse(sipResponse);
+         }
+         else if (responseCode == SIP_REQUEST_PENDING_CODE &&
+                  connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+         {
+            // we got 491 for outbound re-INVITE/UPDATE, retry it after some time, if timer is not already running
+            if (!m_rStateContext.m_pSessionRenegotiationTimer &&
+                m_rStateContext.m_491failureCounter < MAX_491_FAILURES)
+            {
+               m_rStateContext.m_491failureCounter++;
+               startSessionRenegotiationTimer(ScReInviteTimerMsg::REASON_NORMAL, TRUE);
+            }
          }
       }
    }
@@ -1449,25 +1497,41 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
    {
       if (sipMessage.isResponse())
       {
-         int seqNum;
+         int oldSeqNum;
          UtlString seqMethod;
-         sipMessage.getCSeqField(seqNum, seqMethod);
+         sipMessage.getCSeqField(oldSeqNum, seqMethod);
+         int newSeqNum = oldSeqNum + 1;
 
          if (needsTransactionTracking(seqMethod))
          {
             // start next transaction for authentication retry request we never see here
             if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
             {
-               getClientTransactionManager().updateInviteTransaction(seqNum + 1);
+               getClientTransactionManager().updateInviteTransaction(newSeqNum);
+               if (m_rStateContext.m_pInviteExpiresTimer)
+               {
+                  // restart INVITE expiration check timer
+                  startInviteExpirationTimer(m_rStateContext.m_inviteExpiresSeconds, newSeqNum, TRUE);
+               }
             }
             else
             {
                // non INVITE transaction
-               getClientTransactionManager().endTransaction(seqNum); // end current transaction
+               void* pToken = getClientTransactionManager().getTransactionData(seqMethod, oldSeqNum);
+               getClientTransactionManager().endTransaction(oldSeqNum); // end current transaction
                // SipUserAgent uses seqNum+1 for authentication retransmission. That works only
                // if we don't send 2 messages quickly that both need to be authenticated
                getNextLocalCSeq(); // skip 1 cseq number
-               getClientTransactionManager().startTransaction(seqMethod, seqNum + 1); // start new transaction with the same method
+               UtlBoolean res = getClientTransactionManager().startTransaction(seqMethod, newSeqNum); // start new transaction with the same method
+               if (res)
+               {
+                  getClientTransactionManager().setTransactionData(seqMethod, newSeqNum, pToken);
+               }
+               else
+               {
+                  OsSysLog::add(FAC_CP, PRI_WARNING, "Starting transaction after auth retry failed for call-id %s. seqMethod=%s,seqNum=%i.",
+                     getCallId().data(), seqMethod.data(), newSeqNum);
+               }
             }
 
             // also update sdp negotiation for INVITE & UPDATE
@@ -1477,7 +1541,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
                if (m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage))
                {
                   // original message was in SDP negotiation
-                  m_rStateContext.m_sdpNegotiation.notifyAuthRetry(seqNum + 1);
+                  m_rStateContext.m_sdpNegotiation.notifyAuthRetry(newSeqNum);
                }
             }
          }
@@ -1707,6 +1771,67 @@ SipConnectionStateTransition* BaseSipConnectionState::handleSessionTimeoutCheckT
       {
          // session is not stale, restart timeout timer
          startSessionTimeoutCheckTimer();
+      }
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleInviteExpirationTimerMessage(const ScInviteExpirationTimerMsg& timerMsg)
+{
+   deleteInviteExpirationTimer();
+
+   int cseqNum = timerMsg.getCseqNum();
+   UtlBoolean bIsOutbound = timerMsg.getIsOutbound();
+   CpSipTransactionManager& rTransactionMgr = bIsOutbound ? getClientTransactionManager() : getServerTransactionManager();
+
+   if (cseqNum == rTransactionMgr.getInviteCSeqNum() && rTransactionMgr.isInviteTransactionActive())
+   {
+      // we haven't received final response for INVITE request, or haven't sent final response to initial INVITE
+      ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+      if (bIsOutbound)
+      {
+         if (connectionState == ISipConnectionState::CONNECTION_REMOTE_OFFERING ||
+            connectionState == ISipConnectionState::CONNECTION_REMOTE_ALERTING ||
+            connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED)
+         {
+            // this is outbound initial INVITE
+            sendInviteCancel(487, "INVITE request expired");
+
+            // this is not a problem
+            OsSysLog::add(FAC_CP, PRI_DEBUG, "INVITE expired: remote party didn't answer with final response. Sending CANCEL. call-id: %s",
+               getCallId().data());
+         }
+         else if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+         {
+            // this is re-INVITE. Remote party is not responding with final response
+            rTransactionMgr.endInviteTransaction();
+            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+
+            // this is a problem but not fatal
+            OsSysLog::add(FAC_CP, PRI_WARNING, "re-INVITE expired: remote party didn't answer with final response. Ending transaction. call-id: %s",
+               getCallId().data());
+         }
+      }
+      else if (m_rStateContext.m_pLastReceivedInvite)
+      {
+         // is inbound INVITE
+         if (connectionState == ISipConnectionState::CONNECTION_ALERTING ||
+            connectionState == ISipConnectionState::CONNECTION_OFFERING ||
+            connectionState == ISipConnectionState::CONNECTION_QUEUED)
+         {
+            SipMessage sipResponse;
+            sipResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_TEMPORARILY_UNAVAILABLE_CODE,
+               SIP_TEMPORARILY_UNAVAILABLE_TEXT);
+            sendMessage(sipResponse);
+
+            OsSysLog::add(FAC_CP, PRI_DEBUG, "INVITE expired: local user didn't answer call within expiration time. Rejecting call. call-id: %s",
+               getCallId().data());
+
+            GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REJECTED);
+            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+         } // else something is wrong
       }
    }
 
@@ -2304,6 +2429,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleInvite2xxResponse(co
    UtlString seqMethod;
    sipResponse.getCSeqField(&seqNum, &seqMethod);
    UtlBoolean bProtocolError = FALSE;
+   m_rStateContext.m_491failureCounter = 0;
 
    // get pointer to internal sdp bodyContent
    const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
@@ -2414,11 +2540,12 @@ void BaseSipConnectionState::sendBye(int cause, const UtlString& text)
          byeRequest.setReasonField("SIP", cause, text);
       }
       sendMessage(byeRequest);
+      deleteInviteExpirationTimer(); // INVITE was answered
       startByeTimeoutTimer(); // start bye timer to force destroy connection after some timeout
    }
 }
 
-void BaseSipConnectionState::sendInviteCancel()
+void BaseSipConnectionState::sendInviteCancel(int cause, const UtlString& text)
 {
    // send CANCEL
    if (!m_rStateContext.m_bCancelSent && // send only 1 CANCEL at time
@@ -2429,7 +2556,12 @@ void BaseSipConnectionState::sendInviteCancel()
 
       SipMessage cancelRequest;
       prepareSipRequest(cancelRequest, SIP_CANCEL_METHOD, seqNum);
+      if (cause && !text.isNull())
+      {
+         cancelRequest.setReasonField("SIP", cause, text);
+      }
       sendMessage(cancelRequest);
+      deleteInviteExpirationTimer(); // INVITE was answered
       startCancelTimeoutTimer(); // start cancel timer to force destroy connection after some timeout
    }
 }
@@ -2445,6 +2577,8 @@ void BaseSipConnectionState::sendInvite()
    prepareSipRequest(sipInvite, SIP_INVITE_METHOD, seqNum);
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher, so that it is negotiated again
    prepareSessionTimerRequest(sipInvite);
+   sipInvite.setExpiresField(m_rStateContext.m_inviteExpiresSeconds);
+   startInviteExpirationTimer(m_rStateContext.m_inviteExpiresSeconds, seqNum, TRUE); // it will check again in m_inviteExpiresSeconds, if INVITE is finished
 
    // add SDP if negotiation mode is immediate, otherwise don't add it
    if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
@@ -2825,6 +2959,32 @@ void BaseSipConnectionState::deleteSessionRefreshTimer()
    }
 }
 
+void BaseSipConnectionState::startInviteExpirationTimer(int timeoutSec, int cseqNum, UtlBoolean bIsOutbound)
+{
+   deleteInviteExpirationTimer();
+
+   UtlString sipCallId;
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlBoolean isFromLocal;
+
+   getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
+   ScInviteExpirationTimerMsg msg(cseqNum, bIsOutbound, sipCallId, localTag, remoteTag, isFromLocal);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   m_rStateContext.m_pInviteExpiresTimer = new OsTimer(pNotification);
+   OsTime timerTime(timeoutSec, 0);
+   m_rStateContext.m_pInviteExpiresTimer->oneshotAfter(timerTime); // start timer
+}
+
+void BaseSipConnectionState::deleteInviteExpirationTimer()
+{
+   if (m_rStateContext.m_pInviteExpiresTimer)
+   {
+      delete m_rStateContext.m_pInviteExpiresTimer;
+      m_rStateContext.m_pInviteExpiresTimer = NULL;
+   }
+}
+
 void BaseSipConnectionState::getSipDialogId(UtlString& sipCallId,
                                             UtlString& localTag,
                                             UtlString& remoteTag,
@@ -2890,6 +3050,12 @@ void BaseSipConnectionState::trackTransactionRequest(const SipMessage& sipMessag
    if (cseqMethod.compareTo(SIP_ACK_METHOD) == 0)
    {
       // inbound ACK terminates some inbound INVITE transaction, outbound ACK terminates outbound INVITE transaction
+      // We deliberately end INVITE transaction with 2xx response with ACK, and not 2xx response
+      // This has an advantage for inbound INVITE transactions, because we terminate only once we receive ACK for 2xx
+      // that we sent. That means we can be sure our 2xx was received and not lost. Then we can proceed sending our
+      // INVITE, and shouldn't get 491 Request Pending. If we terminated transaction after sending 2xx, then we could
+      // try send new re-INVITE, but 2xx could have been lost, and we would get 491.
+
       transactionManager.endTransaction(SIP_INVITE_METHOD, cseqNum);
    }
 }
@@ -2909,7 +3075,7 @@ void BaseSipConnectionState::trackTransactionResponse(const SipMessage& sipMessa
           statusCode >= SIP_2XX_CLASS_CODE && statusCode < SIP_3XX_CLASS_CODE)
       {
          // INVITE transaction ends with ACK for 2xx code, since it is us who sends the ACK
-         // therefore do nothing here
+         // therefore do nothing here. This is deliberate, read explanation in trackTransactionRequest.
       }
       else if (statusCode >= SIP_2XX_CLASS_CODE)
       {
@@ -3371,6 +3537,26 @@ void BaseSipConnectionState::prepareErrorResponse(const SipMessage& sipRequest, 
       sipResponse.setResponseData(&sipRequest, SIP_SERVER_INTERNAL_ERROR_CODE,
          SIP_SERVER_INTERNAL_ERROR_TEXT, contactUrl);
    }
+}
+
+void BaseSipConnectionState::deleteAllTimers()
+{
+   delete m_rStateContext.m_pByeRetryTimer;
+   m_rStateContext.m_pByeRetryTimer = NULL;
+   delete m_rStateContext.m_pCancelTimeoutTimer;
+   m_rStateContext.m_pCancelTimeoutTimer = NULL;
+   delete m_rStateContext.m_pByeTimeoutTimer;
+   m_rStateContext.m_pByeTimeoutTimer = NULL;
+   delete m_rStateContext.m_pSessionRenegotiationTimer;
+   m_rStateContext.m_pSessionRenegotiationTimer = NULL;
+   delete m_rStateContext.m_p2xxInviteRetransmitTimer;
+   m_rStateContext.m_p2xxInviteRetransmitTimer = NULL;
+   delete m_rStateContext.m_pSessionTimeoutCheckTimer;
+   m_rStateContext.m_pSessionTimeoutCheckTimer = NULL;
+   delete m_rStateContext.m_pSessionRefreshTimer;
+   m_rStateContext.m_pSessionRefreshTimer = NULL;
+   delete m_rStateContext.m_pInviteExpiresTimer;
+   m_rStateContext.m_pInviteExpiresTimer = NULL;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
