@@ -1545,6 +1545,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handle2xxTimerMessage(cons
       else
       {
          delete2xxRetransmitTimer();
+         sendBye(487, "Request terminated due to missing ACK");
          // we sent 2xx too many times, fail
          return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
       }
