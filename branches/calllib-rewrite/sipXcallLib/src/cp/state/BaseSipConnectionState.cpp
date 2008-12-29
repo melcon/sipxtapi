@@ -678,18 +678,11 @@ SipConnectionStateTransition* BaseSipConnectionState::processSipMessage(const Si
 SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMessage& sipMessage)
 {
    trackTransactionRequest(sipMessage);
+   updateRemoteCapabilities(sipMessage);
 
    // process inbound sip message request
    UtlString method;
    sipMessage.getRequestMethod(&method);
-
-   // update remote allow
-   UtlString allowField;
-   sipMessage.getAllowField(allowField);
-   if (!allowField.isNull())
-   {
-      m_rStateContext.m_allowedRemote = allowField;
-   }
 
    if (method.compareTo(SIP_INVITE_METHOD) == 0)
    {
@@ -1086,6 +1079,8 @@ SipConnectionStateTransition* BaseSipConnectionState::processResponse(const SipM
           (seqMethod.compareTo(SIP_INVITE_METHOD) == 0 && transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
            statusCode >= SIP_2XX_CLASS_CODE && statusCode < SIP_3XX_CLASS_CODE))
       {
+         updateRemoteCapabilities(sipMessage);
+
          switch (statusCode)
          {
          // these destroy the whole dialog regardless of seqMethod
@@ -1240,22 +1235,6 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
    {
       int responseCode = sipMessage.getResponseStatusCode();
       
-      if (responseCode > SIP_1XX_CLASS_CODE &&
-          responseCode < SIP_3XX_CLASS_CODE)
-      {
-         // update remote allow
-         UtlString allowField;
-         sipMessage.getAllowField(allowField);
-         if (!allowField.isNull())
-         {
-            m_rStateContext.m_allowedRemote = allowField;
-         }
-         else
-         {
-            checkRemoteAllow(); // check if we know remote allow
-         }
-      }
-
       if (responseCode > SIP_1XX_CLASS_CODE)
       {
          deleteInviteExpirationTimer(); // INVITE was answered
@@ -1454,18 +1433,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processInfoResponse(const 
 
 SipConnectionStateTransition* BaseSipConnectionState::processOptionsResponse(const SipMessage& sipMessage)
 {
-   int responseCode = sipMessage.getResponseStatusCode();
-
-   if (responseCode == SIP_OK_CODE)
-   {
-      UtlString allowField;
-      sipMessage.getAllowField(allowField);
-      if (!allowField.isNull())
-      {
-         m_rStateContext.m_allowedRemote = allowField;
-      }
-   }
-
+   // OPTIONS responses are handled in updateRemoteCapabilities
    return NULL;
 }
 
@@ -1556,6 +1524,18 @@ UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
 {
    if (m_rStateContext.m_allowedRemote.index(sMethod) >=0 ||
        m_rStateContext.m_implicitAllowedRemote.index(sMethod) >= 0)
+   {
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean BaseSipConnectionState::isExtensionSupported(const UtlString& sExtension)
+{
+   if (m_rStateContext.m_supportedRemote.index(sExtension) >=0)
    {
       return TRUE;
    }
@@ -2405,7 +2385,7 @@ void BaseSipConnectionState::sendOptionsRequest()
    sendMessage(optionsRequest);
 }
 
-void BaseSipConnectionState::checkRemoteAllow()
+void BaseSipConnectionState::discoverRemoteCapabilities()
 {
    UtlBoolean bIsDialogEstablished = FALSE;
    {
@@ -2413,7 +2393,7 @@ void BaseSipConnectionState::checkRemoteAllow()
       bIsDialogEstablished = m_rStateContext.m_sipDialog.isEstablishedDialog();
    }
 
-   if (m_rStateContext.m_allowedRemote.isNull() && bIsDialogEstablished)
+   if (bIsDialogEstablished)
    {
       // allow was not set in response, send in dialog OPTIONS
       sendOptionsRequest();
@@ -3375,6 +3355,7 @@ SipConnectionStateTransition* BaseSipConnectionState::followNextRedirect()
       toField.removeFieldParameters();
       int cseqNum = getRandomCSeq();
 
+      resetRemoteCapabilities();
       m_rStateContext.m_sessionTimerProperties.reset(TRUE); // reset refresher and session expiration
 
       SipMessage sipInvite;
@@ -3557,6 +3538,65 @@ void BaseSipConnectionState::deleteAllTimers()
    m_rStateContext.m_pSessionRefreshTimer = NULL;
    delete m_rStateContext.m_pInviteExpiresTimer;
    m_rStateContext.m_pInviteExpiresTimer = NULL;
+}
+
+void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessage)
+{
+   UtlString allowField;
+   UtlBoolean allowPresent = sipMessage.getAllowField(allowField);
+   UtlString supportedField;
+   UtlBoolean supportedPresent = sipMessage.getSupportedField(supportedField);
+   UtlBoolean updateCapabilities = FALSE;
+
+   if (sipMessage.isResponse())
+   {
+      int seqNum;
+      UtlString seqMethod;
+      sipMessage.getCSeqField(seqNum, seqMethod);
+
+      int responseCode = sipMessage.getResponseStatusCode();
+      if (responseCode > SIP_1XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+      {
+         updateCapabilities = TRUE;
+      }
+      if (seqMethod.compareTo(SIP_OPTIONS_METHOD) && responseCode == SIP_OK_CODE)
+      {
+         // if we get 200 OK OPTIONS response, assume we know all that we can discover.
+         m_rStateContext.m_allowedRemoteDiscovered = TRUE;
+         m_rStateContext.m_supportedRemoteDiscovered = TRUE;
+      }
+   }
+   else
+   {
+      // sip request
+      updateCapabilities = TRUE;
+   }
+
+   if (updateCapabilities)
+   {
+      if (allowPresent)
+      {
+         m_rStateContext.m_allowedRemote = allowField; // update Allow:
+         m_rStateContext.m_allowedRemoteDiscovered = TRUE;
+      }
+      if (supportedPresent)
+      {
+         m_rStateContext.m_supportedRemote = supportedField; // update Supported:
+         m_rStateContext.m_supportedRemoteDiscovered = TRUE;
+      }
+      if (!m_rStateContext.m_allowedRemoteDiscovered || !m_rStateContext.m_supportedRemoteDiscovered)
+      {
+         discoverRemoteCapabilities(); // check if we know remote allow
+      }
+   }
+}
+
+void BaseSipConnectionState::resetRemoteCapabilities()
+{
+   m_rStateContext.m_allowedRemote.remove(0);
+   m_rStateContext.m_supportedRemote.remove(0);
+   m_rStateContext.m_allowedRemoteDiscovered = FALSE;
+   m_rStateContext.m_supportedRemoteDiscovered = FALSE;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
