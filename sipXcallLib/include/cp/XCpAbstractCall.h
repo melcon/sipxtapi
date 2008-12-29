@@ -120,6 +120,7 @@ public:
                    CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                    CP_SIP_UPDATE_CONFIG updateSetting,
                    CP_100REL_CONFIG c100relSetting,
+                   int inviteExpiresSeconds,
                    XCpCallConnectionListener* pCallConnectionListener = NULL,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -456,6 +457,7 @@ protected:
    const CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
    const CP_SIP_UPDATE_CONFIG m_updateSetting; ///< configuration of SIP UPDATE method
    const CP_100REL_CONFIG m_100relSetting; ///< configuration of 100rel support
+   const int m_inviteExpiresSeconds; ///< time in which INVITE must be answered with final response in seconds
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

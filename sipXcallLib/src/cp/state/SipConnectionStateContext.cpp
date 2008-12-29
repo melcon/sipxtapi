@@ -42,8 +42,10 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_pSecurity(NULL)
 , m_pLastReceivedInvite(NULL)
 , m_pLastSent2xxToInvite(NULL)
+, m_491failureCounter(0)
 , m_bUseLocalHoldSDP(FALSE)
 , m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
+, m_inviteExpiresSeconds(CP_MAXIMUM_RINGING_EXPIRE_SECONDS)
 , m_bRedirecting(FALSE)
 , m_bAckReceived(FALSE)
 , m_bCancelSent(FALSE)
@@ -58,6 +60,7 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_i2xxInviteRetransmitCount(0)
 , m_pSessionTimeoutCheckTimer(NULL)
 , m_pSessionRefreshTimer(NULL)
+, m_pInviteExpiresTimer(NULL)
 {
    m_sipClientTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -84,6 +87,8 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pSessionTimeoutCheckTimer = NULL;
    delete m_pSessionRefreshTimer;
    m_pSessionRefreshTimer = NULL;
+   delete m_pInviteExpiresTimer;
+   m_pInviteExpiresTimer = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */

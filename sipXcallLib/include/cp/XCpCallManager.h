@@ -86,6 +86,7 @@ public:
                   UtlBoolean bIsRequiredLineMatch,
                   int rtpPortStart,
                   int rtpPortEnd,
+                  int inviteExpiresSeconds, // timeout if 2xx for INVITE is not received
                   int maxCalls, // max calls before sending busy. -1 means unlimited. Doesn't limit outbound calls.
                   CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
@@ -638,6 +639,7 @@ private:
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
    const UtlString m_sLocalIpAddress;
+   const int m_inviteExpiresSeconds; ///< time in which INVITE must be answered with final response in seconds
 };
 
 #endif // XCallManager_h__

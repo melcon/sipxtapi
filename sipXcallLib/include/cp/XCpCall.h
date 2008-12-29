@@ -75,6 +75,7 @@ public:
            CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
            CP_SIP_UPDATE_CONFIG updateSetting,
            CP_100REL_CONFIG c100relSetting,
+           int inviteExpiresSeconds,
            XCpCallConnectionListener* pCallConnectionListener = NULL,
            CpCallStateEventListener* pCallEventListener = NULL,
            SipInfoStatusEventListener* pInfoStatusEventListener = NULL,

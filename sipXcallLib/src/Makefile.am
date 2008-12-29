@@ -96,6 +96,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/ScByeRetryTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
     cp/msg/ScDisconnectTimerMsg.cpp \
+    cp/msg/ScInviteExpirationTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
     cp/msg/ScReInviteTimerMsg.cpp \
     cp/msg/ScSessionTimeoutTimerMsg.cpp \

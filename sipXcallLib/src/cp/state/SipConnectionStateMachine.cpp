@@ -298,6 +298,18 @@ void SipConnectionStateMachine::configure100rel(CP_100REL_CONFIG c100relSetting)
    m_rStateContext.m_100relSetting = c100relSetting;
 }
 
+void SipConnectionStateMachine::configureInviteExpiration(int inviteExpiresSeconds)
+{
+   if (inviteExpiresSeconds > CP_MINIMUM_RINGING_EXPIRE_SECONDS)
+   {
+      m_rStateContext.m_inviteExpiresSeconds = inviteExpiresSeconds;
+   }
+   else
+   {
+      m_rStateContext.m_inviteExpiresSeconds = CP_MINIMUM_RINGING_EXPIRE_SECONDS;
+   }
+}
+
 /* ============================ ACCESSORS ================================= */
 
 ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()
