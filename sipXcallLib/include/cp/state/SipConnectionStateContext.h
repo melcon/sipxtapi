@@ -74,7 +74,12 @@ public:
    MediaConnectionState m_localMediaConnectionState; ///< keeps track of local media connection state
    MediaConnectionState m_remoteMediaConnectionState; ///< keeps track of remote media connection state
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation
+   // member variables storing remote party capabilities
    UtlString m_allowedRemote;  ///< methods supported by the other side
+   UtlBoolean m_allowedRemoteDiscovered;  ///< TRUE if Allow: of remote party is known
+   UtlString m_supportedRemote;  ///< values of Supported: header field or remote party
+   UtlBoolean m_supportedRemoteDiscovered;  ///< TRUE if Supported: of remote party is known
+
    UtlString m_implicitAllowedRemote; ///< methods which are allowed implicitly
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    Cp100RelTracker m_100RelTracker; ///< tracker for 100rel responses and PRACKs

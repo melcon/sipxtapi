@@ -300,6 +300,9 @@ protected:
    /** Returns TRUE if some SIP method is allowed (may be sent) */
    UtlBoolean isMethodAllowed(const UtlString& sMethod);
 
+   /** Returns TRUE if some SIP extension is allowed */
+   UtlBoolean isExtensionSupported(const UtlString& sExtension);
+
    /** Deletes media connection if it exists, stopping remote and local audio */
    void deleteMediaConnection();
 
@@ -422,11 +425,11 @@ protected:
    /** Handles 422 INVITE/UPDATE response */
    void handleSmallSessionIntervalResponse(const SipMessage& sipMessage);
 
-   /** Sends options request */
+   /** Sends options request, regardless of whether dialog is established */
    void sendOptionsRequest();
 
-   /** Checks if we know Allow of remote side, and optionally sends options if we don't */
-   void checkRemoteAllow();
+   /** Checks if we may send in dialog OPTIONS request, and sends it if we can. */
+   void discoverRemoteCapabilities();
 
    /** Sends ACK to given 200 OK response */
    virtual SipConnectionStateTransition* handleInvite2xxResponse(const SipMessage& sipResponse);
@@ -612,6 +615,12 @@ protected:
 
    /** Deletes all timers */
    void deleteAllTimers();
+
+   /** Updates known capabilities about remote party. Updates Allow, Supported.*/
+   void updateRemoteCapabilities(const SipMessage& sipMessage);
+
+   /** Call to reset remote party capabilities. Must be called when following redirect. */
+   void resetRemoteCapabilities();
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
