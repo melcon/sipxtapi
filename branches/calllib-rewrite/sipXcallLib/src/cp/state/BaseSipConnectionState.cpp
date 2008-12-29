@@ -172,6 +172,7 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
       if (m_rStateContext.m_pLastReceivedInvite)
       {
          SipMessage sipResponse;
+         ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_500;
          UtlBoolean bProtocolError = TRUE;
          const SdpBody* pSdpBody = m_rStateContext.m_pLastReceivedInvite->getSdpBody(m_rStateContext.m_pSecurity);
 
@@ -191,6 +192,11 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
                   }
                }
             }
+
+            if (bProtocolError)
+            {
+               errorResponseType = ERROR_RESPONSE_488;
+            }
          }
          else
          {
@@ -203,9 +209,9 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
          if (bProtocolError)
          {
             // reject call
-            SipMessage sipRejectResponse;
-            sipRejectResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
-            sendMessage(sipRejectResponse);
+            SipMessage errorResponse;
+            prepareErrorResponse(*m_rStateContext.m_pLastReceivedInvite, errorResponse, errorResponseType);
+            sendMessage(errorResponse);
 
             GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REQUEST_NOT_ACCEPTED);
             return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
@@ -300,6 +306,7 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
    {
       if (m_rStateContext.m_pLastReceivedInvite)
       {
+         ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_500;
          SipMessage sipResponse;
          UtlString sLocalContact(getLocalContactUrl());
          UtlBoolean bProtocolError = TRUE;
@@ -320,6 +327,11 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
                   }
                }
             }
+
+            if (bProtocolError)
+            {
+               errorResponseType = ERROR_RESPONSE_488;
+            }
          }
          else
          {
@@ -333,9 +345,9 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
          if (bProtocolError)
          {
             // reject call
-            SipMessage sipRejectResponse;
-            sipRejectResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
-            sendMessage(sipRejectResponse);
+            SipMessage errorResponse;
+            prepareErrorResponse(*m_rStateContext.m_pLastReceivedInvite, errorResponse, errorResponseType);
+            sendMessage(errorResponse);
 
             GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_REQUEST_NOT_ACCEPTED);
             return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
@@ -1765,7 +1777,7 @@ void BaseSipConnectionState::initDialogContact(CP_CONTACT_ID contactId)
    }
 }
 
-void BaseSipConnectionState::getLocalContactUrl(Url& contactUrl)
+void BaseSipConnectionState::getLocalContactUrl(Url& contactUrl) const
 {
    Url localField;
    {
@@ -1774,7 +1786,7 @@ void BaseSipConnectionState::getLocalContactUrl(Url& contactUrl)
    }
 }
 
-UtlString BaseSipConnectionState::getLocalContactUrl()
+UtlString BaseSipConnectionState::getLocalContactUrl() const
 {
    Url localContactUrl;
    getLocalContactUrl(localContactUrl);
@@ -3303,6 +3315,30 @@ void BaseSipConnectionState::prepareSessionTimerRequest(SipMessage& sipRequest)
    sipRequest.setSessionExpires(m_rStateContext.m_sessionTimerProperties.getSessionExpires(),
       m_rStateContext.m_sessionTimerProperties.getRefresher(TRUE));
    sipRequest.setMinExpiresField(m_rStateContext.m_sessionTimerProperties.getMinSessionExpires());
+}
+
+void BaseSipConnectionState::prepareErrorResponse(const SipMessage& sipRequest, SipMessage& sipResponse, ERROR_RESPONSE_TYPE responseType) const
+{
+   UtlString contactUrl(getLocalContactUrl());
+
+   switch (responseType)
+   {
+   case ERROR_RESPONSE_487:
+      sipResponse.setRequestTerminatedResponseData(&sipRequest);
+      break;
+   case ERROR_RESPONSE_488:
+      sipResponse.setResponseData(&sipRequest, SIP_REQUEST_NOT_ACCEPTABLE_HERE_CODE,
+         SIP_REQUEST_NOT_ACCEPTABLE_HERE_TEXT, contactUrl);
+      break;
+   case ERROR_RESPONSE_491:
+      sipResponse.setRequestPendingData(&sipRequest);
+      break;
+   case ERROR_RESPONSE_500:
+      break;
+   default:
+      sipResponse.setResponseData(&sipRequest, SIP_SERVER_INTERNAL_ERROR_CODE,
+         SIP_SERVER_INTERNAL_ERROR_TEXT, contactUrl);
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
