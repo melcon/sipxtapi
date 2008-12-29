@@ -298,8 +298,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_DECLINE_CODE 603
 #define SIP_DECLINE_TEXT "Declined"
 
-#define SIP_DECLINE_CODE 606
-#define SIP_DECLINE_TEXT "Not Acceptable"
+#define SIP_GLOBAL_NOT_ACCEPTABLE_CODE 606
+#define SIP_GLOBAL_NOT_ACCEPTABLE_TEXT "Not Acceptable"
 
 // there is no class 7 code, this is only end marker
 #define SIP_7XX_CLASS_CODE 700
