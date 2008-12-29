@@ -140,6 +140,9 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_RINGING_CODE 180
 #define SIP_RINGING_TEXT "Ringing"
 
+#define SIP_CALL_BEING_FORWARDED_CODE 181
+#define SIP_CALL_BEING_FORWARDED_TEXT "Call Is Being Forwarded"
+
 #define SIP_QUEUED_CODE 182
 #define SIP_QUEUED_TEXT "Queued"
 
@@ -198,7 +201,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_PROXY_AUTH_REQUIRED_TEXT "Proxy Authentication Required"
 
 #define SIP_REQUEST_TIMEOUT_CODE 408
-#define SIP_REQUEST_TIMEOUT_TEXT "Request timeout"
+#define SIP_REQUEST_TIMEOUT_TEXT "Request Timeout"
 
 #define SIP_GONE_CODE 410
 #define SIP_GONE_TEXT "Gone"
@@ -226,7 +229,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_TEMPORARILY_UNAVAILABLE_TEXT "Temporarily Unavailable"
 
 #define SIP_BAD_TRANSACTION_CODE 481
-#define SIP_BAD_TRANSACTION_TEXT "Transaction Does Not Exist"
+#define SIP_BAD_TRANSACTION_TEXT "Call/Transaction Does Not Exist"
 
 #define SIP_LOOP_DETECTED_CODE 482
 #define SIP_LOOP_DETECTED_TEXT "Loop Detected"
@@ -272,8 +275,17 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_SERVICE_UNAVAILABLE_CODE 503
 #define SIP_SERVICE_UNAVAILABLE_TEXT "Service Unavailable"
 
+#define SIP_SERVER_TIMEOUT_CODE 504
+#define SIP_SERVER_TIMEOUT_TEXT "Server Timeout"
+
 #define SIP_BAD_VERSION_CODE 505
 #define SIP_BAD_VERSION_TEXT "Version Not Supported"
+
+#define SIP_MESSAGE_TOO_LARGE_CODE 513
+#define SIP_MESSAGE_TOO_LARGE_TEXT "Message Too Large"
+
+#define SIP_PRECONDITION_FAILURE_CODE 580
+#define SIP_PRECONDITION_FAILURE_TEXT "Precondition Failure"
 
 #define SIP_6XX_CLASS_CODE 600
 
@@ -285,6 +297,9 @@ class SipRegInfoBody;        // for RFC 3680
 
 #define SIP_DECLINE_CODE 603
 #define SIP_DECLINE_TEXT "Declined"
+
+#define SIP_DECLINE_CODE 606
+#define SIP_DECLINE_TEXT "Not Acceptable"
 
 // there is no class 7 code, this is only end marker
 #define SIP_7XX_CLASS_CODE 700
