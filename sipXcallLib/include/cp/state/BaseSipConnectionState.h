@@ -31,6 +31,14 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
+typedef enum ERROR_RESPONSE_TYPE
+{
+   ERROR_RESPONSE_487, // Request Terminated
+   ERROR_RESPONSE_488, // Not Acceptable Here
+   ERROR_RESPONSE_491, // Request Pending
+   ERROR_RESPONSE_500, // Internal Server Error
+} ERROR_RESPONSE_TYPE;
+
 // MACROS
 // FORWARD DECLARATIONS
 class SipUserAgent;
@@ -355,12 +363,12 @@ protected:
     * Gets local contact URL from SipDialog. Can only be used once SipDialog has been initialized with first
     * outbound request. Contact Url will have display name if its available.
     */
-   void getLocalContactUrl(Url& contactUrl);
+   void getLocalContactUrl(Url& contactUrl) const;
 
    /**
     * Gets local contact URL as string.
     */
-   UtlString getLocalContactUrl();
+   UtlString getLocalContactUrl() const;
 
    /** Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress*/
    UtlString buildDefaultContactUrl(const Url& fromAddress) const;
@@ -588,6 +596,9 @@ protected:
 
    /** Prepares session timer request */
    void prepareSessionTimerRequest(SipMessage& sipRequest);
+
+   /** Prepares error response to given sip request, based on enum value. */
+   void prepareErrorResponse(const SipMessage& sipRequest, SipMessage& sipResponse, ERROR_RESPONSE_TYPE responseType) const;
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
