@@ -737,7 +737,36 @@ SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMe
 
 SipConnectionStateTransition* BaseSipConnectionState::processInviteRequest(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   // initial INVITE is handled in newcall state
+   // re-INVITE is handled in established state
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+   CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(sipMessage);
+
+   if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED &&
+       connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+       connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      if (transactionState == CpSipTransactionManager::TRANSACTION_NOT_FOUND)
+      {
+         // this is some unknown re-INVITE, but we have another INVITE transaction running
+         if (!isLocalInitiatedDialog() && !m_rStateContext.m_pLastSent2xxToInvite)
+         {
+            // this is an inbound call and we haven't sent 200 OK yet
+            SipMessage sipResponse;
+            prepareErrorResponse(sipMessage, sipResponse, ERROR_RESPONSE_500);
+            sendMessage(sipResponse);
+         }
+         else
+         {
+            // there is an INVITE in progress
+            SipMessage sipResponse;
+            prepareErrorResponse(sipMessage, sipResponse, ERROR_RESPONSE_491);
+            sendMessage(sipResponse);
+         }
+
+      } // if transaction is active or terminated then ignore INVITE, since we are resending 200 OK
+   } // for established there is special handler
+
    return NULL;
 }
 
@@ -2861,12 +2890,7 @@ void BaseSipConnectionState::trackTransactionRequest(const SipMessage& sipMessag
    if (cseqMethod.compareTo(SIP_ACK_METHOD) == 0)
    {
       // inbound ACK terminates some inbound INVITE transaction, outbound ACK terminates outbound INVITE transaction
-      UtlBoolean res = transactionManager.endTransaction(SIP_INVITE_METHOD, cseqNum);
-      if (res && m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage))
-      {
-         // INVITE transaction that is in SDP negotiation, reset SDP negotiation
-         m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
-      }
+      transactionManager.endTransaction(SIP_INVITE_METHOD, cseqNum);
    }
 }
 
@@ -2892,6 +2916,14 @@ void BaseSipConnectionState::trackTransactionResponse(const SipMessage& sipMessa
          // also handles INVITE 3xx and greater responses - terminate transaction now, 
          // since ACK is sent automatically by transaction layer and we will never see it
          UtlBoolean res = transactionManager.endTransaction(cseqMethod, cseqNum);
+
+         if (cseqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
+             statusCode >= SIP_3XX_CLASS_CODE &&
+             m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage))
+         {
+            // INVITE transaction error response, that is in SDP negotiation, reset SDP negotiation
+            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+         }
       }
       // 1xx don't end transaction
    }
