@@ -425,7 +425,15 @@ OsStatus XCpCallStack::doGainFocus(const UtlString& sAbstractCallId,
          // some call is focused, then we don't want to focus
          return OS_SUCCESS;
       }
-      result = doYieldFocus(sAbstractCallId, FALSE); // defocus focused call
+
+      if (m_sAbstractCallInFocus.compareTo(sAbstractCallId) != 0) // check that calls aren't the same
+      {
+         result = doYieldFocus(sAbstractCallId, FALSE); // defocus focused call
+      }
+      else
+      {
+         return OS_SUCCESS; // gain focus attempted on call in focus
+      }
    }
 
    {
