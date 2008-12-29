@@ -4534,7 +4534,7 @@ UtlBoolean SipMessage::getAllowField(UtlString& allowField) const
         }
         allowIndex++;
     }
-    return(value != NULL);
+    return !allowField.isNull();
 }
 
 ///// RFC 3326 ///
