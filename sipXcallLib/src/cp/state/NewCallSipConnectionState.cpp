@@ -93,11 +93,11 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
    setLastReceivedInvite(sipMessage); // remember the INVITE
    // Invite transaction was already started automatically
    // 100 Trying is sent by SipUserAgent
+   updateRemoteCapabilities(sipMessage);
 
    progressToEarlyEstablishedDialog();
 
    m_rStateContext.m_sessionTimerProperties.reset(TRUE);
-   updateRemoteCapabilities(sipMessage);
 
    int inviteExpiresSeconds;
    if (sipMessage.getExpiresField(&inviteExpiresSeconds) && inviteExpiresSeconds > 0)
