@@ -1304,24 +1304,79 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
       int cseqNum;
       UtlString cseqMethod;
       sipResponse.getCSeqField(&cseqNum, &cseqMethod);
+      UtlBoolean bSendPrack = FALSE;
+      UtlBoolean bProtocolError = FALSE;
+      UtlBoolean bGenerateSdpAnswer = FALSE;
 
-      // TODO: if its reliable, then send back a PRACK. If it has an SDP offer, send back SDP answer in PRACK
       const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
-      if (pSdpBody &&
-         (sipResponse.is100RelResponse() || connectionState != ISipConnectionState::CONNECTION_ESTABLISHED))
+      if (pSdpBody)
       {
-         // when in established state, process SDP only if 18x is reliable
-         if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
+         // 18x response with SDP body
+         if (sipResponse.is100RelResponse())
          {
-            // this must be SDP answer
-            if (handleSdpAnswer(sipResponse))
+            // reliable 18x response
+            bSendPrack = m_rStateContext.m_100RelTracker.on100RelReceived(sipResponse);
+            if (bSendPrack)
             {
-               commitMediaSessionChanges();
+               if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
+               {
+                  // this must be SDP answer
+                  if (handleSdpAnswer(sipResponse))
+                  {
+                     bProtocolError = !commitMediaSessionChanges();
+                  }
+                  else
+                  {
+                     bProtocolError = TRUE;
+                  }
+               }
+               else
+               {
+                  // this must be SDP offer
+                  if (handleSdpOffer(sipResponse))
+                  {
+                     bGenerateSdpAnswer = TRUE;
+                  }
+                  else
+                  {
+                     bProtocolError = TRUE;
+                  }
+               }
+            } // else 18x retransmit, but we sent PRACK, ignore as PRACK will be resent automatically
+         }
+         else if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED)
+         {
+            // unreliable 18x response
+            if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
+            {
+               // this must be SDP answer
+               if (handleSdpAnswer(sipResponse))
+               {
+                  bProtocolError = !commitMediaSessionChanges();
+               }
+               else
+               {
+                  bProtocolError = TRUE;
+               }
             }
+         }
+      }
+
+      if (bSendPrack)
+      {
+         bProtocolError |= !sendPrack(sipResponse, bGenerateSdpAnswer);
+      } // else 18x retransmission
+
+      if (bProtocolError)
+      {
+         // some protocol error (SDP), cancel call
+         if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED)
+         {
+            sendInviteCancel(487, "Request terminated due to protocol error");
          }
          else
          {
-            // TODO: this must be SDP offer in new 1xx or 100rel retransmit with SDP answer
+            sendBye(487, "Request terminated due to protocol error");
          }
       }
 
@@ -1475,7 +1530,20 @@ SipConnectionStateTransition* BaseSipConnectionState::processReferResponse(const
 
 SipConnectionStateTransition* BaseSipConnectionState::processPrackResponse(const SipMessage& sipMessage)
 {
-   // TODO: Implement
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      int responseCode = sipMessage.getResponseStatusCode();
+
+      if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+      {
+         // nothing to do. SDP answer cannot be present in PRACK response, because we never send SDP offer
+         // in PRACK request. SDP offer can't be present in PRACK response either.
+      }
+   }
+
    return NULL;
 }
 
@@ -2107,10 +2175,12 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
          }
       }
 
-      m_rStateContext.m_sdpNegotiation.handleInboundSdpOffer(sipMessage);
-      if (handleRemoteSdpBody(*pSdpBody))
+      if (m_rStateContext.m_sdpNegotiation.handleInboundSdpOffer(sipMessage))
       {
-         return TRUE;
+         if (handleRemoteSdpBody(*pSdpBody))
+         {
+            return TRUE;
+         }
       }
    }
 
@@ -2193,12 +2263,14 @@ UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
 {
    const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
 
-   if (pSdpBody && m_rStateContext.m_sdpNegotiation.isSdpOfferFinished())
+   if (pSdpBody)
    {
-      m_rStateContext.m_sdpNegotiation.handleInboundSdpAnswer(sipMessage);
-      if (handleRemoteSdpBody(*pSdpBody))
+      if (m_rStateContext.m_sdpNegotiation.handleInboundSdpAnswer(sipMessage))
       {
-         return TRUE;
+         if (handleRemoteSdpBody(*pSdpBody))
+         {
+            return TRUE;
+         }
       }
    }
 
@@ -2580,7 +2652,8 @@ void BaseSipConnectionState::sendInvite()
 
    prepareSipRequest(sipInvite, SIP_INVITE_METHOD, seqNum);
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher, so that it is negotiated again
-   prepareSessionTimerRequest(sipInvite);
+   prepareSessionTimerRequest(sipInvite); // add session timer parameters
+   prepare100relRequest(sipInvite); // optionally require 100rel
    sipInvite.setExpiresField(m_rStateContext.m_inviteExpiresSeconds);
    startInviteExpirationTimer(m_rStateContext.m_inviteExpiresSeconds, seqNum, TRUE); // it will check again in m_inviteExpiresSeconds, if INVITE is finished
 
@@ -2626,6 +2699,41 @@ void BaseSipConnectionState::sendUpdate()
    {
       OsSysLog::add(FAC_CP, PRI_ERR, "Sending UPDATE failed.\n");
    }
+}
+
+UtlBoolean BaseSipConnectionState::sendPrack(const SipMessage& sipResponse, UtlBoolean bSendSDPAnswer)
+{
+   UtlBoolean bSuccess = FALSE;
+
+   if (sipResponse.is100RelResponse())
+   {
+      int seqNum = 0;
+      int rseqNum = 0;
+      UtlString seqMethod;
+      sipResponse.getRSeqField(rseqNum);
+      sipResponse.getCSeqField(&seqNum, &seqMethod);
+      int prackSeqNum = getNextLocalCSeq(); // PRACK has new cseq number
+      SipMessage sipPrack;
+      prepareSipRequest(sipPrack, SIP_PRACK_METHOD, prackSeqNum);
+      sipPrack.setRAckField(rseqNum, seqNum, seqMethod); // set properties of 1xx message we are confirming
+
+      if (bSendSDPAnswer)
+      {
+         // we must send SDP answer
+         if (prepareSdpAnswer(sipPrack))
+         {
+            bSuccess = TRUE;
+         } // we never send SDP offer in PRACK, we prefer sending it in INVITE or ACK for outbound calls
+      }
+      else
+      {
+         bSuccess = TRUE;
+      }
+
+      bSuccess &= sendMessage(sipPrack);
+   }
+
+   return bSuccess;
 }
 
 void BaseSipConnectionState::setMediaDestination(const char* hostAddress,
@@ -3621,6 +3729,14 @@ void BaseSipConnectionState::resetRemoteCapabilities()
    m_rStateContext.m_supportedRemote.remove(0);
    m_rStateContext.m_allowedRemoteDiscovered = FALSE;
    m_rStateContext.m_supportedRemoteDiscovered = FALSE;
+}
+
+void BaseSipConnectionState::prepare100relRequest(SipMessage& sipRequest) const
+{
+   if (m_rStateContext.m_100relSetting == CP_100REL_REQUIRE_RELIABLE)
+   {
+      sipRequest.addRequireExtension(SIP_PRACK_EXTENSION);
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

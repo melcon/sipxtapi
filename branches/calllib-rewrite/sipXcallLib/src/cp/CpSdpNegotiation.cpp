@@ -83,24 +83,41 @@ void CpSdpNegotiation::startSdpNegotiation(const SipMessage& sipMessage, UtlBool
    sipMessage.getCSeqField(&m_cseqNum, NULL); // save transaction number
 }
 
-void CpSdpNegotiation::handleInboundSdpOffer(const SipMessage& rOfferSipMessage)
+UtlBoolean CpSdpNegotiation::handleInboundSdpOffer(const SipMessage& rOfferSipMessage)
 {
-   m_bSdpOfferFinished = TRUE;
+   if ((m_bLocallyInitiated && rOfferSipMessage.isFromThisSide()) ||
+      (!m_bLocallyInitiated && !rOfferSipMessage.isFromThisSide()))
+   {
+      m_bSdpOfferFinished = TRUE;
 
-   delete m_pOfferSipMessage;
-   m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
+      delete m_pOfferSipMessage;
+      m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
+
+      return TRUE;
+   }
+
+   return FALSE;
 }
 
-void CpSdpNegotiation::handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage)
+UtlBoolean CpSdpNegotiation::handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage)
 {
-   if (m_bSdpOfferFinished)
+   // SDP answer must come from other side than offer
+   if ((m_bLocallyInitiated && !rAnswerSipMessage.isFromThisSide()) ||
+      (!m_bLocallyInitiated && rAnswerSipMessage.isFromThisSide()))
    {
-      delete m_pAnswerSipMessage;
-      m_pAnswerSipMessage = new SipMessage(rAnswerSipMessage); // keep copy of sdp answer
+      if (m_bSdpOfferFinished)
+      {
+         delete m_pAnswerSipMessage;
+         m_pAnswerSipMessage = new SipMessage(rAnswerSipMessage); // keep copy of sdp answer
 
-      m_bSdpAnswerFinished = TRUE;
-      m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+         m_bSdpAnswerFinished = TRUE;
+         m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+
+         return TRUE;
+      }
    }
+
+   return FALSE;
 }
 
 void CpSdpNegotiation::resetSdpNegotiation()
