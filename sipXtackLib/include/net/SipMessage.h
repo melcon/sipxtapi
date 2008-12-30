@@ -44,6 +44,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_REPLACES_EXTENSION "replaces"
 #define SIP_JOIN_EXTENSION "join"
 #define SIP_PRACK_EXTENSION "100rel"
+#define SIP_FROM_CHANGE_EXTENSION "from-change" // must not appear in Require: header
 
 // SIP Methods
 #define SIP_INVITE_METHOD "INVITE"

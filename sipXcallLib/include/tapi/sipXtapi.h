@@ -409,12 +409,15 @@ typedef enum SIPX_SIP_UPDATE_CONFIG
 {
    SIPX_SIP_UPDATE_DISABLED = 0, /**< UPDATE is completely disabled, UPDATE requests will be rejected,
                                   *   but sipXtapi will continue advertising support for UPDATE
-                                  *   method.
+                                  *   method. RFC4916 (Connected Identity) will use re-INVITE.
                                   */
-   SIPX_SIP_UPDATE_ONLY_INBOUND, /**< UPDATE is enabled only for inbound requests - default.*/
+   SIPX_SIP_UPDATE_ONLY_INBOUND, /**< UPDATE is enabled only for inbound requests - default.
+                                  *   RFC4916 (Connected Identity) will use re-INVITE.
+                                  */
    SIPX_SIP_UPDATE_BOTH          /**< We may send UPDATE if remote side supports it,
-                                   *  and accept inbound requests.
-                                   */
+                                  *   and accept inbound requests. RFC4916 support will use
+                                  *   UPDATE if possible.
+                                  */
 } SIPX_SIP_UPDATE_CONFIG;
 
 /**
