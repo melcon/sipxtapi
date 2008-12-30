@@ -449,6 +449,15 @@ protected:
    /** Sends UPDATE for hold/unhold/codec renegotiation */
    void sendUpdate();
 
+   /** 
+    * Sends PRACK request, confirming reception of specified 1xx sip response.
+    * @param bSendSDPAnswer When TRUE, then SDP answer will be generated. Otherwise
+    *        an SDP offer might be generated.
+    * @return TRUE if no error occurred. FALSE if there was an error. An attempt will be
+    *         made to send PRACK regardless of error.
+    */
+   UtlBoolean sendPrack(const SipMessage& sipResponse, UtlBoolean bSendSDPAnswer);
+
    /**
     * Sets media connection destination to given host/ports if ICE is disabled, or to all
     * candidate addresses in SDP body if ICE is enabled.
@@ -624,6 +633,9 @@ protected:
 
    /** Call to reset remote party capabilities. Must be called when following redirect. */
    void resetRemoteCapabilities();
+
+   /** Adds Require: 100rel if 100rel is configured to be mandatory */
+   void prepare100relRequest(SipMessage& sipRequest) const;
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

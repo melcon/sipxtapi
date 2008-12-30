@@ -99,10 +99,10 @@ public:
    void startSdpNegotiation(const SipMessage& sipMessage, UtlBoolean bLocalHoldRequest = TRUE);
 
    /** Call to notify class that SDP offer was received. */
-   void handleInboundSdpOffer(const SipMessage& rOfferSipMessage);
+   UtlBoolean handleInboundSdpOffer(const SipMessage& rOfferSipMessage);
 
    /** Call to notify class that SDP answer was received */
-   void handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage);
+   UtlBoolean handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage);
 
    /** Resets negotiation of SDP. Not required to start new sdp negotiation. */
    void resetSdpNegotiation();
@@ -223,7 +223,8 @@ public:
 
    /**
     * Returns TRUE if given sip message belongs to transaction involved in SDP negotiation.
-    * This can be used to detect retransmits.
+    * This can be used to detect retransmits. This method will not work for inbound PRACK,
+    * since PRACK request will have different cseq than INVITE/UPDATE request.
     */
    UtlBoolean isInSdpNegotiation(const SipMessage& sipMessage) const;
 
