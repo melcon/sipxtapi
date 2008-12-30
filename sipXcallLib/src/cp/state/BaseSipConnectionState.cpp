@@ -714,7 +714,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMe
    }
    else if (method.compareTo(SIP_OPTIONS_METHOD) == 0)
    {
-      // TODO: currently receiving options requests is disabled in XCpCallManager. Test if in dialog OPTIONS works correctly
+      return processOptionsRequest(sipMessage);
    }
    else if (method.compareTo(SIP_REFER_METHOD) == 0)
    {
@@ -1053,6 +1053,30 @@ SipConnectionStateTransition* BaseSipConnectionState::processReferRequest(const 
 SipConnectionStateTransition* BaseSipConnectionState::processPrackRequest(const SipMessage& sipMessage)
 {
    // TODO: Implement
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processOptionsRequest(const SipMessage& sipMessage)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   // INVITE transaction termination is handled during disconnected state entry
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      // respond with 200 OK
+      SipMessage sipResponse;
+      sipResponse.setResponseData(&sipMessage, SIP_OK_CODE, SIP_OK_TEXT);
+      sendMessage(sipResponse);
+   }
+   else
+   {
+      // respond with 481
+      SipMessage sipResponse;
+      sipResponse.setBadTransactionData(&sipMessage);
+      sendMessage(sipResponse);
+   }
+
    return NULL;
 }
 

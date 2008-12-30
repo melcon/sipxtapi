@@ -605,6 +605,9 @@ private:
    /** Stops observing SipMessages */
    void stopSipMessageObserving();
 
+   /** Returns TRUE if given message should not be processed */
+   UtlBoolean skipMessage(const SipMessage& sipMessage) const;
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.

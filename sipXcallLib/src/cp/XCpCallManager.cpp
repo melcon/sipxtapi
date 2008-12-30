@@ -1201,17 +1201,20 @@ UtlBoolean XCpCallManager::handleSipMessageEvent(const SipMessageEvent& rSipMsgE
       enableConsoleOutput(TRUE);
       osPrintf("\nXCpCallManager::handleSipMessageEvent\n%s\n-----------------------------------\n", pSipMessage->toString().data());
 #endif
-      OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-      UtlBoolean resFind = m_callStack.findHandlingAbstractCall(*pSipMessage, ptrLock);
-      if (resFind)
+      if (!skipMessage(*pSipMessage))
       {
-         // post message to call
-         return ptrLock->postMessage(rSipMsgEvent);
-      }
-      else
-      {
-         return handleUnknownSipMessageEvent(rSipMsgEvent);
-      }
+         OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+         UtlBoolean resFind = m_callStack.findHandlingAbstractCall(*pSipMessage, ptrLock);
+         if (resFind)
+         {
+            // post message to call
+            return ptrLock->postMessage(rSipMsgEvent);
+         }
+         else
+         {
+            return handleUnknownSipMessageEvent(rSipMsgEvent);
+         }
+      }      
    }
 
    return TRUE;
@@ -1391,7 +1394,6 @@ UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage
    }
    else if(requestMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
    {
-      // TODO: currently receiving options requests is disabled in XCpCallManager. This will never get called.
       return handleUnknownOptionsRequest(rSipMessage);
    }
    else if(requestMethod.compareTo(SIP_UPDATE_METHOD) == 0)
@@ -1506,7 +1508,7 @@ void XCpCallManager::startSipMessageObserving()
       FALSE); // Don't want to see out going messages
    m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
       SIP_OPTIONS_METHOD,
-      FALSE, // don't want to get requests
+      TRUE, // want to get requests
       TRUE, // do want responses
       TRUE, // Incoming messages
       FALSE); // Don't want to see out going messages
@@ -1533,6 +1535,21 @@ void XCpCallManager::startSipMessageObserving()
 void XCpCallManager::stopSipMessageObserving()
 {
    m_rSipUserAgent.removeMessageObserver(*(this->getMessageQueue()));
+}
+
+UtlBoolean XCpCallManager::skipMessage(const SipMessage& sipMessage) const
+{
+   if (sipMessage.isOptionsRequest())
+   {
+      UtlString toTag;
+      sipMessage.getToFieldTag(toTag);
+      if (toTag.isNull())
+      {
+         return TRUE; // skip OPTIONS request with NULL to tag, those are handled by SipUserAgent
+      }
+   }
+
+   return FALSE;
 }
 
 /* ============================ FUNCTIONS ================================= */

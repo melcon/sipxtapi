@@ -1928,22 +1928,6 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   }
 #endif //TEST_PRINT
                }
-
-               // Process Options requests :TODO: - this does not route in the redirect server
-               else if(isUaTransaction &&
-                  !message->isResponse() &&
-                  method.compareTo(SIP_OPTIONS_METHOD) == 0)
-               {
-                  // Send an OK, the allowed field will get added to all final responces.
-                  response = new SipMessage();
-                  response->setResponseData(message,
-                     SIP_OK_CODE,
-                     SIP_OK_TEXT);
-
-                  delete(message);
-                  message = NULL;
-               }
-
                else if(message->getMaxForwards(maxForwards))
                {
                   if(maxForwards <= 0)
@@ -1994,6 +1978,26 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                else
                {
                   message->setMaxForwards(mMaxForwards);
+               }
+
+               // Process Options requests :TODO: - this does not route in the redirect server
+               if(!response && isUaTransaction &&
+                  !message->isResponse() &&
+                  method.compareTo(SIP_OPTIONS_METHOD) == 0)
+               {
+                  UtlString toFieldTag;
+                  message->getToFieldTag(toFieldTag);
+                  if (toFieldTag.isNull())
+                  {
+                     // Send an OK, the allowed field will get added to all final responces.
+                     response = new SipMessage();
+                     response->setResponseData(message,
+                        SIP_OK_CODE,
+                        SIP_OK_TEXT);
+
+                     delete(message);
+                     message = NULL;
+                  }
                }
 
                // If the request is invalid
