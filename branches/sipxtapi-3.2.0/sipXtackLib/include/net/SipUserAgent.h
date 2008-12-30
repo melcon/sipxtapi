@@ -367,7 +367,7 @@ public:
 
    void allowExtension(const char* extension);
 
-   void getSupportedExtensions(UtlString& extensionsString);
+   void getSupportedExtensions(UtlString& extensionsString) const;
 
    //! Set the SIP proxy servers for the user agent.
    /*! This method will clear any existing proxy servers before
@@ -653,7 +653,7 @@ protected:
    /// constuct the value to be used in either user-agent or server header.
    void selfHeaderValue(UtlString& self);
 
-   void getAllowedMethods(UtlString* allowedMethods);
+   void getAllowedMethods(UtlString* allowedMethods) const;
 
    void whichExtensionsNotAllowed(const SipMessage* message,
       UtlString* disallowedExtensions) const;
@@ -714,6 +714,9 @@ protected:
       SipMessage* request,
       int* messageType,
       int authorizationEntity);
+
+   /** Adds Allow: and Supported: header fields to message. */
+   void addAgentCapabilities(SipMessage& sipMessage) const;
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
