@@ -447,7 +447,7 @@ protected:
    void sendInvite();
 
    /** Sends UPDATE for hold/unhold/codec renegotiation */
-   void sendUpdate();
+   void sendUpdate(UtlBoolean bRenegotiateCodecs = TRUE);
 
    /** 
     * Sends PRACK request, confirming reception of specified 1xx sip response.
@@ -578,8 +578,12 @@ protected:
    /** Initiates unhold via re-INVITE or UPDATE */
    void doUnhold();
 
-   /** Renegotiates media session */
-   void renegotiateMediaSession();
+   /**
+    * Refreshes session. May also renegotiate codecs. Uses re-INVITE or UPDATE.
+    * @param bRenegotiateCodecs When FALSE, then codecs won't be renegotiated if UPDATE
+    *        method is used.
+    */
+   void refreshSession(UtlBoolean bRenegotiateCodecs = TRUE);
 
    /** Sets state of local media connection. Don't update state directly. Use this function. */
    void setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,

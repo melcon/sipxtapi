@@ -453,7 +453,7 @@ SipConnectionStateTransition* BaseSipConnectionState::renegotiateCodecsConnectio
       if (mayRenegotiateMediaSession())
       {
          // no invite transaction, we may renegotiate immediately
-         renegotiateMediaSession();
+         refreshSession(TRUE);
          result = OS_SUCCESS;
          return NULL;
       }
@@ -1420,9 +1420,20 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(cons
             handleSessionTimerResponse(sipResponse); // handle response, start session timer..
 
             // UPDATE transaction exists (checked in generic response handler), and we are in correct state
-            if (handleSdpAnswer(sipResponse))
+            const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
+            if (pSdpBody)
             {
-               commitMediaSessionChanges();
+               if (handleSdpAnswer(sipResponse))
+               {
+                  commitMediaSessionChanges();
+               }
+            }
+            else if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
+            {
+               // we sent SDP offer, but didn't get SDP answer, this is not fatal error
+               OsSysLog::add(FAC_CP, PRI_WARNING, "Missing SDP answer: SDP answer was not found as expected in UPDATE response. Call-id: %s.",
+                  getCallId().data());
+               m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
             }
          } // if error then nothing happens
          else if (responseCode == SIP_SMALL_SESSION_INTERVAL_CODE)
@@ -1768,7 +1779,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleRenegotiateTimerMess
          switch (timerMsg.getReason())
          {
          case ScReInviteTimerMsg::REASON_NORMAL:
-            renegotiateMediaSession();
+            refreshSession(TRUE);
             break;
          case ScReInviteTimerMsg::REASON_HOLD:
             doHold();
@@ -1811,7 +1822,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleRefreshSessionTimerM
       {
          OsSysLog::add(FAC_CP, PRI_DEBUG, "About to renegotiate session due to session timer for sip call-id %s.\n",
             getSipCallId().data());
-         renegotiateMediaSession();
+         refreshSession(FALSE);
       } // else some renegotiation is in progress, just restart timer, no need to refresh
 
       startSessionRefreshTimer();
@@ -2677,22 +2688,31 @@ void BaseSipConnectionState::sendInvite()
    }
 }
 
-void BaseSipConnectionState::sendUpdate()
+void BaseSipConnectionState::sendUpdate(UtlBoolean bRenegotiateCodecs)
 {
    SipMessage sipUpdate;
    int seqNum = getNextLocalCSeq();
    prepareSipRequest(sipUpdate, SIP_UPDATE_METHOD, seqNum);
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher
    prepareSessionTimerRequest(sipUpdate);
+   prepare100relRequest(sipUpdate);
 
-   if (!prepareSdpOffer(sipUpdate))
+   if (bRenegotiateCodecs)
    {
-      // SDP negotiation start failed
-      OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for UPDATE failed.\n");
-      return;
+      if (!prepareSdpOffer(sipUpdate))
+      {
+         // SDP negotiation start failed
+         OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for UPDATE failed.\n");
+         return;
+      }
+   }
+   else
+   {
+      // reset SDP negotiation, so that we can detect that we are not expecting SDP in answer
+      m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    }
 
-   // try to send sip message
+   // try to send sip message (maybe without SDP)
    UtlBoolean sendSuccess = sendMessage(sipUpdate);
 
    if (!sendSuccess)
@@ -3309,25 +3329,26 @@ void BaseSipConnectionState::doHold()
 {
    // start hold via re-INVITE
    m_rStateContext.m_bUseLocalHoldSDP = TRUE;
-   renegotiateMediaSession();
+   refreshSession(TRUE);
 }
 
 void BaseSipConnectionState::doUnhold()
 {
    // start unhold via re-INVITE
    m_rStateContext.m_bUseLocalHoldSDP = FALSE;
-   renegotiateMediaSession();
+   refreshSession(TRUE);
 }
 
-void BaseSipConnectionState::renegotiateMediaSession()
+void BaseSipConnectionState::refreshSession(UtlBoolean bRenegotiateCodecs)
 {
    if (m_rStateContext.m_updateSetting == CP_SIP_UPDATE_BOTH &&
        isMethodAllowed(SIP_UPDATE_METHOD))
    {
-      sendUpdate();
+      sendUpdate(bRenegotiateCodecs);
    }
    else
    {
+      // re-INVITE always renegotiates codecs
       sendInvite();
    }
 }
