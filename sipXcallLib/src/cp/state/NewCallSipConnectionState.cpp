@@ -97,6 +97,7 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
    progressToEarlyEstablishedDialog();
 
    m_rStateContext.m_sessionTimerProperties.reset(TRUE);
+   updateRemoteCapabilities(sipMessage);
 
    int inviteExpiresSeconds;
    if (sipMessage.getExpiresField(&inviteExpiresSeconds) && inviteExpiresSeconds > 0)
