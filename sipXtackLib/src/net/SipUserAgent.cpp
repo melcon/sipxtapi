@@ -763,14 +763,7 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
          {
             // It seems that the polite thing to do is to add the
             // allowed methods to all final responses
-            UtlString allowedMethodsSet;
-            if(message.getResponseStatusCode() >= SIP_OK_CODE &&
-               !message.getAllowField(allowedMethodsSet) && mbAllowHeader && mbAllowHeader)
-            {
-               UtlString allowedMethods;
-               getAllowedMethods(&allowedMethods);
-               message.setAllowField(allowedMethods);
-            }
+            addAgentCapabilities(message);
          }
       }
 
@@ -904,38 +897,8 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
             message.setAcceptLanguageField(mAcceptLanguage);
          }
 
-         // add allow field to Refer and Invite request . It is
-         // mandatory for refer method
-         UtlString allowedMethodsSet;
-         if (   ! message.getAllowField(allowedMethodsSet)
-            && (   method.compareTo(SIP_REFER_METHOD) == 0
-            || method.compareTo(SIP_INVITE_METHOD) == 0
-            )
-            )
-         {
-            if (mbAllowHeader)
-            {
-               UtlString allowedMethods;
-               getAllowedMethods(&allowedMethods);
-               message.setAllowField(allowedMethods);
-            }
-         }
-
-         // Set the supported extensions if this is not
-         // an ACK or NOTIFY request and the Supported field 
-         // is not already set.
-         if(   method.compareTo(SIP_ACK_METHOD) != 0 &&
-            method.compareTo(SIP_NOTIFY_METHOD) != 0
-            && !message.getHeaderValue(0, SIP_SUPPORTED_FIELD)
-            )
-         {
-            UtlString supportedExtensions;
-            getSupportedExtensions(supportedExtensions);
-            if (supportedExtensions.length() > 0)
-            {
-               message.setSupportedField(supportedExtensions.data());
-            }
-         }
+         // maybe add Allow: and Supported: fields
+         addAgentCapabilities(message);
       }
 
       // If this is the top most parent and it is a client transaction
@@ -2055,6 +2018,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                // If the request is invalid
                if(response)
                {
+                  addAgentCapabilities(*response);
                   // Send the error response
                   transaction->handleOutgoing(*response,
                      *this,
@@ -3353,7 +3317,7 @@ void SipUserAgent::prepareContact(SipMessage& message,
    }    
 }
 
-void SipUserAgent::getAllowedMethods(UtlString* allowedMethods)
+void SipUserAgent::getAllowedMethods(UtlString* allowedMethods) const
 {
    UtlDListIterator iterator(allowedSipMethods);
    allowedMethods->remove(0);
@@ -3731,7 +3695,7 @@ void SipUserAgent::allowExtension(const char* extension)
    allowedSipExtensions.append(extensionName);
 }
 
-void SipUserAgent::getSupportedExtensions(UtlString& extensionsString)
+void SipUserAgent::getSupportedExtensions(UtlString& extensionsString) const
 {
    extensionsString.remove(0);
    UtlString* extensionName = NULL;
@@ -4690,6 +4654,56 @@ void SipUserAgent::buildAuthenticatedSipMessage(const SipMessage& sipMessageTemp
       UtlString requestUri;
       sipMessage.getRequestUri(&requestUri);
       sipMessage.addRouteUri(requestUri);
+   }
+}
+
+void SipUserAgent::addAgentCapabilities(SipMessage& sipMessage) const
+{
+   // add allow field to Refer and Invite request . It is
+   // mandatory for refer method
+   int seqNum;
+   UtlString seqMethod;
+   int responseStatusCode = 0;
+   UtlBoolean bIsResponse = sipMessage.isResponse();
+   
+   if (bIsResponse)
+   {
+      responseStatusCode = sipMessage.getResponseStatusCode();
+   }
+
+   sipMessage.getCSeqField(seqNum, seqMethod);
+   UtlString allowedMethodsSet;
+   if (!sipMessage.getAllowField(allowedMethodsSet) && mbAllowHeader)
+   {
+      if(seqMethod.compareTo(SIP_CANCEL_METHOD) != 0 &&
+         seqMethod.compareTo(SIP_ACK_METHOD) != 0)
+      {
+         if (!bIsResponse ||
+            (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE))
+         {
+            UtlString allowedMethods;
+            getAllowedMethods(&allowedMethods);
+            sipMessage.setAllowField(allowedMethods);
+         }
+      }
+   }
+
+   // Set the supported extensions if this is not
+   // an ACK or NOTIFY request and the Supported field 
+   // is not already set.
+   if(seqMethod.compareTo(SIP_ACK_METHOD) &&
+      !sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD))
+   {
+      if (!bIsResponse ||
+         (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE && responseStatusCode < SIP_3XX_CLASS_CODE))
+      {
+         UtlString supportedExtensions;
+         getSupportedExtensions(supportedExtensions);
+         if (supportedExtensions.length() > 0)
+         {
+            sipMessage.setSupportedField(supportedExtensions);
+         }
+      }
    }
 }
 
