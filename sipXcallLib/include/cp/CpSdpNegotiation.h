@@ -44,6 +44,11 @@ struct SdpSrtpParameters;
  *
  * SDP negotiation tracking is manual, startSdpNegotiation, sdpOfferFinished
  * and sdpAnswerFinished need to be called.
+ *
+ * If SDP negotiation is completed unreliably with 18x response (unreliable), then
+ * SDP negotiation will keep looking as if it was SDP_NEGOTIATION_IN_PROGRESS, but
+ * isSdpNegotiationUnreliablyComplete() will return TRUE, and also remote SDP body
+ * will be available. It will be possible to apply negotiated changes.
  */
 class CpSdpNegotiation
 {
@@ -202,8 +207,11 @@ public:
    /** Returns TRUE if SDP negotiation is in progress */
    UtlBoolean isSdpNegotiationInProgress() const;
 
-   /** Returns TRUE if SDP negotiation is complete */
+   /** Returns TRUE if SDP negotiation is reliably complete */
    UtlBoolean isSdpNegotiationComplete() const;
+
+   /** Returns TRUE if SDP negotiation is unreliably complete (after SDP answer in unreliable 18x response) */
+   UtlBoolean isSdpNegotiationUnreliablyComplete() const;
 
    /** Returns TRUE if SDP negotiation was initiated locally (offer was sent) */
    UtlBoolean isLocallyInitiated() const { return m_bLocallyInitiated; }
@@ -259,7 +267,8 @@ private:
 
    SdpNegotiationState m_negotiationState; ///< keeps track of SDP negotiation state
    UtlBoolean m_bSdpOfferFinished; ///< TRUE if SDP offer was sent or received
-   UtlBoolean m_bSdpAnswerFinished; ///< TRUE if SDP answer was sent or received
+   UtlBoolean m_bSdpAnswerFinished; ///< TRUE if reliable SDP answer was sent or received
+   UtlBoolean m_bUnreliableSdpAnswerFinished; ///< TRUE if unreliable SDP answer was sent or received
    UtlBoolean m_bLocallyInitiated; ///< TRUE if we are the SDP negotiation initiator
 
    UtlBoolean m_bLocalHoldRequest; ///< TRUE if SDP with a=sendonly should be used - for initiating hold
