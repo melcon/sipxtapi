@@ -27,20 +27,20 @@
 
 /* ============================ CREATORS ================================== */
 
-Sc100RelTimerMsg::Sc100RelTimerMsg(const UtlString& s100RelId,
+Sc100RelTimerMsg::Sc100RelTimerMsg(const SipMessage& c100relResponse,
                                    const UtlString& sCallId,
                                    const UtlString& sLocalTag,
                                    const UtlString& sRemoteTag,
                                    UtlBoolean isFromLocal)
 : ScTimerMsg(ScTimerMsg::PAYLOAD_TYPE_100REL, sCallId, sLocalTag, sRemoteTag, isFromLocal)
-, m_s100RelId(s100RelId)
+, m_100relResponse(c100relResponse)
 {
 
 }
 
 Sc100RelTimerMsg::Sc100RelTimerMsg(const Sc100RelTimerMsg& rhs)
 : ScTimerMsg(rhs)
-, m_s100RelId(rhs.m_s100RelId)
+, m_100relResponse(rhs.m_100relResponse)
 {
 }
 
@@ -65,7 +65,7 @@ Sc100RelTimerMsg& Sc100RelTimerMsg::operator=(const Sc100RelTimerMsg& rhs)
 
    ScTimerMsg::operator=(rhs); // assign fields for parent class
    
-   m_s100RelId = rhs.m_s100RelId;
+   m_100relResponse = rhs.m_100relResponse;
 
    return *this;
 }
