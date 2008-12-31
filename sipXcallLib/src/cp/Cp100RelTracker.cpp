@@ -158,6 +158,11 @@ UtlBoolean Cp100RelTracker::canSend1xxRel() const
    return m_bCanSend100rel;
 }
 
+UtlBoolean Cp100RelTracker::are1xxRelsAcknowledged() const
+{
+   return m_bCanSend100rel;
+}
+
 UtlBoolean Cp100RelTracker::is100RelIdValid(const UtlString& s100RelId) const
 {
    Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));

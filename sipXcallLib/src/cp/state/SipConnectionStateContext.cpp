@@ -64,6 +64,8 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_pInviteExpiresTimer(NULL)
 , m_p100relRetransmitTimer(NULL)
 , m_i100relRetransmitCount(0)
+, m_pDelayedAnswerTimer(NULL)
+, m_iDelayedAnswerCount(0)
 {
    m_sipClientTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -94,6 +96,8 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pInviteExpiresTimer = NULL;
    delete m_p100relRetransmitTimer;
    m_p100relRetransmitTimer = NULL;
+   delete m_pDelayedAnswerTimer;
+   m_pDelayedAnswerTimer = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */

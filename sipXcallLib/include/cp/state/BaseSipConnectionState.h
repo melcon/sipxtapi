@@ -58,6 +58,7 @@ class ScDisconnectTimerMsg;
 class ScByeRetryTimerMsg;
 class ScSessionTimeoutTimerMsg;
 class ScInviteExpirationTimerMsg;
+class ScDelayedAnswerTimerMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -359,6 +360,9 @@ protected:
    /** Handles bye retry timer message. */
    virtual SipConnectionStateTransition* handleByeRetryTimerMessage(const ScByeRetryTimerMsg& timerMsg);
 
+   /** Handles delayed answer timer message. */
+   virtual SipConnectionStateTransition* handleDelayedAnswerTimerMessage(const ScDelayedAnswerTimerMsg& timerMsg);
+
    /** Quick access to sip call-id */
    UtlString getCallId() const;
 
@@ -535,6 +539,12 @@ protected:
 
    /** Deletes timer to retransmit 100rel message */
    void delete100relRetransmitTimer();
+
+   /** Starts timer to answer call with delay */
+   void startDelayedAnswerTimer();
+
+   /** Deletes timer for answering call with delay */
+   void deleteDelayedAnswerTimer();
 
    /** Gets Id of sip dialog */
    void getSipDialogId(UtlString& sipCallId,

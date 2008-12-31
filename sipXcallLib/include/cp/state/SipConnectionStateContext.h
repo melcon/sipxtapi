@@ -123,6 +123,8 @@ public:
    OsTimer* m_pInviteExpiresTimer; ///< timer for checking INVITE expiration (occurs when INVITE is not accepted within value of Expires header)
    OsTimer* m_p100relRetransmitTimer; ///< timer for retransmitting reliable 18x response
    int m_i100relRetransmitCount; ///< how many times we retransmitted reliable 18x response
+   OsTimer* m_pDelayedAnswerTimer; ///< timer for delaying call answer, until all 18x reliable responses have been acknowledged
+   int m_iDelayedAnswerCount; ///< how many times we retried answer
 
    /* ============================ CREATORS ================================== */
 

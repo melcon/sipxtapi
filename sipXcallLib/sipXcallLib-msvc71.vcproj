@@ -102,6 +102,7 @@
                 <File RelativePath=".\src\cp\msg\Sc2xxTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScByeRetryTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScCommandMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScDelayedAnswerTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScInviteExpirationTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
@@ -213,6 +214,7 @@
                 <File RelativePath=".\include\cp\msg\Sc2xxTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScByeRetryTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScCommandMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScDelayedAnswerTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScDisconnectTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScInviteExpirationTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>

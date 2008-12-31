@@ -83,6 +83,7 @@ nobase_include_HEADERS =  \
     cp/msg/Sc2xxTimerMsg.h \
     cp/msg/ScByeRetryTimerMsg.h \
     cp/msg/ScCommandMsg.h \
+    cp/msg/ScDelayedAnswerTimerMsg.h \
     cp/msg/ScDisconnectTimerMsg.h \
     cp/msg/ScInviteExpirationTimerMsg.h \
     cp/msg/ScNotificationMsg.h \
