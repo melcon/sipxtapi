@@ -374,7 +374,12 @@ void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int
    }
    else
    {
-      m_iLastLocalCseq = cseqNum;
+      if (cseqNum > m_iLastLocalCseq)
+      {
+         // don't overwrite local cseq num with lower value. It might happen, as somebody might be trying
+         // to send request with previous seq num (for example ACK)
+         m_iLastLocalCseq = cseqNum;
+      }
    }
    request.setCSeqField(m_iLastLocalCseq, method);
 
