@@ -37,6 +37,7 @@ public:
       : UtlString(Cp100RelTracker::get100RelId(cSeqNumber, cSeqMethod, rSeqNumber))
       , m_bPrackSent(FALSE)
       , m_bPrackReceived(FALSE)
+      , m_bSdpIn100rel(FALSE)
    {
 
    }
@@ -45,12 +46,14 @@ public:
       : UtlString(Cp100RelTracker::get100RelId(sipMessage))
       , m_bPrackSent(FALSE)
       , m_bPrackReceived(FALSE)
+      , m_bSdpIn100rel(FALSE)
    {
 
    }
 
    UtlBoolean m_bPrackSent; ///< TRUE if PRACK was sent for 100rel identified by this Id
    UtlBoolean m_bPrackReceived; ///< TRUE if PRACK was received for 100rel identified by this Id
+   UtlBoolean m_bSdpIn100rel; ///< TRUE if SDP was in 100rel response
 };
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -96,6 +99,7 @@ UtlBoolean Cp100RelTracker::on100RelReceived(const SipMessage& sipMessage)
       if (pContext && !pContext->m_bPrackSent)
       {
          pContext->m_bPrackSent = TRUE;
+         pContext->m_bSdpIn100rel = sipMessage.getSdpBody() != NULL;
          return TRUE;
       }
    }
@@ -109,13 +113,14 @@ void Cp100RelTracker::on100RelSent(const SipMessage& sipMessage, UtlString& s100
    {
       m_bCanSend100rel = FALSE;
       // this response is reliable
-      UtlString s100RelId(get100RelId(sipMessage));
+      UtlString key100RelId(get100RelId(sipMessage));
 
-      Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));
+      Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&key100RelId));
       if (!pContext)
       {
          // add context to bag, so that we can identify valid PRACK later
          pContext = new Cp100RelContext(sipMessage);
+         pContext->m_bSdpIn100rel = sipMessage.getSdpBody() != NULL;
          s100RelId = pContext->data(); // copy string
          m_100relBag.insert(pContext);
       }
@@ -175,10 +180,21 @@ UtlBoolean Cp100RelTracker::wasPrackReceived(const UtlString& s100RelId) const
    return FALSE;
 }
 
+UtlBoolean Cp100RelTracker::wasSdpBodyIn100rel(const UtlString& s100RelId) const
+{
+   Cp100RelContext* pContext = dynamic_cast<Cp100RelContext*>(m_100relBag.find(&s100RelId));
+   if (pContext && pContext->m_bSdpIn100rel)
+   {
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
 UtlString Cp100RelTracker::get100RelId(int cSeqNumber, const UtlString& cSeqMethod, int rSeqNumber)
 {
    UtlString result;
-   result.appendFormat("%d;%s;%d", cSeqNumber, cSeqMethod, rSeqNumber);
+   result.appendFormat("%d;%s;%d", cSeqNumber, cSeqMethod.data(), rSeqNumber);
    return result;
 }
 
