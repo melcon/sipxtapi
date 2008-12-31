@@ -4313,7 +4313,11 @@ void SipMessage::setServerField(const char* serverField)
 
 UtlBoolean SipMessage::getSupportedField(UtlString& supportedField) const
 {
-    return(getFieldSubfield(SIP_SUPPORTED_FIELD, 0, &supportedField));
+   supportedField.remove(0);
+   const char* value = getHeaderValue(0, SIP_SUPPORTED_FIELD); // get 1st Supported field
+   supportedField.append(value);
+
+   return value != NULL;
 }
 
 void SipMessage::setSupportedField(const char* supportedField)
@@ -5527,7 +5531,7 @@ UtlBoolean SipMessage::isRequireExtensionSet(const char* extension) const
     UtlString extensionString;
     UtlBoolean alreadySet = FALSE;
     int extensionIndex = 0;
-    while(getRequireExtension(extensionIndex, &extensionString))
+    while(getRequireExtension(extensionIndex++, &extensionString))
     {
         extensionString.toLower();
         if(extensionString.compareTo(extension) == 0)
