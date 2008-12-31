@@ -16,7 +16,9 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <net/SipMessage.h>
 #include <cp/msg/ScTimerMsg.h>
+#include <cp/Cp100RelTracker.h>
 
 // DEFINES
 // MACROS
@@ -40,7 +42,7 @@ public:
    /**
     * Constructor.
     */
-   Sc100RelTimerMsg(const UtlString& s100RelId,
+   Sc100RelTimerMsg(const SipMessage& c100relResponse,
                     const UtlString& sCallId,
                     const UtlString& sLocalTag,
                     const UtlString& sRemoteTag,
@@ -62,14 +64,15 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   UtlString getS100RelId() const { return m_s100RelId; }
+   UtlString get100RelId() const { return Cp100RelTracker::get100RelId(m_100relResponse); }
+   void get100relResponse(SipMessage& response) const { response = m_100relResponse; }
 
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-   UtlString m_s100RelId; ///< id of 100rel message, used to lookup if PRACK was already received
+   SipMessage m_100relResponse;
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 };
