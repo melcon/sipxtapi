@@ -370,7 +370,7 @@ void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int
    if (cseqNum == -1)
    {
       // Get the next local Cseq, the method should already be set
-      getNextLocalCseq();
+      cseqNum = getNextLocalCseq();
    }
    else
    {
@@ -381,7 +381,7 @@ void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int
          m_iLastLocalCseq = cseqNum;
       }
    }
-   request.setCSeqField(m_iLastLocalCseq, method);
+   request.setCSeqField(cseqNum, method);
 
    // Set the route header according to the route set
    if(!m_sRouteSet.isNull())
