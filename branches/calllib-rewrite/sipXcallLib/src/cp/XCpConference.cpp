@@ -99,7 +99,8 @@ OsStatus XCpConference::connect(const UtlString& sipCallId,
    return postMessage(connectMsg);
 }
 
-OsStatus XCpConference::acceptConnection(const UtlString& locationHeader,
+OsStatus XCpConference::acceptConnection(UtlBoolean bSendSDP,
+                                         const UtlString& locationHeader,
                                          CP_CONTACT_ID contactId)
 {
    // conference cannot have new inbound call

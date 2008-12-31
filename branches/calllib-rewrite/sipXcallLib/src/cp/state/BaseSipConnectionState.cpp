@@ -49,6 +49,7 @@
 // CANCEL doesn't need transaction tracking
 #define TRACKABLE_METHODS "INVITE UPDATE INFO NOTIFY REFER OPTIONS PRACK SUBSCRIBE BYE"
 #define MAX_RENEGOTIATION_RETRY_COUNT 10
+#define MAX_100REL_RETRANSMIT_COUNT 6
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -158,6 +159,7 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(OsStatus& result,
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus& result,
+                                                                       UtlBoolean bSendSDP,
                                                                        const UtlString& locationHeader,
                                                                        CP_CONTACT_ID contactId)
 {
@@ -169,44 +171,70 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
    if (connectionState == ISipConnectionState::CONNECTION_OFFERING ||
       connectionState == ISipConnectionState::CONNECTION_QUEUED)
    {
-      initDialogContact(contactId);
-      m_rStateContext.m_locationHeader = locationHeader;
-
       if (m_rStateContext.m_pLastReceivedInvite)
       {
+         Url requestUri;
+         m_rStateContext.m_pLastReceivedInvite->getRequestUri(requestUri);
+         initDialogContact(contactId, requestUri);
+         m_rStateContext.m_locationHeader = locationHeader;
+
          SipMessage sipResponse;
-         ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_500;
+         ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_488;
          UtlBoolean bProtocolError = TRUE;
          const SdpBody* pSdpBody = m_rStateContext.m_pLastReceivedInvite->getSdpBody(m_rStateContext.m_pSecurity);
+         UtlBoolean bSend100rel = shouldSend100relResponse();
 
          if (pSdpBody)
          {
-            // there was body in message, handle it
+            // there was SDP in INVITE, handle it
             if (handleSdpOffer(*m_rStateContext.m_pLastReceivedInvite))
             {
+               sipResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_RINGING_CODE,
+                  SIP_RINGING_TEXT, getLocalContactUrl());
                // SDP offer was handled, we may add SDP answer
-               sipResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_EARLY_MEDIA_CODE,
-                  SIP_EARLY_MEDIA_TEXT, getLocalContactUrl());
-               if (prepareSdpAnswer(sipResponse))
+               if (bSend100rel || bSendSDP)
                {
-                  if (commitMediaSessionChanges()) // commit media session changes, so that we can hear early audio
+                  if (bSend100rel)
                   {
-                     bProtocolError = FALSE;
+                     sipResponse.addRequireExtension(SIP_PRACK_EXTENSION);
+                  }
+                  if (prepareSdpAnswer(sipResponse))
+                  {
+                     if (commitMediaSessionChanges()) // commit media session changes, so that we can hear early audio
+                     {
+                        bProtocolError = FALSE;
+                     }
                   }
                }
-            }
-
-            if (bProtocolError)
-            {
-               errorResponseType = ERROR_RESPONSE_488;
+               else
+               {
+                  // we send 18x unreliably without SDP
+                  bProtocolError = FALSE;
+               }
             }
          }
          else
          {
-            // there was no offer in INVITE, don't generate answer in unreliable 180
             sipResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_RINGING_CODE,
                SIP_RINGING_TEXT, getLocalContactUrl());
-            bProtocolError = FALSE;
+            // there is no SDP in INVITE
+            if (bSend100rel || bSendSDP)
+            {
+               if (bSend100rel)
+               {
+                  sipResponse.addRequireExtension(SIP_PRACK_EXTENSION);
+               }
+               // if we are sending 18x reliably, we must include SDP offer
+               if (prepareSdpOffer(sipResponse))
+               {
+                  bProtocolError = FALSE;
+               }
+            }
+            else
+            {
+               // we send 18x unreliably without SDP
+               bProtocolError = FALSE;
+            }
          }
 
          if (bProtocolError)
@@ -221,8 +249,17 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
          }
          else
          {
-            // send prepared message
-            if (sendMessage(sipResponse))
+            UtlBoolean res = FALSE;
+            if (shouldSend100relResponse())
+            {
+               res = sendReliableResponse(sipResponse);
+            }
+            else
+            {
+               // send prepared message
+               res = sendMessage(sipResponse);
+            }
+            if (res)
             {
                result = OS_SUCCESS;
                return getTransition(ISipConnectionState::CONNECTION_ALERTING, NULL);
@@ -322,17 +359,26 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
 
          if (pSdpBody)
          {
-            // there was body in INVITE message, handle it
-            if (handleSdpOffer(*m_rStateContext.m_pLastReceivedInvite))
+            if (m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(*m_rStateContext.m_pLastReceivedInvite) &&
+               m_rStateContext.m_sdpNegotiation.isSdpNegotiationInProgress())
             {
-               // SDP offer was handled, we may add SDP answer
-               if (prepareSdpAnswer(sipResponse))
+               // there was body in INVITE message, handle it
+               if (handleSdpOffer(*m_rStateContext.m_pLastReceivedInvite))
                {
-                  if (commitMediaSessionChanges()) // commit media session changes, so that we can hear early audio
+                  // SDP offer was handled, we may add SDP answer
+                  if (prepareSdpAnswer(sipResponse))
                   {
-                     bProtocolError = FALSE;
+                     if (commitMediaSessionChanges()) // commit media session changes, so that we can hear early audio
+                     {
+                        bProtocolError = FALSE;
+                     }
                   }
                }
+            }
+            else
+            {
+               // SDP negotiation was already handled, no need to respond to SDP
+               bProtocolError = FALSE;
             }
 
             if (bProtocolError)
@@ -342,7 +388,7 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
          }
          else
          {
-            // there was no offer in INVITE, send offer in 200 OK
+            // there was no offer in INVITE, send offer in 200 OK, regardless if SDP negotiation is finished
             if (prepareSdpOffer(sipResponse))
             {
                bProtocolError = FALSE;
@@ -656,6 +702,29 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
    }
 
    return res;
+}
+
+UtlBoolean BaseSipConnectionState::sendReliableResponse(SipMessage& sipMessage)
+{
+   if (sipMessage.isResponse() && m_rStateContext.m_100RelTracker.canSend1xxRel())
+   {
+      if (!sipMessage.isRequireExtensionSet(SIP_PRACK_EXTENSION))
+      {
+         sipMessage.addRequireExtension(SIP_PRACK_EXTENSION);
+      }
+
+      int rseqNum = m_rStateContext.m_100RelTracker.getNextRSeq();
+      sipMessage.setRSeqField(rseqNum);
+      // start retransmit timer every T1 ms
+      m_rStateContext.m_i100relRetransmitCount = 0;
+      start100relRetransmitTimer(sipMessage);
+      UtlString s100relId;
+      m_rStateContext.m_100RelTracker.on100RelSent(sipMessage, s100relId);
+      // send message
+      return sendMessage(sipMessage);
+   }
+
+   return FALSE;
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::processSipMessage(const SipMessage& sipMessage)
@@ -1050,9 +1119,126 @@ SipConnectionStateTransition* BaseSipConnectionState::processReferRequest(const 
    return NULL;
 }
 
-SipConnectionStateTransition* BaseSipConnectionState::processPrackRequest(const SipMessage& sipMessage)
+SipConnectionStateTransition* BaseSipConnectionState::processPrackRequest(const SipMessage& sipRequest)
 {
-   // TODO: Implement
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+   int rseqNum;
+   int cseqNum;
+   UtlString rseqMethod;
+   sipRequest.getRAckField(rseqNum, cseqNum, rseqMethod);
+   UtlBoolean bProtocolError = TRUE;
+   ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_481;
+   SipMessage sipResponse;
+   UtlBoolean bTerminateCall = FALSE;
+   int inviteSeqNum = -1;
+
+   if (m_rStateContext.m_pLastReceivedInvite)
+   {
+      m_rStateContext.m_pLastReceivedInvite->getCSeqField(&inviteSeqNum, NULL);
+   }
+
+   if (m_rStateContext.m_100RelTracker.onPrackReceived(sipRequest) &&
+      m_rStateContext.m_pLastReceivedInvite &&
+      inviteSeqNum == cseqNum)
+   {
+      CpSdpNegotiation::SdpBodyType prackBodyType = getPrackSdpBodyType(sipRequest);
+
+      if (connectionState == ISipConnectionState::CONNECTION_OFFERING || // we never send 100rel response when established
+         connectionState == ISipConnectionState::CONNECTION_ALERTING ||
+         connectionState == ISipConnectionState::CONNECTION_QUEUED)
+      {
+         if (getServerTransactionManager().getTransactionState(cseqNum) == CpSipTransactionManager::TRANSACTION_ACTIVE &&
+            rseqMethod.compareTo(SIP_INVITE_METHOD) == 0)
+         {
+            // 200 OK was not sent yet, 
+            // PRACK is valid
+            sipResponse.setOkResponseData(&sipRequest, getLocalContactUrl());
+
+            if (prackBodyType == CpSdpNegotiation::SDP_BODY_OFFER)
+            {
+               if (handleSdpOffer(sipRequest))
+               {
+                  if (prepareSdpAnswer(sipResponse) && commitMediaSessionChanges())
+                  {
+                     bProtocolError = FALSE;
+                  }
+               }
+            }
+            else if (prackBodyType == CpSdpNegotiation::SDP_BODY_ANSWER)
+            {
+               if (handleSdpAnswer(sipRequest))
+               {
+                  if (commitMediaSessionChanges())
+                  {
+                     bProtocolError = FALSE;
+                  }
+               }
+            }
+            else if (prackBodyType == CpSdpNegotiation::SDP_BODY_NONE)
+            {
+               bProtocolError = FALSE;
+            }
+         }
+
+         if (bProtocolError)
+         {
+            bTerminateCall = TRUE;
+         }
+      }
+      else
+      {
+         if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+            connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+         {
+            // PRACK is valid, 200 OK INVITE response was sent
+            sipResponse.setOkResponseData(&sipRequest, getLocalContactUrl());
+
+            if (prackBodyType == CpSdpNegotiation::SDP_BODY_OFFER)
+            {
+               if (handleSdpOffer(sipRequest))
+               {
+                  if (prepareSdpAnswer(sipResponse))
+                  {
+                     bProtocolError = FALSE;
+                  }
+               }
+            }
+            else if (prackBodyType == CpSdpNegotiation::SDP_BODY_ANSWER)
+            {
+               if (handleSdpAnswer(sipRequest))
+               {
+                  bProtocolError = FALSE;
+               }
+            }
+            else if (prackBodyType == CpSdpNegotiation::SDP_BODY_NONE)
+            {
+               bProtocolError = FALSE;
+            }
+         }
+      }
+   }
+
+   if (bProtocolError)
+   {
+      SipMessage errorResponse;
+      prepareErrorResponse(sipRequest, errorResponse, errorResponseType);
+      sendMessage(errorResponse);
+   }
+   else
+   {
+      sendMessage(sipResponse);
+   }
+
+   if (bTerminateCall && m_rStateContext.m_pLastReceivedInvite)
+   {
+      SipMessage errorResponse;
+      prepareErrorResponse(*m_rStateContext.m_pLastReceivedInvite, errorResponse, ERROR_RESPONSE_488);
+      sendMessage(errorResponse);
+
+      SipResponseTransitionMemory memory(SIP_REQUEST_NOT_ACCEPTABLE_HERE_CODE, SIP_REQUEST_NOT_ACCEPTABLE_HERE_TEXT);
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   }
+
    return NULL;
 }
 
@@ -1382,7 +1568,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
 
       if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED)
       {
-         if (responseCode == SIP_RINGING_CODE || responseCode == SIP_EARLY_MEDIA_CODE)
+         if (responseCode == SIP_RINGING_CODE || responseCode == SIP_SESSION_PROGRESS_CODE)
          {
             // proceed to remote alerting state
             SipResponseTransitionMemory memory(responseCode, responseText);
@@ -1623,7 +1809,7 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
    return NULL;
 }
 
-UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
+UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod) const
 {
    if (m_rStateContext.m_allowedRemote.index(sMethod) >=0 ||
        m_rStateContext.m_implicitAllowedRemote.index(sMethod) >= 0)
@@ -1636,7 +1822,7 @@ UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod)
    }
 }
 
-UtlBoolean BaseSipConnectionState::isExtensionSupported(const UtlString& sExtension)
+UtlBoolean BaseSipConnectionState::isExtensionSupported(const UtlString& sExtension) const
 {
    if (m_rStateContext.m_supportedRemote.index(sExtension) >=0)
    {
@@ -1715,7 +1901,30 @@ void BaseSipConnectionState::setMediaConnectionId(int mediaConnectionId)
 
 SipConnectionStateTransition* BaseSipConnectionState::handle100RelTimerMessage(const Sc100RelTimerMsg& timerMsg)
 {
-   // TODO: implement handler
+   delete100relRetransmitTimer();
+
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED && // we never send 100rel when established
+      connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      UtlString s100relId = timerMsg.get100RelId();
+
+      if (!m_rStateContext.m_100RelTracker.wasPrackReceived(s100relId) &&
+         m_rStateContext.m_i100relRetransmitCount < MAX_100REL_RETRANSMIT_COUNT)
+      {
+         // PRACK was not received, resend 100rel response
+         SipMessage c100relResponse;
+         timerMsg.get100relResponse(c100relResponse);
+         // increase counter
+         m_rStateContext.m_i100relRetransmitCount++;
+         start100relRetransmitTimer(c100relResponse);
+         // resend
+         sendMessage(c100relResponse);
+      }
+   }
+
    return NULL;
 }
 
@@ -2003,11 +2212,11 @@ UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
    return buildDefaultContactUrl(fromUrl);
 }
 
-void BaseSipConnectionState::initDialogContact(CP_CONTACT_ID contactId)
+void BaseSipConnectionState::initDialogContact(CP_CONTACT_ID contactId, const Url& localField)
 {
    m_rStateContext.m_contactId = contactId;
 
-   UtlString sContactUrl = buildContactUrl(NULL);
+   UtlString sContactUrl = buildContactUrl(localField);
    {
       OsWriteLock lock(m_rStateContext);
       m_rStateContext.m_sipDialog.setLocalContact(sContactUrl.data());
@@ -2331,7 +2540,8 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
 
 UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
 {
-   if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE)
+   if (m_rStateContext.m_sdpNegotiation.isSdpNegotiationComplete() ||
+      m_rStateContext.m_sdpNegotiation.isSdpNegotiationUnreliablyComplete())
    {
       SdpCodecList localSdpCodecList;
       m_rStateContext.m_sdpNegotiation.getLocalSdpCodecList(localSdpCodecList);
@@ -2677,6 +2887,10 @@ void BaseSipConnectionState::sendInvite()
          OsSysLog::add(FAC_CP, PRI_ERR, "SDP preparation for re-INVITE failed.\n");
          return;
       }
+   }
+   else
+   {
+      m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
    }
 
    // try to send sip message
@@ -3114,6 +3328,32 @@ void BaseSipConnectionState::deleteInviteExpirationTimer()
    {
       delete m_rStateContext.m_pInviteExpiresTimer;
       m_rStateContext.m_pInviteExpiresTimer = NULL;
+   }
+}
+
+void BaseSipConnectionState::start100relRetransmitTimer(const SipMessage& c100relResponse)
+{
+   delete100relRetransmitTimer();
+
+   UtlString sipCallId;
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlBoolean isFromLocal;
+
+   getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
+   Sc100RelTimerMsg msg(c100relResponse, sipCallId, localTag, remoteTag, isFromLocal);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   m_rStateContext.m_p100relRetransmitTimer = new OsTimer(pNotification);
+   OsTime timerTime(T1_PERIOD_MSEC, 0);
+   m_rStateContext.m_p100relRetransmitTimer->oneshotAfter(timerTime); // start timer
+}
+
+void BaseSipConnectionState::delete100relRetransmitTimer()
+{
+   if (m_rStateContext.m_p100relRetransmitTimer)
+   {
+      delete m_rStateContext.m_p100relRetransmitTimer;
+      m_rStateContext.m_p100relRetransmitTimer = NULL;
    }
 }
 
@@ -3655,6 +3895,9 @@ void BaseSipConnectionState::prepareErrorResponse(const SipMessage& sipRequest, 
 
    switch (responseType)
    {
+   case ERROR_RESPONSE_481:
+      sipResponse.setBadTransactionData(&sipRequest);
+      break;
    case ERROR_RESPONSE_487:
       sipResponse.setRequestTerminatedResponseData(&sipRequest);
       break;
@@ -3691,6 +3934,8 @@ void BaseSipConnectionState::deleteAllTimers()
    m_rStateContext.m_pSessionRefreshTimer = NULL;
    delete m_rStateContext.m_pInviteExpiresTimer;
    m_rStateContext.m_pInviteExpiresTimer = NULL;
+   delete m_rStateContext.m_p100relRetransmitTimer;
+   m_rStateContext.m_p100relRetransmitTimer = NULL;
 }
 
 void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessage)
@@ -3758,6 +4003,64 @@ void BaseSipConnectionState::prepare100relRequest(SipMessage& sipRequest) const
    {
       sipRequest.addRequireExtension(SIP_PRACK_EXTENSION);
    }
+}
+
+UtlBoolean BaseSipConnectionState::shouldSend100relResponse() const
+{
+   if (m_rStateContext.m_pLastReceivedInvite)
+   {
+      if (m_rStateContext.m_100relSetting == CP_100REL_REQUIRE_RELIABLE ||
+         (m_rStateContext.m_100relSetting == CP_100REL_PREFER_RELIABLE && isExtensionSupported(SIP_PRACK_EXTENSION)) ||
+         m_rStateContext.m_pLastReceivedInvite->isRequireExtensionSet(SIP_PRACK_EXTENSION))
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
+CpSdpNegotiation::SdpBodyType BaseSipConnectionState::getPrackSdpBodyType(const SipMessage& sipMessage) const
+{
+   CpSdpNegotiation::SdpBodyType bodyType = CpSdpNegotiation::SDP_BODY_NONE;
+   const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+   if (pSdpBody)
+   {
+      bodyType = CpSdpNegotiation::SDP_BODY_UNKNOWN; // there is some unknown SDP body type
+
+      UtlString s100relId = Cp100RelTracker::get100RelId(sipMessage);
+      if (m_rStateContext.m_100RelTracker.is100RelIdValid(s100relId))
+      {
+         UtlBoolean bSdpIn100rel = m_rStateContext.m_100RelTracker.wasSdpBodyIn100rel(s100relId);
+         // try to find out what type of body it is
+         if (m_rStateContext.m_pLastReceivedInvite &&
+             m_rStateContext.m_pLastReceivedInvite->getSdpBody() != NULL)
+         {
+            // SDP offer was in INVITE
+            if (bSdpIn100rel)
+            {
+               // SDP answer was in 100rel response
+               // SDP body in PRACK must be an offer
+               bodyType = CpSdpNegotiation::SDP_BODY_OFFER;
+            } // else protocol error. Prack can only have SDP body if 1st SDP negotiation was finished
+         }
+         else
+         {
+            // no SDP offer in INVITE
+            if (bSdpIn100rel)
+            {
+               // SDP offer was in 100rel
+               bodyType = CpSdpNegotiation::SDP_BODY_ANSWER;
+            }
+            else
+            {
+               bodyType = CpSdpNegotiation::SDP_BODY_OFFER;
+            }
+         }
+      }
+   }
+
+   return bodyType;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

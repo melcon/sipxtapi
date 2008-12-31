@@ -84,7 +84,8 @@ public:
    /** 
    * Accepts inbound call connection.
    */
-   OsStatus acceptConnection(const UtlString& locationHeader,
+   OsStatus acceptConnection(UtlBoolean bSendSDP,
+                             const UtlString& locationHeader,
                              CP_CONTACT_ID contactId);
 
    /**

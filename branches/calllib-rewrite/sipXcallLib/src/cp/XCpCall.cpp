@@ -105,10 +105,11 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
    return postMessage(connectMsg);
 }
 
-OsStatus XCpCall::acceptConnection(const UtlString& locationHeader,
+OsStatus XCpCall::acceptConnection(UtlBoolean bSendSDP,
+                                   const UtlString& locationHeader,
                                    CP_CONTACT_ID contactId)
 {
-   AcAcceptConnectionMsg acceptConnectionMsg(locationHeader, contactId);
+   AcAcceptConnectionMsg acceptConnectionMsg(bSendSDP, locationHeader, contactId);
    return postMessage(acceptConnectionMsg);
 }
 
@@ -373,7 +374,7 @@ OsStatus XCpCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)
    UtlBoolean resFound = getConnection(ptrLock);
    if (resFound)
    {
-      return ptrLock->acceptConnection(rMsg.getLocationHeader(), rMsg.getContactId());
+      return ptrLock->acceptConnection(rMsg.getSendSDP() ,rMsg.getLocationHeader(), rMsg.getContactId());
    }
 
    return OS_NOT_FOUND;

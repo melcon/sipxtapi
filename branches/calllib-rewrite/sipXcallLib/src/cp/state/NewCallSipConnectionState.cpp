@@ -94,6 +94,7 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
    // Invite transaction was already started automatically
    // 100 Trying is sent by SipUserAgent
    updateRemoteCapabilities(sipMessage);
+   trackTransactionRequest(sipMessage);
 
    progressToEarlyEstablishedDialog();
 

@@ -283,6 +283,7 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
 }
 
 OsStatus XCpCallManager::acceptCallConnection(const UtlString& sCallId,
+                                              UtlBoolean bSendSDP,
                                               const UtlString& locationHeader,
                                               CP_CONTACT_ID contactId)
 {
@@ -293,7 +294,7 @@ OsStatus XCpCallManager::acceptCallConnection(const UtlString& sCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->acceptConnection(locationHeader, contactId);
+      return ptrLock->acceptConnection(bSendSDP, locationHeader, contactId);
    }
 
    return result;

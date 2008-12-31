@@ -120,10 +120,11 @@ OsStatus XSipConnection::connect(const UtlString& sipCallId,
    return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId);
 }
 
-OsStatus XSipConnection::acceptConnection(const UtlString& locationHeader,
+OsStatus XSipConnection::acceptConnection(UtlBoolean bSendSDP,
+                                          const UtlString& locationHeader,
                                           CP_CONTACT_ID contactId)
 {
-   return m_stateMachine.acceptConnection(locationHeader, contactId);
+   return m_stateMachine.acceptConnection(bSendSDP, locationHeader, contactId);
 }
 
 OsStatus XSipConnection::rejectConnection()

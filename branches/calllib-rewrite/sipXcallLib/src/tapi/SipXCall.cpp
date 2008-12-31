@@ -920,7 +920,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
                                         SIPX_VIDEO_DISPLAY* const pDisplay,
                                         SIPX_SECURITY_ATTRIBUTES* const pSecurity,
                                         SIPX_CALL_OPTIONS* options,
-                                        int bSendEarlyMedia)
+                                        int bSendSdp)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAccept");
    UtlBoolean bEnableLocationHeader = FALSE;
@@ -948,14 +948,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxCallAccept hCall=%d display=%p bEnableLocationHeader=%d bandWidth=%d, contactId=%d bSendEarlyMedia=%s",
       hCall, pDisplay, bEnableLocationHeader, bandWidth, contactId, 
-      bSendEarlyMedia ? "true" : "false");
-
-   if (bSendEarlyMedia)
-   {
-      // not supported
-      sr = SIPX_RESULT_NOT_IMPLEMENTED;
-      return sr;
-   }
+      bSendSdp ? "true" : "false");
 
    if (contactId < 0)
    {
@@ -998,6 +991,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
 
          // just posts message
          pCallData->m_pInst->pCallManager->acceptCallConnection(pCallData->m_abstractCallId,
+            bSendSdp,
             pLocationHeader,
             contactId);
 

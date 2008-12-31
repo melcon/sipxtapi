@@ -127,14 +127,16 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    return result;
 }
 
-OsStatus SipConnectionStateMachine::acceptConnection(const UtlString& locationHeader, CP_CONTACT_ID contactId)
+OsStatus SipConnectionStateMachine::acceptConnection(UtlBoolean bSendSDP,
+                                                     const UtlString& locationHeader,
+                                                     CP_CONTACT_ID contactId)
 {
    OsStatus result = OS_FAILED;
 
    // now let state handle request
    if (m_pSipConnectionState)
    {
-      handleStateTransition(m_pSipConnectionState->acceptConnection(result, locationHeader, contactId));
+      handleStateTransition(m_pSipConnectionState->acceptConnection(result, bSendSDP, locationHeader, contactId));
    }
 
    return result;

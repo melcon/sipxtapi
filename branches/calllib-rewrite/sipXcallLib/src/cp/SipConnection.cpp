@@ -2187,7 +2187,7 @@ UtlBoolean SipConnection::transfereeStatus(int callState, int returnCode)
             SipMessage alertingMessage;
             switch(returnCode)
             {
-            case SIP_EARLY_MEDIA_CODE:
+            case SIP_SESSION_PROGRESS_CODE:
                alertingMessage.setResponseFirstHeaderLine(SIP_PROTOCOL_VERSION,
                   returnCode, SIP_RINGING_TEXT);
                break;
@@ -3734,7 +3734,7 @@ void SipConnection::processNotifyRequest(const SipMessage* request)
             cause = CONNECTION_CAUSE_NORMAL;
             fireSipXCallEvent(CALLSTATE_TRANSFER_EVENT, CALLSTATE_CAUSE_TRANSFER_RINGING, NULL, responseCode, mResponseText);
          }
-         else if(responseCode == SIP_EARLY_MEDIA_CODE)
+         else if(responseCode == SIP_SESSION_PROGRESS_CODE)
          {
             // Note: this is the state for the transferee
             // side of the connection between the transferee
@@ -4526,7 +4526,7 @@ void SipConnection::processInviteResponseRinging(const SipMessage* response)
    * Set state and Fire off events
    */
    setState(CONNECTION_ALERTING, CONNECTION_REMOTE, cause);
-   if ((pBody != NULL) || (responseCode == SIP_EARLY_MEDIA_CODE))
+   if ((pBody != NULL) || (responseCode == SIP_SESSION_PROGRESS_CODE))
    {
       fireSipXCallEvent(CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_EARLY_MEDIA, NULL, responseCode, mResponseText);
    }
@@ -5368,7 +5368,7 @@ void SipConnection::processInviteResponse(const SipMessage* response)
       * Handle various response cases
       */
       if ((responseCode == SIP_RINGING_CODE ||
-         responseCode == SIP_EARLY_MEDIA_CODE) &&
+         responseCode == SIP_SESSION_PROGRESS_CODE) &&
          reinviteState == ACCEPT_INVITE)
       {
          // New Call
@@ -6677,8 +6677,8 @@ void SipConnection::proceedToRinging(const SipMessage* inviteMessage,
    {
       // set early media response code
       sipResponse.setResponseFirstHeaderLine(SIP_PROTOCOL_VERSION,
-         SIP_EARLY_MEDIA_CODE,
-         SIP_EARLY_MEDIA_TEXT);
+         SIP_SESSION_PROGRESS_CODE,
+         SIP_SESSION_PROGRESS_TEXT);
 
       // Add SDP to indicate early media
       sipResponse.addSdpBody(numAddresses, 

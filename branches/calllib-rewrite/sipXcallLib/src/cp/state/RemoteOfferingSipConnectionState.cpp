@@ -116,7 +116,7 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
       }
    case SIP_RINGING_CODE:
    case SIP_CALL_BEING_FORWARDED_CODE:
-   case SIP_EARLY_MEDIA_CODE:
+   case SIP_SESSION_PROGRESS_CODE:
    case SIP_QUEUED_CODE:
       {
          return processProvisionalInviteResponse(sipMessage);
