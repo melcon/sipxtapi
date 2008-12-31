@@ -1187,7 +1187,9 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst, int bForceShutdown = 
  * @param pSecurity Pointer to an object describing the security attributes 
  *        for the call.
  * @param options Pointer to a SIPX_CALL_OPTIONS structure.
- * @param bSendEarlyMedia flag to send early media (RTP) upon accepting the call
+ * @param bSendSdp Flag to send SDP in 180 Ringing response, resulting in
+ *        early media being sent/received. Either SDP offer or answer will be sent
+ *        depending on SDP negotiation state.
  *
  * @see sipxConfigSetLocationHeader
  * @see sipxConfigSetAudioCodecPreferences
@@ -1196,7 +1198,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
                                         SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
                                         SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                         SIPX_CALL_OPTIONS* options = NULL,
-                                        int bSendEarlyMedia = 0);
+                                        int bSendSdp = 0);
 
 
 /**

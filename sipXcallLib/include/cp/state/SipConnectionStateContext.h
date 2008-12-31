@@ -121,6 +121,8 @@ public:
    OsTimer* m_pSessionTimeoutCheckTimer; ///< timer for checking if session timeout occurred (session timer support)
    OsTimer* m_pSessionRefreshTimer; ///< timer for periodically refreshing session (session timer support)
    OsTimer* m_pInviteExpiresTimer; ///< timer for checking INVITE expiration (occurs when INVITE is not accepted within value of Expires header)
+   OsTimer* m_p100relRetransmitTimer; ///< timer for retransmitting reliable 18x response
+   int m_i100relRetransmitCount; ///< how many times we retransmitted reliable 18x response
 
    /* ============================ CREATORS ================================== */
 

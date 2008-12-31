@@ -102,7 +102,8 @@ public:
     * Always fails, as conference cannot accept inbound call. Instead, add calls
     * to conference.
     */
-   virtual OsStatus acceptConnection(const UtlString& locationHeader,
+   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
+                                     const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId);
 
    /**

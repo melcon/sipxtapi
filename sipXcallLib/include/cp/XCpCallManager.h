@@ -138,6 +138,7 @@ public:
     * response to be sent.
     */
    OsStatus acceptCallConnection(const UtlString& sCallId,
+                                 UtlBoolean bSendSDP,
                                  const UtlString& locationHeader,
                                  CP_CONTACT_ID contactId);
 

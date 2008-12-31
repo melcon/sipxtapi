@@ -33,6 +33,7 @@
 // TYPEDEFS
 typedef enum ERROR_RESPONSE_TYPE
 {
+   ERROR_RESPONSE_481, // Call/Transaction Does Not Exist
    ERROR_RESPONSE_487, // Request Terminated
    ERROR_RESPONSE_488, // Not Acceptable Here
    ERROR_RESPONSE_491, // Request Pending
@@ -131,6 +132,7 @@ public:
    * Accepts inbound call connection, sends 180 Ringing.
    */
    virtual SipConnectionStateTransition* acceptConnection(OsStatus& result,
+                                                          UtlBoolean bSendSDP,
                                                           const UtlString& locationHeader,
                                                           CP_CONTACT_ID contactId);
    /**
@@ -209,6 +211,9 @@ protected:
 
    /** Sends specified sip message, updating the state of SipDialog. SipMessage will be updated. */
    UtlBoolean sendMessage(SipMessage& sipMessage);
+
+   /** Sends specified provisional response reliably */
+   UtlBoolean sendReliableResponse(SipMessage& sipMessage);
 
    /** Handles SIP request and response messages. */
    virtual SipConnectionStateTransition* processSipMessage(const SipMessage& sipMessage);
@@ -301,10 +306,10 @@ protected:
    virtual SipConnectionStateTransition* handleAuthenticationRetryEvent(const SipMessage& sipMessage);
 
    /** Returns TRUE if some SIP method is allowed (may be sent) */
-   UtlBoolean isMethodAllowed(const UtlString& sMethod);
+   UtlBoolean isMethodAllowed(const UtlString& sMethod) const;
 
    /** Returns TRUE if some SIP extension is allowed */
-   UtlBoolean isExtensionSupported(const UtlString& sExtension);
+   UtlBoolean isExtensionSupported(const UtlString& sExtension) const;
 
    /** Deletes media connection if it exists, stopping remote and local audio */
    void deleteMediaConnection();
@@ -367,7 +372,7 @@ protected:
    UtlString buildContactUrl(const Url& fromAddress) const;
 
    /** Initializes contact of dialog. Must be called for inbound calls, after we know contact Id */
-   void initDialogContact(CP_CONTACT_ID contactId);
+   void initDialogContact(CP_CONTACT_ID contactId, const Url& localField);
 
    /** 
     * Gets local contact URL from SipDialog. Can only be used once SipDialog has been initialized with first
@@ -525,6 +530,12 @@ protected:
    /** Deletes timer for checking invite expiration */
    void deleteInviteExpirationTimer();
 
+   /** Starts timer to retransmit 100rel message */
+   void start100relRetransmitTimer(const SipMessage& c100relResponse);
+
+   /** Deletes timer to retransmit 100rel message */
+   void delete100relRetransmitTimer();
+
    /** Gets Id of sip dialog */
    void getSipDialogId(UtlString& sipCallId,
                        UtlString& localTag,
@@ -640,6 +651,17 @@ protected:
 
    /** Adds Require: 100rel if 100rel is configured to be mandatory */
    void prepare100relRequest(SipMessage& sipRequest) const;
+
+   /** Returns TRUE if we should send reliable 18x response */
+   UtlBoolean shouldSend100relResponse() const;
+
+   /**
+    * Gets type of SDP body in PRACK request. This method uses heuristic based
+    * on the assumption that we send only one 18x reliable response. If we want
+    * to support sending multiple reliable responses, we need more powerful SDP type
+    * tracking.
+    */
+   CpSdpNegotiation::SdpBodyType getPrackSdpBodyType(const SipMessage& sipMessage) const;
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

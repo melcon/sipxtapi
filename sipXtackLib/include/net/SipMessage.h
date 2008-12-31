@@ -147,8 +147,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_QUEUED_CODE 182
 #define SIP_QUEUED_TEXT "Queued"
 
-#define SIP_EARLY_MEDIA_CODE 183
-#define SIP_EARLY_MEDIA_TEXT "Session Progress"
+#define SIP_SESSION_PROGRESS_CODE 183
+#define SIP_SESSION_PROGRESS_TEXT "Session Progress"
 
 #define SIP_2XX_CLASS_CODE 200
 

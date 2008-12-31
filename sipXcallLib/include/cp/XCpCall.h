@@ -103,7 +103,8 @@ public:
    * RINGING state. This causes a SIP 180 Ringing provisional
    * response to be sent.
    */
-   virtual OsStatus acceptConnection(const UtlString& locationHeader,
+   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
+                                     const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId);
 
    /**
