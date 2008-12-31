@@ -40,6 +40,7 @@
 #include <cp/msg/ScByeRetryTimerMsg.h>
 #include <cp/msg/ScSessionTimeoutTimerMsg.h>
 #include <cp/msg/ScInviteExpirationTimerMsg.h>
+#include <cp/msg/ScDelayedAnswerTimerMsg.h>
 #include <cp/msg/AcDestroyConnectionMsg.h>
 #include <cp/XSipConnectionEventSink.h>
 
@@ -50,6 +51,7 @@
 #define TRACKABLE_METHODS "INVITE UPDATE INFO NOTIFY REFER OPTIONS PRACK SUBSCRIBE BYE"
 #define MAX_RENEGOTIATION_RETRY_COUNT 10
 #define MAX_100REL_RETRANSMIT_COUNT 6
+#define MAX_DELAYED_ANSWER_RETRY_COUNT MAX_100REL_RETRANSMIT_COUNT + 1
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -345,10 +347,11 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
 
    ISipConnectionState::StateEnum connectionState = getCurrentState();
 
-   if (connectionState == ISipConnectionState::CONNECTION_ALERTING ||
-      connectionState == ISipConnectionState::CONNECTION_QUEUED)
+   if ((connectionState == ISipConnectionState::CONNECTION_ALERTING ||
+      connectionState == ISipConnectionState::CONNECTION_QUEUED) &&
+      m_rStateContext.m_pLastReceivedInvite)
    {
-      if (m_rStateContext.m_pLastReceivedInvite)
+      if (m_rStateContext.m_100RelTracker.are1xxRelsAcknowledged())
       {
          ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_500;
          SipMessage sipResponse;
@@ -418,6 +421,25 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
             start2xxRetransmitTimer();
             result = OS_SUCCESS;
             return getTransition(ISipConnectionState::CONNECTION_ESTABLISHED, NULL);
+         }
+      }
+      else
+      {
+         // some reliable responses have not been acknowledged yet, delay answering
+         if (m_rStateContext.m_iDelayedAnswerCount < MAX_DELAYED_ANSWER_RETRY_COUNT)
+         {
+            startDelayedAnswerTimer(); // we will try to answer call again when timer fires
+            m_rStateContext.m_iDelayedAnswerCount++;
+         }
+         else
+         {
+            // reject call
+            SipMessage errorResponse;
+            errorResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_DECLINE_CODE,
+               SIP_DECLINE_TEXT, getLocalContactUrl());
+            sendMessage(errorResponse);
+            GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NO_RESPONSE);
+            return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
          }
       }
    }
@@ -593,6 +615,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const S
       return handleSessionTimeoutCheckTimerMessage((const ScSessionTimeoutTimerMsg&)timerMsg);
    case ScTimerMsg::PAYLOAD_TYPE_INVITE_EXPIRATION:
       return handleInviteExpirationTimerMessage((const ScInviteExpirationTimerMsg&)timerMsg);
+   case ScTimerMsg::PAYLOAD_TYPE_DELAYED_ANSWER:
+      return handleDelayedAnswerTimerMessage((const ScDelayedAnswerTimerMsg&)timerMsg);
    default:
       ;
       OsSysLog::add(FAC_CP, PRI_WARNING, "Unknown timer message received - %d:%d\r\n",
@@ -2164,6 +2188,14 @@ SipConnectionStateTransition* BaseSipConnectionState::handleByeRetryTimerMessage
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::handleDelayedAnswerTimerMessage(const ScDelayedAnswerTimerMsg& timerMsg)
+{
+   deleteDelayedAnswerTimer();
+
+   OsStatus result;
+   return answerConnection(result); // try to answer again, if still cannot new timer will be started
+}
+
 UtlString BaseSipConnectionState::getCallId() const
 {
    OsReadLock lock(m_rStateContext);
@@ -3357,6 +3389,32 @@ void BaseSipConnectionState::delete100relRetransmitTimer()
    }
 }
 
+void BaseSipConnectionState::startDelayedAnswerTimer()
+{
+   deleteDelayedAnswerTimer();
+
+   UtlString sipCallId;
+   UtlString localTag;
+   UtlString remoteTag;
+   UtlBoolean isFromLocal;
+
+   getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
+   ScDelayedAnswerTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   m_rStateContext.m_pDelayedAnswerTimer = new OsTimer(pNotification);
+   OsTime timerTime(T1_PERIOD_MSEC);
+   m_rStateContext.m_pDelayedAnswerTimer->oneshotAfter(timerTime); // start timer
+}
+
+void BaseSipConnectionState::deleteDelayedAnswerTimer()
+{
+   if (m_rStateContext.m_pDelayedAnswerTimer)
+   {
+      delete m_rStateContext.m_pDelayedAnswerTimer;
+      m_rStateContext.m_pDelayedAnswerTimer = NULL;
+   }
+}
+
 void BaseSipConnectionState::getSipDialogId(UtlString& sipCallId,
                                             UtlString& localTag,
                                             UtlString& remoteTag,
@@ -3936,6 +3994,8 @@ void BaseSipConnectionState::deleteAllTimers()
    m_rStateContext.m_pInviteExpiresTimer = NULL;
    delete m_rStateContext.m_p100relRetransmitTimer;
    m_rStateContext.m_p100relRetransmitTimer = NULL;
+   delete m_rStateContext.m_pDelayedAnswerTimer;
+   m_rStateContext.m_pDelayedAnswerTimer = NULL;
 }
 
 void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessage)

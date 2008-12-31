@@ -507,6 +507,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\ScDelayedAnswerTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"
 					>
 				</File>
@@ -937,6 +941,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\ScCommandMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScDelayedAnswerTimerMsg.h"
 					>
 				</File>
 				<File
