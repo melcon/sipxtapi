@@ -51,7 +51,7 @@ XCpCallStack::XCpCallStack()
 
 XCpCallStack::~XCpCallStack()
 {
-   doYieldFocus(FALSE);
+   yieldFocus(FALSE);
    // no lock needed, we are in destructor
    m_abstractCallIdMap.destroyAll();
    m_sipCallIdMap.destroyAll();
@@ -331,7 +331,7 @@ UtlBoolean XCpCallStack::deleteCall(const UtlString& sCallId)
    OsWriteLock lock(m_memberMutex);
    // yield focus
    // nobody will be able to give us focus back after we yield it, because we hold m_memberMutex
-   doYieldFocus(sCallId);
+   yieldFocus(sCallId);
 
    // avoid findCall, as we don't need that much locking
    UtlContainable *pValue = NULL;
@@ -362,7 +362,7 @@ UtlBoolean XCpCallStack::deleteConference(const UtlString& sConferenceId)
    OsWriteLock lock(m_memberMutex);
    // yield focus
    // nobody will be able to give us focus back after we yield it, because we hold m_memberMutex
-   doYieldFocus(sConferenceId);
+   yieldFocus(sConferenceId);
 
    // avoid findConference, as we don't need that much locking
    UtlContainable *pValue = NULL;
@@ -410,8 +410,8 @@ UtlBoolean XCpCallStack::deleteAbstractCall(const UtlString& sAbstractCallId)
    return result;
 }
 
-OsStatus XCpCallStack::doGainFocus(const UtlString& sAbstractCallId,
-                                   UtlBoolean bGainOnlyIfNoFocusedCall /*= FALSE*/)
+OsStatus XCpCallStack::gainFocus(const UtlString& sAbstractCallId,
+                                 UtlBoolean bGainOnlyIfNoFocusedCall /*= FALSE*/)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsStatus result = OS_FAILED;
@@ -428,7 +428,7 @@ OsStatus XCpCallStack::doGainFocus(const UtlString& sAbstractCallId,
 
       if (m_sAbstractCallInFocus.compareTo(sAbstractCallId) != 0) // check that calls aren't the same
       {
-         result = doYieldFocus(sAbstractCallId, FALSE); // defocus focused call
+         result = yieldFocus(sAbstractCallId, FALSE); // defocus focused call
       }
       else
       {
@@ -456,7 +456,7 @@ OsStatus XCpCallStack::doGainFocus(const UtlString& sAbstractCallId,
 #endif
 }
 
-OsStatus XCpCallStack::doGainNextFocus(const UtlString& sAvoidAbstractCallId)
+OsStatus XCpCallStack::gainNextFocus(const UtlString& sAvoidAbstractCallId)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsStatus result = OS_FAILED;
@@ -484,8 +484,8 @@ OsStatus XCpCallStack::doGainNextFocus(const UtlString& sAvoidAbstractCallId)
 #endif
 }
 
-OsStatus XCpCallStack::doYieldFocus(const UtlString& sAbstractCallId,
-                                    UtlBoolean bShiftFocus /*= TRUE*/)
+OsStatus XCpCallStack::yieldFocus(const UtlString& sAbstractCallId,
+                                  UtlBoolean bShiftFocus /*= TRUE*/)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsStatus result = OS_FAILED;
@@ -510,7 +510,7 @@ OsStatus XCpCallStack::doYieldFocus(const UtlString& sAbstractCallId,
       {
          UtlString sAvoidAbstractCallId(m_sAbstractCallInFocus);
          m_sAbstractCallInFocus.remove(0);
-         result = doGainNextFocus(sAvoidAbstractCallId);
+         result = gainNextFocus(sAvoidAbstractCallId);
       }
       else
       {
@@ -524,7 +524,7 @@ OsStatus XCpCallStack::doYieldFocus(const UtlString& sAbstractCallId,
 #endif
 }
 
-OsStatus XCpCallStack::doYieldFocus(UtlBoolean bShiftFocus /*= TRUE*/)
+OsStatus XCpCallStack::yieldFocus(UtlBoolean bShiftFocus /*= TRUE*/)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    OsStatus result = OS_FAILED;
@@ -549,7 +549,7 @@ OsStatus XCpCallStack::doYieldFocus(UtlBoolean bShiftFocus /*= TRUE*/)
       {
          UtlString sAvoidAbstractCallId(m_sAbstractCallInFocus);
          m_sAbstractCallInFocus.remove(0);
-         result = doGainNextFocus(sAvoidAbstractCallId);
+         result = gainNextFocus(sAvoidAbstractCallId);
       }
       else
       {
