@@ -1034,21 +1034,21 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
                   bProtocolError = TRUE;
                }
             }
+
+            // inbound INVITE terminates, check if we need to update connected identity
+            if (m_rStateContext.m_connectedIdentityState == SipConnectionStateContext::IDENTITY_NOT_YET_ANNOUNCED &&
+               isExtensionSupported(SIP_FROM_CHANGE_EXTENSION))
+            {
+               m_rStateContext.m_connectedIdentityState = SipConnectionStateContext::IDENTITY_ANNOUNCING;
+               refreshSession(FALSE); // refresh session by re-INVITE or UPDATE, to announce real identity
+            }
+
          } // ignore bad acks
       } // ignore bad acks
 
       if (bProtocolError)
       {
          sendBye(487, "Request terminated due to protocol error");
-      }
-      else
-      {
-         // inbound INVITE terminates, check if we need to update connected identity
-         if (m_rStateContext.m_connectedIdentityState == SipConnectionStateContext::IDENTITY_NOT_YET_ANNOUNCED &&
-            isExtensionSupported(SIP_FROM_CHANGE_EXTENSION))
-         {
-            m_rStateContext.m_connectedIdentityState = SipConnectionStateContext::IDENTITY_ANNOUNCING;
-         }
       }
    }
 
@@ -4340,6 +4340,7 @@ void BaseSipConnectionState::announceConnectedIdentity(SipMessage& sipRequest) c
       fromUrl.setHostAddress(hostAddress);
       fromUrl.setHostPort(hostPort);
       fromUrl.setDisplayName(realDisplayName);
+      sipRequest.setRawFromField(fromUrl.toString());
    }
 }
 
