@@ -4285,6 +4285,13 @@ UtlBoolean SipMessage::getMinSe(int& minSe) const
    return FALSE;
 }
 
+void SipMessage::setRetryAfterField(int periodSeconds)
+{
+   UtlString sValue;
+   sValue.appendFormat("%d", periodSeconds);
+   setHeaderValue(SIP_RETRY_AFTER_FIELD, sValue);
+}
+
 bool SipMessage::hasSelfHeader() const
 {
    UtlString value;
