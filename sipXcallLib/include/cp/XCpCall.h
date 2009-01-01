@@ -66,6 +66,7 @@ public:
 
    XCpCall(const UtlString& sId,
            SipUserAgent& rSipUserAgent,
+           SipLineProvider* pSipLineProvider,
            CpMediaInterfaceFactory& rMediaInterfaceFactory,
            const SdpCodecList& rDefaultSdpCodecList,
            OsMsgQ& rCallManagerQueue,
@@ -276,7 +277,7 @@ private:
    OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
 
    /** Creates new XSipConnection for the call, if it doesn't exist yet */
-   void createSipConnection(const SipDialog& sipDialog);
+   void createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl);
 
    /** Destroys XSipConnection if it exists */
    void destroySipConnection();

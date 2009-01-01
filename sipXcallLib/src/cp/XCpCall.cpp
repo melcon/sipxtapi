@@ -19,6 +19,7 @@
 #include <net/SipMessageEvent.h>
 #include <net/SipMessage.h>
 #include <net/SipDialog.h>
+#include <net/SipLineProvider.h>
 #include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
 #include <cp/msg/AcConnectMsg.h>
@@ -51,6 +52,7 @@
 
 XCpCall::XCpCall(const UtlString& sId,
                  SipUserAgent& rSipUserAgent,
+                 SipLineProvider* pSipLineProvider,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
@@ -67,7 +69,7 @@ XCpCall::XCpCall(const UtlString& sId,
                  SipInfoEventListener* pInfoEventListener,
                  SipSecurityEventListener* pSecurityEventListener,
                  CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
+: XCpAbstractCall(sId, rSipUserAgent, pSipLineProvider, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
                   sLocalIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting, inviteExpiresSeconds,
                   pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener)
@@ -331,8 +333,11 @@ UtlBoolean XCpCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
          const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
          if (!m_pSipConnection && pSipMessage && pSipMessage->isInviteRequest())
          {
+            // we have inbound INVITE request, call doesn't exist yet
+            // discover real line url
+            UtlString sFullLineUrl(getRealLineIdentity(*pSipMessage));
             // sip connection doesn't yet exist, and we received new INVITE message
-            createSipConnection(sipDialog); // create sip connection
+            createSipConnection(sipDialog, sFullLineUrl); // create sip connection
             resFound = getConnection(ptrLock);
             if (resFound)
             {
@@ -354,7 +359,7 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    if (!m_pSipConnection)
    {
       SipDialog sipDialog(rMsg.getSipCallId(), rMsg.getLocalTag(), NULL, TRUE);
-      createSipConnection(sipDialog);
+      createSipConnection(sipDialog, rMsg.getFromAddress()); // use from address as real line url (supports virtual lines)
    }
 
    OsPtrLock<XSipConnection> ptrLock;
@@ -547,14 +552,14 @@ OsStatus XCpCall::handleSendInfo(const AcSendInfoMsg& rMsg)
    return OS_NOT_FOUND;
 }
 
-void XCpCall::createSipConnection(const SipDialog& sipDialog)
+void XCpCall::createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl)
 {
    UtlBoolean bAdded = FALSE;
    {
       OsLock lock(m_memberMutex);
       if (!m_pSipConnection)
       {
-         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, m_sessionTimerExpiration, m_sessionTimerRefresh,
+         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, sFullLineUrl, m_sessionTimerExpiration, m_sessionTimerRefresh,
             m_updateSetting, m_100relSetting, m_inviteExpiresSeconds, *this, *this, m_natTraversalConfig,
             m_pCallEventListener, m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
          bAdded = TRUE;

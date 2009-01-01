@@ -72,6 +72,7 @@ public:
    XSipConnection(const UtlString& sAbstractCallId,
                   const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
+                  const UtlString& sFullLineUrl,
                   int sessionTimerExpiration,
                   CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                   CP_SIP_UPDATE_CONFIG updateSetting,

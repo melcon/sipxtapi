@@ -99,6 +99,7 @@ public:
    UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering
    CP_SIP_UPDATE_CONFIG m_updateSetting; ///< whether UPDATE method is enabled
    int m_inviteExpiresSeconds; ///< expiration time for INVITE requests. If no final response is received, INVITE is canceled
+   Url m_realLineIdentity; ///< used to support from-change extension (rfc4916), it is the real discovered full line url
 
    // session timer member variables
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)

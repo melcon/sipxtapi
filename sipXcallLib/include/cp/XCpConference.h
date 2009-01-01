@@ -68,6 +68,7 @@ public:
 
    XCpConference(const UtlString& sId,
                  SipUserAgent& rSipUserAgent,
+                 SipLineProvider* pSipLineProvider,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
