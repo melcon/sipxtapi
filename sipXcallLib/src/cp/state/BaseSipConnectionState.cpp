@@ -3587,10 +3587,17 @@ UtlBoolean BaseSipConnectionState::verifyInboundRequest(const SipMessage& sipReq
 
    if (m_rStateContext.m_loopDetector.isInboundMessageLoop(sipRequest))
    {
-      SipMessage sipResponse;
-      sipResponse.setResponseData(&sipRequest, SIP_LOOP_DETECTED_CODE, SIP_LOOP_DETECTED_TEXT);
-      sendMessage(sipResponse);
-      return FALSE;
+      if (seqMethod.compareTo(SIP_ACK_METHOD) != 0)
+      {
+         SipMessage sipResponse;
+         sipResponse.setResponseData(&sipRequest, SIP_LOOP_DETECTED_CODE, SIP_LOOP_DETECTED_TEXT);
+         sendMessage(sipResponse);
+         return FALSE;
+      }
+      else
+      {
+         return FALSE;
+      }
    }
 
    // add additional checks here if needed
