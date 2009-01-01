@@ -105,6 +105,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_REFERRED_BY_FIELD "REFERRED-BY"
 #define SIP_SHORT_REFERRED_BY_FIELD "b"
 #define SIP_REPLACES_FIELD "REPLACES"
+#define SIP_RETRY_AFTER_FIELD "RETRY-AFTER"
 #define SIP_REQUEST_DISPOSITION_FIELD "REQUEST-DISPOSITION"
 #define SIP_REQUESTED_BY_FIELD "REQUESTED-BY"
 #define SIP_REQUIRE_FIELD "REQUIRE"
@@ -1047,6 +1048,9 @@ public:
      * Gets the value of Min-SE header field used in session timers.
      */
     UtlBoolean getMinSe(int& minSe) const;
+
+    /** Sets value of Retry-After field. */
+    void setRetryAfterField(int periodSeconds);
 
     UtlBoolean getSupportedField(UtlString& supportedField) const;
 
