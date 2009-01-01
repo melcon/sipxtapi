@@ -88,11 +88,15 @@ SipConnectionStateTransition* NewCallSipConnectionState::handleSipMessageEvent(c
 
 SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(const SipMessage& sipMessage)
 {
+   // SIP dialog is already initialized with SIP message, via XSipConnection constructor, when it is created in
+   // XCpCall::createSipConnection
+
    // don't call superclass method
    // here we process the initial INVITE
    setLastReceivedInvite(sipMessage); // remember the INVITE
    // Invite transaction was already started automatically
    // 100 Trying is sent by SipUserAgent
+
    updateRemoteCapabilities(sipMessage);
    trackTransactionRequest(sipMessage);
 
