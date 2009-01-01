@@ -721,7 +721,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
          else
          {
             sLineUri = SipLine::getLineUri(UtlString(szLine)).toString();// unique line id, sip uri
-            sFullLineUrl = SipLine::getFullLineUrl(UtlString(szLine)).toString();// used in from field, sip url
+            sFullLineUrl = SipLine::buildFullLineUrl(UtlString(szLine)).toString();// used in from field, sip url
          }
          
          // we now must have a valid line URI - should be not null
