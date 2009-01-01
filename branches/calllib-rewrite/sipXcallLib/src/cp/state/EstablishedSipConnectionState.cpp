@@ -69,6 +69,11 @@ void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState, co
    m_rStateContext.m_bRedirecting = FALSE;
    m_rStateContext.m_redirectContactList.destroyAll();
 
+   // set SDP offering to immediate, even if late SDP offering was configured for initial INVITE
+   // the reason is, that with late SDP offering, we wouldn't be able to take call off hold
+   // if stream was marked with "inactive" flag in SDP offer contained in 200 OK.
+   m_rStateContext.m_sdpNegotiation.setSdpOfferingMode(CpSdpNegotiation::SDP_OFFERING_IMMEDIATE);
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry established connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }
