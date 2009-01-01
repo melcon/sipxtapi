@@ -109,6 +109,8 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
    UtlBoolean bProtocolError = TRUE;
    UtlBoolean bSdpNegotiationStarted = FALSE;
    SipMessage sipResponse;
+   SipMessage errorResponse;
+   ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_488;
 
    CpSipTransactionManager::TransactionState inviteState = getServerTransactionManager().getTransactionState(sipMessage);
 
@@ -150,6 +152,10 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
             }
          }
       }
+      else
+      {
+         errorResponseType = ERROR_RESPONSE_491;
+      }
    }
 
    if (bProtocolError)
@@ -160,9 +166,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
          m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
       }
 
-      SipMessage errorResponse;
-      errorResponse.setResponseData(&sipMessage, SIP_REQUEST_NOT_ACCEPTABLE_HERE_CODE,
-         SIP_REQUEST_NOT_ACCEPTABLE_HERE_TEXT);
+      prepareErrorResponse(sipMessage, errorResponse, errorResponseType);
       sendMessage(errorResponse);
    }
    else

@@ -38,6 +38,7 @@ libsipXcall_la_SOURCES = \
     cp/CpCallManager.cpp \
     cp/CpGhostConnection.cpp \
     cp/CpIntMessage.cpp \
+    cp/CpLoopDetector.cpp \
     cp/CpMultiStringMessage.cpp \
     cp/CpPeerCall.cpp \
     cp/Cp100RelTracker.cpp \

@@ -15,6 +15,7 @@ nobase_include_HEADERS =  \
     cp/CpDefs.h \
     cp/CpGhostConnection.h \
     cp/CpIntMessage.h \
+    cp/CpLoopDetector.h \
     cp/CpMediaEventListener.h \
     cp/CpMediaInterfaceProvider.h \
     cp/CpMessageQueueProvider.h \

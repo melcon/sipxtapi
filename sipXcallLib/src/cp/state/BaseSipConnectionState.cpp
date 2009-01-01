@@ -685,13 +685,16 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
       int responseCode = sipMessage.getResponseStatusCode();
       if (responseCode > SIP_1XX_CLASS_CODE)
       {
-         // responses must have a tag. We add it here so that it is never forgotten
-         UtlString toTag(getLocalTag());
-         sipMessage.setToFieldTag(toTag);
+         UtlString msgToTag;
+         sipMessage.getToFieldTag(msgToTag);
+         if (msgToTag.isNull())
+         {
+            // responses must have a tag. We add it here so that it is never forgotten
+            UtlString toTag(getLocalTag());
+            sipMessage.setToFieldTag(toTag);
+         }
       }
    }
-
-   updateSipDialog(sipMessage);
 
    if (sipMessage.isRequest())
    {
@@ -723,6 +726,11 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
       {
          getServerTransactionManager().endTransaction(seqMethod, seqNum);
       }
+   }
+   else
+   {
+      // send success
+      m_rStateContext.m_loopDetector.onMessageSent(sipMessage); // notify loop detector once Via might be known
    }
 
    return res;
@@ -772,6 +780,12 @@ SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMe
 {
    trackTransactionRequest(sipMessage);
    updateRemoteCapabilities(sipMessage);
+
+   if (!verifyInboundRequest(sipMessage))
+   {
+      // message didn't satisfy some checks
+      return NULL;
+   }
 
    // process inbound sip message request
    UtlString method;
@@ -851,6 +865,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteRequest(const
             // this is an inbound call and we haven't sent 200 OK yet
             SipMessage sipResponse;
             prepareErrorResponse(sipMessage, sipResponse, ERROR_RESPONSE_500);
+            sipResponse.setRetryAfterField(2); // retry after 2 seconds
             sendMessage(sipResponse);
          }
          else
@@ -860,8 +875,19 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteRequest(const
             prepareErrorResponse(sipMessage, sipResponse, ERROR_RESPONSE_491);
             sendMessage(sipResponse);
          }
-
       } // if transaction is active or terminated then ignore INVITE, since we are resending 200 OK
+      else if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      {
+         // check if outbound INVITE transaction is also active
+         if (getClientTransactionManager().isInviteTransactionActive())
+         {
+            // outbound invite transaction was started first, then inbound INVITE came
+            SipMessage sipResponse;
+            prepareErrorResponse(sipMessage, sipResponse, ERROR_RESPONSE_500);
+            sipResponse.setRetryAfterField(2); // retry after 2 seconds
+            sendMessage(sipResponse);
+         }
+      }
    } // for established there is special handler
 
    return NULL;
@@ -3488,6 +3514,8 @@ void BaseSipConnectionState::trackTransactionRequest(const SipMessage& sipMessag
 
       transactionManager.endTransaction(SIP_INVITE_METHOD, cseqNum);
    }
+
+   updateSipDialog(sipMessage);
 }
 
 void BaseSipConnectionState::trackTransactionResponse(const SipMessage& sipMessage)
@@ -3523,6 +3551,50 @@ void BaseSipConnectionState::trackTransactionResponse(const SipMessage& sipMessa
       }
       // 1xx don't end transaction
    }
+
+   updateSipDialog(sipMessage);
+}
+
+UtlBoolean BaseSipConnectionState::verifyInboundRequest(const SipMessage& sipRequest)
+{
+   // sipMessage is inbound request
+
+   int lastRemoteCseqNum = -1;
+   {
+      OsReadLock lock(m_rStateContext);
+      lastRemoteCseqNum = m_rStateContext.m_sipDialog.getLastRemoteCseq();
+   }
+   int seqNum = -1;
+   UtlString seqMethod;
+   sipRequest.getCSeqField(&seqNum, &seqMethod);
+
+   if (seqMethod.compareTo(SIP_ACK_METHOD) != 0 && seqMethod.compareTo(SIP_CANCEL_METHOD) != 0)
+   {
+      // method is not ACK or CANCEL, seqNum must be monotonous
+      if (seqNum < lastRemoteCseqNum)
+      {
+         CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(sipRequest);
+         if (transactionState != CpSipTransactionManager::TRANSACTION_TERMINATED)
+         {
+            // this is an error
+            SipMessage sipResponse;
+            sipResponse.setResponseData(&sipRequest, SIP_SERVER_INTERNAL_ERROR_CODE, SIP_SERVER_INTERNAL_ERROR_TEXT);
+            sendMessage(sipResponse);
+            return FALSE;
+         } // if transaction is terminated, then this is a retransmit (response was lost), allow it
+      }
+   }
+
+   if (m_rStateContext.m_loopDetector.isInboundMessageLoop(sipRequest))
+   {
+      SipMessage sipResponse;
+      sipResponse.setResponseData(&sipRequest, SIP_LOOP_DETECTED_CODE, SIP_LOOP_DETECTED_TEXT);
+      sendMessage(sipResponse);
+      return FALSE;
+   }
+
+   // add additional checks here if needed
+   return TRUE;
 }
 
 CpSipTransactionManager::InviteTransactionState BaseSipConnectionState::getInviteTransactionState() const

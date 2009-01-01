@@ -21,6 +21,7 @@
 #include <cp/CpDefs.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/Cp100RelTracker.h>
+#include <cp/CpLoopDetector.h>
 #include <cp/CpSdpNegotiation.h>
 #include <cp/CpSipTransactionManager.h>
 #include <cp/CpSessionTimerProperties.h>
@@ -74,6 +75,8 @@ public:
    MediaConnectionState m_localMediaConnectionState; ///< keeps track of local media connection state
    MediaConnectionState m_remoteMediaConnectionState; ///< keeps track of remote media connection state
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation
+   CpLoopDetector m_loopDetector; ///< helper class for detecting loops
+
    // member variables storing remote party capabilities
    UtlString m_allowedRemote;  ///< methods supported by the other side
    UtlBoolean m_allowedRemoteDiscovered;  ///< TRUE if Allow: of remote party is known

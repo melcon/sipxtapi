@@ -272,6 +272,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CpLoopDetector.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CpMultiStringMessage.cpp"
 				>
 			</File>
@@ -666,6 +670,10 @@
 			</File>
 			<File
 				RelativePath="include\cp\CpIntMessage.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpLoopDetector.h"
 				>
 			</File>
 			<File
