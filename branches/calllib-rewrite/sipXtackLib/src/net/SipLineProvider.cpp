@@ -159,6 +159,25 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
    lineUri.getUserId(userId); // get userId from lineUri
 }
 
+void SipLineProvider::getFullLineUrl(const SipMessage& sipRequest, UtlString& sFullLineUrl) const
+{
+   sFullLineUrl.remove(0);
+
+   Url lineUri;
+   UtlString userId;
+   SipLineProvider::extractLineData(sipRequest, lineUri, userId);
+   SipLine sipLine;
+   if (findLineCopy(lineUri, userId, sipLine))
+   {
+      // we found line
+      sipLine.getFullLineUrl(sFullLineUrl);
+      return;
+   }
+
+   // we didn't find line
+   sipRequest.getRequestUri(&sFullLineUrl);
+}
+
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean SipLineProvider::lineExists(const SipMessage& sipMsg) const
