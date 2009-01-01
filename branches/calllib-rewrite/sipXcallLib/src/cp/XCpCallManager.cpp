@@ -736,12 +736,12 @@ OsStatus XCpCallManager::holdAllConferenceConnections(const UtlString& sConferen
 
 OsStatus XCpCallManager::holdLocalAbstractCallConnection(const UtlString& sAbstractCallId)
 {
-   return m_callStack.doYieldFocus(sAbstractCallId, TRUE);
+   return m_callStack.yieldFocus(sAbstractCallId, TRUE);
 }
 
 OsStatus XCpCallManager::unholdLocalAbstractCallConnection(const UtlString& sAbstractCallId)
 {
-   return m_callStack.doGainFocus(sAbstractCallId, FALSE);
+   return m_callStack.gainFocus(sAbstractCallId, FALSE);
 }
 
 OsStatus XCpCallManager::unholdAllConferenceConnections(const UtlString& sConferenceId)
@@ -1141,20 +1141,20 @@ UtlBoolean XCpCallManager::handleCallManagerCommandMessage(const CmCommandMsg& r
 
 UtlBoolean XCpCallManager::handleGainFocusCommandMessage(const CmGainFocusMsg& rMsg)
 {
-   m_callStack.doGainFocus(rMsg.getAbstractCallId(), rMsg.getGainOnlyIfNoFocusedCall());
+   m_callStack.gainFocus(rMsg.getAbstractCallId(), rMsg.getGainOnlyIfNoFocusedCall());
    return TRUE;
 }
 
 UtlBoolean XCpCallManager::handleYieldFocusCommandMessage(const CmYieldFocusMsg& rMsg)
 {
-   m_callStack.doYieldFocus(rMsg.getAbstractCallId(), TRUE);
+   m_callStack.yieldFocus(rMsg.getAbstractCallId(), TRUE);
    return TRUE;
 }
 
 UtlBoolean XCpCallManager::handleDestroyAbstractCallCommandMessage(const CmDestroyAbstractCallMsg& rMsg)
 {
    UtlString sAbstractCallId = rMsg.getAbstractCallId();
-   m_callStack.doYieldFocus(sAbstractCallId, TRUE); // give focus to next call
+   m_callStack.yieldFocus(sAbstractCallId, TRUE); // give focus to next call
    m_callStack.deleteAbstractCall(sAbstractCallId);
    return TRUE;
 }
