@@ -100,13 +100,15 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
                                       Url& lineUri,
                                       UtlString& userId)
 {
+   int seqNum;
+   UtlString seqMethod;
+   sipMsg.getCSeqField(&seqNum, &seqMethod);
+
    // get LINEID, lineUri, userId
    if (!sipMsg.isFromThisSide())
    {
       // inbound message
-      UtlString requestMethod;
-      sipMsg.getRequestMethod(&requestMethod);
-      if (requestMethod.compareTo(SIP_REGISTER_METHOD) == 0)
+      if (seqMethod.compareTo(SIP_REGISTER_METHOD) == 0)
       {
          // this is REGISTER request or response, RequestUri is different from toUri, use toUri
          Url toUrl;
@@ -137,9 +139,7 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
    else
    {
       // outbound message
-      UtlString requestMethod;
-      sipMsg.getRequestMethod(&requestMethod);
-      if (!sipMsg.isResponse() || requestMethod.compareTo(SIP_REGISTER_METHOD) == 0)
+      if (!sipMsg.isResponse() || seqMethod.compareTo(SIP_REGISTER_METHOD) == 0)
       {
          // this is REGISTER request or response, use fromUrl
          // or it is some outbound request other than REGISTER
