@@ -1420,8 +1420,10 @@ UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage
       return handleUnknownInfoRequest(rSipMessage);
    }
 
-   // 481 Call/Transaction Does Not Exist must be sent automatically by somebody else for NOTIFY messages
+   // 481 Call/Transaction Does Not Exist must be sent automatically by somebody else for SUBSCRIBE/NOTIFY messages
    // multiple observers may receive the same SipMessage
+   // currently nobody sends these 481s, not even SipSubscribeServer
+
    return FALSE;
 }
 
@@ -1529,6 +1531,12 @@ void XCpCallManager::startSipMessageObserving()
       FALSE); // Don't want to see out going messages
    m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
       SIP_PRACK_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_SUBSCRIBE_METHOD,
       TRUE, // do want to get requests
       TRUE, // do want responses
       TRUE, // Incoming messages

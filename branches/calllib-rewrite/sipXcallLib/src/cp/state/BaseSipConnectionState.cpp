@@ -829,7 +829,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMe
    }
    else if (method.compareTo(SIP_SUBSCRIBE_METHOD) == 0)
    {
-      // TODO: receiving in dialog subscribe is currently not enabled in XCpCallManager. Investigate
+      return processSubscribeRequest(sipMessage);
    }
    else if (method.compareTo(SIP_PRACK_METHOD) == 0)
    {
@@ -889,6 +889,13 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteRequest(const
          }
       }
    } // for established there is special handler
+   else if (connectionState == ISipConnectionState::CONNECTION_DISCONNECTED ||
+            connectionState == ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      SipMessage errorResponse;
+      prepareErrorResponse(sipMessage, errorResponse, ERROR_RESPONSE_481);
+      sendMessage(errorResponse);
+   }
 
    return NULL;
 }
@@ -900,6 +907,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
    sipMessage.getCSeqField(iSeqNumber, seqMethod);
    SipMessage sipResponse;
    UtlBoolean bProtocolError = TRUE;
+   ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_488;
    ISipConnectionState::StateEnum connectionState = getCurrentState();
 
    if (m_rStateContext.m_updateSetting != CP_SIP_UPDATE_DISABLED &&
@@ -948,12 +956,16 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
          }
       }
    }
+   else if (connectionState == ISipConnectionState::CONNECTION_DISCONNECTED ||
+            connectionState == ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      errorResponseType = ERROR_RESPONSE_481;
+   }
 
    if (bProtocolError)
    {
       SipMessage errorResponse;
-      errorResponse.setResponseData(&sipMessage, SIP_REQUEST_NOT_ACCEPTABLE_HERE_CODE,
-         SIP_REQUEST_NOT_ACCEPTABLE_HERE_TEXT);
+      prepareErrorResponse(sipMessage, errorResponse, errorResponseType);
       sendMessage(errorResponse);
    }
    else
@@ -968,30 +980,40 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
 
 SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const SipMessage& sipMessage)
 {
-   UtlBoolean bProtocolError = FALSE;
-   int cseqNumber = 0;
-   UtlString cseqMethod;
-   sipMessage.getCSeqField(cseqNumber, cseqMethod);
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
 
-   if (m_rStateContext.m_pLastSent2xxToInvite)
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
    {
-      int cseqNumber2xx = 0;
-      m_rStateContext.m_pLastSent2xxToInvite->getCSeqField(&cseqNumber2xx, NULL);
+      UtlBoolean bProtocolError = FALSE;
+      int cseqNumber = 0;
+      UtlString cseqMethod;
+      sipMessage.getCSeqField(cseqNumber, cseqMethod);
 
-      if (cseqNumber2xx == cseqNumber)
+      if (m_rStateContext.m_pLastSent2xxToInvite)
       {
-         m_rStateContext.m_bAckReceived = TRUE;
-         delete2xxRetransmitTimer();
+         int cseqNumber2xx = 0;
+         m_rStateContext.m_pLastSent2xxToInvite->getCSeqField(&cseqNumber2xx, NULL);
 
-         const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
-         if (pSdpBody)
+         if (cseqNumber2xx == cseqNumber)
          {
-            if (m_rStateContext.m_sdpNegotiation.isSdpOfferFinished())
+            m_rStateContext.m_bAckReceived = TRUE;
+            delete2xxRetransmitTimer();
+
+            const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+            if (pSdpBody)
             {
-               // this must be SDP answer
-               if (handleSdpAnswer(sipMessage))
+               if (m_rStateContext.m_sdpNegotiation.isSdpOfferFinished())
                {
-                  commitMediaSessionChanges();
+                  // this must be SDP answer
+                  if (handleSdpAnswer(sipMessage))
+                  {
+                     commitMediaSessionChanges();
+                  }
+                  else
+                  {
+                     bProtocolError = TRUE;
+                  }
                }
                else
                {
@@ -1000,23 +1022,19 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
             }
             else
             {
-               bProtocolError = TRUE;
+               // sdp bodyContent is missing, check if SDP negotiation is complete. Media session changes are already committed
+               if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
+               {
+                  bProtocolError = TRUE;
+               }
             }
-         }
-         else
-         {
-            // sdp bodyContent is missing, check if SDP negotiation is complete. Media session changes are already committed
-            if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
-            {
-               bProtocolError = TRUE;
-            }
-         }
+         } // ignore bad acks
       } // ignore bad acks
-   } // ignore bad acks
 
-   if (bProtocolError)
-   {
-      sendBye(487, "Request terminated due to protocol error");
+      if (bProtocolError)
+      {
+         sendBye(487, "Request terminated due to protocol error");
+      }
    }
 
    return NULL;
@@ -1024,11 +1042,26 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
 
 SipConnectionStateTransition* BaseSipConnectionState::processByeRequest(const SipMessage& sipMessage)
 {
-   // default handler for inbound BYE. We only allow BYE in established state.
-   SipMessage sipResponse;
-   // bad request, BYE is handled elsewhere
-   sipResponse.setRequestBadRequest(&sipMessage);
-   sendMessage(sipResponse);
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_DISCONNECTED ||
+      connectionState == ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      // transaction was not found
+      SipMessage sipResponse;
+      sipResponse.setBadTransactionData(&sipMessage);
+      sendMessage(sipResponse);
+      // we are already disconnected
+   }
+   else
+   {
+      // default handler for inbound BYE. We only allow BYE in established state.
+      SipMessage sipResponse;
+      // bad request, BYE is handled elsewhere
+      sipResponse.setRequestBadRequest(&sipMessage);
+      sendMessage(sipResponse);
+   }
+
    return NULL;
 }
 
@@ -1109,51 +1142,63 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
 
 SipConnectionStateTransition* BaseSipConnectionState::processInfoRequest(const SipMessage& sipMessage)
 {
-   if (ms_iInfoTestResponseCode != 0) // used in unit tests
-   {
-      if (ms_iInfoTestResponseCode == SIP_REQUEST_TIMEOUT_CODE)
-      {
-         OsTask::delay(1000);
-      }
-      SipMessage sipResponse;
-      sipResponse.setResponseData(&sipMessage, ms_iInfoTestResponseCode, "Timed out", getLocalContactUrl());
-      sendMessage(sipResponse);
-      return NULL; // do not fire event if custom response code was requested.
-   }
-   else
-   {
-      // send 200 OK response regardless of content
-      SipMessage sipResponse;
-      sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
-      sendMessage(sipResponse);
-   }
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
 
-   // check for retransmits
-   int cseqNum;
-   UtlString cseqMethod;
-   sipMessage.getCSeqField(&cseqNum, &cseqMethod);
-
-   CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(cseqMethod, cseqNum);
-   if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
    {
-      // this is not a retransmit
-      UtlString contentType;
-      sipMessage.getContentType(&contentType);
-      UtlString bodyContent;
-      int contentLength = sipMessage.getContentLength();
-      const HttpBody* pBody = sipMessage.getBody();
-      if (pBody)
+      if (ms_iInfoTestResponseCode != 0) // used in unit tests
       {
-         pBody->getBytes(&bodyContent, &contentLength);
+         if (ms_iInfoTestResponseCode == SIP_REQUEST_TIMEOUT_CODE)
+         {
+            OsTask::delay(1000);
+         }
+         SipMessage sipResponse;
+         sipResponse.setResponseData(&sipMessage, ms_iInfoTestResponseCode, "Timed out", getLocalContactUrl());
+         sendMessage(sipResponse);
+         return NULL; // do not fire event if custom response code was requested.
       }
       else
       {
-         contentLength = 0;
+         // send 200 OK response regardless of content
+         SipMessage sipResponse;
+         sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+         sendMessage(sipResponse);
       }
 
-      m_rSipConnectionEventSink.fireSipXInfoEvent(contentType, bodyContent.data(), contentLength);
-   }
+      // check for retransmits
+      int cseqNum;
+      UtlString cseqMethod;
+      sipMessage.getCSeqField(&cseqNum, &cseqMethod);
 
+      CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(cseqMethod, cseqNum);
+      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      {
+         // this is not a retransmit
+         UtlString contentType;
+         sipMessage.getContentType(&contentType);
+         UtlString bodyContent;
+         int contentLength = sipMessage.getContentLength();
+         const HttpBody* pBody = sipMessage.getBody();
+         if (pBody)
+         {
+            pBody->getBytes(&bodyContent, &contentLength);
+         }
+         else
+         {
+            contentLength = 0;
+         }
+
+         m_rSipConnectionEventSink.fireSipXInfoEvent(contentType, bodyContent.data(), contentLength);
+      }
+   }
+   else
+   {
+      // respond with 481
+      SipMessage sipResponse;
+      sipResponse.setBadTransactionData(&sipMessage);
+      sendMessage(sipResponse);
+   }
    return NULL;
 }
 
@@ -1296,13 +1341,36 @@ SipConnectionStateTransition* BaseSipConnectionState::processOptionsRequest(cons
 {
    ISipConnectionState::StateEnum connectionState = getCurrentState();
 
-   // INVITE transaction termination is handled during disconnected state entry
    if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
       connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
    {
       // respond with 200 OK
       SipMessage sipResponse;
       sipResponse.setResponseData(&sipMessage, SIP_OK_CODE, SIP_OK_TEXT);
+      sendMessage(sipResponse);
+   }
+   else
+   {
+      // respond with 481
+      SipMessage sipResponse;
+      sipResponse.setBadTransactionData(&sipMessage);
+      sendMessage(sipResponse);
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processSubscribeRequest(const SipMessage& sipMessage)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
+   {
+      // decline in dialog SUBSCRIBE, we do not support multiple dialog usages, except for REFER
+      // TODO: for refer allow unsubscribe from NOTIFY events
+      SipMessage sipResponse;
+      sipResponse.setResponseData(&sipMessage, SIP_DECLINE_CODE, SIP_DECLINE_TEXT);
       sendMessage(sipResponse);
    }
    else
@@ -1475,7 +1543,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processNonFatalResponse(co
    }
    else if (seqMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0)
    {
-      // TODO: receiving in dialog subscribe is currently not enabled in XCpCallManager. Investigate
+      return processSubscribeResponse(sipMessage);
    }
    else if (seqMethod.compareTo(SIP_PRACK_METHOD) == 0)
    {
@@ -1791,6 +1859,12 @@ SipConnectionStateTransition* BaseSipConnectionState::processPrackResponse(const
       }
    }
 
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::processSubscribeResponse(const SipMessage& sipMessage)
+{
+   // TODO: implement for REFER
    return NULL;
 }
 

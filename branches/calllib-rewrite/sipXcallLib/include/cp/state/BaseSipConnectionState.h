@@ -255,6 +255,9 @@ protected:
    /** Handles inbound SIP OPTIONS requests */
    virtual SipConnectionStateTransition* processOptionsRequest(const SipMessage& sipMessage);
 
+   /** Handles inbound SIP SUBSCRIBE requests */
+   virtual SipConnectionStateTransition* processSubscribeRequest(const SipMessage& sipMessage);
+
    /**
     * Processes inbound SIP response message. This is the default handler than needs to
     * be called first, if this method is overridden. If this method handles the response,
@@ -302,6 +305,9 @@ protected:
 
    /** Handles inbound SIP PRACK responses */
    virtual SipConnectionStateTransition* processPrackResponse(const SipMessage& sipMessage);
+
+   /** Handles inbound SIP SUBSCRIBE responses */
+   virtual SipConnectionStateTransition* processSubscribeResponse(const SipMessage& sipMessage);
 
    /** Called when authentication retry occurs. We need to update dialogs. */
    virtual SipConnectionStateTransition* handleAuthenticationRetryEvent(const SipMessage& sipMessage);
