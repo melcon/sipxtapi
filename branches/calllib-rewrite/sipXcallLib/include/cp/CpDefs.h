@@ -356,6 +356,23 @@ typedef enum CP_100REL_CONFIG
 } CP_100REL_CONFIG;
 
 /**
+* We support 2 SDP offering modes - immediate and delayed. Immediate sends
+* offer as soon as possible, to be able to receive early audio.
+* Delayed offering sends SDP offer as late as possible. This saves media
+* resources, in case lots of calls are made which might be rejected.
+*/
+typedef enum CP_SDP_OFFERING_MODE
+{
+   CP_SDP_OFFERING_IMMEDIATE = 0, /**
+                                   * Offer SDP in the initial INVITE request.
+                                   */
+   CP_SDP_OFFERING_DELAYED = 1,   /**
+                                  * Do not offer SDP in INVITE. SDP will be sent in ACK or PRACK for
+                                  * outbound calls.
+                                   */
+} CP_SDP_OFFERING_MODE;
+
+/**
 * Configures how sipXcallLib should manage focus for calls. If call is focused then speaker and microphone
 * are available for it.
 */

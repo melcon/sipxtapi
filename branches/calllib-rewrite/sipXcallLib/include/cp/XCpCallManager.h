@@ -491,6 +491,9 @@ public:
    CP_100REL_CONFIG get100relSetting() const { return m_100relSetting; }
    void set100relSetting(CP_100REL_CONFIG val) { m_100relSetting = val; }
 
+   CP_SDP_OFFERING_MODE getSdpOfferingMode() const { return m_sdpOfferingMode; }
+   void setSdpOfferingMode(CP_SDP_OFFERING_MODE val) { m_sdpOfferingMode = val; }
+
    /* ============================ INQUIRY =================================== */
 
    /** gets total amount of calls. Also calls in conference are counted */
@@ -638,6 +641,7 @@ private:
    CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
    CP_SIP_UPDATE_CONFIG m_updateSetting; ///< configuration of SIP UPDATE method
    CP_100REL_CONFIG m_100relSetting; ///< configuration of 100rel support
+   CP_SDP_OFFERING_MODE m_sdpOfferingMode; ///< SDP offering mode configuration. Late or immediate.
 
    // read only fields
    const int m_rtpPortStart;

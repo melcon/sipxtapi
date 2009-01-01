@@ -48,6 +48,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                                CP_SIP_UPDATE_CONFIG updateSetting,
                                CP_100REL_CONFIG c100relSetting,
+                               CP_SDP_OFFERING_MODE sdpOfferingMode,
                                int inviteExpiresSeconds,
                                CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                CpMessageQueueProvider& rMessageQueueProvider,
@@ -79,6 +80,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
    m_stateMachine.configure100rel(c100relSetting);
    m_stateMachine.configureInviteExpiration(inviteExpiresSeconds);
    m_stateMachine.setRealLineIdentity(sFullLineUrl);
+   m_stateMachine.configureSdpOfferingMode(sdpOfferingMode);
 }
 
 XSipConnection::~XSipConnection()

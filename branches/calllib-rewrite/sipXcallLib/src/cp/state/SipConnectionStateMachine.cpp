@@ -312,6 +312,11 @@ void SipConnectionStateMachine::configureInviteExpiration(int inviteExpiresSecon
    }
 }
 
+void SipConnectionStateMachine::configureSdpOfferingMode(CP_SDP_OFFERING_MODE sdpOfferingMode)
+{
+   m_rStateContext.m_sdpNegotiation.setSdpOfferingMode((CpSdpNegotiation::SdpOfferingMode)sdpOfferingMode);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()

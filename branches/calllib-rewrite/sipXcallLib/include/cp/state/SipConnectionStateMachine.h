@@ -142,6 +142,9 @@ public:
    /** Configures expiration time for INVITE requests. If no final response is received, INVITE is cancelled. */
    void configureInviteExpiration(int inviteExpiresSeconds);
 
+   /** Configures SDP offering mode */
+   void configureSdpOfferingMode(CP_SDP_OFFERING_MODE sdpOfferingMode);
+
    /* ============================ ACCESSORS ================================= */
 
    /**

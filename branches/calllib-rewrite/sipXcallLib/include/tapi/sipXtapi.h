@@ -451,6 +451,23 @@ typedef enum SIPX_100REL_CONFIG
 } SIPX_100REL_CONFIG;
 
 /**
+* We support 2 SDP offering modes - immediate and delayed. Immediate sends
+* offer as soon as possible, to be able to receive early audio.
+* Delayed offering sends SDP offer as late as possible. This saves media
+* resources, in case lots of calls are made which might be rejected.
+*/
+typedef enum SIPX_SDP_OFFERING_MODE
+{
+   SIPX_SDP_OFFERING_IMMEDIATE = 0, /**
+                                     * Offer SDP in the initial INVITE request.
+                                     */
+   SIPX_SDP_OFFERING_DELAYED = 1,   /**
+                                     * Do not offer SDP in INVITE. SDP will be sent in ACK or PRACK for
+                                     * outbound calls.
+                                     */
+} SIPX_SDP_OFFERING_MODE;
+
+/**
  * Configures how sipXtapi should manage focus for calls. If call is focused then speaker and microphone
  * are available for it.
  */
@@ -4145,6 +4162,39 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGet100relSetting(const SIPX_INST hInst,
 */
 SIPXTAPI_API SIPX_RESULT sipxConfigSet100relSetting(const SIPX_INST hInst,
                                                     SIPX_100REL_CONFIG relConfig);
+
+/**
+* Gets configuration of SDP offering mode.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param sdpOfferingMode Configuration of SDP offering. Can be early or immediate.
+*        Immediate SDP offering is the default.
+*
+* @see SIPX_SDP_OFFERING_MODE
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE* sdpOfferingMode);
+
+/**
+* Sets configuration of SDP offering mode. This setting only affects the initial
+* INVITE, and not subsequent re-INVITE requests used to hold/unhold call. It is not
+* possible to use late SDP negotiation for unhold, since remote party might disallow
+* audio stream activation.
+* For outbound calls, we can send SDP offer either in initial INVITE, or SDP answer in ACK.
+* If 100rel extension is supported by remote client, and there was no SDP offer in INVITE,
+* one will be received in reliable 18x response. SDP answer will then be sent in PRACK request.
+*
+* Late SDP negotiation saves media resources, if call is likely to be rejected.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param sdpOfferingMode Configuration of SDP offering. Can be early or immediate.
+*        Immediate SDP offering is the default.
+*
+* @see sipxConfigGetSdpOfferingMode
+* @see SIPX_SDP_OFFERING_MODE
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE sdpOfferingMode = SIPX_SDP_OFFERING_IMMEDIATE);
 
 //@}
 /** @name Utility Functions */
