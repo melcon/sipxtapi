@@ -565,6 +565,13 @@ protected:
    void trackTransactionResponse(const SipMessage& sipMessage);
 
    /**
+    * Verifies inbound request cseq number (must be monotonous), and does
+    * loop detection. If error is detected then sends answer immediately.
+    * Returns FALSE if processing of message should stop.
+    */
+   UtlBoolean verifyInboundRequest(const SipMessage& sipMessage);
+
+   /**
     * Gets state of invite transaction. Considers both outbound and inbound invite transactions.
     */
    CpSipTransactionManager::InviteTransactionState getInviteTransactionState() const;

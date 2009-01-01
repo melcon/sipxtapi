@@ -67,6 +67,7 @@
             <File RelativePath=".\src\cp\CpCallManager.cpp"/>
             <File RelativePath=".\src\cp\CpGhostConnection.cpp"/>
             <File RelativePath=".\src\cp\CpIntMessage.cpp"/>
+            <File RelativePath=".\src\cp\CpLoopDetector.cpp"/>
             <File RelativePath=".\src\cp\CpMultiStringMessage.cpp"/>
             <File RelativePath=".\src\cp\CpPeerCall.cpp"/>
             <File RelativePath=".\src\cp\CpSdpNegotiation.cpp"/>
@@ -169,6 +170,7 @@
             <File RelativePath=".\include\cp\CpDefs.h"/>
             <File RelativePath="include\cp\CpGhostConnection.h"/>
             <File RelativePath="include\cp\CpIntMessage.h"/>
+            <File RelativePath=".\include\cp\CpLoopDetector.h"/>
             <File RelativePath=".\include\cp\CpMediaEventListener.h"/>
             <File RelativePath=".\include\cp\CpMediaInterfaceProvider.h"/>
             <File RelativePath=".\include\cp\CpMessageQueueProvider.h"/>
