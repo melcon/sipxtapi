@@ -108,7 +108,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
    sipInvite.setInviteData(fromField.toString(), toAddress,
       NULL, contactUrl, sipCallId, cseqNum);
    prepareSessionTimerRequest(sipInvite); // add session timer parameters
-   prepare100relRequest(sipInvite); // optionally require 100rel
+   maybeRequire100rel(sipInvite); // optionally require 100rel
 
    initializeSipDialog(sipInvite);
 

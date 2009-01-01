@@ -179,6 +179,12 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
       handleSessionTimerResponse(sipResponse); // handle our own response, start session timer..
       sendMessage(sipResponse);
       start2xxRetransmitTimer();
+
+      // 200 OK was sent, update connected identity
+      if (sipMessage.isInSupportedField(SIP_FROM_CHANGE_EXTENSION))
+      {
+         updateSipDialogRemoteField(sipMessage);
+      }
    }
 
    return NULL;

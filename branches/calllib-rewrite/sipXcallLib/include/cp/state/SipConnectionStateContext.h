@@ -70,6 +70,14 @@ public:
       MEDIA_CONNECTION_HELD, ///< initial state
    } MediaConnectionState;
 
+   typedef enum
+   {
+      IDENTITY_NOT_YET_ANNOUNCED, ///< connected identity has not yet been announced
+      IDENTITY_UP_TO_DATE, ///< connected identity has been accepted by remote user
+      IDENTITY_ANNOUNCING, ///< connected identity is being announced to remote user by UPDATE/re-INVITE requests
+      IDENTITY_REJECTED, ///< connected identity announcement has been rejected
+   } ConnectedIdentityState;
+
    MediaSessionState m_mediaSessionState; ///< keeps track of media session state (active, held etc)
    MediaSessionState m_previousMediaSessionState; ///< keeps track of previous media session state (active, held etc)
    MediaConnectionState m_localMediaConnectionState; ///< keeps track of local media connection state
@@ -100,6 +108,7 @@ public:
    CP_SIP_UPDATE_CONFIG m_updateSetting; ///< whether UPDATE method is enabled
    int m_inviteExpiresSeconds; ///< expiration time for INVITE requests. If no final response is received, INVITE is canceled
    Url m_realLineIdentity; ///< used to support from-change extension (rfc4916), it is the real discovered full line url
+   ConnectedIdentityState m_connectedIdentityState; ///< state of connected identity announcement
 
    // session timer member variables
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)

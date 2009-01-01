@@ -673,7 +673,7 @@ protected:
    void resetRemoteCapabilities();
 
    /** Adds Require: 100rel if 100rel is configured to be mandatory */
-   void prepare100relRequest(SipMessage& sipRequest) const;
+   void maybeRequire100rel(SipMessage& sipRequest) const;
 
    /** Returns TRUE if we should send reliable 18x response */
    UtlBoolean shouldSend100relResponse() const;
@@ -685,6 +685,26 @@ protected:
     * tracking.
     */
    CpSdpNegotiation::SdpBodyType getPrackSdpBodyType(const SipMessage& sipMessage) const;
+
+   /**
+    * If needed and remote side supports it, try to announce new remote identity
+    * if it has changed. Modifies supplied SipMessage request to have different from
+    * field, using the same tag.
+    */
+   void announceConnectedIdentity(SipMessage& sipRequest) const;
+
+   /**
+   * Announcement of connected identity has been accepted, update localField of dialog.
+   */
+   void onConnectedIdentityAccepted();
+
+   /**
+    * Connected identity was rejected.
+    */
+   void onConnectedIdentityRejected();
+
+   /** Updates remote sip dialog field with that from sip message */
+   void updateSipDialogRemoteField(const SipMessage& sipRequest);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
