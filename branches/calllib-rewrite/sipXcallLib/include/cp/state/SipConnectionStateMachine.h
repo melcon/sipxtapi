@@ -158,6 +158,12 @@ public:
    /** Gets reference to public Sip connection context. Must be locked when modified. */
    XSipConnectionContext& getSipConnectionContext() const;
 
+   /** 
+    * Sets real line identity for this sip connection. This is normally discovered from line provider
+    * or request uri for inbound calls, and specified for outbound calls.
+    */
+   void setRealLineIdentity(const UtlString& sFullLineUrl);
+
    /* ============================ INQUIRY =================================== */
 
    /** Gets state of media session */

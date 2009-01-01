@@ -331,6 +331,11 @@ XSipConnectionContext& SipConnectionStateMachine::getSipConnectionContext() cons
    return m_rStateContext;
 }
 
+void SipConnectionStateMachine::setRealLineIdentity(const UtlString& sFullLineUrl)
+{
+   m_rStateContext.m_realLineIdentity.fromString(sFullLineUrl, FALSE);
+}
+
 /* ============================ INQUIRY =================================== */
 
 SipConnectionStateContext::MediaSessionState SipConnectionStateMachine::getMediaSessionState() const

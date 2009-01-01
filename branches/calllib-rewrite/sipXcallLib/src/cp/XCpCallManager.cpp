@@ -169,7 +169,7 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
       sCallId = getNewCallId();
    }
 
-   XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
+   XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
       m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh, m_updateSetting, m_100relSetting,
       m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
       m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
@@ -203,7 +203,7 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    {
       sConferenceId = getNewConferenceId();
    }
-   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
+   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
       *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
       m_updateSetting, m_100relSetting, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
@@ -1431,7 +1431,7 @@ void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
 {
    UtlString sSipCallId = getNewSipCallId();
 
-   XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
+   XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
       *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
       m_updateSetting, m_100relSetting, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);

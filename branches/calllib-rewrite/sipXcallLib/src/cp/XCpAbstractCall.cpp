@@ -21,6 +21,8 @@
 #include <net/SipMessage.h>
 #include <net/SipMessageEvent.h>
 #include <net/QoS.h>
+#include <net/SipLineProvider.h>
+#include <net/SipLine.h>
 #include <sdp/SdpCodecFactory.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
@@ -69,6 +71,7 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 
 XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipUserAgent& rSipUserAgent,
+                                 SipLineProvider* pSipLineProvider,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                                  const SdpCodecList& rDefaultSdpCodecList,
                                  OsMsgQ& rCallManagerQueue,
@@ -89,6 +92,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
 , m_rSipUserAgent(rSipUserAgent)
+, m_pSipLineProvider(pSipLineProvider)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
 , m_rDefaultSdpCodecList(rDefaultSdpCodecList)
 , m_rCallManagerQueue(rCallManagerQueue)
@@ -800,6 +804,21 @@ OsStatus XCpAbstractCall::doLimitCodecPreferences(const UtlString& sAudioCodecs,
    }
 
    return OS_FAILED;
+}
+
+UtlString XCpAbstractCall::getRealLineIdentity(const SipMessage& sipRequest) const
+{
+   UtlString sLineIdentity;
+
+   if (m_pSipLineProvider)
+   {
+      m_pSipLineProvider->getFullLineUrl(sipRequest, sLineIdentity);
+      return sLineIdentity;
+   }
+
+   // we didn't find line, or line provider is not set, use request uri
+   sipRequest.getRequestUri(&sLineIdentity);
+   return sLineIdentity;
 }
 
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)

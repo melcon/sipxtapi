@@ -74,6 +74,7 @@ class AcTimerMsg;
 class ScTimerMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
+class SipLineProvider;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -111,6 +112,7 @@ public:
 
    XCpAbstractCall(const UtlString& sId,
                    SipUserAgent& rSipUserAgent,
+                   SipLineProvider* pSipLineProvider,
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
                    const SdpCodecList& rDefaultSdpCodecList,
                    OsMsgQ& rCallManagerQueue,
@@ -425,6 +427,13 @@ protected:
    /** Limits codec preferences for future renegotiations */
    OsStatus doLimitCodecPreferences(const UtlString& sAudioCodecs, const UtlString& sVideoCodecs);
 
+   /** 
+    * Discovers real line identity for new inbound call. Returns full line url. This is
+    * needed for inbound calls, since request uri can be different than to url after redirect,
+    * and may be slightly different than identity of locally defined line (for example by display name).
+    */
+   UtlString getRealLineIdentity(const SipMessage& sipRequest) const;
+
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
@@ -441,6 +450,8 @@ protected:
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
    const SdpCodecList m_rDefaultSdpCodecList; ///< default SdpCodec factory for new calls. Independent of codec list of call manager.
+   const SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
+
    // thread safe, atomic
    CP_FOCUS_CONFIG m_focusConfig; ///< configuration of media focus policy
 

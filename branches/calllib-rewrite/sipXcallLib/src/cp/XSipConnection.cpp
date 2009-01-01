@@ -43,6 +43,7 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                const SipDialog& sipDialog,
                                SipUserAgent& rSipUserAgent,
+                               const UtlString& sFullLineUrl,
                                int sessionTimerExpiration,
                                CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                                CP_SIP_UPDATE_CONFIG updateSetting,
@@ -77,6 +78,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
    m_stateMachine.configureUpdate(updateSetting);
    m_stateMachine.configure100rel(c100relSetting);
    m_stateMachine.configureInviteExpiration(inviteExpiresSeconds);
+   m_stateMachine.setRealLineIdentity(sFullLineUrl);
 }
 
 XSipConnection::~XSipConnection()
