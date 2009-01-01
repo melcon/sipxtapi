@@ -1059,7 +1059,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processCancelRequest(const
 
                SipMessage sipInviteResponse;
                sipInviteResponse.setRequestTerminatedResponseData(m_rStateContext.m_pLastReceivedInvite);
-               sendMessage(sipResponse); // terminates INVITE transaction
+               sendMessage(sipInviteResponse); // terminates INVITE transaction
 
                if (inviteState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE)
                {
