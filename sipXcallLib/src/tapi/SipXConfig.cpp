@@ -2378,3 +2378,33 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSet100relSetting(const SIPX_INST hInst,
 
    return rc;
 }
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE* sdpOfferingMode)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      *sdpOfferingMode = (SIPX_SDP_OFFERING_MODE)pInst->pCallManager->getSdpOfferingMode();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE sdpOfferingMode) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      pInst->pCallManager->setSdpOfferingMode((CP_SDP_OFFERING_MODE)sdpOfferingMode);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}

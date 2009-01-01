@@ -81,6 +81,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                                  CP_SIP_UPDATE_CONFIG updateSetting,
                                  CP_100REL_CONFIG c100relSetting,
+                                 CP_SDP_OFFERING_MODE sdpOfferingMode,
                                  int inviteExpiresSeconds,
                                  XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
@@ -110,6 +111,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_sessionTimerRefresh(sessionTimerRefresh)
 , m_updateSetting(updateSetting)
 , m_100relSetting(c100relSetting)
+, m_sdpOfferingMode(sdpOfferingMode)
 , m_focusConfig(CP_FOCUS_IF_AVAILABLE)
 , m_inviteExpiresSeconds(inviteExpiresSeconds)
 {
