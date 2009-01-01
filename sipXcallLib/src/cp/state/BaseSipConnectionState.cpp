@@ -1861,8 +1861,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handleAuthenticationRetryE
 
 UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod) const
 {
-   if (m_rStateContext.m_allowedRemote.index(sMethod) >=0 ||
-       m_rStateContext.m_implicitAllowedRemote.index(sMethod) >= 0)
+   if (m_rStateContext.m_allowedRemote.index(sMethod) != UtlString::UTLSTRING_NOT_FOUND ||
+       m_rStateContext.m_implicitAllowedRemote.index(sMethod) != UtlString::UTLSTRING_NOT_FOUND)
    {
       return TRUE;
    }
@@ -1874,7 +1874,7 @@ UtlBoolean BaseSipConnectionState::isMethodAllowed(const UtlString& sMethod) con
 
 UtlBoolean BaseSipConnectionState::isExtensionSupported(const UtlString& sExtension) const
 {
-   if (m_rStateContext.m_supportedRemote.index(sExtension) >=0)
+   if (m_rStateContext.m_supportedRemote.index(sExtension) != UtlString::UTLSTRING_NOT_FOUND)
    {
       return TRUE;
    }
