@@ -170,7 +170,7 @@ void SipLineProvider::getFullLineUrl(const SipMessage& sipRequest, UtlString& sF
    if (findLineCopy(lineUri, userId, sipLine))
    {
       // we found line
-      sipLine.getFullLineUrl(sFullLineUrl);
+      sFullLineUrl = sipLine.getFullLineUrl().toString();
       return;
    }
 
