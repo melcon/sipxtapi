@@ -973,6 +973,12 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateRequest(const
       prepareSessionTimerResponse(sipMessage, sipResponse); // construct session timer response
       handleSessionTimerResponse(sipResponse); // handle our own response, start session timer..
       sendMessage(sipResponse);
+
+      // 200 OK was sent, update connected identity
+      if (sipMessage.isInSupportedField(SIP_FROM_CHANGE_EXTENSION))
+      {
+         updateSipDialogRemoteField(sipMessage);
+      }
    }
 
    return NULL;
@@ -1034,6 +1040,15 @@ SipConnectionStateTransition* BaseSipConnectionState::processAckRequest(const Si
       if (bProtocolError)
       {
          sendBye(487, "Request terminated due to protocol error");
+      }
+      else
+      {
+         // inbound INVITE terminates, check if we need to update connected identity
+         if (m_rStateContext.m_connectedIdentityState == SipConnectionStateContext::IDENTITY_NOT_YET_ANNOUNCED &&
+            isExtensionSupported(SIP_FROM_CHANGE_EXTENSION))
+         {
+            m_rStateContext.m_connectedIdentityState = SipConnectionStateContext::IDENTITY_ANNOUNCING;
+         }
       }
    }
 
@@ -1567,6 +1582,20 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
       {
          deleteInviteExpirationTimer(); // INVITE was answered
       }
+      // handle connected identity response
+      if (m_rStateContext.m_connectedIdentityState == SipConnectionStateContext::IDENTITY_ANNOUNCING)
+      {
+         if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+         {
+            onConnectedIdentityAccepted();
+         }
+         else if (responseCode >= SIP_4XX_CLASS_CODE &&
+            responseCode != SIP_SMALL_SESSION_INTERVAL_CODE &&
+            responseCode != SIP_REQUEST_PENDING_CODE)
+         {
+            onConnectedIdentityRejected();
+         }
+      }
 
       // process 422 for both initial INVITE and re-INVITE
       if (responseCode == SIP_SMALL_SESSION_INTERVAL_CODE)
@@ -1589,7 +1618,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processInviteResponse(cons
          }
       }
    }
-   // TODO: Implement
+
    return NULL;
 }
 
@@ -1716,6 +1745,20 @@ SipConnectionStateTransition* BaseSipConnectionState::processUpdateResponse(cons
        connectionState != ISipConnectionState::CONNECTION_DIALING &&
        connectionState != ISipConnectionState::CONNECTION_NEWCALL)
    {
+      if (m_rStateContext.m_connectedIdentityState == SipConnectionStateContext::IDENTITY_ANNOUNCING)
+      {
+         if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
+         {
+            onConnectedIdentityAccepted();
+         }
+         else if (responseCode >= SIP_4XX_CLASS_CODE &&
+                  responseCode != SIP_SMALL_SESSION_INTERVAL_CODE &&
+                  responseCode != SIP_REQUEST_PENDING_CODE)
+         {
+            onConnectedIdentityRejected();
+         }
+      }
+
       if (m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipResponse))
       {
          if (responseCode >= SIP_2XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
@@ -3006,9 +3049,10 @@ void BaseSipConnectionState::sendInvite()
    prepareSipRequest(sipInvite, SIP_INVITE_METHOD, seqNum);
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher, so that it is negotiated again
    prepareSessionTimerRequest(sipInvite); // add session timer parameters
-   prepare100relRequest(sipInvite); // optionally require 100rel
+   maybeRequire100rel(sipInvite); // optionally require 100rel
    sipInvite.setExpiresField(m_rStateContext.m_inviteExpiresSeconds);
    startInviteExpirationTimer(m_rStateContext.m_inviteExpiresSeconds, seqNum, TRUE); // it will check again in m_inviteExpiresSeconds, if INVITE is finished
+   announceConnectedIdentity(sipInvite);
 
    // add SDP if negotiation mode is immediate, otherwise don't add it
    if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
@@ -3041,7 +3085,7 @@ void BaseSipConnectionState::sendUpdate(UtlBoolean bRenegotiateCodecs)
    prepareSipRequest(sipUpdate, SIP_UPDATE_METHOD, seqNum);
    m_rStateContext.m_sessionTimerProperties.reset(FALSE); // reset refresher
    prepareSessionTimerRequest(sipUpdate);
-   prepare100relRequest(sipUpdate);
+   announceConnectedIdentity(sipUpdate);
 
    if (bRenegotiateCodecs)
    {
@@ -4210,7 +4254,7 @@ void BaseSipConnectionState::resetRemoteCapabilities()
    m_rStateContext.m_supportedRemoteDiscovered = FALSE;
 }
 
-void BaseSipConnectionState::prepare100relRequest(SipMessage& sipRequest) const
+void BaseSipConnectionState::maybeRequire100rel(SipMessage& sipRequest) const
 {
    if (m_rStateContext.m_100relSetting == CP_100REL_REQUIRE_RELIABLE)
    {
@@ -4274,6 +4318,75 @@ CpSdpNegotiation::SdpBodyType BaseSipConnectionState::getPrackSdpBodyType(const 
    }
 
    return bodyType;
+}
+
+void BaseSipConnectionState::announceConnectedIdentity(SipMessage& sipRequest) const
+{
+   Url fromUrl;
+   sipRequest.getFromUrl(fromUrl);
+
+   if (m_rStateContext.m_connectedIdentityState == SipConnectionStateContext::IDENTITY_ANNOUNCING)
+   {
+      UtlString userId;
+      UtlString hostAddress;
+      int hostPort;
+      UtlString realDisplayName;
+      m_rStateContext.m_realLineIdentity.getUserId(userId);
+      m_rStateContext.m_realLineIdentity.getHostAddress(hostAddress);
+      hostPort = m_rStateContext.m_realLineIdentity.getHostPort();
+      m_rStateContext.m_realLineIdentity.getDisplayName(realDisplayName);
+      // update from Url
+      fromUrl.setUserId(userId);
+      fromUrl.setHostAddress(hostAddress);
+      fromUrl.setHostPort(hostPort);
+      fromUrl.setDisplayName(realDisplayName);
+   }
+}
+
+void BaseSipConnectionState::onConnectedIdentityAccepted()
+{
+   m_rStateContext.m_connectedIdentityState = SipConnectionStateContext::IDENTITY_UP_TO_DATE;
+
+   Url localUrl;
+   {
+      OsReadLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.getLocalField(localUrl);
+   }
+
+   UtlString userId;
+   UtlString hostAddress;
+   int hostPort;
+   UtlString displayName;
+   m_rStateContext.m_realLineIdentity.getUserId(userId);
+   m_rStateContext.m_realLineIdentity.getHostAddress(hostAddress);
+   hostPort = m_rStateContext.m_realLineIdentity.getHostPort();
+   m_rStateContext.m_realLineIdentity.getDisplayName(displayName);
+   // update local Url
+   localUrl.setUserId(userId);
+   localUrl.setHostAddress(hostAddress);
+   localUrl.setHostPort(hostPort);
+   localUrl.setDisplayName(displayName);
+   // update sip dialog
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setLocalField(localUrl);
+   }
+}
+
+void BaseSipConnectionState::onConnectedIdentityRejected()
+{
+   m_rStateContext.m_connectedIdentityState = SipConnectionStateContext::IDENTITY_REJECTED;
+}
+
+void BaseSipConnectionState::updateSipDialogRemoteField(const SipMessage& sipRequest)
+{
+   Url fromUrl;
+   sipRequest.getFromUrl(fromUrl);
+
+   {
+      OsWriteLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.setRemoteField(fromUrl);
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
