@@ -487,7 +487,7 @@ SipConnectionStateTransition* BaseSipConnectionState::transferConsultative(OsSta
    // targetSipDialog identifies call we want to transfer remote participant of our current call to
    // targetSipDialog is some dialog owned by our local call manager
 
-   Url replacesSipUrl;
+   Url referToUrl;
    UtlString callId;
    UtlString fromTag;
    UtlString toTag;
@@ -495,28 +495,28 @@ SipConnectionStateTransition* BaseSipConnectionState::transferConsultative(OsSta
    if (!targetSipDialog.isLocalInitiatedDialog())
    {
       // for inbound calls use remote field
-      targetSipDialog.getRemoteField(replacesSipUrl);
+      targetSipDialog.getRemoteField(referToUrl);
    }
    else
    {
       // for outbound calls use request uri
-      targetSipDialog.getRemoteRequestUri(replacesSipUrl);
+      targetSipDialog.getRemoteRequestUri(referToUrl);
    }
-   replacesSipUrl.removeParameters();
-   replacesSipUrl.setDisplayName(NULL);
-   replacesSipUrl.setPassword(NULL);
-   replacesSipUrl.includeAngleBrackets();
+   referToUrl.removeParameters();
+   referToUrl.setDisplayName(NULL);
+   referToUrl.setPassword(NULL);
+   referToUrl.includeAngleBrackets();
    // construct ?Replaces= ...
    targetSipDialog.getCallId(callId);
    // local tag is compared with to tag in replaces, but we have to swap them, since INVITE will go to remote party, not us
    targetSipDialog.getLocalTag(fromTag); 
    targetSipDialog.getRemoteTag(toTag);
-   replacesSipUrl.setFieldParameter("Replaces", callId);
-   replacesSipUrl.setFieldParameter("to-tag", toTag);
-   replacesSipUrl.setFieldParameter("from-tag", fromTag);
+   UtlString replacesParam;
+   replacesParam.appendFormat("%s;to-tag=%s;from-tag=%s", callId.data(), toTag.data(), fromTag.data());
+   referToUrl.setHeaderParameter("Replaces", replacesParam);
 
-   // Example: Refer-To: <sip:bob@example.org?Replaces=12gc4g345g5xftgza;to-tag=5345;from-tag=6463>
-   result = transferCall(replacesSipUrl);
+   // Example: Refer-To: <sip:bob@example.org?Replaces=12345%40192.168.118.3%3Bto-tag%3D12345%3Bfrom-tag%3D5FFE-3994>
+   result = transferCall(referToUrl);
    return NULL;
 }
 
