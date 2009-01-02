@@ -612,6 +612,9 @@ private:
    /** Returns TRUE if given message should not be processed */
    UtlBoolean skipMessage(const SipMessage& sipMessage) const;
 
+   /** Checks if given SIP address is valid */
+   UtlBoolean isAddressValid(const UtlString& address) const;
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.

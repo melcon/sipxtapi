@@ -237,6 +237,12 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      CP_FOCUS_CONFIG focusConfig)
 {
    OsStatus result = OS_NOT_FOUND;
+
+   if (!isAddressValid(toAddress))
+   {
+      return OS_INVALID_ARGUMENT;
+   }
+
    sSipDialog = SipDialog();
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
@@ -265,6 +271,12 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
                                                CP_FOCUS_CONFIG focusConfig)
 {
    OsStatus result = OS_NOT_FOUND;
+
+   if (!isAddressValid(toAddress))
+   {
+      return OS_INVALID_ARGUMENT;
+   }
+
    sSipDialog = SipDialog();
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
@@ -511,6 +523,11 @@ OsStatus XCpCallManager::transferBlindAbstractCall(const UtlString& sAbstractCal
                                                    const UtlString& sTransferSipUrl)
 {
    OsStatus result = OS_NOT_FOUND;
+
+   if (!isAddressValid(sTransferSipUrl))
+   {
+      return OS_INVALID_ARGUMENT;
+   }
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
    UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
@@ -1562,6 +1579,69 @@ UtlBoolean XCpCallManager::skipMessage(const SipMessage& sipMessage) const
    }
 
    return FALSE;
+}
+
+UtlBoolean XCpCallManager::isAddressValid(const UtlString& address) const
+{
+   UtlBoolean returnCode = TRUE;
+
+   // Check that we are adhering to one of the address schemes
+   // Currently we only support SIP URLs so everything must map
+   // to a SIP URL
+   RegEx ip4Address("^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$");
+
+   // If it is all digits
+   RegEx allDigits("^[0-9*]+$");
+
+   if (allDigits.Search(address.data()))
+   {
+      // There must be a valid default SIP host address (SIP_DIRECTORY_SERVER)
+      UtlString directoryServerAddress;
+      int port;
+      UtlString protocol;
+      m_rSipUserAgent.getDirectoryServer(0, &directoryServerAddress, &port, &protocol);
+
+      // If there is no host or there is an invalid IP4 address
+      // We do not validate DNS host names here so that we do not block
+      if(directoryServerAddress.isNull() // no host
+         || (ip4Address.Search(directoryServerAddress.data())
+         && !OsSocket::isIp4Address(directoryServerAddress)
+         ))
+      {
+         returnCode = FALSE;
+      }
+   }
+   else
+   {
+      // If it is not all digits it must be a SIP URL
+      Url addressUrl(address.data());
+      UtlString urlHost;
+      addressUrl.getHostAddress(urlHost);
+
+      if(urlHost.isNull())
+      {
+         returnCode = FALSE;
+      }
+      else
+      {
+         // If the host name is an IP4 address check that it is valid
+         if (ip4Address.Search(urlHost.data()) && !OsSocket::isIp4Address(urlHost))
+         {
+            returnCode = FALSE;
+         }
+         else
+         {
+            UtlString tagValue;
+            addressUrl.getFieldParameter("tag", tagValue, 0);
+            if (!tagValue.isNull())
+            {
+               returnCode = FALSE;
+            }
+         }
+      }
+   }
+
+   return returnCode;
 }
 
 /* ============================ FUNCTIONS ================================= */
