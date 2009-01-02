@@ -113,6 +113,7 @@
                 <File RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcTransferConsultativeMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcUnholdAllConnectionsMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcUnholdConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcUnmuteInputConnectionMsg.cpp"/>
@@ -226,6 +227,7 @@
                 <File RelativePath=".\include\cp\msg\AcSendInfoMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcTransferConsultativeMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcUnholdAllConnectionsMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcUnholdConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcUnmuteInputConnectionMsg.h"/>

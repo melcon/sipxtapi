@@ -156,6 +156,11 @@ OsStatus XSipConnection::transferBlind(const UtlString& sTransferSipUrl)
    return m_stateMachine.transferBlind(sTransferSipUrl);
 }
 
+OsStatus XSipConnection::transferConsultative(const SipDialog& targetSipDialog)
+{
+   return m_stateMachine.transferConsultative(targetSipDialog);
+}
+
 OsStatus XSipConnection::holdConnection()
 {
    return m_stateMachine.holdConnection();

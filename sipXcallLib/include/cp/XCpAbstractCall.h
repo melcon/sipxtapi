@@ -199,6 +199,15 @@ public:
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
                                   const UtlString& sTransferSipUrl) = 0;
 
+   /**
+    * Consultative transfer given call to target call. Works for simple call and call in a conference. 
+    *
+    * @param sourceSipDialog Source call identifier.
+    * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
+    */
+   virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
+                                         const SipDialog& targetSipDialog) = 0;
+
    /** Starts DTMF tone on call connection.*/
    OsStatus audioToneStart(int iToneId,
                            UtlBoolean bLocal,

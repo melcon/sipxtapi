@@ -30,6 +30,7 @@
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcRenegotiateCodecsAllMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
+#include <cp/msg/AcTransferConsultativeMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 
 // DEFINES
@@ -144,6 +145,13 @@ OsStatus XCpConference::transferBlind(const SipDialog& sipDialog,
 {
    AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
    return postMessage(transferBlindMsg);
+}
+
+OsStatus XCpConference::transferConsultative(const SipDialog& sourceSipDialog,
+                                             const SipDialog& targetSipDialog)
+{
+   AcTransferConsultativeMsg transferConsultativeMsg(sourceSipDialog, targetSipDialog);
+   return postMessage(transferConsultativeMsg);
 }
 
 OsStatus XCpConference::holdConnection(const SipDialog& sipDialog)
@@ -323,6 +331,9 @@ UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_TRANSFER_BLIND:
       handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
       return TRUE;
+   case AcCommandMsg::AC_TRANSFER_CONSULTATIVE:
+      handleTransferConsultative((const AcTransferConsultativeMsg&)rRawMsg);
+      return TRUE;
    case AcCommandMsg::AC_HOLD_CONNECTION:
       handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
       return TRUE;
@@ -383,6 +394,11 @@ OsStatus XCpConference::handleDropAllConnections(const AcDropAllConnectionsMsg& 
 }
 
 OsStatus XCpConference::handleTransferBlind(const AcTransferBlindMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleTransferConsultative(const AcTransferConsultativeMsg& rMsg)
 {
    return OS_FAILED;
 }

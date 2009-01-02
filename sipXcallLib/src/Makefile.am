@@ -82,6 +82,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcRenegotiateCodecsMsg.cpp \
     cp/msg/AcSendInfoMsg.cpp \
     cp/msg/AcTransferBlindMsg.cpp \
+    cp/msg/AcTransferConsultativeMsg.cpp \
     cp/msg/AcUnholdAllConnectionsMsg.cpp \
     cp/msg/AcUnholdConnectionMsg.cpp \
     cp/msg/AcUnmuteInputConnectionMsg.cpp \

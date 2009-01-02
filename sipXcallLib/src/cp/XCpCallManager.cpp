@@ -546,7 +546,39 @@ OsStatus XCpCallManager::transferConsultativeAbstractCall(const UtlString& sSour
                                                           const UtlString& sTargetAbstractCallId,
                                                           const SipDialog& sTargetSipDialog)
 {
-   OsStatus result = OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
+   SipDialog fullTargetSipDialog;
+
+   {
+      OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock, scoped
+      UtlBoolean resFind = m_callStack.findAbstractCall(sTargetAbstractCallId, ptrLock);
+      if (resFind)
+      {
+         // we found call and have a lock on it
+         // get full sip dialog, since the one we got could have only tags & callid. We also need the remaining fields.
+         return ptrLock->getSipDialog(sTargetSipDialog, fullTargetSipDialog);
+      }
+      else
+      {
+         return OS_NOT_FOUND;
+      }
+   }
+
+   if (fullTargetSipDialog.getDialogState() != SipDialog::DIALOG_STATE_ESTABLISHED)
+   {
+      return OS_FAILED;
+   }
+
+   // we cannot lock 2 calls at the same time, it could result in dead lock
+   {
+      OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock, scoped
+      UtlBoolean resFind = m_callStack.findAbstractCall(sSourceAbstractCallId, ptrLock);
+      if (resFind)
+      {
+         // we found call and have a lock on it
+         return ptrLock->transferConsultative(sSourceSipDialog, fullTargetSipDialog);
+      }
+   }
 
    return result;
 }

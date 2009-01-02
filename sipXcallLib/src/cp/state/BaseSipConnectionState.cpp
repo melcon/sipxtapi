@@ -454,36 +454,55 @@ SipConnectionStateTransition* BaseSipConnectionState::dropConnection(OsStatus& r
    return NULL;
 }
 
-SipConnectionStateTransition* BaseSipConnectionState::transferBlind(OsStatus& result, const UtlString& sTransferSipUrl)
+SipConnectionStateTransition* BaseSipConnectionState::transferBlind(OsStatus& result,
+                                                                    const UtlString& sTransferSipUrl)
 {
-   result = OS_FAILED;
-   ISipConnectionState::StateEnum connectionState = getCurrentState();
+   Url transferSipUrl(sTransferSipUrl);
+   transferSipUrl.removeFieldParameters(); // do not remove all parameters
+   transferSipUrl.setDisplayName(NULL);
+   transferSipUrl.setPassword(NULL);
+   transferSipUrl.includeAngleBrackets();
 
-   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED &&
-      m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_NORMAL)
+   result = transferCall(transferSipUrl);
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::transferConsultative(OsStatus& result,
+                                                                           const SipDialog& targetSipDialog)
+{
+   // targetSipDialog identifies call we want to transfer remote participant of our current call to
+   // targetSipDialog is some dialog owned by our local call manager
+
+   Url replacesSipUrl;
+   UtlString callId;
+   UtlString fromTag;
+   UtlString toTag;
+
+   if (!targetSipDialog.isLocalInitiatedDialog())
    {
-      // call is connected and there is no call transfer in progress
-      SipMessage sipRefer;
-      int seqNum = getNextLocalCSeq();
-      prepareSipRequest(sipRefer, SIP_REFER_METHOD, seqNum);
-      setLastSentRefer(sipRefer);
-      m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_TRANSFER_CONTROLLER;
-      m_rStateContext.m_subscriptionId.remove(0);
-      Url localField;
-      {
-         OsReadLock lock(m_rStateContext);
-         m_rStateContext.m_sipDialog.getLocalField(localField);
-      }
-      UtlString referredByUri(localField.getUri().toString());
-      Url transferSipUrl(sTransferSipUrl);
-      UtlString referToUri(transferSipUrl.getUri().toString());
-      sipRefer.setReferredByField(referredByUri);
-      sipRefer.setReferToField(referToUri);
-      sendMessage(sipRefer);
-      // fire event that we are transferring call
-      m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_TRANSFER_EVENT, CP_CALLSTATE_CAUSE_TRANSFER_INITIATED);
+      // for inbound calls use remote field
+      targetSipDialog.getRemoteField(replacesSipUrl);
    }
+   else
+   {
+      // for outbound calls use request uri
+      targetSipDialog.getRemoteRequestUri(replacesSipUrl);
+   }
+   replacesSipUrl.removeParameters();
+   replacesSipUrl.setDisplayName(NULL);
+   replacesSipUrl.setPassword(NULL);
+   replacesSipUrl.includeAngleBrackets();
+   // construct ?Replaces= ...
+   targetSipDialog.getCallId(callId);
+   // local tag is compared with to tag in replaces, but we have to swap them, since INVITE will go to remote party, not us
+   targetSipDialog.getLocalTag(fromTag); 
+   targetSipDialog.getRemoteTag(toTag);
+   replacesSipUrl.setFieldParameter("Replaces", callId);
+   replacesSipUrl.setFieldParameter("to-tag", toTag);
+   replacesSipUrl.setFieldParameter("from-tag", fromTag);
 
+   // Example: Refer-To: <sip:bob@example.org?Replaces=12gc4g345g5xftgza;to-tag=5345;from-tag=6463>
+   result = transferCall(replacesSipUrl);
    return NULL;
 }
 
@@ -4575,6 +4594,50 @@ void BaseSipConnectionState::updateSipDialogRemoteField(const SipMessage& sipReq
       OsWriteLock lock(m_rStateContext);
       m_rStateContext.m_sipDialog.setRemoteField(fromUrl);
    }
+}
+
+OsStatus BaseSipConnectionState::transferCall(const Url& sReferToSipUrl)
+{
+   OsStatus result = OS_FAILED;
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED &&
+      m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_NORMAL)
+   {
+      // call is connected and there is no call transfer in progress
+      SipMessage sipRefer;
+      int seqNum = getNextLocalCSeq();
+      prepareSipRequest(sipRefer, SIP_REFER_METHOD, seqNum);
+      setLastSentRefer(sipRefer);
+      m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_TRANSFER_CONTROLLER;
+      m_rStateContext.m_subscriptionId.remove(0);
+      Url referredByUrl;
+      {
+         OsReadLock lock(m_rStateContext);
+         if (m_rStateContext.m_sipDialog.isLocalInitiatedDialog())
+         {
+            // outbound call
+            m_rStateContext.m_sipDialog.getLocalField(referredByUrl);
+         }
+         else
+         {
+            // inbound call
+            m_rStateContext.m_sipDialog.getLocalRequestUri(referredByUrl);
+         }
+      }
+      referredByUrl.removeParameters(); // remove tag and any other field parameters
+      referredByUrl.setDisplayName(NULL);
+      referredByUrl.setPassword(NULL);
+      referredByUrl.includeAngleBrackets();
+      sipRefer.setReferredByField(referredByUrl.toString());
+      sipRefer.setReferToField(sReferToSipUrl.toString());
+      sendMessage(sipRefer);
+      // fire event that we are transferring call
+      m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_TRANSFER_EVENT, CP_CALLSTATE_CAUSE_TRANSFER_INITIATED);
+      result = OS_SUCCESS;
+   }
+
+   return result;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

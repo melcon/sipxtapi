@@ -37,6 +37,7 @@ class AcUnholdAllConnectionsMsg;
 class AcRenegotiateCodecsMsg;
 class AcRenegotiateCodecsAllMsg;
 class AcSendInfoMsg;
+class AcTransferConsultativeMsg;
 
 /**
  * XCpConference wraps several XSipConnections realizing conference functionality. XCpConference
@@ -137,6 +138,15 @@ public:
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
                                   const UtlString& sTransferSipUrl);
+
+   /**
+   * Consultative transfer given call to target call. Works for simple call and call in a conference. 
+   *
+   * @param sourceSipDialog Source call identifier.
+   * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
+   */
+   virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
+                                         const SipDialog& targetSipDialog);
 
    /**
    * Put the specified terminal connection on hold.
@@ -248,6 +258,8 @@ private:
    OsStatus handleDropAllConnections(const AcDropAllConnectionsMsg& rMsg);
    /** Handles message to initiate blind call transfer */
    OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
+   /** Handles message to initiate consultative call transfer */
+   OsStatus handleTransferConsultative(const AcTransferConsultativeMsg& rMsg);
    /** Handles message to initiate remote hold on sip connection */
    OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
    /** Handles message to initiate remote hold on all sip connections */

@@ -205,6 +205,18 @@ OsStatus SipConnectionStateMachine::transferBlind(const UtlString& sTransferSipU
    return result;
 }
 
+OsStatus SipConnectionStateMachine::transferConsultative(const SipDialog& targetSipDialog)
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->transferConsultative(result, targetSipDialog));
+   }
+
+   return result;
+}
+
 OsStatus SipConnectionStateMachine::holdConnection()
 {
    OsStatus result = OS_FAILED;

@@ -157,6 +157,9 @@ public:
    /** Blind transfer the call to sTransferSipUri. */
    virtual SipConnectionStateTransition* transferBlind(OsStatus& result, const UtlString& sTransferSipUrl);
 
+   /** Consultative transfer call to target call. */
+   virtual SipConnectionStateTransition* transferConsultative(OsStatus& result, const SipDialog& targetSipDialog);
+
    /** Put the specified terminal connection on hold. */
    virtual SipConnectionStateTransition* holdConnection(OsStatus& result);
 
@@ -716,6 +719,12 @@ protected:
 
    /** Updates remote sip dialog field with that from sip message */
    void updateSipDialogRemoteField(const SipMessage& sipRequest);
+
+   /**
+    * Initiates call transfer to given url. For consultative transfer, the url must contain header parameter Replaces,
+    * to-tag and from-tag.
+    */
+   OsStatus transferCall(const Url& sReferToSipUrl);
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages

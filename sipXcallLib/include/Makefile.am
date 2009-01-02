@@ -70,6 +70,7 @@ nobase_include_HEADERS =  \
     cp/msg/AcSendInfoMsg.h \
     cp/msg/AcTimerMsg.h \
     cp/msg/AcTransferBlindMsg.h \
+    cp/msg/AcTransferConsultativeMsg.h \
     cp/msg/AcUnholdAllConnectionsMsg.h \
     cp/msg/AcUnholdConnectionMsg.h \
     cp/msg/AcUnmuteInputConnectionMsg.h \
