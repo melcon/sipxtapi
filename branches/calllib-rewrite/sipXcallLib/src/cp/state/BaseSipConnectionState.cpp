@@ -457,6 +457,13 @@ SipConnectionStateTransition* BaseSipConnectionState::dropConnection(OsStatus& r
 SipConnectionStateTransition* BaseSipConnectionState::transferBlind(OsStatus& result,
                                                                     const UtlString& sTransferSipUrl)
 {
+   if (!isMethodAllowed(SIP_REFER_METHOD))
+   {
+      // remote party must support REFER
+      result = OS_FAILED;
+      return NULL;
+   }
+
    Url transferSipUrl(sTransferSipUrl);
    transferSipUrl.removeFieldParameters(); // do not remove all parameters
    transferSipUrl.setDisplayName(NULL);
@@ -470,6 +477,13 @@ SipConnectionStateTransition* BaseSipConnectionState::transferBlind(OsStatus& re
 SipConnectionStateTransition* BaseSipConnectionState::transferConsultative(OsStatus& result,
                                                                            const SipDialog& targetSipDialog)
 {
+   if (!isMethodAllowed(SIP_REFER_METHOD))
+   {
+      // remote party must support REFER
+      result = OS_FAILED;
+      return NULL;
+   }
+
    // targetSipDialog identifies call we want to transfer remote participant of our current call to
    // targetSipDialog is some dialog owned by our local call manager
 
