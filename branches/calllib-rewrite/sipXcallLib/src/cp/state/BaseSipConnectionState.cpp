@@ -1261,51 +1261,59 @@ SipConnectionStateTransition* BaseSipConnectionState::processNotifyRequest(const
    {
       if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFER_CONTROLLER)
       {
-         m_rStateContext.m_referSubscriptionActive = TRUE; // mark subscription as active, we will need to unsubscribe
+         // get additional details about NOTIFY content
          UtlString eventType;
          UtlString eventId;
-         UtlString contentType;
          sipRequest.getEventField(&eventType, &eventId);
-         sipRequest.getContentType(&contentType);
-         const HttpBody* pBody = sipRequest.getBody();
 
-         if (pBody && eventType.compareTo(SIP_EVENT_REFER) == 0 &&
-             contentType.compareTo(CONTENT_TYPE_MESSAGE_SIPFRAG) == 0)
+         if (eventType.compareTo(SIP_EVENT_REFER) == 0)
          {
-            CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(sipRequest);
-
-            SipMessage sipResponse;
-            sipResponse.setResponseData(&sipRequest, SIP_OK_CODE, SIP_OK_TEXT, getLocalContactUrl());
-            sendMessage(sipResponse);
-
-            // check for retransmission
-            if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+            const HttpBody* pBody = sipRequest.getBody();
+            UtlString contentType;
+            sipRequest.getContentType(&contentType);
+            // maybe deactivate subscription
+            UtlString state;
+            UtlString reason;
+            int expireInSeconds;
+            int retryAfter;
+            sipRequest.getSubscriptionState(state, reason, expireInSeconds, retryAfter);
+            if (state.compareTo(SIP_SUBSCRIPTION_TERMINATED) == 0 || expireInSeconds == 0)
             {
-               // we only like message/sipfrag content
-               m_rStateContext.m_subscriptionId = eventId;
-               // maybe deactivate subscription
-               UtlString state;
-               UtlString reason;
-               int expireInSeconds;
-               int retryAfter;
-               sipRequest.getSubscriptionState(state, reason, expireInSeconds, retryAfter);
-               if (state.compareTo(SIP_SUBSCRIPTION_TERMINATED) == 0 || expireInSeconds == 0)
-               {
-                  m_rStateContext.m_referSubscriptionActive = FALSE;
-               }
-               // extract sipfrag body
-               const char* bodyBytes; // copy of pointer to internal body
-               int bodyLength;
-               pBody->getBytes(&bodyBytes, &bodyLength);
-               // construct sip message from body
-               SipMessage notifyBody(bodyBytes, bodyLength);
-               // handle inner message
-               return handleReferNotifyBody(notifyBody);
+               m_rStateContext.m_referSubscriptionActive = FALSE; // subscription has been terminated
             }
             else
             {
-               // this is a retransmission, ignore NOTIFY
-               return NULL;
+               m_rStateContext.m_referSubscriptionActive = TRUE; // mark subscription as active, we will need to unsubscribe
+            }
+
+            if (pBody &&
+               contentType.compareTo(CONTENT_TYPE_MESSAGE_SIPFRAG) == 0)
+            {
+               CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(sipRequest);
+
+               SipMessage sipResponse;
+               sipResponse.setResponseData(&sipRequest, SIP_OK_CODE, SIP_OK_TEXT, getLocalContactUrl());
+               sendMessage(sipResponse);
+
+               // check for retransmission
+               if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+               {
+                  // we only like message/sipfrag content
+                  m_rStateContext.m_subscriptionId = eventId;
+                  // extract sipfrag body
+                  const char* bodyBytes; // copy of pointer to internal body
+                  int bodyLength;
+                  pBody->getBytes(&bodyBytes, &bodyLength);
+                  // construct sip message from body
+                  SipMessage notifyBody(bodyBytes, bodyLength);
+                  // handle inner message
+                  return handleReferNotifyBody(notifyBody);
+               }
+               else
+               {
+                  // this is a retransmission, ignore NOTIFY
+                  return NULL;
+               }
             }
          }
       }
