@@ -106,6 +106,9 @@ public:
    /** Disconnects call */
    OsStatus dropConnection();
 
+   /** Blind transfer the call to sTransferSipUri. */
+   OsStatus transferBlind(const UtlString& sTransferSipUrl);
+
    /** Put the specified terminal connection on hold. */
    OsStatus holdConnection();
 

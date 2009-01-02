@@ -3622,11 +3622,11 @@ UtlBoolean SipMessage::getEventField(UtlString* eventType,
          UtlString value;
        
          NameValueTokenizer paramPair(eventParam);
-         if (paramPair.getNextPair('=',&name,&value))
+         if (paramPair.getNextPair('=', &name, &value))
          {
-            if (0==name.compareTo("id",UtlString::ignoreCase) && NULL != eventId)
+            if (eventId && name.compareTo("id", UtlString::ignoreCase) == 0)
             {
-               *eventId=value;
+               *eventId = value;
             }
             else if (NULL != params)
             {

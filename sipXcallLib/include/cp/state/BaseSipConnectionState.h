@@ -154,6 +154,9 @@ public:
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
+   /** Blind transfer the call to sTransferSipUri. */
+   virtual SipConnectionStateTransition* transferBlind(OsStatus& result, const UtlString& sTransferSipUrl);
+
    /** Put the specified terminal connection on hold. */
    virtual SipConnectionStateTransition* holdConnection(OsStatus& result);
 
@@ -248,6 +251,11 @@ protected:
 
    /** Handles inbound SIP REFER requests */
    virtual SipConnectionStateTransition* processReferRequest(const SipMessage& sipMessage);
+
+   /**
+    * Handles inbound SIP NOTIFY body for REFER. Response has already been sent.
+    */
+   virtual SipConnectionStateTransition* handleReferNotifyBody(const SipMessage& sipNotifyBody);
 
    /** Handles inbound SIP PRACK requests */
    virtual SipConnectionStateTransition* processPrackRequest(const SipMessage& sipMessage);
@@ -436,6 +444,9 @@ protected:
 
    /** Sets last sent 2xx response to invite */
    void setLastSent2xxToInvite(const SipMessage& sipMessage);
+
+   /** Sets last sent REFER message */
+   void setLastSentRefer(const SipMessage& sipMessage);
 
    /** Gets session timer properties */
    CpSessionTimerProperties& getSessionTimerProperties();
