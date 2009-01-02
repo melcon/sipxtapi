@@ -43,8 +43,9 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_SESSION_TIMER_EXTENSION "timer"
 #define SIP_REPLACES_EXTENSION "replaces"
 #define SIP_JOIN_EXTENSION "join"
-#define SIP_PRACK_EXTENSION "100rel"
+#define SIP_PRACK_EXTENSION "100rel" // rfc3262
 #define SIP_FROM_CHANGE_EXTENSION "from-change" // must not appear in Require: header
+#define SIP_NO_REFER_SUB_EXTENSION "norefersub" // rfc4488
 
 // SIP Methods
 #define SIP_INVITE_METHOD "INVITE"
@@ -1020,7 +1021,7 @@ public:
 
     UtlBoolean getEventField(UtlString& eventField) const;
 
-    void setEventField(const char* eventField);
+    void setEventField(const char* eventField, const char* id = NULL);
 
     UtlBoolean getExpiresField(int* expiresInSeconds) const;
 
@@ -1028,6 +1029,25 @@ public:
 
     UtlBoolean getRequestDisposition(int tokenIndex,
                                     UtlString* dispositionToken) const;
+
+    /**
+     * Sets Subscription-State header field value.
+     */
+    void setSubscriptionState(const UtlString& state,
+                              const UtlString& reason = NULL,
+                              int* expiresInSeconds = NULL,
+                              int* retryAfterSeconds = NULL);
+
+    /**
+    * Gets Subscription-State header field value.
+    *
+    * Default value of integer values is -1. String values
+    * will be empty if not present.
+    */
+    UtlBoolean getSubscriptionState(UtlString& state,
+                                    UtlString& reason,
+                                    int& expiresInSeconds,
+                                    int& retryAfterSeconds);
 
     UtlBoolean getSessionExpires(int* sessionExpiresSeconds, UtlString* refresher) const;
 
