@@ -3659,9 +3659,16 @@ UtlBoolean SipMessage::getEventField(UtlString& eventField) const
    return(value != NULL);
 }
 
-void SipMessage::setEventField(const char* eventField)
+void SipMessage::setEventField(const char* eventField, const char* id)
 {
-    setHeaderValue(SIP_EVENT_FIELD, eventField, 0);
+   UtlString sEventField(eventField);
+
+   if (id && *id)
+   {
+      sEventField.appendFormat(";id=%s", id);
+   }
+
+   setHeaderValue(SIP_EVENT_FIELD, sEventField, 0);
 }
 
 UtlBoolean SipMessage::getExpiresField(int* expiresInSeconds) const
@@ -4207,6 +4214,98 @@ UtlBoolean SipMessage::getContentEncodingField(UtlString* contentEncodingField) 
       contentEncodingField->append(value);
    }
     return(value != NULL);
+}
+
+void SipMessage::setSubscriptionState(const UtlString& state,
+                                      const UtlString& reason,
+                                      int* expiresInSeconds,
+                                      int* retryAfterSeconds)
+{
+   UtlString subscriptionState;
+   subscriptionState.append(state);
+
+   if (!reason.isNull())
+   {
+      subscriptionState.appendFormat(";reason=%s", reason.data());
+   }
+   if (expiresInSeconds)
+   {
+      subscriptionState.appendFormat(";expires=%d", *expiresInSeconds);
+   }
+   if (retryAfterSeconds)
+   {
+      subscriptionState.appendFormat(";retry-after=%d", *retryAfterSeconds);
+   }
+
+   setHeaderValue(SIP_SUBSCRIPTION_STATE_FIELD, subscriptionState, 0);
+}
+
+UtlBoolean SipMessage::getSubscriptionState(UtlString& state,
+                                            UtlString& reason,
+                                            int& expiresInSeconds,
+                                            int& retryAfterSeconds)
+{
+   const char* value;
+   state.remove(0);
+   expiresInSeconds = -1;
+   retryAfterSeconds = -1;
+   reason.remove(0);
+   value = getHeaderValue(0, SIP_SUBSCRIPTION_STATE_FIELD);
+
+   if(value && *value)
+   {
+      UtlBoolean bReasonFound = FALSE;
+      UtlBoolean bExpiresFound = FALSE;
+      UtlBoolean bRetryAfterFound = FALSE;
+      UtlBoolean bFieldFound = TRUE;
+      UtlString sFieldValue(value);
+      UtlString sValue;
+      int i = 1;
+      NameValueTokenizer::frontBackTrim(&sFieldValue, SIP_SUBFIELD_SEPARATORS);
+      if (!sFieldValue.isNull())
+      {
+         // get state value
+         NameValueTokenizer::getSubField(sFieldValue, 0, ";", &state);
+         NameValueTokenizer::frontBackTrim(&state, SIP_SUBFIELD_SEPARATORS);
+         // get reason & expiresInSeconds & retryAfterSeconds
+         while(bFieldFound && (!bReasonFound || !bExpiresFound || !bRetryAfterFound))
+         {
+            sValue.remove(0);
+            bFieldFound = NameValueTokenizer::getSubField(sFieldValue, i++, ";", &sValue);
+            if (bFieldFound)
+            {
+               NameValueTokenizer::frontBackTrim(&sValue, SIP_SUBFIELD_SEPARATORS);
+
+               if (!bReasonFound && sValue.index("reason") == 0)
+               {
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &reason);
+                  NameValueTokenizer::frontBackTrim(&reason, "\t \"");
+                  bReasonFound = TRUE;
+               }
+               else if (!bExpiresFound && sValue.index("expires") == 0)
+               {
+                  UtlString sExpires;
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &sExpires);
+                  NameValueTokenizer::frontBackTrim(&sExpires, SIP_SUBFIELD_SEPARATORS);
+                  expiresInSeconds = atoi(sExpires);
+                  bExpiresFound = TRUE;
+               }
+               else if (!bRetryAfterFound && sValue.index("retry-after") == 0)
+               {
+                  UtlString sRetryAfter;
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &sRetryAfter);
+                  NameValueTokenizer::frontBackTrim(&sRetryAfter, SIP_SUBFIELD_SEPARATORS);
+                  retryAfterSeconds = atoi(sRetryAfter);
+                  bRetryAfterFound = TRUE;
+               }
+            }
+         }
+
+         return TRUE;
+      }
+   }
+
+   return FALSE;
 }
 
 UtlBoolean SipMessage::getSessionExpires(int* sessionExpiresSeconds, UtlString* refresher) const
