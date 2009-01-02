@@ -1047,7 +1047,7 @@ public:
     UtlBoolean getSubscriptionState(UtlString& state,
                                     UtlString& reason,
                                     int& expiresInSeconds,
-                                    int& retryAfterSeconds);
+                                    int& retryAfterSeconds) const;
 
     UtlBoolean getSessionExpires(int* sessionExpiresSeconds, UtlString* refresher) const;
 

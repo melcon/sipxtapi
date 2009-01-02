@@ -4243,7 +4243,7 @@ void SipMessage::setSubscriptionState(const UtlString& state,
 UtlBoolean SipMessage::getSubscriptionState(UtlString& state,
                                             UtlString& reason,
                                             int& expiresInSeconds,
-                                            int& retryAfterSeconds)
+                                            int& retryAfterSeconds) const
 {
    const char* value;
    state.remove(0);
