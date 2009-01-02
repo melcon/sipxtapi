@@ -109,6 +109,9 @@ public:
    /** Blind transfer the call to sTransferSipUri. */
    OsStatus transferBlind(const UtlString& sTransferSipUrl);
 
+   /** Consultative transfer call to target call. */
+   OsStatus transferConsultative(const SipDialog& targetSipDialog);
+
    /** Put the specified terminal connection on hold. */
    OsStatus holdConnection();
 

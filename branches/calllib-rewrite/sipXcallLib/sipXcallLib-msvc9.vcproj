@@ -455,6 +455,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcTransferConsultativeMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcUnholdAllConnectionsMsg.cpp"
 					>
 				</File>
@@ -893,6 +897,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcTransferConsultativeMsg.h"
 					>
 				</File>
 				<File

@@ -48,6 +48,7 @@ public:
       AC_DROP_CONNECTION, ///< drops connection
       AC_DROP_ALL_CONNECTIONS, ///< drops all connections
       AC_TRANSFER_BLIND, ///< initiates blind call transfer
+      AC_TRANSFER_CONSULTATIVE, ///< initiates consultative call transfer
       AC_HOLD_CONNECTION, ///< holds connection
       AC_HOLD_ALL_CONNECTIONS, ///< holds all connections
       AC_UNHOLD_CONNECTION, ///< unholds connection

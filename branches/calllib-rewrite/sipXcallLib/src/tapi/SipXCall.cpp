@@ -1982,13 +1982,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallTransfer(const SIPX_CALL hSourceCall,
    SipDialog targetSipDialog;
 
    // get info about source call
-   SIPX_CALL_DATA* pData = sipxCallLookup(hSourceCall, SIPX_LOCK_WRITE, stackLogger);
+   SIPX_CALL_DATA* pData = sipxCallLookup(hSourceCall, SIPX_LOCK_READ, stackLogger);
    if (pData)
    {
       pInst1 = pData->m_pInst;
       sourceCallId = pData->m_abstractCallId;
       sourceSipDialog = pData->m_sipDialog;
-      sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
+      sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
    }
    else
    {
@@ -1996,13 +1996,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallTransfer(const SIPX_CALL hSourceCall,
    }
 
    // get info about target call
-   pData = sipxCallLookup(hTargetCall, SIPX_LOCK_WRITE, stackLogger);
+   pData = sipxCallLookup(hTargetCall, SIPX_LOCK_READ, stackLogger);
    if (pData)
    {
       pInst2 = pData->m_pInst;
       targetCallId = pData->m_abstractCallId;
       targetSipDialog = pData->m_sipDialog;
-      sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
+      sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
    }
    else
    {

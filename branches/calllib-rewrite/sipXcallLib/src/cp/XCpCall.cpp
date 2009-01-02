@@ -34,6 +34,7 @@
 #include <cp/msg/AcTransferBlindMsg.h>
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
+#include <cp/msg/AcTransferConsultativeMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 #include <cp/msg/CmDestroyAbstractCallMsg.h>
 
@@ -151,6 +152,13 @@ OsStatus XCpCall::transferBlind(const SipDialog& sipDialog,
 {
    AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
    return postMessage(transferBlindMsg);
+}
+
+OsStatus XCpCall::transferConsultative(const SipDialog& sourceSipDialog,
+                                       const SipDialog& targetSipDialog)
+{
+   AcTransferConsultativeMsg transferConsultativeMsg(sourceSipDialog, targetSipDialog);
+   return postMessage(transferConsultativeMsg);
 }
 
 OsStatus XCpCall::holdConnection(const SipDialog& sipDialog)
@@ -283,6 +291,9 @@ UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_TRANSFER_BLIND:
       handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_TRANSFER_CONSULTATIVE:
+      handleTransferConsultative((const AcTransferConsultativeMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_HOLD_CONNECTION:
       handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
@@ -466,6 +477,23 @@ OsStatus XCpCall::handleTransferBlind(const AcTransferBlindMsg& rMsg)
    if (resFound)
    {
       return ptrLock->transferBlind(rMsg.getTransferSipUrl());
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpCall::handleTransferConsultative(const AcTransferConsultativeMsg& rMsg)
+{
+   SipDialog sourceSipDialog;
+   SipDialog targetSipDialog;
+   rMsg.getSourceSipDialog(sourceSipDialog);
+   rMsg.getTargetSipDialog(targetSipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sourceSipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->transferConsultative(targetSipDialog);
    }
 
    return OS_NOT_FOUND;
