@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsSysLog.h>
+#include <net/SipMessage.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/StateTransitionEventDispatcher.h>
@@ -56,6 +57,13 @@ DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
 
 void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   // if we are in the middle of transfer, also terminate implicit subscription
+   if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFER_CONTROLLER &&
+      m_rStateContext.m_referSubscriptionActive)
+   {
+      terminateReferSubscription();
+   }
+   
    terminateSipDialog();
    deleteMediaConnection();
    deleteAllTimers();
@@ -119,5 +127,27 @@ SipConnectionStateTransition* DisconnectedSipConnectionState::getTransition(ISip
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void DisconnectedSipConnectionState::terminateReferSubscription()
+{
+   if (isMethodAllowed(SIP_SUBSCRIBE_METHOD))
+   {
+      // construct sip message
+      SipMessage sipUnsubscribe;
+      int seqNum = getNextLocalCSeq();
+      prepareSipRequest(sipUnsubscribe, SIP_SUBSCRIBE_METHOD, seqNum);
+      sipUnsubscribe.setExpiresField(0); // unsubscribe
+      sipUnsubscribe.setEventField(SIP_EVENT_REFER, m_rStateContext.m_subscriptionId);
+      sipUnsubscribe.setAcceptField(CONTENT_TYPE_MESSAGE_SIPFRAG);
+      // send message
+      sendMessage(sipUnsubscribe);
+   }
+
+   m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_NORMAL;
+   m_rStateContext.m_referSubscriptionActive = FALSE;
+   // we don't care about response code, response will be ignored
+   delete m_rStateContext.m_pLastSentRefer;
+   m_rStateContext.m_pLastSentRefer = NULL;
+}
 
 /* ============================ FUNCTIONS ================================= */

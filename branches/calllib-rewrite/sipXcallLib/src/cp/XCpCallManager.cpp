@@ -111,6 +111,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
    m_rSipUserAgent.allowExtension(SIP_PRACK_EXTENSION);
    m_rSipUserAgent.allowExtension(SIP_JOIN_EXTENSION);
    m_rSipUserAgent.allowExtension(SIP_FROM_CHANGE_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_NO_REFER_SUB_EXTENSION);
 
    m_rMediaInterfaceFactory.setRtpPortRange(m_rtpPortStart, m_rtpPortEnd);
 }

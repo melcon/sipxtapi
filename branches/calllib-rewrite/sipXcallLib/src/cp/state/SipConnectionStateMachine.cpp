@@ -193,6 +193,18 @@ OsStatus SipConnectionStateMachine::dropConnection()
    return result;
 }
 
+OsStatus SipConnectionStateMachine::transferBlind(const UtlString& sTransferSipUrl)
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->transferBlind(result, sTransferSipUrl));
+   }
+
+   return result;
+}
+
 OsStatus SipConnectionStateMachine::holdConnection()
 {
    OsStatus result = OS_FAILED;

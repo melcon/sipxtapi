@@ -153,7 +153,7 @@ OsStatus XSipConnection::dropConnection()
 
 OsStatus XSipConnection::transferBlind(const UtlString& sTransferSipUrl)
 {
-   return OS_FAILED;
+   return m_stateMachine.transferBlind(sTransferSipUrl);
 }
 
 OsStatus XSipConnection::holdConnection()
