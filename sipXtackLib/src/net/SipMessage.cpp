@@ -4417,6 +4417,11 @@ void SipMessage::setServerField(const char* serverField)
    setHeaderValue(SIP_SERVER_FIELD, serverField);
 }
 
+void SipMessage::setAcceptField(const char* acceptField)
+{
+   setHeaderValue(SIP_ACCEPT_FIELD, acceptField);
+}
+
 UtlBoolean SipMessage::getSupportedField(UtlString& supportedField) const
 {
    supportedField.remove(0);
