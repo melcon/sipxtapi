@@ -71,6 +71,7 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 
 XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipUserAgent& rSipUserAgent,
+                                 XCpCallControl& rCallControl,
                                  SipLineProvider* pSipLineProvider,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                                  const SdpCodecList& rDefaultSdpCodecList,
@@ -93,6 +94,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
 , m_rSipUserAgent(rSipUserAgent)
+, m_rCallControl(rCallControl)
 , m_pSipLineProvider(pSipLineProvider)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
 , m_rDefaultSdpCodecList(rDefaultSdpCodecList)
@@ -331,6 +333,18 @@ OsStatus XCpAbstractCall::getSipDialog(const SipDialog& sipDialog,
    }
 
    return result;
+}
+
+UtlBoolean XCpAbstractCall::isConnectionEstablished(const SipDialog& sipDialog) const
+{
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
+   if (resFind)
+   {
+      return ptrLock->isConnectionEstablished();
+   }
+
+   return FALSE;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

@@ -35,6 +35,7 @@ class SipMessageEvent;
 class XSipConnectionContext;
 class SipConnectionStateObserver;
 class SipUserAgent;
+class XCpCallControl;
 class CpMediaInterfaceProvider;
 class CpMessageQueueProvider;
 class XSipConnectionEventSink;
@@ -57,6 +58,8 @@ public:
    
    /** Constructor. */
    SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
+                             XCpCallControl& rCallControl,
+                             const UtlString& sLocalIpAddress, ///< default IP for outbound calls
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
                              CpMessageQueueProvider& rMessageQueueProvider,
                              XSipConnectionEventSink& rSipConnectionEventSink,
@@ -162,7 +165,7 @@ public:
    /**
     * Gets current state code of state machine.
     */
-   ISipConnectionState::StateEnum getCurrentState();
+   ISipConnectionState::StateEnum getCurrentState() const;
 
    /** Gets reference to public Sip connection context. Must be locked when modified. */
    XSipConnectionContext& getSipConnectionContext() const;
@@ -207,6 +210,7 @@ private:
    BaseSipConnectionState* m_pSipConnectionState; ///< pointer to state object handling commands and SipMessageEvents
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
+   XCpCallControl& m_rCallControl; ///< interface for controlling other calls
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
    CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types

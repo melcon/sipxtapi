@@ -753,6 +753,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\XCpCallControl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\XCpCallIdUtil.h"
 				>
 			</File>

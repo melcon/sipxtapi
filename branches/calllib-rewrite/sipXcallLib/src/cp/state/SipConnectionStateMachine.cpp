@@ -36,6 +36,8 @@
 /* ============================ CREATORS ================================== */
 
 SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
+                                                     XCpCallControl& rCallControl,
+                                                     const UtlString& sLocalIpAddress,
                                                      CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                      CpMessageQueueProvider& rMessageQueueProvider,
                                                      XSipConnectionEventSink& rSipConnectionEventSink,
@@ -44,16 +46,18 @@ SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent
 , m_pSipConnectionState(NULL)
 , m_pStateObserver(NULL)
 , m_rSipUserAgent(rSipUserAgent)
+, m_rCallControl(rCallControl)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
 , m_rMessageQueueProvider(rMessageQueueProvider)
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
 , m_natTraversalConfig(natTraversalConfig)
 {
+   m_rStateContext.m_sLocalIpAddress = sLocalIpAddress;
    m_rStateContext.m_sdpNegotiation.setSecurity(m_rStateContext.m_pSecurity); // wire security into sdp negotiation
 
    // deleted in handleStateTransition if unsuccessful
    BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rStateContext, m_rSipUserAgent,
-      m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+      m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
    SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
 
    handleStateTransition(transition);
@@ -83,7 +87,7 @@ UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEven
          // switch to newcall
          // deleted in doHandleStateTransition if unsuccessful
          BaseSipConnectionState* pSipConnectionState = new NewCallSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+            m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
          SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
          handleStateTransition(transition);
       }
@@ -112,7 +116,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
       // switch to dialing
       // deleted in doHandleStateTransition if unsuccessful
       BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rStateContext, m_rSipUserAgent,
-         m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+         m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
       SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
       handleStateTransition(transition);
    }
@@ -343,7 +347,7 @@ void SipConnectionStateMachine::configureSdpOfferingMode(CP_SDP_OFFERING_MODE sd
 
 /* ============================ ACCESSORS ================================= */
 
-ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()
+ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState() const
 {
    if (m_pSipConnectionState)
    {

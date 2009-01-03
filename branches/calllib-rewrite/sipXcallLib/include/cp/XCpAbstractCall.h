@@ -48,6 +48,7 @@ class XCpCallConnectionListener;
 class CpMediaInterfaceFactory;
 class CpMediaInterface;
 class CpCallStateEventListener;
+class XCpCallControl;
 class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
@@ -112,6 +113,7 @@ public:
 
    XCpAbstractCall(const UtlString& sId,
                    SipUserAgent& rSipUserAgent,
+                   XCpCallControl& rCallControl,
                    SipLineProvider* pSipLineProvider,
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
                    const SdpCodecList& rDefaultSdpCodecList,
@@ -369,6 +371,9 @@ public:
    OsStatus getSipDialog(const SipDialog& sipDialog,
                          SipDialog& sOutputSipDialog) const;
 
+   /** Checks if given call exists and is established. */
+   UtlBoolean isConnectionEstablished(const SipDialog& sipDialog) const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
    /** Handles command messages */
@@ -457,6 +462,7 @@ protected:
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    const UtlString m_sId; ///< unique identifier of the abstract call
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   XCpCallControl& m_rCallControl; ///< interface for managing other calls
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
    const SdpCodecList m_rDefaultSdpCodecList; ///< default SdpCodec factory for new calls. Independent of codec list of call manager.
