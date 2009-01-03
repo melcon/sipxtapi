@@ -69,12 +69,14 @@ int BaseSipConnectionState::ms_iInfoTestResponseCode = 0;
 
 BaseSipConnectionState::BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                                                SipUserAgent& rSipUserAgent,
+                                               XCpCallControl& rCallControl,
                                                CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                CpMessageQueueProvider& rMessageQueueProvider,
                                                XSipConnectionEventSink& rSipConnectionEventSink,
                                                const CpNatTraversalConfig& natTraversalConfig)
 : m_rStateContext(rStateContext)
 , m_rSipUserAgent(rSipUserAgent)
+, m_rCallControl(rCallControl)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
 , m_rMessageQueueProvider(rMessageQueueProvider)
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
@@ -86,6 +88,7 @@ BaseSipConnectionState::BaseSipConnectionState(SipConnectionStateContext& rState
 BaseSipConnectionState::BaseSipConnectionState(const BaseSipConnectionState& rhs)
 : m_rStateContext(rhs.m_rStateContext)
 , m_rSipUserAgent(rhs.m_rSipUserAgent)
+, m_rCallControl(rhs.m_rCallControl)
 , m_rMediaInterfaceProvider(rhs.m_rMediaInterfaceProvider)
 , m_rMessageQueueProvider(rhs.m_rMessageQueueProvider)
 , m_rSipConnectionEventSink(rhs.m_rSipConnectionEventSink)
@@ -2627,11 +2630,10 @@ UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) con
 {
    // automatic contact or id not found
    // Get host and port from default local contact
-   UtlString address;
+   UtlString address(m_rStateContext.m_sLocalIpAddress); // use selected IP
    UtlString contactHostPort;
    m_rSipUserAgent.getContactUri(&contactHostPort);
    Url hostPort(contactHostPort);
-   hostPort.getHostAddress(address);
    int port = hostPort.getHostPort();
 
    // Get display name and user id from from Url
@@ -2676,7 +2678,7 @@ void BaseSipConnectionState::secureUrl(Url& fromUrl) const
 UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTransportOptions, int& mediaConnectionId)
 {
    OsStatus res = m_rMediaInterfaceProvider.getMediaInterface()->createConnection(mediaConnectionId,
-               NULL,
+               m_rStateContext.m_sLocalIpAddress,
                0,
                NULL, // no display settings
                (void*)m_rStateContext.m_pSecurity,

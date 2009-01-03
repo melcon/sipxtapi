@@ -43,7 +43,9 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                const SipDialog& sipDialog,
                                SipUserAgent& rSipUserAgent,
+                               XCpCallControl& rCallControl,
                                const UtlString& sFullLineUrl,
+                               const UtlString& sLocalIpAddress,
                                int sessionTimerExpiration,
                                CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                                CP_SIP_UPDATE_CONFIG updateSetting,
@@ -59,7 +61,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
-, m_stateMachine(rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
+, m_stateMachine(rSipUserAgent, rCallControl, sLocalIpAddress, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
 , m_rSipConnectionContext(m_stateMachine.getSipConnectionContext())
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
@@ -343,6 +345,11 @@ SipDialog::DialogMatchEnum XSipConnection::compareSipDialog(const SipDialog& sSi
 SipConnectionStateContext::MediaSessionState XSipConnection::getMediaSessionState() const
 {
    return m_stateMachine.getMediaSessionState();
+}
+
+UtlBoolean XSipConnection::isConnectionEstablished() const
+{
+   return m_stateMachine.getCurrentState() == ISipConnectionState::CONNECTION_ESTABLISHED;
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

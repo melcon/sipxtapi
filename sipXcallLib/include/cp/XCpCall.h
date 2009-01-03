@@ -67,6 +67,7 @@ public:
 
    XCpCall(const UtlString& sId,
            SipUserAgent& rSipUserAgent,
+           XCpCallControl& rCallControl,
            SipLineProvider* pSipLineProvider,
            CpMediaInterfaceFactory& rMediaInterfaceFactory,
            const SdpCodecList& rDefaultSdpCodecList,

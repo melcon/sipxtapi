@@ -43,6 +43,7 @@ class SipMessageEvent;
 class CpMediaEvent;
 class CpCallStateEvent;
 class CpCallStateEventListener;
+class XCpCallControl;
 class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
@@ -72,7 +73,9 @@ public:
    XSipConnection(const UtlString& sAbstractCallId,
                   const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
+                  XCpCallControl& rCallControl,
                   const UtlString& sFullLineUrl,
+                  const UtlString& sLocalIpAddress, ///< default IP for outbound calls
                   int sessionTimerExpiration,
                   CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                   CP_SIP_UPDATE_CONFIG updateSetting,
@@ -295,6 +298,9 @@ public:
 
    /** Gets state of media session */
    SipConnectionStateContext::MediaSessionState getMediaSessionState() const;
+
+   /** Checks if connection is established. */
+   UtlBoolean isConnectionEstablished() const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

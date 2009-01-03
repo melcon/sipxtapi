@@ -46,6 +46,7 @@ class SipUserAgent;
 class CpMediaInterfaceProvider;
 class CpMessageQueueProvider;
 class XSipConnectionEventSink;
+class XCpCallControl;
 class SipConnectionStateTransition;
 class StateTransitionMemory;
 class SipMessage;
@@ -87,6 +88,7 @@ public:
    /** Constructor. */
    BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
+                          XCpCallControl& rCallControl,
                           CpMediaInterfaceProvider& rMediaInterfaceProvider,
                           CpMessageQueueProvider& rMessageQueueProvider,
                           XSipConnectionEventSink& rSipConnectionEventSink,
@@ -406,7 +408,10 @@ protected:
     */
    UtlString getLocalContactUrl() const;
 
-   /** Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress*/
+   /**
+    * Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress.
+    * This function builds contact if we haven't selected any contact ID.
+    */
    UtlString buildDefaultContactUrl(const Url& fromAddress) const;
 
    /** Gets local tag from sip dialog */
@@ -728,6 +733,7 @@ protected:
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   XCpCallControl& m_rCallControl; ///< interface for controlling other calls
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
    CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types

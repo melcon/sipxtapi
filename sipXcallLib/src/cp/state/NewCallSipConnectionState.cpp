@@ -36,11 +36,12 @@
 
 NewCallSipConnectionState::NewCallSipConnectionState(SipConnectionStateContext& rStateContext,
                                                      SipUserAgent& rSipUserAgent,
+                                                     XCpCallControl& rCallControl,
                                                      CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                      CpMessageQueueProvider& rMessageQueueProvider,
                                                      XSipConnectionEventSink& rSipConnectionEventSink,
                                                      const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
@@ -94,6 +95,7 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
    // don't call superclass method
    // here we process the initial INVITE
    setLastReceivedInvite(sipMessage); // remember the INVITE
+   m_rStateContext.m_sLocalIpAddress = sipMessage.getLocalIp();
    // Invite transaction was already started automatically
    // 100 Trying is sent by SipUserAgent
 

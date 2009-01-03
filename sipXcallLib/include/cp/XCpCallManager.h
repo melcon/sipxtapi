@@ -23,6 +23,7 @@
 #include <cp/CpDefs.h>
 #include <cp/CpNatTraversalConfig.h>
 #include <cp/XCpCallStack.h>
+#include <cp/XCpCallControl.h>
 #include <cp/CpAudioCodecInfo.h>
 #include <cp/CpVideoCodecInfo.h>
 
@@ -66,7 +67,7 @@ class ScNotificationMsg;
  * maxCalls value is not strictly respected, it is only a soft limit that can be exceeded a little bit if there are
  * lots of inbound calls at the same time. Set it to number of calls that cause 80% of CPU consumption.
  */
-class XCpCallManager : public OsServerTask
+class XCpCallManager : public OsServerTask, public XCpCallControl
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -180,6 +181,9 @@ public:
     */
    OsStatus dropAbstractCallConnection(const UtlString& sAbstractCallId,
                                        const SipDialog& sSipDialog);
+
+   /** Attempts to drop connection of some abstract call, for given sip dialog */
+   virtual OsStatus dropAbstractCallConnection(const SipDialog& sSipDialog);
 
    /**
     * Disconnects all connections of abstract call (call, conference).
@@ -533,6 +537,9 @@ public:
    OsStatus getSipDialog(const UtlString& sAbstractCallId,
                          const SipDialog& sSipDialog,
                          SipDialog& sOutputSipDialog) const;
+
+   /** Checks if given call exists and is established. */
+   virtual UtlBoolean isCallEstablished(const SipDialog& sipDialog) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

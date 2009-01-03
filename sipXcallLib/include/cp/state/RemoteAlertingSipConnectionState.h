@@ -38,6 +38,7 @@ public:
    /** Constructor. */
    RemoteAlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                                     SipUserAgent& rSipUserAgent,
+                                    XCpCallControl& rCallControl,
                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                     CpMessageQueueProvider& rMessageQueueProvider,
                                     XSipConnectionEventSink& rSipConnectionEventSink,

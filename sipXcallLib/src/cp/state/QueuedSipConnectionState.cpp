@@ -34,11 +34,12 @@
 
 QueuedSipConnectionState::QueuedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                    SipUserAgent& rSipUserAgent,
+                                                   XCpCallControl& rCallControl,
                                                    CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                    CpMessageQueueProvider& rMessageQueueProvider,
                                                    XSipConnectionEventSink& rSipConnectionEventSink,
                                                    const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
