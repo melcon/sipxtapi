@@ -29,10 +29,12 @@
 
 GeneralTransitionMemory::GeneralTransitionMemory(CP_CALLSTATE_CAUSE cause,
                                                  int sipResponseCode,
-                                                 const UtlString& sipResponseText)
+                                                 const UtlString& sipResponseText,
+                                                 const UtlString& originalSessionCallId)
 : m_cause(cause)
 , m_sipResponseCode(sipResponseCode)
 , m_sipResponseText(sipResponseText)
+, m_originalSessionCallId(originalSessionCallId)
 {
 
 }
@@ -46,7 +48,7 @@ GeneralTransitionMemory::~GeneralTransitionMemory()
 
 StateTransitionMemory* GeneralTransitionMemory::clone() const
 {
-   return new GeneralTransitionMemory(m_cause, m_sipResponseCode, m_sipResponseText);
+   return new GeneralTransitionMemory(m_cause, m_sipResponseCode, m_sipResponseText, m_originalSessionCallId);
 }
 
 /* ============================ ACCESSORS ================================= */

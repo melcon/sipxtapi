@@ -15,12 +15,16 @@
 #include <os/OsSysLog.h>
 #include <os/OsWriteLock.h>
 #include <net/SipMessageEvent.h>
+#include <net/SipUserAgent.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/IdleSipConnectionState.h>
 #include <cp/state/SipConnectionStateObserver.h>
 #include <cp/state/SipConnectionStateTransition.h>
 #include <cp/state/DialingSipConnectionState.h>
 #include <cp/state/NewCallSipConnectionState.h>
+#include <cp/state/DisconnectedSipConnectionState.h>
+#include <cp/state/GeneralTransitionMemory.h>
+#include <cp/XCpCallControl.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -84,11 +88,47 @@ UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEven
             OsWriteLock lock(m_rStateContext);
             m_rStateContext.m_sipDialog = sipDialog; // save sip dialog
          }
+         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL;
+         UtlString originalSessionCallId;
+
+         // investigate replaces header - used for consultative call transfer
+         UtlString callId;
+         UtlString fromTag;
+         UtlString toTag;
+         if (pSipMessage->getReplacesData(callId, toTag, fromTag))
+         {
+            // replaces header present, check if call really exists
+            SipDialog sipDialog(callId, toTag, fromTag, FALSE);
+            if (m_rCallControl.isCallEstablished(sipDialog))
+            {
+               // referenced call is established, remember referenced SipDialog
+               m_rStateContext.m_bDropReferencedCall = TRUE;
+               m_rStateContext.m_referencedSipDialog = sipDialog; // save referenced sip dialog
+               callstateCause = CP_CALLSTATE_CAUSE_TRANSFERRED;
+               originalSessionCallId = callId;
+            }
+            else
+            {
+               // referenced call doesn't exist
+               SipMessage sipResponse;
+               sipResponse.setRequestBadRequest(pSipMessage);
+               m_rSipUserAgent.send(sipResponse); // send error response
+               m_rStateContext.m_bSupressCallEvents = TRUE; // don't fire DISCONNECTED event
+               // transition to disconnected state silently
+               BaseSipConnectionState* pSipConnectionState = new DisconnectedSipConnectionState(m_rStateContext, m_rSipUserAgent,
+                  m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+               SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
+               handleStateTransition(transition);
+               return TRUE;
+            }
+         }
+
          // switch to newcall
          // deleted in doHandleStateTransition if unsuccessful
          BaseSipConnectionState* pSipConnectionState = new NewCallSipConnectionState(m_rStateContext, m_rSipUserAgent,
             m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
-         SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
+         GeneralTransitionMemory* pMemory = new GeneralTransitionMemory(callstateCause, 0, NULL, originalSessionCallId);
+         SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState, pMemory);
          handleStateTransition(transition);
       }
    }

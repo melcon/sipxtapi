@@ -19,6 +19,7 @@
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/StateTransitionEventDispatcher.h>
 #include <cp/state/GeneralTransitionMemory.h>
+#include <cp/XCpCallControl.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -69,6 +70,14 @@ void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState, co
 
    m_rStateContext.m_bRedirecting = FALSE;
    m_rStateContext.m_redirectContactList.destroyAll();
+
+   // if we are referencing a call, drop it
+   if (m_rStateContext.m_bDropReferencedCall)
+   {
+      m_rCallControl.dropAbstractCallConnection(m_rStateContext.m_referencedSipDialog);
+      m_rStateContext.m_bDropReferencedCall = FALSE;
+      m_rStateContext.m_referencedSipDialog = SipDialog();
+   }
 
    // set SDP offering to immediate, even if late SDP offering was configured for initial INVITE
    // the reason is, that with late SDP offering, we wouldn't be able to take call off hold
