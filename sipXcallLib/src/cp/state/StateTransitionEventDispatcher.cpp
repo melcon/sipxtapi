@@ -113,6 +113,7 @@ void StateTransitionEventDispatcher::getCallEventDetails(CP_CALLSTATE_CAUSE& cau
                cause = pSipEventMemory->getCause();
                sipResponseCode = pSipEventMemory->getSipResponseCode();
                sipResponseText = pSipEventMemory->getSipResponseText();
+               originalSessionCallId = pSipEventMemory->getOriginalSessionCallId();
             }
             break;
          }

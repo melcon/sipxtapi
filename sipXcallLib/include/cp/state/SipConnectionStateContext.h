@@ -125,6 +125,8 @@ public:
    LocalEntityType m_localEntityType; ///< type of local entity - used to remember if we are in call transfer
    UtlBoolean m_referSubscriptionActive; ///< TRUE if refer subscription is active and should be canceled
    UtlString m_subscriptionId; ///< event ID of subscription if available
+   SipDialog m_referencedSipDialog; ///< referenced sip dialog. Used when we are transfer target with replaces.
+   UtlBoolean m_bDropReferencedCall; ///< drop referenced call when we enter established state
 
    // session timer member variables
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)

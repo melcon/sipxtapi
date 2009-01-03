@@ -65,6 +65,7 @@ public:
     * destroyed.
     */
    int m_mediaEventConnectionId;
+   UtlBoolean m_bSupressCallEvents; ///< TRUE when call events should not be fired
 
    /* ============================ CREATORS ================================== */
 

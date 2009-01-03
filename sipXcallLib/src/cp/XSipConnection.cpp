@@ -591,52 +591,55 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
 #endif
       m_lastCallEvent = eventCode;
 
-      CpCallStateEvent event;
-      prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
-
-      switch(eventCode)
+      if (!m_rSipConnectionContext.m_bSupressCallEvents)
       {
-      case CP_CALLSTATE_NEWCALL:
-         m_pCallEventListener->OnNewCall(event);
-         break;
-      case CP_CALLSTATE_DIALTONE:
-         m_pCallEventListener->OnDialTone(event);
-         break;
-      case CP_CALLSTATE_REMOTE_OFFERING:
-         m_pCallEventListener->OnRemoteOffering(event);
-         break;
-      case CP_CALLSTATE_REMOTE_ALERTING:
-         m_pCallEventListener->OnRemoteAlerting(event);
-         break;
-      case CP_CALLSTATE_CONNECTED:
-         m_pCallEventListener->OnConnected(event);
-         break;
-      case CP_CALLSTATE_BRIDGED:
-         m_pCallEventListener->OnBridged(event);
-         break;
-      case CP_CALLSTATE_HELD:
-         m_pCallEventListener->OnHeld(event);
-         break;
-      case CP_CALLSTATE_REMOTE_HELD:
-         m_pCallEventListener->OnRemoteHeld(event);
-         break;
-      case CP_CALLSTATE_DISCONNECTED:
-         m_pCallEventListener->OnDisconnected(event);
-         break;
-      case CP_CALLSTATE_OFFERING:  
-         m_pCallEventListener->OnOffering(event);
-         break;
-      case CP_CALLSTATE_ALERTING:
-         m_pCallEventListener->OnAlerting(event);
-         break;
-      case CP_CALLSTATE_DESTROYED:
-         m_pCallEventListener->OnDestroyed(event);
-         break;
-      case CP_CALLSTATE_TRANSFER_EVENT:
-         m_pCallEventListener->OnTransferEvent(event);
-         break;
-      default:
-         ;
+         CpCallStateEvent event;
+         prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
+
+         switch(eventCode)
+         {
+         case CP_CALLSTATE_NEWCALL:
+            m_pCallEventListener->OnNewCall(event);
+            break;
+         case CP_CALLSTATE_DIALTONE:
+            m_pCallEventListener->OnDialTone(event);
+            break;
+         case CP_CALLSTATE_REMOTE_OFFERING:
+            m_pCallEventListener->OnRemoteOffering(event);
+            break;
+         case CP_CALLSTATE_REMOTE_ALERTING:
+            m_pCallEventListener->OnRemoteAlerting(event);
+            break;
+         case CP_CALLSTATE_CONNECTED:
+            m_pCallEventListener->OnConnected(event);
+            break;
+         case CP_CALLSTATE_BRIDGED:
+            m_pCallEventListener->OnBridged(event);
+            break;
+         case CP_CALLSTATE_HELD:
+            m_pCallEventListener->OnHeld(event);
+            break;
+         case CP_CALLSTATE_REMOTE_HELD:
+            m_pCallEventListener->OnRemoteHeld(event);
+            break;
+         case CP_CALLSTATE_DISCONNECTED:
+            m_pCallEventListener->OnDisconnected(event);
+            break;
+         case CP_CALLSTATE_OFFERING:  
+            m_pCallEventListener->OnOffering(event);
+            break;
+         case CP_CALLSTATE_ALERTING:
+            m_pCallEventListener->OnAlerting(event);
+            break;
+         case CP_CALLSTATE_DESTROYED:
+            m_pCallEventListener->OnDestroyed(event);
+            break;
+         case CP_CALLSTATE_TRANSFER_EVENT:
+            m_pCallEventListener->OnTransferEvent(event);
+            break;
+         default:
+            ;
+         }
       }
    }
 }

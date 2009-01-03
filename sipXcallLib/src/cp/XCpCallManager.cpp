@@ -571,7 +571,11 @@ OsStatus XCpCallManager::transferConsultativeAbstractCall(const UtlString& sSour
       {
          // we found call and have a lock on it
          // get full sip dialog, since the one we got could have only tags & callid. We also need the remaining fields.
-         return ptrLock->getSipDialog(sTargetSipDialog, fullTargetSipDialog);
+         result = ptrLock->getSipDialog(sTargetSipDialog, fullTargetSipDialog);
+         if (result != OS_SUCCESS)
+         {
+            return result;
+         }
       }
       else
       {

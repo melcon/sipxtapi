@@ -40,7 +40,8 @@ public:
    /** Constructor. */
    GeneralTransitionMemory(CP_CALLSTATE_CAUSE cause,
                            int sipResponseCode = 0,
-                           const UtlString& sipResponseText = NULL);
+                           const UtlString& sipResponseText = NULL,
+                           const UtlString& originalSessionCallId = NULL);
 
    /** Destructor. */
    virtual ~GeneralTransitionMemory();
@@ -54,7 +55,10 @@ public:
 
    int getSipResponseCode() const { return m_sipResponseCode; }
    UtlString getSipResponseText() const { return m_sipResponseText; }
+   void setCause(CP_CALLSTATE_CAUSE val) { m_cause = val; }
    CP_CALLSTATE_CAUSE getCause() const { return m_cause; }
+   void setOriginalSessionCallId(const UtlString& val) { m_originalSessionCallId = val; }
+   UtlString getOriginalSessionCallId() const { return m_originalSessionCallId; }
 
    virtual StateTransitionMemory::Type getType() const
    {
@@ -72,6 +76,7 @@ private:
    CP_CALLSTATE_CAUSE m_cause; ///< cause of event
    int m_sipResponseCode; ///< stores sip response code
    UtlString m_sipResponseText; ///< stores response text
+   UtlString m_originalSessionCallId; ///< referenced sip call-id, from replaces value of INVITE
 };
 
 #endif // GeneralTransitionMemory_h__

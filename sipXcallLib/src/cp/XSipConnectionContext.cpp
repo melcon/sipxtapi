@@ -32,6 +32,7 @@ XSipConnectionContext::XSipConnectionContext()
 : m_memberMutex(OsRWMutex::Q_FIFO)
 , m_mediaConnectionId(CpMediaInterface::INVALID_CONNECTION_ID)
 , m_mediaEventConnectionId(CpMediaInterface::INVALID_CONNECTION_ID)
+, m_bSupressCallEvents(FALSE)
 {
 
 }
