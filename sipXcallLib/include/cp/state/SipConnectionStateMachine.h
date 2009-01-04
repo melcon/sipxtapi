@@ -82,7 +82,9 @@ public:
                     const UtlString& toAddress,
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
-                    CP_CONTACT_ID contactId);
+                    CP_CONTACT_ID contactId,
+                    CP_CALLSTATE_CAUSE callstateCause,
+                    const SipDialog* pCallbackSipDialog);
 
    /** 
    * Accepts inbound call connection.

@@ -235,7 +235,9 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      const UtlString& sSipCallId,
                                      const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId,
-                                     CP_FOCUS_CONFIG focusConfig)
+                                     CP_FOCUS_CONFIG focusConfig,
+                                     CP_CALLSTATE_CAUSE callstateCause,
+                                     const SipDialog* pCallbackSipDialog)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -1761,6 +1763,38 @@ OsStatus XCpCallManager::unsubscribe(CP_NOTIFICATION_TYPE notificationType,
    }
 
    return result;
+}
+
+OsStatus XCpCallManager::createConnectedCall(SipDialog& sipDialog,
+                                             const UtlString& toAddress,
+                                             const UtlString& fullLineUrl,// includes display name, SIP URI
+                                             const UtlString& sSipCallId, // can be used to suggest sip call-id
+                                             const UtlString& locationHeader,
+                                             CP_CONTACT_ID contactId,
+                                             CP_FOCUS_CONFIG focusConfig,
+                                             CP_CALLSTATE_CAUSE callstateCause,
+                                             const SipDialog* pCallbackSipDialog)
+{
+   UtlString sCallId;
+   OsStatus createResult = createCall(sCallId);
+
+   if (createResult == OS_SUCCESS)
+   {
+      // call was created, try to connect it
+      OsStatus connectResult = connectCall(sCallId, sipDialog, toAddress, fullLineUrl, sSipCallId,
+         locationHeader, contactId, focusConfig, callstateCause, pCallbackSipDialog);
+
+      if (connectResult != OS_SUCCESS)
+      {
+         destroyCall(sCallId);
+      }
+
+      return connectResult;
+   }
+   else
+   {
+      return createResult;
+   }
 }
 
 /* ============================ FUNCTIONS ================================= */

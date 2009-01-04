@@ -147,7 +147,9 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
                                             const UtlString& toAddress,
                                             const UtlString& fromAddress,
                                             const UtlString& locationHeader,
-                                            CP_CONTACT_ID contactId)
+                                            CP_CONTACT_ID contactId,
+                                            CP_CALLSTATE_CAUSE callstateCause,
+                                            const SipDialog* pCallbackSipDialog)
 {
    OsStatus result = OS_FAILED;
 
@@ -157,8 +159,15 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
       // deleted in doHandleStateTransition if unsuccessful
       BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rStateContext, m_rSipUserAgent,
          m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
-      SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
+      GeneralTransitionMemory* pMemory = new GeneralTransitionMemory(callstateCause);
+      SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState, pMemory);
       handleStateTransition(transition);
+   }
+
+   if (pCallbackSipDialog)
+   {
+      // also subscribe for connection state notifications
+      m_rStateContext.m_notificationRegister.subscribe(CP_NOTIFICATION_CONNECTION_STATE, *pCallbackSipDialog);
    }
 
    // now let state handle request

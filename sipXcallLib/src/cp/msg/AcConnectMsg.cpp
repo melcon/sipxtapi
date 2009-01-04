@@ -32,7 +32,9 @@ AcConnectMsg::AcConnectMsg(const UtlString& sSipCallId,
                            const UtlString& sFromTag,
                            const UtlString& sFromAddress,
                            const UtlString& sLocationHeader,
-                           CP_CONTACT_ID contactId)
+                           CP_CONTACT_ID contactId,
+                           CP_CALLSTATE_CAUSE callstateCause,
+                           const SipDialog* pCallbackSipDialog)
 : AcCommandMsg(AC_CONNECT)
 , m_sSipCallId(sSipCallId)
 , m_sToAddress(sToAddress)
@@ -40,18 +42,25 @@ AcConnectMsg::AcConnectMsg(const UtlString& sSipCallId,
 , m_sFromAddress(sFromAddress)
 , m_sLocationHeader(sLocationHeader)
 , m_contactId(contactId)
+, m_callstateCause(callstateCause)
+, m_pCallbackSipDialog(NULL)
 {
-
+   if (pCallbackSipDialog)
+   {
+      m_pCallbackSipDialog = new SipDialog(*pCallbackSipDialog);
+   }
 }
 
 AcConnectMsg::~AcConnectMsg()
 {
-
+   delete m_pCallbackSipDialog;
+   m_pCallbackSipDialog = NULL;
 }
 
 OsMsg* AcConnectMsg::createCopy(void) const
 {
-   return new AcConnectMsg(m_sSipCallId, m_sToAddress, m_sLocalTag, m_sFromAddress, m_sLocationHeader, m_contactId);
+   return new AcConnectMsg(m_sSipCallId, m_sToAddress, m_sLocalTag, m_sFromAddress, m_sLocationHeader, m_contactId,
+      m_callstateCause, m_pCallbackSipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

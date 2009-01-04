@@ -99,13 +99,13 @@ public:
 
    virtual void requestShutdown(void);
 
-   /** Creates new empty call. If sCallId, new id is generated. Generated id is returned in sCallId */
+   /** Creates new empty call. If sCallId is NULL, new id is generated. Generated id is returned in sCallId */
    OsStatus createCall(UtlString& sCallId);
 
-   /** Creates new empty conference. If sConferenceId, new id is generated. Generated id is returned in sConferenceId */
+   /** Creates new empty conference. If sConferenceId is NULL, new id is generated. Generated id is returned in sConferenceId */
    OsStatus createConference(UtlString& sConferenceId);
 
-   /** 
+   /**
     * Connects an existing call identified by id, to given address returning SipDialog.
     * SipDialog can be used to retrieve sip call-id and from tag
     */
@@ -113,10 +113,12 @@ public:
                         SipDialog& sSipDialog,
                         const UtlString& toAddress,
                         const UtlString& fullLineUrl,// includes display name, SIP URI
-                        const UtlString& sSipCallId, // can be used to suggest sip call-id
-                        const UtlString& locationHeader,
-                        CP_CONTACT_ID contactId,
-                        CP_FOCUS_CONFIG focusConfig);
+                        const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
+                        const UtlString& locationHeader = NULL,
+                        CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                        CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                        CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                        const SipDialog* pCallbackSipDialog = NULL);
 
    /** 
     * Connects a call in an existing conference identified by id, to given address returning SipDialog.
@@ -643,6 +645,25 @@ private:
    virtual OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
                                 const SipDialog& targetSipDialog,
                                 const SipDialog& callbackSipDialog);
+
+   /**
+   * Creates new call, and starts dialing. Allows to specify call state cause,
+   * that will be used to fire CP_CALLSTATE_DIALTONE event.
+   * @param sipDialog Output parameter, that will receive sip dialog details
+   *        of created call.
+   * @param pCallbackSipDialog Optional parameter. If present, then call state
+   *        notifications will be sent to this call. To cancel notifications, use
+   *        unsubscribe with sipDialog.
+   */
+   virtual OsStatus createConnectedCall(SipDialog& sipDialog,
+                                        const UtlString& toAddress,
+                                        const UtlString& fullLineUrl,// includes display name, SIP URI
+                                        const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
+                                        const UtlString& locationHeader = NULL,
+                                        CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                                        CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                                        CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                                        const SipDialog* pCallbackSipDialog = NULL);
 
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 

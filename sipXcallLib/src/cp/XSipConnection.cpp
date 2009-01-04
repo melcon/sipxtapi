@@ -121,9 +121,12 @@ OsStatus XSipConnection::connect(const UtlString& sipCallId,
                                  const UtlString& toAddress,
                                  const UtlString& fromAddress,
                                  const UtlString& locationHeader,
-                                 CP_CONTACT_ID contactId)
+                                 CP_CONTACT_ID contactId,
+                                 CP_CALLSTATE_CAUSE callstateCause,
+                                 const SipDialog* pCallbackSipDialog)
 {
-   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId);
+   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId,
+      callstateCause, pCallbackSipDialog);
 }
 
 OsStatus XSipConnection::acceptConnection(UtlBoolean bSendSDP,

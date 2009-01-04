@@ -121,7 +121,9 @@ public:
                     const UtlString& toAddress,
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
-                    CP_CONTACT_ID contactId);
+                    CP_CONTACT_ID contactId,
+                    CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                    const SipDialog* pCallbackSipDialog = NULL);
 
    /** 
    * Accepts inbound call connection.

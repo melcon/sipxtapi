@@ -148,7 +148,9 @@ public:
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
                             CP_CONTACT_ID contactId,
-                            CP_FOCUS_CONFIG focusConfig) = 0;
+                            CP_FOCUS_CONFIG focusConfig,
+                            CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                            const SipDialog* pCallbackSipDialog = NULL) = 0;
 
    /** 
    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
