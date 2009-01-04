@@ -226,7 +226,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
 
    // If this is an NEW inbound call (first we are hearing of it), then create
    // a call handle/data structure for it.
-   if (event == CALLSTATE_NEWCALL)
+   if (event == CALLSTATE_NEWCALL || (event == CALLSTATE_DIALTONE && cause == CALLSTATE_CAUSE_TRANSFER))
    {
       pCallData = new SIPX_CALL_DATA();
       pCallData->m_mutex.acquire();
