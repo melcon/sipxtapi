@@ -102,6 +102,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_JOIN_FIELD "JOIN"          //  RFC 3911 Join header
 #define SIP_RECORD_ROUTE_FIELD "RECORD-ROUTE"
 #define SIP_REFER_TO_FIELD "REFER-TO"
+#define SIP_REFER_SUB_FIELD "REFER-SUB"
 #define SIP_SHORT_REFER_TO_FIELD "r"
 #define SIP_REFERRED_BY_FIELD "REFERRED-BY"
 #define SIP_SHORT_REFERRED_BY_FIELD "b"
@@ -1177,6 +1178,10 @@ public:
 
     UtlBoolean getReferToField(UtlString& referToField) const;
 
+    UtlBoolean getReferSubField(UtlBoolean& referSubField) const;
+
+    void setReferSubField(UtlBoolean referSubField);
+
     void setReferredByField(const char* referredByField);
 
     UtlBoolean getReferredByField(UtlString& referredByField) const;
@@ -1187,6 +1192,9 @@ public:
     void setAllowField(const char* referToField);
 
     UtlBoolean getAllowField(UtlString& referToField) const;
+
+    /** Sets Replaces field, used in INVITE */
+    void setReplacesField(const char* replacesField);
 
     UtlBoolean getReplacesData(UtlString& callId,
                               UtlString& toTag,
