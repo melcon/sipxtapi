@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcNotificationMsg_h__
-#define AcNotificationMsg_h__
+#ifndef ScConnStateNotificationMsg_h__
+#define ScConnStateNotificationMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -19,6 +19,8 @@
 #include <os/OsMsg.h>
 #include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
+#include <cp/msg/ScNotificationMsg.h>
+#include <cp/state/ISipConnectionState.h>
 
 // DEFINES
 // MACROS
@@ -30,37 +32,32 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call notification message. Informs call about some event. 
+* Sip connection notification message. Informs sip connection about other connection
+* state change.
 */
-class AcNotificationMsg : public OsMsg
+class ScConnStateNotificationMsg : public ScNotificationMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      ACN_FIRST = 0,
-      ACN_TUNNELED, ///< tunneled abstract call notification message. Payload will be another message.
-   } SubTypesEnum;
-
    /* ============================ CREATORS ================================== */
 
-   AcNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog);
+   ScConnStateNotificationMsg(ISipConnectionState::StateEnum state, const SipDialog& sipDialog);
 
    /** Copy constructor */
-   AcNotificationMsg(const AcNotificationMsg& rhs);
+   ScConnStateNotificationMsg(const ScConnStateNotificationMsg& rMsg);
 
-   virtual ~AcNotificationMsg();
+   virtual ~ScConnStateNotificationMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
 
    /** Assignment operator */
-   AcNotificationMsg& operator=(const AcNotificationMsg& rhs);
+   ScConnStateNotificationMsg& operator=(const ScConnStateNotificationMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
 
-   void getSipDialog(SipDialog& val) { val = m_sipDialog; }
+   ISipConnectionState::StateEnum getState() const { return m_state; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -70,7 +67,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   SipDialog m_sipDialog; ///< sip dialog of call this message should be sent to
+  ISipConnectionState::StateEnum m_state; ///< new connection state
 };
 
-#endif // AcNotificationMsg_h__
+#endif // ScConnStateNotificationMsg_h__

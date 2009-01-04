@@ -68,6 +68,8 @@ public:
       AC_AUDIO_RECORD_STOP, ///< stops call/conference recording
       AC_AUDIO_TONE_START, ///< starts DTMF tone
       AC_AUDIO_TONE_STOP, ///< stops DTMF tone
+      AC_SUBSCRIBE, ///< subscribe to notifications
+      AC_UNSUBSCRIBE, ///< unsubscribe from notifications
    } SubTypeEnum;
 
    /* ============================ CREATORS ================================== */

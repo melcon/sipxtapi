@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/ScNotificationMsg.h>
+#include <cp/msg/AcTunneledNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,42 +27,55 @@
 
 /* ============================ CREATORS ================================== */
 
-ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog)
-: OsMsg(CpMessageTypes::SC_NOFITICATION, (unsigned char)subType)
-, m_sipDialog(sipDialog)
+AcTunneledNotificationMsg::AcTunneledNotificationMsg(const OsMsg& msg, const SipDialog& sipDialog)
+: AcNotificationMsg(AcNotificationMsg::ACN_TUNNELED,  sipDialog)
+, m_pMsg(NULL)
 {
-
+   m_pMsg = msg.createCopy();
 }
 
-ScNotificationMsg::ScNotificationMsg(const ScNotificationMsg& rMsg)
-: OsMsg(rMsg)
-, m_sipDialog(rMsg.m_sipDialog)
+AcTunneledNotificationMsg::AcTunneledNotificationMsg(const AcTunneledNotificationMsg& rhs)
+: AcNotificationMsg(rhs)
+, m_pMsg(NULL)
 {
-
+   if (rhs.m_pMsg)
+   {
+      m_pMsg = rhs.m_pMsg->createCopy();
+   }
 }
 
-ScNotificationMsg::~ScNotificationMsg()
+AcTunneledNotificationMsg::~AcTunneledNotificationMsg()
 {
-
+   delete m_pMsg;
+   m_pMsg = NULL;
 }
 
-OsMsg* ScNotificationMsg::createCopy(void) const
+OsMsg* AcTunneledNotificationMsg::createCopy(void) const
 {
-   return new ScNotificationMsg(*this);
+   return new AcTunneledNotificationMsg(*this);
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-ScNotificationMsg& ScNotificationMsg::operator=(const ScNotificationMsg& rhs)
+AcTunneledNotificationMsg& AcTunneledNotificationMsg::operator=(const AcTunneledNotificationMsg& rhs)
 {
    if (this == &rhs)
    {
       return *this;
    }
 
-   OsMsg::operator=(rhs); // assign fields for parent class
+   AcNotificationMsg::operator=(rhs); // assign fields for parent class
 
-   m_sipDialog = rhs.m_sipDialog;
+   if (m_pMsg)
+   {
+      delete m_pMsg;
+      m_pMsg = NULL;
+   }
+
+   if (rhs.m_pMsg)
+   {
+      m_pMsg = rhs.m_pMsg->createCopy();
+   }
 
    return *this;
 }

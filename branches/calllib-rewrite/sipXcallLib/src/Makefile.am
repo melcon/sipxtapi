@@ -81,11 +81,14 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcRenegotiateCodecsAllMsg.cpp \
     cp/msg/AcRenegotiateCodecsMsg.cpp \
     cp/msg/AcSendInfoMsg.cpp \
+    cp/msg/AcSubscribeMsg.cpp \
     cp/msg/AcTransferBlindMsg.cpp \
     cp/msg/AcTransferConsultativeMsg.cpp \
+    cp/msg/AcTunneledNotificationMsg.cpp \
     cp/msg/AcUnholdAllConnectionsMsg.cpp \
     cp/msg/AcUnholdConnectionMsg.cpp \
     cp/msg/AcUnmuteInputConnectionMsg.cpp \
+    cp/msg/AcUnsubscribeMsg.cpp \
     cp/msg/AcYieldFocusMsg.cpp \
     cp/msg/CmCommandMsg.cpp \
     cp/msg/CmDestroyAbstractCallMsg.cpp \
