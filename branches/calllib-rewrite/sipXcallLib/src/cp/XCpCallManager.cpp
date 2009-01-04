@@ -1418,7 +1418,7 @@ UtlBoolean XCpCallManager::handleUnknownOptionsRequest(const SipMessage& rSipMes
    else if (fromTag.isNull())
    {
       // both tags are NULL
-      // TODO: Investigate if this is the correct place to handle OPTIONS out of dialog
+      // out of dialog OPTIONS is handled by SipUserAgent
    }
    return FALSE;
 }
@@ -1437,7 +1437,11 @@ UtlBoolean XCpCallManager::handleUnknownReferRequest(const SipMessage& rSipMessa
    else
    {
       // handle out of dialog REFER
-      // TODO: Investigate how this should be handled
+      // We do not support out of dialog REFER. We won't start dialing just because somebody from outside
+      // tells us to.
+      SipMessage sipResponse;
+      sipResponse.setResponseData(&rSipMessage, SIP_SERVICE_UNAVAILABLE_CODE, SIP_SERVICE_UNAVAILABLE_TEXT);
+      m_rSipUserAgent.send(sipResponse);
       return TRUE;
    }
 }
