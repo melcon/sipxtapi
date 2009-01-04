@@ -44,14 +44,16 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_pLastReceivedInvite(NULL)
 , m_pLastSent2xxToInvite(NULL)
 , m_pLastSentRefer(NULL)
+, m_pLastReceivedRefer(NULL)
 , m_491failureCounter(0)
 , m_bUseLocalHoldSDP(FALSE)
 , m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
 , m_inviteExpiresSeconds(CP_MAXIMUM_RINGING_EXPIRE_SECONDS)
 , m_connectedIdentityState(SipConnectionStateContext::IDENTITY_NOT_YET_ANNOUNCED)
 , m_localEntityType(SipConnectionStateContext::ENTITY_NORMAL)
-, m_referSubscriptionActive(FALSE)
+, m_referInSubscriptionActive(FALSE)
 , m_bDropReferencedCall(FALSE)
+, m_referOutSubscriptionActive(FALSE)
 , m_bRedirecting(FALSE)
 , m_bAckReceived(FALSE)
 , m_bCancelSent(FALSE)
@@ -85,6 +87,8 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pLastSent2xxToInvite = NULL;
    delete m_pLastSentRefer;
    m_pLastSentRefer = NULL;
+   delete m_pLastReceivedRefer;
+   m_pLastReceivedRefer = NULL;
    delete m_pByeRetryTimer;
    m_pByeRetryTimer = NULL;
    delete m_pCancelTimeoutTimer;

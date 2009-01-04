@@ -62,9 +62,14 @@ void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, c
 
    // if we are in the middle of transfer, also terminate implicit subscription
    if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFER_CONTROLLER &&
-      m_rStateContext.m_referSubscriptionActive)
+      m_rStateContext.m_referInSubscriptionActive)
    {
-      terminateReferSubscription();
+      terminateInReferSubscription();
+   }
+   else if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFEREE &&
+      m_rStateContext.m_referOutSubscriptionActive)
+   {
+      terminateOutReferSubscription(); // implicit REFER subscription is still active
    }
    
    terminateSipDialog();
@@ -131,7 +136,7 @@ SipConnectionStateTransition* DisconnectedSipConnectionState::getTransition(ISip
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-void DisconnectedSipConnectionState::terminateReferSubscription()
+void DisconnectedSipConnectionState::terminateInReferSubscription()
 {
    if (isMethodAllowed(SIP_SUBSCRIBE_METHOD))
    {
@@ -147,10 +152,32 @@ void DisconnectedSipConnectionState::terminateReferSubscription()
    }
 
    m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_NORMAL;
-   m_rStateContext.m_referSubscriptionActive = FALSE;
+   m_rStateContext.m_referInSubscriptionActive = FALSE;
    // we don't care about response code, response will be ignored
    delete m_rStateContext.m_pLastSentRefer;
    m_rStateContext.m_pLastSentRefer = NULL;
+}
+
+void DisconnectedSipConnectionState::terminateOutReferSubscription()
+{
+   if (isMethodAllowed(SIP_NOTIFY_METHOD))
+   {
+      // construct sip message
+      SipMessage sipNotify;
+      int seqNum = getNextLocalCSeq();
+      prepareSipRequest(sipNotify, SIP_NOTIFY_METHOD, seqNum);
+      // we don't use any body, since we have nothing to send
+      sipNotify.setEventField(SIP_EVENT_REFER);
+      sipNotify.setSubscriptionState(SIP_SUBSCRIPTION_TERMINATED, "noresource"); // terminate subscription
+      // send message
+      sendMessage(sipNotify);
+   }
+
+   m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_NORMAL;
+   m_rStateContext.m_referOutSubscriptionActive = FALSE;
+   // we don't care about response code, response will be ignored
+   delete m_rStateContext.m_pLastReceivedRefer;
+   m_rStateContext.m_pLastReceivedRefer = NULL;
 }
 
 /* ============================ FUNCTIONS ================================= */

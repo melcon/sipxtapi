@@ -71,7 +71,8 @@ public:
                                                  const UtlString& toAddress,
                                                  const UtlString& fromAddress,
                                                  const UtlString& locationHeader,
-                                                 CP_CONTACT_ID contactId);
+                                                 CP_CONTACT_ID contactId,
+                                                 const UtlString& replacesField);
 
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);

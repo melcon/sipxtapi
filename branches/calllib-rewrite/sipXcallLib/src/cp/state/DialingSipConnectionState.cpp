@@ -93,7 +93,8 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
                                                                  const UtlString& toAddress,
                                                                  const UtlString& fromAddress,
                                                                  const UtlString& locationHeader,
-                                                                 CP_CONTACT_ID contactId)
+                                                                 CP_CONTACT_ID contactId,
+                                                                 const UtlString& replacesField)
 {
    m_rStateContext.m_contactId = contactId;
    m_rStateContext.m_locationHeader = locationHeader;
@@ -112,6 +113,11 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
       NULL, contactUrl, sipCallId, cseqNum);
    prepareSessionTimerRequest(sipInvite); // add session timer parameters
    maybeRequire100rel(sipInvite); // optionally require 100rel
+
+   if (!replacesField.isNull())
+   {
+      sipInvite.setReplacesField(replacesField); // used in consultative transfer, references some sip dialog
+   }
 
    initializeSipDialog(sipInvite);
 

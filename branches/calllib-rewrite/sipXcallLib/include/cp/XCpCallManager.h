@@ -81,7 +81,7 @@ public:
                   SipUserAgent& rSipUserAgent,
                   const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
-                  const UtlString& sLocalIpAddress, // default IP address for CpMediaInterface
+                  const UtlString& sLocalIpAddress, // default IP address for CpMediaInterface, may be 0.0.0.0
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
                   UtlBoolean bIsRequiredLineMatch,
@@ -117,6 +117,7 @@ public:
                         const UtlString& locationHeader = NULL,
                         CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
                         CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                        const UtlString& replacesField = NULL, // value of Replaces INVITE field
                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                         const SipDialog* pCallbackSipDialog = NULL);
 
@@ -662,6 +663,7 @@ private:
                                         const UtlString& locationHeader = NULL,
                                         CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
                                         CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                                        const UtlString& replacesField = NULL, // value of Replaces INVITE field
                                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                                         const SipDialog* pCallbackSipDialog = NULL);
 
@@ -699,7 +701,7 @@ private:
    // read only fields
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
-   const UtlString m_sLocalIpAddress;
+   UtlString m_sLocalIpAddress; // once set, never modified
    const int m_inviteExpiresSeconds; ///< time in which INVITE must be answered with final response in seconds
 };
 

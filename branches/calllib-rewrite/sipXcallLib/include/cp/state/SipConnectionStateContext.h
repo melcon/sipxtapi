@@ -113,6 +113,7 @@ public:
    SipMessage* m_pLastReceivedInvite; ///< last received INVITE
    SipMessage* m_pLastSent2xxToInvite; ///< last sent 2xx response to INVITE (sent until ACK is received)
    SipMessage* m_pLastSentRefer; ///< last sent REFER. Deleted when REFER finishes or fails.
+   SipMessage* m_pLastReceivedRefer; ///< last received and accepted REFER. Deleted when REFER finishes or fails.
    int m_491failureCounter; ///< counts 491 failures, to avoid infinite loops
    UtlBoolean m_bUseLocalHoldSDP; ///< whether we use local hold SDP when offering or answering
    CP_SIP_UPDATE_CONFIG m_updateSetting; ///< whether UPDATE method is enabled
@@ -125,10 +126,12 @@ public:
 
    // members related to call transfer
    LocalEntityType m_localEntityType; ///< type of local entity - used to remember if we are in call transfer
-   UtlBoolean m_referSubscriptionActive; ///< TRUE if refer subscription is active and should be canceled
+   UtlBoolean m_referInSubscriptionActive; ///< TRUE if refer inbound subscription is active and should be canceled
    UtlString m_subscriptionId; ///< event ID of subscription if available
    SipDialog m_referencedSipDialog; ///< referenced sip dialog. Used when we are transfer target with replaces.
    UtlBoolean m_bDropReferencedCall; ///< drop referenced call when we enter established state
+   SipDialog m_transferSipDialog; ///< sip dialog used to dial new call, when we are transferee
+   UtlBoolean m_referOutSubscriptionActive; ///< TRUE when refer outbound subscription is active and should be canceled. Used to support "norefersub"
 
    // session timer member variables
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)

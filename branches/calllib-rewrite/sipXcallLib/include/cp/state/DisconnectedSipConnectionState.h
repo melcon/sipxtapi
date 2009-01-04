@@ -87,7 +87,10 @@ protected:
 private:
 
    /** Terminates subscription established when REFER is sent and accepted */
-   void terminateReferSubscription();
+   void terminateInReferSubscription();
+
+   /** Terminates subscription established when REFER is accepted (transferee side) */
+   void terminateOutReferSubscription();
 };
 
 #endif // DisconnectedSipConnectionState_h__

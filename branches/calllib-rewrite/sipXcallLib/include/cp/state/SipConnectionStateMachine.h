@@ -83,6 +83,7 @@ public:
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId,
+                    const UtlString& replacesField, // value of Replaces INVITE field
                     CP_CALLSTATE_CAUSE callstateCause,
                     const SipDialog* pCallbackSipDialog);
 

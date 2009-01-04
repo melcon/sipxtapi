@@ -92,7 +92,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_maxCalls(maxCalls)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
-, m_sLocalIpAddress(sLocalIpAddress)
+, m_sLocalIpAddress(NULL)
 , m_sessionTimerExpiration(DEFAULT_SESSION_TIMER_EXPIRATION)
 , m_sessionTimerRefresh(CP_SESSION_REFRESH_AUTO)
 , m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
@@ -114,6 +114,19 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
    m_rSipUserAgent.allowExtension(SIP_NO_REFER_SUB_EXTENSION);
 
    m_rMediaInterfaceFactory.setRtpPortRange(m_rtpPortStart, m_rtpPortEnd);
+
+   if (sLocalIpAddress.compareTo("0.0.0.0") == 0 ||
+      !OsSocket::isIp4Address(sLocalIpAddress))
+   {
+      UtlString contactHostPort;
+      m_rSipUserAgent.getContactUri(&contactHostPort);
+      Url hostPort(contactHostPort);
+      hostPort.getHostAddress(m_sLocalIpAddress);
+   }
+   else
+   {
+      m_sLocalIpAddress = sLocalIpAddress;
+   }
 }
 
 XCpCallManager::~XCpCallManager()
@@ -236,6 +249,7 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId,
                                      CP_FOCUS_CONFIG focusConfig,
+                                     const UtlString& replacesField,
                                      CP_CALLSTATE_CAUSE callstateCause,
                                      const SipDialog* pCallbackSipDialog)
 {
@@ -258,7 +272,8 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
          sTmpSipCallId = getNewSipCallId();
       }
       // we found call and have a lock on it
-      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig,
+         replacesField, callstateCause, pCallbackSipDialog);
    }
 
    return result;
@@ -1772,6 +1787,7 @@ OsStatus XCpCallManager::createConnectedCall(SipDialog& sipDialog,
                                              const UtlString& locationHeader,
                                              CP_CONTACT_ID contactId,
                                              CP_FOCUS_CONFIG focusConfig,
+                                             const UtlString& replacesField,
                                              CP_CALLSTATE_CAUSE callstateCause,
                                              const SipDialog* pCallbackSipDialog)
 {
@@ -1782,7 +1798,7 @@ OsStatus XCpCallManager::createConnectedCall(SipDialog& sipDialog,
    {
       // call was created, try to connect it
       OsStatus connectResult = connectCall(sCallId, sipDialog, toAddress, fullLineUrl, sSipCallId,
-         locationHeader, contactId, focusConfig, callstateCause, pCallbackSipDialog);
+         locationHeader, contactId, focusConfig, replacesField, callstateCause, pCallbackSipDialog);
 
       if (connectResult != OS_SUCCESS)
       {
