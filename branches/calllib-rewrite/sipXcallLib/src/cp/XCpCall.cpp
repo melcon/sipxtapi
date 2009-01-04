@@ -95,7 +95,9 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
                           const UtlString& fromAddress,
                           const UtlString& locationHeader,
                           CP_CONTACT_ID contactId,
-                          CP_FOCUS_CONFIG focusConfig)
+                          CP_FOCUS_CONFIG focusConfig,
+                          CP_CALLSTATE_CAUSE callstateCause,
+                          const SipDialog* pCallbackSipDialog)
 {
    if (sipCallId.isNull() || toAddress.isNull() || fromAddress.isNull())
    {
@@ -106,7 +108,8 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
    UtlString localTag(m_sipTagGenerator.getNewTag());
    sipDialog = SipDialog(sipCallId, localTag, NULL);
 
-   AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId);
+   AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId,
+      callstateCause, pCallbackSipDialog);
    return postMessage(connectMsg);
 }
 
@@ -380,7 +383,7 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    if (resFound)
    {
       result = ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
-         rMsg.getLocationHeader(), rMsg.getContactId());
+         rMsg.getLocationHeader(), rMsg.getContactId(), rMsg.getCallstateCause(), rMsg.getCallbackSipDialog());
    }
 
    return result;

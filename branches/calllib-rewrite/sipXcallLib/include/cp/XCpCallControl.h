@@ -41,6 +41,25 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
+   /**
+   * Creates new call, and starts dialing. Allows to specify call state cause,
+   * that will be used to fire CP_CALLSTATE_DIALTONE event.
+   * @param sipDialog Output parameter, that will receive sip dialog details
+   *        of created call.
+   * @param pCallbackSipDialog Optional parameter. If present, then call state
+   *        notifications will be sent to this call. To cancel notifications, use
+   *        unsubscribe with sipDialog.
+   */
+   virtual OsStatus createConnectedCall(SipDialog& sipDialog,
+                                        const UtlString& toAddress,
+                                        const UtlString& fullLineUrl,// includes display name, SIP URI
+                                        const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
+                                        const UtlString& locationHeader = NULL,
+                                        CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                                        CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                                        CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                                        const SipDialog* pCallbackSipDialog = NULL) = 0;
+
    /** Attempts to drop connection of some abstract call, for given sip dialog */
    virtual OsStatus dropAbstractCallConnection(const SipDialog& sSipDialog) = 0;
 
