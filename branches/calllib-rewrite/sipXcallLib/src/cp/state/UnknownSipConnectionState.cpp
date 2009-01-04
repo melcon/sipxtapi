@@ -58,6 +58,8 @@ UnknownSipConnectionState::~UnknownSipConnectionState()
 
 void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   notifyConnectionStateObservers();
+
    terminateSipDialog();
    deleteMediaConnection();
    deleteAllTimers();

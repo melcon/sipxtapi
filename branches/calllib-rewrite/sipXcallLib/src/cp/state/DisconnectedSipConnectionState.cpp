@@ -58,6 +58,8 @@ DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
 
 void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   notifyConnectionStateObservers();
+
    // if we are in the middle of transfer, also terminate implicit subscription
    if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFER_CONTROLLER &&
       m_rStateContext.m_referSubscriptionActive)

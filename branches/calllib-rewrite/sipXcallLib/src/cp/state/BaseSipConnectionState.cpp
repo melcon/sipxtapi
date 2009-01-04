@@ -17,6 +17,8 @@
 #include <os/OsReadLock.h>
 #include <os/OsTimer.h>
 #include <os/OsTimerNotification.h>
+#include <utl/UtlSList.h>
+#include <utl/UtlSListIterator.h>
 #include <sdp/SdpCodecList.h>
 #include <net/SipMessage.h>
 #include <net/SipUserAgent.h>
@@ -42,7 +44,9 @@
 #include <cp/msg/ScInviteExpirationTimerMsg.h>
 #include <cp/msg/ScDelayedAnswerTimerMsg.h>
 #include <cp/msg/AcDestroyConnectionMsg.h>
+#include <cp/msg/ScConnStateNotificationMsg.h>
 #include <cp/XSipConnectionEventSink.h>
+#include <cp/XCpCallControl.h>
 
 // DEFINES
 #define MAX_491_FAILURES 5
@@ -703,7 +707,16 @@ SipConnectionStateTransition* BaseSipConnectionState::handleCommandMessage(const
 
 SipConnectionStateTransition* BaseSipConnectionState::handleNotificationMessage(const ScNotificationMsg& rMsg)
 {
-   // subclass ScNotificationMsg and call specific handling function
+   ScNotificationMsg::SubTypesEnum type = (ScNotificationMsg::SubTypesEnum)rMsg.getMsgSubType();
+
+   switch (type)
+   {
+   case ScNotificationMsg::SCN_CONNECTION_STATE:
+      return handleConnStateNotificationMessage((const ScConnStateNotificationMsg&)rMsg);
+   default:
+      ;
+   }
+
    return NULL;
 }
 
@@ -2549,6 +2562,12 @@ SipConnectionStateTransition* BaseSipConnectionState::handleDelayedAnswerTimerMe
 
    OsStatus result;
    return answerConnection(result); // try to answer again, if still cannot new timer will be started
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::handleConnStateNotificationMessage(const ScConnStateNotificationMsg& rMsg)
+{
+   // TODO: handle state change notifications
+   return NULL;
 }
 
 UtlString BaseSipConnectionState::getCallId() const
@@ -4654,6 +4673,34 @@ OsStatus BaseSipConnectionState::transferCall(const Url& sReferToSipUrl)
    }
 
    return result;
+}
+
+void BaseSipConnectionState::notifyConnectionStateObservers()
+{
+   const UtlSList* pDialogList = m_rStateContext.m_notificationRegister.getSubscribedDialogs(CP_NOTIFICATION_CONNECTION_STATE);
+   if (pDialogList)
+   {
+      UtlSListIterator itor(*pDialogList);
+      while (itor())
+      {
+         SipDialog* pDialog = dynamic_cast<SipDialog*>(itor.item());
+         if (pDialog)
+         {
+            SipDialog currentSipDialog;
+            {
+               OsReadLock lock(m_rStateContext);
+               currentSipDialog = m_rStateContext.m_sipDialog; // copy current sip dialog
+            }
+            ScConnStateNotificationMsg msg(getCurrentState(), *pDialog, currentSipDialog);
+            if (m_rCallControl.sendMessage(msg, *pDialog) == OS_NOT_FOUND) // send message to subscriber
+            {
+               // call has terminated, unsubscribe it
+               m_rStateContext.m_notificationRegister.unsubscribe(CP_NOTIFICATION_CONNECTION_STATE, *pDialog);
+               pDialog = NULL;
+            }
+         }
+      }
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

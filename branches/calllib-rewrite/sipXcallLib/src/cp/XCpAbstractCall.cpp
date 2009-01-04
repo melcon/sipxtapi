@@ -45,6 +45,8 @@
 #include <cp/msg/AcMuteInputConnectionMsg.h>
 #include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcLimitCodecPreferencesMsg.h>
+#include <cp/msg/AcSubscribeMsg.h>
+#include <cp/msg/AcUnsubscribeMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -249,6 +251,22 @@ OsStatus XCpAbstractCall::limitCodecPreferences(const UtlString& sAudioCodecs,
    return postMessage(limitCodecPreferencesMsg);
 }
 
+OsStatus XCpAbstractCall::subscribe(CP_NOTIFICATION_TYPE notificationType,
+                                    const SipDialog& targetSipDialog,
+                                    const SipDialog& callbackSipDialog)
+{
+   AcSubscribeMsg subscribeMsg(notificationType, targetSipDialog, callbackSipDialog);
+   return postMessage(subscribeMsg);
+}
+
+OsStatus XCpAbstractCall::unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                      const SipDialog& targetSipDialog,
+                                      const SipDialog& callbackSipDialog)
+{
+   AcUnsubscribeMsg unsubscribeMsg(notificationType, targetSipDialog, callbackSipDialog);
+   return postMessage(unsubscribeMsg);
+}
+
 OsStatus XCpAbstractCall::acquireExclusive()
 {
    return m_instanceRWMutex.acquireWrite();
@@ -394,6 +412,12 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
       handleLimitCodecPreferences((const AcLimitCodecPreferencesMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_SUBSCRIBE:
+      handleSubscribe((const AcSubscribeMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_UNSUBSCRIBE:
+      handleUnsubscribe((const AcUnsubscribeMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -650,6 +674,40 @@ OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferen
 {
    UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs()); // add "telephone-event" if its missing
    return doLimitCodecPreferences(audioCodecs, rMsg.getVideoCodecs());
+}
+
+OsStatus XCpAbstractCall::handleSubscribe(const AcSubscribeMsg& rMsg)
+{
+   SipDialog targetSipDialog;
+   SipDialog callbackSipDialog;
+   rMsg.getTargetSipDialog(targetSipDialog);
+   rMsg.getCallbackSipDialog(callbackSipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(targetSipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->subscribe(rMsg.getNotificationType(), callbackSipDialog);
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleUnsubscribe(const AcUnsubscribeMsg& rMsg)
+{
+   SipDialog targetSipDialog;
+   SipDialog callbackSipDialog;
+   rMsg.getTargetSipDialog(targetSipDialog);
+   rMsg.getCallbackSipDialog(callbackSipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(targetSipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->unsubscribe(rMsg.getNotificationType(), callbackSipDialog);
+   }
+
+   return OS_NOT_FOUND;
 }
 
 UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)

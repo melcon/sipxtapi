@@ -42,7 +42,8 @@ public:
    /* ============================ CREATORS ================================== */
 
    AcSubscribeMsg(CP_NOTIFICATION_TYPE notificationType,
-                  const SipDialog& sipDialog);
+                  const SipDialog& targetSipDialog,
+                  const SipDialog& callbackSipDialog);
 
    virtual ~AcSubscribeMsg();
 
@@ -53,7 +54,8 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    CP_NOTIFICATION_TYPE getNotificationType() const { return m_notificationType; }
-   void getSipDialog(SipDialog& val) { val = m_sipDialog; }
+   void getTargetSipDialog(SipDialog& val) const { val = m_targetSipDialog; }
+   void getCallbackSipDialog(SipDialog& val) const { val = m_callbackSipDialog; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -69,7 +71,8 @@ private:
    AcSubscribeMsg& operator=(const AcSubscribeMsg& rhs);
 
    CP_NOTIFICATION_TYPE m_notificationType; ///< type of notification to subscribe
-   SipDialog m_sipDialog; ///< dialog for sending notifications
+   SipDialog m_targetSipDialog; ///< dialog this message is destined for
+   SipDialog m_callbackSipDialog; ///< dialog for sending notifications
 };
 
 #endif // AcSubscribeMsg_h__

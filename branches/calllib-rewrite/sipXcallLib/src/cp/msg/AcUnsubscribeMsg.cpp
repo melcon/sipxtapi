@@ -28,10 +28,12 @@
 /* ============================ CREATORS ================================== */
 
 AcUnsubscribeMsg::AcUnsubscribeMsg(CP_NOTIFICATION_TYPE notificationType,
-                                   const SipDialog& sipDialog)
+                                   const SipDialog& targetSipDialog,
+                                   const SipDialog& callbackSipDialog)
 : AcCommandMsg(AC_UNSUBSCRIBE)
 , m_notificationType(notificationType)
-, m_sipDialog(sipDialog)
+, m_targetSipDialog(targetSipDialog)
+, m_callbackSipDialog(callbackSipDialog)
 {
 
 }
@@ -43,7 +45,7 @@ AcUnsubscribeMsg::~AcUnsubscribeMsg()
 
 OsMsg* AcUnsubscribeMsg::createCopy(void) const
 {
-   return new AcUnsubscribeMsg(m_notificationType, m_sipDialog);
+   return new AcUnsubscribeMsg(m_notificationType, m_targetSipDialog, m_callbackSipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

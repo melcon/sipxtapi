@@ -27,9 +27,12 @@
 
 /* ============================ CREATORS ================================== */
 
-ScConnStateNotificationMsg::ScConnStateNotificationMsg(ISipConnectionState::StateEnum state, const SipDialog& sipDialog)
-: ScNotificationMsg(ScNotificationMsg::SCN_CONNECTION_STATE, sipDialog)
+ScConnStateNotificationMsg::ScConnStateNotificationMsg(ISipConnectionState::StateEnum state,
+                                                       const SipDialog& targetSipDialog,
+                                                       const SipDialog& sourceSipDialog)
+: ScNotificationMsg(ScNotificationMsg::SCN_CONNECTION_STATE, targetSipDialog)
 , m_state(state)
+, m_sourceSipDialog(sourceSipDialog)
 {
 
 }
@@ -37,6 +40,7 @@ ScConnStateNotificationMsg::ScConnStateNotificationMsg(ISipConnectionState::Stat
 ScConnStateNotificationMsg::ScConnStateNotificationMsg(const ScConnStateNotificationMsg& rMsg)
 : ScNotificationMsg(rMsg)
 , m_state(rMsg.m_state)
+, m_sourceSipDialog(rMsg.m_sourceSipDialog)
 {
 
 }
@@ -63,6 +67,7 @@ ScConnStateNotificationMsg& ScConnStateNotificationMsg::operator=(const ScConnSt
    ScNotificationMsg::operator=(rhs); // assign fields for parent class
 
    m_state = rhs.m_state;
+   m_sourceSipDialog = rhs.m_sourceSipDialog;
 
    return *this;
 }

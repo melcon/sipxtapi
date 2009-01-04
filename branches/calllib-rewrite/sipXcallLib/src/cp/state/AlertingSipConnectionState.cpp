@@ -64,6 +64,8 @@ void AlertingSipConnectionState::handleStateEntry(StateEnum previousState, const
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   notifyConnectionStateObservers();
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry alerting connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }

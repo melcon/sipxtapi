@@ -622,6 +622,28 @@ private:
    /** Checks if given SIP address is valid */
    UtlBoolean isAddressValid(const UtlString& address) const;
 
+   /**
+   * Sends message to specified call connection. If connection cannot be found,
+   * OS_NOT_FOUND will be returned, and no more messages should be sent to the same
+   * destination.
+   */
+   virtual OsStatus sendMessage(const OsMsg& msg, const SipDialog& sSipDialog);
+
+   /**
+   * Subscribe for given notification type with given target sip call.
+   * ScNotificationMsg messages will be sent to callbackSipDialog.
+   */
+   virtual OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                              const SipDialog& targetSipDialog,
+                              const SipDialog& callbackSipDialog);
+
+   /**
+   * Unsubscribes for given notification type with given target sip call.
+   */
+   virtual OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                const SipDialog& targetSipDialog,
+                                const SipDialog& callbackSipDialog);
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
