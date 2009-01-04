@@ -69,6 +69,8 @@ class AcAudioToneStopMsg;
 class AcMuteInputConnectionMsg;
 class AcUnmuteInputConnectionMsg;
 class AcLimitCodecPreferencesMsg;
+class AcSubscribeMsg;
+class AcUnsubscribeMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
 class AcTimerMsg;
@@ -319,6 +321,21 @@ public:
                              const size_t nContentLength,
                              void* pCookie) = 0;
 
+   /**
+   * Subscribe for given notification type with given target sip call.
+   * ScNotificationMsg messages will be sent to callbackSipDialog.
+   */
+   OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                      const SipDialog& targetSipDialog,
+                      const SipDialog& callbackSipDialog);
+
+   /**
+   * Unsubscribes for given notification type with given target sip call.
+   */
+   OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                        const SipDialog& targetSipDialog,
+                        const SipDialog& callbackSipDialog);
+
    /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
    virtual OsStatus acquireExclusive();
 
@@ -531,6 +548,12 @@ private:
 
    /** Handles message to limit codec preferences for future sip connections */
    OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
+
+   /** Handles message to subscribe to notifications */
+   OsStatus handleSubscribe(const AcSubscribeMsg& rMsg);
+
+   /** Handles message to unsubscribe from notifications */
+   OsStatus handleUnsubscribe(const AcUnsubscribeMsg& rMsg);
 
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);

@@ -210,6 +210,16 @@ OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
    return m_stateMachine.sendInfo(sContentType, pContent, nContentLength, pCookie);
 }
 
+OsStatus XSipConnection::subscribe(CP_NOTIFICATION_TYPE notificationType, const SipDialog& callbackSipDialog)
+{
+   return m_stateMachine.subscribe(notificationType, callbackSipDialog);
+}
+
+OsStatus XSipConnection::unsubscribe(CP_NOTIFICATION_TYPE notificationType, const SipDialog& callbackSipDialog)
+{
+   return m_stateMachine.unsubscribe(notificationType, callbackSipDialog);
+}
+
 UtlBoolean XSipConnection::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    return m_stateMachine.handleTimerMessage(timerMsg);

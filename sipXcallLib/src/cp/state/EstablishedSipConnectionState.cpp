@@ -65,6 +65,8 @@ void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState, co
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   notifyConnectionStateObservers();
+
    // fire held/remotely held events if media session is held
    fireMediaSessionEvents(TRUE, TRUE);
 

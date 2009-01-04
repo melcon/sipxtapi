@@ -1710,4 +1710,53 @@ UtlBoolean XCpCallManager::isAddressValid(const UtlString& address) const
    return returnCode;
 }
 
+OsStatus XCpCallManager::sendMessage(const OsMsg& msg, const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sSipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->postMessage(msg);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::subscribe(CP_NOTIFICATION_TYPE notificationType,
+                                   const SipDialog& targetSipDialog,
+                                   const SipDialog& callbackSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(targetSipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->subscribe(notificationType, targetSipDialog, callbackSipDialog);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                     const SipDialog& targetSipDialog,
+                                     const SipDialog& callbackSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(targetSipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->unsubscribe(notificationType, targetSipDialog, callbackSipDialog);
+   }
+
+   return result;
+}
+
 /* ============================ FUNCTIONS ================================= */

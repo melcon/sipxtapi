@@ -23,6 +23,7 @@ nobase_include_HEADERS =  \
     cp/CpMultiStringMessage.h \
     cp/CpNatTraversalConfig.h \
     cp/CpNotificationMsgDef.h \
+    cp/CpNotificationRegister.h \
     cp/CpPeerCall.h \
     cp/Cp100RelTracker.h \
     cp/CpSdpNegotiation.h \

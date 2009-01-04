@@ -63,6 +63,8 @@ void QueuedSipConnectionState::handleStateEntry(StateEnum previousState, const S
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   notifyConnectionStateObservers();
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry queued connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }

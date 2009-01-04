@@ -41,7 +41,9 @@ class ScConnStateNotificationMsg : public ScNotificationMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   ScConnStateNotificationMsg(ISipConnectionState::StateEnum state, const SipDialog& sipDialog);
+   ScConnStateNotificationMsg(ISipConnectionState::StateEnum state,
+                              const SipDialog& targetSipDialog,
+                              const SipDialog& sourceSipDialog);
 
    /** Copy constructor */
    ScConnStateNotificationMsg(const ScConnStateNotificationMsg& rMsg);
@@ -58,6 +60,7 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    ISipConnectionState::StateEnum getState() const { return m_state; }
+   void getSourceSipDialog(SipDialog& val) const { val = m_sourceSipDialog; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -68,6 +71,7 @@ protected:
 private:
 
   ISipConnectionState::StateEnum m_state; ///< new connection state
+  SipDialog m_sourceSipDialog; ///< sip dialog of event sender
 };
 
 #endif // ScConnStateNotificationMsg_h__

@@ -280,6 +280,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CpNotificationRegister.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CpPeerCall.cpp"
 				>
 			</File>
@@ -722,6 +726,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpNotificationMsgDef.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpNotificationRegister.h"
 				>
 			</File>
 			<File

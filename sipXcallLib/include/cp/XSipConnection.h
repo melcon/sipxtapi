@@ -217,6 +217,19 @@ public:
                      const size_t nContentLength,
                      void* pCookie);
 
+   /**
+   * Subscribe for given notification type with given target sip call.
+   * ScNotificationMsg messages will be sent to callbackSipDialog.
+   */
+   OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                      const SipDialog& callbackSipDialog);
+
+   /**
+   * Unsubscribes for given notification type with given target sip call.
+   */
+   OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                        const SipDialog& callbackSipDialog);
+
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 

@@ -312,6 +312,18 @@ OsStatus SipConnectionStateMachine::sendInfo(const UtlString& sContentType,
    return result;
 }
 
+OsStatus SipConnectionStateMachine::subscribe(CP_NOTIFICATION_TYPE notificationType,
+                                              const SipDialog& callbackSipDialog)
+{
+   return m_rStateContext.m_notificationRegister.subscribe(notificationType, callbackSipDialog);
+}
+
+OsStatus SipConnectionStateMachine::unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                                const SipDialog& callbackSipDialog)
+{
+   return m_rStateContext.m_notificationRegister.unsubscribe(notificationType, callbackSipDialog);
+}
+
 UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    if (m_pSipConnectionState)

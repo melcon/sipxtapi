@@ -25,6 +25,7 @@
 #include <cp/CpSdpNegotiation.h>
 #include <cp/CpSipTransactionManager.h>
 #include <cp/CpSessionTimerProperties.h>
+#include <cp/CpNotificationRegister.h>
 
 // DEFINES
 // MACROS
@@ -91,6 +92,7 @@ public:
    MediaConnectionState m_remoteMediaConnectionState; ///< keeps track of remote media connection state
    CpSdpNegotiation m_sdpNegotiation; ///< tracks state of SDP negotiation
    CpLoopDetector m_loopDetector; ///< helper class for detecting loops
+   CpNotificationRegister m_notificationRegister; ///< register for inter connection notifications
 
    // member variables storing remote party capabilities
    UtlString m_allowedRemote;  ///< methods supported by the other side

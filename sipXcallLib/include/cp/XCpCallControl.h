@@ -44,6 +44,28 @@ public:
    /** Attempts to drop connection of some abstract call, for given sip dialog */
    virtual OsStatus dropAbstractCallConnection(const SipDialog& sSipDialog) = 0;
 
+   /**
+    * Sends message to specified call connection. If connection cannot be found,
+    * OS_NOT_FOUND will be returned, and no more messages should be sent to the same
+    * destination.
+    */
+   virtual OsStatus sendMessage(const OsMsg& msg, const SipDialog& sSipDialog) = 0;
+
+   /**
+    * Subscribe for given notification type with given target sip call.
+    * ScNotificationMsg messages will be sent to callbackSipDialog.
+    */
+   virtual OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                              const SipDialog& targetSipDialog,
+                              const SipDialog& callbackSipDialog) = 0;
+
+   /**
+    * Unsubscribes for given notification type with given target sip call.
+    */
+   virtual OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                const SipDialog& targetSipDialog,
+                                const SipDialog& callbackSipDialog) = 0;
+
    /* ============================ ACCESSORS ================================= */
 
    /** Checks if given call exists and is established. */

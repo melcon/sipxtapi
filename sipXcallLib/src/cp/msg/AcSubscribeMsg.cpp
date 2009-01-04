@@ -28,10 +28,12 @@
 /* ============================ CREATORS ================================== */
 
 AcSubscribeMsg::AcSubscribeMsg(CP_NOTIFICATION_TYPE notificationType,
-                               const SipDialog& sipDialog)
+                               const SipDialog& targetSipDialog,
+                               const SipDialog& callbackSipDialog)
 : AcCommandMsg(AC_SUBSCRIBE)
 , m_notificationType(notificationType)
-, m_sipDialog(sipDialog)
+, m_targetSipDialog(targetSipDialog)
+, m_callbackSipDialog(callbackSipDialog)
 {
 
 }
@@ -43,7 +45,7 @@ AcSubscribeMsg::~AcSubscribeMsg()
 
 OsMsg* AcSubscribeMsg::createCopy(void) const
 {
-   return new AcSubscribeMsg(m_notificationType, m_sipDialog);
+   return new AcSubscribeMsg(m_notificationType, m_targetSipDialog, m_callbackSipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

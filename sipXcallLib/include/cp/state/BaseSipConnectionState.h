@@ -60,6 +60,7 @@ class ScByeRetryTimerMsg;
 class ScSessionTimeoutTimerMsg;
 class ScInviteExpirationTimerMsg;
 class ScDelayedAnswerTimerMsg;
+class ScConnStateNotificationMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
@@ -381,6 +382,9 @@ protected:
 
    /** Handles delayed answer timer message. */
    virtual SipConnectionStateTransition* handleDelayedAnswerTimerMessage(const ScDelayedAnswerTimerMsg& timerMsg);
+
+   /** Handles connection state notification message. */
+   virtual SipConnectionStateTransition* handleConnStateNotificationMessage(const ScConnStateNotificationMsg& rMsg);
 
    /** Quick access to sip call-id */
    UtlString getCallId() const;
@@ -730,6 +734,9 @@ protected:
     * to-tag and from-tag.
     */
    OsStatus transferCall(const Url& sReferToSipUrl);
+
+   /** notifies connection state observers about current state */
+   void notifyConnectionStateObservers();
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
