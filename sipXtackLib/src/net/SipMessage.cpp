@@ -4544,6 +4544,31 @@ UtlBoolean SipMessage::getReferToField(UtlString& referToField) const
     return(value != NULL);
 }
 
+UtlBoolean SipMessage::getReferSubField(UtlBoolean& referSubField) const
+{
+   referSubField = TRUE;
+
+   const char* value = getHeaderValue(0, SIP_REFER_SUB_FIELD);
+   if (value && *value)
+   {
+      UtlString sReferSubField(value);
+      NameValueTokenizer::frontBackTrim(&sReferSubField, " \t");
+      if (sReferSubField.compareTo("false") == 0)
+      {
+         referSubField = FALSE;
+      }
+
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+void SipMessage::setReferSubField(UtlBoolean referSubField)
+{
+   setHeaderValue(SIP_REFER_SUB_FIELD, referSubField ? "true" : "false");
+}
+
 void SipMessage::setReferredByField(const char* referredByField)
 {
     setHeaderValue(SIP_REFERRED_BY_FIELD, referredByField);
@@ -4574,6 +4599,11 @@ UtlBoolean SipMessage::getReferredByUrls(UtlString* referrerUrl,
             ";", referredToUrl);
     }
     return(value != NULL);
+}
+
+void SipMessage::setReplacesField(const char* replacesField)
+{
+   setHeaderValue(SIP_REPLACES_FIELD, replacesField);
 }
 
 UtlBoolean SipMessage::getReplacesData(UtlString& callId,
