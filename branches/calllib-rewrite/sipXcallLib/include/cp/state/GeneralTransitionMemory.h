@@ -62,7 +62,7 @@ public:
 
    virtual StateTransitionMemory::Type getType() const
    {
-      return SIP_RESPONSE_MEMORY;
+      return GENERAL_EVENT_MEMORY;
    }
 
    /* ============================ INQUIRY =================================== */
