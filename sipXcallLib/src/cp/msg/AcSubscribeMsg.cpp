@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/ScNotificationMsg.h>
+#include <cp/msg/AcSubscribeMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,45 +27,26 @@
 
 /* ============================ CREATORS ================================== */
 
-ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog)
-: OsMsg(CpMessageTypes::SC_NOFITICATION, (unsigned char)subType)
+AcSubscribeMsg::AcSubscribeMsg(CP_NOTIFICATION_TYPE notificationType,
+                               const SipDialog& sipDialog)
+: AcCommandMsg(AC_SUBSCRIBE)
+, m_notificationType(notificationType)
 , m_sipDialog(sipDialog)
 {
 
 }
 
-ScNotificationMsg::ScNotificationMsg(const ScNotificationMsg& rMsg)
-: OsMsg(rMsg)
-, m_sipDialog(rMsg.m_sipDialog)
+AcSubscribeMsg::~AcSubscribeMsg()
 {
 
 }
 
-ScNotificationMsg::~ScNotificationMsg()
+OsMsg* AcSubscribeMsg::createCopy(void) const
 {
-
-}
-
-OsMsg* ScNotificationMsg::createCopy(void) const
-{
-   return new ScNotificationMsg(*this);
+   return new AcSubscribeMsg(m_notificationType, m_sipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */
-
-ScNotificationMsg& ScNotificationMsg::operator=(const ScNotificationMsg& rhs)
-{
-   if (this == &rhs)
-   {
-      return *this;
-   }
-
-   OsMsg::operator=(rhs); // assign fields for parent class
-
-   m_sipDialog = rhs.m_sipDialog;
-
-   return *this;
-}
 
 /* ============================ ACCESSORS ================================= */
 

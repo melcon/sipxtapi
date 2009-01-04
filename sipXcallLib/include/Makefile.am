@@ -69,12 +69,15 @@ nobase_include_HEADERS =  \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcSubscribeMsg.h \
     cp/msg/AcTimerMsg.h \
     cp/msg/AcTransferBlindMsg.h \
     cp/msg/AcTransferConsultativeMsg.h \
+    cp/msg/AcTunneledNotificationMsg.h \
     cp/msg/AcUnholdAllConnectionsMsg.h \
     cp/msg/AcUnholdConnectionMsg.h \
     cp/msg/AcUnmuteInputConnectionMsg.h \
+    cp/msg/AcUnsubscribeMsg.h \
     cp/msg/AcYieldFocusMsg.h \
     cp/msg/CmCommandMsg.h \
     cp/msg/CmDestroyAbstractCallMsg.h \
@@ -86,6 +89,7 @@ nobase_include_HEADERS =  \
     cp/msg/Sc2xxTimerMsg.h \
     cp/msg/ScByeRetryTimerMsg.h \
     cp/msg/ScCommandMsg.h \
+    cp/msg/ScConnStateNotificationMsg.h \
     cp/msg/ScDelayedAnswerTimerMsg.h \
     cp/msg/ScDisconnectTimerMsg.h \
     cp/msg/ScInviteExpirationTimerMsg.h \

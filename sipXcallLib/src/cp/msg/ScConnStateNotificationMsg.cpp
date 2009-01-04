@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/ScNotificationMsg.h>
+#include <cp/msg/ScConnStateNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,42 +27,42 @@
 
 /* ============================ CREATORS ================================== */
 
-ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog)
-: OsMsg(CpMessageTypes::SC_NOFITICATION, (unsigned char)subType)
-, m_sipDialog(sipDialog)
+ScConnStateNotificationMsg::ScConnStateNotificationMsg(ISipConnectionState::StateEnum state, const SipDialog& sipDialog)
+: ScNotificationMsg(ScNotificationMsg::SCN_CONNECTION_STATE, sipDialog)
+, m_state(state)
 {
 
 }
 
-ScNotificationMsg::ScNotificationMsg(const ScNotificationMsg& rMsg)
-: OsMsg(rMsg)
-, m_sipDialog(rMsg.m_sipDialog)
+ScConnStateNotificationMsg::ScConnStateNotificationMsg(const ScConnStateNotificationMsg& rMsg)
+: ScNotificationMsg(rMsg)
+, m_state(rMsg.m_state)
 {
 
 }
 
-ScNotificationMsg::~ScNotificationMsg()
+ScConnStateNotificationMsg::~ScConnStateNotificationMsg()
 {
 
 }
 
-OsMsg* ScNotificationMsg::createCopy(void) const
+OsMsg* ScConnStateNotificationMsg::createCopy(void) const
 {
-   return new ScNotificationMsg(*this);
+   return new ScConnStateNotificationMsg(*this);
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-ScNotificationMsg& ScNotificationMsg::operator=(const ScNotificationMsg& rhs)
+ScConnStateNotificationMsg& ScConnStateNotificationMsg::operator=(const ScConnStateNotificationMsg& rhs)
 {
    if (this == &rhs)
    {
       return *this;
    }
 
-   OsMsg::operator=(rhs); // assign fields for parent class
+   ScNotificationMsg::operator=(rhs); // assign fields for parent class
 
-   m_sipDialog = rhs.m_sipDialog;
+   m_state = rhs.m_state;
 
    return *this;
 }

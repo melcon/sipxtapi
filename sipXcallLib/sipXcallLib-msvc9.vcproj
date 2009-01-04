@@ -447,6 +447,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcSubscribeMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcTimerMsg.cpp"
 					>
 				</File>
@@ -459,6 +463,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcTunneledNotificationMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcUnholdAllConnectionsMsg.cpp"
 					>
 				</File>
@@ -468,6 +476,10 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\AcUnmuteInputConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcUnsubscribeMsg.cpp"
 					>
 				</File>
 				<File
@@ -512,6 +524,10 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\ScCommandMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScConnStateNotificationMsg.cpp"
 					>
 				</File>
 				<File
@@ -896,6 +912,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcSubscribeMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcTimerMsg.h"
 					>
 				</File>
@@ -908,6 +928,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcTunneledNotificationMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcUnholdAllConnectionsMsg.h"
 					>
 				</File>
@@ -917,6 +941,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcUnmuteInputConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcUnsubscribeMsg.h"
 					>
 				</File>
 				<File
@@ -961,6 +989,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\ScCommandMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScConnStateNotificationMsg.h"
 					>
 				</File>
 				<File

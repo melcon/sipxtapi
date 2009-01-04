@@ -41,18 +41,25 @@ class ScNotificationMsg : public OsMsg
 public:
    typedef enum
    {
-      CM_EMPTY = 0,
+      SCN_FIRST = 0,
+      SCN_CONNECTION_STATE, ///< connection state notification
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */
 
    ScNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog);
 
+   /** Copy constructor */
+   ScNotificationMsg(const ScNotificationMsg& rMsg);
+
    virtual ~ScNotificationMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
+
+   /** Assignment operator */
+   ScNotificationMsg& operator=(const ScNotificationMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -65,11 +72,6 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Private copy constructor */
-   ScNotificationMsg(const ScNotificationMsg& rMsg);
-
-   /** Private assignment operator */
-   ScNotificationMsg& operator=(const ScNotificationMsg& rhs);
 
    SipDialog m_sipDialog; ///< sip dialog where this message should be routed
 };

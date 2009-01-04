@@ -10,15 +10,18 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcNotificationMsg_h__
-#define AcNotificationMsg_h__
+#ifndef AcSubscribeMsg_h__
+#define AcSubscribeMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <net/SipDialog.h>
+#include <utl/UtlString.h>
+#include <cp/CpDefs.h>
 #include <cp/CpMessageTypes.h>
+#include <cp/msg/AcCommandMsg.h>
 
 // DEFINES
 // MACROS
@@ -30,36 +33,26 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call notification message. Informs call about some event. 
+* Abstract call command message. Subscribes connection to some notifications.
 */
-class AcNotificationMsg : public OsMsg
+class AcSubscribeMsg : public AcCommandMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      ACN_FIRST = 0,
-      ACN_TUNNELED, ///< tunneled abstract call notification message. Payload will be another message.
-   } SubTypesEnum;
-
    /* ============================ CREATORS ================================== */
 
-   AcNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog);
+   AcSubscribeMsg(CP_NOTIFICATION_TYPE notificationType,
+                  const SipDialog& sipDialog);
 
-   /** Copy constructor */
-   AcNotificationMsg(const AcNotificationMsg& rhs);
-
-   virtual ~AcNotificationMsg();
+   virtual ~AcSubscribeMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
 
-   /** Assignment operator */
-   AcNotificationMsg& operator=(const AcNotificationMsg& rhs);
-
    /* ============================ ACCESSORS ================================= */
 
+   CP_NOTIFICATION_TYPE getNotificationType() const { return m_notificationType; }
    void getSipDialog(SipDialog& val) { val = m_sipDialog; }
 
    /* ============================ INQUIRY =================================== */
@@ -69,8 +62,14 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   AcSubscribeMsg(const AcSubscribeMsg& rMsg);
 
-   SipDialog m_sipDialog; ///< sip dialog of call this message should be sent to
+   /** Private assignment operator */
+   AcSubscribeMsg& operator=(const AcSubscribeMsg& rhs);
+
+   CP_NOTIFICATION_TYPE m_notificationType; ///< type of notification to subscribe
+   SipDialog m_sipDialog; ///< dialog for sending notifications
 };
 
-#endif // AcNotificationMsg_h__
+#endif // AcSubscribeMsg_h__

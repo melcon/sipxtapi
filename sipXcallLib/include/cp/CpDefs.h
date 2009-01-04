@@ -383,6 +383,14 @@ typedef enum CP_FOCUS_CONFIG
    CP_FOCUS_ALWAYS        /**< Always focus new call, and defocus previously active call */
 } CP_FOCUS_CONFIG;
 
+/**
+ * Defines types of notifications that can exist between call connections.
+ */
+typedef enum CP_NOTIFICATION_TYPE
+{
+   CP_NOTIFICATION_CONNECTION_STATE
+} CP_NOTIFICATION_TYPE;
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS

@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcNotificationMsg_h__
-#define AcNotificationMsg_h__
+#ifndef AcTunneledNotificationMsg_h__
+#define AcTunneledNotificationMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -19,6 +19,7 @@
 #include <os/OsMsg.h>
 #include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
+#include <cp/msg/AcNotificationMsg.h>
 
 // DEFINES
 // MACROS
@@ -32,35 +33,29 @@
 /**
 * Abstract call notification message. Informs call about some event. 
 */
-class AcNotificationMsg : public OsMsg
+class AcTunneledNotificationMsg : public AcNotificationMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      ACN_FIRST = 0,
-      ACN_TUNNELED, ///< tunneled abstract call notification message. Payload will be another message.
-   } SubTypesEnum;
-
    /* ============================ CREATORS ================================== */
 
-   AcNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog);
+   AcTunneledNotificationMsg(const OsMsg& msg, const SipDialog& sipDialog);
 
    /** Copy constructor */
-   AcNotificationMsg(const AcNotificationMsg& rhs);
+   AcTunneledNotificationMsg(const AcTunneledNotificationMsg& rhs);
 
-   virtual ~AcNotificationMsg();
+   virtual ~AcTunneledNotificationMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
 
    /** Assignment operator */
-   AcNotificationMsg& operator=(const AcNotificationMsg& rhs);
+   AcTunneledNotificationMsg& operator=(const AcTunneledNotificationMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
 
-   void getSipDialog(SipDialog& val) { val = m_sipDialog; }
+   const OsMsg* getMsg() const { return m_pMsg; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -70,7 +65,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   SipDialog m_sipDialog; ///< sip dialog of call this message should be sent to
+   OsMsg* m_pMsg; ///< inner message, that should be processed in target call
 };
 
-#endif // AcNotificationMsg_h__
+#endif // AcTunneledNotificationMsg_h__
