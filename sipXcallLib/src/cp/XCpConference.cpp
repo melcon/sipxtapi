@@ -89,6 +89,7 @@ OsStatus XCpConference::connect(const UtlString& sipCallId,
                                 const UtlString& locationHeader,
                                 CP_CONTACT_ID contactId,
                                 CP_FOCUS_CONFIG focusConfig,
+                                const UtlString& replacesField,
                                 CP_CALLSTATE_CAUSE callstateCause,
                                 const SipDialog* pCallbackSipDialog)
 {
@@ -102,7 +103,7 @@ OsStatus XCpConference::connect(const UtlString& sipCallId,
    sipDialog = SipDialog(sipCallId, localTag, NULL);
 
    AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId,
-      callstateCause, pCallbackSipDialog);
+      replacesField, callstateCause, pCallbackSipDialog);
    return postMessage(connectMsg);
 }
 

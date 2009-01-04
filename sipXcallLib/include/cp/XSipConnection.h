@@ -122,6 +122,7 @@ public:
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId,
+                    const UtlString& replacesField = NULL, // value of Replaces INVITE field
                     CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                     const SipDialog* pCallbackSipDialog = NULL);
 

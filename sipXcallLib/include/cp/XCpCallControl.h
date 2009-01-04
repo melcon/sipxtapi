@@ -57,6 +57,7 @@ public:
                                         const UtlString& locationHeader = NULL,
                                         CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
                                         CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                                        const UtlString& replacesField = NULL, // value of Replaces INVITE field
                                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                                         const SipDialog* pCallbackSipDialog = NULL) = 0;
 

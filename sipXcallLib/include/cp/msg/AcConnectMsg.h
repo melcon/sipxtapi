@@ -47,6 +47,7 @@ public:
                 const UtlString& sFromAddress,
                 const UtlString& sLocationHeader,
                 CP_CONTACT_ID contactId,
+                const UtlString& replacesField,
                 CP_CALLSTATE_CAUSE callstateCause,
                 const SipDialog* pCallbackSipDialog);
 
@@ -64,6 +65,7 @@ public:
    UtlString getFromAddress() const { return m_sFromAddress; }
    UtlString getLocationHeader() const { return m_sLocationHeader; }
    CP_CONTACT_ID getContactId() const { return m_contactId; }
+   UtlString getReplacesField() const { return m_replacesField; }
    CP_CALLSTATE_CAUSE getCallstateCause() const { return m_callstateCause; }
    const SipDialog* getCallbackSipDialog() const { return m_pCallbackSipDialog; }
 
@@ -86,6 +88,7 @@ private:
    UtlString m_sFromAddress;
    UtlString m_sLocationHeader;
    CP_CONTACT_ID m_contactId;
+   UtlString m_replacesField;
    CP_CALLSTATE_CAUSE m_callstateCause;
    SipDialog* m_pCallbackSipDialog;
 };

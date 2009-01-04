@@ -96,6 +96,7 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
                           const UtlString& locationHeader,
                           CP_CONTACT_ID contactId,
                           CP_FOCUS_CONFIG focusConfig,
+                          const UtlString& replacesField,
                           CP_CALLSTATE_CAUSE callstateCause,
                           const SipDialog* pCallbackSipDialog)
 {
@@ -109,7 +110,7 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
    sipDialog = SipDialog(sipCallId, localTag, NULL);
 
    AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId,
-      callstateCause, pCallbackSipDialog);
+      replacesField, callstateCause, pCallbackSipDialog);
    return postMessage(connectMsg);
 }
 
@@ -383,7 +384,7 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    if (resFound)
    {
       result = ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
-         rMsg.getLocationHeader(), rMsg.getContactId(), rMsg.getCallstateCause(), rMsg.getCallbackSipDialog());
+         rMsg.getLocationHeader(), rMsg.getContactId(), rMsg.getReplacesField(), rMsg.getCallstateCause(), rMsg.getCallbackSipDialog());
    }
 
    return result;

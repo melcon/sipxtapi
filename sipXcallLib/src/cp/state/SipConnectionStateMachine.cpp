@@ -148,6 +148,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
                                             const UtlString& fromAddress,
                                             const UtlString& locationHeader,
                                             CP_CONTACT_ID contactId,
+                                            const UtlString& replacesField,
                                             CP_CALLSTATE_CAUSE callstateCause,
                                             const SipDialog* pCallbackSipDialog)
 {
@@ -174,7 +175,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    if (m_pSipConnectionState)
    {
       handleStateTransition(m_pSipConnectionState->connect(result, sipCallId, localTag, toAddress, fromAddress,
-         locationHeader, contactId));
+         locationHeader, contactId, replacesField));
    }
 
    return result;

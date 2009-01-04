@@ -33,11 +33,13 @@
 // TYPEDEFS
 typedef enum ERROR_RESPONSE_TYPE
 {
+   ERROR_RESPONSE_400, // Bad Request
    ERROR_RESPONSE_481, // Call/Transaction Does Not Exist
    ERROR_RESPONSE_487, // Request Terminated
    ERROR_RESPONSE_488, // Not Acceptable Here
    ERROR_RESPONSE_491, // Request Pending
    ERROR_RESPONSE_500, // Internal Server Error
+   ERROR_RESPONSE_603, // Declined
 } ERROR_RESPONSE_TYPE;
 
 // MACROS
@@ -130,7 +132,8 @@ public:
                                                  const UtlString& toAddress,
                                                  const UtlString& fromAddress,
                                                  const UtlString& locationHeader,
-                                                 CP_CONTACT_ID contactId);
+                                                 CP_CONTACT_ID contactId,
+                                                 const UtlString& replacesField);
 
    /**
    * Accepts inbound call connection, sends 180 Ringing.
@@ -460,6 +463,9 @@ protected:
    /** Sets last sent REFER message */
    void setLastSentRefer(const SipMessage& sipMessage);
 
+   /** Sets last received and accepted REFER message */
+   void setLastReceivedRefer(const SipMessage& sipMessage);
+
    /** Gets session timer properties */
    CpSessionTimerProperties& getSessionTimerProperties();
 
@@ -486,6 +492,9 @@ protected:
 
    /** Sends UPDATE for hold/unhold/codec renegotiation */
    void sendUpdate(UtlBoolean bRenegotiateCodecs = TRUE);
+
+   /** Sends NOTIFY for inbound REFER, for given connection state of newly created call */
+   void sendReferNotify(ISipConnectionState::StateEnum connectionState);
 
    /** 
     * Sends PRACK request, confirming reception of specified 1xx sip response.
@@ -737,6 +746,15 @@ protected:
 
    /** notifies connection state observers about current state */
    void notifyConnectionStateObservers();
+
+   /** Called when REFER message is received, and we are ready to process it. Basic checks have already been done. */
+   UtlBoolean followRefer(const SipMessage& sipRequest);
+
+   /**
+    * Gets status code for sending in NOTIFY message as status for REFER (transferee). Returns FALSE
+    * if NOTIFY should not be sent.
+    */
+   UtlBoolean getReferNotifyCode(ISipConnectionState::StateEnum connectionState, int& code, UtlString& text) const;
 
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
