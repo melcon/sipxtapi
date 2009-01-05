@@ -47,13 +47,13 @@ public:
 
    UtlString m_codecName;
    CP_AUDIO_BANDWIDTH_ID m_iBandWidth;
-   int m_iPayloadType;
+   int m_iPayloadId; ///< payload id from SDP
 
    /* ============================ CREATORS ================================== */
 
    CpAudioCodecInfo() : m_codecName()
       , m_iBandWidth(CP_AUDIO_CODEC_BW_DEFAULT)
-      , m_iPayloadType(0)
+      , m_iPayloadId(0)
    {
    }
 
@@ -76,7 +76,7 @@ public:
 
       m_codecName = rhs.m_codecName;
       m_iBandWidth = rhs.m_iBandWidth;
-      m_iPayloadType = rhs.m_iPayloadType;
+      m_iPayloadId = rhs.m_iPayloadId;
 
       return *this;
    }
