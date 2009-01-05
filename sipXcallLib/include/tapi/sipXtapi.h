@@ -1858,26 +1858,37 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
                                           void* pCookie = NULL);
 
 /**
- * Blind transfer the specified call to another party.  Monitor the
- * TRANSFER state events for details on the transfer attempt.
+ * Blind transfer the specified call to another party using REFER (rfc3515).
+ * Monitor the TRANSFER state events for details on the transfer attempt.
  *
- * Assuming that all parties are using sipXtapi, all of the calls
- * are active (not held), and the transfer works, you should expect the 
- * following event sequence:
+ * There are three parties involved in blind transfer:
+ * 1.) Transfer controller (this user agent) - sends REFER request
+ * 2.) Transferee - receives REFER request, accepts or rejects it, creates
+ *     new call and drops original call automatically.
+ * 3.) Transfer target - receives INVITE request from transferee
+ *
+ * Received event sequence depends on whether transferee supports sending NOTIFY
+ * requests to transfer controller for the duration of call transfer. If NOTIFY
+ * is not supported by transferee, then some transfer events will be missing.
+ *
+ * SIP message flow of unattended transfer can be seen
+ * on http://www.tech-invite.com/Ti-sip-service-4.html .
+ *
+ * Supression of implicit REFER subscription (norefersub - rfc4488) is supported.
+ * SipXtapi will never ask for supression of subscription, but approves it if asked
+ * in inbound REFER request.
  *
  * <h3>Transferee (party being transfered):</h3>
  *
- * The transfer is implemented as a new call -- this allows
- * the developer to reclaim the original call if the transfer fails. The 
- * NEWCALL event will include a cause for of CALLSTATE_CAUSE_TRANSFER and
- * the hAssociatedCall member of the SIPX_CALLSTATE_INFO structure will
- * include the handle of the original call.
+ * The transfer is implemented as a new call. New call will have different SIPX_CALL
+ * handle, and will not be part of any conference even if original call was.
  *
  * <pre>
+ * Original Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
  * Original Call: MEDIA_LOCAL_STOP
  * Original Call: MEDIA_REMOTE_STOP
- * Original Call: CALLSTATE_REMOTE_HELD
- * Original Call: CALLSTATE_HELD
+ * Original Call: CALLSTATE_DISCONNECTED
+ * Original Call: CALLSTATE_DESTROYED
  *
  * New Call: CALLSTATE_DIALTONE::CALLSTATE_CAUSE_TRANSFER
  * New Call: CALLSTATE_REMOTE_OFFERING
@@ -1887,30 +1898,33 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
  * New Call: MEDIA_REMOTE_START
  * </pre>
  *
- * After the transfer completes, the application developer must destroy 
- * the original call using sipxCallDestroy.
+ * sipxCallAcceptTransfer or sipxCallRejectTransfer must be called
+ * when original call enters CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
+ * state.
+ *
+ * After the transfer completes, the original call will be destroyed automatically
+ * by sipXtapi.
  *
  * <h3>Transfer Controller (this user agent):</h3>
  *
- * The transfer controller will automatically take the call out of 
- * focus. Afterwards, the transfer controller
- * will receive CALLSTATE_TRANSFER_EVENTs indicating the status of
- * the transfer.
+ * The transfer controller will see the following call state sequence:
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
- * Source Call: CALLSTATE_BRIDGED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
+ * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_TRYING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_RINGING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
+ * Source Call: CALLSTATE_DISCONNECTED
  * Source Call: MEDIA_LOCAL_STOP
  * Source Call: MEDIA_REMOTE_STOP
- * Source Call: CALLSTATE_DISCONNECTED
+ * Source Call: CALLSTATE_DESTROYED
  * </pre>
  *
- * Upon success, the call will automatically be disconnected, however,
- * the application layer needs to call sipXcallDestroy to free the handle
- * and call processing resources.
+ * Upon success, the call will be automatically destroyed. Reception of
+ * CALLSTATE_CAUSE_TRANSFER_TRYING, CALLSTATE_CAUSE_TRANSFER_RINGING and
+ * CALLSTATE_CAUSE_TRANSFER_SUCCESS events will depend on reception of corresponding
+ * SIP NOTIFY messages.
  *
  * <h3>Transfer Target (identified by szAddress):</h3>
  *
@@ -1921,14 +1935,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
  * New Call: CALLSTATE_NEWCALL::CALLSTATE_CAUSE_NORMAL
  * New Call: CALLSTATE_OFFERING::CALLSTATE_CAUSE_NORMAL
  * New Call: CALLSTATE_ALERTING::CALLSTATE_CAUSE_NORMAL
+ * New Call: MEDIA_LOCAL_START
  * New Call: MEDIA_REMOTE_START
  * New Call: CALLSTATE_CONNECTED::CALLSTATE_CAUSE_NORMAL
- * New Call: MEDIA_LOCAL_START
  * </pre>
  *
  * If the transfer target rejects the call or fails to answer, the transfer 
- * will fail.
- *
+ * will fail. If transfer fails, original calls will return back into
+ * CALLSTATE_CONNECTED state.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1951,18 +1965,38 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * conversation, create a conference and then transfer one leg to 
  * another.
  *
- * The event sequence may differ slightly depending on whether the calls
- * are part of a conference (attended transfer) or individual calls (semi-
- * attended transfer).
+ * Consultative transfer is implemented using in dialog REFER (rfc3515) request.
+ * Out of dialog transfers are not supported and are always rejected.
  *
- * Assuming the calls are part of a conference and not on hold, the event
- * sequences are as follows:
+ * There are three parties involved in consultative transfer:
+ * 1.) Transfer controller (this user agent) - sends REFER request
+ * 2.) Transferee - receives REFER request, accepts or rejects it, creates
+ *     new call and drops original call automatically.
+ * 3.) Transfer target - receives INVITE request from transferee, with Replaces header
+ *     set. If INVITE succeeds, referenced call is dropped.
+ *
+ * Received event sequence depends on whether transferee supports sending NOTIFY
+ * requests to transfer controller for the duration of call transfer. If NOTIFY
+ * is not supported by transferee, then some transfer events will be missing.
+ *
+ * SIP message flow of attended transfer can be seen
+ * on http://www.tech-invite.com/Ti-sip-service-5.html .
+ *
+ * Supression of implicit REFER subscription (norefersub - rfc4488) is supported.
+ * SipXtapi will never ask for supression of subscription, but approves it if asked
+ * in inbound REFER request.
+ *
+ * SipXtapi does not put calls on hold to speed up the call transfer. If user wishes
+ * to place calls on hold, they must be placed on hold using sipxCallHold. User must
+ * then wait for CALLSTATE_HELD event before proceeding with attended transfer.
  *
  * <h3>Transfer Controller (this user agent):</h3>
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
+ * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_TRYING
+ * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_RINGING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
  * Source Call: MEDIA_LOCAL_STOP
  * Source Call: MEDIA_REMOTE_STOP
@@ -1970,10 +2004,12 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_DESTROYED
  * </pre>
  *
- * The source call will automatically be disconnected if the transfer is 
- * successful. Also, if the source call is part of a conference, the call 
- * will automatically be destroyed.  If not part of a conference, the 
- * application must destroy the call using sipxCallDestroy.
+ * The source call will automatically be destroyed if the transfer is 
+ * successful. CALLSTATE_CAUSE_TRANSFER_ACCEPTED will be fired when REFER
+ * request is accepted with 202 response. Reception of
+ * CALLSTATE_CAUSE_TRANSFER_TRYING, CALLSTATE_CAUSE_TRANSFER_RINGING and
+ * CALLSTATE_CAUSE_TRANSFER_SUCCESS events will depend on reception of corresponding
+ * SIP NOTIFY messages.
  *
  * <pre>
  * Target Call: MEDIA_LOCAL_STOP
@@ -1982,25 +2018,22 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * Target Call: CALLSTATE_DESTROYED
  * </pre>
  * 
- * If the target call is part of a conference, it will automatically be destroyed.
- * Otherwise, the application layer is responsible for calling 
- * sipxCallDestroy.
+ * Target call will be automatically destroyed when remote party hangs up
+ * after receiving INVITE with Replaces.
  *
  * <h3>Transferee (user agent on other side of hSourceCall):</h3>
  *
  * The transferee will create a new call to the transfer target and 
  * automatically disconnect the original call upon success.  The new call
  * will be created with a cause of CALLSTATE_CAUSE_TRANSFER in the
- * SIPX_CALLSTATE_INFO event data.  The application layer can look at
- * the hAssociatedCall member to connect the new call to the original
- * call. 
+ * SIPX_CALLSTATE_INFO event data.
  *
  * <pre>
+ * Original Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
  * Original Call: MEDIA_LOCAL_STOP
  * Original Call: MEDIA_REMOTE_STOP
- * Original Call: CALLSTATE_REMOTE_HELD
- * Original Call: CALLSTATE_HELD
  * Original Call: CALLSTATE_DISCONNECTED
+ * Original Call: CALLSTATE_DESTROYED
  *
  * New Call: CALLSTATE_DIALTONE::CALLSTATE_CAUSE_TRANSFER
  * New Call: CALLSTATE_REMOTE_OFFERING
@@ -2010,27 +2043,40 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * New Call: MEDIA_REMOTE_START
  * </pre>
  *
- * The application is responsible for calling sipxCallDestroy on the original
- * call after the CALLSTATE_DISCONNECT event.
+ * sipxCallAcceptTransfer or sipxCallRejectTransfer must be called
+ * when original call enters CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
+ * state.
+ *
+ * Original call will be automatically destroyed if transfer succeeds.
+ * If transfer fails, new call will be disconnected and original call
+ * will return into CALLSTATE_CONNECTED state.
  *
  * <h3>Transfer Target (user agent on other side of hTargetCall):</h3>
  *
- * The transfer target will automatically receive and answer the inbound call 
- * from the transferee.  After this completes, the original call is 
- * disconnected.
+ * The transfer target will receive INVITE request with Replaces header
+ * from the transferee.  After this completes, the referenced call is 
+ * disconnected. hAssociatedCall member of SIPX_CALLSTATE_INFO will be
+ * set to the value of call referenced by Replaces header.
  *
  * <pre>
- * CALLSTATE_NEWCALL::CALLSTATE_CAUSE_TRANSFERRED
- * CALLSTATE_OFFERING
- * CALLSTATE_ALERTING
- * CALLSTATE_CONNECTED
- * MEDIA_LOCAL_START
- * MEDIA_REMOTE_START
+ * New Call: CALLSTATE_NEWCALL::CALLSTATE_CAUSE_TRANSFERRED
+ * New Call: CALLSTATE_OFFERING
+ * New Call: CALLSTATE_ALERTING
+ * New Call: CALLSTATE_CONNECTED
+ * New Call: MEDIA_LOCAL_START
+ * New Call: MEDIA_REMOTE_START
+ *
+ * Referenced Call: MEDIA_LOCAL_STOP
+ * Referenced Call: MEDIA_REMOTE_STOP
+ * Referenced Call: CALLSTATE_DISCONNECTED
+ * Referenced Call: CALLSTATE_DESTROYED
  * </pre>
  *
- * Please note that no offering event was fired.  The target does not have
- * the option to accept or reject the call.  If this call was part of a 
- * conference, the new call is automatically added to the same conference.
+ * Transfer target may reject the new call. In that case call transfer will fail,
+ * and original calls will be reclaimed automatically. If call is accepted and
+ * proceeds into CALLSTATE_CONNECTED, referenced call is destroyed automatically.
+ *
+ * New call will not be part of a local conference.
  *
  * @param hSourceCall Handle to the source call (transferee).
  * @param hTargetCall Handle to the target call (transfer target).
