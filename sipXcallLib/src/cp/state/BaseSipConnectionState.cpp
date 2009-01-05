@@ -3221,7 +3221,7 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
 
             if (!m_rStateContext.m_bUseLocalHoldSDP)
             {
-               pMediaInterface->startRtpReceive(mediaConnectionId, localSdpCodecList);
+               pMediaInterface->startRtpReceive(mediaConnectionId, commonCodecsForDecoder);
                setLocalMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE);
             }
             else
