@@ -157,6 +157,12 @@ public:
    */
    virtual SipConnectionStateTransition* answerConnection(OsStatus& result);
 
+   /** Accepts call transfer */
+   virtual SipConnectionStateTransition* acceptTransfer(OsStatus& result);
+
+   /** Rejects call transfer with 603 Declined */
+   virtual SipConnectionStateTransition* rejectTransfer(OsStatus& result);
+
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 

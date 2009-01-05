@@ -455,6 +455,84 @@ SipConnectionStateTransition* BaseSipConnectionState::answerConnection(OsStatus&
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::acceptTransfer(OsStatus& result)
+{
+   result = OS_FAILED;
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED &&
+      m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFEREE &&
+      m_rStateContext.m_inboundReferResponse == SipConnectionStateContext::REFER_NO_RESPONSE &&
+      m_rStateContext.m_pLastReceivedRefer)
+   {
+      if (followRefer(*m_rStateContext.m_pLastReceivedRefer))
+      {
+         // REFER is ok, we started dialing new call
+         UtlBoolean bNoreferSubGranted = FALSE;
+         m_rStateContext.m_referOutSubscriptionActive = TRUE;
+         if (isMethodAllowed(SIP_NOTIFY_METHOD))
+         {
+            if (isExtensionSupported(SIP_NO_REFER_SUB_EXTENSION))
+            {
+               UtlBoolean referSubField = TRUE;
+               if (m_rStateContext.m_pLastReceivedRefer->getReferSubField(referSubField) && !referSubField)
+               {
+                  // sender doesn't want implicit subscription
+                  m_rStateContext.m_referOutSubscriptionActive = FALSE;
+                  bNoreferSubGranted = TRUE;
+               }
+            }
+         }
+         else
+         {
+            m_rStateContext.m_referOutSubscriptionActive = FALSE;
+         }
+
+         // send 202 Accepted
+         SipMessage sipResponse;
+         sipResponse.setResponseData(m_rStateContext.m_pLastReceivedRefer, SIP_ACCEPTED_CODE, SIP_ACCEPTED_TEXT, getLocalContactUrl());
+         if (bNoreferSubGranted)
+         {
+            sipResponse.setReferSubField(FALSE); // grant norefersub
+         }
+         sendMessage(sipResponse);
+         m_rStateContext.m_inboundReferResponse = SipConnectionStateContext::REFER_ACCEPTED;
+         result = OS_SUCCESS;
+      }
+      else
+      {
+         OsStatus rejectResult;
+         return rejectTransfer(rejectResult);
+      }
+   } // else invalid state, ignore
+
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::rejectTransfer(OsStatus& result)
+{
+   result = OS_FAILED;
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED &&
+      m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFEREE &&
+      m_rStateContext.m_inboundReferResponse == SipConnectionStateContext::REFER_NO_RESPONSE &&
+      m_rStateContext.m_pLastReceivedRefer)
+   {
+      // send reject response
+      SipMessage errorResponse;
+      prepareErrorResponse(*m_rStateContext.m_pLastReceivedRefer, errorResponse, ERROR_RESPONSE_603);
+      sendMessage(errorResponse);
+      m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_NORMAL;
+      // fire connected event, since we are no longer in transfer
+      m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_CONNECTED, CP_CALLSTATE_CAUSE_NORMAL);
+      delete m_rStateContext.m_pLastReceivedRefer;
+      m_rStateContext.m_pLastReceivedRefer = NULL;
+   } // else invalid state, ignore
+
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::dropConnection(OsStatus& result)
 {
    // implemented in subclasses
@@ -1392,62 +1470,59 @@ SipConnectionStateTransition* BaseSipConnectionState::processReferRequest(const 
 
    if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
    {
-      if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_NORMAL)
+      CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(sipRequest);
+
+      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
       {
-         // verify the REFER
-         if(sipRequest.getHeaderValue(1, SIP_REFERRED_BY_FIELD) ||
-            sipRequest.getHeaderValue(1, SIP_REFER_TO_FIELD))
+         if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_NORMAL)
          {
-            errorResponseType = ERROR_RESPONSE_400;
-         }
-         else
-         {
-            if (!followRefer(sipRequest))
+            // verify the REFER
+            if(sipRequest.getHeaderValue(1, SIP_REFERRED_BY_FIELD) ||
+               sipRequest.getHeaderValue(1, SIP_REFER_TO_FIELD))
             {
-               errorResponseType = ERROR_RESPONSE_400; // some error occurred
+               errorResponseType = ERROR_RESPONSE_400;
             }
             else
             {
-               UtlBoolean bNoreferSubGranted = FALSE;
-               m_rStateContext.m_referOutSubscriptionActive = TRUE;
-               if (isMethodAllowed(SIP_NOTIFY_METHOD))
-               {
-                  if (isExtensionSupported(SIP_NO_REFER_SUB_EXTENSION))
-                  {
-                     UtlBoolean referSubField = TRUE;
-                     if (sipRequest.getReferSubField(referSubField) && !referSubField)
-                     {
-                        // sender doesn't want implicit subscription
-                        m_rStateContext.m_referOutSubscriptionActive = FALSE;
-                        bNoreferSubGranted = TRUE;
-                     }
-                  }
-               }
-               else
-               {
-                  m_rStateContext.m_referOutSubscriptionActive = FALSE;
-               }
-
-               // send 202 Accepted
+               setLastReceivedRefer(sipRequest); // remember received REFER
+               m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_TRANSFEREE;
+               m_rStateContext.m_inboundReferResponse = SipConnectionStateContext::REFER_NO_RESPONSE;
+               // don't send response, wait for user to either accept or reject refer
+               UtlString referredBy;
+               UtlString referTo;
+               sipRequest.getReferredByField(referredBy);
+               sipRequest.getReferToField(referTo);
+               // fire transfer event, so that user can confirm or reject transfer
+               m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_TRANSFER_EVENT, CP_CALLSTATE_CAUSE_TRANSFER, NULL,
+                  0, NULL, referredBy, referredBy);
+               bSendError = FALSE;
+            }
+         }
+         else if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFEREE)
+         {
+            // REFER retransmit, we haven't responded yet
+            if (m_rStateContext.m_pLastReceivedRefer &&
+               m_rStateContext.m_pLastReceivedRefer->isSameMessage(&sipRequest))
+            {
+               bSendError = FALSE; // don't decline retransmit of last received REFER, but decline all other REFERs
+            }
+         }
+      }
+      else if (transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
+               m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFEREE)
+      {
+         if (m_rStateContext.m_pLastReceivedRefer &&
+            m_rStateContext.m_pLastReceivedRefer->isSameMessage(&sipRequest))
+         {
+            if (m_rStateContext.m_inboundReferResponse == SipConnectionStateContext::REFER_ACCEPTED)
+            {
+               // retransmit, send 202 Accepted again
                SipMessage sipResponse;
                sipResponse.setResponseData(&sipRequest, SIP_ACCEPTED_CODE, SIP_ACCEPTED_TEXT, getLocalContactUrl());
-               if (bNoreferSubGranted)
-               {
-                  sipResponse.setReferSubField(FALSE); // grant norefersub
-               }
                sendMessage(sipResponse);
                bSendError = FALSE;
             }
          }
-      }
-      else if (m_rStateContext.m_pLastReceivedRefer &&
-               m_rStateContext.m_pLastReceivedRefer->isSameMessage(&sipRequest))
-      {
-         // retransmit, send 202 Accepted again
-         SipMessage sipResponse;
-         sipResponse.setResponseData(&sipRequest, SIP_ACCEPTED_CODE, SIP_ACCEPTED_TEXT, getLocalContactUrl());
-         sendMessage(sipResponse);
-         bSendError = FALSE;
       } // else reject REFER, another one is in progress
    }
    else if (connectionState == ISipConnectionState::CONNECTION_DISCONNECTED ||
@@ -2682,14 +2757,14 @@ SipConnectionStateTransition* BaseSipConnectionState::handleConnStateNotificatio
          {
             // transfer successful, drop our current call
             sendBye();
-            m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_NORMAL;
-            delete m_rStateContext.m_pLastReceivedRefer;
-            m_rStateContext.m_pLastReceivedRefer = NULL;
          }
          else if (sourceState == ISipConnectionState::CONNECTION_DISCONNECTED)
          {
             // transfer unsuccessful, reset our substate, we can continue
             m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_NORMAL;
+            m_rStateContext.m_inboundReferResponse = SipConnectionStateContext::REFER_NO_RESPONSE;
+            // fire connected event, so that call is restored to normal state
+            m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_CONNECTED, CP_CALLSTATE_CAUSE_NORMAL);
             delete m_rStateContext.m_pLastReceivedRefer;
             m_rStateContext.m_pLastReceivedRefer = NULL;
          }
@@ -4940,11 +5015,8 @@ UtlBoolean BaseSipConnectionState::followRefer(const SipMessage& sipRequest)
 
    if (connectStatus == OS_SUCCESS)
    {
-      setLastReceivedRefer(sipRequest); // remember received REFER
-      m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_TRANSFEREE;
       // we cease being transferee once created call disconnects (for example rejected), to allow another transfer
       // this call will be disconnected when created call is established
-
       return TRUE;
    }
 

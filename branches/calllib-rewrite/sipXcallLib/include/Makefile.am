@@ -44,6 +44,7 @@ nobase_include_HEADERS =  \
     cp/XSipConnectionContext.h \
     cp/XSipConnectionEventSink.h \
     cp/msg/AcAcceptConnectionMsg.h \
+    cp/msg/AcAcceptTransferMsg.h \
     cp/msg/AcAnswerConnectionMsg.h \
     cp/msg/AcAudioBufferPlayMsg.h \
     cp/msg/AcAudioFilePlayMsg.h \
@@ -67,6 +68,7 @@ nobase_include_HEADERS =  \
     cp/msg/AcNotificationMsg.h \
     cp/msg/AcRedirectConnectionMsg.h \
     cp/msg/AcRejectConnectionMsg.h \
+    cp/msg/AcRejectTransferMsg.h \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \

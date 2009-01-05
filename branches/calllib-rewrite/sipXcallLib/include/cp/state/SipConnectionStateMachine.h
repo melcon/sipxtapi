@@ -109,6 +109,18 @@ public:
    */
    OsStatus answerConnection();
 
+   /**
+   * Accepts transfer request on given connection. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   OsStatus acceptTransfer();
+
+   /**
+   * Rejects transfer request on given connection. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   OsStatus rejectTransfer();
+
    /** Disconnects call */
    OsStatus dropConnection();
 

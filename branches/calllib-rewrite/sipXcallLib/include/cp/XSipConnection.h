@@ -165,6 +165,18 @@ public:
    */
    OsStatus answerConnection();
 
+   /**
+   * Accepts transfer request on given connection. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   OsStatus acceptTransfer();
+
+   /**
+   * Rejects transfer request on given connection. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   OsStatus rejectTransfer();
+
    /** Disconnects call */
    OsStatus dropConnection();
 
@@ -346,7 +358,9 @@ private:
                               CP_CALLSTATE_CAUSE eMinor,
                               const UtlString& sOriginalSessionCallId = NULL,
                               int sipResponseCode = 0,
-                              const UtlString& sResponseText = NULL);
+                              const UtlString& sResponseText = NULL,
+                              const UtlString& sReferredBy = NULL,
+                              const UtlString& sReferTo = NULL);
 
    /** Fire info status event */
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
@@ -382,7 +396,9 @@ private:
                                   CP_CALLSTATE_CAUSE causeCode,
                                   const UtlString& sOriginalSessionCallId = NULL,
                                   int sipResponseCode = 0,
-                                  const UtlString& sResponseText = NULL);
+                                  const UtlString& sResponseText = NULL,
+                                  const UtlString& sReferredBy = NULL,
+                                  const UtlString& sReferTo = NULL);
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

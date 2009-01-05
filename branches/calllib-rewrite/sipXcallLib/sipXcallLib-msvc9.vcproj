@@ -347,6 +347,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcAcceptTransferMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcAnswerConnectionMsg.cpp"
 					>
 				</File>
@@ -436,6 +440,10 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\AcRejectConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcRejectTransferMsg.cpp"
 					>
 				</File>
 				<File
@@ -816,6 +824,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcAcceptTransferMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcAnswerConnectionMsg.h"
 					>
 				</File>
@@ -905,6 +917,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcRejectConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcRejectTransferMsg.h"
 					>
 				</File>
 				<File

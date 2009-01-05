@@ -152,6 +152,16 @@ OsStatus XSipConnection::answerConnection()
    return m_stateMachine.answerConnection();
 }
 
+OsStatus XSipConnection::acceptTransfer()
+{
+   return m_stateMachine.acceptTransfer();
+}
+
+OsStatus XSipConnection::rejectTransfer()
+{
+   return m_stateMachine.rejectTransfer();
+}
+
 OsStatus XSipConnection::dropConnection()
 {
    return m_stateMachine.dropConnection();
@@ -401,7 +411,9 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
                                            CP_CALLSTATE_CAUSE eMinor,
                                            const UtlString& sOriginalSessionCallId /*= NULL*/,
                                            int sipResponseCode /*= 0*/,
-                                           const UtlString& sResponseText /*= NULL*/)
+                                           const UtlString& sResponseText /*= NULL*/,
+                                           const UtlString& sReferredBy,
+                                           const UtlString& sReferTo)
 {
    {
       OsReadLock lock(m_rSipConnectionContext);
@@ -413,6 +425,8 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
    event.m_sOriginalSessionCallId = sOriginalSessionCallId;
    event.m_sipResponseCode = sipResponseCode;
    event.m_sResponseText = sResponseText;
+   event.m_sReferredBy = sReferredBy;
+   event.m_sReferTo = sReferTo;
 }
 
 void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
@@ -588,7 +602,9 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
                                        CP_CALLSTATE_CAUSE causeCode,
                                        const UtlString& sOriginalSessionCallId /*= NULL*/,
                                        int sipResponseCode /*= 0*/,
-                                       const UtlString& sResponseText /*= NULL*/)
+                                       const UtlString& sResponseText /*= NULL*/,
+                                       const UtlString& sReferredBy,
+                                       const UtlString& sReferTo)
 {
    if (m_pCallEventListener)
    {
@@ -608,7 +624,7 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
       if (!m_rSipConnectionContext.m_bSupressCallEvents)
       {
          CpCallStateEvent event;
-         prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
+         prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText, sReferredBy, sReferTo);
 
          switch(eventCode)
          {

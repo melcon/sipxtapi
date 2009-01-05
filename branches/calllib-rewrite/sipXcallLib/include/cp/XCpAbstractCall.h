@@ -71,6 +71,8 @@ class AcUnmuteInputConnectionMsg;
 class AcLimitCodecPreferencesMsg;
 class AcSubscribeMsg;
 class AcUnsubscribeMsg;
+class AcRejectTransferMsg;
+class AcAcceptTransferMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
 class AcTimerMsg;
@@ -191,6 +193,18 @@ public:
    * connection (with SIP a 200 OK response is sent).
    */
    virtual OsStatus answerConnection() = 0;
+
+   /**
+   * Accepts transfer request on given connection. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   virtual OsStatus acceptConnectionTransfer(const SipDialog& sipDialog);
+
+   /**
+   * Rejects transfer request on given connection. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   virtual OsStatus rejectConnectionTransfer(const SipDialog& sipDialog);
 
    /**
     * Disconnects given call with given sip call-id
@@ -557,6 +571,12 @@ private:
 
    /** Handles message to unsubscribe from notifications */
    OsStatus handleUnsubscribe(const AcUnsubscribeMsg& rMsg);
+
+   /** Handles message to accept call transfer */
+   OsStatus handleAcceptTransfer(const AcAcceptTransferMsg& rMsg);
+
+   /** Handles message to reject call transfer */
+   OsStatus handleRejectTransfer(const AcRejectTransferMsg& rMsg);
 
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
