@@ -151,7 +151,7 @@ UtlBoolean SipXCallEventListener::handleMessage(OsMsg& rRawMsg)
             const CpCallStateEvent& payload = pMsg->getEventPayloadRef();
             handleCallEvent(payload.m_sCallId, payload.m_pSipDialog,
                pMsg->getEvent(), (SIPX_CALLSTATE_CAUSE)payload.m_cause, payload.m_sOriginalSessionCallId,
-               payload.m_sipResponseCode, payload.m_sResponseText);
+               payload.m_sipResponseCode, payload.m_sResponseText, payload.m_sReferredBy, payload.m_sReferTo);
          }
       }
       bResult = TRUE;
@@ -192,7 +192,9 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
                                             SIPX_CALLSTATE_CAUSE cause, 
                                             const UtlString& sOriginalSessionCallId,
                                             int sipResponseCode,
-                                            const UtlString& sResponseText)
+                                            const UtlString& sResponseText,
+                                            const UtlString& sReferredBy,
+                                            const UtlString& sReferTo)
 {
    UtlString sRemoteAddress;
    UtlString sSessionCallId;
@@ -421,6 +423,8 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       callInfo.nSize = sizeof(SIPX_CALLSTATE_INFO);
       callInfo.sipResponseCode = sipResponseCode;
       callInfo.szSipResponseText = sResponseText.data(); // safe to do as SipXEventDispatcher makes a copy
+      callInfo.szReferredBy = sReferredBy.data(); // safe to do as SipXEventDispatcher makes a copy
+      callInfo.szReferTo = sReferTo.data(); // safe to do as SipXEventDispatcher makes a copy
 
       // store call state
       sipxCallSetState(hCall, event, cause);

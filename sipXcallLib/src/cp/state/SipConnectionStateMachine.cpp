@@ -235,6 +235,32 @@ OsStatus SipConnectionStateMachine::answerConnection()
    return result;
 }
 
+OsStatus SipConnectionStateMachine::acceptTransfer()
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->acceptTransfer(result));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::rejectTransfer()
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->rejectTransfer(result));
+   }
+
+   return result;
+}
+
 OsStatus SipConnectionStateMachine::dropConnection()
 {
    OsStatus result = OS_FAILED;

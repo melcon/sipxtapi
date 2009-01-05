@@ -1259,6 +1259,27 @@ SIPXTAPI_API SIPX_RESULT sipxCallRedirect(const SIPX_CALL hCall,
 SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, 
                                         int bTakeFocus = 1);
 
+/**
+ * Accepts inbound call transfer request. Call which progresses to
+ * CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER state will contain
+ * szReferredBy and szReferTo fields in SIPX_CALLSTATE_INFO structure.
+ * Based on this information, a decision should be made whether to accept
+ * or reject the transfer request. This decision must be made immediately.
+ *
+ * @param hCall Handle to a call. Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallAcceptTransfer(const SIPX_CALL hCall);
+
+/**
+ * Rejects inbound call transfer request.
+ *
+ * @param hCall Handle to a call. Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallRejectTransfer(const SIPX_CALL hCall);
 
 /**
  * Create a new call for the purpose of creating an outbound connection/call.

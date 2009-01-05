@@ -175,6 +175,20 @@ public:
     */
    OsStatus answerCallConnection(const UtlString& sCallId);
 
+   /**
+   * Accepts transfer request on given abstract call. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   OsStatus acceptAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                       const SipDialog& sSipDialog);
+
+   /**
+   * Rejects transfer request on given abstract call. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   OsStatus rejectAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                       const SipDialog& sSipDialog);
+
    /** 
     * Disconnects given simple call or conference call, not destroying the XCpCall/XCpConference
     * object so that it can be reused
@@ -204,7 +218,7 @@ public:
     */
    OsStatus dropCallConnection(const UtlString& sCallId);
 
-   /** 
+   /**
    * Disconnects given conference call not destroying the XCpConference object so that it can be reused.
    *
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state

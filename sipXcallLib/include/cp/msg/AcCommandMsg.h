@@ -70,6 +70,8 @@ public:
       AC_AUDIO_TONE_STOP, ///< stops DTMF tone
       AC_SUBSCRIBE, ///< subscribe to notifications
       AC_UNSUBSCRIBE, ///< unsubscribe from notifications
+      AC_ACCEPT_TRANSFER, ///< accept transfer request
+      AC_REJECT_TRANSFER, ///< reject transfer request
    } SubTypeEnum;
 
    /* ============================ CREATORS ================================== */

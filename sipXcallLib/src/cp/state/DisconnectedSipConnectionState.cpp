@@ -174,6 +174,7 @@ void DisconnectedSipConnectionState::terminateOutReferSubscription()
    }
 
    m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_NORMAL;
+   m_rStateContext.m_inboundReferResponse = SipConnectionStateContext::REFER_NO_RESPONSE;
    m_rStateContext.m_referOutSubscriptionActive = FALSE;
    // we don't care about response code, response will be ignored
    delete m_rStateContext.m_pLastReceivedRefer;

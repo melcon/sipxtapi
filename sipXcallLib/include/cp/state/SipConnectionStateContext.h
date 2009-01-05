@@ -86,6 +86,13 @@ public:
       ENTITY_TRANSFER_CONTROLLER, ///< call transfer is in progress, and we are the controller (side which sent REFER)
    } LocalEntityType;
 
+   typedef enum
+   {
+      REFER_NO_RESPONSE = 0, ///< refer was not yet accepted or rejected
+      REFER_ACCEPTED, ///< refer was accepted
+      REFER_REJECTED, ///< refer was rejected
+   } InboundReferResponse;
+
    MediaSessionState m_mediaSessionState; ///< keeps track of media session state (active, held etc)
    MediaSessionState m_previousMediaSessionState; ///< keeps track of previous media session state (active, held etc)
    MediaConnectionState m_localMediaConnectionState; ///< keeps track of local media connection state
@@ -132,6 +139,7 @@ public:
    UtlBoolean m_bDropReferencedCall; ///< drop referenced call when we enter established state
    SipDialog m_transferSipDialog; ///< sip dialog used to dial new call, when we are transferee
    UtlBoolean m_referOutSubscriptionActive; ///< TRUE when refer outbound subscription is active and should be canceled. Used to support "norefersub"
+   InboundReferResponse m_inboundReferResponse; ///< flag how we responded to inbound refer
 
    // session timer member variables
    CpSessionTimerProperties m_sessionTimerProperties; ///< properties of session timer (RFC4028)

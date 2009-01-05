@@ -56,6 +56,7 @@ libsipXcall_la_SOURCES = \
     cp/XSipConnection.cpp \
     cp/XSipConnectionContext.cpp \
     cp/msg/AcAcceptConnectionMsg.cpp \
+    cp/msg/AcAcceptTransferMsg.cpp \
     cp/msg/AcAnswerConnectionMsg.cpp \
     cp/msg/AcAudioBufferPlayMsg.cpp \
     cp/msg/AcAudioFilePlayMsg.cpp \
@@ -79,6 +80,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcNotificationMsg.cpp \
     cp/msg/AcRedirectConnectionMsg.cpp \
     cp/msg/AcRejectConnectionMsg.cpp \
+    cp/msg/AcRejectTransferMsg.cpp \
     cp/msg/AcRenegotiateCodecsAllMsg.cpp \
     cp/msg/AcRenegotiateCodecsMsg.cpp \
     cp/msg/AcSendInfoMsg.cpp \

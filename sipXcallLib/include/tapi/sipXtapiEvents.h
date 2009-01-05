@@ -728,6 +728,8 @@ typedef struct
                                          original call. */
     int sipResponseCode;           ///< SIP response text if available
     const char* szSipResponseText; ///< SIP response text if available
+    const char* szReferredBy; ///< value of Referred-By for transferee side of call transfer
+    const char* szReferTo; ///< value of Refer-To for transferee side of call transfer
 } SIPX_CALLSTATE_INFO; 
 
 

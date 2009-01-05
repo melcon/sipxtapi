@@ -45,6 +45,7 @@
             <File RelativePath=".\src\cp\CpIntMessage.cpp"/>
             <File RelativePath=".\src\cp\CpLoopDetector.cpp"/>
             <File RelativePath=".\src\cp\CpMultiStringMessage.cpp"/>
+            <File RelativePath=".\src\cp\CpNotificationRegister.cpp"/>
             <File RelativePath=".\src\cp\CpPeerCall.cpp"/>
             <File RelativePath=".\src\cp\CpSdpNegotiation.cpp"/>
             <File RelativePath=".\src\cp\CpSessionTimerProperties.cpp"/>
@@ -61,6 +62,7 @@
             <File RelativePath=".\src\cp\XSipConnectionContext.cpp"/>
             <Filter Name="msg">
                 <File RelativePath=".\src\cp\msg\AcAcceptConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAcceptTransferMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAnswerConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAudioBufferPlayMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAudioFilePlayMsg.cpp"/>
@@ -84,6 +86,7 @@
                 <File RelativePath=".\src\cp\msg\AcNotificationMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcRedirectConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcRejectConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcRejectTransferMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsAllMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"/>
@@ -159,6 +162,7 @@
             <File RelativePath="include\cp\CpMultiStringMessage.h"/>
             <File RelativePath=".\include\cp\CpNatTraversalConfig.h"/>
             <File RelativePath=".\include\cp\CpNotificationMsgDef.h"/>
+            <File RelativePath=".\include\cp\CpNotificationRegister.h"/>
             <File RelativePath="include\cp\CpPeerCall.h"/>
             <File RelativePath=".\include\cp\CpSdpNegotiation.h"/>
             <File RelativePath=".\include\cp\CpSessionTimerProperties.h"/>
@@ -180,6 +184,7 @@
             <File RelativePath=".\include\cp\XSipConnectionEventSink.h"/>
             <Filter Name="msg">
                 <File RelativePath=".\include\cp\msg\AcAcceptConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAcceptTransferMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAnswerConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAudioBufferPlayMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAudioFilePlayMsg.h"/>
@@ -203,6 +208,7 @@
                 <File RelativePath=".\include\cp\msg\AcNotificationMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcRedirectConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcRejectConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcRejectTransferMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsAllMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcSendInfoMsg.h"/>

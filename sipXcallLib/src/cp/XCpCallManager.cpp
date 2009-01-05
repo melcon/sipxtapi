@@ -377,6 +377,38 @@ OsStatus XCpCallManager::answerCallConnection(const UtlString& sCallId)
    return result;
 }
 
+OsStatus XCpCallManager::acceptAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                                    const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->acceptConnectionTransfer(sSipDialog);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::rejectAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                                    const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->rejectConnectionTransfer(sSipDialog);
+   }
+
+   return result;
+}
+
 OsStatus XCpCallManager::dropAbstractCallConnection(const UtlString& sAbstractCallId,
                                                     const SipDialog& sSipDialog)
 {

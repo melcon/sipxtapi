@@ -47,6 +47,8 @@
 #include <cp/msg/AcLimitCodecPreferencesMsg.h>
 #include <cp/msg/AcSubscribeMsg.h>
 #include <cp/msg/AcUnsubscribeMsg.h>
+#include <cp/msg/AcAcceptTransferMsg.h>
+#include <cp/msg/AcRejectTransferMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -159,6 +161,18 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    }
 
    return bResult;
+}
+
+OsStatus XCpAbstractCall::acceptConnectionTransfer(const SipDialog& sipDialog)
+{
+   AcAcceptTransferMsg acceptTransferMsg(sipDialog);
+   return postMessage(acceptTransferMsg);
+}
+
+OsStatus XCpAbstractCall::rejectConnectionTransfer(const SipDialog& sipDialog)
+{
+   AcRejectTransferMsg rejectTransferMsg(sipDialog);
+   return postMessage(rejectTransferMsg);
 }
 
 OsStatus XCpAbstractCall::audioToneStart(int iToneId,
@@ -418,6 +432,12 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_UNSUBSCRIBE:
       handleUnsubscribe((const AcUnsubscribeMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_ACCEPT_TRANSFER:
+      handleAcceptTransfer((const AcAcceptTransferMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_REJECT_TRANSFER:
+      handleRejectTransfer((const AcRejectTransferMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -705,6 +725,36 @@ OsStatus XCpAbstractCall::handleUnsubscribe(const AcUnsubscribeMsg& rMsg)
    if (resFound)
    {
       return ptrLock->unsubscribe(rMsg.getNotificationType(), callbackSipDialog);
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleAcceptTransfer(const AcAcceptTransferMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->acceptTransfer();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleRejectTransfer(const AcRejectTransferMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->rejectTransfer();
    }
 
    return OS_NOT_FOUND;

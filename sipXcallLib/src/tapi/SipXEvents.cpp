@@ -944,6 +944,8 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->hAssociatedCall = pSourceInfo->hAssociatedCall;
             pInfo->sipResponseCode = pSourceInfo->sipResponseCode;
             pInfo->szSipResponseText = SAFE_STRDUP(pSourceInfo->szSipResponseText);
+            pInfo->szReferredBy = SAFE_STRDUP(pSourceInfo->szReferredBy);
+            pInfo->szReferTo = SAFE_STRDUP(pSourceInfo->szReferTo);
 
             *pEventCopy = pInfo;
 
@@ -1241,6 +1243,8 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             SIPX_CALLSTATE_INFO* pSourceInfo = (SIPX_CALLSTATE_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_CALLSTATE_INFO));
             free((void*)pSourceInfo->szSipResponseText);
+            free((void*)pSourceInfo->szReferredBy);
+            free((void*)pSourceInfo->szReferTo);
             delete pSourceInfo;
 
             rc = SIPX_RESULT_SUCCESS;

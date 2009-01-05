@@ -1122,6 +1122,62 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxCallAcceptTransfer(const SIPX_CALL hCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAcceptTransfer");
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxCallAcceptTransfer hCall=%d", hCall);
+   SIPX_INSTANCE_DATA* pInst = NULL;
+   SipDialog sipDialog;
+   UtlString abstractCallId;
+
+   SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+   if (pCallData)
+   {
+      pInst = pCallData->m_pInst;
+      sipDialog = pCallData->m_sipDialog;
+      abstractCallId = pCallData->m_abstractCallId;
+      sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
+
+      if (pInst)
+      {
+         pInst->pCallManager->acceptAbstractCallTransfer(abstractCallId, sipDialog);
+         sr = SIPX_RESULT_SUCCESS;
+      }
+   }// no pCallData = call not found
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxCallRejectTransfer(const SIPX_CALL hCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallRejectTransfer");
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxCallRejectTransfer hCall=%d", hCall);
+   SIPX_INSTANCE_DATA* pInst = NULL;
+   SipDialog sipDialog;
+   UtlString abstractCallId;
+
+   SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+   if (pCallData)
+   {
+      pInst = pCallData->m_pInst;
+      sipDialog = pCallData->m_sipDialog;
+      abstractCallId = pCallData->m_abstractCallId;
+      sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
+
+      if (pInst)
+      {
+         pInst->pCallManager->rejectAbstractCallTransfer(abstractCallId, sipDialog);
+         sr = SIPX_RESULT_SUCCESS;
+      }
+   }// no pCallData = call not found
+
+   return sr;
+}
+
 // returns Sip CallID
 SIPXTAPI_API SIPX_RESULT sipxCallGetSipCallId(const SIPX_CALL hCall,
                                               char* szSipCallId,
