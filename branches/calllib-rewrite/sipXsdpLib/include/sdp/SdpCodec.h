@@ -299,6 +299,8 @@ public:
    ///Set the packet size
    void setPacketSize(const int packetSize);
 
+   /** Gets codec name. This is not the same as mime subtype. */
+   void getCodecName(UtlString& codecName) const { codecName = m_sCodecName; }
    UtlString getCodecName() const { return m_sCodecName; }
 
 //@}
