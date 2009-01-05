@@ -28,6 +28,7 @@
 #include <mi/CpMediaInterface.h>
 #include <cp/XCpAbstractCall.h>
 #include <cp/XSipConnection.h>
+#include <cp/CpCodecInfo.h>
 #include <cp/XCpCallConnectionListener.h>
 #include <cp/CpNotificationMsgDef.h>
 #include <cp/CpMessageTypes.h>
@@ -796,10 +797,29 @@ UtlBoolean XCpAbstractCall::handleConnectionNotfMessage(const OsIntPtrMsg& rMsg)
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_RFC2833, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
    case CP_NOTIFICATION_START_RTP_SEND:
-      fireSipXMediaConnectionEvent(CP_MEDIA_LOCAL_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
-      break;
+      {
+         UtlBoolean bCodecKnown = FALSE;
+         if (m_pMediaInterface)
+         {
+            // try to get codec from media interface
+            CpCodecInfo codec;
+            if (m_pMediaInterface->getPrimaryCodec(mediaConnectionId, codec.m_audioCodec.m_codecName,
+               codec.m_videoCodec.m_codecName, &codec.m_audioCodec.m_iPayloadId,
+               &codec.m_videoCodec.m_iPayloadType, codec.m_bIsEncrypted) == OS_SUCCESS)
+            {
+               bCodecKnown = TRUE;
+               fireSipXMediaConnectionEvent(CP_MEDIA_LOCAL_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, (intptr_t)&codec, NULL);
+            }
+         }
+         if (!bCodecKnown)
+         {
+            // fire event without codec
+            fireSipXMediaConnectionEvent(CP_MEDIA_LOCAL_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, NULL, NULL);
+         }
+         break;
+      }
    case CP_NOTIFICATION_STOP_RTP_SEND:
-      fireSipXMediaConnectionEvent(CP_MEDIA_LOCAL_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      fireSipXMediaConnectionEvent(CP_MEDIA_LOCAL_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, NULL, NULL);
       break;
    case CP_NOTIFICATION_START_RTP_RECEIVE:
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_START, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
