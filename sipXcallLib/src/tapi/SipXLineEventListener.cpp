@@ -142,7 +142,7 @@ void SipXLineEventListener::handleLineEvent(const UtlString& lineIdentifier,
                                             int sipResponseCode,
                                             const UtlString& sResponseText)
 {
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
       "handleLineEvent pSrc=%p szLineIdentifier=%s event=%d cause=%d",
       m_pInst, lineIdentifier.data(), event, cause);
 
