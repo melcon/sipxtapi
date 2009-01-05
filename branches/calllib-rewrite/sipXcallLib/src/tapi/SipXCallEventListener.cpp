@@ -204,7 +204,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       pSipDialog->getCallId(sSessionCallId);
    }
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxFireCallEvent");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
       "sipxFireCallEvent CallId=%s RemoteAddress=%s Event=%s:%s",
       sCallId.data(),
       sRemoteAddress.data(),
