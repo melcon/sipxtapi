@@ -429,7 +429,7 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
       "GSM "
 #endif // HAVE_GSM ]
 #ifdef HAVE_ILBC // [
-      "ILBC "
+      "ILBC ILBC-20MS "
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
       "G729A G723.1 "

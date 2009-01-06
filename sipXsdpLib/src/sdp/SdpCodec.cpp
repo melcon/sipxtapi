@@ -271,6 +271,8 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     else
     if (strcmp(compareString,"ILBC") == 0)
         retType = SdpCodec::SDP_CODEC_ILBC;
+    else if (strcmp(compareString,"ILBC-20MS") == 0)
+        retType = SdpCodec::SDP_CODEC_ILBC_20MS;
     else
     if (strcmp(compareString,"GSM") == 0)
         retType = SdpCodec::SDP_CODEC_GSM;
