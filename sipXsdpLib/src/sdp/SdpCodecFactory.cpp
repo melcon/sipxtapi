@@ -73,8 +73,8 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SDP_CODEC_BANDWIDTH_LOW); 
       break;
 #endif // HAVE_INTEL_IPP
-   case SdpCodec::SDP_CODEC_GIPS_PCMA:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_GIPS_PCMA,
+   case SdpCodec::SDP_CODEC_PCMA:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA,
          SdpCodec::SDP_CODEC_PCMA,
          "PCMA",
          MIME_TYPE_AUDIO,
@@ -86,8 +86,8 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
-   case SdpCodec::SDP_CODEC_GIPS_PCMU:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_GIPS_PCMU,
+   case SdpCodec::SDP_CODEC_PCMU:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU,
          SdpCodec::SDP_CODEC_PCMU,
          "PCMU",
          MIME_TYPE_AUDIO,

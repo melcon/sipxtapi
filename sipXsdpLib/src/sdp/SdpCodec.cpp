@@ -253,15 +253,13 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     else
     if (strcmp(compareString,"PCMU") == 0 ||
        strcmp(compareString,"G711U") == 0 || 
-       strcmp(compareString,"0") == 0 ||
-       strcmp(compareString,"258") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_PCMU;
+       strcmp(compareString,"0") == 0)
+        retType = SdpCodec::SDP_CODEC_PCMU;
     else
     if (strcmp(compareString,"PCMA") == 0 ||
        strcmp(compareString,"G711A") == 0 || 
-       strcmp(compareString,"8") == 0 ||
-       strcmp(compareString,"257") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_PCMA;
+       strcmp(compareString,"8") == 0)
+        retType = SdpCodec::SDP_CODEC_PCMA;
     else
     if (strcmp(compareString,"G729") == 0 ||
        strcmp(compareString,"G729A") == 0)

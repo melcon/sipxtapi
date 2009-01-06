@@ -91,11 +91,11 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       rpDecoder = new MpdPtAVT(payloadType);
       break;
 
-   case (SdpCodec::SDP_CODEC_GIPS_PCMA):
+   case (SdpCodec::SDP_CODEC_PCMA):
       rpDecoder = new MpdSipxPcma(payloadType);
       break;
 
-   case (SdpCodec::SDP_CODEC_GIPS_PCMU):
+   case (SdpCodec::SDP_CODEC_PCMU):
       rpDecoder = new MpdSipxPcmu(payloadType);
       break;
 
@@ -173,11 +173,11 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
       rpEncoder = new MpePtAVT(payloadType);
       break;
 
-   case (SdpCodec::SDP_CODEC_GIPS_PCMA):
+   case (SdpCodec::SDP_CODEC_PCMA):
       rpEncoder = new MpeSipxPcma(payloadType);
       break;
 
-   case (SdpCodec::SDP_CODEC_GIPS_PCMU):
+   case (SdpCodec::SDP_CODEC_PCMU):
       rpEncoder = new MpeSipxPcmu(payloadType);
       break;
 
