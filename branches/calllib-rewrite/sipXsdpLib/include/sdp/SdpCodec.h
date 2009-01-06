@@ -122,39 +122,36 @@ public:
         SDP_CODEC_G729 = 18,       ///< G.729, with or without Annexes A or B
         SDP_CODEC_H263 = 34,       ///< H.263 video codec
         SDP_CODEC_MAXIMUM_STATIC_CODEC = 95,
-        SDP_CODEC_SPEEX = 110,     ///< Speex, mono 8bits 8000samples/sec
-        SDP_CODEC_SPEEX_5 = 111,   ///< Speex Profile 1
-        SDP_CODEC_SPEEX_15 = 112,  ///< Speex Profile 2
-        SDP_CODEC_SPEEX_24 = 113,  ///< Speex Profile 3
-        SDP_CODEC_TONES = 128,     ///< AVT/DTMF Tones, RFC 2833
-        SDP_CODEC_L16_8K = 131,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
+        SDP_CODEC_TONES,     ///< AVT/DTMF Tones, RFC 2833
+        SDP_CODEC_SPEEX,     ///< Speex, mono 8bits 8000samples/sec
+        SDP_CODEC_SPEEX_5,   ///< Speex Profile 1
+        SDP_CODEC_SPEEX_15,  ///< Speex Profile 2
+        SDP_CODEC_SPEEX_24,  ///< Speex Profile 3
+        SDP_CODEC_L16_8K,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
+        SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
+        SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)
 
-         // Range for 3rd party add in codec types
-        SDP_CODEC_3RD_PARTY_START = 256,
-        SDP_CODEC_GIPS_PCMA  = 257,
-        SDP_CODEC_GIPS_PCMU  = 258,
-        SDP_CODEC_ILBC = 262,
-        SDP_CODEC_VP71_CIF = 264,
-        SDP_CODEC_VP71_QCIF = 265,
-        SDP_CODEC_VP71_SQCIF = 266,
-        SDP_CODEC_VP71_QVGA = 267,
-        SDP_CODEC_IYUV_CIF = 268,
-        SDP_CODEC_IYUV_QCIF = 269,
-        SDP_CODEC_IYUV_SQCIF = 270,
-        SDP_CODEC_IYUV_QVGA = 271,
-        SDP_CODEC_I420_CIF = 272,
-        SDP_CODEC_I420_QCIF = 273,
-        SDP_CODEC_I420_SQCIF = 274,
-        SDP_CODEC_I420_QVGA = 275,
-        SDP_CODEC_RGB24_CIF = 276,
-        SDP_CODEC_RGB24_QCIF = 277,
-        SDP_CODEC_RGB24_SQCIF = 278,
-        SDP_CODEC_RGB24_QVGA = 279,
-        SDP_CODEC_H263_CIF = 280,
-        SDP_CODEC_H263_QCIF = 281,
-        SDP_CODEC_H263_SQCIF = 282,
-        SDP_CODEC_H263_QVGA = 283,
-        SDP_CODEC_3RD_PARTY_END = 511
+        // video codecs
+        SDP_CODEC_VP71_CIF,
+        SDP_CODEC_VP71_QCIF,
+        SDP_CODEC_VP71_SQCIF,
+        SDP_CODEC_VP71_QVGA,
+        SDP_CODEC_IYUV_CIF,
+        SDP_CODEC_IYUV_QCIF,
+        SDP_CODEC_IYUV_SQCIF,
+        SDP_CODEC_IYUV_QVGA,
+        SDP_CODEC_I420_CIF,
+        SDP_CODEC_I420_QCIF,
+        SDP_CODEC_I420_SQCIF,
+        SDP_CODEC_I420_QVGA,
+        SDP_CODEC_RGB24_CIF,
+        SDP_CODEC_RGB24_QCIF,
+        SDP_CODEC_RGB24_SQCIF,
+        SDP_CODEC_RGB24_QVGA,
+        SDP_CODEC_H263_CIF,
+        SDP_CODEC_H263_QCIF,
+        SDP_CODEC_H263_SQCIF,
+        SDP_CODEC_H263_QVGA,
     };
 
 
