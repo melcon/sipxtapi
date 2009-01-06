@@ -112,6 +112,19 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
+   case SdpCodec::SDP_CODEC_ILBC_20MS:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_ILBC_20MS,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "ILBC-20MS",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_ILBC,
+         8000,
+         20000,
+         1,
+         "mode=20",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
 #ifdef HAVE_GSM
    case SdpCodec::SDP_CODEC_GSM:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_GSM,
@@ -481,16 +494,17 @@ UtlString SdpCodecFactory::getFixedAudioCodecs(const UtlString& audioCodecs)
    if (!lcAudioCodecs.contains(MIME_SUBTYPE_DTMF_TONES))
    {
       // audio/telephone-event is missing, add it
-      UtlString res(audioCodecs);
+      UtlString result;
       if (audioCodecs.length() > 0)
       {
-         res += " "MIME_SUBTYPE_DTMF_TONES;
+         result.appendFormat("%s ", MIME_SUBTYPE_DTMF_TONES);
+         result.append(audioCodecs);
       }
       else
       {
-         res = MIME_SUBTYPE_DTMF_TONES;
+         result = MIME_SUBTYPE_DTMF_TONES;
       }
-      return res;
+      return result;
    }
    else
    {

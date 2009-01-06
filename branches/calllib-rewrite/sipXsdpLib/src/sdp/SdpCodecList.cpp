@@ -185,33 +185,19 @@ void SdpCodecList::bindPayloadIds()
 {
    int unusedDynamicPayloadId = SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC + 1;
    SdpCodec* codecWithoutPayloadId = NULL;
-   UtlString prevSubmimeType = "none";
-   UtlString actualSubmimeType;
 
    // Find a codec which does not have its payload type set
-   // Cheat a little and make the codec writeable
-   while((codecWithoutPayloadId = (SdpCodec*) getCodecByPayloadId(-1)))
+   // Cheat a little and make the codec writable
+   while ((codecWithoutPayloadId = (SdpCodec*) getCodecByPayloadId(-1)))
    {
       // Find an unused dynamic payload type id
-      while(getCodecByPayloadId(unusedDynamicPayloadId))
+      while (getCodecByPayloadId(unusedDynamicPayloadId))
       {
-         // Assuming all codecs with same submime type are stored
-         // sequentially, only increment payload id for different submime types
-         codecWithoutPayloadId->getEncodingName(actualSubmimeType);
-         if (prevSubmimeType.compareTo(actualSubmimeType, UtlString::ignoreCase) != 0)
-         {
-            // Increment payload id for new submime type
-            unusedDynamicPayloadId++;
-            prevSubmimeType = actualSubmimeType;
-         }
-         else
-         {
-            // Just break if we have the same submime type
-            break;
-         }
+         unusedDynamicPayloadId++;
       }
 
       codecWithoutPayloadId->setCodecPayloadId(unusedDynamicPayloadId);
+      unusedDynamicPayloadId++;
    }
 }
 
@@ -326,11 +312,15 @@ const SdpCodec* SdpCodecList::getCodecByPayloadId(int payloadTypeId) const
 }
 
 const SdpCodec* SdpCodecList::getCodec(const char* mimeType, 
-                                       const char* mimeSubType) const
+                                       const char* mimeSubType,
+                                       unsigned sampleRate,
+                                       unsigned numChannels,
+                                       const UtlString& fmtp) const
 {
    const SdpCodec* codecFound = NULL;
    UtlString foundMimeType;
    UtlString foundMimeSubType;
+   UtlString foundFmtp;
    UtlString mimeTypeString(mimeType ? mimeType : "");
    mimeTypeString.toLower();
    UtlString mimeSubTypeString(mimeSubType ? mimeSubType : "");
@@ -342,11 +332,20 @@ const SdpCodec* SdpCodecList::getCodec(const char* mimeType,
    {
       // If the mime type matches
       codecFound->getMediaType(foundMimeType);
-      if (foundMimeType.compareTo(mimeTypeString, UtlString::ignoreCase) == 0)
+      if(foundMimeType.compareTo(mimeTypeString, UtlString::ignoreCase) == 0)
       {
-         // and if the mime subtype matches
+         // and if the mime subtype, sample rate, number of channels
+         // and fmtp match.
+         // TODO:: checking for fmtp match must be made intelligent, e.g. by
+         //        defining isCompatible(fmtp) method for SdpCodec. Checking
+         //        by string comparison leads to errors when there are two
+         //        or more parameters and they're presented in random order.
          codecFound->getEncodingName(foundMimeSubType);
-         if (foundMimeSubType.compareTo(mimeSubTypeString, UtlString::ignoreCase) == 0)
+         codecFound->getSdpFmtpField(foundFmtp);
+         if ((foundMimeSubType.compareTo(mimeSubTypeString, UtlString::ignoreCase) == 0) &&
+            (sampleRate == -1 || codecFound->getSampleRate() == sampleRate) &&
+            (numChannels == -1 || codecFound->getNumChannels() == numChannels) &&
+            (fmtp == foundFmtp))
          {
             // we found a match
             break;

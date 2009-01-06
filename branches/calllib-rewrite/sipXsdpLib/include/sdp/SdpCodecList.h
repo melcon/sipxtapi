@@ -105,7 +105,10 @@ public:
 
    /** Get a codec given the mime type and subtype. Returns internal pointer! */
    const SdpCodec* getCodec(const char* mimeType, 
-                            const char* mimeSubType) const;
+                            const char* mimeSubType,
+                            unsigned sampleRate,
+                            unsigned numChannels,
+                            const UtlString& fmtp) const;
 
    /** Get the number of codecs */
    int getCodecCount() const;
