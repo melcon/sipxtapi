@@ -43,12 +43,12 @@ const MpCodecInfo MpeSipxILBC::smCodecInfo20ms(
    8000,                       // samplingRate
    8,                          // numBitsPerSample
    1,                          // numChannels
-   180,                        // interleaveBlockSize
+   160,                        // interleaveBlockSize
    13334,                      // bitRate. It doesn't matter right now.
    NO_OF_BYTES_20MS*8,         // minPacketBits
    NO_OF_BYTES_20MS*8,         // avgPacketBits
    NO_OF_BYTES_20MS*8,         // maxPacketBits
-   180);                       // numSamplesPerFrame
+   160);                       // numSamplesPerFrame
 
 MpeSipxILBC::MpeSipxILBC(int payloadType, int mode)
 : MpEncoderBase(payloadType, mode == 20 ? &smCodecInfo20ms : &smCodecInfo30ms)
