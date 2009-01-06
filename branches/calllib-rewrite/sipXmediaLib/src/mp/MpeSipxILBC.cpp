@@ -22,7 +22,7 @@ extern "C" {
 #include <iLBC_encode.h>
 }
 
-const MpCodecInfo MpeSipxILBC::smCodecInfo(
+const MpCodecInfo MpeSipxILBC::smCodecInfo30ms(
     SdpCodec::SDP_CODEC_ILBC,   // codecType
     "iLBC",                     // codecVersion
     false,                      // usesNetEq
@@ -36,12 +36,30 @@ const MpCodecInfo MpeSipxILBC::smCodecInfo(
     NO_OF_BYTES_30MS*8,         // maxPacketBits
     240);                       // numSamplesPerFrame
 
+const MpCodecInfo MpeSipxILBC::smCodecInfo20ms(
+   SdpCodec::SDP_CODEC_ILBC_20MS,   // codecType
+   "iLBC",                     // codecVersion
+   false,                      // usesNetEq
+   8000,                       // samplingRate
+   8,                          // numBitsPerSample
+   1,                          // numChannels
+   180,                        // interleaveBlockSize
+   13334,                      // bitRate. It doesn't matter right now.
+   NO_OF_BYTES_20MS*8,         // minPacketBits
+   NO_OF_BYTES_20MS*8,         // avgPacketBits
+   NO_OF_BYTES_20MS*8,         // maxPacketBits
+   180);                       // numSamplesPerFrame
 
-MpeSipxILBC::MpeSipxILBC(int payloadType)
-: MpEncoderBase(payloadType, &smCodecInfo)
+MpeSipxILBC::MpeSipxILBC(int payloadType, int mode)
+: MpEncoderBase(payloadType, mode == 20 ? &smCodecInfo20ms : &smCodecInfo30ms)
 , mpState(NULL)
 , mBufferLoad(0)
+, m_mode(mode)
+, m_samplesPerFrame(0)
+, m_packetBytes(0)
 {
+   m_samplesPerFrame = getInfo()->getNumSamplesPerFrame();
+   m_packetBytes = getInfo()->getMaxPacketBits() / 8;
 }
 
 MpeSipxILBC::~MpeSipxILBC()
@@ -54,7 +72,7 @@ OsStatus MpeSipxILBC::initEncode(void)
    assert(NULL == mpState);
    mpState = new iLBC_Enc_Inst_t();
    memset(mpState, 0, sizeof(*mpState));
-   ::initEncode(mpState, 30);
+   ::initEncode(mpState, m_mode);
 
    return OS_SUCCESS;
 }
@@ -78,21 +96,21 @@ OsStatus MpeSipxILBC::encode(const MpAudioSample* pAudioSamples,
 {
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad += numSamples;
-   assert(mBufferLoad <= 240);
+   assert(mBufferLoad <= m_samplesPerFrame);
 
-   if (mBufferLoad == 240)
+   if (mBufferLoad == m_samplesPerFrame)
    {
       float buffer[240];
-      for (int i = 0; i < 240; ++i)
+      for (unsigned int i = 0; i < m_samplesPerFrame; ++i)
          buffer[i] =  float(mpBuffer[i]);
 
       iLBC_encode((unsigned char*)pCodeBuf, buffer, mpState);
 
       mBufferLoad = 0;
-      rSizeInBytes = NO_OF_BYTES_30MS;
+      rSizeInBytes = m_packetBytes;
       sendNow = true;
-   } 
-   else 
+   }
+   else
    {
       rSizeInBytes = 0;
       sendNow = false;

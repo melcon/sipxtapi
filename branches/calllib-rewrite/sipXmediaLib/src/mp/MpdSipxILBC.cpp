@@ -29,7 +29,7 @@ extern "C" {
 #include <iLBC_decode.h>
 }
 
-const MpCodecInfo MpdSipxILBC::smCodecInfo(
+const MpCodecInfo MpdSipxILBC::smCodecInfo30ms(
     SdpCodec::SDP_CODEC_ILBC,   // codecType
     "iLBC",                     // codecVersion
     false,                      // usesNetEq
@@ -44,12 +44,30 @@ const MpCodecInfo MpdSipxILBC::smCodecInfo(
     240,                        // numSamplesPerFrame
     6);                         // preCodecJitterBufferSize (should be adjusted)
 
+const MpCodecInfo MpdSipxILBC::smCodecInfo20ms(
+   SdpCodec::SDP_CODEC_ILBC_20MS,   // codecType
+   "iLBC",                     // codecVersion
+   false,                      // usesNetEq
+   8000,                       // samplingRate
+   8,                          // numBitsPerSample (not used)
+   1,                          // numChannels
+   160,                        // interleaveBlockSize
+   13334,                      // bitRate
+   NO_OF_BYTES_20MS * 8,       // minPacketBits
+   NO_OF_BYTES_20MS * 8,       // avgPacketBits
+   NO_OF_BYTES_20MS * 8,       // maxPacketBits
+   160,                        // numSamplesPerFrame
+   6);                         // preCodecJitterBufferSize (should be adjusted)
 
-
-MpdSipxILBC::MpdSipxILBC(int payloadType)
-: MpDecoderBase(payloadType, &smCodecInfo)
+MpdSipxILBC::MpdSipxILBC(int payloadType, int mode)
+: MpDecoderBase(payloadType, mode == 20 ? &smCodecInfo20ms : &smCodecInfo30ms)
+, m_mode(mode)
 , mpState(NULL)
+, m_samplesPerFrame(0)
+, m_packetBytes(0)
 {
+   m_samplesPerFrame = getInfo()->getNumSamplesPerFrame();
+   m_packetBytes = getInfo()->getMaxPacketBits() / 8;
 }
 
 MpdSipxILBC::~MpdSipxILBC()
@@ -63,7 +81,7 @@ OsStatus MpdSipxILBC::initDecode()
    {
       mpState = new iLBC_Dec_Inst_t();
       memset(mpState, 0, sizeof(*mpState));
-      ::initDecode(mpState, 30, 1);
+      ::initDecode(mpState, m_mode, 1);
    }
    return OS_SUCCESS;
 }
@@ -80,17 +98,17 @@ int MpdSipxILBC::decode(const MpRtpBufPtr &pPacket,
                         MpAudioSample *samplesBuffer)
 {
    // Check if available buffer size is enough for the packet.
-   if (decodedBufferLength < 240)
+   if (decodedBufferLength < m_samplesPerFrame)
    {
       osPrintf("MpdSipxILBC::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
    // Decode incoming packet to temp buffer. If no packet - do PLC.
-   float buffer[240];
+   float buffer[240]; // use buffer for 30ms frames, even for 20ms
    if (pPacket.isValid())
    {
-      if (NO_OF_BYTES_30MS != pPacket->getPayloadSize())
+      if (m_packetBytes != pPacket->getPayloadSize())
       {
          osPrintf("MpdSipxILBC::decode: Payload size: %d!\n", pPacket->getPayloadSize());
          return 0;
@@ -105,7 +123,7 @@ int MpdSipxILBC::decode(const MpRtpBufPtr &pPacket,
       iLBC_decode(buffer, NULL, mpState, 0);
    }
    
-   for (int i = 0; i < 240; ++i)
+   for (unsigned int i = 0; i < m_samplesPerFrame; ++i)
    {
       float tmp = buffer[i];
       if (tmp > SHRT_MAX)
@@ -116,7 +134,7 @@ int MpdSipxILBC::decode(const MpRtpBufPtr &pPacket,
       samplesBuffer[i] = MpAudioSample(tmp + 0.5f);
    }
 
-   return 240;
+   return m_samplesPerFrame;
 }
 
 #endif // HAVE_ILBC ]

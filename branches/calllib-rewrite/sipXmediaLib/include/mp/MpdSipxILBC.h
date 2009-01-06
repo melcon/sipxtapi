@@ -40,7 +40,7 @@ public:
 //@{
 
      /// Constructor
-   MpdSipxILBC(int payloadType);
+   MpdSipxILBC(int payloadType, int mode = 30);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this decoder
      */
@@ -94,9 +94,13 @@ public:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 private:
-   static const MpCodecInfo smCodecInfo;  ///< static information about the codec
-   iLBC_Dec_Inst_t_ *mpState;             ///< Internal iLBC decoder state.
+   static const MpCodecInfo smCodecInfo20ms;  ///< static information about the 20ms codec version
+   static const MpCodecInfo smCodecInfo30ms;  ///< static information about the 30ms codec version
 
+   iLBC_Dec_Inst_t_ *mpState;             ///< Internal iLBC decoder state.
+   int m_mode; ///< iLBC mode. 20 or 30 is a valid value.
+   unsigned int m_samplesPerFrame;
+   unsigned int m_packetBytes; ///< RTP packet bytes
 };
 
 #endif // HAVE_ILBC ]
