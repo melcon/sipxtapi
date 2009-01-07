@@ -35,7 +35,7 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Release&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Release&quot;;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" ProgramDatabaseFile="bin\sipXtapi.pdb" EnableCOMDATFolding="2" GenerateDebugInformation="true" ImportLibrary="lib\sipXtapi.lib" ModuleDefinitionFile=""/>
+            <Tool Name="VCLinkerTool" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" ProgramDatabaseFile="bin\sipXtapi.pdb" EnableCOMDATFolding="2" GenerateDebugInformation="true" ImportLibrary="lib\sipXtapi.lib" ModuleDefinitionFile=""/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
@@ -55,7 +55,7 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" AdditionalIncludeDirectories="..\sipXportLib\include" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Debug&quot;;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="2" GenerateMapFile="true" MapExports="true" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib"/>
+            <Tool Name="VCLinkerTool" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="2" GenerateMapFile="true" MapExports="true" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
@@ -75,7 +75,7 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" DelayLoadDLLs="" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib usc_speech_codecd.lib vmd.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\..\IPP\5.3\ia32\lib;..\..\IPP\5.3\ia32\stublib;..\sipXportLib\contrib\pcre\lib;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\core\vm\Debug&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\bin\_\lib&quot;" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib" ModuleDefinitionFile=""/>
+            <Tool Name="VCLinkerTool" DelayLoadDLLs="" AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib speech.lib usc_speech_codec.lib vm.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib" ModuleDefinitionFile=""/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
@@ -95,7 +95,7 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib usc_speech_codec.lib vm.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\..\IPP\5.3\ia32\lib;..\..\IPP\5.3\ia32\stublib;..\sipXportLib\contrib\pcre\lib;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\application\usc_speech_codec\Release&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\core\vm\Release&quot;;&quot;..\..\IPP\ipp-samples-5.3\speech-codecs\bin\_\lib&quot;" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" EnableCOMDATFolding="2" GenerateDebugInformation="false" ImportLibrary="lib\sipXtapi.lib" ModuleDefinitionFile=""/>
+            <Tool Name="VCLinkerTool" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib speech.lib usc_speech_codec.lib vm.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" EnableCOMDATFolding="2" GenerateDebugInformation="false" ImportLibrary="lib\sipXtapi.lib" ModuleDefinitionFile=""/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
