@@ -59,7 +59,7 @@ public:
    /** Constructor. */
    SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                              XCpCallControl& rCallControl,
-                             const UtlString& sLocalIpAddress, ///< default IP for outbound calls
+                             const UtlString& sBindIpAddress, ///< bind IP address. May be 0.0.0.0
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
                              CpMessageQueueProvider& rMessageQueueProvider,
                              XSipConnectionEventSink& rSipConnectionEventSink,
