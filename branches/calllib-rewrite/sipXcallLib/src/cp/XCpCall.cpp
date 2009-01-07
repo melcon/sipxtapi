@@ -59,7 +59,7 @@ XCpCall::XCpCall(const UtlString& sId,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
                  const CpNatTraversalConfig& rNatTraversalConfig,
-                 const UtlString& sLocalIpAddress,
+                 const UtlString& sBindIpAddress,
                  int sessionTimerExpiration,
                  CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                  CP_SIP_UPDATE_CONFIG updateSetting,
@@ -73,7 +73,7 @@ XCpCall::XCpCall(const UtlString& sId,
                  SipSecurityEventListener* pSecurityEventListener,
                  CpMediaEventListener* pMediaEventListener)
 : XCpAbstractCall(sId, rSipUserAgent, rCallControl, pSipLineProvider, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
-                  sLocalIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting, sdpOfferingMode, inviteExpiresSeconds,
+                  sBindIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting, sdpOfferingMode, inviteExpiresSeconds,
                   pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener)
 , m_pSipConnection(NULL)
@@ -593,7 +593,7 @@ void XCpCall::createSipConnection(const SipDialog& sipDialog, const UtlString& s
       OsLock lock(m_memberMutex);
       if (!m_pSipConnection)
       {
-         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, m_rCallControl, sFullLineUrl, m_sLocalIpAddress,
+         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, m_rCallControl, sFullLineUrl, m_sBindIpAddress,
             m_sessionTimerExpiration, m_sessionTimerRefresh,
             m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, *this, *this, m_natTraversalConfig,
             m_pCallEventListener, m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);

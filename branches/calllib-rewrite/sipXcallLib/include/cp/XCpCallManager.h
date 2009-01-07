@@ -715,7 +715,7 @@ private:
    // read only fields
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
-   UtlString m_sLocalIpAddress; // once set, never modified
+   const UtlString m_sBindIpAddress; ///< may be 0.0.0.0. Don't use for contact. Only for media interface.
    const int m_inviteExpiresSeconds; ///< time in which INVITE must be answered with final response in seconds
 };
 
