@@ -37,19 +37,6 @@
 #define RTP_MTU  (UDP_MTU-12) ///< Maximum Transmission Unit for RTP packet.
 #define RTCP_MTU (UDP_MTU-12)
 
-#define CODEC_TYPE_PCMU 0
-#define CODEC_TYPE_GSM  3
-#define CODEC_TYPE_G723 4
-#define CODEC_TYPE_PCMA 8
-#define CODEC_TYPE_L16  11
-#define CODEC_TYPE_G729 18
-#define CODEC_TYPE_SPEEX    110
-#define CODEC_TYPE_SPEEX_5  111
-#define CODEC_TYPE_SPEEX_15 112
-#define CODEC_TYPE_SPEEX_24 113
-#define CODEC_TYPE_G729A 129
-#define CODEC_TYPE_G7231 131
-
 #define RTP_DIR_IN  1
 #define RTP_DIR_OUT 2
 #define RTP_DIR_NEW 4

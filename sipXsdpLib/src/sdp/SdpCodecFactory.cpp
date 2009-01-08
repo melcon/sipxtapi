@@ -141,10 +141,23 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       break;
 #endif // HAVE_GSM
 #ifdef HAVE_SPEEX
-   case SdpCodec::SDP_CODEC_SPEEX:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX,
+   case SdpCodec::SDP_CODEC_SPEEX_6:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_6,
          SdpCodec::SDP_CODEC_UNKNOWN,
-         "SPEEX",
+         "SPEEX_6",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         8000,
+         20000,
+         1,
+         "mode=2",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_8:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_8,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_8",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
@@ -154,16 +167,16 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
-   case SdpCodec::SDP_CODEC_SPEEX_5:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_5,
+   case SdpCodec::SDP_CODEC_SPEEX_11:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_11,
          SdpCodec::SDP_CODEC_UNKNOWN,
-         "SPEEX_5",
+         "SPEEX_11",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
          20000,
          1,
-         "mode=2",
+         "mode=4",
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
@@ -177,6 +190,19 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          20000,
          1,
          "mode=5",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_18:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_18,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_18",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         8000,
+         20000,
+         1,
+         "mode=6",
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
