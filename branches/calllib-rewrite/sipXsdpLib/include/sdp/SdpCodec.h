@@ -115,7 +115,7 @@ public:
         SDP_CODEC_UNKNOWN = -1,    ///< dynamic payload id will be used
         SDP_CODEC_PCMU = 0,        ///< G.711 mu-law
         SDP_CODEC_GSM = 3,         ///< GSM codec
-        SDP_CODEC_G723 = 4,
+        SDP_CODEC_G723 = 4,        ///< G.723.1 audio codec
         SDP_CODEC_PCMA = 8,        ///< G.711 a-law
         SDP_CODEC_L16_STEREO = 10, ///< PCM 16 bit/sample 44100 samples/sec.
         SDP_CODEC_L16_MONO = 11,   ///< PCM 16 bit/sample 44100 samples/sec.
@@ -123,10 +123,12 @@ public:
         SDP_CODEC_H263 = 34,       ///< H.263 video codec
         SDP_CODEC_MAXIMUM_STATIC_CODEC = 95,
         SDP_CODEC_TONES,     ///< AVT/DTMF Tones, RFC 2833
-        SDP_CODEC_SPEEX,     ///< Speex, mono 8bits 8000samples/sec
-        SDP_CODEC_SPEEX_5,   ///< Speex Profile 1
-        SDP_CODEC_SPEEX_15,  ///< Speex Profile 2
-        SDP_CODEC_SPEEX_24,  ///< Speex Profile 3
+        SDP_CODEC_SPEEX_6,   ///< Speex narrowband mode 2 (5,950 bps)
+        SDP_CODEC_SPEEX_8,   ///< Speex narrowband mode 3 (8,000 bps)
+        SDP_CODEC_SPEEX_11,  ///< Speex narrowband mode 4 (11,000 bps)
+        SDP_CODEC_SPEEX_15,  ///< Speex narrowband mode 5 (15,000 bps)
+        SDP_CODEC_SPEEX_18,  ///< Speex narrowband mode 6 (18,200 bps)
+        SDP_CODEC_SPEEX_24,  ///< Speex narrowband mode 7 (24,600 bps)
         SDP_CODEC_L16_8K,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
         SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
         SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)

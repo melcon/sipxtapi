@@ -423,7 +423,7 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 {
    UtlString supportedCodecs = 
 #ifdef HAVE_SPEEX // [
-      "SPEEX SPEEX_5 SPEEX_15 SPEEX_24 "
+      "SPEEX_6 SPEEX_8 SPEEX_11 SPEEX_15 SPEEX_18 SPEEX_24 "
 #endif // HAVE_SPEEX ]
 #ifdef HAVE_GSM // [
       "GSM "

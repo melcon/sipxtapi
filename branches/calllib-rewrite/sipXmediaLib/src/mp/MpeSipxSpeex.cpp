@@ -36,7 +36,7 @@
 
 
 const MpCodecInfo MpeSipxSpeex::smCodecInfo(
-         SdpCodec::SDP_CODEC_SPEEX,    // codecType
+         SdpCodec::SDP_CODEC_SPEEX_8,    // codecType
          "Speex",                      // codecVersion
          true,                         // usesNetEq
          8000,                         // samplingRate

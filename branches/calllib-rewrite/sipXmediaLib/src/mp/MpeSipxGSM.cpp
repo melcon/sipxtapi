@@ -39,7 +39,7 @@ MpeSipxGSM::MpeSipxGSM(int payloadType)
 , mpGsmState(NULL)
 , mBufferLoad(0)
 {
-   assert(CODEC_TYPE_GSM == payloadType);
+   assert(SdpCodec::SDP_CODEC_G723 == payloadType);
 }
 
 MpeSipxGSM::~MpeSipxGSM()

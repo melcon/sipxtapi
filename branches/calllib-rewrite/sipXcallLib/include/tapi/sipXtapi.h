@@ -168,13 +168,17 @@ typedef enum
  * High:     IPCMWB    ~ 80 kbps
  * Normal:   PCMU      64 kbps
  *           PCMA      64 kbps
- * Low:      iLBC      13.33 kbps, 30 ms frame size and
+ * Low:      iLBC      13.33 kbps, 30 ms frame size
  *                     15.2 kbps, 20 ms frame size
  *           GSM       13 kbps, 20 ms frame size
- *           G729      8 Kbps, 10ms frame size
- *           SPEEX     8 Kbps
- *           SPEEX_5   5.95 Kbps
+ *           G729A     8 Kbps, 10ms frame size
+ *           G723.1    6.3 Kbps, 30 ms frame size (using 24 byte frames)
+ *                     5.3 Kbps, 30 ms frame size (using 20 byte frames)
+ *           SPEEX_6   5.95 Kbps
+ *           SPEEX_8   8 Kbps
+ *           SPEEX_11  11 Kbps
  *           SPEEX_15  15 Kbps
+ *           SPEEX_18  18.2 Kbps
  *           SPEEX_24  24.6 Kbps
  * Variable: ISAC      variable bitrate
  * </pre>
