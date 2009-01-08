@@ -220,6 +220,60 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
 #endif // HAVE_SPEEX
+#ifdef HAVE_SPAN_DSP
+   case SdpCodec::SDP_CODEC_G726_16:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_16,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_16",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_16,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G726_24:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_24,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_24",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_24,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G726_32:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_32,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_32",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_32,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G726_40:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_40,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_40",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_40,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+#endif // HAVE_SPAN_DSP
 #ifdef VIDEO
    case SdpCodec::SDP_CODEC_VP71_CIF:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_CIF,

@@ -32,6 +32,10 @@
 #define MIME_SUBTYPE_PCMA "PCMA"
 #define MIME_SUBTYPE_G729 "G729"
 #define MIME_SUBTYPE_G723 "G723"
+#define MIME_SUBTYPE_G726_16 "G726-16"
+#define MIME_SUBTYPE_G726_24 "G726-24"
+#define MIME_SUBTYPE_G726_32 "G726-32"
+#define MIME_SUBTYPE_G726_40 "G726-40"
 #define MIME_SUBTYPE_DTMF_TONES "telephone-event"
 #define MIME_SUBTYPE_ILBC "iLBC"
 #define MIME_SUBTYPE_GSM "GSM"
@@ -132,6 +136,10 @@ public:
         SDP_CODEC_L16_8K,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
         SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
         SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)
+        SDP_CODEC_G726_16,   ///< G.726 16 Kbps
+        SDP_CODEC_G726_24,   ///< G.726 24 Kbps
+        SDP_CODEC_G726_32,   ///< G.726 32 Kbps
+        SDP_CODEC_G726_40,   ///< G.726 40 Kbps
 
         // video codecs
         SDP_CODEC_VP71_CIF,
