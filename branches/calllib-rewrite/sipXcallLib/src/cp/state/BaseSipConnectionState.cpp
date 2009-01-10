@@ -2522,7 +2522,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handle2xxTimerMessage(cons
 
 SipConnectionStateTransition* BaseSipConnectionState::handleDisconnectTimerMessage(const ScDisconnectTimerMsg& timerMsg)
 {
-   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+   GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NO_RESPONSE);
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg)
