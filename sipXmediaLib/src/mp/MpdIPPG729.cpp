@@ -190,20 +190,4 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
    return 160;
 }
 
-int MpdIPPG729::decodeIn(const MpRtpBufPtr &rtpPacket)
-{
-   unsigned payloadSize = rtpPacket->getPayloadSize();
-
-   if (payloadSize == G729_PATTERN_LENGTH)
-   {
-      return payloadSize;
-   }
-   else
-   {
-      osPrintf("MpdIPPG729: Rejecting rtpPacket of size %i\n", payloadSize);
-      return -1;
-   }
-}
-
-
 #endif /* !HAVE_INTEL_IPP ] */
