@@ -3,19 +3,46 @@ sipXtapi 3.3.0 is currently in development in calllib-rewrite branch. At some po
 I estimate that at the beginning of february 2009 refactored sipXcallLib will be usable enough to be merged into trunk and tested by developers, although not yet ready for production.
 
 === Code changes from 3.2.0 ===
- * minor refactoring of sipXtackLib - SDP handling (SdpCodecList, SdpCodecFactory), usage of SdpCodecList in sipXmediaAdapterLib whenever possible, avoid passing of arrays
- * new API in sipXtapi for getting all supported codecs. This was not available in 3.2.0 and had to be worked around
+==== sipXtapi ====
+ * new API for getting all supported codecs. This was not available in 3.2.0 and had to be worked around (sipxConfigGetNumAvailableAudioCodecs, sipxConfigGetAvailableAudioCodec, sipxConfigGetNumSelectedAudioCodecs, sipxConfigGetSelectedAudioCodec)
  * call/media events will not be 100% compatible with 3.2.0. Any changes will be described to make upgrade to 3.3.0 easy.
+ * changes in call transfer events - transferee side (recepient of REFER request) gets DIALTONE event instead of NEWCALL, when creating new call, since that call is outbound.
+ * possibility to accept/reject call transfer request (sipxCallAcceptTransfer, sipxCallRejectTransfer), no support for out of dialog REFER
+ * safer sipxCallPlayBufferStart, buffer can be deleted immediately after function returns
  * selection of codecs by bandwidth in sipXtapi will not be supported. Only selection by name will be supported. User may display codecs along with bandwidth requirements, and then choose codecs by name.
- * much easier to add new codecs. Codecs will still be static, but the complexity of adding one codecs has been reduced.
- * conferencing without having to invoke hold/unhold on conference or call - will be handled automatically by call manager. Hold/unhold will still be used but will be automatic.
- * big refactoring in sipXcallLib, CpCall/CpPeerCall, Connection/SipConnection, CallManager/CpCallManager will be gone. Support for session timer, 100rel (PRACK), UPDATE, redirection of RTP stream by re-INVITE.
- * minor improvements in sipXportLib - OsSharedServerTask, OsRWMutex inherits from OsRWSyncBase and is write recursive. OsQueuedNotification superseeding OsQueuedEvent. OsTimerNotification for sending timer event messages.
+ * separate functions sipxCallLimitCodecPreferences, sipxCallRenegotiateCodecPreferences
+ * sip proxy per line, using sipxLineSetOutboundProxy
+ * better audio focus control when connecting call with SIPX_FOCUS_CONFIG
+==== sipXcallLib ====
+ * conferencing without having to invoke hold/unhold on conference or call.
+ * public and private conferences. Public conferences will be bound to line, and any accepted inbound calls will be added to conference.
+ * big refactoring in sipXcallLib, CpCall/CpPeerCall, Connection/SipConnection, CallManager/CpCallManager will be gone.
+ * support for session timer (rfc4028), 100rel (rfc3262), norefersub (rfc4488), replaces (rfc3891), from-change (rfc4916), join (rfc3911)
+ * UPDATE, PRACK method support
+ * early and late SDP negotiation (SDP in INVITE, or ACK), configurable
+ * sending SDP in unreliable and reliable 18x responses - possibility to send early audio
+ * configurable sending of reliable 18x responses, session timer and usage of UPDATE method for hold/unhold/codec renegotiation
+ * redirection of RTP stream by re-INVITE/UPDATE
+ * refactored handling of inbound INFO
  * special message classes for messages instead of usage of OsIntPtrMsg or CpMultiStringMessage
  * less circular dependencies, various OO design defects fixed
-
-=== Possible changes ===
- * maybe use synchronous portaudio API to get lower latency
+====sipXsdpLib ====
+ * minor refactoring of sipXtackLib and sipXsdpLib - SDP handling (SdpCodecList, SdpCodecFactory), usage of SdpCodecList in sipXmediaAdapterLib whenever possible, avoid passing of arrays
+ * much easier to add new codecs. Codecs are still static, but the complexity of adding one codecs has been reduced.
+==== sipXtackLib ====
+ * removed support for PING method, it never became a standard
+ * SipMessage class supports parsing and setting new fields
+==== sipXmediaLib ====
+ * support for additional speex modes (11,000 bps and 18,200 bps)
+ * iLBC 20ms and 30ms modes are supported for sending
+ * G.726 codec (16, 24, 32, 40 Kbps modes) via Span DSP library
+ * improved old inbound DTMF detector, and new Span DSP DTMF detector (enabled by default in Windows).
+ * upgrade to Intel IPP 6.0 (compatibility with Intel IPP 5.3 maintained)
+ * upgrade to speex 1.2rc1 library
+ * introduction of Span DSP 0.0.6pre3
+==== sipXportLib ====
+ * minor improvements in sipXportLib - OsSharedServerTask, OsRWMutex inherits from OsRWSyncBase and is write recursive. OsQueuedNotification superseeding OsQueuedEvent.
+ * usage of OsTimerNotification for sending timer event messages. Custom notification subclass for each timer, avoiding any memory leaks.
 
 === Will not be addressed ===
- * TCP/TLS code, custom transport, SRTP, RTP over TCP, S/MIME
+ * TLS code, custom transport, SRTP, RTP over TCP, S/MIME
