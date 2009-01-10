@@ -39,6 +39,11 @@
 #include "mp/MpdSipxSpeex.h"
 #endif // HAVE_SPEEX ]
 
+#ifdef HAVE_SPAN_DSP // [
+#include "mp/MpdSipxG726.h"
+#include "mp/MpeSipxG726.h"
+#endif // HAVE_SPAN_DSP ]
+
 #ifdef HAVE_GSM // [
 #include "mp/MpdSipxGSM.h"
 #include "mp/MpeSipxGSM.h"
@@ -115,6 +120,20 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       rpDecoder = new MpdSipxSpeex(payloadType);
       break;
 #endif // HAVE_SPEEX ]
+#ifdef HAVE_SPAN_DSP // [
+   case (SdpCodec::SDP_CODEC_G726_16):
+      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_16);
+      break;
+   case (SdpCodec::SDP_CODEC_G726_24):
+      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_24);
+      break;
+   case (SdpCodec::SDP_CODEC_G726_32):
+      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_32);
+      break;
+   case (SdpCodec::SDP_CODEC_G726_40):
+      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_40);
+      break;
+#endif // HAVE_SPAN_DSP ]
 #ifdef HAVE_GSM // [
    case (SdpCodec::SDP_CODEC_GSM):
       rpDecoder = new MpdSipxGSM(payloadType);
@@ -197,7 +216,20 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
       rpEncoder = new MpeSipxSpeex(payloadType, 7);
       break;
 #endif // HAVE_SPEEX ]
-
+#ifdef HAVE_SPAN_DSP // [
+   case (SdpCodec::SDP_CODEC_G726_16):
+      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_16);
+      break;
+   case (SdpCodec::SDP_CODEC_G726_24):
+      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_24);
+      break;
+   case (SdpCodec::SDP_CODEC_G726_32):
+      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_32);
+      break;
+   case (SdpCodec::SDP_CODEC_G726_40):
+      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_40);
+      break;
+#endif // HAVE_SPAN_DSP ]
 #ifdef HAVE_GSM // [
    case (SdpCodec::SDP_CODEC_GSM):
       rpEncoder = new MpeSipxGSM(payloadType);
