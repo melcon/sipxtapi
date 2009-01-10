@@ -36,6 +36,8 @@ extern "C"
 {
 #endif
 
+#if !(defined(_MSC_VER) && _MSC_VER >= 1500)
+
 #if !defined(HAVE_SINF)
 static __inline__ float sinf(float x)
 {
@@ -129,6 +131,8 @@ static __inline__ float log10f(float x)
     return (float) log10((double) x);
 }
 #endif
+
+#endif // !(defined(_MSC_VER) && _MSC_VER >= 1500)
 
 /* The following code, to handle issues with lrint() and lrintf() on various
  * platforms, is adapted from similar code in libsndfile, which is:
