@@ -119,8 +119,9 @@ nobase_include_HEADERS =  \
     mp/MprBufferRecorder.h \
     mp/MprBufferRecorderConstructor.h \
     mp/MprDecode.h \
-    mp/MprDecodeInbandDtmf.h \
+    mp/MprSimpleDtmfDetector.h \
     mp/MprDejitter.h \
+    mp/MprDtmfDetectorBase.h \
     mp/MprEchoSuppress.h \
     mp/MprEncode.h \
     mp/MprFromFile.h \

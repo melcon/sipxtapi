@@ -112,7 +112,6 @@
                 <File RelativePath=".\src\mp\MprBridge.cpp"/>
                 <File RelativePath=".\src\mp\MprBufferRecorder.cpp"/>
                 <File RelativePath=".\src\mp\MprDecode.cpp"/>
-                <File RelativePath=".\src\mp\MprDecodeInbandDtmf.cpp"/>
                 <File RelativePath=".\src\mp\MprDejitter.cpp"/>
                 <File RelativePath=".\src\mp\MprEchoSuppress.cpp"/>
                 <File RelativePath=".\src\mp\MprEncode.cpp"/>
@@ -130,6 +129,7 @@
                 <File RelativePath=".\src\mp\MprNull.cpp"/>
                 <File RelativePath=".\src\mp\MprNullAec.cpp"/>
                 <File RelativePath=".\src\mp\MprRecorder.cpp"/>
+                <File RelativePath=".\src\mp\MprSimpleDtmfDetector.cpp"/>
                 <File RelativePath=".\src\mp\MprSpeexEchoCancel.cpp"/>
                 <File RelativePath=".\src\mp\MprSpeexPreProcess.cpp"/>
                 <File RelativePath=".\src\mp\MprSplitter.cpp"/>
@@ -272,8 +272,8 @@
                 <File RelativePath=".\include\mp\MprBufferRecorder.h"/>
                 <File RelativePath=".\include\mp\MprBufferRecorderConstructor.h"/>
                 <File RelativePath=".\include\mp\MprDecode.h"/>
-                <File RelativePath=".\include\mp\MprDecodeInbandDtmf.h"/>
                 <File RelativePath=".\include\mp\MprDejitter.h"/>
+                <File RelativePath=".\include\mp\MprDtmfDetectorBase.h"/>
                 <File RelativePath=".\include\mp\MprEchoSuppress.h"/>
                 <File RelativePath=".\include\mp\MprEncode.h"/>
                 <File RelativePath=".\include\mp\MpResNotification.h"/>
@@ -299,6 +299,7 @@
                 <File RelativePath=".\include\mp\MprRtpOutputAudioConnectionConstructor.h"/>
                 <File RelativePath=".\include\mp\MprRtpStartReceiveMsg.h"/>
                 <File RelativePath=".\include\mp\MprRtpStartSendMsg.h"/>
+                <File RelativePath=".\include\mp\MprSimpleDtmfDetector.h"/>
                 <File RelativePath=".\include\mp\MprSpeexEchoCancel.h"/>
                 <File RelativePath=".\include\mp\MprSpeexPreProcess.h"/>
                 <File RelativePath=".\include\mp\MprSplitter.h"/>

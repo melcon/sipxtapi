@@ -633,10 +633,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprDecodeInbandDtmf.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprDejitter.cpp"
 					>
 				</File>
@@ -702,6 +698,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MprRecorder.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MprSimpleDtmfDetector.cpp"
 					>
 				</File>
 				<File
@@ -1262,11 +1262,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprDecodeInbandDtmf.h"
+					RelativePath=".\include\mp\MprDejitter.h"
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprDejitter.h"
+					RelativePath=".\include\mp\MprDtmfDetectorBase.h"
 					>
 				</File>
 				<File
@@ -1367,6 +1367,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprRtpStartSendMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MprSimpleDtmfDetector.h"
 					>
 				</File>
 				<File
