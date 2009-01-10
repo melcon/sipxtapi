@@ -30,7 +30,7 @@ I estimate that at the beginning of february 2009 refactored sipXcallLib will be
  * minor refactoring of sipXtackLib and sipXsdpLib - SDP handling (SdpCodecList, SdpCodecFactory), usage of SdpCodecList in sipXmediaAdapterLib whenever possible, avoid passing of arrays
  * much easier to add new codecs. Codecs are still static, but the complexity of adding one codecs has been reduced.
 ==== sipXtackLib ====
- * removed support for PING method, it never became a standard
+ * removed support for PING method, it never became a standard (http://tools.ietf.org/html/draft-fwmiller-ping-03)
  * SipMessage class supports parsing and setting new fields
 ==== sipXmediaLib ====
  * support for additional speex modes (11,000 bps and 18,200 bps)
@@ -46,3 +46,56 @@ I estimate that at the beginning of february 2009 refactored sipXcallLib will be
 
 === Will not be addressed ===
  * TLS code, custom transport, SRTP, RTP over TCP, S/MIME
+
+=== Standards ===
+==== Supported requests for comments ====
+SipXtapi 3.3.0 will support the following RFCs:
+ * RFC 2782 - A DNS RR for specifying the location of services (DNS SRV) - http://tools.ietf.org/html/rfc2782
+ * RFC 2833 - RTP Payload for DTMF Digits - http://tools.ietf.org/html/rfc2833
+ * RFC 2976 - The SIP INFO Method - http://tools.ietf.org/html/rfc2976
+ * RFC 3261 - SIP: Session Initiation Protocol - http://tools.ietf.org/html/rfc3261
+ * RFC 3262 - Reliability of Provisional Responses in SIP - http://tools.ietf.org/html/rfc3262
+ * RFC 3263 - Session Initiation Protocol (SIP): Locating SIP Servers - http://tools.ietf.org/html/rfc3263
+ * RFC 3264 - An Offer/Answer Model with the Session Description Protocol (SDP) - http://tools.ietf.org/html/rfc3264
+ * RFC 3265 - Session Initiation Protocol (SIP)- Specific Event Notification - http://tools.ietf.org/html/rfc3265
+ * RFC 3311 - The Session Initiation Protocol (SIP) UPDATE Method - http://tools.ietf.org/html/rfc3311
+ * RFC 3326 - The Reason Header Field for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc3326
+ * RFC 3420 - Internet Media Type message/sipfrag - http://tools.ietf.org/html/rfc3420
+ * RFC 3428 - Session Initiation Protocol (SIP) Extension for Instant Messaging - http://tools.ietf.org/html/rfc3428
+ * RFC 3489 - Simple Traversal of UDP Through Network Address Translators (NATs) - http://tools.ietf.org/html/rfc3489
+ * RFC 3515 - The Session Initiation Protocol (SIP) Refer Method - http://tools.ietf.org/html/rfc3515
+ * RFC 3550 - RTP: A Transport Protocol for Real-Time Applications - http://tools.ietf.org/html/rfc3550
+ * RFC 3551 - RTP Profile for Audio and Video Conferences with Minimal Control - http://tools.ietf.org/html/rfc3551
+ * RFC 3581 - An extension to SIP for Symmetric Response Routing - http://tools.ietf.org/html/rfc3581
+ * RFC 3891 - The Session Initiation Protocol (SIP) "Replaces" Header - http://tools.ietf.org/html/rfc3891
+ * RFC 3903 - Session Initiation Protocol (SIP) Extension for Event State Publication - http://tools.ietf.org/html/rfc3903
+ * RFC 3911 - The Session Initiation Protocol (SIP) "Join" Header http://tools.ietf.org/html/rfc3911
+ * RFC 3951 - Internet Low Bit Rate Codec (iLBC) - http://tools.ietf.org/html/rfc3951
+ * RFC 3952 - Real-time Transport Protocol (RTP) Payload Format for internet Low Bit Rate Codec (iLBC) Speech - http://tools.ietf.org/html/rfc3952
+ * RFC 4028 - Session Timers in the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc4028
+ * RFC 4488 - Suppression of Session Initiation Protocol (SIP) REFER Method Implicit Subscription - http://tools.ietf.org/html/rfc4488
+ * RFC 4566 - SDP: Session Description Protocol - http://tools.ietf.org/html/rfc4566
+ * RFC 4916 - Connected Identity in the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc4916
+ * RFC 5057 - Multiple Dialog Usages in the Session Initiation Protocol - http://tools.ietf.org/html/rfc5057
+
+All above mentioned standards except for "join" extension are already supported in calllib-rewrite branch.
+==== Supported internet drafts ====
+SipXtapi 3.3.0 will support the same drafts for ICE and TURN as sipXtapi 3.2.0:
+ * draft-ietf-mmusic-ice-04 - Interactive Connectivity Establishment (ICE) 
+ * draft-rosenberg-midcom-turn-04 - Traversal Using Relay NAT (TURN)
+
+==== Candidates for future enhancements ====
+We may consider supporting the following RFCs and drafts in the future:
+ * RFC 3680 - A Session Initiation Protocol (SIP) Event Package for Registrations - http://tools.ietf.org/html/rfc3680
+ * RFC 3842 - A Message Summary and Message Waiting Indication Event Package for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc3842
+ * RFC 3856 - A Presence Event Package for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc3856
+ * RFC 3863 - Presence Information Data Format (PIDF) - http://tools.ietf.org/html/rfc3863
+ * RFC 3994 - Indication of Message Composition for Instant Messaging - http://tools.ietf.org/html/rfc3994
+ * RFC 4235 - An INVITE-Initiated Dialog Event Package for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc4235
+ * RFC 4575 - A Session Initiation Protocol (SIP) Event Package for Conference State - http://tools.ietf.org/html/rfc4575
+ * draft-kaplan-sipping-dtmf-package-00 - DTMF Info-Event Package - http://tools.ietf.org/html/draft-kaplan-sipping-dtmf-package-00
+ * draft-ietf-sip-info-events-02 - Session Initiation Protocol (SIP) INFO Method and Package Framework - http://tools.ietf.org/html/draft-ietf-sip-info-events-02
+ * draft-ietf-mmusic-ice-19 - Interactive Connectivity Establishment (ICE) - http://tools.ietf.org/html/draft-ietf-mmusic-ice-19
+ * draft-ietf-behave-turn-12 - Traversal Using Relays around NAT (TURN) - http://tools.ietf.org/html/draft-ietf-behave-turn-12
+
+Draft draft-kaplan-sipping-dtmf-package-00 is obsolete, but part of it dealing with transport of DTMF digits in INFO messages might be supported by many commercial applications. Capability negotiation in INVITE would not be implemented.
