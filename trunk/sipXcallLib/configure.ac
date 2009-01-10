@@ -80,7 +80,6 @@ AC_CONFIG_FILES([
   examples/Makefile 
   examples/PlaceCall/Makefile
   examples/ReceiveCall/Makefile
-  examples/musicServer/Makefile
   examples/sipXezPhone/Makefile
   include/Makefile 
   src/Makefile 
