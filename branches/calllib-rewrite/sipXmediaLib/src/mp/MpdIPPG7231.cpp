@@ -246,21 +246,4 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
    return decodedSamples;
 }
 
-int MpdIPPG7231::decodeIn(const MpRtpBufPtr &rtpPacket)
-{
-   unsigned payloadSize = rtpPacket->getPayloadSize();
-
-   if (payloadSize == G723_PATTERN_LENGTH_6300 ||
-       payloadSize == G723_PATTERN_LENGTH_5300)
-   {
-      return payloadSize;
-   }
-   else
-   {
-      osPrintf("MpdIPPG723: Rejecting rtpPacket of size %i\n", payloadSize);
-      return -1;
-   }
-}
-
-
 #endif /* !HAVE_INTEL_IPP ] */
