@@ -1,11 +1,18 @@
+//  
+// Copyright (C) 2006-2007 SIPez LLC. 
+// Licensed to SIPfoundry under a Contributor Agreement. 
 //
-// Copyright (C) 2007 stipus@stipus.com
+// Copyright (C) 2004-2007 SIPfoundry Inc.
+// Licensed by SIPfoundry under the LGPL license.
+//
+// Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
+// Licensed to SIPfoundry under a Contributor Agreement.
 //
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _MprDecodeInBandDtmf_h_
-#define _MprDecodeInBandDtmf_h_
+#ifndef _MprDtmfDetectorBase_h_
+#define _MprDtmfDetectorBase_h_
 
 // APPLICATION INCLUDES
 #include "mp/MpFlowGraphMsg.h"
@@ -23,9 +30,10 @@
 class MpRtpInputAudioConnection;
 
 /**
-*  @brief The "Audio from file" media processing resource
-*/
-class MprDecodeInBandDtmf : public MpAudioResource
+ *  Base class for all DTMF detectors. Implement doProcessFrame method from MpAudioResource. Subclass must also have
+ *  MpRtpInputAudioConnection as friend.
+ */
+class MprDtmfDetectorBase : public MpAudioResource
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -37,12 +45,19 @@ public:
 //@{
 
      //:Constructor
-   MprDecodeInBandDtmf(const UtlString& rName, 
+   MprDtmfDetectorBase(const UtlString& rName, 
                        int samplesPerFrame,
-                       int samplesPerSec);
+                       int samplesPerSec)
+   : MpAudioResource(rName, 0, 1, 1, 1, samplesPerFrame, samplesPerSec)
+   {
+
+   }
 
      //:Destructor
-   virtual ~MprDecodeInBandDtmf();
+   virtual ~MprDtmfDetectorBase()
+   {
+
+   }
 
 //@}
 
@@ -70,39 +85,13 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   int m_dtmfLastDigit;
-   int m_sameDtmfDigitCount;
-   double Mk697;
-   double Mk770;
-   double Mk852;
-   double Mk941;
-   double Mk1209;
-   double Mk1336;
-   double Mk1477;
-   double Mk1633;
-
-   virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
-                                     MpBufPtr outBufs[],
-                                     int inBufsSize,
-                                     int outBufsSize,
-                                     UtlBoolean isEnabled,
-                                     int samplesPerFrame = 80,
-                                     int samplesPerSecond = 8000);
-
-   /// Goertzel
-   double Goertzel(const MpAudioSample *input, int numsamples, double mk);
-
-   /// Handle messages for this resource.
-   virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
-
      /// Copy constructor (not implemented for this class)
-   MprDecodeInBandDtmf(const MprDecodeInBandDtmf& rMprDecodeInBandDtmf);
+   MprDtmfDetectorBase(const MprDtmfDetectorBase& rhs);
 
      /// Assignment operator (not implemented for this class)
-   MprDecodeInBandDtmf& operator=(const MprDecodeInBandDtmf& rhs);
-
+   MprDtmfDetectorBase& operator=(const MprDtmfDetectorBase& rhs);
 };
 
 /* ============================ INLINE METHODS ============================ */
 
-#endif  // _MprDecodeInBandDtmf_h_
+#endif  // _MprDtmfDetectorBase_h_

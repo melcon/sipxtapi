@@ -14,7 +14,7 @@
 #endif
 
 // APPLICATION INCLUDES
-#include "mp/MprDecodeInbandDtmf.h"
+#include "mp/MprSimpleDtmfDetector.h"
 #include "mp/MpRtpInputAudioConnection.h"
 #include "mp/MpResNotification.h"
 #include "mp/MprRecorder.h"
@@ -36,10 +36,10 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-MprDecodeInBandDtmf::MprDecodeInBandDtmf(const UtlString& rName,
+MprSimpleDtmfDetector::MprSimpleDtmfDetector(const UtlString& rName,
                                          int samplesPerFrame,
                                          int samplesPerSec)
-: MpAudioResource(rName, 0, 1, 1, 1, samplesPerFrame, samplesPerSec),
+: MprDtmfDetectorBase(rName, samplesPerFrame, samplesPerSec),
   m_dtmfLastDigit(1000), 
   m_sameDtmfDigitCount(0)
 {
@@ -54,7 +54,7 @@ MprDecodeInBandDtmf::MprDecodeInBandDtmf(const UtlString& rName,
 }
 
 // Destructor
-MprDecodeInBandDtmf::~MprDecodeInBandDtmf()
+MprSimpleDtmfDetector::~MprSimpleDtmfDetector()
 {
 }
 
@@ -66,9 +66,7 @@ MprDecodeInBandDtmf::~MprDecodeInBandDtmf()
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-
-UtlBoolean MprDecodeInBandDtmf::doProcessFrame(MpBufPtr inBufs[],
+UtlBoolean MprSimpleDtmfDetector::doProcessFrame(MpBufPtr inBufs[],
                                                MpBufPtr outBufs[],
                                                int inBufsSize,
                                                int outBufsSize,
@@ -183,7 +181,9 @@ UtlBoolean MprDecodeInBandDtmf::doProcessFrame(MpBufPtr inBufs[],
    return TRUE;
 }
 
-double MprDecodeInBandDtmf::Goertzel(const MpAudioSample *input, int numsamples, double mk)
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+double MprSimpleDtmfDetector::Goertzel(const MpAudioSample *input, int numsamples, double mk)
 {
    double Qkn = 0;
    double Qkn1 = 0;
@@ -201,7 +201,7 @@ double MprDecodeInBandDtmf::Goertzel(const MpAudioSample *input, int numsamples,
    return Qkn * Qkn + Qkn1 * Qkn1 - mk * Qkn * Qkn1;
 }
 
-UtlBoolean MprDecodeInBandDtmf::handleMessage(MpFlowGraphMsg& rMsg)
+UtlBoolean MprSimpleDtmfDetector::handleMessage(MpFlowGraphMsg& rMsg)
 {
    switch (rMsg.getMsg())
    {
