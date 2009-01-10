@@ -1,8 +1,15 @@
-//
+//  
+// Copyright (C) 2007 SIPfoundry Inc. 
+// Licensed by SIPfoundry under the LGPL license. 
+//  
+// Copyright (C) 2007 SIPez LLC. 
+// Licensed to SIPfoundry under a Contributor Agreement. 
+//  
 // Copyright (C) 2007 stipus@stipus.com
-//
-// $$
-///////////////////////////////////////////////////////////////////////////////
+// $$ 
+////////////////////////////////////////////////////////////////////////////// 
+
+// Author: Keith Kyzivat <kkyzivat AT SIPez DOT com>
 
 // SYSTEM INCLUDES
 #include <assert.h>
@@ -21,15 +28,20 @@
 #include "os/OsSysLog.h"
 
 // DECODER DEFINES
-#define PI  3.1415926
-#define TwoPI 6.2831852
-#define GOERTZEL_TRIGGER 19600000000.0  // square(140000.0)
-
+#define GOERTZEL_N 92
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
-
 // STATIC VARIABLE INITIALIZATIONS
+
+// Class data allocation
+double MprSimpleDtmfDetector::ms_freqs_to_detect[] = 
+{ 
+   697, 770, 852, 941, // DTMF key row
+   1209, 1336, 1477, 1633 // DTMF key column
+};
+
+uint8_t MprSimpleDtmfDetector::ms_nFreqsToDetect = sizeof(MprSimpleDtmfDetector::ms_freqs_to_detect)/sizeof(double);
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -37,28 +49,48 @@
 
 // Constructor
 MprSimpleDtmfDetector::MprSimpleDtmfDetector(const UtlString& rName,
-                                         int samplesPerFrame,
-                                         int samplesPerSec)
-: MprDtmfDetectorBase(rName, samplesPerFrame, samplesPerSec),
-  m_dtmfLastDigit(1000), 
-  m_sameDtmfDigitCount(0)
+                                             int samplesPerFrame,
+                                             int samplesPerSec)
+: MprDtmfDetectorBase(rName, samplesPerFrame, samplesPerSec)
+, m_numProcessSamples(GOERTZEL_N)
+, m_sameDtmfDigitCount(0)
 {
-   Mk697 = 2 * cos(TwoPI * 697 / samplesPerSec);
-   Mk770 = 2 * cos(TwoPI * 770 / samplesPerSec);
-   Mk852 = 2 * cos(TwoPI * 852 / samplesPerSec);
-   Mk941 = 2 * cos(TwoPI * 941 / samplesPerSec);
-   Mk1209 = 2 * cos(TwoPI * 1209 / samplesPerSec);
-   Mk1336 = 2 * cos(TwoPI * 1336 / samplesPerSec);
-   Mk1477 = 2 * cos(TwoPI * 1477 / samplesPerSec);
-   Mk1633 = 2 * cos(TwoPI * 1633 / samplesPerSec);
+   m_q1 = new double[ms_nFreqsToDetect];
+   m_q2 = new double[ms_nFreqsToDetect];
+   m_r = new double[ms_nFreqsToDetect];
+   m_coefs = new double[ms_nFreqsToDetect];
+   reset();
 }
 
 // Destructor
 MprSimpleDtmfDetector::~MprSimpleDtmfDetector()
 {
+   delete[] m_q1;
+   delete[] m_q2;
+   delete[] m_r;
+   delete[] m_coefs;
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+void MprSimpleDtmfDetector::reset()
+{
+   m_sampleCount = 0;
+   m_currentDtmfDigit = -1;
+   m_lastDtmfDigit = -1;
+   m_sameDtmfDigitCount = 0;
+   int i;
+   for(i=0; i< ms_nFreqsToDetect; i++)
+   {
+      m_q1[i] = 0;
+      m_q2[i] = 0;
+      m_r[i] = 0;
+      m_coefs[i] = 0;
+   }
+
+   // Now calculate new coefficients 
+   calcCoeffs();
+}
 
 /* ============================ ACCESSORS ================================= */
 
@@ -91,71 +123,197 @@ UtlBoolean MprSimpleDtmfDetector::doProcessFrame(MpBufPtr inBufs[],
    const MpAudioSample* input = ((MpAudioBufPtr)inBufs[0])->getSamplesPtr();
    int numSamples = ((MpAudioBufPtr)inBufs[0])->getSamplesNumber();
 
-   // Initialize found digit to 'unknown'
-   int dtmfDigit = 1000;
+   for (int i = 0; i < numSamples; i++)
+   {
+      UtlBoolean bCheckResult = processSample(input[i]);
+      if (bCheckResult)
+      {
+         if (shouldSendNotification())
+         {
+            notify(MP_RES_DTMF_INBAND_NOTIFICATION, m_currentDtmfDigit);
+         }
+      }
+   }
 
-   // Calc goertzel for each searched frequency
-   double d697 = Goertzel(input, numSamples, Mk697);
-   double d770 = Goertzel(input, numSamples, Mk770);
-   double d852 = Goertzel(input, numSamples, Mk852);
-   double d941 = Goertzel(input, numSamples, Mk941);
-   double d1209 = Goertzel(input, numSamples, Mk1209);
-   double d1336 = Goertzel(input, numSamples, Mk1336);
-   double d1477 = Goertzel(input, numSamples, Mk1477);
-   double d1633 = Goertzel(input, numSamples, Mk1633);
+   return TRUE;
+}
 
-   // CHECK WHICH DIGIT has been found
-   if (d697 > GOERTZEL_TRIGGER && d1209 > GOERTZEL_TRIGGER)
-      dtmfDigit = 1;
-   else if (d697 > GOERTZEL_TRIGGER && d1336 > GOERTZEL_TRIGGER)
-      dtmfDigit = 2;
-   else if (d697 > GOERTZEL_TRIGGER && d1477 > GOERTZEL_TRIGGER)
-      dtmfDigit = 3;
-   else if (d697 > GOERTZEL_TRIGGER && d1633 > GOERTZEL_TRIGGER)
-      dtmfDigit = 12; //'A';
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-   else if (d770 > GOERTZEL_TRIGGER && d1209 > GOERTZEL_TRIGGER)
-      dtmfDigit = 4;
-   else if (d770 > GOERTZEL_TRIGGER && d1336 > GOERTZEL_TRIGGER)
-      dtmfDigit = 5;
-   else if (d770 > GOERTZEL_TRIGGER && d1477 > GOERTZEL_TRIGGER)
-      dtmfDigit = 6;
-   else if (d770 > GOERTZEL_TRIGGER && d1633 > GOERTZEL_TRIGGER)
-      dtmfDigit = 13; // 'B';
+UtlBoolean MprSimpleDtmfDetector::handleMessage(MpFlowGraphMsg& rMsg)
+{
+   switch (rMsg.getMsg())
+   {
+   case 0: // to make compiler stop complaining
+   default:
+      return MpAudioResource::handleMessage(rMsg);
+      break;
+   }
+   return TRUE;
+}
 
-   else if (d852 > GOERTZEL_TRIGGER && d1209 > GOERTZEL_TRIGGER)
-      dtmfDigit = 7;
-   else if (d852 > GOERTZEL_TRIGGER && d1336 > GOERTZEL_TRIGGER)
-      dtmfDigit = 8;
-   else if (d852 > GOERTZEL_TRIGGER && d1477 > GOERTZEL_TRIGGER)
-      dtmfDigit = 9;
-   else if (d852 > GOERTZEL_TRIGGER && d1633 > GOERTZEL_TRIGGER)
-      dtmfDigit = 14; // 'C';
+void MprSimpleDtmfDetector::calcCoeffs()
+{
+   int n;
 
-   else if (d941 > GOERTZEL_TRIGGER && d1209 > GOERTZEL_TRIGGER)
-      dtmfDigit = 10; // '*';
-   else if (d941 > GOERTZEL_TRIGGER && d1336 > GOERTZEL_TRIGGER)
-      dtmfDigit = 0;
-   else if (d941 > GOERTZEL_TRIGGER && d1477 > GOERTZEL_TRIGGER)
-      dtmfDigit = 11; // '#';
-   else if (d941 > GOERTZEL_TRIGGER && d1633 > GOERTZEL_TRIGGER)
-      dtmfDigit = 15; //'D';
+   for(n = 0; n < ms_nFreqsToDetect; n++)
+   {
+      m_coefs[n] = 2.0 * cos(2.0 * 3.141592654 * ms_freqs_to_detect[n] / getSamplesPerSec());
+   }
+}
 
+void MprSimpleDtmfDetector::dtmfValidation()
+{
+   int row, col, passed_tests;
+   int peak_count, max_index;
+   double maxval, t;
+   int i;
+   char row_col_ascii_codes[4][4] = 
+   {
+      {1,  2, 3,  12}, // 1, 2, 3, A
+      {4,  5, 6,  13}, // 4, 5, 6, B
+      {7,  8, 9,  14}, // 7, 8, 9, C
+      {10, 0, 11, 15}  // *, 0, #, D
+   };
 
+   // Find the largest in the row group.
+   row = 0;
+   maxval = 0.0;
+   for ( i=0; i<4; i++ )
+   {
+      if ( m_r[i] > maxval )
+      {
+         maxval = m_r[i];
+         row = i;
+      }
+   }
+
+   // Find the largest in the column group.
+   col = 4;
+   maxval = 0.0;
+   for ( i=4; i<8; i++ )
+   {
+      if ( m_r[i] > maxval )
+      {
+         maxval = m_r[i];
+         col = i;
+      }
+   }
+
+   // Check for minimum energy
+   if ( m_r[row] < 4.0e5 )   // 2.0e5 ... 1.0e8 no change
+   {
+      // row frequency energy is not high enough
+   }
+   else if ( m_r[col] < 4.0e5 )
+   {
+      // column frequency energy is not high enough
+   }
+   else
+   {
+      passed_tests = TRUE;
+
+      // Twist check
+      // CEPT => twist < 6dB
+      // AT&T => forward twist < 4dB and reverse twist < 8dB
+      //  -ndB < 10 log10( v1 / v2 ), where v1 < v2
+      //  -4dB < 10 log10( v1 / v2 )
+      //  -0.4  < log10( v1 / v2 )
+      //  0.398 < v1 / v2
+      //  0.398 * v2 < v1
+      if ( m_r[col] > m_r[row] )
+      {
+         // Normal twist
+         max_index = col;
+         if ( m_r[row] < (m_r[col] * 0.398) )    // twist > 4dB results in error
+         {
+            passed_tests = FALSE;
+         }
+      }
+      else // if ( r[row] > r[col] )
+      {
+         // Reverse twist
+         max_index = row;
+         if ( m_r[col] < (m_r[row] * 0.158) )    // twist > 8db results in error
+         {
+            passed_tests = FALSE;
+         }
+      }
+
+      // Signal to noise test
+      // AT&T states that the noise must be 16dB down from the signal.
+      // Here we count the number of signals above the threshold and
+      // there ought to be only two.
+      if ( m_r[max_index] > 1.0e9 )
+      {
+         t = m_r[max_index] * 0.158;
+      }
+      else
+      {
+         t = m_r[max_index] * 0.010;
+      }
+
+      peak_count = 0;
+      for ( i=0; i<8; i++ )
+      {
+         if ( m_r[i] > t )
+            peak_count++;
+      }
+      if ( peak_count > 2 )
+      {
+         passed_tests = FALSE;
+      }
+
+      // Set the last detected DTMF tone.
+      m_currentDtmfDigit = passed_tests ? row_col_ascii_codes[row][col-4] : -1;
+   }
+}
+
+UtlBoolean MprSimpleDtmfDetector::processSample(const MpAudioSample sample)
+{
+   UtlBoolean ret = FALSE;
+   double q0;
+   uint32_t i;
+
+   m_sampleCount++;
+   for ( i=0; i<ms_nFreqsToDetect; i++ )
+   {
+      q0 = m_coefs[i] * m_q1[i] - m_q2[i] + sample;
+      m_q2[i] = m_q1[i];
+      m_q1[i] = q0;
+   }
+
+   if (m_sampleCount == m_numProcessSamples)
+   {
+      for ( i=0; i<ms_nFreqsToDetect; i++ )
+      {
+         m_r[i] = (m_q1[i] * m_q1[i]) + (m_q2[i] * m_q2[i]) - (m_coefs[i] * m_q1[i] * m_q2[i]);
+         m_q1[i] = 0.0;
+         m_q2[i] = 0.0;
+      }
+      dtmfValidation();
+      m_sampleCount = 0;
+      ret = TRUE;
+   }
+   return ret;
+}
+
+UtlBoolean MprSimpleDtmfDetector::shouldSendNotification()
+{
    // TRIGGER NOTIFICATION
    // If a new digit has been found
-   if (m_dtmfLastDigit == dtmfDigit)
+   if (m_lastDtmfDigit == m_currentDtmfDigit)
    {
       m_sameDtmfDigitCount++;
 
-      if (m_sameDtmfDigitCount == 4 && dtmfDigit != 1000)
+      if (m_sameDtmfDigitCount == 4 && m_currentDtmfDigit != -1)
       {
-         notify(MP_RES_DTMF_INBAND_NOTIFICATION, dtmfDigit);
+         return TRUE;
       }
    }
    else
    {
-      if (dtmfDigit == 1000)
+      if (m_currentDtmfDigit == -1)
       {
          if (m_sameDtmfDigitCount >= 4)
          {
@@ -168,49 +326,18 @@ UtlBoolean MprSimpleDtmfDetector::doProcessFrame(MpBufPtr inBufs[],
 
          if (m_sameDtmfDigitCount >= 30)
          {
-            m_dtmfLastDigit = dtmfDigit;
+            m_lastDtmfDigit = m_currentDtmfDigit;
             m_sameDtmfDigitCount = 0;
          }
       }
       else
       {
-         m_dtmfLastDigit = dtmfDigit;
+         m_lastDtmfDigit = m_currentDtmfDigit;
          m_sameDtmfDigitCount = 0;
       }
    }
-   return TRUE;
-}
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-
-double MprSimpleDtmfDetector::Goertzel(const MpAudioSample *input, int numsamples, double mk)
-{
-   double Qkn = 0;
-   double Qkn1 = 0;
-   double Qkn2;
-
-   for(int i = 0; i < numsamples ; i++ )
-   {
-      Qkn2 = Qkn1;
-      Qkn1 = Qkn;
-      Qkn = input[i] + mk * Qkn1 - Qkn2;
-   }
-
-   // Real Goertzl should return sqrt()
-   // Result is compared to square( trigger )
-   return Qkn * Qkn + Qkn1 * Qkn1 - mk * Qkn * Qkn1;
-}
-
-UtlBoolean MprSimpleDtmfDetector::handleMessage(MpFlowGraphMsg& rMsg)
-{
-   switch (rMsg.getMsg())
-   {
-   case 0: // to make compiler stop complaining
-   default:
-      return MpAudioResource::handleMessage(rMsg);
-      break;
-   }
-   return TRUE;
+   return FALSE;
 }
 
 /* ============================ FUNCTIONS ================================= */
