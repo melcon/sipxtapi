@@ -130,6 +130,7 @@
                 <File RelativePath=".\src\mp\MprNullAec.cpp"/>
                 <File RelativePath=".\src\mp\MprRecorder.cpp"/>
                 <File RelativePath=".\src\mp\MprSimpleDtmfDetector.cpp"/>
+                <File RelativePath=".\src\mp\MprSpanDspDtmfDetector.cpp"/>
                 <File RelativePath=".\src\mp\MprSpeexEchoCancel.cpp"/>
                 <File RelativePath=".\src\mp\MprSpeexPreProcess.cpp"/>
                 <File RelativePath=".\src\mp\MprSplitter.cpp"/>
@@ -300,6 +301,7 @@
                 <File RelativePath=".\include\mp\MprRtpStartReceiveMsg.h"/>
                 <File RelativePath=".\include\mp\MprRtpStartSendMsg.h"/>
                 <File RelativePath=".\include\mp\MprSimpleDtmfDetector.h"/>
+                <File RelativePath=".\include\mp\MprSpanDspDtmfDetector.h"/>
                 <File RelativePath=".\include\mp\MprSpeexEchoCancel.h"/>
                 <File RelativePath=".\include\mp\MprSpeexPreProcess.h"/>
                 <File RelativePath=".\include\mp\MprSplitter.h"/>

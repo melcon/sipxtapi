@@ -24,7 +24,11 @@
 #include <mp/MprDecode.h>
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
-#include "mp/MprSimpleDtmfDetector.h"
+#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+#   include "mp/MprSpanDspDtmfDetector.h"
+#else
+#   include "mp/MprSimpleDtmfDetector.h"
+#endif // defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
 #include <sdp/SdpCodecList.h>
@@ -74,8 +78,12 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 
    if (m_bInBandDTMFEnabled)
    {
-      SNPRINTF(name, sizeof(name), "DecodeInBandDtmf-%d", myID);
+      SNPRINTF(name, sizeof(name), "DtmfDetector-%d", myID);
+#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+      mpDtmfDetector = new MprSpanDspDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
+#else
       mpDtmfDetector = new MprSimpleDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
+#endif // defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
       mpDtmfDetector->registerObserver(this);
    }   
 

@@ -139,6 +139,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MprBufferRecorder.cpp \
     mp/MprDecode.cpp \
     mp/MprSimpleDtmfDetector.cpp \
+    mp/MprSpanDspDtmfDetector.cpp \
     mp/MprDejitter.cpp \
     mp/MprEchoSuppress.cpp \
     mp/MprEncode.cpp \
