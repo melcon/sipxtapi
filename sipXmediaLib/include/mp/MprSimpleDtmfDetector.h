@@ -92,7 +92,7 @@ private:
    virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
 
      /// Copy constructor (not implemented for this class)
-   MprSimpleDtmfDetector(const MprSimpleDtmfDetector& rMprDecodeInBandDtmf);
+   MprSimpleDtmfDetector(const MprSimpleDtmfDetector& rhs);
 
      /// Assignment operator (not implemented for this class)
    MprSimpleDtmfDetector& operator=(const MprSimpleDtmfDetector& rhs);
