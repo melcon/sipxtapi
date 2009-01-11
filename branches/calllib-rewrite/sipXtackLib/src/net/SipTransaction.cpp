@@ -1432,9 +1432,9 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
          OsSysLog::add(FAC_SIP, PRI_WARNING, "SipTransaction::handleResendEvent %p called for first time send of message", this);
       }
       else if(!mIsCanceled &&
-         mpLastFinalResponse == NULL &&
+         ((mpLastFinalResponse == NULL &&
          mpLastProvisionalResponse == NULL &&
-         mTransactionState == TRANSACTION_CALLING)
+         mTransactionState == TRANSACTION_CALLING) || relationship == MESSAGE_CANCEL))
       {
          UtlString method;
          outgoingMessage.getRequestMethod(&method);
