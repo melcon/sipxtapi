@@ -3517,10 +3517,8 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
          {
             // Resend the final response if there is one
             // Otherwise resend the provisional response
-            response = mpLastFinalResponse ?
-mpLastFinalResponse : mpLastProvisionalResponse;
+            response = mpLastFinalResponse ? mpLastFinalResponse : mpLastProvisionalResponse;
          }
-
 
 #ifdef TEST_PRINT
          osPrintf("SipTransaction::handleIncoming duplicate REQUEST response\n");
