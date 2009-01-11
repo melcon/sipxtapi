@@ -1432,9 +1432,9 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
          OsSysLog::add(FAC_SIP, PRI_WARNING, "SipTransaction::handleResendEvent %p called for first time send of message", this);
       }
       else if(!mIsCanceled &&
-         mpLastFinalResponse == NULL &&
+         ((mpLastFinalResponse == NULL &&
          mpLastProvisionalResponse == NULL &&
-         mTransactionState == TRANSACTION_CALLING)
+         mTransactionState == TRANSACTION_CALLING) || relationship == MESSAGE_CANCEL))
       {
          UtlString method;
          outgoingMessage.getRequestMethod(&method);
@@ -3517,10 +3517,8 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
          {
             // Resend the final response if there is one
             // Otherwise resend the provisional response
-            response = mpLastFinalResponse ?
-mpLastFinalResponse : mpLastProvisionalResponse;
+            response = mpLastFinalResponse ? mpLastFinalResponse : mpLastProvisionalResponse;
          }
-
 
 #ifdef TEST_PRINT
          osPrintf("SipTransaction::handleIncoming duplicate REQUEST response\n");
