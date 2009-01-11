@@ -953,7 +953,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipShortNames(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -980,7 +981,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -992,8 +994,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst, 
                                                         const int bEnabled)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigEnableSipAllowHeader");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
       "sipxConfigEnableSipAllowHeader hInst=%p, bEnabled=%d",
       hInst, bEnabled);
 
@@ -1007,7 +1008,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -1015,6 +1017,31 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst,
    return rc;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipSupportedHeader(const SIPX_INST hInst, 
+                                                            const int bEnabled)
+{
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
+      "sipxConfigEnableSipSupportedHeader hInst=%p, bEnabled=%d",
+      hInst, bEnabled);
+
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   assert(pInst);
+
+   if (pInst)
+   {
+      pInst->bSupportedHeader = bEnabled;
+
+      if (pInst->pSipUserAgent)
+      {
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
+         rc = SIPX_RESULT_SUCCESS;
+      }
+   }
+
+   return rc;
+}
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst, 
                                                         const char* szLanguage)
@@ -1034,7 +1061,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
