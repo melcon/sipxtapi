@@ -128,26 +128,27 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
                            UtlBoolean bUseNextAvailablePort,
                            UtlBoolean doUaMessageChecks
                            ) 
-                           : SipUserAgentBase(sipTcpPort, sipUdpPort, sipTlsPort, queueSize)
-                           , mSipTcpServer(NULL)
-                           , mSipUdpServer(NULL)
+: SipUserAgentBase(sipTcpPort, sipUdpPort, sipTlsPort, queueSize)
+, mSipTcpServer(NULL)
+, mSipUdpServer(NULL)
 #ifdef HAVE_SSL
-                           , mSipTlsServer(NULL)
+, mSipTlsServer(NULL)
 #endif
-                           , mMessageLogRMutex(OsRWMutex::Q_FIFO)
-                           , mMessageLogWMutex(OsRWMutex::Q_FIFO)
-                           , m_pLineProvider(NULL)
-                           , mIsUaTransactionByDefault(defaultToUaTransactions)
-                           , mbUseRport(FALSE)
-                           , mbUseLocationHeader(FALSE)
-                           , mbIncludePlatformInUserAgentName(TRUE)
-                           , mDoUaMessageChecks(doUaMessageChecks)
-                           , mbShuttingDown(FALSE)
-                           , mRegisterTimeoutSeconds(4)        
-                           , mbAllowHeader(true)
-                           , mbDateHeader(true)
-                           , mbShortNames(false)
-                           , mAcceptLanguage("")
+, mMessageLogRMutex(OsRWMutex::Q_FIFO)
+, mMessageLogWMutex(OsRWMutex::Q_FIFO)
+, m_pLineProvider(NULL)
+, mIsUaTransactionByDefault(defaultToUaTransactions)
+, mbUseRport(FALSE)
+, mbUseLocationHeader(FALSE)
+, mbIncludePlatformInUserAgentName(TRUE)
+, mDoUaMessageChecks(doUaMessageChecks)
+, mbShuttingDown(FALSE)
+, mRegisterTimeoutSeconds(4)        
+, mbAllowHeader(true)
+, mbSupportedHeader(true)
+, mbDateHeader(true)
+, mbShortNames(false)
+, mAcceptLanguage("")
 {    
    OsSysLog::add(FAC_SIP, PRI_DEBUG,
       "SipUserAgent::_ sipTcpPort = %d, sipUdpPort = %d, sipTlsPort = %d",
@@ -388,7 +389,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
    allowMethod(SIP_ACK_METHOD);
    allowMethod(SIP_CANCEL_METHOD);
    allowMethod(SIP_BYE_METHOD);
-   allowMethod(SIP_REFER_METHOD);
    allowMethod(SIP_OPTIONS_METHOD);
 
    defaultUserAgentName.append( VENDOR );
@@ -408,18 +408,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
    // bandreasen: This was removed on main -- not sure why
    //     given that this boolean is passed in
    mIsUaTransactionByDefault = defaultToUaTransactions;
-}
-
-// Copy constructor
-SipUserAgent::SipUserAgent(const SipUserAgent& rSipUserAgent) :
-mMessageLogRMutex(OsRWMutex::Q_FIFO),
-mMessageLogWMutex(OsRWMutex::Q_FIFO)
-, mbAllowHeader(false)
-, mbDateHeader(false)
-, mbShortNames(false)
-, mAcceptLanguage("")
-, mRegisterTimeoutSeconds(4)
-{
 }
 
 // Destructor
@@ -4283,15 +4271,17 @@ void SipUserAgent::getContactAddresses(SIPX_CONTACT_ADDRESS* pContacts[], int &n
    mContactDb.getAll(pContacts, numContacts);
 }
 
-void SipUserAgent::setHeaderOptions(const UtlBoolean bAllowHeader,
-                                    const UtlBoolean bDateHeader,
-                                    const UtlBoolean bShortNames,
-                                    const UtlString& acceptLanguage)
+void SipUserAgent::setHeaderOptions(UtlBoolean bAllowHeader,
+                                    UtlBoolean bDateHeader,
+                                    UtlBoolean bShortNames,
+                                    const UtlString& acceptLanguage,
+                                    UtlBoolean bSupportedHeader)
 {
    mbAllowHeader = bAllowHeader;
    mbDateHeader = bDateHeader;
    mbShortNames = bShortNames;
    mAcceptLanguage = acceptLanguage;
+   mbSupportedHeader = bSupportedHeader;
 }                          
 
 void SipUserAgent::prepareVia(SipMessage& message,
@@ -4693,7 +4683,7 @@ void SipUserAgent::addAgentCapabilities(SipMessage& sipMessage) const
       }
    }
 
-   if(!sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD))
+   if(!sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD) && mbSupportedHeader)
    {
       // only set Supported: for INVITE, SUBSCRIBE, OPTIONS
       if(seqMethod.compareTo(SIP_INVITE_METHOD) == 0 ||

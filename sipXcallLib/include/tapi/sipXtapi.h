@@ -3871,13 +3871,24 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipShortNames(const SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst, 
                                                        const int bEnabled);
 /**
- * Enables/Disables use of allow header in sip messages.
+ * Enables/Disables use of Allow header in sip messages. If disabled, then
+ * Allow will never be sent in requests or responses, even in OPTIONS responses.
  *
  * @param hInst Instance pointer obtained by sipxInitialize
- * @param bEnabled True if allow header, false if no allow header
+ * @param bEnabled True if Allow header, false if no Allow header
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst, 
                                                         const int bEnabled);
+/**
+* Enables/Disables use of Supported header in sip messages. If disabled, then
+* Supported will never be sent in requests or responses, even in OPTIONS responses.
+*
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param bEnabled True if Supported header, false if no Supported header
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipSupportedHeader(const SIPX_INST hInst, 
+                                                            const int bEnabled);
+
 /**
  * Sets the Accept Language used in sip messages. e.g. - "EN"
  *

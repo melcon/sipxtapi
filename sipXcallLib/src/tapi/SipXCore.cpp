@@ -544,9 +544,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    // (multiple nic support still needs work).
    //sipxConfigEnableIce(pInst);
 
-   pInst->bAllowHeader = true;
-   pInst->bDateHeader = true;
-   //sipxConfigEnableSipShortNames(pInst, true);
+   pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+      pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
 
    rc = SIPX_RESULT_SUCCESS;
    //  check for TLS initialization
