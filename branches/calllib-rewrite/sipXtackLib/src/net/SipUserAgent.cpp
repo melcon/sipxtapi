@@ -4678,11 +4678,13 @@ void SipUserAgent::addAgentCapabilities(SipMessage& sipMessage) const
    UtlString allowedMethodsSet;
    if (!sipMessage.getAllowField(allowedMethodsSet) && mbAllowHeader)
    {
-      if(seqMethod.compareTo(SIP_CANCEL_METHOD) != 0 &&
-         seqMethod.compareTo(SIP_ACK_METHOD) != 0)
+      // only set Allow: for INVITE, SUBSCRIBE, OPTIONS
+      if(seqMethod.compareTo(SIP_INVITE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
       {
          if (!bIsResponse ||
-            (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE))
+            (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE && responseStatusCode < SIP_3XX_CLASS_CODE))
          {
             UtlString allowedMethods;
             getAllowedMethods(&allowedMethods);
@@ -4691,20 +4693,22 @@ void SipUserAgent::addAgentCapabilities(SipMessage& sipMessage) const
       }
    }
 
-   // Set the supported extensions if this is not
-   // an ACK or NOTIFY request and the Supported field 
-   // is not already set.
-   if(seqMethod.compareTo(SIP_ACK_METHOD) &&
-      !sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD))
+   if(!sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD))
    {
-      if (!bIsResponse ||
-         (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE && responseStatusCode < SIP_3XX_CLASS_CODE))
+      // only set Supported: for INVITE, SUBSCRIBE, OPTIONS
+      if(seqMethod.compareTo(SIP_INVITE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
       {
-         UtlString supportedExtensions;
-         getSupportedExtensions(supportedExtensions);
-         if (supportedExtensions.length() > 0)
+         if (!bIsResponse ||
+            (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE && responseStatusCode < SIP_3XX_CLASS_CODE))
          {
-            sipMessage.setSupportedField(supportedExtensions);
+            UtlString supportedExtensions;
+            getSupportedExtensions(supportedExtensions);
+            if (supportedExtensions.length() > 0)
+            {
+               sipMessage.setSupportedField(supportedExtensions);
+            }
          }
       }
    }
