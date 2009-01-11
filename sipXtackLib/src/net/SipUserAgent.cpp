@@ -1518,7 +1518,10 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
       delete message;
       return;
    }
-
+#ifdef PRINT_SIP_MESSAGE
+   enableConsoleOutput(TRUE);
+   osPrintf("\nSipUserAgent::dispatch\n%s\n-----------------------------------\n", message->toString().data());
+#endif
    int len;
    UtlString msgBytes;
    UtlString messageStatusString;
@@ -1662,23 +1665,20 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
       eventTimes.addEvent("handling TX");
 #endif
       // This is a message that was already recieved once
-      if (   transaction
-         && relationship == SipTransaction::MESSAGE_DUPLICATE
-         )
+      if (transaction && relationship == SipTransaction::MESSAGE_DUPLICATE)
       {
+         UtlString seqMethod;
+         int seqNum;
+         message->getCSeqField(&seqNum, &seqMethod);
          // Resends of final INVITE responses need to be
          // passed through if they are 2xx class or the ACk
          // needs to be resent if it was a failure (i.e. 3xx,4xx,5xx,6xx)
-         if(message->isResponse())
+         if (message->isResponse())
          {
             int responseCode = message->getResponseStatusCode();
-            UtlString transactionMethod;
-            int respCseq;
-            message->getCSeqField(&respCseq, &transactionMethod);
 
-            if (   responseCode >= SIP_2XX_CLASS_CODE 
-               && transactionMethod.compareTo(SIP_INVITE_METHOD) == 0
-               )
+            if (responseCode >= SIP_2XX_CLASS_CODE &&
+               seqMethod.compareTo(SIP_INVITE_METHOD) == 0)
             {
                transaction->handleIncoming(*message,
                   *this,
@@ -1688,6 +1688,25 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   pTransport);
 
                // Should never dispatch a resendof a 2xx
+               if(delayedDispatchMessage)
+               {
+                  delete delayedDispatchMessage;
+                  delayedDispatchMessage = NULL;
+               }
+            }
+         }
+         else
+         {
+            // is a request, but not ACK
+            if (seqMethod.compareTo(SIP_ACK_METHOD) != 0)
+            {
+               // resend last final response
+               transaction->handleIncoming(*message,
+                  *this,
+                  relationship,
+                  mSipTransactions,
+                  delayedDispatchMessage,
+                  pTransport);
                if(delayedDispatchMessage)
                {
                   delete delayedDispatchMessage;
@@ -4675,11 +4694,13 @@ void SipUserAgent::addAgentCapabilities(SipMessage& sipMessage) const
    UtlString allowedMethodsSet;
    if (!sipMessage.getAllowField(allowedMethodsSet) && mbAllowHeader)
    {
-      if(seqMethod.compareTo(SIP_CANCEL_METHOD) != 0 &&
-         seqMethod.compareTo(SIP_ACK_METHOD) != 0)
+      // only set Allow: for INVITE, SUBSCRIBE, OPTIONS
+      if(seqMethod.compareTo(SIP_INVITE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
       {
          if (!bIsResponse ||
-            (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE))
+            (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE && responseStatusCode < SIP_3XX_CLASS_CODE))
          {
             UtlString allowedMethods;
             getAllowedMethods(&allowedMethods);
@@ -4688,20 +4709,22 @@ void SipUserAgent::addAgentCapabilities(SipMessage& sipMessage) const
       }
    }
 
-   // Set the supported extensions if this is not
-   // an ACK or NOTIFY request and the Supported field 
-   // is not already set.
-   if(seqMethod.compareTo(SIP_ACK_METHOD) &&
-      !sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD))
+   if(!sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD))
    {
-      if (!bIsResponse ||
-         (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE && responseStatusCode < SIP_3XX_CLASS_CODE))
+      // only set Supported: for INVITE, SUBSCRIBE, OPTIONS
+      if(seqMethod.compareTo(SIP_INVITE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_SUBSCRIBE_METHOD) == 0 ||
+         seqMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
       {
-         UtlString supportedExtensions;
-         getSupportedExtensions(supportedExtensions);
-         if (supportedExtensions.length() > 0)
+         if (!bIsResponse ||
+            (bIsResponse && responseStatusCode > SIP_1XX_CLASS_CODE && responseStatusCode < SIP_3XX_CLASS_CODE))
          {
-            sipMessage.setSupportedField(supportedExtensions);
+            UtlString supportedExtensions;
+            getSupportedExtensions(supportedExtensions);
+            if (supportedExtensions.length() > 0)
+            {
+               sipMessage.setSupportedField(supportedExtensions);
+            }
          }
       }
    }
