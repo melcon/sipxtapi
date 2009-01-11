@@ -843,7 +843,7 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
                                 int registerPeriod)
 {
    SipMessage regMessage;
-   int startSequence = 101;
+   int startSequence = 1;
    Url newFromUrl(fromUrl);
 
    // add Tag to from field
