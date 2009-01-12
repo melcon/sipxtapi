@@ -165,21 +165,25 @@ typedef enum
  * Bandwidth requirements for supported codecs:
  *
  * <pre>
- * High:     IPCMWB    ~ 80 kbps
- * Normal:   PCMU      64 kbps
- *           PCMA      64 kbps
- * Low:      iLBC      13.33 kbps, 30 ms frame size
- *                     15.2 kbps, 20 ms frame size
- *           GSM       13 kbps, 20 ms frame size
- *           G729A     8 Kbps, 10ms frame size
- *           G723.1    6.3 Kbps, 30 ms frame size (using 24 byte frames)
- *                     5.3 Kbps, 30 ms frame size (using 20 byte frames)
- *           SPEEX_6   5.95 Kbps
- *           SPEEX_8   8 Kbps
- *           SPEEX_11  11 Kbps
- *           SPEEX_15  15 Kbps
- *           SPEEX_18  18.2 Kbps
- *           SPEEX_24  24.6 Kbps
+ * High:     IPCMWB    ~ 80 kbit/s
+ * Normal:   PCMU      64 kbit/s
+ *           PCMA      64 kbit/s
+ * Low:      iLBC      13.33 kbit/s, 30 ms frame size
+ *                     15.2 kbit/s, 20 ms frame size
+ *           GSM       13 kbit/s, 20 ms frame size
+ *           G729A     8 kbit/s, 10 ms frame size
+ *           G723.1    6.3 kbit/s, 30 ms frame size (using 24 byte frames)
+ *                     5.3 kbit/s, 30 ms frame size (using 20 byte frames)
+ *           G726-16   16 kbit/s
+ *           G726-24   24 kbit/s
+ *           G726-32   32 kbit/s
+ *           G726-40   40 kbit/s
+ *           SPEEX_6   5.95 kbit/s
+ *           SPEEX_8   8 kbit/s
+ *           SPEEX_11  11 kbit/s
+ *           SPEEX_15  15 kbit/s
+ *           SPEEX_18  18.2 kbit/s
+ *           SPEEX_24  24.6 kbit/s
  * Variable: ISAC      variable bitrate
  * </pre>
  */
@@ -196,7 +200,8 @@ typedef enum
  */
 typedef enum
 {
-   SIPX_CODEC_CPU_LOW = 0,
+   SIPX_CODEC_CPU_LOW = 0, ///< complexity of algorithm is lower than 8
+   SIPX_CODEC_CPU_NORMAL = 0, ///< complexity of algorithm is lower than 12
    SIPX_CODEC_CPU_HIGH
 } SIPX_CODEC_CPU_COST;
 

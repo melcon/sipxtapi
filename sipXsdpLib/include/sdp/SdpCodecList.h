@@ -80,12 +80,6 @@ public:
    /** Assign any unset payload type ids */
    void bindPayloadIds();
 
-   /** If there is a matching codec in this factory, set its payload type to that of the given codec */
-   void copyPayloadId(const SdpCodec& codec);
-
-   /** For all matching codecs, copy the payload type from the codecArray to the matching codec in this factory */
-   void copyPayloadIds(const UtlSList& codecList);
-
    /** Discard all codecs */
    void clearCodecs(void);
 

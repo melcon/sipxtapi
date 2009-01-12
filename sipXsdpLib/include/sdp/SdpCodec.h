@@ -169,7 +169,8 @@ public:
     enum SdpCodecCPUCost
     {
        SDP_CODEC_CPU_LOW = 0,
-       SDP_CODEC_CPU_HIGH = 1
+       SDP_CODEC_CPU_NORMAL,
+       SDP_CODEC_CPU_HIGH
     };
 
 /* ============================ CREATORS ================================== */
@@ -180,6 +181,7 @@ public:
    SdpCodec(enum SdpCodecTypes sdpCodecType = SDP_CODEC_UNKNOWN,
             int payloadId = SDP_CODEC_UNKNOWN, ///< if SDP_CODEC_UNKNOWN then it is dynamic
             const UtlString& sCodecName = NULL, ///< codec name which can be used in factory
+            const UtlString& sDisplayCodecName = NULL, ///< codec name displayable to user
             const char* mimeType = MIME_TYPE_AUDIO,
             const char* mimeSubtype = "",
             int sampleRate = 8000,             ///< samples per second
@@ -247,7 +249,7 @@ public:
    */
 
    /// MimeSubtype used as encoding name
-   void getEncodingName(UtlString& mimeSubtype) const;
+   void getMimeSubType(UtlString& mimeSubtype) const;
    /**<
    *  This is the encoding name used in the SDP
    *  "a=rtpmap: <payloadFormat> <mimeSubtype/sampleRate[/numChannels]"
@@ -309,6 +311,7 @@ public:
    /** Gets codec name. This is not the same as mime subtype. */
    void getCodecName(UtlString& codecName) const { codecName = m_sCodecName; }
    UtlString getCodecName() const { return m_sCodecName; }
+   void getDisplayCodecName(UtlString& displayCodecName) const { displayCodecName = m_sDisplayCodecName; }
 
 //@}
 
@@ -319,8 +322,9 @@ public:
    /// Returns TRUE if this codec is the same definition as the given codec
    UtlBoolean isSameDefinition(const SdpCodec& codec) const;
    /**<
-   *  That is the encoding type and its characteristics, not the payload type.
-   */
+     *  That is the encoding type and its characteristics, not the payload type.
+     *  Doesn't take fmtp into consideration.
+     */
 
    /** Converts the short codec name into an enum */
    static SdpCodec::SdpCodecTypes getCodecType(const UtlString& shortCodecName);
@@ -347,6 +351,7 @@ private:
     int mVideoFmtp;
     UtlString mVideoFmtpString;    ///< video format string
     UtlString m_sCodecName; ///< codec name which can be used in factory
+    UtlString m_sDisplayCodecName; ///< displayable codec name
 };
 
 /* ============================ INLINE METHODS ============================ */

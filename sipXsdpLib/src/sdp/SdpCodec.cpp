@@ -26,6 +26,7 @@
 SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
                    int payloadId,
                    const UtlString& sCodecName,
+                   const UtlString& sDisplayCodecName,
                    const char* mimeType,
                    const char* mimeSubtype,
                    int sampleRate,
@@ -35,19 +36,20 @@ SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
                    const int CPUCost,
                    const int BWCost,
                    const int videoFormat,
-                   const int videoFmtp) :
-   mCodecPayloadId(payloadId),
-   mMimeType(mimeType),
-   mMimeSubtype(mimeSubtype),
-   mSampleRate(sampleRate),
-   mPacketLength(preferredPacketLength),
-   mNumChannels(numChannels),
-   mFormatSpecificData(formatSpecificData),
-   mCPUCost(CPUCost),
-   mBWCost(BWCost),
-   mVideoFormat(videoFormat),
-   mVideoFmtp(videoFmtp),
-   m_sCodecName(sCodecName)
+                   const int videoFmtp)
+: mCodecPayloadId(payloadId)
+, mMimeType(mimeType)
+, mMimeSubtype(mimeSubtype)
+, mSampleRate(sampleRate)
+, mPacketLength(preferredPacketLength)
+, mNumChannels(numChannels)
+, mFormatSpecificData(formatSpecificData)
+, mCPUCost(CPUCost)
+, mBWCost(BWCost)
+, mVideoFormat(videoFormat)
+, mVideoFmtp(videoFmtp)
+, m_sCodecName(sCodecName)
+, m_sDisplayCodecName(sDisplayCodecName)
 {
    setValue(sdpCodecType);
 }
@@ -69,6 +71,7 @@ SdpCodec::SdpCodec(const SdpCodec& rSdpCodec)
     mVideoFmtp = rSdpCodec.mVideoFmtp;
     mVideoFmtpString = rSdpCodec.mVideoFmtpString;
     m_sCodecName = rSdpCodec.m_sCodecName;
+    m_sDisplayCodecName = rSdpCodec.m_sDisplayCodecName;
 }
 
 // Destructor
@@ -99,6 +102,7 @@ SdpCodec::operator=(const SdpCodec& rhs)
     mVideoFmtp = rhs.mVideoFmtp;
     mVideoFmtpString = rhs.mVideoFmtpString;
     m_sCodecName = rhs.m_sCodecName;
+    m_sDisplayCodecName = rhs.m_sDisplayCodecName;
 
    return *this;
 }
@@ -130,7 +134,7 @@ void SdpCodec::getMediaType(UtlString& mimeType) const
     mimeType = mMimeType;
 }
 
-void SdpCodec::getEncodingName(UtlString& mimeSubtype) const
+void SdpCodec::getMimeSubType(UtlString& mimeSubtype) const
 {
     mimeSubtype = mMimeSubtype;
 }
