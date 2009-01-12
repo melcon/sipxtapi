@@ -446,7 +446,7 @@ bool sipXmgr::handleCallstateEvent(void* pInfo, void* pUserData)
 //                    sprintf(szSrtpStatus, "unencrypted");
 //                }
 //                thePhoneApp->addLogMessage("Acodec: " + 
-//                                            UtlString(pCallInfo->codecs.audioCodec.cName) +
+//                                            UtlString(pCallInfo->codecs.audioCodec.cCodecName) +
 //                                            " (" +
 //                                            UtlString(szPayloadType) +
 //                                            "," +
@@ -456,7 +456,7 @@ bool sipXmgr::handleCallstateEvent(void* pInfo, void* pUserData)
 //                {
 //                    sprintf(szPayloadType, "%d", pCallInfo->codecs.videoCodec.iPayloadType);
 //                    thePhoneApp->addLogMessage("Vcodec: " + 
-//                                                UtlString(pCallInfo->codecs.videoCodec.cName) +
+//                                                UtlString(pCallInfo->codecs.videoCodec.cCodecName) +
 //                                                " (" +
 //                                                UtlString(szPayloadType) +
 //                                                ")\n");
@@ -767,7 +767,6 @@ bool sipXmgr::placeCall(const char* szSipUrl,
     memset((void*)&options, 0, sizeof(SIPX_CALL_OPTIONS));
     options.cbSize = sizeof(SIPX_CALL_OPTIONS);
     options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
-    options.bandwidthId =  AUDIO_CODEC_BW_DEFAULT;
     options.contactId = contactId;
 
     if (pCertFile && bSecurity && iSecurity > 0)
@@ -793,11 +792,11 @@ bool sipXmgr::placeCall(const char* szSipUrl,
         security.setSecurityLevel((SIPX_SRTP_LEVEL)iSecurity);
 		if (thePhoneApp->getFrame().getVideoVisible())
 		{
-			sipxCallConnect(m_hCall, szSipUrl, &display, &security, true, &options) ;
+			sipxCallConnect(m_hCall, szSipUrl, &display, &security, SIPX_FOCUS_ALWAYS, &options) ;
 		}
 		else
 		{
-			sipxCallConnect(m_hCall, szSipUrl, NULL, &security, true, &options) ;
+			sipxCallConnect(m_hCall, szSipUrl, NULL, &security, SIPX_FOCUS_ALWAYS, &options) ;
 		}
     }
     else
@@ -806,11 +805,11 @@ bool sipXmgr::placeCall(const char* szSipUrl,
         options.rtpTransportFlags = SIPX_RTP_TRANSPORT_UDP;
 		if (thePhoneApp->getFrame().getVideoVisible())
 		{
-	        sipxCallConnect(m_hCall, szSipUrl, &display, NULL, true, &options);
+	        sipxCallConnect(m_hCall, szSipUrl, &display, NULL, SIPX_FOCUS_ALWAYS, &options);
 		}
 		else
 		{
-	        sipxCallConnect(m_hCall, szSipUrl, NULL, NULL, true, &options);
+	        sipxCallConnect(m_hCall, szSipUrl, NULL, NULL, SIPX_FOCUS_ALWAYS, &options);
 		}
     }
    
@@ -1119,10 +1118,9 @@ bool sipXmgr::addConfParty(const char* const szParty)
         memset((void*)&options, 0, sizeof(SIPX_CALL_OPTIONS));
         options.cbSize = sizeof(SIPX_CALL_OPTIONS);
         options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
-        options.bandwidthId =  AUDIO_CODEC_BW_DEFAULT;
 
         if (SIPX_RESULT_SUCCESS == sipxConferenceAdd(m_hConf, getCurrentLine(), szParty, &hNewCall, contactId,
-                                                     pDisplay, pSecurity, true, &options))
+                                                     pDisplay, pSecurity, SIPX_FOCUS_ALWAYS, &options))
         {
             mConfCallHandleMap.insertKeyAndValue(new UtlString(szParty), new UtlInt(hNewCall));
             
@@ -1187,7 +1185,7 @@ bool sipXmgr::getCodecList(UtlString& codecList)
         {
             if (sipxConfigGetSelectedAudioCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
             {
-                switch (codec.iBandWidth)
+                switch (codec.bandWidth)
                 {
                 case AUDIO_CODEC_BW_VARIABLE:
                     sBandWidth = " (Variable)";
@@ -1202,7 +1200,7 @@ bool sipXmgr::getCodecList(UtlString& codecList)
                     sBandWidth = " (High)";
                     break;
                  }
-                codecList = codecList + codec.cName + sBandWidth + "\n"; 
+                codecList = codecList + codec.cCodecName + sBandWidth + "\n"; 
             }
         }
         rc = true;
@@ -1241,7 +1239,7 @@ bool sipXmgr::getVideoCodecList(UtlString& codecList)
         {
             if (sipxConfigGetSelectedVideoCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
             {
-                switch (codec.iBandWidth)
+                switch (codec.bandWidth)
                 {
                 case AUDIO_CODEC_BW_VARIABLE:
                     sBandWidth = " (Variable)";
@@ -1256,7 +1254,7 @@ bool sipXmgr::getVideoCodecList(UtlString& codecList)
                     sBandWidth = " (High)";
                     break;
                  }
-                codecList = codecList + codec.cName + sBandWidth + "\n"; 
+                codecList = codecList + codec.cCodecName + sBandWidth + "\n"; 
             }
         }
         rc = true;

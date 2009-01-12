@@ -164,7 +164,7 @@ public:
    {
       SipLine line1(FULL_LINE_URL_1);
 
-      CPPUNIT_ASSERT(areTheSame(line1.getFullLineUrl(), SipLine::getFullLineUrl(Url(FULL_LINE_URL_1))));
+      CPPUNIT_ASSERT(areTheSame(line1.getFullLineUrl(), SipLine::buildFullLineUrl(Url(FULL_LINE_URL_1))));
    }
 
    void testSipLineRealm()

@@ -75,7 +75,7 @@
                                              + (default connections * 2). */
 #define DEFAULT_STUN_PORT       3478    /**< Default stun server port */
 
-#define DEFAULT_CONNECTIONS     64      /**< Default number of max sim. conns. */
+#define DEFAULT_CONNECTIONS     100      /**< Default number of max sim. conns. */
 #define DEFAULT_IDENTITY        "sipx"  /**< sipx@<IP>:UDP_PORT used as identify if lines
                                              are not defined.  This define only controls
                                              the userid portion of the SIP url. */
@@ -98,7 +98,6 @@
 #define SIPX_MAX_IP_ADDRESSES   32      /**< Maximum number of IP addresses on the host */
 
 
-
 #define SIPX_PORT_DISABLE       -1      /**< Special value that disables the transport 
                                              type (e.g. UDP, TCP, or TLS) when passed 
                                              to sipXinitialize */
@@ -117,6 +116,7 @@
 #define SIPXTAPI_FULL_VERSION "3.2.0.0"      /**< Default full version number -- automatically filled in 
                                                   during release process*/
 #define SIPX_MAX_ADAPTER_NAME_LENGTH 256	 /**< Max length of an adapter name */
+#define SIPXTAPI_STRING_MEDIUM_LENGTH 30          /**< Maximum length for generic string */
 
 #ifdef _WIN32
 #  ifdef SIPXTAPI_EXPORTS
@@ -183,22 +183,22 @@ typedef enum
  * Variable: ISAC      variable bitrate
  * </pre>
  */
-typedef enum SIPX_AUDIO_BANDWIDTH_ID
+typedef enum
 {
-    AUDIO_CODEC_BW_VARIABLE=0,   /**< ID for codecs with variable bandwidth requirements */
-
+    AUDIO_CODEC_BW_VARIABLE = 0,   /**< ID for codecs with variable bandwidth requirements */
     AUDIO_CODEC_BW_LOW,          /**< ID for codecs with low bandwidth requirements */
     AUDIO_CODEC_BW_NORMAL,       /**< ID for codecs with normal bandwidth requirements */
     AUDIO_CODEC_BW_HIGH,         /**< ID for codecs with high bandwidth requirements */
-
-    AUDIO_CODEC_BW_CUSTOM,		   /**< Possible return value for sipxConfigGetAudioCodecPreferences.
-                                      This ID indicates the available list of codecs was
-                                      overridden by a sipxConfigSelectAudioCodecByName call. */
-    AUDIO_CODEC_BW_DEFAULT       /**< Value used to signify the default bandwidth level 
-                                      when calling sipxCallConnect, sipxCallAccept, or 
-                                      sipxConferenceAdd */
 } SIPX_AUDIO_BANDWIDTH_ID;
 
+/**
+ * Indicates relative CPU cost of an audio or video codec.
+ */
+typedef enum
+{
+   SIPX_CODEC_CPU_LOW = 0,
+   SIPX_CODEC_CPU_HIGH
+} SIPX_CODEC_CPU_COST;
 
 /**
  * Video Codec bandwidth ids are used to select a group of codecs with equal 
@@ -215,24 +215,19 @@ typedef enum SIPX_AUDIO_BANDWIDTH_ID
  *
  * A VP71 codec in QCIF resolution would be named VP71-QCIF.
  */
-typedef enum SIPX_VIDEO_BANDWIDTH_ID
+typedef enum
 {
-    VIDEO_CODEC_BW_VARIABLE=0,   /**< ID for codecs with variable bandwidth requirements */
+    VIDEO_CODEC_BW_VARIABLE = 0,   /**< ID for codecs with variable bandwidth requirements */
     VIDEO_CODEC_BW_LOW,          /**< ID for codecs with low bandwidth requirements */
     VIDEO_CODEC_BW_NORMAL,       /**< ID for codecs with normal bandwidth requirements */
     VIDEO_CODEC_BW_HIGH,         /**< ID for codecs with high bandwidth requirements */
-    VIDEO_CODEC_BW_CUSTOM,       /**< Possible return value for sipxConfigGetVideoCodecPreferences.
-                                      This ID indicates the available list of codecs was
-                                      overridden by a sipxConfigSelectVideoCodecByName call. */
-    VIDEO_CODEC_BW_DEFAULT       /**< Value used to signify the default bandwidth level 
-                                      when calling sipxCallLimitCodecPreferences */
 } SIPX_VIDEO_BANDWIDTH_ID;
 
 /**
  * Video Codec quality definitions.  Quality is used as a trade off between between 
  * CPU usage and the amount of bandwidth used.
  */
-typedef enum SIPX_VIDEO_QUALITY_ID
+typedef enum
 {
     VIDEO_QUALITY_LOW = 1,         /**< Low quality video */
     VIDEO_QUALITY_NORMAL = 2,      /**< Normal quality video */
@@ -242,7 +237,7 @@ typedef enum SIPX_VIDEO_QUALITY_ID
 /**
  *  Enumeration of possible video sizes.
  */
-typedef enum SIPX_VIDEO_FORMAT
+typedef enum
 {
     VIDEO_FORMAT_ANY = -1,
     VIDEO_FORMAT_CIF = 0,          /**< 352x288   */ 
@@ -255,7 +250,7 @@ typedef enum SIPX_VIDEO_FORMAT
 /**
  * Format definitions for memory resident audio data
  */
-typedef enum SIPX_AUDIO_DATA_FORMAT
+typedef enum
 {
     RAW_PCM_16 = 0                 /**< Signed 16 bit PCM data, mono, 8KHz, no header */
 } SIPX_AUDIO_DATA_FORMAT;
@@ -324,7 +319,7 @@ typedef enum SIPX_RESULT
 *
 * @NOTE: Keep in sync with MEDIA_OUTBOUND_DTMF_MODE 
 */
-typedef enum SIPX_OUTBOUND_DTMF_MODE
+typedef enum
 {
 	SIPX_OUTBOUND_DTMF_DISABLED,
 	SIPX_OUTBOUND_DTMF_INBAND,
@@ -336,7 +331,7 @@ typedef enum SIPX_OUTBOUND_DTMF_MODE
 *
 * @NOTE: Keep in sync with MEDIA_INBOUND_DTMF_MODE 
 */
-typedef enum SIPX_INBOUND_DTMF_MODE
+typedef enum
 {
 	SIPX_INBOUND_DTMF_INBAND,
 	SIPX_INBOUND_DTMF_RFC2833
@@ -345,7 +340,7 @@ typedef enum SIPX_INBOUND_DTMF_MODE
 /**
  * DTMF/other tone ids used with sipxCallStartTone/sipxCallStopTone 
  */
-typedef enum SIPX_TONE_ID
+typedef enum
 {
     ID_DTMF_0              = 0,   /**< DMTF 0 */
     ID_DTMF_1              = 1,   /**< DMTF 1 */
@@ -392,7 +387,7 @@ typedef enum SIPX_TONE_ID
  * expiration time. If no session refresh occurs until that period, session may be
  * torn down. Refresher is negotiated by default.
  */
-typedef enum SIPX_SESSION_TIMER_REFRESH
+typedef enum
 {
    SIPX_SESSION_REFRESH_AUTO = 0, /**< Refresher negotiation is automatic  */
    SIPX_SESSION_REFRESH_LOCAL,  /**< Our side will carry out session refresh */
@@ -409,7 +404,7 @@ typedef enum SIPX_SESSION_TIMER_REFRESH
  * UPDATE will only be sent, if remote party supports it. Otherwise re-INVITE will be used, even
  * if UPDATE is enabled.
  */
-typedef enum SIPX_SIP_UPDATE_CONFIG
+typedef enum
 {
    SIPX_SIP_UPDATE_DISABLED = 0, /**< UPDATE is completely disabled, UPDATE requests will be rejected,
                                   *   but sipXtapi will continue advertising support for UPDATE
@@ -442,7 +437,7 @@ typedef enum SIPX_SIP_UPDATE_CONFIG
  * So called "early-session" disposition type (rfc3959) is not supported. This however doesn't prevent
  * negotiation of early session parameters.
  */
-typedef enum SIPX_100REL_CONFIG
+typedef enum
 {
    SIPX_100REL_PREFER_UNRELIABLE = 0, /**< Prefer sending unreliable 18x responses */
    SIPX_100REL_PREFER_RELIABLE,       /**< Prefer sending reliable 18x responses, if remote
@@ -460,7 +455,7 @@ typedef enum SIPX_100REL_CONFIG
 * Delayed offering sends SDP offer as late as possible. This saves media
 * resources, in case lots of calls are made which might be rejected.
 */
-typedef enum SIPX_SDP_OFFERING_MODE
+typedef enum
 {
    SIPX_SDP_OFFERING_IMMEDIATE = 0, /**
                                      * Offer SDP in the initial INVITE request.
@@ -475,7 +470,7 @@ typedef enum SIPX_SDP_OFFERING_MODE
  * Configures how sipXtapi should manage focus for calls. If call is focused then speaker and microphone
  * are available for it.
  */
-typedef enum SIPX_FOCUS_CONFIG
+typedef enum
 {
    SIPX_FOCUS_MANUAL = 0,   /**< Setting focus is completely manual, call will not be put in focus */
    SIPX_FOCUS_IF_AVAILABLE, /**< Focus call only if there is no other focused call */
@@ -494,7 +489,7 @@ typedef enum SIPX_FOCUS_CONFIG
  *
  * @NOTE: Keep in sync OsSysLogPriority with SIPX_LOG_LEVEL 
  */
-typedef enum SIPX_LOG_LEVEL
+typedef enum
 {
     LOG_LEVEL_DEBUG,     /**< debug-level messages */
     LOG_LEVEL_INFO,      /**< informational messages */
@@ -661,7 +656,7 @@ typedef void* SIPX_WINDOW_HANDLE;
  * Enum for specifying the type of display object
  * to be used for displaying video
  */
-typedef enum SIPX_VIDEO_DISPLAY_TYPE
+typedef enum
 {
     SIPX_WINDOW_HANDLE_TYPE,     /**< A handle to the window for
                                       the remote video display */
@@ -768,31 +763,6 @@ struct SIPX_CONTACT_ADDRESS
     char                cCustomRouteID[64] ; /**< Custom transport routing tag */
 };
 
-
-/**
- * The SIPX_AUDIO_CODEC structure includes codec name and bandwidth info.
- */
-typedef struct 
-{
-#define SIPXTAPI_CODEC_NAMELEN 32       /**< Maximum length for codec name */
-    char              cName[SIPXTAPI_CODEC_NAMELEN];  /**< Codec name    */
-    SIPX_AUDIO_BANDWIDTH_ID iBandWidth; /**< Bandwidth requirement */
-    int               iPayloadType;     /**< Payload type          */
-} SIPX_AUDIO_CODEC;
-
-/**
- * The SIPX_AUDIO_DEVICE structure holds information about audio device.
- */
-typedef struct  
-{
-#define SIPXTAPI_AUDIO_DEVICE_STRLEN 80
-   char deviceName[SIPXTAPI_AUDIO_DEVICE_STRLEN]; ///< device name
-   char driverName[SIPXTAPI_AUDIO_DEVICE_STRLEN]; ///< name of driver for this device
-   int maxChannels; ///< maximum channels supported
-   double defaultSampleRate; ///< default sample rate
-   int bIsInput; ///< whether it is input device
-} SIPX_AUDIO_DEVICE;
-
 /**
  * RTCP statistics computed according to RFC 3550
  */
@@ -812,14 +782,47 @@ typedef struct
 } SIPX_RTCP_STATS;
 
 /**
+* The SIPX_AUDIO_DEVICE structure holds information about audio device.
+*/
+typedef struct  
+{
+#define SIPXTAPI_AUDIO_DEVICE_STRLEN 80
+   char deviceName[SIPXTAPI_AUDIO_DEVICE_STRLEN]; ///< device name
+   char driverName[SIPXTAPI_AUDIO_DEVICE_STRLEN]; ///< name of driver for this device
+   int maxChannels; ///< maximum channels supported
+   double defaultSampleRate; ///< default sample rate
+   int bIsInput; ///< whether it is input device
+} SIPX_AUDIO_DEVICE;
+
+/**
+* The SIPX_AUDIO_CODEC structure includes codec name and bandwidth info.
+*/
+typedef struct 
+{
+   int payloadType; /**< Codec payload id used in SDP. */
+   char cCodecName[SIPXTAPI_STRING_MEDIUM_LENGTH];  /**< Codec short name. Used for codec selection. Uniquely identifies codec. */
+   char cDisplayName[SIPXTAPI_STRING_MEDIUM_LENGTH]; /**< Name of codec that should be displayed in dialogs */
+   char cSubMimeType[SIPXTAPI_STRING_MEDIUM_LENGTH]; /**< Submime type used in SDP. */
+   SIPX_AUDIO_BANDWIDTH_ID bandWidth; /**< Bandwidth requirement */
+   int sampleRate; /**< Codec sample rate in Hz */
+   int frameLength; /**< Frame length in milliseconds */
+   int numChannels; /**< Number of channels, 1 - mono */
+   char cFormatSpecificData[SIPXTAPI_STRING_MEDIUM_LENGTH]; /**< Codec specific parameters, like mode=6 */
+   SIPX_CODEC_CPU_COST cpuCost; /**< CPU consumption of codec */
+} SIPX_AUDIO_CODEC;
+
+/**
  * The SIPX_VIDEO_CODEC structure includes codec name and bandwidth info.
  */
 typedef struct 
 {
-#define SIPXTAPI_CODEC_NAMELEN 32        /**< Maximum length for codec name */
-    char              cName[SIPXTAPI_CODEC_NAMELEN];  /**< Codec name    */
-    SIPX_VIDEO_BANDWIDTH_ID iBandWidth;  /**< Bandwidth requirement */
-    int               iPayloadType;      /**< Payload type          */
+   int payloadType; /**< Codec payload id used in SDP. */
+   char cCodecName[SIPXTAPI_STRING_MEDIUM_LENGTH];  /**< Codec name    */
+   char cDisplayName[SIPXTAPI_STRING_MEDIUM_LENGTH]; /**< Name of codec that should be displayed in dialogs */
+   char cSubMimeType[SIPXTAPI_STRING_MEDIUM_LENGTH]; /**< Submime type used in SDP. */
+   SIPX_VIDEO_BANDWIDTH_ID bandWidth;  /**< Bandwidth requirement */
+   char cFormatSpecificData[SIPXTAPI_STRING_MEDIUM_LENGTH]; /**< Codec specific parameters, like mode=6 */
+   int cpuCost; /**< CPU consumption of codec */
 } SIPX_VIDEO_CODEC;
 
 
@@ -830,9 +833,9 @@ typedef struct
  */
 typedef struct
 {
-    SIPX_AUDIO_CODEC audioCodec;     /**< Audio codec  */
-    SIPX_VIDEO_CODEC videoCodec;     /**< Video codec  */
-    int bIsEncrypted;                /**< SRTP enabled */
+   char cAudioCodecName[SIPXTAPI_STRING_MEDIUM_LENGTH];  /**< Short audio codec name. Example: PCMA */
+   char cVideoCodecName[SIPXTAPI_STRING_MEDIUM_LENGTH];  /**< Short video codec name */
+   int bIsEncrypted;                /**< 1 if SRTP is enabled */
 } SIPX_CODEC_INFO;
 
 
@@ -854,7 +857,6 @@ typedef enum
 }SIPX_RTP_TRANSPORT;
 
 
-
 /** 
 * The SIPX_TRANSPORT handle represents a user-implementation of 
 * a network transport mechanism to be used for SIP signaling.
@@ -869,8 +871,7 @@ const SIPX_TRANSPORT SIPX_TRANSPORT_NULL = 0; /**< Represents a null transport h
 typedef struct
 {
     int cbSize;                          /**< Size of structure          */
-    SIPX_AUDIO_BANDWIDTH_ID bandwidthId; /**< Bandwidth range            */
-    int sendLocation;                    /**< True sends location header */
+    int sendLocation;                    /**< True sends HTTP location header */
     SIPX_CONTACT_ID contactId;           /**< desired contactId (only used for 
                                               sipxCallAccept at this moment) 
                                               pass 0 for automatic contact. Real contact

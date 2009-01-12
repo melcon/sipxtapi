@@ -113,7 +113,6 @@ PhoneState* PhoneStateIdle::OnOffer(SIPX_CALL hCall)
     memset((void*)&options, 0, sizeof(SIPX_CALL_OPTIONS));
     options.cbSize = sizeof(SIPX_CALL_OPTIONS);
     options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
-    options.bandwidthId =  AUDIO_CODEC_BW_DEFAULT;
 
     sipxCallAccept(hCall, pDisplay, pSecurity, &options);
 

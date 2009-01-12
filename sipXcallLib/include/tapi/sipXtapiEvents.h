@@ -680,8 +680,7 @@ typedef struct
     SIPX_CALL           hCall;     /**< Associate call (or SIPX_CALL_NULL if 
                                          not associated with a call). */
     SIPX_CODEC_INFO     codec;     /**< Negotiated codec; only supplied on 
-                                         MEDIA_LOCAL_START and MEDIA_REMOTE_START
-                                         events. */
+                                         MEDIA_LOCAL_START. */
     int                 idleTime;   /**< Idle time (ms) for SILENT events; only 
                                          supplied on MEDIA_REMOTE_SILENT 
                                          events. */

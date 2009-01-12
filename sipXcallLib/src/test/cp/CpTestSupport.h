@@ -21,7 +21,7 @@
 // STRUCTS
 // TYPEDEFS
 // FORWARD DECLARATIONS
-class CallManager;
+class XCpCallManager;
 class SipUserAgent;
 
 class CpTestSupport
@@ -32,12 +32,12 @@ public:
     /**
      * A testable call manager initialized to testable defaults
      */
-    static CallManager *newCallManager(SipUserAgent *ua);
+    static XCpCallManager* newCallManager(SipUserAgent* ua);
 
     /**
      * A testable user agent initialized to testable defaults
      */
-    static SipUserAgent *newSipUserAgent();
+    static SipUserAgent* newSipUserAgent();
 
 };
 
