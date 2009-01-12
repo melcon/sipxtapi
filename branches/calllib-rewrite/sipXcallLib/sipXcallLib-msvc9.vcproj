@@ -244,31 +244,7 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath=".\src\cp\CallManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\Connection.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\cp\Cp100RelTracker.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpCall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpCallManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpGhostConnection.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpIntMessage.cpp"
 				>
 			</File>
 			<File
@@ -276,15 +252,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\cp\CpMultiStringMessage.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\cp\CpNotificationRegister.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpPeerCall.cpp"
 				>
 			</File>
 			<File
@@ -297,14 +265,6 @@
 			</File>
 			<File
 				RelativePath=".\src\cp\CpSipTransactionManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CSeqManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\SipConnection.cpp"
 				>
 			</File>
 			<File
@@ -661,27 +621,11 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath="include\cp\CallManager.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\Connection.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\cp\Cp100RelTracker.h"
 				>
 			</File>
 			<File
 				RelativePath=".\include\cp\CpAudioCodecInfo.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpCall.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpCallManager.h"
 				>
 			</File>
 			<File
@@ -694,14 +638,6 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpDefs.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpGhostConnection.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpIntMessage.h"
 				>
 			</File>
 			<File
@@ -722,10 +658,6 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpMessageTypes.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpMultiStringMessage.h"
 				>
 			</File>
 			<File
@@ -762,14 +694,6 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpVideoCodecInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CSeqManager.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\SipConnection.h"
 				>
 			</File>
 			<File
