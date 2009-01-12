@@ -141,7 +141,7 @@ public:
     UtlBoolean mRtpAudioSending;
     UtlBoolean mRtpAudioReceiving;
     SdpCodec* mpAudioCodec;
-    SdpCodecList* mpSdpCodecList;
+    SdpCodecList* mpSdpCodecList; /// list of SDP codecs used for SDP negotiation, but not up to date when RTP is flowing
     SIPX_CONTACT_TYPE mContactType ;
     UtlString mLocalIPAddress; ///< local bind IP address
     UtlBoolean mbAlternateDestinations ;
@@ -910,13 +910,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
       applyAlternateDestinations(connectionId) ;
    }
 
-   // Make sure we use the same payload types as the remote
-   // side.  Its the friendly thing to do.
-   if (mediaConnection->mpSdpCodecList)
-   {
-      mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
-   }
-
    if (mpFlowGraph)
    {
        // Store the primary codec for cost calculations later
@@ -929,13 +922,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
        {
            mediaConnection->mpAudioCodec = new SdpCodec();
            *mediaConnection->mpAudioCodec = *audioCodec ;
-       }
-
-       // Make sure we use the same payload types as the remote
-       // side.  Its the friendly thing to do.
-       if (mediaConnection->mpSdpCodecList)
-       {
-           mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
        }
 
       if (!mediaConnection->mRtpSendHostAddress.isNull() && mediaConnection->mRtpSendHostAddress.compareTo("0.0.0.0"))
@@ -967,13 +953,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpReceive(int connectionId,
 
    UtlSList utlCodecList;
    sdpCodecList.getCodecs(utlCodecList);
-
-   // Make sure we use the same payload types as the remote
-   // side.  It's the friendly thing to do.
-   if (mediaConnection->mpSdpCodecList)
-   {
-         mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
-   }
 
    if (mpFlowGraph)
    {
