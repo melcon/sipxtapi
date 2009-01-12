@@ -15,7 +15,7 @@
 // APPLICATION INCLUDES
 #include <utl/UtlSList.h>
 #include <os/OsBSem.h>
-#include <os/OsRWMutex.h>
+#include <os/OsMutex.h>
 #include <sdp/SdpCodec.h>
 
 // DEFINES
@@ -136,7 +136,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    UtlSList m_codecsList;
-   mutable OsRWMutex m_memberMutex;
+   mutable OsMutex m_memberMutex;
 };
 
 /* ============================ INLINE METHODS ============================ */
