@@ -311,6 +311,7 @@ public:
    /** Gets codec name. This is not the same as mime subtype. */
    void getCodecName(UtlString& codecName) const { codecName = m_sCodecName; }
    UtlString getCodecName() const { return m_sCodecName; }
+   UtlString getDisplayCodecName() const { return m_sDisplayCodecName; }
    void getDisplayCodecName(UtlString& displayCodecName) const { displayCodecName = m_sDisplayCodecName; }
 
 //@}
