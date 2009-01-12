@@ -1558,13 +1558,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedAudioCodec(const SIPX_INST hInst,
       if (bFound)
       {
          UtlString sSubMimeType;
-         sdpCodec.getEncodingName(sSubMimeType);
+         sdpCodec.getMimeSubType(sSubMimeType);
          UtlString sFormatSpecificData;
          sdpCodec.getSdpFmtpField(sFormatSpecificData);
 
          pCodec->payloadType = sdpCodec.getCodecPayloadId();
          SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
-         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          pCodec->bandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
          pCodec->sampleRate = sdpCodec.getSampleRate();
@@ -1603,13 +1603,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableAudioCodec(const SIPX_INST hInst,
       if (bFound)
       {
          UtlString sSubMimeType;
-         sdpCodec.getEncodingName(sSubMimeType);
+         sdpCodec.getMimeSubType(sSubMimeType);
          UtlString sFormatSpecificData;
          sdpCodec.getSdpFmtpField(sFormatSpecificData);
 
          pCodec->payloadType = sdpCodec.getCodecPayloadId();
          SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
-         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          pCodec->bandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
          pCodec->sampleRate = sdpCodec.getSampleRate();
@@ -1832,13 +1832,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedVideoCodec(const SIPX_INST hInst,
       if (bFound)
       {
          UtlString sSubMimeType;
-         sdpCodec.getEncodingName(sSubMimeType);
+         sdpCodec.getMimeSubType(sSubMimeType);
          UtlString sFormatSpecificData;
          sdpCodec.getSdpFmtpField(sFormatSpecificData);
 
          pCodec->payloadType = sdpCodec.getCodecPayloadId();
          SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
-         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          pCodec->bandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
          SAFE_STRNCPY(pCodec->cFormatSpecificData, sFormatSpecificData.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
@@ -1874,13 +1874,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableVideoCodec(const SIPX_INST hInst,
       if (bFound)
       {
          UtlString sSubMimeType;
-         sdpCodec.getEncodingName(sSubMimeType);
+         sdpCodec.getMimeSubType(sSubMimeType);
          UtlString sFormatSpecificData;
          sdpCodec.getSdpFmtpField(sFormatSpecificData);
 
          pCodec->payloadType = sdpCodec.getCodecPayloadId();
          SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
-         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
          pCodec->bandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
          SAFE_STRNCPY(pCodec->cFormatSpecificData, sFormatSpecificData.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);

@@ -86,7 +86,7 @@ OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
       if (pCodec)
       {
          UtlString encodingName;
-         pCodec->getEncodingName(encodingName);
+         pCodec->getMimeSubType(encodingName);
          int codecPayloadId = pCodec->getCodecPayloadId();
 
          if (codecPayloadId >=0 && codecPayloadId < MAX_PAYLOADS

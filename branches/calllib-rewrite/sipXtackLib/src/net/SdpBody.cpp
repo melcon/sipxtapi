@@ -1676,7 +1676,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
 
         if (mimeType.compareTo(SDP_VIDEO_MEDIA_TYPE) == 0)
         {
-            rtpCodecs[codecIndex]->getEncodingName(mimeSubType);
+            rtpCodecs[codecIndex]->getMimeSubType(mimeSubType);
 
             if (mimeSubType.compareTo(prevMimeSubType) == 0)
             {
@@ -1828,7 +1828,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
       rtpCodecs[codecIndex]->getMediaType(mimeType);
       if(codec && mimeType.compareTo(szMimeType) == 0)
       {
-         codec->getEncodingName(mimeSubtype);
+         codec->getMimeSubType(mimeSubtype);
          sampleRate = codec->getSampleRate();
          numChannels = codec->getNumChannels();
          codec->getSdpFmtpField(formatParameters);
@@ -2156,7 +2156,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
             {
                 // We've found at least one common video codec
                 commonVideo = TRUE;
-                codecsInCommon[payloadIndex]->getEncodingName(mimeSubType);
+                codecsInCommon[payloadIndex]->getMimeSubType(mimeSubType);
 
                 // If we still have the same mime type only change format. We're depending on the
                 // fact that codecs with the same mime subtype are added sequentially to the 

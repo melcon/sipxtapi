@@ -183,6 +183,7 @@ void SdpCodecList::addCodec(const SdpCodec& newCodec)
 
 void SdpCodecList::bindPayloadIds()
 {
+   OsWriteLock lock(m_memberMutex);
    int unusedDynamicPayloadId = SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC + 1;
    SdpCodec* codecWithoutPayloadId = NULL;
 
@@ -198,36 +199,6 @@ void SdpCodecList::bindPayloadIds()
 
       codecWithoutPayloadId->setCodecPayloadId(unusedDynamicPayloadId);
       unusedDynamicPayloadId++;
-   }
-}
-
-void SdpCodecList::copyPayloadId(const SdpCodec& codec)
-{
-   SdpCodec* pFoundCodec = NULL;
-   OsWriteLock lock(m_memberMutex);
-   UtlSListIterator itor(m_codecsList);
-
-   while(itor())
-   {
-      pFoundCodec = dynamic_cast<SdpCodec*>(itor.item());
-      if(pFoundCodec && pFoundCodec->isSameDefinition(codec))
-      {
-         pFoundCodec->setCodecPayloadId(codec.getCodecPayloadId());
-      }
-   }
-}
-
-void SdpCodecList::copyPayloadIds(const UtlSList& codecList)
-{
-   UtlSListIterator itor(codecList);
-   SdpCodec* pCodec = NULL;
-   while (itor())
-   {
-      pCodec = dynamic_cast<SdpCodec*>(itor.item());
-      if (pCodec)
-      {
-         copyPayloadId(*pCodec);
-      }
    }
 }
 
@@ -340,7 +311,7 @@ const SdpCodec* SdpCodecList::getCodec(const char* mimeType,
          //        defining isCompatible(fmtp) method for SdpCodec. Checking
          //        by string comparison leads to errors when there are two
          //        or more parameters and they're presented in random order.
-         codecFound->getEncodingName(foundMimeSubType);
+         codecFound->getMimeSubType(foundMimeSubType);
          codecFound->getSdpFmtpField(foundFmtp);
          if ((foundMimeSubType.compareTo(mimeSubTypeString, UtlString::ignoreCase) == 0) &&
             (sampleRate == -1 || codecFound->getSampleRate() == sampleRate) &&
@@ -465,7 +436,7 @@ void SdpCodecList::getCodecs(int& numCodecs,
       (codecFound = (SdpCodec*) iterator()) != NULL)
    {
       codecFound->getMediaType(sMimeType);
-      codecFound->getEncodingName(sSubMimeType);
+      codecFound->getMimeSubType(sSubMimeType);
       if (sMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0 && 
          sSubMimeType.compareTo(subMimeType, UtlString::ignoreCase) == 0)
       {
@@ -481,6 +452,7 @@ void SdpCodecList::toString(UtlString& str) const
 {
    str.remove(0);
    const SdpCodec* codecFound = NULL;
+   OsReadLock lock(m_memberMutex);
    UtlSListIterator iterator(m_codecsList);
    int index = 0;
 
