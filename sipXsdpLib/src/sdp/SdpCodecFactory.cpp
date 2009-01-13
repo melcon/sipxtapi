@@ -153,7 +153,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_6,
          SdpCodec::SDP_CODEC_UNKNOWN,
          "SPEEX_6",
-         "Speex 5.95 kbps",
+         "Speex 5.95 kbit/s",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
