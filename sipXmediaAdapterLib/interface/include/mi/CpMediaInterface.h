@@ -481,20 +481,12 @@ public:
    /** Copies internal SdpCodecList of media connection into supplied SdpCodecList */
    virtual OsStatus getCodecList(int connectionId, SdpCodecList& sdpCodecList) = 0;
 
-   //! Set connection bitrate on the fly
-   virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) = 0 ;
-
    //! Set connection framerate on the fly
    virtual OsStatus setConnectionFramerate(int connectionId, int framerate) = 0;
 
    virtual OsStatus setVideoWindowDisplay(const void* hWnd) = 0;
 
    virtual OsStatus setSecurityAttributes(const void* security) = 0;
-
-   virtual OsStatus generateVoiceQualityReport(int         connectionId,
-                                               const char* callId,
-                                               UtlString&  report) = 0 ;
-
 
    virtual void setConnectionTcpRole(const int connectionId,
                                      const RtpTcpRoles role) = 0;

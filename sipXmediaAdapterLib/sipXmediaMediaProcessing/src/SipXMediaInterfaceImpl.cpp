@@ -1381,12 +1381,6 @@ OsStatus SipXMediaInterfaceImpl::getCodecList(int connectionId, SdpCodecList& sd
    return rc;
 }
 
-OsStatus SipXMediaInterfaceImpl::setConnectionBitrate(int connectionId, int bitrate) 
-{
-    return OS_NOT_SUPPORTED ;
-}
-
-
 OsStatus SipXMediaInterfaceImpl::setConnectionFramerate(int connectionId, int framerate) 
 {
     return OS_NOT_SUPPORTED ;
@@ -1396,13 +1390,6 @@ OsStatus SipXMediaInterfaceImpl::setConnectionFramerate(int connectionId, int fr
 OsStatus SipXMediaInterfaceImpl::setSecurityAttributes(const void* security) 
 {
     return OS_NOT_SUPPORTED ;
-}
-
-OsStatus SipXMediaInterfaceImpl::generateVoiceQualityReport(int         connectiond,
-                                                           const char* callId,
-                                                           UtlString&  report) 
-{
-	return OS_NOT_SUPPORTED ;
 }
 
 

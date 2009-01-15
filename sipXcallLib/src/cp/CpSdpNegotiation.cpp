@@ -204,8 +204,6 @@ void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound 
                                           int& remoteVideoRtcpPort,
                                           const SdpSrtpParameters& localSrtpParams,
                                           SdpSrtpParameters& matchingSrtpParams,
-                                          int localBandwidth,
-                                          int& matchingBandwidth,
                                           int localVideoFramerate,
                                           int& matchingVideoFramerate)
 {
@@ -213,6 +211,8 @@ void CpSdpNegotiation::getCommonSdpCodecs(const SdpBody& rSdpBody, ///< inbound 
 
    SdpCodec** encoderCodecs = NULL;
    SdpCodec** decoderCodecs = NULL;
+   int matchingBandwidth; // ignored
+   int localBandwidth = 0; // ignored
 
    rSdpBody.getBestAudioCodecs(supportedCodecs,
       numCodecsInCommon,
