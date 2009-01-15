@@ -673,10 +673,6 @@
 				>
 			</File>
 			<File
-				RelativePath="include\cp\CpPeerCall.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\cp\CpSdpNegotiation.h"
 				>
 			</File>

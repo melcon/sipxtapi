@@ -170,7 +170,6 @@
             <File RelativePath=".\include\cp\CpNatTraversalConfig.h"/>
             <File RelativePath=".\include\cp\CpNotificationMsgDef.h"/>
             <File RelativePath=".\include\cp\CpNotificationRegister.h"/>
-            <File RelativePath="include\cp\CpPeerCall.h"/>
             <File RelativePath=".\include\cp\CpSdpNegotiation.h"/>
             <File RelativePath=".\include\cp\CpSessionTimerProperties.h"/>
             <File RelativePath=".\include\cp\CpSipTransactionListener.h"/>
