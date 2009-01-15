@@ -175,11 +175,6 @@ public:
 
     virtual OsStatus resumePlayback();
 
-   virtual OsStatus recordChannelAudio(int connectionId,
-                                       const char* szFile) ;
-
-   virtual OsStatus stopRecordChannelAudio(int connectionId) ;
-
    virtual OsStatus giveFocus();
    virtual OsStatus defocus();
    virtual UtlBoolean hasFocus();

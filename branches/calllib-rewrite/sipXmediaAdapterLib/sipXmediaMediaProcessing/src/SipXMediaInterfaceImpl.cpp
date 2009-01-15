@@ -1149,33 +1149,6 @@ OsStatus SipXMediaInterfaceImpl::resumePlayback()
    return(returnCode);
 }
 
-OsStatus SipXMediaInterfaceImpl::recordChannelAudio(int connectionId,
-                                                   const char* szFile) 
-{
-    // TODO:: This API is designed to record the audio from a single channel.  
-    // If the connectionId is -1, record all.
-
-    double duration = 0 ; // this means it will record for very long time
-    int dtmf = 0 ;
-
-    /* use new call recorder
-       from now on, call recorder records both mic, speaker and local dtmf      
-       we don't want raw pcm, but wav pcm, raw pcm should be passed to a callback
-       meant for recording, for example for conversion to mp3 or other format */
-    return mpFlowGraph->record(0, -1, NULL, NULL, NULL, NULL, NULL, NULL,
-                               NULL, NULL, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16) ;
-}
-
-OsStatus SipXMediaInterfaceImpl::stopRecordChannelAudio(int connectionId) 
-{
-    // TODO:: This API is designed to record the audio from a single channel.  
-    // If the connectionId is -1, record all.
-
-
-    return stopRecording() ;
-}
-
-
 OsStatus SipXMediaInterfaceImpl::startTone(int toneId,
                                           UtlBoolean local,
                                           UtlBoolean remote)
@@ -1286,8 +1259,7 @@ OsStatus SipXMediaInterfaceImpl::recordAudio(const char* szFile)
       from now on, call recorder records both mic, speaker and local dtmf      
       we don't want raw pcm, but wav pcm, raw pcm should be passed to a callback
       meant for recording, for example for conversion to mp3 or other format */
-      return mpFlowGraph->record(0, -1, NULL, NULL, NULL, NULL, NULL, NULL,
-                                 NULL, NULL, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16);
+      return mpFlowGraph->record(0, -1, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16);
    }
 
    return OS_FAILED;
@@ -1497,9 +1469,9 @@ UtlBoolean SipXMediaInterfaceImpl::isDestinationSet(int connectionId)
 
 UtlBoolean SipXMediaInterfaceImpl::canAddParty() 
 {
-    return TRUE;
+   // this limit is due to limit of MpCallFlowGraph using arrays
+   return mMediaConnections.entries() < MAX_CONNECTIONS;
 }
-
 
 UtlBoolean SipXMediaInterfaceImpl::isVideoInitialized(int connectionId)
 {

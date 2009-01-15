@@ -18,7 +18,6 @@
 #include "rtcp/RtcpConfig.h"
 
 // SYSTEM INCLUDES
-
 // APPLICATION INCLUDES
 #include "mp/MpMisc.h"
 #include "mp/MpFlowGraphBase.h"
@@ -31,8 +30,8 @@
 #endif /* INCLUDE_RTCP ] */
 
 // DEFINES
-#define DEBUG_POSTPONE
-#undef DEBUG_POSTPONE
+// also exists in RTCPSession
+#define MAX_CONNECTIONS 100
 
 /// Undefine this to fully disable AEC
 #define DOING_ECHO_CANCELATION
@@ -73,10 +72,8 @@ typedef enum FLOWGRAPH_AEC_MODE
 
 // FORWARD DECLARATIONS
 class MprBridge;
-class MprFromStream;
 class MprFromFile;
 class MprFromMic;
-class MprBufferRecorder;
 class MprEchoSuppress;
 class MprSpeexEchoCancel;
 class MprSpeexPreprocess;
@@ -108,18 +105,7 @@ public:
    } ToneOptions;
 
    enum RecorderChoice {
-#ifndef DISABLE_LOCAL_AUDIO // [
-      RECORDER_MIC = 0,
-      RECORDER_ECHO_OUT,
-      RECORDER_ECHO_IN8,
-#ifdef HIGH_SAMPLERATE_AUDIO // [
-      RECORDER_MIC32K,
-      RECORDER_SPKR32K,
-      RECORDER_ECHO_IN32,
-#endif // HIGH_SAMPLERATE_AUDIO ]
-#endif // DISABLE_LOCAL_AUDIO ]
-      RECORDER_SPKR,
-      RECORDER_CALL,    ///< full conversation recorder
+      RECORDER_CALL = 0,    ///< full conversation recorder
       MAX_RECORDERS = 10
    };
 
@@ -129,9 +115,7 @@ public:
 
      /// Default constructor
    MpCallFlowGraph(const char* pLocale = "",
-				   OsMsgQ* pInterfaceNotificationQueue = NULL,
-                   int samplesPerFrame=DEF_SAMPLES_PER_FRAME,
-                   int samplesPerSec=DEF_SAMPLES_PER_SEC);
+				       OsMsgQ* pInterfaceNotificationQueue = NULL);
 
      /// Destructor
    virtual
@@ -153,23 +137,13 @@ public:
 
    OsStatus record(int timeMS,
                    int silenceLength,
-                   const char* micName = NULL,
-                   const char* echoOutName = NULL,
-                   const char* spkrName = NULL,
-                   const char* mic32Name = NULL,
-                   const char* spkr32Name = NULL,
-                   const char* echoIn8Name = NULL,
-                   const char* echoIn32Name = NULL,
-                   const char* playName = NULL,
-                   const char* callName = NULL,
+                   const char* callRecordFile = NULL,
                    int toneOptions = 0,
                    int repeat = 0,
                    OsNotification* completion = NULL,
                    MprRecorder::RecordFileFormat format = MprRecorder::RAW_PCM_16);
 
-
-   OsStatus startRecording(const char* audioFileName, UtlBoolean repeat,
-                  int toneOptions, OsNotification* completion = NULL);
+   OsStatus startRecording();
 
    UtlBoolean setupRecorder(RecorderChoice which, const char* audioFileName,
                   int timeMS, int silenceLength, OsNotification* event = NULL,
@@ -218,11 +192,6 @@ public:
                      MpConnectionID connID=1, SdpCodec* pPrimaryCodec = NULL,
                      SdpCodec* pDtmfCodec = NULL);
 
-     /// Starts sending RTP and RTCP packets.
-   void startSendRtp(SdpCodec& rPrimaryCodec,
-                     OsSocket& rRtpSocket, OsSocket& rRtcpSocket,
-                     MpConnectionID connID=1);
-
      /// Stops sending RTP and RTCP packets.
    void stopSendRtp(MpConnectionID connID=1);
 
@@ -253,9 +222,6 @@ public:
      *
      *  @returns  OS_SUCCESS, always
      */
-
-     /// @copydoc MpFlowGraphBase::postNotification()
-   OsStatus postNotification(const MpResNotificationMsg& msg);
 
      /// Creates a new MpAudioConnection; returns -1 if failure.
    MpConnectionID createConnection(OsMsgQ* pConnectionNotificationQueue);
@@ -332,9 +298,6 @@ public:
 /* ============================ INQUIRY =================================== */
 ///@name Inquiry
 //@{
-
-     /// Returns TRUE if the indicated codec is supported.
-   UtlBoolean isCodecSupported(SdpCodec& rCodec);
 
    static UtlBoolean isInboundInBandDTMFEnabled();
    static UtlBoolean isInboundRFC2833DTMFEnabled();
@@ -439,15 +402,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   typedef enum {
-      START_PLAY_NONE = 0,
-      START_PLAY_FILE,
-      START_PLAY_SPKR
-   } PlayStart;
-
-   static const int DEF_SAMPLES_PER_FRAME;
-   static const int DEF_SAMPLES_PER_SEC;
-
    static UtlBoolean sbSendInBandDTMF ;
    static FLOWGRAPH_AEC_MODE ms_AECMode;
    static UtlBoolean sbEnableAEC ;
@@ -458,15 +412,10 @@ private:
 
    OsMsgQ* m_pInterfaceNotificationQueue;
 
-   enum { MAX_CONNECTIONS = 64 };
-
    MprBridge*    mpBridge;
    MprFromFile*  mpFromFile;
-   MprFromStream*  mpFromStream;
 #ifndef DISABLE_LOCAL_AUDIO // [
    MprFromMic*   mpFromMic;
-   MprSplitter*  mpMicSplitter;
-   MprBufferRecorder* mpBufferRecorder;
 #  ifdef HAVE_SPEEX // [
       MprSpeexPreprocess* mpSpeexPreProcess;
 #  endif // HAVE_SPEEX ]
@@ -574,67 +523,6 @@ private:
    *  @returns <b>TRUE</b> if the message was handled
    *  @returns <b>FALSE</b> otherwise.
    */
-
-#ifdef DEBUG_POSTPONE /* [ */
-     /// sends a message requesting a delay for race condition detection...
-   void postPone(int ms);
-#endif /* DEBUG_POSTPONE ] */
-
-     /// Handle the FLOWGRAPH_STREAM_REALIZE_URL message.
-   UtlBoolean handleStreamRealizeUrl(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
-     /// Handle the FLOWGRAPH_STREAM_REALIZE_BUFFER message.
-   UtlBoolean handleStreamRealizeBuffer(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
-     /// Handle the FLOWGRAPH_STREAM_PREFETCH message.
-   UtlBoolean handleStreamPrefetch(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
-     /// Handle the FLOWGRAPH_STREAM_PLAY message.
-   UtlBoolean handleStreamPlay(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
-     /// Handle the FLOWGRAPH_STREAM_REWIND message.
-   UtlBoolean handleStreamRewind(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
-     /// Handle the FLOWGRAPH_STREAM_PAUSE message.
-   UtlBoolean handleStreamPause(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
-     /// Handle the FLOWGRAPH_STREAM_STOP message.
-   UtlBoolean handleStreamStop(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
-
-     /// Handle the FLOWGRAPH_STREAM_DESTROY message.
-   UtlBoolean handleStreamDestroy(MpStreamMsg& rMsg);
-     /**<
-     *  @returns <b>TRUE</b> if the message was handled
-     *  @returns <b>FALSE</b> otherwise.
-     */
 
      /// Copy constructor (not implemented for this class)
    MpCallFlowGraph(const MpCallFlowGraph& rMpCallFlowGraph);
