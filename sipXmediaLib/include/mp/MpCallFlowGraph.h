@@ -151,31 +151,6 @@ public:
 
    int closeRecorders(void);
 
-   OsStatus Record(int ms,
-            const char* playFilename, ///< if NULL, defaults to previous string
-            const char* baseName,     ///< if NULL, defaults to previous string
-            const char* endName,      ///< if NULL, defaults to previous string
-            int recorderMask);
-
-   OsStatus recordMic(UtlString* pAudioBuffer);
-
-   OsStatus ezRecord(int ms,
-                   int silenceLength,
-                   const char* fileName,
-                   double& duration,
-                   int& dtmfTerm,
-                   MprRecorder::RecordFileFormat format = MprRecorder::RAW_PCM_16);
-
-
-   OsStatus mediaRecord(int ms,
-                   int silenceLength,
-                   const char* fileName,
-                   double& duration,
-                   int& dtmfTerm,
-                   MprRecorder::RecordFileFormat format = MprRecorder::RAW_PCM_16,
-                   OsProtectedEvent* recordEvent = NULL);
-
-
    OsStatus record(int timeMS,
                    int silenceLength,
                    const char* micName = NULL,
