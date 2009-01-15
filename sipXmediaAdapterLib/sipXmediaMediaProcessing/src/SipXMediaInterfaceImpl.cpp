@@ -1319,18 +1319,6 @@ OsStatus SipXMediaInterfaceImpl::recordMic(UtlString* pAudioBuffer)
    return stat;
 }
 
-OsStatus SipXMediaInterfaceImpl::recordMic(int ms,
-                                          int silenceLength,
-                                          const char* fileName)
-{
-    OsStatus ret = OS_UNSPECIFIED;
-    if (mpFlowGraph && fileName)
-    {
-        ret = mpFlowGraph->recordMic(ms, silenceLength, fileName);
-    }
-    return ret ;
-}
-
 void SipXMediaInterfaceImpl::setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) 
 {
     SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);

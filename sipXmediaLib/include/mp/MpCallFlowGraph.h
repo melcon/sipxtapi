@@ -159,10 +159,6 @@ public:
 
    OsStatus recordMic(UtlString* pAudioBuffer);
 
-   OsStatus recordMic(int ms,
-                   int silenceLength,
-                   const char* fileName) ;
-
    OsStatus ezRecord(int ms,
                    int silenceLength,
                    const char* fileName,

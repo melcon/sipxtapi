@@ -1024,54 +1024,6 @@ OsStatus MpCallFlowGraph::recordMic(UtlString* pAudioBuffer)
    return stat;
 }
 
-OsStatus MpCallFlowGraph::recordMic(int ms,
-                                    int silenceLength,
-                                    const char* fileName)
-{
-    OsStatus ret = OS_WAIT_TIMEOUT ;
-    double duration ;
-
-    MprRecorderStats rs;
-    OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
-    OsProtectedEvent* recordEvent = eventMgr->alloc();
-    recordEvent->setUserData((intptr_t)&rs);
-
-    int timeoutSecs = (ms/1000 + 1);
-    OsTime maxEventTime(timeoutSecs, 0);
-
-    record(ms, silenceLength, fileName, NULL, NULL,
-                 NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, 
-                 NULL, MprRecorder::WAV_PCM_16);
-
-    // Wait until the call sets the number of connections
-    while(recordEvent->wait(0, maxEventTime) == OS_SUCCESS)
-    {
-        intptr_t info;
-        recordEvent->getUserData(info);
-        if (info)
-        {
-            rs = *((MprRecorderStats *)info);
-            duration = rs.mDuration;
-            if (rs.mFinalStatus != MprRecorder::RECORDING)
-            {
-                ret = OS_SUCCESS;
-                break;
-            }
-            else
-                recordEvent->reset();
-        }
-    }
-
-    closeRecorders();
-    // If the event has already been signaled, clean up
-    if(OS_ALREADY_SIGNALED == recordEvent->signal(0))
-    {
-        eventMgr->release(recordEvent);
-    }
-    return ret;
-}
-
-
 OsStatus MpCallFlowGraph::ezRecord(int ms, 
                                    int silenceLength, 
                                    const char* fileName, 
