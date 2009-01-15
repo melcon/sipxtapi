@@ -339,11 +339,6 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
 
-   virtual OsStatus recordChannelAudio(int connectionId,
-                                       const char* szFile) = 0 ;
-
-   virtual OsStatus stopRecordChannelAudio(int connectionId) = 0 ;
-
      /// @brief Play the specified audio URL to the call.
    virtual OsStatus playAudio(const char* url, 
                               UtlBoolean repeat,

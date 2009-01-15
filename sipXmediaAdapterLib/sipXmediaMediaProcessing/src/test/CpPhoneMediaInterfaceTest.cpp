@@ -167,7 +167,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
 
         // Record the entire "call" - all connections.
-        mediaInterface->recordChannelAudio(-1, "testTones_call_recording.wav");
+        mediaInterface->recordAudio("testTones_call_recording.wav");
 
         mediaInterface->giveFocus() ;
 
@@ -209,7 +209,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         OsTask::delay(1000) ;
 
         // Stop recording the "call" -- all connections.
-        mediaInterface->stopRecordChannelAudio(-1);
+        mediaInterface->stopRecording();
 
         RTL_WRITE("testTones.rtl");
         RTL_STOP;
@@ -440,7 +440,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         RTL_EVENT("Tone count", 0);
 
         // Record the entire "call" - all connections.
-        mixedInterface->recordChannelAudio(-1, "testTwoTones_call_recording.wav");
+        mixedInterface->recordAudio("testTwoTones_call_recording.wav");
 
         // Start sending RTP from source 2 to the mix flowgraph
         CPPUNIT_ASSERT_EQUAL(
@@ -475,7 +475,7 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         printf("two tones done\n");        
 
         // Stop recording the "call" -- all connections.
-        mixedInterface->stopRecordChannelAudio(-1);
+        mixedInterface->stopRecording();
 
         // Delete connections
         mixedInterface->deleteConnection(mixedConnection1Id);

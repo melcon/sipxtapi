@@ -947,12 +947,6 @@ UtlBoolean MpFlowGraphBase::handleSynchronize(MpFlowGraphMsg& rMsg)
 
    if (0 != pSync) {
       pSync->signal(val1);
-      // if (NULL != tag) osPrintf(tag, val1, val2);
-#ifdef DEBUG_POSTPONE /* [ */
-   } else {
-      // just delay (postPone()), for debugging race conditions...
-      OsTask::delay(rMsg.getInt1());
-#endif /* DEBUG_POSTPONE ] */
    }
    return TRUE;
 }
