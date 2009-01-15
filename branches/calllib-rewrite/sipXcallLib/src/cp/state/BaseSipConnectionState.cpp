@@ -3067,8 +3067,6 @@ UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
 UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
 {
    UtlString rtpAddress;
-   int totalBandwidth = 0;
-   int matchingBandwidth = 0;
    int videoFramerate = 0;
    int matchingVideoFramerate = 0;
    SdpCodecList supportedCodecs;
@@ -3094,7 +3092,6 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
       commonCodecsForEncoder, commonCodecsForDecoder,
       remoteRtpAddress, remoteRtpPort, remoteRtcpPort, remoteVideoRtpPort, remoteVideoRtcpPort,
       srtpParams, matchingSrtpParams,
-      totalBandwidth, matchingBandwidth,
       videoFramerate, matchingVideoFramerate);
 
    if (numMatchingCodecs > 0)
@@ -3117,8 +3114,6 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
       if (bodyFound)
       {
          UtlString rtpAddress;
-         int totalBandwidth = 0;
-         int matchingBandwidth = 0;
          int videoFramerate = 0;
          int matchingVideoFramerate = 0;
          SdpCodecList supportedCodecs;
@@ -3144,15 +3139,10 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
             commonCodecsForEncoder, commonCodecsForDecoder,
             remoteRtpAddress, remoteRtpPort, remoteRtcpPort, remoteVideoRtpPort, remoteVideoRtcpPort,
             srtpParams, matchingSrtpParams,
-            totalBandwidth, matchingBandwidth,
             videoFramerate, matchingVideoFramerate);
 
          if (numMatchingCodecs > 0)
          {
-            if (matchingBandwidth != 0)
-            {
-               pMediaInterface->setConnectionBitrate(mediaConnectionId, matchingBandwidth);
-            }
             if (matchingVideoFramerate != 0)
             {
                pMediaInterface->setConnectionFramerate(mediaConnectionId, matchingVideoFramerate);

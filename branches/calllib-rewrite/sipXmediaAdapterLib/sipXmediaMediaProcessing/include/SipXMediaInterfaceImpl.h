@@ -216,9 +216,6 @@ public:
     /** Copies internal SdpCodecList of media connection into supplied SdpCodecList */
     virtual OsStatus getCodecList(int connectionId, SdpCodecList& sdpCodecList);
 
-    //! Set conneection bitrate on the fly
-    virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) ;
-
     //! Set connection framerate on the fly
     virtual OsStatus setConnectionFramerate(int connectionId, int framerate) ;
 
@@ -248,11 +245,6 @@ public:
     {
         // NOT IMPLEMENTED
     }
-
-	virtual OsStatus generateVoiceQualityReport(int         connectiond,
-                                                const char* callId,
-                                                UtlString&  report) ;
-
 
 /* ============================ ACCESSORS ================================= */
 
