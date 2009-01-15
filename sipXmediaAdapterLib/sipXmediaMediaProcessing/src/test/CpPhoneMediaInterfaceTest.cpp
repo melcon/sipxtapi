@@ -164,98 +164,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
        return OS_SUCCESS;
     }
 
-    void testProperties()
-    {
-        CPPUNIT_ASSERT(mpMediaFactory);
-
-        SdpCodecList* pSdpCodecList = new SdpCodecList();
-        CPPUNIT_ASSERT(pSdpCodecList);
-        UtlSList utlCodecList;
-        pSdpCodecList->getCodecs(utlCodecList);
-        printf("CpPhoneMediaInterfaceTest::testProperties numCodec: %d\n", (int)utlCodecList.entries());
-
-        UtlString localRtpInterfaceAddress("127.0.0.1");
-        UtlString locale;
-        int tosOptions = 0;
-        UtlString stunServerAddress;
-        int stunOptions = 0;
-        int stunKeepAlivePeriodSecs = 25;
-        UtlString turnServerAddress;
-        int turnPort = 0 ;
-        UtlString turnUser;
-        UtlString turnPassword;
-        int turnKeepAlivePeriodSecs = 25;
-        bool enableIce = false ;
-
-        CpMediaInterface* mediaInterface = 
-            mpMediaFactory->createMediaInterface(NULL, // notification queue
-                                                 pSdpCodecList,
-                                                 NULL, // public mapped RTP IP address
-                                                 localRtpInterfaceAddress, 
-                                                 locale,
-                                                 tosOptions,
-                                                 stunServerAddress, 
-                                                 stunOptions, 
-                                                 stunKeepAlivePeriodSecs,
-                                                 turnServerAddress,
-                                                 turnPort,
-                                                 turnUser,
-                                                 turnPassword,
-                                                 turnKeepAlivePeriodSecs,
-                                                 enableIce);
-
-        UtlString propertyName("foo");
-        UtlString setPropertyValue("bar");
-        mediaInterface->setMediaProperty(propertyName, setPropertyValue);
-        UtlString getPropertyValue;
-        mediaInterface->getMediaProperty(propertyName, getPropertyValue);
-        UtlBoolean diffValue = setPropertyValue.compareTo(getPropertyValue);
-        if(diffValue)
-        {
-            printf("set value: \"%s\" get value\"%s\" not equal\n", 
-                setPropertyValue.data(), getPropertyValue.data());
-        }
-        CPPUNIT_ASSERT(!diffValue);
-        
-        // Unset property
-        CPPUNIT_ASSERT(mediaInterface->getMediaProperty("splat", getPropertyValue) != OS_SUCCESS);
-        CPPUNIT_ASSERT(getPropertyValue.isNull());
-
-        // Properties specific to a connection
-        int connectionId = -1;
-        CPPUNIT_ASSERT(mediaInterface->createConnection(connectionId, NULL) == OS_SUCCESS);
-        CPPUNIT_ASSERT(connectionId > 0);
-
-        propertyName = "connectionLabel";
-        setPropertyValue = "connection1";
-        mediaInterface->setMediaProperty(connectionId, propertyName, setPropertyValue);
-        mediaInterface->getMediaProperty(connectionId, propertyName, getPropertyValue);
-        diffValue = setPropertyValue.compareTo(getPropertyValue);
-        if(diffValue)
-        {
-            printf("set value: \"%s\" get value\"%s\" not equal\n", 
-                setPropertyValue.data(), getPropertyValue.data());
-        }
-        CPPUNIT_ASSERT(!diffValue);
-
-        // Unset property
-        CPPUNIT_ASSERT(mediaInterface->getMediaProperty(connectionId, "splat", getPropertyValue) != OS_SUCCESS);
-        CPPUNIT_ASSERT(getPropertyValue.isNull());
-
-        getPropertyValue = "f";
-        // Invalid connectionId
-        CPPUNIT_ASSERT(mediaInterface->getMediaProperty(6, "splat", getPropertyValue) != OS_SUCCESS);
-        CPPUNIT_ASSERT(getPropertyValue.isNull());
-
-        mediaInterface->deleteConnection(connectionId) ;
-
-        // delete interface
-        mediaInterface->release(); 
-
-        // delete mpMediaFactory ;
-        delete pSdpCodecList ;
-    }
-
     void testRecordPlayback()
     {
         RTL_START(4500000);
@@ -583,7 +491,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         int numActualAddresses1;
         SdpCodecList supportedCodecs1;
         SdpSrtpParameters srtpParameters1;
-        int bandWidth1 = 0;
         int videoBandwidth1;
         int videoFramerate1;
         CPPUNIT_ASSERT_EQUAL(
@@ -598,7 +505,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
                                              numActualAddresses1,
                                              supportedCodecs1,
                                              srtpParameters1,
-                                             bandWidth1,
                                              videoBandwidth1,
                                              videoFramerate1), 
 
@@ -614,7 +520,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         int numActualAddresses2;
         SdpCodecList supportedCodecs2;
         SdpSrtpParameters srtpParameters2;
-        int bandWidth2 = 0;
         int videoBandwidth2;
         int videoFramerate2;
         CPPUNIT_ASSERT_EQUAL(
@@ -629,7 +534,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
                                              numActualAddresses2,
                                              supportedCodecs2,
                                              srtpParameters2,
-                                             bandWidth2,
                                              videoBandwidth2,
                                              videoFramerate2), 
 

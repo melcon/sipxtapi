@@ -2913,7 +2913,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
    SdpSrtpParameters srtpParams;
    SdpCodecList supportedCodecs;
    int videoFramerate = 0;
-   const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
    OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
          MAX_ADDRESS_CANDIDATES,
          hostAddresses,
@@ -2925,7 +2924,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
          nRtpContacts,
          supportedCodecs,
          srtpParams,
-         bandWidth,
          totalBandwidth,
          videoFramerate);
 
@@ -3013,7 +3011,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
       SdpSrtpParameters srtpParams;
       SdpCodecList supportedCodecs;
       int videoFramerate = 0;
-      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
       OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
          MAX_ADDRESS_CANDIDATES,
          hostAddresses,
@@ -3025,7 +3022,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
          nRtpContacts,
          supportedCodecs,
          srtpParams,
-         bandWidth,
          totalBandwidth,
          videoFramerate);
 
