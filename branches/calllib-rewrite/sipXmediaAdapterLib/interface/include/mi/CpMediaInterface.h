@@ -442,16 +442,6 @@ public:
     */
    virtual OsStatus recordAudio(const char* szFile) = 0;
 
-     /// Record the microphone data
-   virtual OsStatus recordMic(UtlString* pAudioBuf);
-     /**<
-     *  Record a fixed amount of audio from the microphone to a buffer 
-     *  passed in.
-     *  @note The flowgraph must be in focus for this to work properly.
-     *
-     *  @param pAudioBuf a fixed audio buffer to record to.
-     */
-
    //! Stop recording for this call.
    virtual OsStatus stopRecording() = 0;
 

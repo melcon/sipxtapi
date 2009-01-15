@@ -191,9 +191,6 @@ public:
    */
    virtual OsStatus recordAudio(const char* szFile);
 
-     /// @copydoc CpMediaInterface::recordMic(UtlString*)
-   virtual OsStatus recordMic(UtlString* pAudioBuffer);
-
     virtual void setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) ;
      //: Set the contact type for this Phone media interface.  
      //  It is important to set the contact type BEFORE creating the 
