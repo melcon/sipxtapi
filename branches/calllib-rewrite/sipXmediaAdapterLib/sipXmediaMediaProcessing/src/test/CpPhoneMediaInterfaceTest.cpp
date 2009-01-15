@@ -21,13 +21,6 @@
 #include <os/OsMsgDispatcher.h>
 #include <mp/MpResNotificationMsg.h>
 
-//#define DISABLE_RECORDING
-#define EMBED_PROMPTS
-#ifdef EMBED_PROMPTS
-#  include "playback_prompt.h"
-#  include "record_prompt.h"
-#endif
-
 #ifdef RTL_ENABLED
 #  include <rtl_macro.h>
    RTL_DECLARE
@@ -39,48 +32,14 @@
 #  define RTL_STOP
 #endif
 
-class StoreSignalNotification : public OsNotification
-{
-public:
-   StoreSignalNotification() {}
-   virtual ~StoreSignalNotification() {}
-
-   OsStatus signal(const intptr_t eventData) 
-   { 
-      UtlInt* pED = new UtlInt(eventData);
-      return (mEDataList.insert(pED) == pED) ?
-         OS_SUCCESS : OS_FAILED;
-   }
-   OsStatus popLastEvent(int& evtData) 
-   {
-      OsStatus stat = OS_NOT_FOUND;
-      UtlInt* lastEData = (UtlInt*)mEDataList.get();
-      if(lastEData != NULL)
-      {
-         evtData = lastEData->getValue();
-         delete lastEData;
-         stat = OS_SUCCESS;
-      }
-      return stat;
-   }
-
-   // Data (public now)
-   UtlSList mEDataList;
-private:
-};
-
 // Unittest for CpPhoneMediaInterface
 
 class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 {
     CPPUNIT_TEST_SUITE(CpPhoneMediaInterfaceTest);
     CPPUNIT_TEST(printMediaInterfaceType); // Just prints the media interface type.
-#ifndef SANDBOX
-    CPPUNIT_TEST(testProperties);
     CPPUNIT_TEST(testTones);
     CPPUNIT_TEST(testTwoTones);
-#endif
-    CPPUNIT_TEST(testRecordPlayback);
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -162,167 +121,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
                             (MpResNotificationMsg::RNMsgType)pNotfMsg->getMsg());
 
        return OS_SUCCESS;
-    }
-
-    void testRecordPlayback()
-    {
-        RTL_START(4500000);
-
-        CPPUNIT_ASSERT(mpMediaFactory);
-
-        SdpCodecList* pSdpCodecList = new SdpCodecList();
-        CPPUNIT_ASSERT(pSdpCodecList);
-        UtlSList utlCodecList;
-        pSdpCodecList->getCodecs(utlCodecList);
-
-        UtlString localRtpInterfaceAddress("127.0.0.1");
-        UtlString locale;
-        int tosOptions = 0;
-        UtlString stunServerAddress;
-        int stunOptions = 0;
-        int stunKeepAlivePeriodSecs = 25;
-        UtlString turnServerAddress;
-        int turnPort = 0 ;
-        UtlString turnUser;
-        UtlString turnPassword;
-        int turnKeepAlivePeriodSecs = 25;
-        bool enableIce = false ;
-
-        //enableConsoleOutput(1);
-
-        CpMediaInterface* mediaInterface = 
-            mpMediaFactory->createMediaInterface(NULL,
-                                                 pSdpCodecList,
-                                                 NULL, // public mapped RTP IP address
-                                                 localRtpInterfaceAddress, 
-                                                 locale,
-                                                 tosOptions,
-                                                 stunServerAddress, 
-                                                 stunOptions, 
-                                                 stunKeepAlivePeriodSecs,
-                                                 turnServerAddress,
-                                                 turnPort,
-                                                 turnUser,
-                                                 turnPassword,
-                                                 turnKeepAlivePeriodSecs,
-                                                 enableIce);
-
-        // Properties specific to a connection
-        int connectionId = -1;
-        CPPUNIT_ASSERT(mediaInterface->createConnection(connectionId, NULL) == OS_SUCCESS);
-        CPPUNIT_ASSERT(connectionId > 0);
-
-        mediaInterface->giveFocus() ;
-
-        int taskId;
-        OsTask::getCurrentTaskId(taskId);
-
-        // Record the entire "call" - all connections.
-        mediaInterface->recordChannelAudio(-1, "testRecordPlayback_call_recording.wav");
-     
-        StoreSignalNotification playAudNote;
-#ifdef EMBED_PROMPTS
-        printf("Playing record_prompt from RAM bytes: %d samples: %d frames: %d\n",
-                sizeof(record_prompt),
-                sizeof(record_prompt) / 2,
-                sizeof(record_prompt) / 2 / 80);
-        mediaInterface->playBuffer((char*)record_prompt, sizeof(record_prompt), 
-                                   0, // type (does not need conversion to raw)
-                                   false, //repeat
-                                   true, // local
-                                   false) ; //remote
-#else   
-        printf("Play record_prompt.wav taskId: %d\n",taskId);
-        mediaInterface->playAudio("record_prompt.wav", 
-                                  false, //repeat
-                                  true, // local
-                                  false, //remote
-                                  false,
-                                  100,
-                                  &playAudNote);
-#endif
-        //enableConsoleOutput(0);
-
-        // Check via old OsNotification mechanism if the file finished playing.
-        printf("%d event(s) on play event queue:  ", playAudNote.mEDataList.entries());
-        int evtData = -1;
-        while((evtData = playAudNote.popLastEvent(evtData)) != OS_NOT_FOUND)
-        {
-           printf("%d ", evtData);
-        }
-        printf("\n");
-
-        mediaInterface->startTone(0, true, false) ;
-        OsTask::delay(100) ;
-        mediaInterface->stopTone() ;
-        OsTask::delay(100) ;
-
-#ifdef DISABLE_RECORDING
-        printf("recording disabled\n");
-#else
-        printf("Record to 10sec buffer\n");
-
-        // Create a buffer to record to.
-        // HACK: assume 8000 samples per second and 16 bit audio
-        int bytesPerSec = 8000*2;
-        int nSecsToRecord = 10;
-        UtlString audioBuffer;
-        audioBuffer.resize(nSecsToRecord * bytesPerSec);
-
-        mediaInterface->recordMic(&audioBuffer);
-
-#endif
-        OsTask::delay(100) ;
-        mediaInterface->startTone(0, true, false) ;
-        OsTask::delay(100) ;
-        mediaInterface->stopTone() ;
-
-#ifdef EMBED_PROMPTS
-        printf("Playing playback_prompt from RAM bytes: %d samples: %d frames: %d\n",
-                sizeof(playback_prompt),
-                sizeof(playback_prompt) / 2,
-                sizeof(playback_prompt) / 2 / 80);
-        mediaInterface->playBuffer((char*)playback_prompt, sizeof(playback_prompt), 
-                                   0, // type (does not need conversion to raw)
-                                   false, //repeat
-                                   true, // local
-                                   false) ; //remote
-#else   
-        printf("Play playback_prompt.wav\n");
-        mediaInterface->playAudio("playback_prompt.wav", false, true, false) ;
-#endif
-
-#ifdef DISABLE_RECORDING
-        printf("record disabled so no play back of recorded message\n");
-#else
-        printf("Play record buffer\n");
-        mediaInterface->playBuffer((char*)audioBuffer.data(), 
-                                   audioBuffer.length(), 
-                                   0, // type (does not need conversion to raw)
-                                   false,  // repeat
-                                   true,   // local
-                                   false); // remote
-
-#endif
-
-        mediaInterface->startTone(0, true, false) ;
-        OsTask::delay(100) ;
-        mediaInterface->stopTone() ;
-
-        printf("Play all done\n");
-        OsTask::delay(500) ;
-
-        RTL_WRITE("testRecordPlayback.rtl");
-        RTL_STOP;
-
-        // Stop recording the "call" -- all connections.
-        mediaInterface->stopRecordChannelAudio(-1);
-
-        mediaInterface->deleteConnection(connectionId) ;
-
-        delete pSdpCodecList ;
-        // delete interface
-        mediaInterface->release(); 
     }
 
     void testTones()

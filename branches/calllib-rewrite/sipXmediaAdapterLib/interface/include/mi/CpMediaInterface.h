@@ -437,20 +437,6 @@ public:
     */
    virtual UtlBoolean hasFocus() = 0;
 
-     /// @brief Record the microphone data to a file
-   virtual OsStatus recordMic(int ms,
-                              int silenceLength,
-                              const char* fileName) = 0 ;
-     /**<
-     *  Record a fixed amount of audio from the microphone to a file.
-     *  @note The flowgraph must be in focus for this to work properly.
-     *
-     *  @param[in] ms - The amount of time, in milliseconds, to record.
-     *  @param[in] silenceLength - The amount of silence, in SECONDS, before
-     *             recording is terminated.
-     *  @param[in] fileName - The path and name of a file to record to.
-     */
-
    /**
     * Starts recording all audio channels into given file.
     */
