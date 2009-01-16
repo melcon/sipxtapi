@@ -8,9 +8,6 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 # was generated automatically? (HZM, 20040616)
 
 nobase_include_HEADERS =  \
-    mp/FilterBank.h \
-    mp/HandsetFilterBank.h \
-    mp/HandsetFilterbankWindows.h \
     mp/MpArrayBuf.h \
     mp/MpAudioAbstract.h \
     mp/MpAudioBuf.h \
@@ -100,7 +97,6 @@ nobase_include_HEADERS =  \
     mp/MprSpanDspDtmfDetector.h \
     mp/MprDejitter.h \
     mp/MprDtmfDetectorBase.h \
-    mp/MprEchoSuppress.h \
     mp/MprEncode.h \
     mp/MprFromFile.h \
     mp/MprFromMic.h \

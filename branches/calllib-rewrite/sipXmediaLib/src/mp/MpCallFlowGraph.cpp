@@ -43,10 +43,8 @@
 #include "mp/MprFromFile.h"
 #include "mp/MprFromMic.h"
 
-#if defined (SPEEX_ECHO_CANCELATION)
+#ifdef SPEEX_ECHO_CANCELATION
 #include "mp/MprSpeexEchoCancel.h"
-#elif defined (SIPX_ECHO_CANCELATION)
-#include "mp/MprEchoSuppress.h"
 #endif
 
 #include "mp/MprSpeexPreProcess.h"
@@ -73,22 +71,22 @@ static const int samplesPerFrame = 80;
 static const int samplesPerSec = 8000;
 
 // STATIC VARIABLE INITIALIZATIONS
-UtlBoolean MpCallFlowGraph::sbSendInBandDTMF = true ;
+UtlBoolean MpCallFlowGraph::sbSendInBandDTMF = true;
 
-#ifdef DOING_ECHO_CANCELATION  // [
-UtlBoolean MpCallFlowGraph::sbEnableAEC = true ;
+#ifdef DOING_ECHO_CANCELATION
+UtlBoolean MpCallFlowGraph::sbEnableAEC = true;
 FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_CANCEL;
 #else // DOING_ECHO_CANCELATION ][
-UtlBoolean MpCallFlowGraph::sbEnableAEC = false ;
+UtlBoolean MpCallFlowGraph::sbEnableAEC = false;
 FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_DISABLED;
 #endif // DOING_ECHO_CANCELATION ]
 
 #ifdef HAVE_SPEEX // [
-UtlBoolean MpCallFlowGraph::sbEnableAGC = false ;
-UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = false ;
+UtlBoolean MpCallFlowGraph::sbEnableAGC = true;
+UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = true;
 #else // HAVE_SPEEX ][
-UtlBoolean MpCallFlowGraph::sbEnableAGC = false ;
-UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = false ;
+UtlBoolean MpCallFlowGraph::sbEnableAGC = false;
+UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = false;
 #endif // HAVE_SPEEX ]
 
 UtlBoolean MpCallFlowGraph::ms_bEnableInboundInBandDTMF = true;
@@ -129,24 +127,17 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    mpFromFile         = new MprFromFile("FromFile",
                                  samplesPerFrame, samplesPerSec);
 #ifndef DISABLE_LOCAL_AUDIO // [
-   mpFromMic          = new MprFromMic("FromMic",
-                                 samplesPerFrame, samplesPerSec);
-#if defined (SPEEX_ECHO_CANCELATION)
+   mpFromMic          = new MprFromMic("FromMic", samplesPerFrame, samplesPerSec);
+#ifdef HAVE_SPEEX // [
+   mpSpeexPreProcess  = new MprSpeexPreprocess("SpeexPreProcess", samplesPerFrame, samplesPerSec);
+#ifdef SPEEX_ECHO_CANCELATION
 // audio & echo cancelation is enabled
    int echoQueueLatency = MpCallFlowGraph::estimateEchoQueueLatency(samplesPerSec, samplesPerFrame);
    mpEchoCancel       = new MprSpeexEchoCancel("SpeexEchoCancel",
                                  samplesPerFrame, samplesPerSec, SPEEX_DEFAULT_AEC_FILTER_LENGTH, echoQueueLatency);
-#elif defined (SIPX_ECHO_CANCELATION)
-   mpEchoCancel       = new MprEchoSuppress("SipxEchoCancel",
-                                 samplesPerFrame, samplesPerSec);
-#endif
-#ifdef HAVE_SPEEX // [
-   mpSpeexPreProcess  = new MprSpeexPreprocess("SpeexPreProcess",
-                                 samplesPerFrame, samplesPerSec);
-#  ifdef SPEEX_ECHO_CANCELATION
    // we have speex and use speex echo canceller, interconnect them
    mpSpeexPreProcess->attachEchoCanceller(mpEchoCancel->getSpeexEchoState());
-#  endif
+#endif // SPEEX_ECHO_CANCELATION ]
 #endif // HAVE_SPEEX ]
    mpTFsMicMixer      = new MprMixer("TFsMicMixer", 2,
                                  samplesPerFrame, samplesPerSec);
@@ -166,11 +157,6 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    mpToneGen          = new MprToneGen("ToneGen",
                                  samplesPerFrame, samplesPerSec, 
                                  locale);
-#ifndef DISABLE_LOCAL_AUDIO
-#ifdef SIPX_ECHO_CANCELATION /* [ */
-   mpEchoCancel->setSpkrPal(mpToSpkr);
-#endif /* SIPX_ECHO_CANCELATION ] */
-#endif
 
    res = addResource(*mpBridge);            assert(res == OS_SUCCESS);
    res = addResource(*mpFromFile);          assert(res == OS_SUCCESS);
@@ -1117,7 +1103,7 @@ UtlBoolean MpCallFlowGraph::setInbandDTMF(UtlBoolean bEnable)
 {
    UtlBoolean bSave = sbSendInBandDTMF;
    sbSendInBandDTMF = bEnable;
-   return bSave ;
+   return bSave;
 }
 
 // Get Echo Cancelation Mode.
@@ -1439,7 +1425,7 @@ UtlBoolean MpCallFlowGraph::writeWAVHeader(int handle)
     short sampleSize = sizeof(MpAudioSample); 
     short compressionCode = 1; //PCM
     short numChannels = 1; 
-    unsigned long samplesPerSecond = 8000;
+    unsigned long samplesPerSecond = (unsigned)samplesPerSec;
     unsigned long averageSamplePerSec = samplesPerSecond*sampleSize;
     short blockAlign = sampleSize*numChannels; 
     unsigned long bytesWritten = 0;
@@ -1488,7 +1474,6 @@ UtlBoolean MpCallFlowGraph::writeWAVHeader(int handle)
 
 }
 
-
 // Handles an incoming message for the flow graph.
 // Returns TRUE if the message was handled, otherwise FALSE.
 UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
@@ -1497,7 +1482,7 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
 
    retCode = FALSE;
 
-   MpFlowGraphMsg* pMsg = (MpFlowGraphMsg*) &rMsg ;
+   MpFlowGraphMsg* pMsg = (MpFlowGraphMsg*) &rMsg;
    //
    // Handle Normal Flow Graph Messages
    //
@@ -1533,7 +1518,6 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
 
    return retCode;
 }
-
 
 // Handle the FLOWGRAPH_REMOVE_CONNECTION message.
 // Returns TRUE if the message was handled, otherwise FALSE.
@@ -1648,7 +1632,7 @@ UtlBoolean MpCallFlowGraph::handleOnMprRecorderEnabled(MpFlowGraphMsg& rMsg)
 {
    UtlBoolean boolRes; 
    int status = rMsg.getInt1();
-   MprRecorder* pRecorder = (MprRecorder*) rMsg.getPtr1() ;
+   MprRecorder* pRecorder = (MprRecorder*) rMsg.getPtr1();
 
 #ifndef DISABLE_LOCAL_AUDIO
 
@@ -1676,7 +1660,7 @@ UtlBoolean MpCallFlowGraph::handleOnMprRecorderDisabled(MpFlowGraphMsg& rMsg)
 {
    UtlBoolean boolRes;
    int status = rMsg.getInt1();
-   MprRecorder* pRecorder = (MprRecorder*) rMsg.getPtr1() ;
+   MprRecorder* pRecorder = (MprRecorder*) rMsg.getPtr1();
 
 #ifndef DISABLE_LOCAL_AUDIO
 
