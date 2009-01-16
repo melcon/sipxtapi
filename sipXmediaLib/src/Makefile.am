@@ -49,7 +49,6 @@ libsipXmedia_la_SOURCES =  \
     ../config/sipxmedialib-buildstamp.h \
     ../config/sipxmedialib-buildstamp.cpp \
     mp/DSPlib.cpp \
-    mp/DspResampling.cpp \
     mp/FilterBank.cpp \
     mp/HandsetFilterBank.cpp \
     mp/MpArrayBuf.cpp \
@@ -99,10 +98,8 @@ libsipXmedia_la_SOURCES =  \
     mp/MpRawAudioBuffer.cpp \
     mp/MpResNotificationMsg.cpp \
     mp/MpResource.cpp \
-    mp/MpResourceFactory.cpp \
     mp/MpResourceMsg.cpp \
     mp/MpResourceSortAlg.cpp \
-    mp/MpResourceTopology.cpp \
     mp/MpRtpBuf.cpp \
     mp/MpRtpInputAudioConnection.cpp \
     mp/MpRtpInputConnection.cpp \
@@ -114,7 +111,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MpStreamPlayer.cpp \
     mp/MpStreamPlaylistPlayer.cpp \
     mp/MpStreamQueuePlayer.cpp \
-    mp/MpTopologyGraph.cpp \
     mp/MpUdpBuf.cpp \
     mp/MpdIPPG7231.cpp \
     mp/MpdIPPG729.cpp \
@@ -149,7 +145,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MprFromStream.cpp \
     mp/MprMixer.cpp \
     mp/MprNull.cpp \
-    mp/MprNullAec.cpp \
     mp/MprRecorder.cpp \
     mp/MprSpeexEchoCancel.cpp \
     mp/MprSpeexPreProcess.cpp \

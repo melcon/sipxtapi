@@ -341,10 +341,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\DspResampling.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\dtmflib.cpp"
 					>
 				</File>
@@ -653,19 +649,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResourceFactory.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpResourceMsg.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\mp\MpResourceSortAlg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpResourceTopology.cpp"
 					>
 				</File>
 				<File
@@ -690,10 +678,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MprNull.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MprNullAec.cpp"
 					>
 				</File>
 				<File
@@ -774,10 +758,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpStreamQueuePlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpTopologyGraph.cpp"
 					>
 				</File>
 				<File
@@ -922,10 +902,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\DspResampling.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\dtmflib.h"
 					>
 				</File>
@@ -998,10 +974,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioResourceConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpAudioStreamInfo.h"
 					>
 				</File>
@@ -1035,10 +1007,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpCallFlowGraph.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpCodec.h"
 					>
 				</File>
 				<File
@@ -1250,15 +1218,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprBridgeConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprBufferRecorder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprBufferRecorderConstructor.h"
 					>
 				</File>
 				<File
@@ -1294,14 +1254,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpResourceFactory.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpResourceMsg.h"
 					>
 				</File>
@@ -1310,15 +1262,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceTopology.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprFromFile.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprFromFileConstructor.h"
 					>
 				</File>
 				<File
@@ -1342,27 +1286,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprNullAec.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprNullAecConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprNullConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprRecorder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprRtpInputAudioConnectionConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprRtpOutputAudioConnectionConstructor.h"
 					>
 				</File>
 				<File
@@ -1394,15 +1318,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprSplitterConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprToneGen.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprToneGenConstructor.h"
 					>
 				</File>
 				<File
@@ -1459,10 +1375,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpToneResourceMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpTopologyGraph.h"
 					>
 				</File>
 				<File
