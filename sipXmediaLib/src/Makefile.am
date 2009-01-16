@@ -49,8 +49,6 @@ libsipXmedia_la_SOURCES =  \
     ../config/sipxmedialib-buildstamp.h \
     ../config/sipxmedialib-buildstamp.cpp \
     mp/DSPlib.cpp \
-    mp/FilterBank.cpp \
-    mp/HandsetFilterBank.cpp \
     mp/MpArrayBuf.cpp \
     mp/MpAudioAbstract.cpp \
     mp/MpAudioBuf.cpp \
@@ -126,7 +124,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MprSimpleDtmfDetector.cpp \
     mp/MprSpanDspDtmfDetector.cpp \
     mp/MprDejitter.cpp \
-    mp/MprEchoSuppress.cpp \
     mp/MprEncode.cpp \
     mp/MprFromFile.cpp \
     mp/MprFromMic.cpp \
@@ -141,7 +138,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MprToSpkr.cpp \
     mp/MprToneGen.cpp \
     mp/NetInTask.cpp \
-    mp/dft.cpp \
     mp/dtmflib.cpp \
     mp/mpG711.cpp \
     mp/mpau.cpp \

@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
 #include <assert.h>
 #include <os/fstream>
@@ -36,8 +35,6 @@
 #include "mp/MpMisc.h"
 #include "mp/MpFlowGraphBase.h"
 #include "os/OsSysLog.h"
-#include "os/OsProtectEventMgr.h"
-
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

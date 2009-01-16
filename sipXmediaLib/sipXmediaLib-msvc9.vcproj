@@ -333,23 +333,11 @@
 				Name="mp"
 				>
 				<File
-					RelativePath=".\src\mp\dft.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\DSPlib.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\mp\dtmflib.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\FilterBank.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\HandsetFilterBank.cpp"
 					>
 				</File>
 				<File
@@ -613,10 +601,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprEchoSuppress.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprEncode.cpp"
 					>
 				</File>
@@ -811,18 +795,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\dtmflib.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\FilterBank.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\HandsetFilterBank.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\HandsetFilterbankWindows.h"
 					>
 				</File>
 				<File
@@ -1107,10 +1079,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprDtmfDetectorBase.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprEchoSuppress.h"
 					>
 				</File>
 				<File

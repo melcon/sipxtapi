@@ -18,7 +18,6 @@
 // APPLICATION INCLUDES
 #include "mp/MpFlowGraphMsg.h"
 #include "mp/MpAudioResource.h"
-#include "os/OsProtectEvent.h"
 
 // DEFINES
 // MACROS

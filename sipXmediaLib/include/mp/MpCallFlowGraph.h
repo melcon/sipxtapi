@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _MpCallFlowGraph_h_
 #define _MpCallFlowGraph_h_
 
@@ -31,28 +30,11 @@
 // also exists in RTCPSession
 #define MAX_CONNECTIONS 100
 
-/// Undefine this to fully disable AEC
-#define DOING_ECHO_CANCELATION
-/// Undefine this to enable internal AEC.
+// Enable Speex AEC if Speex is available
+#ifdef HAVE_SPEEX // [
 #define SPEEX_ECHO_CANCELATION
-
-// Disable Speex AEC if Speex is not available
-#ifndef HAVE_SPEEX // [
-#  undef SPEEX_ECHO_CANCELATION
+#define DOING_ECHO_CANCELATION
 #endif // !HAVE_SPEEX ]
-
-// Make sure that at least one canceler enabled if AEC enabled at all.
-// And make sure that all cancelers disabled if AEC is disabled.
-#ifdef DOING_ECHO_CANCELATION // [
-#  ifndef SPEEX_ECHO_CANCELATION // [
-//#     define SIPX_ECHO_CANCELATION
-// $$$ Ipse: sipX AEC is not working now!
-#     undef DOING_ECHO_CANCELATION
-#  endif // !SPEEX_ECHO_CANCELATION ]
-#else // DOING_ECHO_CANCELATION ][
-#  undef SPEEX_ECHO_CANCELATION
-#  undef SIPX_ECHO_CANCELATION
-#endif // DOING_ECHO_CANCELATION ]
 
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -66,13 +48,12 @@ typedef enum FLOWGRAPH_AEC_MODE
     FLOWGRAPH_AEC_SUPPRESS,
     FLOWGRAPH_AEC_CANCEL,
     FLOWGRAPH_AEC_CANCEL_AUTO
-} FLOWGRAPH_AEC_MODE ;
+} FLOWGRAPH_AEC_MODE;
 
 // FORWARD DECLARATIONS
 class MprBridge;
 class MprFromFile;
 class MprFromMic;
-class MprEchoSuppress;
 class MprSpeexEchoCancel;
 class MprSpeexPreprocess;
 class MprMixer;
@@ -395,11 +376,11 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   static UtlBoolean sbSendInBandDTMF ;
+   static UtlBoolean sbSendInBandDTMF;
    static FLOWGRAPH_AEC_MODE ms_AECMode;
-   static UtlBoolean sbEnableAEC ;
-   static UtlBoolean sbEnableAGC ;
-   static UtlBoolean sbEnableNoiseReduction ;
+   static UtlBoolean sbEnableAEC;
+   static UtlBoolean sbEnableAGC;
+   static UtlBoolean sbEnableNoiseReduction;
    static UtlBoolean ms_bEnableInboundInBandDTMF;
    static UtlBoolean ms_bEnableInboundRFC2833DTMF;
 
@@ -409,15 +390,13 @@ private:
    MprFromFile*  mpFromFile;
 #ifndef DISABLE_LOCAL_AUDIO // [
    MprFromMic*   mpFromMic;
-#  ifdef HAVE_SPEEX // [
-      MprSpeexPreprocess* mpSpeexPreProcess;
-#  endif // HAVE_SPEEX ]
-#  if defined (SPEEX_ECHO_CANCELATION)
-      MprSpeexEchoCancel* mpEchoCancel;
-#  elif defined (SIPX_ECHO_CANCELATION)
-      MprEchoSuppress*    mpEchoCancel;
-#  endif
-      MprToSpkr*    mpToSpkr;
+#ifdef HAVE_SPEEX // [
+   MprSpeexPreprocess* mpSpeexPreProcess;
+#if defined (SPEEX_ECHO_CANCELATION)
+   MprSpeexEchoCancel* mpEchoCancel;
+#endif // SPEEX_ECHO_CANCELATION ]
+#endif // HAVE_SPEEX ]
+   MprToSpkr*    mpToSpkr;
 #endif // DISABLE_LOCAL_AUDIO ]
    MprMixer*     mpTFsMicMixer;
    MprMixer*     mpTFsBridgeMixer;
