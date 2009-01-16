@@ -8,7 +8,6 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 # was generated automatically? (HZM, 20040616)
 
 nobase_include_HEADERS =  \
-    mp/DspResampling.h \
     mp/FilterBank.h \
     mp/HandsetFilterBank.h \
     mp/HandsetFilterbankWindows.h \
@@ -25,7 +24,6 @@ nobase_include_HEADERS =  \
     mp/MpAudioFileUtils.h \
     mp/MpAudioMixerBase.h \
     mp/MpAudioResource.h \
-    mp/MpAudioResourceConstructor.h \
     mp/MpAudioStreamInfo.h \
     mp/MpAudioStreamParameters.h \
     mp/MpAudioUtils.h \
@@ -35,7 +33,6 @@ nobase_include_HEADERS =  \
     mp/MpBufRecStartResourceMsg.h \
     mp/MpBufferMsg.h \
     mp/MpCallFlowGraph.h \
-    mp/MpCodec.h \
     mp/MpCodecFactory.h \
     mp/MpCodecInfo.h \
     mp/MpDataBuf.h \
@@ -72,11 +69,8 @@ nobase_include_HEADERS =  \
     mp/MpResNotification.h \
     mp/MpResNotificationMsg.h \
     mp/MpResource.h \
-    mp/MpResourceConstructor.h \
-    mp/MpResourceFactory.h \
     mp/MpResourceMsg.h \
     mp/MpResourceSortAlg.h \
-    mp/MpResourceTopology.h \
     mp/MpRtpBuf.h \
     mp/MpRtpInputAudioConnection.h \
     mp/MpRtpInputConnection.h \
@@ -89,7 +83,6 @@ nobase_include_HEADERS =  \
     mp/MpStreamPlaylistPlayer.h \
     mp/MpStreamQueuePlayer.h \
     mp/MpToneResourceMsg.h \
-    mp/MpTopologyGraph.h \
     mp/MpTypes.h \
     mp/MpUdpBuf.h \
     mp/MpVolumeMeter.h \
@@ -114,10 +107,8 @@ nobase_include_HEADERS =  \
     mp/MpeSipxSpeex.h \
     mp/MprAudioFrameBuffer.h \
     mp/MprBridge.h \
-    mp/MprBridgeConstructor.h \
     mp/MprBridgeSetGainsMsg.h \
     mp/MprBufferRecorder.h \
-    mp/MprBufferRecorderConstructor.h \
     mp/MprDecode.h \
     mp/MprSimpleDtmfDetector.h \
     mp/MprSpanDspDtmfDetector.h \
@@ -126,28 +117,20 @@ nobase_include_HEADERS =  \
     mp/MprEchoSuppress.h \
     mp/MprEncode.h \
     mp/MprFromFile.h \
-    mp/MprFromFileConstructor.h \
     mp/MprFromMic.h \
     mp/MprFromNet.h \
     mp/MprFromStream.h \
     mp/MprMixer.h \
     mp/MprNull.h \
-    mp/MprNullAec.h \
-    mp/MprNullAecConstructor.h \
-    mp/MprNullConstructor.h \
     mp/MprRecorder.h \
-    mp/MprRtpInputAudioConnectionConstructor.h \
-    mp/MprRtpOutputAudioConnectionConstructor.h \
     mp/MprRtpStartReceiveMsg.h \
     mp/MprRtpStartSendMsg.h \
     mp/MprSpeexEchoCancel.h \
     mp/MprSpeexPreProcess.h \
     mp/MprSplitter.h \
-    mp/MprSplitterConstructor.h \
     mp/MprToNet.h \
     mp/MprToSpkr.h \
     mp/MprToneGen.h \
-    mp/MprToneGenConstructor.h \
     mp/NetInTask.h \
     mp/StreamBufferDataSource.h \
     mp/StreamDataSource.h \
