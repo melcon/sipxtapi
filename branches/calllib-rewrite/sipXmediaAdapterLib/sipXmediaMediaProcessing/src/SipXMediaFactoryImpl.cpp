@@ -22,7 +22,6 @@
 #include <sdp/SdpCodecFactory.h>
 #include "mp/MpMediaTask.h"
 #include "mp/MpMisc.h"
-#include "mp/MpCodec.h"
 #include "mp/MpCallFlowGraph.h"
 #include "sdp/SdpCodecList.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"

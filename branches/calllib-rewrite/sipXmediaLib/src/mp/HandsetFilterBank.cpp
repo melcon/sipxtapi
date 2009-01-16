@@ -105,7 +105,6 @@ static int ExtraLoudspeakerDelay = 0;
 //#include "mp/DSPAEC.h"
 #include "mp/MpBuf.h"
 #include "mp/dsplib.h"
-#include "mp/MpCodec.h"
 
 #else    // #else for VX1_PC0
 #define HS_EXTRA_MIC_DELAY (0)      // Probably, this would be 0 in the real-time product

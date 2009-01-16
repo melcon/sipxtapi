@@ -38,9 +38,6 @@
 // FORWARD DECLARATIONS
 class SdpCodec;
 class SdpCodecList;
-class MpStreamPlaylistPlayer;
-class MpStreamPlayer;
-class MpStreamQueuePlayer;
 class CpMediaInterfaceFactory;
 class OsMsgDispatcher;
 

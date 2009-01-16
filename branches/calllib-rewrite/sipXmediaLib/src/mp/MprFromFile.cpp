@@ -37,7 +37,6 @@
 #include "mp/MpFlowGraphBase.h"
 #include "os/OsSysLog.h"
 #include "os/OsProtectEventMgr.h"
-#include "mp/MpResNotificationMsg.h"
 
 
 // EXTERNAL FUNCTIONS

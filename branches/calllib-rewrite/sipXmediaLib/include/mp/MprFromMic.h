@@ -22,7 +22,6 @@
 #include "os/OsDefs.h"
 #include "os/OsMsgQ.h"
 #include "mp/MpAudioResource.h"
-#include "mp/MpCodec.h"
 
 // DEFINES
 // MACROS

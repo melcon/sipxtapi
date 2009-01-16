@@ -19,7 +19,6 @@
 #include <utl/UtlSList.h>
 #include <utl/UtlInt.h>
 #include <os/OsMsgDispatcher.h>
-#include <mp/MpResNotificationMsg.h>
 
 #ifdef RTL_ENABLED
 #  include <rtl_macro.h>
@@ -84,43 +83,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
             CPPUNIT_FAIL("ERROR: Unknown type of media interface!");
         }
         mediaInterface->release();
-    }
-
-    OsStatus waitForNotf(OsMsgDispatcher& notfDispatcher,
-                         MpResNotificationMsg::RNMsgType notfType, 
-                         unsigned maxTotalDelayTime)
-    {
-       // keep count of the milliseconds we're gone
-       unsigned delayPeriod = 10; // Milliseconds in each delay
-       unsigned curMsecsDelayed = 0;
-       for(curMsecsDelayed = 0; 
-          notfDispatcher.isEmpty() && curMsecsDelayed < maxTotalDelayTime;
-          curMsecsDelayed += delayPeriod)
-       {
-          // Delay just a bit
-          OsTask::delay(delayPeriod);
-       }
-
-       if(curMsecsDelayed >= maxTotalDelayTime)
-       {
-          return OS_WAIT_TIMEOUT;
-       }
-
-       // Assert that there is a notification available now.
-       CPPUNIT_ASSERT_EQUAL(FALSE, notfDispatcher.isEmpty());
-
-       // Grab the message with a short timeout, since we know it's there.
-       OsMsg* pMsg = NULL;
-       MpResNotificationMsg* pNotfMsg = NULL;
-       notfDispatcher.receive(pMsg, OsTime(delayPeriod));
-       CPPUNIT_ASSERT(pMsg != NULL);
-       CPPUNIT_ASSERT_EQUAL(OsMsg::MP_CONNECTION_NOTF_MSG, 
-          (OsMsg::MsgTypes)pMsg->getMsgType());
-       pNotfMsg = (MpResNotificationMsg*)pMsg;
-       CPPUNIT_ASSERT_EQUAL(notfType, 
-                            (MpResNotificationMsg::RNMsgType)pNotfMsg->getMsg());
-
-       return OS_SUCCESS;
     }
 
     void testTones()

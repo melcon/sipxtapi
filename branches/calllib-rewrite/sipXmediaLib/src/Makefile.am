@@ -90,13 +90,9 @@ libsipXmedia_la_SOURCES =  \
     mp/MpMediaTaskMsg.cpp \
     mp/MpMisc.cpp \
     mp/MpNotificationDispatcher.cpp \
-    mp/MpPlayer.cpp \
-    mp/MpPlayerEvent.cpp \
     mp/MpPortAudioDriver.cpp \
     mp/MpPortAudioMixer.cpp \
     mp/MpPortAudioStream.cpp \
-    mp/MpRawAudioBuffer.cpp \
-    mp/MpResNotificationMsg.cpp \
     mp/MpResource.cpp \
     mp/MpResourceMsg.cpp \
     mp/MpResourceSortAlg.cpp \
@@ -106,11 +102,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MpRtpOutputAudioConnection.cpp \
     mp/MpRtpOutputConnection.cpp \
     mp/MpSipxDecoders.cpp \
-    mp/MpStreamFeeder.cpp \
-    mp/MpStreamMsg.cpp \
-    mp/MpStreamPlayer.cpp \
-    mp/MpStreamPlaylistPlayer.cpp \
-    mp/MpStreamQueuePlayer.cpp \
     mp/MpUdpBuf.cpp \
     mp/MpdIPPG7231.cpp \
     mp/MpdIPPG729.cpp \
@@ -130,9 +121,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpeSipxPcma.cpp \
     mp/MpeSipxPcmu.cpp \
     mp/MpeSipxSpeex.cpp \
-    mp/MprAudioFrameBuffer.cpp \
     mp/MprBridge.cpp \
-    mp/MprBufferRecorder.cpp \
     mp/MprDecode.cpp \
     mp/MprSimpleDtmfDetector.cpp \
     mp/MprSpanDspDtmfDetector.cpp \
@@ -142,7 +131,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MprFromFile.cpp \
     mp/MprFromMic.cpp \
     mp/MprFromNet.cpp \
-    mp/MprFromStream.cpp \
     mp/MprMixer.cpp \
     mp/MprNull.cpp \
     mp/MprRecorder.cpp \
@@ -153,17 +141,6 @@ libsipXmedia_la_SOURCES =  \
     mp/MprToSpkr.cpp \
     mp/MprToneGen.cpp \
     mp/NetInTask.cpp \
-    mp/StreamBufferDataSource.cpp \
-    mp/StreamDataSource.cpp \
-    mp/StreamDataSourceListener.cpp \
-    mp/StreamDecoderListener.cpp \
-    mp/StreamFileDataSource.cpp \
-    mp/StreamFormatDecoder.cpp \
-    mp/StreamHttpDataSource.cpp \
-    mp/StreamQueueMsg.cpp \
-    mp/StreamQueueingFormatDecoder.cpp \
-    mp/StreamRAWFormatDecoder.cpp \
-    mp/StreamWAVFormatDecoder.cpp \
     mp/dft.cpp \
     mp/dtmflib.cpp \
     mp/mpG711.cpp \

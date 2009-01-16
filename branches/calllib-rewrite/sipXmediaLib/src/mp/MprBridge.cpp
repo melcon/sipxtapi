@@ -299,18 +299,6 @@ OsStatus MprBridge::setMixWeightsForInput(int bridgeInputPort,
    return postMessage(msg);
 }
 
-OsStatus MprBridge::setMixWeightsForInput(const UtlString& namedResource, 
-                                          OsMsgQ& fgQ, 
-                                          int bridgeInputPort,
-                                          int numWeights,
-                                          const MpBridgeGain gains[])
-{
-   MprBridgeSetGainsMsg msg(namedResource, bridgeInputPort, numWeights,
-                            gains,
-                            MprBridgeSetGainsMsg::GAINS_COLUMN);
-   return fgQ.send(msg, sOperationQueueTimeout);
-}
-
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
@@ -1088,32 +1076,6 @@ UtlBoolean MprBridge::handleMessage(MpResourceMsg& rMsg)
    MprBridgeSetGainsMsg* pBridgeMsg = NULL;
    switch (rMsg.getMsg()) 
    {
-   case MpResourceMsg::MPRM_BRIDGE_SET_GAINS:
-      pBridgeMsg = (MprBridgeSetGainsMsg*)&rMsg;
-
-      if (pBridgeMsg->getType() == MprBridgeSetGainsMsg::GAINS_ROW)
-      {
-         // Set row in mix matrix
-         handleSetMixWeightsForOutput(pBridgeMsg->getPort(),
-                                      pBridgeMsg->getGainsNum(),
-                                      pBridgeMsg->getGains());
-      }
-      else if (pBridgeMsg->getType() == MprBridgeSetGainsMsg::GAINS_COLUMN)
-      {
-         // Set column in mix matrix
-         handleSetMixWeightsForInput(pBridgeMsg->getPort(),
-                                     pBridgeMsg->getGainsNum(),
-                                     pBridgeMsg->getGains());
-      }
-      else
-      {
-         // Unknown type
-         assert(false);
-      }
-
-      msgHandled = TRUE;
-      break;
-
    default:
       // If we don't handle the message here, let our parent try.
       msgHandled = MpResource::handleMessage(rMsg); 

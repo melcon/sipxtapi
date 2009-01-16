@@ -22,17 +22,12 @@
 #include <os/OsDatagramSocket.h>
 #include <os/OsNatDatagramSocket.h>
 #include <os/OsMulticastSocket.h>
-#include <os/OsProtectEventMgr.h>
 #include <os/HostAdapterAddress.h>
 #include "include/SipXMediaInterfaceImpl.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include <mp/MpMediaTask.h>
 #include <mp/MpCallFlowGraph.h>
-#include <mp/MpStreamPlayer.h>
-#include <mp/MpStreamPlaylistPlayer.h>
-#include <mp/MpStreamQueuePlayer.h>
 #include <mp/dtmflib.h>
-
 #include <sdp/SdpCodec.h>
 
 #ifdef _WIN32
