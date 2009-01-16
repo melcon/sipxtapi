@@ -151,16 +151,6 @@ public:
      *       for one input to outputs instead of inputs to one output.
      */
 
-     /// Send message to set mix weights for one input to given number of outputs.
-   static OsStatus setMixWeightsForInput(const UtlString& namedResource, 
-                                         OsMsgQ& fgQ,
-                                         int bridgeInputPort,
-                                         int numWeights,
-                                         const MpBridgeGain gains[]);
-     /**<
-     *  @see setMixWeightsForOutput(int,int,MpBridgeGain[]) for description.
-     */
-
 //@}
 
 /* ============================ ACCESSORS ================================= */

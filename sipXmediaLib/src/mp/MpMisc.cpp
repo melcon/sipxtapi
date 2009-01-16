@@ -21,7 +21,6 @@
 // APPLICATION INCLUDES
 #include "os/OsMsgQ.h"
 #include "mp/MpTypes.h"
-#include "mp/MpCodec.h"
 #include "mp/MpBuf.h"
 #include "mp/MpAudioBuf.h"
 #include "mp/MpRtpBuf.h"

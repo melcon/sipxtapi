@@ -30,7 +30,6 @@ nobase_include_HEADERS =  \
     mp/MpAudioWaveFileRead.h \
     mp/MpBuf.h \
     mp/MpBufPool.h \
-    mp/MpBufRecStartResourceMsg.h \
     mp/MpBufferMsg.h \
     mp/MpCallFlowGraph.h \
     mp/MpCodecFactory.h \
@@ -58,16 +57,10 @@ nobase_include_HEADERS =  \
     mp/MpMisc.h \
     mp/MpNotificationDispatcher.h \
     mp/MpNotificationMsgDef.h \
-    mp/MpPlayer.h \
-    mp/MpPlayerEvent.h \
-    mp/MpPlayerListener.h \
     mp/MpPortAudioDriver.h \
     mp/MpPortAudioMixer.h \
     mp/MpPortAudioStream.h \
-    mp/MpQueuePlayerListener.h \
-    mp/MpRawAudioBuffer.h \
     mp/MpResNotification.h \
-    mp/MpResNotificationMsg.h \
     mp/MpResource.h \
     mp/MpResourceMsg.h \
     mp/MpResourceSortAlg.h \
@@ -77,11 +70,6 @@ nobase_include_HEADERS =  \
     mp/MpRtpOutputAudioConnection.h \
     mp/MpRtpOutputConnection.h \
     mp/MpSipxDecoders.h \
-    mp/MpStreamFeeder.h \
-    mp/MpStreamMsg.h \
-    mp/MpStreamPlayer.h \
-    mp/MpStreamPlaylistPlayer.h \
-    mp/MpStreamQueuePlayer.h \
     mp/MpToneResourceMsg.h \
     mp/MpTypes.h \
     mp/MpUdpBuf.h \
@@ -105,10 +93,8 @@ nobase_include_HEADERS =  \
     mp/MpeSipxPcma.h \
     mp/MpeSipxPcmu.h \
     mp/MpeSipxSpeex.h \
-    mp/MprAudioFrameBuffer.h \
     mp/MprBridge.h \
     mp/MprBridgeSetGainsMsg.h \
-    mp/MprBufferRecorder.h \
     mp/MprDecode.h \
     mp/MprSimpleDtmfDetector.h \
     mp/MprSpanDspDtmfDetector.h \
@@ -119,7 +105,6 @@ nobase_include_HEADERS =  \
     mp/MprFromFile.h \
     mp/MprFromMic.h \
     mp/MprFromNet.h \
-    mp/MprFromStream.h \
     mp/MprMixer.h \
     mp/MprNull.h \
     mp/MprRecorder.h \
@@ -132,18 +117,6 @@ nobase_include_HEADERS =  \
     mp/MprToSpkr.h \
     mp/MprToneGen.h \
     mp/NetInTask.h \
-    mp/StreamBufferDataSource.h \
-    mp/StreamDataSource.h \
-    mp/StreamDataSourceListener.h \
-    mp/StreamDecoderListener.h \
-    mp/StreamDefs.h \
-    mp/StreamFileDataSource.h \
-    mp/StreamFormatDecoder.h \
-    mp/StreamHttpDataSource.h \
-    mp/StreamQueueMsg.h \
-    mp/StreamQueueingFormatDecoder.h \
-    mp/StreamRAWFormatDecoder.h \
-    mp/StreamWAVFormatDecoder.h \
     mp/dsplib.h \
     mp/dtmflib.h \
     mp/mpau.h \

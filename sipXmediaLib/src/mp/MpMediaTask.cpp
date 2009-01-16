@@ -33,7 +33,6 @@
 #include "mp/MpMediaTaskMsg.h"
 #include "mp/MpBufferMsg.h"
 #include "mp/MpCodecFactory.h"
-#include "mp/MpCodec.h"
 #include "mp/MpAudioDriverManager.h"
 #include "mp/MpAudioDriverBase.h"
 

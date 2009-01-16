@@ -21,8 +21,6 @@
 // APPLICATION INCLUDES
 #include "mp/MpMisc.h"
 #include "mp/MpFlowGraphBase.h"
-#include "mp/StreamDefs.h"
-#include "mp/MpStreamMsg.h"
 #include "os/OsProtectEvent.h"
 #include "mp/MprRecorder.h"
 #ifdef INCLUDE_RTCP /* [ */
@@ -188,20 +186,23 @@ public:
 
 
      /// Starts sending RTP and RTCP packets.
-   void startSendRtp(OsSocket& rRtpSocket, OsSocket& rRtcpSocket,
-                     MpConnectionID connID=1, SdpCodec* pPrimaryCodec = NULL,
+   void startSendRtp(OsSocket& rRtpSocket,
+                     OsSocket& rRtcpSocket,
+                     MpConnectionID connID = 1,
+                     SdpCodec* pPrimaryCodec = NULL,
                      SdpCodec* pDtmfCodec = NULL);
 
      /// Stops sending RTP and RTCP packets.
-   void stopSendRtp(MpConnectionID connID=1);
+   void stopSendRtp(MpConnectionID connID = 1);
 
      /// Starts receiving RTP and RTCP packets.
    void startReceiveRtp(const SdpCodecList& sdpCodecList,
-                  OsSocket& rRtpSocket, OsSocket& rRtcpSocket,
-                  MpConnectionID connID=1);
+                        OsSocket& rRtpSocket,
+                        OsSocket& rRtcpSocket,
+                        MpConnectionID connID = 1);
 
      /// Stops receiving RTP and RTCP packets.
-   void stopReceiveRtp(MpConnectionID connID=1);
+   void stopReceiveRtp(MpConnectionID connID = 1);
 
      /// Informs the flow graph that it now has the MpMediaTask focus.
    virtual OsStatus gainFocus(void);
@@ -236,14 +237,6 @@ public:
    OsStatus muteInput(MpConnectionID connID);
 
    virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
-
-   /**
-   * Sends interface notification to interface notification queue if it was supplied
-   */
-   virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
-                                          MpNotificationMsgType msgSubType,
-                                          intptr_t msgData1 = 0,
-                                          intptr_t msgData2 = 0);
 
 //@}
 
@@ -450,6 +443,14 @@ private:
    ///
    ///  D.W.
    MprRecorder* mpRecorders[MAX_RECORDERS];
+
+   /**
+   * Sends interface notification to interface notification queue if it was supplied
+   */
+   virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
+                                          MpNotificationMsgType msgSubType,
+                                          intptr_t msgData1 = 0,
+                                          intptr_t msgData2 = 0);
 
    /**
    * Estimates optimum length of echo queue. Input and output driver

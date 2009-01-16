@@ -39,12 +39,9 @@
 #include "mp/MpRtpOutputAudioConnection.h"
 #include "mp/MpCallFlowGraph.h"
 #include "mp/MpMediaTask.h"
-#include "mp/MpStreamMsg.h"
 #include "mp/MprBridge.h"
-#include "mp/MprFromStream.h"
 #include "mp/MprFromFile.h"
 #include "mp/MprFromMic.h"
-#include "mp/MprBufferRecorder.h"
 
 #if defined (SPEEX_ECHO_CANCELATION)
 #include "mp/MprSpeexEchoCancel.h"

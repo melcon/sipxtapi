@@ -589,14 +589,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpPlayerEvent.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpPortAudioDriver.cpp"
 					>
 				</File>
@@ -609,19 +601,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprAudioFrameBuffer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpRawAudioBuffer.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprBridge.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MprBufferRecorder.cpp"
 					>
 				</File>
 				<File
@@ -638,10 +618,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MprEncode.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpResNotificationMsg.cpp"
 					>
 				</File>
 				<File
@@ -666,10 +642,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MprFromNet.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MprFromStream.cpp"
 					>
 				</File>
 				<File
@@ -741,26 +713,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpStreamFeeder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamMsg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamPlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamPlaylistPlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamQueuePlayer.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpUdpBuf.cpp"
 					>
 				</File>
@@ -770,50 +722,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\resamplingby2.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamBufferDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamDataSourceListener.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamDecoderListener.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamFileDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamFormatDecoder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamHttpDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamQueueingFormatDecoder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamQueueMsg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamRAWFormatDecoder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamWAVFormatDecoder.cpp"
 					>
 				</File>
 			</Filter>
@@ -1002,10 +910,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpBufRecStartResourceMsg.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpCallFlowGraph.h"
 					>
 				</File>
@@ -1178,18 +1082,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPlayer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpPlayerEvent.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpPlayerListener.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpPortAudioDriver.h"
 					>
 				</File>
@@ -1202,23 +1094,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpQueuePlayerListener.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprAudioFrameBuffer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpRawAudioBuffer.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprBridge.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprBufferRecorder.h"
 					>
 				</File>
 				<File
@@ -1246,10 +1122,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResNotificationMsg.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpResource.h"
 					>
 				</File>
@@ -1271,10 +1143,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprFromNet.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprFromStream.h"
 					>
 				</File>
 				<File
@@ -1354,26 +1222,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpStreamFeeder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamPlayer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamPlaylistPlayer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamQueuePlayer.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpToneResourceMsg.h"
 					>
 				</File>
@@ -1399,54 +1247,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\resamplingby2.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamBufferDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDataSourceListener.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDecoderListener.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDefs.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamFileDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamFormatDecoder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamHttpDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamQueueingFormatDecoder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamQueueMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamRAWFormatDecoder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamWAVFormatDecoder.h"
 					>
 				</File>
 			</Filter>

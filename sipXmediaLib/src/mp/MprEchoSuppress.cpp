@@ -411,9 +411,7 @@ UtlBoolean MprEchoSuppress::doProcessFrame(MpBufPtr inBufs[],
       ////////////////////////////////////////////////////////////////////////////
 
       {
-         int FadeDB = MpCodec_isBaseSpeakerOn() ?
-                         iLoudspeakerFadeDB : //speakerphone 
-                         0;                   //never fade earpiece
+         int FadeDB = 0;
          out = LoudspeakerFade(in8, shSpkState, FadeDB);
       }
 
