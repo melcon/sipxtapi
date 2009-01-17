@@ -110,6 +110,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpdSipxPcma.cpp \
     mp/MpdSipxPcmu.cpp \
     mp/MpdSipxSpeex.cpp \
+    mp/MpdSipxSpeexWb.cpp \
     mp/MpeIPPG7231.cpp \
     mp/MpeIPPG729.cpp \
     mp/MpePtAVT.cpp \
@@ -119,6 +120,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpeSipxPcma.cpp \
     mp/MpeSipxPcmu.cpp \
     mp/MpeSipxSpeex.cpp \
+    mp/MpeSipxSpeexWb.cpp \
     mp/MprBridge.cpp \
     mp/MprDecode.cpp \
     mp/MprSimpleDtmfDetector.cpp \

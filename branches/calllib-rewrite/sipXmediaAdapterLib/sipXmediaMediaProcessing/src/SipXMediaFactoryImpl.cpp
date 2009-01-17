@@ -423,6 +423,9 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
    UtlString supportedCodecs = 
 #ifdef HAVE_SPEEX // [
       "SPEEX_6 SPEEX_8 SPEEX_11 SPEEX_15 SPEEX_18 SPEEX_24 "
+#ifdef ENABLE_WIDEBAND_AUDIO
+      "SPEEX_WB_13 SPEEX_WB_17 SPEEX_WB_20 SPEEX_WB_24 SPEEX_WB_28 SPEEX_WB_34 SPEEX_WB_42 "
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
 #ifdef HAVE_GSM // [
       "GSM "

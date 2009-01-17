@@ -133,6 +133,13 @@ public:
         SDP_CODEC_SPEEX_15,  ///< Speex narrowband mode 5 (15,000 bps)
         SDP_CODEC_SPEEX_18,  ///< Speex narrowband mode 6 (18,200 bps)
         SDP_CODEC_SPEEX_24,  ///< Speex narrowband mode 7 (24,600 bps)
+        SDP_CODEC_SPEEX_WB_13,   ///< Speex wideband mode 4 (12,800 bps)
+        SDP_CODEC_SPEEX_WB_17,   ///< Speex narrowband mode 5 (16,800 bps)
+        SDP_CODEC_SPEEX_WB_20,  ///< Speex narrowband mode 6 (20,600 bps)
+        SDP_CODEC_SPEEX_WB_24,  ///< Speex narrowband mode 7 (23,800 bps)
+        SDP_CODEC_SPEEX_WB_28,  ///< Speex narrowband mode 8 (27,800 bps)
+        SDP_CODEC_SPEEX_WB_34,  ///< Speex narrowband mode 9 (34,400 bps)
+        SDP_CODEC_SPEEX_WB_42,  ///< Speex narrowband mode 10 (42,400 bps)
         SDP_CODEC_L16_8K,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
         SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
         SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)
