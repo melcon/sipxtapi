@@ -19,6 +19,7 @@
 // SYSTEM INCLUDES
 
 // APPLICATION INCLUDES
+#include <mp/MpDefs.h>
 #include "mp/MpAudioResource.h"
 #include "sdp/SdpCodec.h"
 #include "mp/MpFlowGraphMsg.h"
@@ -161,6 +162,7 @@ private:
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    SpeexResamplerState *m_pResampler;
+   MpAudioSample m_tmpBuffer[SAMPLES_PER_FRAME]; // buffer for storing samples after resampling, before encoding
 
    void destroyResampler();
 #endif
