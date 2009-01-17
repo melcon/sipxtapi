@@ -36,6 +36,7 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int 
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    memset(m_pResamplerMap, 0, sizeof(m_pResamplerMap));
+   memset(m_tmpBuffer, 0, sizeof(m_tmpBuffer));
 #endif
 
    m_decodeBufferCount = 0;
@@ -166,19 +167,12 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
       SpeexResamplerState* pResamplerState = m_pResamplerMap[payloadType];
       if (pResamplerState)
       {
-         MpAudioBufPtr pTmpBuffer = NULL;
-         pTmpBuffer = MpMisc.m_pRawAudioPool->getBuffer();
-         if (!pTmpBuffer.isValid())
-         {
-            return 0;
-         }
-         unsigned int tmpAvailableBufferSize = MpMisc.m_audioSamplesPerFrame * sizeof(MpAudioSample); // in bytes
-         unsigned int tmpDecodedSamples = decoder->decode(rtpPacket, tmpAvailableBufferSize, pTmpBuffer->getSamplesWritePtr());
+         unsigned int tmpDecodedSamples = decoder->decode(rtpPacket, g_decodeBufferSize, m_tmpBuffer);
          if (tmpDecodedSamples > 0)
          {
             // resample decoded samples
             speex_resampler_process_int(pResamplerState, 0,
-               (spx_int16_t*)pTmpBuffer->getSamplesWritePtr(), &tmpDecodedSamples,
+               (spx_int16_t*)m_tmpBuffer, &tmpDecodedSamples,
                (spx_int16_t*)(m_decodeBuffer+m_decodeBufferIn), &availableBufferSize);
             decodedSamples = availableBufferSize; // speex overwrites availableBufferSize with number of output samples
          }
@@ -214,10 +208,10 @@ void MpDecodeBuffer::destroyResamplers()
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    for (int i = 0; i < JbPayloadMapSize; i++)
    {
-      if (m_pDecoderMap[i])
+      if (m_pResamplerMap[i])
       {
          speex_resampler_destroy(m_pResamplerMap[i]);
-         m_pDecoderMap[i] = NULL;
+         m_pResamplerMap[i] = NULL;
       }      
    }
 #endif
