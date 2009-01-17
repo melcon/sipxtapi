@@ -33,14 +33,15 @@
 
 /**
  * mpStartUp initializes the MpMisc struct and other MP data, for
- * example, the buffer pools and tables
+ * example, the buffer pools and tables. It also initializes MpAudioDriverManager,
+ * MpMediaTask, NetInTask. Sampling rate is fixed, and cannot be changed.
  */
-OsStatus mpStartUp(int sampleRate, int samplesPerFrame);
+OsStatus mpStartUp();
 
 /**
  * tears down whatever was created in mpStartUp
  */
-OsStatus mpShutdown(void);
+OsStatus mpShutdown();
 
 /// This structure contain all static variables
 struct MpGlobals
@@ -48,9 +49,7 @@ struct MpGlobals
    OsMsgQ* m_pEchoQ;         ///< Message queue for echo cancelation data
                            ///<  (it is copy of speaker data).
    int m_audioSamplesPerFrame;       ///< Number of samples in one audio frame
-   int m_audioFrameBytes;         ///< Size of one audio frame 
-   int m_audioSampleSize;        ///< Size of one audio sample (in bytes) - normally 16bit = 2 bytes
-   int m_audioSampleRate;        ///< Sample rate per sec
+   int m_audioSamplesPerSec;        ///< Sample rate per sec
 
    MpBufPool *m_pRawAudioPool;     ///< Memory pool for raw audio data buffers
    MpBufPool *m_pAudioHeadersPool;

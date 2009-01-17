@@ -20,6 +20,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsMsgQ.h"
+#include <mp/MpDefs.h>
 #include "mp/MpTypes.h"
 #include "mp/MpBuf.h"
 #include "mp/MpAudioBuf.h"
@@ -48,21 +49,13 @@
 struct MpGlobals MpMisc;
 
 // audio buffer grows if there aren't enough buffers
-OsStatus mpStartUp(int sampleRate,
-                   int samplesPerFrame)
+OsStatus mpStartUp()
 {
-   if (samplesPerFrame < 8 || sampleRate < 1)
-   {
-      return OS_FAILED;
-   }
-   
-   MpMisc.m_audioSampleRate = sampleRate;
-   MpMisc.m_audioSampleSize = sizeof(MpAudioSample);
-   MpMisc.m_audioSamplesPerFrame = samplesPerFrame;
-   MpMisc.m_audioFrameBytes = MpMisc.m_audioSampleSize * MpMisc.m_audioSamplesPerFrame;
+   MpMisc.m_audioSamplesPerSec = SAMPLES_PER_SECOND;
+   MpMisc.m_audioSamplesPerFrame = SAMPLES_PER_FRAME;
 
    // Create buffer for audio data in mediagraph
-   MpMisc.m_pRawAudioPool = new MpBufPool(samplesPerFrame*sizeof(MpAudioSample) + MpArrayBuf::getHeaderSize(),
+   MpMisc.m_pRawAudioPool = new MpBufPool(MpMisc.m_audioSamplesPerFrame*sizeof(MpAudioSample) + MpArrayBuf::getHeaderSize(),
                                           DEFAULT_INITIAL_AUDIO_BUFFERS);
 
    // Create buffer for audio headers
@@ -82,7 +75,7 @@ OsStatus mpStartUp(int sampleRate,
       return OS_FAILED;
    }
 
-   sb->setSamplesNumber(samplesPerFrame);
+   sb->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
    memset(sb->getSamplesWritePtr(), 0, sb->getSamplesNumber()*sizeof(MpAudioSample));
    sb->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
    MpMisc.m_fgSilence = sb;
@@ -99,7 +92,7 @@ OsStatus mpStartUp(int sampleRate,
       return OS_FAILED;
    }
 
-   cnb->setSamplesNumber(samplesPerFrame);
+   cnb->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
    memset(cnb->getSamplesWritePtr(), 0, cnb->getSamplesNumber() * sizeof(MpAudioSample));
    cnb->setSpeechType(MpAudioBuf::MP_SPEECH_COMFORT_NOISE);
    MpMisc.m_comfortNoise = cnb;
@@ -149,7 +142,7 @@ OsStatus mpStartUp(int sampleRate,
    return OS_SUCCESS;
 }
 
-OsStatus mpShutdown(void)
+OsStatus mpShutdown()
 {
    if (shutdownNetInTask() != OS_SUCCESS)
    {

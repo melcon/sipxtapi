@@ -224,6 +224,7 @@
                 <File RelativePath=".\include\mp\MpDataBuf.h"/>
                 <File RelativePath=".\include\mp\MpDecodeBuffer.h"/>
                 <File RelativePath=".\include\mp\MpDecoderBase.h"/>
+                <File RelativePath=".\include\mp\MpDefs.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG7231.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpdPtAVT.h"/>

@@ -65,11 +65,6 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 
-// sample rate must be global for all flow graphs of type MpCallFlowGraph, because otherwise
-// we would have to resample at speaker/mic too, and also maybe at playbuffer/recorder!
-static const int samplesPerFrame = 80;
-static const int samplesPerSec = 8000;
-
 // STATIC VARIABLE INITIALIZATIONS
 UtlBoolean MpCallFlowGraph::sbSendInBandDTMF = true;
 
@@ -103,7 +98,7 @@ UtlBoolean MpCallFlowGraph::ms_bEnableInboundRFC2833DTMF = true;
 // Constructor
 MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 								         OsMsgQ* pInterfaceNotificationQueue)
-: MpFlowGraphBase(samplesPerFrame, samplesPerSec)
+: MpFlowGraphBase(MpMisc.m_audioSamplesPerFrame, MpMisc.m_audioSamplesPerSec)
 , mConnTableLock(OsBSem::Q_FIFO, OsBSem::FULL)
 , m_pInterfaceNotificationQueue(pInterfaceNotificationQueue)
 , mToneIsGlobal(FALSE)
@@ -111,6 +106,8 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 , mulEventInterest(LOCAL_SSRC_COLLISION | REMOTE_SSRC_COLLISION)
 #endif /* INCLUDE_RTCP ] */
 {
+   const int samplesPerFrame = MpMisc.m_audioSamplesPerFrame;
+   const int samplesPerSec = MpMisc.m_audioSamplesPerSec;
    UtlBoolean    boolRes;
    MpMediaTask* pMediaTask;
    OsStatus     res;
@@ -1425,7 +1422,7 @@ UtlBoolean MpCallFlowGraph::writeWAVHeader(int handle)
     short sampleSize = sizeof(MpAudioSample); 
     short compressionCode = 1; //PCM
     short numChannels = 1; 
-    unsigned long samplesPerSecond = (unsigned)samplesPerSec;
+    unsigned long samplesPerSecond = MpMisc.m_audioSamplesPerSec;
     unsigned long averageSamplePerSec = samplesPerSecond*sampleSize;
     short blockAlign = sampleSize*numChannels; 
     unsigned long bytesWritten = 0;

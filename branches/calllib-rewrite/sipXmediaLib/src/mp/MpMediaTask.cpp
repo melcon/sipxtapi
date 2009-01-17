@@ -45,13 +45,6 @@
 #   include <rtl_macro.h>
 #endif
 
-// Include sys/time.h if _PROFILE is set.
-// This #include has to be after the #include of mp/MpMediaTask.h, because
-// that is where we normally set _PROFILE.
-#ifdef _PROFILE /* [ */
-#include <sys/time.h>
-#endif /* _PROFILE ] */
-
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -67,13 +60,6 @@
 MpMediaTask* MpMediaTask::spInstance = NULL;
 OsBSem       MpMediaTask::sLock(OsBSem::Q_PRIORITY, OsBSem::FULL);
 UtlBoolean MpMediaTask::ms_bTestMode = FALSE;
-
-#ifdef _PROFILE /* [ */
-   static long long sSignalTicks; // Time (in microseconds) for the current
-                                  // frame start signal
-   static unsigned long long sMinTicks;
-   static unsigned long long sMaxTicks;
-#endif /* _PROFILE ] */
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -238,10 +224,6 @@ OsStatus MpMediaTask::setFocus(MpFlowGraphBase* pFlowGraph)
 // always returns OS_SUCCESS.
 OsStatus MpMediaTask::setTimeLimit(int usecs)
 {
-#ifdef _PROFILE /* [ */
-   // Convert to nanoseconds.
-   mLimitTicks = usecs * 1000;
-#endif /* _PROFILE ] */
    mLimitUsecs = usecs;
 
    return OS_SUCCESS;
@@ -292,28 +274,6 @@ OsStatus MpMediaTask::signalFrameStart(void)
       if (NULL == pMsg) {
          ret = OS_LIMIT_REACHED;
       } else {
-#ifdef _PROFILE /* [ */
-         timeval t;
-         gettimeofday(&t, NULL);
-         long long now = (t.tv_sec * 1000000) + t.tv_usec;
-         // Record the time into the message
-         pMsg->setInt1(t.tv_sec);
-         pMsg->setInt2(t.tv_usec);
-         // Record the tick interval into the histogram.
-         if (spInstance->mSignalTime.tally(now - sSignalTicks) >= 1000)
-         {
-            UtlString* print = spInstance->mSignalTime.show();
-            OsSysLog::add(FAC_MP, PRI_NOTICE,
-                          "MpMediaTask::signalFrameStart %-18s %d%s",
-                          "mSignalTime",
-                          spInstance->mSignalTime.getBinSize(),
-                          print->data());
-            delete print;
-            spInstance->mSignalTime.clear();
-         }
-         sSignalTicks = now; // record the time
-#endif /* _PROFILE, __pingtel_on_posix__ ] */
-
          ret = spInstance->postMessage(*pMsg, OsTime::NO_WAIT_TIME);
          spInstance->nFrameStartMsgs++;
       }
@@ -567,15 +527,6 @@ MpMediaTask::MpMediaTask()
    m_pFrameStartCallback(NULL),
    m_pFrameStartTimer(NULL),
    m_bTaskOverloaded(FALSE)
-#ifdef _PROFILE /* [ */
-   ,
-   mStartToEndTime(20, 0, 1000, " %4d", 5),
-   mStartToStartTime(20, 0, 1000, " %4d", 5),
-   mEndToStartTime(20, 0, 1000, " %4d", 5),
-   mSignalTime(20, 0, 1000, " %4d", 5),
-   mSignalToStartTime(20, 0, 1000, " %4d", 5),
-   mOtherMessages(20, 0, 1000, " %4d", 5)
-#endif /* _PROFILE ] */
 {
    OsStatus res;
 
@@ -591,9 +542,10 @@ MpMediaTask::MpMediaTask()
    }
 #endif
 
-   double timeLimit = ((1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000000) * 0.7;
+   // maximum time in us frame processing can take
+   double timeLimitUs = ((1 / (double)MpMisc.m_audioSamplesPerSec) * MpMisc.m_audioSamplesPerFrame * 1000000) * 0.7;
 
-   res = setTimeLimit((int)timeLimit);
+   res = setTimeLimit((int)timeLimitUs);
    assert(res == OS_SUCCESS);
 
    int totalNumBufs = MpMisc.m_pRtpHeadersPool->getNumBlocks() * 2;
@@ -614,14 +566,6 @@ MpMediaTask::MpMediaTask()
    }
 
    mpCodecFactory = MpCodecFactory::getMpCodecFactory();
-
-#ifdef _PROFILE /* [ */
-   mStartTicks = 0;
-   mStopTicks = 0;
-   sSignalTicks = 0;
-   sMinTicks = 0;
-   sMaxTicks = 0;
-#endif /* _PROFILE ] */
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -641,12 +585,6 @@ UtlBoolean MpMediaTask::handleMessage(OsMsg& rMsg)
    pFlowGraph = (MpFlowGraphBase*) pMsg->getPtr1();
 
    handled = TRUE;     // until proven otherwise, assume we'll handle the msg
-
-#ifdef _PROFILE
-   osPrintf("MpMediaTask queue size: %i, message type: %i\n", this->getMessageQueue()->numMsgs(), pMsg->getMsg());
-   OsTime start_time;
-   OsDateTime::getCurTime(start_time);
-#endif
 
    switch (pMsg->getMsg())
    {
@@ -686,13 +624,6 @@ UtlBoolean MpMediaTask::handleMessage(OsMsg& rMsg)
       handled = FALSE; // we didn't handle the message after all
       break;
    }
-
-#ifdef _PROFILE
-   OsTime end_time;
-   OsDateTime::getCurTime(end_time);
-   OsTime difference = end_time - start_time;
-   osPrintf("MpMediaTask: Execution took %is, %ius\n", difference.seconds(), difference.usecs());
-#endif
 
    return handled;
 }
@@ -865,46 +796,10 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
    OsDateTime::getCurTime(processingStartTime);
 #endif
 
-#ifdef MEDIA_VERBOSE /* [ */
-   static int lastmMCnt = -1;
-#endif /* MEDIA_VERBOSE ] */
-
-#ifdef _PROFILE /* [ */
-   {
-      // Get the current time.
-      timeval t;
-      gettimeofday(&t, NULL);
-      long long now = (t.tv_sec * 1000000) + t.tv_usec;
-      // From the message, get the time that it was sent.
-      long long signal_time =
-         (pMsg->getInt1() * 1000000) + pMsg->getInt2();
-      // Record intervals.
-      mStartToStartTime.tally(now - mStartTicks);
-      mEndToStartTime.tally(now - mStopTicks);
-      mSignalToStartTime.tally(now - signal_time);
-      // Record the processing start time.
-      mStartTicks = now;
-   }
-#endif /* _PROFILE ] */
-
    // reset the handleMessage error count
    // mHandleMsgErrs = 0;
 
    mWaitForSignal = FALSE;
-
-#ifdef MEDIA_VERBOSE /* [ */
-   if (0 && (0 == (mProcessedCnt % 100))) {
-      PRINTF("handleWaitForSignal: %d frames, %d managed flow graphs\n",
-             mProcessedCnt, mManagedCnt, 0,0,0,0);
-   }
-
-   if (mManagedCnt != lastmMCnt)
-   {
-      // PRINTF("handleWaitForSignal: %d frames, %d managed flow graphs\n",
-      mProcessedCnt, mManagedCnt, 0,0,0,0);
-      lastmMCnt = mManagedCnt;
-   }
-#endif /* MEDIA_VERBOSE ] */
 
    // When this message is received we know that:
    // 1) We have received a frame start signal
@@ -959,82 +854,8 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
    }
 #endif
 
-#ifdef RTL_ENABLED
-    RTL_EVENT("MpMediaTask.handleWaitForSignal", 0);
-#endif
-#ifdef _PROFILE /* [ */
-   {
-      timeval t;
-      gettimeofday(&t, NULL);
-      // Record the processing stop time.
-      mStopTicks = (t.tv_sec * 1000000) + t.tv_usec;
-      // if not debugging, determine whether the processing limit was exceeded
-      if (!mDebugEnabled)
-      {
-         if ((mStopTicks - mStartTicks) >= mLimitTicks) {
-            mTimeLimitCnt++;
-         }
-      }
-      if (mStartToEndTime.tally(mStopTicks - mStartTicks) >= 1000)
-      {
-         UtlString* print;
-         // Print mSignalToStartTime.
-         print = mSignalToStartTime.show();
-         OsSysLog::add(FAC_MP, PRI_NOTICE,
-                       "MpMediaTask::handleWaitForSignal %-18s %d%s",
-                       "mSignalToStartTime",
-                       mSignalToStartTime.getBinSize(),
-                       print->data());
-         delete print;
-         mSignalToStartTime.clear();
-         // Print mStartToEndTime.
-         print = mStartToEndTime.show();
-         OsSysLog::add(FAC_MP, PRI_NOTICE,
-                       "MpMediaTask::handleWaitForSignal %-18s %d%s",
-                       "mStartToEndTime",
-                       mStartToEndTime.getBinSize(),
-                       print->data());
-         delete print;
-         mStartToEndTime.clear();
-         // Print mStartToStartTime.
-         print = mStartToStartTime.show();
-         OsSysLog::add(FAC_MP, PRI_NOTICE,
-                       "MpMediaTask::handleWaitForSignal %-18s %d%s",
-                       "mStartToStartTime",
-                       mStartToStartTime.getBinSize(),
-                       print->data());
-         delete print;
-         mStartToStartTime.clear();
-         // Print mEndToStartTime.
-         print = mEndToStartTime.show();
-         OsSysLog::add(FAC_MP, PRI_NOTICE,
-                       "MpMediaTask::handleWaitForSignal %-18s %d%s",
-                       "mEndToStartTime",
-                       mEndToStartTime.getBinSize(),
-                       print->data());
-         delete print;
-         mEndToStartTime.clear();
-         // Print mOtherMessages.
-         print = mOtherMessages.show();
-         OsSysLog::add(FAC_MP, PRI_NOTICE,
-                       "MpMediaTask::handleWaitForSignal %-18s %d%s",
-                       "mOtherMessages",
-                       mOtherMessages.getBinSize(),
-                       print->data());
-         delete print;
-         mOtherMessages.clear();
-      }
-   }
-#endif /* _PROFILE ] */
-
    assert(!mWaitForSignal);
    mProcessedCnt++;
-#ifdef MEDIA_VERBOSE /* [ */
-   if (0 && (0 == (mProcessedCnt % 125)))
-   {
-      PRINTF("handleWaitForSignal: %d frames\n", mProcessedCnt, 0,0,0,0,0);
-   }
-#endif /* MEDIA_VERBOSE ] */
    mWaitForSignal = TRUE;
 
    if (nFrameStartMsgs > 0)
@@ -1078,13 +899,13 @@ void MpMediaTask::startFrameStartTimer()
 #ifdef _WIN32
       m_pFrameStartTimer = new MpMMTimerWnt(MpMMTimer::Notification);
       // calculate timer period is microseconds
-      double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000000;
+      double timerPeriod = (1 / (double)MpMisc.m_audioSamplesPerSec) * MpMisc.m_audioSamplesPerFrame * 1000000;
       m_pFrameStartTimer->setNotification(m_pFrameStartCallback);
       result = m_pFrameStartTimer->run((unsigned)timerPeriod);
 #else
       m_pFrameStartTimer = new OsTimer(*m_pFrameStartCallback);
       // calculate timer period is milliseconds
-      double timerPeriod = (1 / (double)MpMisc.m_audioSampleRate) * MpMisc.m_audioSamplesPerFrame * 1000;
+      double timerPeriod = (1 / (double)MpMisc.m_audioSamplesPerSec) * MpMisc.m_audioSamplesPerFrame * 1000;
 
       result = m_pFrameStartTimer->periodicEvery(OsTime(0), OsTime((long)timerPeriod));
 #endif

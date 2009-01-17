@@ -87,7 +87,7 @@ SipXMediaFactoryImpl::SipXMediaFactoryImpl(OsConfigDb* pConfigDb)
     // Start audio subsystem if still not started.
     if (miInstanceCount == 0)
     {
-        mpStartUp(8000, 80);
+        mpStartUp();
     }
 
 #ifdef INCLUDE_RTCP /* [ */

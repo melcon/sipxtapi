@@ -39,7 +39,7 @@ public:
 
    enum
    {
-      MAX_PAYLOADS = 256,
+      MAX_PAYLOADS = 128, // dynamic payload id ends with 127
    };
 
 /* ============================ CREATORS ================================== */
@@ -120,6 +120,7 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   void freeJitterBuffers();
 
                   /// Mutual exclusion lock for internal data
    OsBSem        m_rtpLock;

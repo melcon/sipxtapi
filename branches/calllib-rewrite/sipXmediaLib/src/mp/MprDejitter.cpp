@@ -54,13 +54,7 @@ MprDejitter::MprDejitter()
 // Destructor
 MprDejitter::~MprDejitter()
 {
-   // free jitter buffers
-   for (int i = 0; i < MAX_PAYLOADS; i++)
-   {
-      delete m_jitterBufferArray[i];
-      m_jitterBufferArray[i] = NULL;
-      m_jitterBufferList[i] = NULL;
-   }
+   freeJitterBuffers();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -69,13 +63,7 @@ OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
 {
    OsLock lock(m_rtpLock);
 
-   // free old jitter buffers
-   for (int i = 0; i < MAX_PAYLOADS; i++)
-   {
-      delete m_jitterBufferArray[i];
-      m_jitterBufferArray[i] = NULL;
-      m_jitterBufferList[i] = NULL;
-   }
+   freeJitterBuffers();
 
    int listCounter = 0;
    SdpCodec* pCodec = NULL;
@@ -89,25 +77,23 @@ OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
          pCodec->getMimeSubType(encodingName);
          int codecPayloadId = pCodec->getCodecPayloadId();
 
-         if (codecPayloadId >=0 && codecPayloadId < MAX_PAYLOADS
-            && !m_jitterBufferArray[codecPayloadId])
+         if (codecPayloadId >=0 && codecPayloadId < MAX_PAYLOADS && !m_jitterBufferArray[codecPayloadId])
          {
-            // index is valid and there is no jitter buffer for it
-            // TODO: 80 has to be replaced with ptime from SDP
+            // jitter buffer uses samples per frame of flowgraph, and not codec itself
+            // that is because frameIncrement is called every 10ms, regardless of type of codec
             if (pCodec->getCodecType() == SdpCodec::SDP_CODEC_TONES)
             {
                // for RFC2833, disable prefetch & PLC
                m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
-                  codecPayloadId,
-                  MpMisc.m_audioSamplesPerFrame,
-                  false);
+                  codecPayloadId, MpMisc.m_audioSamplesPerFrame, false);
             }
             else
             {
+               double frameSizeCoeff = (1 / (double)pCodec->getPacketLength()) * 20000; // will be 1 for 20ms frame, 2 for 10ms frame
+               unsigned int minPreferch = (unsigned int)(MpJitterBufferDefault::DEFAULT_MIN_PREFETCH_COUNT * frameSizeCoeff);
+               unsigned int maxPreferch = (unsigned int)(MpJitterBufferDefault::DEFAULT_MAX_PREFETCH_COUNT * frameSizeCoeff);
                m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
-                  codecPayloadId,
-                  MpMisc.m_audioSamplesPerFrame,
-                  true, 6, true, 3);
+                  codecPayloadId, MpMisc.m_audioSamplesPerFrame, true, minPreferch, minPreferch, maxPreferch, true, 3);
             }
             m_jitterBufferList[listCounter++] = m_jitterBufferArray[codecPayloadId];
          }
@@ -187,5 +173,16 @@ int MprDejitter::getBufferLength(int rtpPayloadType)
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void MprDejitter::freeJitterBuffers()
+{
+   // free jitter buffers
+   for (int i = 0; i < MAX_PAYLOADS; i++)
+   {
+      delete m_jitterBufferArray[i];
+      m_jitterBufferArray[i] = NULL;
+      m_jitterBufferList[i] = NULL;
+   }
+}
 
 /* ============================ FUNCTIONS ================================= */
