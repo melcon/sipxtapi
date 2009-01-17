@@ -26,6 +26,7 @@
 #include "os/OsLock.h"
 #include "os/OsSysLog.h"
 #include <utl/UtlSListIterator.h>
+#include <mp/MpDefs.h>
 #include "mp/MpBuf.h"
 #include "mp/MprDejitter.h"
 #include "mp/MpMisc.h"
@@ -85,15 +86,18 @@ OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
             {
                // for RFC2833, disable prefetch & PLC
                m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
-                  codecPayloadId, MpMisc.m_audioSamplesPerFrame, false);
+                  codecPayloadId, SAMPLES_PER_FRAME_8KHZ, false);
             }
             else
             {
                double frameSizeCoeff = (1 / (double)pCodec->getPacketLength()) * 20000; // will be 1 for 20ms frame, 2 for 10ms frame
                unsigned int minPreferch = (unsigned int)(MpJitterBufferDefault::DEFAULT_MIN_PREFETCH_COUNT * frameSizeCoeff);
                unsigned int maxPreferch = (unsigned int)(MpJitterBufferDefault::DEFAULT_MAX_PREFETCH_COUNT * frameSizeCoeff);
+               // we supply different value of samples per frame to jitter buffer, if flowgraph and code sampling rate
+               // is different. When frameIncrement() is called, jitter buffer will increment rtp timestamp by this value.
+               unsigned int samplesPerFrame = (unsigned int)(((double)pCodec->getSampleRate() / MpMisc.m_audioSamplesPerSec) * MpMisc.m_audioSamplesPerFrame);
                m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
-                  codecPayloadId, MpMisc.m_audioSamplesPerFrame, true, minPreferch, minPreferch, maxPreferch, true, 3);
+                  codecPayloadId, samplesPerFrame, true, minPreferch, minPreferch, maxPreferch, true, 3);
             }
             m_jitterBufferList[listCounter++] = m_jitterBufferArray[codecPayloadId];
          }

@@ -37,6 +37,10 @@
 #else
 #define SAMPLES_PER_SECOND 8000
 #endif
+/**
+ * Use in code where value 8000 is explicitly required.
+ */
+#define SAMPLES_PER_SECOND_8KHZ 8000
 
 /**
 * Number of samples per frame. We use 10ms frames in flowgraph. For 8000Hz sampling rate, should be 80.
@@ -45,6 +49,14 @@
 * Keep this value at SAMPLES_PER_SECOND/100, so that we use 10ms frames.
 */
 #define SAMPLES_PER_FRAME (SAMPLES_PER_SECOND/100)
+
+/**
+ * Used by RFC2833 jitter buffer for timestamp step. We run into a problem with timestamp steps in wideband
+ * when 8Khz and 16Khz codecs are offered. Then we don't know the timestamp step, and use 80 anyway.
+ * It shouldn't cause a problem, since the default jitter buffer doesn't do any prefetch for RFC2833 - it just
+ * orders frames.
+ */
+#define SAMPLES_PER_FRAME_8KHZ 80
 
 // MACROS
 // EXTERNAL FUNCTIONS
