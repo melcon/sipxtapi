@@ -17,6 +17,10 @@
 // APPLICATION INCLUDES
 // DEFINES
 
+#if defined(ENABLE_WIDEBAND_AUDIO) && !defined(HAVE_SPEEX)
+#error "Wideband is not supported without Speex library"
+#endif
+
 /**
  * Maximum number of media connections to flowgraph. Limits the number of participants in a conference.
  * We may have multiple flowgraphs, so this value doesn't limit the total number of calls.
@@ -28,7 +32,11 @@
  * then we would need to do much more resampling which is already quite expensive. MpMediaTask,
  * MpAudioDriverManager will use this sampling rate.
  */
+#ifdef ENABLE_WIDEBAND_AUDIO
+#define SAMPLES_PER_SECOND 16000
+#else
 #define SAMPLES_PER_SECOND 8000
+#endif
 
 /**
 * Number of samples per frame. We use 10ms frames in flowgraph. For 8000Hz sampling rate, should be 80.

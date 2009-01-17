@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _MprEncode_h_
 #define _MprEncode_h_
 
@@ -24,6 +23,10 @@
 #include "sdp/SdpCodec.h"
 #include "mp/MpFlowGraphMsg.h"
 #include "mp/MprToNet.h"
+
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+#include <speex/speex_resampler.h>
+#endif
 
 // DEFINES
 // MACROS
@@ -155,6 +158,12 @@ private:
 
    MprToNet* mpToNet;  ///< Pointer to ToNet resource, which will send generated
                        ///< RTP packets.
+
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   SpeexResamplerState *m_pResampler;
+
+   void destroyResampler();
+#endif
 
      /// Handle messages for this resource.
    virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
