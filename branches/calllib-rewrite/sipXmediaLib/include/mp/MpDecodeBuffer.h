@@ -130,6 +130,7 @@ private:
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    SpeexResamplerState* m_pResamplerMap[JbPayloadMapSize];
+   MpAudioSample m_tmpBuffer[g_decodeBufferSize]; // buffer for storing samples after decoding, but before resampling
 
 #endif
 
