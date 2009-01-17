@@ -18,6 +18,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <mp/MpDefs.h>
 #include "mp/MpMisc.h"
 #include "mp/MpFlowGraphBase.h"
 #include "os/OsProtectEvent.h"
@@ -27,9 +28,6 @@
 #endif /* INCLUDE_RTCP ] */
 
 // DEFINES
-// also exists in RTCPSession
-#define MAX_CONNECTIONS 100
-
 // Enable Speex AEC if Speex is available
 #ifdef HAVE_SPEEX // [
 #define SPEEX_ECHO_CANCELATION

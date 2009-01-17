@@ -40,7 +40,7 @@
 // EXTERNAL VARIABLES
 
 // CONSTANTS
-const unsigned int MprFromFile::sFromFileReadBufferSize = 8000;
+const unsigned int MprFromFile::sFromFileReadBufferSize = 8192;
 
 static const unsigned int MAXFILESIZE = 50000000;
 static const unsigned int MINFILESIZE = 8000;
