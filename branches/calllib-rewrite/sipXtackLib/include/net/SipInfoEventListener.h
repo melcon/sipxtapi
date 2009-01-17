@@ -73,6 +73,8 @@ public:
    }
 
    SipInfoEvent(const SipInfoEvent& event)
+      : m_pContent(NULL)
+      , m_nContentLength(0)
    {
       *this = event;
    }
