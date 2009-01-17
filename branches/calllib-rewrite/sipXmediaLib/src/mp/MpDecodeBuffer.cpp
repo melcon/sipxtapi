@@ -170,10 +170,10 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
          unsigned int tmpDecodedSamples = decoder->decode(rtpPacket, g_decodeBufferSize, m_tmpBuffer);
          if (tmpDecodedSamples > 0)
          {
-            // resample decoded samples
-            speex_resampler_process_int(pResamplerState, 0,
-               (spx_int16_t*)m_tmpBuffer, &tmpDecodedSamples,
-               (spx_int16_t*)(m_decodeBuffer+m_decodeBufferIn), &availableBufferSize);
+            int err = speex_resampler_process_int(pResamplerState, 0,
+               m_tmpBuffer, &tmpDecodedSamples,
+               m_decodeBuffer + m_decodeBufferIn, &availableBufferSize);
+            assert(!err);
             decodedSamples = availableBufferSize; // speex overwrites availableBufferSize with number of output samples
          }
       }
