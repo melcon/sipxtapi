@@ -240,6 +240,38 @@ UtlBoolean SdpCodec::isSameDefinition(const SdpCodec& codec) const
            mMimeSubtype.compareTo(codec.mMimeSubtype, UtlString::ignoreCase) == 0);
 }
 
+UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType, 
+                                       const UtlString& mimeSubType,
+                                       int sampleRate,
+                                       int numChannels,
+                                       const UtlString& fmtp) const
+{
+   // If the mime type matches
+   if(mMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0)
+   {
+      // and if the mime subtype, sample rate, number of channels
+      // and fmtp match.
+      if ((mMimeSubtype.compareTo(mimeSubType, UtlString::ignoreCase) == 0) &&
+         (sampleRate == -1 || mSampleRate == sampleRate) &&
+         (numChannels == -1 || mNumChannels == numChannels))
+      {
+         // TODO:: checking for fmtp match must be made intelligent, e.g. by
+         //        defining isCompatible(fmtp) method for SdpCodec. Checking
+         //        by string comparison leads to errors when there are two
+         //        or more parameters and they're presented in random order.
+         if ((!fmtp.isNull() && mFormatSpecificData.isNull()) ||
+            (fmtp.isNull() && !mFormatSpecificData.isNull()) ||
+            (fmtp == mFormatSpecificData))
+         {
+            // we found a match
+            return TRUE;
+         }
+      }
+   }
+
+   return FALSE;
+}
+
 SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
 {
     SdpCodec::SdpCodecTypes retType = SdpCodec::SDP_CODEC_UNKNOWN;
