@@ -77,6 +77,9 @@ MprEncode::MprEncode(const UtlString& rName,
 , m_pResampler(NULL)
 #endif
 {
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   memset(m_tmpBuffer, 0, sizeof(m_tmpBuffer));
+#endif
 }
 
 // Destructor
@@ -428,21 +431,15 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    unsigned int inSpeexSamplesCount = in->getSamplesNumber();
-   unsigned int outSpeexSamplesCount = MpMisc.m_audioSamplesPerFrame;
-   MpAudioBufPtr pTmpBuffer = NULL;
+   unsigned int outSpeexSamplesCount = SAMPLES_PER_FRAME;
    if (mpPrimaryCodec->getInfo()->getSamplingRate() != getSamplesPerSec())
    {
       // we need to resample
-      pTmpBuffer = MpMisc.m_pRawAudioPool->getBuffer();
-      if (!pTmpBuffer.isValid())
-      {
-         return;
-      }
       speex_resampler_process_int(m_pResampler, 0,
          (spx_int16_t*)in->getSamplesPtr(), &inSpeexSamplesCount,
-         (spx_int16_t*)pTmpBuffer->getSamplesWritePtr(), &outSpeexSamplesCount);
+         (spx_int16_t*)m_tmpBuffer, &outSpeexSamplesCount);
       numSamplesIn = outSpeexSamplesCount;
-      pSamplesIn = pTmpBuffer->getSamplesPtr();
+      pSamplesIn = m_tmpBuffer;
    }
    else
    {
@@ -519,13 +516,6 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
          mPayloadBytesUsed = 0;
       }
    }
-
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   if (pTmpBuffer.isValid())
-   {
-      pTmpBuffer.release();
-   }
-#endif
 }
 
 void MprEncode::doDtmfCodec(unsigned int startTs, int samplesPerFrame,
