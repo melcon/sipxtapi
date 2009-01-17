@@ -21,6 +21,7 @@
 #endif
 
 // APPLICATION INCLUDES
+#include <mp/MpDefs.h>
 #include "mp/MprSimpleDtmfDetector.h"
 #include "mp/MpRtpInputAudioConnection.h"
 #include "mp/MpResNotification.h"
@@ -28,6 +29,7 @@
 #include "os/OsSysLog.h"
 
 // DECODER DEFINES
+// don't use directly
 #define GOERTZEL_N 92
 
 // EXTERNAL FUNCTIONS
@@ -52,13 +54,15 @@ MprSimpleDtmfDetector::MprSimpleDtmfDetector(const UtlString& rName,
                                              int samplesPerFrame,
                                              int samplesPerSec)
 : MprDtmfDetectorBase(rName, samplesPerFrame, samplesPerSec)
-, m_numProcessSamples(GOERTZEL_N)
+, m_numProcessSamples(0)
 , m_sameDtmfDigitCount(0)
 {
    m_q1 = new double[ms_nFreqsToDetect];
    m_q2 = new double[ms_nFreqsToDetect];
    m_r = new double[ms_nFreqsToDetect];
    m_coefs = new double[ms_nFreqsToDetect];
+   // recalculate the number of samples to process according to sampling rate
+   m_numProcessSamples = GOERTZEL_N * (unsigned int)((double)samplesPerSec / SAMPLES_PER_SECOND_8KHZ);
    reset();
 }
 
