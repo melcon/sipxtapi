@@ -63,19 +63,16 @@ MprEncode::MprEncode(const UtlString& rName,
    mConsecutiveUnsentFrames1(0),
    mDoesVad1(FALSE),
    mDisableDTX(TRUE),
-
    mpDtmfCodec(NULL),
    mpPacket2Payload(NULL),
    mPacket2PayloadBytes(0),
-
    mCurrentTone(-1),
    mNumToneStops(-1),
    mTotalTime(0),
    mNewTone(0),
-
    mCurrentTimestamp(0),
-
-   mpToNet(NULL)
+   mpToNet(NULL),
+   mTimestampStep(samplesPerFrame)
 {
 }
 
@@ -253,7 +250,8 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
       }
    }
 
-   if (NULL != pPrimary) {
+   if (pPrimary)
+   {
       ourCodec = pPrimary->getCodecType();
       payload = pPrimary->getCodecPayloadId();
       ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
@@ -264,6 +262,10 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
       mDoesVad1 = (pNewEncoder->getInfo())->doesVadCng();
       allocPacketBuffer(*mpPrimaryCodec, mpPacket1Payload, mPacket1PayloadBytes);
       mPayloadBytesUsed = 0;
+      // adjust timestamp step by sampling rate difference of flowgraph and primary codec
+      // when codec uses 8000, but flowgraph 16000, then samples we get will be downsampled to 1/2 of samples
+      // and thus timestamp must be advanced by lower value
+      mTimestampStep = (unsigned int)(((double)pNewEncoder->getInfo()->getSamplingRate() / getSamplesPerSec()) * getSamplesPerFrame());
    }
 
    if (NULL != pDtmf) {
@@ -571,7 +573,7 @@ UtlBoolean MprEncode::doProcessFrame(MpBufPtr inBufs[],
 
    in = inBufs[0];
 
-   mCurrentTimestamp += samplesPerFrame;
+   mCurrentTimestamp += mTimestampStep;
 
    if (NULL != mpPrimaryCodec) {
       doPrimaryCodec(in, mCurrentTimestamp);

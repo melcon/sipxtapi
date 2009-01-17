@@ -150,7 +150,8 @@ private:
    int   mTotalTime;    ///< # samples tone was active, set when tone stops
    int   mNewTone;      ///< set when tone starts
 
-   unsigned int   mCurrentTimestamp;
+   unsigned int mCurrentTimestamp; ///< timestamp of primary codec
+   unsigned int mTimestampStep; ///< value by which timestamp is incremented
 
    MprToNet* mpToNet;  ///< Pointer to ToNet resource, which will send generated
                        ///< RTP packets.
