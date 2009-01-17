@@ -21,6 +21,7 @@
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
 #include "os/OsMsgQ.h"
+#include <mp/MpDefs.h>
 #include "mp/MpAudioResource.h"
 
 // DEFINES
@@ -79,7 +80,7 @@ private:
    enum{EqFilterLen = 24}; ///< Brant, 11 May 2001; was 13, allow for experiments.
 
    OsMsgQ *mpMicQ;                ///< We will read audio data from this queue.
-   int16_t   shpFilterBuf[80 + 10];
+   int16_t   shpFilterBuf[SAMPLES_PER_FRAME + 10];
    int     m_framesProcessed;
    unsigned long m_minVoiceEnergy;  ///< trigger threshold for silence detection.
 
