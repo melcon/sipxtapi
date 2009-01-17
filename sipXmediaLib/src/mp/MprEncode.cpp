@@ -436,8 +436,8 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    {
       // we need to resample
       speex_resampler_process_int(m_pResampler, 0,
-         (spx_int16_t*)in->getSamplesPtr(), &inSpeexSamplesCount,
-         (spx_int16_t*)m_tmpBuffer, &outSpeexSamplesCount);
+         in->getSamplesPtr(), &inSpeexSamplesCount,
+         m_tmpBuffer, &outSpeexSamplesCount);
       numSamplesIn = outSpeexSamplesCount;
       pSamplesIn = m_tmpBuffer;
    }

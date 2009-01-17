@@ -17,6 +17,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 
+#include <mp/MpDefs.h>
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
 #include <speex/speex_resampler.h>
 #endif
@@ -28,7 +29,7 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 static const int JbPayloadMapSize = 128;
-static const int g_decodeBufferSize = (9 * (sizeof(MpAudioSample) * 80)); // 9 packets, 20 mS each
+static const int g_decodeBufferSize = (9 * (sizeof(MpAudioSample) * SAMPLES_PER_FRAME)); // 9 packets, 20 mS each
                                                // or 3 packets 60 mS each.
 
 // STRUCTS
