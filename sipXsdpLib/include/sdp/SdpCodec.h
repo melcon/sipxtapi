@@ -330,6 +330,17 @@ public:
    /** Converts the short codec name into an enum */
    static SdpCodec::SdpCodecTypes getCodecType(const UtlString& shortCodecName);
 
+   /**
+    * Returns true, if right hand side codec is compatible with our codec.
+    * Fmtp is taken into consideration. This method contains code specific to
+    * some codecs.
+    */
+   UtlBoolean isCodecCompatible(const UtlString& mimeType, 
+                                const UtlString& mimeSubType,
+                                int sampleRate,
+                                int numChannels,
+                                const UtlString& fmtp) const;
+
 //@}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -338,7 +349,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-//    enum SdpCodecTypes mCodecType; ///< Internal id
     int mCodecPayloadId;       ///< The id which appears in SDP & RTP
     UtlString mMimeType;           ///< audio, video, etc.
     UtlString mMimeSubtype;        ///< a=rtpmap mime subtype value

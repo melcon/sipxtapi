@@ -1354,7 +1354,6 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                    {
                        frameSize = 20;
                    }
-
                 }
                 else
                 {
@@ -1382,7 +1381,6 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                   commonCodecsForEncoder[numCodecsInCommon]->setPacketSize(frameSize*1000);
                   commonCodecsForDecoder[numCodecsInCommon]->setPacketSize(frameSize*1000);
                }
-
             }
          
             numCodecsInCommon++;

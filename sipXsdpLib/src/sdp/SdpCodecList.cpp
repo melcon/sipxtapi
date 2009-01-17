@@ -283,46 +283,19 @@ const SdpCodec* SdpCodecList::getCodecByPayloadId(int payloadTypeId) const
 
 const SdpCodec* SdpCodecList::getCodec(const char* mimeType, 
                                        const char* mimeSubType,
-                                       unsigned sampleRate,
-                                       unsigned numChannels,
+                                       int sampleRate,
+                                       int numChannels,
                                        const UtlString& fmtp) const
 {
    const SdpCodec* codecFound = NULL;
-   UtlString foundMimeType;
-   UtlString foundMimeSubType;
-   UtlString foundFmtp;
-   UtlString mimeTypeString(mimeType ? mimeType : "");
-   mimeTypeString.toLower();
-   UtlString mimeSubTypeString(mimeSubType ? mimeSubType : "");
-   mimeSubTypeString.toLower();
    OsLock lock(m_memberMutex);
    UtlSListIterator iterator(m_codecsList);
 
    while((codecFound = (SdpCodec*) iterator()))
    {
-      // If the mime type matches
-      codecFound->getMediaType(foundMimeType);
-      if(foundMimeType.compareTo(mimeTypeString, UtlString::ignoreCase) == 0)
+      if (codecFound->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp))
       {
-         // and if the mime subtype, sample rate, number of channels
-         // and fmtp match.
-         codecFound->getMimeSubType(foundMimeSubType);
-         codecFound->getSdpFmtpField(foundFmtp);
-         if ((foundMimeSubType.compareTo(mimeSubTypeString, UtlString::ignoreCase) == 0) &&
-            (sampleRate == -1 || codecFound->getSampleRate() == sampleRate) &&
-            (numChannels == -1 || codecFound->getNumChannels() == numChannels))
-         {
-            // TODO:: checking for fmtp match must be made intelligent, e.g. by
-            //        defining isCompatible(fmtp) method for SdpCodec. Checking
-            //        by string comparison leads to errors when there are two
-            //        or more parameters and they're presented in random order.
-            if ((!fmtp.isNull() && foundFmtp.isNull()) ||
-               (fmtp == foundFmtp))
-            {
-               // we found a match
-               break;
-            }
-         }
+         break;
       }
    }
 
