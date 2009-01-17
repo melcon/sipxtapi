@@ -288,6 +288,7 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_G729;
     else if (strcmp(compareString,"G723.1") == 0)
        retType = SdpCodec::SDP_CODEC_G723;
+    // G.726
     else if (strcmp(compareString,"G726_16") == 0)
        retType = SdpCodec::SDP_CODEC_G726_16;
     else if (strcmp(compareString,"G726_24") == 0)
@@ -300,8 +301,10 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_ILBC;
     else if (strcmp(compareString,"ILBC-20MS") == 0)
        retType = SdpCodec::SDP_CODEC_ILBC_20MS;
+    // gsm full rate
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;
+    // speex narrowband codecs
     else if (strcmp(compareString,"SPEEX_6") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_6;
     else if (strcmp(compareString,"SPEEX_8") == 0)
@@ -314,8 +317,22 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_SPEEX_18;
     else if (strcmp(compareString,"SPEEX_24") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_24;
-    else if (strcmp(compareString,"GSM") == 0)
-       retType = SdpCodec::SDP_CODEC_GSM;
+    // speex wideband codecs
+    else if (strcmp(compareString,"SPEEX_WB_13") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_13;
+    else if (strcmp(compareString,"SPEEX_WB_17") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_17;
+    else if (strcmp(compareString,"SPEEX_WB_20") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_20;
+    else if (strcmp(compareString,"SPEEX_WB_24") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_24;
+    else if (strcmp(compareString,"SPEEX_WB_28") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_28;
+    else if (strcmp(compareString,"SPEEX_WB_34") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_34;
+    else if (strcmp(compareString,"SPEEX_WB_42") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_42;
+    // video codecs
     else if (strcmp(compareString,"VP71-CIF") == 0)
        retType = SdpCodec::SDP_CODEC_VP71_CIF;
     else if (strcmp(compareString,"VP71-QCIF") == 0)

@@ -23,6 +23,9 @@
 
 #ifdef HAVE_SPEEX // [
 #include "mp/MpeSipxSpeex.h"
+#ifdef ENABLE_WIDEBAND_AUDIO
+#include "mp/MpeSipxSpeexWb.h"
+#endif
 #endif // HAVE_SPEEX ]
 
 #ifdef HAVE_INTEL_IPP // [
@@ -37,6 +40,9 @@
 
 #ifdef HAVE_SPEEX // [
 #include "mp/MpdSipxSpeex.h"
+#ifdef ENABLE_WIDEBAND_AUDIO
+#include "mp/MpdSipxSpeexWb.h"
+#endif
 #endif // HAVE_SPEEX ]
 
 #ifdef HAVE_SPAN_DSP // [
@@ -102,23 +108,24 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
 #ifdef HAVE_SPEEX // [
    case (SdpCodec::SDP_CODEC_SPEEX_6):
-      rpDecoder = new MpdSipxSpeex(payloadType);
-      break;
    case (SdpCodec::SDP_CODEC_SPEEX_8):
-      rpDecoder = new MpdSipxSpeex(payloadType);
-      break;
    case (SdpCodec::SDP_CODEC_SPEEX_11):
-      rpDecoder = new MpdSipxSpeex(payloadType);
-      break;
    case (SdpCodec::SDP_CODEC_SPEEX_15):
-      rpDecoder = new MpdSipxSpeex(payloadType);
-      break;
    case (SdpCodec::SDP_CODEC_SPEEX_18):
-      rpDecoder = new MpdSipxSpeex(payloadType);
-      break;
    case (SdpCodec::SDP_CODEC_SPEEX_24):
       rpDecoder = new MpdSipxSpeex(payloadType);
       break;
+#ifdef ENABLE_WIDEBAND_AUDIO
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_13):
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_17):
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_20):
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_24):
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_28):
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_34):
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_42):
+      rpDecoder = new MpdSipxSpeexWb(payloadType);
+      break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
 #ifdef HAVE_SPAN_DSP // [
    case (SdpCodec::SDP_CODEC_G726_16):
@@ -215,6 +222,29 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_SPEEX_24):
       rpEncoder = new MpeSipxSpeex(payloadType, 7);
       break;
+#ifdef ENABLE_WIDEBAND_AUDIO
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_13):
+      rpEncoder = new MpeSipxSpeexWb(payloadType, 4);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_17):
+      rpEncoder = new MpeSipxSpeexWb(payloadType, 5);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_20):
+      rpEncoder = new MpeSipxSpeexWb(payloadType, 6);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_24):
+      rpEncoder = new MpeSipxSpeexWb(payloadType, 7);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_28):
+      rpEncoder = new MpeSipxSpeexWb(payloadType, 8);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_34):
+      rpEncoder = new MpeSipxSpeexWb(payloadType, 9);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_WB_42):
+      rpEncoder = new MpeSipxSpeexWb(payloadType, 10);
+      break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
 #ifdef HAVE_SPAN_DSP // [
    case (SdpCodec::SDP_CODEC_G726_16):

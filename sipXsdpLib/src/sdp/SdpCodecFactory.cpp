@@ -157,7 +157,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
-         30000,
+         20000,
          1,
          "mode=2",
          SdpCodec::SDP_CODEC_CPU_LOW,
@@ -171,7 +171,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
-         30000,
+         20000,
          1,
          "mode=3",
          SdpCodec::SDP_CODEC_CPU_LOW,
@@ -185,7 +185,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
-         30000,
+         20000,
          1,
          "mode=4",
          SdpCodec::SDP_CODEC_CPU_LOW,
@@ -199,7 +199,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
-         30000,
+         20000,
          1,
          "mode=5",
          SdpCodec::SDP_CODEC_CPU_LOW,
@@ -213,7 +213,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
-         30000,
+         20000,
          1,
          "mode=6",
          SdpCodec::SDP_CODEC_CPU_LOW,
@@ -227,12 +227,112 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
-         30000,
+         20000,
          1,
          "mode=7",
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
+#ifdef ENABLE_WIDEBAND_AUDIO
+   case SdpCodec::SDP_CODEC_SPEEX_WB_13:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_WB_13,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_WB_13",
+         "Speex wb 12.8 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         16000,
+         20000,
+         1,
+         "mode=4",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_WB_17:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_WB_17,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_WB_17",
+         "Speex wb 16.8 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         16000,
+         20000,
+         1,
+         "mode=5",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_WB_20:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_WB_20,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_WB_20",
+         "Speex wb 20.6 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         16000,
+         20000,
+         1,
+         "mode=6",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_WB_24:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_WB_24,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_WB_24",
+         "Speex wb 23.8 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         16000,
+         20000,
+         1,
+         "mode=7",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_WB_28:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_WB_28,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_WB_28",
+         "Speex wb 27.8 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         16000,
+         20000,
+         1,
+         "mode=8",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_WB_34:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_WB_34,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_WB_34",
+         "Speex wb 34.4 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         16000,
+         20000,
+         1,
+         "mode=9",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_WB_42:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_WB_42,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_WB_42",
+         "Speex wb 42.4 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         16000,
+         20000,
+         1,
+         "mode=10",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_HIGH);
+      break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX
 #ifdef HAVE_SPAN_DSP
    case SdpCodec::SDP_CODEC_G726_16:

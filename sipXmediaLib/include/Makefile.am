@@ -83,6 +83,7 @@ nobase_include_HEADERS =  \
     mp/MpdSipxPcmu.h \
     mp/MpdSipxSpeex.h \
     mp/MpeIPPG7231.h \
+    mp/MpdSipxSpeexWb.h \
     mp/MpeIPPG729.h \
     mp/MpePtAVT.h \
     mp/MpeSipxG726.h \
@@ -91,6 +92,7 @@ nobase_include_HEADERS =  \
     mp/MpeSipxPcma.h \
     mp/MpeSipxPcmu.h \
     mp/MpeSipxSpeex.h \
+    mp/MpeSipxSpeexWb.h \
     mp/MprBridge.h \
     mp/MprBridgeSetGainsMsg.h \
     mp/MprDecode.h \

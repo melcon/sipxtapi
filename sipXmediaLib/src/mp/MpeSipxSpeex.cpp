@@ -149,7 +149,7 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
       speex_encode_int(mpEncoderState, mpBuffer, &mBits);
 
       // Copy to the byte buffer
-      size = speex_bits_write(&mBits,(char*)pCodeBuf,200);      
+      size = speex_bits_write(&mBits,(char*)pCodeBuf, bytesLeft);      
 
       // Reset the buffer count.
       mBufferLoad = 0;

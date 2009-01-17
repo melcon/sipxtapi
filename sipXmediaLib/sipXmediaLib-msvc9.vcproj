@@ -481,6 +481,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdSipxSpeexWb.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpDspUtils.cpp"
 					>
 				</File>
@@ -522,6 +526,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpeSipxSpeex.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeSipxSpeexWb.cpp"
 					>
 				</File>
 				<File
@@ -946,6 +954,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdSipxSpeexWb.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpDspUtils.h"
 					>
 				</File>
@@ -999,6 +1011,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpeSipxSpeex.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeSipxSpeexWb.h"
 					>
 				</File>
 				<File
