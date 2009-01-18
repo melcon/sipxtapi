@@ -16,30 +16,30 @@
 #define TEST_PRINT
 #include "assert.h"
 // APPLICATION INCLUDES
-#include "mp/MpeSipxSpeexWb.h"
+#include "mp/MpeSipxSpeexUWb.h"
 #include "mp/NetInTask.h"  // For CODEC_TYPE_SPEEX_* definitions
 
 #include "os/OsSysLog.h"
 #include "os/OsSysLogFacilities.h"
 
-const MpCodecInfo MpeSipxSpeexWb::smCodecInfo(
-         SdpCodec::SDP_CODEC_SPEEX_WB_23,    // codecType
+const MpCodecInfo MpeSipxSpeexUWb::smCodecInfo(
+         SdpCodec::SDP_CODEC_SPEEX_UWB_22,    // codecType
          "Speex",                      // codecVersion
          false,                         // usesNetEq
-         16000,                        // samplingRate
+         32000,                        // samplingRate
          8,                            // numBitsPerSample
          1,                            // numChannels
-         320,                          // interleaveBlockSize
-         23800,                        // bitRate. It doesn't matter right now.
+         640,                          // interleaveBlockSize
+         22400,                        // bitRate. It doesn't matter right now.
          38*8,                         // minPacketBits
          38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
-         320);                         // numSamplesPerFrame - 20ms frames
+         640);                         // numSamplesPerFrame - 20ms frames
 
-MpeSipxSpeexWb::MpeSipxSpeexWb(int payloadType, int mode)
+MpeSipxSpeexUWb::MpeSipxSpeexUWb(int payloadType, int mode)
 : MpEncoderBase(payloadType, &smCodecInfo)
 , mpEncoderState(NULL)
-, mSampleRate(16000)// wb sample rate
+, mSampleRate(32000)// uwb sample rate
 , mMode(mode)
 , mDoVad(0)
 , mDoDtx(0)
@@ -79,14 +79,14 @@ MpeSipxSpeexWb::MpeSipxSpeexWb(int payloadType, int mode)
 //   mDoVbr = 1; // VBR (not used at the moment)
 }
 
-MpeSipxSpeexWb::~MpeSipxSpeexWb()
+MpeSipxSpeexUWb::~MpeSipxSpeexUWb()
 {
    freeEncode();
 }
 
-OsStatus MpeSipxSpeexWb::initEncode(void)
+OsStatus MpeSipxSpeexUWb::initEncode(void)
 {
-   mpEncoderState = speex_encoder_init(speex_lib_get_mode(SPEEX_MODEID_WB));
+   mpEncoderState = speex_encoder_init(speex_lib_get_mode(SPEEX_MODEID_UWB));
    speex_encoder_ctl(mpEncoderState, SPEEX_SET_MODE, &mMode);
    speex_encoder_ctl(mpEncoderState, SPEEX_SET_SAMPLING_RATE, &mSampleRate);
 
@@ -108,7 +108,7 @@ OsStatus MpeSipxSpeexWb::initEncode(void)
    return OS_SUCCESS;
 }
 
-OsStatus MpeSipxSpeexWb::freeEncode(void)
+OsStatus MpeSipxSpeexUWb::freeEncode(void)
 {
    speex_bits_destroy(&mBits);
    speex_encoder_destroy(mpEncoderState);
@@ -117,7 +117,7 @@ OsStatus MpeSipxSpeexWb::freeEncode(void)
    return OS_SUCCESS;
 }
 
-OsStatus MpeSipxSpeexWb::encode(const MpAudioSample* pAudioSamples,
+OsStatus MpeSipxSpeexUWb::encode(const MpAudioSample* pAudioSamples,
                               const int numSamples,
                               int& rSamplesConsumed,
                               unsigned char* pCodeBuf,
@@ -130,10 +130,10 @@ OsStatus MpeSipxSpeexWb::encode(const MpAudioSample* pAudioSamples,
 
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad + numSamples;
-   assert(mBufferLoad <= 320);
+   assert(mBufferLoad <= 640);
 
    // Check for necessary number of samples
-   if(mBufferLoad == 320)
+   if(mBufferLoad == 640)
    {
       speex_bits_reset(&mBits);
 

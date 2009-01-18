@@ -76,6 +76,7 @@
                 <File RelativePath=".\src\mp\MpdSipxPcma.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxPcmu.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxSpeex.cpp"/>
+                <File RelativePath=".\src\mp\MpdSipxSpeexUWb.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxSpeexWb.cpp"/>
                 <File RelativePath=".\src\mp\MpDspUtils.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPG7231.cpp"/>
@@ -88,6 +89,7 @@
                 <File RelativePath=".\src\mp\MpeSipxPcma.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxPcmu.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxSpeex.cpp"/>
+                <File RelativePath=".\src\mp\MpeSipxSpeexUWb.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxSpeexWb.cpp"/>
                 <File RelativePath=".\src\mp\MpFlowGraphBase.cpp"/>
                 <File RelativePath=".\src\mp\MpFlowGraphMsg.cpp"/>
@@ -201,6 +203,7 @@
                 <File RelativePath=".\include\mp\MpdSipxPcma.h"/>
                 <File RelativePath=".\include\mp\MpdSipxPcmu.h"/>
                 <File RelativePath=".\include\mp\MpdSipxSpeex.h"/>
+                <File RelativePath=".\include\mp\MpdSipxSpeexUWb.h"/>
                 <File RelativePath=".\include\mp\MpdSipxSpeexWb.h"/>
                 <File RelativePath=".\include\mp\MpDspUtils.h"/>
                 <File RelativePath=".\include\mp\MpDspUtilsConvertVect.h"/>
@@ -219,6 +222,7 @@
                 <File RelativePath=".\include\mp\MpeSipxPcma.h"/>
                 <File RelativePath=".\include\mp\MpeSipxPcmu.h"/>
                 <File RelativePath=".\include\mp\MpeSipxSpeex.h"/>
+                <File RelativePath=".\include\mp\MpeSipxSpeexUWb.h"/>
                 <File RelativePath=".\include\mp\MpeSipxSpeexWb.h"/>
                 <File RelativePath=".\include\mp\MpFlowGraphBase.h"/>
                 <File RelativePath=".\include\mp\MpFlowGraphMsg.h"/>

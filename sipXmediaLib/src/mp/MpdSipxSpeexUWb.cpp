@@ -14,29 +14,28 @@
 #ifdef HAVE_SPEEX /* [ */
 
 // APPLICATION INCLUDES
-#include "mp/MpdSipxSpeexWb.h"
+#include "mp/MpdSipxSpeexUWb.h"
 #include "os/OsSysLog.h"
 #include "os/OsSysLogFacilities.h"
 
 
-const MpCodecInfo MpdSipxSpeexWb::smCodecInfo(
-         SdpCodec::SDP_CODEC_SPEEX_WB_23,    // codecType
+const MpCodecInfo MpdSipxSpeexUWb::smCodecInfo(
+         SdpCodec::SDP_CODEC_SPEEX_UWB_22,    // codecType
          "Speex codec",                // codecVersion
          false,                        // usesNetEq
-         16000,                        // samplingRate
+         32000,                        // samplingRate
          8,                            // numBitsPerSample (not used)
          1,                            // numChannels
-         320,                          // interleaveBlockSize
-         23800,                        // bitRate
+         640,                          // interleaveBlockSize
+         22400,                        // bitRate
          1*8,                          // minPacketBits
          38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
-         320,                          // numSamplesPerFrame
+         640,                          // numSamplesPerFrame
          5);                           // preCodecJitterBufferSize (should be adjusted)
 
-              
 
-MpdSipxSpeexWb::MpdSipxSpeexWb(int payloadType)
+MpdSipxSpeexUWb::MpdSipxSpeexUWb(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
 , mpDecoderState(NULL)
 , mDecbits()
@@ -44,18 +43,18 @@ MpdSipxSpeexWb::MpdSipxSpeexWb(int payloadType)
 {   
 }
 
-MpdSipxSpeexWb::~MpdSipxSpeexWb()
+MpdSipxSpeexUWb::~MpdSipxSpeexUWb()
 {
 }
 
-OsStatus MpdSipxSpeexWb::initDecode()
+OsStatus MpdSipxSpeexUWb::initDecode()
 {
    if (mpDecoderState == NULL)
    {
       int tmp;
    
       // Init decoder
-      mpDecoderState = speex_decoder_init(speex_lib_get_mode(SPEEX_MODEID_WB));   
+      mpDecoderState = speex_decoder_init(speex_lib_get_mode(SPEEX_MODEID_UWB));   
 
       // It makes the decoded speech deviate further from the original,
       // but it sounds subjectively better.
@@ -71,7 +70,7 @@ OsStatus MpdSipxSpeexWb::initDecode()
    return OS_SUCCESS;
 }
 
-OsStatus MpdSipxSpeexWb::freeDecode(void)
+OsStatus MpdSipxSpeexUWb::freeDecode(void)
 {
    if (mpDecoderState != NULL) {
       speex_decoder_destroy(mpDecoderState);
@@ -83,12 +82,12 @@ OsStatus MpdSipxSpeexWb::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdSipxSpeexWb::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
+int MpdSipxSpeexUWb::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
 {
    // Assert that available buffer size is enough for the packet.
    if (mNumSamplesPerFrame > decodedBufferLength)
    {
-      osPrintf("MpdSipxSpeexWb::decode: Jitter buffer overloaded. Glitch!\n");
+      osPrintf("MpdSipxSpeexUWb::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 

@@ -94,7 +94,7 @@
 #define MAX_VIDEO_DEVICES       8       /**< Max number of video capture devices. */
 #define MAX_VIDEO_DEVICE_LENGTH 256     /**< Max length of video capture device string. */
 
-#define CONF_MAX_CONNECTIONS    64      /**< Max number of conference participants */
+#define CONF_MAX_CONNECTIONS    32      /**< Max number of conference participants */
 #define SIPX_MAX_IP_ADDRESSES   32      /**< Maximum number of IP addresses on the host */
 
 
@@ -115,7 +115,6 @@
                                                   during release process */
 #define SIPXTAPI_FULL_VERSION "3.2.0.0"      /**< Default full version number -- automatically filled in 
                                                   during release process*/
-#define SIPX_MAX_ADAPTER_NAME_LENGTH 256	 /**< Max length of an adapter name */
 #define SIPXTAPI_STRING_MEDIUM_LENGTH 30          /**< Maximum length for generic string */
 
 #ifdef _WIN32
@@ -160,15 +159,18 @@ typedef enum
 
 /**
  * Codec bandwidth ids are used to select a group of codecs with equal or lower
- * bandwidth requirements
+ * bandwidth requirements.
  *
- * Bandwidth requirements for supported codecs:
+ * High bandwidth - bitrate lower than 20 kbit/s
+ * Normal bandwidth - bitrate 20 kbit/s - 40kbit/s
+ * High bandwidth - bitrate higher than 40kbit/s
+ *
+ * Bitrates of supported codecs:
  *
  * <pre>
- * High:     IPCMWB    ~ 80 kbit/s
- * Normal:   PCMU      64 kbit/s
+ *           PCMU      64 kbit/s
  *           PCMA      64 kbit/s
- * Low:      iLBC      13.33 kbit/s, 30 ms frame size
+ *           iLBC      13.33 kbit/s, 30 ms frame size
  *                     15.2 kbit/s, 20 ms frame size
  *           GSM       13 kbit/s, 20 ms frame size
  *           G729A     8 kbit/s, 10 ms frame size
@@ -178,13 +180,28 @@ typedef enum
  *           G726-24   24 kbit/s
  *           G726-32   32 kbit/s
  *           G726-40   40 kbit/s
- *           SPEEX_6   5.95 kbit/s
+ *           SPEEX_5   5.95 kbit/s
  *           SPEEX_8   8 kbit/s
  *           SPEEX_11  11 kbit/s
  *           SPEEX_15  15 kbit/s
  *           SPEEX_18  18.2 kbit/s
  *           SPEEX_24  24.6 kbit/s
- * Variable: ISAC      variable bitrate
+ *           SPEEX_WB_9 9.8 kbit/s
+ *           SPEEX_WB_12 12.8 kbit/s
+ *           SPEEX_WB_16 16.8 kbit/s
+ *           SPEEX_WB_20 20.6 kbit/s
+ *           SPEEX_WB_23 23.8 kbit/s
+ *           SPEEX_WB_27 27.8 kbit/s
+ *           SPEEX_WB_34 34.4 kbit/s
+ *           SPEEX_WB_42 42.4 kbit/s
+ *           SPEEX_UWB_11 11.6 kbit/s
+ *           SPEEX_UWB_14 14.6 kbit/s
+ *           SPEEX_UWB_18 18.6 kbit/s
+ *           SPEEX_UWB_22 22.4 kbit/s
+ *           SPEEX_UWB_25 25.6 kbit/s
+ *           SPEEX_UWB_29 29.6 kbit/s
+ *           SPEEX_UWB_36 36.0 kbit/s
+ *           SPEEX_UWB_44 44.0 kbit/s
  * </pre>
  */
 typedef enum

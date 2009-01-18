@@ -11,8 +11,8 @@
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
-#ifndef _MpeSipxSpeexWb_h_
-#define _MpeSipxSpeexWb_h_
+#ifndef _MpeSipxSpeexUWb_h_
+#define _MpeSipxSpeexUWb_h_
 
 #ifdef HAVE_SPEEX /* [ */
 
@@ -24,7 +24,7 @@
 #include <speex/speex_preprocess.h>
 
 /// Derived class for Speex encoder.
-class MpeSipxSpeexWb: public MpEncoderBase
+class MpeSipxSpeexUWb: public MpEncoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -34,29 +34,29 @@ public:
 //@{
 
      /// Constructor
-   MpeSipxSpeexWb(int payloadType, int mode = 6);
+   MpeSipxSpeexUWb(int payloadType, int mode = 6);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this encoder
      *  @param mode - (in) Speex encoder mode: 
      *                     <pre>
-     *                     mode = 0 - 3,950 bps - Barely intelligible (mostly for comfort noise)
-     *                     mode = 1 - 5,750 bps - Very noticeable artifacts/noise, poor intelligibility
-     *                     mode = 2 - 7,750 bps - Very noticeable artifacts/noise, good intelligibility
-     *                     mode = 3 - 9,800 bps - Artifacts/noise sometimes annoying
-     *                     mode = 4 - 12,800 bps - Artifacts/noise usually noticeable
-     *                     mode = 5 - 16,800 bps - Artifacts/noise sometimes noticeable
-     *                     mode = 6 - 20,600 bps - Need good headphones to tell the difference
-     *                     mode = 7 - 23,800 bps - Need good headphones to tell the difference
-     *                     mode = 8 - 27,800 bps - Hard to tell the difference even with good headphones
-     *                     mode = 9 - 34,400 bps - Hard to tell the difference even with good headphones
-     *                     mode = 10 - 42,400 bps - Completely transparent for voice, good quality music
+     *                     mode = 0 - 5,750 bps - Barely intelligible (mostly for comfort noise)
+     *                     mode = 1 - 7,550 bps - Very noticeable artifacts/noise, poor intelligibility
+     *                     mode = 2 - 9,550 bps - Very noticeable artifacts/noise, good intelligibility
+     *                     mode = 3 - 11,600 bps - Artifacts/noise sometimes annoying
+     *                     mode = 4 - 14,600 bps - Artifacts/noise usually noticeable
+     *                     mode = 5 - 18,600 bps - Artifacts/noise sometimes noticeable
+     *                     mode = 6 - 22,400 bps - Need good headphones to tell the difference
+     *                     mode = 7 - 25,600 bps - Need good headphones to tell the difference
+     *                     mode = 8 - 29,600 bps - Hard to tell the difference even with good headphones
+     *                     mode = 9 - 36,000 bps - Hard to tell the difference even with good headphones
+     *                     mode = 10 - 44,000 bps - Completely transparent for voice, good quality music
      *                     </pre>
      *                     If not supported mode will be passed, default mode
      *                     will be used.
      */
 
      /// Destructor
-   virtual ~MpeSipxSpeexWb(void);
+   virtual ~MpeSipxSpeexUWb(void);
 
      /// Initializes a codec data structure for use as an encoder
    virtual OsStatus initEncode(void);
@@ -134,7 +134,7 @@ private:
    int mDoVad;              ///< Set to 1 to enable voice activity detection
    int mDoDtx;              ///< Set to 1 to enable discontinuous transmission
    int mDoVbr;              ///< Set to 1 to enable variable bitrate mode
-   spx_int16_t mpBuffer[320]; ///< Buffer used to store input samples
+   spx_int16_t mpBuffer[640]; ///< Buffer used to store input samples
    int mBufferLoad;          ///< How much data there is in the byffer
    bool mDoPreprocess;         ///< Should we do preprocess or not
    SpeexPreprocessState *mpPreprocessState; ///< Preprocessor state
@@ -145,4 +145,4 @@ private:
 
 #endif /* HAVE_SPEEX ] */
 
-#endif  // _MpeSipxSpeexWb_h_
+#endif  // _MpeSipxSpeexUWb_h_
