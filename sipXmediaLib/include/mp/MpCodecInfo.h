@@ -45,15 +45,12 @@ public:
    MpCodecInfo(
       SdpCodec::SdpCodecTypes codecType, ///< codec type
       const char* codecVersion,   ///< string identifying the codec version
-      UtlBoolean  usesNetEq,      ///< indicats whether the codec uses GIPS NetEq
       unsigned    samplingRate,   ///< sampling rate for the PCM data expected
                                   ///< by the codec
       unsigned    numBitsPerSample, 
       unsigned    numChannels,    ///< number of channels supported by the codec
-      unsigned    interleaveBlockSize, ///< size of the interleave block (in samples)
       unsigned    bitRate,        ///< bit rate for this codec (in bits per second)
       unsigned    minPacketBits,  ///< minimum number of bits in an encoded frame
-      unsigned    avgPacketBits,  ///< average number of bits in an encoded frame
       unsigned    maxPacketBits,  ///< maximum number of bits in an encoded frame
       unsigned    numSamplesPerFrame, ///< number of PCM samples per input frame
                                       ///< for this codec
@@ -102,13 +99,6 @@ public:
      /// Returns the number of channels supported by the codec
    unsigned getNumChannels(void) const;
 
-     /// Returns the size of the interleave block (in samples)
-   unsigned getInterleaveBlockSize(void) const;
-     /**<
-     *  This value is not meaningful if the number of channels for the
-     *  codec is equal to 1.
-     */
-
      /// Returns the bit rate for this codec (in bits per second)
    unsigned getBitRate(void) const;
      /**<
@@ -118,9 +108,6 @@ public:
 
      /// Returns the minimum number of bits in an encoded frame
    unsigned getMinPacketBits(void) const;
-
-     /// Returns the average number of bits in an encoded frame
-   unsigned getAvgPacketBits(void) const;
 
      /// Returns the maximum number of bits in an encoded frame
    unsigned getMaxPacketBits(void) const;
@@ -139,9 +126,6 @@ public:
 ///@name Inquiry
 //@{
 
-     /// Returns TRUE if codec uses GIPS NetEq; otherwise returns FALSE
-   UtlBoolean usesNetEq(void) const;
-
      /// Returns TRUE if codec is used for signaling; otherwise returns FALSE
    UtlBoolean isSignalingCodec(void) const;
 
@@ -157,15 +141,12 @@ protected:
 private:
    SdpCodec::SdpCodecTypes mCodecType;
    UtlString    mCodecVersion;
-   UtlBoolean   mUsesNetEq;
    unsigned    mSamplingRate;
    unsigned    mNumBitsPerSample;
    unsigned    mNumSamplesPerFrame;
    unsigned    mNumChannels;
-   unsigned    mInterleaveBlockSize;
    unsigned    mBitRate;
    unsigned    mMinPacketBits;
-   unsigned    mAvgPacketBits;
    unsigned    mMaxPacketBits;
    unsigned    mPreCodecJitterBufferSize;
    UtlBoolean   mIsSignalingCodec;

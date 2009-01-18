@@ -170,10 +170,6 @@ private:
      /// Handle messages for this resource.
    virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
 
-     /// @brief Get maximum payload size, estimated from
-     /// MpEncoderBase::getMaxPacketBits().
-   int payloadByteLength(MpEncoderBase& rEncoder);
-
      /// Allocate memory for RTP packet.
    OsStatus allocPacketBuffer(MpEncoderBase& rEncoder,
                               unsigned char*& rpPacketPayload,

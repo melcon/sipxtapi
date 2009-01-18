@@ -16,56 +16,44 @@
 const MpCodecInfo MpdSipxG726::ms_codecInfo16(
    SdpCodec::SDP_CODEC_G726_16,    // codecType
    "G726-16",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
    8,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    16000,                      // bitRate. It doesn't matter right now.
    20*8,                       // minPacketBits
-   20*8,                       // avgPacketBits
    20*8,                       // maxPacketBits
    80);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo24(
    SdpCodec::SDP_CODEC_G726_24,    // codecType
    "G726-24",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
    8,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    24000,                      // bitRate. It doesn't matter right now.
    30*8,                       // minPacketBits
-   30*8,                       // avgPacketBits
    30*8,                       // maxPacketBits
    80);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo32(
    SdpCodec::SDP_CODEC_G726_32,    // codecType
    "G726-32",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
    8,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    32000,                      // bitRate. It doesn't matter right now.
    40*8,                       // minPacketBits
-   40*8,                       // avgPacketBits
    40*8,                       // maxPacketBits
    80);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo40(
    SdpCodec::SDP_CODEC_G726_40,    // codecType
    "G726-40",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
    8,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    40000,                      // bitRate. It doesn't matter right now.
    50*8,                       // minPacketBits
-   50*8,                       // avgPacketBits
    50*8,                       // maxPacketBits
    80);                       // numSamplesPerFrame
 

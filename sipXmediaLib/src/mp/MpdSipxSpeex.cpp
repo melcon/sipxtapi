@@ -23,18 +23,13 @@
 const MpCodecInfo MpdSipxSpeex::smCodecInfo(
          SdpCodec::SDP_CODEC_SPEEX_8,    // codecType
          "Speex codec",                // codecVersion
-         false,                        // usesNetEq
          8000,                         // samplingRate
          8,                            // numBitsPerSample (not used)
          1,                            // numChannels
-         38,                           // interleaveBlockSize
          15000,                        // bitRate
          1*8,                          // minPacketBits
-         38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
-         160,                          // numSamplesPerFrame
-         5);                           // preCodecJitterBufferSize (should be adjusted)
-
+         160);                          // numSamplesPerFrame
               
 
 MpdSipxSpeex::MpdSipxSpeex(int payloadType)

@@ -22,18 +22,13 @@
 const MpCodecInfo MpdSipxSpeexUWb::smCodecInfo(
          SdpCodec::SDP_CODEC_SPEEX_UWB_22,    // codecType
          "Speex codec",                // codecVersion
-         false,                        // usesNetEq
          32000,                        // samplingRate
          8,                            // numBitsPerSample (not used)
          1,                            // numChannels
-         640,                          // interleaveBlockSize
          22400,                        // bitRate
          1*8,                          // minPacketBits
-         38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
-         640,                          // numSamplesPerFrame
-         5);                           // preCodecJitterBufferSize (should be adjusted)
-
+         640);                          // numSamplesPerFrame
 
 MpdSipxSpeexUWb::MpdSipxSpeexUWb(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)

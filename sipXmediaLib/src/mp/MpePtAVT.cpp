@@ -16,8 +16,8 @@
 #include "mp/MpePtAVT.h"
 
 const MpCodecInfo MpePtAVT::smCodecInfo(
-         SdpCodec::SDP_CODEC_TONES, "Pingtel_1.0", false,
-         8000, 0, 1, 0, 6400, 128, 128, 128, 160, TRUE);
+         SdpCodec::SDP_CODEC_TONES, "Pingtel_1.0",
+         8000, 0, 1, 6400, 128, 128, 160, TRUE);
 
 MpePtAVT::MpePtAVT(int payloadType)
    : MpEncoderBase(payloadType, &smCodecInfo)

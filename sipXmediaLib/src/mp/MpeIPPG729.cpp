@@ -26,15 +26,12 @@ extern "C" {
 
 const MpCodecInfo MpeIPPG729::smCodecInfo(
    SdpCodec::SDP_CODEC_G729,    // codecType
-   "Intel IPP 5.3",              // codecVersion
-   true,                         // usesNetEq
+   "Intel IPP 6.0",              // codecVersion
    8000,                         // samplingRate
    16,                           // numBitsPerSample
    1,                            // numChannels
-   160,                           // interleaveBlockSize
    8000,                         // bitRate
    20*8,                           // minPacketBits
-   20*8,                           // avgPacketBits
    20*8,                          // maxPacketBits
    160);                          // numSamplesPerFrame
 

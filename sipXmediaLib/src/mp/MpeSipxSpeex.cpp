@@ -27,14 +27,11 @@
 const MpCodecInfo MpeSipxSpeex::smCodecInfo(
          SdpCodec::SDP_CODEC_SPEEX_8,    // codecType
          "Speex",                      // codecVersion
-         true,                         // usesNetEq
          8000,                         // samplingRate
-         8,                            // numBitsPerSample
+         16,                            // numBitsPerSample
          1,                            // numChannels
-         160,                          // interleaveBlockSize
          8000,                         // bitRate. It doesn't matter right now.
          38,                           // minPacketBits
-         38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
          160);                         // numSamplesPerFrame
 

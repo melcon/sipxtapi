@@ -39,7 +39,7 @@ int MpdSipxL16::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength,
 
    const MpAudioSample* inputPtr = (const MpAudioSample*)pPacket->getDataPtr();
    int inputPayloadSize = (int)pPacket->getPayloadSize() / sizeof(MpAudioSample); // count of samples in RTP
-   int samplesToDecode = min(inputPayloadSize, decodedBufferLength); // don't overflow output buffer
+   int samplesToDecode = min(inputPayloadSize, (int)decodedBufferLength); // don't overflow output buffer
 
    for (int i = 0; i < samplesToDecode; i++)
    {
@@ -88,111 +88,87 @@ const MpCodecInfo* MpdSipxL16::getCodecInfo(int samplesPerSec)
 const MpCodecInfo MpdSipxL16::ms_codecInfo8000(
    SdpCodec::SDP_CODEC_L16_8000_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    8000*2*8,                   // bitRate. It doesn't matter right now.
    80*2*8,                       // minPacketBits
-   80*2*8,                       // avgPacketBits
    80*2*8,                       // maxPacketBits
    80);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxL16::ms_codecInfo11025(
    SdpCodec::SDP_CODEC_L16_11025_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    11025,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    11025*2*8,                   // bitRate. It doesn't matter right now.
    110*2*8,                       // minPacketBits
-   110*2*8,                       // avgPacketBits
-   110*2*8,                       // maxPacketBits
+   111*2*8,                       // maxPacketBits
    110);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxL16::ms_codecInfo16000(
    SdpCodec::SDP_CODEC_L16_16000_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    16000,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    16000*2*8,                   // bitRate. It doesn't matter right now.
    160*2*8,                       // minPacketBits
-   160*2*8,                       // avgPacketBits
    160*2*8,                       // maxPacketBits
    160);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxL16::ms_codecInfo22050(
    SdpCodec::SDP_CODEC_L16_22050_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    22050,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    22050*2*8,                   // bitRate. It doesn't matter right now.
    220*2*8,                       // minPacketBits
-   220*2*8,                       // avgPacketBits
-   220*2*8,                       // maxPacketBits
+   221*2*8,                       // maxPacketBits
    220);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxL16::ms_codecInfo24000(
    SdpCodec::SDP_CODEC_L16_24000_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    24000,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    24000*2*8,                   // bitRate. It doesn't matter right now.
    240*2*8,                       // minPacketBits
-   240*2*8,                       // avgPacketBits
    240*2*8,                       // maxPacketBits
    240);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxL16::ms_codecInfo32000(
    SdpCodec::SDP_CODEC_L16_32000_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    32000,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    32000*2*8,                   // bitRate. It doesn't matter right now.
    320*2*8,                       // minPacketBits
-   320*2*8,                       // avgPacketBits
    320*2*8,                       // maxPacketBits
    320);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxL16::ms_codecInfo44100(
    SdpCodec::SDP_CODEC_L16_44100_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    44100,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    44100*2*8,                   // bitRate. It doesn't matter right now.
    441*2*8,                       // minPacketBits
-   441*2*8,                       // avgPacketBits
    441*2*8,                       // maxPacketBits
    441);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxL16::ms_codecInfo48000(
    SdpCodec::SDP_CODEC_L16_48000_MONO,    // codecType
    "",                         // codecVersion
-   false,                      // usesNetEq
    48000,                       // samplingRate
    16,                          // numBitsPerSample
    1,                          // numChannels
-   0,                        // interleaveBlockSize
    48000*2*8,                   // bitRate. It doesn't matter right now.
    480*2*8,                       // minPacketBits
-   480*2*8,                       // avgPacketBits
    480*2*8,                       // maxPacketBits
    480);                       // numSamplesPerFrame

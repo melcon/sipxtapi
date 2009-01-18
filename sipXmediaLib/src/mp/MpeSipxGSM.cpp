@@ -22,14 +22,11 @@ extern "C" {
 const MpCodecInfo MpeSipxGSM::smCodecInfo(
          SdpCodec::SDP_CODEC_GSM,    // codecType
          "GSM 6.10",                 // codecVersion
-         false,                      // usesNetEq
          8000,                       // samplingRate
-         8,                          // numBitsPerSample
+         16,                          // numBitsPerSample
          1,                          // numChannels
-         160,                        // interleaveBlockSize
          13200,                      // bitRate. It doesn't matter right now.
          33*8,                       // minPacketBits
-         33*8,                       // avgPacketBits
          33*8,                       // maxPacketBits
          160);                       // numSamplesPerFrame
 

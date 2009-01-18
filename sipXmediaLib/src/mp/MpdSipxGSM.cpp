@@ -25,23 +25,16 @@ extern "C" {
 #include <gsm.h>
 }
 
-
 const MpCodecInfo MpdSipxGSM::smCodecInfo(
          SdpCodec::SDP_CODEC_GSM,    // codecType
          "GSM 6.10",                 // codecVersion
-         false,                      // usesNetEq
          8000,                       // samplingRate
          8,                          // numBitsPerSample (not used)
          1,                          // numChannels
-         160,                        // interleaveBlockSize
          13200,                      // bitRate
          33 * 8,                     // minPacketBits
-         33 * 8,                     // avgPacketBits
          33 * 8,                     // maxPacketBits
-         160,                        // numSamplesPerFrame
-         6);                         // preCodecJitterBufferSize (should be adjusted)
-
-              
+         160);                        // numSamplesPerFrame
 
 MpdSipxGSM::MpdSipxGSM(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)

@@ -167,23 +167,22 @@ OsStatus MprEncode::selectCodecs(SdpCodec* pPrimary, SdpCodec* pDtmf)
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-
-// Get maximum payload size, estimated from MpEncoderBase::getMaxPacketBits().
-int MprEncode::payloadByteLength(MpEncoderBase& rEncoder)
-{
-   int maxBitsPerPacket = rEncoder.getInfo()->getMaxPacketBits();
-
-   return (maxBitsPerPacket + 7) / 8;
-}
-
 OsStatus MprEncode::allocPacketBuffer(MpEncoderBase& rEncoder,
                                       unsigned char*& rpPacketPayload,
                                       int& rPacketPayloadBytes)
 {
    OsStatus ret = OS_SUCCESS;
 
-   // Estimate packet size
-   rPacketPayloadBytes = payloadByteLength(rEncoder);
+   // Set packet size to maximum possible size. Probably we could guess better,
+   // but to do so we need:
+   // 1) to know how much audio data we want to pack (10ms, 20ms, or more);
+   // 2) somehow negotiate packet size for codecs that require special
+   //    processing to pack several frames into one packet (like AMR, Speex, etc).
+   // One of possible solution would be to implement function to ask for
+   // packet size (not frame size!) for codecs. That is pass to it number of
+   // audio samples we want to pack and get packet size back from it, like this:
+   //    int get_packet_size(int numSamples, int* packetSize) const;
+   rPacketPayloadBytes = RTP_MTU;
 
    // Allocate buffer for RTP packet data
    rpPacketPayload = new unsigned char[rPacketPayloadBytes];
