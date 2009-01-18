@@ -91,6 +91,8 @@ class SipXMediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) ;
 
     virtual OsStatus enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable);
+    virtual OsStatus setOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE mode);
+    virtual OsStatus getOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE& mode);
 
     virtual OsStatus buildCodecList(SdpCodecList& codecFactory, 
                                     const UtlString& sPreferences,
