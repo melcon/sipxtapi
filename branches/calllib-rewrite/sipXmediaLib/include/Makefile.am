@@ -85,6 +85,7 @@ nobase_include_HEADERS =  \
     mp/MpdSipxG726.h \
     mp/MpdSipxGSM.h \
     mp/MpdSipxILBC.h \
+    mp/MpdSipxL16.h \
     mp/MpdSipxPcma.h \
     mp/MpdSipxPcmu.h \
     mp/MpdSipxSpeex.h \
@@ -96,6 +97,7 @@ nobase_include_HEADERS =  \
     mp/MpeSipxG726.h \
     mp/MpeSipxGSM.h \
     mp/MpeSipxILBC.h \
+    mp/MpeSipxL16.h \
     mp/MpeSipxPcma.h \
     mp/MpeSipxPcmu.h \
     mp/MpeSipxSpeex.h \

@@ -158,8 +158,8 @@ typedef enum
  * bandwidth requirements.
  *
  * High bandwidth - bitrate lower than 20 kbit/s
- * Normal bandwidth - bitrate 20 kbit/s - 40kbit/s
- * High bandwidth - bitrate higher than 40kbit/s
+ * Normal bandwidth - bitrate 20 kbit/s - 40 kbit/s
+ * High bandwidth - bitrate higher than 40 kbit/s
  *
  * Bitrates of supported codecs:
  *
@@ -198,7 +198,17 @@ typedef enum
  *           SPEEX_UWB_29 29.6 kbit/s
  *           SPEEX_UWB_36 36.0 kbit/s
  *           SPEEX_UWB_44 44.0 kbit/s
+ *           L16 8Khz mono 128 kbit/s
+ *           L16 11Khz mono 176 kbit/s
+ *           L16 16Khz mono 258 kbit/s
+ *           L16 22Khz mono 352 kbit/s
+ *           L16 24Khz mono 384 kbit/s
+ *           L16 32Khz mono 512 kbit/s
+ *           L16 44Khz mono 704 kbit/s
+ *           L16 48Khz mono 768 kbit/s
  * </pre>
+ * Note that L16 is uncompressed 16bit audio at various sampling rates.
+ * SPEEX_WB has 16Khz sampling rate, SPEEX_UWB has 32Khz sampling rate. 
  */
 typedef enum
 {
