@@ -418,6 +418,28 @@ OsStatus SipXMediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, U
    return OS_SUCCESS;
 }
 
+OsStatus SipXMediaFactoryImpl::setOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE mode)
+{
+   MpCallFlowGraph::setInbandDTMF(mode == MEDIA_OUTBOUND_DTMF_INBAND);
+
+   return OS_SUCCESS;
+}
+
+OsStatus SipXMediaFactoryImpl::getOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE& mode)
+{
+   UtlBoolean inBandDtmfEnabled = MpCallFlowGraph::isSendInbandDTMFEnabled();
+   if (inBandDtmfEnabled)
+   {
+      mode = MEDIA_OUTBOUND_DTMF_INBAND;
+   }
+   else
+   {
+      mode = MEDIA_OUTBOUND_DTMF_RFC2833;
+   }
+
+   return OS_SUCCESS;
+}
+
 UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 {
    UtlString supportedCodecs = 
