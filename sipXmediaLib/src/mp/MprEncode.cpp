@@ -280,6 +280,12 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
       // when codec uses 8000, but flowgraph 16000, then samples we get will be downsampled to 1/2 of samples
       // and thus timestamp must be advanced by lower value
       mTimestampStep = (unsigned int)(((double)pNewEncoder->getInfo()->getSamplingRate() / getSamplesPerSec()) * getSamplesPerFrame());
+      if (pNewEncoder->getInfo()->getCodecType() == SdpCodec::SDP_CODEC_G722)
+      {
+         // Workaround RFC bug with G.722 samplerate.
+         // Read RFC 3551 Section 4.5.2 "G722" for details.
+         mTimestampStep /= 2;
+      }
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
       destroyResampler();
       // setup speex resampler
