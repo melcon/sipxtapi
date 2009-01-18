@@ -33,8 +33,8 @@ struct AvtPacket {
 static int debugCtr = 0;
 
 const MpCodecInfo MpdPtAVT::smCodecInfo(
-         SdpCodec::SDP_CODEC_TONES, "Pingtel_1.0", false,
-         8000, 0, 1, 0, 6400, 128, 128, 128, 0, 0, TRUE, FALSE);
+         SdpCodec::SDP_CODEC_TONES, "Pingtel_1.0",
+         8000, 0, 1, 6400, 128, 128, 0, 0, TRUE, FALSE);
 
 MpdPtAVT::MpdPtAVT(int payloadType)
    : MpDecoderBase(payloadType, &smCodecInfo),

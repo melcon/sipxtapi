@@ -25,14 +25,11 @@
 const MpCodecInfo MpeSipxSpeexUWb::smCodecInfo(
          SdpCodec::SDP_CODEC_SPEEX_UWB_22,    // codecType
          "Speex",                      // codecVersion
-         false,                         // usesNetEq
          32000,                        // samplingRate
-         8,                            // numBitsPerSample
+         16,                            // numBitsPerSample
          1,                            // numChannels
-         640,                          // interleaveBlockSize
          22400,                        // bitRate. It doesn't matter right now.
          38*8,                         // minPacketBits
-         38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
          640);                         // numSamplesPerFrame - 20ms frames
 

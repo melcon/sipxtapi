@@ -32,32 +32,24 @@ extern "C" {
 const MpCodecInfo MpdSipxILBC::smCodecInfo30ms(
     SdpCodec::SDP_CODEC_ILBC,   // codecType
     "iLBC",                     // codecVersion
-    false,                      // usesNetEq
     8000,                       // samplingRate
     8,                          // numBitsPerSample (not used)
     1,                          // numChannels
-    240,                        // interleaveBlockSize
     13334,                      // bitRate
     NO_OF_BYTES_30MS * 8,       // minPacketBits
-    NO_OF_BYTES_30MS * 8,       // avgPacketBits
     NO_OF_BYTES_30MS * 8,       // maxPacketBits
-    240,                        // numSamplesPerFrame
-    6);                         // preCodecJitterBufferSize (should be adjusted)
+    240);                        // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxILBC::smCodecInfo20ms(
    SdpCodec::SDP_CODEC_ILBC_20MS,   // codecType
    "iLBC",                     // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
    8,                          // numBitsPerSample (not used)
    1,                          // numChannels
-   160,                        // interleaveBlockSize
    13334,                      // bitRate
    NO_OF_BYTES_20MS * 8,       // minPacketBits
-   NO_OF_BYTES_20MS * 8,       // avgPacketBits
    NO_OF_BYTES_20MS * 8,       // maxPacketBits
-   160,                        // numSamplesPerFrame
-   6);                         // preCodecJitterBufferSize (should be adjusted)
+   160);                        // numSamplesPerFrame
 
 MpdSipxILBC::MpdSipxILBC(int payloadType, int mode)
 : MpDecoderBase(payloadType, mode == 20 ? &smCodecInfo20ms : &smCodecInfo30ms)

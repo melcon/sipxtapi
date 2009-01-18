@@ -27,18 +27,14 @@ extern "C" {
 
 const MpCodecInfo MpdIPPG7231::smCodecInfo(
    SdpCodec::SDP_CODEC_G723,    // codecType
-   "Intel IPP 5.3",             // codecVersion
-   true,                        // usesNetEq
+   "Intel IPP 6.0",             // codecVersion
    8000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
    1,                           // numChannels
-   160,                          // interleaveBlockSize
    8000,                        // bitRate
    20*8,                         // minPacketBits
-   20*8,                         // avgPacketBits
-   192,                         // maxPacketBits
-   160,                          // numSamplesPerFrame
-   6);                          // preCodecJitterBufferSize (should be adjusted)
+   24*8,                         // maxPacketBits
+   160);                          // numSamplesPerFrame
 
 MpdIPPG7231::MpdIPPG7231(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
