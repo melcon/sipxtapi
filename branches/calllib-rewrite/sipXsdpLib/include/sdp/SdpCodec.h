@@ -31,6 +31,7 @@
 #define MIME_SUBTYPE_PCMU "PCMU"
 #define MIME_SUBTYPE_PCMA "PCMA"
 #define MIME_SUBTYPE_G729 "G729"
+#define MIME_SUBTYPE_G722 "G722"
 #define MIME_SUBTYPE_G723 "G723"
 #define MIME_SUBTYPE_G726_16 "G726-16"
 #define MIME_SUBTYPE_G726_24 "G726-24"
@@ -122,8 +123,9 @@ public:
         SDP_CODEC_GSM = 3,         ///< GSM codec
         SDP_CODEC_G723 = 4,        ///< G.723.1 audio codec
         SDP_CODEC_PCMA = 8,        ///< G.711 a-law
-        SDP_CODEC_L16_STEREO = 10, ///< PCM 16 bit/sample 44100 samples/sec.
-        SDP_CODEC_L16_MONO = 11,   ///< PCM 16 bit/sample 44100 samples/sec.
+        SDP_CODEC_G722 = 9,        ///< G.722 audio codec, 16000 samples/sec
+        SDP_CODEC_L16_44100_STEREO = 10, ///< Stereo PCM 16 bit/sample 44100 samples/sec.
+        SDP_CODEC_L16_44100_MONO = 11, ///< Mono PCM 16 bit/sample 44100 samples/sec.
         SDP_CODEC_G729 = 18,       ///< G.729, with or without Annexes A or B
         SDP_CODEC_H263 = 34,       ///< H.263 video codec
         SDP_CODEC_MAXIMUM_STATIC_CODEC = 95,
@@ -156,7 +158,6 @@ public:
         SDP_CODEC_L16_22050_MONO, ///< Mono PCM 16 bit/sample 22050 samples/sec.
         SDP_CODEC_L16_24000_MONO, ///< Mono PCM 16 bit/sample 24000 samples/sec.
         SDP_CODEC_L16_32000_MONO, ///< Mono PCM 16 bit/sample 32000 samples/sec.
-        SDP_CODEC_L16_44100_MONO, ///< Mono PCM 16 bit/sample 44100 samples/sec.
         SDP_CODEC_L16_48000_MONO, ///< Mono PCM 16 bit/sample 48000 samples/sec.
         SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
         SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)

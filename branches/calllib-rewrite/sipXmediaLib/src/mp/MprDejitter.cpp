@@ -96,6 +96,12 @@ OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
                // we supply different value of samples per frame to jitter buffer, if flowgraph and code sampling rate
                // is different. When frameIncrement() is called, jitter buffer will increment rtp timestamp by this value.
                unsigned int samplesPerFrame = (unsigned int)(((double)pCodec->getSampleRate() / MpMisc.m_audioSamplesPerSec) * MpMisc.m_audioSamplesPerFrame);
+               if (pCodec->getCodecType() == SdpCodec::SDP_CODEC_G722)
+               {
+                  // Workaround RFC bug with G.722 samplerate.
+                  // Read RFC 3551 Section 4.5.2 "G722" for details.
+                  samplesPerFrame /= 2;
+               }
                m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
                   codecPayloadId, samplesPerFrame, true, minPreferch, minPreferch, maxPreferch, true, 3);
             }

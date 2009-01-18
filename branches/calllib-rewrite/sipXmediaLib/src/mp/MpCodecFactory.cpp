@@ -55,6 +55,10 @@
 #ifdef HAVE_SPAN_DSP // [
 #include "mp/MpdSipxG726.h"
 #include "mp/MpeSipxG726.h"
+#ifdef ENABLE_WIDEBAND_AUDIO
+#include "mp/MpdSipxG722.h"
+#include "mp/MpeSipxG722.h"
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
 
 #ifdef HAVE_GSM // [
@@ -185,6 +189,11 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_G726_40):
       rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_40);
       break;
+#ifdef ENABLE_WIDEBAND_AUDIO
+   case (SdpCodec::SDP_CODEC_G722):
+      rpDecoder = new MpdSipxG722(payloadType);
+      break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
 #ifdef HAVE_GSM // [
    case (SdpCodec::SDP_CODEC_GSM):
@@ -359,6 +368,11 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_G726_40):
       rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_40);
       break;
+#ifdef ENABLE_WIDEBAND_AUDIO
+   case (SdpCodec::SDP_CODEC_G722):
+      rpEncoder = new MpeSipxG722(payloadType);
+      break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
 #ifdef HAVE_GSM // [
    case (SdpCodec::SDP_CODEC_GSM):

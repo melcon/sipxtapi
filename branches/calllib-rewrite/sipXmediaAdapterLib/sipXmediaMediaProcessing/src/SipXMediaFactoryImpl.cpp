@@ -442,6 +442,9 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 #endif // HAVE_INTEL_IPP ]
 #ifdef HAVE_SPAN_DSP // [
       "G726_16 G726_24 G726_32 G726_40 "
+#ifdef ENABLE_WIDEBAND_AUDIO
+      "G722 "
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
       "PCMU PCMA TELEPHONE-EVENT";
    return supportedCodecs;

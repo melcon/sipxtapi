@@ -96,28 +96,20 @@ OsStatus MpdSipxG726::freeDecode(void)
 
 int MpdSipxG726::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
 {
-   // Assert that available buffer size is enough for the packet.
-   assert(pPacket->getPayloadSize() == getInfo()->getMaxPacketBits()/8);
-   if (pPacket->getPayloadSize() != getInfo()->getMaxPacketBits()/8)
+   // do not accept frames longer than 20ms from RTP to protect against buffer overflow
+   assert(pPacket->getPayloadSize() <= (getInfo()->getMaxPacketBits()*2)/8);
+   if (pPacket->getPayloadSize() > (getInfo()->getMaxPacketBits()*2)/8)
       return 0;
 
-   if (decodedBufferLength < 80)
+   if (decodedBufferLength < 160) // must be enough for decoding 20ms frame
    {
       osPrintf("MpdSipxG726::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
    int samplesDecoded = g726_decode(m_pG726state, samplesBuffer, (const uint8_t*)pPacket->getDataPtr(), (int)pPacket->getPayloadSize());
-   assert(samplesDecoded == 80);
 
-   if (samplesDecoded == 80)
-   {
-      return samplesDecoded;
-   }
-   else
-   {
-      return 0;
-   }
+   return samplesDecoded;
 }
 
 const MpCodecInfo* MpdSipxG726::getCodecInfo(G726_BITRATE bitRate)
