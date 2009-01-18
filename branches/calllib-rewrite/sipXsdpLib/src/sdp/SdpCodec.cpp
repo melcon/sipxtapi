@@ -305,8 +305,8 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;
     // speex narrowband codecs
-    else if (strcmp(compareString,"SPEEX_6") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_6;
+    else if (strcmp(compareString,"SPEEX_5") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_5;
     else if (strcmp(compareString,"SPEEX_8") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_8;
     else if (strcmp(compareString,"SPEEX_11") == 0)
@@ -318,20 +318,39 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     else if (strcmp(compareString,"SPEEX_24") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_24;
     // speex wideband codecs
-    else if (strcmp(compareString,"SPEEX_WB_13") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_13;
-    else if (strcmp(compareString,"SPEEX_WB_17") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_17;
+    else if (strcmp(compareString,"SPEEX_WB_9") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_9;
+    else if (strcmp(compareString,"SPEEX_WB_12") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_12;
+    else if (strcmp(compareString,"SPEEX_WB_16") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_16;
     else if (strcmp(compareString,"SPEEX_WB_20") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_WB_20;
-    else if (strcmp(compareString,"SPEEX_WB_24") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_24;
-    else if (strcmp(compareString,"SPEEX_WB_28") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_WB_28;
+    else if (strcmp(compareString,"SPEEX_WB_23") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_23;
+    else if (strcmp(compareString,"SPEEX_WB_27") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_27;
     else if (strcmp(compareString,"SPEEX_WB_34") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_WB_34;
     else if (strcmp(compareString,"SPEEX_WB_42") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_WB_42;
+    // speex ultra wideband codecs
+    else if (strcmp(compareString,"SPEEX_UWB_11") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_11;
+    else if (strcmp(compareString,"SPEEX_UWB_14") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_14;
+    else if (strcmp(compareString,"SPEEX_UWB_18") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_18;
+    else if (strcmp(compareString,"SPEEX_UWB_22") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_22;
+    else if (strcmp(compareString,"SPEEX_UWB_25") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_25;
+    else if (strcmp(compareString,"SPEEX_UWB_29") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_29;
+    else if (strcmp(compareString,"SPEEX_UWB_36") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_36;
+    else if (strcmp(compareString,"SPEEX_UWB_44") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_44;
     // video codecs
     else if (strcmp(compareString,"VP71-CIF") == 0)
        retType = SdpCodec::SDP_CODEC_VP71_CIF;
