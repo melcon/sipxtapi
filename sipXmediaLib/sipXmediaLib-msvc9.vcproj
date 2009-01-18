@@ -465,6 +465,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdSipxG722.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdSipxG726.cpp"
 					>
 				</File>
@@ -518,6 +522,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpePtAVT.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeSipxG722.cpp"
 					>
 				</File>
 				<File
@@ -970,6 +978,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdSipxG722.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdSipxG726.h"
 					>
 				</File>
@@ -1047,6 +1059,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpePtAVT.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeSipxG722.h"
 					>
 				</File>
 				<File

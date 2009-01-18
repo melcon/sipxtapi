@@ -301,6 +301,9 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_ILBC;
     else if (strcmp(compareString,"ILBC-20MS") == 0)
        retType = SdpCodec::SDP_CODEC_ILBC_20MS;
+    // G.722 codec
+    else if (strcmp(compareString,"G722") == 0)
+       retType = SdpCodec::SDP_CODEC_G722;
     // gsm full rate
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;

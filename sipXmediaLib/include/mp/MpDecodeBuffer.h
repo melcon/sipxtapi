@@ -30,7 +30,7 @@
 // CONSTANTS
 static const int JbPayloadMapSize = 128;
 static const int g_decodeBufferSize = (9 * (sizeof(MpAudioSample) * SAMPLES_PER_FRAME)); 
-static const int g_decodeHelperBufferSize = (6 * (sizeof(MpAudioSample) * SAMPLES_PER_FRAME)); 
+static const int g_decodeHelperBufferSize = (8 * (sizeof(MpAudioSample) * SAMPLES_PER_FRAME)); 
 
 // STRUCTS
 // TYPEDEFS

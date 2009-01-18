@@ -463,6 +463,20 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX
 #ifdef HAVE_SPAN_DSP
+   case SdpCodec::SDP_CODEC_G722:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G722,
+         SdpCodec::SDP_CODEC_G722,
+         "G722",
+         "G.722 64 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G722,
+         16000,
+         10000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_HIGH);
+      break;
    case SdpCodec::SDP_CODEC_G726_16:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_16,
          SdpCodec::SDP_CODEC_UNKNOWN,
@@ -607,7 +621,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       break;
    case SdpCodec::SDP_CODEC_L16_44100_MONO:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_44100_MONO,
-         SdpCodec::SDP_CODEC_UNKNOWN,
+         SdpCodec::SDP_CODEC_L16_44100_MONO,
          "L16_44100_MONO",
          "L16 44Khz mono",
          MIME_TYPE_AUDIO,

@@ -70,6 +70,7 @@
                 <File RelativePath=".\src\mp\MpdIPPG7231.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG729.cpp"/>
                 <File RelativePath=".\src\mp\MpdPtAVT.cpp"/>
+                <File RelativePath=".\src\mp\MpdSipxG722.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxG726.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxGSM.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxILBC.cpp"/>
@@ -84,6 +85,7 @@
                 <File RelativePath=".\src\mp\MpeIPPG729.cpp"/>
                 <File RelativePath=".\src\mp\MpEncoderBase.cpp"/>
                 <File RelativePath=".\src\mp\MpePtAVT.cpp"/>
+                <File RelativePath=".\src\mp\MpeSipxG722.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxG726.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxGSM.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxILBC.cpp"/>
@@ -199,6 +201,7 @@
                 <File RelativePath=".\include\mp\MpdIPPG7231.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpdPtAVT.h"/>
+                <File RelativePath=".\include\mp\MpdSipxG722.h"/>
                 <File RelativePath=".\include\mp\MpdSipxG726.h"/>
                 <File RelativePath=".\include\mp\MpdSipxGSM.h"/>
                 <File RelativePath=".\include\mp\MpdSipxILBC.h"/>
@@ -219,6 +222,7 @@
                 <File RelativePath=".\include\mp\MpeIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpEncoderBase.h"/>
                 <File RelativePath=".\include\mp\MpePtAVT.h"/>
+                <File RelativePath=".\include\mp\MpeSipxG722.h"/>
                 <File RelativePath=".\include\mp\MpeSipxG726.h"/>
                 <File RelativePath=".\include\mp\MpeSipxGSM.h"/>
                 <File RelativePath=".\include\mp\MpeSipxILBC.h"/>
