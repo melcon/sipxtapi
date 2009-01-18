@@ -25,7 +25,7 @@
  * Maximum number of media connections to flowgraph. Limits the number of participants in a conference.
  * We may have multiple flowgraphs, so this value doesn't limit the total number of calls.
  */
-#define MAX_CONNECTIONS 100
+#define MAX_CONNECTIONS 32
 
 /**
  * Sampling rate of flowgraph in Hz. We don't allow custom sampling rate for each flowgraph, since
@@ -33,7 +33,7 @@
  * MpAudioDriverManager will use this sampling rate.
  */
 #ifdef ENABLE_WIDEBAND_AUDIO
-#define SAMPLES_PER_SECOND 16000
+#define SAMPLES_PER_SECOND 48000
 #else
 #define SAMPLES_PER_SECOND 8000
 #endif
