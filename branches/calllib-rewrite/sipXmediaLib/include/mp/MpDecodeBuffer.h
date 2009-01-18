@@ -29,8 +29,8 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 static const int JbPayloadMapSize = 128;
-static const int g_decodeBufferSize = (9 * (sizeof(MpAudioSample) * SAMPLES_PER_FRAME)); // 9 packets, 20 mS each
-                                               // or 3 packets 60 mS each.
+static const int g_decodeBufferSize = (9 * (sizeof(MpAudioSample) * SAMPLES_PER_FRAME)); 
+static const int g_decodeHelperBufferSize = (6 * (sizeof(MpAudioSample) * SAMPLES_PER_FRAME)); 
 
 // STRUCTS
 // TYPEDEFS
@@ -121,6 +121,7 @@ private:
    int m_decodeBufferIn; ///< offset for writing next sample
    int m_decodeBufferOut; ///< offset for reading decoded sample
    MpAudioSample m_decodeBuffer[g_decodeBufferSize]; // buffer for storing decoded samples
+   MpAudioSample m_decodeHelperBuffer[g_decodeHelperBufferSize]; // buffer for storing resampled and decoded samples, before copying them into m_decodeBuffer
 
    MpDecoderBase* m_pDecoderMap[JbPayloadMapSize];
    MpDecoderBase* m_pDecoderList[JbPayloadMapSize + 1];
@@ -131,7 +132,7 @@ private:
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    SpeexResamplerState* m_pResamplerMap[JbPayloadMapSize];
-   MpAudioSample m_tmpBuffer[g_decodeBufferSize]; // buffer for storing samples after decoding, but before resampling
+   MpAudioSample m_resampleSrcBuffer[g_decodeHelperBufferSize]; // buffer for storing samples after decoding, but before resampling
 
 #endif
 
