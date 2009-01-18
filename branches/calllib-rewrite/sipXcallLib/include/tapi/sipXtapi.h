@@ -107,13 +107,9 @@
                                              sipXinitialize */
 
 #define SIPXTAPI_VERSION_STRING "sipXtapi SDK %s.%s (built %s)" /**< Version string format string */
-#define SIPXTAPI_VERSION        "3.2.0"      /**< sipXtapi API version -- automatically filled in 
+#define SIPXTAPI_VERSION        "3.3.0"      /**< sipXtapi API version -- automatically filled in 
                                                   during release process */   
 #define SIPXTAPI_BUILDNUMBER "0"             /**< Default build number -- automatically filled in 
-                                                  during release process*/
-#define SIPXTAPI_BUILD_WORD 3,2,0,0          /**< Default build word -- automatically filled in 
-                                                  during release process */
-#define SIPXTAPI_FULL_VERSION "3.2.0.0"      /**< Default full version number -- automatically filled in 
                                                   during release process*/
 #define SIPXTAPI_STRING_MEDIUM_LENGTH 30          /**< Maximum length for generic string */
 
