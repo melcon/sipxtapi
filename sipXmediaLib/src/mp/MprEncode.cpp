@@ -28,6 +28,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
+#include <mp/MpTypes.h>
 #include "mp/MpMisc.h"
 #include "mp/MpBuf.h"
 #include "mp/MprEncode.h"
@@ -416,7 +417,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    int payloadBytesLeft;
    unsigned char* pDest;
    int bytesAdded; //$$$
-   MpAudioBuf::SpeechType content;
+   MpSpeechType content;
    OsStatus ret;
    UtlBoolean sendNow;
 
@@ -427,7 +428,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
       return;
 
    // Initialize variables
-   content = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   content = MP_SPEECH_UNKNOWN;
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    unsigned int inSpeexSamplesCount = in->getSamplesNumber();
@@ -463,7 +464,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
 
       if (!mActiveAudio1)
       {
-         mActiveAudio1 = in->isActiveAudio();
+         mActiveAudio1 = isActiveAudio(in->getSpeechType());
       }
 
       payloadBytesLeft = mPacket1PayloadBytes - mPayloadBytesUsed;
@@ -486,7 +487,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
       numSamplesIn -= numSamplesOut;
       startTs += numSamplesOut;
 
-      if (content == MpAudioBuf::MP_SPEECH_ACTIVE)
+      if (content == MP_SPEECH_ACTIVE)
       {
          mActiveAudio1 = TRUE;
       }

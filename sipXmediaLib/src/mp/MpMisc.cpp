@@ -77,7 +77,7 @@ OsStatus mpStartUp()
 
    sb->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
    memset(sb->getSamplesWritePtr(), 0, sb->getSamplesNumber()*sizeof(MpAudioSample));
-   sb->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
+   sb->setSpeechType(MP_SPEECH_SILENT);
    MpMisc.m_fgSilence = sb;
 
    /*
@@ -94,7 +94,7 @@ OsStatus mpStartUp()
 
    cnb->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
    memset(cnb->getSamplesWritePtr(), 0, cnb->getSamplesNumber() * sizeof(MpAudioSample));
-   cnb->setSpeechType(MpAudioBuf::MP_SPEECH_COMFORT_NOISE);
+   cnb->setSpeechType(MP_SPEECH_COMFORT_NOISE);
    MpMisc.m_comfortNoise = cnb;
 
    // Create buffer for RTP packets

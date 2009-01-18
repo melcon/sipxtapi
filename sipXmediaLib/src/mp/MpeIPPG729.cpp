@@ -152,7 +152,7 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpAudioBuf::SpeechType& rAudioCategory)
+                            MpSpeechType& rAudioCategory)
 {
 
    ippsSet_8u(0, (Ipp8u *)outputBuffer, codec->uscParams.pInfo->maxbitsize + 1);
@@ -206,7 +206,7 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
       sendNow = FALSE;
    }
 
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rAudioCategory = MP_SPEECH_UNKNOWN;
    rSamplesConsumed = FrmDataLen / 
                       (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
 

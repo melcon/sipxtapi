@@ -866,6 +866,8 @@ UtlBoolean MpMediaTask::handleWaitForSignal(MpMediaTaskMsg* pMsg)
 #ifdef TEST_TASK_LOAD
    OsTime processingStopTime;
    OsDateTime::getCurTime(processingStopTime);
+   enableConsoleOutput(TRUE);
+   osPrintf("Processing 1 frame took %u ms\n", processingStopTime.cvtToMsecs() - processingStartTime.cvtToMsecs());
    if (processingStopTime - processingStartTime > maxAllowedTime)
    {
       // signal overload to skip processing frames

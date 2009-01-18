@@ -25,6 +25,9 @@ nobase_include_HEADERS =  \
     mp/MpAudioStreamParameters.h \
     mp/MpAudioUtils.h \
     mp/MpAudioWaveFileRead.h \
+    mp/MpBridgeAlgBase.h \
+    mp/MpBridgeAlgLinear.h \
+    mp/MpBridgeAlgSimple.h \
     mp/MpBuf.h \
     mp/MpBufPool.h \
     mp/MpBufferMsg.h \
@@ -36,9 +39,12 @@ nobase_include_HEADERS =  \
     mp/MpDecoderBase.h \
     mp/MpDefs.h \
     mp/MpDspUtils.h \
+    mp/MpDspUtilsConvertVect.h \
+    mp/MpDspUtilsIntSqrt.h \
     mp/MpDspUtilsSerials.h \
     mp/MpDspUtilsShift.h \
     mp/MpDspUtilsSum.h \
+    mp/MpDspUtilsSumVect.h \
     mp/MpEncoderBase.h \
     mp/MpFlowGraphBase.h \
     mp/MpFlowGraphMsg.h \

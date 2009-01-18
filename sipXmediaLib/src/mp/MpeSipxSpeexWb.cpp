@@ -124,7 +124,7 @@ OsStatus MpeSipxSpeexWb::encode(const MpAudioSample* pAudioSamples,
                               const int bytesLeft,
                               int& rSizeInBytes,
                               UtlBoolean& sendNow,
-                              MpAudioBuf::SpeechType& rAudioCategory)
+                              MpSpeechType& rAudioCategory)
 {
    int size = 0;
 
@@ -159,7 +159,7 @@ OsStatus MpeSipxSpeexWb::encode(const MpAudioSample* pAudioSamples,
       sendNow = false;
    }
 
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rAudioCategory = MP_SPEECH_UNKNOWN;
    rSamplesConsumed = numSamples;
    rSizeInBytes = size;
    

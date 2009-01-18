@@ -125,10 +125,10 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
       {
          switch(out->getSpeechType()) 
          {
-         case MpAudioBuf::MP_SPEECH_TONE:
+         case MP_SPEECH_TONE:
             break;
-         case MpAudioBuf::MP_SPEECH_MUTED:
-            out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
+         case MP_SPEECH_MUTED:
+            out->setSpeechType(MP_SPEECH_SILENT);
             break;
          default:
             {
@@ -181,8 +181,8 @@ static const short         shLambdaSf = 32702;      // 0.998 in Q15
 static const short         shLambdaCSf =   67;      // 0.002 in Q15
 
 int FromMicThresh = 3;
-MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample,
-                                                   int iLength)
+MpSpeechType MprFromMic::speech_detected(int16_t* shpSample,
+                                         int iLength)
 {
    int i;
    static int64_t  llLTPower = 8000L;
@@ -240,17 +240,17 @@ MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample,
    }
    if(iSpeechHangOver) {
       iSpeechHangOver--;
-      return MpAudioBuf::MP_SPEECH_ACTIVE;
+      return MP_SPEECH_ACTIVE;
    }
    else  {
-      return MpAudioBuf::MP_SPEECH_SILENT;     // speech detected
+      return MP_SPEECH_SILENT;     // speech detected
    }
 }
 
 #else /* REAL_SILENCE_DETECTION ] [ */
 
-MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample,
-                                                   int iLength)
+MpSpeechType MprFromMic::speech_detected(int16_t* shpSample,
+                                         int iLength)
 {
    int i;
    int16_t prev;
@@ -265,10 +265,10 @@ MpAudioBuf::SpeechType MprFromMic::speech_detected(int16_t* shpSample,
       t = (prev - *shpSample) >> 1;
       energy += t * t;
       if (energy >= m_minVoiceEnergy)
-         return MpAudioBuf::MP_SPEECH_ACTIVE;
+         return MP_SPEECH_ACTIVE;
    }
 
-   return MpAudioBuf::MP_SPEECH_SILENT;
+   return MP_SPEECH_SILENT;
 }
 
 #endif /* REAL_SILENCE_DETECTION ] */

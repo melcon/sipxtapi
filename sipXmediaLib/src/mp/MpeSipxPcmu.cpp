@@ -49,11 +49,11 @@ OsStatus MpeSipxPcmu::encode(const MpAudioSample* pAudioSamples,
                              const int bytesLeft,
                              int& rSizeInBytes,
                              UtlBoolean& sendNow,
-                             MpAudioBuf::SpeechType& rAudioCategory)
+                             MpSpeechType& rAudioCategory)
 {
    G711U_Encoder(numSamples, pAudioSamples, (uint8_t*)pCodeBuf);
    rSizeInBytes = numSamples;
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rAudioCategory = MP_SPEECH_UNKNOWN;
    sendNow = FALSE;
    rSamplesConsumed = numSamples;
 

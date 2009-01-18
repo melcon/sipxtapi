@@ -409,6 +409,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpBridgeAlgLinear.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpBridgeAlgSimple.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpBuf.cpp"
 					>
 				</File>
@@ -705,6 +713,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpTypes.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpUdpBuf.cpp"
 					>
 				</File>
@@ -878,6 +890,18 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpBridgeAlgBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpBridgeAlgLinear.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpBridgeAlgSimple.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpBuf.h"
 					>
 				</File>
@@ -962,6 +986,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpDspUtilsConvertVect.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpDspUtilsIntSqrt.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpDspUtilsSerials.h"
 					>
 				</File>
@@ -971,6 +1003,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpDspUtilsSum.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpDspUtilsSumVect.h"
 					>
 				</File>
 				<File
