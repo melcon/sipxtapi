@@ -47,6 +47,11 @@
 #endif
 #endif // HAVE_SPEEX ]
 
+#ifdef ENABLE_WIDEBAND_AUDIO
+#include "mp/MpdSipxL16.h"
+#include "mp/MpeSipxL16.h"
+#endif
+
 #ifdef HAVE_SPAN_DSP // [
 #include "mp/MpdSipxG726.h"
 #include "mp/MpeSipxG726.h"
@@ -140,6 +145,33 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
+#ifdef ENABLE_WIDEBAND_AUDIO
+      // L16 codecs
+   case (SdpCodec::SDP_CODEC_L16_8000_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 8000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_11025_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 11025);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_16000_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 16000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_22050_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 22050);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_24000_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 24000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_32000_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 32000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_44100_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 44100);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_48000_MONO):
+      rpDecoder = new MpdSipxL16(payloadType, 48000);
+      break;
+#endif
 #ifdef HAVE_SPAN_DSP // [
    case (SdpCodec::SDP_CODEC_G726_16):
       rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_16);
@@ -287,6 +319,33 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
+#ifdef ENABLE_WIDEBAND_AUDIO
+      // L16 codecs
+   case (SdpCodec::SDP_CODEC_L16_8000_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 8000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_11025_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 11025);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_16000_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 16000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_22050_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 22050);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_24000_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 24000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_32000_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 32000);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_44100_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 44100);
+      break;
+   case (SdpCodec::SDP_CODEC_L16_48000_MONO):
+      rpEncoder = new MpeSipxL16(payloadType, 48000);
+      break;
+#endif
 #ifdef HAVE_SPAN_DSP // [
    case (SdpCodec::SDP_CODEC_G726_16):
       rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_16);

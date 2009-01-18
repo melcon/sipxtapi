@@ -477,6 +477,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdSipxL16.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdSipxPcma.cpp"
 					>
 				</File>
@@ -526,6 +530,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpeSipxILBC.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeSipxL16.cpp"
 					>
 				</File>
 				<File
@@ -974,6 +982,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdSipxL16.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdSipxPcma.h"
 					>
 				</File>
@@ -1047,6 +1059,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpeSipxILBC.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeSipxL16.h"
 					>
 				</File>
 				<File

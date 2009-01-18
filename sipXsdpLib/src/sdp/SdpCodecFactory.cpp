@@ -520,6 +520,119 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
 #endif // HAVE_SPAN_DSP
+   // L16 codec (uncompressed 16bit audio)
+   case SdpCodec::SDP_CODEC_L16_8000_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_8000_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_8000_MONO",
+         "L16 8Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_L16_11025_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_11025_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_11025_MONO",
+         "L16 11Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         11025,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_L16_16000_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_16000_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_16000_MONO",
+         "L16 16Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         16000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_L16_22050_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_22050_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_22050_MONO",
+         "L16 22Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         22050,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_HIGH);
+      break;
+   case SdpCodec::SDP_CODEC_L16_24000_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_24000_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_24000_MONO",
+         "L16 24Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         24000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_HIGH);
+      break;
+   case SdpCodec::SDP_CODEC_L16_32000_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_32000_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_32000_MONO",
+         "L16 32Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         32000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_HIGH);
+      break;
+   case SdpCodec::SDP_CODEC_L16_44100_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_44100_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_44100_MONO",
+         "L16 44Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         44100,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_HIGH);
+      break;
+   case SdpCodec::SDP_CODEC_L16_48000_MONO:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_48000_MONO,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "L16_48000_MONO",
+         "L16 48Khz mono",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_L16,
+         48000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_HIGH);
+      break;
 #ifdef VIDEO
    case SdpCodec::SDP_CODEC_VP71_CIF:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_CIF,

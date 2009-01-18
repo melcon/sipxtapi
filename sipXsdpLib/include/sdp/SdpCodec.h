@@ -40,6 +40,7 @@
 #define MIME_SUBTYPE_ILBC "iLBC"
 #define MIME_SUBTYPE_GSM "GSM"
 #define MIME_SUBTYPE_SPEEX "speex"
+#define MIME_SUBTYPE_L16 "L16"
 #define MIME_SUBTYPE_VP71 "VP71"
 #define MIME_SUBTYPE_IYUV "IYUV"
 #define MIME_SUBTYPE_I420 "I420"
@@ -149,7 +150,14 @@ public:
         SDP_CODEC_SPEEX_UWB_29,  ///< Speex ultra wideband mode 8 (29,600 bps)
         SDP_CODEC_SPEEX_UWB_36,  ///< Speex ultra wideband mode 9 (36,000 bps)
         SDP_CODEC_SPEEX_UWB_44,  ///< Speex ultra wideband mode 10 (44,000 bps)
-        SDP_CODEC_L16_8K,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
+        SDP_CODEC_L16_8000_MONO, ///< Mono PCM 16 bit/sample 8000 samples/sec.
+        SDP_CODEC_L16_11025_MONO, ///< Mono PCM 16 bit/sample 11025 samples/sec.
+        SDP_CODEC_L16_16000_MONO, ///< Mono PCM 16 bit/sample 16000 samples/sec.
+        SDP_CODEC_L16_22050_MONO, ///< Mono PCM 16 bit/sample 22050 samples/sec.
+        SDP_CODEC_L16_24000_MONO, ///< Mono PCM 16 bit/sample 24000 samples/sec.
+        SDP_CODEC_L16_32000_MONO, ///< Mono PCM 16 bit/sample 32000 samples/sec.
+        SDP_CODEC_L16_44100_MONO, ///< Mono PCM 16 bit/sample 44100 samples/sec.
+        SDP_CODEC_L16_48000_MONO, ///< Mono PCM 16 bit/sample 48000 samples/sec.
         SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
         SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)
         SDP_CODEC_G726_16,   ///< G.726 16 Kbps

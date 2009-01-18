@@ -351,6 +351,23 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_SPEEX_UWB_36;
     else if (strcmp(compareString,"SPEEX_UWB_44") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_UWB_44;
+    // L16 codec
+    else if (strcmp(compareString,"L16_8000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_8000_MONO;
+    else if (strcmp(compareString,"L16_11025_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_11025_MONO;
+    else if (strcmp(compareString,"L16_16000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_16000_MONO;
+    else if (strcmp(compareString,"L16_22050_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_22050_MONO;
+    else if (strcmp(compareString,"L16_24000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_24000_MONO;
+    else if (strcmp(compareString,"L16_32000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_32000_MONO;
+    else if (strcmp(compareString,"L16_44100_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_44100_MONO;
+    else if (strcmp(compareString,"L16_48000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_48000_MONO;
     // video codecs
     else if (strcmp(compareString,"VP71-CIF") == 0)
        retType = SdpCodec::SDP_CODEC_VP71_CIF;

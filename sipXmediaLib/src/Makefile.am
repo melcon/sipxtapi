@@ -110,6 +110,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpdSipxG726.cpp \
     mp/MpdSipxGSM.cpp \
     mp/MpdSipxILBC.cpp \
+    mp/MpdSipxL16.cpp \
     mp/MpdSipxPcma.cpp \
     mp/MpdSipxPcmu.cpp \
     mp/MpdSipxSpeex.cpp \
@@ -121,6 +122,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpeSipxG726.cpp \
     mp/MpeSipxGSM.cpp \
     mp/MpeSipxILBC.cpp \
+    mp/MpeSipxL16.cpp \
     mp/MpeSipxPcma.cpp \
     mp/MpeSipxPcmu.cpp \
     mp/MpeSipxSpeex.cpp \
