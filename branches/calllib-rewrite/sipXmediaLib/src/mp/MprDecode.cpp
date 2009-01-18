@@ -213,7 +213,7 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
    out->setSamplesNumber(samplesPerFrame);
    MpAudioSample* pSamples = out->getSamplesWritePtr();
    memset(pSamples, 0, out->getSamplesNumber() * sizeof(MpAudioSample));
-   out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
+   out->setSpeechType(MP_SPEECH_SILENT);
 
    // Decode one packet from Jitter Buffer
    MpDecodeBuffer* pDecodeBuffer = getDecodeBuffer();
@@ -224,7 +224,7 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
       // to be a plain old int:
       pDecodeBuffer->getSamples(pSamples, samplesPerFrame);
       assert(samplesPerFrame == (int)out->getSamplesNumber());
-      out->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
+      out->setSpeechType(MP_SPEECH_UNKNOWN);
    }
    
    // Push decoded audio packet downstream

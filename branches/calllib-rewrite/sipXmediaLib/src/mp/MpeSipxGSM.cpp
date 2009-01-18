@@ -72,7 +72,7 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpAudioBuf::SpeechType& rAudioCategory)
+                            MpSpeechType& rAudioCategory)
 {
    int size = 0;   
    
@@ -93,7 +93,7 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
 
    rSamplesConsumed = numSamples;
    rSizeInBytes = size;
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rAudioCategory = MP_SPEECH_UNKNOWN;
    return OS_SUCCESS;
 }
 

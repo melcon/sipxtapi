@@ -22,6 +22,7 @@
 #include "os/OsSysLog.h"
 #include "os/OsLock.h"
 #include "os/OsTask.h"
+#include <mp/MpTypes.h>
 #include "mp/MpMisc.h"
 #include "mp/MpBuf.h"
 #include "mp/MprRecorder.h"
@@ -393,7 +394,7 @@ UtlBoolean MprRecorder::doProcessFrame(MpBufPtr inBufs[],
          in = MpMisc.m_fgSilence;
       }
 
-      if (in->isActiveAudio()) 
+      if (isActiveAudio(in->getSpeechType()))
       {
          mConsecutiveInactive = 0;
       } else 

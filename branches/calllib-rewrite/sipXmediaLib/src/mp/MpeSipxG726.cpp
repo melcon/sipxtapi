@@ -115,7 +115,7 @@ OsStatus MpeSipxG726::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpAudioBuf::SpeechType& rAudioCategory)
+                            MpSpeechType& rAudioCategory)
 {
    assert(numSamples == 80); // we expect 10ms frames
 
@@ -132,7 +132,7 @@ OsStatus MpeSipxG726::encode(const MpAudioSample* pAudioSamples,
    {
       sendNow = FALSE;
    }
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;
 }

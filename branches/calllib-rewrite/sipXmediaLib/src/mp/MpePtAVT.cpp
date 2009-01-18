@@ -46,7 +46,7 @@ OsStatus MpePtAVT::encode(const MpAudioSample* pAudioSamples,
                           const int bytesLeft,
                           int& rSizeInBytes,
                           UtlBoolean& sendNow,
-                          MpAudioBuf::SpeechType& rAudioCategory)
+                          MpSpeechType& rAudioCategory)
 {
    assert(FALSE);
    rSizeInBytes = 0;

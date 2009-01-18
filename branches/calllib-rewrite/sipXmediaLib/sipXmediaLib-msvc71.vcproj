@@ -56,6 +56,8 @@
                 <File RelativePath=".\src\mp\MpAudioStreamParameters.cpp"/>
                 <File RelativePath=".\src\mp\MpAudioUtils.cpp"/>
                 <File RelativePath=".\src\mp\MpAudioWaveFileRead.cpp"/>
+                <File RelativePath=".\src\mp\MpBridgeAlgLinear.cpp"/>
+                <File RelativePath=".\src\mp\MpBridgeAlgSimple.cpp"/>
                 <File RelativePath=".\src\mp\MpBuf.cpp"/>
                 <File RelativePath=".\src\mp\MpBufferMsg.cpp"/>
                 <File RelativePath=".\src\mp\MpBufPool.cpp"/>
@@ -130,6 +132,7 @@
                 <File RelativePath=".\src\mp\MpRtpOutputAudioConnection.cpp"/>
                 <File RelativePath=".\src\mp\MpRtpOutputConnection.cpp"/>
                 <File RelativePath=".\src\mp\MpSipxDecoders.cpp"/>
+                <File RelativePath=".\src\mp\MpTypes.cpp"/>
                 <File RelativePath=".\src\mp\MpUdpBuf.cpp"/>
                 <File RelativePath=".\src\mp\NetInTask.cpp"/>
                 <File RelativePath=".\src\mp\resamplingby2.cpp"/>
@@ -176,6 +179,9 @@
                 <File RelativePath=".\include\mp\MpAudioStreamParameters.h"/>
                 <File RelativePath=".\include\mp\MpAudioUtils.h"/>
                 <File RelativePath=".\include\mp\MpAudioWaveFileRead.h"/>
+                <File RelativePath=".\include\mp\MpBridgeAlgBase.h"/>
+                <File RelativePath=".\include\mp\MpBridgeAlgLinear.h"/>
+                <File RelativePath=".\include\mp\MpBridgeAlgSimple.h"/>
                 <File RelativePath=".\include\mp\MpBuf.h"/>
                 <File RelativePath=".\include\mp\MpBufferMsg.h"/>
                 <File RelativePath=".\include\mp\MpBufPool.h"/>
@@ -197,9 +203,12 @@
                 <File RelativePath=".\include\mp\MpdSipxSpeex.h"/>
                 <File RelativePath=".\include\mp\MpdSipxSpeexWb.h"/>
                 <File RelativePath=".\include\mp\MpDspUtils.h"/>
+                <File RelativePath=".\include\mp\MpDspUtilsConvertVect.h"/>
+                <File RelativePath=".\include\mp\MpDspUtilsIntSqrt.h"/>
                 <File RelativePath=".\include\mp\MpDspUtilsSerials.h"/>
                 <File RelativePath=".\include\mp\MpDspUtilsShift.h"/>
                 <File RelativePath=".\include\mp\MpDspUtilsSum.h"/>
+                <File RelativePath=".\include\mp\MpDspUtilsSumVect.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG7231.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpEncoderBase.h"/>

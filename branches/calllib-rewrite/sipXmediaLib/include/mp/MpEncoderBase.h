@@ -78,7 +78,7 @@ public:
                            const int bytesLeft,
                            int& rSizeInBytes,
                            UtlBoolean& sendNow,
-                           MpAudioBuf::SpeechType& rAudioCategory) = 0;
+                           MpSpeechType& rAudioCategory) = 0;
      /**<
      *  Processes the array of audio samples.  If sufficient samples to encode
      *  a frame are now available, the encoded data will be written to the

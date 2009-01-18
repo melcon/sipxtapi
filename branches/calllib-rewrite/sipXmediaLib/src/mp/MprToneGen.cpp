@@ -179,7 +179,7 @@ UtlBoolean MprToneGen::doProcessFrame(MpBufPtr inBufs[],
           // TODO: remove reference to MpCallFlowGraph
           // MprToneGen::stopTone(mName, getFloGraph()->getMsgQ());
          ((MpCallFlowGraph*)getFlowGraph())->stopTone();
-         out->setSpeechType(MpAudioBuf::MP_SPEECH_TONE);
+         out->setSpeechType(MP_SPEECH_TONE);
          break;
 
       case OS_NO_MORE_DATA: /* silent */
@@ -188,7 +188,7 @@ UtlBoolean MprToneGen::doProcessFrame(MpBufPtr inBufs[],
 
       case OS_SUCCESS:
       default:
-         out->setSpeechType(MpAudioBuf::MP_SPEECH_TONE);
+         out->setSpeechType(MP_SPEECH_TONE);
          break;
       }
    } else {

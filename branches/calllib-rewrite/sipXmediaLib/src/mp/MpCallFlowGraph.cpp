@@ -119,8 +119,8 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    for (i=0; i<MAX_RECORDERS; i++) mpRecorders[i] = NULL;
 
    // create the resources and add them to the flow graph
-   mpBridge           = new MprBridge("Bridge", MAX_CONNECTIONS + 1,
-                                 samplesPerFrame, samplesPerSec);
+   mpBridge           = new MprBridge("Bridge", MAX_CONNECTIONS + 1, samplesPerFrame, samplesPerSec,
+                                      TRUE, MprBridge::ALG_LINEAR);
    mpFromFile         = new MprFromFile("FromFile",
                                  samplesPerFrame, samplesPerSec);
 #ifndef DISABLE_LOCAL_AUDIO // [
