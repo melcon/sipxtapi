@@ -219,8 +219,11 @@ public:
 
 //@}
 
-     /// Enables/Disable the transmission of inband DTMF audio
-   static UtlBoolean setInbandDTMF(UtlBoolean bEnable);
+     /// Enables/Disable the transmission of inband DTMF audio. Othersise RFC 2833 will be used.
+   static UtlBoolean enableSendInbandDTMF(UtlBoolean bEnable);
+
+   /// Gets status if sending inbound DTMF is enabled
+   static UtlBoolean isSendInbandDTMFEnabled();
 
    /**
     * Gets AEC settings.
@@ -375,6 +378,8 @@ protected:
 private:
 
    static UtlBoolean sbSendInBandDTMF;
+   UtlBoolean m_bPlayingInBandDTMF;
+   UtlBoolean m_bPlayingRfc2833DTMF;
    static FLOWGRAPH_AEC_MODE ms_AECMode;
    static UtlBoolean sbEnableAEC;
    static UtlBoolean sbEnableAGC;
@@ -404,7 +409,6 @@ private:
    MprSplitter*  mpToneFileSplitter;
    MprToneGen*   mpToneGen;
    OsBSem        mConnTableLock;
-   UtlBoolean    mToneIsGlobal;
    MpRtpInputAudioConnection* mpInputConnections[MAX_CONNECTIONS];
    MpRtpOutputAudioConnection* mpOutputConnections[MAX_CONNECTIONS];
    int mpBridgePorts[MAX_CONNECTIONS];
