@@ -420,7 +420,7 @@ OsStatus SipXMediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, U
 
 OsStatus SipXMediaFactoryImpl::setOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE mode)
 {
-   MpCallFlowGraph::setInbandDTMF(mode == MEDIA_OUTBOUND_DTMF_INBAND);
+   MpCallFlowGraph::enableSendInbandDTMF(mode == MEDIA_OUTBOUND_DTMF_INBAND);
 
    return OS_SUCCESS;
 }

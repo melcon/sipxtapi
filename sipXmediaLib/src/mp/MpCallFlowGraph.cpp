@@ -101,7 +101,8 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 : MpFlowGraphBase(MpMisc.m_audioSamplesPerFrame, MpMisc.m_audioSamplesPerSec)
 , mConnTableLock(OsBSem::Q_FIFO, OsBSem::FULL)
 , m_pInterfaceNotificationQueue(pInterfaceNotificationQueue)
-, mToneIsGlobal(FALSE)
+, m_bPlayingInBandDTMF(FALSE)
+, m_bPlayingRfc2833DTMF(FALSE)
 #ifdef INCLUDE_RTCP /* [ */
 , mulEventInterest(LOCAL_SSRC_COLLISION | REMOTE_SSRC_COLLISION)
 #endif /* INCLUDE_RTCP ] */
@@ -181,9 +182,8 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
 
 #ifndef DISABLE_LOCAL_AUDIO
    // connect: 
-   // FromMic -> (EchoCancel) -> (PreProcessor) -> TFsMicMixer -> ..
+   // FromMic[0] -> [0](EchoCancel)[0] -> [0](PreProcessor)[0] -> [1]TFsMicMixer[0] -> [0]MicCallrecSplitter[0] -> [0]Bridge
    //
-   // .. -> TFsMicMixer -> MicCallrecSplitter -> Bridge
    
    MpResource *pLastResource; // Last resource in the chain
    pLastResource = mpFromMic;
@@ -210,7 +210,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    assert(res == OS_SUCCESS);
 
    //////////////////////////////////////////////////////////////////////////
-   // connect Bridge[0] -> [1]TFsBridgeMixer[0] -> [0]SpeakerCallrecSplitter[0] -> [0]ToSpkr
+   // connect Bridge[0] -> [0]TFsBridgeMixer[0] -> [0]SpeakerCallrecSplitter[0] -> [0]ToSpkr
 
    res = addLink(*mpBridge, 0, *mpTFsBridgeMixer, 0);
    assert(res == OS_SUCCESS);
@@ -231,8 +231,8 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    assert(res == OS_SUCCESS);
 
    //////////////////////////////////////////////////////////////////////////
-   // connect ToneGen -> FromFile -> Splitter -> TFsBridgeMixer
-   //                                         -> Mixer
+   // connect ToneGen -> FromFile -> ToneFileSplitter -> TFsBridgeMixer
+   //                                                 -> TFsMicMixer
    
    res = addLink(*mpToneGen, 0, *mpFromFile, 0);
    assert(res == OS_SUCCESS);
@@ -294,6 +294,7 @@ MpCallFlowGraph::MpCallFlowGraph(const char* locale,
    boolRes = mpTFsMicMixer->setWeight(0, 0);      assert(boolRes);
    boolRes = mpTFsMicMixer->setWeight(1, 1);      assert(boolRes);
 
+   // this mixer will work as a normal mixer
    boolRes = mpTFsBridgeMixer->setWeight(1, 0);   assert(boolRes);
    boolRes = mpTFsBridgeMixer->setWeight(1, 1);   assert(boolRes);
 
@@ -607,46 +608,52 @@ void MpCallFlowGraph::startTone(int toneId, int toneOptions)
    UtlBoolean boolRes;
    OsStatus  res;
 
-   // enable tone gen
-   res = mpToneGen->startTone(toneId);        assert(res == OS_SUCCESS);
+   if ((sbSendInBandDTMF && (toneOptions & TONE_TO_NET)) ||
+      (toneOptions & TONE_TO_SPKR))
+   {
+      // enable inband DTMF generator
+      res = mpToneGen->startTone(toneId);
+      assert(res == OS_SUCCESS);
+      m_bPlayingInBandDTMF = TRUE;
+   }
 
 #ifndef DISABLE_LOCAL_AUDIO
    // Also play locally if requested
    if (toneOptions & TONE_TO_SPKR)
    {
-      boolRes = mpTFsBridgeMixer->enable();   assert(boolRes);
+      boolRes = mpTFsBridgeMixer->enable();
+      assert(boolRes);
    }
 #endif
 
-   mToneIsGlobal = (toneOptions & TONE_TO_NET);
-   if (mToneIsGlobal)
+   if (!sbSendInBandDTMF && (toneOptions & TONE_TO_NET))
    {
+      m_bPlayingRfc2833DTMF = TRUE;
       // Notify outbound leg of all connections that we are playing a tone
       for (int i = 0; i < MAX_CONNECTIONS; i++)
       {
          if (mpOutputConnections[i]) 
          {
+            // starts RFC 2833 tone
             mpOutputConnections[i]->startTone(toneId);
          }
       }
-
-#ifndef DISABLE_LOCAL_AUDIO
-      // Play the file audio through the Mixer resource,
-      // shutting off the other audio input
-      boolRes = mpTFsMicMixer->disable();   assert(boolRes);
-
-      // We may be asked NOT to send inband DTMF to the remote
-      // party.  This is accomplished by setting the tone gen
-      // weight to zero.  At which point, the mixer will send
-      // silence.
-      if (!sbSendInBandDTMF)
-      {
-         boolRes = mpTFsMicMixer->setWeight(0, 1);      assert(boolRes);
-      }
-#endif
    }
 
-#ifndef DISABLE_LOCAL_AUDIO // [
+#ifndef DISABLE_LOCAL_AUDIO
+   if (!sbSendInBandDTMF)
+   {
+      // we don't want inband in RTP, pass only mic
+      boolRes = mpTFsMicMixer->enable();
+      assert(boolRes);
+   }
+   else
+   {
+      // we want inband in RTP, don't pass from mic and pass from tonegen
+      boolRes = mpTFsMicMixer->disable();
+      assert(boolRes);
+   }
+
 #ifdef DOING_ECHO_CANCELATION // [
    boolRes = mpEchoCancel->disable();  assert(boolRes);
 #endif // DOING_ECHO_CANCELATION ]
@@ -661,19 +668,21 @@ void MpCallFlowGraph::stopTone(void)
    MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_STOP_TONE, NULL,
                    NULL, NULL, 0, 0);
 
-   // mpToneGen->disable();
-
-   res = mpToneGen->stopTone();         assert(res == OS_SUCCESS);
+   if (m_bPlayingInBandDTMF)
+   {
+      res = mpToneGen->stopTone();
+      assert(res == OS_SUCCESS);
+      m_bPlayingInBandDTMF = FALSE;
+   }
    res = postMessage(msg);
 
-   // Shut off the tone generator input to the Mixer resources
-   // boolRes = mpTFsBridgeMixer->enable();   assert(boolRes);
-
-   if (mToneIsGlobal) {
-      // boolRes = mpTFsMicMixer->enable();      assert(boolRes);
-      // Notify outbound leg of all connections that we are playing a tone
-      for (i=0; i<MAX_CONNECTIONS; i++) {
-         if (NULL != mpOutputConnections[i]) 
+   if (m_bPlayingRfc2833DTMF)
+   {
+      m_bPlayingRfc2833DTMF = FALSE;
+      // stop sending RFC 2833 DTMF
+      for (i = 0; i < MAX_CONNECTIONS; i++)
+      {
+         if (mpOutputConnections[i])
              mpOutputConnections[i]->stopTone();
       }
    }
@@ -1096,11 +1105,16 @@ void MpCallFlowGraph::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
 }
 
 // Enables/Disable the transmission of inband DTMF audio
-UtlBoolean MpCallFlowGraph::setInbandDTMF(UtlBoolean bEnable)
+UtlBoolean MpCallFlowGraph::enableSendInbandDTMF(UtlBoolean bEnable)
 {
    UtlBoolean bSave = sbSendInBandDTMF;
    sbSendInBandDTMF = bEnable;
    return bSave;
+}
+
+UtlBoolean MpCallFlowGraph::isSendInbandDTMFEnabled()
+{
+   return sbSendInBandDTMF;
 }
 
 // Get Echo Cancelation Mode.
@@ -1604,21 +1618,18 @@ UtlBoolean MpCallFlowGraph::handleStopToneOrPlay()
 #endif /* DOING_ECHO_CANCELATION ] */
 
 #ifndef DISABLE_LOCAL_AUDIO // [
-   // Shut off the tone generator input to the Mixer resources
-   boolRes = mpTFsBridgeMixer->disable();     assert(boolRes);
-   boolRes = mpTFsMicMixer->enable();        assert(boolRes);
+   // only pass bridge input, and not tonegen/fileplay
+   boolRes = mpTFsBridgeMixer->disable();
+   assert(boolRes);
+   // only pass from mic, and not tonegen/fileplay
+   boolRes = mpTFsMicMixer->enable();
+   assert(boolRes);
 
-   // The weight of the tone gen / from file resource may have
-   // be changed to zero if we were requested NOT to send inband
-   // DTMF.  This code resets that weight.
-   if (!sbSendInBandDTMF)
-   {
-      boolRes = mpTFsMicMixer->setWeight(1, 1); assert(boolRes);
-   }
 #ifdef DOING_ECHO_CANCELATION // [
    if (sbEnableAEC && (this == pMediaTask->getFocus()))
    {
-      boolRes = mpEchoCancel->enable();  assert(boolRes);
+      boolRes = mpEchoCancel->enable();
+      assert(boolRes);
    }
 #endif // DOING_ECHO_CANCELATION ]
 #endif // DISABLE_LOCAL_AUDIO ]
