@@ -20,9 +20,9 @@ const MpCodecInfo MpdSipxG722::ms_codecInfo64(
    16,                          // numBitsPerSample
    1,                          // numChannels
    64000,                      // bitRate. It doesn't matter right now.
-   80*8,                       // minPacketBits
-   80*8,                       // maxPacketBits
-   160);                       // numSamplesPerFrame - 10ms frame
+   160*8,                       // minPacketBits
+   160*8,                       // maxPacketBits
+   320);                       // numSamplesPerFrame - 10ms frame
 
 MpdSipxG722::MpdSipxG722(int payloadType)
 : MpDecoderBase(payloadType, getCodecInfo())

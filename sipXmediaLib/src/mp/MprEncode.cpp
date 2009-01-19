@@ -430,7 +430,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    int bytesAdded; //$$$
    MpSpeechType content;
    OsStatus ret;
-   UtlBoolean isPacketReady;
+   UtlBoolean isPacketReady = FALSE;
    unsigned int codecFrameSamples;
 
    if (mpPrimaryCodec == NULL)
