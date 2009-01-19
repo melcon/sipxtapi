@@ -1656,8 +1656,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall);
 
 
 /**
- * Play the designated file.  The file may be a raw 16 bit signed PCM at
- * 8000 samples/sec, mono, little endian or a .WAV file.
+ * Play the designated file.
+ * The file must be a WAV file 8bit unsigned or 16bit signed, mono or stereo.
+ * Stereo files will be merged to mono.
+ *
+ * Sampling rate of supplied file must be greater or must match internal sampling
+ * rate of sipXmediaLib. If wideband audio is enabled, then internal sampling
+ * rate is 48Khz, otherwise it is 8Khz.
+ *
  * If a sipxCallDestroy is attempted while an audio file is playing,
  * sipxCallDestroy will fail with a SIPX_RESULT_BUSY return code.
  * Call sipxCallAudioPlayFileStop before making the call to
@@ -1766,9 +1772,10 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
 
 
 /**
- * Play the specified audio data.  Currently the only data format that
- * is supported is raw 16 bit signed PCM at 8000 samples/sec, mono,
- * little endian.
+ * Play the specified audio data. Currently the only data format that
+ * is supported is raw 16 bit signed PCM, mono, little endian. Sampling rate
+ * must match internal sampling rate of sipXmediaLib. If wideband audio is
+ * enabled, then internal sampling rate is 48Khz, otherwise it is 8Khz.
  *
  * If a sipxCallDestroy is invoked while an audio buffer is playing,
  * playback will stop automatically.
