@@ -33,15 +33,15 @@ extern "C" {
 #define G729_PATTERN_LENGTH 20
 
 const MpCodecInfo MpdIPPG729::smCodecInfo(
-   SdpCodec::SDP_CODEC_G729,   // codecType
+   SdpCodec::SDP_CODEC_G729,    // codecType
    "Intel IPP 6.0",             // codecVersion
    8000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
    1,                           // numChannels
    8000,                        // bitRate
-   20*8,                          // minPacketBits
-   20*8,                         // maxPacketBits
-   160);                          // numSamplesPerFrame
+   20*8,                        // minPacketBits
+   20*8,                        // maxPacketBits
+   160);                        // numSamplesPerFrame - 20ms frame
 
 MpdIPPG729::MpdIPPG729(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
@@ -151,18 +151,20 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned decodedBufferLength,
                        MpAudioSample *samplesBuffer) 
 {
-   int frames;
+   if (!rtpPacket.isValid())
+      return 0;
 
    unsigned payloadSize = rtpPacket->getPayloadSize();
+   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
 
-   if (decodedBufferLength < 160)
+   assert(payloadSize <= maxPayloadSize);
+   if (payloadSize > maxPayloadSize)
    {
-      osPrintf("MpdIPPG729::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
    // Each decode pattern must have 10 bytes or less (in case VAD enabled)
-   frames = payloadSize / Bitstream.nbytes;
+   int frames = payloadSize / Bitstream.nbytes;
 
    // Setup input and output pointers
    Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());

@@ -34,7 +34,7 @@ const MpCodecInfo MpeIPPG7231::smCodecInfo(
    8000,                         // bitRate
    20*8,                          // minPacketBits
    24*8,                          // maxPacketBits
-   80);                         // numSamplesPerFrame
+   240);                         // numSamplesPerFrame
 
 MpeIPPG7231::MpeIPPG7231(int payloadType)
 : MpEncoderBase(payloadType, &smCodecInfo)

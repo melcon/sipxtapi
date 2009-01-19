@@ -35,7 +35,7 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/// Derived class for G.7231 encoder.
+/// Derived class for G.7231 encoder. Produces 30ms frame every 10ms. We encode in 5.3kbit/s mode.
 class MpeIPPG7231: public MpEncoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */

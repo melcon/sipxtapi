@@ -36,7 +36,7 @@ MpeSipxGSM::MpeSipxGSM(int payloadType)
 , mpGsmState(NULL)
 , mBufferLoad(0)
 {
-   assert(SdpCodec::SDP_CODEC_G723 == payloadType);
+   assert(SdpCodec::SDP_CODEC_GSM == payloadType);
 }
 
 MpeSipxGSM::~MpeSipxGSM()
@@ -73,6 +73,7 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
 {
    int size = 0;   
    
+   assert(numSamples == 80);
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad+numSamples;
    assert(mBufferLoad <= 160);

@@ -63,14 +63,15 @@ OsStatus MpdSipxG722::freeDecode(void)
 
 int MpdSipxG722::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
 {
-   // do not accept frames longer than 20ms from RTP to protect against buffer overflow
-   assert(pPacket->getPayloadSize() <= 160*8);
-   if (pPacket->getPayloadSize() > 160*8)
+   if (!pPacket.isValid())
       return 0;
 
-   if (decodedBufferLength < 320) // must be enough for decoding 20ms frame
+   unsigned payloadSize = pPacket->getPayloadSize();
+   unsigned maxPayloadSize = ms_codecInfo64.getMaxPacketBits()/8;
+   // do not accept frames longer than 20ms from RTP to protect against buffer overflow
+   assert(payloadSize <= maxPayloadSize);
+   if (payloadSize > maxPayloadSize)
    {
-      osPrintf("MpdSipxG722::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
