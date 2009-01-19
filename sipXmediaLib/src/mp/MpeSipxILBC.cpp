@@ -37,7 +37,7 @@ const MpCodecInfo MpeSipxILBC::smCodecInfo20ms(
    SdpCodec::SDP_CODEC_ILBC_20MS,   // codecType
    "iLBC",                     // codecVersion
    8000,                       // samplingRate
-   8,                          // numBitsPerSample
+   16,                          // numBitsPerSample
    1,                          // numChannels
    13334,                      // bitRate. It doesn't matter right now.
    NO_OF_BYTES_20MS*8,         // minPacketBits

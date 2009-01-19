@@ -431,7 +431,6 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    MpSpeechType content;
    OsStatus ret;
    UtlBoolean isPacketReady = FALSE;
-   unsigned int codecFrameSamples;
 
    if (mpPrimaryCodec == NULL)
       return;
@@ -499,10 +498,9 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
       {
          mActiveAudio1 = TRUE;
       }
-      codecFrameSamples = numSamplesOut;
 
       if ((mPayloadBytesUsed > 0) &&
-         (isPacketReady || mSamplesPacked + codecFrameSamples > mMaxPacketSamples))
+         (isPacketReady || mSamplesPacked  >= mMaxPacketSamples))
       {
          if (mActiveAudio1)
          {

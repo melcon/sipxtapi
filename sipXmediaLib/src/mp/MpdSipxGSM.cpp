@@ -29,7 +29,7 @@ const MpCodecInfo MpdSipxGSM::smCodecInfo(
          SdpCodec::SDP_CODEC_GSM,    // codecType
          "GSM 6.10",                 // codecVersion
          8000,                       // samplingRate
-         8,                          // numBitsPerSample (not used)
+         16,                          // numBitsPerSample (not used)
          1,                          // numChannels
          13200,                      // bitRate
          33 * 8,                     // minPacketBits
@@ -67,19 +67,20 @@ OsStatus MpdSipxGSM::freeDecode(void)
 
 int MpdSipxGSM::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
 {
-   // Assert that available buffer size is enough for the packet.
-   assert(33 == pPacket->getPayloadSize());
-   if (33 != pPacket->getPayloadSize())
+   if (!pPacket.isValid())
       return 0;
 
-   if (decodedBufferLength < 160)
+   unsigned payloadSize = pPacket->getPayloadSize();
+   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
+   // do not accept frames longer than 20ms from RTP to protect against buffer overflow
+   assert(payloadSize <= maxPayloadSize);
+   if (payloadSize > maxPayloadSize)
    {
-      osPrintf("MpdSipxGSM::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
    gsm_decode(mpGsmState, (gsm_byte*)pPacket->getDataPtr(), (gsm_signal*)samplesBuffer);
-   return 160;
+   return smCodecInfo.getNumSamplesPerFrame();
 }
 
 #endif /* HAVE_GSM ] */

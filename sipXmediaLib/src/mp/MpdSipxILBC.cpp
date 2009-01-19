@@ -33,7 +33,7 @@ const MpCodecInfo MpdSipxILBC::smCodecInfo30ms(
     SdpCodec::SDP_CODEC_ILBC,   // codecType
     "iLBC",                     // codecVersion
     8000,                       // samplingRate
-    8,                          // numBitsPerSample (not used)
+    16,                          // numBitsPerSample (not used)
     1,                          // numChannels
     13334,                      // bitRate
     NO_OF_BYTES_30MS * 8,       // minPacketBits
@@ -44,7 +44,7 @@ const MpCodecInfo MpdSipxILBC::smCodecInfo20ms(
    SdpCodec::SDP_CODEC_ILBC_20MS,   // codecType
    "iLBC",                     // codecVersion
    8000,                       // samplingRate
-   8,                          // numBitsPerSample (not used)
+   16,                          // numBitsPerSample (not used)
    1,                          // numChannels
    13334,                      // bitRate
    NO_OF_BYTES_20MS * 8,       // minPacketBits

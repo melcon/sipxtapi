@@ -18,8 +18,15 @@
 #include "mp/MpSipxDecoders.h"
 
 const MpCodecInfo MpeSipxPcmu::smCodecInfo(
-         SdpCodec::SDP_CODEC_PCMU, "SIPfoundry 1.0",
-         8000, 16, 1, 64000, 1280, 1280, 160);
+   SdpCodec::SDP_CODEC_PCMU,// codecType
+   "SIPfoundry 1.0",// codecVersion
+   8000,// samplingRate
+   16,// numBitsPerSample
+   1,// numChannels
+   64000,// bitRate. It doesn't matter right now.
+   1280,// minPacketBits
+   1280,// maxPacketBits
+   160);// numSamplesPerFrame - 20ms frame
 
 MpeSipxPcmu::MpeSipxPcmu(int payloadType)
    : MpEncoderBase(payloadType, &smCodecInfo)

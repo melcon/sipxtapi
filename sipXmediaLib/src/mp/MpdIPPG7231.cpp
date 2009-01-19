@@ -34,7 +34,7 @@ const MpCodecInfo MpdIPPG7231::smCodecInfo(
    8000,                        // bitRate
    20*8,                         // minPacketBits
    24*8,                         // maxPacketBits
-   160);                          // numSamplesPerFrame
+   240);                          // numSamplesPerFrame
 
 MpdIPPG7231::MpdIPPG7231(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
@@ -190,21 +190,30 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned int decodedBufferLength,
                        MpAudioSample *samplesBuffer) 
 {
+   if (!rtpPacket.isValid())
+      return 0;
 
-   int infrmLen, FrmDataLen;
+   unsigned payloadSize = rtpPacket->getPayloadSize();
+   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
+
+   assert(payloadSize <= maxPayloadSize);
+   if (payloadSize > maxPayloadSize)
+   {
+      return 0;
+   }
+
+   int FrmDataLen;
    unsigned int decodedSamples;
 
-   infrmLen = rtpPacket->getPayloadSize();
-
    // Prepare encoded buffer parameters
-   if (infrmLen == G723_PATTERN_LENGTH_6300)
+   if (payloadSize == G723_PATTERN_LENGTH_6300)
    {
       Bitstream.bitrate = 6300;
       Bitstream.frametype = 0;
       Bitstream.nbytes = 24;
       decodedSamples = 240;
    }
-   else if (infrmLen == G723_PATTERN_LENGTH_5300)
+   else if (payloadSize == G723_PATTERN_LENGTH_5300)
    {
       Bitstream.bitrate = 5300;
       Bitstream.frametype = 0;
@@ -222,7 +231,7 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
    PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
 
    // Decode one frame
-   if (infrmLen == G723_PATTERN_LENGTH_6300)
+   if (payloadSize == G723_PATTERN_LENGTH_6300)
    {
       FrmDataLen = USCCodecDecode(&codec6300->uscParams, &Bitstream,
                                   &PCMStream, 0);

@@ -16,8 +16,17 @@
 #include "mp/MpePtAVT.h"
 
 const MpCodecInfo MpePtAVT::smCodecInfo(
-         SdpCodec::SDP_CODEC_TONES, "Pingtel_1.0",
-         8000, 0, 1, 6400, 128, 128, 160, TRUE);
+         SdpCodec::SDP_CODEC_TONES,// codecType
+         "Pingtel_1.0",// codecVersion
+         8000,// samplingRate
+         0,// numBitsPerSample
+         1,// numChannels
+         6400,// bitRate. It doesn't matter right now.
+         128,// minPacketBits
+         128,// maxPacketBits
+         160,// numSamplesPerFrame
+         0,// requested length of jitter buffer
+         TRUE);// signalingCodec
 
 MpePtAVT::MpePtAVT(int payloadType)
    : MpEncoderBase(payloadType, &smCodecInfo)

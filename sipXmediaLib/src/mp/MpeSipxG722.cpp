@@ -24,7 +24,7 @@ const MpCodecInfo MpeSipxG722::ms_codecInfo64(
    64000,                      // bitRate. It doesn't matter right now.
    160*8,                       // minPacketBits
    160*8,                       // maxPacketBits
-   320);                       // numSamplesPerFrame - 10ms frame
+   320);                       // numSamplesPerFrame - 20ms frame
 
 MpeSipxG722::MpeSipxG722(int payloadType)
 : MpEncoderBase(payloadType, getCodecInfo())
@@ -75,7 +75,7 @@ OsStatus MpeSipxG722::encode(const MpAudioSample* pAudioSamples,
    assert(numSamples == 160); // we expect 10ms frames (16Khz) - 160 samples
 
    rSizeInBytes = g722_encode(m_pG722state, pCodeBuf, pAudioSamples, numSamples);
-
+   // 20 ms samples are created in MprEncode
    rSamplesConsumed = numSamples;
    rAudioCategory = MP_SPEECH_UNKNOWN;
 

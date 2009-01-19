@@ -23,14 +23,14 @@
 #include "os/OsSysLogFacilities.h"
 
 const MpCodecInfo MpeSipxSpeexUWb::smCodecInfo(
-         SdpCodec::SDP_CODEC_SPEEX_UWB_22,    // codecType
+         SdpCodec::SDP_CODEC_SPEEX_UWB_44,    // codecType
          "Speex",                      // codecVersion
          32000,                        // samplingRate
          16,                            // numBitsPerSample
          1,                            // numChannels
-         22400,                        // bitRate. It doesn't matter right now.
-         38*8,                         // minPacketBits
-         63*8,                         // maxPacketBits
+         44000,                        // bitRate. It doesn't matter right now.
+         1*8,                         // minPacketBits
+         110*8,                         // maxPacketBits
          640);                         // numSamplesPerFrame - 20ms frames
 
 MpeSipxSpeexUWb::MpeSipxSpeexUWb(int payloadType, int mode)
