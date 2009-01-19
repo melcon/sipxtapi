@@ -134,6 +134,8 @@ private:
    int   mPacket1PayloadBytes;      ///< Size of mpPacket1Payload buffer
    int   mPayloadBytesUsed;         ///< Number of bytes in mpPacket1Payload,
                                     ///<  already filled with encoded data
+   unsigned int mSamplesPacked;     ///< Number of samples already encoded
+                                    ///<  to current packet.
    unsigned int mStartTimestamp1;
    UtlBoolean mActiveAudio1;        ///< Does current RTP packet contain active voice?
    UtlBoolean mMarkNext1;           ///< Set Mark bit on next RTP packet
@@ -156,6 +158,9 @@ private:
 
    unsigned int mCurrentTimestamp; ///< timestamp of primary codec
    unsigned int mTimestampStep; ///< value by which timestamp is incremented
+
+   unsigned int mMaxPacketTime;  ///< Maximum duration of one packet in milliseconds.
+   int   mMaxPacketSamples;         ///< Maximum number of samples in RTP packet.
 
    MprToNet* mpToNet;  ///< Pointer to ToNet resource, which will send generated
                        ///< RTP packets.

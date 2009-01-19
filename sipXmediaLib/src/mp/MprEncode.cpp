@@ -57,6 +57,7 @@ MprEncode::MprEncode(const UtlString& rName,
 , mpPacket1Payload(NULL)
 , mPacket1PayloadBytes(0)
 , mPayloadBytesUsed(0)
+, mSamplesPacked(0)
 , mActiveAudio1(FALSE)
 , mMarkNext1(FALSE)
 , mConsecutiveInactive1(0)
@@ -72,6 +73,8 @@ MprEncode::MprEncode(const UtlString& rName,
 , mTotalTime(0)
 , mNewTone(0)
 , mCurrentTimestamp(0)
+, mMaxPacketTime(20)
+, mMaxPacketSamples(0)
 , mpToNet(NULL)
 , mTimestampStep(samplesPerFrame)
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
@@ -207,6 +210,7 @@ void MprEncode::handleDeselectCodecs(void)
          mpPacket1Payload = NULL;
          mPacket1PayloadBytes = 0;
          mPayloadBytesUsed = 0;
+         mSamplesPacked = 0;
       }
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
       destroyResampler();
@@ -276,10 +280,12 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
       mDoesVad1 = (pNewEncoder->getInfo())->doesVadCng();
       allocPacketBuffer(*mpPrimaryCodec, mpPacket1Payload, mPacket1PayloadBytes);
       mPayloadBytesUsed = 0;
+      mSamplesPacked = 0;
       // adjust timestamp step by sampling rate difference of flowgraph and primary codec
       // when codec uses 8000, but flowgraph 16000, then samples we get will be downsampled to 1/2 of samples
       // and thus timestamp must be advanced by lower value
       mTimestampStep = (unsigned int)(((double)pNewEncoder->getInfo()->getSamplingRate() / getSamplesPerSec()) * getSamplesPerFrame());
+      mMaxPacketSamples = mMaxPacketTime * pNewEncoder->getInfo()->getSamplingRate()/1000;
       if (pNewEncoder->getInfo()->getCodecType() == SdpCodec::SDP_CODEC_G722)
       {
          // Workaround RFC bug with G.722 samplerate.
@@ -424,7 +430,8 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    int bytesAdded; //$$$
    MpSpeechType content;
    OsStatus ret;
-   UtlBoolean sendNow;
+   UtlBoolean isPacketReady;
+   unsigned int codecFrameSamples;
 
    if (mpPrimaryCodec == NULL)
       return;
@@ -467,27 +474,23 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
          mActiveAudio1 = mDoesVad1 || mDisableDTX;
       }
 
-      if (!mActiveAudio1)
-      {
-         mActiveAudio1 = isActiveAudio(in->getSpeechType());
-      }
+      mActiveAudio1 = mActiveAudio1 || isActiveAudio(in->getSpeechType());
 
       payloadBytesLeft = mPacket1PayloadBytes - mPayloadBytesUsed;
-      // maxSamplesOut = payloadBytesLeft / bytesPerSample;
 
-      // n = (numSamplesIn > maxSamplesOut) ? maxSamplesOut : numSamplesIn;
       pDest = mpPacket1Payload + mPayloadBytesUsed;
 
       bytesAdded = 0;
       ret = mpPrimaryCodec->encode(pSamplesIn, numSamplesIn, numSamplesOut,
                                    pDest, payloadBytesLeft, bytesAdded,
-                                   sendNow, content);
+                                   isPacketReady, content);
       mPayloadBytesUsed += bytesAdded;
       assert (mPacket1PayloadBytes >= mPayloadBytesUsed);
 
       // In case the encoder does silence suppression (e.g. G.729 Annex B)
       mMarkNext1 = mMarkNext1 | (0 == bytesAdded);
 
+      mSamplesPacked += numSamplesOut;
       pSamplesIn += numSamplesOut;
       numSamplesIn -= numSamplesOut;
       startTs += numSamplesOut;
@@ -496,8 +499,10 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
       {
          mActiveAudio1 = TRUE;
       }
+      codecFrameSamples = numSamplesOut;
 
-      if (sendNow || (mPacket1PayloadBytes == mPayloadBytesUsed))
+      if ((mPayloadBytesUsed > 0) &&
+         (isPacketReady || mSamplesPacked + codecFrameSamples > mMaxPacketSamples))
       {
          if (mActiveAudio1)
          {
@@ -520,6 +525,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
             mMarkNext1 = TRUE;
          }
          mPayloadBytesUsed = 0;
+         mSamplesPacked = 0;
       }
    }
 }
