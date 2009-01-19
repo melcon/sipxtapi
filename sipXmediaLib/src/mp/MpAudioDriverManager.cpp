@@ -162,7 +162,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
                MP_AUDIO_STREAM_CLIPOFF,
-               FALSE);
+               TRUE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -243,7 +243,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
                MP_AUDIO_STREAM_CLIPOFF,
-               FALSE);
+               TRUE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -306,7 +306,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
                MP_AUDIO_STREAM_CLIPOFF,
-               FALSE);
+               TRUE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -388,7 +388,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
                MP_AUDIO_STREAM_CLIPOFF,
-               FALSE);
+               TRUE);
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -805,7 +805,7 @@ MpAudioDriverManager::MpAudioDriverManager()
       MpMisc.m_audioSamplesPerSec,
       MpMisc.m_audioSamplesPerFrame,
       MP_AUDIO_STREAM_CLIPOFF,
-      FALSE);
+      TRUE);
 
    // open asynchronous output stream
    m_pAudioDriver->openStream(&m_outputAudioStream,
@@ -814,7 +814,7 @@ MpAudioDriverManager::MpAudioDriverManager()
       MpMisc.m_audioSamplesPerSec,
       MpMisc.m_audioSamplesPerFrame,
       MP_AUDIO_STREAM_CLIPOFF,
-      FALSE);
+      TRUE);
   
    m_pAudioDriver->startStream(m_inputAudioStream);
    m_pAudioDriver->startStream(m_outputAudioStream);

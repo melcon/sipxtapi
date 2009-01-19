@@ -108,7 +108,7 @@ UtlBoolean MprFromMic::doProcessFrame(MpBufPtr inBufs[],
             {
                micFrame->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
 
-               OsStatus res = pAudioDriver->readStreamAsync(streamId,
+               OsStatus res = pAudioDriver->readStreamSync(streamId,
                                     micFrame->getSamplesWritePtr(),
                                     MpMisc.m_audioSamplesPerFrame);
 
