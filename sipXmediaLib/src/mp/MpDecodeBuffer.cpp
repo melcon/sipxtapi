@@ -93,14 +93,20 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
          }  
       }
    }
-      
+
    // Check we have some available decoded data
    if (m_decodeBufferCount != 0)
    {
       // We could not return more then we have
       requiredSamples = min(requiredSamples, m_decodeBufferCount);
-
-      memcpy(samplesBuffer, m_decodeBuffer + m_decodeBufferOut, requiredSamples * sizeof(MpAudioSample));
+      int count1 = min(requiredSamples, g_decodeBufferSize - m_decodeBufferOut); // samples to copy before wrap around occurs
+      int count2 = requiredSamples - count1; // number of samples to copy after wrap around
+      memcpy(samplesBuffer, m_decodeBuffer + m_decodeBufferOut, count1 * sizeof(MpAudioSample));
+      if (count2 > 0)
+      {
+         // handle wrap around, and copy the rest from the beginning of decode buffer
+         memcpy(samplesBuffer + count1, m_decodeBuffer, count2 * sizeof(MpAudioSample));
+      }
 
       m_decodeBufferCount -= requiredSamples;
       m_decodeBufferOut += requiredSamples;
@@ -207,7 +213,7 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
       if (count2 > 0)
       {
          count2 = min(count2, m_decodeBufferOut); // reduce count2 by available space since start of array
-         memcpy(m_decodeBuffer, m_decodeHelperBuffer + count1, count2); // copy to beginning of buffer
+         memcpy(m_decodeBuffer, m_decodeHelperBuffer + count1, count2 * sizeof(MpAudioSample)); // copy to beginning of buffer
          addedSamples += count2;
       }
    }
