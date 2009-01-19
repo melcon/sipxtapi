@@ -22,9 +22,9 @@ const MpCodecInfo MpeSipxG726::ms_codecInfo16(
    8,                          // numBitsPerSample
    1,                          // numChannels
    16000,                      // bitRate. It doesn't matter right now.
-   20*8,                       // minPacketBits
-   20*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   40*8,                       // minPacketBits
+   40*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 const MpCodecInfo MpeSipxG726::ms_codecInfo24(
    SdpCodec::SDP_CODEC_G726_24,    // codecType
@@ -33,9 +33,9 @@ const MpCodecInfo MpeSipxG726::ms_codecInfo24(
    8,                          // numBitsPerSample
    1,                          // numChannels
    24000,                      // bitRate. It doesn't matter right now.
-   30*8,                       // minPacketBits
-   30*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   60*8,                       // minPacketBits
+   60*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 const MpCodecInfo MpeSipxG726::ms_codecInfo32(
    SdpCodec::SDP_CODEC_G726_32,    // codecType
@@ -44,9 +44,9 @@ const MpCodecInfo MpeSipxG726::ms_codecInfo32(
    8,                          // numBitsPerSample
    1,                          // numChannels
    32000,                      // bitRate. It doesn't matter right now.
-   40*8,                       // minPacketBits
-   40*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   80*8,                       // minPacketBits
+   80*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 const MpCodecInfo MpeSipxG726::ms_codecInfo40(
    SdpCodec::SDP_CODEC_G726_40,    // codecType
@@ -55,9 +55,9 @@ const MpCodecInfo MpeSipxG726::ms_codecInfo40(
    8,                          // numBitsPerSample
    1,                          // numChannels
    40000,                      // bitRate. It doesn't matter right now.
-   50*8,                       // minPacketBits
-   50*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   100*8,                       // minPacketBits
+   100*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 MpeSipxG726::MpeSipxG726(int payloadType, G726_BITRATE bitRate)
 : MpEncoderBase(payloadType, getCodecInfo(bitRate))
@@ -108,18 +108,8 @@ OsStatus MpeSipxG726::encode(const MpAudioSample* pAudioSamples,
    assert(numSamples == 80); // we expect 10ms frames
 
    rSizeInBytes = g726_encode(m_pG726state, pCodeBuf, pAudioSamples, numSamples);
-   unsigned maxPacketBits = getInfo()->getMaxPacketBits();
-   assert(rSizeInBytes == maxPacketBits/8);
 
    rSamplesConsumed = numSamples;
-   if (rSizeInBytes > 0)
-   {
-      sendNow = TRUE;
-   }
-   else
-   {
-      sendNow = FALSE;
-   }
    rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;

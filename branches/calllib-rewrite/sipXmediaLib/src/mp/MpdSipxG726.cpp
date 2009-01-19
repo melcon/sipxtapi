@@ -20,9 +20,9 @@ const MpCodecInfo MpdSipxG726::ms_codecInfo16(
    8,                          // numBitsPerSample
    1,                          // numChannels
    16000,                      // bitRate. It doesn't matter right now.
-   20*8,                       // minPacketBits
-   20*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   40*8,                       // minPacketBits
+   40*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo24(
    SdpCodec::SDP_CODEC_G726_24,    // codecType
@@ -31,9 +31,9 @@ const MpCodecInfo MpdSipxG726::ms_codecInfo24(
    8,                          // numBitsPerSample
    1,                          // numChannels
    24000,                      // bitRate. It doesn't matter right now.
-   30*8,                       // minPacketBits
-   30*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   60*8,                       // minPacketBits
+   60*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo32(
    SdpCodec::SDP_CODEC_G726_32,    // codecType
@@ -42,9 +42,9 @@ const MpCodecInfo MpdSipxG726::ms_codecInfo32(
    8,                          // numBitsPerSample
    1,                          // numChannels
    32000,                      // bitRate. It doesn't matter right now.
-   40*8,                       // minPacketBits
-   40*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   80*8,                       // minPacketBits
+   80*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo40(
    SdpCodec::SDP_CODEC_G726_40,    // codecType
@@ -53,9 +53,9 @@ const MpCodecInfo MpdSipxG726::ms_codecInfo40(
    8,                          // numBitsPerSample
    1,                          // numChannels
    40000,                      // bitRate. It doesn't matter right now.
-   50*8,                       // minPacketBits
-   50*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   100*8,                       // minPacketBits
+   100*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame
 
 MpdSipxG726::MpdSipxG726(int payloadType, G726_BITRATE bitRate)
 : MpDecoderBase(payloadType, getCodecInfo(bitRate))
@@ -97,8 +97,8 @@ OsStatus MpdSipxG726::freeDecode(void)
 int MpdSipxG726::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
 {
    // do not accept frames longer than 20ms from RTP to protect against buffer overflow
-   assert(pPacket->getPayloadSize() <= (getInfo()->getMaxPacketBits()*2)/8);
-   if (pPacket->getPayloadSize() > (getInfo()->getMaxPacketBits()*2)/8)
+   assert(pPacket->getPayloadSize() <= (getInfo()->getMaxPacketBits())/8);
+   if (pPacket->getPayloadSize() > (getInfo()->getMaxPacketBits())/8)
       return 0;
 
    if (decodedBufferLength < 160) // must be enough for decoding 20ms frame
