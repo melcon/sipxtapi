@@ -1016,7 +1016,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetDriverLatency(const SIPX_INST hInst,
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
-   if (pInst)
+   if (pInst && inputLatency && outputLatency)
    {
       CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
