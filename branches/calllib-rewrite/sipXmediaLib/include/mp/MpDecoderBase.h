@@ -22,6 +22,10 @@
 #include "mp/MpCodecInfo.h"
 #include "mp/MpRtpBuf.h"
 
+#ifdef HAVE_SPAN_DSP
+#include <spandsp/noise.h>
+#endif
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -34,7 +38,7 @@
 class OsNotification;
 class MprRecorder;
 
-/// Base class for all media processing decoders.
+/// Base class for all media processing decoders. We should have a separate class for audio and video decoders.
 class MpDecoderBase : public UtlObservableImpl
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -113,6 +117,11 @@ public:
 protected:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
+   /**
+    * Generates quiet comfort noise.
+    */
+   void generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount);
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
@@ -124,6 +133,11 @@ private:
 
    const MpCodecInfo* mpCodecInfo;
    int mPayloadType;
+
+#ifdef HAVE_SPAN_DSP
+   noise_state_t* m_pNoiseState; ///< state of noise generator
+#endif
+
 };
 
 /* ============================ INLINE METHODS ============================ */
