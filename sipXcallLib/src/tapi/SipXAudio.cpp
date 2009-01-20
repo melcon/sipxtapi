@@ -980,3 +980,55 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
 
    return rc;
 }
+
+SIPXTAPI_API SIPX_RESULT sipxAudioSetDriverLatency(const SIPX_INST hInst,
+                                                   double inputLatency,
+                                                   double outputLatency)
+{
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxAudioSetDriverLatency hInst=%p", hInst);
+
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         OsStatus res = pInterface->setAudioDriverLatency(inputLatency, outputLatency);
+         if (res == OS_SUCCESS)
+         {
+            rc = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxAudioGetDriverLatency(const SIPX_INST hInst,
+                                                   double* inputLatency,
+                                                   double* outputLatency)
+{
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO, "sipxAudioGetDriverLatency hInst=%p", hInst);
+
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterface)
+      {
+         OsStatus res = pInterface->getAudioDriverLatency(*inputLatency, *outputLatency);
+         if (res == OS_SUCCESS)
+         {
+            rc = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+
+   return rc;
+}

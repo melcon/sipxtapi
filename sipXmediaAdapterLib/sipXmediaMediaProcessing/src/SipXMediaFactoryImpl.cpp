@@ -29,6 +29,10 @@
 #include "mp/MpAudioDriverManager.h"
 #include "mi/CpAudioDeviceInfo.h"
 
+#ifndef DISABLE_LOCAL_AUDIO
+#include <mp/MpAudioStreamInfo.h>
+#endif
+
 #ifdef INCLUDE_RTCP /* [ */
 #include "rtcp/RTCManager.h"
 #endif /* INCLUDE_RTCP ] */
@@ -249,6 +253,77 @@ OsStatus SipXMediaFactoryImpl::setAudioInputDevice(const UtlString& device, cons
    }
 
    return OS_FAILED;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus SipXMediaFactoryImpl::setAudioDriverLatency(double inputLatency, double outputLatency)
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      pAudioManager->setInitialInputStreamLatency(inputLatency);
+      pAudioManager->setInitialOutputStreamLatency(outputLatency);
+   }
+
+   return OS_SUCCESS;
+#endif
+
+   return OS_NOT_SUPPORTED;
+}
+
+OsStatus SipXMediaFactoryImpl::getAudioDriverLatency(double& inputLatency, double& outputLatency)
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
+   if (pAudioManager)
+   {
+      MpAudioStreamId inputStreamId = pAudioManager->getInputAudioStream();
+      MpAudioStreamId outputStreamId = pAudioManager->getOutputAudioStream();
+      if (inputStreamId != 0)
+      {
+         // input stream is active, get real latency
+         MpAudioStreamInfo streamInfo;
+         OsStatus res = pAudioManager->getInputStreamInfo(streamInfo);
+         if (res == OS_SUCCESS)
+         {
+            inputLatency = streamInfo.getInputLatency();
+         }
+         else
+         {
+            outputLatency = 0.0;
+         }
+      }
+      else
+      {
+         // get initial latency
+         inputLatency = pAudioManager->getInitialInputStreamLatency();
+      }
+
+      if (outputStreamId != 0)
+      {
+         // output stream is active, get real latency
+         MpAudioStreamInfo streamInfo;
+         OsStatus res = pAudioManager->getOutputStreamInfo(streamInfo);
+         if (res == OS_SUCCESS)
+         {
+            outputLatency = streamInfo.getOutputLatency();
+         }
+         else
+         {
+            outputLatency = 0.0;
+         }
+      }
+      else
+      {
+         // get initial latency
+         outputLatency = pAudioManager->getInitialOutputStreamLatency();
+      }
+   }
+
+   return OS_SUCCESS;
 #endif
 
    return OS_NOT_SUPPORTED;
