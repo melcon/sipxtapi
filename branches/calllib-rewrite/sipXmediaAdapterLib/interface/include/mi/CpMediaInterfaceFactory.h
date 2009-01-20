@@ -185,6 +185,22 @@ public:
    }
 
    /**
+    * Sets audio driver latency.
+    */
+   virtual OsStatus setAudioDriverLatency(double inputLatency, double outputLatency)
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   /**
+    * Gets audio driver latency.
+    */
+   virtual OsStatus getAudioDriverLatency(double& inputLatency, double& outputLatency)
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   /**
    * Mute the speaker
    */
    virtual OsStatus muteAudioOutput(UtlBoolean bMute)
