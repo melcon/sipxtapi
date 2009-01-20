@@ -1001,6 +1001,10 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetDriverLatency(const SIPX_INST hInst,
          {
             rc = SIPX_RESULT_SUCCESS;
          }
+         else
+         {
+            rc= SIPX_RESULT_FAILURE;
+         }
       }
    }
 
@@ -1026,6 +1030,10 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetDriverLatency(const SIPX_INST hInst,
          if (res == OS_SUCCESS)
          {
             rc = SIPX_RESULT_SUCCESS;
+         }
+         else
+         {
+            rc= SIPX_RESULT_FAILURE;
          }
       }
    }
