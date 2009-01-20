@@ -247,21 +247,21 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
                                           &Bitstream);
 
 
-      ippsSet_8u(0, pCodeBuf, 20); 
+      ippsSet_8u(0, pCodeBuf, 20);
 
-      if (Bitstream.nbytes <= 20)
+      if (Bitstream.nbytes <= 20 && Bitstream.nbytes != 1)
       {
          for(int k = 0; k < Bitstream.nbytes; ++k)
          {
             pCodeBuf[k] = mEncodedBuffer[6 + k];
          }
+         // don't send 1 byte frames
+         sendNow = TRUE;
       }
       else
       {
          frmlen =0;
       }
-
-      sendNow = TRUE;
 
       rAudioCategory = MP_SPEECH_UNKNOWN;
       rSamplesConsumed = numSamples;
@@ -270,7 +270,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       ippsSet_8u(0, (unsigned char *)mpStoredFramesBuffer,
                  codec5300->uscParams.pInfo->params.framesize);
 
-      if (Bitstream.nbytes <= 20)
+      if (Bitstream.nbytes <= 20 && Bitstream.nbytes != 1)
       {
          rSizeInBytes = Bitstream.nbytes;
       }

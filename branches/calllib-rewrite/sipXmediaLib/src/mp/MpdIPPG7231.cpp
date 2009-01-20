@@ -219,7 +219,18 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
       Bitstream.frametype = 0;
       Bitstream.nbytes = 20;
       decodedSamples = 240;
-   } else return 0; // we ignore SID frames 4 bytes long, should generate comfort noise
+   }
+   else if (payloadSize == 1 || payloadSize == 4) // 4 is SID - silence insertion
+   {
+      // generate comfort noise
+      decodedSamples = 240;
+      generateComfortNoise(samplesBuffer, decodedSamples);
+      return decodedSamples;
+   }
+   else 
+   {
+      return 0;
+   }
 
    if (decodedBufferLength < decodedSamples)
    {
