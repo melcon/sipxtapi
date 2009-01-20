@@ -80,23 +80,6 @@ OsStatus mpStartUp()
    sb->setSpeechType(MP_SPEECH_SILENT);
    MpMisc.m_fgSilence = sb;
 
-   /*
-   * generate a buffer called comfort noise buffer.
-   *
-   * TODO: generate real comfort noise, not just zeroes...
-   */
-   MpAudioBufPtr cnb = MpMisc.m_pRawAudioPool->getBuffer();
-
-   if (!cnb.isValid())
-   {
-      return OS_FAILED;
-   }
-
-   cnb->setSamplesNumber(MpMisc.m_audioSamplesPerFrame);
-   memset(cnb->getSamplesWritePtr(), 0, cnb->getSamplesNumber() * sizeof(MpAudioSample));
-   cnb->setSpeechType(MP_SPEECH_COMFORT_NOISE);
-   MpMisc.m_comfortNoise = cnb;
-
    // Create buffer for RTP packets
    MpMisc.m_pRtpPool = new MpBufPool(RTP_MTU + MpArrayBuf::getHeaderSize(), RTP_BUFS);
 
@@ -170,7 +153,6 @@ OsStatus mpShutdown()
    }
 
    MpMisc.m_fgSilence.release();
-   MpMisc.m_comfortNoise.release();
 
    if (MpMisc.m_pUdpHeadersPool)
    {
