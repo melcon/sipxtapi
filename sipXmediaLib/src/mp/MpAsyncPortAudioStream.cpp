@@ -12,12 +12,10 @@
 #include <os/OsIntTypes.h> 
 #include <os/OsSysLog.h>
 #include <os/OsDateTime.h>
-#include "mp/MpPortAudioStream.h"
+#include "mp/MpAsyncPortAudioStream.h"
 #include "mp/MpVolumeMeter.h"
 
-
 // DEFINES
-#define MIN_SAMPLE_RATE 200
 //#define DEBUG_AUDIO_STREAM
 #define INPUT_PREFETCH_BUFFERS_COUNT 8
 #define OUTPUT_PREFETCH_BUFFERS_COUNT 8
@@ -34,25 +32,21 @@
 
 /* ============================ CREATORS ================================== */
 
-MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
-                                     int inputChannelCount,
-                                     MpAudioDriverSampleFormat outputSampleFormat,
-                                     MpAudioDriverSampleFormat inputSampleFormat,
-                                     double sampleRate,
-                                     unsigned long framesPerBuffer)
-: m_outputChannelCount(outputChannelCount)
-, m_inputChannelCount(inputChannelCount)
-, m_outputSampleFormat(outputSampleFormat)
-, m_inputSampleFormat(inputSampleFormat)
-, m_sampleRate(sampleRate)
-, m_framesPerBuffer(framesPerBuffer)
+MpAsyncPortAudioStream::MpAsyncPortAudioStream(MpAudioStreamId streamId,
+                                               int outputChannelCount,
+                                               int inputChannelCount,
+                                               MpAudioDriverSampleFormat outputSampleFormat,
+                                               MpAudioDriverSampleFormat inputSampleFormat,
+                                               double sampleRate,
+                                               unsigned long framesPerBuffer)
+: MpPortAudioStreamBase(streamId, outputChannelCount, inputChannelCount,
+                        outputSampleFormat, inputSampleFormat,
+                        sampleRate, framesPerBuffer)
 , m_virtualFramesPerBuffer(0)
 , m_pInputBuffer(NULL)
 , m_pOutputBuffer(NULL)
 , m_inputBufferSize(0)
 , m_outputBufferSize(0)
-, m_inputSampleSize(0)
-, m_outputSampleSize(0)
 , m_inputWritePos(0)
 , m_inputReadPos(0)
 , m_outputWritePos(0)
@@ -69,79 +63,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
 , m_bFramePushed(false)
 , m_streamReadWriteCount(0)
 , m_callbackCallCount(0)
-, m_inputVolumeMeter(NULL)
-, m_outputVolumeMeter(NULL)
-{   
-   switch(m_inputSampleFormat & 0x3f)
-   {
-   case MP_AUDIO_FORMAT_FLOAT32:
-      m_inputSampleSize = sizeof(float);
-      m_inputVolumeMeter = NULL;
-      break;
-   case MP_AUDIO_FORMAT_INT32:
-      m_inputSampleSize = sizeof(int32_t);
-      m_inputVolumeMeter = new MpVolumeMeter<int32_t, INT32_MAX>(inputChannelCount, sampleRate);
-      break;
-   case MP_AUDIO_FORMAT_INT24:
-      m_inputSampleSize = sizeof(char)*3;
-      m_inputVolumeMeter = NULL;
-      OsSysLog::add(FAC_AUDIO, PRI_WARNING, "Dangerous input sample format selected, check MpPortAudioStream.cpp\n");
-      break;
-   case MP_AUDIO_FORMAT_INT16:
-      m_inputSampleSize = sizeof(int16_t);
-      m_inputVolumeMeter = new MpVolumeMeter<int16_t, INT16_MAX>(inputChannelCount, sampleRate);
-      break;
-   case MP_AUDIO_FORMAT_INT8:
-      m_inputSampleSize = sizeof(int8_t);
-      m_inputVolumeMeter = new MpVolumeMeter<int8_t, INT8_MAX>(inputChannelCount, sampleRate);
-      break;
-   case MP_AUDIO_FORMAT_UINT8:
-      m_inputSampleSize = sizeof(uint8_t);
-      m_inputVolumeMeter = NULL;
-      break;
-   default:
-      // don't create buffers, unsupported sample format
-      break;
-   }
-
-   switch(m_outputSampleFormat & 0x3f)
-   {
-   case MP_AUDIO_FORMAT_FLOAT32:
-      m_outputSampleSize = sizeof(float);
-      m_outputVolumeMeter = NULL;
-      break;
-   case MP_AUDIO_FORMAT_INT32:
-      m_outputSampleSize = sizeof(int32_t);
-      m_outputVolumeMeter = new MpVolumeMeter<int32_t, INT32_MAX>(outputChannelCount, sampleRate);
-      break;
-   case MP_AUDIO_FORMAT_INT24:
-      m_outputSampleSize = sizeof(char)*3;
-      m_outputVolumeMeter = NULL;
-      OsSysLog::add(FAC_AUDIO, PRI_WARNING, "Dangerous output sample format selected, check MpPortAudioStream.cpp\n");
-      break;
-   case MP_AUDIO_FORMAT_INT16:
-      m_outputSampleSize = sizeof(int16_t);
-      m_outputVolumeMeter = new MpVolumeMeter<int16_t, INT16_MAX>(outputChannelCount, sampleRate);
-      break;
-   case MP_AUDIO_FORMAT_INT8:
-      m_outputSampleSize = sizeof(int8_t);
-      m_outputVolumeMeter = new MpVolumeMeter<int8_t, INT8_MAX>(outputChannelCount, sampleRate);
-      break;
-   case MP_AUDIO_FORMAT_UINT8:
-      m_outputSampleSize = sizeof(uint8_t);
-      m_outputVolumeMeter = NULL;
-      break;
-   default:
-      // don't create buffers, unsupported sample format
-      break;
-   }
-
-   if (m_sampleRate < MIN_SAMPLE_RATE)
-   {
-      // we need a minimum due to division
-      m_sampleRate = MIN_SAMPLE_RATE;
-   }
-
+{
    m_virtualFramesPerBuffer = m_framesPerBuffer;
 
    if (m_virtualFramesPerBuffer == 0)
@@ -155,7 +77,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    if (m_inputSampleFormat > 0 && m_inputChannelCount > 0)
    {
       unsigned int inputFrameSize = m_inputSampleSize * m_inputChannelCount;
-      unsigned int inputBufferReserve = ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 5);
+      unsigned int inputBufferReserve = ((unsigned int)m_sampleRate / MIN_PORT_SAMPLE_RATE + 5);
       m_inputBufferSize = inputFrameSize * m_virtualFramesPerBuffer * inputBufferReserve;
       m_inputPrefetchCount = min(INPUT_PREFETCH_BUFFERS_COUNT, inputBufferReserve) * m_virtualFramesPerBuffer;
       m_pInputBuffer = malloc(m_inputBufferSize);
@@ -178,7 +100,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    if (m_outputSampleSize > 0 && m_outputChannelCount > 0)
    {
       unsigned int outputFrameSize = m_outputSampleSize * m_outputChannelCount;
-      unsigned int outputBufferReserve = ((unsigned int)m_sampleRate / MIN_SAMPLE_RATE + 5);
+      unsigned int outputBufferReserve = ((unsigned int)m_sampleRate / MIN_PORT_SAMPLE_RATE + 5);
       m_outputBufferSize = outputFrameSize * m_virtualFramesPerBuffer * outputBufferReserve;
       m_outputPrefetchCount = min(OUTPUT_PREFETCH_BUFFERS_COUNT, outputBufferReserve) * m_virtualFramesPerBuffer;
       m_pOutputBuffer = malloc(m_outputBufferSize);
@@ -198,7 +120,7 @@ MpPortAudioStream::MpPortAudioStream(int outputChannelCount,
    }
 }
 
-MpPortAudioStream::~MpPortAudioStream(void)
+MpAsyncPortAudioStream::~MpAsyncPortAudioStream(void)
 {
    if (m_pInputBuffer)
    {
@@ -211,17 +133,11 @@ MpPortAudioStream::~MpPortAudioStream(void)
       free(m_pOutputBuffer);
       m_pOutputBuffer = NULL;
    }
-
-   // delete volume meters if they exist
-   delete m_inputVolumeMeter;
-   m_inputVolumeMeter = NULL;
-   delete m_outputVolumeMeter;
-   m_outputVolumeMeter = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-int MpPortAudioStream::streamCallback(const void *input,
+int MpAsyncPortAudioStream::streamCallback(const void *input,
                                       void *output,
                                       unsigned long frameCount,
                                       const PaStreamCallbackTimeInfo* timeInfo,
@@ -230,7 +146,7 @@ int MpPortAudioStream::streamCallback(const void *input,
 {
    if (userData)
    {
-      MpPortAudioStream* instance = (MpPortAudioStream*)userData;
+      MpAsyncPortAudioStream* instance = (MpAsyncPortAudioStream*)userData;
 
       return instance->instanceStreamCallback(input, output, frameCount, timeInfo, statusFlags);
    }
@@ -238,7 +154,7 @@ int MpPortAudioStream::streamCallback(const void *input,
    return paContinue;
 }
 
-OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
+OsStatus MpAsyncPortAudioStream::readStream(void *buffer,
                                             unsigned long frames)
 {
    OsStatus status = OS_FAILED;
@@ -307,7 +223,7 @@ OsStatus MpPortAudioStream::readStreamAsync(void *buffer,
    return status;
 }
 
-OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
+OsStatus MpAsyncPortAudioStream::writeStream(const void *buffer,
                                              unsigned long frames)
 {
    OsStatus status = OS_FAILED;
@@ -366,43 +282,7 @@ OsStatus MpPortAudioStream::writeStreamAsync(const void *buffer,
    return status;
 }
 
-double MpPortAudioStream::getInputStreamVolume(MP_VOLUME_METER_TYPE type) const
-{
-   if (m_inputVolumeMeter)
-   {
-      switch(type)
-      {
-      case MP_VOLUME_METER_VU:
-         return m_inputVolumeMeter->getVUVolume();
-      case MP_VOLUME_METER_PPM:
-         return m_inputVolumeMeter->getPPMVolume();
-      default:
-         return 0;
-      }
-   }
-   
-   return 0;
-}
-
-double MpPortAudioStream::getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const
-{
-   if (m_outputVolumeMeter)
-   {
-      switch(type)
-      {
-      case MP_VOLUME_METER_VU:
-         return m_outputVolumeMeter->getVUVolume();
-      case MP_VOLUME_METER_PPM:
-         return m_outputVolumeMeter->getPPMVolume();
-      default:
-         return 0;
-      }
-   }
-
-   return 0;
-}
-
-void MpPortAudioStream::printStatistics()
+void MpAsyncPortAudioStream::printStatistics()
 {
    OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"--------- MpPortAudioStream::printStatistics ---------\n");
    OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"m_outputBufferOverflow = %d\n", m_outputBufferOverflow);
@@ -414,8 +294,10 @@ void MpPortAudioStream::printStatistics()
    OsSysLog::add(FAC_AUDIO, PRI_DEBUG,"------------------------------------------------------\n");
 }
 
-void MpPortAudioStream::resetStream()
+void MpAsyncPortAudioStream::resetStream()
 {
+   MpPortAudioStreamBase::resetStream();
+
    m_inputWritePos = 0;
    m_inputReadPos = 0;
    m_outputWritePos = 0;
@@ -443,16 +325,6 @@ void MpPortAudioStream::resetStream()
    m_bFramePushed = false;
    m_inputBufferPrefetchMode = true;
    m_outputBufferPrefetchMode = true;
-
-   if (m_inputVolumeMeter)
-   {
-      m_inputVolumeMeter->resetMeter();
-   }
-
-   if (m_outputVolumeMeter)
-   {
-      m_outputVolumeMeter->resetMeter();
-   }
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -463,11 +335,11 @@ void MpPortAudioStream::resetStream()
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-int MpPortAudioStream::instanceStreamCallback(const void *input,
-                                              void *output,
-                                              unsigned long frameCount,
-                                              const PaStreamCallbackTimeInfo* timeInfo,
-                                              PaStreamCallbackFlags statusFlags)
+int MpAsyncPortAudioStream::instanceStreamCallback(const void *input,
+                                                   void *output,
+                                                   unsigned long frameCount,
+                                                   const PaStreamCallbackTimeInfo* timeInfo,
+                                                   PaStreamCallbackFlags statusFlags)
 {
    // portaudio supplied us pointers to its input and output buffers
 
@@ -640,9 +512,9 @@ int MpPortAudioStream::instanceStreamCallback(const void *input,
    return paContinue;
 }
 
-int MpPortAudioStream::getCopyableBytes(unsigned int inputPos,
-                                        unsigned int outputPos,
-                                        unsigned int maxPos) const
+int MpAsyncPortAudioStream::getCopyableBytes(unsigned int inputPos,
+                                             unsigned int outputPos,
+                                             unsigned int maxPos) const
 {
    if (inputPos < outputPos)
    {
@@ -662,12 +534,12 @@ int MpPortAudioStream::getCopyableBytes(unsigned int inputPos,
    return 0;
 }
 
-int MpPortAudioStream::getInputBufferFrameCount()
+int MpAsyncPortAudioStream::getInputBufferFrameCount()
 {
    return getCopyableBytes(m_inputReadPos, m_inputWritePos, m_inputBufferSize) / (m_inputSampleSize * m_inputChannelCount);
 }
 
-int MpPortAudioStream::getOutputBufferFrameCount()
+int MpAsyncPortAudioStream::getOutputBufferFrameCount()
 {
    return getCopyableBytes(m_outputReadPos, m_outputWritePos, m_outputBufferSize) / (m_outputSampleSize * m_outputChannelCount);
 }

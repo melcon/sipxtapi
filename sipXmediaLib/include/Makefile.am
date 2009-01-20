@@ -9,6 +9,7 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
     mp/MpArrayBuf.h \
+    mp/MpAsyncPortAudioStream.h \
     mp/MpAudioAbstract.h \
     mp/MpAudioBuf.h \
     mp/MpAudioDeviceInfo.h \
@@ -63,7 +64,7 @@ nobase_include_HEADERS =  \
     mp/MpNotificationMsgDef.h \
     mp/MpPortAudioDriver.h \
     mp/MpPortAudioMixer.h \
-    mp/MpPortAudioStream.h \
+    mp/MpPortAudioStreamBase.h \
     mp/MpResNotification.h \
     mp/MpResource.h \
     mp/MpResourceMsg.h \
@@ -74,6 +75,7 @@ nobase_include_HEADERS =  \
     mp/MpRtpOutputAudioConnection.h \
     mp/MpRtpOutputConnection.h \
     mp/MpSipxDecoders.h \
+    mp/MpSyncPortAudioStream.h \
     mp/MpToneResourceMsg.h \
     mp/MpTypes.h \
     mp/MpUdpBuf.h \

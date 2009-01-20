@@ -81,6 +81,7 @@
                 <File RelativePath=".\src\mp\DSPlib.cpp"/>
                 <File RelativePath=".\src\mp\dtmflib.cpp"/>
                 <File RelativePath=".\src\mp\MpArrayBuf.cpp"/>
+                <File RelativePath=".\src\mp\MpAsyncPortAudioStream.cpp"/>
                 <File RelativePath=".\src\mp\mpau.cpp"/>
                 <File RelativePath=".\src\mp\MpAudioAbstract.cpp"/>
                 <File RelativePath=".\src\mp\MpAudioBuf.cpp"/>
@@ -151,7 +152,7 @@
                 <File RelativePath=".\src\mp\MpMMTimerWnt.cpp"/>
                 <File RelativePath=".\src\mp\MpPortAudioDriver.cpp"/>
                 <File RelativePath=".\src\mp\MpPortAudioMixer.cpp"/>
-                <File RelativePath=".\src\mp\MpPortAudioStream.cpp"/>
+                <File RelativePath=".\src\mp\MpPortAudioStreamBase.cpp"/>
                 <File RelativePath=".\src\mp\MprBridge.cpp"/>
                 <File RelativePath=".\src\mp\MprDecode.cpp"/>
                 <File RelativePath=".\src\mp\MprDejitter.cpp"/>
@@ -179,6 +180,7 @@
                 <File RelativePath=".\src\mp\MpRtpOutputAudioConnection.cpp"/>
                 <File RelativePath=".\src\mp\MpRtpOutputConnection.cpp"/>
                 <File RelativePath=".\src\mp\MpSipxDecoders.cpp"/>
+                <File RelativePath=".\src\mp\MpSyncPortAudioStream.cpp"/>
                 <File RelativePath=".\src\mp\MpTypes.cpp"/>
                 <File RelativePath=".\src\mp\MpUdpBuf.cpp"/>
                 <File RelativePath=".\src\mp\NetInTask.cpp"/>
@@ -209,6 +211,7 @@
                 <File RelativePath=".\include\mp\dsplib.h"/>
                 <File RelativePath=".\include\mp\dtmflib.h"/>
                 <File RelativePath=".\include\mp\MpArrayBuf.h"/>
+                <File RelativePath=".\include\mp\MpAsyncPortAudioStream.h"/>
                 <File RelativePath=".\include\mp\mpau.h"/>
                 <File RelativePath=".\include\mp\MpAudioAbstract.h"/>
                 <File RelativePath=".\include\mp\MpAudioBuf.h"/>
@@ -289,7 +292,7 @@
                 <File RelativePath=".\include\mp\MpNotificationMsgDef.h"/>
                 <File RelativePath=".\include\mp\MpPortAudioDriver.h"/>
                 <File RelativePath=".\include\mp\MpPortAudioMixer.h"/>
-                <File RelativePath=".\include\mp\MpPortAudioStream.h"/>
+                <File RelativePath=".\include\mp\MpPortAudioStreamBase.h"/>
                 <File RelativePath=".\include\mp\MprBridge.h"/>
                 <File RelativePath=".\include\mp\MprDecode.h"/>
                 <File RelativePath=".\include\mp\MprDejitter.h"/>
@@ -321,6 +324,7 @@
                 <File RelativePath=".\include\mp\MpRtpOutputAudioConnection.h"/>
                 <File RelativePath=".\include\mp\MpRtpOutputConnection.h"/>
                 <File RelativePath=".\include\mp\MpSipxDecoders.h"/>
+                <File RelativePath=".\include\mp\MpSyncPortAudioStream.h"/>
                 <File RelativePath=".\include\mp\MpToneResourceMsg.h"/>
                 <File RelativePath=".\include\mp\MpTypes.h"/>
                 <File RelativePath=".\include\mp\MpUdpBuf.h"/>

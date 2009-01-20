@@ -92,7 +92,7 @@ UtlBoolean MprToSpkr::doProcessFrame(MpBufPtr inBufs[],
          MpAudioDriverBase* pAudioDriver = pAudioManager->getAudioDriver();
          if (streamId && pAudioDriver)
          {
-            pAudioDriver->writeStreamSync(streamId, shpSamples, iLength);
+            pAudioDriver->writeStream(streamId, shpSamples, iLength);
          }
       }
 
