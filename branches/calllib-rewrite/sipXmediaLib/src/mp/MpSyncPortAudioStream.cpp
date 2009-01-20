@@ -54,16 +54,16 @@ OsStatus MpSyncPortAudioStream::readStream(void *buffer, unsigned long frames)
 {
    OsStatus status = OS_FAILED;
 
-   // copy input frames to meter
-   if (m_inputVolumeMeter)
-   {
-      m_inputVolumeMeter->pushBuffer(buffer, (unsigned int)frames);
-   }
-
    PaError paError = Pa_ReadStream(m_streamId, buffer, frames);
 
    if (paError == paNoError)
    {
+      // copy input frames to meter
+      if (m_inputVolumeMeter)
+      {
+         m_inputVolumeMeter->pushBuffer(buffer, (unsigned int)frames);
+      }
+
       status = OS_SUCCESS;
    }
    else if (paError == paInputOverflowed)
