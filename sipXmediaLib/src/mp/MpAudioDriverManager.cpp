@@ -161,7 +161,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                &outputParameters,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_CLIPOFF,
+               MP_AUDIO_STREAM_DITHEROFF,
                TRUE);
             if (res != OS_SUCCESS)
             {
@@ -242,7 +242,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                &outputParameters,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_CLIPOFF,
+               MP_AUDIO_STREAM_DITHEROFF,
                TRUE);
             if (res != OS_SUCCESS)
             {
@@ -305,7 +305,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                NULL,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_CLIPOFF,
+               MP_AUDIO_STREAM_DITHEROFF,
                TRUE);
             if (res != OS_SUCCESS)
             {
@@ -387,7 +387,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                NULL,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
-               MP_AUDIO_STREAM_CLIPOFF,
+               MP_AUDIO_STREAM_DITHEROFF,
                TRUE);
             if (res != OS_SUCCESS)
             {
