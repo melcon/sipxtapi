@@ -345,6 +345,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpAsyncPortAudioStream.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\mpau.cpp"
 					>
 				</File>
@@ -625,7 +629,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPortAudioStream.cpp"
+					RelativePath=".\src\mp\MpPortAudioStreamBase.cpp"
 					>
 				</File>
 				<File
@@ -737,6 +741,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpSyncPortAudioStream.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpTypes.cpp"
 					>
 				</File>
@@ -843,6 +851,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpArrayBuf.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAsyncPortAudioStream.h"
 					>
 				</File>
 				<File
@@ -1166,7 +1178,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPortAudioStream.h"
+					RelativePath=".\include\mp\MpPortAudioStreamBase.h"
 					>
 				</File>
 				<File
@@ -1291,6 +1303,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpSipxDecoders.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpSyncPortAudioStream.h"
 					>
 				</File>
 				<File

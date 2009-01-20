@@ -50,6 +50,7 @@ libsipXmedia_la_SOURCES =  \
     ../config/sipxmedialib-buildstamp.cpp \
     mp/DSPlib.cpp \
     mp/MpArrayBuf.cpp \
+    mp/MpAsyncPortAudioStream.cpp \
     mp/MpAudioAbstract.cpp \
     mp/MpAudioBuf.cpp \
     mp/MpAudioDeviceInfo.cpp \
@@ -92,7 +93,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpNotificationDispatcher.cpp \
     mp/MpPortAudioDriver.cpp \
     mp/MpPortAudioMixer.cpp \
-    mp/MpPortAudioStream.cpp \
+    mp/MpPortAudioStreamBase.cpp \
     mp/MpResource.cpp \
     mp/MpResourceMsg.cpp \
     mp/MpResourceSortAlg.cpp \
@@ -102,6 +103,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpRtpOutputAudioConnection.cpp \
     mp/MpRtpOutputConnection.cpp \
     mp/MpSipxDecoders.cpp \
+    mp/MpSyncPortAudioStream.cpp \
     mp/MpTypes.cpp \
     mp/MpUdpBuf.cpp \
     mp/MpdIPPG7231.cpp \

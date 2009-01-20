@@ -604,6 +604,14 @@ void MpFlowGraphBase::synchronize(const char* tag, int val1)
    }
 }
 
+void MpFlowGraphBase::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
+                                                MpNotificationMsgType msgSubType,
+                                                intptr_t msgData1 /*= 0*/,
+                                                intptr_t msgData2 /*= 0*/)
+{
+   assert(FALSE);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 // (static) Displays information on the console about the specified flow

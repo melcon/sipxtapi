@@ -11,7 +11,7 @@
 // APPLICATION INCLUDES
 #include <os/OsTime.h>
 #include <utl/UtlBool.h>
-#include "mp/MpAudioDriverDefs.h"
+#include <mp/MpPortAudioStreamBase.h>
 #include "portaudio.h"
 
 // DEFINES
@@ -19,7 +19,6 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
-class MpVolumeMeterBase;
 // STRUCTS
 // TYPEDEFS
 // MACROS
@@ -36,7 +35,7 @@ class MpVolumeMeterBase;
 * to writing pointer. Thus threads will always use disjoint memory blocks.
 * Statistics about input/output underflows and overflows are computed and can be printed if needed.
 */
-class MpPortAudioStream
+class MpAsyncPortAudioStream : public MpPortAudioStreamBase
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -45,15 +44,16 @@ public:
    //@{
 
    /// Constructor.
-   MpPortAudioStream(int outputChannelCount,
-                     int inputChannelCount,
-                     MpAudioDriverSampleFormat outputSampleFormat,
-                     MpAudioDriverSampleFormat inputSampleFormat,
-                     double sampleRate,
-                     unsigned long framesPerBuffer);
+   MpAsyncPortAudioStream(MpAudioStreamId streamId,
+                          int outputChannelCount,
+                          int inputChannelCount,
+                          MpAudioDriverSampleFormat outputSampleFormat,
+                          MpAudioDriverSampleFormat inputSampleFormat,
+                          double sampleRate,
+                          unsigned long framesPerBuffer);
 
    /// Destructor.
-   ~MpPortAudioStream(void);
+   ~MpAsyncPortAudioStream(void);
    //@}
 
    /* ============================ MANIPULATORS ============================== */
@@ -78,8 +78,8 @@ public:
     * @param frames Number of frames to read
     * @returns OS_SUCCESS if successful
     */
-   OsStatus readStreamAsync(void *buffer,
-                            unsigned long frames);
+   virtual OsStatus readStream(void *buffer,
+                               unsigned long frames);
 
    /**
     * Writes given number of frames into stream from buffer.
@@ -88,18 +88,8 @@ public:
     * @param frames Number of frames to write to stream
     * @returns OS_SUCCESS if successful
     */
-   OsStatus writeStreamAsync(const void *buffer,
-                             unsigned long frames);
-
-   /**
-    * Gets volume for input stream calculated from samples.
-    */
-   double getInputStreamVolume(MP_VOLUME_METER_TYPE type) const;
-
-   /**
-   * Gets volume for output stream calculated from samples.
-   */
-   double getOutputStreamVolume(MP_VOLUME_METER_TYPE type) const;
+   virtual OsStatus writeStream(const void *buffer,
+                                unsigned long frames);
 
    /**
     * Prints overflow/underflow statistics.
@@ -110,7 +100,7 @@ public:
     * Resets internal stream buffers to 0 and resets statistics. Needs to be done
     * after stream is stopped or aborted. Not thread safe.
     */
-   void resetStream();
+   virtual void resetStream();
 
    //@}
 
@@ -130,10 +120,10 @@ protected:
 private:
 
    /// Copy constructor (not implemented for this class)
-   MpPortAudioStream(const MpPortAudioStream& rMpPortAudioStream);
+   MpAsyncPortAudioStream(const MpAsyncPortAudioStream& rMpPortAudioStream);
 
    /// Assignment operator (not implemented for this class)
-   MpPortAudioStream& operator=(const MpPortAudioStream& rhs);
+   MpAsyncPortAudioStream& operator=(const MpAsyncPortAudioStream& rhs);
 
    /**
     * Stream callback of this instance to support multiple streams.
@@ -160,27 +150,16 @@ private:
     */
    int getOutputBufferFrameCount();
 
-   int m_outputChannelCount; ///< number of output channels
-   int m_inputChannelCount; ///< number of input channels
-   MpAudioDriverSampleFormat m_outputSampleFormat; ///< sample format of output
-   MpAudioDriverSampleFormat m_inputSampleFormat; ///< sample format of input
-   double m_sampleRate; ///< sample rate for stream
-   unsigned long m_framesPerBuffer; ///< frames per buffer for stream
    unsigned long m_virtualFramesPerBuffer; ///< only used for initializing m_inputWritePos and m_outputWritePos
 
    void* m_pInputBuffer; ///< buffer for storing recorded samples
    void* m_pOutputBuffer; ///< buffer for storing frames going to speaker
    unsigned int m_inputBufferSize; ///< size of input buffer
    unsigned int m_outputBufferSize; ///< size of output buffer
-   unsigned int m_inputSampleSize; ///< size of input sample in bytes per channel
-   unsigned int m_outputSampleSize; ///< size of output sample in bytes per channel
    volatile unsigned int m_inputWritePos; ///< position in input buffer for writing
    volatile unsigned int m_inputReadPos; ///< position in input buffer for reading
    volatile unsigned int m_outputWritePos; ///< position in output buffer for writing
    volatile unsigned int m_outputReadPos; ///< position in output buffer for reading
-
-   MpVolumeMeterBase* m_inputVolumeMeter; ///< volume meter for input
-   MpVolumeMeterBase* m_outputVolumeMeter; ///< volume meter for output
 
    unsigned int m_outputBufferOverflow;
    unsigned int m_outputBufferUnderflow;
