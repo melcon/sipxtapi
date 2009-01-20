@@ -139,7 +139,7 @@ int MpDecodeBuffer::setCodecList(MpDecoderBase** decoderList, int decoderCount)
 int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
 {
    unsigned int availableBufferSize;          // number of samples could be written to decoded buffer
-   unsigned decodedSamples = 0; // number of samples, returned from decoder
+   unsigned producedSamples = 0; // number of samples, returned from decoder
    uint8_t payloadType;     // RTP packet payload type
    MpDecoderBase* decoder;  // decoder for the packet
 
@@ -164,7 +164,15 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
       availableBufferSize = m_decodeBufferOut-m_decodeBufferIn;
    }
 
+   MpAudioSample* pTmpDstBuffer = NULL;
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   pTmpDstBuffer = m_resampleSrcBuffer;
+#else
+   pTmpDstBuffer = m_decodeHelperBuffer;
+#endif
    // decode samples from decoder, and copy them into decode buffer
+   producedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, pTmpDstBuffer);
+
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    if (decoder->getInfo()->getCodecType() != SdpCodec::SDP_CODEC_TONES &&
       decoder->getInfo()->getSamplingRate() != m_samplesPerSec)
@@ -173,15 +181,15 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
       SpeexResamplerState* pResamplerState = m_pResamplerMap[payloadType];
       if (pResamplerState)
       {
-         unsigned int resampleSrcCount = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_resampleSrcBuffer);
-         if (resampleSrcCount > 0)
+         if (producedSamples > 0)
          {
+            unsigned int resampleSrcCount = producedSamples;// speex will overwrite resampleSrcCount
             unsigned int availableHelperBufferSize = g_decodeHelperBufferSize;
             int err = speex_resampler_process_int(pResamplerState, 0,
-               m_resampleSrcBuffer, &resampleSrcCount,
+               pTmpDstBuffer, &resampleSrcCount,
                m_decodeHelperBuffer, &availableHelperBufferSize);
             assert(!err);
-            decodedSamples = availableHelperBufferSize; // speex overwrites availableHelperBufferSize with number of output samples
+            producedSamples = availableHelperBufferSize; // speex overwrites availableHelperBufferSize with number of output samples
          }
       }
       else
@@ -190,24 +198,16 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
          assert(false);
       }
    }
-   else
-   {
-      // no need to resample
-      decodedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_decodeHelperBuffer);
-   }
-#else
-   // no need to resample
-   decodedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_decodeHelperBuffer);
 #endif
    int addedSamples = 0;
    // now we have decoded & resampled samples in m_decodeHelperBuffer, with decodedSamples count
    // copy them into main buffer
-   if (decodedSamples > 0)
+   if (producedSamples > 0)
    {
       // count1 is number of samples to copy before wrapping occurs
-      int count1 = min(decodedSamples, availableBufferSize);
+      int count1 = min(producedSamples, availableBufferSize);
       // count 2 is number of samples to copy after wrapping
-      int count2 = decodedSamples - count1;
+      int count2 = producedSamples - count1;
       memcpy(m_decodeBuffer + m_decodeBufferIn, m_decodeHelperBuffer, count1 * sizeof(MpAudioSample));
       addedSamples += count1;
       if (count2 > 0)
