@@ -22,7 +22,7 @@
 #endif // WIN32 ]
 
 // APPLICATION INCLUDES
-#include "mp/MpdIPPG729.h"
+#include "mp/MpdIPPG729i.h"
 
 extern "C" {
 #include "ippcore.h"
@@ -30,39 +30,26 @@ extern "C" {
 #include "usccodec.h"
 }
 
-#define G729_PATTERN_LENGTH 20
-
-const MpCodecInfo MpdIPPG729::smCodecInfo(
-   SdpCodec::SDP_CODEC_G729,    // codecType
-   "Intel IPP 6.0",             // codecVersion
-   8000,                        // samplingRate
-   16,                          // numBitsPerSample (not used)
-   1,                           // numChannels
-   8000,                        // bitRate
-   20*8,                        // minPacketBits
-   20*8,                        // maxPacketBits
-   160);                        // numSamplesPerFrame - 20ms frame
-
-MpdIPPG729::MpdIPPG729(int payloadType)
-: MpDecoderBase(payloadType, &smCodecInfo)
+MpdIPPG729i::MpdIPPG729i(int payloadType, int bitRate)
+: MpDecoderBase(payloadType, getCodecInfo(bitRate))
 {
    codec = (LoadedCodec*)malloc(sizeof(LoadedCodec));
    memset(codec, 0, sizeof(LoadedCodec));
 }
 
-MpdIPPG729::~MpdIPPG729()
+MpdIPPG729i::~MpdIPPG729i()
 {
    freeDecode();
    free(codec);
 }
 
-OsStatus MpdIPPG729::initDecode()
+OsStatus MpdIPPG729i::initDecode()
 {
    int lCallResult;
 
    ippStaticInit();
    codec->lIsVad = 1;
-   strcpy((char*)codec->codecName, "IPP_G729A");
+   strcpy((char*)codec->codecName, "IPP_G729I");
 
    // Load codec by name
    lCallResult = LoadUSCCodecByName(codec, NULL);
@@ -107,11 +94,10 @@ OsStatus MpdIPPG729::initDecode()
    // instead of SetUSCDecoderParams(...)
    codec->uscParams.pInfo->params.direction = USC_DECODE;
    codec->uscParams.pInfo->params.law = 0;
+   codec->uscParams.pInfo->params.modes.vad =1;
 
    // Prepare input buffer parameters
-   Bitstream.bitrate = 8000;
-   Bitstream.frametype = 3;
-   Bitstream.nbytes = 10;
+   configureBitStream(0); // configure for 6400/11800 by default
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec->uscParams, NULL);
@@ -130,7 +116,7 @@ OsStatus MpdIPPG729::initDecode()
    return OS_SUCCESS;
 }
 
-OsStatus MpdIPPG729::freeDecode(void)
+OsStatus MpdIPPG729i::freeDecode(void)
 {
    // Free codec memory
    USCFree(&codec->uscParams);
@@ -138,7 +124,7 @@ OsStatus MpdIPPG729::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
+int MpdIPPG729i::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned decodedBufferLength,
                        MpAudioSample *samplesBuffer,
                        UtlBoolean bIsPLCFrame) 
@@ -147,7 +133,7 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
       return 0;
 
    unsigned payloadSize = rtpPacket->getPayloadSize();
-   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
+   unsigned maxPayloadSize = getInfo()->getMaxPacketBits()/8;
 
    assert(payloadSize <= maxPayloadSize);
    if (payloadSize > maxPayloadSize)
@@ -164,7 +150,8 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
    }
    else
    {
-      // Each decode pattern must have 10 bytes or less (in case VAD enabled)
+      configureBitStream(payloadSize); // doesn't process SID frames, those are handled above
+      // decode in 10ms frames
       int frames = 0;
       if (!bIsPLCFrame)
       {
@@ -202,5 +189,89 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
    // Return number of decoded samples
    return decodedSamples;
 }
+
+void MpdIPPG729i::configureBitStream(int rtpPayloadBytes)
+{
+   SdpCodec::SdpCodecTypes codecType = getInfo()->getCodecType();
+
+   if (codecType == SdpCodec::SDP_CODEC_G729D)
+   {
+      if (rtpPayloadBytes == 20 || rtpPayloadBytes == 10)
+      {
+         // 8000 bps, G.729/D
+         Bitstream.bitrate = 8000;
+         Bitstream.frametype = 3;
+         Bitstream.nbytes = 10; // in 10ms frames
+      }
+      else // unknown, assume 6400
+      {
+         // 6400 bps, G.729/D
+         Bitstream.bitrate = 6400;
+         Bitstream.frametype = 2;
+         Bitstream.nbytes = 8; // in 10ms frames
+      }
+   }
+   else if (codecType == SdpCodec::SDP_CODEC_G729E)
+   {
+      // 11800 bps, G.729/E
+      Bitstream.bitrate = 11800;
+      Bitstream.frametype = 4;
+      Bitstream.nbytes = 15; // in 10ms frames
+   }
+}
+
+const MpCodecInfo* MpdIPPG729i::getCodecInfo(int bitRate)
+{
+   const MpCodecInfo* pCodecInfo = &smCodecInfo6400;
+   switch(bitRate)
+   {
+   case 6400:
+      pCodecInfo = &smCodecInfo6400;
+      break;
+   case 8000:
+      pCodecInfo = &smCodecInfo8000;
+      break;
+   case 11800:
+      pCodecInfo = &smCodecInfo11800;
+      break;
+   default:
+      ;
+   }
+
+   return pCodecInfo;
+}
+
+const MpCodecInfo MpdIPPG729i::smCodecInfo6400(
+   SdpCodec::SDP_CODEC_G729D,    // codecType
+   "Intel IPP 6.0",             // codecVersion
+   8000,                        // samplingRate
+   16,                          // numBitsPerSample (not used)
+   1,                           // numChannels
+   6400,                        // bitRate
+   16*8,                        // minPacketBits
+   16*8,                        // maxPacketBits
+   160);                        // numSamplesPerFrame - 20ms frame
+
+const MpCodecInfo MpdIPPG729i::smCodecInfo8000(
+   SdpCodec::SDP_CODEC_G729D,    // codecType
+   "Intel IPP 6.0",             // codecVersion
+   8000,                        // samplingRate
+   16,                          // numBitsPerSample (not used)
+   1,                           // numChannels
+   8000,                        // bitRate
+   20*8,                        // minPacketBits
+   20*8,                        // maxPacketBits
+   160);                        // numSamplesPerFrame - 20ms frame
+
+const MpCodecInfo MpdIPPG729i::smCodecInfo11800(
+   SdpCodec::SDP_CODEC_G729E,    // codecType
+   "Intel IPP 6.0",             // codecVersion
+   8000,                        // samplingRate
+   16,                          // numBitsPerSample (not used)
+   1,                           // numChannels
+   11800,                        // bitRate
+   29*8,                        // minPacketBits
+   30*8,                        // maxPacketBits
+   160);                        // numSamplesPerFrame - 20ms frame
 
 #endif /* !HAVE_INTEL_IPP ] */
