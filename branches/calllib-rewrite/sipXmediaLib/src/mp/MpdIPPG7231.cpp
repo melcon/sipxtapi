@@ -216,7 +216,7 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
       Bitstream.frametype = 0;
       Bitstream.nbytes = 20;
    }
-   else
+   else if (!bIsPLCFrame)
    {
       // MpDecodeBuffer will generate comfort noise
       return 0;
@@ -232,14 +232,14 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
    if (payloadSize == G723_PATTERN_LENGTH_6300)
    {
       uscStatus = codec6300->uscParams.USC_Fns->Decode(codec6300->uscParams.uCodec.hUSCCodec,
-         &Bitstream, &PCMStream);
+         bIsPLCFrame ? NULL : &Bitstream, &PCMStream);
       assert(uscStatus == USC_NoError);
       decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
    }
    else
    {
       uscStatus = codec5300->uscParams.USC_Fns->Decode(codec5300->uscParams.uCodec.hUSCCodec,
-         &Bitstream, &PCMStream);
+         bIsPLCFrame ? NULL : &Bitstream, &PCMStream);
       assert(uscStatus == USC_NoError);
       decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
    }
