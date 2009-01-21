@@ -535,7 +535,7 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
       "ILBC ILBC-20MS "
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
-      "G729A G723.1 "
+      "G729B G723.1 "
 #endif // HAVE_INTEL_IPP ]
 #ifdef HAVE_SPAN_DSP // [
       "G726_16 G726_24 G726_32 G726_40 "
