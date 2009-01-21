@@ -134,7 +134,7 @@ OsStatus MprDejitter::pushPacket(const MpRtpBufPtr &pRtp)
 }
 
 // Get a pointer to the next RTP packet, or NULL if none is available.
-MpRtpBufPtr MprDejitter::pullPacket(int rtpPayloadType)
+MpRtpBufPtr MprDejitter::pullPacket(int rtpPayloadType, JitterBufferResult& jbResult)
 {
    OsLock locker(m_rtpLock);
 
@@ -142,7 +142,7 @@ MpRtpBufPtr MprDejitter::pullPacket(int rtpPayloadType)
    {
       MpRtpBufPtr found; ///< RTP packet we will return
       // we have a jitter buffer for this rtp frame
-      JitterBufferResult res = m_jitterBufferArray[rtpPayloadType]->pull(found);
+      jbResult = m_jitterBufferArray[rtpPayloadType]->pull(found);
 
       // if there is not available rtp frame, jitter buffer returns empty MpRtpBufPtr
       return found;

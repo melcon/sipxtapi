@@ -22,10 +22,6 @@
 #include "mp/MpCodecInfo.h"
 #include "mp/MpRtpBuf.h"
 
-#ifdef HAVE_SPAN_DSP
-#include <spandsp/noise.h>
-#endif
-
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -84,7 +80,8 @@ public:
      /// Decode incoming RTP packet
    virtual int decode(const MpRtpBufPtr &pPacket, ///< (in) Pointer to a media buffer
                       unsigned decodedBufferLength, ///< (in) Length of the samplesBuffer (in samples)
-                      MpAudioSample *samplesBuffer ///< (out) Buffer for decoded samples
+                      MpAudioSample *samplesBuffer, ///< (out) Buffer for decoded samples
+                      UtlBoolean bIsPLCFrame = FALSE
                      ) =0;
      /**<
      *  @return Number of decoded samples.
@@ -117,11 +114,6 @@ public:
 protected:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
-   /**
-    * Generates quiet comfort noise.
-    */
-   void generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount);
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
@@ -133,11 +125,6 @@ private:
 
    const MpCodecInfo* mpCodecInfo;
    int mPayloadType;
-
-#ifdef HAVE_SPAN_DSP
-   noise_state_t* m_pNoiseState; ///< state of noise generator
-#endif
-
 };
 
 /* ============================ INLINE METHODS ============================ */

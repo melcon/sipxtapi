@@ -132,7 +132,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    codec6300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec6300->uscParams.pInfo->params.law = 0;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
-   codec6300->uscParams.pInfo->params.modes.vad = 1;    
+   codec6300->uscParams.pInfo->params.modes.vad = 1;
 
    // Set params for encode
    lCallResult = SetUSCEncoderPCMType(&codec5300->uscParams, LINEAR_PCM, &streamType, NULL);

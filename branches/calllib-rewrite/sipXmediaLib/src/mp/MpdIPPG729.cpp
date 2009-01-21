@@ -149,7 +149,8 @@ OsStatus MpdIPPG729::freeDecode(void)
 
 int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned decodedBufferLength,
-                       MpAudioSample *samplesBuffer) 
+                       MpAudioSample *samplesBuffer,
+                       UtlBoolean bIsPLCFrame) 
 {
    if (!rtpPacket.isValid())
       return 0;
@@ -163,29 +164,52 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
       return 0;
    }
 
-   // Each decode pattern must have 10 bytes or less (in case VAD enabled)
-   int frames = payloadSize / Bitstream.nbytes;
+   unsigned int decodedSamples = 0;
 
-   // Setup input and output pointers
-   Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
-   PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
-   // zero the buffer in case we decode less than 320 bytes
-   // as it happens sometimes
-   memset(PCMStream.pBuffer, 0, 320);
-   
-   // Decode frames
-   for (int i = 0; i < frames; i++)
+   if (payloadSize <= 2 && !bIsPLCFrame)
    {
-      // Decode one frame
-      USCCodecDecode(&codec->uscParams, &Bitstream, &PCMStream, 0);
+      // MpDecodeBuffer will generate comfort noise
+      return 0;
+   }
+   else
+   {
+      // Each decode pattern must have 10 bytes or less (in case VAD enabled)
+      int frames = 0;
+      if (!bIsPLCFrame)
+      {
+         frames = payloadSize / Bitstream.nbytes;
+      }
+      else
+      {
+         // codec will do PLC
+         frames = 2;
+      }
 
-      // move pointers
-      Bitstream.pBuffer += Bitstream.nbytes;
-      PCMStream.pBuffer += codec->uscParams.pInfo->params.framesize;
+      // Setup input and output pointers
+      Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
+      PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
+      // zero the buffer in case we decode less than 320 bytes
+      // as it happens sometimes
+      memset(PCMStream.pBuffer, 0, 320);
+
+      // Decode frames
+      for (int i = 0; i < frames; i++)
+      {
+         // Decode one frame
+         USC_Status uscStatus = codec->uscParams.USC_Fns->Decode(codec->uscParams.uCodec.hUSCCodec,
+            bIsPLCFrame ? NULL : &Bitstream,
+            &PCMStream);
+         assert(uscStatus == USC_NoError);
+
+         // move pointers
+         Bitstream.pBuffer += Bitstream.nbytes;
+         PCMStream.pBuffer += codec->uscParams.pInfo->params.framesize;
+         decodedSamples += PCMStream.nbytes / sizeof(MpAudioSample);
+      }
    }
 
    // Return number of decoded samples
-   return 160;
+   return decodedSamples;
 }
 
 #endif /* !HAVE_INTEL_IPP ] */

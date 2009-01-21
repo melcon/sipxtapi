@@ -22,6 +22,11 @@
 #include <speex/speex_resampler.h>
 #endif
 #include "mp/MpRtpBuf.h"
+#include <mp/MpJitterBufferDefault.h>
+
+#ifdef HAVE_SPAN_DSP
+#include <spandsp/noise.h>
+#endif
 
 // DEFINES
 // MACROS
@@ -100,7 +105,7 @@ public:
 private:
 
    /// Push packet into jitter buffer.
-   int pushPacket(MpRtpBufPtr &rtpPacket);
+   int pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResult);
    /**<
    *  Packet will be decoded and decoded data will be copied to internal buffer.
    *  If no decoder is available for this packet's payload type packet will be
@@ -135,6 +140,14 @@ private:
    MpAudioSample m_resampleSrcBuffer[g_decodeHelperBufferSize]; // buffer for storing samples after decoding, but before resampling
 
 #endif
+#ifdef HAVE_SPAN_DSP
+   noise_state_t* m_pNoiseState; ///< state of noise generator
+#endif
+
+   /**
+   * Generates quiet comfort noise.
+   */
+   void generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount);
 
    void destroyResamplers();
    void setupResamplers(MpDecoderBase** decoderList, int decoderCount);

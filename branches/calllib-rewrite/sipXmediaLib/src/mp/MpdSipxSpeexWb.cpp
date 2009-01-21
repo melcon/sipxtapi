@@ -77,7 +77,10 @@ OsStatus MpdSipxSpeexWb::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdSipxSpeexWb::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
+int MpdSipxSpeexWb::decode(const MpRtpBufPtr &pPacket,
+                           unsigned decodedBufferLength,
+                           MpAudioSample *samplesBuffer,
+                           UtlBoolean bIsPLCFrame)
 {
    if (!pPacket.isValid())
       return 0;
