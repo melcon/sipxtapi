@@ -87,7 +87,8 @@ OsStatus MpdSipxILBC::freeDecode(void)
 
 int MpdSipxILBC::decode(const MpRtpBufPtr &pPacket,
                         unsigned decodedBufferLength,
-                        MpAudioSample *samplesBuffer)
+                        MpAudioSample *samplesBuffer,
+                        UtlBoolean bIsPLCFrame)
 {
    // Check if available buffer size is enough for the packet.
    if (decodedBufferLength < m_samplesPerFrame)

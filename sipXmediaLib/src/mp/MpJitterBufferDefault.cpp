@@ -302,7 +302,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
                pOutRtp = m_pPLC.clone();
                // Make sure we does not have copy of this buffer left in other threads.
                pOutRtp.requestWrite();
-               return MP_JITTER_BUFFER_OK;
+               return MP_JITTER_BUFFER_PLC;
             }
             else
             {
@@ -323,7 +323,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
       pOutRtp.requestWrite();
 
       m_bufferLength--;
-      return MP_JITTER_BUFFER_OK;
+      return MP_JITTER_BUFFER_FRAME_SKIP;
    }
    
    // we didn't find any suitable frame :(

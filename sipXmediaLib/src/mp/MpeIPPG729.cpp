@@ -100,6 +100,7 @@ OsStatus MpeIPPG729::initEncode(void)
    // instead of SetUSCEncoderParams(...)
    codec->uscParams.pInfo->params.direction = USC_ENCODE;
    codec->uscParams.pInfo->params.law = 0;
+   codec->uscParams.pInfo->params.modes.vad = 1;
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec->uscParams, NULL);
@@ -151,9 +152,7 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
                             UtlBoolean& sendNow,
                             MpSpeechType& rAudioCategory)
 {
-
    ippsSet_8u(0, (Ipp8u *)outputBuffer, codec->uscParams.pInfo->maxbitsize + 1);
-
    ippsCopy_8u((unsigned char *)pAudioSamples, (unsigned char *)inputBuffer,
                codec->uscParams.pInfo->params.framesize);     
 
@@ -179,10 +178,9 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
    frmlen = USCEncoderPostProcessFrame(&codec->uscParams, inputBuffer,
             (Ipp8s *)outputBuffer, &PCMStream, &Bitstream);
 
-
    ippsSet_8u(0, pCodeBuf, 10); 
 
-   if (Bitstream.nbytes == 10 || Bitstream.nbytes == 2 )
+   if (Bitstream.nbytes == 10 || Bitstream.nbytes == 2)
    {
       for(int k = 0; k < Bitstream.nbytes; ++k)
       {
@@ -191,7 +189,7 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
    }
    else
    {
-      frmlen =0;
+      frmlen = 0;
    }
 
    if (Bitstream.nbytes == 2 || Bitstream.nbytes == 0)
@@ -204,10 +202,9 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
    }
 
    rAudioCategory = MP_SPEECH_UNKNOWN;
-   rSamplesConsumed = FrmDataLen / 
-                      (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
+   rSamplesConsumed = FrmDataLen / (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
 
-   if (Bitstream.nbytes <= 10 )
+   if (Bitstream.nbytes <= 10)
    {
       rSizeInBytes = Bitstream.nbytes;
    }
