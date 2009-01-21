@@ -51,9 +51,37 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G729,
          SdpCodec::SDP_CODEC_G729,
          "G729B",
-         "G.729b",
+         "G.729 annex B",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G729,
+         8000,
+         10000,
+         1,
+         "annexb=yes",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G729D:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G729D,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729D",
+         "G.729 annex D",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G729D,
+         8000,
+         10000,
+         1,
+         "annexb=yes",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G729E:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G729E,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729E",
+         "G.729 annex E",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G729E,
          8000,
          10000,
          1,

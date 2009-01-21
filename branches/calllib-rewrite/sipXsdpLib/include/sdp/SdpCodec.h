@@ -31,6 +31,8 @@
 #define MIME_SUBTYPE_PCMU "PCMU"
 #define MIME_SUBTYPE_PCMA "PCMA"
 #define MIME_SUBTYPE_G729 "G729"
+#define MIME_SUBTYPE_G729D "G729D"
+#define MIME_SUBTYPE_G729E "G729E"
 #define MIME_SUBTYPE_G722 "G722"
 #define MIME_SUBTYPE_G723 "G723"
 #define MIME_SUBTYPE_G726_16 "G726-16"
@@ -165,6 +167,8 @@ public:
         SDP_CODEC_G726_24,   ///< G.726 24 Kbps
         SDP_CODEC_G726_32,   ///< G.726 32 Kbps
         SDP_CODEC_G726_40,   ///< G.726 40 Kbps
+        SDP_CODEC_G729D, ///< G.729/D, with DTX Annex F
+        SDP_CODEC_G729E, ///< G.729/E, with DTX Annex G
 
         // video codecs
         SDP_CODEC_VP71_CIF,
