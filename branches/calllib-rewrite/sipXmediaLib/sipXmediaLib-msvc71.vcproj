@@ -69,6 +69,7 @@
                 <File RelativePath=".\src\mp\MpDecodeBuffer.cpp"/>
                 <File RelativePath=".\src\mp\MpDecoderBase.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG7231.cpp"/>
+                <File RelativePath=".\src\mp\MpdIPPG728.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG729.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG729i.cpp"/>
                 <File RelativePath=".\src\mp\MpdPtAVT.cpp"/>
@@ -84,6 +85,7 @@
                 <File RelativePath=".\src\mp\MpdSipxSpeexWb.cpp"/>
                 <File RelativePath=".\src\mp\MpDspUtils.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPG7231.cpp"/>
+                <File RelativePath=".\src\mp\MpeIPPG728.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPG729.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPG729i.cpp"/>
                 <File RelativePath=".\src\mp\MpEncoderBase.cpp"/>
@@ -204,6 +206,7 @@
                 <File RelativePath=".\include\mp\MpDecoderBase.h"/>
                 <File RelativePath=".\include\mp\MpDefs.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG7231.h"/>
+                <File RelativePath=".\include\mp\MpdIPPG728.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG729i.h"/>
                 <File RelativePath=".\include\mp\MpdPtAVT.h"/>
@@ -225,6 +228,7 @@
                 <File RelativePath=".\include\mp\MpDspUtilsSum.h"/>
                 <File RelativePath=".\include\mp\MpDspUtilsSumVect.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG7231.h"/>
+                <File RelativePath=".\include\mp\MpeIPPG728.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG729i.h"/>
                 <File RelativePath=".\include\mp\MpEncoderBase.h"/>

@@ -47,6 +47,20 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
         SDP_CODEC_BANDWIDTH_LOW);
       break;
 #ifdef HAVE_INTEL_IPP
+   case SdpCodec::SDP_CODEC_G728:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G728,
+         SdpCodec::SDP_CODEC_G728,
+         "G728",
+         "G.728",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G728,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
    case SdpCodec::SDP_CODEC_G729:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G729,
          SdpCodec::SDP_CODEC_G729,
@@ -55,7 +69,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G729,
          8000,
-         10000,
+         20000,
          1,
          "annexb=yes",
          SdpCodec::SDP_CODEC_CPU_HIGH,
@@ -69,7 +83,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G729D,
          8000,
-         10000,
+         20000,
          1,
          "annexb=yes",
          SdpCodec::SDP_CODEC_CPU_HIGH,
@@ -83,7 +97,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G729E,
          8000,
-         10000,
+         20000,
          1,
          "annexb=yes",
          SdpCodec::SDP_CODEC_CPU_HIGH,
