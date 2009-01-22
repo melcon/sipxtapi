@@ -36,18 +36,22 @@ I estimate that at the beginning of february 2009 refactored sipXcallLib will be
 ==== sipXmediaLib ====
  * wide band audio support with 48Khz internal sampling rate. Old 8Khz narrow band is recommended for server applications due to lower CPU load.
  * support for additional speex modes (11,000 bps and 18,200 bps), almost all speex wide band, speex ultra band modes
- * iLBC 20ms and 30ms modes are supported for sending
+ * iLBC 20ms and 30ms modes are supported for sending and receiving
  * G.726 codec (16, 24, 32, 40 Kbps modes) via Span DSP library - 8Khz
- * G.722 codec - 16Khz via Span DSP library
+ * G.722 codec 64 Kbps - 16Khz via Span DSP library
+ * G.729 annex B, D and E via Intel IPP - 8Khz
+ * G.728 sending 16 Kbps, receiving 12.8 Kbps and 16 Kbps via Intel IPP - 8Khz
  * L16 audio - uncompressed 16bit mono audio in network byte order. All recommended sampling rates.
  * improved old inbound DTMF detector, and new Span DSP DTMF detector (enabled by default in Windows). Span DSP DTMF detector only available when sipXtapi is compiled with only narrow band suport. DTMF detection is mostly effective at 8Khz.
  * upgrade to Intel IPP 6.0 (compatibility with Intel IPP 5.3 maintained)
  * upgrade to speex 1.2rc1 library
  * usage of synchronous Portaudio API instead of asynchronous. Reduction of latency by ~160ms by this change.
+ * possibility to adjust audio driver latency
+ * linear complexity bridge
  * introduction of Span DSP 0.0.6pre3
 
 Additionally, possibly these features will be implemented in milestone 1:
- * G.728, G.722.1, G.729.1 codecs via Intel IPP 6.0
+ * G.722.1, G.729.1 codecs via Intel IPP 6.0
  * GSM AMR, AMR wideband via Intel IPP 6.0
  * correct handling of VAD, generation of noise frames internally when DTX occurs
 
