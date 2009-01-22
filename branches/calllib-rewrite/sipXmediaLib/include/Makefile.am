@@ -81,6 +81,7 @@ nobase_include_HEADERS =  \
     mp/MpUdpBuf.h \
     mp/MpVolumeMeter.h \
     mp/MpVolumeMeterBase.h \
+    mp/MpdIPPG7221.h \
     mp/MpdIPPG7231.h \
     mp/MpdIPPG728.h \
     mp/MpdIPPG729.h \
@@ -96,6 +97,7 @@ nobase_include_HEADERS =  \
     mp/MpdSipxSpeex.h \
     mp/MpdSipxSpeexUWb.h \
     mp/MpdSipxSpeexWb.h \
+    mp/MpeIPPG7221.h \
     mp/MpeIPPG7231.h \
     mp/MpeIPPG728.h \
     mp/MpeIPPG729.h \

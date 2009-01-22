@@ -457,6 +457,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdIPPG7221.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdIPPG7231.cpp"
 					>
 				</File>
@@ -518,6 +522,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpDspUtils.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPG7221.cpp"
 					>
 				</File>
 				<File
@@ -994,6 +1002,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdIPPG7221.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdIPPG7231.h"
 					>
 				</File>
@@ -1079,6 +1091,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpDspUtilsSumVect.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPG7221.h"
 					>
 				</File>
 				<File

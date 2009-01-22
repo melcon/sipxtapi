@@ -310,6 +310,13 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     // G.722 codec
     else if (strcmp(compareString,"G722") == 0)
        retType = SdpCodec::SDP_CODEC_G722;
+    // G.722.1 codec
+    else if (strcmp(compareString,"G722.1_16") == 0)
+       retType = SdpCodec::SDP_CODEC_G7221_16;
+    else if (strcmp(compareString,"G722.1_24") == 0)
+       retType = SdpCodec::SDP_CODEC_G7221_24;
+    else if (strcmp(compareString,"G722.1_32") == 0)
+       retType = SdpCodec::SDP_CODEC_G7221_32;
     // gsm full rate
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;

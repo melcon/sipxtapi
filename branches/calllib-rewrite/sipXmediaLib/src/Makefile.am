@@ -106,6 +106,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpSyncPortAudioStream.cpp \
     mp/MpTypes.cpp \
     mp/MpUdpBuf.cpp \
+    mp/MpdIPPG7221.cpp \
     mp/MpdIPPG7231.cpp \
     mp/MpdIPPG728.cpp \
     mp/MpdIPPG729.cpp \
@@ -121,6 +122,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpdSipxSpeex.cpp \
     mp/MpdSipxSpeexUWb \
     mp/MpdSipxSpeexWb.cpp \
+    mp/MpeIPPG7221.cpp \
     mp/MpeIPPG7231.cpp \
     mp/MpeIPPG728.cpp \
     mp/MpeIPPG729.cpp \
