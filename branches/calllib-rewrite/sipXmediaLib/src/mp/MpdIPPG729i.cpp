@@ -196,7 +196,7 @@ void MpdIPPG729i::configureBitStream(int rtpPayloadBytes)
 
    if (codecType == SdpCodec::SDP_CODEC_G729D)
    {
-      if (rtpPayloadBytes == 20 || rtpPayloadBytes == 10)
+      if (rtpPayloadBytes % 10 == 0)
       {
          // 8000 bps, G.729/D
          Bitstream.bitrate = 8000;

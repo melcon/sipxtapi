@@ -166,15 +166,7 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
    {
       // Each decode pattern must have 10 bytes or less (in case VAD enabled)
       int frames = 0;
-      if (!bIsPLCFrame)
-      {
-         frames = payloadSize / Bitstream.nbytes;
-      }
-      else
-      {
-         // codec will do PLC
-         frames = 2;
-      }
+      frames = payloadSize / Bitstream.nbytes;
 
       // Setup input and output pointers
       Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
