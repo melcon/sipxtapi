@@ -168,14 +168,21 @@ typedef enum
  *           PCMA      64 kbit/s
  *           iLBC      13.33 kbit/s, 30 ms frame size
  *                     15.2 kbit/s, 20 ms frame size
- *           GSM       13 kbit/s, 20 ms frame size
- *           G729A     8 kbit/s, 10 ms frame size
+ *           GSM       13 kbit/s
+ *           G722      64 kbit/s
+ *           G722.1_16 16 kbit/s
+ *           G722.1_24 24 kbit/s
+ *           G722.1_32 32 kbit/s
  *           G723.1    6.3 kbit/s, 30 ms frame size (using 24 byte frames)
  *                     5.3 kbit/s, 30 ms frame size (using 20 byte frames)
- *           G726-16   16 kbit/s
- *           G726-24   24 kbit/s
- *           G726-32   32 kbit/s
- *           G726-40   40 kbit/s
+ *           G726_16   16 kbit/s
+ *           G726_24   24 kbit/s
+ *           G726_32   32 kbit/s
+ *           G726_40   40 kbit/s
+ *           G728      16 kbit/s, 12.8 kbit/s
+ *           G729B     8 kbit/s
+ *           G729D     6.4 kbit/s, 8 kbit/s
+ *           G729E     12.4 kbit/s
  *           SPEEX_5   5.95 kbit/s
  *           SPEEX_8   8 kbit/s
  *           SPEEX_11  11 kbit/s
