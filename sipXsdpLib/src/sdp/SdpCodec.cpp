@@ -284,6 +284,8 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_PCMU;
     else if (strcmp(compareString,"PCMA") == 0)
        retType = SdpCodec::SDP_CODEC_PCMA;
+    else if (strcmp(compareString,"G728") == 0)
+       retType = SdpCodec::SDP_CODEC_G728;
     else if (strcmp(compareString,"G729B") == 0)
        retType = SdpCodec::SDP_CODEC_G729;
     else if (strcmp(compareString,"G729D") == 0)

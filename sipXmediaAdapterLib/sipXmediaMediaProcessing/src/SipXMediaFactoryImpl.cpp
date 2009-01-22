@@ -535,13 +535,13 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
       "ILBC ILBC-20MS "
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
-      "G729B G729D G729E G723.1 "
+      "G723.1 G728 G729B G729D G729E "
 #endif // HAVE_INTEL_IPP ]
 #ifdef HAVE_SPAN_DSP // [
-      "G726_16 G726_24 G726_32 G726_40 "
 #ifdef ENABLE_WIDEBAND_AUDIO
       "G722 "
 #endif // ENABLE_WIDEBAND_AUDIO ]
+      "G726_16 G726_24 G726_32 G726_40 "
 #endif // HAVE_SPAN_DSP ]
       "PCMU PCMA TELEPHONE-EVENT";
    return supportedCodecs;
