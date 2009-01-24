@@ -127,6 +127,25 @@ UtlBoolean MprSpeexPreprocess::doProcessFrame(MpBufPtr inBufs[],
       isVoiceActive = speex_preprocess_run(mpPreprocessState, (spx_int16_t*)inputBuffer->getSamplesPtr());
    }
 
+   if (inputBuffer.isValid())
+   {
+      if (m_bVadEnabled)
+      {
+         if (isVoiceActive)
+         {
+            inputBuffer->setSpeechType(MP_SPEECH_ACTIVE);
+         }
+         else
+         {
+            inputBuffer->setSpeechType(MP_SPEECH_SILENT);
+         }
+      }
+      else
+      {
+         inputBuffer->setSpeechType(MP_SPEECH_UNKNOWN);
+      }
+   }
+
    outBufs[0].swap(inputBuffer);
    return TRUE;
 }

@@ -86,7 +86,7 @@ OsStatus MpeSipxILBC::encode(const MpAudioSample* pAudioSamples,
                               const int bytesLeft,
                               int& rSizeInBytes,
                               UtlBoolean& sendNow,
-                              MpSpeechType& rAudioCategory)
+                              MpSpeechType& speechType)
 {
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad += numSamples;
@@ -111,7 +111,6 @@ OsStatus MpeSipxILBC::encode(const MpAudioSample* pAudioSamples,
    }
 
    rSamplesConsumed = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
    return OS_SUCCESS;
 }
 

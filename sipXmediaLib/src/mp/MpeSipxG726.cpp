@@ -113,14 +113,13 @@ OsStatus MpeSipxG726::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(numSamples == 80); // we expect 10ms frames
 
    rSizeInBytes = g726_encode(m_pG726state, pCodeBuf, pAudioSamples, numSamples);
 
    rSamplesConsumed = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;
 }

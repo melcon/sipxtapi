@@ -214,7 +214,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(80 == numSamples);
 
@@ -272,7 +272,6 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
          frmlen =0;
       }
 
-      rAudioCategory = MP_SPEECH_UNKNOWN;
       rSamplesConsumed = numSamples;
       mStoredFramesCount = 0;
 
@@ -299,7 +298,6 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       sendNow = FALSE;
       rSizeInBytes = 0;
       rSamplesConsumed = numSamples;
-      rAudioCategory = MP_SPEECH_UNKNOWN;
    }
 
    return OS_SUCCESS;

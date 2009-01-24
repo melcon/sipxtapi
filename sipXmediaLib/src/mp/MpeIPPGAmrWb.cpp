@@ -171,7 +171,7 @@ OsStatus MpeIPPGAmrWb::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(numSamples == 160);
 
@@ -233,7 +233,6 @@ OsStatus MpeIPPGAmrWb::encode(const short* pAudioSamples,
    }
 
    rSamplesConsumed = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;
 }

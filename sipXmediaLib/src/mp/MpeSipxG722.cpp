@@ -80,14 +80,13 @@ OsStatus MpeSipxG722::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(numSamples == 160); // we expect 10ms frames (16Khz) - 160 samples
 
    rSizeInBytes = g722_encode(m_pG722state, pCodeBuf, pAudioSamples, numSamples);
    // 20 ms samples are created in MprEncode
    rSamplesConsumed = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;
 }
