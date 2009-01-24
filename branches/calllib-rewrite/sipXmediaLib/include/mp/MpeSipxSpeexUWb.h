@@ -8,6 +8,8 @@
 // Copyright (C) 2006 Hector Izquierdo Seliva. 
 // Licensed to SIPfoundry under a Contributor Agreement. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
