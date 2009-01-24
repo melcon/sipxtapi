@@ -115,6 +115,12 @@ public:
      /// Returns the RTP payload type associated with this encoder.
    virtual int getPayloadType(void);
 
+   /// Gets speex voice activity detection setting
+   static UtlBoolean isVADEnabled();
+
+   /// Enable/disable speex voice activity detection
+   static void enableVAD(UtlBoolean bEnable);
+
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -124,6 +130,7 @@ public:
 //@}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+   static UtlBoolean ms_bEnableVAD; ///< whether VAD is enabled
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

@@ -759,7 +759,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVADMode(const SIPX_INST hInst,
 
       if (pInterfaceFactory)
       {
-         if (pInterfaceFactory->setVAD(bEnabled) == OS_SUCCESS)
+         if (pInterfaceFactory->setVADMode(bEnabled) == OS_SUCCESS)
          {
             sr = SIPX_RESULT_SUCCESS;
          }
@@ -786,7 +786,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetVADMode(const SIPX_INST hInst,
 
       if (pInterfaceFactory)
       {
-         if (pInterfaceFactory->getVAD(*bEnabled) == OS_SUCCESS)
+         if (pInterfaceFactory->getVADMode(*bEnabled) == OS_SUCCESS)
          {
             sr = SIPX_RESULT_SUCCESS;
          }

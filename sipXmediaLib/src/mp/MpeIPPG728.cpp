@@ -145,7 +145,7 @@ OsStatus MpeIPPG728::encode(const short* pAudioSamples,
 {
    assert(80 == numSamples);
 
-   if (speechType == MP_SPEECH_SILENT) // G.728 doesn't have built in VAD
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD) // G.728 doesn't have built in VAD
    {
       // VAD must be enabled, do DTX
       rSamplesConsumed = numSamples;

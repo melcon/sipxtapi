@@ -58,7 +58,7 @@ OsStatus MpeSipxPcmu::encode(const MpAudioSample* pAudioSamples,
                              UtlBoolean& sendNow,
                              MpSpeechType& speechType)
 {
-   if (speechType == MP_SPEECH_SILENT)
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD)
    {
       // VAD must be enabled, do DTX
       rSamplesConsumed = numSamples;

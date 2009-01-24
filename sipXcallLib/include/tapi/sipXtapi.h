@@ -2871,9 +2871,6 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
  * and DTX support, a so called SID frame will be sent during silence,
  * for other codecs no frames will be sent at all.
  *
- * For Intel IPP codec G.729B, this setting has no effect. G.729B always uses built
- * in VAD.
- *
  * Note: This API is only supported when bundled with Speex library
  * for codecs without built in VAD support. Codecs with built in VAD support
  * do not require speex library.

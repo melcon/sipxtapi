@@ -134,7 +134,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    codec6300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec6300->uscParams.pInfo->params.law = 0;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
-   codec6300->uscParams.pInfo->params.modes.vad = 1;
+   codec6300->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Set params for encode
    lCallResult = SetUSCEncoderPCMType(&codec5300->uscParams, LINEAR_PCM, &streamType, NULL);
@@ -147,7 +147,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    codec5300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec5300->uscParams.pInfo->params.law = 0;
    codec5300->uscParams.pInfo->params.modes.bitrate = 5300;
-   codec5300->uscParams.pInfo->params.modes.vad = 1;
+   codec5300->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec6300->uscParams, NULL);

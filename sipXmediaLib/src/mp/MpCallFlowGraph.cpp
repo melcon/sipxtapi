@@ -42,6 +42,7 @@
 #include "mp/MprBridge.h"
 #include "mp/MprFromFile.h"
 #include "mp/MprFromMic.h"
+#include <mp/MpEncoderBase.h>
 
 #ifdef SPEEX_ECHO_CANCELATION
 #include "mp/MprSpeexEchoCancel.h"
@@ -79,11 +80,9 @@ FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_DISABLED;
 #ifdef HAVE_SPEEX // [
 UtlBoolean MpCallFlowGraph::sbEnableAGC = TRUE;
 UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = TRUE;
-UtlBoolean MpCallFlowGraph::sbEnableVAD = FALSE;
 #else // HAVE_SPEEX ][
 UtlBoolean MpCallFlowGraph::sbEnableAGC = FALSE;
 UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = FALSE;
-UtlBoolean MpCallFlowGraph::sbEnableVAD = FALSE;
 #endif // HAVE_SPEEX ]
 
 UtlBoolean MpCallFlowGraph::ms_bEnableInboundInBandDTMF = TRUE;
@@ -535,14 +534,15 @@ OsStatus MpCallFlowGraph::gainFocus(void)
    }
 #endif // DOING_ECHO_CANCELATION ]
 
+   UtlBoolean bVADEnabled = MpEncoderBase::isVADEnabled();
 #ifdef HAVE_SPEEX // [
-   if (sbEnableAGC || sbEnableNoiseReduction || sbEnableAEC || sbEnableVAD)
+   if (sbEnableAGC || sbEnableNoiseReduction || sbEnableAEC || bVADEnabled)
    {
      boolRes = mpSpeexPreProcess->enable();
      assert(boolRes);
      mpSpeexPreProcess->setAGC(sbEnableAGC);
      mpSpeexPreProcess->setNoiseReduction(sbEnableNoiseReduction);
-     mpSpeexPreProcess->setVAD(sbEnableVAD);
+     mpSpeexPreProcess->setVAD(bVADEnabled);
    }
 #endif // HAVE_SPEEX ]
 
@@ -1202,16 +1202,14 @@ UtlBoolean MpCallFlowGraph::setAudioNoiseReduction(UtlBoolean bEnable)
    return bReturn;
 }
 
-UtlBoolean MpCallFlowGraph::getVAD(UtlBoolean& bEnable)
+UtlBoolean MpCallFlowGraph::isVADEnabled()
 {
-   bEnable = sbEnableVAD;
-   return TRUE;
+   return MpEncoderBase::isVADEnabled();
 }
 
-UtlBoolean MpCallFlowGraph::setVAD(UtlBoolean bEnable)
+void MpCallFlowGraph::enableVAD(UtlBoolean bEnable)
 {
-   sbEnableVAD = bEnable;
-   return TRUE;
+   MpEncoderBase::enableVAD(bEnable);
 }
 
 UtlBoolean MpCallFlowGraph::enableInboundInBandDTMF(UtlBoolean enable)

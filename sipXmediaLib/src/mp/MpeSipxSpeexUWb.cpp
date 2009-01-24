@@ -130,7 +130,7 @@ OsStatus MpeSipxSpeexUWb::encode(const MpAudioSample* pAudioSamples,
 {
    int size = 0;
 
-   if (speechType == MP_SPEECH_SILENT && mBufferLoad == 0)
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && mBufferLoad == 0)
    {
       // VAD must be enabled, do DTX
       rSamplesConsumed = numSamples;
