@@ -537,7 +537,7 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 #ifdef HAVE_INTEL_IPP // [
       "G723.1 G728 G729B G729D G729E AMR_4750 AMR_10200 "
 #ifdef ENABLE_WIDEBAND_AUDIO
-      "G722.1_16 G722.1_24 G722.1_32 "
+      "AMR_WB_12650 AMR_WB_23850 G722.1_16 G722.1_24 G722.1_32 "
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_INTEL_IPP ]
 #ifdef HAVE_SPAN_DSP // [

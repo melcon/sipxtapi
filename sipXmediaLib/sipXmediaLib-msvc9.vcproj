@@ -481,6 +481,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdIPPGAmrWb.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdPtAVT.cpp"
 					>
 				</File>
@@ -550,6 +554,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpeIPPGAmr.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPGAmrWb.cpp"
 					>
 				</File>
 				<File
@@ -1034,6 +1042,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdIPPGAmrWb.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdPtAVT.h"
 					>
 				</File>
@@ -1127,6 +1139,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpeIPPGAmr.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPGAmrWb.h"
 					>
 				</File>
 				<File

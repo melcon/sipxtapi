@@ -32,6 +32,7 @@
 #ifdef HAVE_INTEL_IPP // [
 #ifdef ENABLE_WIDEBAND_AUDIO
 #include "mp/MpeIPPG7221.h"
+#include "mp/MpeIPPGAmrWb.h"
 #endif
 #include "mp/MpeIPPGAmr.h"
 #include "mp/MpeIPPG728.h"
@@ -80,6 +81,7 @@
 #ifdef HAVE_INTEL_IPP // [
 #ifdef ENABLE_WIDEBAND_AUDIO
 #include "mp/MpdIPPG7221.h"
+#include "mp/MpdIPPGAmrWb.h"
 #endif
 #include "mp/MpdIPPGAmr.h"
 #include "mp/MpdIPPG728.h"
@@ -231,12 +233,18 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_G7221_32): 
       rpDecoder = new MpdIPPG7221(payloadType, 32000);
       break;
-#endif
-   case (SdpCodec::SDP_CODEC_AMR_10200): 
-      rpDecoder = new MpdIPPGAmr(payloadType, 10200, TRUE);
+   case (SdpCodec::SDP_CODEC_AMR_WB_12650): 
+      rpDecoder = new MpdIPPGAmrWb(payloadType, 12650, FALSE);
       break;
+   case (SdpCodec::SDP_CODEC_AMR_WB_23850): 
+      rpDecoder = new MpdIPPGAmrWb(payloadType, 23850, TRUE);
+      break;
+#endif
    case (SdpCodec::SDP_CODEC_AMR_4750): 
       rpDecoder = new MpdIPPGAmr(payloadType, 4750, FALSE);
+      break;
+   case (SdpCodec::SDP_CODEC_AMR_10200): 
+      rpDecoder = new MpdIPPGAmr(payloadType, 10200, TRUE);
       break;
    case (SdpCodec::SDP_CODEC_G723): 
       rpDecoder = new MpdIPPG7231(payloadType);
@@ -436,12 +444,18 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_G7221_32): 
       rpEncoder = new MpeIPPG7221(payloadType, 32000);
       break;
-#endif
-   case (SdpCodec::SDP_CODEC_AMR_10200): 
-      rpEncoder = new MpeIPPGAmr(payloadType, 10200, TRUE);
+   case (SdpCodec::SDP_CODEC_AMR_WB_12650): 
+      rpEncoder = new MpeIPPGAmrWb(payloadType, 12650, FALSE);
       break;
+   case (SdpCodec::SDP_CODEC_AMR_WB_23850): 
+      rpEncoder = new MpeIPPGAmrWb(payloadType, 23850, TRUE);
+      break;
+#endif
    case (SdpCodec::SDP_CODEC_AMR_4750): 
       rpEncoder = new MpeIPPGAmr(payloadType, 4750, FALSE);
+      break;
+   case (SdpCodec::SDP_CODEC_AMR_10200): 
+      rpEncoder = new MpeIPPGAmr(payloadType, 10200, TRUE);
       break;
    case (SdpCodec::SDP_CODEC_G723):
       rpEncoder = new MpeIPPG7231(payloadType);
