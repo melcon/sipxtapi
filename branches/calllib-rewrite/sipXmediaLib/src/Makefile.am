@@ -112,6 +112,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpdIPPG729.cpp \
     mp/MpdIPPG729i.cpp \
     mp/MpdIPPGAmr.cpp \
+    mp/MpdIPPGAmrWb.cpp \
     mp/MpdPtAVT.cpp \
     mp/MpdSipxG722.cpp \
     mp/MpdSipxG726.cpp \
@@ -129,6 +130,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MpeIPPG729.cpp \
     mp/MpeIPPG729i.cpp \
     mp/MpeIPPGAmr.cpp \
+    mp/MpeIPPGAmrWb.cpp \
     mp/MpePtAVT.cpp \
     mp/MpeSipxG722.cpp \
     mp/MpeSipxG726.cpp \

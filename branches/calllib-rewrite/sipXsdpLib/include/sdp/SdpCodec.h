@@ -177,8 +177,10 @@ public:
         SDP_CODEC_G7221_16, ///< G.722.1 16Khz, 16 kbps
         SDP_CODEC_G7221_24, ///< G.722.1 16Khz, 24 kbps
         SDP_CODEC_G7221_32, ///< G.722.1 16Khz, 32 kbps
-        SDP_CODEC_AMR_10200, ///< GSM AMR 8Khz, 10.2 kbps
-        SDP_CODEC_AMR_4750, ///< GSM AMR 8Khz, 4.75 kbps
+        SDP_CODEC_AMR_4750, ///< GSM AMR 8Khz, 4.75 kbps, bandwidth efficient
+        SDP_CODEC_AMR_10200, ///< GSM AMR 8Khz, 10.2 kbps, octet aligned
+        SDP_CODEC_AMR_WB_12650, ///< GSM AMR WB 16Khz, 12.65 kbps, bandwidth efficient
+        SDP_CODEC_AMR_WB_23850, ///< GSM AMR WB 16Khz, 23.85 kbps, octet aligned
 
         // video codecs
         SDP_CODEC_VP71_CIF,

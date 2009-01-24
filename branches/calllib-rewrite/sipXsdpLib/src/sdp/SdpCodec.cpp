@@ -320,10 +320,15 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     else if (strcmp(compareString,"G722.1_32") == 0)
        retType = SdpCodec::SDP_CODEC_G7221_32;
     // amr
-    else if (strcmp(compareString,"AMR_10200") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_10200;
     else if (strcmp(compareString,"AMR_4750") == 0)
        retType = SdpCodec::SDP_CODEC_AMR_4750;
+    else if (strcmp(compareString,"AMR_10200") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_10200;
+    // amr wb
+    else if (strcmp(compareString,"AMR_WB_12650") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_WB_12650;
+    else if (strcmp(compareString,"AMR_WB_23850") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_WB_23850;
     // gsm full rate
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;

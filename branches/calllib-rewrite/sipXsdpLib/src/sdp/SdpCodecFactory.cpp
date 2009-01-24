@@ -159,6 +159,20 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_NORMAL,
          SDP_CODEC_BANDWIDTH_NORMAL); 
       break;
+   case SdpCodec::SDP_CODEC_AMR_4750:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_4750,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_4750",
+         "AMR 4.75 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR,
+         8000,
+         20000,
+         1,
+         "", // bandwidth efficient mode
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
    case SdpCodec::SDP_CODEC_AMR_10200:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_10200,
          SdpCodec::SDP_CODEC_UNKNOWN,
@@ -173,20 +187,36 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
-   case SdpCodec::SDP_CODEC_AMR_4750:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_4750,
+#ifdef ENABLE_WIDEBAND_AUDIO
+   case SdpCodec::SDP_CODEC_AMR_WB_12650:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_WB_12650,
          SdpCodec::SDP_CODEC_UNKNOWN,
-         "AMR_4750",
-         "AMR 4.75 kbit/s",
+         "AMR_WB_12650",
+         "AMR wb 12.65 kbit/s",
          MIME_TYPE_AUDIO,
-         MIME_SUBTYPE_AMR,
-         8000,
+         MIME_SUBTYPE_AMR_WB,
+         16000,
          20000,
          1,
-         "",
+         "", // bandwidth efficient mode
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
+   case SdpCodec::SDP_CODEC_AMR_WB_23850:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_WB_23850,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_WB_23850",
+         "AMR wb 23.85 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR_WB,
+         16000,
+         20000,
+         1,
+         "octet-align=1",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_INTEL_IPP
    case SdpCodec::SDP_CODEC_PCMA:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA,
