@@ -66,10 +66,10 @@
 // CONSTANTS
 
 // STATIC VARIABLE INITIALIZATIONS
-UtlBoolean MpCallFlowGraph::sbSendInBandDTMF = true;
+UtlBoolean MpCallFlowGraph::sbSendInBandDTMF = TRUE;
 
 #ifdef DOING_ECHO_CANCELATION
-UtlBoolean MpCallFlowGraph::sbEnableAEC = true;
+UtlBoolean MpCallFlowGraph::sbEnableAEC = TRUE;
 FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_CANCEL;
 #else // DOING_ECHO_CANCELATION ][
 UtlBoolean MpCallFlowGraph::sbEnableAEC = false;
@@ -77,15 +77,17 @@ FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_DISABLED;
 #endif // DOING_ECHO_CANCELATION ]
 
 #ifdef HAVE_SPEEX // [
-UtlBoolean MpCallFlowGraph::sbEnableAGC = true;
-UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = true;
+UtlBoolean MpCallFlowGraph::sbEnableAGC = TRUE;
+UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = TRUE;
+UtlBoolean MpCallFlowGraph::sbEnableVAD = FALSE;
 #else // HAVE_SPEEX ][
-UtlBoolean MpCallFlowGraph::sbEnableAGC = false;
-UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = false;
+UtlBoolean MpCallFlowGraph::sbEnableAGC = FALSE;
+UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = FALSE;
+UtlBoolean MpCallFlowGraph::sbEnableVAD = FALSE;
 #endif // HAVE_SPEEX ]
 
-UtlBoolean MpCallFlowGraph::ms_bEnableInboundInBandDTMF = true;
-UtlBoolean MpCallFlowGraph::ms_bEnableInboundRFC2833DTMF = true;
+UtlBoolean MpCallFlowGraph::ms_bEnableInboundInBandDTMF = TRUE;
+UtlBoolean MpCallFlowGraph::ms_bEnableInboundRFC2833DTMF = TRUE;
 
 #ifndef O_BINARY
 #define O_BINARY 0      // O_BINARY is needed for WIN32 not for VxWorks or Linux
@@ -522,20 +524,25 @@ OsStatus MpCallFlowGraph::gainFocus(void)
    sendInterfaceNotification(MP_NOTIFICATION_AUDIO, MP_NOTIFICATION_FOCUS_GAINED);
 
    // enable the FromMic, (EchoCancel), (PreProcessor), and ToSpkr -- we have focus
-   boolRes = mpFromMic->enable();       assert(boolRes);
+   boolRes = mpFromMic->enable();
+   assert(boolRes);
 
 #ifdef DOING_ECHO_CANCELATION // [
    if (sbEnableAEC)
    {
-      boolRes = mpEchoCancel->enable(); assert(boolRes);
+      boolRes = mpEchoCancel->enable();
+      assert(boolRes);
    }
 #endif // DOING_ECHO_CANCELATION ]
 
 #ifdef HAVE_SPEEX // [
-   if (sbEnableAGC || sbEnableNoiseReduction || sbEnableAEC) {
-     boolRes = mpSpeexPreProcess->enable(); assert(boolRes);
+   if (sbEnableAGC || sbEnableNoiseReduction || sbEnableAEC || sbEnableVAD)
+   {
+     boolRes = mpSpeexPreProcess->enable();
+     assert(boolRes);
      mpSpeexPreProcess->setAGC(sbEnableAGC);
      mpSpeexPreProcess->setNoiseReduction(sbEnableNoiseReduction);
+     mpSpeexPreProcess->setVAD(sbEnableVAD);
    }
 #endif // HAVE_SPEEX ]
 
@@ -1190,6 +1197,22 @@ UtlBoolean MpCallFlowGraph::setAudioNoiseReduction(UtlBoolean bEnable)
    UtlBoolean bReturn = FALSE;
 #ifdef HAVE_SPEEX // [
    sbEnableNoiseReduction = bEnable;
+   bReturn = true;
+#endif // HAVE_SPEEX ]
+   return bReturn;
+}
+
+UtlBoolean MpCallFlowGraph::getVAD(UtlBoolean& bEnable)
+{
+   bEnable = sbEnableVAD;
+   return TRUE;
+}
+
+UtlBoolean MpCallFlowGraph::setVAD(UtlBoolean bEnable)
+{
+   UtlBoolean bReturn = FALSE;
+#ifdef HAVE_SPEEX // [
+   sbEnableVAD = bEnable;
    bReturn = true;
 #endif // HAVE_SPEEX ]
    return bReturn;

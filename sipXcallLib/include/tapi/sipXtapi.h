@@ -2838,8 +2838,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAGCMode(const SIPX_INST hInst,
  * default sipXtapi assumes SIPX_NOISE_REDUCTION_LOW.  Change this parameter
  * will modify the policy for both existing and new calls.
  *
- * Note: This API is only supported when bundled with VoiceEngine from 
- * Global IP Sound or Speex library.
+ * Note: This API is only supported when bundled with Speex library.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param mode noise reduction mode.
@@ -2853,8 +2852,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
 /**
  * Get the mode/policy for Noise Reduction (NR).
  *
- * Note: This API is only supported when bundled with VoiceEngine from 
- * Global IP Sound or Speex library.
+ * Note: This API is only supported when bundled with Speex library.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param mode noise reduction mode.
@@ -2863,7 +2861,32 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
  */
 SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
                                                         SIPX_NOISE_REDUCTION_MODE* mode);
- 
+
+/**
+ * Enables/Disables voice activity detection. Generic VAD is not supported
+ * yet. VAD is enabled automatically for Intel IPP codecs.
+ *
+ * Note: This API is only supported when bundled with Speex library.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param bEnabled TRUE when VAD should be enabled.
+ *
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioSetVADMode(const SIPX_INST hInst,
+                                             int bEnabled);
+
+/**
+ * Gets status of voice activity detection.
+ *
+ * Note: This API is only supported when bundled with Speex library.
+ *
+ * @param hInst Instance pointer obtained by sipxInitialize.
+ * @param bEnabled TRUE when VAD is enabled.
+ *
+ */
+SIPXTAPI_API SIPX_RESULT sipxAudioGetVADMode(const SIPX_INST hInst,
+                                             int* bEnabled);
+
 /**
  * Get the number of input devices available on this system.
  *

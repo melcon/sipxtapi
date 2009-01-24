@@ -256,6 +256,12 @@ public:
      *  @warning Only available when Speex is enabled!
      */
 
+   /// Gets speex voice activity detection setting
+   static UtlBoolean getVAD(UtlBoolean& bEnable);
+
+   /// Enable/disable speex voice activity detection
+   static UtlBoolean setVAD(UtlBoolean bEnable);
+
    static UtlBoolean enableInboundInBandDTMF(UtlBoolean enable);
    static UtlBoolean enableInboundRFC2833DTMF(UtlBoolean enable);
 
@@ -384,6 +390,7 @@ private:
    static UtlBoolean sbEnableAEC;
    static UtlBoolean sbEnableAGC;
    static UtlBoolean sbEnableNoiseReduction;
+   static UtlBoolean sbEnableVAD;
    static UtlBoolean ms_bEnableInboundInBandDTMF;
    static UtlBoolean ms_bEnableInboundRFC2833DTMF;
 
