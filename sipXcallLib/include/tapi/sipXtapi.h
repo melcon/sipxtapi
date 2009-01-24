@@ -184,7 +184,7 @@ typedef enum
  *           G726_32   32 kbit/s
  *           G726_40   40 kbit/s
  *           G728      16 kbit/s, 12.8 kbit/s, 8Khz sampling rate
- *           G729B     8 kbit/s, 8Khz sampling rate
+ *           G729      annex A/B depending on VAD mode, 8 kbit/s, 8Khz sampling rate
  *           G729D     6.4 kbit/s, 8 kbit/s, 8Khz sampling rate
  *           G729E     12.4 kbit/s, 8Khz sampling rate
  *           SPEEX_5   5.95 kbit/s, 8Khz sampling rate
