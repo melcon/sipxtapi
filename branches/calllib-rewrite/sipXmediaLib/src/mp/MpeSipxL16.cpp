@@ -164,9 +164,9 @@ const MpCodecInfo MpeSipxL16::ms_codecInfo44100(
    16,                          // numBitsPerSample
    1,                          // numChannels
    44100*2*8,                   // bitRate. It doesn't matter right now.
-   882*2*8,                       // minPacketBits
-   882*2*8,                       // maxPacketBits
-   882);                       // numSamplesPerFrame - 20ms frame
+   441*2*8,                       // minPacketBits
+   441*2*8,                       // maxPacketBits
+   441);                       // numSamplesPerFrame - 10ms frame
 
 const MpCodecInfo MpeSipxL16::ms_codecInfo48000(
    SdpCodec::SDP_CODEC_L16_48000_MONO,    // codecType
@@ -175,6 +175,6 @@ const MpCodecInfo MpeSipxL16::ms_codecInfo48000(
    16,                          // numBitsPerSample
    1,                          // numChannels
    48000*2*8,                   // bitRate. It doesn't matter right now.
-   960*2*8,                       // minPacketBits
-   960*2*8,                       // maxPacketBits
-   960);                       // numSamplesPerFrame - 20ms frame
+   480*2*8,                       // minPacketBits
+   480*2*8,                       // maxPacketBits
+   480);                       // numSamplesPerFrame - 10ms frame

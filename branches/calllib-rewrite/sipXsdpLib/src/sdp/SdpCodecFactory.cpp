@@ -739,7 +739,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_L16,
          44100,
-         20000,
+         10000, // 20ms frame doesn't fit into RTP
          1,
          "",
          SdpCodec::SDP_CODEC_CPU_LOW,
@@ -753,7 +753,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_L16,
          48000,
-         20000,
+         10000, // 20ms frame doesn't fit into RTP
          1,
          "",
          SdpCodec::SDP_CODEC_CPU_LOW,

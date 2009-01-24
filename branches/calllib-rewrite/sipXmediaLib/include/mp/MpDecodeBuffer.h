@@ -149,6 +149,11 @@ private:
    */
    void generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount);
 
+   /**
+    * Returns TRUE if samples from given decoder need to be resampled to current flowgraph sampling rate.
+    */
+   UtlBoolean needsResampling(const MpDecoderBase& rDecoder) const;
+
    void destroyResamplers();
    void setupResamplers(MpDecoderBase** decoderList, int decoderCount);
 };
