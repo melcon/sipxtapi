@@ -11,7 +11,8 @@
 
 #include "mp/MpEncoderBase.h"
 
-UtlBoolean MpEncoderBase::ms_bEnableVAD = FALSE;
+// must be the same as default VAD setting in sipXSdpLib codec factory
+UtlBoolean MpEncoderBase::ms_bEnableVAD = TRUE;
 
 /* ============================ CREATORS ================================== */
 

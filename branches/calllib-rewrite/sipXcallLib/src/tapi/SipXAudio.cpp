@@ -28,6 +28,7 @@
 #include "tapi/SipXAudio.h"
 #include <tapi/SipXCore.h>
 #include "cp/XCpCallManager.h"
+#include <sdp/SdpCodecFactory.h>
 #include "mi/CpMediaInterfaceFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include <mi/CpAudioDeviceInfo.h>
@@ -761,6 +762,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetVADMode(const SIPX_INST hInst,
       {
          if (pInterfaceFactory->setVADMode(bEnabled) == OS_SUCCESS)
          {
+            SdpCodecFactory::enableCodecVAD(bEnabled); // also enable in SDP codec factory
             sr = SIPX_RESULT_SUCCESS;
          }
       }

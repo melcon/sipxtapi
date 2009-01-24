@@ -21,6 +21,9 @@
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 
+// must be the same as default VAD setting in sipXmediaLib
+UtlBoolean SdpCodecFactory::ms_bEnableCodecVAD = TRUE;
+
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
@@ -64,14 +67,14 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
    case SdpCodec::SDP_CODEC_G729:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G729,
          SdpCodec::SDP_CODEC_G729,
-         "G729B",
-         "G.729 annex B",
+         "G729",
+         "G.729 annex A/B",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G729,
          8000,
          20000,
          1,
-         "annexb=yes",
+         ms_bEnableCodecVAD ? "annexb=yes" : "annexb=no",
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
@@ -85,7 +88,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          8000,
          20000,
          1,
-         "annexb=yes",
+         ms_bEnableCodecVAD ? "annexb=yes" : "annexb=no",
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
@@ -99,7 +102,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          8000,
          20000,
          1,
-         "annexb=yes",
+         ms_bEnableCodecVAD ? "annexb=yes" : "annexb=no",
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
@@ -1125,6 +1128,11 @@ UtlString SdpCodecFactory::getFixedAudioCodecs(const UtlString& audioCodecs)
    {
       return audioCodecs;
    }
+}
+
+void SdpCodecFactory::enableCodecVAD(UtlBoolean bEnable)
+{
+   ms_bEnableCodecVAD = bEnable;
 }
 
 /* ============================ INQUIRY =================================== */
