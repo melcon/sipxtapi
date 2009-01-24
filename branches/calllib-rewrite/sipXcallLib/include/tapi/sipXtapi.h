@@ -164,32 +164,36 @@ typedef enum
  * Bitrates of supported codecs:
  *
  * <pre>
- *           PCMU      64 kbit/s
- *           PCMA      64 kbit/s
- *           iLBC      13.33 kbit/s, 30 ms frame size
+ *           PCMU      64 kbit/s, 8Khz sampling rate
+ *           PCMA      64 kbit/s, 8Khz sampling rate
+ *           iLBC      13.33 kbit/s, 30 ms frame size, 8Khz sampling rate
  *                     15.2 kbit/s, 20 ms frame size
- *           GSM       13 kbit/s
- *           G722      64 kbit/s
- *           G722.1_16 16 kbit/s
+ *           GSM       13 kbit/s, 8Khz sampling rate
+ *           AMR       4.75 kbit/s, bandwidth efficient, 8Khz sampling rate
+ *           AMR       10.2 kbit/s, octet aligned, 8Khz sampling rate
+ *           AMR wb    12.65 kbit/s, bandwidth efficient, 16Khz sampling rate
+ *           AMR wb    23.85 kbit/s, octet aligned, 16Khz sampling rate
+ *           G722      64 kbit/s, 16Khz sampling rate
+ *           G722.1_16 16 kbit/s, 16Khz sampling rate
  *           G722.1_24 24 kbit/s
  *           G722.1_32 32 kbit/s
- *           G723.1    6.3 kbit/s, 30 ms frame size (using 24 byte frames)
+ *           G723.1    6.3 kbit/s, 30 ms frame size (using 24 byte frames), 8Khz sampling rate
  *                     5.3 kbit/s, 30 ms frame size (using 20 byte frames)
- *           G726_16   16 kbit/s
+ *           G726_16   16 kbit/s, 8Khz sampling rate
  *           G726_24   24 kbit/s
  *           G726_32   32 kbit/s
  *           G726_40   40 kbit/s
- *           G728      16 kbit/s, 12.8 kbit/s
- *           G729B     8 kbit/s
- *           G729D     6.4 kbit/s, 8 kbit/s
- *           G729E     12.4 kbit/s
- *           SPEEX_5   5.95 kbit/s
+ *           G728      16 kbit/s, 12.8 kbit/s, 8Khz sampling rate
+ *           G729B     8 kbit/s, 8Khz sampling rate
+ *           G729D     6.4 kbit/s, 8 kbit/s, 8Khz sampling rate
+ *           G729E     12.4 kbit/s, 8Khz sampling rate
+ *           SPEEX_5   5.95 kbit/s, 8Khz sampling rate
  *           SPEEX_8   8 kbit/s
  *           SPEEX_11  11 kbit/s
  *           SPEEX_15  15 kbit/s
  *           SPEEX_18  18.2 kbit/s
  *           SPEEX_24  24.6 kbit/s
- *           SPEEX_WB_9 9.8 kbit/s
+ *           SPEEX_WB_9 9.8 kbit/s, 16Khz sampling rate
  *           SPEEX_WB_12 12.8 kbit/s
  *           SPEEX_WB_16 16.8 kbit/s
  *           SPEEX_WB_20 20.6 kbit/s
@@ -197,7 +201,7 @@ typedef enum
  *           SPEEX_WB_27 27.8 kbit/s
  *           SPEEX_WB_34 34.4 kbit/s
  *           SPEEX_WB_42 42.4 kbit/s
- *           SPEEX_UWB_11 11.6 kbit/s
+ *           SPEEX_UWB_11 11.6 kbit/s, 32Khz sampling rate
  *           SPEEX_UWB_14 14.6 kbit/s
  *           SPEEX_UWB_18 18.6 kbit/s
  *           SPEEX_UWB_22 22.4 kbit/s
@@ -215,7 +219,9 @@ typedef enum
  *           L16 48Khz mono 768 kbit/s
  * </pre>
  * Note that L16 is uncompressed 16bit audio at various sampling rates.
- * SPEEX_WB has 16Khz sampling rate, SPEEX_UWB has 32Khz sampling rate. 
+ *
+ * Encoders/Decoders which support VAD (voice activity detection) with DTX and built in PLC
+ * have these features enabled.
  */
 typedef enum
 {
