@@ -86,6 +86,7 @@ nobase_include_HEADERS =  \
     mp/MpdIPPG728.h \
     mp/MpdIPPG729.h \
     mp/MpdIPPG729i.h \
+    mp/MpdIPPGAmr.h
     mp/MpdPtAVT.h \
     mp/MpdSipxG722.h \
     mp/MpdSipxG726.h \
@@ -102,6 +103,7 @@ nobase_include_HEADERS =  \
     mp/MpeIPPG728.h \
     mp/MpeIPPG729.h \
     mp/MpeIPPG729i.h \
+    mp/MpeIPPGAmr.h \
     mp/MpePtAVT.h \
     mp/MpeSipxG722.h \
     mp/MpeSipxG726.h \

@@ -159,6 +159,34 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_NORMAL,
          SDP_CODEC_BANDWIDTH_NORMAL); 
       break;
+   case SdpCodec::SDP_CODEC_AMR_10200:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_10200,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_10200",
+         "AMR 10.2 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR,
+         8000,
+         20000,
+         1,
+         "octet-align=1",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_AMR_4750:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_4750,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_4750",
+         "AMR 4.75 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
 #endif // HAVE_INTEL_IPP
    case SdpCodec::SDP_CODEC_PCMA:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA,
