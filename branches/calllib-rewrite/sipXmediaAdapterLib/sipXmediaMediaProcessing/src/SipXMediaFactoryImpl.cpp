@@ -481,30 +481,16 @@ OsStatus SipXMediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDU
   return OS_NOT_SUPPORTED;
 }
 
-OsStatus SipXMediaFactoryImpl::getVAD(UtlBoolean& bEnable) const
+OsStatus SipXMediaFactoryImpl::getVADMode(UtlBoolean& bEnable) const
 {
-   bEnable = FALSE;
-
-   if (MpCallFlowGraph::getVAD(bEnable))
-   {
-      return OS_SUCCESS;
-   }
-   else
-   {
-      return OS_NOT_SUPPORTED;
-   }
+   bEnable = MpCallFlowGraph::isVADEnabled();
+   return OS_SUCCESS;
 }
 
-OsStatus SipXMediaFactoryImpl::setVAD(UtlBoolean bEnable)
+OsStatus SipXMediaFactoryImpl::setVADMode(UtlBoolean bEnable)
 {
-   if (MpCallFlowGraph::setVAD(bEnable))
-   {
-      return OS_SUCCESS;
-   }
-   else
-   {
-      return OS_NOT_SUPPORTED;
-   }
+   MpCallFlowGraph::enableVAD(bEnable);
+   return OS_SUCCESS;
 }
 
 OsStatus SipXMediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable)

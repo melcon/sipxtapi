@@ -102,7 +102,7 @@ OsStatus MpeIPPG729::initEncode(void)
    // instead of SetUSCEncoderParams(...)
    codec->uscParams.pInfo->params.direction = USC_ENCODE;
    codec->uscParams.pInfo->params.law = 0;
-   codec->uscParams.pInfo->params.modes.vad = 1;
+   codec->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec->uscParams, NULL);

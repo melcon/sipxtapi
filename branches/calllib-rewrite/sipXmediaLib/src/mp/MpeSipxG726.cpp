@@ -117,7 +117,7 @@ OsStatus MpeSipxG726::encode(const MpAudioSample* pAudioSamples,
 {
    assert(numSamples == 80); // we expect 10ms frames
 
-   if (speechType == MP_SPEECH_SILENT)
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD)
    {
       // VAD must be enabled, do DTX
       rSamplesConsumed = numSamples;

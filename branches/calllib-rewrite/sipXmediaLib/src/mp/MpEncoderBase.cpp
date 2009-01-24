@@ -11,6 +11,8 @@
 
 #include "mp/MpEncoderBase.h"
 
+UtlBoolean MpEncoderBase::ms_bEnableVAD = FALSE;
+
 /* ============================ CREATORS ================================== */
 
 // Constructor
@@ -41,4 +43,14 @@ const MpCodecInfo* MpEncoderBase::getInfo(void) const
 int MpEncoderBase::getPayloadType(void)
 {
    return(mPayloadType);
+}
+
+UtlBoolean MpEncoderBase::isVADEnabled()
+{
+   return ms_bEnableVAD;
+}
+
+void MpEncoderBase::enableVAD(UtlBoolean bEnable)
+{
+   ms_bEnableVAD = bEnable;
 }

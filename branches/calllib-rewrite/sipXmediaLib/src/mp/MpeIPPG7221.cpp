@@ -147,7 +147,7 @@ OsStatus MpeIPPG7221::encode(const short* pAudioSamples,
 {
    assert(160 == numSamples); // 16Khz codec, 10ms internal frame
 
-   if (speechType == MP_SPEECH_SILENT && m_storedFramesCount == 0)
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && m_storedFramesCount == 0)
    {
       // VAD must be enabled, do DTX
       rSamplesConsumed = numSamples;

@@ -119,7 +119,7 @@ OsStatus MpeIPPGAmrWb::initEncode(void)
    m_pCodec->uscParams.pInfo->params.direction = USC_ENCODE;
    m_pCodec->uscParams.pInfo->params.law = 0;
    m_pCodec->uscParams.pInfo->params.modes.bitrate = m_bitrate;
-   m_pCodec->uscParams.pInfo->params.modes.vad = 1;
+   m_pCodec->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&m_pCodec->uscParams, NULL);

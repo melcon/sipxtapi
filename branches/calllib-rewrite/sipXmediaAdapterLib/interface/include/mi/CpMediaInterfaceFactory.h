@@ -236,7 +236,7 @@ public:
    /**
     * Enable/disable voice activity detection
     */
-   virtual OsStatus setVAD(UtlBoolean bEnable)
+   virtual OsStatus setVADMode(UtlBoolean bEnable)
    {
       return OS_NOT_SUPPORTED;
    }
@@ -492,7 +492,7 @@ public:
    /**
     * Returns status of voice activity detection
     */
-   virtual OsStatus getVAD(UtlBoolean& bEnable) const
+   virtual OsStatus getVADMode(UtlBoolean& bEnable) const
    {
       return OS_NOT_SUPPORTED;
    }
