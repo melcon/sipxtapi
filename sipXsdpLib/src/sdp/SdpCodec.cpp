@@ -244,7 +244,8 @@ UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType,
                                        const UtlString& mimeSubType,
                                        int sampleRate,
                                        int numChannels,
-                                       const UtlString& fmtp) const
+                                       const UtlString& fmtp,
+                                       UtlBoolean bStrictMatch) const
 {
    // If the mime type matches
    if(mMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0)
@@ -255,13 +256,14 @@ UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType,
          (sampleRate == -1 || mSampleRate == sampleRate) &&
          (numChannels == -1 || mNumChannels == numChannels))
       {
-         // TODO:: checking for fmtp match must be made intelligent, e.g. by
-         //        defining isCompatible(fmtp) method for SdpCodec. Checking
-         //        by string comparison leads to errors when there are two
-         //        or more parameters and they're presented in random order.
-         if ((!fmtp.isNull() && mFormatSpecificData.isNull()) ||
-            (fmtp.isNull() && !mFormatSpecificData.isNull()) ||
-            (fmtp == mFormatSpecificData))
+         SdpCodec::SdpCodecTypes codecType = getCodecType();
+         if (codecType == SDP_CODEC_AMR_10200 ||
+            codecType == SDP_CODEC_AMR_4750)
+         {
+            bStrictMatch = TRUE; // always use strict match for AMR
+         }
+
+         if ((bStrictMatch && fmtp.compareTo(mFormatSpecificData) == 0) || !bStrictMatch)
          {
             // we found a match
             return TRUE;
@@ -317,6 +319,11 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_G7221_24;
     else if (strcmp(compareString,"G722.1_32") == 0)
        retType = SdpCodec::SDP_CODEC_G7221_32;
+    // amr
+    else if (strcmp(compareString,"AMR_10200") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_10200;
+    else if (strcmp(compareString,"AMR_4750") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_4750;
     // gsm full rate
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;

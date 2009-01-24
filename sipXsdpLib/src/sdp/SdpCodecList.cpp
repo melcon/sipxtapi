@@ -287,19 +287,31 @@ const SdpCodec* SdpCodecList::getCodec(const char* mimeType,
                                        int numChannels,
                                        const UtlString& fmtp) const
 {
-   const SdpCodec* codecFound = NULL;
+   const SdpCodec* pCodec = NULL;
+   const SdpCodec* pNonStrictCodec = NULL;
    OsLock lock(m_memberMutex);
    UtlSListIterator iterator(m_codecsList);
 
-   while((codecFound = (SdpCodec*) iterator()))
+   while((pCodec = (SdpCodec*) iterator()))
    {
-      if (codecFound->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp))
+      if (pCodec->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp, TRUE))
       {
          break;
       }
+      else if (!pNonStrictCodec && pCodec->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp, FALSE))
+      {
+         pNonStrictCodec = pCodec;
+      }
    }
 
-   return(codecFound);
+   if (pCodec)
+   {
+      return pCodec;
+   }
+   else
+   {
+      return pNonStrictCodec;
+   }
 }
 
 int SdpCodecList::getCodecCount() const
