@@ -145,6 +145,15 @@ OsStatus MpeIPPG728::encode(const short* pAudioSamples,
 {
    assert(80 == numSamples);
 
+   if (speechType == MP_SPEECH_SILENT) // G.728 doesn't have built in VAD
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    ippsSet_8u(0, m_pOutputBuffer, m_pCodec->uscParams.pInfo->maxbitsize + 1);
    ippsCopy_8u((Ipp8u*)pAudioSamples,
                (Ipp8u*)m_pInputBuffer,

@@ -1210,12 +1210,8 @@ UtlBoolean MpCallFlowGraph::getVAD(UtlBoolean& bEnable)
 
 UtlBoolean MpCallFlowGraph::setVAD(UtlBoolean bEnable)
 {
-   UtlBoolean bReturn = FALSE;
-#ifdef HAVE_SPEEX // [
    sbEnableVAD = bEnable;
-   bReturn = true;
-#endif // HAVE_SPEEX ]
-   return bReturn;
+   return TRUE;
 }
 
 UtlBoolean MpCallFlowGraph::enableInboundInBandDTMF(UtlBoolean enable)

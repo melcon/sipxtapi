@@ -73,6 +73,15 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
                             UtlBoolean& sendNow,
                             MpSpeechType& speechType)
 {
+   if (speechType == MP_SPEECH_SILENT && mBufferLoad == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    int size = 0;   
    
    assert(numSamples == 80);

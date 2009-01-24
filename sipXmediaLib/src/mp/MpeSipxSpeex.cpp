@@ -129,7 +129,16 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
                               MpSpeechType& speechType)
 {
    int size = 0;
-   
+
+   if (speechType == MP_SPEECH_SILENT && mBufferLoad == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad+numSamples;
    assert(mBufferLoad <= 160);

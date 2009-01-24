@@ -44,6 +44,15 @@ OsStatus MpeSipxL16::encode(const MpAudioSample* pAudioSamples,
                             UtlBoolean& sendNow,
                             MpSpeechType& speechType)
 {
+   if (speechType == MP_SPEECH_SILENT)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    int freeBufferCapacity = bytesLeft / sizeof(MpAudioSample); // free buffer in samples
    int i = 0;
    for (i = 0; i < numSamples && i < freeBufferCapacity; i++)
