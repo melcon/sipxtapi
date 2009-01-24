@@ -79,7 +79,7 @@ FLOWGRAPH_AEC_MODE MpCallFlowGraph::ms_AECMode = FLOWGRAPH_AEC_DISABLED;
 #ifdef HAVE_SPEEX // [
 UtlBoolean MpCallFlowGraph::sbEnableAGC = TRUE;
 UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = TRUE;
-UtlBoolean MpCallFlowGraph::sbEnableVAD = FALSE;
+UtlBoolean MpCallFlowGraph::sbEnableVAD = TRUE;
 #else // HAVE_SPEEX ][
 UtlBoolean MpCallFlowGraph::sbEnableAGC = FALSE;
 UtlBoolean MpCallFlowGraph::sbEnableNoiseReduction = FALSE;

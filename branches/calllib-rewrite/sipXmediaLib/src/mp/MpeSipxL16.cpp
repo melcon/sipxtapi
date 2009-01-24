@@ -42,7 +42,7 @@ OsStatus MpeSipxL16::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    int freeBufferCapacity = bytesLeft / sizeof(MpAudioSample); // free buffer in samples
    int i = 0;
@@ -52,7 +52,6 @@ OsStatus MpeSipxL16::encode(const MpAudioSample* pAudioSamples,
    }
    rSizeInBytes = i * sizeof(MpAudioSample);
    rSamplesConsumed = i;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;
 }

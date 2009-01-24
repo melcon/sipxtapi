@@ -141,7 +141,7 @@ OsStatus MpeIPPG728::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(80 == numSamples);
 
@@ -186,7 +186,6 @@ OsStatus MpeIPPG728::encode(const short* pAudioSamples,
    }
 
    sendNow = FALSE;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
    rSamplesConsumed = FrmDataLen / (m_pCodec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
 
    if (Bitstream.nbytes >= 0)
