@@ -63,11 +63,13 @@ const MpCodecInfo MpeSipxG726::ms_codecInfo40(
 
 MpeSipxG726::MpeSipxG726(int payloadType, G726_BITRATE bitRate)
 : MpEncoderBase(payloadType, getCodecInfo(bitRate))
+, m_pG726state(NULL)
 {
 }
 
 MpeSipxG726::~MpeSipxG726()
 {
+   freeEncode();
 }
 
 OsStatus MpeSipxG726::initEncode(void)
@@ -86,7 +88,13 @@ OsStatus MpeSipxG726::initEncode(void)
 
 OsStatus MpeSipxG726::freeEncode(void)
 {
-   int res = g726_release(m_pG726state);
+   int res = 0;
+   
+   if (m_pG726state)
+   {
+      res = g726_release(m_pG726state);
+      m_pG726state = NULL;
+   }
 
    if (res == 0)
    {

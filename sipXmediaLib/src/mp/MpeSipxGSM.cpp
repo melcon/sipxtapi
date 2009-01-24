@@ -56,7 +56,7 @@ OsStatus MpeSipxGSM::initEncode(void)
 
 OsStatus MpeSipxGSM::freeEncode(void)
 {
-   if (NULL != mpGsmState)
+   if (mpGsmState)
    {
       gsm_destroy(mpGsmState);
       mpGsmState = NULL;

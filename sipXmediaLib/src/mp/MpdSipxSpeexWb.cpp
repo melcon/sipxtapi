@@ -42,6 +42,7 @@ MpdSipxSpeexWb::MpdSipxSpeexWb(int payloadType)
 
 MpdSipxSpeexWb::~MpdSipxSpeexWb()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxSpeexWb::initDecode()
@@ -69,7 +70,8 @@ OsStatus MpdSipxSpeexWb::initDecode()
 
 OsStatus MpdSipxSpeexWb::freeDecode(void)
 {
-   if (mpDecoderState != NULL) {
+   if (mpDecoderState)
+   {
       speex_decoder_destroy(mpDecoderState);
       mpDecoderState = NULL;
 
