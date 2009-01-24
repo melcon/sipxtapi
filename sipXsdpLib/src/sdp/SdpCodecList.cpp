@@ -344,6 +344,30 @@ int SdpCodecList::getCodecCount(const UtlString& mimetype) const
    return iCount;
 }
 
+UtlBoolean SdpCodecList::hasNonSignallingCodec(const UtlString& mimeType) const
+{
+   OsLock lock(m_memberMutex);
+   SdpCodec* pCodec = NULL;
+   UtlString foundMimeType;
+
+   int iCount = 0;    
+   UtlSListIterator itor(m_codecsList);
+   while((pCodec = (SdpCodec*) itor()))
+   {
+      pCodec = dynamic_cast<SdpCodec*>(itor.item());
+      if (pCodec && pCodec->getCodecType() != SdpCodec::SDP_CODEC_TONES)
+      {
+         pCodec->getMediaType(foundMimeType);
+         if (foundMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0)
+         {
+            return TRUE; // we found non signalling codec
+         }        
+      }
+   }
+
+   return FALSE;
+}
+
 void SdpCodecList::getCodecs(UtlSList& sdpCodecList) const
 {
    OsLock lock(m_memberMutex);
