@@ -66,6 +66,9 @@ public:
      /// Enable or disable noise reduction
    UtlBoolean setNoiseReduction(UtlBoolean enable);
 
+   /// Enable or disable voice activity detection
+   UtlBoolean setVAD(UtlBoolean enable);
+
    /// Attach echo canceller to preprocessor. Should only be called
    /// once, before flowgraph is started. Not thread safe.
    UtlBoolean attachEchoCanceller(SpeexEchoState* pEchoState);
@@ -82,11 +85,13 @@ private:
    typedef enum
    {
       SET_AGC  = MpFlowGraphMsg::RESOURCE_SPECIFIC_START,
-      SET_NOISE_REDUCTION
+      SET_NOISE_REDUCTION,
+      SET_VAD
    } AddlMsgTypes;
 
    SpeexPreprocessState *mpPreprocessState; ///< Structure containing internal
                                             ///<  state of Speex preprocessor.
+   UtlBoolean m_bVadEnabled; ///< TRUE if voice activity detection is enabled
 
    virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
                                      MpBufPtr outBufs[],
@@ -104,6 +109,8 @@ private:
 
      /// Handle the @link MprSpeexPreprocess::SET_NOISE_REDUCTION SET_NOISE_REDUCTION @endlink message.
    UtlBoolean handleSetNoiseReduction(UtlBoolean enable);
+
+   UtlBoolean handleSetVAD(UtlBoolean enable);
 
      /// Copy constructor (not implemented for this class)
    MprSpeexPreprocess(const MprSpeexPreprocess& rMprSpeexPreprocess);

@@ -464,16 +464,47 @@ OsStatus SipXMediaFactoryImpl::getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_
 }
 
 OsStatus SipXMediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) {
-  if (mode == MEDIA_NOISE_REDUCTION_DISABLED) {
-    if (MpCallFlowGraph::setAudioNoiseReduction(FALSE)) {
+  if (mode == MEDIA_NOISE_REDUCTION_DISABLED)
+  {
+    if (MpCallFlowGraph::setAudioNoiseReduction(FALSE))
+    {
       return OS_SUCCESS;
     }
-  } else {
-    if (MpCallFlowGraph::setAudioNoiseReduction(TRUE)) {
+  }
+  else
+  {
+    if (MpCallFlowGraph::setAudioNoiseReduction(TRUE))
+    {
       return OS_SUCCESS;
     }
   }
   return OS_NOT_SUPPORTED;
+}
+
+OsStatus SipXMediaFactoryImpl::getVAD(UtlBoolean& bEnable) const
+{
+   bEnable = FALSE;
+
+   if (MpCallFlowGraph::getVAD(bEnable))
+   {
+      return OS_SUCCESS;
+   }
+   else
+   {
+      return OS_NOT_SUPPORTED;
+   }
+}
+
+OsStatus SipXMediaFactoryImpl::setVAD(UtlBoolean bEnable)
+{
+   if (MpCallFlowGraph::setVAD(bEnable))
+   {
+      return OS_SUCCESS;
+   }
+   else
+   {
+      return OS_NOT_SUPPORTED;
+   }
 }
 
 OsStatus SipXMediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable)
