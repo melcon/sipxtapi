@@ -125,10 +125,12 @@ OsStatus MpeIPPG729i::freeEncode(void)
    if (inputBuffer)
    {
       ippsFree(inputBuffer);
+      inputBuffer = NULL;
    }
    if (outputBuffer)
    {
       ippsFree(outputBuffer);
+      outputBuffer = NULL;
    }
 
    return OS_SUCCESS;

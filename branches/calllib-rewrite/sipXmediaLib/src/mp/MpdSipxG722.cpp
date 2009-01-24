@@ -28,11 +28,13 @@ const MpCodecInfo MpdSipxG722::ms_codecInfo64(
 
 MpdSipxG722::MpdSipxG722(int payloadType)
 : MpDecoderBase(payloadType, getCodecInfo())
+, m_pG722state(NULL)
 {
 }
 
 MpdSipxG722::~MpdSipxG722()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxG722::initDecode()
@@ -51,7 +53,13 @@ OsStatus MpdSipxG722::initDecode()
 
 OsStatus MpdSipxG722::freeDecode(void)
 {
-   int res = g722_decode_release(m_pG722state);
+   int res = 0;
+   
+   if (m_pG722state)
+   {
+      res = g722_decode_release(m_pG722state);
+      m_pG722state = NULL;
+   }
 
    if (res == 0)
    {

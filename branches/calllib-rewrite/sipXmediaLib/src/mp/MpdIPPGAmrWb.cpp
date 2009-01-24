@@ -150,6 +150,7 @@ OsStatus MpdIPPGAmrWb::freeDecode(void)
    if (m_pInputBuffer)
    {
       ippsFree(m_pInputBuffer);
+      m_pInputBuffer = NULL;
    }
 
    return OS_SUCCESS;

@@ -46,6 +46,7 @@ MpdSipxGSM::MpdSipxGSM(int payloadType)
 
 MpdSipxGSM::~MpdSipxGSM()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxGSM::initDecode()

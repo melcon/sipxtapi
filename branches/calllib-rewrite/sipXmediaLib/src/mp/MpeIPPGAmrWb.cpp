@@ -152,10 +152,12 @@ OsStatus MpeIPPGAmrWb::freeEncode(void)
    if (m_pInputBuffer)
    {
       ippsFree(m_pInputBuffer);
+      m_pInputBuffer = NULL;
    }
    if (m_pOutputBuffer)
    {
       ippsFree(m_pOutputBuffer);
+      m_pOutputBuffer = NULL;
    }
 
    return OS_SUCCESS;

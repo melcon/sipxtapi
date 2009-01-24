@@ -125,6 +125,7 @@ private:
    static const MpCodecInfo smCodecInfo;  // static information about the codec
 
    int   mStoredFramesCount;   ///< Number of stored frames.
+
    Ipp8s *m_pInputBuffer; ///< Buffer for stored frames - we could encode
                                ///< only 20ms frames.
    Ipp8s *m_pOutputBuffer; ///< Encoded buffer. It is allocated in
