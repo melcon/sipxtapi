@@ -84,6 +84,15 @@ OsStatus MpeSipxG722::encode(const MpAudioSample* pAudioSamples,
 {
    assert(numSamples == 160); // we expect 10ms frames (16Khz) - 160 samples
 
+   if (speechType == MP_SPEECH_SILENT)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    rSizeInBytes = g722_encode(m_pG722state, pCodeBuf, pAudioSamples, numSamples);
    // 20 ms samples are created in MprEncode
    rSamplesConsumed = numSamples;

@@ -2863,10 +2863,20 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
                                                         SIPX_NOISE_REDUCTION_MODE* mode);
 
 /**
- * Enables/Disables voice activity detection. Generic VAD is not supported
- * yet. VAD is enabled automatically for Intel IPP codecs.
+ * Enables/Disables voice activity detection. When enabled, then also
+ * DTX (discontinuous transmission) is enabled.
  *
- * Note: This API is only supported when bundled with Speex library.
+ * Enables internal VAD for codecs which have it built in (Intel IPP),
+ * and enables generic speex VAD for all other codecs. For codecs with VAD
+ * and DTX support, a so called SID frame will be sent during silence,
+ * for other codecs no frames will be sent at all.
+ *
+ * For Intel IPP codec G.729B, this setting has no effect. G.729B always uses built
+ * in VAD.
+ *
+ * Note: This API is only supported when bundled with Speex library
+ * for codecs without built in VAD support. Codecs with built in VAD support
+ * do not require speex library.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param bEnabled TRUE when VAD should be enabled.

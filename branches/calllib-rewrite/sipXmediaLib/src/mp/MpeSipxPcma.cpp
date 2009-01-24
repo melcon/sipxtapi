@@ -57,6 +57,15 @@ OsStatus MpeSipxPcma::encode(const MpAudioSample* pAudioSamples,
                              UtlBoolean& sendNow,
                              MpSpeechType& speechType)
 {
+   if (speechType == MP_SPEECH_SILENT)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    G711A_Encoder(numSamples, pAudioSamples, (uint8_t*)pCodeBuf);
    rSizeInBytes = numSamples;
    sendNow = FALSE;

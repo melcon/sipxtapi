@@ -147,6 +147,15 @@ OsStatus MpeIPPG7221::encode(const short* pAudioSamples,
 {
    assert(160 == numSamples); // 16Khz codec, 10ms internal frame
 
+   if (speechType == MP_SPEECH_SILENT && m_storedFramesCount == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    if (m_storedFramesCount == 1)
    {
       ippsSet_8u(0, m_pOutputBuffer, m_pCodec->uscParams.pInfo->maxbitsize + 1);
