@@ -3094,7 +3094,9 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
       srtpParams, matchingSrtpParams,
       videoFramerate, matchingVideoFramerate);
 
-   if (numMatchingCodecs > 0)
+   if (numMatchingCodecs > 0 &&
+      commonCodecsForEncoder.hasNonSignallingCodec(MIME_TYPE_AUDIO) &&
+      commonCodecsForDecoder.hasNonSignallingCodec(MIME_TYPE_AUDIO))
    {
       return TRUE;
    }
@@ -3141,7 +3143,9 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
             srtpParams, matchingSrtpParams,
             videoFramerate, matchingVideoFramerate);
 
-         if (numMatchingCodecs > 0)
+         if (numMatchingCodecs > 0 &&
+            commonCodecsForEncoder.hasNonSignallingCodec(MIME_TYPE_AUDIO) &&
+            commonCodecsForDecoder.hasNonSignallingCodec(MIME_TYPE_AUDIO))
          {
             if (matchingVideoFramerate != 0)
             {

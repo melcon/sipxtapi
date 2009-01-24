@@ -110,6 +110,11 @@ public:
    /** Get the number of codecs by mime type MIME_TYPE_AUDIO or MIME_TYPE_VIDEO */
    int getCodecCount(const UtlString& mimeType) const;
 
+   /**
+    * Returns TRUE if there is at least 1 non signalling codec of given mime type.
+    */
+   UtlBoolean hasNonSignallingCodec(const UtlString& mimeType) const;
+
    /** Gets list of SdpCodec instances */
    void getCodecs(UtlSList& sdpCodecList) const;
 
