@@ -187,7 +187,7 @@ OsStatus MpeIPPG7221::encode(const short* pAudioSamples,
       }
 
       rAudioCategory = MP_SPEECH_UNKNOWN;
-      rSamplesConsumed = FrmDataLen / (m_pCodec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
+      rSamplesConsumed = numSamples;
       m_storedFramesCount = 0;
 
       if (Bitstream.nbytes >= 0)
