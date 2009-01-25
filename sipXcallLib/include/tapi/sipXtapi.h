@@ -2207,6 +2207,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
  * call to limit preferences for that call.
  * Preferences will take effect after next unhold.
  *
+ * Care should be taken when using this API, since using it may easily violate
+ * rfc4566 - dynamic payload formats may not change during session.
+ *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
@@ -2224,6 +2227,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
 * Limits the codec preferences on given call. Can only be used on a connected
 * call. Codec renegotiation will be triggered. If call is held, then after
 * renegotiation it will be held again.
+*
+* Care should be taken when using this API, since using it may easily violate
+* rfc4566 - dynamic payload formats may not change during session.
 *
 * @param hCall Handle to a call.  Call handles are obtained either by 
 *        invoking sipxCallCreate or passed to your application through
@@ -2568,6 +2574,9 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf);
  * for new conference calls, or calls that are unheld. First supplied audio codec
  * matching remote party audio codec will be used.
  *
+ * Care should be taken when using this API, since using it may easily violate
+ * rfc4566 - dynamic payload formats may not change during session.
+ *
  * @param hConf Handle to a conference.  Conference handles are obtained 
  *        by invoking sipxConferenceCreate.
  * @param szVideoCodecNames Codec names that limit the supported audio codecs.
@@ -2583,6 +2592,9 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
 /**
 * Limits the codec preferences on a conference. Supplied settings will be applied
 * immediately. First supplied audio codec matching remote party audio codec will be used.
+*
+* Care should be taken when using this API, since using it may easily violate
+* rfc4566 - dynamic payload formats may not change during session.
 *
 * @param hConf Handle to a conference.  Conference handles are obtained 
 *        by invoking sipxConferenceCreate.
@@ -3630,10 +3642,16 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTcpPort(SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
                                                       int* pPort);
 
-
 /**
  * Set the codecs by short names. The name must match one of the supported codecs
  * otherwise this function will fail. Codecs must be separated by " ".
+ *
+ * Only one ILBC version should be enabled at time - either 20ms or 30ms. Enabling
+ * both versions might confuse other clients, since rfc3952 didn't expect to handle
+ * two ILBC codec offers in SDP. 20ms ILBC version might be overridden, so it is
+ * possible that 30ms version will be used even if 20ms was selected.
+ * sipXtapi is capable of decoding both 20ms and 30ms ILBC regardless of mode negotiated
+ * in SDP.
  *
  * This method will return SIPX_RESULT_SUCCESS if able to set audio codecs.
  * SIPX_RESULT_FAILURE is returned if the codec is not set.

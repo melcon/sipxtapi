@@ -272,7 +272,7 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
    {
       ourCodec = pPrimary->getCodecType();
       payload = pPrimary->getCodecPayloadId();
-      ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
+      ret = pFactory->createEncoder(*pPrimary, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);
       pNewEncoder->initEncode();
@@ -302,10 +302,9 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
 #endif
    }
 
-   if (NULL != pDtmf) {
-      ourCodec = pDtmf->getCodecType();
-      payload = pDtmf->getCodecPayloadId();
-      ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
+   if (pDtmf)
+   {
+      ret = pFactory->createEncoder(*pDtmf, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);
       pNewEncoder->initEncode();

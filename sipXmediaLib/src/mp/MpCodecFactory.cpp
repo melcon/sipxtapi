@@ -117,21 +117,24 @@ MpCodecFactory::~MpCodecFactory()
 // param: internalCodecId - (in) codec type identifier
 // param: payloadType - (in) RTP payload type associated with this decoder
 // param: rpDecoder - (out) Reference to a pointer to the new decoder object
-OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
-                        int payloadType, MpDecoderBase*& rpDecoder)
+OsStatus MpCodecFactory::createDecoder(const SdpCodec& pSdpCodec, MpDecoderBase*& rpDecoder)
 {
+   SdpCodec::SdpCodecTypes internalCodecId = pSdpCodec.getCodecType();
+   int payloadFormat = pSdpCodec.getCodecPayloadId();
+   int frameLengthMs = pSdpCodec.getPacketLength() / 1000; // frame length in ms
+
    rpDecoder=NULL;
 
    switch (internalCodecId)
    {
    case (SdpCodec::SDP_CODEC_TONES):
-      rpDecoder = new MpdPtAVT(payloadType);
+      rpDecoder = new MpdPtAVT(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_PCMA):
-      rpDecoder = new MpdSipxPcma(payloadType);
+      rpDecoder = new MpdSipxPcma(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_PCMU):
-      rpDecoder = new MpdSipxPcmu(payloadType);
+      rpDecoder = new MpdSipxPcmu(payloadFormat);
       break;
 #ifdef HAVE_SPEEX // [
    case (SdpCodec::SDP_CODEC_SPEEX_5):
@@ -140,7 +143,7 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_SPEEX_15):
    case (SdpCodec::SDP_CODEC_SPEEX_18):
    case (SdpCodec::SDP_CODEC_SPEEX_24):
-      rpDecoder = new MpdSipxSpeex(payloadType);
+      rpDecoder = new MpdSipxSpeex(payloadFormat);
       break;
 #ifdef ENABLE_WIDEBAND_AUDIO
    case (SdpCodec::SDP_CODEC_SPEEX_WB_9):
@@ -151,7 +154,7 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_SPEEX_WB_27):
    case (SdpCodec::SDP_CODEC_SPEEX_WB_34):
    case (SdpCodec::SDP_CODEC_SPEEX_WB_42):
-      rpDecoder = new MpdSipxSpeexWb(payloadType);
+      rpDecoder = new MpdSipxSpeexWb(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_11):
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_14):
@@ -161,85 +164,92 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_29):
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_36):
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_44):
-      rpDecoder = new MpdSipxSpeexUWb(payloadType);
+      rpDecoder = new MpdSipxSpeexUWb(payloadFormat);
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
 #ifdef ENABLE_WIDEBAND_AUDIO
       // L16 codecs
    case (SdpCodec::SDP_CODEC_L16_8000_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 8000);
+      rpDecoder = new MpdSipxL16(payloadFormat, 8000);
       break;
    case (SdpCodec::SDP_CODEC_L16_11025_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 11025);
+      rpDecoder = new MpdSipxL16(payloadFormat, 11025);
       break;
    case (SdpCodec::SDP_CODEC_L16_16000_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 16000);
+      rpDecoder = new MpdSipxL16(payloadFormat, 16000);
       break;
    case (SdpCodec::SDP_CODEC_L16_22050_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 22050);
+      rpDecoder = new MpdSipxL16(payloadFormat, 22050);
       break;
    case (SdpCodec::SDP_CODEC_L16_24000_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 24000);
+      rpDecoder = new MpdSipxL16(payloadFormat, 24000);
       break;
    case (SdpCodec::SDP_CODEC_L16_32000_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 32000);
+      rpDecoder = new MpdSipxL16(payloadFormat, 32000);
       break;
    case (SdpCodec::SDP_CODEC_L16_44100_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 44100);
+      rpDecoder = new MpdSipxL16(payloadFormat, 44100);
       break;
    case (SdpCodec::SDP_CODEC_L16_48000_MONO):
-      rpDecoder = new MpdSipxL16(payloadType, 48000);
+      rpDecoder = new MpdSipxL16(payloadFormat, 48000);
       break;
 #endif
 #ifdef HAVE_SPAN_DSP // [
    case (SdpCodec::SDP_CODEC_G726_16):
-      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_16);
+      rpDecoder = new MpdSipxG726(payloadFormat, MpdSipxG726::BITRATE_16);
       break;
    case (SdpCodec::SDP_CODEC_G726_24):
-      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_24);
+      rpDecoder = new MpdSipxG726(payloadFormat, MpdSipxG726::BITRATE_24);
       break;
    case (SdpCodec::SDP_CODEC_G726_32):
-      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_32);
+      rpDecoder = new MpdSipxG726(payloadFormat, MpdSipxG726::BITRATE_32);
       break;
    case (SdpCodec::SDP_CODEC_G726_40):
-      rpDecoder = new MpdSipxG726(payloadType, MpdSipxG726::BITRATE_40);
+      rpDecoder = new MpdSipxG726(payloadFormat, MpdSipxG726::BITRATE_40);
       break;
 #ifdef ENABLE_WIDEBAND_AUDIO
    case (SdpCodec::SDP_CODEC_G722):
-      rpDecoder = new MpdSipxG722(payloadType);
+      rpDecoder = new MpdSipxG722(payloadFormat);
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
 #ifdef HAVE_GSM // [
    case (SdpCodec::SDP_CODEC_GSM):
-      rpDecoder = new MpdSipxGSM(payloadType);
+      rpDecoder = new MpdSipxGSM(payloadFormat);
       break;
 #endif // HAVE_GSM ]
 #ifdef HAVE_ILBC // [
    case (SdpCodec::SDP_CODEC_ILBC_30MS):
-      rpDecoder = new MpdSipxILBC(payloadType, 30);
+      rpDecoder = new MpdSipxILBC(payloadFormat, 30);
       break;
    case (SdpCodec::SDP_CODEC_ILBC_20MS):
-      rpDecoder = new MpdSipxILBC(payloadType, 20);
+      {
+         int ilbcFrameLength = 20;
+         if (frameLengthMs == 20 || frameLengthMs == 30)
+         {
+            ilbcFrameLength = frameLengthMs;
+         }
+         rpDecoder = new MpdSipxILBC(payloadFormat, ilbcFrameLength);
+      }
       break;
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
 #ifdef ENABLE_WIDEBAND_AUDIO
    case (SdpCodec::SDP_CODEC_G7221_16): 
-      rpDecoder = new MpdIPPG7221(payloadType, 16000);
+      rpDecoder = new MpdIPPG7221(payloadFormat, 16000);
       break;
    case (SdpCodec::SDP_CODEC_G7221_24): 
-      rpDecoder = new MpdIPPG7221(payloadType, 24000);
+      rpDecoder = new MpdIPPG7221(payloadFormat, 24000);
       break;
    case (SdpCodec::SDP_CODEC_G7221_32): 
-      rpDecoder = new MpdIPPG7221(payloadType, 32000);
+      rpDecoder = new MpdIPPG7221(payloadFormat, 32000);
       break;
    case (SdpCodec::SDP_CODEC_AMR_WB_12650): 
-      rpDecoder = new MpdIPPGAmrWb(payloadType, 12650, FALSE);
+      rpDecoder = new MpdIPPGAmrWb(payloadFormat, 12650, FALSE);
       break;
    case (SdpCodec::SDP_CODEC_AMR_WB_23850): 
-      rpDecoder = new MpdIPPGAmrWb(payloadType, 23850, TRUE);
+      rpDecoder = new MpdIPPGAmrWb(payloadFormat, 23850, TRUE);
       break;
    case (SdpCodec::SDP_CODEC_G7291_8000): 
    case (SdpCodec::SDP_CODEC_G7291_12000): 
@@ -253,29 +263,29 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
    case (SdpCodec::SDP_CODEC_G7291_28000): 
    case (SdpCodec::SDP_CODEC_G7291_30000): 
    case (SdpCodec::SDP_CODEC_G7291_32000): 
-      rpDecoder = new MpdIPPG7291(payloadType);
+      rpDecoder = new MpdIPPG7291(payloadFormat);
       break;
 #endif
    case (SdpCodec::SDP_CODEC_AMR_4750): 
-      rpDecoder = new MpdIPPGAmr(payloadType, 4750, FALSE);
+      rpDecoder = new MpdIPPGAmr(payloadFormat, 4750, FALSE);
       break;
    case (SdpCodec::SDP_CODEC_AMR_10200): 
-      rpDecoder = new MpdIPPGAmr(payloadType, 10200, TRUE);
+      rpDecoder = new MpdIPPGAmr(payloadFormat, 10200, TRUE);
       break;
    case (SdpCodec::SDP_CODEC_G723): 
-      rpDecoder = new MpdIPPG7231(payloadType);
+      rpDecoder = new MpdIPPG7231(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_G728):
-      rpDecoder = new MpdIPPG728(payloadType);
+      rpDecoder = new MpdIPPG728(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_G729):
-      rpDecoder = new MpdIPPG729(payloadType);
+      rpDecoder = new MpdIPPG729(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_G729D):
-      rpDecoder = new MpdIPPG729i(payloadType, 6400); // also supports 8000
+      rpDecoder = new MpdIPPG729i(payloadFormat, 6400); // also supports 8000
       break;
    case (SdpCodec::SDP_CODEC_G729E):
-      rpDecoder = new MpdIPPG729i(payloadType, 11800);
+      rpDecoder = new MpdIPPG729i(payloadFormat, 11800);
       break;
 #endif // HAVE_IPP ]
    default:
@@ -283,7 +293,7 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
                     "MpCodecFactory::createDecoder unknown codec type "
                     "internalCodecId = (SdpCodec::SdpCodecTypes) %d, "
                     "payloadType = %d",
-                    internalCodecId, payloadType);
+                    internalCodecId, payloadFormat);
       assert(FALSE);
       break;
    }
@@ -301,228 +311,239 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
 // param: payloadType - (in) RTP payload type associated with this encoder
 // param: rpEncoder - (out) Reference to a pointer to the new encoder object
 
-OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
-                          int payloadType, MpEncoderBase*& rpEncoder)
+OsStatus MpCodecFactory::createEncoder(const SdpCodec& pSdpCodec, MpEncoderBase*& rpEncoder)
 {
-   rpEncoder=NULL;
-   switch (internalCodecId) {
+   SdpCodec::SdpCodecTypes internalCodecId = pSdpCodec.getCodecType();
+   int payloadFormat = pSdpCodec.getCodecPayloadId();
+   int frameLengthMs = pSdpCodec.getPacketLength() / 1000; // frame length in ms
 
+   rpEncoder=NULL;
+
+   switch (internalCodecId)
+   {
    case (SdpCodec::SDP_CODEC_TONES):
-      rpEncoder = new MpePtAVT(payloadType);
+      rpEncoder = new MpePtAVT(payloadFormat);
       break;
 
    case (SdpCodec::SDP_CODEC_PCMA):
-      rpEncoder = new MpeSipxPcma(payloadType);
+      rpEncoder = new MpeSipxPcma(payloadFormat);
       break;
 
    case (SdpCodec::SDP_CODEC_PCMU):
-      rpEncoder = new MpeSipxPcmu(payloadType);
+      rpEncoder = new MpeSipxPcmu(payloadFormat);
       break;
 
 #ifdef HAVE_SPEEX // [
    case (SdpCodec::SDP_CODEC_SPEEX_5):
-      rpEncoder = new MpeSipxSpeex(payloadType, 2);
+      rpEncoder = new MpeSipxSpeex(payloadFormat, 2);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_8):
-      rpEncoder = new MpeSipxSpeex(payloadType, 3);
+      rpEncoder = new MpeSipxSpeex(payloadFormat, 3);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_11):
-      rpEncoder = new MpeSipxSpeex(payloadType, 4);
+      rpEncoder = new MpeSipxSpeex(payloadFormat, 4);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_15):
-      rpEncoder = new MpeSipxSpeex(payloadType, 5);
+      rpEncoder = new MpeSipxSpeex(payloadFormat, 5);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_18):
-      rpEncoder = new MpeSipxSpeex(payloadType, 6);
+      rpEncoder = new MpeSipxSpeex(payloadFormat, 6);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_24):
-      rpEncoder = new MpeSipxSpeex(payloadType, 7);
+      rpEncoder = new MpeSipxSpeex(payloadFormat, 7);
       break;
 #ifdef ENABLE_WIDEBAND_AUDIO
    case (SdpCodec::SDP_CODEC_SPEEX_WB_9):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 3);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 3);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_WB_12):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 4);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 4);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_WB_16):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 5);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 5);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_WB_20):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 6);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 6);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_WB_23):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 7);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 7);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_WB_27):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 8);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 8);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_WB_34):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 9);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 9);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_WB_42):
-      rpEncoder = new MpeSipxSpeexWb(payloadType, 10);
+      rpEncoder = new MpeSipxSpeexWb(payloadFormat, 10);
       break;
    // speex ultra wide band
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_11):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 3);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 3);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_14):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 4);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 4);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_18):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 5);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 5);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_22):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 6);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 6);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_25):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 7);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 7);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_29):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 8);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 8);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_36):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 9);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 9);
       break;
    case (SdpCodec::SDP_CODEC_SPEEX_UWB_44):
-      rpEncoder = new MpeSipxSpeexUWb(payloadType, 10);
+      rpEncoder = new MpeSipxSpeexUWb(payloadFormat, 10);
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
 #ifdef ENABLE_WIDEBAND_AUDIO
       // L16 codecs
    case (SdpCodec::SDP_CODEC_L16_8000_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 8000);
+      rpEncoder = new MpeSipxL16(payloadFormat, 8000);
       break;
    case (SdpCodec::SDP_CODEC_L16_11025_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 11025);
+      rpEncoder = new MpeSipxL16(payloadFormat, 11025);
       break;
    case (SdpCodec::SDP_CODEC_L16_16000_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 16000);
+      rpEncoder = new MpeSipxL16(payloadFormat, 16000);
       break;
    case (SdpCodec::SDP_CODEC_L16_22050_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 22050);
+      rpEncoder = new MpeSipxL16(payloadFormat, 22050);
       break;
    case (SdpCodec::SDP_CODEC_L16_24000_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 24000);
+      rpEncoder = new MpeSipxL16(payloadFormat, 24000);
       break;
    case (SdpCodec::SDP_CODEC_L16_32000_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 32000);
+      rpEncoder = new MpeSipxL16(payloadFormat, 32000);
       break;
    case (SdpCodec::SDP_CODEC_L16_44100_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 44100);
+      rpEncoder = new MpeSipxL16(payloadFormat, 44100);
       break;
    case (SdpCodec::SDP_CODEC_L16_48000_MONO):
-      rpEncoder = new MpeSipxL16(payloadType, 48000);
+      rpEncoder = new MpeSipxL16(payloadFormat, 48000);
       break;
 #endif
 #ifdef HAVE_SPAN_DSP // [
    case (SdpCodec::SDP_CODEC_G726_16):
-      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_16);
+      rpEncoder = new MpeSipxG726(payloadFormat, MpeSipxG726::BITRATE_16);
       break;
    case (SdpCodec::SDP_CODEC_G726_24):
-      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_24);
+      rpEncoder = new MpeSipxG726(payloadFormat, MpeSipxG726::BITRATE_24);
       break;
    case (SdpCodec::SDP_CODEC_G726_32):
-      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_32);
+      rpEncoder = new MpeSipxG726(payloadFormat, MpeSipxG726::BITRATE_32);
       break;
    case (SdpCodec::SDP_CODEC_G726_40):
-      rpEncoder = new MpeSipxG726(payloadType, MpeSipxG726::BITRATE_40);
+      rpEncoder = new MpeSipxG726(payloadFormat, MpeSipxG726::BITRATE_40);
       break;
 #ifdef ENABLE_WIDEBAND_AUDIO
    case (SdpCodec::SDP_CODEC_G722):
-      rpEncoder = new MpeSipxG722(payloadType);
+      rpEncoder = new MpeSipxG722(payloadFormat);
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
 #ifdef HAVE_GSM // [
    case (SdpCodec::SDP_CODEC_GSM):
-      rpEncoder = new MpeSipxGSM(payloadType);
+      rpEncoder = new MpeSipxGSM(payloadFormat);
       break;
 #endif // HAVE_GSM ]
 #ifdef HAVE_ILBC // [
    case (SdpCodec::SDP_CODEC_ILBC_30MS):
-      rpEncoder = new MpeSipxILBC(payloadType, 30);
+      rpEncoder = new MpeSipxILBC(payloadFormat, 30);
       break;
    case (SdpCodec::SDP_CODEC_ILBC_20MS):
-      rpEncoder = new MpeSipxILBC(payloadType, 20);
+      {
+         int ilbcFrameLength = 20;
+         if (frameLengthMs == 20 || frameLengthMs == 30)
+         {
+            ilbcFrameLength = frameLengthMs;
+         }
+         rpEncoder = new MpeSipxILBC(payloadFormat, ilbcFrameLength);
+      }
       break;
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
 #ifdef ENABLE_WIDEBAND_AUDIO
    case (SdpCodec::SDP_CODEC_G7221_16): 
-      rpEncoder = new MpeIPPG7221(payloadType, 16000);
+      rpEncoder = new MpeIPPG7221(payloadFormat, 16000);
       break;
    case (SdpCodec::SDP_CODEC_G7221_24): 
-      rpEncoder = new MpeIPPG7221(payloadType, 24000);
+      rpEncoder = new MpeIPPG7221(payloadFormat, 24000);
       break;
    case (SdpCodec::SDP_CODEC_G7221_32): 
-      rpEncoder = new MpeIPPG7221(payloadType, 32000);
+      rpEncoder = new MpeIPPG7221(payloadFormat, 32000);
       break;
    case (SdpCodec::SDP_CODEC_AMR_WB_12650): 
-      rpEncoder = new MpeIPPGAmrWb(payloadType, 12650, FALSE);
+      rpEncoder = new MpeIPPGAmrWb(payloadFormat, 12650, FALSE);
       break;
    case (SdpCodec::SDP_CODEC_AMR_WB_23850): 
-      rpEncoder = new MpeIPPGAmrWb(payloadType, 23850, TRUE);
+      rpEncoder = new MpeIPPGAmrWb(payloadFormat, 23850, TRUE);
       break;
    case (SdpCodec::SDP_CODEC_G7291_8000):
-      rpEncoder = new MpeIPPG7291(payloadType, 8000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 8000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_12000):
-      rpEncoder = new MpeIPPG7291(payloadType, 12000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 12000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_14000):
-      rpEncoder = new MpeIPPG7291(payloadType, 14000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 14000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_16000):
-      rpEncoder = new MpeIPPG7291(payloadType, 16000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 16000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_18000):
-      rpEncoder = new MpeIPPG7291(payloadType, 18000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 18000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_20000):
-      rpEncoder = new MpeIPPG7291(payloadType, 20000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 20000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_22000):
-      rpEncoder = new MpeIPPG7291(payloadType, 22000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 22000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_24000):
-      rpEncoder = new MpeIPPG7291(payloadType, 24000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 24000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_26000):
-      rpEncoder = new MpeIPPG7291(payloadType, 26000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 26000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_28000):
-      rpEncoder = new MpeIPPG7291(payloadType, 28000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 28000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_30000):
-      rpEncoder = new MpeIPPG7291(payloadType, 30000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 30000);
       break;
    case (SdpCodec::SDP_CODEC_G7291_32000):
-      rpEncoder = new MpeIPPG7291(payloadType, 32000);
+      rpEncoder = new MpeIPPG7291(payloadFormat, 32000);
       break;
 #endif
    case (SdpCodec::SDP_CODEC_AMR_4750): 
-      rpEncoder = new MpeIPPGAmr(payloadType, 4750, FALSE);
+      rpEncoder = new MpeIPPGAmr(payloadFormat, 4750, FALSE);
       break;
    case (SdpCodec::SDP_CODEC_AMR_10200): 
-      rpEncoder = new MpeIPPGAmr(payloadType, 10200, TRUE);
+      rpEncoder = new MpeIPPGAmr(payloadFormat, 10200, TRUE);
       break;
    case (SdpCodec::SDP_CODEC_G723):
-      rpEncoder = new MpeIPPG7231(payloadType);
+      rpEncoder = new MpeIPPG7231(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_G728):
-      rpEncoder = new MpeIPPG728(payloadType);
+      rpEncoder = new MpeIPPG728(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_G729):
-      rpEncoder = new MpeIPPG729(payloadType);
+      rpEncoder = new MpeIPPG729(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_G729D):
-      rpEncoder = new MpeIPPG729i(payloadType, 6400);
+      rpEncoder = new MpeIPPG729i(payloadFormat, 6400);
       break;
    case (SdpCodec::SDP_CODEC_G729E):
-      rpEncoder = new MpeIPPG729i(payloadType, 11800);
+      rpEncoder = new MpeIPPG729i(payloadFormat, 11800);
       break;
 #endif // HAVE_IPP ]
 
@@ -531,7 +552,7 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
                     "MpCodecFactory::createEncoder unknown codec type "
                     "internalCodecId = (SdpCodec::SdpCodecTypes) %d, "
                     "payloadType = %d",
-                    internalCodecId, payloadType);
+                    internalCodecId, payloadFormat);
       assert(FALSE);
       break;
    }

@@ -429,7 +429,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          8000,
          30000,
          1,
-         "mode=30", // empty also means mode=30
+         "", // empty means mode=30
          SdpCodec::SDP_CODEC_CPU_NORMAL,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
