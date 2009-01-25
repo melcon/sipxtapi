@@ -90,6 +90,10 @@ libsipXmedia_la_SOURCES =  \
     mp/MpMediaTaskHelper.cpp \
     mp/MpMediaTaskMsg.cpp \
     mp/MpMisc.cpp \
+    mp/MpNoiseGeneratorBase.cpp \
+    mp/MpNoiseGeneratorDefault.cpp \
+    mp/MpNoiseGeneratorFactory.cpp \
+    mp/MpNoiseGeneratorSpanDsp.cpp \
     mp/MpNotificationDispatcher.cpp \
     mp/MpPortAudioDriver.cpp \
     mp/MpPortAudioMixer.cpp \
