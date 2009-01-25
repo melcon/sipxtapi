@@ -23,10 +23,7 @@
 #endif
 #include "mp/MpRtpBuf.h"
 #include <mp/MpJitterBufferDefault.h>
-
-#ifdef HAVE_SPAN_DSP
-#include <spandsp/noise.h>
-#endif
+#include <mp/MpNoiseGeneratorBase.h>
 
 // DEFINES
 // MACROS
@@ -140,14 +137,8 @@ private:
    MpAudioSample m_resampleSrcBuffer[g_decodeHelperBufferSize]; // buffer for storing samples after decoding, but before resampling
 
 #endif
-#ifdef HAVE_SPAN_DSP
-   noise_state_t* m_pNoiseState; ///< state of noise generator
-#endif
 
-   /**
-   * Generates quiet comfort noise.
-   */
-   void generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount);
+   MpNoiseGeneratorBase* m_pNoiseGenerator; ///< util class for generating noise
 
    /**
     * Returns TRUE if samples from given decoder need to be resampled to current flowgraph sampling rate.

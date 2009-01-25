@@ -19,6 +19,7 @@
 #include "mp/MpDecoderBase.h"
 #include "mp/MpMisc.h"
 #include <mp/MprDejitter.h>
+#include <mp/MpNoiseGeneratorFactory.h>
 
 static int debugCount = 0;
 
@@ -28,7 +29,7 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int 
 : m_pDejitter(pDejitter)
 , m_samplesPerFrame(samplesPerFrame)
 , m_samplesPerSec(samplesPerSec)
-, m_pNoiseState(NULL)
+, m_pNoiseGenerator(NULL)
 {
    for (int i=0; i<JbPayloadMapSize; i++)
       m_pDecoderMap[i] = NULL;
@@ -46,9 +47,7 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int 
 
    debugCount = 0;
 
-#ifdef HAVE_SPAN_DSP
-   m_pNoiseState = noise_init_dbm0(NULL, 6513, NOISE_LEVEL, NOISE_CLASS_HOTH, 5);
-#endif
+   m_pNoiseGenerator = MpNoiseGeneratorFactory::createNoiseGenerator();
 }
 
 // Destructor
@@ -56,13 +55,8 @@ MpDecodeBuffer::~MpDecodeBuffer()
 {
    destroyResamplers();
 
-#ifdef HAVE_SPAN_DSP
-   if (m_pNoiseState)
-   {
-      free((void*)m_pNoiseState);
-      m_pNoiseState = NULL;
-   }
-#endif
+   delete m_pNoiseGenerator;
+   m_pNoiseGenerator = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -134,7 +128,7 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
    if (suppliedSamples < requiredSamples)
    {
       int noiseFramesNeeded = requiredSamples - suppliedSamples;
-      generateComfortNoise(samplesBuffer + suppliedSamples, noiseFramesNeeded);
+      m_pNoiseGenerator->generateComfortNoise(samplesBuffer + suppliedSamples, noiseFramesNeeded);
    }
 
    return requiredSamples;
@@ -228,6 +222,16 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResu
       }
    }
 #endif
+   // don't even think about resampling noise, it still sounds noisy!
+   if (producedSamples == 0 &&
+      decoder->getInfo()->getCodecType() != SdpCodec::SDP_CODEC_TONES)
+   {
+      // if decoder didn't produce samples from RTP packet, generate noise according to decoder frame size
+      int decoderSamplesPerFrame = decoder->getInfo()->getNumSamplesPerFrame();
+      m_pNoiseGenerator->generateComfortNoise(m_decodeHelperBuffer, decoderSamplesPerFrame);
+      producedSamples = decoderSamplesPerFrame;
+   }
+
    int addedSamples = 0;
    // now we have decoded & resampled samples in m_decodeHelperBuffer, with decodedSamples count
    // copy them into main buffer
@@ -289,27 +293,6 @@ void MpDecodeBuffer::setupResamplers(MpDecoderBase** decoderList, int decoderCou
       }
    }
 #endif
-}
-
-void MpDecodeBuffer::generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount)
-{
-   UtlBoolean bGenerated = FALSE;
-#ifdef HAVE_SPAN_DSP
-   if (m_pNoiseState && samplesBuffer)
-   {
-      for (int i = 0; i < sampleCount; i++)
-      {
-         samplesBuffer[i] = noise(m_pNoiseState); // generate 1 sample of noise
-      }
-      bGenerated = TRUE;
-   }
-#endif
-
-   if (!bGenerated)
-   {
-      // set all 0s
-      memset(samplesBuffer, 0, sampleCount * sizeof(MpAudioSample));
-   }
 }
 
 UtlBoolean MpDecodeBuffer::needsResampling(const MpDecoderBase& rDecoder) const

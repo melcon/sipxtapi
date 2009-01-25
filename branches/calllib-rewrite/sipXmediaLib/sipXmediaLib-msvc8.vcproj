@@ -162,6 +162,10 @@
                 <File RelativePath=".\src\mp\MpMisc.cpp"/>
                 <File RelativePath=".\src\mp\MpMMTimer.cpp"/>
                 <File RelativePath=".\src\mp\MpMMTimerWnt.cpp"/>
+                <File RelativePath=".\src\mp\MpNoiseGeneratorBase.cpp"/>
+                <File RelativePath=".\src\mp\MpNoiseGeneratorDefault.cpp"/>
+                <File RelativePath=".\src\mp\MpNoiseGeneratorFactory.cpp"/>
+                <File RelativePath=".\src\mp\MpNoiseGeneratorSpanDsp.cpp"/>
                 <File RelativePath=".\src\mp\MpPortAudioDriver.cpp"/>
                 <File RelativePath=".\src\mp\MpPortAudioMixer.cpp"/>
                 <File RelativePath=".\src\mp\MpPortAudioStreamBase.cpp"/>
@@ -219,7 +223,6 @@
         </Filter>
         <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
             <Filter Name="mp">
-                <File RelativePath=".\include\mp\dmaTask.h"/>
                 <File RelativePath=".\include\mp\dsplib.h"/>
                 <File RelativePath=".\include\mp\dtmflib.h"/>
                 <File RelativePath=".\include\mp\MpArrayBuf.h"/>
@@ -313,6 +316,10 @@
                 <File RelativePath=".\include\mp\MpMisc.h"/>
                 <File RelativePath=".\include\mp\MpMMTimer.h"/>
                 <File RelativePath=".\include\mp\MpMMTimerWnt.h"/>
+                <File RelativePath=".\include\mp\MpNoiseGeneratorBase.h"/>
+                <File RelativePath=".\include\mp\MpNoiseGeneratorDefault.h"/>
+                <File RelativePath=".\include\mp\MpNoiseGeneratorFactory.h"/>
+                <File RelativePath=".\include\mp\MpNoiseGeneratorSpanDsp.h"/>
                 <File RelativePath=".\include\mp\MpNotificationMsgDef.h"/>
                 <File RelativePath=".\include\mp\MpPortAudioDriver.h"/>
                 <File RelativePath=".\include\mp\MpPortAudioMixer.h"/>

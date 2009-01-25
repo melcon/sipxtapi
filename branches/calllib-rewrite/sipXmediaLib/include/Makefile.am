@@ -60,6 +60,10 @@ nobase_include_HEADERS =  \
     mp/MpMediaTaskHelper.h \
     mp/MpMediaTaskMsg.h \
     mp/MpMisc.h \
+    mp/MpNoiseGeneratorBase.h \
+    mp/MpNoiseGeneratorDefault.h \
+    mp/MpNoiseGeneratorFactory.h \
+    mp/MpNoiseGeneratorSpanDsp.h \
     mp/MpNotificationDispatcher.h \
     mp/MpNotificationMsgDef.h \
     mp/MpPortAudioDriver.h \

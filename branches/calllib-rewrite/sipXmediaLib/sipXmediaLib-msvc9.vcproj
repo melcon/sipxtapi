@@ -669,6 +669,22 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpNoiseGeneratorBase.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpNoiseGeneratorDefault.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpNoiseGeneratorFactory.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpNoiseGeneratorSpanDsp.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpPortAudioDriver.cpp"
 					>
 				</File>
@@ -885,10 +901,6 @@
 			<Filter
 				Name="mp"
 				>
-				<File
-					RelativePath=".\include\mp\dmaTask.h"
-					>
-				</File>
 				<File
 					RelativePath=".\include\mp\dsplib.h"
 					>
@@ -1259,6 +1271,22 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpMMTimerWnt.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpNoiseGeneratorBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpNoiseGeneratorDefault.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpNoiseGeneratorFactory.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpNoiseGeneratorSpanDsp.h"
 					>
 				</File>
 				<File
