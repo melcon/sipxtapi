@@ -286,14 +286,42 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_PCMU;
     else if (strcmp(compareString,"PCMA") == 0)
        retType = SdpCodec::SDP_CODEC_PCMA;
+    // G.728
     else if (strcmp(compareString,"G728") == 0)
        retType = SdpCodec::SDP_CODEC_G728;
+    // G.729
     else if (strcmp(compareString,"G729") == 0)
        retType = SdpCodec::SDP_CODEC_G729;
     else if (strcmp(compareString,"G729D") == 0)
        retType = SdpCodec::SDP_CODEC_G729D;
     else if (strcmp(compareString,"G729E") == 0)
        retType = SdpCodec::SDP_CODEC_G729E;
+    // G.729.1
+    else if (strcmp(compareString,"G729.1_8000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_8000;
+    else if (strcmp(compareString,"G729.1_12000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_12000;
+    else if (strcmp(compareString,"G729.1_14000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_14000;
+    else if (strcmp(compareString,"G729.1_16000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_16000;
+    else if (strcmp(compareString,"G729.1_18000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_18000;
+    else if (strcmp(compareString,"G729.1_20000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_20000;
+    else if (strcmp(compareString,"G729.1_22000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_22000;
+    else if (strcmp(compareString,"G729.1_24000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_24000;
+    else if (strcmp(compareString,"G729.1_26000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_26000;
+    else if (strcmp(compareString,"G729.1_28000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_28000;
+    else if (strcmp(compareString,"G729.1_30000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_30000;
+    else if (strcmp(compareString,"G729.1_32000") == 0)
+       retType = SdpCodec::SDP_CODEC_G7291_32000;
+    // G.723.1
     else if (strcmp(compareString,"G723.1") == 0)
        retType = SdpCodec::SDP_CODEC_G723;
     // G.726

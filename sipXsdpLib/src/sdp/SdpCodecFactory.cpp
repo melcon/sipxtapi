@@ -191,6 +191,176 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SDP_CODEC_BANDWIDTH_LOW);
       break;
 #ifdef ENABLE_WIDEBAND_AUDIO
+   // G.729.1 wideband
+   case SdpCodec::SDP_CODEC_G7291_8000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_8000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_8000",
+         "G.729.1 8 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=8000;dtx=yes" : "mbs=8000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_12000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_12000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_12000",
+         "G.729.1 12 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=12000;dtx=yes" : "mbs=12000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_14000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_14000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_14000",
+         "G.729.1 14 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=14000;dtx=yes" : "mbs=14000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_16000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_16000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_16000",
+         "G.729.1 16 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=16000;dtx=yes" : "mbs=16000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_18000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_18000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_18000",
+         "G.729.1 18 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=18000;dtx=yes" : "mbs=18000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_20000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_20000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_20000",
+         "G.729.1 20 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=20000;dtx=yes" : "mbs=20000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_22000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_22000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_22000",
+         "G.729.1 22 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=22000;dtx=yes" : "mbs=22000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_24000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_24000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_24000",
+         "G.729.1 24 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=24000;dtx=yes" : "mbs=24000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_26000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_26000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_26000",
+         "G.729.1 26 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=26000;dtx=yes" : "mbs=26000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_28000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_28000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_28000",
+         "G.729.1 28 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=28000;dtx=yes" : "mbs=28000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_30000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_30000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_30000",
+         "G.729.1 30 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=30000;dtx=yes" : "mbs=30000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G7291_32000:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_32000,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G729.1_32000",
+         "G.729.1 32 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7291,
+         16000,
+         20000,
+         1,
+         ms_bEnableCodecVAD ? "mbs=32000;dtx=yes" : "mbs=32000;dtx=no",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   // amr
    case SdpCodec::SDP_CODEC_AMR_WB_12650:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_WB_12650,
          SdpCodec::SDP_CODEC_UNKNOWN,

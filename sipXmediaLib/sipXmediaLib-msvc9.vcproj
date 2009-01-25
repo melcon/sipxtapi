@@ -473,6 +473,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdIPPG7291.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdIPPG729i.cpp"
 					>
 				</File>
@@ -546,6 +550,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpeIPPG729.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPG7291.cpp"
 					>
 				</File>
 				<File
@@ -1034,6 +1042,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdIPPG7291.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdIPPG729i.h"
 					>
 				</File>
@@ -1131,6 +1143,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpeIPPG729.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPG7291.h"
 					>
 				</File>
 				<File
