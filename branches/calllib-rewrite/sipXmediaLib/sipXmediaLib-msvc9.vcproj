@@ -717,6 +717,22 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpResamplerBase.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpResamplerDefault.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpResamplerFactory.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpResamplerSpeex.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpResource.cpp"
 					>
 				</File>
@@ -1331,6 +1347,22 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprEncode.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpResamplerBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpResamplerDefault.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpResamplerFactory.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpResamplerSpeex.h"
 					>
 				</File>
 				<File

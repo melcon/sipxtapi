@@ -98,6 +98,10 @@ libsipXmedia_la_SOURCES =  \
     mp/MpPortAudioDriver.cpp \
     mp/MpPortAudioMixer.cpp \
     mp/MpPortAudioStreamBase.cpp \
+    mp/MpResamplerBase.cpp \
+    mp/MpResamplerDefault.cpp \
+    mp/MpResamplerFactory.cpp \
+    mp/MpResamplerSpeex.cpp \
     mp/MpResource.cpp \
     mp/MpResourceMsg.cpp \
     mp/MpResourceSortAlg.cpp \
