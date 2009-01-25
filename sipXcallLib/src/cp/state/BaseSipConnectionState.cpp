@@ -872,7 +872,7 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
       sipMessage.setLocationField(m_rStateContext.m_locationHeader);
    }
 
-   if (m_rStateContext.m_sBindIpAddress.compareTo("0.0.0.0"))
+   if (m_rStateContext.m_sBindIpAddress.compareTo("0.0.0.0") != 0)
    {
       // if its not 0.0.0.0, then use it as local IP of sip message
       sipMessage.setLocalIp(m_rStateContext.m_sBindIpAddress);
