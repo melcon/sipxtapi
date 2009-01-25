@@ -25,10 +25,6 @@
 #include "mp/MpFlowGraphMsg.h"
 #include "mp/MprToNet.h"
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-#include <speex/speex_resampler.h>
-#endif
-
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -38,6 +34,7 @@
 // TYPEDEFS
 // FORWARD DECLARATIONS
 class MpEncoderBase;
+class MpResamplerBase;
 
 /**
 *  @brief The "Encode" media processing resource.
@@ -165,12 +162,11 @@ private:
    MprToNet* mpToNet;  ///< Pointer to ToNet resource, which will send generated
                        ///< RTP packets.
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   SpeexResamplerState *m_pResampler;
+   MpResamplerBase *m_pResampler;
    MpAudioSample m_tmpBuffer[SAMPLES_PER_FRAME]; // buffer for storing samples after resampling, before encoding
 
+   /** Deletes resampler instance */
    void destroyResampler();
-#endif
 
      /// Handle messages for this resource.
    virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
