@@ -29,7 +29,7 @@
 /// Internal iLBC codec structure (from iLBC_define.h)
 struct iLBC_Dec_Inst_t_;
 
-/// Derived class for iLBC decoder.
+/// Derived class for iLBC decoder. Capable of decoding both 20ms and 30ms frames regardless of selected mode.
 class MpdSipxILBC : public MpDecoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -69,7 +69,7 @@ public:
 //@{
 
      /// Decode incoming RTP packet
-   virtual int decode(const MpRtpBufPtr &pPacket, ///< (in) Pointer to a media buffer
+   virtual int decode(const MpRtpBufPtr &rtpPacket, ///< (in) Pointer to a media buffer
                       unsigned decodedBufferLength, ///< (in) Length of the samplesBuffer (in samples)
                       MpAudioSample *samplesBuffer, ///< (out) Buffer for decoded samples
                       UtlBoolean bIsPLCFrame
@@ -98,10 +98,11 @@ private:
    static const MpCodecInfo smCodecInfo20ms;  ///< static information about the 20ms codec version
    static const MpCodecInfo smCodecInfo30ms;  ///< static information about the 30ms codec version
 
-   iLBC_Dec_Inst_t_ *mpState;             ///< Internal iLBC decoder state.
-   int m_mode; ///< iLBC mode. 20 or 30 is a valid value.
-   unsigned int m_samplesPerFrame;
-   unsigned int m_packetBytes; ///< RTP packet bytes
+   iLBC_Dec_Inst_t_ *m_pState20; ///< Internal iLBC decoder state for 20ms
+   iLBC_Dec_Inst_t_ *m_pState30; ///< Internal iLBC decoder state for 30ms
+
+   int m_mode; ///< iLBC mode. 20 or 30 is a valid value. Currently doesn't have a meaning, since we decode both frame sizes.
+   float m_tmpOutBuffer[240]; // use buffer for 30ms frames, even for 20ms
 };
 
 #endif // HAVE_ILBC ]

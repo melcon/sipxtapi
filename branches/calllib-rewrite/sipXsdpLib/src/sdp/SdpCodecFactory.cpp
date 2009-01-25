@@ -419,24 +419,24 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_HIGH);
       break;
-   case SdpCodec::SDP_CODEC_ILBC:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_ILBC,
+   case SdpCodec::SDP_CODEC_ILBC_30MS:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_ILBC_30MS,
          SdpCodec::SDP_CODEC_UNKNOWN,
-         "ILBC",
+         "ILBC_30MS",
          "iLBC 30ms",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_ILBC,
          8000,
          30000,
          1,
-         "",
+         "mode=30", // empty also means mode=30
          SdpCodec::SDP_CODEC_CPU_NORMAL,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
    case SdpCodec::SDP_CODEC_ILBC_20MS:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_ILBC_20MS,
          SdpCodec::SDP_CODEC_UNKNOWN,
-         "ILBC-20MS",
+         "ILBC_20MS",
          "iLBC 20ms",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_ILBC,

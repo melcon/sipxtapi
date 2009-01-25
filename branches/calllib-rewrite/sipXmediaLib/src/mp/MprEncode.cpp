@@ -285,12 +285,8 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
       // when codec uses 8000, but flowgraph 16000, then samples we get will be downsampled to 1/2 of samples
       // and thus timestamp must be advanced by lower value
       mTimestampStep = (unsigned int)(((double)pNewEncoder->getInfo()->getSamplingRate() / getSamplesPerSec()) * getSamplesPerFrame());
+      mMaxPacketTime = pPrimary->getPacketLength() / 1000; // update RTP payload size in ms
       mMaxPacketSamples = mMaxPacketTime * pNewEncoder->getInfo()->getSamplingRate()/1000;
-      if (mMaxPacketSamples * MP_AUDIO_SAMPLE_SIZE >= RTP_MTU)
-      {
-         // can't send more than what fits into RTP payload. This fixes L16 44Khz and 48Khz which are not compressed.
-         mMaxPacketSamples /= 2;
-      }
       if (pNewEncoder->getInfo()->getCodecType() == SdpCodec::SDP_CODEC_G722)
       {
          // Workaround RFC bug with G.722 samplerate.
