@@ -3320,7 +3320,7 @@ void SipUserAgent::getAllowedMethods(UtlString* allowedMethods) const
       {
          if(!allowedMethods->isNull())
          {
-            allowedMethods->append(", ");
+            allowedMethods->append(",");
          }
          allowedMethods->append(method->data());
       }
@@ -3693,7 +3693,7 @@ void SipUserAgent::getSupportedExtensions(UtlString& extensionsString) const
    UtlDListIterator iterator(allowedSipExtensions);
    while ((extensionName = (UtlString*) iterator()))
    {
-      if(!extensionsString.isNull()) extensionsString.append(", ");
+      if(!extensionsString.isNull()) extensionsString.append(",");
       extensionsString.append(extensionName->data());
    }
 }
