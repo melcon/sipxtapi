@@ -120,6 +120,36 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW); 
       break;
+   case SdpCodec::SDP_CODEC_AMR_4750:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_4750,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_4750",
+         "AMR 4.75 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR,
+         8000,
+         20000,
+         1,
+         "", // bandwidth efficient mode
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_AMR_10200:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_10200,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_10200",
+         "AMR 10.2 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR,
+         8000,
+         20000,
+         1,
+         "octet-align=1",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+#ifdef ENABLE_WIDEBAND_AUDIO
+   // G.722.1 wideband
    case SdpCodec::SDP_CODEC_G7221_16:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7221_16,
          SdpCodec::SDP_CODEC_UNKNOWN,
@@ -162,35 +192,6 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_NORMAL,
          SDP_CODEC_BANDWIDTH_NORMAL); 
       break;
-   case SdpCodec::SDP_CODEC_AMR_4750:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_4750,
-         SdpCodec::SDP_CODEC_UNKNOWN,
-         "AMR_4750",
-         "AMR 4.75 kbit/s",
-         MIME_TYPE_AUDIO,
-         MIME_SUBTYPE_AMR,
-         8000,
-         20000,
-         1,
-         "", // bandwidth efficient mode
-         SdpCodec::SDP_CODEC_CPU_HIGH,
-         SDP_CODEC_BANDWIDTH_LOW);
-      break;
-   case SdpCodec::SDP_CODEC_AMR_10200:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_10200,
-         SdpCodec::SDP_CODEC_UNKNOWN,
-         "AMR_10200",
-         "AMR 10.2 kbit/s",
-         MIME_TYPE_AUDIO,
-         MIME_SUBTYPE_AMR,
-         8000,
-         20000,
-         1,
-         "octet-align=1",
-         SdpCodec::SDP_CODEC_CPU_HIGH,
-         SDP_CODEC_BANDWIDTH_LOW);
-      break;
-#ifdef ENABLE_WIDEBAND_AUDIO
    // G.729.1 wideband
    case SdpCodec::SDP_CODEC_G7291_8000:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7291_8000,
@@ -419,6 +420,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_HIGH);
       break;
+#ifdef HAVE_ILBC
    case SdpCodec::SDP_CODEC_ILBC_30MS:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_ILBC_30MS,
          SdpCodec::SDP_CODEC_UNKNOWN,
@@ -447,6 +449,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_NORMAL,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
+#endif // HAVE_ILBC ]
 #ifdef HAVE_GSM
    case SdpCodec::SDP_CODEC_GSM:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_GSM,
@@ -778,6 +781,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX
 #ifdef HAVE_SPAN_DSP
+#ifdef ENABLE_WIDEBAND_AUDIO
    case SdpCodec::SDP_CODEC_G722:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G722,
          SdpCodec::SDP_CODEC_G722,
@@ -792,6 +796,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_HIGH);
       break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
    case SdpCodec::SDP_CODEC_G726_16:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_16,
          SdpCodec::SDP_CODEC_UNKNOWN,
@@ -849,6 +854,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
 #endif // HAVE_SPAN_DSP
+#ifdef ENABLE_WIDEBAND_AUDIO
    // L16 codec (uncompressed 16bit audio)
    case SdpCodec::SDP_CODEC_L16_8000_MONO:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_L16_8000_MONO,
@@ -962,6 +968,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_HIGH);
       break;
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #ifdef VIDEO
    case SdpCodec::SDP_CODEC_VP71_CIF:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_CIF,

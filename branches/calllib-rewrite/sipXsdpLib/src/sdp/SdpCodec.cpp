@@ -313,6 +313,10 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_PCMU;
     else if (strcmp(compareString,"PCMA") == 0)
        retType = SdpCodec::SDP_CODEC_PCMA;
+#ifdef HAVE_INTEL_IPP
+    // G.723.1
+    else if (strcmp(compareString,"G723.1") == 0)
+       retType = SdpCodec::SDP_CODEC_G723;
     // G.728
     else if (strcmp(compareString,"G728") == 0)
        retType = SdpCodec::SDP_CODEC_G728;
@@ -323,6 +327,19 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_G729D;
     else if (strcmp(compareString,"G729E") == 0)
        retType = SdpCodec::SDP_CODEC_G729E;
+    // amr
+    else if (strcmp(compareString,"AMR_4750") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_4750;
+    else if (strcmp(compareString,"AMR_10200") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_10200;
+#ifdef ENABLE_WIDEBAND_AUDIO
+    // G.722.1 wideband codec
+    else if (strcmp(compareString,"G722.1_16") == 0)
+       retType = SdpCodec::SDP_CODEC_G7221_16;
+    else if (strcmp(compareString,"G722.1_24") == 0)
+       retType = SdpCodec::SDP_CODEC_G7221_24;
+    else if (strcmp(compareString,"G722.1_32") == 0)
+       retType = SdpCodec::SDP_CODEC_G7221_32;
     // G.729.1
     else if (strcmp(compareString,"G729.1_8000") == 0)
        retType = SdpCodec::SDP_CODEC_G7291_8000;
@@ -348,9 +365,21 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_G7291_30000;
     else if (strcmp(compareString,"G729.1_32000") == 0)
        retType = SdpCodec::SDP_CODEC_G7291_32000;
-    // G.723.1
-    else if (strcmp(compareString,"G723.1") == 0)
-       retType = SdpCodec::SDP_CODEC_G723;
+    // amr wb
+    else if (strcmp(compareString,"AMR_WB_12650") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_WB_12650;
+    else if (strcmp(compareString,"AMR_WB_23850") == 0)
+       retType = SdpCodec::SDP_CODEC_AMR_WB_23850;
+#endif // ENABLE_WIDEBAND_AUDIO ]
+#endif // HAVE_INTEL_IPP ]
+#ifdef HAVE_ILBC
+    // ILBC
+    else if (strcmp(compareString,"ILBC_30MS") == 0)
+       retType = SdpCodec::SDP_CODEC_ILBC_30MS;
+    else if (strcmp(compareString,"ILBC_20MS") == 0)
+       retType = SdpCodec::SDP_CODEC_ILBC_20MS;
+#endif // HAVE_ILBC ]
+#ifdef HAVE_SPAN_DSP
     // G.726
     else if (strcmp(compareString,"G726_16") == 0)
        retType = SdpCodec::SDP_CODEC_G726_16;
@@ -360,33 +389,18 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_G726_32;
     else if (strcmp(compareString,"G726_40") == 0)
        retType = SdpCodec::SDP_CODEC_G726_40;
-    else if (strcmp(compareString,"ILBC_30MS") == 0)
-       retType = SdpCodec::SDP_CODEC_ILBC_30MS;
-    else if (strcmp(compareString,"ILBC_20MS") == 0)
-       retType = SdpCodec::SDP_CODEC_ILBC_20MS;
+#ifdef ENABLE_WIDEBAND_AUDIO
     // G.722 codec
     else if (strcmp(compareString,"G722") == 0)
        retType = SdpCodec::SDP_CODEC_G722;
-    // G.722.1 codec
-    else if (strcmp(compareString,"G722.1_16") == 0)
-       retType = SdpCodec::SDP_CODEC_G7221_16;
-    else if (strcmp(compareString,"G722.1_24") == 0)
-       retType = SdpCodec::SDP_CODEC_G7221_24;
-    else if (strcmp(compareString,"G722.1_32") == 0)
-       retType = SdpCodec::SDP_CODEC_G7221_32;
-    // amr
-    else if (strcmp(compareString,"AMR_4750") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_4750;
-    else if (strcmp(compareString,"AMR_10200") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_10200;
-    // amr wb
-    else if (strcmp(compareString,"AMR_WB_12650") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_WB_12650;
-    else if (strcmp(compareString,"AMR_WB_23850") == 0)
-       retType = SdpCodec::SDP_CODEC_AMR_WB_23850;
+#endif // ENABLE_WIDEBAND_AUDIO ]
+#endif // HAVE_SPAN_DSP ]
+#ifdef HAVE_GSM
     // gsm full rate
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;
+#endif // HAVE_GSM ]
+#ifdef HAVE_SPEEX
     // speex narrowband codecs
     else if (strcmp(compareString,"SPEEX_5") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_5;
@@ -400,6 +414,7 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_SPEEX_18;
     else if (strcmp(compareString,"SPEEX_24") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_24;
+#ifdef ENABLE_WIDEBAND_AUDIO
     // speex wideband codecs
     else if (strcmp(compareString,"SPEEX_WB_9") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_WB_9;
@@ -434,6 +449,9 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_SPEEX_UWB_36;
     else if (strcmp(compareString,"SPEEX_UWB_44") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_UWB_44;
+#endif // ENABLE_WIDEBAND_AUDIO ]
+#endif // HAVE_SPEEX ]
+#ifdef ENABLE_WIDEBAND_AUDIO
     // L16 codec
     else if (strcmp(compareString,"L16_8000_MONO") == 0)
        retType = SdpCodec::SDP_CODEC_L16_8000_MONO;
@@ -451,6 +469,8 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_L16_44100_MONO;
     else if (strcmp(compareString,"L16_48000_MONO") == 0)
        retType = SdpCodec::SDP_CODEC_L16_48000_MONO;
+#endif // ENABLE_WIDEBAND_AUDIO ]
+#ifdef VIDEO
     // video codecs
     else if (strcmp(compareString,"VP71-CIF") == 0)
        retType = SdpCodec::SDP_CODEC_VP71_CIF;
@@ -492,6 +512,7 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_RGB24_SQCIF;
     else if (strcmp(compareString,"RGB24-QVGA") == 0)
        retType = SdpCodec::SDP_CODEC_RGB24_QVGA;
+#endif // VIDEO ]
     else
        retType = SdpCodec::SDP_CODEC_UNKNOWN;
     return retType;
