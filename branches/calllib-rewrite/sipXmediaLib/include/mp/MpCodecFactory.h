@@ -56,20 +56,14 @@ public:
 /* ============================ MANIPULATORS ============================== */
 ///@name Manipulators
 //@{
-   OsStatus createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
-                          int payloadType,
-                          MpDecoderBase*& rpDecoder);
+   OsStatus createDecoder(const SdpCodec& pSdpCodec, MpDecoderBase*& rpDecoder);
      //:Returns a new instance of a decoder of the indicated type
-     //!param: internalCodecId - (in) codec type identifier
-     //!param: payloadType - (in) RTP payload type associated with this decoder
+     //!param: pSdpCodec - (in) instance of SDP codec
      //!param: rpDecoder - (out) Reference to a pointer to the new decoder object
 
-   OsStatus createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
-                          int payloadType,
-                          MpEncoderBase*& rpEncoder);
+   OsStatus createEncoder(const SdpCodec& pSdpCodec, MpEncoderBase*& rpEncoder);
      //:Returns a new instance of an encoder of the indicated type
-     //!param: internalCodecId - (in) codec type identifier
-     //!param: payloadType - (in) RTP payload type associated with this encoder
+     //!param: pSdpCodec - (in) instance of SDP codec
      //!param: rpEncoder - (out) Reference to a pointer to the new encoder object
 
 //@}

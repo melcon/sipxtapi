@@ -60,8 +60,8 @@ MprDecode::MprDecode(const UtlString& rName, MpRtpInputAudioConnection* pConn,
 :  MpAudioResource(rName, 0, 0, 1, 1, samplesPerFrame, samplesPerSec),
    m_pDecodeBuffer(NULL),
    m_pMyDejitter(NULL),
-   mpCurrentCodecs(NULL),
-   mNumCurrentCodecs(0),
+   m_pCurrentDecoders(NULL),
+   m_nCurrentDecoders(0),
    mpPrevCodecs(NULL),
    mNumPrevCodecs(0),
    mpConnection(pConn)
@@ -260,12 +260,10 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
 {
    int i;
    SdpCodec* pCodec;
-   int payload;
-   SdpCodec::SdpCodecTypes ourCodec;
-   SdpCodec::SdpCodecTypes oldSdpType = SdpCodec::SDP_CODEC_UNKNOWN;
+   int payloadFormat;
+   SdpCodec::SdpCodecTypes oldInternalCodecId = SdpCodec::SDP_CODEC_UNKNOWN;
    OsStatus ret;
    MpDecoderBase* pNewDecoder;
-   MpDecoderBase* pOldDecoder;
    MpCodecFactory* pFactory = MpCodecFactory::getMpCodecFactory();
    int allReusable = 1;
    int canReuse;
@@ -284,16 +282,21 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
 
    // Check to see if all codecs in pCodecs can be handled by codecs
    // in mpCurrentCodecs.
-   for (i=0; i<numCodecs; i++) {
+   SdpCodec::SdpCodecTypes internalCodecId;
+   MpDecoderBase* pOldDecoder;
+   for (i=0; i<numCodecs; i++)
+   {
       pCodec = pCodecs[i];
-      ourCodec = pCodec->getCodecType();
-      payload = pCodec->getCodecPayloadId();
-      pOldDecoder = mpConnection->mapPayloadType(payload);
-      if (NULL != pOldDecoder) {
-         oldSdpType = pOldDecoder->getInfo()->getCodecType();
-         canReuse = (ourCodec == oldSdpType);
-      } else {
-         // osPrintf("  no Old");
+      internalCodecId = pCodec->getCodecType();
+      payloadFormat = pCodec->getCodecPayloadId();
+      pOldDecoder = mpConnection->mapPayloadType(payloadFormat);
+      if (pOldDecoder)
+      {
+         oldInternalCodecId = pOldDecoder->getInfo()->getCodecType();
+         canReuse = (internalCodecId == oldInternalCodecId);
+      }
+      else
+      {
          canReuse = 0;
       }
       allReusable &= canReuse;
@@ -301,44 +304,48 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
 
    // If the new list is not a subset of the old list, we have to copy
    // pCodecs into mpCurrentCodecs.
-   if (!allReusable) {
+   if (!allReusable)
+   {
       // Lock the m*Codecs members.
       OsLock lock(mLock);
 
       // Delete the current codecs.
       handleDeselectCodecs(FALSE);
 
-      mNumCurrentCodecs = numCodecs;
-      mpCurrentCodecs = new MpDecoderBase*[numCodecs];
+      m_nCurrentDecoders = numCodecs;
+      m_pCurrentDecoders = new MpDecoderBase*[numCodecs];
 
-      for (i=0; i<numCodecs; i++) {
+      for (i=0; i<numCodecs; i++)
+      {
          pCodec = pCodecs[i];
-         ourCodec = pCodec->getCodecType();
-         payload = pCodec->getCodecPayloadId();
-         ret = pFactory->createDecoder(ourCodec, payload, pNewDecoder);
+         payloadFormat = pCodec->getCodecPayloadId();
+         ret = pFactory->createDecoder(*pCodec, pNewDecoder);
          assert(OS_SUCCESS == ret);
          assert(NULL != pNewDecoder);
          pNewDecoder->initDecode();
          // Add this codec to mpConnection's payload type decoding table.
-         mpConnection->addPayloadType(payload, pNewDecoder);
-         mpCurrentCodecs[i] = pNewDecoder;
+         mpConnection->addPayloadType(payloadFormat, pNewDecoder);
+         m_pCurrentDecoders[i] = pNewDecoder;
       }
 
       // Go back and add any signaling codecs to Jitter Buffer.
-      for (i=0; i<numCodecs; i++) {
-         if (mpCurrentCodecs[i]->getInfo()->isSignalingCodec()) {
-            mpCurrentCodecs[i]->initDecode();
+      for (i=0; i<numCodecs; i++)
+      {
+         if (m_pCurrentDecoders[i]->getInfo()->isSignalingCodec())
+         {
+            m_pCurrentDecoders[i]->initDecode();
             // start observing this decoder, used for DTMF notifications
-            mpCurrentCodecs[i]->registerObserver(this);
+            m_pCurrentDecoders[i]->registerObserver(this);
          }
       }
    }
 
    MpDecodeBuffer* pJBState = getDecodeBuffer();   
-   pJBState->setCodecList(mpCurrentCodecs,numCodecs);
+   pJBState->setCodecList(m_pCurrentDecoders,numCodecs);
 
    // Delete the list pCodecs.
-   for (i=0; i<numCodecs; i++) {
+   for (i=0; i<numCodecs; i++)
+   {
       delete pCodecs[i];
    }
    delete[] pCodecs;
@@ -366,9 +373,9 @@ UtlBoolean MprDecode::handleDeselectCodecs(UtlBoolean shouldLock)
    {
        mLock.acquire();
    }
-   if (0 < mNumCurrentCodecs) {
+   if (0 < m_nCurrentDecoders) {
 
-      newN = mNumCurrentCodecs + mNumPrevCodecs;
+      newN = m_nCurrentDecoders + mNumPrevCodecs;
       pPrevCodecs = new MpDecoderBase*[newN];
       if (mNumPrevCodecs > 0) {
          for (i=0; i<mNumPrevCodecs; i++) {
@@ -377,10 +384,10 @@ UtlBoolean MprDecode::handleDeselectCodecs(UtlBoolean shouldLock)
          delete[] mpPrevCodecs;
       }
 
-      i = mNumCurrentCodecs;
-      mNumCurrentCodecs = 0;
-      pCurrentCodecs = mpCurrentCodecs;
-      mpCurrentCodecs = NULL;
+      i = m_nCurrentDecoders;
+      m_nCurrentDecoders = 0;
+      pCurrentCodecs = m_pCurrentDecoders;
+      m_pCurrentDecoders = NULL;
       while (i>0) {
          i--;
          handleDeselectCodec(pCurrentCodecs[i]);

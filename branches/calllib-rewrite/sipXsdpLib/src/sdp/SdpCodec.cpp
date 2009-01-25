@@ -267,8 +267,11 @@ UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType,
          {
             if (codecType == SDP_CODEC_ILBC_20MS) // iLBC with 20ms frame
             {
-               // check if the other codec is not 30ms
-               if (fmtp.contains("mode=30") || !fmtp.contains("mode=20"))
+               if (fmtp.contains("mode=20"))
+               {
+                  return TRUE;
+               }
+               else
                {
                   return FALSE; // internally 30ms mode is not compatible with 20ms mode in strict match
                }
@@ -276,7 +279,11 @@ UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType,
             else if (codecType == SDP_CODEC_ILBC_30MS) // iLBC with 30ms frame
             {
                // check if the other codec is not 20ms
-               if (fmtp.contains("mode=20"))
+               if (!fmtp.contains("mode=20"))
+               {
+                  return TRUE;
+               }
+               else
                {
                   return FALSE; // internally 30ms mode is not compatible with 20ms mode in strict match
                }
