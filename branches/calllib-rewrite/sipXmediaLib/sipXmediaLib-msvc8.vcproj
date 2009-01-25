@@ -113,6 +113,7 @@
                 <File RelativePath=".\src\mp\MpdIPPG7231.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG728.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG729.cpp"/>
+                <File RelativePath=".\src\mp\MpdIPPG7291.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG729i.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPGAmr.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPGAmrWb.cpp"/>
@@ -132,6 +133,7 @@
                 <File RelativePath=".\src\mp\MpeIPPG7231.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPG728.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPG729.cpp"/>
+                <File RelativePath=".\src\mp\MpeIPPG7291.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPG729i.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPGAmr.cpp"/>
                 <File RelativePath=".\src\mp\MpeIPPGAmrWb.cpp"/>
@@ -256,6 +258,7 @@
                 <File RelativePath=".\include\mp\MpdIPPG7231.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG728.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG729.h"/>
+                <File RelativePath=".\include\mp\MpdIPPG7291.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG729i.h"/>
                 <File RelativePath=".\include\mp\MpdIPPGAmr.h"/>
                 <File RelativePath=".\include\mp\MpdIPPGAmrWb.h"/>
@@ -281,6 +284,7 @@
                 <File RelativePath=".\include\mp\MpeIPPG7231.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG728.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG729.h"/>
+                <File RelativePath=".\include\mp\MpeIPPG7291.h"/>
                 <File RelativePath=".\include\mp\MpeIPPG729i.h"/>
                 <File RelativePath=".\include\mp\MpeIPPGAmr.h"/>
                 <File RelativePath=".\include\mp\MpeIPPGAmrWb.h"/>

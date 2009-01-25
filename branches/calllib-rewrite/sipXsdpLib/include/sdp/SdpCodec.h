@@ -34,6 +34,7 @@
 #define MIME_SUBTYPE_G729 "G729"
 #define MIME_SUBTYPE_G729D "G729D"
 #define MIME_SUBTYPE_G729E "G729E"
+#define MIME_SUBTYPE_G7291 "G7291"
 #define MIME_SUBTYPE_G722 "G722"
 #define MIME_SUBTYPE_G7221 "G7221"
 #define MIME_SUBTYPE_G723 "G723"
@@ -181,6 +182,18 @@ public:
         SDP_CODEC_AMR_10200, ///< GSM AMR 8Khz, 10.2 kbps, octet aligned
         SDP_CODEC_AMR_WB_12650, ///< GSM AMR WB 16Khz, 12.65 kbps, bandwidth efficient
         SDP_CODEC_AMR_WB_23850, ///< GSM AMR WB 16Khz, 23.85 kbps, octet aligned
+        SDP_CODEC_G7291_8000, ///< G.729.1 8 kbps, 16Khz
+        SDP_CODEC_G7291_12000, ///< G.729.1 12 kbps, 16Khz
+        SDP_CODEC_G7291_14000, ///< G.729.1 14 kbps, 16Khz
+        SDP_CODEC_G7291_16000, ///< G.729.1 16 kbps, 16Khz
+        SDP_CODEC_G7291_18000, ///< G.729.1 18 kbps, 16Khz
+        SDP_CODEC_G7291_20000, ///< G.729.1 20 kbps, 16Khz
+        SDP_CODEC_G7291_22000, ///< G.729.1 22 kbps, 16Khz
+        SDP_CODEC_G7291_24000, ///< G.729.1 24 kbps, 16Khz
+        SDP_CODEC_G7291_26000, ///< G.729.1 26 kbps, 16Khz
+        SDP_CODEC_G7291_28000, ///< G.729.1 28 kbps, 16Khz
+        SDP_CODEC_G7291_30000, ///< G.729.1 30 kbps, 16Khz
+        SDP_CODEC_G7291_32000, ///< G.729.1 32 kbps, 16Khz
 
         // video codecs
         SDP_CODEC_VP71_CIF,
