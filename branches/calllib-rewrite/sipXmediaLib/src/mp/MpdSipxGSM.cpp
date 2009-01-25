@@ -80,7 +80,7 @@ int MpdSipxGSM::decode(const MpRtpBufPtr &pPacket,
    unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
    // do not accept frames longer than 20ms from RTP to protect against buffer overflow
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }

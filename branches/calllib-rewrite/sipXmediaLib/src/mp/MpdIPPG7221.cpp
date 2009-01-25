@@ -138,7 +138,7 @@ int MpdIPPG7221::decode(const MpRtpBufPtr &rtpPacket,
    unsigned maxPayloadSize = getInfo()->getMaxPacketBits()/8;
 
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }
