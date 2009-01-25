@@ -153,6 +153,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MprSimpleDtmfDetector.cpp \
     mp/MprSpanDspDtmfDetector.cpp \
     mp/MprDejitter.cpp \
+    mp/MprDtmfDetectorFactory.cpp \
     mp/MprEncode.cpp \
     mp/MprFromFile.cpp \
     mp/MprFromMic.cpp \

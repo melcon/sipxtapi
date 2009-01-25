@@ -130,6 +130,7 @@ nobase_include_HEADERS =  \
     mp/MprSpanDspDtmfDetector.h \
     mp/MprDejitter.h \
     mp/MprDtmfDetectorBase.h \
+    mp/MprDtmfDetectorFactory.h \
     mp/MprEncode.h \
     mp/MprFromFile.h \
     mp/MprFromMic.h \

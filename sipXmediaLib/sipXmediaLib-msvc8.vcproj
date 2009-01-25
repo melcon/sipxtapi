@@ -172,6 +172,7 @@
                 <File RelativePath=".\src\mp\MprBridge.cpp"/>
                 <File RelativePath=".\src\mp\MprDecode.cpp"/>
                 <File RelativePath=".\src\mp\MprDejitter.cpp"/>
+                <File RelativePath=".\src\mp\MprDtmfDetectorFactory.cpp"/>
                 <File RelativePath=".\src\mp\MprEncode.cpp"/>
                 <File RelativePath=".\src\mp\MpResource.cpp"/>
                 <File RelativePath=".\src\mp\MpResourceMsg.cpp"/>
@@ -328,6 +329,7 @@
                 <File RelativePath=".\include\mp\MprDecode.h"/>
                 <File RelativePath=".\include\mp\MprDejitter.h"/>
                 <File RelativePath=".\include\mp\MprDtmfDetectorBase.h"/>
+                <File RelativePath=".\include\mp\MprDtmfDetectorFactory.h"/>
                 <File RelativePath=".\include\mp\MprEncode.h"/>
                 <File RelativePath=".\include\mp\MpResNotification.h"/>
                 <File RelativePath=".\include\mp\MpResource.h"/>

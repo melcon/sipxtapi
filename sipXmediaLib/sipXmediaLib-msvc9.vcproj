@@ -709,6 +709,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MprDtmfDetectorFactory.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MprEncode.cpp"
 					>
 				</File>
@@ -1319,6 +1323,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprDtmfDetectorBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MprDtmfDetectorFactory.h"
 					>
 				</File>
 				<File
