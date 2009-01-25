@@ -156,12 +156,12 @@ OsStatus MpeIPPG729::encode(const short* pAudioSamples,
                             UtlBoolean& sendNow,
                             MpSpeechType& speechType)
 {
+   assert((codec->uscParams.pInfo->params.framesize / 
+      (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8)) == numSamples);
+
    ippsSet_8u(0, (Ipp8u *)outputBuffer, codec->uscParams.pInfo->maxbitsize + 1);
    ippsCopy_8u((unsigned char *)pAudioSamples, (unsigned char *)inputBuffer,
                codec->uscParams.pInfo->params.framesize);     
-
-   assert((codec->uscParams.pInfo->params.framesize / 
-          (codec->uscParams.pInfo->params.pcmType.bitPerSample / 8)) == numSamples);
 
    int frmlen, infrmLen, FrmDataLen;
    USC_PCMStream PCMStream;

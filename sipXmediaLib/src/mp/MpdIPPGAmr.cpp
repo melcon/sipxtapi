@@ -168,7 +168,7 @@ int MpdIPPGAmr::decode(const MpRtpBufPtr &rtpPacket,
    unsigned maxPayloadSize = getInfo()->getMaxPacketBits()/4; // allow some reserve
 
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }

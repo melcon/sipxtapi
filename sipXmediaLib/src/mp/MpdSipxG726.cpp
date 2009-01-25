@@ -116,7 +116,7 @@ int MpdSipxG726::decode(const MpRtpBufPtr &pPacket,
    unsigned maxPayloadSize = getInfo()->getMaxPacketBits()/8;
    // do not accept frames longer than 20ms from RTP to protect against buffer overflow
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }
