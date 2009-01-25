@@ -178,7 +178,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    // Allocate memory for the input buffer. Size of output buffer is equal
    // to the size of 1 frame
    m_pInputBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->params.framesize);
-   m_pOutputBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->maxbitsize + 1);
+   m_pOutputBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->maxbitsize + 10);
 
    ippsSet_8u(0, (Ipp8u *)m_pInputBuffer, codec5300->uscParams.pInfo->params.framesize);
 

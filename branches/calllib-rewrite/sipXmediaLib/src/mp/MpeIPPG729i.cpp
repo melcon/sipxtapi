@@ -113,7 +113,7 @@ OsStatus MpeIPPG729i::initEncode(void)
    inputBuffer = 
       (Ipp8s *)ippsMalloc_8s(codec->uscParams.pInfo->params.framesize);
    outputBuffer = 
-      (Ipp8u *)ippsMalloc_8u(codec->uscParams.pInfo->maxbitsize + 1);
+      (Ipp8u *)ippsMalloc_8u(codec->uscParams.pInfo->maxbitsize + 10);
 
    return OS_SUCCESS;
 }
