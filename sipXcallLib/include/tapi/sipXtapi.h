@@ -237,7 +237,7 @@ typedef enum
 typedef enum
 {
    SIPX_CODEC_CPU_LOW = 0, ///< complexity of algorithm is lower than 8
-   SIPX_CODEC_CPU_NORMAL = 0, ///< complexity of algorithm is lower than 12
+   SIPX_CODEC_CPU_NORMAL, ///< complexity of algorithm is lower than 12
    SIPX_CODEC_CPU_HIGH
 } SIPX_CODEC_CPU_COST;
 
