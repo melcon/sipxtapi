@@ -4674,7 +4674,7 @@ void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessa
       {
          updateCapabilities = TRUE;
       }
-      if (seqMethod.compareTo(SIP_OPTIONS_METHOD) && responseCode == SIP_OK_CODE)
+      if (seqMethod.compareTo(SIP_OPTIONS_METHOD) == 0 && responseCode == SIP_OK_CODE)
       {
          // if we get 200 OK OPTIONS response, assume we know all that we can discover.
          m_rStateContext.m_allowedRemoteDiscovered = TRUE;
