@@ -257,10 +257,30 @@ UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType,
          (numChannels == -1 || mNumChannels == numChannels))
       {
          SdpCodec::SdpCodecTypes codecType = getCodecType();
-         if (codecType == SDP_CODEC_AMR_10200 ||
-            codecType == SDP_CODEC_AMR_4750)
+
+         if (codecType == SDP_CODEC_AMR_10200 || codecType == SDP_CODEC_AMR_4750)
          {
             bStrictMatch = TRUE; // always use strict match for AMR
+         }
+
+         if (bStrictMatch)
+         {
+            if (codecType == SDP_CODEC_ILBC_20MS) // iLBC with 20ms frame
+            {
+               // check if the other codec is not 30ms
+               if (fmtp.contains("mode=30") || !fmtp.contains("mode=20"))
+               {
+                  return FALSE; // internally 30ms mode is not compatible with 20ms mode in strict match
+               }
+            }
+            else if (codecType == SDP_CODEC_ILBC_30MS) // iLBC with 30ms frame
+            {
+               // check if the other codec is not 20ms
+               if (fmtp.contains("mode=20"))
+               {
+                  return FALSE; // internally 30ms mode is not compatible with 20ms mode in strict match
+               }
+            }
          }
 
          if ((bStrictMatch && fmtp.compareTo(mFormatSpecificData) == 0) || !bStrictMatch)
@@ -333,9 +353,9 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_G726_32;
     else if (strcmp(compareString,"G726_40") == 0)
        retType = SdpCodec::SDP_CODEC_G726_40;
-    else if (strcmp(compareString,"ILBC") == 0)
-       retType = SdpCodec::SDP_CODEC_ILBC;
-    else if (strcmp(compareString,"ILBC-20MS") == 0)
+    else if (strcmp(compareString,"ILBC_30MS") == 0)
+       retType = SdpCodec::SDP_CODEC_ILBC_30MS;
+    else if (strcmp(compareString,"ILBC_20MS") == 0)
        retType = SdpCodec::SDP_CODEC_ILBC_20MS;
     // G.722 codec
     else if (strcmp(compareString,"G722") == 0)

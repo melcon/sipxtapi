@@ -217,7 +217,7 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
 #endif // HAVE_GSM ]
 #ifdef HAVE_ILBC // [
-   case (SdpCodec::SDP_CODEC_ILBC):
+   case (SdpCodec::SDP_CODEC_ILBC_30MS):
       rpDecoder = new MpdSipxILBC(payloadType, 30);
       break;
    case (SdpCodec::SDP_CODEC_ILBC_20MS):
@@ -442,7 +442,7 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
 #endif // HAVE_GSM ]
 #ifdef HAVE_ILBC // [
-   case (SdpCodec::SDP_CODEC_ILBC):
+   case (SdpCodec::SDP_CODEC_ILBC_30MS):
       rpEncoder = new MpeSipxILBC(payloadType, 30);
       break;
    case (SdpCodec::SDP_CODEC_ILBC_20MS):

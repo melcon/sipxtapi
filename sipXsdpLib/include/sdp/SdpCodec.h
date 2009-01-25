@@ -167,7 +167,7 @@ public:
         SDP_CODEC_L16_24000_MONO, ///< Mono PCM 16 bit/sample 24000 samples/sec.
         SDP_CODEC_L16_32000_MONO, ///< Mono PCM 16 bit/sample 32000 samples/sec.
         SDP_CODEC_L16_48000_MONO, ///< Mono PCM 16 bit/sample 48000 samples/sec.
-        SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
+        SDP_CODEC_ILBC_30MS,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
         SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)
         SDP_CODEC_G726_16,   ///< G.726 16 Kbps
         SDP_CODEC_G726_24,   ///< G.726 24 Kbps

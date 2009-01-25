@@ -1348,48 +1348,17 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
          matchingCodec = localRtpCodecs.getCodec(MIME_TYPE_AUDIO, mimeSubtype, sampleRate, numChannels, fmtp);
          if (matchingCodec)
          {
-            int frameSize = 0;
             commonCodec = TRUE;
-
-            if (matchingCodec->getCodecType() == SdpCodec::SDP_CODEC_ILBC)
-            {
-               frameSize = codecMode;
-
-                if (frameSize == 20 || frameSize == 30 || frameSize == 0)
-                {
-                   if (frameSize == 0)
-                   {
-                       frameSize = 20;
-                   }
-                }
-                else
-                {
-                    // Nothing in common here
-                    commonCodec = FALSE;
-                }
-            }
-            else if(defaultPtime > 0)
-            {
-                frameSize = defaultPtime;
-            }
-
             // Create a copy of the SDP codec and set
             // the payload type for it
             if (commonCodec)
             {
                commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
                commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
-
                commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadId(audioPayloadTypes[typeIndex]);
                // decoder uses our own SDP payload IDs, not remote
-
-               if (frameSize)
-               {
-                  commonCodecsForEncoder[numCodecsInCommon]->setPacketSize(frameSize*1000);
-                  commonCodecsForDecoder[numCodecsInCommon]->setPacketSize(frameSize*1000);
-               }
             }
-         
+
             numCodecsInCommon++;
 
          }
@@ -1406,14 +1375,6 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
             // Create a copy of the SDP codec
             commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
             commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
-
-            // Set the preferred frame size if ptime was set
-            if (defaultPtime > 0)
-            {
-               commonCodecsForEncoder[numCodecsInCommon]->setPacketSize(defaultPtime*1000);
-               commonCodecsForDecoder[numCodecsInCommon]->setPacketSize(defaultPtime*1000);
-            }
-
             numCodecsInCommon++;
          }
       }

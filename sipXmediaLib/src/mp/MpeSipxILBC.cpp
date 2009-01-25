@@ -23,7 +23,7 @@ extern "C" {
 }
 
 const MpCodecInfo MpeSipxILBC::smCodecInfo30ms(
-    SdpCodec::SDP_CODEC_ILBC,   // codecType
+    SdpCodec::SDP_CODEC_ILBC_30MS,   // codecType
     "iLBC",                     // codecVersion
     8000,                       // samplingRate
     16,                          // numBitsPerSample
