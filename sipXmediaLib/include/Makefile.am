@@ -132,6 +132,10 @@ nobase_include_HEADERS =  \
     mp/MprDtmfDetectorBase.h \
     mp/MprDtmfDetectorFactory.h \
     mp/MprEncode.h \
+    mp/MpResamplerBase.h \
+    mp/MpResamplerDefault.h \
+    mp/MpResamplerFactory.h \
+    mp/MpResamplerSpeex.h \
     mp/MprFromFile.h \
     mp/MprFromMic.h \
     mp/MprFromNet.h \
