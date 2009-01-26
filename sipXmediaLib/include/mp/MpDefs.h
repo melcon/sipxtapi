@@ -43,12 +43,18 @@
 #define SAMPLES_PER_SECOND_8KHZ 8000
 
 /**
+* Number of audio frames that we use per second.
+*
+* Keep this value at 100, so that we use 10ms frames.
+*/
+#define FRAMES_PER_SECOND 100
+
+/**
 * Number of samples per frame. We use 10ms frames in flowgraph. For 8000Hz sampling rate, should be 80.
 * For 16Khz, should be 160. Samples are 16bit - 2 bytes.
 *
-* Keep this value at SAMPLES_PER_SECOND/100, so that we use 10ms frames.
 */
-#define SAMPLES_PER_FRAME (SAMPLES_PER_SECOND/100)
+#define SAMPLES_PER_FRAME (SAMPLES_PER_SECOND/FRAMES_PER_SECOND)
 
 /**
  * Used by RFC2833 jitter buffer for timestamp step. We run into a problem with timestamp steps in wideband

@@ -809,6 +809,9 @@ UtlBoolean XCpAbstractCall::handleConnectionNotfMessage(const OsIntPtrMsg& rMsg)
    case CP_NOTIFICATION_STOP_RTP_RECEIVE:
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
+   case CP_NOTIFICATION_REMOTE_SILENT:
+      fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_SILENT, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, NULL);
+      break;
    default:
       assert(false);
    }

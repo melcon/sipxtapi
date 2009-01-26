@@ -91,6 +91,8 @@ public:
 ///@name Accessors
 //@{
 
+   static void setConnectionIdleTimeout(long timeoutSeconds);
+
      /// Get decoder for this payload type
    MpDecoderBase* mapPayloadType(int payloadType);
 
@@ -170,6 +172,8 @@ private:
    UtlBoolean m_bRFC2833DTMFEnabled;
    int m_samplesPerFrame; 
    int m_samplesPerSec;
+   long m_inactiveFrameCount; ///< count of frames we have seen without real sound
+   static long ms_maxInactiveFrameCount; ///< maximum number of frames before we report inactivity
 };
 
 /* ============================ INLINE METHODS ============================ */

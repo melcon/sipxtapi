@@ -63,7 +63,7 @@ public:
 //@{
 
      /// Get samples from jitter buffer
-   int getSamples(MpAudioSample *samplesBuffer, int samplesNumber);
+   int getSamples(MpAudioSample *samplesBuffer, int samplesNumber, MpSpeechType& speechType);
      /**<
      *  @param voiceSamples - (out) buffer for audio samples
      *  @param samplesNumber - (in) number of samples to write

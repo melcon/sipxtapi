@@ -1130,6 +1130,12 @@ void MpCallFlowGraph::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
    }
 }
 
+OsStatus MpCallFlowGraph::setConnectionIdleTimeout(const int idleTimeout)
+{
+   MpRtpInputAudioConnection::setConnectionIdleTimeout(idleTimeout);
+   return OS_SUCCESS;
+}
+
 // Enables/Disable the transmission of inband DTMF audio
 UtlBoolean MpCallFlowGraph::enableSendInbandDTMF(UtlBoolean bEnable)
 {
