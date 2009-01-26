@@ -147,11 +147,6 @@ public:
     */
     void setCurrentConference(const SIPX_CONF hConf);
 
-    /**
-    * Stops a playing tone.
-    */
-    void stopTone();
-
     /** 
     * Removes the currently active Line
     */  

@@ -79,7 +79,9 @@ nobase_include_HEADERS =  \
     mp/MpRtpOutputAudioConnection.h \
     mp/MpRtpOutputConnection.h \
     mp/MpSipxDecoders.h \
+    mp/MpStopDTMFTimerMsg \
     mp/MpSyncPortAudioStream.h \
+    mp/MpTimerMsg.h \
     mp/MpToneResourceMsg.h \
     mp/MpTypes.h \
     mp/MpUdpBuf.h \

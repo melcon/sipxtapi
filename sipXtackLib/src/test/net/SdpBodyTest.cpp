@@ -893,11 +893,11 @@ public:
     {
         SdpCodecList fac;
 
-        SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 99, "VP71-QVGA","video", "vp71",
+        SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 99, "VP71-QVGA","VP71-QVGA","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_QVGA) ;
-        SdpCodec* pSqcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_SQCIF, 100, "VP71-SQCIF", "video", "vp71",
+        SdpCodec* pSqcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_SQCIF, 100, "VP71-SQCIF", "VP71-SQCIF","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_SQCIF) ;
-        SdpCodec* pQcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QCIF, 101, "VP71-QCIF", "video", "vp71",
+        SdpCodec* pQcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QCIF, 101, "VP71-QCIF", "VP71-QCIF","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_QCIF) ;
 
         fac.addCodec(*pQvgaCodec);
@@ -1039,7 +1039,7 @@ public:
         SdpCodecList sdpFactory;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
                                             SdpCodec::SDP_CODEC_UNKNOWN,
-                                            "PCMU",
+                                            "PCMU", "PCMU",
                                             MIME_TYPE_AUDIO, 
                                             MIME_SUBTYPE_PCMU,
                                             8000, 
@@ -1048,7 +1048,7 @@ public:
 
         SdpCodec* pPcmaCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA, 
                                             SdpCodec::SDP_CODEC_UNKNOWN,
-                                            "PCMA",
+                                            "PCMA", "PCMA",
                                             MIME_TYPE_AUDIO, 
                                             MIME_SUBTYPE_PCMA,
                                             8000, 
@@ -1057,7 +1057,7 @@ public:
 
         SdpCodec* pSuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)333, 
                                             SdpCodec::SDP_CODEC_UNKNOWN, 
-                                            "333",
+                                            "333", "333",
                                             MIME_TYPE_AUDIO, 
                                             "superaudio",
                                             8000, 
@@ -1066,7 +1066,7 @@ public:
 
         SdpCodec* pSuperDuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)334, 
                                             SdpCodec::SDP_CODEC_UNKNOWN, 
-                                            "334",
+                                            "334", "334",
                                             MIME_TYPE_AUDIO, 
                                             "superduperaudio",
                                             8000, 
@@ -1075,7 +1075,7 @@ public:
 
         SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 
                                             SdpCodec::SDP_CODEC_UNKNOWN,
-                                            "VP71-QVGA",
+                                            "VP71-QVGA", "VP71-QVGA",
                                             MIME_TYPE_VIDEO, 
                                             "vp71", // MIME subtype
                                             9000, 
@@ -1173,7 +1173,7 @@ public:
         SdpCodecList sdpFactory;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
            SdpCodec::SDP_CODEC_PCMU, 
-           "PCMU",
+           "PCMU", "PCMU",
            MIME_TYPE_AUDIO, 
            MIME_SUBTYPE_PCMU,
            8000, 
@@ -1182,7 +1182,7 @@ public:
 
         SdpCodec* pPcmaCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA, 
            SdpCodec::SDP_CODEC_PCMA, 
-           "PCMA",
+           "PCMA", "PCMA",
            MIME_TYPE_AUDIO, 
            MIME_SUBTYPE_PCMA,
            8000, 
@@ -1191,7 +1191,7 @@ public:
 
         SdpCodec* pSuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)102, 
            (SdpCodec::SdpCodecTypes)102, 
-           "102",
+           "102", "102",
            MIME_TYPE_AUDIO, 
            "superaudio",
            8000, 
@@ -1200,7 +1200,7 @@ public:
 
         SdpCodec* pSuperDuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)103, 
            (SdpCodec::SdpCodecTypes)103,
-           "103",
+           "103", "103",
            MIME_TYPE_AUDIO, 
            "superduperaudio",
            8000, 
@@ -1209,7 +1209,7 @@ public:
 
         SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 
            (SdpCodec::SdpCodecTypes)104, 
-           "VP71-QVGA",
+           "VP71-QVGA", "VP71-QVGA",
            MIME_TYPE_VIDEO, 
            "vp71", // MIME subtype
            9000, 

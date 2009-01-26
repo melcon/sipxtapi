@@ -18,6 +18,15 @@
 // APPLICATION INCLUDES
 #include <mp/MpResamplerSpeex.h>
 
+// WIN32: Add libspeexdsp to linker input.
+#ifdef WIN32 // [
+#   ifdef _DEBUG // [
+#      pragma comment(lib, "libspeexdspd.lib")
+#   else // _DEBUG ][
+#      pragma comment(lib, "libspeexdsp.lib")
+#   endif // _DEBUG ]
+#endif // WIN32 ]
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS

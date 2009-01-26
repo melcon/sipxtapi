@@ -64,8 +64,7 @@ class AcAudioResumePlaybackMsg;
 class AcAudioStopPlaybackMsg;
 class AcAudioRecordStartMsg;
 class AcAudioRecordStopMsg;
-class AcAudioToneStartMsg;
-class AcAudioToneStopMsg;
+class AcAudioSendDTMFToneMsg;
 class AcMuteInputConnectionMsg;
 class AcUnmuteInputConnectionMsg;
 class AcLimitCodecPreferencesMsg;
@@ -230,12 +229,10 @@ public:
                                          const SipDialog& targetSipDialog) = 0;
 
    /** Starts DTMF tone on call connection.*/
-   OsStatus audioToneStart(int iToneId,
-                           UtlBoolean bLocal,
-                           UtlBoolean bRemote);
-
-   /** Stops DTMF tone on call connection */
-   OsStatus audioToneStop();
+   OsStatus sendDTMFTone(int iToneId,
+                         UtlBoolean bLocal,
+                         UtlBoolean bRemote,
+                         int duration);
 
    /** Starts playing audio file on call connection */
    OsStatus audioFilePlay(const UtlString& audioFile,
@@ -551,11 +548,8 @@ private:
    /** Handles command to stop recording call */
    OsStatus handleAudioRecordStop(const AcAudioRecordStopMsg& rMsg);
 
-   /** Handles command to start sending audio DTMF */
-   OsStatus handleAudioToneStart(const AcAudioToneStartMsg& rMsg);
-
-   /** Handles command to stop sending audio DTMF */
-   OsStatus handleAudioToneStop(const AcAudioToneStopMsg& rMsg);
+   /** Handles command to send audio DTMF (in-band or rfc8233)*/
+   OsStatus handleAudioSendDTMFTone(const AcAudioSendDTMFToneMsg& rMsg);
 
    /** Handles message to mute inbound RTP in audio bridge */
    OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);

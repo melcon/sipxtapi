@@ -825,7 +825,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpStopDTMFTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpSyncPortAudioStream.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpTimerMsg.cpp"
 					>
 				</File>
 				<File
@@ -1470,7 +1478,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpStopDTMFTimerMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpSyncPortAudioStream.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpTimerMsg.h"
 					>
 				</File>
 				<File

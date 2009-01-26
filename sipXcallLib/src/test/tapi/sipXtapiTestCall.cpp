@@ -2513,11 +2513,11 @@ void sipXtapiTestSuite::testManualCallDialtone()
 
    sipxCallAudioPlayFileStart(hCall, "c:\\na_dialtone.wav", true, true, false);
    OsTask::delay(1000);
-   sipxCallStartTone(hCall, ID_DTMF_0, true, false);
+   sipxCallSendDTMFTone(hCall, ID_DTMF_0, true, false);
    OsTask::delay(1000);
-   sipxCallStartTone(hCall, ID_DTMF_1, true, false);
+   sipxCallSendDTMFTone(hCall, ID_DTMF_1, true, false);
    OsTask::delay(1000);
-   sipxCallStartTone(hCall, ID_DTMF_2, true, false);
+   sipxCallSendDTMFTone(hCall, ID_DTMF_2, true, false);
    OsTask::delay(1000);
    sipxCallAudioPlayFileStop(hCall);
    OsTask::delay(5000);

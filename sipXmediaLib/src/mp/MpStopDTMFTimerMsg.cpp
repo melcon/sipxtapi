@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/AcAudioToneStartMsg.h>
+#include <mp/MpStopDTMFTimerMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,28 +27,40 @@
 
 /* ============================ CREATORS ================================== */
 
-AcAudioToneStartMsg::AcAudioToneStartMsg(int iToneId,
-                                         UtlBoolean bLocal,
-                                         UtlBoolean bRemote)
-: AcCommandMsg(AC_AUDIO_TONE_START)
-, m_iToneId(iToneId)
-, m_bLocal(bLocal)
-, m_bRemote(bRemote)
+MpStopDTMFTimerMsg::MpStopDTMFTimerMsg()
+: MpTimerMsg(MpTimerMsg::MP_STOP_DTMF_TONE_TIMER)
 {
 
 }
 
-AcAudioToneStartMsg::~AcAudioToneStartMsg()
+MpStopDTMFTimerMsg::MpStopDTMFTimerMsg(const MpStopDTMFTimerMsg& rhs)
+: MpTimerMsg(rhs)
 {
-
 }
 
-OsMsg* AcAudioToneStartMsg::createCopy(void) const
+OsMsg* MpStopDTMFTimerMsg::createCopy(void) const
 {
-   return new AcAudioToneStartMsg(m_iToneId, m_bLocal, m_bRemote);
+   return new MpStopDTMFTimerMsg(*this);
+}
+
+MpStopDTMFTimerMsg::~MpStopDTMFTimerMsg()
+{
+
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+MpStopDTMFTimerMsg& MpStopDTMFTimerMsg::operator=(const MpStopDTMFTimerMsg& rhs)
+{
+   if (this == &rhs)
+   {
+      return *this;
+   }
+
+   MpTimerMsg::operator=(rhs); // assign fields for parent class
+   
+   return *this;
+}
 
 /* ============================ ACCESSORS ================================= */
 
@@ -59,4 +71,3 @@ OsMsg* AcAudioToneStartMsg::createCopy(void) const
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
-

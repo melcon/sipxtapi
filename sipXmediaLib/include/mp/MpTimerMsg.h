@@ -10,16 +10,12 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcAudioToneStartMsg_h__
-#define AcAudioToneStartMsg_h__
+#ifndef MpTimerMsg_h__
+#define MpTimerMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <os/OsDefs.h>
-#include <os/OsMsg.h>
-#include <utl/UtlString.h>
-#include <cp/CpMessageTypes.h>
-#include <cp/msg/AcCommandMsg.h>
+#include <os/OsTimerMsg.h>
 
 // DEFINES
 // MACROS
@@ -31,29 +27,44 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to carry out some action.
-*/
-class AcAudioToneStartMsg : public AcCommandMsg
+ * MpTimerMsg represents message which gets sent when a timer fires in sipXmediaLib.
+ * Timer message will be available to be processed in flowgraph.
+ *   
+ * Never use directly, but subclass to supply msgSubType automatically
+ * and transport any user data in subclass.
+ */
+class MpTimerMsg : public OsTimerMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
+   typedef enum
+   {
+      MP_TIMER_FIRST = 0, ///< Add your own timer ids here
+      MP_STOP_DTMF_TONE_TIMER, ///< Timer which is meant to be processed by flowgraph
+      MP_TIMER_LAST = 255 ///< Keep lower than 255
+   } SubTypeEnum;
 
-   AcAudioToneStartMsg(int iToneId,
-                       UtlBoolean bLocal,
-                       UtlBoolean bRemote);
+   /**
+    * Constructor.
+    */
+   MpTimerMsg(SubTypeEnum msgSubType);
 
-   virtual ~AcAudioToneStartMsg();
+   /** Copy constructor */
+   MpTimerMsg(const MpTimerMsg& rhs);
 
+   /** Create a copy of this msg object (which may be of a derived type) */
    virtual OsMsg* createCopy(void) const;
+
+   /** Destructor. */
+   virtual ~MpTimerMsg();
 
    /* ============================ MANIPULATORS ============================== */
 
-   /* ============================ ACCESSORS ================================= */
+   /** Assignment operator */
+   MpTimerMsg& operator=(const MpTimerMsg& rhs);
 
-   int getToneId() const { return m_iToneId; }
-   UtlBoolean getLocal() const { return m_bLocal; }
-   UtlBoolean getRemote() const { return m_bRemote; }
+   /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
@@ -62,15 +73,6 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Private copy constructor */
-   AcAudioToneStartMsg(const AcAudioToneStartMsg& rMsg);
-
-   /** Private assignment operator */
-   AcAudioToneStartMsg& operator=(const AcAudioToneStartMsg& rhs);
-
-   int m_iToneId;
-   UtlBoolean m_bLocal;
-   UtlBoolean m_bRemote;
 };
 
-#endif // AcAudioToneStartMsg_h__
+#endif // MpTimerMsg_h__

@@ -136,36 +136,36 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         RTL_EVENT("Tone set", 0);
         printf("first tone set\n");
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(6, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(6, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 2);
-        mediaInterface->startTone(8, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(8, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 3);
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(4, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 0);
         printf("second tone set\n");        
         OsTask::delay(500) ;
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(6, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(6, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 2);
-        mediaInterface->startTone(8, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(8, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 3);
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(4, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 0);
         printf("third tone set\n");        
         OsTask::delay(500) ;
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(9, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(9, true, false) ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(5, true, false) ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(5, true, false) ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(4, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 0);
         printf("fourth tone set\n");        
         OsTask::delay(500) ;
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(9, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;mediaInterface->stopTone() ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(9, true, false) ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(5, true, false) ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(5, true, false) ;OsTask::delay(250) ;
+        mediaInterface->sendDTMFTone(4, true, false) ;OsTask::delay(250) ;
         RTL_EVENT("Tone set", 0);
         printf("tone set done\n");        
         OsTask::delay(1000) ;
@@ -412,26 +412,22 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         RTL_EVENT("Tone count", 1);
         printf("generate tones in source 1\n");
-        source1Interface->startTone(1, true, true);
+        source1Interface->sendDTMFTone(1, true, true);
 
         OsTask::delay(1000);
 
         RTL_EVENT("Tone count", 2);
         printf("generate tones in source 2 as well\n");
-        source2Interface->startTone(2, true, true);
+        source2Interface->sendDTMFTone(2, true, true);
 
         OsTask::delay(1000);
 
         RTL_EVENT("Tone count", 1);
         printf("stop tones in source 1\n");
-        source1Interface->stopTone();
 
 
         OsTask::delay(1000);
-
         RTL_EVENT("Tone count", 0);
-        printf("stop tone in source 2\n");
-        source2Interface->stopTone();
 
         OsTask::delay(1000);
         printf("two tones done\n");        

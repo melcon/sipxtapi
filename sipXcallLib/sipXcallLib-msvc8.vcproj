@@ -84,9 +84,8 @@
                 <File RelativePath=".\src\cp\msg\AcAudioRecordStartMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAudioRecordStopMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAudioResumePlaybackMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioSendDTMFToneMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAudioStopPlaybackMsg.cpp"/>
-                <File RelativePath=".\src\cp\msg\AcAudioToneStartMsg.cpp"/>
-                <File RelativePath=".\src\cp\msg\AcAudioToneStopMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcConnectMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcDestroyConnectionMsg.cpp"/>
@@ -196,9 +195,8 @@
                 <File RelativePath=".\include\cp\msg\AcAudioRecordStartMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAudioRecordStopMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAudioResumePlaybackMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioSendDTMFToneMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAudioStopPlaybackMsg.h"/>
-                <File RelativePath=".\include\cp\msg\AcAudioToneStartMsg.h"/>
-                <File RelativePath=".\include\cp\msg\AcAudioToneStopMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcConnectMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcDestroyConnectionMsg.h"/>

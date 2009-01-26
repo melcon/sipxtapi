@@ -373,9 +373,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib speech.lib speech_rtp.lib usc_speech_codec.lib umc.lib vm.lib"
+				AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapid.dll"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib"
 				IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib"
@@ -473,7 +473,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib speech.lib speech_rtp.lib usc_speech_codec.lib umc.lib vm.lib"
+				AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapi.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

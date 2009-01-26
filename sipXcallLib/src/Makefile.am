@@ -55,8 +55,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcAudioRecordStopMsg.cpp \
     cp/msg/AcAudioResumePlaybackMsg.cpp \
     cp/msg/AcAudioStopPlaybackMsg.cpp \
-    cp/msg/AcAudioToneStartMsg.cpp \
-    cp/msg/AcAudioToneStopMsg.cpp \
+    cp/msg/AcAudioSendDTMFToneMsg.cpp \
     cp/msg/AcCommandMsg.cpp \
     cp/msg/AcConnectMsg.cpp \
     cp/msg/AcDestroyConnectionMsg.cpp \
