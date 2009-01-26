@@ -65,7 +65,7 @@ typedef uint32_t RtpSRC;        ///< RTP SSRC or CSRC identifier
 typedef enum {
    MP_SPEECH_UNKNOWN,        ///< is yet undetermined
    MP_SPEECH_SILENT,         ///< found to contain no speech
-   MP_SPEECH_COMFORT_NOISE,  ///< to be replaced by comfort noise
+   MP_SPEECH_COMFORT_NOISE,  ///< frame contains comfort noise
    MP_SPEECH_ACTIVE,         ///< found to contain speech
    MP_SPEECH_MUTED,          ///< may contain speech, but must be muted
    MP_SPEECH_TONE            ///< filled with active (not silent) tone data

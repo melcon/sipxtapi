@@ -1106,12 +1106,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetConnectionIdleTimeout(const SIPX_INST hIns
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface =
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
 
-      if (pInterface)
+      if (pInterfaceFactory)
       {
-         OsStatus status = pInterface->setConnectionIdleTimeout(idleTimeout);
+         OsStatus status = pInterfaceFactory->setConnectionIdleTimeout(idleTimeout);
 
          if (status == OS_SUCCESS)
          {

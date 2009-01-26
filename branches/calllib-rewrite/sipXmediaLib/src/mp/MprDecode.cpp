@@ -224,9 +224,10 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
       // This should be a JB_something or other.  However the only
       // current choices is a short or long equivalent and this needs
       // to be a plain old int:
-      pDecodeBuffer->getSamples(pSamples, samplesPerFrame);
+      MpSpeechType speechType;
+      pDecodeBuffer->getSamples(pSamples, samplesPerFrame, speechType);
       assert(samplesPerFrame == (int)out->getSamplesNumber());
-      out->setSpeechType(MP_SPEECH_UNKNOWN);
+      out->setSpeechType(speechType);
    }
    
    // Push decoded audio packet downstream

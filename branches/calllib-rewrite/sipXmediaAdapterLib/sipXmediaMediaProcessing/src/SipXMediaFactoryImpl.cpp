@@ -573,6 +573,11 @@ UtlString SipXMediaFactoryImpl::getAllSupportedVideoCodecs() const
    return "";
 }
 
+OsStatus SipXMediaFactoryImpl::setConnectionIdleTimeout(const int idleTimeout)
+{
+   return MpCallFlowGraph::setConnectionIdleTimeout(idleTimeout);
+}
+
 OsStatus SipXMediaFactoryImpl::buildAllCodecList(SdpCodecList& codecList)
 {
    codecList.clearCodecs();

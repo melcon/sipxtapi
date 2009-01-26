@@ -61,8 +61,11 @@ MpDecodeBuffer::~MpDecodeBuffer()
 /* ============================ MANIPULATORS ============================== */
 
 int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
-                               int requiredSamples) // required number of samples, for flowgraph sample rate
+                               int requiredSamples, // required number of samples, for flowgraph sample rate
+                               MpSpeechType& speechType)
 {
+   speechType = MP_SPEECH_UNKNOWN;
+
    if (m_pDejitter)
    {
       // first do actions that need to be done regardless of whether we have enough
@@ -122,6 +125,12 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
 
       if (m_decodeBufferOut >= g_decodeBufferSize)
          m_decodeBufferOut -= g_decodeBufferSize;
+   }
+
+   if (suppliedSamples == 0)
+   {
+      // we will have to generate full noise frame
+      speechType = MP_SPEECH_COMFORT_NOISE;
    }
 
    if (suppliedSamples < requiredSamples)

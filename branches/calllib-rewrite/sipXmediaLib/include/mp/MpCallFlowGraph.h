@@ -226,6 +226,9 @@ public:
 
 //@}
 
+   /** Sets timeout in seconds for media connections. After that timeout, notifications will be sent. */
+   static OsStatus setConnectionIdleTimeout(const int idleTimeout);
+
      /// Enables/Disable the transmission of inband DTMF audio. Othersise RFC 2833 will be used.
    static UtlBoolean enableSendInbandDTMF(UtlBoolean bEnable);
 
