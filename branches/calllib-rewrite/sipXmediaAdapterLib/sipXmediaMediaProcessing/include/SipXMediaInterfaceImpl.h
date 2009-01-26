@@ -145,8 +145,7 @@ public:
 
    virtual OsStatus deleteConnection(int connectionId);
 
-   virtual OsStatus startTone(int toneId, UtlBoolean local, UtlBoolean remote);
-   virtual OsStatus stopTone();
+   virtual OsStatus sendDTMFTone(int toneId, UtlBoolean local, UtlBoolean remote, int duration = 120);
 
    virtual OsStatus muteInput(int connectionId, UtlBoolean bMute);
 

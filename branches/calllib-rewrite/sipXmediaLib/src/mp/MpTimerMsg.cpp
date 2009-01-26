@@ -10,22 +10,9 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef HAVE_SPAN_DSP
-
 // SYSTEM INCLUDES
-#include <stdlib.h>
-
 // APPLICATION INCLUDES
-#include <mp/MpNoiseGeneratorSpanDsp.h>
-
-// WIN32: Add libspandsp to linker input.
-#ifdef WIN32 // [
-#   ifdef _DEBUG // [
-#      pragma comment(lib, "libspandspd.lib")
-#   else // _DEBUG ][
-#      pragma comment(lib, "libspandsp.lib")
-#   endif // _DEBUG ]
-#endif // WIN32 ]
+#include <mp/MpTimerMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -40,32 +27,39 @@
 
 /* ============================ CREATORS ================================== */
 
-MpNoiseGeneratorSpanDsp::MpNoiseGeneratorSpanDsp(int seed, float noiseLevel, int noiseQuality)
-: m_pNoiseState(NULL)
+MpTimerMsg::MpTimerMsg(SubTypeEnum msgSubType)
+: OsTimerMsg((const unsigned char)msgSubType)
 {
-   m_pNoiseState = noise_init_dbm0(NULL, seed, noiseLevel, NOISE_CLASS_HOTH, noiseQuality);
+
 }
 
-MpNoiseGeneratorSpanDsp::~MpNoiseGeneratorSpanDsp()
+MpTimerMsg::MpTimerMsg(const MpTimerMsg& rhs)
+: OsTimerMsg(rhs)
 {
-   if (m_pNoiseState)
-   {
-      free((void*)m_pNoiseState);
-      m_pNoiseState = NULL;
-   }
+}
+
+OsMsg* MpTimerMsg::createCopy(void) const
+{
+   return new MpTimerMsg(*this);
+}
+
+MpTimerMsg::~MpTimerMsg()
+{
+
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-void MpNoiseGeneratorSpanDsp::generateComfortNoise(MpAudioSample* pSamplesBuffer, unsigned sampleCount)
+MpTimerMsg& MpTimerMsg::operator=(const MpTimerMsg& rhs)
 {
-   if (m_pNoiseState && pSamplesBuffer && sampleCount >= 0)
+   if (this == &rhs)
    {
-      for (int i = 0; i < sampleCount; i++)
-      {
-         pSamplesBuffer[i] = noise(m_pNoiseState); // generate 1 sample of noise
-      }
+      return *this;
    }
+
+   OsTimerMsg::operator=(rhs); // assign fields for parent class
+
+   return *this;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -77,5 +71,3 @@ void MpNoiseGeneratorSpanDsp::generateComfortNoise(MpAudioSample* pSamplesBuffer
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
-
-#endif // HAVE_SPAN_DSP ]

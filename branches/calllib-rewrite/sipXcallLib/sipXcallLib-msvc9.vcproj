@@ -121,6 +121,7 @@
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxDISABLE_LOCAL_AUDIO"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				EnableFunctionLevelLinking="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -339,15 +340,11 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcAudioSendDTMFToneMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcAudioStopPlaybackMsg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\cp\msg\AcAudioToneStartMsg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\cp\msg\AcAudioToneStopMsg.cpp"
 					>
 				</File>
 				<File
@@ -776,15 +773,11 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcAudioSendDTMFToneMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcAudioStopPlaybackMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\cp\msg\AcAudioToneStartMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\cp\msg\AcAudioToneStopMsg.h"
 					>
 				</File>
 				<File

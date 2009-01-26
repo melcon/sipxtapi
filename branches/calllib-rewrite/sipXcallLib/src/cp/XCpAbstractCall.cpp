@@ -41,8 +41,7 @@
 #include <cp/msg/AcAudioStopPlaybackMsg.h>
 #include <cp/msg/AcAudioRecordStartMsg.h>
 #include <cp/msg/AcAudioRecordStopMsg.h>
-#include <cp/msg/AcAudioToneStartMsg.h>
-#include <cp/msg/AcAudioToneStopMsg.h>
+#include <cp/msg/AcAudioSendDTMFToneMsg.h>
 #include <cp/msg/AcMuteInputConnectionMsg.h>
 #include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcLimitCodecPreferencesMsg.h>
@@ -176,18 +175,13 @@ OsStatus XCpAbstractCall::rejectConnectionTransfer(const SipDialog& sipDialog)
    return postMessage(rejectTransferMsg);
 }
 
-OsStatus XCpAbstractCall::audioToneStart(int iToneId,
-                                         UtlBoolean bLocal,
-                                         UtlBoolean bRemote)
+OsStatus XCpAbstractCall::sendDTMFTone(int iToneId,
+                                       UtlBoolean bLocal,
+                                       UtlBoolean bRemote,
+                                       int duration)
 {
-   AcAudioToneStartMsg audioToneStartMsg(iToneId, bLocal, bRemote);
+   AcAudioSendDTMFToneMsg audioToneStartMsg(iToneId, bLocal, bRemote, duration);
    return postMessage(audioToneStartMsg);
-}
-
-OsStatus XCpAbstractCall::audioToneStop()
-{
-   AcAudioToneStopMsg audioToneStopMsg;
-   return postMessage(audioToneStopMsg);
 }
 
 OsStatus XCpAbstractCall::audioFilePlay(const UtlString& audioFile,
@@ -413,11 +407,8 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_AUDIO_RECORD_STOP:
       handleAudioRecordStop((const AcAudioRecordStopMsg&)rRawMsg);
       return TRUE;
-   case AcCommandMsg::AC_AUDIO_TONE_START:
-      handleAudioToneStart((const AcAudioToneStartMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_AUDIO_TONE_STOP:
-      handleAudioToneStop((const AcAudioToneStopMsg&)rRawMsg);
+   case AcCommandMsg::AC_AUDIO_SEND_DTMF_TONE:
+      handleAudioSendDTMFTone((const AcAudioSendDTMFToneMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
       handleMuteInputConnection((const AcMuteInputConnectionMsg&)rRawMsg);
@@ -641,21 +632,12 @@ OsStatus XCpAbstractCall::handleAudioRecordStop(const AcAudioRecordStopMsg& rMsg
    return OS_FAILED;
 }
 
-OsStatus XCpAbstractCall::handleAudioToneStart(const AcAudioToneStartMsg& rMsg)
+OsStatus XCpAbstractCall::handleAudioSendDTMFTone(const AcAudioSendDTMFToneMsg& rMsg)
 {
    if (m_pMediaInterface)
    {
-      return m_pMediaInterface->startTone(rMsg.getToneId(), rMsg.getLocal(), rMsg.getRemote());
-   }
-
-   return OS_FAILED;
-}
-
-OsStatus XCpAbstractCall::handleAudioToneStop(const AcAudioToneStopMsg& rMsg)
-{
-   if (m_pMediaInterface)
-   {
-      return m_pMediaInterface->stopTone();
+      return m_pMediaInterface->sendDTMFTone(rMsg.getToneId(), rMsg.getLocal(), rMsg.getRemote(),
+         rMsg.getDuration());
    }
 
    return OS_FAILED;

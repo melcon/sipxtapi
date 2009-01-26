@@ -638,10 +638,11 @@ OsStatus XCpCallManager::transferConsultativeAbstractCall(const UtlString& sSour
    return result;
 }
 
-OsStatus XCpCallManager::audioToneStart(const UtlString& sAbstractCallId,
+OsStatus XCpCallManager::sendDTMFTone(const UtlString& sAbstractCallId,
                                         int iToneId,
                                         UtlBoolean bLocal,
-                                        UtlBoolean bRemote)
+                                        UtlBoolean bRemote,
+                                        int duration)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -650,22 +651,7 @@ OsStatus XCpCallManager::audioToneStart(const UtlString& sAbstractCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->audioToneStart(iToneId, bLocal, bRemote);
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::audioToneStop(const UtlString& sAbstractCallId)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->audioToneStop();
+      return ptrLock->sendDTMFTone(iToneId, bLocal, bRemote, duration);
    }
 
    return result;

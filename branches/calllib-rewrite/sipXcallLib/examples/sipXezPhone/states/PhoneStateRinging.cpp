@@ -40,9 +40,6 @@ PhoneStateRinging::~PhoneStateRinging(void)
 #ifdef VOICE_ENGINE
     if (mbPlayingTone)
         sipxCallAudioPlayFileStop(sipXmgr::getInstance().getCurrentCall());
-#else
-    if (mbPlayingTone)
-        sipxCallStopTone(mhCall);
 #endif
 }
 
@@ -70,24 +67,6 @@ PhoneState* PhoneStateRinging::Execute()
     wxString incomingNumber(szIncomingNumber);
 
     thePhoneApp->setStatusMessage(incomingNumber);
-
-#ifdef VOICE_ENGINE
-    if (SIPX_RESULT_SUCCESS == sipxCallAudioPlayFileStart(sipXmgr::getInstance().getCurrentCall(), "res/ringTone.raw", true, true, false))
-    {
-        mbPlayingTone  = true;
-    }
-#else
-    SIPX_RESULT result;
-    result = sipxCallStartTone(sipXmgr::getInstance().getCurrentCall(), ID_TONE_RINGTONE, true, false); 
-    if (SIPX_RESULT_SUCCESS == result)
-    {
-        mbPlayingTone = true;
-    }
-    else
-    {
-        mbPlayingTone = false;
-    }
-#endif
 
     if (sipXezPhoneSettings::getInstance().getAutoAnswer() == true)
     {

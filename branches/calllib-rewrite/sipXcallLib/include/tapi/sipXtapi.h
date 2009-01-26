@@ -400,26 +400,6 @@ typedef enum
     ID_DTMF_C              = 14,   /**< DMTF C */
     ID_DTMF_D              = 15,   /**< DMTF D */
     ID_DTMF_FLASH          = 16,   /**< DTMF Flash */
-    ID_TONE_DIALTONE      = 512,   /**< Dialtone 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_BUSY,                   /**< Call-busy tone 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_RINGBACK,               /**< Remote party is ringing feedback tone 
-                                         (Not supported with GIPS VoiceEngine)*/
-    ID_TONE_RINGTONE,               /**< Default ring/alert tone 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_CALLFAILED,             /**< Fasy Busy / call failed tone 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_SILENCE,                /**< Silence 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_BACKSPACE,              /**< Backspace tone 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_CALLWAITING,            /**< Call waiting alert tone 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_CALLHELD,               /**< Call held feedback tone 
-                                         (Not supported with GIPS VoiceEngine) */
-    ID_TONE_LOUD_FAST_BUSY          /**< Off hook / fast busy tone 
-                                         (Not supported with GIPS VoiceEngine)*/
 } SIPX_TONE_ID;                 
 
 /**
@@ -1642,8 +1622,10 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
 /**
  * Play a tone (DTMF, dialtone, ring back, etc) to the local and/or
  * remote party.  See the DTMF_ constants for built-in tones.
- * DTMF is sent via RFC 2833 method. sipxCallDestroy stops tones automatically.
- * Minimum DTMF length must be 60msec. It is not enforced by sipxtapi.
+ *
+ * DTMF is sent via RFC 2833 method or in-band. DTMF method is configured
+ * via sipxConfigSetOutboundDTMFMode function. sipxCallDestroy stops tones automatically.
+ * Minimum DTMF length must be 60msec.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1651,21 +1633,13 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
  * @param toneId ID of the tone to play
  * @param bLocal Should the tone be played locally? 
  * @param bRemote Should the tone be played to the remote party?
+ * @param duration Tone duration in milliseconds. Minimum value is 60.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall, 
-                                           const SIPX_TONE_ID toneId,
-                                           const int bLocal,
-                                           const int bRemote);
-
-/**
- * Stop playing a tone (DTMF, dialtone, ring back, etc). to local
- * and remote parties. sipxCallDestroy stops tones automatically.
- *
- * @param hCall Handle to a call.  Call handles are obtained either by 
- *        invoking sipxCallCreate or passed to your application through
- *        a listener interface.
- */
-SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall);
+SIPXTAPI_API SIPX_RESULT sipxCallSendDTMFTone(const SIPX_CALL hCall, 
+                                              const SIPX_TONE_ID toneId,
+                                              const int bLocal,
+                                              const int bRemote,
+                                              const int duration = 120);
 
 
 /**

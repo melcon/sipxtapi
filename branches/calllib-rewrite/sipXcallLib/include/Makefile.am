@@ -43,8 +43,7 @@ nobase_include_HEADERS =  \
     cp/msg/AcAudioRecordStopMsg.h \
     cp/msg/AcAudioResumePlaybackMsg.h \
     cp/msg/AcAudioStopPlaybackMsg.h \
-    cp/msg/AcAudioToneStartMsg.h \
-    cp/msg/AcAudioToneStopMsg.h \
+    cp/msg/AcAudioSendDTMFToneMsg.h \
     cp/msg/AcCommandMsg.h \
     cp/msg/AcDestroyConnectionMsg.h \
     cp/msg/AcConnectMsg.h \

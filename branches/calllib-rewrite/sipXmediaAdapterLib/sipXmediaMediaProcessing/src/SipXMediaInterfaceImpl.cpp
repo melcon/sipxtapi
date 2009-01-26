@@ -226,9 +226,6 @@ SipXMediaInterfaceImpl::~SipXMediaInterfaceImpl()
 
     if(mpFlowGraph)
     {
-      // Free up the resources used by tone generation ASAP
-      stopTone();
-
         // Stop the net in/out stuff before the sockets are deleted
         //mpMediaFlowGraph->stopReceiveRtp();
         //mpMediaFlowGraph->stopSendRtp();
@@ -1144,9 +1141,10 @@ OsStatus SipXMediaInterfaceImpl::resumePlayback()
    return(returnCode);
 }
 
-OsStatus SipXMediaInterfaceImpl::startTone(int toneId,
-                                          UtlBoolean local,
-                                          UtlBoolean remote)
+OsStatus SipXMediaInterfaceImpl::sendDTMFTone(int toneId,
+                                              UtlBoolean local,
+                                              UtlBoolean remote,
+                                              int duration)
 {
    OsStatus returnCode = OS_SUCCESS;
    int toneDestination = 0 ;
@@ -1163,19 +1161,8 @@ OsStatus SipXMediaInterfaceImpl::startTone(int toneId,
          toneDestination |= MpCallFlowGraph::TONE_TO_NET;
       }
      
-      mpFlowGraph->startTone(toneId, toneDestination);
+      mpFlowGraph->startDTMFTone(toneId, toneDestination, duration);
    } 
-
-   return(returnCode);
-}
-
-OsStatus SipXMediaInterfaceImpl::stopTone()
-{
-   OsStatus returnCode = OS_SUCCESS;
-   if(mpFlowGraph)
-   {
-      mpFlowGraph->stopTone();
-   }
 
    return(returnCode);
 }

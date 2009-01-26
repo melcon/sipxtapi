@@ -1009,11 +1009,6 @@ const bool sipXmgr::getInTransfer() const
     return mTransferInProgress;
 }
 
-void sipXmgr::stopTone()
-{
-    sipxCallStopTone(this->m_hCall);
-}      
-
 void sipXmgr::UnRegister()
 {
     sipxLineRegister(m_hLine, false);

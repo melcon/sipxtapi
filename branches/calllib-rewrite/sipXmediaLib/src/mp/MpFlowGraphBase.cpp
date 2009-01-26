@@ -1357,7 +1357,11 @@ OsStatus MpFlowGraphBase::processMessages(void)
 
       assert(res == OS_SUCCESS);
       
-      if (pMsg->getMsgType() == OsMsg::STREAMING_MSG)
+      if (pMsg->getMsgType() == OsMsg::OS_TIMER_MSG)
+      {
+         handleMessage(*pMsg);
+      }
+      else if (pMsg->getMsgType() == OsMsg::STREAMING_MSG)
       {
          handleMessage(*pMsg);
       }

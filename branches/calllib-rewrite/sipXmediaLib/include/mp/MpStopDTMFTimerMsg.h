@@ -10,16 +10,13 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcAudioToneStopMsg_h__
-#define AcAudioToneStopMsg_h__
+#ifndef MpStopDTMFTimerMsg_h__
+#define MpStopDTMFTimerMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <os/OsDefs.h>
-#include <os/OsMsg.h>
 #include <utl/UtlString.h>
-#include <cp/CpMessageTypes.h>
-#include <cp/msg/AcCommandMsg.h>
+#include <mp/MpTimerMsg.h>
 
 // DEFINES
 // MACROS
@@ -31,21 +28,33 @@
 // FORWARD DECLARATIONS
 
 /**
-* Abstract call command message. Instructs call to stop DTMF tone.
-*/
-class AcAudioToneStopMsg : public AcCommandMsg
+ * MpStopDTMFTimerMsg is sent when Stop DTMF timer fires.
+ */
+class MpStopDTMFTimerMsg : public MpTimerMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+
    /* ============================ CREATORS ================================== */
 
-   AcAudioToneStopMsg();
+   /**
+    * Constructor.
+    */
+   MpStopDTMFTimerMsg();
 
-   virtual ~AcAudioToneStopMsg();
+   /** Copy constructor */
+   MpStopDTMFTimerMsg(const MpStopDTMFTimerMsg& rhs);
 
+   /** Create a copy of this msg object (which may be of a derived type) */
    virtual OsMsg* createCopy(void) const;
 
+   /** Destructor. */
+   virtual ~MpStopDTMFTimerMsg();
+
    /* ============================ MANIPULATORS ============================== */
+
+   /** Assignment operator */
+   MpStopDTMFTimerMsg& operator=(const MpStopDTMFTimerMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -56,11 +65,6 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Private copy constructor */
-   AcAudioToneStopMsg(const AcAudioToneStopMsg& rMsg);
-
-   /** Private assignment operator */
-   AcAudioToneStopMsg& operator=(const AcAudioToneStopMsg& rhs);
 };
 
-#endif // AcAudioToneStopMsg_h__
+#endif // MpStopDTMFTimerMsg_h__

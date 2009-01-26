@@ -111,7 +111,9 @@ libsipXmedia_la_SOURCES =  \
     mp/MpRtpOutputAudioConnection.cpp \
     mp/MpRtpOutputConnection.cpp \
     mp/MpSipxDecoders.cpp \
+    mp/MpStopDTMFTimerMsg.cpp \
     mp/MpSyncPortAudioStream.cpp \
+    mp/MpTimerMsg.cpp \
     mp/MpTypes.cpp \
     mp/MpUdpBuf.cpp \
     mp/MpdIPPG7221.cpp \
