@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include "assert.h"
 #include "mp/MpCodecFactory.h"
 #include "os/OsSysLog.h"
@@ -40,6 +39,7 @@
 #include "mp/MpeIPPG729.h"
 #include "mp/MpeIPPG729i.h"
 #include "mp/MpeIPPG7231.h"
+#include <mp/MpeIPPGSM.h>
 #endif // HAVE_IPP ]
 
 // All decoder child classes
@@ -90,6 +90,7 @@
 #include "mp/MpdIPPG729.h"
 #include "mp/MpdIPPG729i.h"
 #include "mp/MpdIPPG7231.h"
+#include <mp/MpdIPPGSM.h>
 #endif // HAVE_IPP ]
 
 MpCodecFactory MpCodecFactory::sInstance;
@@ -214,7 +215,7 @@ OsStatus MpCodecFactory::createDecoder(const SdpCodec& pSdpCodec, MpDecoderBase*
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
-#ifdef HAVE_GSM // [
+#if defined(HAVE_GSM) && !defined(PREFER_INTEL_IPP_CODECS) // [
    case (SdpCodec::SDP_CODEC_GSM):
       rpDecoder = new MpdSipxGSM(payloadFormat);
       break;
@@ -287,6 +288,11 @@ OsStatus MpCodecFactory::createDecoder(const SdpCodec& pSdpCodec, MpDecoderBase*
    case (SdpCodec::SDP_CODEC_G729E):
       rpDecoder = new MpdIPPG729i(payloadFormat, 11800);
       break;
+#ifdef PREFER_INTEL_IPP_CODECS
+   case (SdpCodec::SDP_CODEC_GSM):
+      rpDecoder = new MpdIPPGSM(payloadFormat);
+      break;
+#endif // PREFER_INTEL_IPP_CODECS ]
 #endif // HAVE_IPP ]
    default:
       OsSysLog::add(FAC_MP, PRI_WARNING, 
@@ -450,7 +456,7 @@ OsStatus MpCodecFactory::createEncoder(const SdpCodec& pSdpCodec, MpEncoderBase*
       break;
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
-#ifdef HAVE_GSM // [
+#if defined(HAVE_GSM) && !defined(PREFER_INTEL_IPP_CODECS) // [
    case (SdpCodec::SDP_CODEC_GSM):
       rpEncoder = new MpeSipxGSM(payloadFormat);
       break;
@@ -545,6 +551,11 @@ OsStatus MpCodecFactory::createEncoder(const SdpCodec& pSdpCodec, MpEncoderBase*
    case (SdpCodec::SDP_CODEC_G729E):
       rpEncoder = new MpeIPPG729i(payloadFormat, 11800);
       break;
+#ifdef PREFER_INTEL_IPP_CODECS
+   case (SdpCodec::SDP_CODEC_GSM):
+      rpEncoder = new MpeIPPGSM(payloadFormat);
+      break;
+#endif // PREFER_INTEL_IPP_CODECS ]
 #endif // HAVE_IPP ]
 
    default:
