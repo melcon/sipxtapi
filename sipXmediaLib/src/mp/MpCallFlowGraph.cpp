@@ -618,15 +618,10 @@ OsStatus MpCallFlowGraph::loseFocus(void)
 }
 
 // Start playing the indicated tone.
-void MpCallFlowGraph::startDTMFTone(int toneId, int toneOptions, int duration)
+void MpCallFlowGraph::startTone(int toneId, int toneOptions, int duration)
 {
    UtlBoolean boolRes;
    OsStatus  res;
-
-   if (duration < 60)
-   {
-      return; // duration must be greater than 60ms
-   }
 
    if ((sbSendInBandDTMF && (toneOptions & TONE_TO_NET)) ||
       (toneOptions & TONE_TO_SPKR))
@@ -679,19 +674,24 @@ void MpCallFlowGraph::startDTMFTone(int toneId, int toneOptions, int duration)
 #endif // DOING_ECHO_CANCELATION ]
 #endif // DISABLE_LOCAL_AUDIO ]
 
-   MpStopDTMFTimerMsg msg;
-   OsTimerNotification* pNotification = new OsTimerNotification(*getMsgQ(), msg);
-   delete m_pStopDTMFToneTimer; // get rid of any previous timer
-   m_pStopDTMFToneTimer = new OsTimer(pNotification);
-   OsTime timerTime(duration); // time in milliseconds
-   m_pStopDTMFToneTimer->oneshotAfter(timerTime); // start timer
+   if (duration > 0)
+   {
+      MpStopDTMFTimerMsg msg;
+      OsTimerNotification* pNotification = new OsTimerNotification(*getMsgQ(), msg);
+      delete m_pStopDTMFToneTimer; // get rid of any previous timer
+      m_pStopDTMFToneTimer = new OsTimer(pNotification);
+      OsTime timerTime(duration); // time in milliseconds
+      m_pStopDTMFToneTimer->oneshotAfter(timerTime); // start timer
+   }
 }
 
 // Stop playing the tone (applies to all tone destinations).
-void MpCallFlowGraph::stopDTMFTone()
+void MpCallFlowGraph::stopTone()
 {
    OsStatus  res;
    int i;
+   MpFlowGraphMsg msg(MpFlowGraphMsg::FLOWGRAPH_STOP_TONE, NULL,
+      NULL, NULL, 0, 0);
 
    if (m_bPlayingInBandDTMF)
    {
@@ -699,8 +699,7 @@ void MpCallFlowGraph::stopDTMFTone()
       assert(res == OS_SUCCESS);
       m_bPlayingInBandDTMF = FALSE;
    }
-
-   handleStopToneOrPlay();
+   res = postMessage(msg);
 
    if (m_bPlayingRfc2833DTMF)
    {
@@ -1567,6 +1566,7 @@ UtlBoolean MpCallFlowGraph::handleMessage(OsMsg& rMsg)
             // retCode = handleStopRecord(rMsg);
             break;
          case MpFlowGraphMsg::FLOWGRAPH_STOP_PLAY:
+         case MpFlowGraphMsg::FLOWGRAPH_STOP_TONE:
             retCode = handleStopToneOrPlay();
             break;
          case MpFlowGraphMsg::ON_MPRRECORDER_ENABLED:
@@ -1603,7 +1603,7 @@ UtlBoolean MpCallFlowGraph::handleStopDTMFTimerMessage(const MpStopDTMFTimerMsg&
    // don't delete the timer which fired us, since it could have been replaced by another timer
 
    // stop sending DTMF tone (in-band or rfc2833)
-   stopDTMFTone();
+   stopTone();
 
    return TRUE;
 }

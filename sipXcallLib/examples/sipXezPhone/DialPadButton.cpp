@@ -43,7 +43,7 @@ void DialPadButton::OnMouseDown(wxMouseEvent& event)
 {
     if (sipXmgr::getInstance().getCurrentCall() > 0)
     {
-        sipxCallSendDTMFTone(sipXmgr::getInstance().getCurrentCall(), mToneId, true, true);
+        sipxCallStartTone(sipXmgr::getInstance().getCurrentCall(), mToneId, true, true);
     }
     event.Skip();
 }

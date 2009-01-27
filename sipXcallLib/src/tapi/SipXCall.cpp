@@ -1553,11 +1553,11 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
 }
 
 
-SIPXTAPI_API SIPX_RESULT sipxCallSendDTMFTone(const SIPX_CALL hCall,
-                                              const SIPX_TONE_ID toneId,
-                                              const int bLocal,
-                                              const int bRemote,
-                                              const int duration)
+SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall,
+                                           const SIPX_TONE_ID toneId,
+                                           const int bLocal,
+                                           const int bRemote,
+                                           const int duration)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallStartTone");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1570,12 +1570,37 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendDTMFTone(const SIPX_CALL hCall,
 
    if (pData)
    {
-      int dtmfDuration = duration > 60 ? duration : 60;
+      int dtmfDuration = duration > 60 ? duration : -1;
       // posts a message
-      pData->m_pInst->pCallManager->sendDTMFTone(pData->m_abstractCallId, toneId, bLocal, bRemote, dtmfDuration);
+      pData->m_pInst->pCallManager->audioToneStart(pData->m_abstractCallId, toneId, bLocal, bRemote, dtmfDuration);
 
       sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
       sr = SIPX_RESULT_SUCCESS;
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallStopTone");
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxCallStopTone hCall=%d",
+      hCall);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   SIPX_CALL_DATA* pData = NULL;
+
+   pData =  sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
+
+   if (pData)
+   {
+      // posts a message
+      pData->m_pInst->pCallManager->audioToneStop(pData->m_abstractCallId);
+      sr = SIPX_RESULT_SUCCESS;
+
+      sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
    }
 
    return sr;
