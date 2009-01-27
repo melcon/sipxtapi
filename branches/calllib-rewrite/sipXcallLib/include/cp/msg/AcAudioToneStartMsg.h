@@ -10,8 +10,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef AcAudioSendDTMFToneMsg_h__
-#define AcAudioSendDTMFToneMsg_h__
+#ifndef AcAudioToneStartMsg_h__
+#define AcAudioToneStartMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -33,18 +33,18 @@
 /**
 * Abstract call command message. Instructs call to carry out some action.
 */
-class AcAudioSendDTMFToneMsg : public AcCommandMsg
+class AcAudioToneStartMsg : public AcCommandMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
 
-   AcAudioSendDTMFToneMsg(int iToneId,
-                          UtlBoolean bLocal,
-                          UtlBoolean bRemote,
-                          int duration);
+   AcAudioToneStartMsg(int iToneId,
+                       UtlBoolean bLocal,
+                       UtlBoolean bRemote,
+                       int duration);
 
-   virtual ~AcAudioSendDTMFToneMsg();
+   virtual ~AcAudioToneStartMsg();
 
    virtual OsMsg* createCopy(void) const;
 
@@ -65,10 +65,10 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    /** Private copy constructor */
-   AcAudioSendDTMFToneMsg(const AcAudioSendDTMFToneMsg& rMsg);
+   AcAudioToneStartMsg(const AcAudioToneStartMsg& rMsg);
 
    /** Private assignment operator */
-   AcAudioSendDTMFToneMsg& operator=(const AcAudioSendDTMFToneMsg& rhs);
+   AcAudioToneStartMsg& operator=(const AcAudioToneStartMsg& rhs);
 
    int m_iToneId;
    UtlBoolean m_bLocal;
@@ -76,4 +76,4 @@ private:
    int m_duration;
 };
 
-#endif // AcAudioSendDTMFToneMsg_h__
+#endif // AcAudioToneStartMsg_h__

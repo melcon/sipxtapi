@@ -332,7 +332,7 @@ bool playTones(char* szPlayTones, SIPX_CALL hCall)
             else
             {
                 printf("<-> Playtone: %c\n", toneId) ;
-                sipxCallSendDTMFTone(hCall, (SIPX_TONE_ID) toneId, true, false) ;
+                sipxCallStartTone(hCall, (SIPX_TONE_ID) toneId, true, false) ;
                 SLEEP(250) ;
             }
         }

@@ -340,11 +340,15 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\cp\msg\AcAudioSendDTMFToneMsg.cpp"
+					RelativePath=".\src\cp\msg\AcAudioStopPlaybackMsg.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\cp\msg\AcAudioStopPlaybackMsg.cpp"
+					RelativePath=".\src\cp\msg\AcAudioToneStartMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAudioToneStopMsg.cpp"
 					>
 				</File>
 				<File
@@ -773,11 +777,15 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\cp\msg\AcAudioSendDTMFToneMsg.h"
+					RelativePath=".\include\cp\msg\AcAudioStopPlaybackMsg.h"
 					>
 				</File>
 				<File
-					RelativePath=".\include\cp\msg\AcAudioStopPlaybackMsg.h"
+					RelativePath=".\include\cp\msg\AcAudioToneStartMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAudioToneStopMsg.h"
 					>
 				</File>
 				<File

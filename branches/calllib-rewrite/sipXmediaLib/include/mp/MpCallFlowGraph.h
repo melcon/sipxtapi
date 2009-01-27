@@ -107,15 +107,13 @@ public:
 ///@name Manipulators
 //@{
 
-     /// Starts playing the indicated tone.
-   void startDTMFTone(int toneId, int toneOptions, int duration);
+   /// Starts playing the indicated tone.
+   void startTone(int toneId, int toneOptions, int duration = -1);
 
    /**
    * Stops playing the tone (applies to all tone destinations).
-   *
-   * Execution allowed only from MpMediaTask thread.
    */ 
-   void stopDTMFTone();
+   void stopTone();
 
    int closeRecorders(void);
 

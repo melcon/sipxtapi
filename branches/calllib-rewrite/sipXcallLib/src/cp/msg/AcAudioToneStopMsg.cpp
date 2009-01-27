@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/AcAudioSendDTMFToneMsg.h>
+#include <cp/msg/AcAudioToneStopMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,27 +27,20 @@
 
 /* ============================ CREATORS ================================== */
 
-AcAudioSendDTMFToneMsg::AcAudioSendDTMFToneMsg(int iToneId,
-                                               UtlBoolean bLocal,
-                                               UtlBoolean bRemote,
-                                               int duration)
-: AcCommandMsg(AC_AUDIO_SEND_DTMF_TONE)
-, m_iToneId(iToneId)
-, m_bLocal(bLocal)
-, m_bRemote(bRemote)
-, m_duration(duration)
+AcAudioToneStopMsg::AcAudioToneStopMsg()
+: AcCommandMsg(AC_AUDIO_TONE_STOP)
 {
 
 }
 
-AcAudioSendDTMFToneMsg::~AcAudioSendDTMFToneMsg()
+AcAudioToneStopMsg::~AcAudioToneStopMsg()
 {
 
 }
 
-OsMsg* AcAudioSendDTMFToneMsg::createCopy(void) const
+OsMsg* AcAudioToneStopMsg::createCopy(void) const
 {
-   return new AcAudioSendDTMFToneMsg(m_iToneId, m_bLocal, m_bRemote, m_duration);
+   return new AcAudioToneStopMsg();
 }
 
 /* ============================ MANIPULATORS ============================== */

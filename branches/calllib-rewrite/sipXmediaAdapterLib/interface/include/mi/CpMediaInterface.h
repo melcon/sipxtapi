@@ -307,10 +307,10 @@ public:
      */
 
      /// @brief Start playing the specified tone for this call.
-   virtual OsStatus sendDTMFTone(int toneId, 
-                                 UtlBoolean local, 
-                                 UtlBoolean remote,
-                                 int duration = 120) = 0 ;
+   virtual OsStatus startTone(int toneId, 
+                              UtlBoolean local, 
+                              UtlBoolean remote,
+                              int duration = 120) = 0 ;
      /**<
      *  If the tone is a DTMF tone and the remote flag is set, the interface 
      *  should send out of band DTMF using RFC 2833.  Inband audio should be 
@@ -326,6 +326,16 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
 
+   /// @brief Stop playing all tones.
+   virtual OsStatus stopTone() = 0 ;
+   /**
+    * Some tones/implementations may not support this.
+    * For example, some DTMF playing implementations will only play DTMF 
+    * for a fixed interval.
+    *
+    *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
+    *             failure codes to expect, etc. -- kkyzivat 20070801 >>
+    */
      /// @brief Play the specified audio URL to the call.
    virtual OsStatus playAudio(const char* url, 
                               UtlBoolean repeat,
