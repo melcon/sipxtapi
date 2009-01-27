@@ -43,7 +43,8 @@ typedef enum
    MP_NOTIFICATION_STOP_RTP_RECEIVE,
    MP_NOTIFICATION_FOCUS_GAINED,
    MP_NOTIFICATION_FOCUS_LOST,
-   MP_NOTIFICATION_REMOTE_SILENT ///< RTP was not received for some time
+   MP_NOTIFICATION_REMOTE_SILENT, ///< RTP was not received for some time
+   MP_NOTIFICATION_REMOTE_ACTIVE ///< RTP was received
 } MpNotificationMsgType;
 
 typedef enum
