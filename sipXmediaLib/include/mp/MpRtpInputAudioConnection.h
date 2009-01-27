@@ -161,7 +161,6 @@ private:
      /// Assignment operator (not implemented for this type)
    MpRtpInputAudioConnection& operator=(const MpRtpInputAudioConnection& rhs);
 
-//   MpFlowGraphBase*   mpFlowGraph;     ///< Parent flowgraph
    MprDecode*         mpDecode;        ///< Inbound component: Decoder
    MprDtmfDetectorBase* mpDtmfDetector; // InBand DTMF decoder
 
@@ -174,6 +173,7 @@ private:
    int m_samplesPerSec;
    long m_inactiveFrameCount; ///< count of frames we have seen without real sound
    static long ms_maxInactiveFrameCount; ///< maximum number of frames before we report inactivity
+   UtlBoolean m_bAudioReceived; ///< true when at least 1 audio frame has been received
 };
 
 /* ============================ INLINE METHODS ============================ */

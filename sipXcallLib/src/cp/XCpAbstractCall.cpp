@@ -832,6 +832,9 @@ UtlBoolean XCpAbstractCall::handleConnectionNotfMessage(const OsIntPtrMsg& rMsg)
    case CP_NOTIFICATION_REMOTE_SILENT:
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_SILENT, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, NULL);
       break;
+   case CP_NOTIFICATION_REMOTE_ACTIVE:
+      fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_ACTIVE, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, NULL, NULL);
+      break;
    default:
       assert(false);
    }

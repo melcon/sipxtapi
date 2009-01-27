@@ -66,6 +66,7 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 , mpDecode(NULL)
 , mpDtmfDetector(NULL)
 , m_inactiveFrameCount(0)
+, m_bAudioReceived(FALSE)
 , m_bInBandDTMFEnabled(bInBandDTMFEnabled)
 , m_bRFC2833DTMFEnabled(bRFC2833DTMFEnabled)
 , m_samplesPerFrame(samplesPerFrame)
@@ -156,11 +157,18 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
                // fire notification
                sendConnectionNotification(MP_NOTIFICATION_REMOTE_SILENT, m_inactiveFrameCount / FRAMES_PER_SECOND);
                m_inactiveFrameCount = 0;
+               m_bAudioReceived = FALSE; // reset flag, so that we get notification when audio is received again
             }
          }
          else
          {
             m_inactiveFrameCount = 0;
+            if (!m_bAudioReceived)
+            {
+               m_bAudioReceived = TRUE;
+               // fire notification
+               sendConnectionNotification(MP_NOTIFICATION_REMOTE_ACTIVE, 0);
+            }
          }
       }
    }
@@ -291,6 +299,9 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
                                                       OsSocket& rRtpSocket,
                                                       OsSocket& rRtcpSocket)
 {
+   m_bAudioReceived = FALSE;
+   m_inactiveFrameCount = 0;
+
    if (codecList.entries() > 0)
    {
       // if RFC2833 DTMF is disabled
@@ -350,6 +361,9 @@ OsStatus MpRtpInputAudioConnection::stopReceiveRtp(OsMsgQ& messageQueue,
 // Stop receiving RTP and RTCP packets.
 void MpRtpInputAudioConnection::handleStopReceiveRtp()
 {
+   m_bAudioReceived = FALSE;
+   m_inactiveFrameCount = 0;
+
    prepareStopReceiveRtp();
 
    // No need to synchronize as the decoder is not part of the
