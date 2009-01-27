@@ -34,6 +34,8 @@
 #include "mp/mpau.h"
 #include "mp/MpMisc.h"
 #include "mp/MpFlowGraphBase.h"
+#include <mp/MpResamplerBase.h>
+#include <mp/MpResamplerFactory.h>
 #include "os/OsSysLog.h"
 
 // EXTERNAL FUNCTIONS
@@ -97,9 +99,8 @@ OsStatus MprFromFile::playFile(const char* audioFileName,
                                UtlBoolean repeat,
                                void* pCookie)
 {
-   OsStatus stat;
    UtlString* audioBuffer = NULL;
-   stat = readAudioFile(audioBuffer, audioFileName);
+   OsStatus stat = readAudioFile(audioBuffer, audioFileName);
 
    //create a msg from the buffer
    if (audioBuffer && audioBuffer->length())
@@ -182,12 +183,12 @@ OsStatus MprFromFile::genericAudioBufToFGAudioBuf(UtlString*& fgAudioBuf,
 OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                                     const char* audioFileName)
 {
-   char* charBuffer = NULL;
+   char* pAudioBuffer = NULL;
    FILE* audioFilePtr = NULL;
    int iTotalChannels = 1;
    unsigned long filesize;
    unsigned long trueFilesize;
-   int samplesReaded;
+   int samplesRead;
    int compressionType = 0;
    int channelsMin = 1, channelsMax = 2, channelsPreferred = 0;
    long rateMin = 8000, rateMax = 48000, ratePreferred = 22050;
@@ -289,39 +290,51 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
          case MpAudioWaveFileRead::DePcm8Unsigned: //8
             // We'll convert it to 16 bit
             filesize *= sizeof(AudioSample);
-            charBuffer = (char*)malloc(filesize);
-            samplesReaded = audioFile->getSamples((AudioSample*)charBuffer,
+            pAudioBuffer = (char*)malloc(filesize);
+            samplesRead = audioFile->getSamples((AudioSample*)pAudioBuffer,
                                                   filesize);
 
-            if (samplesReaded) 
+            if (samplesRead) 
             {
-               assert(samplesReaded*sizeof(AudioSample) == filesize);
+               assert(samplesRead*sizeof(AudioSample) == filesize);
 
                // Convert to mono if needed
                if (channelsPreferred > 1)
-                  filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
+                  filesize = mergeChannels(pAudioBuffer, filesize, iTotalChannels);
 
+               char* pOutputBuffer = NULL;
                // Resample if needed
-               if (ratePreferred > requiredSamplesPerSec)
-                  filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
+               if (ratePreferred != requiredSamplesPerSec)
+                  filesize = resample(pAudioBuffer, filesize, ratePreferred, requiredSamplesPerSec, pOutputBuffer);
+               if (pOutputBuffer)
+               {
+                  free(pAudioBuffer);
+                  pAudioBuffer = pOutputBuffer;
+               }
             }
             break;
 
          case MpAudioWaveFileRead::DePcm16LsbSigned: // 16
-            charBuffer = (char*)malloc(filesize);
-            samplesReaded = audioFile->getSamples((AudioSample*)charBuffer,
+            pAudioBuffer = (char*)malloc(filesize);
+            samplesRead = audioFile->getSamples((AudioSample*)pAudioBuffer,
                                                   filesize/sizeof(AudioSample));
-            if (samplesReaded)
+            if (samplesRead)
             {
-               assert(samplesReaded*sizeof(AudioSample) == filesize);
+               assert(samplesRead*sizeof(AudioSample) == filesize);
 
                // Convert to mono if needed
                if (iTotalChannels > 1)
-                  filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
+                  filesize = mergeChannels(pAudioBuffer, filesize, iTotalChannels);
 
+               char* pOutputBuffer = NULL;
                // Resample if needed
-               if (ratePreferred > requiredSamplesPerSec)
-                  filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
+               if (ratePreferred != requiredSamplesPerSec)
+                  filesize = resample(pAudioBuffer, filesize, ratePreferred, requiredSamplesPerSec, pOutputBuffer);
+               if (pOutputBuffer)
+               {
+                  free(pAudioBuffer);
+                  pAudioBuffer = pOutputBuffer;
+               }
             }
             break;
          }
@@ -340,9 +353,9 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                break; //do nothing for this format
 
             case MpAuRead::DeG711MuLaw:
-               charBuffer = (char*)malloc(filesize*2);
-               samplesReaded = audioFile->getSamples((AudioSample*)charBuffer, filesize);
-               if (samplesReaded) 
+               pAudioBuffer = (char*)malloc(filesize*2);
+               samplesRead = audioFile->getSamples((AudioSample*)pAudioBuffer, filesize);
+               if (samplesRead) 
                {
 
                   //it's now 16 bit so it's twice as long
@@ -350,29 +363,41 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
 
                   // Convert to mono if needed
                   if (channelsPreferred > 1)
-                     filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
-
+                     filesize = mergeChannels(pAudioBuffer, filesize, iTotalChannels);
+                  
+                  char* pOutputBuffer = NULL;
                   // Resample if needed
                   if (ratePreferred > requiredSamplesPerSec)
-                     filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
+                     filesize = resample(pAudioBuffer, filesize, ratePreferred, requiredSamplesPerSec, pOutputBuffer);
+                  if (pOutputBuffer)
+                  {
+                     free(pAudioBuffer);
+                     pAudioBuffer = pOutputBuffer;
+                  }
                }
                break;
 
             case MpAuRead::DePcm16MsbSigned:
-               charBuffer = (char*)malloc(filesize);
-               samplesReaded = audioFile->getSamples((AudioSample*)charBuffer,
+               pAudioBuffer = (char*)malloc(filesize);
+               samplesRead = audioFile->getSamples((AudioSample*)pAudioBuffer,
                                                      filesize/sizeof(AudioSample));
-               if (samplesReaded) 
+               if (samplesRead) 
                {
-                  assert(samplesReaded*sizeof(AudioSample) == filesize);
+                  assert(samplesRead*sizeof(AudioSample) == filesize);
 
                   // Convert to mono if needed
                   if (channelsPreferred > 1)
-                     filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
+                     filesize = mergeChannels(pAudioBuffer, filesize, iTotalChannels);
 
+                  char* pOutputBuffer = NULL;
                   // Resample if needed
                   if (ratePreferred > requiredSamplesPerSec)
-                     filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
+                     filesize = resample(pAudioBuffer, filesize, ratePreferred, requiredSamplesPerSec, pOutputBuffer);
+                  if (pOutputBuffer)
+                  {
+                     free(pAudioBuffer);
+                     pAudioBuffer = pOutputBuffer;
+                  }
                }
                break;
             }
@@ -405,9 +430,9 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
          if (audioFile)
          {
             filesize *= sizeof(AudioSample);
-            charBuffer = (char*)malloc(filesize);
+            pAudioBuffer = (char*)malloc(filesize);
 
-            samplesReaded = audioFile->getSamples((AudioSample*)charBuffer,
+            samplesRead = audioFile->getSamples((AudioSample*)pAudioBuffer,
                                                   filesize/sizeof(AudioSample));
          }
       }
@@ -417,13 +442,13 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
          {
             unsigned int cbIdx = 0;
             int bytesRead = 0;
-            charBuffer = (char*)malloc(filesize);
-            assert(charBuffer != NULL); // Assume malloc succeeds.
+            pAudioBuffer = (char*)malloc(filesize);
+            assert(pAudioBuffer != NULL); // Assume malloc succeeds.
 
             // Read in the unknown audio file a chunk at a time.
             // (specified by sFromFileReadBufferSize)
             while((cbIdx < filesize) &&
-               ((bytesRead = fread(charBuffer+cbIdx, 1, 
+               ((bytesRead = fread(pAudioBuffer+cbIdx, 1, 
                sFromFileReadBufferSize, 
                audioFilePtr)) > 0))
             {
@@ -439,17 +464,14 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
 
    // Now we copy over the char buffer data to UtlString for use in
    // messages.
-   if(charBuffer != NULL)
+   if (pAudioBuffer)
    {
       audioBuffer = new UtlString();
       if (audioBuffer)
       {
-         audioBuffer->append(charBuffer, filesize);
-#if 0
-         osPrintf("Audio Buffer length: %d\n", audioBuffer->length());
-#endif
+         audioBuffer->append(pAudioBuffer, filesize);
       }
-      free(charBuffer);
+      free(pAudioBuffer);
    }
 
    return OS_SUCCESS;
@@ -688,6 +710,39 @@ UtlBoolean MprFromFile::handleMessage(MpResourceMsg& rMsg)
       break;
    }
    return msgHandled;
+}
+
+int MprFromFile::resample(char* inBuffer,
+                          int numBytes,
+                          int currentSampleRate,
+                          int newSampleRate,
+                          char*& outBuffer)
+{
+   if (inBuffer && numBytes > 0)
+   {
+      MpResamplerBase* pResampler = MpResamplerFactory::createResampler(currentSampleRate, newSampleRate);
+      uint32_t inBufferLength = numBytes / sizeof(MpAudioSample); // size of buffer in samples
+      uint32_t inSamplesProcessed;
+      uint32_t outSamplesWritten;
+      // calculate size of output buffer in samples
+      uint32_t outBufferLength = inBufferLength * newSampleRate / currentSampleRate;
+      MpAudioSample* pOutputBuffer = (MpAudioSample*)malloc(outBufferLength * sizeof(MpAudioSample));
+      memset(pOutputBuffer, 0, outBufferLength * sizeof(MpAudioSample));
+      // resample
+      pResampler->resample((MpAudioSample*)inBuffer, inBufferLength, inSamplesProcessed,
+         (MpAudioSample*)pOutputBuffer, outBufferLength, outSamplesWritten);
+
+      outBuffer = (char*)pOutputBuffer;
+
+      delete pResampler;
+      pResampler = NULL;
+
+      return outSamplesWritten * sizeof(MpAudioSample);
+   }
+   else
+   {
+      return 0;
+   }
 }
 
 /* ============================ FUNCTIONS ================================= */
