@@ -367,7 +367,7 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                   
                   char* pOutputBuffer = NULL;
                   // Resample if needed
-                  if (ratePreferred > requiredSamplesPerSec)
+                  if (ratePreferred != requiredSamplesPerSec)
                      filesize = resample(pAudioBuffer, filesize, ratePreferred, requiredSamplesPerSec, pOutputBuffer);
                   if (pOutputBuffer)
                   {
@@ -391,7 +391,7 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
 
                   char* pOutputBuffer = NULL;
                   // Resample if needed
-                  if (ratePreferred > requiredSamplesPerSec)
+                  if (ratePreferred != requiredSamplesPerSec)
                      filesize = resample(pAudioBuffer, filesize, ratePreferred, requiredSamplesPerSec, pOutputBuffer);
                   if (pOutputBuffer)
                   {
