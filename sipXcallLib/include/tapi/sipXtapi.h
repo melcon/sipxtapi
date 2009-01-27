@@ -1673,13 +1673,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall,
 SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall);
 
 /**
- * Play the designated file.
+ * Play the designated file to remote call participant.
  * The file must be a WAV file 8bit unsigned or 16bit signed, mono or stereo.
  * Stereo files will be merged to mono.
  *
- * Sampling rate of supplied file must be greater or must match internal sampling
- * rate of sipXmediaLib. If wideband audio is enabled, then internal sampling
- * rate is 48Khz, otherwise it is 8Khz.
+ * Sampling rate of supplied file will be automatically resampled to internal
+ * sampling rate of sipXmediaLib. If wideband audio is enabled, then internal sampling
+ * rate is 48Khz, otherwise it is 8Khz. If sipXtapi is not bundled with Speex library,
+ * then only downsampling is supported.
  *
  * If a sipxCallDestroy is attempted while an audio file is playing,
  * sipxCallDestroy will fail with a SIPX_RESULT_BUSY return code.
@@ -2503,13 +2504,20 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceUnhold(const SIPX_CONF hConf);
 
 /**
  * Play the designated audio file to all conference participants and/or the 
- * local speaker.  The file may be a raw 16 bit signed PCM at 8000 
- * samples/sec, mono, little endian or a .WAV file.
+ * local speaker. 
+ *
+ * The file must be a WAV file 8bit unsigned or 16bit signed, mono or stereo.
+ * Stereo files will be merged to mono.
+ *
+ * Sampling rate of supplied file will be automatically resampled to internal
+ * sampling rate of sipXmediaLib. If wideband audio is enabled, then internal sampling
+ * rate is 48Khz, otherwise it is 8Khz. If sipXtapi is not bundled with Speex library,
+ * then only downsampling is supported.
+*
  * If a sipxConferenceDestroy is attempted while an audio file is playing,
  * sipxConferenceDestroy will fail with a SIPX_RESULT_BUSY return code.
  * Call sipxConferencePlayAudioFileStop before making the call to
  * sipxConferenceDestroy.
- *
  * 
  * @param hConf Conference handle obtained by calling sipxConferenceCreate.
  * @param szFile Filename for the audio file to be played.
