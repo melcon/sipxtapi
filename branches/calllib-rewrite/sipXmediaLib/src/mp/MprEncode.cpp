@@ -78,13 +78,9 @@ MprEncode::MprEncode(const UtlString& rName,
 , mMaxPacketSamples(0)
 , mpToNet(NULL)
 , mTimestampStep(samplesPerFrame)
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
 , m_pResampler(NULL)
-#endif
 {
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    memset(m_tmpBuffer, 0, sizeof(m_tmpBuffer));
-#endif
 }
 
 // Destructor
@@ -108,9 +104,7 @@ MprEncode::~MprEncode()
    }
    mpToNet = NULL;
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    destroyResampler();
-#endif
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -213,9 +207,7 @@ void MprEncode::handleDeselectCodecs(void)
          mPayloadBytesUsed = 0;
          mSamplesPacked = 0;
       }
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
       destroyResampler();
-#endif
    }
    if (NULL != mpDtmfCodec) {
       delete mpDtmfCodec;
