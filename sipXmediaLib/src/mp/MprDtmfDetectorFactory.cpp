@@ -39,7 +39,7 @@ MprDtmfDetectorBase* MprDtmfDetectorFactory::createDtmfDetector(const UtlString&
 {
 #if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF) && !defined(ENABLE_WIDEBAND_AUDIO)
    // Span DSP doesn't support more than 8Khz DTMF detection
-   return MprSpanDspDtmfDetector(rName, samplesPerFrame, samplesPerSec);
+   return new MprSpanDspDtmfDetector(rName, samplesPerFrame, samplesPerSec);
 #else
    return new MprSimpleDtmfDetector(rName, samplesPerFrame, samplesPerSec);
 #endif // defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
