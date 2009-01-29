@@ -40,6 +40,8 @@
 #include "mp/MpeIPPG729i.h"
 #include "mp/MpeIPPG7231.h"
 #include <mp/MpeIPPGSM.h>
+#include <mp/MpeIPPPcmu.h>
+#include <mp/MpeIPPPcma.h>
 #endif // HAVE_IPP ]
 
 // All decoder child classes
@@ -91,6 +93,8 @@
 #include "mp/MpdIPPG729i.h"
 #include "mp/MpdIPPG7231.h"
 #include <mp/MpdIPPGSM.h>
+#include <mp/MpdIPPPcma.h>
+#include <mp/MpdIPPPcmu.h>
 #endif // HAVE_IPP ]
 
 MpCodecFactory MpCodecFactory::sInstance;
@@ -131,12 +135,14 @@ OsStatus MpCodecFactory::createDecoder(const SdpCodec& pSdpCodec, MpDecoderBase*
    case (SdpCodec::SDP_CODEC_TONES):
       rpDecoder = new MpdPtAVT(payloadFormat);
       break;
+#if !defined(PREFER_INTEL_IPP_CODECS)
    case (SdpCodec::SDP_CODEC_PCMA):
       rpDecoder = new MpdSipxPcma(payloadFormat);
       break;
    case (SdpCodec::SDP_CODEC_PCMU):
       rpDecoder = new MpdSipxPcmu(payloadFormat);
       break;
+#endif
 #ifdef HAVE_SPEEX // [
    case (SdpCodec::SDP_CODEC_SPEEX_5):
    case (SdpCodec::SDP_CODEC_SPEEX_8):
@@ -289,6 +295,12 @@ OsStatus MpCodecFactory::createDecoder(const SdpCodec& pSdpCodec, MpDecoderBase*
       rpDecoder = new MpdIPPG729i(payloadFormat, 11800);
       break;
 #ifdef PREFER_INTEL_IPP_CODECS
+   case (SdpCodec::SDP_CODEC_PCMA):
+      rpDecoder = new MpdIPPPcma(payloadFormat);
+      break;
+   case (SdpCodec::SDP_CODEC_PCMU):
+      rpDecoder = new MpdIPPPcmu(payloadFormat);
+      break;
    case (SdpCodec::SDP_CODEC_GSM):
       rpDecoder = new MpdIPPGSM(payloadFormat);
       break;
@@ -330,15 +342,14 @@ OsStatus MpCodecFactory::createEncoder(const SdpCodec& pSdpCodec, MpEncoderBase*
    case (SdpCodec::SDP_CODEC_TONES):
       rpEncoder = new MpePtAVT(payloadFormat);
       break;
-
+#if !defined(PREFER_INTEL_IPP_CODECS)
    case (SdpCodec::SDP_CODEC_PCMA):
       rpEncoder = new MpeSipxPcma(payloadFormat);
       break;
-
    case (SdpCodec::SDP_CODEC_PCMU):
       rpEncoder = new MpeSipxPcmu(payloadFormat);
       break;
-
+#endif
 #ifdef HAVE_SPEEX // [
    case (SdpCodec::SDP_CODEC_SPEEX_5):
       rpEncoder = new MpeSipxSpeex(payloadFormat, 2);
@@ -552,6 +563,12 @@ OsStatus MpCodecFactory::createEncoder(const SdpCodec& pSdpCodec, MpEncoderBase*
       rpEncoder = new MpeIPPG729i(payloadFormat, 11800);
       break;
 #ifdef PREFER_INTEL_IPP_CODECS
+   case (SdpCodec::SDP_CODEC_PCMA):
+      rpEncoder = new MpeIPPPcma(payloadFormat);
+      break;
+   case (SdpCodec::SDP_CODEC_PCMU):
+      rpEncoder = new MpeIPPPcmu(payloadFormat);
+      break;
    case (SdpCodec::SDP_CODEC_GSM):
       rpEncoder = new MpeIPPGSM(payloadFormat);
       break;

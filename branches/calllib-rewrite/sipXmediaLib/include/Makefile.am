@@ -96,6 +96,8 @@ nobase_include_HEADERS =  \
     mp/MpdIPPGAmr.h \
     mp/MpdIPPGAmrWb.h \
     mp/MpdIPPGSM.h \
+    mp/MpdIPPPcma.h \
+    mp/MpdIPPPcmu.h \
     mp/MpdPtAVT.h \
     mp/MpdSipxG722.h \
     mp/MpdSipxG726.h \
@@ -116,6 +118,8 @@ nobase_include_HEADERS =  \
     mp/MpeIPPGAmr.h \
     mp/MpeIPPGAmrWb.h \
     mp/MpeIPPGSM.h \
+    mp/MpeIPPPcma.h \
+    mp/MpeIPPPcmu.h \
     mp/MpePtAVT.h \
     mp/MpeSipxG722.h \
     mp/MpeSipxG726.h \

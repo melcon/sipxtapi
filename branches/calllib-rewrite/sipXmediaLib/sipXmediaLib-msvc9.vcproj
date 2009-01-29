@@ -493,6 +493,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdIPPPcma.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpdIPPPcmu.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdPtAVT.cpp"
 					>
 				</File>
@@ -574,6 +582,14 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpeIPPGSM.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPPcma.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPPcmu.cpp"
 					>
 				</File>
 				<File
@@ -1110,6 +1126,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdIPPPcma.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpdIPPPcmu.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdPtAVT.h"
 					>
 				</File>
@@ -1215,6 +1239,14 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpeIPPGSM.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPPcma.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPPcmu.h"
 					>
 				</File>
 				<File
