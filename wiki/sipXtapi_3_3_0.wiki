@@ -2,6 +2,8 @@ sipXtapi 3.3.0 is currently in development in calllib-rewrite branch. At some po
 
 I estimate that at the beginning of february 2009 refactored sipXcallLib will be usable enough to be merged into trunk and tested by developers, although not yet ready for production.
 
+To compile sipXtapi with Intel IPP 6.0 support, follow steps from [http://code.google.com/p/sipxtapi/wiki/intel_ipp_6_0_support Intel IPP 6.0 support].
+
 === Code changes from 3.2.0 ===
 ==== sipXtapi ====
  * new API for getting all supported codecs. This was not available in 3.2.0 and had to be worked around (sipxConfigGetNumAvailableAudioCodecs, sipxConfigGetAvailableAudioCodec, sipxConfigGetNumSelectedAudioCodecs, sipxConfigGetSelectedAudioCodec)
