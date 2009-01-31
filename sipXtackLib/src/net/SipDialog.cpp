@@ -389,7 +389,11 @@ void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int
       request.setRouteField(m_sRouteSet);
    }
 
-   request.setContactField(m_localContactField.toString());
+   if (!m_localContactField.isNull())
+   {
+      // if local contact is not configured, don't set it. SipUserAgent will add one if needed.
+      request.setContactField(m_localContactField.toString());
+   }
 
    // Set the call-id
    request.setCallIdField(*this);
