@@ -11,7 +11,7 @@
 {{{
 %IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\_bin\win32_cl9\lib
 }}}
- # Copy project file from ipp_6_0_project_files.zip into %IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\application\usc_speech_codec\, and compile it. For visual studio 8, use the same file, but change Version="9,00" to Version="8,00" - it works well.
+ # Copy project file from [http://sipxtapi.googlecode.com/files/ipp_6_0_project_files.zip ipp_6_0_project_files.zip] into %IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\application\usc_speech_codec\, and compile it. For visual studio 8, use the same file, but change Version="9,00" to Version="8,00" - it works well.
  # Setup either global paths in Visual Studio (Tools->Options->Projects and solutions->VC++ directories), or add them to sipxmedialib (include) and sipxtapi (lib) project.
 {{{
 Include:
