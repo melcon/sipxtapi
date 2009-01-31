@@ -55,8 +55,9 @@ I estimate that at the beginning of february 2009 refactored sipXcallLib will be
  * upgrade to speex 1.2rc1 library
  * usage of synchronous Portaudio API instead of asynchronous. Reduction of latency by ~160ms by this change.
  * possibility to adjust audio driver latency
- * linear complexity bridge
+ * linear complexity bridge (less CPU cost)
  * introduction of Span DSP 0.0.6pre3
+ * media events MEDIA_REMOTE_SILENT, MEDIA_REMOTE_ACTIVE work
 
 ==== sipXportLib ====
  * minor improvements in sipXportLib - OsSharedServerTask, OsRWMutex inherits from OsRWSyncBase and is write recursive. OsQueuedNotification superseeding OsQueuedEvent.
