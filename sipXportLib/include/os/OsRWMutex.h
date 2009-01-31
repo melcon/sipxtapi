@@ -8,16 +8,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _OsRWMutex_h_
 #define _OsRWMutex_h_
 
 // SYSTEM INCLUDES
-
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
 #include "os/OsBSem.h"
 #include "os/OsCSem.h"
+#include <os/OsRWSyncBase.h>
 #include "utl/UtlDefs.h"
 
 // DEFINES
@@ -29,12 +28,22 @@
 // TYPEDEFS
 // FORWARD DECLARATIONS
 
-//:Mutual exclusion semaphore handling multiple readers and writers
-// Two kinds of concurrent tasks, called "readers" and "writers", share a
-// single resource. The readers can use the resource simultaneously, but each
-// writer must have exclusive access to it. When a writer is ready to use the
-// resource, it should be enabled to do so as soon as possible.
-class OsRWMutex
+/**
+ * Mutual exclusion semaphore handling multiple readers and writers
+ * Two kinds of concurrent tasks, called "readers" and "writers", share a
+ * single resource. The readers can use the resource simultaneously, but each
+ * writer must have exclusive access to it. When a writer is ready to use the
+ * resource, it should be enabled to do so as soon as possible.
+ *
+ * This implementation is read recursion safe until certain limited level.
+ * Write recursion is also supported, without limit. To support write recursion
+ * we keep thread id of writer task.
+ * Mixed read/write recursion is not supported and will result in a dead lock.
+ *
+ * To support read/write recursion, we would need to keep thread id of each task
+ * having a read lock.
+ */
+class OsRWMutex : public OsRWSyncBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -49,11 +58,10 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   OsRWMutex(const int queueOptions);
+   OsRWMutex(const int queueOptions = Q_FIFO);
      //:Constructor
 
-   virtual
-   ~OsRWMutex();
+   virtual ~OsRWMutex();
      //:Destructor
 
 /* ============================ MANIPULATORS ============================== */
@@ -99,6 +107,9 @@ private:
    OsCSem mWriteSem;          // semaphore used to signal writers
    OsBSem mWriteExclSem;      // binary semaphore used to ensure mutual
                               //  exclusion among multiple concurrent writers
+   int mWriterThreadId; ///< stores thread id of writer. Allows reentrant write locking
+   int mWriterRecursion; ///< counts how many times current thread locked writeExcl semaphore
+
    int    mActiveReadersCnt;  // number of active reader tasks
    int    mActiveWritersCnt;  // number of active writer tasks (always <= 1)
    int    mRunningReadersCnt; // number of running reader tasks
@@ -138,13 +149,10 @@ private:
      // and, if so, grant sufficient write "tickets" for all active but not
      // yet running writers.
 
-   OsRWMutex();
-     //:Default constructor (not implemented for this class)
-
    OsRWMutex(const OsRWMutex& rOsRWMutex);
      //:Copy constructor (not implemented for this class)
 
-           OsRWMutex& operator=(const OsRWMutex& rhs);
+   OsRWMutex& operator=(const OsRWMutex& rhs);
      //:Assignment operator (not implemented for this class)
 
 };

@@ -18,7 +18,6 @@
 // APPLICATION INCLUDES
 #include "mp/MpFlowGraphMsg.h"
 #include "mp/MpAudioResource.h"
-#include "os/OsProtectEvent.h"
 
 // DEFINES
 // MACROS
@@ -55,7 +54,7 @@ public:
 //@{
 
       /// Play sound from buffer w/repeat option
-    OsStatus playBuffer(const char* audioBuffer, unsigned long bufSize, 
+    OsStatus playBuffer(const void* audioBuffer, size_t bufSize, 
                         int type, UtlBoolean repeat, void* pCookie = NULL);
       /**<
       *  @param type - can be one of following:  (need a OsSoundType)<br>
@@ -161,8 +160,8 @@ private:
      /// @brief Convert generic audio data into flowgraph audio data.
    static OsStatus genericAudioBufToFGAudioBuf(
                                              UtlString*& fgAudioBuf,
-                                             const char* audioBuffer, 
-                                             unsigned long bufSize, 
+                                             const void* audioBuffer, 
+                                             size_t bufSize, 
                                              int type);
      /**<
      *  Method to convert a generic char* audio buffer, in one of several
@@ -182,8 +181,8 @@ private:
      */
 
      /// Read in an audio file into a new UtlString audio buffer.
-   static OsStatus readAudioFile(UtlString*& audioBuffer,
-                                 const char* audioFileName);
+   OsStatus readAudioFile(UtlString*& audioBuffer,
+                          const char* audioFileName);
      /**<
      *  @param audioBuffer - a reference to a pointer that will be filled
      *   with a new buffer holding the audio data.  Ownership will then
@@ -223,6 +222,18 @@ private:
 
      /// Handle resource messages for this resource (new messaging model - 2007).
    virtual UtlBoolean handleMessage(MpResourceMsg& rMsg);
+
+   /**
+    * Resamples buffer to new sampler rate. Function will allocate required amount of memory
+    * and pass the buffer out in outBuffer.
+    *
+    * @return number of bytes in output buffer.
+    */
+   int resample(char* inBuffer,
+                int numBytes,
+                int currentSampleRate,
+                int newSampleRate,
+                char*& outBuffer);
 
      /// Copy constructor (not implemented for this class)
    MprFromFile(const MprFromFile& rMprFromFile);

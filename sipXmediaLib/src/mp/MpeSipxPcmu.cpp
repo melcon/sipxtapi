@@ -18,8 +18,15 @@
 #include "mp/MpSipxDecoders.h"
 
 const MpCodecInfo MpeSipxPcmu::smCodecInfo(
-         SdpCodec::SDP_CODEC_PCMU, "SIPfoundry 1.0", true,
-         8000, 8, 1, 160, 64000, 1280, 1280, 1280, 160);
+   SdpCodec::SDP_CODEC_PCMU,// codecType
+   "SIPfoundry 1.0",// codecVersion
+   8000,// samplingRate
+   16,// numBitsPerSample
+   1,// numChannels
+   64000,// bitRate. It doesn't matter right now.
+   1280,// minPacketBits
+   1280,// maxPacketBits
+   160);// numSamplesPerFrame - 20ms frame
 
 MpeSipxPcmu::MpeSipxPcmu(int payloadType)
    : MpEncoderBase(payloadType, &smCodecInfo)
@@ -49,11 +56,19 @@ OsStatus MpeSipxPcmu::encode(const MpAudioSample* pAudioSamples,
                              const int bytesLeft,
                              int& rSizeInBytes,
                              UtlBoolean& sendNow,
-                             MpAudioBuf::SpeechType& rAudioCategory)
+                             MpSpeechType& speechType)
 {
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    G711U_Encoder(numSamples, pAudioSamples, (uint8_t*)pCodeBuf);
    rSizeInBytes = numSamples;
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
    sendNow = FALSE;
    rSamplesConsumed = numSamples;
 

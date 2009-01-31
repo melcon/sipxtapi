@@ -19,18 +19,32 @@
 #include <utl/UtlSList.h>
 #include <utl/UtlInt.h>
 #include <net/SipUserAgent.h>
+#include <mi/CpMediaInterfaceFactory.h>
 #include <cp/XCpCallManager.h>
 #include <cp/XCpAbstractCall.h>
 #include <cp/XCpCall.h>
 #include <cp/XCpConference.h>
+#include <cp/XCpCallIdUtil.h>
+#include <cp/CpMessageTypes.h>
+#include <cp/msg/AcCommandMsg.h>
+#include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/CmCommandMsg.h>
+#include <cp/msg/CmGainFocusMsg.h>
+#include <cp/msg/CmYieldFocusMsg.h>
+#include <cp/msg/CmDestroyAbstractCallMsg.h>
+#include <cp/msg/ScNotificationMsg.h>
 #include <net/SipDialog.h>
+#include <net/SipMessageEvent.h>
+#include <net/SipLineProvider.h>
 
 // DEFINES
+#define MIN_SESSION_TIMER_EXPIRATION 90
+#define DEFAULT_SESSION_TIMER_EXPIRATION 1800
+
+//#define PRINT_SIP_MESSAGE
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
-const char* callIdPrefix = "call_"; // id prefix for all calls. Only used internally.
-const char* conferenceIdPrefix = "conf_"; // id prefix for all conferences. Only used internally.
 const char* sipCallIdPrefix = "s"; // prefix of sip call-id sent in sip messages.
 
 // STATIC VARIABLE INITIALIZATIONS
@@ -46,42 +60,66 @@ const int XCpCallManager::CALLMANAGER_MAX_REQUEST_MSGS = 2000;
 
 XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
+                               SipInfoEventListener* pInfoEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener,
-                               SipUserAgent* pSipUserAgent,
+                               SipUserAgent& rSipUserAgent,
+                               const SdpCodecList& rSdpCodecList,
+                               SipLineProvider* pSipLineProvider,
+                               const UtlString& sBindIpAddress,
                                UtlBoolean bDoNotDisturb,
                                UtlBoolean bEnableICE,
-                               UtlBoolean bEnableSipInfo,
+                               UtlBoolean bIsRequiredLineMatch,
                                int rtpPortStart,
                                int rtpPortEnd,
+                               int inviteExpiresSeconds,
                                int maxCalls,
-                               CpMediaInterfaceFactory* pMediaFactory)
+                               CpMediaInterfaceFactory& rMediaInterfaceFactory)
 : OsServerTask("XCallManager-%d", NULL, CALLMANAGER_MAX_REQUEST_MSGS)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
-, m_pSipUserAgent(pSipUserAgent)
-, m_callIdGenerator(callIdPrefix)
-, m_conferenceIdGenerator(conferenceIdPrefix)
+, m_rSipUserAgent(rSipUserAgent)
+, m_rDefaultSdpCodecList(rSdpCodecList)
+, m_pSipLineProvider(pSipLineProvider)
 , m_sipCallIdGenerator(sipCallIdPrefix)
 , m_bDoNotDisturb(bDoNotDisturb)
-, m_bEnableICE(bEnableICE)
-, m_bEnableSipInfo(bEnableSipInfo)
+, m_bIsRequiredLineMatch(bIsRequiredLineMatch)
 , m_rtpPortStart(rtpPortStart)
 , m_rtpPortEnd(rtpPortEnd)
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_maxCalls(maxCalls)
-, m_pMediaFactory(pMediaFactory)
+, m_rMediaInterfaceFactory(rMediaInterfaceFactory)
+, m_sBindIpAddress(sBindIpAddress)
+, m_sessionTimerExpiration(DEFAULT_SESSION_TIMER_EXPIRATION)
+, m_sessionTimerRefresh(CP_SESSION_REFRESH_AUTO)
+, m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
+, m_100relSetting(CP_100REL_PREFER_RELIABLE)
+, m_sdpOfferingMode(CP_SDP_OFFERING_IMMEDIATE)
+, m_inviteExpiresSeconds(inviteExpiresSeconds)
 {
+   startSipMessageObserving();
 
+   m_natTraversalConfig.m_bEnableICE = bEnableICE;
+
+   // Allow the "replaces" extension, because CallManager
+   // implements the INVITE-with-Replaces logic.
+   m_rSipUserAgent.allowExtension(SIP_REPLACES_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_SESSION_TIMER_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_PRACK_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_JOIN_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_FROM_CHANGE_EXTENSION);
+   m_rSipUserAgent.allowExtension(SIP_NO_REFER_SUB_EXTENSION);
+
+   m_rMediaInterfaceFactory.setRtpPortRange(m_rtpPortStart, m_rtpPortEnd);
 }
 
 XCpCallManager::~XCpCallManager()
 {
+   stopSipMessageObserving();
    waitUntilShutDown();
-   deleteAllCalls();
-   deleteAllConferences();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -89,12 +127,26 @@ XCpCallManager::~XCpCallManager()
 UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
 {
    UtlBoolean bResult = FALSE;
+   int msgType = rRawMsg.getMsgType();
+   int msgSubType = rRawMsg.getMsgSubType();
 
-   switch (rRawMsg.getMsgType())
+   switch (msgType)
    {
-   case 1:
+   case OsMsg::PHONE_APP:
+      return handlePhoneAppMessage(rRawMsg);
+   case CpMessageTypes::CM_COMMAND:
+      return handleCallManagerCommandMessage((const CmCommandMsg&)rRawMsg);
+   case CpMessageTypes::SC_COMMAND:
+      return handleSipConnectionCommandMessage((const ScCommandMsg&)rRawMsg);
+   case CpMessageTypes::SC_NOFITICATION:
+      return handleSipConnectionNotificationMessage((const ScNotificationMsg&)rRawMsg);
+   case OsMsg::OS_EVENT: // timer event
    default:
-      break;
+      {
+         OsSysLog::add(FAC_CP, PRI_ERR, "Unknown TYPE %d of XCpCallManager message subtype: %d\n", msgType, msgSubType);
+         bResult = TRUE;
+         break;
+      }
    }
 
    return bResult;
@@ -102,30 +154,7 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
 
 void XCpCallManager::requestShutdown(void)
 {
-   OsLock lock(m_memberMutex);
-
-   UtlHashMapIterator callMapItor(m_callMap);
-   XCpCall* pCall = NULL;
-
-   while(callMapItor()) // go to next pair
-   {
-      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
-      if (pCall)
-      {
-         pCall->requestShutdown();
-      }
-   }
-
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-   XCpConference* pConference = NULL;
-   while(conferenceMapItor()) // go to next pair
-   {
-      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference)
-      {
-         pConference->requestShutdown();
-      }
-   }
+   m_callStack.shutdownAllAbstractCallThreads();
 
    OsServerTask::requestShutdown();
 }
@@ -137,16 +166,23 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
    sCallId.remove(0); // clear string
 
    // always allow creation of new call, check for limit only when establishing
-   UtlString sNewCallId = getNewCallId();
-   XCpCall *pCall = new XCpCall(sNewCallId);
+   if (sCallId.isNull())
+   {
+      sCallId = getNewCallId();
+   }
+
+   XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
+      m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh, m_updateSetting, m_100relSetting, m_sdpOfferingMode,
+      m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
+      m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+
    UtlBoolean resStart = pCall->start();
    if (resStart)
    {
-      UtlBoolean resPush = push(*pCall);
+      UtlBoolean resPush = m_callStack.push(*pCall);
       if (resPush)
       {
          result = OS_SUCCESS;
-         sCallId = sNewCallId;
       }
       else
       {
@@ -165,16 +201,22 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    sConferenceId.remove(0); // clear string
 
    // always allow creation of new conference, check for limit only when establishing
-   UtlString sNewConferenceId = getNewConferenceId();
-   XCpConference *pConference = new XCpConference(sNewConferenceId);
+   if (sConferenceId.isNull())
+   {
+      sConferenceId = getNewConferenceId();
+   }
+   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
+      *getMessageQueue(), m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
+      m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
+      m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+
    UtlBoolean resStart = pConference->start();
    if (resStart)
    {
-      UtlBoolean resPush = push(*pConference);
+      UtlBoolean resPush = m_callStack.push(*pConference);
       if (resPush)
       {
          result = OS_SUCCESS;
-         sConferenceId = sNewConferenceId;
       }
       else
       {
@@ -189,20 +231,36 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
 OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      SipDialog& sSipDialog,
                                      const UtlString& toAddress,
-                                     const UtlString& lineURI,
+                                     const UtlString& fullLineUrl,
+                                     const UtlString& sSipCallId,
                                      const UtlString& locationHeader,
-                                     CP_CONTACT_ID contactId)
+                                     CP_CONTACT_ID contactId,
+                                     CP_FOCUS_CONFIG focusConfig,
+                                     const UtlString& replacesField,
+                                     CP_CALLSTATE_CAUSE callstateCause,
+                                     const SipDialog* pCallbackSipDialog)
 {
    OsStatus result = OS_NOT_FOUND;
+
+   if (!isAddressValid(toAddress))
+   {
+      return OS_INVALID_ARGUMENT;
+   }
+
    sSipDialog = SipDialog();
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
-      UtlString sSipCallId = getNewSipCallId();
+      UtlString sTmpSipCallId = sSipCallId;
+      if (sTmpSipCallId.isNull())
+      {
+         sTmpSipCallId = getNewSipCallId();
+      }
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, lineURI, locationHeader, contactId);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig,
+         replacesField, callstateCause, pCallbackSipDialog);
    }
 
    return result;
@@ -211,37 +269,50 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
 OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
                                                SipDialog& sSipDialog,
                                                const UtlString& toAddress,
-                                               const UtlString& lineURI,
+                                               const UtlString& fullLineUrl,
+                                               const UtlString& sSipCallId,
                                                const UtlString& locationHeader,
-                                               CP_CONTACT_ID contactId)
+                                               CP_CONTACT_ID contactId,
+                                               CP_FOCUS_CONFIG focusConfig)
 {
    OsStatus result = OS_NOT_FOUND;
+
+   if (!isAddressValid(toAddress))
+   {
+      return OS_INVALID_ARGUMENT;
+   }
+
    sSipDialog = SipDialog();
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
    if (resFind)
    {
-      UtlString sSipCallId = getNewSipCallId();
+      UtlString sTmpSipCallId = sSipCallId;
+      if (sTmpSipCallId.isNull())
+      {
+         sTmpSipCallId = getNewSipCallId();
+      }
       // we found call and have a lock on it
-      return ptrLock->connect(sSipCallId, sSipDialog, toAddress, lineURI, locationHeader, contactId);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig);
    }
 
    return result;
 }
 
 OsStatus XCpCallManager::acceptCallConnection(const UtlString& sCallId,
+                                              UtlBoolean bSendSDP,
                                               const UtlString& locationHeader,
                                               CP_CONTACT_ID contactId)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->acceptConnection(locationHeader, contactId);
+      return ptrLock->acceptConnection(bSendSDP, locationHeader, contactId);
    }
 
    return result;
@@ -252,7 +323,7 @@ OsStatus XCpCallManager::rejectCallConnection(const UtlString& sCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -263,16 +334,16 @@ OsStatus XCpCallManager::rejectCallConnection(const UtlString& sCallId)
 }
 
 OsStatus XCpCallManager::redirectCallConnection(const UtlString& sCallId,
-                                                const UtlString& sRedirectSipUri)
+                                                const UtlString& sRedirectSipUrl)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->redirectConnection(sRedirectSipUri);
+      return ptrLock->redirectConnection(sRedirectSipUrl);
    }
 
    return result;
@@ -283,11 +354,43 @@ OsStatus XCpCallManager::answerCallConnection(const UtlString& sCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
       return ptrLock->answerConnection();
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::acceptAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                                    const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->acceptConnectionTransfer(sSipDialog);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::rejectAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                                    const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->rejectConnectionTransfer(sSipDialog);
    }
 
    return result;
@@ -299,7 +402,7 @@ OsStatus XCpCallManager::dropAbstractCallConnection(const UtlString& sAbstractCa
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -309,16 +412,60 @@ OsStatus XCpCallManager::dropAbstractCallConnection(const UtlString& sAbstractCa
    return result;
 }
 
+OsStatus XCpCallManager::dropAbstractCallConnection(const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sSipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->dropConnection(sSipDialog);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropAllAbstractCallConnections(const UtlString& sAbstractCallId)
+{
+   if (XCpCallIdUtil::isCallId(sAbstractCallId))
+   {
+      // call has only 1 connection
+      return dropCallConnection(sAbstractCallId);
+   }
+   else
+   {
+      // conference has many connections
+      return dropAllConferenceConnections(sAbstractCallId);
+   }
+}
+
 OsStatus XCpCallManager::dropCallConnection(const UtlString& sCallId)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
       return ptrLock->dropConnection();
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::dropConferenceConnection(const UtlString& sConferenceId, const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->dropConnection(sSipDialog);
    }
 
    return result;
@@ -329,7 +476,7 @@ OsStatus XCpCallManager::dropAllConferenceConnections(const UtlString& sConferen
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
    if (resFind)
    {
       // we found conference and have a lock on it
@@ -341,27 +488,26 @@ OsStatus XCpCallManager::dropAllConferenceConnections(const UtlString& sConferen
 
 OsStatus XCpCallManager::dropAbstractCall(const UtlString& sAbstractCallId)
 {
-   OsStatus result = OS_NOT_FOUND;
-
-   // this deletes it safely, shutting down thread and media resources
-   UtlBoolean resDelete = deleteAbstractCall(sAbstractCallId);
-   if (resDelete)
+   if (XCpCallIdUtil::isCallId(sAbstractCallId))
    {
-      result = OS_SUCCESS;
+      return dropCall(sAbstractCallId);
    }
-
-   return result;
+   else
+   {
+      return dropConference(sAbstractCallId);
+   }
 }
 
 OsStatus XCpCallManager::dropCall(const UtlString& sCallId)
 {
    OsStatus result = OS_NOT_FOUND;
 
-   // this deletes it safely, shutting down thread and media resources
-   UtlBoolean resDelete = deleteCall(sCallId);
-   if (resDelete)
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
+   if (resFind)
    {
-      result = OS_SUCCESS;
+      // we found call and have a lock on it
+      return ptrLock->dropConnection();
    }
 
    return result;
@@ -371,8 +517,51 @@ OsStatus XCpCallManager::dropConference(const UtlString& sConferenceId)
 {
    OsStatus result = OS_NOT_FOUND;
 
+   OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
+   if (resFind)
+   {
+      // we found conference and have a lock on it
+      return ptrLock->dropAllConnections(TRUE);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::destroyAbstractCall(const UtlString& sAbstractCallId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
    // this deletes it safely, shutting down thread and media resources
-   UtlBoolean resDelete = deleteConference(sConferenceId);
+   UtlBoolean resDelete = m_callStack.deleteAbstractCall(sAbstractCallId);
+   if (resDelete)
+   {
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::destroyCall(const UtlString& sCallId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   // this deletes it safely, shutting down thread and media resources
+   UtlBoolean resDelete = m_callStack.deleteCall(sCallId);
+   if (resDelete)
+   {
+      result = OS_SUCCESS;
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::destroyConference(const UtlString& sConferenceId)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   // this deletes it safely, shutting down thread and media resources
+   UtlBoolean resDelete = m_callStack.deleteConference(sConferenceId);
    if (resDelete)
    {
       result = OS_SUCCESS;
@@ -383,16 +572,21 @@ OsStatus XCpCallManager::dropConference(const UtlString& sConferenceId)
 
 OsStatus XCpCallManager::transferBlindAbstractCall(const UtlString& sAbstractCallId,
                                                    const SipDialog& sSipDialog,
-                                                   const UtlString& sTransferSipUri)
+                                                   const UtlString& sTransferSipUrl)
 {
    OsStatus result = OS_NOT_FOUND;
 
+   if (!isAddressValid(sTransferSipUrl))
+   {
+      return OS_INVALID_ARGUMENT;
+   }
+
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->transferBlind(sSipDialog, sTransferSipUri);
+      return ptrLock->transferBlind(sSipDialog, sTransferSipUrl);
    }
 
    return result;
@@ -403,7 +597,43 @@ OsStatus XCpCallManager::transferConsultativeAbstractCall(const UtlString& sSour
                                                           const UtlString& sTargetAbstractCallId,
                                                           const SipDialog& sTargetSipDialog)
 {
-   OsStatus result = OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
+   SipDialog fullTargetSipDialog;
+
+   {
+      OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock, scoped
+      UtlBoolean resFind = m_callStack.findAbstractCall(sTargetAbstractCallId, ptrLock);
+      if (resFind)
+      {
+         // we found call and have a lock on it
+         // get full sip dialog, since the one we got could have only tags & callid. We also need the remaining fields.
+         result = ptrLock->getSipDialog(sTargetSipDialog, fullTargetSipDialog);
+         if (result != OS_SUCCESS)
+         {
+            return result;
+         }
+      }
+      else
+      {
+         return OS_NOT_FOUND;
+      }
+   }
+
+   if (fullTargetSipDialog.getDialogState() != SipDialog::DIALOG_STATE_ESTABLISHED)
+   {
+      return OS_FAILED;
+   }
+
+   // we cannot lock 2 calls at the same time, it could result in dead lock
+   {
+      OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock, scoped
+      UtlBoolean resFind = m_callStack.findAbstractCall(sSourceAbstractCallId, ptrLock);
+      if (resFind)
+      {
+         // we found call and have a lock on it
+         return ptrLock->transferConsultative(sSourceSipDialog, fullTargetSipDialog);
+      }
+   }
 
    return result;
 }
@@ -411,16 +641,17 @@ OsStatus XCpCallManager::transferConsultativeAbstractCall(const UtlString& sSour
 OsStatus XCpCallManager::audioToneStart(const UtlString& sAbstractCallId,
                                         int iToneId,
                                         UtlBoolean bLocal,
-                                        UtlBoolean bRemote)
+                                        UtlBoolean bRemote,
+                                        int duration)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->audioToneStart(iToneId, bLocal, bRemote);
+      return ptrLock->audioToneStart(iToneId, bLocal, bRemote, duration);
    }
 
    return result;
@@ -431,7 +662,7 @@ OsStatus XCpCallManager::audioToneStop(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -453,7 +684,7 @@ OsStatus XCpCallManager::audioFilePlay(const UtlString& sAbstractCallId,
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -464,37 +695,40 @@ OsStatus XCpCallManager::audioFilePlay(const UtlString& sAbstractCallId,
 }
 
 OsStatus XCpCallManager::audioBufferPlay(const UtlString& sAbstractCallId,
-                                         void* pAudiobuf,
+                                         const void* pAudiobuf,
                                          size_t iBufSize,
                                          int iType,
                                          UtlBoolean bRepeat,
                                          UtlBoolean bLocal,
                                          UtlBoolean bRemote,
+                                         UtlBoolean bMixWithMic /*= FALSE*/,
+                                         int iDownScaling /*= 100*/,
                                          void* pCookie /*= NULL*/)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->audioBufferPlay(pAudiobuf, iBufSize, iType, bRepeat, bLocal, bRemote, pCookie);
+      return ptrLock->audioBufferPlay(pAudiobuf, iBufSize, iType, bRepeat, bLocal, bRemote,
+         bMixWithMic, iDownScaling, pCookie);
    }
 
    return result;
 }
 
-OsStatus XCpCallManager::audioStop(const UtlString& sAbstractCallId)
+OsStatus XCpCallManager::audioStopPlayback(const UtlString& sAbstractCallId)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->audioStop();
+      return ptrLock->audioStopPlayback();
    }
 
    return result;
@@ -505,7 +739,7 @@ OsStatus XCpCallManager::pauseAudioPlayback(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -520,7 +754,7 @@ OsStatus XCpCallManager::resumeAudioPlayback(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -536,7 +770,7 @@ OsStatus XCpCallManager::audioRecordStart(const UtlString& sAbstractCallId,
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -551,7 +785,7 @@ OsStatus XCpCallManager::audioRecordStop(const UtlString& sAbstractCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -567,7 +801,7 @@ OsStatus XCpCallManager::holdAbstractCallConnection(const UtlString& sAbstractCa
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -582,7 +816,7 @@ OsStatus XCpCallManager::holdCallConnection(const UtlString& sCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -597,7 +831,7 @@ OsStatus XCpCallManager::holdAllConferenceConnections(const UtlString& sConferen
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -609,32 +843,12 @@ OsStatus XCpCallManager::holdAllConferenceConnections(const UtlString& sConferen
 
 OsStatus XCpCallManager::holdLocalAbstractCallConnection(const UtlString& sAbstractCallId)
 {
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->holdLocalConnection();
-   }
-
-   return result;
+   return m_callStack.yieldFocus(sAbstractCallId, TRUE);
 }
 
 OsStatus XCpCallManager::unholdLocalAbstractCallConnection(const UtlString& sAbstractCallId)
 {
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->unholdLocalConnection();
-   }
-
-   return result;
+   return m_callStack.gainFocus(sAbstractCallId, FALSE);
 }
 
 OsStatus XCpCallManager::unholdAllConferenceConnections(const UtlString& sConferenceId)
@@ -642,7 +856,7 @@ OsStatus XCpCallManager::unholdAllConferenceConnections(const UtlString& sConfer
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -658,7 +872,7 @@ OsStatus XCpCallManager::unholdAbstractCallConnection(const UtlString& sAbstract
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -673,7 +887,7 @@ OsStatus XCpCallManager::unholdCallConnection(const UtlString& sCallId)
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -683,84 +897,50 @@ OsStatus XCpCallManager::unholdCallConnection(const UtlString& sCallId)
    return result;
 }
 
-OsStatus XCpCallManager::silentHoldRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                                const SipDialog& sSipDialog)
+OsStatus XCpCallManager::muteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                                         const SipDialog& sSipDialog)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->silentHoldRemoteConnection(sSipDialog);
+      return ptrLock->muteInputConnection(sSipDialog);
    }
 
    return result;
 }
 
-OsStatus XCpCallManager::silentUnholdRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                                  const SipDialog& sSipDialog)
+OsStatus XCpCallManager::unmuteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                                           const SipDialog& sSipDialog)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->silentUnholdRemoteConnection(sSipDialog);
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::silentHoldLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                               const SipDialog& sSipDialog)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->silentHoldLocalConnection(sSipDialog);
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::silentUnholdLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                                 const SipDialog& sSipDialog)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->silentUnholdLocalConnection(sSipDialog);
+      return ptrLock->unmuteInputConnection(sSipDialog);
    }
 
    return result;
 }
 
 OsStatus XCpCallManager::limitAbstractCallCodecPreferences(const UtlString& sAbstractCallId,
-                                                           CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                            const UtlString& sAudioCodecs,
-                                                           CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                            const UtlString& sVideoCodecs)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->limitCodecPreferences(audioBandwidthId, sAudioCodecs, videoBandwidthId, sVideoCodecs);
+      return ptrLock->limitCodecPreferences(sAudioCodecs, sVideoCodecs);
    }
 
    return result;
@@ -768,39 +948,35 @@ OsStatus XCpCallManager::limitAbstractCallCodecPreferences(const UtlString& sAbs
 
 OsStatus XCpCallManager::renegotiateCodecsAbstractCallConnection(const UtlString& sAbstractCallId,
                                                                  const SipDialog& sSipDialog,
-                                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                                  const UtlString& sAudioCodecs,
-                                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                                  const UtlString& sVideoCodecs)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
       return ptrLock->renegotiateCodecsConnection(sSipDialog,
-         audioBandwidthId, sAudioCodecs, videoBandwidthId, sVideoCodecs);
+         sAudioCodecs, sVideoCodecs);
    }
 
    return result;
 }
 
 OsStatus XCpCallManager::renegotiateCodecsAllConferenceConnections(const UtlString& sConferenceId,
-                                                                   CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                                    const UtlString& sAudioCodecs,
-                                                                   CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                                    const UtlString& sVideoCodecs)
 {
    OsStatus result = OS_NOT_FOUND;
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->renegotiateCodecsAllConnections(audioBandwidthId, sAudioCodecs, videoBandwidthId, sVideoCodecs);
+      return ptrLock->renegotiateCodecsAllConnections(sAudioCodecs, sVideoCodecs);
    }
 
    return result;
@@ -811,16 +987,13 @@ void XCpCallManager::enableStun(const UtlString& sStunServer,
                                 int iKeepAlivePeriodSecs /*= 0*/,
                                 OsNotification* pNotification /*= NULL*/)
 {
-   if (m_pSipUserAgent)
-   {
-      OsLock lock(m_memberMutex); // use wide lock to make sure we enable stun for the correct server
+   OsLock lock(m_memberMutex); // use wide lock to make sure we enable stun for the correct server
 
-      m_sStunServer = sStunServer;
-      m_iStunPort = iServerPort;
-      m_iStunKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
+   m_natTraversalConfig.m_sStunServer = sStunServer;
+   m_natTraversalConfig.m_iStunPort = iServerPort;
+   m_natTraversalConfig.m_iStunKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
 
-      m_pSipUserAgent->enableStun(sStunServer, iServerPort, iKeepAlivePeriodSecs, pNotification);
-   }
+   m_rSipUserAgent.enableStun(sStunServer, iServerPort, iKeepAlivePeriodSecs, pNotification);
 }
 
 void XCpCallManager::enableTurn(const UtlString& sTurnServer,
@@ -829,115 +1002,105 @@ void XCpCallManager::enableTurn(const UtlString& sTurnServer,
                                 const UtlString& sTurnPassword,
                                 int iKeepAlivePeriodSecs /*= 0*/)
 {
-   if (m_pSipUserAgent)
-   {
-      OsLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
 
-      bool bEnabled = false;
-      m_sTurnServer = sTurnServer;
-      m_iTurnPort = iTurnPort;
-      m_sTurnUsername = sTurnUsername;
-      m_sTurnPassword = sTurnPassword;
-      m_iTurnKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
-      bEnabled = (m_sTurnServer.length() > 0) && portIsValid(m_iTurnPort);
+   bool bEnabled = false;
+   m_natTraversalConfig.m_sTurnServer = sTurnServer;
+   m_natTraversalConfig.m_iTurnPort = iTurnPort;
+   m_natTraversalConfig.m_sTurnUsername = sTurnUsername;
+   m_natTraversalConfig.m_sTurnPassword = sTurnPassword;
+   m_natTraversalConfig.m_iTurnKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
+   bEnabled = (m_natTraversalConfig.m_sTurnServer.length() > 0) && portIsValid(m_natTraversalConfig.m_iTurnPort);
 
-      m_pSipUserAgent->getContactDb().enableTurn(bEnabled);
-   }
+   m_rSipUserAgent.getContactDb().enableTurn(bEnabled);
 }
 
 OsStatus XCpCallManager::sendInfo(const UtlString& sAbstractCallId,
                                   const SipDialog& sSipDialog,
                                   const UtlString& sContentType,
-                                  const UtlString& sContentEncoding,
-                                  const UtlString& sContent)
+                                  const char* pContent,
+                                  const size_t nContentLength,
+                                  void* pCookie)
 {
    OsStatus result = OS_FAILED;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->sendInfo(sSipDialog, sContentType, sContentEncoding, sContent);
+      return ptrLock->sendInfo(sSipDialog, sContentType, pContent, nContentLength, pCookie);
    }
 
    return result;
+}
+
+UtlString XCpCallManager::getNewSipCallId()
+{
+   return m_sipCallIdGenerator.getNewCallId();
+}
+
+UtlString XCpCallManager::getNewCallId()
+{
+   return XCpCallIdUtil::getNewCallId();
+}
+
+UtlString XCpCallManager::getNewConferenceId()
+{
+   return XCpCallIdUtil::getNewConferenceId();
+}
+
+void XCpCallManager::getSessionTimerConfig(int& sessionExpiration, CP_SESSION_TIMER_REFRESH& refresh) const
+{
+   sessionExpiration = m_sessionTimerExpiration;
+   refresh = m_sessionTimerRefresh;
+}
+
+void XCpCallManager::setSessionTimerConfig(int sessionExpiration, CP_SESSION_TIMER_REFRESH refresh)
+{
+   if (sessionExpiration < MIN_SESSION_TIMER_EXPIRATION)
+   {
+      m_sessionTimerExpiration = MIN_SESSION_TIMER_EXPIRATION;
+   }
+   else
+   {
+      m_sessionTimerExpiration = sessionExpiration;
+   }
+
+   m_sessionTimerRefresh = refresh;
 }
 
 /* ============================ ACCESSORS ================================= */
 
 CpMediaInterfaceFactory* XCpCallManager::getMediaInterfaceFactory() const
 {
-   return m_pMediaFactory;
+   return &m_rMediaInterfaceFactory;
 }
 
 /* ============================ INQUIRY =================================== */
 
 int XCpCallManager::getCallCount() const
 {
-   OsLock lock(m_memberMutex);
-   int count = 0;
-
-   UtlHashMapIterator callMapItor(m_callMap);
-   XCpCall* pCall = NULL;
-
-   while(callMapItor()) // go to next pair
-   {
-      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
-      if (pCall)
-      {
-         count += pCall->getCallCount();
-      }
-   }
-
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-   XCpConference* pConference = NULL;
-   while(conferenceMapItor()) // go to next pair
-   {
-      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference)
-      {
-         count += pConference->getCallCount();
-      }
-   }
-
-   return count;
+   return m_callStack.getCallCount();
 }
 
-OsStatus XCpCallManager::getCallIds(UtlSList& idList) const
+OsStatus XCpCallManager::getAbstractCallIds(UtlSList& idList) const
 {
-   OsLock lock(m_memberMutex);
-
-   UtlHashMapIterator callMapItor(m_callMap);
-   XCpCall* pCall = NULL;
-
-   while(callMapItor()) // go to next pair
-   {
-      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
-      if (pCall)
-      {
-         idList.insert(pCall->getId().clone());
-      }
-   }
+   // first append call ids
+   getCallIds(idList);
+   // then append conference ids
+   getConferenceIds(idList);
 
    return OS_SUCCESS;
 }
 
-OsStatus XCpCallManager::getConferenceIds(UtlSList& idList) const
+OsStatus XCpCallManager::getCallIds(UtlSList& callIdList) const
 {
-   OsLock lock(m_memberMutex);
+   return m_callStack.getCallIds(callIdList);
+}
 
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-   XCpConference* pConference = NULL;
-   while(conferenceMapItor()) // go to next pair
-   {
-      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference)
-      {
-         idList.insert(pConference->getId().clone());
-      }
-   }
-
-   return OS_SUCCESS;
+OsStatus XCpCallManager::getConferenceIds(UtlSList& conferenceIdList) const
+{
+   return m_callStack.getConferenceIds(conferenceIdList);
 }
 
 OsStatus XCpCallManager::getCallSipCallId(const UtlString& sCallId,
@@ -947,7 +1110,7 @@ OsStatus XCpCallManager::getCallSipCallId(const UtlString& sCallId,
    sSipCallId.remove(0);
 
    OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findCall(sCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -964,27 +1127,11 @@ OsStatus XCpCallManager::getConferenceSipCallIds(const UtlString& sConferenceId,
    sipCallIdList.destroyAll();
 
    OsPtrLock<XCpConference> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findConference(sConferenceId, ptrLock);
+   UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
       return ptrLock->getConferenceSipCallIds(sipCallIdList);
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::getAudioEnergyLevels(const UtlString& sAbstractCallId,
-                                              int& iInputEnergyLevel,
-                                              int& iOutputEnergyLevel) const
-{
-   OsStatus result = OS_NOT_FOUND;
-   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->getAudioEnergyLevels(iInputEnergyLevel, iOutputEnergyLevel);
    }
 
    return result;
@@ -996,7 +1143,7 @@ OsStatus XCpCallManager::getRemoteUserAgent(const UtlString& sAbstractCallId,
 {
    OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -1007,15 +1154,16 @@ OsStatus XCpCallManager::getRemoteUserAgent(const UtlString& sAbstractCallId,
 }
 
 OsStatus XCpCallManager::getMediaConnectionId(const UtlString& sAbstractCallId,
+                                              const SipDialog& sSipDialog,
                                               int& mediaConnID) const
 {
    OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->getMediaConnectionId(mediaConnID);
+      return ptrLock->getMediaConnectionId(sSipDialog, mediaConnID);
    }
 
    return result;
@@ -1027,7 +1175,7 @@ OsStatus XCpCallManager::getSipDialog(const UtlString& sAbstractCallId,
 {
    OsStatus result = OS_NOT_FOUND;
    OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = findAbstractCall(sAbstractCallId, ptrLock);
+   UtlBoolean resFind = m_callStack.findAbstractCall(sAbstractCallId, ptrLock);
    if (resFind)
    {
       // we found call and have a lock on it
@@ -1037,289 +1185,26 @@ OsStatus XCpCallManager::getSipDialog(const UtlString& sAbstractCallId,
    return result;
 }
 
+UtlBoolean XCpCallManager::isCallEstablished(const SipDialog& sipDialog) const
+{
+   OsStatus result = OS_NOT_FOUND;
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->isConnectionEstablished(sipDialog);
+   }
+
+   return result;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-UtlString XCpCallManager::getNewCallId()
+UtlBoolean XCpCallManager::checkCallLimit()
 {
-   return m_callIdGenerator.getNewCallId();
-}
-
-UtlString XCpCallManager::getNewConferenceId()
-{
-   return m_conferenceIdGenerator.getNewCallId();
-}
-
-UtlString XCpCallManager::getNewSipCallId()
-{
-   return m_sipCallIdGenerator.getNewCallId();
-}
-
-UtlBoolean XCpCallManager::isCallId(const UtlString& sId) const
-{
-   XCpCallManager::ID_TYPE type = getIdType(sId);
-   return type == XCpCallManager::ID_TYPE_CALL;
-}
-
-UtlBoolean XCpCallManager::isConferenceId(const UtlString& sId) const
-{
-   XCpCallManager::ID_TYPE type = getIdType(sId);
-   return type == XCpCallManager::ID_TYPE_CONFERENCE;
-}
-
-XCpCallManager::ID_TYPE XCpCallManager::getIdType(const UtlString& sId) const
-{
-   if (sId.first(callIdPrefix) >= 0)
-   {
-      return XCpCallManager::ID_TYPE_CALL;
-   }
-   else if (sId.first(conferenceIdPrefix) >= 0)
-   {
-      return XCpCallManager::ID_TYPE_CONFERENCE;
-   }
-   else return XCpCallManager::ID_TYPE_UNKNOWN;
-}
-
-UtlBoolean XCpCallManager::findAbstractCall(const UtlString& sAbstractCallId,
-                                            OsPtrLock<XCpAbstractCall>& ptrLock) const
-{
-   XCpCallManager::ID_TYPE type = getIdType(sAbstractCallId);
-   UtlBoolean result = FALSE;
-   switch(type)
-   {
-   case XCpCallManager::ID_TYPE_CALL:
-      {
-         OsLock lock(m_memberMutex);
-         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpCall>&
-         XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sAbstractCallId));
-         if (pCall)
-         {
-            ptrLock = pCall;
-            return TRUE;
-         }
-
-         ptrLock = NULL;
-         return FALSE;
-      }
-   case XCpCallManager::ID_TYPE_CONFERENCE:
-      {
-         OsLock lock(m_memberMutex);
-         // cannot reuse existing method, as OsPtrLock<XCpAbstractCall>& cannot be cast to OsPtrLock<XCpConference>&
-         XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sAbstractCallId));
-         if (pConference)
-         {
-            ptrLock = pConference;
-            return TRUE;
-         }
-
-         ptrLock = NULL;
-         return FALSE;
-      }
-   default:
-      break;
-   }
-
-   ptrLock = NULL;
-   return result;
-}
-
-UtlBoolean XCpCallManager::findAbstractCall(const SipDialog& sSipDialog,
-                                            OsPtrLock<XCpAbstractCall>& ptrLock) const
-{
-   OsLock lock(m_memberMutex);
-
-   // iterate through hashmap and ask every call if it has given sip dialog
-   UtlHashMapIterator callMapItor(m_callMap);
-   XCpCall* pCall = NULL;
-
-   // TODO: optimize speed by using list in hashmap indexed by call-id. Have to investigate if call-id switch in XCpCall is possible/desirable
-   while(callMapItor()) // go to next pair
-   {
-      pCall = dynamic_cast<XCpCall*>(callMapItor.value());
-      if (pCall && pCall->hasSipDialog(sSipDialog))
-      {
-         ptrLock = pCall;
-         return TRUE;
-      }
-   }
-
-   // iterate through hashmap and ask every conference if it has given sip dialog
-   UtlHashMapIterator conferenceMapItor(m_conferenceMap);
-   XCpConference* pConference = NULL;
-   while(conferenceMapItor()) // go to next pair
-   {
-      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
-      if (pConference && pConference->hasSipDialog(sSipDialog))
-      {
-         ptrLock = pConference;
-         return TRUE;
-      }
-   }
-
-   return FALSE;
-}
-
-UtlBoolean XCpCallManager::findCall(const UtlString& sId,
-                                    OsPtrLock<XCpCall>& ptrLock) const
-{
-   OsLock lock(m_memberMutex);
-   XCpCall* pCall = dynamic_cast<XCpCall*>(m_callMap.findValue(&sId));
-   if (pCall)
-   {
-      ptrLock = pCall;
-      return TRUE;
-   }
-
-   ptrLock = NULL;
-   return FALSE;
-}
-
-UtlBoolean XCpCallManager::findConference(const UtlString& sId,
-                                          OsPtrLock<XCpConference>& ptrLock) const
-{
-   OsLock lock(m_memberMutex);
-   XCpConference* pConference = dynamic_cast<XCpConference*>(m_conferenceMap.findValue(&sId));
-   if (pConference)
-   {
-      ptrLock = pConference;
-      return TRUE;
-   }
-
-   ptrLock = NULL;
-   return FALSE;
-}
-
-UtlBoolean XCpCallManager::push(XCpCall& call)
-{
-   OsLock lock(m_memberMutex);
-
-   UtlCopyableContainable *pKey = call.getId().clone();
-   UtlContainable *pResult = m_callMap.insertKeyAndValue(pKey, &call);
-   if (pResult)
-   {
-      return TRUE;
-   }
-   else
-   {
-      delete pKey;
-      pKey = NULL;
-      return FALSE;
-   }
-}
-
-UtlBoolean XCpCallManager::push(XCpConference& conference)
-{
-   OsLock lock(m_memberMutex);
-
-   UtlCopyableContainable *pKey = conference.getId().clone();
-   UtlContainable *pResult = m_conferenceMap.insertKeyAndValue(pKey, &conference);
-   if (pResult)
-   {
-      return TRUE;
-   }
-   else
-   {
-      delete pKey;
-      pKey = NULL;
-      return FALSE;
-   }
-}
-
-UtlBoolean XCpCallManager::deleteCall(const UtlString& sId)
-{
-   OsLock lock(m_memberMutex);
-   // avoid findCall, as we don't need that much locking
-   UtlContainable *pValue = NULL;
-   UtlContainable *pKey = m_callMap.removeKeyAndValue(&sId, pValue);
-   if(pKey)
-   {
-      XCpCall *pCall = dynamic_cast<XCpCall*>(pValue);
-      if (pCall)
-      {
-         // call was found
-         pCall->acquire(); // lock the call
-         delete pCall;
-         pCall = NULL;
-      }
-      else
-      {
-         OsSysLog::add(FAC_CP, PRI_WARNING, "Unexpected state. Key was removed from call hashmap but value was NULL.");
-      }
-      delete pKey;
-      pKey = NULL;
-      return TRUE;
-   }
-   return FALSE;
-}
-
-UtlBoolean XCpCallManager::deleteConference(const UtlString& sId)
-{
-   OsLock lock(m_memberMutex);
-   // avoid findConference, as we don't need that much locking
-   UtlContainable *pValue = NULL;
-   UtlContainable *pKey = m_conferenceMap.removeKeyAndValue(&sId, pValue);
-   if(pKey)
-   {
-      XCpConference *pConference = dynamic_cast<XCpConference*>(pValue);
-      if (pConference)
-      {
-         // conference was found
-         pConference->acquire(); // lock the conference
-         delete pConference;
-         pConference = NULL;
-      }
-      else
-      {
-         OsSysLog::add(FAC_CP, PRI_WARNING, "Unexpected state. Key was removed from conference hashmap but value was NULL.");
-      }
-      delete pKey;
-      pKey = NULL;
-      return TRUE;
-   }
-   return FALSE;
-}
-
-UtlBoolean XCpCallManager::deleteAbstractCall(const UtlString& sAbstractCallId)
-{
-   XCpCallManager::ID_TYPE type = getIdType(sAbstractCallId);
-   UtlBoolean result = FALSE;
-
-   switch(type)
-   {
-   case XCpCallManager::ID_TYPE_CALL:
-      {
-         deleteCall(sAbstractCallId);
-      }
-   case XCpCallManager::ID_TYPE_CONFERENCE:
-      {
-         deleteConference(sAbstractCallId);
-      }
-   default:
-      break;
-   }
-
-   return result;
-}
-
-void XCpCallManager::deleteAllCalls()
-{
-   OsLock lock(m_memberMutex);
-   m_callMap.destroyAll();
-}
-
-void XCpCallManager::deleteAllConferences()
-{
-   OsLock lock(m_memberMutex);
-   m_conferenceMap.destroyAll();
-}
-
-UtlBoolean XCpCallManager::canCreateNewCall()
-{
-   if (m_bDoNotDisturb)
-   {
-      return FALSE;
-   }
    if (m_maxCalls == -1)
    {
       return TRUE;
@@ -1335,6 +1220,617 @@ UtlBoolean XCpCallManager::canCreateNewCall()
    }
 
    return TRUE;
+}
+
+// handles OsMsg::PHONE_APP messages
+UtlBoolean XCpCallManager::handlePhoneAppMessage(const OsMsg& rRawMsg)
+{
+   UtlBoolean bResult = FALSE;
+   int msgSubType = rRawMsg.getMsgSubType();
+
+   switch (msgSubType)
+   {
+   case SipMessage::NET_SIP_MESSAGE:
+      return handleSipMessageEvent((const SipMessageEvent&)rRawMsg);
+   default:
+      {
+         OsSysLog::add(FAC_CP, PRI_ERR, "Unknown PHONE_APP CallManager message subtype: %d\n", msgSubType);
+         break;
+      }
+   }
+
+   return bResult;
+}
+
+UtlBoolean XCpCallManager::handleCallManagerCommandMessage(const CmCommandMsg& rMsg)
+{
+   CmCommandMsg::SubTypesEnum subType = (CmCommandMsg::SubTypesEnum)rMsg.getMsgSubType();
+   switch (subType)
+   {
+   case CmCommandMsg::CM_GAIN_FOCUS:
+      return handleGainFocusCommandMessage((const CmGainFocusMsg&)rMsg);
+   case CmCommandMsg::CM_YIELD_FOCUS:
+      return handleYieldFocusCommandMessage((const CmYieldFocusMsg&)rMsg);
+   case CmCommandMsg::CM_DESTROY_ABSTRACT_CALL:
+      return handleDestroyAbstractCallCommandMessage((const CmDestroyAbstractCallMsg&)rMsg);
+   default:
+      ;
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpCallManager::handleGainFocusCommandMessage(const CmGainFocusMsg& rMsg)
+{
+   m_callStack.gainFocus(rMsg.getAbstractCallId(), rMsg.getGainOnlyIfNoFocusedCall());
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleYieldFocusCommandMessage(const CmYieldFocusMsg& rMsg)
+{
+   m_callStack.yieldFocus(rMsg.getAbstractCallId(), TRUE);
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleDestroyAbstractCallCommandMessage(const CmDestroyAbstractCallMsg& rMsg)
+{
+   UtlString sAbstractCallId = rMsg.getAbstractCallId();
+   m_callStack.yieldFocus(sAbstractCallId, TRUE); // give focus to next call
+   m_callStack.deleteAbstractCall(sAbstractCallId);
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleSipConnectionCommandMessage(const ScCommandMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sipDialog, ptrLock);
+   if (resFind)
+   {
+      // post message to call
+      return ptrLock->postMessage(rMsg) == OS_SUCCESS;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean XCpCallManager::handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sipDialog, ptrLock);
+   if (resFind)
+   {
+      // post message to call
+      return ptrLock->postMessage(rMsg) == OS_SUCCESS;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean XCpCallManager::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+   if (pSipMessage)
+   {
+#ifdef PRINT_SIP_MESSAGE
+      enableConsoleOutput(TRUE);
+      osPrintf("\nXCpCallManager::handleSipMessageEvent\n%s\n-----------------------------------\n", pSipMessage->toString().data());
+#endif
+      if (!skipMessage(*pSipMessage))
+      {
+         OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+         UtlBoolean resFind = m_callStack.findHandlingAbstractCall(*pSipMessage, ptrLock);
+         if (resFind)
+         {
+            // post message to call
+            return ptrLock->postMessage(rSipMsgEvent);
+         }
+         else
+         {
+            return handleUnknownSipMessageEvent(rSipMsgEvent);
+         }
+      }      
+   }
+
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleUnknownSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   int messageType = rSipMsgEvent.getMessageStatus();
+
+   switch(messageType)
+   {
+   case SipMessageEvent::APPLICATION:
+      {
+         const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+         if (pSipMessage)
+         {
+            // Its a SIP Request
+            if(pSipMessage->isRequest())
+            {
+               return handleUnknownSipRequest(*pSipMessage);
+            }
+         }
+      }
+   default:
+      ;
+   }
+
+   return FALSE;
+}
+
+// Handler for inbound INVITE SipMessage, for which there is no existing call or conference.
+UtlBoolean XCpCallManager::handleUnknownInviteRequest(const SipMessage& rSipMessage)
+{
+   UtlString toTag;
+   rSipMessage.getToFieldTag(toTag);
+
+   if (toTag.isNull())
+   {
+      // handle INVITE without to tag
+      // maybe check if line exists
+      if(m_pSipLineProvider && m_bIsRequiredLineMatch)
+      {
+         UtlBoolean isLineValid = m_pSipLineProvider->lineExists(rSipMessage);
+         if (!isLineValid)
+         {
+            // no such user - return 404
+            SipMessage noSuchUserResponse;
+            noSuchUserResponse.setResponseData(&rSipMessage,
+               SIP_NOT_FOUND_CODE,
+               SIP_NOT_FOUND_TEXT);
+            m_rSipUserAgent.send(noSuchUserResponse);
+            return TRUE;
+         }
+      }
+      // check if we didn't reach call limit
+      if (checkCallLimit())
+      {
+         if (!m_bDoNotDisturb)
+         {
+            // all checks passed, create new call
+            createNewInboundCall(rSipMessage);
+         }
+         else
+         {
+            UtlString requestUri;
+            rSipMessage.getRequestUri(&requestUri);
+            OsSysLog::add(FAC_CP, PRI_DEBUG, "XCpCallManager::handleSipMessage - Rejecting inbound call to %s due to DND mode", requestUri.data());
+            // send 486 Busy here
+            SipMessage busyHereResponse;
+            busyHereResponse.setInviteBusyData(&rSipMessage);
+            m_rSipUserAgent.send(busyHereResponse);
+         }
+      }
+      else
+      {
+         OsSysLog::add(FAC_CP, PRI_WARNING, "XCpCallManager::handleSipMessage - The call stack size as reached it's limit of %d", m_maxCalls);
+         // send 486 Busy here
+         SipMessage busyHereResponse;
+         busyHereResponse.setInviteBusyData(&rSipMessage);
+         m_rSipUserAgent.send(busyHereResponse);
+      }
+
+      return TRUE;
+   }
+   else
+   {
+      // to tag present but dialog not found -> doesn't exist
+      sendBadTransactionError(rSipMessage);
+      return TRUE;
+   }
+}
+
+UtlBoolean XCpCallManager::handleUnknownUpdateRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown UPDATE requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
+}
+
+// Handler for inbound OPTIONS SipMessage, for which there is no existing call or conference. 
+UtlBoolean XCpCallManager::handleUnknownOptionsRequest(const SipMessage& rSipMessage)
+{
+   UtlString fromTag;
+   rSipMessage.getFromFieldTag(fromTag);
+   UtlString toTag;
+   rSipMessage.getToFieldTag(toTag);
+
+   if (!toTag.isNull())
+   {
+      // to tag present but dialog not found -> doesn't exist
+      sendBadTransactionError(rSipMessage);
+      return TRUE;
+   }
+   else if (fromTag.isNull())
+   {
+      // both tags are NULL
+      // out of dialog OPTIONS is handled by SipUserAgent
+   }
+   return FALSE;
+}
+
+UtlBoolean XCpCallManager::handleUnknownReferRequest(const SipMessage& rSipMessage)
+{
+   UtlString toTag;
+   rSipMessage.getToFieldTag(toTag);
+
+   if (!toTag.isNull())
+   {
+      // to tag present but dialog not found -> doesn't exist
+      sendBadTransactionError(rSipMessage);
+      return TRUE;
+   }
+   else
+   {
+      // handle out of dialog REFER
+      // We do not support out of dialog REFER. We won't start dialing just because somebody from outside
+      // tells us to.
+      SipMessage sipResponse;
+      sipResponse.setResponseData(&rSipMessage, SIP_SERVICE_UNAVAILABLE_CODE, SIP_SERVICE_UNAVAILABLE_TEXT);
+      m_rSipUserAgent.send(sipResponse);
+      return TRUE;
+   }
+}
+
+UtlBoolean XCpCallManager::handleUnknownCancelRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown CANCEL requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleUnknownPrackRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown PRACK requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
+}
+
+UtlBoolean XCpCallManager::handleUnknownInfoRequest(const SipMessage& rSipMessage)
+{
+   // always send 481 Call/Transaction Does Not Exist for unknown INFO requests
+   sendBadTransactionError(rSipMessage);
+   return TRUE;
+}
+
+// called for inbound request SipMessages, for which calls weren't found
+UtlBoolean XCpCallManager::handleUnknownSipRequest(const SipMessage& rSipMessage)
+{
+   UtlString requestMethod;
+   rSipMessage.getRequestMethod(&requestMethod);
+
+   // Dangling or delayed ACK
+   if(requestMethod.compareTo(SIP_ACK_METHOD) == 0)
+   {
+      // ACK has no response
+      return TRUE;
+   }
+   else if(requestMethod.compareTo(SIP_INVITE_METHOD) == 0)
+   {
+      return handleUnknownInviteRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
+   {
+      return handleUnknownOptionsRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_UPDATE_METHOD) == 0)
+   {
+      return handleUnknownUpdateRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_REFER_METHOD) == 0)
+   {
+      return handleUnknownReferRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_CANCEL_METHOD) == 0)
+   {
+      return handleUnknownCancelRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_PRACK_METHOD) == 0)
+   {
+      return handleUnknownPrackRequest(rSipMessage);
+   }
+   else if(requestMethod.compareTo(SIP_INFO_METHOD) == 0)
+   {
+      return handleUnknownInfoRequest(rSipMessage);
+   }
+
+   // 481 Call/Transaction Does Not Exist must be sent automatically by somebody else for SUBSCRIBE/NOTIFY messages
+   // multiple observers may receive the same SipMessage
+   // currently nobody sends these 481s, not even SipSubscribeServer
+
+   return FALSE;
+}
+
+void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
+{
+   UtlString sSipCallId = getNewSipCallId();
+
+   XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
+      *getMessageQueue(), m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
+      m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
+      m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
+
+   UtlBoolean resStart = pCall->start(); // start thread
+   if (resStart)
+   {
+      SipMessageEvent sipMessageEvent(rSipMessage);
+      pCall->postMessage(sipMessageEvent); // repost message into thread
+      UtlBoolean resPush = m_callStack.push(*pCall); // inserts call into list of calls
+      if (resPush)
+      {
+         if (OsSysLog::willLog(FAC_CP, PRI_DEBUG))
+         {
+            UtlString requestUri;
+            rSipMessage.getRequestUri(&requestUri);
+            UtlString fromField;
+            rSipMessage.getFromField(&fromField);
+            OsSysLog::add(FAC_CP, PRI_DEBUG, "XCpCallManager::createNewCall - Creating new call destined to %s from %s", requestUri.data(), fromField.data());
+         }
+      }
+      else
+      {
+         OsSysLog::add(FAC_CP, PRI_ERR, "XCpCallManager::createNewCall - Couldn't push call on stack");
+         pCall->requestShutdown();
+         delete pCall;
+      }
+   }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_ERR, "XCpCallManager::createNewCall - Call thread could not be started");
+   }
+}
+
+UtlBoolean XCpCallManager::sendBadTransactionError(const SipMessage& rSipMessage)
+{
+   SipMessage badTransactionMessage;
+   badTransactionMessage.setBadTransactionData(&rSipMessage);
+   return m_rSipUserAgent.send(badTransactionMessage);
+}
+
+void XCpCallManager::startSipMessageObserving()
+{
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_INVITE_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_UPDATE_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_BYE_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_CANCEL_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_ACK_METHOD,
+      TRUE, // want to get requests
+      FALSE, // no such thing as a ACK response
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_REFER_METHOD,
+      TRUE, // want to get requests
+      TRUE, // and responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_OPTIONS_METHOD,
+      TRUE, // want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_NOTIFY_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_INFO_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_PRACK_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+   m_rSipUserAgent.addMessageObserver(*(this->getMessageQueue()),
+      SIP_SUBSCRIBE_METHOD,
+      TRUE, // do want to get requests
+      TRUE, // do want responses
+      TRUE, // Incoming messages
+      FALSE); // Don't want to see out going messages
+}
+
+void XCpCallManager::stopSipMessageObserving()
+{
+   m_rSipUserAgent.removeMessageObserver(*(this->getMessageQueue()));
+}
+
+UtlBoolean XCpCallManager::skipMessage(const SipMessage& sipMessage) const
+{
+   if (sipMessage.isOptionsRequest())
+   {
+      UtlString toTag;
+      sipMessage.getToFieldTag(toTag);
+      if (toTag.isNull())
+      {
+         return TRUE; // skip OPTIONS request with NULL to tag, those are handled by SipUserAgent
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpCallManager::isAddressValid(const UtlString& address) const
+{
+   UtlBoolean returnCode = TRUE;
+
+   // Check that we are adhering to one of the address schemes
+   // Currently we only support SIP URLs so everything must map
+   // to a SIP URL
+   RegEx ip4Address("^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$");
+
+   // If it is all digits
+   RegEx allDigits("^[0-9*]+$");
+
+   if (allDigits.Search(address.data()))
+   {
+      // There must be a valid default SIP host address (SIP_DIRECTORY_SERVER)
+      UtlString directoryServerAddress;
+      int port;
+      UtlString protocol;
+      m_rSipUserAgent.getDirectoryServer(0, &directoryServerAddress, &port, &protocol);
+
+      // If there is no host or there is an invalid IP4 address
+      // We do not validate DNS host names here so that we do not block
+      if(directoryServerAddress.isNull() // no host
+         || (ip4Address.Search(directoryServerAddress.data())
+         && !OsSocket::isIp4Address(directoryServerAddress)
+         ))
+      {
+         returnCode = FALSE;
+      }
+   }
+   else
+   {
+      // If it is not all digits it must be a SIP URL
+      Url addressUrl(address.data());
+      UtlString urlHost;
+      addressUrl.getHostAddress(urlHost);
+
+      if(urlHost.isNull())
+      {
+         returnCode = FALSE;
+      }
+      else
+      {
+         // If the host name is an IP4 address check that it is valid
+         if (ip4Address.Search(urlHost.data()) && !OsSocket::isIp4Address(urlHost))
+         {
+            returnCode = FALSE;
+         }
+         else
+         {
+            UtlString tagValue;
+            addressUrl.getFieldParameter("tag", tagValue, 0);
+            if (!tagValue.isNull())
+            {
+               returnCode = FALSE;
+            }
+         }
+      }
+   }
+
+   return returnCode;
+}
+
+OsStatus XCpCallManager::sendMessage(const OsMsg& msg, const SipDialog& sSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sSipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->postMessage(msg);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::subscribe(CP_NOTIFICATION_TYPE notificationType,
+                                   const SipDialog& targetSipDialog,
+                                   const SipDialog& callbackSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(targetSipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->subscribe(notificationType, targetSipDialog, callbackSipDialog);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                     const SipDialog& targetSipDialog,
+                                     const SipDialog& callbackSipDialog)
+{
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(targetSipDialog, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->unsubscribe(notificationType, targetSipDialog, callbackSipDialog);
+   }
+
+   return result;
+}
+
+OsStatus XCpCallManager::createConnectedCall(SipDialog& sipDialog,
+                                             const UtlString& toAddress,
+                                             const UtlString& fullLineUrl,// includes display name, SIP URI
+                                             const UtlString& sSipCallId, // can be used to suggest sip call-id
+                                             const UtlString& locationHeader,
+                                             CP_CONTACT_ID contactId,
+                                             CP_FOCUS_CONFIG focusConfig,
+                                             const UtlString& replacesField,
+                                             CP_CALLSTATE_CAUSE callstateCause,
+                                             const SipDialog* pCallbackSipDialog)
+{
+   UtlString sCallId;
+   OsStatus createResult = createCall(sCallId);
+
+   if (createResult == OS_SUCCESS)
+   {
+      // call was created, try to connect it
+      OsStatus connectResult = connectCall(sCallId, sipDialog, toAddress, fullLineUrl, sSipCallId,
+         locationHeader, contactId, focusConfig, replacesField, callstateCause, pCallbackSipDialog);
+
+      if (connectResult != OS_SUCCESS)
+      {
+         destroyCall(sCallId);
+      }
+
+      return connectResult;
+   }
+   else
+   {
+      return createResult;
+   }
 }
 
 /* ============================ FUNCTIONS ================================= */

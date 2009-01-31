@@ -38,8 +38,8 @@
 #include "net/SipPimClient.h"
 #include "net/SipSubscribeServer.h"
 #include "net/SipDialogMgr.h"
-#include "net/SdpCodecFactory.h"
-#include "cp/CallManager.h"
+#include "sdp/SdpCodecList.h"
+#include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "tapi/SipXCore.h"
 #include "tapi/sipXtapi.h"
@@ -58,8 +58,10 @@
 #include "tapi/SipXLineEventListener.h"
 #include "tapi/SipXCallEventListener.h"
 #include "tapi/SipXInfoStatusEventListener.h"
+#include "tapi/SipXInfoEventListener.h"
 #include "tapi/SipXSecurityEventListener.h"
 #include "tapi/SipXMediaEventListener.h"
+#include <tapi/SipXTransport.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -69,7 +71,6 @@ extern SipXHandleMap gPubHandleMap;
 extern SipXHandleMap gLineHandleMap;
 extern SipXHandleMap gCallHandleMap;
 extern SipXHandleMap gConfHandleMap;
-extern SipXHandleMap gInfoHandleMap;
 extern SipXHandleMap gTransportHandleMap;
 
 // CONSTANTS
@@ -124,7 +125,6 @@ SIPX_RESULT sipxFlushHandles()
    gCallHandleMap.destroyAll();
    gLineHandleMap.destroyAll();
    gConfHandleMap.destroyAll();
-   gInfoHandleMap.destroyAll();
    gPubHandleMap.destroyAll();
    gSubHandleMap.destroyAll();
    gTransportHandleMap.destroyAll();
@@ -158,14 +158,6 @@ SIPX_RESULT sipxCheckForHandleLeaks()
       printf("\ngpConfHandleMap Leaks (%d):\n",
          (int) gConfHandleMap.entries());
       gConfHandleMap.dump();
-      rc = SIPX_RESULT_FAILURE;
-   }
-
-   if (gInfoHandleMap.entries() != 0)
-   {
-      printf("\ngpInfoHandleMap Leaks (%d):\n",
-         (int) gInfoHandleMap.entries());
-      gInfoHandleMap.dump();
       rc = SIPX_RESULT_FAILURE;
    }
 
@@ -396,6 +388,8 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSharedTaskMgr->manage(*pInst->pCallEventListener);
    pInst->pInfoStatusEventListener = new SipXInfoStatusEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pInfoStatusEventListener);
+   pInst->pInfoEventListener = new SipXInfoEventListener(pInst);
+   pInst->pSharedTaskMgr->manage(*pInst->pInfoEventListener);
    pInst->pSecurityEventListener = new SipXSecurityEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pSecurityEventListener);
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
@@ -439,6 +433,10 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       OsServerTask::DEF_MAX_MSGS, // queueSize
       bUseSequentialPorts);       // bUseNextAvailablePort
    pInst->pSipUserAgent->allowMethod(SIP_INFO_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_PRACK_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_UPDATE_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_SUBSCRIBE_METHOD);
+   pInst->pSipUserAgent->allowMethod(SIP_NOTIFY_METHOD);
 
    // set bind address on OsSocket
    UtlString defaultBindAddressString;
@@ -483,59 +481,52 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSubscribeClient->start();
 
    // Enable PCMU, PCMA, Tones/RFC2833 codecs
-   pInst->pCodecFactory = new SdpCodecFactory();
+   pInst->pSelectedCodecList = new SdpCodecList();
 
    // Instantiate the call processing subsystem
-   UtlString utlIdentity(szIdentity);
-
    // create call manager
-   pInst->pCallManager = new CallManager(FALSE,
-      pInst->pLineManager,
-      TRUE, // early media in 180 ringing
-      pInst->pCodecFactory,
-      rtpPortStart, // rtp start
-      rtpPortStart + (2*maxConnections), // rtp end
-      pInst->pSipUserAgent,
-      0, // sipSessionReinviteTimer
+   pInst->pCallManager = new XCpCallManager(
       pInst->pCallEventListener,
       pInst->pInfoStatusEventListener,
+      pInst->pInfoEventListener,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
-      NULL, // mgcpStackTask
-      Connection::RING, // availableBehavior
-      NULL, // unconditionalForwardUrl
-      -1, // forwardOnNoAnswerSeconds
-      NULL, // forwardOnNoAnswerUrl
-      Connection::BUSY, // busyBehavior
-      NULL, // sipForwardOnBusyUrl
-      NULL, // speedNums
-      CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
-      4, // numDialPlanDigits
-      5000, // offeringDelay
-      "",
+      *pInst->pSipUserAgent,
+      *pInst->pSelectedCodecList,
+      pInst->pLineManager,
+      szBindToAddr,
+      FALSE, // doNotDisturb
+      FALSE, // bEnableICE
+      FALSE, // bIsRequiredLineMatch
+      rtpPortStart, // rtpPortStart
+      rtpPortStart + (2 * maxConnections), // rtpPortEnd
       CP_MAXIMUM_RINGING_EXPIRE_SECONDS,
-      QOS_LAYER3_LOW_DELAY_IP_TOS,
-      maxConnections, // max calls before we start rejecting inbound calls
-      sipXmediaFactoryFactory(NULL));
-   pInst->pCallManager->setBindIPAddress(szBindToAddr);
+      maxConnections, // maxCalls - max calls before sending busy. -1 means unlimited
+      *sipXmediaFactoryFactory(NULL));
 
    // Start up the call processing system
    pInst->pCallManager->start();
 
-   CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
-   if (!pInterface)
+   pInst->pAvailableCodecList = new SdpCodecList();
+
+   CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
+   if (!pInterfaceFactory)
    {
       OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Unable to create global media interface");
    }
-   else if (szIdentity)
+   else
    {
-      pInterface->setRTCPName(szIdentity);
+      pInterfaceFactory->buildAllCodecList(*pInst->pAvailableCodecList);
+      if (szIdentity)
+      {
+         pInterfaceFactory->setRTCPName(szIdentity);
+      }
    }
 
    // init codecs
-   pInst->videoCodecSetting.videoFormat = VIDEO_FORMAT_ANY;
-   sipxConfigSetAudioCodecPreferences(pInst, AUDIO_CODEC_BW_NORMAL);
-   sipxConfigSetVideoBandwidth(pInst, VIDEO_CODEC_BW_NORMAL); // also resets video codecs
+   pInst->videoFormat = VIDEO_FORMAT_ANY;
+   sipxConfigSelectAudioCodecByName(pInst, NULL); // select all audio codecs
+   sipxConfigSelectVideoCodecByName(pInst, NULL); // select all video codecs
 
    initAudioDevices(*pInst);
 
@@ -548,15 +539,13 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    // create the message observer
    pInst->pMessageObserver = new SipXMessageObserver(pInst);
    pInst->pMessageObserver->start();
-   pInst->pSipUserAgent->addMessageObserver(*(pInst->pMessageObserver->getMessageQueue()), SIP_INFO_METHOD, 1, 0, 1, 0, 0, 0, (void*)pInst);
 
    // Enable ICE by default (only makes sense with STUN, TURN or with mulitple nics 
    // (multiple nic support still needs work).
    //sipxConfigEnableIce(pInst);
 
-   pInst->bAllowHeader = true;
-   pInst->bDateHeader = true;
-   //sipxConfigEnableSipShortNames(pInst, true);
+   pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+      pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
 
    rc = SIPX_RESULT_SUCCESS;
    //  check for TLS initialization
@@ -598,7 +587,7 @@ SIPXTAPI_API SIPX_RESULT sipxReInitialize(SIPX_INST* phInst,
 
    if (phInst)
    {
-      SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)*phInst;
+      SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, *phInst);
 
       // remember original filename, as it could be lost when uninitializing sipxtapi
       UtlString logfile;
@@ -670,7 +659,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
       "sipxUnInitialize hInst=%p",
       hInst);
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
@@ -694,7 +683,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->lock.release();
 
          sessionCallIdList.destroyAll(); // empty the list
-         sipxGetAllCallIds(hInst, sessionCallIdList);
+         sipxGetAllAbstractCallIds(hInst, sessionCallIdList);
          nCallManagerCalls = sessionCallIdList.entries();
 
          if ((nCalls != 0) || (nConferences != 0) || (nLines != 0) || (nCallManagerCalls != 0))
@@ -730,8 +719,10 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSubscribeServer->requestShutdown();
          pInst->pSipRefreshManager->requestShutdown();
          pInst->pMessageObserver->requestShutdown();
-         pInst->pCodecFactory->clearCodecs();
+         pInst->pSelectedCodecList->clearCodecs();
 
+         delete pInst->pCallManager;
+         pInst->pCallManager = NULL;
          delete pInst->pSipPimClient;
          pInst->pSipPimClient = NULL;
          delete pInst->pSubscribeClient;
@@ -748,13 +739,15 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSipUserAgent = NULL;
          delete pInst->pLineManager;
          pInst->pLineManager = NULL;
-         delete pInst->pCallManager;
-         pInst->pCallManager = NULL;
-         delete pInst->pCodecFactory;
+         delete pInst->pSelectedCodecList;
+         pInst->pSelectedCodecList = NULL;
+         delete pInst->pAvailableCodecList;
+         pInst->pAvailableCodecList = NULL;
          // release all shared server tasks
          pInst->pSharedTaskMgr->release(*pInst->pLineEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pCallEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pInfoStatusEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pInfoEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pSecurityEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pMediaEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pKeepaliveEventListener);
@@ -767,6 +760,8 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pCallEventListener = NULL;
          delete pInst->pInfoStatusEventListener;
          pInst->pInfoStatusEventListener = NULL;
+         delete pInst->pInfoEventListener;
+         pInst->pInfoEventListener = NULL;
          delete pInst->pSecurityEventListener;
          pInst->pSecurityEventListener = NULL;
          delete pInst->pMediaEventListener;
@@ -797,13 +792,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
             OsNatAgentTask::releaseInstance();
             OsSysLog::shutdown();
          }
-
-         // free codecs
-         freeAudioCodecs(*pInst);
-         pInst->audioCodecSetting.bInitialized = false;
-
-         freeVideoCodecs(*pInst);
-         pInst->videoCodecSetting.bInitialized = false;
 
          // free audio devices strings
          freeAudioDevices(*pInst);

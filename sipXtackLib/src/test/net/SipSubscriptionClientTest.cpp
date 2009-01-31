@@ -190,9 +190,6 @@ class SipSubscribeClientMgr : public CppUnit::TestCase
         // Enable the handler for the MWI server
         subServer->enableEventType(eventType, &userAgent);
 
-        //CPPUNIT_ASSERT(TRUE);
-        //ASSERT_STR_EQUAL("a", "a");
-
         // Create a crude Subscription server/observer
         OsMsgQ incomingServerMsgQueue;
         // Register an interest in SUBSCRIBE requests 
@@ -263,20 +260,6 @@ class SipSubscribeClientMgr : public CppUnit::TestCase
         CPPUNIT_ASSERT(numCallbacksRegistered == 1);
 
         // See if a subscribe was sent and received
-       /*OsTime messageTimeout(5, 0);  // 5 seconds
-       OsMsg* osMessage = NULL;
-       const SipMessage* subscribeResponse = NULL;
-       const SipMessage* notifyRequest = NULL;
-       incomingServerMsgQueue.receive(osMessage, messageTimeout);
-       CPPUNIT_ASSERT(osMessage);
-       int msgType = osMessage->getMsgType();
-       int msgSubType = osMessage->getMsgSubType();
-       CPPUNIT_ASSERT(msgType == OsMsg::PHONE_APP);
-       CPPUNIT_ASSERT(msgSubType == SipMessage::NET_SIP_MESSAGE);
-       const SipMessage* sipMessage = ((SipMessageEvent*)osMessage)->getMessage();
-       int messageType = ((SipMessageEvent*)osMessage)->getMessageStatus();
-       CPPUNIT_ASSERT(sipMessage);
-       CPPUNIT_ASSERT(messageType == SipMessageEvent::APPLICATION);*/
        const SipMessage* serverSideSubRequest = NULL;
        CPPUNIT_ASSERT(removeMessage(incomingServerMsgQueue,
                      5000, // milliseconds
@@ -288,11 +271,6 @@ class SipSubscribeClientMgr : public CppUnit::TestCase
                       5000, // milliseconds
                       clientSideSubResponse));
        CPPUNIT_ASSERT(clientSideSubResponse);
-
-       //UtlString clientStateString;
-       //subClient.dumpStates(clientStateString);
-       //printf("client states:\n%s\n", clientStateString.data());
-
 
         int waitIterations = 0;
         while(smLastClientNotifyReceived == NULL ||
@@ -318,14 +296,6 @@ class SipSubscribeClientMgr : public CppUnit::TestCase
         firstNotifyRequest->getCSeqField(&firstNotifyCseq, NULL);
         CPPUNIT_ASSERT(firstSubCseq == 1);
         CPPUNIT_ASSERT(firstNotifyCseq == 1);
-
-        //subClient.dumpStates(clientStateString);
-        //printf("client states:\n%s\n", clientStateString.data());
-
-        //UtlString dialogMgrDumpString;
-        //clientDialogMgr.toString(dialogMgrDumpString);
-        //printf("Client Dialog manager dump 1:\n%s\n",
-        //       dialogMgrDumpString.data());
 
         // The refresh manager should re-SUBSCRIBE
         // Wait for the next notify request and subscribe response
@@ -375,48 +345,15 @@ class SipSubscribeClientMgr : public CppUnit::TestCase
             }
         }
 
-        //subClient.dumpStates(clientStateString);
-        //printf("client states:\n%s\n", clientStateString.data());
-
-        //clientDialogMgr.toString(dialogMgrDumpString);
-        //printf("Client Dialog manager dump 2:\n%s\n",
-        //       dialogMgrDumpString.data());
-
        CPPUNIT_ASSERT(removeMessage(incomingServerMsgQueue,
                      5000, // milliseconds
                      serverSideSubRequest));
        CPPUNIT_ASSERT(serverSideSubRequest); // Sub request got to server
-       //UtlString subRequestDump;
-       //int len;
-       //serverSideSubRequest->getBytes(&subRequestDump, &len);
-       //printf("server side sub request:\n%s\n",
-       //    subRequestDump.data());
-
        CPPUNIT_ASSERT(removeMessage(incomingClientMsgQueue,
                       5000, // milliseconds
                       clientSideSubResponse));
        CPPUNIT_ASSERT(clientSideSubResponse); // Sub respon got to client
-       //UtlString subResponseDump;
-       //clientSideSubResponse->getBytes(&subResponseDump, &len);
-       //printf("client side sub response:\n%s\n",
-       //       subResponseDump.data());
-
         CPPUNIT_ASSERT(secondNotifyRequest);
-/*
-        // bandreasen/2006-10-14: The latest SipSubscribeClient does not send 
-        // status updates when state has not changed -- we will need to assume
-        // that the sub response checks above are enough to validate resends.
-
-        CPPUNIT_ASSERT(secondSubResponse);
-        int secondSubCseq = -1;
-        int secondNotifyCseq = -1;
-        smLastClientSubResponseReceived = NULL;
-        secondSubResponse->getCSeqField(&secondSubCseq, NULL);
-        smLastClientNotifyReceived = NULL;
-        secondNotifyRequest->getCSeqField(&secondNotifyCseq, NULL);
-        CPPUNIT_ASSERT(firstSubCseq < secondSubCseq);
-        CPPUNIT_ASSERT(firstNotifyCseq < secondNotifyCseq);
-*/
         // Unregister the queues so we stop receiving messages on them
         userAgent.removeMessageObserver(incomingServerMsgQueue);
         userAgent.removeMessageObserver(incomingClientMsgQueue);
@@ -425,13 +362,9 @@ class SipSubscribeClientMgr : public CppUnit::TestCase
         refreshMgr.requestShutdown();
 
         userAgent.shutdown(TRUE);
-
         OsTask::delay(1000);   // 1 second to let other threads clean up
-
         delete subServer;
     }
-
-
 };
 
 int SipSubscribeClientMgr::smNumClientNotifiesReceived;

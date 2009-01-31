@@ -146,6 +146,12 @@ const char* convertCallstateEventToString(SIPX_CALLSTATE_EVENT eMajor)
    case CALLSTATE_TRANSFER_EVENT:
       str = MAKESTR(CALLSTATE_TRANSFER_EVENT);
       break;
+   case CALLSTATE_QUEUED:
+      str = MAKESTR(CALLSTATE_QUEUED);
+      break;
+   case CALLSTATE_REMOTE_QUEUED:
+      str = MAKESTR(CALLSTATE_REMOTE_QUEUED);
+      break;
    default:
       break;
    }
@@ -249,6 +255,15 @@ const char* convertCallstateCauseToString(SIPX_CALLSTATE_CAUSE eMinor)
       break;
    case CALLSTATE_CAUSE_CANCEL:
       str = MAKESTR(CALLSTATE_CAUSE_CANCEL);
+      break;
+   case CALLSTATE_CAUSE_CLIENT_ERROR:
+      str = MAKESTR(CALLSTATE_CAUSE_CLIENT_ERROR);
+      break;
+   case CALLSTATE_CAUSE_SERVER_ERROR:
+      str = MAKESTR(CALLSTATE_CAUSE_SERVER_ERROR);
+      break;
+   case CALLSTATE_CAUSE_GLOBAL_ERROR:
+      str = MAKESTR(CALLSTATE_CAUSE_GLOBAL_ERROR);
       break;
    default:
       break;
@@ -448,9 +463,6 @@ const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
       break;
    case SIPX_KEEPALIVE_STUN:
       str = MAKESTR(SIPX_KEEPALIVE_STUN);
-      break;
-   case SIPX_KEEPALIVE_SIP_PING:
-      str = MAKESTR(SIPX_KEEPALIVE_SIP_PING);
       break;
    case SIPX_KEEPALIVE_SIP_OPTIONS:
       str = MAKESTR(SIPX_KEEPALIVE_SIP_OPTIONS);
@@ -932,6 +944,8 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->hAssociatedCall = pSourceInfo->hAssociatedCall;
             pInfo->sipResponseCode = pSourceInfo->sipResponseCode;
             pInfo->szSipResponseText = SAFE_STRDUP(pSourceInfo->szSipResponseText);
+            pInfo->szReferredBy = SAFE_STRDUP(pSourceInfo->szReferredBy);
+            pInfo->szReferTo = SAFE_STRDUP(pSourceInfo->szReferTo);
 
             *pEventCopy = pInfo;
 
@@ -968,11 +982,13 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             memset(pInfo, 0, sizeof(SIPX_INFOSTATUS_INFO));
 
             pInfo->nSize = pSourceInfo->nSize;
-            pInfo->hInfo = pSourceInfo->hInfo;
+            pInfo->hCall = pSourceInfo->hCall;
+            pInfo->hLine = pSourceInfo->hLine;
             pInfo->status = pSourceInfo->status;
             pInfo->responseCode = pSourceInfo->responseCode;
             pInfo->szResponseText = SAFE_STRDUP(pSourceInfo->szResponseText);
             pInfo->event = pSourceInfo->event;
+            pInfo->pCookie = pSourceInfo->pCookie;
 
             *pEventCopy = pInfo;
 
@@ -990,13 +1006,12 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             pInfo->nSize = pSourceInfo->nSize;
             pInfo->hCall = pSourceInfo->hCall;
             pInfo->hLine = pSourceInfo->hLine;
-            pInfo->szFromURL = SAFE_STRDUP(pSourceInfo->szFromURL);
-            pInfo->szUserAgent = SAFE_STRDUP(pSourceInfo->szUserAgent) ;
             pInfo->szContentType = SAFE_STRDUP(pSourceInfo->szContentType);
 
             if (pSourceInfo->nContentLength > 0 && pSourceInfo->pContent)
             {
-               pInfo->pContent = (char*)malloc(pSourceInfo->nContentLength);
+               pInfo->pContent = (char*)malloc(pSourceInfo->nContentLength + 1);
+               ((char*)pInfo->pContent)[pSourceInfo->nContentLength] = 0; // terminate string
                assert(pInfo->pContent);
                memcpy((void*)pInfo->pContent, pSourceInfo->pContent, pSourceInfo->nContentLength);
                pInfo->nContentLength = pSourceInfo->nContentLength;
@@ -1046,9 +1061,9 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
 
             if (pSourceInfo->nContentLength > 0 && pSourceInfo->pContent)
             {
-               pInfo->pContent = malloc(pSourceInfo->nContentLength);
+               pInfo->pContent = (char*)malloc(pSourceInfo->nContentLength);
                assert(pInfo->pContent);
-               memcpy((void*) pInfo->pContent, pSourceInfo->pContent, pSourceInfo->nContentLength);
+               memcpy((void*) pInfo->pContent, (void*)pSourceInfo->pContent, pSourceInfo->nContentLength);
                pInfo->nContentLength = pSourceInfo->nContentLength;
             }
             else
@@ -1229,6 +1244,8 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             SIPX_CALLSTATE_INFO* pSourceInfo = (SIPX_CALLSTATE_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_CALLSTATE_INFO));
             free((void*)pSourceInfo->szSipResponseText);
+            free((void*)pSourceInfo->szReferredBy);
+            free((void*)pSourceInfo->szReferTo);
             delete pSourceInfo;
 
             rc = SIPX_RESULT_SUCCESS;
@@ -1259,8 +1276,6 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
          {
             SIPX_INFO_INFO* pSourceInfo = (SIPX_INFO_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_INFO_INFO));
-            free((void*)pSourceInfo->szFromURL);
-            free((void*)pSourceInfo->szUserAgent);
             free((void*)pSourceInfo->szContentType);
             free((void*)pSourceInfo->pContent);
             delete pSourceInfo;

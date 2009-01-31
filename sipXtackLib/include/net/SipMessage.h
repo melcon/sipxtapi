@@ -43,9 +43,13 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_SESSION_TIMER_EXTENSION "timer"
 #define SIP_REPLACES_EXTENSION "replaces"
 #define SIP_JOIN_EXTENSION "join"
+#define SIP_PRACK_EXTENSION "100rel" // rfc3262
+#define SIP_FROM_CHANGE_EXTENSION "from-change" // must not appear in Require: header
+#define SIP_NO_REFER_SUB_EXTENSION "norefersub" // rfc4488
 
 // SIP Methods
 #define SIP_INVITE_METHOD "INVITE"
+#define SIP_UPDATE_METHOD "UPDATE"
 #define SIP_ACK_METHOD "ACK"
 #define SIP_BYE_METHOD "BYE"
 #define SIP_CANCEL_METHOD "CANCEL"
@@ -55,7 +59,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_REFER_METHOD "REFER"
 #define SIP_REGISTER_METHOD "REGISTER"
 #define SIP_SUBSCRIBE_METHOD "SUBSCRIBE"
-#define SIP_PING_METHOD         "PING"
+#define SIP_PRACK_METHOD "PRACK"
 
 
 //Simple Methods
@@ -82,6 +86,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_CONTENT_ENCODING_FIELD "CONTENT-ENCODING"
 #define SIP_SHORT_CONTENT_ENCODING_FIELD "e"
 #define SIP_CSEQ_FIELD "CSEQ"
+#define SIP_RSEQ_FIELD "RSEQ"
+#define SIP_RACK_FIELD "RACK"
 #define SIP_DIVERSION_FIELD "DIVERSION"   // draft-levy-sip-diversion-08 Diversion header
 #define SIP_EVENT_FIELD "EVENT"
 #define SIP_SHORT_EVENT_FIELD "o"
@@ -93,12 +99,15 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_P_ASSERTED_IDENTITY_FIELD "P-ASSERTED-IDENTITY"
 #define SIP_Q_FIELD "Q"
 #define SIP_REASON_FIELD "REASON"          //  RFC 3326 Reason header
+#define SIP_JOIN_FIELD "JOIN"          //  RFC 3911 Join header
 #define SIP_RECORD_ROUTE_FIELD "RECORD-ROUTE"
 #define SIP_REFER_TO_FIELD "REFER-TO"
+#define SIP_REFER_SUB_FIELD "REFER-SUB"
 #define SIP_SHORT_REFER_TO_FIELD "r"
 #define SIP_REFERRED_BY_FIELD "REFERRED-BY"
 #define SIP_SHORT_REFERRED_BY_FIELD "b"
 #define SIP_REPLACES_FIELD "REPLACES"
+#define SIP_RETRY_AFTER_FIELD "RETRY-AFTER"
 #define SIP_REQUEST_DISPOSITION_FIELD "REQUEST-DISPOSITION"
 #define SIP_REQUESTED_BY_FIELD "REQUESTED-BY"
 #define SIP_REQUIRE_FIELD "REQUIRE"
@@ -106,6 +115,8 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_ROUTE_FIELD "ROUTE"
 #define SIP_SERVER_FIELD "SERVER"
 #define SIP_SESSION_EXPIRES_FIELD "SESSION-EXPIRES"
+#define SIP_SHORT_SESSION_EXPIRES_FIELD "x"
+#define SIP_MIN_SE_FIELD "MIN-SE"
 #define SIP_IF_MATCH_FIELD "SIP-IF-MATCH"
 #define SIP_ETAG_FIELD "SIP-ETAG"
 #define SIP_SUBJECT_FIELD "SUBJECT"
@@ -123,7 +134,6 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_MIN_EXPIRES_FIELD "MIN-EXPIRES"
 
 ///custom fields
-#define SIP_LINE_IDENTIFIER "LINEID"
 #define SIPX_IMPLIED_SUB "sipx-implied" ///< integer expiration duration for subscription
 // Response codes and text
 #define SIP_1XX_CLASS_CODE 100
@@ -134,11 +144,14 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_RINGING_CODE 180
 #define SIP_RINGING_TEXT "Ringing"
 
+#define SIP_CALL_BEING_FORWARDED_CODE 181
+#define SIP_CALL_BEING_FORWARDED_TEXT "Call Is Being Forwarded"
+
 #define SIP_QUEUED_CODE 182
 #define SIP_QUEUED_TEXT "Queued"
 
-#define SIP_EARLY_MEDIA_CODE 183
-#define SIP_EARLY_MEDIA_TEXT "Session Progress"
+#define SIP_SESSION_PROGRESS_CODE 183
+#define SIP_SESSION_PROGRESS_TEXT "Session Progress"
 
 #define SIP_2XX_CLASS_CODE 200
 
@@ -162,10 +175,19 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_USE_PROXY_CODE 305
 #define SIP_USE_PROXY_TXT "Use Proxy"
 
+#define SIP_ALTERNATIVE_SERVICE_CODE 380
+#define SIP_ALTERNATIVE_SERVICE_TXT "Alternative Service"
+
 #define SIP_4XX_CLASS_CODE 400
 
 #define SIP_BAD_REQUEST_CODE 400
 #define SIP_BAD_REQUEST_TEXT "Bad Request"
+
+#define SIP_UNAUTHORIZED_CODE 401
+#define SIP_UNAUTHORIZED_TEXT "Unauthorized"
+
+#define SIP_PAYMENT_REQUIRED_CODE 402
+#define SIP_PAYMENT_REQUIRED_TEXT "Payment Required"
 
 #define SIP_FORBIDDEN_CODE 403
 #define SIP_FORBIDDEN_TEXT "Forbidden"
@@ -176,8 +198,17 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_BAD_METHOD_CODE 405
 #define SIP_BAD_METHOD_TEXT "Method Not Allowed"
 
+#define SIP_NOT_ACCEPTABLE_CODE 406
+#define SIP_NOT_ACCEPTABLE_TEXT "Not Acceptable"
+
+#define SIP_PROXY_AUTH_REQUIRED_CODE 407
+#define SIP_PROXY_AUTH_REQUIRED_TEXT "Proxy Authentication Required"
+
 #define SIP_REQUEST_TIMEOUT_CODE 408
-#define SIP_REQUEST_TIMEOUT_TEXT "Request timeout"
+#define SIP_REQUEST_TIMEOUT_TEXT "Request Timeout"
+
+#define SIP_GONE_CODE 410
+#define SIP_GONE_TEXT "Gone"
 
 #define SIP_CONDITIONAL_REQUEST_FAILED_CODE 412
 #define SIP_CONDITIONAL_REQUEST_FAILED_TEXT "Conditional Request Failed"
@@ -191,12 +222,18 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_BAD_EXTENSION_CODE 420
 #define SIP_BAD_EXTENSION_TEXT "Extension Not Supported"
 
+#define SIP_SMALL_SESSION_INTERVAL_CODE 422
+#define SIP_SMALL_SESSION_INTERVAL_TEXT "Session Interval Too Small"
+
 #define SIP_TOO_BRIEF_CODE 423
 #define SIP_TOO_BRIEF_TEXT "Registration Too Brief"
 #define SIP_SUB_TOO_BRIEF_TEXT "Subscription Too Brief"
 
+#define SIP_TEMPORARILY_UNAVAILABLE_CODE 480
+#define SIP_TEMPORARILY_UNAVAILABLE_TEXT "Temporarily Unavailable"
+
 #define SIP_BAD_TRANSACTION_CODE 481
-#define SIP_BAD_TRANSACTION_TEXT "Transaction Does Not Exist"
+#define SIP_BAD_TRANSACTION_TEXT "Call/Transaction Does Not Exist"
 
 #define SIP_LOOP_DETECTED_CODE 482
 #define SIP_LOOP_DETECTED_TEXT "Loop Detected"
@@ -206,6 +243,9 @@ class SipRegInfoBody;        // for RFC 3680
 
 #define SIP_BAD_ADDRESS_CODE 484
 #define SIP_BAD_ADDRESS_TEXT "Address Incomplete"
+
+#define SIP_AMBIGUOUS_CODE 485
+#define SIP_AMBIGUOUS_TEXT "Ambiguous"
 
 #define SIP_BUSY_CODE 486
 #define SIP_BUSY_TEXT "Busy Here"
@@ -233,19 +273,40 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_UNIMPLEMENTED_METHOD_CODE 501
 #define SIP_UNIMPLEMENTED_METHOD_TEXT "Not Implemented"
 
+#define SIP_BAD_GATEWAY_CODE 502
+#define SIP_BAD_GATEWAY_TEXT "Bad Gateway"
+
 #define SIP_SERVICE_UNAVAILABLE_CODE 503
 #define SIP_SERVICE_UNAVAILABLE_TEXT "Service Unavailable"
 
+#define SIP_SERVER_TIMEOUT_CODE 504
+#define SIP_SERVER_TIMEOUT_TEXT "Server Timeout"
+
 #define SIP_BAD_VERSION_CODE 505
 #define SIP_BAD_VERSION_TEXT "Version Not Supported"
+
+#define SIP_MESSAGE_TOO_LARGE_CODE 513
+#define SIP_MESSAGE_TOO_LARGE_TEXT "Message Too Large"
+
+#define SIP_PRECONDITION_FAILURE_CODE 580
+#define SIP_PRECONDITION_FAILURE_TEXT "Precondition Failure"
 
 #define SIP_6XX_CLASS_CODE 600
 
 #define SIP_GLOBAL_BUSY_CODE 600
 #define SIP_GLOBAL_BUSY_TEXT "Busy Everywhere"
 
+#define SIP_DOESNT_EXIST_ANYWHERE_CODE 604
+#define SIP_DOESNT_EXIST_ANYWHERE_TEXT "Does Not Exist Anywhere"
+
 #define SIP_DECLINE_CODE 603
 #define SIP_DECLINE_TEXT "Declined"
+
+#define SIP_GLOBAL_NOT_ACCEPTABLE_CODE 606
+#define SIP_GLOBAL_NOT_ACCEPTABLE_TEXT "Not Acceptable"
+
+// there is no class 7 code, this is only end marker
+#define SIP_7XX_CLASS_CODE 700
 
 // Warning codes
 #define SIP_WARN_MEDIA_NAVAIL_CODE 304
@@ -467,10 +528,19 @@ public:
     void setCancelData(const char* fromAddress, const char* toAddress,
                        const char* callId,
                        int sequenceNumber = 1,
-                       const char* localContact=NULL);
+                       const char* localContact = NULL);
 
     void setCancelData(const SipMessage* inviteResponse,
                        const char* localContact=NULL);
+
+    void setPrackData(const char* fromAddress,
+                      const char* toAddress,
+                      const char* callId,
+                      int sequenceNumber = 1,
+                      int prackRSequenceNumber = 1,
+                      int prackCSequenceNumber = 1,
+                      const char* prackMethod = NULL,
+                      const char* localContact=NULL);
 
     void setInviteData(const char* fromAddress,
                        const char* toAddress,
@@ -649,11 +719,12 @@ public:
                     RTP_TRANSPORT transportTypes[],
                     int numRtpCodecs,
                     SdpCodec* rtpCodecs[],
-                    SdpSrtpParameters* srtpParams,
+                    const SdpSrtpParameters& srtpParams,
                     int videoBandwidth,
                     int videoFramerate,
                     const SipMessage* pRequest = NULL,
-                    const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP);
+                    const RTP_TRANSPORT rtpTransportOptions = RTP_TRANSPORT_UDP,
+                    UtlBoolean bLocalHold = FALSE);
 
     void setSecurityAttributes(const SIPXTACK_SECURITY_ATTRIBUTES* const pSecurity);
     SIPXTACK_SECURITY_ATTRIBUTES* const getSecurityAttributes() const { return mpSecurity; } 
@@ -813,6 +884,8 @@ public:
     void setCallIdField(const char* callId = NULL);
 
     void setCSeqField(int sequenceNumber, const char* method);
+    void setRSeqField(int sequenceNumber);
+    void setRAckField(int rsequenceNumber, int csequenceNumber, const char* method);
     void incrementCSeqNumber();
 
     void setFromField(const char* fromField);
@@ -851,6 +924,8 @@ public:
     void getToLabel(UtlString* toLabel) const;
 
     void getFromField(UtlString* fromField) const;
+
+    void getFromFieldTag(UtlString& fromTag) const;
 
     void getFromUri(UtlString* uri) const;
 
@@ -910,6 +985,8 @@ public:
 
     void getToField(UtlString* toField) const;
 
+    void getToFieldTag(UtlString& toTag) const;
+
     void getToUri(UtlString* uri) const;
 
     void getToUrl(Url& url) const;
@@ -924,8 +1001,10 @@ public:
     void getCallIdField(UtlString* callId) const;
     void getCallIdField(UtlString& callId) const;
 
-    UtlBoolean getCSeqField(int* sequenceNum, UtlString* sequenceMethod) const;
+    UtlBoolean getCSeqField(int* sequenceNum, UtlString* sequenceMethod = NULL) const;
     UtlBoolean getCSeqField(int& sequenceNum, UtlString& sequenceMethod) const;
+    UtlBoolean getRSeqField(int& rsequenceNum) const;
+    UtlBoolean getRAckField(int& rsequenceNum, int& csequenceNum, UtlString& sequenceMethod) const;
 
     UtlBoolean getRequireExtension(int extensionIndex, UtlString* extension) const;
 
@@ -943,7 +1022,7 @@ public:
 
     UtlBoolean getEventField(UtlString& eventField) const;
 
-    void setEventField(const char* eventField);
+    void setEventField(const char* eventField, const char* id = NULL);
 
     UtlBoolean getExpiresField(int* expiresInSeconds) const;
 
@@ -952,9 +1031,47 @@ public:
     UtlBoolean getRequestDisposition(int tokenIndex,
                                     UtlString* dispositionToken) const;
 
+    /**
+     * Sets Subscription-State header field value.
+     */
+    void setSubscriptionState(const UtlString& state,
+                              const UtlString& reason = NULL,
+                              int* expiresInSeconds = NULL,
+                              int* retryAfterSeconds = NULL);
+
+    /**
+    * Gets Subscription-State header field value.
+    *
+    * Default value of integer values is -1. String values
+    * will be empty if not present.
+    */
+    UtlBoolean getSubscriptionState(UtlString& state,
+                                    UtlString& reason,
+                                    int& expiresInSeconds,
+                                    int& retryAfterSeconds) const;
+
     UtlBoolean getSessionExpires(int* sessionExpiresSeconds, UtlString* refresher) const;
 
-    void setSessionExpires(int sessionExpiresSeconds);
+    /**
+     * Sets Session-Expires header field value. Setting generic parameters is not supported.
+     *
+     * @param sessionExpiresSeconds Value in seconds
+     * @param refresher "uas" or "uac"
+     */
+    void setSessionExpires(int sessionExpiresSeconds, const UtlString& refresher = NULL);
+
+    /**
+     * Sets the value of Min-SE header field used in session timers.
+     */
+    void setMinSe(int minSe);
+
+    /**
+     * Gets the value of Min-SE header field used in session timers.
+     */
+    UtlBoolean getMinSe(int& minSe) const;
+
+    /** Sets value of Retry-After field. */
+    void setRetryAfterField(int periodSeconds);
 
     UtlBoolean getSupportedField(UtlString& supportedField) const;
 
@@ -1061,6 +1178,10 @@ public:
 
     UtlBoolean getReferToField(UtlString& referToField) const;
 
+    UtlBoolean getReferSubField(UtlBoolean& referSubField) const;
+
+    void setReferSubField(UtlBoolean referSubField);
+
     void setReferredByField(const char* referredByField);
 
     UtlBoolean getReferredByField(UtlString& referredByField) const;
@@ -1071,6 +1192,9 @@ public:
     void setAllowField(const char* referToField);
 
     UtlBoolean getAllowField(UtlString& referToField) const;
+
+    /** Sets Replaces field, used in INVITE */
+    void setReplacesField(const char* replacesField);
 
     UtlBoolean getReplacesData(UtlString& callId,
                               UtlString& toTag,
@@ -1088,9 +1212,40 @@ public:
     // RFC 3326 REASON-header
     void setReasonField(const char* reasonField);
 
+    /**
+     * Sets RFC 3326 REASON header. Only 1 reason can be specified.
+     * Example:
+     * Reason: SIP ;cause=200 ;text="Call completed elsewhere"
+     */
+    void setReasonField(const UtlString& protocol, int cause, const UtlString& text);
+
+    /** Gets value of whole unparsed Reason: field.*/
     UtlBoolean getReasonField(UtlString& reasonField) const;
 
-	
+    /** 
+     * Gets protocol, first cause and text values from Reason: header field.
+     * Example:
+     * Reason: SIP ;cause=600 ;text="Busy Everywhere"
+     *
+     * @param index - index of the "reason-value" from RFC3326 to parse. Normally 0 can be used.
+     */
+    UtlBoolean getReasonField(int index, UtlString& protocol, int& cause, UtlString& text) const;
+
+    /**
+     * Gets values of Join header field - call-id, from tag, to tag
+     * Example:
+     * Join: 12adf2f34456gs5;to-tag=12345;from-tag=54321
+     */
+    UtlBoolean getJoinField(UtlString& sipCallId, UtlString& fromTag, UtlString& toTag) const;
+
+    /** Gets value of whole unparsed Join: field.*/
+    UtlBoolean getJoinField(UtlString& joinField) const;
+
+    /**
+    * Sets value of Join header field - call-id, from tag, to tag
+    */
+    void setJoinField(const UtlString& sipCallId, const UtlString& fromTag, const UtlString& toTag);
+
     // Diversion-header
     void addDiversionField(const char* addr, const char* reasonParam,
     								UtlBoolean afterOtherDiversions=FALSE);
@@ -1159,7 +1314,55 @@ public:
     //! as opposed to a request.
     UtlBoolean isResponse() const;
 
+    /** TRUE for 100rel responses */
+    UtlBoolean is100RelResponse() const;
+
     UtlBoolean isRequest() const;
+
+    /** TRUE if this message is PRACK request */
+    UtlBoolean isPrackRequest() const;
+
+    /** TRUE if this message is INVITE request */
+    UtlBoolean isInviteRequest() const;
+
+    /** TRUE if this message is CANCEL request */
+    UtlBoolean isCancelRequest() const;
+
+    /** TRUE if this message is BYE request */
+    UtlBoolean isByeRequest() const;
+
+    /** TRUE if this message is OPTIONS request */
+    UtlBoolean isOptionsRequest() const;
+
+    /** TRUE if this message is REFER request */
+    UtlBoolean isReferRequest() const;
+
+    /** TRUE if this message is UPDATE request */
+    UtlBoolean isUpdateRequest() const;
+
+    /** TRUE if this message is INFO request */
+    UtlBoolean isInfoRequest() const;
+
+    /** TRUE if this message is SUBSCRIBE request */
+    UtlBoolean isSubscribeRequest() const;
+
+    /** TRUE if this message is NOTIFY request */
+    UtlBoolean isNotifyRequest() const;
+
+    /** TRUE if this message is REGISTER request */
+    UtlBoolean isRegisterRequest() const;
+
+    /** TRUE if this message is ACK request */
+    UtlBoolean isAckRequest() const;
+
+    /** TRUE if this message belongs to INVITE dialog usage */
+    UtlBoolean isInviteDialogUsage() const;
+
+    /** TRUE if this message belongs to SUBSCRIBE dialog usage */
+    UtlBoolean isSubscribeDialogUsage() const;
+
+    /** TRUE if this message is target refresh request or response */
+    UtlBoolean isTargetRefresh() const;
 
     //! @ Transaction and session related inquiry methods
     //@{
@@ -1201,7 +1404,7 @@ public:
     // ISmimeNotifySink implementations                               
     void OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause);
     bool OnSignature(void* pCert, char* szSubjAltName);        
-/* //////////////////////////// PROTECTED ///////////////////////////////// */
+    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */

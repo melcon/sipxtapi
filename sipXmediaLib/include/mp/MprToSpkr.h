@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _MprToSpkr_h_
 #define _MprToSpkr_h_
 
@@ -22,7 +21,6 @@
 #include "os/OsMsgQ.h"
 #include "mp/MpAudioResource.h"
 #include "mp/MpFlowGraphMsg.h"
-#include "mp/MpCodec.h"
 
 // DEFINES
 // MACROS
@@ -50,14 +48,7 @@ public:
    MprToSpkr(const UtlString& rName, int samplesPerFrame, int samplesPerSec, OsMsgQ *pEchoQ);
 
      /// Destructor
-   virtual
-   ~MprToSpkr();
-
-   // I had to increase this on Win/NT because of the bursty nature of
-   // the completion callbacks:  the waveOut operations send completion
-   // acknowledgements in bursts covering 60 to 100 msecs at once.  At
-   // 10 msec per buffer, this resulted in frequent starvation.
-   enum { MAX_SPKR_BUFFERS = 12 };
+   virtual ~MprToSpkr();
 
    typedef enum {
       ATTEN_LOUDEST = 0,    ///< 0 dB, no attenuation

@@ -76,6 +76,9 @@ public:
     static PID getCurrentPID();
     //: Returns the current process id.
 
+    /** Gets current thread id */
+    static TID getCurrentTID();
+
     virtual OsStatus getPriority(int &rPrio);
     //: Returns the process priority.  Must own the process for this to be legal.
 

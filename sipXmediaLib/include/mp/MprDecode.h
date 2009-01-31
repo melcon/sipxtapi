@@ -65,7 +65,7 @@ public:
 ///@name Manipulators
 //@{
 
-   OsStatus selectCodecs(SdpCodec* codecs[], int numCodecs);
+   OsStatus selectCodecs(const UtlSList& codecList);
 
    OsStatus selectCodec(SdpCodec& rCodec);
 
@@ -81,8 +81,8 @@ public:
 ///@name Accessors
 //@{
 
-     /// Returns a pointer to the JB instance, creating it if necessary
-   MpDecodeBuffer* getJBinst(UtlBoolean optional = FALSE);
+     /// Returns a pointer to decode buffer.
+   MpDecodeBuffer* getDecodeBuffer(UtlBoolean optional = FALSE);
      /**<
      *  If the instance has not been created, but the argument "optional" is
      *  TRUE, then do not create it, just return NULL.
@@ -118,18 +118,17 @@ private:
    unsigned int   sTimerCountIncrement;
    int          mMissedFrames;
    int            saveDebug;
-//   MpRtpBufPtr  mSavedRtp[MAX_PAYLOAD_TYPES];
-   MpDecodeBuffer* mpJB;            ///< Pointer to JitterBuffer instance
+   MpDecodeBuffer* m_pDecodeBuffer;            ///< Pointer to JitterBuffer instance
 
-   MprDejitter* m_pMyDejitter;
+   MprDejitter* m_pMyDejitter; ///< dejitter contains a jitter buffer for each codec
 
    /// List of the codecs to be used to decode media.
    /**
    *  Pointer to array of length mNumCurrentCodecs of MpDecoderBase*'s
    *  which represent the codecs, or NULL if mNumCurrentCodecs == 0.
    */
-   MpDecoderBase** mpCurrentCodecs;
-   int             mNumCurrentCodecs; ///< Length of mpCurrentCodecs array.
+   MpDecoderBase** m_pCurrentDecoders;
+   int             m_nCurrentDecoders; ///< Length of mpCurrentCodecs array.
 
    /// Similar list of all codecs that have ever been listed on mpCurrentCodecs.
    MpDecoderBase** mpPrevCodecs;

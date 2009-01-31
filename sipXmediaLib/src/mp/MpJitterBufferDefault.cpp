@@ -64,14 +64,16 @@ static void appendToFile(const char* fileName, const char* text)
 
 MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
                                          int payloadType,
-                                         unsigned int frameSize,
+                                         unsigned int samplesPerFrame,
                                          bool bUsePrefetch,
                                          unsigned int initialPrefetchCount,
+                                         unsigned int minPrefetchCount,
+                                         unsigned int maxPrefetchCount,
                                          bool bDoPLC,
                                          unsigned int maxConcealedFrames,
                                          bool bAutodetectPtime,
                                          unsigned int ptime)
-: MpJitterBufferBase(name, payloadType, frameSize)
+: MpJitterBufferBase(name, payloadType, samplesPerFrame)
 , m_bUsePrefetch(bUsePrefetch)
 , m_lastSSRC(0)
 , m_bFirstFrame(true)
@@ -80,9 +82,11 @@ MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
 , m_lastPushed(0)
 , m_lastPulled(0)
 , m_expectedTimestamp(0)
-, m_prefetchCount(initialPrefetchCount)
+, m_prefetchCount(min(initialPrefetchCount, MAX_RTP_PACKETS))
 , m_bPrefetchMode(true)
 , m_internalClock(0)
+, m_minPrefetchCount(min(minPrefetchCount, MAX_RTP_PACKETS))
+, m_maxPrefetchCount(min(maxPrefetchCount, MAX_RTP_PACKETS))
 , m_iPLCCounter(0)
 , m_bDoPLC(bDoPLC)
 , m_iMaxConcealedFrames(maxConcealedFrames)
@@ -93,19 +97,18 @@ MpJitterBufferDefault::MpJitterBufferDefault(const UtlString& name,
 #ifdef PRINT_STATISTICS
    enableConsoleOutput(TRUE);
 #endif
-   if (m_prefetchCount < MIN_PREFETCH_COUNT)
+   if (m_prefetchCount < m_minPrefetchCount)
    {
-      m_prefetchCount = MIN_PREFETCH_COUNT;
+      m_prefetchCount = m_minPrefetchCount;
    }
    if (!bDoPLC && bAutodetectPtime)
    {
       // if PLC is not enabled, disable ptime autodetection and assume ptime is equal to
       // sipxmedialib internal audio frame size
       bAutodetectPtime = false;
-      m_pTime = frameSize;
-      m_initialPTime = frameSize;
+      m_pTime = samplesPerFrame;
+      m_initialPTime = samplesPerFrame;
    }
-   
 }
 
 MpJitterBufferDefault::~MpJitterBufferDefault()
@@ -147,13 +150,13 @@ void MpJitterBufferDefault::frameIncrement()
    if (!m_bPrefetchMode || !m_bUsePrefetch)
    {
       // wrap around is done automatically for unsigned
-      m_expectedTimestamp = m_expectedTimestamp + m_frameSize;
+      m_expectedTimestamp = m_expectedTimestamp + m_samplesPerFrame;
    }
    // if in prefetch mode, we can't increment timestamp, as it could cause us to skip
    // whole prefetch buffer. If prefetch is disabled, always increment
 
    // always advance internal clock
-   m_internalClock = m_internalClock + m_frameSize;
+   m_internalClock = m_internalClock + m_samplesPerFrame;
 }
 
 JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
@@ -208,7 +211,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
    // we will start pulling just after the last pull
    int iNextPull = (m_lastPulled + 1) % MAX_RTP_PACKETS;
    int secondCandidate = -1;
-   RtpTimestamp frameSizeHalf = m_frameSize / 2;
+   RtpTimestamp frameSizeHalf = m_samplesPerFrame / 2;
 
    for (int i = 0; i < MAX_RTP_PACKETS; i++)
    {
@@ -299,7 +302,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
                pOutRtp = m_pPLC.clone();
                // Make sure we does not have copy of this buffer left in other threads.
                pOutRtp.requestWrite();
-               return MP_JITTER_BUFFER_OK;
+               return MP_JITTER_BUFFER_PLC;
             }
             else
             {
@@ -320,7 +323,7 @@ JitterBufferResult MpJitterBufferDefault::pull(MpRtpBufPtr &pOutRtp)
       pOutRtp.requestWrite();
 
       m_bufferLength--;
-      return MP_JITTER_BUFFER_OK;
+      return MP_JITTER_BUFFER_FRAME_SKIP;
    }
    
    // we didn't find any suitable frame :(
@@ -488,13 +491,13 @@ int MpJitterBufferDefault::getOptimalPrefetchCount(unsigned int maxAnalyzeFrames
       varX = varX / framesToAnalyze;
 
       double maxProbability = 0.09f;
-      int epsilon = (int)ceil(sqrt(varX / maxProbability) / m_frameSize); // round up
+      int epsilon = (int)ceil(sqrt(varX / maxProbability) / m_samplesPerFrame); // round up
 
       // now probability that we need higher prefetch count than epsilon is lower than maxProbability
-      return min(max(epsilon, MIN_PREFETCH_COUNT), MAX_PREFETCH_COUNT);
+      return min(max(epsilon, m_minPrefetchCount), m_maxPrefetchCount);
    }
    else
-   return MIN_PREFETCH_COUNT;
+   return m_minPrefetchCount;
 }
 
 void MpJitterBufferDefault::updateArrivalDiffs(const MpRtpBufPtr &pRtp)
@@ -519,7 +522,7 @@ void MpJitterBufferDefault::initJitterBuffer(const MpRtpBufPtr &pRtp)
    WRAP_NUMBER(m_lastPulled, MAX_RTP_PACKETS);
    // these 2 wrap around correctly automatically, since they are unsigned
    m_lastSeqNumber = pRtp->getRtpSequenceNumber() - 1;
-   m_expectedTimestamp = pRtp->getRtpTimestamp() - m_frameSize;
+   m_expectedTimestamp = pRtp->getRtpTimestamp() - m_samplesPerFrame;
    m_internalClock = pRtp->getRtpTimestamp();
 }
 

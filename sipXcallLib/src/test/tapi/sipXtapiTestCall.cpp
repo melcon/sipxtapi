@@ -11,6 +11,7 @@
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
+#include <cp/state/BaseSipConnectionState.h>
 #include "sipXtapiTest.h"
 #include "tapi/SipXCore.h"
 #include "tapi/SipXConfig.h"
@@ -96,7 +97,7 @@ void sipXtapiTestSuite::testCallGetID()
 
       // SIP CallId of unconnected call must be empty
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetID(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetSipCallId(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 0);
 
       destroyCall(hLine, hCall);
@@ -112,11 +113,11 @@ void sipXtapiTestSuite::testCallGetID()
 
       // SIP CallId of connected call must be non empty
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetID(hCallingCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetSipCallId(hCallingCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) > 0);
 
       memset(cBuf, ' ', sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetID(hCallingCall, cBuf, 4), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetSipCallId(hCallingCall, cBuf, 4), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 3);
       CPPUNIT_ASSERT(cBuf[5] == ' ');
 
@@ -161,7 +162,7 @@ void sipXtapiTestSuite::testCallRapidCallAndHangup()
          OsTask::delay(CALL_DELAY*6);
       }
       sessionCallIdList.destroyAll(); // empty the list
-      sipxGetAllCallIds(g_hInst1, sessionCallIdList);
+      sipxGetAllAbstractCallIds(g_hInst1, sessionCallIdList);
       nCallManagerCalls = sessionCallIdList.entries();
       printf("\ntestCallRapidCallAndHangup %d calls are still alive, waiting for shutdown...", nCallManagerCalls);
    } while(nCallManagerCalls > 0 && attempt++ < maxAttepmpts);
@@ -226,14 +227,14 @@ void sipXtapiTestSuite::testCallGetRemoteID()
       bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
       CPPUNIT_ASSERT(bRC);
 
-      // Test sipxCallGetRemoteID
+      // Test sipxCallGetRemoteField
       char cBuf[128];
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL( sipxCallGetRemoteID(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL( sipxCallGetRemoteField(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) > 0);
 
       memset(cBuf, ' ', sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetRemoteID(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetRemoteField(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 3);
       CPPUNIT_ASSERT(cBuf[5] == ' ');
 
@@ -280,11 +281,11 @@ void sipXtapiTestSuite::testCallGetLocalID()
       char cBuf[128];
 
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalID(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalField(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) > 0);
 
       memset(cBuf, ' ', sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalID(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalField(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 3);
       CPPUNIT_ASSERT(cBuf[5] == ' ');
 
@@ -428,7 +429,7 @@ void sipXtapiTestSuite::doCallBasic(SIPX_INST              hCallingInst,
    */
    int connectionId = -1;
 
-   rc = sipxCallGetConnectionId(hCall, &connectionId);
+   rc = sipxCallGetMediaConnectionId(hCall, &connectionId);
    CPPUNIT_ASSERT(rc == SIPX_RESULT_SUCCESS);
    CPPUNIT_ASSERT(connectionId != -1);
 
@@ -700,7 +701,7 @@ void sipXtapiTestSuite::testCallDestroyRinging()
 
       int connectionId = -1;
 
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(connectionId != -1);
 
       OsTask::delay(50); // small delay before destroying call
@@ -1635,7 +1636,7 @@ void sipXtapiTestSuite::testCallShutdown()
 
    int connectionId = -1;
 
-   CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+   CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
    CPPUNIT_ASSERT(connectionId != -1);
 
    CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst1, UniversalEventValidatorCallback, &validatorCalling), SIPX_RESULT_SUCCESS);
@@ -1978,7 +1979,7 @@ void sipXtapiTestSuite::testSendInfo()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
 
       validatorCalling.reset();
       validatorCalling.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
@@ -2026,18 +2027,20 @@ void sipXtapiTestSuite::testSendInfo()
 
       // Send Info
       UtlString payload("abc");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       // Send Another Info
       payload = "soylent green is people!";
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)70;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -2084,7 +2087,7 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
 
       validatorCalling.reset();
       validatorCalling.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
@@ -2128,7 +2131,7 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
          {
             options.contactId = aAddress[j].id;
 
-            sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100", NULL, NULL, TRUE, &options);
+            sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100", NULL, NULL, SIPX_FOCUS_MANUAL, &options);
             break;
          }
       }
@@ -2157,18 +2160,20 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
 
       // Send Info
       UtlString payload("abc");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       // Send Another Info
       payload = "soylent green is people!";
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 0, 200, "OK");
+      pCookie = (void*)70;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
       CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "sip:foo@127.0.0.1:9100", "sipXtapiTest", "text/plain", payload, payload.length());
+      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -2218,7 +2223,7 @@ void sipXtapiTestSuite::testSendInfoFailure()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
 
       validatorCalling.reset();
       validatorCalling.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
@@ -2266,8 +2271,9 @@ void sipXtapiTestSuite::testSendInfoFailure()
 
       // Send Info
       UtlString payload("the answer is 42");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 2, 501, "Not Implemented");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 2, 501, "Not Implemented");
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -2304,7 +2310,7 @@ void sipXtapiTestSuite::testSendInfoTimeout()
 {
    // TEST HACK: now set the response code for testing
    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) g_hInst2;
-   pInst->pMessageObserver->setTestResponseCode(408);
+   BaseSipConnectionState::setInfoTestResponseCode(408);
 
    EventValidator validatorCalling("testSendInfoTimeout.calling");
    EventValidator validatorCalled("testSendInfoTimeout.called");
@@ -2315,7 +2321,7 @@ void sipXtapiTestSuite::testSendInfoTimeout()
       SIPX_CALL hCall;
       SIPX_LINE hLine;
       SIPX_LINE hReceivingLine;
-      SIPX_INFO hInfo;
+      void* pCookie = NULL;
       bool bRC;
 
       validatorCalling.reset();
@@ -2364,8 +2370,9 @@ void sipXtapiTestSuite::testSendInfoTimeout()
 
       // Send Info
       UtlString payload("the answer is 42");
-      sipxCallSendInfo(&hInfo, hCall, "text/plain", payload, payload.length());
-      bRC = validatorCalling.waitForInfoStatusEvent(hInfo, 1, 408, "timed out");
+      pCookie = (void*)50;
+      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
+      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 1, 408, "timed out");
       CPPUNIT_ASSERT(bRC);
 
       SIPX_CALL hDestroyedCall = hCall;
@@ -2393,7 +2400,7 @@ void sipXtapiTestSuite::testSendInfoTimeout()
    OsTask::delay(TEST_DELAY);
 
    // TEST HACK: Reset changes
-   pInst->pMessageObserver->setTestResponseCode(0);
+   BaseSipConnectionState::setInfoTestResponseCode(0);
 
    checkForLeaks();
 }
@@ -2632,7 +2639,7 @@ CPPUNIT_ASSERT(bRC);
 
 int connectionId = -1;
 
-CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
+CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
 CPPUNIT_ASSERT(connectionId != -1);
 
 SIPX_CALL hDestroyedCall = hCall;
@@ -2985,7 +2992,7 @@ CPPUNIT_ASSERT(bRC);
 
 int connectionId = -1;
 
-CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
+CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
 CPPUNIT_ASSERT(connectionId != -1);
 
 SIPX_CALL hDestroyedCall = hCall;
@@ -3094,7 +3101,7 @@ CPPUNIT_ASSERT(bRC);
 
 int connectionId = -1;
 
-CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
+CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
 CPPUNIT_ASSERT(connectionId != -1);
 
 SIPX_CALL hDestroyedCall = hCall;

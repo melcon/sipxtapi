@@ -41,15 +41,13 @@ const UtlContainableType SipLine::TYPE = "SipLine";
 //////////////////////////////////////////////////////////////////////
 
 SipLine::SipLine(const Url& fullLineUrl,
-                 LineStates state)
+                 LineStateEnum state)
 {
-   m_fullLineUrl = SipLine::getFullLineUrl(fullLineUrl);
+   m_fullLineUrl = SipLine::buildFullLineUrl(fullLineUrl);
    //then get uri from user entered url ...uri is complete in it
    m_lineUri = SipLine::getLineUri(fullLineUrl);
    m_currentState = state;
 
-   // create new Line Id for this line
-   generateLineID(m_lineId);
    // build default contact
    m_preferredContactUri = buildLineContact();
 }
@@ -74,7 +72,6 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
       m_lineUri = rSipLine.m_lineUri;
       m_fullLineUrl = rSipLine.m_fullLineUrl;
       m_currentState = rSipLine.m_currentState;
-      m_lineId = rSipLine.m_lineId;
       m_preferredContactUri = rSipLine.m_preferredContactUri;
       copyCredentials(rSipLine);
    }
@@ -102,17 +99,12 @@ void SipLine::copyCredentials(const SipLine &rSipLine)
    }
 }
 
-UtlString SipLine::getLineId() const
-{
-   return m_lineId;
-}
-
-SipLine::LineStates SipLine::getState() const
+SipLine::LineStateEnum SipLine::getState() const
 {
     return m_currentState;
 }
 
-void SipLine::setState(SipLine::LineStates state)
+void SipLine::setState(SipLine::LineStateEnum state)
 {
     m_currentState = state;
 }
@@ -241,14 +233,6 @@ UtlBoolean SipLine::realmExists(const UtlString& realm) const
    return credential != NULL;
 }
 
-void SipLine::generateLineID(UtlString& lineId)
-{
-   lineId = NetMd5Codec::encode(m_lineUri.toString());
-
-   // Shorten the line Ids to 12 chars (from 32)
-   lineId.remove(12);
-}
-
 Url SipLine::buildLineContact(const UtlString& address, int port)
 {
    Url contactUrl(m_fullLineUrl);
@@ -260,7 +244,6 @@ Url SipLine::buildLineContact(const UtlString& address, int port)
    }
    contactUrl.setPassword(NULL);
    contactUrl.setPath(NULL);
-   contactUrl.setUrlParameter(SIP_LINE_IDENTIFIER, m_lineId);
    contactUrl.includeAngleBrackets();
 
    return contactUrl;
@@ -314,7 +297,9 @@ Url SipLine::getLineUri(const Url& url)
    lineUri.setDisplayName(NULL);
    if (lineUri.getScheme() == Url::SipsUrlScheme)
    {
-      lineUri.setScheme(Url::SipUrlScheme); // override scheme, we want sip and sips lines to be equivalent
+      // override scheme, we want sip and sips lines to be equivalent
+      // this is only used for line lookup, and doesn't violate security
+      lineUri.setScheme(Url::SipUrlScheme);
    }
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
@@ -329,7 +314,9 @@ Url SipLine::getLineUri(const UtlString& sUrl)
    lineUri.setDisplayName(NULL);
    if (lineUri.getScheme() == Url::SipsUrlScheme)
    {
-      lineUri.setScheme(Url::SipUrlScheme); // override scheme, we want sip and sips lines to be equivalent
+      // override scheme, we want sip and sips lines to be equivalent
+      // this is only used for line lookup, and doesn't violate security
+      lineUri.setScheme(Url::SipUrlScheme);
    }
    lineUri.removeAngleBrackets();
    lineUri.removeParameters();
@@ -343,7 +330,7 @@ UtlBoolean SipLine::areLineUrisEqual(const Url& leftUri, const Url& rightUri)
    return leftUri.isUserHostEqual(rightUri);
 }
 
-Url SipLine::getFullLineUrl(const Url& url)
+Url SipLine::buildFullLineUrl(const Url& url)
 {
    Url fullLineUrl(url.toString());
    fullLineUrl.includeAngleBrackets();
@@ -352,7 +339,7 @@ Url SipLine::getFullLineUrl(const Url& url)
    return fullLineUrl;
 }
 
-Url SipLine::getFullLineUrl(const UtlString& sUrl)
+Url SipLine::buildFullLineUrl(const UtlString& sUrl)
 {
    Url fullLineUrl(sUrl);
    fullLineUrl.includeAngleBrackets();
@@ -371,3 +358,41 @@ void SipLine::setProxyServers(const UtlString& proxyServers)
    m_proxyServers = proxyServers;
 }
 
+const char* SipLine::convertLineStateToString(LineStateEnum lineState)
+{
+   const char* str = "Unknown";
+
+   switch (lineState)
+   {
+   case LINE_STATE_UNKNOWN:
+      str = MAKESTR(LINE_STATE_UNKNOWN);
+      break;
+   case LINE_STATE_REGISTERED:
+      str = MAKESTR(LINE_STATE_REGISTERED);
+      break;
+   case LINE_STATE_DISABLED:
+      str = MAKESTR(LINE_STATE_DISABLED);
+      break;
+   case LINE_STATE_FAILED:
+      str = MAKESTR(LINE_STATE_FAILED);
+      break;
+   case LINE_STATE_PROVISIONED:
+      str = MAKESTR(LINE_STATE_PROVISIONED);
+      break;
+   case LINE_STATE_TRYING:
+      str = MAKESTR(LINE_STATE_TRYING);
+      break;
+   case LINE_STATE_EXPIRED:
+      str = MAKESTR(LINE_STATE_EXPIRED);
+      break;
+   default:
+      break;
+   }
+
+   return str;
+}
+
+UtlString SipLine::getStateAsString() const
+{
+   return SipLine::convertLineStateToString(m_currentState);
+}

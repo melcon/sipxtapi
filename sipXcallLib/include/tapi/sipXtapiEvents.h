@@ -239,6 +239,8 @@ typedef enum SIPX_CALLSTATE_EVENT
    CALLSTATE_TRANSFER_EVENT   = 12000, /**< The transfer state indicates a state change in a 
                                        transfer attempt.  Please see the CALLSTATE_TRANSFER_EVENT cause 
                                        codes for details on each state transition */
+   CALLSTATE_QUEUED          = 13000,/**< inbound Call has been queued - is awaiting processing. */
+   CALLSTATE_REMOTE_QUEUED   = 14000, /**< Outbound call has been put into queued state by remote party. */
 } SIPX_CALLSTATE_EVENT;
 
  
@@ -322,6 +324,9 @@ typedef enum SIPX_CALLSTATE_CAUSE
                                                     is part of a transfer. */
    CALLSTATE_CAUSE_CANCEL,        /**< The event was fired in response to a cancel
                                        attempt from the remote party */
+   CALLSTATE_CAUSE_CLIENT_ERROR,/**< Result of unknown 4xx response */
+   CALLSTATE_CAUSE_SERVER_ERROR,/**< Result of unknown 5xx response */
+   CALLSTATE_CAUSE_GLOBAL_ERROR,/**< Result of unknown 6xx response */
 } SIPX_CALLSTATE_CAUSE;
 
 /**
@@ -675,8 +680,7 @@ typedef struct
     SIPX_CALL           hCall;     /**< Associate call (or SIPX_CALL_NULL if 
                                          not associated with a call). */
     SIPX_CODEC_INFO     codec;     /**< Negotiated codec; only supplied on 
-                                         MEDIA_LOCAL_START and MEDIA_REMOTE_START
-                                         events. */
+                                         MEDIA_LOCAL_START. */
     int                 idleTime;   /**< Idle time (ms) for SILENT events; only 
                                          supplied on MEDIA_REMOTE_SILENT 
                                          events. */
@@ -723,6 +727,8 @@ typedef struct
                                          original call. */
     int sipResponseCode;           ///< SIP response text if available
     const char* szSipResponseText; ///< SIP response text if available
+    const char* szReferredBy; ///< value of Referred-By for transferee side of call transfer
+    const char* szReferTo; ///< value of Refer-To for transferee side of call transfer
 } SIPX_CALLSTATE_INFO; 
 
 
@@ -775,20 +781,20 @@ typedef enum
 typedef struct
 {
     size_t              nSize;             /**< the size of this structure in bytes */
-    SIPX_INFO           hInfo;             /**< the handle used to make the outbound info request. */ 
-    SIPX_MESSAGE_STATUS status;            /**< Emumerated status for this
-                                                 request acknowledgement. */
-    int                 responseCode;      /**< Numerical status code for this
-                                                 request acknowledgement. */
+    SIPX_CALL   hCall;                     /**< Call handle if available */
+    SIPX_LINE   hLine;                     /**< Line handle if available */
+    SIPX_MESSAGE_STATUS status;            /**< Emumerated status for this request acknowledgement. */
+    int                 responseCode;      /**< Numerical status code for this request acknowledgement. */
     const char*         szResponseText;    /**< The text of the request acknowledgement. */
     SIPX_INFOSTATUS_EVENT event;            /**< Event code for this INFO STATUS message */
+    void* pCookie;                          /**< Cookie value passed when sending INFO */
 } SIPX_INFOSTATUS_INFO;
 
 
 /**
  * An INFO event signals the application layer that an INFO message
  * was sent to this user agent.  If the INFO message was sent to a 
- * call context (session) hCall will desiginate the call session. 
+ * call context (session) hCall will designate the call session. 
  *
  * This information is passed as part of the sipXtapi callback mechanism.  
  * Based on the SIPX_EVENT_CATEGORY, the application developer should cast the
@@ -802,9 +808,7 @@ typedef struct
     size_t      nSize;             /**< Size of structure */
     SIPX_CALL   hCall;             /**< Call handle if available */
     SIPX_LINE   hLine;             /**< Line handle if available */
-    const char* szFromURL;         /**< the URL of the host that originated
-                                         the INFO message */
-    const char* szUserAgent;        /**< the User Agent string of the source agent */
+
     const char* szContentType;     /**< string indicating the info content type */
     const char* pContent;          /**< pointer to the INFO message content */
     size_t      nContentLength;    /**< length of the INFO message content */
@@ -877,7 +881,7 @@ typedef struct
     const char* szNotiferUserAgent;/**< The User-Agent header field value from
                                         the SIP NOTIFY response (may be NULL) */
     const char* szContentType;     /**< String indicating the info content type */     
-    const void* pContent;          /**< Pointer to the NOTIFY message content */
+    const char* pContent;          /**< Pointer to the NOTIFY message content */
     size_t      nContentLength;    /**< Length of the NOTIFY message content in bytes */
 } SIPX_NOTIFY_INFO;
 

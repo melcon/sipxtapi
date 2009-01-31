@@ -2,19 +2,14 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="sipXsdpLib-msvc8"
+	Name="sipXsdpLib-msvc9"
 	ProjectGUID="{E1D81EA9-4AC3-4CF5-B600-090FD822B1F6}"
 	RootNamespace="sipXsdpLib-msvc8"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
 			Name="Win32"
-		/>
-		<Platform
-			Name="Windows Mobile 5.0 Pocket PC SDK (ARMV4I)"
-		/>
-		<Platform
-			Name="SDK1_emu (ARMV4I)"
 		/>
 	</Platforms>
 	<ToolFiles>
@@ -49,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="_DEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="true"
@@ -127,7 +122,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -175,9 +170,9 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)"
-			OutputDirectory=".\Debug_Mobile5"
-			IntermediateDirectory=".\Debug_Mobile5\intlib"
+			Name="Debug-IPP|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -198,370 +193,13 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TargetEnvironment="1"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				ExecutionBucket="7"
 				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\;..\sipXportLib\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;SIPX_CONFDIR=\&quot;.\&quot;;SIPX_LOGDIR=\&quot;.\&quot;;WINCE;$(ARCHFAM);$(_ARCHFAM_);_WIN32_WCE=$(CEVER);UNDER_CE"
-				MinimalRebuild="true"
-				RuntimeLibrary="1"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=""
-				AssemblerListingLocation="$(IntDir)\"
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\"
-				BrowseInformation="1"
-				BrowseInformationFile="$(IntDir)\"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-				ForcedIncludeFiles="os/wince/wincefixups.h"
-				InterworkCalls="true"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXsdpLib.lib"
-				SuppressStartupBanner="true"
-				IgnoreDefaultLibraryNames="msvcrt.lib"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCCodeSignTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-			<DeploymentTool
-				ForceDirty="-1"
-				RemoteDirectory=""
-				RegisterOutput="0"
-				AdditionalFiles=""
-			/>
-			<DebuggerTool
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Windows Mobile 5.0 Pocket PC SDK (ARMV4I)"
-			OutputDirectory=".\Release_Mobile5"
-			IntermediateDirectory=".\Release_Mobile5\intlib"
-			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="1"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				ExecutionBucket="7"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include;include\glib;..\sipXportLib\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WINCE;$(ARCHFAM);$(_ARCHFAM_);_WIN32_WCE=$(CEVER);UNDER_CE"
-				StringPooling="true"
-				MinimalRebuild="true"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=""
-				AssemblerListingLocation="$(IntDir)\"
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-				ForcedIncludeFiles="os/WinCE/wincefixups.h"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXsdpLib.lib"
-				SuppressStartupBanner="true"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCCodeSignTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-			<DeploymentTool
-				ForceDirty="-1"
-				RemoteDirectory=""
-				RegisterOutput="0"
-				AdditionalFiles=""
-			/>
-			<DebuggerTool
-			/>
-		</Configuration>
-		<Configuration
-			Name="Debug|SDK1_emu (ARMV4I)"
-			OutputDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
-			IntermediateDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
-			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="1"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				ExecutionBucket="7"
-				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\;..\sipXportLib\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;SIPX_CONFDIR=\&quot;.\&quot;;SIPX_LOGDIR=\&quot;.\&quot;;WINCE;$(ARCHFAM);$(_ARCHFAM_);_WIN32_WCE=$(CEVER);UNDER_CE"
-				RuntimeLibrary="1"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=""
-				AssemblerListingLocation="$(IntDir)\"
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\"
-				BrowseInformation="1"
-				BrowseInformationFile="$(IntDir)\"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-				ForcedIncludeFiles="os/wince/wincefixups.h"
-				InterworkCalls="true"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXsdpLib.lib"
-				SuppressStartupBanner="true"
-				IgnoreDefaultLibraryNames="msvcrt.lib"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCCodeSignTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-			<DeploymentTool
-				ForceDirty="-1"
-				RemoteDirectory=""
-				RegisterOutput="0"
-				AdditionalFiles=""
-			/>
-			<DebuggerTool
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|SDK1_emu (ARMV4I)"
-			OutputDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
-			IntermediateDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
-			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="1"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				ExecutionBucket="7"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include;include\glib;..\sipXportLib\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WINCE;$(ARCHFAM);$(_ARCHFAM_);_WIN32_WCE=$(CEVER);UNDER_CE"
-				StringPooling="true"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile=""
-				AssemblerListingLocation="$(IntDir)\"
-				ObjectFile="$(IntDir)\"
-				ProgramDataBaseFileName="$(IntDir)\"
-				WarningLevel="3"
-				SuppressStartupBanner="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-				ForcedIncludeFiles="os/WinCE/wincefixups.h"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXsdpLib.lib"
-				SuppressStartupBanner="true"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCCodeSignTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-			<DeploymentTool
-				ForceDirty="-1"
-				RemoteDirectory=""
-				RegisterOutput="0"
-				AdditionalFiles=""
-			/>
-			<DebuggerTool
-			/>
-		</Configuration>
-		<Configuration
-			Name="SSL-Debug|SDK1_emu (ARMV4I)"
-			OutputDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
-			IntermediateDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
-			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="1"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				ExecutionBucket="7"
-				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXStackLib\include;..\sipXportLib\include;..\resiprocateLib\resiprocate\contrib\OpenSSL\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;DISABLE_MEM_POOLS"
+				AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\"
+				PreprocessorDefinitions="_DEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
@@ -572,6 +210,7 @@
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="4"
 				CompileAs="0"
 			/>
 			<Tool
@@ -589,7 +228,7 @@
 				Name="VCLibrarianTool"
 				OutputFile=".\Debug\sipXsdpLib.lib"
 				SuppressStartupBanner="true"
-				IgnoreDefaultLibraryNames="msvcprtd.lib"
+				IgnoreDefaultLibraryNames="msvcrt.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -601,24 +240,16 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCCodeSignTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
 			/>
-			<DeploymentTool
-				ForceDirty="-1"
-				RemoteDirectory=""
-				RegisterOutput="0"
-				AdditionalFiles=""
-			/>
-			<DebuggerTool
-			/>
 		</Configuration>
 		<Configuration
-			Name="SSL-Release|SDK1_emu (ARMV4I)"
-			OutputDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
-			IntermediateDirectory="SDK1_emu (ARMV4I)\$(ConfigurationName)"
+			Name="Release-IPP|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -639,15 +270,13 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TargetEnvironment="1"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				ExecutionBucket="7"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include,include\glib;..\resiprocateLib\resiprocate\contrib\OpenSSL\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;DISABLE_MEM_POOLS"
+				AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\"
+				PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -659,6 +288,7 @@
 				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
 			<Tool
@@ -687,18 +317,10 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCCodeSignTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-			/>
-			<DeploymentTool
-				ForceDirty="-1"
-				RemoteDirectory=""
-				RegisterOutput="0"
-				AdditionalFiles=""
-			/>
-			<DebuggerTool
 			/>
 		</Configuration>
 	</Configurations>
@@ -723,6 +345,14 @@
 			</File>
 			<File
 				RelativePath="src\sdp\SdpCodec.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\sdp\SdpCodecFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\sdp\SdpCodecList.cpp"
 				>
 			</File>
 			<File
@@ -752,6 +382,14 @@
 			</File>
 			<File
 				RelativePath="include\sdp\SdpCodec.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\sdp\SdpCodecFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\sdp\SdpCodecList.h"
 				>
 			</File>
 			<File

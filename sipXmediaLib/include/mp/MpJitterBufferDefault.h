@@ -43,11 +43,11 @@ public:
 
    enum
    {
-      MAX_RTP_PACKETS = 64,  ///< MUST BE A POWER OF 2, AND SHOULD BE >3
+      MAX_RTP_PACKETS = 32,  ///< MUST BE A POWER OF 2, AND SHOULD BE >3
       MAX_STATISTICS_SAMPLES = 500,
       FEW_STATISTICS_SAMPLES = 10,
-      MIN_PREFETCH_COUNT = 8,
-      MAX_PREFETCH_COUNT = 30
+      DEFAULT_MIN_PREFETCH_COUNT = 6, // for 20ms frames, 120ms latency
+      DEFAULT_MAX_PREFETCH_COUNT = 20 // for 20ms frames, 400ms latency
    };
 
    /* ============================ CREATORS ================================== */
@@ -55,10 +55,12 @@ public:
    //@{
 
    MpJitterBufferDefault(const UtlString& name,
-      int payloadType,
-      unsigned int frameSize, // size of our internal frames
+      int payloadType,// codec payload id used in RTP
+      unsigned int samplesPerFrame, // size of our internal frame in samples, 80 by default
       bool bUsePrefetch = true,
-      unsigned int initialPrefetchCount = 6,
+      unsigned int initialPrefetchCount = DEFAULT_MIN_PREFETCH_COUNT,
+      unsigned int minPrefetchCount = DEFAULT_MIN_PREFETCH_COUNT,
+      unsigned int maxPrefetchCount = DEFAULT_MAX_PREFETCH_COUNT,
       bool bDoPLC = false,
       unsigned int maxConcealedFrames = 0,
       bool bAutodetectPtime = true,
@@ -159,6 +161,8 @@ private:
    int m_prefetchCount; ///< how many RTP frames we need to have before we allow pulling
    bool m_bPrefetchMode; ///< whether we allow pulling frames from jitter buffer, if true we don't
    bool m_bUsePrefetch; ///< whether prefetching is enabled. If disabled, we allow pulling at any time, used for DTMF
+   int m_minPrefetchCount; ///< minimum value for m_prefetchCount
+   int m_maxPrefetchCount; ///< maximum value for m_prefetchCount
 
    RtpTimestamp m_expectedTimestamp;   ///< expected timestamp for pull
    RtpSeq m_lastSeqNumber; ///< sequence number of last pulled frame

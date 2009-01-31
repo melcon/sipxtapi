@@ -11,16 +11,12 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _MpFlowGraphBase_h_
 #define _MpFlowGraphBase_h_
 
 // SYSTEM INCLUDES
-
-
 // APPLICATION INCLUDES
 #include <utl/UtlHashMap.h>
-
 #include "os/OsDefs.h"
 #include "os/OsMsgQ.h"
 #include "os/OsStatus.h"
@@ -29,8 +25,6 @@
 #include "mp/MpResource.h"
 #include "os/OsMsgDispatcher.h"
 #include "mp/MpNotificationMsgDef.h"
-#include "mp/MpResNotificationMsg.h"
-
 
 // DEFINES
 // MACROS
@@ -39,7 +33,6 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-
 // FORWARD DECLARATIONS
 class MpFlowGraphMsg;
 class OsMsg;
@@ -129,21 +122,6 @@ public:
      *  @retval OS_SUCCESS - successfully added the new link.
      *  @retval OS_INVALID_ARGUMENT - invalid port index.
      *  @retval OS_UNSPECIFIED - add link attempt failed.
-     */
-
-     /// Adds a dispatcher for notifications to the flowgraph.
-   OsMsgDispatcher*  
-   setNotificationDispatcher(OsMsgDispatcher* notifyDispatcher);
-     /**<
-     *  Seta a notification dispatcher to the flowgraph, for use in
-     *  letting the resources or the flowgraph tell the application 
-     *  any interesting events.
-     *
-     *  @param[in] notifyDispatcher - a pointer to a notification dispatcher that 
-     *             should be used to post media event notifications.
-     *  
-     *  @retval NULL if no previous notification dispatcher was set.
-     *  @retval pointer to previous notification dispatcher if one was set previously.
      */
 
      /// Adds the indicated media processing object to the flow graph.
@@ -253,28 +231,6 @@ public:
      *  @retval OS_INVALID - only a MpBasicFlowGraph can have focus.
      */
 
-     /// @brief posts a resource notification message to the Notification dispatcher.
-   virtual OsStatus postNotification(const MpResNotificationMsg& msg);
-     /**<
-     *  If there is a notification dispatcher, this message is posted
-     *  to it.  Otherwise, the message is dropped.
-     *
-     *  The Notification Dispatcher is used to hold and notify users of 
-     *  notification messages.  This is first being created to be used by
-     *  resources, held here in the flowgraph, and used to pass notification up
-     *  to the application level.  In the future, this could be extended to
-     *  allow filtering of notification messages - The one setting up the 
-     *  notification dispatcher could set properties on it to enable only
-     *  certain types of messages to be sent up through it's framework.
-     *
-     *  @param[in] msg - the notification message to post to the dispatcher.
-     *
-     *  @retval OS_SUCCESS if the message was successfully added to the dispatcher.
-     *  @retval OS_LIMIT_REACHED if the queue is full, and no more 
-     *          messages can be accepted.
-     *  @retval OS_NOT_FOUND if there's no dispatcher.
-     */
-
      /// Processes the next frame interval's worth of media for the flow graph.
    virtual OsStatus processNextFrame(void);
      /**<
@@ -353,8 +309,6 @@ public:
      /// Sends a message to self, and waits for reply.
    void synchronize(const char* tag=NULL, int val=0);
 
-   virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
-
    virtual void sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
                                           MpNotificationMsgType msgSubType,
                                           intptr_t msgData1 = 0,
@@ -376,9 +330,6 @@ public:
 
      /// Returns the current state of flow graph.
    int getState(void) const;
-
-     /// Returns the current notification dispatcher, if any.  If none, returns NULL.
-   OsMsgDispatcher* getNotificationDispatcher() const;
 
      /// @brief Sets \p rpResource to point to the resource that corresponds
      /// to \p name or to NULL if no matching resource is found.
@@ -470,7 +421,6 @@ private:
    MpResource* mUnsorted[MAX_FLOWGRAPH_RESOURCES];  ///< unsorted resources
    int       mCurState;        ///< current flow graph state
    OsMsgQ    mMessages;        ///< message queue for this flow graph
-   OsMsgDispatcher* mNotifyDispatcher; ///< Dispatcher for notification messages
    int       mPeriodCnt;       ///< number of frames processed by this flow graph
    int       mLinkCnt;         ///< number of links in this flow graph
    int       mResourceCnt;     ///< number of resources in this flow graph

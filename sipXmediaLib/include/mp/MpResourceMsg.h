@@ -43,21 +43,14 @@ public:
       MPRM_START_TONE,          ///< MprToneGen: Start a tone.
       MPRM_STOP_TONE,           ///< MprToneGen: Stop a tone.
       MPRM_FROMFILE_START,      ///< MprFromFile: Start playing a file.
-      MPRM_FROMFILE_PAUSE,      ///< MprFromFile: Pause a playing file.
-      MPRM_FROMFILE_STOP,       ///< MprFromFile: Stop a playing file.
 
-      MPRM_BUF_RECORDER_START,  ///< MprBufferRecorder: Start recording to a buffer.
-      MPRM_BUF_RECORDER_STOP,   ///< MprBufferRecorder: Stop recording to a buffer.
-
-      MPRM_BRIDGE_SET_GAINS,    ///< MprBridge: Set row or column in mix matrix.
+      MPRM_BRIDGE_SET_GAINS,
 
       // Connection Resource messages
       MPRM_START_RECEIVE_RTP,   ///< MpRtpInputAudioConnection: Start receiving RTP.
       MPRM_STOP_RECEIVE_RTP,    ///< MpRtpInputAudioConnection: Stop receiving RTP.
       MPRM_START_SEND_RTP,      ///< MpRtpOutputAudioConnection: Start sending RTP.
       MPRM_STOP_SEND_RTP,       ///< MpRtpOutputAudioConnection: Stop sending RTP.
-
-      // Add new built in resource operation messages above
 
       // Non-builtin resource messages
       MPRM_EXTERNAL_MESSAGE_START = 128

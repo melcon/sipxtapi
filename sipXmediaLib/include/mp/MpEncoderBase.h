@@ -78,7 +78,7 @@ public:
                            const int bytesLeft,
                            int& rSizeInBytes,
                            UtlBoolean& sendNow,
-                           MpAudioBuf::SpeechType& rAudioCategory) = 0;
+                           MpSpeechType& speechType) = 0;
      /**<
      *  Processes the array of audio samples.  If sufficient samples to encode
      *  a frame are now available, the encoded data will be written to the
@@ -92,7 +92,8 @@ public:
      *  @param bytesLeft - (in) number of bytes available at pCodeBuf
      *  @param rSizeInBytes - (out) Number of bytes written to the <i>pCodeBuf</i> array
      *  @param sendNow - (out) if true, the packet is complete, send it.
-     *  @param rAudioCategory - (out) Audio type (e.g., unknown, silence, comfort noise)
+     *  @param inSpeechType (in) Audio type (e.g., unknown, silence, comfort noise) in pAudioSamples
+     *  @param speechType - (in, out) Audio type (e.g., unknown, silence, comfort noise)
      *
      *  @returns <b>OS_SUCCESS</b> - Success
      */
@@ -114,6 +115,12 @@ public:
      /// Returns the RTP payload type associated with this encoder.
    virtual int getPayloadType(void);
 
+   /// Gets speex voice activity detection setting
+   static UtlBoolean isVADEnabled();
+
+   /// Enable/disable speex voice activity detection
+   static void enableVAD(UtlBoolean bEnable);
+
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -123,6 +130,7 @@ public:
 //@}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
+   static UtlBoolean ms_bEnableVAD; ///< whether VAD is enabled
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

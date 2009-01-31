@@ -31,13 +31,13 @@
 #include <utl/UtlHashBagIterator.h>
 #include <net/SipSrvLookup.h>
 #include <net/SipUserAgent.h>
-#include <net/SipSession.h>
 #include <net/SipMessageEvent.h>
 #include <net/NameValueTokenizer.h>
 #include <net/SipObserverCriteria.h>
 #include <net/NetMd5Codec.h>
 #include <os/HostAdapterAddress.h>
 #include <net/Url.h>
+#include <net/SipDialog.h>
 #ifdef HAVE_SSL
 #include <net/SipTlsServer.h>
 #endif
@@ -128,27 +128,27 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
                            UtlBoolean bUseNextAvailablePort,
                            UtlBoolean doUaMessageChecks
                            ) 
-                           : SipUserAgentBase(sipTcpPort, sipUdpPort, sipTlsPort, queueSize)
-                           , mSipTcpServer(NULL)
-                           , mSipUdpServer(NULL)
+: SipUserAgentBase(sipTcpPort, sipUdpPort, sipTlsPort, queueSize)
+, mSipTcpServer(NULL)
+, mSipUdpServer(NULL)
 #ifdef HAVE_SSL
-                           , mSipTlsServer(NULL)
+, mSipTlsServer(NULL)
 #endif
-                           , mMessageLogRMutex(OsRWMutex::Q_FIFO)
-                           , mMessageLogWMutex(OsRWMutex::Q_FIFO)
-                           , m_pLineProvider(NULL)
-                           , mIsUaTransactionByDefault(defaultToUaTransactions)
-                           , mbUseRport(FALSE)
-                           , mbUseLocationHeader(FALSE)
-                           , mbIncludePlatformInUserAgentName(TRUE)
-                           , mDoUaMessageChecks(doUaMessageChecks)
-                           , mbShuttingDown(FALSE)
-                           , mRegisterTimeoutSeconds(4)        
-                           , mbAllowHeader(true)
-                           , mbDateHeader(true)
-                           , mbShortNames(false)
-                           , mAcceptLanguage("")
-                           , mpLastSipMessage(NULL)
+, mMessageLogRMutex(OsRWMutex::Q_FIFO)
+, mMessageLogWMutex(OsRWMutex::Q_FIFO)
+, m_pLineProvider(NULL)
+, mIsUaTransactionByDefault(defaultToUaTransactions)
+, mbUseRport(FALSE)
+, mbUseLocationHeader(FALSE)
+, mbIncludePlatformInUserAgentName(TRUE)
+, mDoUaMessageChecks(doUaMessageChecks)
+, mbShuttingDown(FALSE)
+, mRegisterTimeoutSeconds(4)        
+, mbAllowHeader(true)
+, mbSupportedHeader(true)
+, mbDateHeader(true)
+, mbShortNames(false)
+, mAcceptLanguage("")
 {    
    OsSysLog::add(FAC_SIP, PRI_DEBUG,
       "SipUserAgent::_ sipTcpPort = %d, sipUdpPort = %d, sipTlsPort = %d",
@@ -389,9 +389,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
    allowMethod(SIP_ACK_METHOD);
    allowMethod(SIP_CANCEL_METHOD);
    allowMethod(SIP_BYE_METHOD);
-   allowMethod(SIP_REFER_METHOD);
    allowMethod(SIP_OPTIONS_METHOD);
-   allowMethod(SIP_PING_METHOD);
 
    defaultUserAgentName.append( VENDOR );
    defaultUserAgentName.append( "/" );
@@ -410,18 +408,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
    // bandreasen: This was removed on main -- not sure why
    //     given that this boolean is passed in
    mIsUaTransactionByDefault = defaultToUaTransactions;
-}
-
-// Copy constructor
-SipUserAgent::SipUserAgent(const SipUserAgent& rSipUserAgent) :
-mMessageLogRMutex(OsRWMutex::Q_FIFO),
-mMessageLogWMutex(OsRWMutex::Q_FIFO)
-, mbAllowHeader(false)
-, mbDateHeader(false)
-, mbShortNames(false)
-, mAcceptLanguage("")
-, mRegisterTimeoutSeconds(4)
-{
 }
 
 // Destructor
@@ -544,21 +530,6 @@ void SipUserAgent::enableStun(const char* szStunServer,
    }
 }
 
-void SipUserAgent::addMessageConsumer(OsServerTask* messageEventListener)
-{
-   // Need to do the real thing by keeping a list of consumers
-   // and putting a mutex around the add to list
-   //if(messageListener)
-   //{
-   //      osPrintf("WARNING: message consumer is NOT a LIST\n");
-   //}
-   //messageListener = messageEventListener;
-   if(messageEventListener)
-   {
-      addMessageObserver(*(messageEventListener->getMessageQueue()));
-   }
-}
-
 void SipUserAgent::addMessageObserver(OsMsgQ& messageQueue,
                                       const char* sipMethod,
                                       UtlBoolean wantRequests,
@@ -566,13 +537,13 @@ void SipUserAgent::addMessageObserver(OsMsgQ& messageQueue,
                                       UtlBoolean wantIncoming,
                                       UtlBoolean wantOutGoing,
                                       const char* eventName,
-                                      SipSession* pSession,
+                                      const SipDialog* pSipDialog,
                                       void* observerData)
 {
    SipObserverCriteria* observer = new SipObserverCriteria(observerData,
       &messageQueue,
       sipMethod, wantRequests, wantResponses, wantIncoming,
-      wantOutGoing, eventName, pSession);
+      wantOutGoing, eventName, pSipDialog);
 
    {
       // Add the observer and its filter criteria to the list lock scope
@@ -661,8 +632,6 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
 
    UtlBoolean sendSucceeded = FALSE;
    UtlBoolean isResponse = message.isResponse();
-
-   mpLastSipMessage = &message;
 
    // ===========================================
 
@@ -1966,22 +1935,6 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   }
 #endif //TEST_PRINT
                }
-
-               // Process Options requests :TODO: - this does not route in the redirect server
-               else if(isUaTransaction &&
-                  !message->isResponse() &&
-                  method.compareTo(SIP_OPTIONS_METHOD) == 0)
-               {
-                  // Send an OK, the allowed field will get added to all final responces.
-                  response = new SipMessage();
-                  response->setResponseData(message,
-                     SIP_OK_CODE,
-                     SIP_OK_TEXT);
-
-                  delete(message);
-                  message = NULL;
-               }
-
                else if(message->getMaxForwards(maxForwards))
                {
                   if(maxForwards <= 0)
@@ -2034,6 +1987,26 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   message->setMaxForwards(mMaxForwards);
                }
 
+               // Process Options requests :TODO: - this does not route in the redirect server
+               if(!response && isUaTransaction &&
+                  !message->isResponse() &&
+                  method.compareTo(SIP_OPTIONS_METHOD) == 0)
+               {
+                  UtlString toFieldTag;
+                  message->getToFieldTag(toFieldTag);
+                  if (toFieldTag.isNull())
+                  {
+                     // Send an OK, the allowed field will get added to all final responces.
+                     response = new SipMessage();
+                     response->setResponseData(message,
+                        SIP_OK_CODE,
+                        SIP_OK_TEXT);
+
+                     delete(message);
+                     message = NULL;
+                  }
+               }
+
                // If the request is invalid
                if(response)
                {
@@ -2051,7 +2024,6 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                }
                else if(message)
                {
-                  mpLastSipMessage = message;
                   shouldDispatch =
                      transaction->handleIncoming(*message,
                      *this,
@@ -2307,13 +2279,13 @@ void SipUserAgent::queueMessageToInterestedObservers(SipMessageEvent& event,
             } // else - this is a response - event filter is not applicable
 
             // Check to see if the session criteria matters
-            SipSession* pCriteriaSession = observerCriteria->getSession() ;
-            bool useSessionFilter = (NULL != pCriteriaSession);
+            const SipDialog* pCriteriaSipDialog = observerCriteria->getSipDialog();
+            bool useSessionFilter = (NULL != pCriteriaSipDialog);
             UtlBoolean matchedSession = FALSE;
             if (useSessionFilter)
             {
                // it matters; see if it matches
-               matchedSession = pCriteriaSession->isSameSession((SipMessage&) *message);
+               matchedSession = pCriteriaSipDialog->isInitialDialogOf(*message);
             }
 
             // We have a message type (req|rsp) the observer wants - apply filters
@@ -3348,7 +3320,7 @@ void SipUserAgent::getAllowedMethods(UtlString* allowedMethods) const
       {
          if(!allowedMethods->isNull())
          {
-            allowedMethods->append(", ");
+            allowedMethods->append(",");
          }
          allowedMethods->append(method->data());
       }
@@ -3721,7 +3693,7 @@ void SipUserAgent::getSupportedExtensions(UtlString& extensionsString) const
    UtlDListIterator iterator(allowedSipExtensions);
    while ((extensionName = (UtlString*) iterator()))
    {
-      if(!extensionsString.isNull()) extensionsString.append(", ");
+      if(!extensionsString.isNull()) extensionsString.append(",");
       extensionsString.append(extensionName->data());
    }
 }
@@ -4299,15 +4271,17 @@ void SipUserAgent::getContactAddresses(SIPX_CONTACT_ADDRESS* pContacts[], int &n
    mContactDb.getAll(pContacts, numContacts);
 }
 
-void SipUserAgent::setHeaderOptions(const UtlBoolean bAllowHeader,
-                                    const UtlBoolean bDateHeader,
-                                    const UtlBoolean bShortNames,
-                                    const UtlString& acceptLanguage)
+void SipUserAgent::setHeaderOptions(UtlBoolean bAllowHeader,
+                                    UtlBoolean bDateHeader,
+                                    UtlBoolean bShortNames,
+                                    const UtlString& acceptLanguage,
+                                    UtlBoolean bSupportedHeader)
 {
    mbAllowHeader = bAllowHeader;
    mbDateHeader = bDateHeader;
    mbShortNames = bShortNames;
    mAcceptLanguage = acceptLanguage;
+   mbSupportedHeader = bSupportedHeader;
 }                          
 
 void SipUserAgent::prepareVia(SipMessage& message,
@@ -4709,7 +4683,7 @@ void SipUserAgent::addAgentCapabilities(SipMessage& sipMessage) const
       }
    }
 
-   if(!sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD))
+   if(!sipMessage.getHeaderValue(0, SIP_SUPPORTED_FIELD) && mbSupportedHeader)
    {
       // only set Supported: for INVITE, SUBSCRIBE, OPTIONS
       if(seqMethod.compareTo(SIP_INVITE_METHOD) == 0 ||

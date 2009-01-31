@@ -29,75 +29,15 @@
 #include <os/IStunSocket.h>
 
 // DEFINES
-#define MAX_CONFERENCE_PARTICIPANTS 64
-
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-  /// The intended data that will be flowing through a socket.
-typedef enum SocketPurpose
-{
-   UNKNOWN,
-     /// Socket is intended to transport RTP Audio data
-   RTP_AUDIO,
-     /// Socket is intended to transport RTCP Audio control data
-   RTCP_AUDIO,
-     /// Socket is intended to transport RTP Video data
-   RTP_VIDEO,
-     /// Socket is intended to transport RTCP Video control data
-   RTCP_VIDEO
-} SocketPurpose;
-
-  /// SipX Media Interface Audio Bandwidth IDs
-typedef enum SIPXMI_AUDIO_BANDWIDTH_ID
-{
-     /// ID for codecs with variable bandwidth requirements
-   AUDIO_MICODEC_BW_VARIABLE=0,
-
-     /// ID for codecs with low bandwidth requirements
-   AUDIO_MICODEC_BW_LOW,
-     /// ID for codecs with normal bandwidth requirements
-   AUDIO_MICODEC_BW_NORMAL,
-     /// ID for codecs with high bandwidth requirements
-   AUDIO_MICODEC_BW_HIGH,
-
-     /// Possible return value for sipxConfigGetAudioCodecPreferences.
-     /// This ID indicates the available list of codecs was overridden by a 
-     /// sipxConfigSetAudioCodecByName call.
-   AUDIO_MICODEC_BW_CUSTOM,       
-
-     /// Value used to signify the default bandwidth level when calling 
-     /// sipxCallConnect, sipxCallAccept, or sipxConferenceAdd 
-   AUDIO_MICODEC_BW_DEFAULT       
-
-} SIPXMI_AUDIO_BANDWIDTH_ID;
-
-class IMediaEventEmitter
-{
-public:
-   virtual void onListenerRemoved() = 0;
-};
-
-typedef enum IMediaEvent_DeviceErrors
-{
-   IError_DeviceUnplugged
-} IMediaEvent_DeviceErrors;
-
-typedef enum IMediaEvent_DeviceTypes
-{
-   IDevice_Audio,
-   IDevice_Video
-} IMediaEvent_DeviceTypes;
-
 // FORWARD DECLARATIONS
 class SdpCodec;
-class SdpCodecFactory;
-class MpStreamPlaylistPlayer;
-class MpStreamPlayer;
-class MpStreamQueuePlayer;
+class SdpCodecList;
 class CpMediaInterfaceFactory;
 class OsMsgDispatcher;
 
@@ -117,6 +57,10 @@ class CpMediaInterface : public UtlInt
 {
 /* //////////////////////////// PUBLIC //////////////////////////// */
 public:
+   enum
+   {
+      INVALID_CONNECTION_ID = -1 ///< Id of invalid media connection
+   };
 
 /* =========================== CREATORS =========================== */
 
@@ -136,14 +80,13 @@ public:
 
 /* ========================= MANIPULATORS ========================= */
      /// @brief Create a media connection in the media processing subsystem.
-   virtual OsStatus createConnection(
-               int& connectionId,
-               const char* szLocalAddress,
-               int localPort = 0,
-               void* videoWindowHandle = NULL,
-               void* const pSecurityAttributes = NULL,
-               OsMsgQ* pConnectionNotificationQueue = NULL,
-               const RtpTransportOptions rtpTransportOptions = RTP_TRANSPORT_UDP) = 0 ;
+   virtual OsStatus createConnection(int& connectionId, ///< will get assigned connection id
+                                     const char* szLocalIPAddress, ///< optionally override local bind address of media interface
+                                     int localPort = 0,
+                                     void* videoWindowHandle = NULL,
+                                     void* const pSecurityAttributes = NULL,
+                                     OsMsgQ* pConnectionNotificationQueue = NULL,
+                                     const RtpTransportOptions rtpTransportOptions = RTP_TRANSPORT_UDP) = 0;
      /**<
      *  One instance of the CpMediaInterface exists for each call, however, 
      *  each leg of the call requires in individual connection.
@@ -151,7 +94,7 @@ public:
      *  @param[out] connectionId - A newly allocated connection id returned via 
      *              this call.  The connection passed to many other media 
      *              processing methods in this interface.
-     *  @param[in]  szLocalAddress - Local address (interface) that should 
+     *  @param[in]  szLocalIPAddress - Local address (interface) that should 
      *              be used for this connection.
      *  @param[in]  localPort - Local port that should be used for this
      *              connection.
@@ -187,9 +130,8 @@ public:
      */
 
      /// @brief Enable or disable media notifications for one/all resource(s).
-   virtual OsStatus
-   setMediaNotificationsEnabled(bool enabled, 
-                                const UtlString& resourceName = NULL) = 0;
+   virtual OsStatus setMediaNotificationsEnabled(bool enabled, 
+                                                 const UtlString& resourceName = NULL) = 0;
      /**<
      *  Enable or disable media notifications for a given resource or all resources.
      *
@@ -291,23 +233,18 @@ public:
 
      /// @brief Start sending RTP using the specified codec list.
    virtual OsStatus startRtpSend(int connectionId, 
-                                 int numCodecs,
-                                 SdpCodec* sendCodec[]) = 0 ;
+                                 const SdpCodecList& codecList) = 0 ;
      /**<
      *  Generally, this codec list is the intersection between both parties.
      *
      *  @param[in] connectionId - Connection Id for the call leg obtained from 
      *             createConnection
-     *  @param[in] numCodec Number of codecs supplied in the sendCodec array
-     *  @param[in] sendCodec Array of codecs ordered in sending preference.
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070801 >>
+     *  @param codecList List of SdpCodec instances
      */ 
 
      /// @brief Start receiving RTP using the specified codec list.
    virtual OsStatus startRtpReceive(int connectionId,
-                                    int numCodecs,
-                                    SdpCodec* sendCodec[]) = 0;
+                                    const SdpCodecList& codecList) = 0;
      /**<
      *  Generally, this codec list is the intersection between both parties.
      *  The media processing subsystem should be prepared to receive any of 
@@ -317,8 +254,7 @@ public:
      *
      *  @param[in] connectionId - Connection Id for the call leg obtained from 
      *             createConnection
-     *  @param[in] numCodec - Number of codecs supplied in the sendCodec array
-     *  @param[in] sendCodec - Array of receive codecs 
+     *  @param codecList List of SdpCodec instances
      *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
@@ -373,7 +309,8 @@ public:
      /// @brief Start playing the specified tone for this call.
    virtual OsStatus startTone(int toneId, 
                               UtlBoolean local, 
-                              UtlBoolean remote) = 0 ;
+                              UtlBoolean remote,
+                              int duration = 120) = 0 ;
      /**<
      *  If the tone is a DTMF tone and the remote flag is set, the interface 
      *  should send out of band DTMF using RFC 2833.  Inband audio should be 
@@ -389,30 +326,16 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
 
-     /// @brief Stop playing all tones.
+   /// @brief Stop playing all tones.
    virtual OsStatus stopTone() = 0 ;
-     /**
-     * Some tones/implementations may not support this.
-     * For example, some DTMF playing implementations will only play DTMF 
-     * for a fixed interval.
-     *
-     *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
-     *             failure codes to expect, etc. -- kkyzivat 20070801 >>
-     */
-
-   virtual OsStatus startChannelTone(int connectiondId,
-                                     int toneId, 
-                                     UtlBoolean local, 
-                                     UtlBoolean remote) = 0 ;
-
-   virtual OsStatus stopChannelTone(int connectiondId) = 0 ;
-
-
-   virtual OsStatus recordChannelAudio(int connectionId,
-                                       const char* szFile) = 0 ;
-
-   virtual OsStatus stopRecordChannelAudio(int connectionId) = 0 ;
-
+   /**
+    * Some tones/implementations may not support this.
+    * For example, some DTMF playing implementations will only play DTMF 
+    * for a fixed interval.
+    *
+    *  @retval    UNKNOWN - << TODO: Add useful return values here - i.e.
+    *             failure codes to expect, etc. -- kkyzivat 20070801 >>
+    */
      /// @brief Play the specified audio URL to the call.
    virtual OsStatus playAudio(const char* url, 
                               UtlBoolean repeat,
@@ -437,18 +360,9 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
 
-   virtual OsStatus playChannelAudio(int connectionId,
-                                     const char* url, 
-                                     UtlBoolean repeat,
-                                     UtlBoolean local, 
-                                     UtlBoolean remote,
-                                     UtlBoolean mixWithMic = false,
-                                     int downScaling = 100,
-                                     void* pCookie = NULL) = 0 ;
-
      /// @brief Play the specified audio buffer to the call. 
-   virtual OsStatus playBuffer(char* buf, 
-                               unsigned long bufSize,
+   virtual OsStatus playBuffer(void* buf, 
+                               size_t bufSize,
                                int type, 
                                UtlBoolean repeat,
                                UtlBoolean local, 
@@ -487,8 +401,6 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
 
-   virtual OsStatus stopChannelAudio(int connectionId) = 0 ;
-
    /**
     * Mute input for given call on bridge.
     */
@@ -512,43 +424,15 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
 
-   //! Set the CPU resource limit for the media connections in this call. 
-   /*! This is used to limit the available codecs to only those within 
-    * the designated CPU cost limit. 
+   /**
+    * Returns TRUE if this media interface is in focus.
     */
-   virtual void setCodecCPULimit(int iLimit) = 0 ;
+   virtual UtlBoolean hasFocus() = 0;
 
-   //! Start recording audio for this call.
-   virtual OsStatus ezRecord(int ms, 
-                             int silenceLength, 
-                             const char* fileName, 
-                             double& duration, 
-                             int& dtmfterm,
-                             OsProtectedEvent* ev = NULL) = 0;
-
-     /// @brief Record the microphone data to a file
-   virtual OsStatus recordMic(int ms,
-                              int silenceLength,
-                              const char* fileName) = 0 ;
-     /**<
-     *  Record a fixed amount of audio from the microphone to a file.
-     *  @note The flowgraph must be in focus for this to work properly.
-     *
-     *  @param[in] ms - The amount of time, in milliseconds, to record.
-     *  @param[in] silenceLength - The amount of silence, in SECONDS, before
-     *             recording is terminated.
-     *  @param[in] fileName - The path and name of a file to record to.
-     */
-
-     /// Record the microphone data
-   virtual OsStatus recordMic(UtlString* pAudioBuf);
-     /**<
-     *  Record a fixed amount of audio from the microphone to a buffer 
-     *  passed in.
-     *  @note The flowgraph must be in focus for this to work properly.
-     *
-     *  @param pAudioBuf a fixed audio buffer to record to.
-     */
+   /**
+    * Starts recording all audio channels into given file.
+    */
+   virtual OsStatus recordAudio(const char* szFile) = 0;
 
    //! Stop recording for this call.
    virtual OsStatus stopRecording() = 0;
@@ -556,33 +440,21 @@ public:
    //! Set the preferred contact type for this media connection
    virtual void setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) = 0 ;
 
-   //! Rebuild the codec factory on the fly
-   virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) = 0;
+   /** Rebuilds internal SdpCodecList using supplied SdpCodecList */
+   virtual OsStatus setCodecList(const SdpCodecList& sdpCodecList) = 0;
 
-   //! Rebuild codec factory with one video codec
-   virtual OsStatus rebuildCodecFactory(int connectionId, 
-                                        int audioBandwidth, 
-                                        int videoBandwidth, 
-                                        UtlString& videoCodec) = 0;
+   /** Copies internal SdpCodecList into supplied SdpCodecList */
+   virtual OsStatus getCodecList(SdpCodecList& sdpCodecList) = 0;
 
-
-   //! Set connection bitrate on the fly
-   virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) = 0 ;
+   /** Copies internal SdpCodecList of media connection into supplied SdpCodecList */
+   virtual OsStatus getCodecList(int connectionId, SdpCodecList& sdpCodecList) = 0;
 
    //! Set connection framerate on the fly
    virtual OsStatus setConnectionFramerate(int connectionId, int framerate) = 0;
 
-    /// Provide an invalid connectionId
-   static int getInvalidConnectionId();
-
    virtual OsStatus setVideoWindowDisplay(const void* hWnd) = 0;
 
    virtual OsStatus setSecurityAttributes(const void* security) = 0;
-
-   virtual OsStatus generateVoiceQualityReport(int         connectionId,
-                                               const char* callId,
-                                               UtlString&  report) = 0 ;
-
 
    virtual void setConnectionTcpRole(const int connectionId,
                                      const RtpTcpRoles role) = 0;
@@ -602,7 +474,6 @@ public:
     * @param rtcpPort RTCP port number that should be advertised in SDP.
     * @param supportedCodecs List of supported codecs.
     * @param srtParams supported SRTP parameters
-    * @param bandWidth bandwidth limitation id
     */
    virtual OsStatus getCapabilities(int connectionId, 
                                     UtlString& rtpHostAddress, 
@@ -610,9 +481,8 @@ public:
                                     int& rtcpAudioPort,
                                     int& rtpVideoPort,
                                     int& rtcpVideoPort, 
-                                    SdpCodecFactory& supportedCodecs,
+                                    SdpCodecList& supportedCodecs,
                                     SdpSrtpParameters& srtpParams,
-                                    int bandWidth,
                                     int& videoBandwidth,
                                     int& videoFramerate) = 0;
     
@@ -628,26 +498,11 @@ public:
                                       int rtcpVideoPorts[],
                                       RTP_TRANSPORT transportTypes[],
                                       int& nActualAddresses,
-                                      SdpCodecFactory& supportedCodecs,
+                                      SdpCodecList& supportedCodecs,
                                       SdpSrtpParameters& srtpParameters,
-                                      int bandWidth,
                                       int& videoBandwidth,
                                       int& videoFramerate) = 0 ;
 
-
-   //! Calculate the current cost for the current set of 
-   //! sending/receiving codecs.
-   virtual int getCodecCPUCost() = 0 ;
-
-   //! Calculate the worst case cost for the current set of 
-   //! sending/receiving codecs.
-   virtual int getCodecCPULimit() = 0 ;
-
-   //!Returns the flowgraph's message queue
-   virtual OsMsgQ* getMsgQ() = 0 ;
-
-      /// Returns the flowgraph's Media Notification dispatcher.
-   virtual OsMsgDispatcher* getMediaNotificationDispatcher() = 0;
 
    // Returns the primary codec for the connection
    virtual OsStatus getPrimaryCodec(int connectionId, 
@@ -686,42 +541,8 @@ public:
        return OS_NOT_SUPPORTED; 
    };
 
-
-   //! Set a media property on the media interface
-    /*
-     * Media interfaces that wish to inter-operate should implement the following properties
-     * and values:
-     *
-     * Property Name                  Property Values
-     * =======================        ===============
-     * "audioInput1.muteState"        "true", "false" for systems that may have a microphone for each conference or 2-way call
-     * "audioInput1.device"           same value as szDevice in sipxAudioSetCallInputDevice
-     * "audioOutput1.deviceType"      "speaker", "ringer" same as sipxAudioEnableSpeaker, but for specific conference or 2-way call
-     * "audioOutput1.ringerDevice"    same value as szDevice in sipxAudioSetRingerOutputDevice 
-     * "audioOutput1.speakerDevice"   same values as szDevice in sipxAudioSetCallOutputDevice
-     * "audioOutput1.volume"          string value of iLevel in sipxAudioSetVolume
-     */
-   virtual OsStatus setMediaProperty(const UtlString& propertyName,
-                                     const UtlString& propertyValue) = 0;
-
-   //! Get a media property on the media interface
-   virtual OsStatus getMediaProperty(const UtlString& propertyName,
-                                     UtlString& propertyValue) = 0;
-
-   //! Set a media property associated with a connection
-   virtual OsStatus setMediaProperty(int connectionId,
-                                     const UtlString& propertyName,
-                                     const UtlString& propertyValue) = 0;
-
-   //! Get a media property associated with a connection
-   virtual OsStatus getMediaProperty(int connectionId,
-                                     const UtlString& propertyName,
-                                     UtlString& propertyValue) = 0;
-
      ///< Get the specific type of this media interface
    virtual UtlString getType() = 0;
-
-
 
 /* ============================ INQUIRY =================================== */
 
@@ -775,8 +596,6 @@ private:
 
    //! Copy constructor disabled
    CpMediaInterface(const CpMediaInterface& rCpMediaInterface);
-
-   static int sInvalidConnectionId; ///< Number of connection, assigned to invalid connection.
 };
 
 /* ============================ INLINE METHODS ============================ */

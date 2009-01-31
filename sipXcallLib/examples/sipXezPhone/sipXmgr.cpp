@@ -348,7 +348,7 @@ bool sipXmgr::handleCallstateEvent(void* pInfo, void* pUserData)
     char szCallID[1024];
     memset(szCallID, 0, sizeof(szCallID));
     
-    sipxCallGetID(pCallInfo->hCall, szCallID, 1024);
+    sipxCallGetSipCallId(pCallInfo->hCall, szCallID, 1024);
     thePhoneApp->addLogMessage("CallID = " + UtlString(szCallID) + "\n");
 
     mCallId = szCallID;
@@ -446,7 +446,7 @@ bool sipXmgr::handleCallstateEvent(void* pInfo, void* pUserData)
 //                    sprintf(szSrtpStatus, "unencrypted");
 //                }
 //                thePhoneApp->addLogMessage("Acodec: " + 
-//                                            UtlString(pCallInfo->codecs.audioCodec.cName) +
+//                                            UtlString(pCallInfo->codecs.audioCodec.cCodecName) +
 //                                            " (" +
 //                                            UtlString(szPayloadType) +
 //                                            "," +
@@ -456,7 +456,7 @@ bool sipXmgr::handleCallstateEvent(void* pInfo, void* pUserData)
 //                {
 //                    sprintf(szPayloadType, "%d", pCallInfo->codecs.videoCodec.iPayloadType);
 //                    thePhoneApp->addLogMessage("Vcodec: " + 
-//                                                UtlString(pCallInfo->codecs.videoCodec.cName) +
+//                                                UtlString(pCallInfo->codecs.videoCodec.cCodecName) +
 //                                                " (" +
 //                                                UtlString(szPayloadType) +
 //                                                ")\n");
@@ -613,7 +613,7 @@ void sipXmgr::SipCallbackProc( SIPX_CALL hCall,
 
    char szCallID[1024];
    
-   sipxCallGetID(hCall, szCallID, 1024);
+   sipxCallGetSipCallId(hCall, szCallID, 1024);
    thePhoneApp->addLogMessage("CallID = " + UtlString(szCallID) + "\n");
    
    char szLineURI[1024];
@@ -767,7 +767,6 @@ bool sipXmgr::placeCall(const char* szSipUrl,
     memset((void*)&options, 0, sizeof(SIPX_CALL_OPTIONS));
     options.cbSize = sizeof(SIPX_CALL_OPTIONS);
     options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
-    options.bandwidthId =  AUDIO_CODEC_BW_DEFAULT;
     options.contactId = contactId;
 
     if (pCertFile && bSecurity && iSecurity > 0)
@@ -793,11 +792,11 @@ bool sipXmgr::placeCall(const char* szSipUrl,
         security.setSecurityLevel((SIPX_SRTP_LEVEL)iSecurity);
 		if (thePhoneApp->getFrame().getVideoVisible())
 		{
-			sipxCallConnect(m_hCall, szSipUrl, &display, &security, true, &options) ;
+			sipxCallConnect(m_hCall, szSipUrl, &display, &security, SIPX_FOCUS_ALWAYS, &options) ;
 		}
 		else
 		{
-			sipxCallConnect(m_hCall, szSipUrl, NULL, &security, true, &options) ;
+			sipxCallConnect(m_hCall, szSipUrl, NULL, &security, SIPX_FOCUS_ALWAYS, &options) ;
 		}
     }
     else
@@ -806,11 +805,11 @@ bool sipXmgr::placeCall(const char* szSipUrl,
         options.rtpTransportFlags = SIPX_RTP_TRANSPORT_UDP;
 		if (thePhoneApp->getFrame().getVideoVisible())
 		{
-	        sipxCallConnect(m_hCall, szSipUrl, &display, NULL, true, &options);
+	        sipxCallConnect(m_hCall, szSipUrl, &display, NULL, SIPX_FOCUS_ALWAYS, &options);
 		}
 		else
 		{
-	        sipxCallConnect(m_hCall, szSipUrl, NULL, NULL, true, &options);
+	        sipxCallConnect(m_hCall, szSipUrl, NULL, NULL, SIPX_FOCUS_ALWAYS, &options);
 		}
     }
    
@@ -1010,11 +1009,6 @@ const bool sipXmgr::getInTransfer() const
     return mTransferInProgress;
 }
 
-void sipXmgr::stopTone()
-{
-    sipxCallStopTone(this->m_hCall);
-}      
-
 void sipXmgr::UnRegister()
 {
     sipxLineRegister(m_hLine, false);
@@ -1119,10 +1113,9 @@ bool sipXmgr::addConfParty(const char* const szParty)
         memset((void*)&options, 0, sizeof(SIPX_CALL_OPTIONS));
         options.cbSize = sizeof(SIPX_CALL_OPTIONS);
         options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
-        options.bandwidthId =  AUDIO_CODEC_BW_DEFAULT;
 
         if (SIPX_RESULT_SUCCESS == sipxConferenceAdd(m_hConf, getCurrentLine(), szParty, &hNewCall, contactId,
-                                                     pDisplay, pSecurity, true, &options))
+                                                     pDisplay, pSecurity, SIPX_FOCUS_ALWAYS, &options))
         {
             mConfCallHandleMap.insertKeyAndValue(new UtlString(szParty), new UtlInt(hNewCall));
             
@@ -1168,14 +1161,6 @@ bool sipXmgr::removeConfParty(const char* const szParty)
 bool sipXmgr::getCodecPreferences(int* pCodecPref)
 {
     bool rc = false;
-
-    if (pCodecPref)
-    {
-        if (sipxConfigGetAudioCodecPreferences(m_hInst, (SIPX_AUDIO_BANDWIDTH_ID*)pCodecPref) == SIPX_RESULT_SUCCESS)
-        {
-            rc = true;
-        }
-    }
     return rc;
 }
 
@@ -1189,13 +1174,13 @@ bool sipXmgr::getCodecList(UtlString& codecList)
 
     codecList = "";
     
-    if (sipxConfigGetNumAudioCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigGetNumSelectedAudioCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
     {
         for (int i=0; i<numCodecs; i++)
         {
-            if (sipxConfigGetAudioCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetSelectedAudioCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
             {
-                switch (codec.iBandWidth)
+                switch (codec.bandWidth)
                 {
                 case AUDIO_CODEC_BW_VARIABLE:
                     sBandWidth = " (Variable)";
@@ -1210,7 +1195,7 @@ bool sipXmgr::getCodecList(UtlString& codecList)
                     sBandWidth = " (High)";
                     break;
                  }
-                codecList = codecList + codec.cName + sBandWidth + "\n"; 
+                codecList = codecList + codec.cCodecName + sBandWidth + "\n"; 
             }
         }
         rc = true;
@@ -1243,13 +1228,13 @@ bool sipXmgr::getVideoCodecList(UtlString& codecList)
 
     codecList = "";
     
-    if (sipxConfigGetNumVideoCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigGetNumSelectedVideoCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
     {
         for (int i=0; i<numCodecs; i++)
         {
-            if (sipxConfigGetVideoCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetSelectedVideoCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
             {
-                switch (codec.iBandWidth)
+                switch (codec.bandWidth)
                 {
                 case AUDIO_CODEC_BW_VARIABLE:
                     sBandWidth = " (Variable)";
@@ -1264,7 +1249,7 @@ bool sipXmgr::getVideoCodecList(UtlString& codecList)
                     sBandWidth = " (High)";
                     break;
                  }
-                codecList = codecList + codec.cName + sBandWidth + "\n"; 
+                codecList = codecList + codec.cCodecName + sBandWidth + "\n"; 
             }
         }
         rc = true;
@@ -1277,7 +1262,7 @@ bool sipXmgr::setAudioCodecByName(const char* name)
 {
     bool rc = false;
 
-    if (sipxConfigSetAudioCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigSelectAudioCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
     {
         rc = true;
     }
@@ -1288,7 +1273,7 @@ bool sipXmgr::setVideoCodecByName(const char* name)
 {
     bool rc = false;
 #ifdef VIDEO
-    if (sipxConfigSetVideoCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigSelectVideoCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
     {
         rc = true;
     }
@@ -1362,23 +1347,12 @@ void* sipXmgr::getVideoWindow()
 bool sipXmgr::setCodecPreferences(int codecPref)
 {
     bool rc = false;
-
-    if (sipxConfigSetAudioCodecPreferences(m_hInst, (SIPX_AUDIO_BANDWIDTH_ID)codecPref) == SIPX_RESULT_SUCCESS)
-    {
-        rc = true;
-    }
     return rc;
 }
 
 bool sipXmgr::setVideoCodecPreferences(int codecPref)
 {
     bool rc = false;
-#ifdef VIDEO
-    if (sipxConfigSetVideoBandwidth(m_hInst, (SIPX_VIDEO_BANDWIDTH_ID)codecPref) == SIPX_RESULT_SUCCESS)
-    {
-        rc = true;
-    }
-#endif    
     return rc;
 }
 

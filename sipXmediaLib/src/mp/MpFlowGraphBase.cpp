@@ -11,10 +11,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
 #include <assert.h>
-
 
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
@@ -33,7 +31,6 @@
 #   include <rtl_macro.h>
 #endif
 
-
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -49,7 +46,6 @@ MpFlowGraphBase::MpFlowGraphBase(int samplesPerFrame, int samplesPerSec)
 , mResourceDict()
 , mCurState(STOPPED)
 , mMessages(MAX_FLOWGRAPH_MESSAGES)
-, mNotifyDispatcher(NULL)
 , mPeriodCnt(0)
 , mLinkCnt(0)
 , mResourceCnt(0)
@@ -120,14 +116,6 @@ OsStatus MpFlowGraphBase::addLink(MpResource& rFrom, int outPortIdx,
       return OS_SUCCESS;
    else
       return OS_UNSPECIFIED;
-}
-
-OsMsgDispatcher* 
-MpFlowGraphBase::setNotificationDispatcher(OsMsgDispatcher* notifyDispatcher)
-{
-   OsMsgDispatcher* oldDispatcher = mNotifyDispatcher;
-   mNotifyDispatcher = notifyDispatcher;
-   return oldDispatcher;
 }
 
 // Adds the indicated media processing object to the flow graph.  If 
@@ -370,21 +358,6 @@ OsStatus MpFlowGraphBase::loseFocus(void)
 {
    Nprintf("MpFG::loseFocus(0x%X), not supported!\n", (int) this, 0,0,0,0,0);
    return OS_INVALID_ARGUMENT;
-}
-
-// Post a notification message to the dispatcher.
-OsStatus MpFlowGraphBase::postNotification(const MpResNotificationMsg& msg)
-{
-   // If there is no dispatcher, OS_NOT_FOUND is used.
-   OsStatus stat = OS_NOT_FOUND;
-   
-   if(mNotifyDispatcher != NULL)
-   {
-      // If the limit is reached on the queue, OS_LIMIT_REACHED is sent.
-      // otherwise success - OS_SUCCESS.
-      stat = mNotifyDispatcher->post(msg);
-   }
-   return stat;
 }
 
 // Processes the next frame interval's worth of media for the flow graph.
@@ -631,18 +604,11 @@ void MpFlowGraphBase::synchronize(const char* tag, int val1)
    }
 }
 
-void MpFlowGraphBase::setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue)
-{
-   // not implemented here
-   assert(FALSE);
-}
-
 void MpFlowGraphBase::sendInterfaceNotification(MpNotificationMsgMedia msgMedia,
                                                 MpNotificationMsgType msgSubType,
                                                 intptr_t msgData1 /*= 0*/,
-                                                intptr_t msgData2)
+                                                intptr_t msgData2 /*= 0*/)
 {
-   // not implemented here
    assert(FALSE);
 }
 
@@ -717,11 +683,6 @@ int MpFlowGraphBase::getSamplesPerSec(void) const
 int MpFlowGraphBase::getState(void) const
 {
    return mCurState;
-}
-
-OsMsgDispatcher* MpFlowGraphBase::getNotificationDispatcher(void) const
-{
-   return mNotifyDispatcher;
 }
 
 // Sets rpResource to point to the resource that corresponds to 
@@ -947,12 +908,6 @@ UtlBoolean MpFlowGraphBase::handleSynchronize(MpFlowGraphMsg& rMsg)
 
    if (0 != pSync) {
       pSync->signal(val1);
-      // if (NULL != tag) osPrintf(tag, val1, val2);
-#ifdef DEBUG_POSTPONE /* [ */
-   } else {
-      // just delay (postPone()), for debugging race conditions...
-      OsTask::delay(rMsg.getInt1());
-#endif /* DEBUG_POSTPONE ] */
    }
    return TRUE;
 }
@@ -1402,7 +1357,11 @@ OsStatus MpFlowGraphBase::processMessages(void)
 
       assert(res == OS_SUCCESS);
       
-      if (pMsg->getMsgType() == OsMsg::STREAMING_MSG)
+      if (pMsg->getMsgType() == OsMsg::OS_TIMER_MSG)
+      {
+         handleMessage(*pMsg);
+      }
+      else if (pMsg->getMsgType() == OsMsg::STREAMING_MSG)
       {
          handleMessage(*pMsg);
       }

@@ -78,9 +78,11 @@ nobase_include_HEADERS = \
     os/OsPtrLock.h \
     os/OsPtrMsg.h \
     os/OsQueuedEvent.h \
+    os/OsQueuedNotification.h \
     os/OsReadLock.h \
     os/OsRpcMsg.h \
     os/OsRWMutex.h \
+    os/OsRWSyncBase.h \
     os/OsServerSocket.h \
     os/OsServerTask.h \
     os/OsSharedLibMgr.h \
@@ -104,6 +106,8 @@ nobase_include_HEADERS = \
     os/OsTimeLog.h \
     os/OsTimer.h \
     os/OsTimerMsg.h \
+    os/OsTimerNotification.h \
+    os/OsTimerTaskCommandMsg.h \
     os/OsTimerTask.h \
     os/OsTokenizer.h \
     os/OsUtil.h \

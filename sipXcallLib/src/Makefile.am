@@ -31,23 +31,97 @@ libsipXcall_la_CXXFLAGS = \
 libsipXcall_la_SOURCES = \
     ../config/sipxcalllib-buildstamp.h \
     ../config/sipxcalllib-buildstamp.cpp \
-    cp/CallManager.cpp \
-    cp/Connection.cpp \
-    cp/CpCall.cpp \
-    cp/CpCallManager.cpp \
-    cp/CpGhostConnection.cpp \
-    cp/CpIntMessage.cpp \
-    cp/CpMultiStringMessage.cpp \
-    cp/CpPeerCall.cpp \
-    cp/CSeqManager.cpp \
-    cp/SipConnection.cpp \
+    cp/CpLoopDetector.cpp \
+    cp/CpNotificationRegister.cpp \
+    cp/Cp100RelTracker.cpp \
+    cp/CpSdpNegotiation.cpp \
+    cp/CpSessionTimerProperties.cpp \
+    cp/CpSipTransactionManager.cpp \
     cp/XCpAbstractCall.cpp \
-    cp/XCpAbstractConnection.cpp \
     cp/XCpCall.cpp \
+    cp/XCpCallIdUtil.cpp \
     cp/XCpCallManager.cpp \
     cp/XCpConference.cpp \
-    cp/XCpSipConnection.cpp \
+    cp/XCpCallStack.cpp \
+    cp/XSipConnection.cpp \
+    cp/XSipConnectionContext.cpp \
+    cp/msg/AcAcceptConnectionMsg.cpp \
+    cp/msg/AcAcceptTransferMsg.cpp \
+    cp/msg/AcAnswerConnectionMsg.cpp \
+    cp/msg/AcAudioBufferPlayMsg.cpp \
+    cp/msg/AcAudioFilePlayMsg.cpp \
+    cp/msg/AcAudioPausePlaybackMsg.cpp \
+    cp/msg/AcAudioRecordStartMsg.cpp \
+    cp/msg/AcAudioRecordStopMsg.cpp \
+    cp/msg/AcAudioResumePlaybackMsg.cpp \
+    cp/msg/AcAudioStopPlaybackMsg.cpp \
+    cp/msg/AcAudioToneStartMsg.cpp \
+    cp/msg/AcAudioToneStopMsg.cpp \
+    cp/msg/AcCommandMsg.cpp \
+    cp/msg/AcConnectMsg.cpp \
+    cp/msg/AcDestroyConnectionMsg.cpp \
+    cp/msg/AcDropAllConnectionsMsg.cpp \
+    cp/msg/AcDropConnectionMsg.cpp \
+    cp/msg/AcGainFocusMsg.cpp \
+    cp/msg/AcHoldAllConnectionsMsg.cpp \
+    cp/msg/AcHoldConnectionMsg.cpp \
+    cp/msg/AcLimitCodecPreferencesMsg.cpp \
+    cp/msg/AcMuteInputConnectionMsg.cpp \
+    cp/msg/AcNotificationMsg.cpp \
+    cp/msg/AcRedirectConnectionMsg.cpp \
+    cp/msg/AcRejectConnectionMsg.cpp \
+    cp/msg/AcRejectTransferMsg.cpp \
+    cp/msg/AcRenegotiateCodecsAllMsg.cpp \
+    cp/msg/AcRenegotiateCodecsMsg.cpp \
+    cp/msg/AcSendInfoMsg.cpp \
+    cp/msg/AcSubscribeMsg.cpp \
+    cp/msg/AcTransferBlindMsg.cpp \
+    cp/msg/AcTransferConsultativeMsg.cpp \
+    cp/msg/AcTunneledNotificationMsg.cpp \
+    cp/msg/AcUnholdAllConnectionsMsg.cpp \
+    cp/msg/AcUnholdConnectionMsg.cpp \
+    cp/msg/AcUnmuteInputConnectionMsg.cpp \
+    cp/msg/AcUnsubscribeMsg.cpp \
+    cp/msg/AcYieldFocusMsg.cpp \
+    cp/msg/CmCommandMsg.cpp \
+    cp/msg/CmDestroyAbstractCallMsg.cpp \
+    cp/msg/CmGainFocusMsg.cpp \
+    cp/msg/CmNotificationMsg.cpp \
+    cp/msg/CmYieldFocusMsg.cpp \
+    cp/msg/CpTimerMsg.cpp \
+    cp/msg/Sc100RelTimerMsg.cpp \
+    cp/msg/Sc2xxTimerMsg.cpp \
+    cp/msg/ScByeRetryTimerMsg.cpp \
+    cp/msg/ScCommandMsg.cpp \
+    cp/msg/ScDelayedAnswerTimerMsg.cpp \
+    cp/msg/ScDisconnectTimerMsg.cpp \
+    cp/msg/ScInviteExpirationTimerMsg.cpp \
+    cp/msg/ScNotificationMsg.cpp \
+    cp/msg/ScReInviteTimerMsg.cpp \
+    cp/msg/ScSessionTimeoutTimerMsg.cpp \
+    cp/msg/ScTimerMsg.cpp \
+    cp/state/AlertingSipConnectionState.cpp \
+    cp/state/BaseSipConnectionState.cpp \
+    cp/state/DialingSipConnectionState.cpp \
+    cp/state/DisconnectedSipConnectionState.cpp \
+    cp/state/EstablishedSipConnectionState.cpp \
+    cp/state/GeneralTransitionMemory.cpp \
+    cp/state/IdleSipConnectionState.cpp \
+    cp/state/NewCallSipConnectionState.cpp \
+    cp/state/OfferingSipConnectionState.cpp \
+    cp/state/QueuedSipConnectionState.cpp \
+    cp/state/RemoteAlertingSipConnectionState.cpp \
+    cp/state/RemoteOfferingSipConnectionState.cpp \
+    cp/state/RemoteQueuedSipConnectionState.cpp \
+    cp/state/SipConnectionStateContext.cpp \
+    cp/state/SipConnectionStateMachine.cpp \
+    cp/state/SipConnectionStateTransition.cpp \
+    cp/state/SipEventTransitionMemory.cpp \
+    cp/state/SipResponseTransitionMemory.cpp \
+    cp/state/StateTransitionEventDispatcher.cpp \
+    cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
+    tapi/InfoEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \
     tapi/LineStateEventMsg.cpp \
@@ -64,6 +138,7 @@ libsipXcall_la_SOURCES = \
     tapi/SipXEvents.cpp \
     tapi/SipXHandleMap.cpp \
     tapi/SipXInfo.cpp \
+    tapi/SipXInfoEventListener.cpp \
     tapi/SipXInfoStatusEventListener.cpp \
     tapi/SipXKeepaliveEventListener.cpp \
     tapi/SipXLine.cpp \

@@ -14,6 +14,7 @@
 #include <mp/MpMediaTask.h>
 #include <mp/MpFlowGraphBase.h>
 #include <mp/MpTestResource.h>
+#include <mp/MpDefs.h>
 #include <mp/MpMisc.h>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -30,9 +31,9 @@ class MpGenericResourceTest : public CppUnit::TestCase
     CPPUNIT_TEST_SUITE_END();
 
 /// Number of frames in one frame
-#define TEST_SAMPLES_PER_FRAME 80
+#define TEST_SAMPLES_PER_FRAME SAMPLES_PER_FRAME
 /// Number of frames in one second
-#define TEST_SAMPLES_PER_SEC 8000
+#define TEST_SAMPLES_PER_SEC SAMPLES_PER_SECOND
 
 public:
 
@@ -44,7 +45,7 @@ public:
 
       MpMediaTask::enableTestMode(TRUE);
       // Setup media task
-      res = mpStartUp(TEST_SAMPLES_PER_SEC, TEST_SAMPLES_PER_FRAME);
+      res = mpStartUp();
       CPPUNIT_ASSERT(res == OS_SUCCESS);
 
       mpFlowGraph = new MpFlowGraphBase( TEST_SAMPLES_PER_FRAME

@@ -47,10 +47,10 @@ class Url;
 class OsNotification;
 class SipSubscribeServer;
 class SipSubscribeClient;
-class CallManager;
+class XCpCallManager;
 class SipLineMgr;
 class SdpCodec;
-class SdpCodecFactory;
+class SdpCodecList;
 class SipUserAgent;
 class SipRefreshMgr;
 class SipDialogMgr;
@@ -62,6 +62,7 @@ class SipXMessageObserver;
 class SipXLineEventListener;
 class SipXCallEventListener;
 class SipXInfoStatusEventListener;
+class SipXInfoEventListener;
 class SipXSecurityEventListener;
 class SipXMediaEventListener;
 class OsSharedServerTaskMgr;
@@ -108,54 +109,20 @@ public:
    }
 };
 
-
-class AUDIO_CODEC_PREFERENCES
-{
-public:
-   UtlBoolean              bInitialized; /**< Is the data valid */
-   int               numCodecs;          /**< Number of codecs */
-   SIPX_AUDIO_BANDWIDTH_ID codecPref;    /**< Numeric Id of codec preference */
-   UtlString         preferences;        /**< List of preferred codecs */
-   SdpCodec**        sdpCodecArray;      /**< Pointer to an array of codecs */
-
-   AUDIO_CODEC_PREFERENCES() : bInitialized(FALSE),
-      numCodecs(0),
-      codecPref(AUDIO_CODEC_BW_NORMAL),
-      preferences(NULL),
-      sdpCodecArray(NULL)
-   {
-
-   }
-};
-
-class VIDEO_CODEC_PREFERENCES
-{
-public:
-   UtlBoolean              bInitialized; /**< Is the data valid */
-   int               numCodecs;          /**< Number of codecs */
-   SIPX_VIDEO_BANDWIDTH_ID codecPref;    /**< Numeric Id of codec preference */
-   SIPX_VIDEO_FORMAT videoFormat;        /**< Selected video format */
-   UtlString         preferences;        /**< List of preferred codecs */
-   SdpCodec**        sdpCodecArray;      /**< Pointer to an array of codecs */
-
-   VIDEO_CODEC_PREFERENCES() : bInitialized(FALSE),
-      numCodecs(0),
-      codecPref(VIDEO_CODEC_BW_NORMAL),
-      videoFormat(VIDEO_FORMAT_ANY),
-      preferences(NULL),
-      sdpCodecArray(NULL)
-   {
-
-   }
-};
-
 class SIPX_INSTANCE_DATA
 {
 public:
+   size_t nSize;     /**< Size of the structure */
    SipUserAgent*    pSipUserAgent;
    SipPimClient*    pSipPimClient;
-   SdpCodecFactory* pCodecFactory;
-   CallManager*     pCallManager;
+   // codec settings
+   SdpCodecList* pSelectedCodecList; // shared with XCpCallManager, but not XCpAbstractCall. Only for new calls.
+   SdpCodecList* pAvailableCodecList;
+   UtlString selectedAudioCodecNames;
+   UtlString selectedVideoCodecNames;
+   SIPX_VIDEO_FORMAT videoFormat; // selected video format
+
+   XCpCallManager*     pCallManager;
    SipLineMgr*      pLineManager;
    SipRefreshMgr*   pRefreshManager;
    SipSubscribeServer* pSubscribeServer;
@@ -164,14 +131,12 @@ public:
    SipXLineEventListener* pLineEventListener;
    SipXCallEventListener* pCallEventListener;
    SipXInfoStatusEventListener* pInfoStatusEventListener;
+   SipXInfoEventListener* pInfoEventListener;
    SipXSecurityEventListener* pSecurityEventListener;
    SipXMediaEventListener* pMediaEventListener;
    SipXKeepaliveEventListener* pKeepaliveEventListener;
    SipDialogMgr* pDialogManager;
    OsSharedServerTaskMgr* pSharedTaskMgr;
-
-   AUDIO_CODEC_PREFERENCES audioCodecSetting;
-   VIDEO_CODEC_PREFERENCES videoCodecSetting;
 
    char*            inputAudioDevices[MAX_AUDIO_DEVICES];
    int              nInputAudioDevices;
@@ -185,17 +150,21 @@ public:
    int             nConferences;  /**< Counter for inprocess conferences */
    int             nLines;        /**< Counter for inprocess lines */
    void*           pVoiceEngine;  /**< Cache VoiceEngine pointer */
-   UtlBoolean      bShortNames;   /**< short names in sip messages >*/
-   UtlBoolean      bAllowHeader;  /**< use allow header in sip messages>*/
-   UtlBoolean      bDateHeader;   /**< use Date header in sip messages>*/
+   UtlBoolean      bShortNames;   /**< short names in sip messages */
+   UtlBoolean      bAllowHeader;  /**< use Allow header in sip messages */
+   UtlBoolean      bSupportedHeader;  /**< use Supported header in sip messages */
+   UtlBoolean      bDateHeader;   /**< use Date header in sip messages */
    char            szAcceptLanguage[16]; /**< accept language to use in sip messages>*/
    char            szLocationHeader[256]; /**< location header */
    UtlBoolean      bRtpOverTcp;   /**< allow RTP over TCP */
 
-   SIPX_INSTANCE_DATA() : lock(OsMutex::Q_FIFO),
+   SIPX_INSTANCE_DATA()
+      : lock(OsMutex::Q_FIFO),
+      nSize(sizeof(SIPX_INSTANCE_DATA)),
       pSipUserAgent(NULL),
       pSipPimClient(NULL),
-      pCodecFactory(NULL),
+      pSelectedCodecList(NULL),
+      pAvailableCodecList(NULL),
       pCallManager(NULL),
       pLineManager(NULL),
       pRefreshManager(NULL),
@@ -205,6 +174,7 @@ public:
       pLineEventListener(NULL),
       pCallEventListener(NULL),
       pInfoStatusEventListener(NULL),
+      pInfoEventListener(NULL),
       pSecurityEventListener(NULL),
       pMediaEventListener(NULL),
       pDialogManager(NULL),
@@ -215,8 +185,9 @@ public:
       nLines(0),
       pVoiceEngine(NULL),
       bShortNames(FALSE),
-      bAllowHeader(FALSE),
-      bDateHeader(FALSE),
+      bAllowHeader(TRUE),
+      bSupportedHeader(TRUE),
+      bDateHeader(TRUE),
       bRtpOverTcp(FALSE),
       pKeepaliveEventListener(NULL),
       nInputAudioDevices(0),
@@ -233,20 +204,12 @@ public:
       memset(szAcceptLanguage, 0, sizeof(szAcceptLanguage));
       memset(szLocationHeader, 0, sizeof(szLocationHeader));
    }
-};
 
-typedef enum SIPX_INTERNAL_CALLSTATE
-{
-   SIPX_INTERNAL_CALLSTATE_UNKNOWN = 0,        /** Unknown call state */
-   SIPX_INTERNAL_CALLSTATE_OUTBOUND_ATTEMPT,   /** Early dialog: outbound */
-   SIPX_INTERNAL_CALLSTATE_INBOUND_ATEMPT,     /** Early dialog: inbound */
-   SIPX_INTERNAL_CALLSTATE_CONNECTED,          /** Active call - remote audio */
-   SIPX_INTERNAL_CALLSTATE_HELD,               /** both on hold due to a local hold */
-   SIPX_INTERNAL_CALLSTATE_REMOTE_HELD,        /** Remotely held call */
-   SIPX_INTERNAL_CALLSTATE_BRIDGED,            /** Locally held call, bridging */
-   SIPX_INTERNAL_CALLSTATE_DISCONNECTED,       /** Disconnected or failed */
-   SIPX_INTERNAL_CALLSTATE_DESTROYING          /** In the process of being destroyed */
-} SIPX_INTERNAL_CALLSTATE;
+   ~SIPX_INSTANCE_DATA()
+   {
+      nSize = 0;
+   }
+};
 
 typedef enum CONF_HOLD_STATE
 {

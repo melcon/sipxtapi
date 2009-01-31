@@ -12,6 +12,8 @@
 #define _INCLUDED_MPAUDIOBUF_H
 
 // SYSTEM INCLUDES
+#include <assert.h>
+
 // APPLICATION INCLUDES
 #include "mp/MpDataBuf.h"
 #include "mp/MpTypes.h"
@@ -23,6 +25,8 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
+// FORWARD DECLARATIONS
+class MpAudioBufPtr;
 
 ///  Buffer for raw audio data.
 /**
@@ -35,16 +39,6 @@ struct MpAudioBuf : public MpDataBuf
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-
-    /// Sort of audio data.
-    typedef enum {
-        MP_SPEECH_UNKNOWN,        ///< is yet undetermined
-        MP_SPEECH_SILENT,         ///< found to contain no speech
-        MP_SPEECH_COMFORT_NOISE,  ///< to be replaced by comfort noise
-        MP_SPEECH_ACTIVE,         ///< found to contain speech
-        MP_SPEECH_MUTED,          ///< may contain speech, but must be muted
-        MP_SPEECH_TONE            ///< filled with active (not silent) tone data
-    } SpeechType;
 
     static MpBufPool *smpDefaultPool; ///< Default pool for this type of buffer
 
@@ -60,7 +54,7 @@ public:
 //@{
 
     /// Set audio data type.
-    void setSpeechType(SpeechType type) {mSpeechType = type;};
+    void setSpeechType(MpSpeechType type) {mParams.mSpeechType = type;};
 
     /// Set current number of samples in audio data.
     /**
@@ -71,23 +65,20 @@ public:
     bool setSamplesNumber(unsigned samplesNum)
     {return mpData->setDataSize(samplesNum*sizeof(MpAudioSample));}
 
-    /// Set attenuation applied at speakerphone speaker.
-    void setAttenDb(short attenDb) {mAttenDb = attenDb;}
-
     /// Set time code for this frame
-    void setTimecode(unsigned timecode) {mTimecode=timecode;}
+    void setTimecode(unsigned timecode) {assert(!"MpAudioBuf::setTimecode() is not implemented!");}
 
-    /// compare two frames of audio to see if they are the same or similar
-    /** 
-    *  @param tolerance - the allowed difference between the corresponding
-    *         samples in the two frames which are considered to still be
-    *         the same.
-    *  @returns 0, positive or negative value.  Zero means the samples
-    *           are similar within the tolerance.
-    */
-    static int compareSamples(const MpAudioBuf& frame1, 
-                              const MpAudioBuf& frame2, 
-                              unsigned int tolerance = 0);
+    /// Set amplitude of the data in the buffer.
+    void setAmplitude(MpAudioSample amplitude) {mParams.mAmplitude = amplitude;}
+
+    /// Is data in the buffer clipped?
+    void setClipping(UtlBoolean clipping) {mParams.mIsClipped = clipping;}
+
+    /// Set normalized frame energy level.
+    void setEnergy(int energy) {mParams.mFrameEnergy = energy;}
+
+    /// Set all speech parameters at once
+    void setSpeechParams(const MpSpeechParams &params) {mParams = params;}
 
 //@}
 
@@ -96,7 +87,7 @@ public:
 //@{
 
     /// Get audio data type.
-    SpeechType getSpeechType() const {return mSpeechType;};
+    MpSpeechType getSpeechType() const {return mParams.mSpeechType;};
 
     /// Get pointer to audio data.
     const MpAudioSample *getSamplesPtr() const {return (const MpAudioSample*)getDataPtr();}
@@ -107,11 +98,23 @@ public:
     /// Get current number of samples in audio data.
     unsigned getSamplesNumber() const {return mpData->getDataSize()/sizeof(MpAudioSample);}
 
-    /// Get attenuation applied at speakerphone speaker.
-    short getAttenDb() const {return mAttenDb;}
-
     /// Get time code for this frame
-    unsigned getTimecode() const {return mTimecode;}
+    unsigned getTimecode() const {assert(!"MpAudioBuf::getTimecode() is not implemented!"); return 0;}
+
+    /// Get amplitude of the data in the buffer.
+    MpAudioSample getAmplitude() const {return mParams.mAmplitude;}
+
+    /// Is data in the buffer clipped?
+    UtlBoolean getClipping() const {return mParams.mIsClipped;}
+
+    /// Get normalized frame energy.
+    int getEnergy() const {return mParams.mFrameEnergy;}
+
+    /// Get speech parameters as a structure (const version)
+    const MpSpeechParams &getSpeechParams() const {return mParams;}
+
+    /// Get speech parameters as a structure
+    MpSpeechParams &getSpeechParams() {return mParams;}
 
 //@}
 
@@ -119,17 +122,23 @@ public:
 ///@name Inquiry
 //@{
 
-    /// Does buffer contain active voice or silence data
-    bool isActiveAudio() const;
+    /// compare two frames of audio to see if they are the same or similar
+    int compareSamples(const MpAudioBufPtr& frame,
+                       unsigned int tolerance = 0) const;
+    /**<
+    *  @param tolerance - the allowed difference between the corresponding
+    *         samples in the two frames which are considered to still be
+    *         the same.
+    *  @returns 0, positive or negative value.  Zero means the samples
+    *           are similar within the tolerance.
+    */
 
 //@}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-    short      mAttenDb;     ///< attenuation applied at speakerphone speaker
-    SpeechType mSpeechType;  ///< if we know, whether buffer contains speech
-    unsigned   mTimecode;    ///< time when this data is generated
+    MpSpeechParams mParams;  ///< Parameters of the frame data.
 
     /// This is called in place of constructor.
     void init();
@@ -180,38 +189,6 @@ public:
 ///@name Manipulators
 //@{
 
-    /// compare two frames of audio to see if they are the same or similar
-    /** 
-    *  @param tolerance - the allowed difference between the corresponding
-    *         samples in the two frames which are considered to still be
-    *         the same.
-    *  @returns 0, positive or negative value.  Zero means the samples
-    *           are similar within the tolerance.
-    */
-    int compareSamples(const MpAudioBufPtr& frame2, 
-                       unsigned int tolerance = 0) const
-    {
-        int compareValue = 0;
-        if(!isValid())
-        {
-            compareValue = -1;
-        }
-        else if(!frame2.isValid())
-        {
-            compareValue = 1;
-        }
-        else
-        {
-            // Need to downcast before dereferencing to avoid implicit
-            // construction of MpAudioBuf from MpBuf
-            compareValue =
-                MpAudioBuf::compareSamples(*((MpAudioBuf*)mpBuffer), 
-                                           *((MpAudioBuf*)frame2.mpBuffer), 
-                                           tolerance);
-        }
-        return(compareValue);
-    };
-
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -221,7 +198,7 @@ public:
     /// Return pointer to MpAudioBuf.
     MPBUF_MEMBER_ACCESS_OPERATOR(MpAudioBuf)
 
-    /// Return readonly pointer to MpAudioBuf.
+    /// Return read-only pointer to MpAudioBuf.
     MPBUF_CONST_MEMBER_ACCESS_OPERATOR(MpAudioBuf)
 
 //@}
@@ -241,5 +218,7 @@ protected:
 private:
 
 };
+
+/* ============================ INLINE METHODS ============================ */
 
 #endif /* ] _INCLUDED_MPAUDIOBUF_H */

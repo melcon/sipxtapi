@@ -15,14 +15,12 @@
 #ifndef _MprFromMic_h_
 #define _MprFromMic_h_
 
-#define REAL_SILENCE_DETECTION
-
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
 #include "os/OsMsgQ.h"
+#include <mp/MpDefs.h>
 #include "mp/MpAudioResource.h"
-#include "mp/MpCodec.h"
 
 // DEFINES
 // MACROS
@@ -76,18 +74,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-
-   enum{EqFilterLen = 24}; ///< Brant, 11 May 2001; was 13, allow for experiments.
-
    OsMsgQ *mpMicQ;                ///< We will read audio data from this queue.
-   int16_t   shpFilterBuf[80 + 10];
-   int     m_framesProcessed;
-   unsigned long m_minVoiceEnergy;  ///< trigger threshold for silence detection.
-
-   void  Init_highpass_filter800();
-   void  highpass_filter800(int16_t *, int16_t *, short);
-   MpAudioBuf::SpeechType speech_detected(int16_t*, int);
-
+   int m_framesProcessed;
 
    virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
       MpBufPtr outBufs[],

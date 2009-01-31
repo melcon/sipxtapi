@@ -209,8 +209,8 @@ void MpRtpOutputAudioConnection::sendConnectionNotification(MpNotificationMsgTyp
       OsIntPtrMsg connectionMsg(OsMsg::MP_CONNECTION_NOTF_MSG,
          (unsigned char)MP_NOTIFICATION_AUDIO,
          (int)type,
-         data,
-         mMyID);
+         mMyID,
+         data);
 
       m_pConnectionNotificationQueue->send(connectionMsg, OsTime::NO_WAIT_TIME);
    }
@@ -229,11 +229,8 @@ OsStatus MpRtpOutputAudioConnection::startSendRtp(OsMsgQ& messageQueue,
     if(audioCodec || dtmfCodec)
     {
         // Create a message to contain the startRecieveRtp data
-        MprRtpStartSendMsg msg(resourceName,
-                               audioCodec,
-                               dtmfCodec,
-                               rRtpSocket,
-                               rRtcpSocket);
+        MprRtpStartSendMsg msg(resourceName, audioCodec,
+                               dtmfCodec, rRtpSocket, rRtcpSocket);
 
         // Send the message in the queue.
         result = messageQueue.send(msg);
@@ -260,42 +257,13 @@ OsStatus MpRtpOutputAudioConnection::handleStartSendRtp(OsSocket& rRtpSocket,
 {
    prepareStartSendRtp(rRtpSocket, rRtcpSocket);
 
-   // This should be ok to set directly as long as we do not switch mid stream
-   // Eventually this needs to be a message
-#if 0
-   osPrintf("MpConnection::startSendRtp setting send codecs:\n");
-
-   if (NULL != pPrimaryCodec) {
-      osPrintf("  Primary audio: codec=%d, payload type=%d\n",
-          pPrimaryCodec->getCodecType(),
-          pPrimaryCodec->getCodecPayloadFormat());
-   } else {
-      osPrintf("  Primary audio: NONE\n");
-   }
-   if (NULL != pDtmfCodec) {
-      osPrintf("  DTMF Tones: codec=%d, payload type=%d\n",
-          pDtmfCodec->getCodecType(), pDtmfCodec->getCodecPayloadFormat());
-   } else {
-      osPrintf("  DTMF Tones: NONE\n");
-   }
-   if (NULL != pSecondaryCodec) {
-      osPrintf("  Secondary audio: codec=%d, payload type=%d\n",
-          pSecondaryCodec->getCodecType(),
-          pSecondaryCodec->getCodecPayloadFormat());
-   } else {
-      osPrintf("  Secondary audio: NONE\n");
-   }
-#endif
-
    OsStatus result = OS_NOT_FOUND;
    if(mpEncode)
    {
        result = OS_SUCCESS;
        mpEncode->selectCodecs(pPrimaryCodec, pDtmfCodec);
-       // No need to synchronize as the encoder is not part of the
-       // flowgraph.
-       //mpFlowGraph->synchronize();
        mpEncode->enable();
+       sendConnectionNotification(MP_NOTIFICATION_START_RTP_SEND, 0);
    }
    return(result);
 }
@@ -309,12 +277,9 @@ OsStatus MpRtpOutputAudioConnection::handleStopSendRtp()
    if(mpEncode)
    {
        result = OS_SUCCESS;
-//   osPrintf("MpRtpOutputAudioConnection::stopSendRtp resetting send codec\n");
        mpEncode->deselectCodecs();
-   // No need to synchronize as the encoder is not part of the
-   // flowgraph.
-   //mpFlowGraph->synchronize();
        mpEncode->disable();
+       sendConnectionNotification(MP_NOTIFICATION_STOP_RTP_SEND, 0);
    }
    return(result);
 }

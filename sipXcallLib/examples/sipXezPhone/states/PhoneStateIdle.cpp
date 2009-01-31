@@ -62,7 +62,7 @@ PhoneState* PhoneStateIdle::OnOffer(SIPX_CALL hCall)
     
     // get remote sip url
     char szIncomingID[256];
-    sipxCallGetRemoteID(hCall, szIncomingID, 256);    
+    sipxCallGetRemoteField(hCall, szIncomingID, 256);    
     
     const UtlString* pCertFile = sipXezPhoneSettings::getInstance().lookupCertificate(szIncomingID);
     
@@ -113,7 +113,6 @@ PhoneState* PhoneStateIdle::OnOffer(SIPX_CALL hCall)
     memset((void*)&options, 0, sizeof(SIPX_CALL_OPTIONS));
     options.cbSize = sizeof(SIPX_CALL_OPTIONS);
     options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
-    options.bandwidthId =  AUDIO_CODEC_BW_DEFAULT;
 
     sipxCallAccept(hCall, pDisplay, pSecurity, &options);
 

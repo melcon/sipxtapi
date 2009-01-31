@@ -5,6 +5,8 @@
 // Copyright (C) 2006 SIPfoundry Inc. 
 // Licensed by SIPfoundry under the LGPL license. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -22,14 +24,11 @@ extern "C" {
 const MpCodecInfo MpeSipxGSM::smCodecInfo(
          SdpCodec::SDP_CODEC_GSM,    // codecType
          "GSM 6.10",                 // codecVersion
-         false,                      // usesNetEq
          8000,                       // samplingRate
-         8,                          // numBitsPerSample
+         16,                          // numBitsPerSample
          1,                          // numChannels
-         160,                        // interleaveBlockSize
          13200,                      // bitRate. It doesn't matter right now.
          33*8,                       // minPacketBits
-         33*8,                       // avgPacketBits
          33*8,                       // maxPacketBits
          160);                       // numSamplesPerFrame
 
@@ -39,7 +38,7 @@ MpeSipxGSM::MpeSipxGSM(int payloadType)
 , mpGsmState(NULL)
 , mBufferLoad(0)
 {
-   assert(CODEC_TYPE_GSM == payloadType);
+   assert(SdpCodec::SDP_CODEC_GSM == payloadType);
 }
 
 MpeSipxGSM::~MpeSipxGSM()
@@ -57,7 +56,7 @@ OsStatus MpeSipxGSM::initEncode(void)
 
 OsStatus MpeSipxGSM::freeEncode(void)
 {
-   if (NULL != mpGsmState)
+   if (mpGsmState)
    {
       gsm_destroy(mpGsmState);
       mpGsmState = NULL;
@@ -72,10 +71,20 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpAudioBuf::SpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && mBufferLoad == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    int size = 0;   
    
+   assert(numSamples == 80);
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad+numSamples;
    assert(mBufferLoad <= 160);
@@ -93,7 +102,6 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
 
    rSamplesConsumed = numSamples;
    rSizeInBytes = size;
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
    return OS_SUCCESS;
 }
 

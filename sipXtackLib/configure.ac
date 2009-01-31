@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(sipXtackLib, 3.2, sipx-dev@list.sipfoundry.org)
+AC_INIT(sipXtackLib, 3.3, sipx-dev@list.sipfoundry.org)
 AC_CONFIG_AUX_DIR(config)
 AC_PREFIX_DEFAULT([/usr/local/sipx])
 AM_INIT_AUTOMAKE(foreign)
@@ -51,10 +51,6 @@ AC_CHECK_FUNCS([clock_gettime getcwd gethostbyname gethostname gettimeofday inet
 
 # Look for CPPUnit libraries
 CHECK_CPPUNIT
-
-# Look for GSM and Speex codecs
-CHECK_GSM
-#CHECK_SPEEX
 
 # Look for SSL libraries
 CHECK_SSL

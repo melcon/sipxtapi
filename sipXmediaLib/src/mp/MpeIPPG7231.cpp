@@ -8,6 +8,8 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -27,23 +29,20 @@ extern "C" {
 
 const MpCodecInfo MpeIPPG7231::smCodecInfo(
    SdpCodec::SDP_CODEC_G723,     // codecType
-   "Intel IPP 5.3",              // codecVersion
-   true,                         // usesNetEq
+   "Intel IPP 6.0",              // codecVersion
    8000,                         // samplingRate
    16,                           // numBitsPerSample
    1,                            // numChannels
-   80,                           // interleaveBlockSize
    8000,                         // bitRate
    20*8,                          // minPacketBits
-   20*8,                          // avgPacketBits
    24*8,                          // maxPacketBits
-   80);                         // numSamplesPerFrame
+   240);                         // numSamplesPerFrame
 
 MpeIPPG7231::MpeIPPG7231(int payloadType)
 : MpEncoderBase(payloadType, &smCodecInfo)
 , mStoredFramesCount(0)
-, mpStoredFramesBuffer(NULL)
-, mEncodedBuffer(NULL)
+, m_pInputBuffer(NULL)
+, m_pOutputBuffer(NULL)
 {
    codec5300 = (LoadedCodec*)malloc(sizeof(LoadedCodec));
    memset(codec5300, 0, sizeof(LoadedCodec));
@@ -135,7 +134,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    codec6300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec6300->uscParams.pInfo->params.law = 0;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
-   codec6300->uscParams.pInfo->params.modes.vad = 1;    
+   codec6300->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Set params for encode
    lCallResult = SetUSCEncoderPCMType(&codec5300->uscParams, LINEAR_PCM, &streamType, NULL);
@@ -148,7 +147,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    codec5300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec5300->uscParams.pInfo->params.law = 0;
    codec5300->uscParams.pInfo->params.modes.bitrate = 5300;
-   codec5300->uscParams.pInfo->params.modes.vad = 1;
+   codec5300->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec6300->uscParams, NULL);
@@ -178,10 +177,10 @@ OsStatus MpeIPPG7231::initEncode(void)
 
    // Allocate memory for the input buffer. Size of output buffer is equal
    // to the size of 1 frame
-   mpStoredFramesBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->params.framesize);
-   mEncodedBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->maxbitsize + 1);
+   m_pInputBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->params.framesize);
+   m_pOutputBuffer = ippsMalloc_8s(codec5300->uscParams.pInfo->maxbitsize + 10);
 
-   ippsSet_8u(0, (Ipp8u *)mpStoredFramesBuffer, codec5300->uscParams.pInfo->params.framesize);
+   ippsSet_8u(0, (Ipp8u *)m_pInputBuffer, codec5300->uscParams.pInfo->params.framesize);
 
    mStoredFramesCount = 0;
 
@@ -193,8 +192,16 @@ OsStatus MpeIPPG7231::freeEncode(void)
    // Free codec memory
    USCFree(&codec6300->uscParams);
    USCFree(&codec5300->uscParams);
-   ippsFree(mpStoredFramesBuffer);
-   ippsFree(mEncodedBuffer);
+   if (m_pInputBuffer)
+   {
+      ippsFree(m_pInputBuffer);
+      m_pInputBuffer = NULL;
+   }
+   if (m_pOutputBuffer)
+   {
+      ippsFree(m_pOutputBuffer);
+      m_pOutputBuffer = NULL;
+   }
 
    return OS_SUCCESS;
 }
@@ -207,19 +214,18 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpAudioBuf::SpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(80 == numSamples);
 
    if (mStoredFramesCount == 2)
    {
       // zero encoded buffer
-      ippsSet_8u(0, (Ipp8u *)mEncodedBuffer, codec5300->uscParams.pInfo->maxbitsize + 1);
+      ippsSet_8u(0, (Ipp8u *)m_pOutputBuffer, codec5300->uscParams.pInfo->maxbitsize + 1);
 
       ippsCopy_8u((unsigned char *)pAudioSamples,
-                  (unsigned char *)mpStoredFramesBuffer+mStoredFramesCount*160,
+                  (unsigned char *)m_pInputBuffer+mStoredFramesCount*160,
                   numSamples*sizeof(MpAudioSample));     
-
 
       int frmlen, infrmLen, FrmDataLen;
       USC_PCMStream PCMStream;
@@ -227,8 +233,8 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
 
       // Do the pre-procession of the frame
       infrmLen = USCEncoderPreProcessFrame(&codec5300->uscParams,
-                                           mpStoredFramesBuffer,
-                                           mEncodedBuffer,
+                                           m_pInputBuffer,
+                                           m_pOutputBuffer,
                                            &PCMStream,
                                            &Bitstream);
       // Encode one frame
@@ -244,36 +250,35 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       infrmLen += FrmDataLen;
       // Do the post-procession of the frame
       frmlen = USCEncoderPostProcessFrame(&codec5300->uscParams,
-                                          mpStoredFramesBuffer,
-                                          mEncodedBuffer,
+                                          m_pInputBuffer,
+                                          m_pOutputBuffer,
                                           &PCMStream,
                                           &Bitstream);
 
 
-      ippsSet_8u(0, pCodeBuf, 20); 
+      ippsSet_8u(0, pCodeBuf, 20);
 
-      if (Bitstream.nbytes <= 20)
+      if (Bitstream.nbytes <= 20 && Bitstream.nbytes != 1)
       {
          for(int k = 0; k < Bitstream.nbytes; ++k)
          {
-            pCodeBuf[k] = mEncodedBuffer[6 + k];
+            pCodeBuf[k] = m_pOutputBuffer[6 + k];
          }
+         // don't send 1 byte frames
+         sendNow = TRUE;
       }
       else
       {
          frmlen =0;
       }
 
-      sendNow = TRUE;
-
-      rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
       rSamplesConsumed = numSamples;
       mStoredFramesCount = 0;
 
-      ippsSet_8u(0, (unsigned char *)mpStoredFramesBuffer,
+      ippsSet_8u(0, (unsigned char *)m_pInputBuffer,
                  codec5300->uscParams.pInfo->params.framesize);
 
-      if (Bitstream.nbytes <= 20)
+      if (Bitstream.nbytes <= 20 && Bitstream.nbytes != 1)
       {
          rSizeInBytes = Bitstream.nbytes;
       }
@@ -285,7 +290,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
    else
    {
       ippsCopy_8u((unsigned char *)pAudioSamples,
-                  (unsigned char *)mpStoredFramesBuffer+mStoredFramesCount*160,
+                  (unsigned char *)m_pInputBuffer+mStoredFramesCount*160,
                   numSamples * sizeof(MpAudioSample));  
 
       mStoredFramesCount++;
@@ -293,7 +298,6 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       sendNow = FALSE;
       rSizeInBytes = 0;
       rSamplesConsumed = numSamples;
-      rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
    }
 
    return OS_SUCCESS;

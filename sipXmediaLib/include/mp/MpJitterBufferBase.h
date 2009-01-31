@@ -24,8 +24,10 @@ class MpRtpBufPtr;
 
 typedef enum JitterBufferResult
 {
-   MP_JITTER_BUFFER_OK = 0,
-   MP_JITTER_BUFFER_MISSING,
+   MP_JITTER_BUFFER_OK = 0, ///< returned when expected frame was found
+   MP_JITTER_BUFFER_PLC, ///< returned when PLC frame was returned from jitter buffer
+   MP_JITTER_BUFFER_FRAME_SKIP, ///< returned when frame skip was detected. Valid frame is returned.
+   MP_JITTER_BUFFER_MISSING, ///< returned when no frame was found, jitter buffer is empty
    MP_JITTER_BUFFER_INCOMPLETE,
    MP_JITTER_BUFFER_ERROR
 } JitterBufferResult;
@@ -53,13 +55,13 @@ public:
     *        Mainly for debugging.
     * @param payloadType RTP Payload type. Jitter buffer will reject
     *        RTP frames for other payload types.
-    * @param frameSize Number of samples per frame used by the codec,
+    * @param samplesPerFrame Number of samples per frame used by the codec,
     *        not internal frame size in sipxmedialib. Will be probably
     *        80, 160, 240...
     */
    MpJitterBufferBase(const UtlString& name,
                       int payloadType,
-                      unsigned int frameSize);
+                      unsigned int samplesPerFrame);
 
    virtual ~MpJitterBufferBase();
 
@@ -116,7 +118,7 @@ public:
 protected:
    UtlString m_name;
    int m_payloadType;
-   unsigned int m_frameSize;
+   unsigned int m_samplesPerFrame;
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

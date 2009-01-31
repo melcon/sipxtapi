@@ -11,6 +11,10 @@
 #ifndef _REGEX_H
 #define _REGEX_H
 
+#ifdef _WIN32
+#define PCRE_STATIC
+#endif
+
 #include <string.h>
 #include <pcre.h>
 #include "utl/UtlString.h"

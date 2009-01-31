@@ -162,7 +162,7 @@ void sipxLineReleaseLock(SIPX_LINE_DATA* pData,
 
 void sipxLineRemoveAll(const SIPX_INST hInst) 
 {
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    if (pInst)
    {
       int linesCount = pInst->pLineManager->getNumLines();
@@ -365,7 +365,7 @@ SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI
                   urlURI.getUserId(uriUsername);
                   pData->m_lineUri.getUserId(hostUsername);
 
-                  if (uriUsername.compareTo(hostUsername, UtlString::ignoreCase) == 0)
+                  if (uriUsername.compareTo(hostUsername) == 0)
                   {
                      hLine = pIndex->getValue();
                      break;
@@ -383,7 +383,7 @@ SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI
 
                      pUrl->getUserId(aliasUsername);
 
-                     if (uriUsername.compareTo(aliasUsername, UtlString::ignoreCase) == 0)
+                     if (uriUsername.compareTo(aliasUsername) == 0)
                      {
                         hLine = pIndex->getValue();
                         break;
@@ -629,7 +629,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineFindByURI(const SIPX_INST hInst,
 
    if (hInst && szURI)
    {
-      *phLine = sipxLineLookupHandleByURI((SIPX_INSTANCE_DATA*)hInst, szURI);
+      SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+      *phLine = sipxLineLookupHandleByURI(pInst, szURI);
 
       if (*phLine != SIPX_LINE_NULL)
       {
@@ -656,7 +657,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineGet(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst && lines && actual && max > 0)
@@ -733,7 +734,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
       hInst, szLineUrl, phLine, contactId);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    assert(szLineUrl);
    assert(phLine);

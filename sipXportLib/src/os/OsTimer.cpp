@@ -21,7 +21,7 @@
 #include "os/OsQueuedEvent.h"
 #include "os/OsLock.h"
 #include "os/OsEvent.h"
-#include "os/OsTimerMsg.h"
+#include "os/OsTimerTaskCommandMsg.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -65,14 +65,14 @@ OsTimer::OsTimer(OsMsgQ* pQueue, const int userData) :
 
 // The address of "this" OsTimer object is the eventData that is
 // conveyed to the Listener when the notification is signaled.
-OsTimer::OsTimer(OsNotification& rNotifier) :
+OsTimer::OsTimer(OsNotification* pNotification) :
    mBSem(OsBSem::Q_PRIORITY, OsBSem::FULL),
    mApplicationState(0),
    mTaskState(0),
    // Always initialize mDeleting, as we may print its value.
    mDeleting(FALSE),
-   mpNotifier(&rNotifier) ,
-   mbManagedNotifier(FALSE),
+   mpNotifier(pNotification) ,
+   mbManagedNotifier(TRUE),
    mOutstandingMessages(0),
    mTimerQueueLink(0),
    mWasFired(FALSE)
@@ -122,7 +122,7 @@ OsTimer::~OsTimer()
    // Send a message to the timer task if we need to.
    if (sendMessage) {
       OsEvent event;
-      OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_SYNC, this, &event);
+      OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_SYNC, this, &event);
       OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
       assert(res == OS_SUCCESS);
       event.wait();
@@ -131,6 +131,7 @@ OsTimer::~OsTimer()
    // If mbManagedNotifier, free *mpNotifier.
    if (mbManagedNotifier) {
       delete mpNotifier;
+      mpNotifier = NULL;
    }
 }
 
@@ -162,7 +163,7 @@ void OsTimer::deleteAsync(OsTimer* timer)
    }
 
    // Send the message.
-   OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_DELETE, this, NULL);
+   OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_DELETE, this, NULL);
    OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
    assert(res == OS_SUCCESS);
 }
@@ -238,7 +239,7 @@ OsStatus OsTimer::stop(UtlBoolean synchronous)
       if (synchronous) {
          // Send message and wait.
          OsEvent event;
-         OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_SYNC, this, &event);
+         OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_SYNC, this, &event);
          OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
          assert(res == OS_SUCCESS);
          event.wait();
@@ -246,7 +247,7 @@ OsStatus OsTimer::stop(UtlBoolean synchronous)
       else
       {
          // Send message.
-         OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE, this, NULL);
+         OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE, this, NULL);
          OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
          assert(res == OS_SUCCESS);
       }
@@ -373,7 +374,7 @@ OsStatus OsTimer::startTimer(Time start,
    // If we need to, send an UPDATE message to the timer task.
    if (sendMessage)
    {
-      OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE, this, NULL);
+      OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE, this, NULL);
       OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
       assert(res == OS_SUCCESS);
    }

@@ -215,7 +215,7 @@ void SipXMediaEventListener::sipxFireMediaEvent(const UtlString& sCallId,
 
 void SipXMediaEventListener::handleMediaEvent(const SipXMediaEvent& eventPayload)
 {
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
       "handleMediaEvent Src=%p CallId=%s RemoteAddress=%s Event=%s:%s type=%d",
       m_pInst,
       eventPayload.m_sCallId.data(),
@@ -226,129 +226,29 @@ void SipXMediaEventListener::handleMediaEvent(const SipXMediaEvent& eventPayload
 
    SIPX_MEDIA_EVENT event = eventPayload.m_event;
    SIPX_CALL hCall = sipxCallLookupHandleBySessionCallId(eventPayload.m_sSessionCallId, m_pInst);
-   UtlBoolean bIgnored = FALSE;
 
-   /*
-   * Check/Filter duplicate events
-   */
-   UtlBoolean bDuplicateEvent = FALSE;
    if (hCall != SIPX_CALL_NULL)
    {
-      SIPX_MEDIA_EVENT lastLocalMediaAudioEvent;
-      SIPX_MEDIA_EVENT lastLocalMediaVideoEvent;
-      SIPX_MEDIA_EVENT lastRemoteMediaAudioEvent;
-      SIPX_MEDIA_EVENT lastRemoteMediaVideoEvent;
+      SIPX_MEDIA_INFO mediaInfo;
+      memset(&mediaInfo, 0, sizeof(mediaInfo));
+      mediaInfo.nSize = sizeof(SIPX_MEDIA_INFO);
+      mediaInfo.event = event;
+      mediaInfo.cause = eventPayload.m_cause;
+      mediaInfo.mediaType = eventPayload.m_mediaType;
+      mediaInfo.hCall = hCall;
+      mediaInfo.pCookie = eventPayload.m_pCookie;
+      mediaInfo.playBufferIndex = eventPayload.m_playBufferIndex;
+      mediaInfo.codec = eventPayload.m_codec;
+      mediaInfo.idleTime = eventPayload.m_idleTime;
+      mediaInfo.toneId = eventPayload.m_toneId;
 
-      if (sipxCallGetMediaState(hCall,
-         lastLocalMediaAudioEvent,
-         lastLocalMediaVideoEvent,
-         lastRemoteMediaAudioEvent,
-         lastRemoteMediaVideoEvent))
-      {
-         switch (eventPayload.m_mediaType)
-         {
-         case MEDIA_TYPE_AUDIO:
-            if ((event == MEDIA_LOCAL_START) || (event == MEDIA_LOCAL_STOP))
-            {
-               if (event == lastLocalMediaAudioEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_LOCAL_STOP && lastLocalMediaAudioEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            }
-            else if ((event == MEDIA_REMOTE_START) || 
-               (event == MEDIA_REMOTE_STOP) || 
-               (event == MEDIA_REMOTE_SILENT))
-            {
-               if (event == lastRemoteMediaAudioEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_REMOTE_STOP && lastRemoteMediaAudioEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            }
-            break ;
-         case MEDIA_TYPE_VIDEO:
-            if ((event == MEDIA_LOCAL_START) || (event == MEDIA_LOCAL_STOP))
-            {
-               if (event == lastLocalMediaVideoEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_LOCAL_STOP && lastLocalMediaVideoEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            } 
-            else if ((event == MEDIA_REMOTE_START) || 
-               (event == MEDIA_REMOTE_STOP) || 
-               (event == MEDIA_REMOTE_SILENT))
-            {
-               if (event == lastRemoteMediaVideoEvent)
-               {
-                  bDuplicateEvent = TRUE;
-               }
-               else if (event == MEDIA_REMOTE_STOP && lastRemoteMediaVideoEvent == MEDIA_UNKNOWN)
-               {
-                  // Invalid state change
-                  bDuplicateEvent = TRUE;
-               }
-            }
-            break;
-         }
-      }
+      SipXEventDispatcher::dispatchEvent((SIPX_INST)m_pInst, EVENT_CATEGORY_MEDIA, &mediaInfo);
 
-      // ignore certain events
-      if (event == MEDIA_REMOTE_SILENT)
-      {
-         if (eventPayload.m_mediaType == MEDIA_TYPE_AUDIO)
-         {
-            if (lastRemoteMediaAudioEvent == MEDIA_REMOTE_STOP)
-            {
-               bIgnored = TRUE;
-            }
-         }
-         else if (eventPayload.m_mediaType == MEDIA_TYPE_VIDEO)
-         {
-            if (lastRemoteMediaVideoEvent == MEDIA_REMOTE_STOP)
-            {
-               bIgnored = TRUE;
-            }
-         }
-      }
-
-      // Only proceed if this isn't a duplicate event 
-      if (!bIgnored && !bDuplicateEvent)
-      {
-         SIPX_MEDIA_INFO mediaInfo;
-         memset(&mediaInfo, 0, sizeof(mediaInfo));
-         mediaInfo.nSize = sizeof(SIPX_MEDIA_INFO);
-         mediaInfo.event = event;
-         mediaInfo.cause = eventPayload.m_cause;
-         mediaInfo.mediaType = eventPayload.m_mediaType;
-         mediaInfo.hCall = hCall;
-         mediaInfo.pCookie = eventPayload.m_pCookie;
-         mediaInfo.playBufferIndex = eventPayload.m_playBufferIndex;
-         mediaInfo.codec = eventPayload.m_codec;
-         mediaInfo.idleTime = eventPayload.m_idleTime;
-         mediaInfo.toneId = eventPayload.m_toneId;
-
-         SipXEventDispatcher::dispatchEvent((SIPX_INST)m_pInst, EVENT_CATEGORY_MEDIA, &mediaInfo);
-
-         sipxCallSetMediaState(hCall, event, eventPayload.m_mediaType);
-      }
+      sipxCallSetMediaState(hCall, event, eventPayload.m_mediaType);
    }
    else
    {
-      OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "Media event received but call was not found for CallId=%s", eventPayload.m_sSessionCallId.data());
+      OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING, "Media event received but call was not found for CallId=%s", eventPayload.m_sSessionCallId.data());
    }
 }
 
@@ -361,13 +261,8 @@ SIPX_CODEC_INFO getSipXCodecInfo(const CpCodecInfo& codecInfo)
    memset(&sipxCodecInfo, 0, sizeof(SIPX_CODEC_INFO));
 
    sipxCodecInfo.bIsEncrypted = codecInfo.m_bIsEncrypted;
-   SAFE_STRNCPY(sipxCodecInfo.audioCodec.cName, codecInfo.m_audioCodec.m_codecName.data(), SIPXTAPI_CODEC_NAMELEN);
-   sipxCodecInfo.audioCodec.iBandWidth = (SIPX_AUDIO_BANDWIDTH_ID)codecInfo.m_audioCodec.m_iBandWidth;
-   sipxCodecInfo.audioCodec.iPayloadType = codecInfo.m_audioCodec.m_iPayloadType;
-
-   SAFE_STRNCPY(sipxCodecInfo.videoCodec.cName, codecInfo.m_videoCodec.m_codecName.data(), SIPXTAPI_CODEC_NAMELEN);
-   sipxCodecInfo.videoCodec.iBandWidth = (SIPX_VIDEO_BANDWIDTH_ID)codecInfo.m_videoCodec.m_iBandWidth;
-   sipxCodecInfo.videoCodec.iPayloadType = codecInfo.m_videoCodec.m_iPayloadType;
+   SAFE_STRNCPY(sipxCodecInfo.cAudioCodecName, codecInfo.m_audioCodec.m_codecName.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+   SAFE_STRNCPY(sipxCodecInfo.cVideoCodecName, codecInfo.m_videoCodec.m_codecName.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
 
    return sipxCodecInfo;
 }

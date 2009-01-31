@@ -42,9 +42,6 @@
 
 SipXMessageObserver::SipXMessageObserver(const SIPX_INST hInst) :
     OsServerTask("SipXMessageObserver%d", NULL, 2000),
-    m_iTestResponseCode(0),// if mTestResponseCode is set to a value other than 0,
-                         // then this message observer can generate a test response.
-                         // This feature is used by sipXtapiTest
     m_hInst(hInst)
 {
 }
@@ -87,188 +84,15 @@ UtlBoolean SipXMessageObserver::handleMessage(OsMsg& rMsg)
     else if (msgType == OsMsg::PHONE_APP && msgSubType == SipMessage::NET_SIP_MESSAGE)
     {
        SipMessage* pSipMessage = (SipMessage*)((SipMessageEvent&)rMsg).getMessage();
-       UtlString method;
-
-       pSipMessage->getRequestMethod(&method);
-
-       if (pSipMessage)
-       {
-          if (pSipMessage->isResponse())
-          {
-             // ok, the phone has received a response to a sent INFO message.
-             bRet = handleIncomingInfoStatus(pSipMessage);
-          }
-          else if (!pSipMessage->isResponse() && method == SIP_INFO_METHOD)
-          {
-             // ok, the phone has received an INFO message.
-             bRet = handleIncomingInfoMessage(pSipMessage);
-          }
-       }
+       // add handlers for any other messages
     }
     return bRet;
 }
 
-
-UtlBoolean SipXMessageObserver::handleIncomingInfoMessage(SipMessage* pMessage)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoMessage");
-    bool bRet = FALSE;
-    SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)pMessage->getResponseListenerData();
-    assert(pInst);
-    
-    if (pInst && pMessage)
-    {
-       if (m_iTestResponseCode != 0)  // for unit testing purposes.
-       {
-           if (m_iTestResponseCode == 408)   // a timeout response is being tested
-           {
-               // simulate a timeout ....
-               OsTask::delay(1000);
-               // respond to whomever sent us the message
-	           SipMessage sipResponse;
-	           sipResponse.setOkResponseData(pMessage);
-              sipResponse.setResponseData(pMessage, m_iTestResponseCode, "timed out");	       
-	           pInst->pSipUserAgent->send(sipResponse);
-              return true;
-           }
-       }
-       else
-       {
-            // respond to whomever sent us the message
-	        SipMessage sipResponse;
-	        sipResponse.setOkResponseData(pMessage);
-	        pInst->pSipUserAgent->send(sipResponse);
-	    }
-	    
-       // Find Line
-       UtlString lineUri;
-       pMessage->getToUri(&lineUri);
-
-       UtlString requestUri;
-       pMessage->getRequestUri(&requestUri);
-
-       SIPX_LINE hLine = sipxLineLookupHandle((SIPX_INSTANCE_DATA*)m_hInst, lineUri, requestUri);
-        
-        if (!pMessage->isResponse())
-        {
-            // find call
-            UtlString callId;
-            pMessage->getCallIdField(&callId);
-
-            SIPX_CALL hCall = sipxCallLookupHandleBySessionCallId(callId, pInst);
-
-            if (hCall == 0)
-            {
-                // we are unaware of the call context
-            }
-            
-            SIPX_INFO_INFO pInfoInfo;
-            memset((void*)&pInfoInfo, 0, sizeof(SIPX_INFO_INFO));
-            
-            pInfoInfo.nSize = sizeof(SIPX_INFO_INFO);
-            pInfoInfo.hCall = hCall;
-            pInfoInfo.hLine = hLine;
-            Url fromUrl;
-            
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.szFromURL = lineUri.data();
-
-            // get the user agent
-            UtlString userAgent;
-            pMessage->getUserAgentField(&userAgent);
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.szUserAgent = userAgent.data();
-
-            // get and set the content type
-            UtlString contentType;
-            pMessage->getContentType(&contentType) ;
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.szContentType = contentType.data();
-            
-            // get the content
-            UtlString body;
-            int dummyLength = pMessage->getContentLength();
-            const HttpBody* pBody = pMessage->getBody();
-            pBody->getBytes(&body, &dummyLength);
-            // passing pointer to UtlString buffer is safe here
-            pInfoInfo.pContent = body.data();
-            pInfoInfo.nContentLength = pMessage->getContentLength();
-
-            // dispatcher doesn't delete this event
-            SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_INFO, &pInfoInfo);
-
-            bRet = TRUE;
-        }
-    } // if (NULL != pInst && NULL != pMessage)
-    return bRet;
-}
-
-UtlBoolean SipXMessageObserver::handleIncomingInfoStatus(SipMessage* pSipMessage)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleIncomingInfoStatus");
-
-   if (!pSipMessage)
-   {
-      // something went wrong
-      return FALSE;
-   }
-
-   SIPX_INFO hInfo = (SIPX_INFO)pSipMessage->getResponseListenerData();
-
-   UtlString sResponseText;
-
-   SIPX_MESSAGE_STATUS status;
-   SIPX_INFOSTATUS_EVENT event;
-   int responseCode = pSipMessage->getResponseStatusCode();
-
-   if (responseCode < 400)
-   {
-      status = SIPX_MESSAGE_OK;
-   }
-   else if (responseCode < 500)
-   {
-      status = SIPX_MESSAGE_FAILURE;
-   }
-   else if (responseCode < 600)
-   {
-      status = SIPX_MESSAGE_SERVER_FAILURE;
-   }
-   else 
-   {
-      status = SIPX_MESSAGE_GLOBAL_FAILURE;
-   }
-
-   pSipMessage->getResponseStatusText(&sResponseText);
-   event = INFOSTATUS_RESPONSE;
-
-   SIPX_INFO_DATA* pInfoData = sipxInfoLookup(hInfo, SIPX_LOCK_READ, stackLogger);
-
-   if (pInfoData)
-   {
-      SIPX_INSTANCE_DATA* pInst = pInfoData->pInst;
-      // release lock
-      sipxInfoReleaseLock(pInfoData, SIPX_LOCK_READ, stackLogger);
-
-      if (pInst)
-      {
-         pInst->pInfoStatusEventListener->sipxFireInfoStatusEvent(hInfo, status, responseCode, sResponseText, event);
-
-         // TODO: PROBLEM possible collision with observer for inbound INFO, we could remove wrong observer
-         pInst->pSipUserAgent->removeMessageObserver(*(this->getMessageQueue()), (void*)hInfo);
-
-         // info message has been handled, so go ahead and delete the object    
-         sipxInfoObjectFree(hInfo);
-      }      
-   }
-   
-   return TRUE;
-}
-
-
 UtlBoolean SipXMessageObserver::handleStunOutcome(OsEventMsg* pMsg) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleStunOutcome");
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)m_hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, m_hInst);
    SIPX_CONTACT_ADDRESS* pStunContact = NULL;
    pMsg->getEventData((int&)pStunContact);
 

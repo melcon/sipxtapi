@@ -50,10 +50,9 @@ SipCallIdGenerator::SipCallIdGenerator(const UtlString& prefix) : m_callIdCounte
    m_creationTime = ((Int64) current_time.seconds()) * 1000000 + current_time.usecs();
    m_processId = OsProcess::getCurrentPID();
    m_instanceId = ms_instanceCounter++;
-   OsSocket::getHostIp(&m_sHostIp);
 
-   SNPRINTF(m_callIdSuffix, sizeof(m_callIdSuffix), "%d_%d_%" FORMAT_INTLL "d_%s",
-      m_processId, m_instanceId, m_creationTime, m_sHostIp.data());
+   SNPRINTF(m_callIdSuffix, sizeof(m_callIdSuffix), "%d_%d_%" FORMAT_INTLL "d",
+      m_processId, m_instanceId, m_creationTime);
 
 }
 

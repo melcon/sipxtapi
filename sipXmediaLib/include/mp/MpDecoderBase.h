@@ -34,7 +34,7 @@
 class OsNotification;
 class MprRecorder;
 
-/// Base class for all media processing decoders.
+/// Base class for all media processing decoders. We should have a separate class for audio and video decoders.
 class MpDecoderBase : public UtlObservableImpl
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -80,7 +80,8 @@ public:
      /// Decode incoming RTP packet
    virtual int decode(const MpRtpBufPtr &pPacket, ///< (in) Pointer to a media buffer
                       unsigned decodedBufferLength, ///< (in) Length of the samplesBuffer (in samples)
-                      MpAudioSample *samplesBuffer ///< (out) Buffer for decoded samples
+                      MpAudioSample *samplesBuffer, ///< (out) Buffer for decoded samples
+                      UtlBoolean bIsPLCFrame = FALSE
                      ) =0;
      /**<
      *  @return Number of decoded samples.

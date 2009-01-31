@@ -28,6 +28,7 @@
 
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
+#include <mp/MpTypes.h>
 #include "mp/MpMisc.h"
 #include "mp/MpBuf.h"
 #include "mp/MprEncode.h"
@@ -35,14 +36,15 @@
 #include "mp/MpEncoderBase.h"
 #include "mp/MpMediaTask.h"
 #include "mp/MpCodecFactory.h"
+#include <mp/MpResamplerFactory.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-   // At 10 ms each, 10 seconds.  We will send an RTP packet to each active
-   // destination at least this often, even when muted.
-   const int MprEncode::RTP_KEEP_ALIVE_FRAME_INTERVAL = 1000;
+// At 10 ms each, 10 seconds.  We will send an RTP packet to each active
+// destination at least this often, even when muted.
+const int MprEncode::RTP_KEEP_ALIVE_FRAME_INTERVAL = 1000;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -51,32 +53,34 @@
 // Constructor
 MprEncode::MprEncode(const UtlString& rName,
                      int samplesPerFrame, int samplesPerSec)
-:  MpAudioResource(rName, 1, 1, 0, 0, samplesPerFrame, samplesPerSec),
-   mpPrimaryCodec(NULL),
-   mpPacket1Payload(NULL),
-   mPacket1PayloadBytes(0),
-   mPayloadBytesUsed(0),
-   mActiveAudio1(FALSE),
-   mMarkNext1(FALSE),
-   mConsecutiveInactive1(0),
-   mConsecutiveActive1(0),
-   mConsecutiveUnsentFrames1(0),
-   mDoesVad1(FALSE),
-   mDisableDTX(TRUE),
-
-   mpDtmfCodec(NULL),
-   mpPacket2Payload(NULL),
-   mPacket2PayloadBytes(0),
-
-   mCurrentTone(-1),
-   mNumToneStops(-1),
-   mTotalTime(0),
-   mNewTone(0),
-
-   mCurrentTimestamp(0),
-
-   mpToNet(NULL)
+: MpAudioResource(rName, 1, 1, 0, 0, samplesPerFrame, samplesPerSec)
+, mpPrimaryCodec(NULL)
+, mpPacket1Payload(NULL)
+, mPacket1PayloadBytes(0)
+, mPayloadBytesUsed(0)
+, mSamplesPacked(0)
+, mActiveAudio1(FALSE)
+, mMarkNext1(FALSE)
+, mConsecutiveInactive1(0)
+, mConsecutiveActive1(0)
+, mConsecutiveUnsentFrames1(0)
+, mDoesVad1(FALSE)
+, mDisableDTX(TRUE)
+, mpDtmfCodec(NULL)
+, mpPacket2Payload(NULL)
+, mPacket2PayloadBytes(0)
+, mCurrentTone(-1)
+, mNumToneStops(-1)
+, mTotalTime(0)
+, mNewTone(0)
+, mCurrentTimestamp(0)
+, mMaxPacketTime(20)
+, mMaxPacketSamples(0)
+, mpToNet(NULL)
+, mTimestampStep(samplesPerFrame)
+, m_pResampler(NULL)
 {
+   memset(m_tmpBuffer, 0, sizeof(m_tmpBuffer));
 }
 
 // Destructor
@@ -99,6 +103,8 @@ MprEncode::~MprEncode()
       mpDtmfCodec = NULL;
    }
    mpToNet = NULL;
+
+   destroyResampler();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -159,23 +165,22 @@ OsStatus MprEncode::selectCodecs(SdpCodec* pPrimary, SdpCodec* pDtmf)
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
-
-// Get maximum payload size, estimated from MpEncoderBase::getMaxPacketBits().
-int MprEncode::payloadByteLength(MpEncoderBase& rEncoder)
-{
-   int maxBitsPerPacket = rEncoder.getInfo()->getMaxPacketBits();
-
-   return (maxBitsPerPacket + 7) / 8;
-}
-
 OsStatus MprEncode::allocPacketBuffer(MpEncoderBase& rEncoder,
                                       unsigned char*& rpPacketPayload,
                                       int& rPacketPayloadBytes)
 {
    OsStatus ret = OS_SUCCESS;
 
-   // Estimate packet size
-   rPacketPayloadBytes = payloadByteLength(rEncoder);
+   // Set packet size to maximum possible size. Probably we could guess better,
+   // but to do so we need:
+   // 1) to know how much audio data we want to pack (10ms, 20ms, or more);
+   // 2) somehow negotiate packet size for codecs that require special
+   //    processing to pack several frames into one packet (like AMR, Speex, etc).
+   // One of possible solution would be to implement function to ask for
+   // packet size (not frame size!) for codecs. That is pass to it number of
+   // audio samples we want to pack and get packet size back from it, like this:
+   //    int get_packet_size(int numSamples, int* packetSize) const;
+   rPacketPayloadBytes = RTP_MTU;
 
    // Allocate buffer for RTP packet data
    rpPacketPayload = new unsigned char[rPacketPayloadBytes];
@@ -191,15 +196,18 @@ OsStatus MprEncode::allocPacketBuffer(MpEncoderBase& rEncoder,
 
 void MprEncode::handleDeselectCodecs(void)
 {
-   if (NULL != mpPrimaryCodec) {
+   if (mpPrimaryCodec) {
       delete mpPrimaryCodec;
       mpPrimaryCodec = NULL;
-      if (NULL != mpPacket1Payload) {
+      if (NULL != mpPacket1Payload)
+      {
          delete[] mpPacket1Payload;
          mpPacket1Payload = NULL;
          mPacket1PayloadBytes = 0;
          mPayloadBytesUsed = 0;
+         mSamplesPacked = 0;
       }
+      destroyResampler();
    }
    if (NULL != mpDtmfCodec) {
       delete mpDtmfCodec;
@@ -237,7 +245,7 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
                        "pPrimary->getCodecType() = %d, "
                        "pPrimary->getCodecPayloadFormat() = %d",
                        pPrimary->getCodecType(),
-                       pPrimary->getCodecPayloadFormat());
+                       pPrimary->getCodecPayloadId());
       } else {
          OsSysLog::add(FAC_MP, PRI_DEBUG,
                        "MprEncode::handleSelectCodecs "
@@ -249,14 +257,15 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
                        "pDtmf->getCodecType() = %d, "
                        "pDtmf->getCodecPayloadFormat() = %d",
                        pDtmf->getCodecType(),
-                       pDtmf->getCodecPayloadFormat());
+                       pDtmf->getCodecPayloadId());
       }
    }
 
-   if (NULL != pPrimary) {
+   if (pPrimary)
+   {
       ourCodec = pPrimary->getCodecType();
-      payload = pPrimary->getCodecPayloadFormat();
-      ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
+      payload = pPrimary->getCodecPayloadId();
+      ret = pFactory->createEncoder(*pPrimary, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);
       pNewEncoder->initEncode();
@@ -264,12 +273,32 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
       mDoesVad1 = (pNewEncoder->getInfo())->doesVadCng();
       allocPacketBuffer(*mpPrimaryCodec, mpPacket1Payload, mPacket1PayloadBytes);
       mPayloadBytesUsed = 0;
+      mSamplesPacked = 0;
+      // adjust timestamp step by sampling rate difference of flowgraph and primary codec
+      // when codec uses 8000, but flowgraph 16000, then samples we get will be downsampled to 1/2 of samples
+      // and thus timestamp must be advanced by lower value
+      unsigned int encoderSamplingRate = pNewEncoder->getInfo()->getSamplingRate();
+      unsigned int flowgraphSamplingRate = (unsigned int)getSamplesPerSec();
+      mTimestampStep = (unsigned int)(((double)encoderSamplingRate / flowgraphSamplingRate) * getSamplesPerFrame());
+      mMaxPacketTime = pPrimary->getPacketLength() / 1000; // update RTP payload size in ms
+      mMaxPacketSamples = mMaxPacketTime * encoderSamplingRate / 1000;
+      if (pNewEncoder->getInfo()->getCodecType() == SdpCodec::SDP_CODEC_G722)
+      {
+         // Workaround RFC bug with G.722 samplerate.
+         // Read RFC 3551 Section 4.5.2 "G722" for details.
+         mTimestampStep /= 2;
+      }
+      destroyResampler();
+      if (encoderSamplingRate != flowgraphSamplingRate)
+      {
+         // setup resampler
+         m_pResampler = MpResamplerFactory::createResampler(flowgraphSamplingRate, encoderSamplingRate);
+      }
    }
 
-   if (NULL != pDtmf) {
-      ourCodec = pDtmf->getCodecType();
-      payload = pDtmf->getCodecPayloadFormat();
-      ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
+   if (pDtmf)
+   {
+      ret = pFactory->createEncoder(*pDtmf, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);
       pNewEncoder->initEncode();
@@ -389,13 +418,12 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
 {
    int numSamplesIn;
    int numSamplesOut;
-   const MpAudioSample* pSamplesIn;
    int payloadBytesLeft;
    unsigned char* pDest;
    int bytesAdded; //$$$
-   MpAudioBuf::SpeechType content;
+   MpSpeechType speechType;
    OsStatus ret;
-   UtlBoolean sendNow;
+   UtlBoolean isPacketReady = FALSE;
 
    if (mpPrimaryCodec == NULL)
       return;
@@ -403,10 +431,25 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    if (!in.isValid())
       return;
 
-   // Initialize variables
-   numSamplesIn = in->getSamplesNumber();
-   pSamplesIn = in->getSamplesPtr();
-   content = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   const MpAudioSample* pSamplesIn = NULL;
+
+   if (mpPrimaryCodec->getInfo()->getSamplingRate() != getSamplesPerSec() && m_pResampler)
+   {
+      uint32_t inResampleSamplesCount = in->getSamplesNumber();
+      uint32_t outResampleSamplesCount = SAMPLES_PER_FRAME;
+      // we need to resample
+      OsStatus res = m_pResampler->resample(in->getSamplesPtr(), inResampleSamplesCount, inResampleSamplesCount,
+         m_tmpBuffer, outResampleSamplesCount, outResampleSamplesCount);
+      assert(res == OS_SUCCESS);
+      numSamplesIn = outResampleSamplesCount;
+      pSamplesIn = m_tmpBuffer;
+   }
+   else
+   {
+      // no need to resample
+      numSamplesIn = in->getSamplesNumber();
+      pSamplesIn = in->getSamplesPtr();
+   }
 
    while (numSamplesIn > 0)
    {
@@ -416,37 +459,35 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
          mActiveAudio1 = mDoesVad1 || mDisableDTX;
       }
 
-      if (!mActiveAudio1)
-      {
-         mActiveAudio1 = in->isActiveAudio();
-      }
+      speechType = in->getSpeechType();
+      mActiveAudio1 = mActiveAudio1 || isActiveAudio(speechType);
 
       payloadBytesLeft = mPacket1PayloadBytes - mPayloadBytesUsed;
-      // maxSamplesOut = payloadBytesLeft / bytesPerSample;
 
-      // n = (numSamplesIn > maxSamplesOut) ? maxSamplesOut : numSamplesIn;
       pDest = mpPacket1Payload + mPayloadBytesUsed;
 
       bytesAdded = 0;
       ret = mpPrimaryCodec->encode(pSamplesIn, numSamplesIn, numSamplesOut,
                                    pDest, payloadBytesLeft, bytesAdded,
-                                   sendNow, content);
+                                   isPacketReady, speechType);
       mPayloadBytesUsed += bytesAdded;
       assert (mPacket1PayloadBytes >= mPayloadBytesUsed);
 
       // In case the encoder does silence suppression (e.g. G.729 Annex B)
       mMarkNext1 = mMarkNext1 | (0 == bytesAdded);
 
+      mSamplesPacked += numSamplesOut;
       pSamplesIn += numSamplesOut;
       numSamplesIn -= numSamplesOut;
       startTs += numSamplesOut;
 
-      if (content == MpAudioBuf::MP_SPEECH_ACTIVE)
+      if (speechType == MP_SPEECH_ACTIVE)
       {
          mActiveAudio1 = TRUE;
       }
 
-      if (sendNow || (mPacket1PayloadBytes == mPayloadBytesUsed))
+      if ((mPayloadBytesUsed > 0) &&
+         (isPacketReady || mSamplesPacked  >= mMaxPacketSamples))
       {
          if (mActiveAudio1)
          {
@@ -469,6 +510,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
             mMarkNext1 = TRUE;
          }
          mPayloadBytesUsed = 0;
+         mSamplesPacked = 0;
       }
    }
 }
@@ -571,7 +613,7 @@ UtlBoolean MprEncode::doProcessFrame(MpBufPtr inBufs[],
 
    in = inBufs[0];
 
-   mCurrentTimestamp += samplesPerFrame;
+   mCurrentTimestamp += mTimestampStep;
 
    if (NULL != mpPrimaryCodec) {
       doPrimaryCodec(in, mCurrentTimestamp);
@@ -586,3 +628,8 @@ UtlBoolean MprEncode::doProcessFrame(MpBufPtr inBufs[],
    return TRUE;
 }
 
+void MprEncode::destroyResampler()
+{
+   delete m_pResampler;
+   m_pResampler = NULL;
+}

@@ -33,8 +33,6 @@ PhoneStateRemoteAlerting::~PhoneStateRemoteAlerting(void)
 {
 #ifdef VOICE_ENGINE
         sipxCallAudioPlayFileStop(sipXmgr::getInstance().getCurrentCall());
-#else
-        sipxCallStopTone(mhCall);
 #endif
 }
 

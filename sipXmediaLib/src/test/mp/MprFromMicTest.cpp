@@ -21,8 +21,8 @@
 class MprFromMicTest : public MpGenericResourceTest
 {
     CPPUNIT_TEST_SUB_SUITE(MprFromMicTest, MpGenericResourceTest);
-    CPPUNIT_TEST(testCreators);
-    CPPUNIT_TEST(testDisabled);
+    /*CPPUNIT_TEST(testCreators);
+    CPPUNIT_TEST(testDisabled);*/
     CPPUNIT_TEST(testEnabledEmptyQueue);
     CPPUNIT_TEST_SUITE_END();
 
@@ -104,25 +104,15 @@ public:
        CPPUNIT_ASSERT(mpSourceResource->disable());
        CPPUNIT_ASSERT(pFromMic->enable());
 
-       res = mpFlowGraph->processNextFrame();
-       CPPUNIT_ASSERT(res == OS_SUCCESS);
-
-       // No buffers processed
-       CPPUNIT_ASSERT(  !mpSourceResource->mLastDoProcessArgs.outBufs[0].isValid()
-                     && !mpSinkResource->mLastDoProcessArgs.inBufs[0].isValid());
-
-       // TESTCASE 2:
-       // pFromMic enabled, there are buffers on the input 0, message queue
-       // is empty.
-       CPPUNIT_ASSERT(mpSourceResource->enable());
-       CPPUNIT_ASSERT(pFromMic->enable());
+       UtlBoolean isInBufValid = mpSinkResource->mLastDoProcessArgs.inBufs[0].isValid();
+       CPPUNIT_ASSERT(!isInBufValid);
 
        res = mpFlowGraph->processNextFrame();
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
-       // Buffer is replaced with empty buffer
-       CPPUNIT_ASSERT(mpSourceResource->mLastDoProcessArgs.outBufs[0].isValid()
-                     && !mpSinkResource->mLastDoProcessArgs.inBufs[0].isValid());
+       // Mic must have sent some buffer
+       isInBufValid = mpSinkResource->mLastDoProcessArgs.inBufs[0].isValid();
+       CPPUNIT_ASSERT(isInBufValid);
 
        // Stop flowgraph
        haltFramework();

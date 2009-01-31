@@ -44,11 +44,24 @@ public:
         OsRWMutex* pRWMutex;
 
         pRWMutex = new OsRWMutex(OsRWMutex::Q_FIFO);
+        // test that read/write recursion doesn't work
         CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->acquireRead());
         CPPUNIT_ASSERT_EQUAL(OS_BUSY, pRWMutex->tryAcquireWrite());
         CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->releaseRead());
         CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->tryAcquireWrite());
         CPPUNIT_ASSERT_EQUAL(OS_BUSY, pRWMutex->tryAcquireRead());
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->releaseWrite());
+        // test read recursion
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->acquireRead());
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->acquireRead());
+        CPPUNIT_ASSERT_EQUAL(OS_BUSY, pRWMutex->tryAcquireWrite());
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->releaseRead());
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->releaseRead());
+        // test write recursion
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->tryAcquireWrite());
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->tryAcquireWrite());
+        CPPUNIT_ASSERT_EQUAL(OS_BUSY, pRWMutex->tryAcquireRead());
+        CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->releaseWrite());
         CPPUNIT_ASSERT_EQUAL(OS_SUCCESS, pRWMutex->releaseWrite());
         delete pRWMutex;    
     }

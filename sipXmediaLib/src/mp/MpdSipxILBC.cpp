@@ -29,26 +29,33 @@ extern "C" {
 #include <iLBC_decode.h>
 }
 
-const MpCodecInfo MpdSipxILBC::smCodecInfo(
-    SdpCodec::SDP_CODEC_ILBC,   // codecType
+const MpCodecInfo MpdSipxILBC::smCodecInfo30ms(
+    SdpCodec::SDP_CODEC_ILBC_30MS,   // codecType
     "iLBC",                     // codecVersion
-    false,                      // usesNetEq
     8000,                       // samplingRate
-    8,                          // numBitsPerSample (not used)
+    16,                          // numBitsPerSample (not used)
     1,                          // numChannels
-    240,                        // interleaveBlockSize
     13334,                      // bitRate
     NO_OF_BYTES_30MS * 8,       // minPacketBits
-    NO_OF_BYTES_30MS * 8,       // avgPacketBits
     NO_OF_BYTES_30MS * 8,       // maxPacketBits
-    240,                        // numSamplesPerFrame
-    6);                         // preCodecJitterBufferSize (should be adjusted)
+    240);                        // numSamplesPerFrame
 
+const MpCodecInfo MpdSipxILBC::smCodecInfo20ms(
+   SdpCodec::SDP_CODEC_ILBC_20MS,   // codecType
+   "iLBC",                     // codecVersion
+   8000,                       // samplingRate
+   16,                          // numBitsPerSample (not used)
+   1,                          // numChannels
+   13334,                      // bitRate
+   NO_OF_BYTES_20MS * 8,       // minPacketBits
+   NO_OF_BYTES_20MS * 8,       // maxPacketBits
+   160);                        // numSamplesPerFrame
 
-
-MpdSipxILBC::MpdSipxILBC(int payloadType)
-: MpDecoderBase(payloadType, &smCodecInfo)
-, mpState(NULL)
+MpdSipxILBC::MpdSipxILBC(int payloadType, int mode)
+: MpDecoderBase(payloadType, mode == 20 ? &smCodecInfo20ms : &smCodecInfo30ms)
+, m_mode(mode)
+, m_pState20(NULL)
+, m_pState30(NULL)
 {
 }
 
@@ -59,55 +66,72 @@ MpdSipxILBC::~MpdSipxILBC()
 
 OsStatus MpdSipxILBC::initDecode()
 {
-   if (mpState == NULL) 
+   if (!m_pState20)
    {
-      mpState = new iLBC_Dec_Inst_t();
-      memset(mpState, 0, sizeof(*mpState));
-      ::initDecode(mpState, 30, 1);
+      m_pState20 = new iLBC_Dec_Inst_t();
+      memset(m_pState20, 0, sizeof(*m_pState20));
+      ::initDecode(m_pState20, 20, 1);
+   }
+   if (!m_pState30)
+   {
+      m_pState30 = new iLBC_Dec_Inst_t();
+      memset(m_pState30, 0, sizeof(*m_pState30));
+      ::initDecode(m_pState30, 30, 1);
    }
    return OS_SUCCESS;
 }
 
 OsStatus MpdSipxILBC::freeDecode(void)
 {
-   delete mpState;
-   mpState = NULL;
+   delete m_pState20;
+   m_pState20 = NULL;
+   delete m_pState30;
+   m_pState30 = NULL;
    return OS_SUCCESS;
 }
 
-int MpdSipxILBC::decode(const MpRtpBufPtr &pPacket,
+int MpdSipxILBC::decode(const MpRtpBufPtr &rtpPacket,
                         unsigned decodedBufferLength,
-                        MpAudioSample *samplesBuffer)
+                        MpAudioSample *samplesBuffer,
+                        UtlBoolean bIsPLCFrame)
 {
-   // Check if available buffer size is enough for the packet.
-   if (decodedBufferLength < 240)
-   {
-      osPrintf("MpdSipxILBC::decode: Jitter buffer overloaded. Glitch!\n");
+   if (!rtpPacket.isValid())
       return 0;
-   }
+
+   unsigned payloadSize = rtpPacket->getPayloadSize();
+   iLBC_Dec_Inst_t_* pState = NULL;
+   unsigned int samplesPerFrame = getInfo()->getNumSamplesPerFrame();
 
    // Decode incoming packet to temp buffer. If no packet - do PLC.
-   float buffer[240];
-   if (pPacket.isValid())
+   if (payloadSize == NO_OF_BYTES_30MS)
    {
-      if (NO_OF_BYTES_30MS != pPacket->getPayloadSize())
-      {
-         osPrintf("MpdSipxILBC::decode: Payload size: %d!\n", pPacket->getPayloadSize());
-         return 0;
-      }
-
-      // Packet data available. Decode it.
-      iLBC_decode(buffer, (unsigned char*)pPacket->getDataPtr(), mpState, 1);
+      pState = m_pState30;
+      samplesPerFrame = 240;
+   }
+   else if (payloadSize == NO_OF_BYTES_20MS)
+   {
+      pState = m_pState20;
+      samplesPerFrame = 160;
    }
    else
    {
-      // Packet data is not available. Do PLC.
-      iLBC_decode(buffer, NULL, mpState, 0);
+      return 0; // generate noise for weird frame sizes
    }
-   
-   for (int i = 0; i < 240; ++i)
+
+   unsigned char* pInputBuffer = (unsigned char*)rtpPacket->getDataPtr();
+   int packetType = 1;
+   if (bIsPLCFrame)
    {
-      float tmp = buffer[i];
+      pInputBuffer = NULL;
+      packetType = 0;
+   }
+
+   // with NULL input buffer codec does PLC
+   iLBC_decode(m_tmpOutBuffer, pInputBuffer, pState, packetType);
+
+   for (unsigned int i = 0; i < samplesPerFrame; ++i)
+   {
+      float tmp = m_tmpOutBuffer[i];
       if (tmp > SHRT_MAX)
          tmp = SHRT_MAX;
       if (tmp < SHRT_MIN)
@@ -116,7 +140,7 @@ int MpdSipxILBC::decode(const MpRtpBufPtr &pPacket,
       samplesBuffer[i] = MpAudioSample(tmp + 0.5f);
    }
 
-   return 240;
+   return samplesPerFrame;
 }
 
 #endif // HAVE_ILBC ]

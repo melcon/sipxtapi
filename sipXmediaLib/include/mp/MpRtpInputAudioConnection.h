@@ -23,7 +23,7 @@ class MprDecode;
 class MprRecorder;
 class SdpCodec;
 class OsNotification;
-class MprDecodeInBandDtmf;
+class MprDtmfDetectorBase;
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -37,6 +37,7 @@ class MprDecodeInBandDtmf;
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
+class SdpCodecList;
 
 /**
 *  @brief Connection container for audio part of call.
@@ -45,7 +46,7 @@ class MpRtpInputAudioConnection : public MpRtpInputConnection
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-	friend class MprDecodeInBandDtmf;
+	friend class MprSimpleDtmfDetector;
    friend class MprDecode;
 
 
@@ -90,6 +91,8 @@ public:
 ///@name Accessors
 //@{
 
+   static void setConnectionIdleTimeout(long timeoutSeconds);
+
      /// Get decoder for this payload type
    MpDecoderBase* mapPayloadType(int payloadType);
 
@@ -97,8 +100,7 @@ public:
    /// Queue a message to start receiving RTP and RTCP packets.
    static OsStatus startReceiveRtp(OsMsgQ& messageQueue,
                                    const UtlString& resourceName,
-                                   SdpCodec* pCodecs[], 
-                                   int numCodecs,
+                                   const SdpCodecList& sdpCodecList,
                                    OsSocket& rRtpSocket, 
                                    OsSocket& rRtcpSocket);
 
@@ -147,7 +149,7 @@ private:
    void handleStopReceiveRtp(void);
 
    /// Starts receiving RTP and RTCP packets.
-   void handleStartReceiveRtp(SdpCodec* pCodecs[], int numCodecs,
+   void handleStartReceiveRtp(UtlSList& codecList,// list of SdpCodec instances
                         OsSocket& rRtpSocket, OsSocket& rRtcpSocket);
 
      /// Default constructor
@@ -159,15 +161,19 @@ private:
      /// Assignment operator (not implemented for this type)
    MpRtpInputAudioConnection& operator=(const MpRtpInputAudioConnection& rhs);
 
-//   MpFlowGraphBase*   mpFlowGraph;     ///< Parent flowgraph
    MprDecode*         mpDecode;        ///< Inbound component: Decoder
-   MprDecodeInBandDtmf* mpDecodeInBandDtmf; // InBand DTMF decoder
+   MprDtmfDetectorBase* mpDtmfDetector; // InBand DTMF decoder
 
    MpDecoderBase*     mpPayloadMap[NUM_PAYLOAD_TYPES];
                                        ///< Map RTP payload types to our decoders
 
    UtlBoolean m_bInBandDTMFEnabled;
    UtlBoolean m_bRFC2833DTMFEnabled;
+   int m_samplesPerFrame; 
+   int m_samplesPerSec;
+   long m_inactiveFrameCount; ///< count of frames we have seen without real sound
+   static long ms_maxInactiveFrameCount; ///< maximum number of frames before we report inactivity
+   UtlBoolean m_bAudioReceived; ///< true when at least 1 audio frame has been received
 };
 
 /* ============================ INLINE METHODS ============================ */

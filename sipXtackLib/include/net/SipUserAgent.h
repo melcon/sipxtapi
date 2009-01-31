@@ -54,7 +54,7 @@
 class OsConfigDb;
 class OsQueuedEvent;
 class OsTimer;
-class SipSession;
+class SipDialog;
 class SipTcpServer;
 class SipLineProvider;
 class SipUserAgentBase;
@@ -276,9 +276,6 @@ public:
    //! For internal use only
    virtual UtlBoolean handleMessage(OsMsg& eventMessage);
 
-   //! Deprecated (Add a SIP message recipient)
-   virtual void addMessageConsumer(OsServerTask* messageConsumer);
-
    //! Add a SIP message observer for receiving SIP messages meeting the
    //! given filter criteria
    /*! SIP messages will be added to the \a messageQueue if they meet
@@ -309,7 +306,7 @@ public:
       UtlBoolean wantIncoming = TRUE,
       UtlBoolean wantOutGoing = FALSE,
       const char* eventName = NULL,
-      SipSession* pSession = NULL,
+      const SipDialog* pSipDialog = NULL,
       void* observerData = NULL);
 
 
@@ -344,9 +341,9 @@ public:
    *        with responses
    */
    virtual UtlBoolean send(SipMessage& message,
-      OsMsgQ* responseListener = NULL,
-      void* responseListenerData = NULL,
-      SIPX_TRANSPORT_DATA* pTransport = NULL);
+                           OsMsgQ* responseListener = NULL,
+                           void* responseListenerData = NULL,
+                           SIPX_TRANSPORT_DATA* pTransport = NULL);
 
    //! Dispatch the SIP message to the message consumer(s)
    /*! This is typically only used by the SipUserAgent and its sub-system.
@@ -567,10 +564,11 @@ public:
    //! Sets the User Agent name sent with outgoing sip messages.
 
 
-   void setHeaderOptions(const UtlBoolean bAllowHeader,
-      const UtlBoolean bDateHeader,
-      const UtlBoolean bShortNames,
-      const UtlString& acceptLanguage);                                   
+   void setHeaderOptions(UtlBoolean bAllowHeader,
+      UtlBoolean bDateHeader,
+      UtlBoolean bShortNames,
+      const UtlString& acceptLanguage,
+      UtlBoolean bSupportedHeader);                                   
    //! Sets header options - send or not send
 
    UtlBoolean getEnabledShortNames()
@@ -759,7 +757,6 @@ private:
    int mMaxSrvRecords; // Max num of DNS SRV records to use before giving up
    int mDnsSrvTimeout; // second to give up & try the next DNS SRV record
 
-   SipMessage* mpLastSipMessage;
    UtlString defaultUserAgentName;
    long mLastCleanUpTime;
    UtlString mAuthenticationScheme;
@@ -847,7 +844,8 @@ private:
    UtlBoolean mbShutdownDone;
    UtlBoolean mbBlockingShutdown;
 
-   UtlBoolean mbAllowHeader;
+   UtlBoolean mbAllowHeader; ///< whether to send Allow header
+   UtlBoolean mbSupportedHeader; ///< whether to send Supported header
    UtlBoolean mbDateHeader;
    UtlBoolean mbShortNames;
    UtlString mAcceptLanguage;
