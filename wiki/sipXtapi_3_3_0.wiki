@@ -38,6 +38,7 @@ I estimate that at the beginning of february 2009 refactored sipXcallLib will be
  * VAD (voice activity detection), DTX (discontinuous transmission) for all codecs, CNG (comfort noise generation)
  * support for additional speex modes (11,000 bps and 18,200 bps), almost all speex wide band (16Khz), speex ultra band modes (32Khz)
  * iLBC 20ms and 30ms modes are supported for sending and receiving - 8Khz
+ * G.711 u-law and a-law via built-in or Intel IPP 6.0 encoder/decoder
  * G.722 codec 64 Kbps via Span DSP library - 16Khz
  * G.722.1 codec (16, 24, 32 Kbps modes) via Intel IPP - 16Khz
  * G.723.1 codec (5.3, 6.3 Kbps, sending 5.3 Kbps) via Intel IPP - 8Khz
@@ -46,7 +47,7 @@ I estimate that at the beginning of february 2009 refactored sipXcallLib will be
  * G.729 annex A, B, D and E (with VAD or without) via Intel IPP - 8Khz
  * G.729.1 codec (8, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32 KBps, sending and receving any rate) via Intel IPP - 16Khz
  * L16 audio - uncompressed 16bit mono audio in network byte order. All recommended sampling rates up to 48Khz.
- * GSM FR codec (13 Kbps) - 8Khz
+ * GSM FR codec (13 Kbps) - via gsmlib or Intel IPP 6.0 encoder/decoder - 8Khz
  * AMR codec (4.75, 5.15, 5.9, 6.7, 7.4, 7.95, 10.2, 12.2 Kbps - sending 4.75/10.2 Kbps, receiving any rate), octet aligned and bandwidth efficient mode, via Intel IPP - 8Khz
  * AMR wideband codec (6.6, 8.85, 12.65, 14.25, 15.85, 18.25, 19.85, 23.05 or 23.85 Kbps - sending 12.65/23.85 Kbps, receiving any rate), octet aligned and bandwidth efficient mode, via Intel IPP - 16Khz
  * improved old inbound DTMF detector, and new Span DSP DTMF detector (enabled by default in Windows). Span DSP DTMF detector only available when sipXtapi is compiled with only narrow band suport. DTMF detection is mostly effective at 8Khz.
