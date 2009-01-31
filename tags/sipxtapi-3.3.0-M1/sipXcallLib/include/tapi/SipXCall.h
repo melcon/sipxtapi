@@ -1,0 +1,157 @@
+//
+// Copyright (C) 2007 Jaroslav Libak
+// Licensed under the LGPL license.
+//
+// Copyright (C) 2005-2007 SIPez LLC.
+// Licensed to SIPfoundry under a Contributor Agreement.
+// 
+// Copyright (C) 2004-2007 SIPfoundry Inc.
+// Licensed by SIPfoundry under the LGPL license.
+//
+// Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
+// Licensed to SIPfoundry under a Contributor Agreement.
+//
+// $$
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef SipXCall_h__
+#define SipXCall_h__
+
+// SYSTEM INCLUDES
+// APPLICATION INCLUDES
+#include <utl/UtlString.h>
+#include <net/Url.h>
+#include <net/SipDialog.h>
+#include "tapi/sipXtapi.h"
+#include "tapi/sipXtapiEvents.h"
+#include "tapi/SipXCore.h"
+
+// DEFINES
+// EXTERNAL FUNCTIONS
+// EXTERNAL VARIABLES
+// CONSTANTS
+// FORWARD DECLARATIONS
+class SIPX_INSTANCE_DATA;
+class OsStackTraceLogger;
+
+// STRUCTS
+// TYPEDEFS
+class SIPX_CALL_DATA
+{
+public:
+   UtlString m_abstractCallId; ///< Id identifying CpPeerCall instance
+   Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets. Can be used for new out of dialog requests.
+   Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag. Stored here to avoid line lookups.
+   SipDialog m_sipDialog; ///< sip dialog of this call
+   SIPX_LINE m_hLine;
+   SIPX_INSTANCE_DATA* m_pInst;
+   OsMutex m_mutex;
+   SIPX_CONF m_hConf;
+   SIPX_SECURITY_ATTRIBUTES m_security;
+   SIPX_VIDEO_DISPLAY m_display;
+   SIPX_CALLSTATE_EVENT m_callState; ///< current call state
+   SIPX_CALLSTATE_CAUSE m_callStateCause; ///< cause of current call state
+
+   SIPX_MEDIA_EVENT m_lastLocalMediaAudioEvent;
+   SIPX_MEDIA_EVENT m_lastLocalMediaVideoEvent;
+   SIPX_MEDIA_EVENT m_lastRemoteMediaAudioEvent;
+   SIPX_MEDIA_EVENT m_lastRemoteMediaVideoEvent;
+
+   UtlBoolean m_bInFocus; ///< TRUE when call is in focus
+   SIPX_TRANSPORT m_hTransport;
+
+   SIPX_CALL_DATA()
+      : m_mutex(OsMutex::Q_FIFO),
+      m_abstractCallId(NULL),
+      m_lineUri(),
+      m_sipDialog(NULL),
+      m_hLine(0),
+      m_pInst(NULL),
+      m_hConf(NULL),
+      m_security(),
+      m_display(),
+      m_callState(CALLSTATE_UNKNOWN),
+      m_callStateCause(CALLSTATE_CAUSE_UNKNOWN),
+      m_lastLocalMediaAudioEvent(MEDIA_UNKNOWN),
+      m_lastLocalMediaVideoEvent(MEDIA_UNKNOWN),
+      m_lastRemoteMediaAudioEvent(MEDIA_UNKNOWN),
+      m_lastRemoteMediaVideoEvent(MEDIA_UNKNOWN),
+      m_bInFocus(false),
+      m_hTransport(0)
+   {
+
+   }
+};
+
+// MACROS
+// GLOBAL VARIABLES
+// GLOBAL FUNCTIONS
+
+void sipxCallReleaseLock(SIPX_CALL_DATA* pData,
+                         SIPX_LOCK_TYPE type,
+                         const OsStackTraceLogger& oneBackInStack);
+
+UtlBoolean validCallData(SIPX_CALL_DATA* pData);
+
+SIPX_CALL_DATA* sipxCallLookup(const SIPX_CALL hCall,
+                               SIPX_LOCK_TYPE type,
+                               const OsStackTraceLogger& oneBackInStack);
+
+void sipxCallObjectFree(const SIPX_CALL hCall, const OsStackTraceLogger& oneBackInStack);
+
+SIPX_CALL sipxCallLookupHandleBySessionCallId(const UtlString& sessionCallID, SIPX_INST pInst);
+SIPX_CALL sipxCallLookupHandleByCallId(const UtlString& callID, SIPX_INST pInst);
+
+void destroyCallData(SIPX_CALL_DATA* pData);
+
+UtlBoolean sipxCallGetMediaState(SIPX_CALL hCall,
+                                 SIPX_MEDIA_EVENT& lastLocalMediaAudioEvent,
+                                 SIPX_MEDIA_EVENT& lastLocalMediaVideoEvent,
+                                 SIPX_MEDIA_EVENT& lastRemoteMediaAudioEvent,
+                                 SIPX_MEDIA_EVENT& lastRemoteMediaVideoEvent);
+
+UtlBoolean sipxCallSetMediaState(SIPX_CALL hCall,
+                                 SIPX_MEDIA_EVENT event,
+                                 SIPX_MEDIA_TYPE type);
+
+UtlBoolean sipxCallGetState(SIPX_CALL hCall, 
+                            SIPX_CALLSTATE_EVENT& lastEvent,
+                            SIPX_CALLSTATE_CAUSE& lastCause);
+
+UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
+                                 SIPX_INSTANCE_DATA** pInst,
+                                 UtlString* pCallId,
+                                 UtlString* pSessionCallId,
+                                 UtlString* pRemoteField,
+                                 UtlString* pLocalField,
+                                 UtlString* pGhostCallId = NULL, 
+                                 UtlString* pRemoteContactAddress = NULL);
+
+/**
+* Get the list of active calls for the specified sipxtapi instance.
+*/
+SIPXTAPI_API SIPX_RESULT sipxGetAllAbstractCallIds(SIPX_INST hInst, UtlSList& idList);
+
+void sipxCallDestroyAll(const SIPX_INST hInst);
+
+SIPX_CONF sipxCallGetConf(SIPX_CALL hCall);
+
+SIPX_CONTACT_TYPE sipxCallGetLineContactType(SIPX_CALL hCall);
+
+SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
+                                 const SIPX_LINE hLine,
+                                 const char* szLine,
+                                 const SIPX_CONF hConf,
+                                 SIPX_CALL* phCall,
+                                 const UtlString& sCallId = "",
+                                 const UtlString& sSessionCallId = "",
+                                 bool bIsConferenceCall = false);
+
+
+SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall);
+
+UtlBoolean sipxCallSetState(SIPX_CALL hCall, 
+                            SIPX_CALLSTATE_EVENT event,
+                            SIPX_CALLSTATE_CAUSE cause);
+
+#endif // SipXCall_h__
