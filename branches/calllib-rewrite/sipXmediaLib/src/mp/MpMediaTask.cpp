@@ -123,8 +123,11 @@ MpMediaTask::~MpMediaTask()
       m_pFrameStartCallback = NULL;
    }
    
-   // there shouldn't be any flowgraphs here at this point
-   assert(mManagedFlowGraphs.entries() == 0);
+   if (mManagedFlowGraphs.entries() != 0)
+   {
+      // there shouldn't be any flowgraphs here at this point
+      OsSysLog::add(FAC_AUDIO, PRI_WARNING, "MpMediaTask mManagedFlowGraphs is %d, should be 0", (int)mManagedFlowGraphs.entries());
+   }
 
    mManagedFlowGraphs.destroyAll();
 

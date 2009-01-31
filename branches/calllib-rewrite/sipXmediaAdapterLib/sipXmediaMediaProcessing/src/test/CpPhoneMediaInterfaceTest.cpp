@@ -70,13 +70,9 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
                                                  "", "", 0, "", 0, 0, "",
                                                  0, "", "", 0, false);
         UtlString miType = mediaInterface->getType();
-        if(miType == "CpPhoneMediaInterface")
+        if(miType == "SipXMediaInterfaceImpl")
         {
             printf("Phone media interface enabled\n");
-        }
-        else if(miType == "CpTopologyGraphInterface")
-        {
-            printf("Topology flowgraph interface enabled\n");
         }
         else
         {
@@ -136,36 +132,36 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
         RTL_EVENT("Tone set", 0);
         printf("first tone set\n");
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(6, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(6, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 2);
-        mediaInterface->startTone(8, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(8, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 3);
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(4, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 0);
         printf("second tone set\n");        
         OsTask::delay(500) ;
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(6, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(6, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 2);
-        mediaInterface->startTone(8, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(8, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 3);
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(4, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 0);
         printf("third tone set\n");        
         OsTask::delay(500) ;
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(9, true, false) ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(9, true, false) ;OsTask::delay(500) ;
+        mediaInterface->startTone(5, true, false) ;OsTask::delay(500) ;
+        mediaInterface->startTone(5, true, false) ;OsTask::delay(500) ;
+        mediaInterface->startTone(4, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 0);
         printf("fourth tone set\n");        
         OsTask::delay(500) ;
         RTL_EVENT("Tone set", 1);
-        mediaInterface->startTone(9, true, false) ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;
-        mediaInterface->startTone(5, true, false) ;OsTask::delay(250) ;
-        mediaInterface->startTone(4, true, false) ;OsTask::delay(250) ;
+        mediaInterface->startTone(9, true, false) ;OsTask::delay(500) ;
+        mediaInterface->startTone(5, true, false) ;OsTask::delay(500) ;
+        mediaInterface->startTone(5, true, false) ;OsTask::delay(500) ;
+        mediaInterface->startTone(4, true, false) ;OsTask::delay(500) ;
         RTL_EVENT("Tone set", 0);
         printf("tone set done\n");        
         OsTask::delay(1000) ;
@@ -424,7 +420,6 @@ class CpPhoneMediaInterfaceTest : public CppUnit::TestCase
 
         RTL_EVENT("Tone count", 1);
         printf("stop tones in source 1\n");
-
 
         OsTask::delay(1000);
         RTL_EVENT("Tone count", 0);
