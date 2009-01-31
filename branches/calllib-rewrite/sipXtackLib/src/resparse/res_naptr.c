@@ -1,9 +1,10 @@
-#include <regex.h>
 #include <string.h>
 
 #include "resparse/rr.h"
 
 #ifdef RES_PARSE_NAPTR
+
+#include <regex.h>
 
 /*
  *  res_naptr.c

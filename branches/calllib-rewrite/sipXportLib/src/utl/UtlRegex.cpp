@@ -25,6 +25,14 @@
 #   define SIPX_MAX_REGEX_RECURSION 800
 #endif
 
+#ifdef _WIN32 // [
+#ifdef _DEBUG
+#   pragma comment(lib, "libpcred.lib")
+#else
+#   pragma comment(lib, "libpcre.lib")
+#endif // _DEBUG ]
+#endif // WIN32 ]
+
 const unsigned long int RegEx::MAX_RECURSION = SIPX_MAX_REGEX_RECURSION;
 
 // Some versions do not separately define a limit for stack recursion;
