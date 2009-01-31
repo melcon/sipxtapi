@@ -1890,9 +1890,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
 
    switch (streamDirection)
    {
-   case SDP_STREAM_SENDRECV:
-      addValue("a", "sendrecv");
-      break;
+   // no need to add sendrecv, it is the default value
    case SDP_STREAM_SENDONLY:
       addValue("a", "sendonly");
       break;
