@@ -6,6 +6,7 @@
 	ProjectGUID="{15F47F98-5BA1-45BE-9167-315CA442F7AD}"
 	RootNamespace="SimpleSipxTerm"
 	Keyword="MFCProj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -86,6 +87,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/SimpleSipxTerm.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -107,9 +110,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -184,6 +184,8 @@
 				AdditionalLibraryDirectories="..\..\..\sipXcallLib\lib"
 				ProgramDatabaseFile=".\Release/SimpleSipxTerm.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -205,9 +207,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
