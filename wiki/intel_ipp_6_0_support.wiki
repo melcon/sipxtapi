@@ -1,0 +1,38 @@
+=== To compile sipxtapi 3.3.0 with Intel IPP 6.0 ===
+
+ # Download w_ipp_ia32_p_6.0.1.070.exe, w_ipp-samples_p_6.0.0.127.zip and install them into %IPPROOTDIR%, which is the path chosen in installation. Unzip speech samples, and call the directory "ipp-samples-6.0" instead of the default "ipp-samples".
+ # Add the following directories to PATH:
+{{{
+%IPPROOTDIR%\IPP\ipp-samples-6.0\tools\env
+%IPPROOTDIR%\IPP\6.0.1.070\ia32\bin\
+}}}
+ # Run "vcvarsall.bat x86" from visual studio (C:\Program Files\Microsoft Visual Studio 9.0\VC\vcvarsall.bat)
+ # Go to IPP\ipp-samples-6.0\speech-codecs\, and type build32.bat. This will build libraries in 
+{{{
+%IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\_bin\win32_cl9\lib
+}}}
+ # Copy project file from ipp_6_0_project_files.zip into %IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\application\usc_speech_codec\, and compile it. For visual studio 8, use the same file, but change Version="9,00" to Version="8,00" - it works well.
+ # Setup either global paths in Visual Studio (Tools->Options->Projects and solutions->VC++ directories), or add them to sipxmedialib (include) and sipxtapi (lib) project.
+{{{
+Include:
+%IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\codec\speech_rtp\include
+%IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\core\umc\include
+%IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\core\usc\include
+%IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\application\usc_speech_codec\include
+%IPPROOTDIR%\IPP\ipp-samples-6.0\audio-video-codecs\core\vm\include
+%IPPROOTDIR%\IPP\6.0.1.070\ia32\include
+
+Lib:
+%IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\_bin\win32_cl9\lib
+%IPPROOTDIR%\IPP\6.0.1.070\ia32\lib
+%IPPROOTDIR%\IPP\6.0.1.070\ia32\stublib
+%IPPROOTDIR%\IPP\ipp-samples-6.0\speech-codecs\application\usc_speech_codec\Release
+}}}
+ # Switch to Debug-IPP configuration for sipxmediadapterlib, sipxmedialib, sipxsdplib, sipxtapi.
+ # Compile sipXtapi library
+
+To use internal encoder/decoder for G.711 a-law and u-law, gsmlib instead of Intel IPP, undefine PREFER_INTEL_IPP_CODECS from sipXmediaLib project preprocessor definitions.
+
+To disable wideband codecs, undefine ENABLE_WIDEBAND_AUDIO in sipXmediaLib, sipXmediaAdapterLib, sipXsdpLib.
+
+To use Intel IPP 6.0 commercially or after trial expiration, you need to purchase a license from Intel. Some codecs like G.729 require additional licenses. Precompiled versions of sipXtapi do not ship with Intel IPP codecs.
