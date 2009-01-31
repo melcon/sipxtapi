@@ -174,7 +174,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspandsp", "sipXmediaLib\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspeexdsp", "sipXmediaLib\contrib\speex-1.2rc1\win32\VS2008\libspeexdsp\libspeexdsp.vcproj", "{03207781-0D1C-4DB3-A71D-45C608F28DBD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpcre", "sipXportLib\contrib\pcre\libpcre.vcproj", "{C129E59D-742A-4C2A-A294-CFDE85E11CD5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpcre", "sipXportLib\contrib\pcre\libpcre-msvc9.vcproj", "{C129E59D-742A-4C2A-A294-CFDE85E11CD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
