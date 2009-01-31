@@ -2353,7 +2353,7 @@ UtlBoolean SdpBody::getCandidateAttribute(int mediaIndex,
             {
                 aFieldType.toLower() ;
                 aFieldType.strip(UtlString::both, ' ') ;
-                if(aFieldType.compareTo("cand") == 0)
+                if(aFieldType.compareTo("candidate") == 0)
                 {
                     if (aFieldIndex == candidateIndex)
                     {
