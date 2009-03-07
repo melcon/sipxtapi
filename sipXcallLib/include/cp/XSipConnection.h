@@ -48,6 +48,8 @@ class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class CpRtpRedirectEvent;
+class CpRtpRedirectEventListener;
 class ScTimerMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
@@ -89,7 +91,8 @@ public:
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                   SipInfoEventListener* pInfoEventListener = NULL,
                   SipSecurityEventListener* pSecurityEventListener = NULL,
-                  CpMediaEventListener* pMediaEventListener = NULL);
+                  CpMediaEventListener* pMediaEventListener = NULL,
+                  CpRtpRedirectEventListener* pRtpRedirectEventListener = NULL);
 
    virtual ~XSipConnection();
 
@@ -362,6 +365,10 @@ private:
                               const UtlString& sReferredBy = NULL,
                               const UtlString& sReferTo = NULL);
 
+   /** Sets common properties on rtp redirect event */
+   void prepareRtpRedirectEvent(CpRtpRedirectEvent& event,
+                                CP_RTP_REDIRECT_CAUSE cause);
+
    /** Fire info status event */
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                         SIPXTACK_MESSAGE_STATUS status,
@@ -400,6 +407,10 @@ private:
                                   const UtlString& sReferredBy = NULL,
                                   const UtlString& sReferTo = NULL);
 
+   /** Fires sipx RTP redirect event to event listener */
+   virtual void fireSipXRtpRedirectEvent(CP_RTP_REDIRECT_EVENT eventCode,
+                                         CP_RTP_REDIRECT_CAUSE causeCode);
+
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
 
@@ -425,6 +436,7 @@ private:
    SipInfoEventListener* m_pInfoEventListener; ///< event listener for inbound INFO messages
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
+   CpRtpRedirectEventListener* m_pRtpRedirectEventListener; ///< listener for firing rtp redirect events
    const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall

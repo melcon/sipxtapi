@@ -80,6 +80,10 @@ public:
                                       const UtlString& sSessionCallId,
                                       const UtlString& sRemoteAddress) = 0;
 
+   /** Fires sipx RTP redirect event to event listener */
+   virtual void fireSipXRtpRedirectEvent(CP_RTP_REDIRECT_EVENT eventCode,
+                                         CP_RTP_REDIRECT_CAUSE causeCode) = 0;
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */

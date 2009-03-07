@@ -126,6 +126,7 @@ libsipXcall_la_SOURCES = \
     tapi/KeepaliveEventMsg.cpp \
     tapi/LineStateEventMsg.cpp \
     tapi/MediaEventMsg.cpp \
+    tapi/RtpRedirectEventMsg.cpp \
     tapi/SecurityEventMsg.cpp \
     tapi/SecurityHelper.cpp \
     tapi/SipXAudio.cpp \
@@ -147,6 +148,7 @@ libsipXcall_la_SOURCES = \
     tapi/SipXMessageObserver.cpp \
     tapi/SipXPim.cpp \
     tapi/SipXPublish.cpp \
+    tapi/SipXRtpRedirectEventListener.cpp \
     tapi/SipXSecurityEventListener.cpp \
     tapi/SipXSubscribe.cpp \
     tapi/sipXtapi.cpp \

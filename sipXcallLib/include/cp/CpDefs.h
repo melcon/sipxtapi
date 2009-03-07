@@ -288,6 +288,30 @@ typedef enum
 } CP_CALLSTATE_CAUSE;
 
 /**
+* Enumeration of possible CP_RTP_REDIRECT events.
+*/
+typedef enum
+{
+   CP_RTP_REDIRECT_REQUESTED = 0, ///< fired when RTP redirect is initiated, but final result is unknown
+   CP_RTP_REDIRECT_ACTIVE, ///< fired when RTP redirect succeeds. However a failure may be fired later.
+   CP_RTP_REDIRECT_ERROR, ///< fired when RTP redirect fails for some reason after being initiated.
+   CP_RTP_REDIRECT_STOP ///< fired when RTP redirect stops. Will be fired only after SUCCESS event.
+} CP_RTP_REDIRECT_EVENT;
+
+/**
+* Enumeration of possible CP_RTP_REDIRECT cause codes.
+*/
+typedef enum
+{
+   CP_RTP_REDIRECT_CAUSE_NORMAL = 0,         /**< No error occurred. */
+   CP_RTP_REDIRECT_CAUSE_SDP_CODEC_MISMATCH, /**< SDP codec mismatch occurred during negotiation. */
+   CP_RTP_REDIRECT_CAUSE_CALL_NOT_READY, /**< Used when RTP redirect is requested but call is not ready for RTP redirect.
+                                           Request may be retried at later time. */
+   CP_RTP_REDIRECT_CAUSE_SETUP_FAILED, /**< Setup of RTP redirect failed. RTP redirect could not be coordinated successfully
+                                         between participating calls. */
+} CP_RTP_REDIRECT_CAUSE;
+
+/**
 * Configuration of session timer refresher. Refresher is side which is responsible
 * for periodically refreshing the session with re-INVITE or UPDATE within session
 * expiration time. If no session refresh occurs until that period, session may be

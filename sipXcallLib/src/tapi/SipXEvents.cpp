@@ -91,6 +91,9 @@ static const char* convertEventCategoryToString(SIPX_EVENT_CATEGORY category)
    case EVENT_CATEGORY_KEEPALIVE:
       str = MAKESTR(EVENT_CATEGORY_KEEPALIVE);
       break;
+   case EVENT_CATEGORY_RTP_REDIRECT:
+      str = MAKESTR(EVENT_CATEGORY_RTP_REDIRECT);
+      break;
    default:
       break;
    }
@@ -473,6 +476,53 @@ const char* convertKeepaliveTypeToString(SIPX_KEEPALIVE_TYPE type)
    return str;
 }
 
+SIPXTAPI_API const char* sipxRtpRedirectEventToString(SIPX_RTP_REDIRECT_EVENT event)
+{
+   const char* str = "Unknown";
+
+   switch (event)
+   {
+   case RTP_REDIRECT_REQUESTED:
+      str = MAKESTR(RTP_REDIRECT_REQUESTED);
+      break;
+   case RTP_REDIRECT_ACTIVE:
+      str = MAKESTR(RTP_REDIRECT_ACTIVE);
+      break;
+   case RTP_REDIRECT_ERROR:
+      str = MAKESTR(RTP_REDIRECT_ERROR);
+      break;
+   case RTP_REDIRECT_STOP:
+      str = MAKESTR(RTP_REDIRECT_STOP);
+      break;
+   default:
+      break;
+   }
+   return str;
+}
+
+SIPXTAPI_API const char* sipxRtpRedirectCauseToString(SIPX_RTP_REDIRECT_CAUSE cause)
+{
+   const char* str = "Unknown";
+
+   switch (cause)
+   {
+   case RTP_REDIRECT_CAUSE_NORMAL:
+      str = MAKESTR(RTP_REDIRECT_CAUSE_NORMAL);
+      break;
+   case RTP_REDIRECT_CAUSE_SDP_CODEC_MISMATCH:
+      str = MAKESTR(RTP_REDIRECT_CAUSE_SDP_CODEC_MISMATCH);
+      break;
+   case RTP_REDIRECT_CAUSE_CALL_NOT_READY:
+      str = MAKESTR(RTP_REDIRECT_CAUSE_CALL_NOT_READY);
+      break;
+   case RTP_REDIRECT_CAUSE_SETUP_FAILED:
+      str = MAKESTR(RTP_REDIRECT_CAUSE_SETUP_FAILED);
+      break;
+   default:
+      break;
+   }
+   return str;
+}
 
 static const char* convertInfoStatusEventToString(SIPX_INFOSTATUS_EVENT event)
 {
@@ -903,6 +953,15 @@ SIPXTAPI_API void sipxEventToString(const SIPX_EVENT_CATEGORY category,
             sipxKeepaliveCauseToString(pEventData->cause));
       }
       break;
+   case EVENT_CATEGORY_RTP_REDIRECT:
+      {
+         SIPX_RTP_REDIRECT_INFO* pEventData = (SIPX_RTP_REDIRECT_INFO*)pEvent;
+         SNPRINTF(szBuffer, nBuffer, "%s::%s::%s", 
+            convertEventCategoryToString(category),
+            sipxRtpRedirectEventToString(pEventData->event),
+            sipxRtpRedirectCauseToString(pEventData->cause));
+      }
+      break;
    default:
       assert(false);
       break;
@@ -1217,6 +1276,25 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             rc = SIPX_RESULT_SUCCESS;
          }
          break;
+      case EVENT_CATEGORY_RTP_REDIRECT:
+         {
+            SIPX_RTP_REDIRECT_INFO* pSourceInfo = (SIPX_RTP_REDIRECT_INFO*)pEventSource;
+            assert(pSourceInfo->nSize == sizeof(SIPX_RTP_REDIRECT_INFO));
+
+            SIPX_RTP_REDIRECT_INFO* pInfo = new SIPX_RTP_REDIRECT_INFO();
+            memset(pInfo, 0, sizeof(SIPX_RTP_REDIRECT_INFO));
+
+            pInfo->nSize = pSourceInfo->nSize;
+            pInfo->event = pSourceInfo->event;
+            pInfo->cause = pSourceInfo->cause;
+            pInfo->hCall = pSourceInfo->hCall;
+            pInfo->hLine = pSourceInfo->hLine;
+
+            *pEventCopy = pInfo;
+
+            rc = SIPX_RESULT_SUCCESS;
+         }
+         break;
       default:
          *pEventCopy = NULL;
          break;
@@ -1361,6 +1439,15 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             assert(pSourceInfo->nSize == sizeof(SIPX_KEEPALIVE_INFO));
             free((void*) pSourceInfo->szRemoteAddress);
             free((void*) pSourceInfo->szFeedbackAddress);
+            delete pSourceInfo;
+
+            rc = SIPX_RESULT_SUCCESS;
+         }
+         break;
+      case EVENT_CATEGORY_RTP_REDIRECT:
+         {
+            SIPX_RTP_REDIRECT_INFO* pSourceInfo = (SIPX_RTP_REDIRECT_INFO*)pEventCopy;
+            assert(pSourceInfo->nSize == sizeof(SIPX_RTP_REDIRECT_INFO));
             delete pSourceInfo;
 
             rc = SIPX_RESULT_SUCCESS;

@@ -1388,6 +1388,104 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall)
    return sr;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxCallStartRtpRedirect(const SIPX_CALL hSrcCall, const SIPX_CALL hDstCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallStartRtpRedirect");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallStartRtpRedirect hSrcCall=%d, hDstCall=%d", hSrcCall, hDstCall);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   UtlString sAbstractCallId1;
+   UtlString sAbstractCallId2;
+   SipDialog sipDialog1;
+   SipDialog sipDialog2;
+   SIPX_INSTANCE_DATA* pInst1 = NULL;
+   SIPX_INSTANCE_DATA* pInst2 = NULL;
+   SIPX_CONF callConf1;
+   SIPX_CONF callConf2;
+   RTP_REDIRECT_STATE rtpRedirectState1;
+   RTP_REDIRECT_STATE rtpRedirectState2;
+   // lookup 1st call
+   SIPX_CALL_DATA* pSrcData = sipxCallLookup(hSrcCall, SIPX_LOCK_READ, stackLogger);
+   if (pSrcData)
+   {
+      sipDialog1 = pSrcData->m_sipDialog;
+      pInst1 = pSrcData->m_pInst;
+      sAbstractCallId1 = pSrcData->m_abstractCallId;
+      callConf1 = pSrcData->m_hConf;
+      rtpRedirectState1 = pSrcData->m_rtpRedirectState;
+      sipxCallReleaseLock(pSrcData, SIPX_LOCK_READ, stackLogger);
+   }
+   else
+   {
+      return SIPX_RESULT_INVALID_ARGS;
+   }
+   // lookup 2nd call
+   SIPX_CALL_DATA* pDstData = sipxCallLookup(hDstCall, SIPX_LOCK_READ, stackLogger);
+   if (pDstData)
+   {
+      sipDialog2 = pDstData->m_sipDialog;
+      pInst2 = pDstData->m_pInst;
+      sAbstractCallId2 = pDstData->m_abstractCallId;
+      callConf2 = pDstData->m_hConf;
+      rtpRedirectState2 = pDstData->m_rtpRedirectState;
+      sipxCallReleaseLock(pDstData, SIPX_LOCK_READ, stackLogger);
+   }
+   else
+   {
+      return SIPX_RESULT_INVALID_ARGS;
+   }
+   // check if both calls are ok
+   if (pInst1 == pInst2 &&
+      pInst1->pCallManager && pInst2->pCallManager &&
+      !sAbstractCallId1.isNull() && !sAbstractCallId2.isNull() &&
+      !sipDialog1.getRemoteField().isNull() && !sipDialog2.getRemoteField().isNull() &&
+      callConf1 == SIPX_CONF_NULL && callConf2 == SIPX_CONF_NULL &&
+      rtpRedirectState1 == RTP_REDIRECT_STATE_INACTIVE && rtpRedirectState2 == RTP_REDIRECT_STATE_INACTIVE)
+   {
+      if(pInst1->pCallManager->startRedirectCallRtp(sAbstractCallId1, sipDialog1, sAbstractCallId2, sipDialog2) == OS_SUCCESS)
+      {
+         sr = SIPX_RESULT_SUCCESS;
+      }
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxCallStopRtpRedirect(const SIPX_CALL hCall)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallStopRtpRedirect");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallStopRtpRedirect hCall=%d", hCall);
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+   // lookup the call
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+   if (pData)
+   {
+      SipDialog sipDialog = pData->m_sipDialog;
+      SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
+      UtlString sAbstractCallId = pData->m_abstractCallId;
+      RTP_REDIRECT_STATE rtpRedirectState = pData->m_rtpRedirectState;
+      sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+
+      // proceed with stopping RTP redirect
+      if (pInst->pCallManager &&
+         !sAbstractCallId.isNull() &&
+         !sipDialog.getRemoteField().isNull() &&
+         rtpRedirectState == RTP_REDIRECT_STATE_ACTIVE)
+      {
+         if(pInst->pCallManager->stopRedirectCallRtp(sAbstractCallId, sipDialog) == OS_SUCCESS)
+         {
+            sr = SIPX_RESULT_SUCCESS;
+         }
+      }
+   }
+   else
+   {
+      return SIPX_RESULT_INVALID_ARGS;
+   }
+
+   return sr;
+}
 
 // internal function used for testing only
 SIPXTAPI_API SIPX_RESULT sipxCallGetMediaConnectionId(const SIPX_CALL hCall,

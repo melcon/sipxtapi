@@ -94,7 +94,8 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
                                  SipInfoEventListener* pInfoEventListener,
                                  SipSecurityEventListener* pSecurityEventListener,
-                                 CpMediaEventListener* pMediaEventListener)
+                                 CpMediaEventListener* pMediaEventListener,
+                                 CpRtpRedirectEventListener* pRtpRedirectEventListener)
 : OsServerTask("XCpAbstractCall-%d", NULL, CALL_MAX_REQUEST_MSGS)
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
@@ -112,6 +113,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
+, m_pRtpRedirectEventListener(pRtpRedirectEventListener)
 , m_natTraversalConfig(rNatTraversalConfig)
 , m_sBindIpAddress(sBindIpAddress)
 , m_sessionTimerExpiration(sessionTimerExpiration)

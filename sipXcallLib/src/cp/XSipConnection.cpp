@@ -20,6 +20,7 @@
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpMediaEventListener.h>
 #include <cp/CpCallStateEventListener.h>
+#include <cp/CpRtpRedirectEventListener.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -59,7 +60,8 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
                                SipInfoEventListener* pInfoEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
-                               CpMediaEventListener* pMediaEventListener)
+                               CpMediaEventListener* pMediaEventListener,
+                               CpRtpRedirectEventListener* pRtpRedirectEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
 , m_stateMachine(rSipUserAgent, rCallControl, sLocalIpAddress, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
 , m_rSipConnectionContext(m_stateMachine.getSipConnectionContext())
@@ -71,6 +73,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
 , m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
+, m_pRtpRedirectEventListener(pRtpRedirectEventListener)
 , m_natTraversalConfig(natTraversalConfig)
 , m_lastCallEvent(CP_CALLSTATE_UNKNOWN)
 {
@@ -429,6 +432,15 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
    event.m_sReferTo = sReferTo;
 }
 
+void XSipConnection::prepareRtpRedirectEvent(CpRtpRedirectEvent& event, CP_RTP_REDIRECT_CAUSE cause)
+{
+   {
+      OsReadLock lock(m_rSipConnectionContext);
+      event.m_sCallId = m_rSipConnectionContext.m_sAbstractCallId; // copy id of abstract call
+   }
+   event.m_cause = cause;
+}
+
 void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                              SIPXTACK_MESSAGE_STATUS status,
                                              const UtlString& sResponseText,
@@ -666,6 +678,33 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
          default:
             ;
          }
+      }
+   }
+}
+
+void XSipConnection::fireSipXRtpRedirectEvent(CP_RTP_REDIRECT_EVENT eventCode, CP_RTP_REDIRECT_CAUSE causeCode)
+{
+   if (m_pRtpRedirectEventListener)
+   {
+      CpRtpRedirectEvent event;
+      prepareRtpRedirectEvent(event, causeCode);
+
+      switch(eventCode)
+      {
+      case CP_RTP_REDIRECT_REQUESTED:
+         m_pRtpRedirectEventListener->OnRtpRedirectRequested(event);
+         break;
+      case CP_RTP_REDIRECT_ACTIVE:
+         m_pRtpRedirectEventListener->OnRtpRedirectActive(event);
+         break;
+      case CP_RTP_REDIRECT_ERROR:
+         m_pRtpRedirectEventListener->OnRtpRedirectError(event);
+         break;
+      case CP_RTP_REDIRECT_STOP:
+         m_pRtpRedirectEventListener->OnRtpRedirectStop(event);
+         break;
+      default:
+         ;
       }
    }
 }

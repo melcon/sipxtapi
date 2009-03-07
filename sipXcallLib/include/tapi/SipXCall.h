@@ -34,6 +34,14 @@
 class SIPX_INSTANCE_DATA;
 class OsStackTraceLogger;
 
+typedef enum
+{
+   RTP_REDIRECT_STATE_INACTIVE = 0,
+   RTP_REDIRECT_STATE_ACTIVE,
+   RTP_REDIRECT_STATE_REQUESTED,
+   RTP_REDIRECT_STATE_ERROR
+} RTP_REDIRECT_STATE;
+
 // STRUCTS
 // TYPEDEFS
 class SIPX_CALL_DATA
@@ -47,6 +55,7 @@ public:
    SIPX_INSTANCE_DATA* m_pInst;
    OsMutex m_mutex;
    SIPX_CONF m_hConf;
+   RTP_REDIRECT_STATE m_rtpRedirectState; ///< state of RTP redirecting. If active then call cannot be used in conference.
    SIPX_SECURITY_ATTRIBUTES m_security;
    SIPX_VIDEO_DISPLAY m_display;
    SIPX_CALLSTATE_EVENT m_callState; ///< current call state
@@ -68,6 +77,7 @@ public:
       m_hLine(0),
       m_pInst(NULL),
       m_hConf(NULL),
+      m_rtpRedirectState(RTP_REDIRECT_STATE_INACTIVE),
       m_security(),
       m_display(),
       m_callState(CALLSTATE_UNKNOWN),
