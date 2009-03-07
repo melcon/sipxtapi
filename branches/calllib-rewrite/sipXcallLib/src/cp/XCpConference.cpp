@@ -66,11 +66,12 @@ XCpConference::XCpConference(const UtlString& sId,
                              SipInfoStatusEventListener* pInfoStatusEventListener,
                              SipInfoEventListener* pInfoEventListener,
                              SipSecurityEventListener* pSecurityEventListener,
-                             CpMediaEventListener* pMediaEventListener)
+                             CpMediaEventListener* pMediaEventListener,
+                             CpRtpRedirectEventListener* pRtpRedirectEventListener)
 : XCpAbstractCall(sId, rSipUserAgent, rCallControl, pSipLineProvider, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
                   sBindIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting, sdpOfferingMode, inviteExpiresSeconds,
                   pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
-                  pInfoEventListener, pSecurityEventListener, pMediaEventListener)
+                  pInfoEventListener, pSecurityEventListener, pMediaEventListener, pRtpRedirectEventListener)
 {
 
 }

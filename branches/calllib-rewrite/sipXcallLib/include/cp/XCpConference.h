@@ -87,7 +87,8 @@ public:
                  SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                  SipInfoEventListener* pInfoEventListener = NULL,
                  SipSecurityEventListener* pSecurityEventListener = NULL,
-                 CpMediaEventListener* pMediaEventListener = NULL);
+                 CpMediaEventListener* pMediaEventListener = NULL,
+                 CpRtpRedirectEventListener* pRtpRedirectEventListener = NULL);
 
    virtual ~XCpConference();
 

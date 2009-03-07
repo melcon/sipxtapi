@@ -56,6 +56,7 @@ class SipRefreshMgr;
 class SipDialogMgr;
 class SipRefreshManager;
 class SipXKeepaliveEventListener;
+class SipXRtpRedirectEventListener;
 class SipXEventDispatcher;
 class SipPimClient;
 class SipXMessageObserver;
@@ -135,6 +136,7 @@ public:
    SipXSecurityEventListener* pSecurityEventListener;
    SipXMediaEventListener* pMediaEventListener;
    SipXKeepaliveEventListener* pKeepaliveEventListener;
+   SipXRtpRedirectEventListener* pRtpRedirectEventListener;
    SipDialogMgr* pDialogManager;
    OsSharedServerTaskMgr* pSharedTaskMgr;
 

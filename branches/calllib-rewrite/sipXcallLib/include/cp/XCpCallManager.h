@@ -52,6 +52,7 @@ class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class CpRtpRedirectEventListener;
 class SipMessageEvent;
 class SipMessage;
 class CmCommandMsg;
@@ -78,6 +79,7 @@ public:
                   SipInfoEventListener* pInfoEventListener,
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
+                  CpRtpRedirectEventListener* pRtpRedirectEventListener,
                   SipUserAgent& rSipUserAgent,
                   const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
@@ -133,6 +135,21 @@ public:
                                   const UtlString& locationHeader,
                                   CP_CONTACT_ID contactId,
                                   CP_FOCUS_CONFIG focusConfig);
+
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling.
+   */
+   OsStatus startRedirectCallRtp(const UtlString& sSrcCallId,
+                                 const SipDialog& sSrcSipDialog,
+                                 const UtlString& sDstCallId,
+                                 const SipDialog& sDstSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   OsStatus stopRedirectCallRtp(const UtlString& sCallId,
+                                const SipDialog& sSipDialog);
 
    /** 
     * Accepts inbound call connection. Inbound connections can only be part of XCpCall
@@ -699,6 +716,7 @@ private:
    SipInfoEventListener* m_pInfoEventListener; // listener for firing info message events
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+   CpRtpRedirectEventListener* m_pRtpRedirectEventListener; // listener for firing rtp redirect events
    SipUserAgent& m_rSipUserAgent; // sends sip messages
    const SdpCodecList& m_rDefaultSdpCodecList; ///< list for SDP codecs supplied to constructor
    SipLineProvider* m_pSipLineProvider; // read only functionality of line manager

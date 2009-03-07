@@ -1493,6 +1493,50 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall,
  */ 
 SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall);
 
+/**
+ * Initiates RTP redirect between two calls. SipXtapi will no longer send or receive RTP, and all audio
+ * resources will be released. Source call will use SDP of remote party of destination call and vice versa.
+ * This will result in source and destination calls to send RTP directly to each other, bypassing sipXtapi.
+ *
+ * Because both parties will talk directly to each other, they both must have public IP addresses.
+ * SipXtapi will keep control over SIP signalling and will be able to drop both calls.
+ *
+ * If operation is successful, the following event sequence can be expected:
+ * - RTP_REDIRECT_REQUESTED
+ * - RTP_REDIRECT_ACTIVE
+ *
+ * If operation fails before RTP redirect is activated, RTP_REDIRECT_ERROR event will be reported.
+ * If RTP redirect succeeds but later cannot continue due to attached call being dropped or re-INVITE codec
+ * renegotiation failure, RTP_REDIRECT_STOP will be fired with proper event cause.
+ *
+ * RTP_REDIRECT_STOP will be fired only after RTP_REDIRECT_ACTIVE.
+ *
+ * If one of calls participating in RTP redirect is destroyed, the other call automatically stops redirecting
+ * RTP. Operation will fail if one of calls has RTP redirect request pending, RTP redirect is active or
+ * call is in conference.
+ *
+ * @param hSrcCall Call handle of source call. Must be in established state.
+ * @param hDstCall Call handle of destination call. Must be in established state and belong to the same
+ *        sipXtapi instance like hSrcCall.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallStartRtpRedirect(const SIPX_CALL hSrcCall, const SIPX_CALL hDstCall);
+
+/**
+ * Stops redirecting RTP on given call, and its attached call. Causes initialization
+ * of local audio resources and re-INVITE with local codecs. It is not necessary to call
+ * this function if sipxCallStartRtpRedirect failed, or the RTP redirection fails at some point.
+ *
+ * This operation is executed asynchronously. Immediate SIPX_RESULT_SUCCESS merely means
+ * that call was found and command dispatched. Success will be confirmed by RTP_REDIRECT_STOP event.
+ *
+ * Must be called only for a single call participating in RTP redirect. Other call will be notified
+ * automatically and stop RTP redirect. Operation will fail if RTP redirect has been requeted (but not
+ * activated) or is already inactive.
+ *
+ * @param hCall Handle to a call participating in RTP redirect. May be source or destination
+ *        call from sipxCallStartRtpRedirect.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallStopRtpRedirect(const SIPX_CALL hCall);
 
 /**
  * Get the SIP Call-Id of the call represented by the specified call handle.

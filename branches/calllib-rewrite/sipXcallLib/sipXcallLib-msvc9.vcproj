@@ -674,6 +674,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpRtpRedirectEventListener.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CpSdpNegotiation.h"
 				>
 			</File>

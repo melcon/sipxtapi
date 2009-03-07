@@ -53,6 +53,7 @@ class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class CpRtpRedirectEventListener;
 class AcCommandMsg;
 class AcNotificationMsg;
 class AcGainFocusMsg;
@@ -135,7 +136,8 @@ public:
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                    SipInfoEventListener* pInfoEventListener = NULL,
                    SipSecurityEventListener* pSecurityEventListener = NULL,
-                   CpMediaEventListener* pMediaEventListener = NULL);
+                   CpMediaEventListener* pMediaEventListener = NULL,
+                   CpRtpRedirectEventListener* pRtpRedirectEventListener = NULL);
 
    virtual ~XCpAbstractCall();
 
@@ -513,6 +515,7 @@ protected:
    SipInfoEventListener* m_pInfoEventListener; ///< listener for firing info message events
    SipSecurityEventListener* m_pSecurityEventListener; ///< listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; ///< listener for firing media events
+   CpRtpRedirectEventListener* m_pRtpRedirectEventListener; ///< listener for firing rtp redirect events
    const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
    const UtlString m_sBindIpAddress; ///< default local IP for media interface. May be 0.0.0.0
    const UtlString m_sLocale; ///< locale for DTMF, empty by default

@@ -16,6 +16,7 @@ nobase_include_HEADERS =  \
     cp/CpNatTraversalConfig.h \
     cp/CpNotificationMsgDef.h \
     cp/CpNotificationRegister.h \
+    cp/CpRtpRedirectEventListener.h \
     cp/Cp100RelTracker.h \
     cp/CpSdpNegotiation.h \
     cp/CpSessionTimerProperties.h \
@@ -125,6 +126,7 @@ nobase_include_HEADERS =  \
     tapi/KeepaliveEventMsg.h \
     tapi/LineStateEventMsg.h \
     tapi/MediaEventMsg.h \
+    tapi/RtpRedirectEventMsg.h \
     tapi/SecurityEventMsg.h \
     tapi/SecurityHelper.h \
     tapi/SipXAudio.h \
@@ -146,6 +148,7 @@ nobase_include_HEADERS =  \
     tapi/SipXMessageObserver.h \
     tapi/SipXPim.h \
     tapi/SipXPublish.h \
+    tapi/SipXRtpRedirectEventListener.h \
     tapi/SipXSecurityEventListener.h \
     tapi/SipXSubscribe.h \
     tapi/sipXtapi.h \
