@@ -1956,8 +1956,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
 
    if (connectionState == ISipConnectionState::CONNECTION_REMOTE_ALERTING ||
       connectionState == ISipConnectionState::CONNECTION_REMOTE_OFFERING ||
-      connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED ||
-      connectionState == ISipConnectionState::CONNECTION_ESTABLISHED) // re-INVITE can also have 18x response
+      connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED)
    {
       int responseCode = sipResponse.getResponseStatusCode();
       UtlString responseText;
@@ -2005,7 +2004,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
                }
             } // else 18x retransmit, but we sent PRACK, ignore as PRACK will be resent automatically
          }
-         else if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED)
+         else
          {
             // unreliable 18x response
             if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
@@ -2951,15 +2950,20 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
    if (pSdpBody)
    {
       m_rStateContext.m_sdpNegotiation.startSdpNegotiation(sipMessage, m_rStateContext.m_bUseLocalHoldSDP);
-      CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
-      int mediaConnectionId = getMediaConnectionId();
 
-      if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
+      if (!m_rStateContext.m_bRTPRedirectActive)
       {
-         if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+         // if we are not redirecting RTP, initialize media connection if not already initialized
+         CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+         int mediaConnectionId = getMediaConnectionId();
+
+         if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
          {
-            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
-            return FALSE;
+            if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+            {
+               m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+               return FALSE;
+            }
          }
       }
 
