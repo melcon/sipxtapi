@@ -136,6 +136,19 @@ public:
                                                  const UtlString& replacesField);
 
    /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling. Current call will become the master call.
+   */
+   virtual SipConnectionStateTransition* startRtpRedirect(OsStatus& result,
+                                                          const UtlString& slaveAbstractCallId,
+                                                          const SipDialog& slaveSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   virtual SipConnectionStateTransition* stopRtpRedirect(OsStatus& result);
+
+   /**
    * Accepts inbound call connection, sends 180 Ringing.
    */
    virtual SipConnectionStateTransition* acceptConnection(OsStatus& result,

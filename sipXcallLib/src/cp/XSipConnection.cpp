@@ -133,6 +133,16 @@ OsStatus XSipConnection::connect(const UtlString& sipCallId,
       replacesField, callstateCause, pCallbackSipDialog);
 }
 
+OsStatus XSipConnection::startRtpRedirect(const UtlString& slaveAbstractCallId, const SipDialog& slaveSipDialog)
+{
+   return m_stateMachine.startRtpRedirect(slaveAbstractCallId, slaveSipDialog);
+}
+
+OsStatus XSipConnection::stopRtpRedirect()
+{
+   return m_stateMachine.stopRtpRedirect();
+}
+
 OsStatus XSipConnection::acceptConnection(UtlBoolean bSendSDP,
                                           const UtlString& locationHeader,
                                           CP_CONTACT_ID contactId)

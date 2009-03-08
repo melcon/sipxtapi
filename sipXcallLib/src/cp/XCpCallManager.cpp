@@ -302,18 +302,36 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
    return result;
 }
 
-OsStatus XCpCallManager::startRedirectCallRtp(const UtlString& sSrcCallId,
-                                              const SipDialog& sSrcSipDialog,
+OsStatus XCpCallManager::startCallRedirectRtp(const UtlString& sSrcCallId,
                                               const UtlString& sDstCallId,
-                                              const SipDialog& sDstSipDialog)
+                                              const SipDialog& dstSipDialog)
 {
-   return OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findCall(sSrcCallId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->startCallRedirectRtp(sDstCallId, dstSipDialog);
+   }
+
+   return result;
 }
 
-OsStatus XCpCallManager::stopRedirectCallRtp(const UtlString& sCallId,
-                                             const SipDialog& sSipDialog)
+OsStatus XCpCallManager::stopCallRedirectRtp(const UtlString& sCallId)
 {
-   return OS_FAILED;
+   OsStatus result = OS_NOT_FOUND;
+
+   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
+   if (resFind)
+   {
+      // we found call and have a lock on it
+      return ptrLock->stopCallRedirectRtp();
+   }
+
+   return result;
 }
 
 OsStatus XCpCallManager::acceptCallConnection(const UtlString& sCallId,

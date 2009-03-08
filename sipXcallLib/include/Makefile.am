@@ -63,6 +63,8 @@ nobase_include_HEADERS =  \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcStartRtpRedirectMsg.h \
+    cp/msg/AcStopRtpRedirectMsg.h \
     cp/msg/AcSubscribeMsg.h \
     cp/msg/AcTimerMsg.h \
     cp/msg/AcTransferBlindMsg.h \
@@ -88,8 +90,14 @@ nobase_include_HEADERS =  \
     cp/msg/ScDisconnectTimerMsg.h \
     cp/msg/ScInviteExpirationTimerMsg.h \
     cp/msg/ScNotificationMsg.h \
+    cp/msg/ScReestablishRtpRedirectCommandMsg.h \
     cp/msg/ScReInviteTimerMsg.h \
+    cp/msg/ScRtpRedirectCompleteNotificationMsg.h \
+    cp/msg/ScRtpRedirectErrorNotificationMsg.h \
     cp/msg/ScSessionTimeoutTimerMsg.h \
+    cp/msg/ScStartRtpRedirectAckNotificationMsg.h \
+    cp/msg/ScStartRtpRedirectCommandMsg.h \
+    cp/msg/ScStopRtpRedirectCommandMsg.h \
     cp/msg/ScTimerMsg.h \
     cp/state/AlertingSipConnectionState.h \
     cp/state/BaseSipConnectionState.h \

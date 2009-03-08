@@ -104,6 +104,8 @@
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsAllMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcStartRtpRedirectMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcStopRtpRedirectMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcSubscribeMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"/>
@@ -129,8 +131,14 @@
                 <File RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScInviteExpirationTimerMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScReestablishRtpRedirectCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScReInviteTimerMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScRtpRedirectCompleteNotificationMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScRtpRedirectErrorNotificationMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScSessionTimeoutTimerMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScStartRtpRedirectAckNotificationMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScStartRtpRedirectCommandMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScStopRtpRedirectCommandMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\ScTimerMsg.cpp"/>
             </Filter>
             <Filter Name="state">
@@ -217,6 +225,8 @@
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsAllMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcSendInfoMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcStartRtpRedirectMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcStopRtpRedirectMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcSubscribeMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"/>
@@ -242,8 +252,14 @@
                 <File RelativePath=".\include\cp\msg\ScDisconnectTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScInviteExpirationTimerMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScReestablishRtpRedirectCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScReInviteTimerMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScRtpRedirectCompleteNotificationMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScRtpRedirectErrorNotificationMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScSessionTimeoutTimerMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScStartRtpRedirectAckNotificationMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScStartRtpRedirectCommandMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScStopRtpRedirectCommandMsg.h"/>
                 <File RelativePath=".\include\cp\msg\ScTimerMsg.h"/>
             </Filter>
             <Filter Name="state">

@@ -10,14 +10,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef ScCommandMsg_h__
-#define ScCommandMsg_h__
+#ifndef ScStopRtpRedirectCommandMsg_h__
+#define ScStopRtpRedirectCommandMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
-#include <os/OsMsg.h>
+#include <cp/msg/ScCommandMsg.h>
 #include <net/SipDialog.h>
+#include <net/SdpBody.h>
 #include <cp/CpMessageTypes.h>
 
 // DEFINES
@@ -30,42 +31,32 @@
 // FORWARD DECLARATIONS
 
 /**
-* Sip connection command message. Instructs sip connection to carry out some action.
-*
-* This message is meant for communication between different XSipConnections through
-* XCpCallManager. XCpCallManager knows how to route these messages correctly.
+* Sip connection command message. Instructs sip connection to stop RTP redirect operation.
 */
-class ScCommandMsg : public OsMsg
+class ScStopRtpRedirectCommandMsg : public ScCommandMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-   typedef enum
-   {
-      SCC_FIRST = 0,
-      SCC_START_RTP_REDIRECT, ///< sent from master call to slave call to order it to start RTP redirect
-      SCC_STOP_RTP_REDIRECT, ///< sent from master/slave call to slave/master call to stop RTP redirect
-      SCC_REESTABLISH_RTP_REDIRECT, ///< sent from master/slave call to slave/master call to reestablish RTP redirect
-   } SubTypesEnum;
-
    /* ============================ CREATORS ================================== */
 
-   ScCommandMsg(SubTypesEnum subType, const SipDialog& sipDialog);
+   ScStopRtpRedirectCommandMsg(const SipDialog& targetSipDialog,
+                               const SipDialog& sourceSipDialog);
 
    /** Copy constructor */
-   ScCommandMsg(const ScCommandMsg& rMsg);
+   ScStopRtpRedirectCommandMsg(const ScStopRtpRedirectCommandMsg& rMsg);
 
-   virtual ~ScCommandMsg();
+   virtual ~ScStopRtpRedirectCommandMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
 
    /** Assignment operator */
-   ScCommandMsg& operator=(const ScCommandMsg& rhs);
+   ScStopRtpRedirectCommandMsg& operator=(const ScStopRtpRedirectCommandMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
 
-   void getSipDialog(SipDialog& val) const { val = m_sipDialog; }
+   void getSourceSipDialog(SipDialog& param) const { param = m_sourceSipDialog; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -75,7 +66,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-   SipDialog m_sipDialog; ///< sip dialog where this message should be routed
+   SipDialog m_sourceSipDialog; ///< sip dialog of call sending the command
 };
 
-#endif // ScCommandMsg_h__
+#endif // ScStopRtpRedirectCommandMsg_h__

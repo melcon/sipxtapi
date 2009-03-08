@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/AcStartRtpRedirectMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,45 +27,25 @@
 
 /* ============================ CREATORS ================================== */
 
-ScCommandMsg::ScCommandMsg(SubTypesEnum subType, const SipDialog& sipDialog)
-: OsMsg(CpMessageTypes::SC_COMMAND, (unsigned char)subType)
-, m_sipDialog(sipDialog)
+AcStartRtpRedirectMsg::AcStartRtpRedirectMsg(const UtlString& slaveAbstractCallId, const SipDialog& slaveSipDialog)
+: AcCommandMsg(AC_START_RTP_REDIRECT)
+, m_slaveAbstractCallId(slaveAbstractCallId)
+, m_slaveSipDialog(slaveSipDialog)
 {
 
 }
 
-ScCommandMsg::ScCommandMsg(const ScCommandMsg& rMsg)
-: OsMsg(rMsg)
-, m_sipDialog(rMsg.m_sipDialog)
+AcStartRtpRedirectMsg::~AcStartRtpRedirectMsg()
 {
 
 }
 
-ScCommandMsg::~ScCommandMsg()
+OsMsg* AcStartRtpRedirectMsg::createCopy(void) const
 {
-
-}
-
-OsMsg* ScCommandMsg::createCopy(void) const
-{
-   return new ScCommandMsg((SubTypesEnum)getMsgSubType(), m_sipDialog);
+   return new AcStartRtpRedirectMsg(m_slaveAbstractCallId, m_slaveSipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */
-
-ScCommandMsg& ScCommandMsg::operator=(const ScCommandMsg& rhs)
-{
-   if (this == &rhs)
-   {
-      return *this;
-   }
-
-   OsMsg::operator=(rhs); // assign fields for parent class
-
-   m_sipDialog = rhs.m_sipDialog;
-
-   return *this;
-}
 
 /* ============================ ACCESSORS ================================= */
 

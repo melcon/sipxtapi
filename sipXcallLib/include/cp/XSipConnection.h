@@ -129,6 +129,18 @@ public:
                     CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                     const SipDialog* pCallbackSipDialog = NULL);
 
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling. Current call will become the master call.
+   */
+   OsStatus startRtpRedirect(const UtlString& slaveAbstractCallId,
+                             const SipDialog& slaveSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   OsStatus stopRtpRedirect();
+
    /** 
    * Accepts inbound call connection.
    *

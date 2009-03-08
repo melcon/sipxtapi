@@ -181,6 +181,32 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    return result;
 }
 
+OsStatus SipConnectionStateMachine::startRtpRedirect(const UtlString& slaveAbstractCallId, const SipDialog& slaveSipDialog)
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->startRtpRedirect(result, slaveAbstractCallId, slaveSipDialog));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::stopRtpRedirect()
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->stopRtpRedirect(result));
+   }
+
+   return result;
+}
+
 OsStatus SipConnectionStateMachine::acceptConnection(UtlBoolean bSendSDP,
                                                      const UtlString& locationHeader,
                                                      CP_CONTACT_ID contactId)

@@ -168,6 +168,20 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(OsStatus& result,
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::startRtpRedirect(OsStatus& result,
+                                                                       const UtlString& slaveAbstractCallId,
+                                                                       const SipDialog& slaveSipDialog)
+{
+   result = OS_FAILED;
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::stopRtpRedirect(OsStatus& result)
+{
+   result = OS_FAILED;
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus& result,
                                                                        UtlBoolean bSendSDP,
                                                                        const UtlString& locationHeader,
