@@ -40,6 +40,8 @@ public:
       AC_GAIN_FOCUS = 0,///< gain local focus (mic, speaker)
       AC_YIELD_FOCUS, ///< loose local focus
       AC_CONNECT, ///< connects existing free call shell
+      AC_START_RTP_REDIRECT, ///< starts RTP redirect operation on 2 calls
+      AC_STOP_RTP_REDIRECT, ///< stops RTP redirect operation on 2 calls
       AC_ACCEPT_CONNECTION, ///< accepts inbound call
       AC_REJECT_CONNECTION, ///< rejects inbound call
       AC_REDIRECT_CONNECTION, ///< redirects inbound call

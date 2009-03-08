@@ -140,16 +140,14 @@ public:
    * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
    * control of SIP signaling.
    */
-   OsStatus startRedirectCallRtp(const UtlString& sSrcCallId,
-                                 const SipDialog& sSrcSipDialog,
+   OsStatus startCallRedirectRtp(const UtlString& sSrcCallId,
                                  const UtlString& sDstCallId,
-                                 const SipDialog& sDstSipDialog);
+                                 const SipDialog& dstSipDialog);
 
    /**
    * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
    */
-   OsStatus stopRedirectCallRtp(const UtlString& sCallId,
-                                const SipDialog& sSipDialog);
+   OsStatus stopCallRedirectRtp(const UtlString& sCallId);
 
    /** 
     * Accepts inbound call connection. Inbound connections can only be part of XCpCall

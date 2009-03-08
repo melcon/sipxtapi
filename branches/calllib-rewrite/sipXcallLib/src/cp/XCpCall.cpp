@@ -23,6 +23,8 @@
 #include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
 #include <cp/msg/AcConnectMsg.h>
+#include <cp/msg/AcStartRtpRedirectMsg.h>
+#include <cp/msg/AcStopRtpRedirectMsg.h>
 #include <cp/msg/AcAcceptConnectionMsg.h>
 #include <cp/msg/AcAnswerConnectionMsg.h>
 #include <cp/msg/AcRedirectConnectionMsg.h>
@@ -113,6 +115,18 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
    AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId,
       replacesField, callstateCause, pCallbackSipDialog);
    return postMessage(connectMsg);
+}
+
+OsStatus XCpCall::startCallRedirectRtp(const UtlString& slaveAbstractCallId, const SipDialog& slaveSipDialog)
+{
+   AcStartRtpRedirectMsg startRtpRedirectMsg(slaveAbstractCallId, slaveSipDialog);
+   return postMessage(startRtpRedirectMsg);
+}
+
+OsStatus XCpCall::stopCallRedirectRtp()
+{
+   AcStopRtpRedirectMsg stopRtpRedirectMsg;
+   return postMessage(stopRtpRedirectMsg);
 }
 
 OsStatus XCpCall::acceptConnection(UtlBoolean bSendSDP,
@@ -277,6 +291,12 @@ UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_CONNECT:
       handleConnect((const AcConnectMsg&)rRawMsg);
       return TRUE;
+   case AcCommandMsg::AC_START_RTP_REDIRECT:
+      handleStartRtpRedirect((const AcStartRtpRedirectMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_STOP_RTP_REDIRECT:
+      handleStopRtpRedirect((const AcStopRtpRedirectMsg&)rRawMsg);
+      return TRUE;
    case AcCommandMsg::AC_ACCEPT_CONNECTION:
       handleAcceptConnection((const AcAcceptConnectionMsg&)rRawMsg);
       return TRUE;
@@ -389,6 +409,34 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    }
 
    return result;
+}
+
+OsStatus XCpCall::handleStartRtpRedirect(const AcStartRtpRedirectMsg& rMsg)
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+      UtlString slaveAbstractCallId;
+      SipDialog slaveSipDialog;
+      rMsg.getSlaveAbstractCallId(slaveAbstractCallId);
+      rMsg.getSlaveSipDialog(slaveSipDialog);
+      return ptrLock->startRtpRedirect(slaveAbstractCallId, slaveSipDialog);
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpCall::handleStopRtpRedirect(const AcStopRtpRedirectMsg& rMsg)
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+      return ptrLock->stopRtpRedirect();
+   }
+
+   return OS_NOT_FOUND;
 }
 
 OsStatus XCpCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)

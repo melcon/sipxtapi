@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/ScStartRtpRedirectAckNotificationMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,42 +27,47 @@
 
 /* ============================ CREATORS ================================== */
 
-ScCommandMsg::ScCommandMsg(SubTypesEnum subType, const SipDialog& sipDialog)
-: OsMsg(CpMessageTypes::SC_COMMAND, (unsigned char)subType)
-, m_sipDialog(sipDialog)
+ScStartRtpRedirectAckNotificationMsg::ScStartRtpRedirectAckNotificationMsg(const SipDialog& targetSipDialog,
+                                                                           const SipDialog& sourceSipDialog,
+                                                                           const SdpBody& sourceRemoteSdpBody)
+: ScNotificationMsg(ScNotificationMsg::SCN_START_RTP_REDIRECT_ACK, targetSipDialog)
+, m_sourceSipDialog(sourceSipDialog)
+, m_sourceRemoteSdpBody(sourceRemoteSdpBody)
 {
 
 }
 
-ScCommandMsg::ScCommandMsg(const ScCommandMsg& rMsg)
-: OsMsg(rMsg)
-, m_sipDialog(rMsg.m_sipDialog)
+ScStartRtpRedirectAckNotificationMsg::ScStartRtpRedirectAckNotificationMsg(const ScStartRtpRedirectAckNotificationMsg& rMsg)
+: ScNotificationMsg(rMsg)
+, m_sourceSipDialog(rMsg.m_sourceSipDialog)
+, m_sourceRemoteSdpBody(rMsg.m_sourceRemoteSdpBody)
 {
 
 }
 
-ScCommandMsg::~ScCommandMsg()
+ScStartRtpRedirectAckNotificationMsg::~ScStartRtpRedirectAckNotificationMsg()
 {
 
 }
 
-OsMsg* ScCommandMsg::createCopy(void) const
+OsMsg* ScStartRtpRedirectAckNotificationMsg::createCopy(void) const
 {
-   return new ScCommandMsg((SubTypesEnum)getMsgSubType(), m_sipDialog);
+   return new ScStartRtpRedirectAckNotificationMsg(*this);
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-ScCommandMsg& ScCommandMsg::operator=(const ScCommandMsg& rhs)
+ScStartRtpRedirectAckNotificationMsg& ScStartRtpRedirectAckNotificationMsg::operator=(const ScStartRtpRedirectAckNotificationMsg& rhs)
 {
    if (this == &rhs)
    {
       return *this;
    }
 
-   OsMsg::operator=(rhs); // assign fields for parent class
+   ScNotificationMsg::operator=(rhs); // assign fields for parent class
 
-   m_sipDialog = rhs.m_sipDialog;
+   m_sourceSipDialog = rhs.m_sourceSipDialog;
+   m_sourceRemoteSdpBody = rhs.m_sourceRemoteSdpBody;
 
    return *this;
 }

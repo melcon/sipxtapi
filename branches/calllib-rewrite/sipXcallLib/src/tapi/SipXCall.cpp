@@ -1442,7 +1442,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallStartRtpRedirect(const SIPX_CALL hSrcCall, cons
       callConf1 == SIPX_CONF_NULL && callConf2 == SIPX_CONF_NULL &&
       rtpRedirectState1 == RTP_REDIRECT_STATE_INACTIVE && rtpRedirectState2 == RTP_REDIRECT_STATE_INACTIVE)
    {
-      if(pInst1->pCallManager->startRedirectCallRtp(sAbstractCallId1, sipDialog1, sAbstractCallId2, sipDialog2) == OS_SUCCESS)
+      if(pInst1->pCallManager->startCallRedirectRtp(sAbstractCallId1, sAbstractCallId2, sipDialog2) == OS_SUCCESS)
       {
          sr = SIPX_RESULT_SUCCESS;
       }
@@ -1473,7 +1473,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallStopRtpRedirect(const SIPX_CALL hCall)
          !sipDialog.getRemoteField().isNull() &&
          rtpRedirectState == RTP_REDIRECT_STATE_ACTIVE)
       {
-         if(pInst->pCallManager->stopRedirectCallRtp(sAbstractCallId, sipDialog) == OS_SUCCESS)
+         if(pInst->pCallManager->stopCallRedirectRtp(sAbstractCallId) == OS_SUCCESS)
          {
             sr = SIPX_RESULT_SUCCESS;
          }

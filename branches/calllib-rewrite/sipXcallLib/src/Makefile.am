@@ -74,6 +74,8 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcRenegotiateCodecsAllMsg.cpp \
     cp/msg/AcRenegotiateCodecsMsg.cpp \
     cp/msg/AcSendInfoMsg.cpp \
+    cp/msg/AcStartRtpRedirectMsg.cpp \
+    cp/msg/AcStopRtpRedirectMsg.cpp \
     cp/msg/AcSubscribeMsg.cpp \
     cp/msg/AcTransferBlindMsg.cpp \
     cp/msg/AcTransferConsultativeMsg.cpp \
@@ -97,8 +99,14 @@ libsipXcall_la_SOURCES = \
     cp/msg/ScDisconnectTimerMsg.cpp \
     cp/msg/ScInviteExpirationTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
+    cp/msg/ScReestablishRtpRedirectCommandMsg.cpp \
     cp/msg/ScReInviteTimerMsg.cpp \
+    cp/msg/ScRtpRedirectCompleteNotificationMsg.cpp \
+    cp/msg/ScRtpRedirectErrorNotificationMsg.cpp \
     cp/msg/ScSessionTimeoutTimerMsg.cpp \
+    cp/msg/ScStartRtpRedirectAckNotificationMsg.cpp \
+    cp/msg/ScStartRtpRedirectCommandMsg.cpp \
+    cp/msg/ScStopRtpRedirectCommandMsg.cpp \
     cp/msg/ScTimerMsg.cpp \
     cp/state/AlertingSipConnectionState.cpp \
     cp/state/BaseSipConnectionState.cpp \

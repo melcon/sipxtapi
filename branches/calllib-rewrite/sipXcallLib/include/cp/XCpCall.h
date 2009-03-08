@@ -26,6 +26,8 @@
 // MACROS
 // FORWARD DECLARATIONS
 class AcConnectMsg;
+class AcStartRtpRedirectMsg;
+class AcStopRtpRedirectMsg;
 class AcAcceptConnectionMsg;
 class AcRejectConnectionMsg;
 class AcRedirectConnectionMsg;
@@ -103,6 +105,18 @@ public:
                             const UtlString& replacesField = NULL, // value of Replaces INVITE field
                             CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                             const SipDialog* pCallbackSipDialog = NULL);
+
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling. Current call will become the master call.
+   */
+   OsStatus startCallRedirectRtp(const UtlString& slaveAbstractCallId,
+                                 const SipDialog& slaveSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   OsStatus stopCallRedirectRtp();
 
    /** 
    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
@@ -269,6 +283,10 @@ private:
 
    /** Handles message to create new sip connection for call */
    OsStatus handleConnect(const AcConnectMsg& rMsg);
+   /** Handles message to start RTP redirect */
+   OsStatus handleStartRtpRedirect(const AcStartRtpRedirectMsg& rMsg);
+   /** Handles message to stop RTP redirect */
+   OsStatus handleStopRtpRedirect(const AcStopRtpRedirectMsg& rMsg);
    /** Handles message to accept inbound sip connection */
    OsStatus handleAcceptConnection(const AcAcceptConnectionMsg& rMsg);
    /** Handles message to reject inbound sip connection */

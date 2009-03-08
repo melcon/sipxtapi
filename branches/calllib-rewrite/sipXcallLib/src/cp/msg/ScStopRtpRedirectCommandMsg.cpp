@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/msg/ScCommandMsg.h>
+#include <cp/msg/ScStopRtpRedirectCommandMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,42 +27,43 @@
 
 /* ============================ CREATORS ================================== */
 
-ScCommandMsg::ScCommandMsg(SubTypesEnum subType, const SipDialog& sipDialog)
-: OsMsg(CpMessageTypes::SC_COMMAND, (unsigned char)subType)
-, m_sipDialog(sipDialog)
+ScStopRtpRedirectCommandMsg::ScStopRtpRedirectCommandMsg(const SipDialog& targetSipDialog,
+                                                         const SipDialog& sourceSipDialog)
+: ScCommandMsg(ScCommandMsg::SCC_STOP_RTP_REDIRECT, targetSipDialog)
+, m_sourceSipDialog(sourceSipDialog)
 {
 
 }
 
-ScCommandMsg::ScCommandMsg(const ScCommandMsg& rMsg)
-: OsMsg(rMsg)
-, m_sipDialog(rMsg.m_sipDialog)
+ScStopRtpRedirectCommandMsg::ScStopRtpRedirectCommandMsg(const ScStopRtpRedirectCommandMsg& rMsg)
+: ScCommandMsg(rMsg)
+, m_sourceSipDialog(rMsg.m_sourceSipDialog)
 {
 
 }
 
-ScCommandMsg::~ScCommandMsg()
+ScStopRtpRedirectCommandMsg::~ScStopRtpRedirectCommandMsg()
 {
 
 }
 
-OsMsg* ScCommandMsg::createCopy(void) const
+OsMsg* ScStopRtpRedirectCommandMsg::createCopy(void) const
 {
-   return new ScCommandMsg((SubTypesEnum)getMsgSubType(), m_sipDialog);
+   return new ScStopRtpRedirectCommandMsg(*this);
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-ScCommandMsg& ScCommandMsg::operator=(const ScCommandMsg& rhs)
+ScStopRtpRedirectCommandMsg& ScStopRtpRedirectCommandMsg::operator=(const ScStopRtpRedirectCommandMsg& rhs)
 {
    if (this == &rhs)
    {
       return *this;
    }
 
-   OsMsg::operator=(rhs); // assign fields for parent class
+   ScCommandMsg::operator=(rhs); // assign fields for parent class
 
-   m_sipDialog = rhs.m_sipDialog;
+   m_sourceSipDialog = rhs.m_sourceSipDialog;
 
    return *this;
 }
