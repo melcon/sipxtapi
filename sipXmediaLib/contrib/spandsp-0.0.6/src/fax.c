@@ -23,26 +23,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: fax.c,v 1.82 2008/11/30 13:44:35 steveu Exp $
+ * $Id: fax.c,v 1.88 2009/02/16 09:57:22 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <time.h>
@@ -223,39 +223,7 @@ static int v29_v21_rx(void *user_data, const int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-static void fax_fax_modems_init(fax_modems_state_t *s, int use_tep, void *user_data)
-{
-    s->use_tep = use_tep;
-
-    hdlc_rx_init(&s->hdlc_rx, FALSE, FALSE, HDLC_FRAMING_OK_THRESHOLD, t30_hdlc_accept, user_data);
-    hdlc_tx_init(&s->hdlc_tx, FALSE, 2, FALSE, hdlc_underflow_handler, user_data);
-    fsk_rx_init(&s->v21_rx, &preset_fsk_specs[FSK_V21CH2], TRUE, (put_bit_func_t) hdlc_rx_put_bit, &s->hdlc_rx);
-    fsk_rx_signal_cutoff(&s->v21_rx, -45.5);
-    fsk_tx_init(&s->v21_tx, &preset_fsk_specs[FSK_V21CH2], (get_bit_func_t) hdlc_tx_get_bit, &s->hdlc_tx);
-    v17_rx_init(&s->v17_rx, 14400, t30_non_ecm_put_bit, user_data);
-    v17_tx_init(&s->v17_tx, 14400, s->use_tep, t30_non_ecm_get_bit, user_data);
-    v29_rx_init(&s->v29_rx, 9600, t30_non_ecm_put_bit, user_data);
-    v29_rx_signal_cutoff(&s->v29_rx, -45.5);
-    v29_tx_init(&s->v29_tx, 9600, s->use_tep, t30_non_ecm_get_bit, user_data);
-    v27ter_rx_init(&s->v27ter_rx, 4800, t30_non_ecm_put_bit, user_data);
-    v27ter_tx_init(&s->v27ter_tx, 4800, s->use_tep, t30_non_ecm_get_bit, user_data);
-    silence_gen_init(&s->silence_gen, 0);
-    modem_connect_tones_tx_init(&s->connect_tx, MODEM_CONNECT_TONES_FAX_CNG);
-    modem_connect_tones_rx_init(&s->connect_rx,
-                                MODEM_CONNECT_TONES_FAX_CNG,
-                                tone_detected,
-                                user_data);
-    dc_restore_init(&s->dc_restore);
-
-    s->rx_signal_present = FALSE;
-    s->rx_handler = (span_rx_handler_t *) &span_dummy_rx;
-    s->rx_user_data = NULL;
-    s->tx_handler = (span_tx_handler_t *) &silence_gen;
-    s->tx_user_data = &s->silence_gen;
-}
-/*- End of function --------------------------------------------------------*/
-
-int fax_rx(fax_state_t *s, int16_t *amp, int len)
+SPAN_DECLARE(int) fax_rx(fax_state_t *s, int16_t *amp, int len)
 {
     int i;
 
@@ -293,7 +261,7 @@ static int set_next_tx_type(fax_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int fax_tx(fax_state_t *s, int16_t *amp, int max_len)
+SPAN_DECLARE(int) fax_tx(fax_state_t *s, int16_t *amp, int max_len)
 {
     int len;
 #if defined(LOG_FAX_AUDIO)
@@ -371,7 +339,7 @@ static void fax_set_rx_type(void *user_data, int type, int bit_rate, int short_t
     {
     case T30_MODEM_V21:
         fsk_rx_init(&t->v21_rx, &preset_fsk_specs[FSK_V21CH2], TRUE, (put_bit_func_t) hdlc_rx_put_bit, put_bit_user_data);
-        fsk_rx_signal_cutoff(&t->v21_rx, -45.5);
+        fsk_rx_signal_cutoff(&t->v21_rx, -45.5f);
         t->rx_handler = (span_rx_handler_t *) &fsk_rx;
         t->rx_user_data = &t->v21_rx;
         break;
@@ -514,42 +482,48 @@ static void fax_set_tx_type(void *user_data, int type, int bit_rate, int short_t
 }
 /*- End of function --------------------------------------------------------*/
 
-void fax_set_transmit_on_idle(fax_state_t *s, int transmit_on_idle)
+SPAN_DECLARE(void) fax_set_transmit_on_idle(fax_state_t *s, int transmit_on_idle)
 {
     s->modems.transmit_on_idle = transmit_on_idle;
 }
 /*- End of function --------------------------------------------------------*/
 
-void fax_set_tep_mode(fax_state_t *s, int use_tep)
+SPAN_DECLARE(void) fax_set_tep_mode(fax_state_t *s, int use_tep)
 {
     s->modems.use_tep = use_tep;
 }
 /*- End of function --------------------------------------------------------*/
 
-t30_state_t *fax_get_t30_state(fax_state_t *s)
+SPAN_DECLARE(t30_state_t *) fax_get_t30_state(fax_state_t *s)
 {
     return &s->t30;
 }
 /*- End of function --------------------------------------------------------*/
 
-logging_state_t *fax_get_logging_state(fax_state_t *s)
+SPAN_DECLARE(logging_state_t *) fax_get_logging_state(fax_state_t *s)
 {
     return &s->logging;
 }
 /*- End of function --------------------------------------------------------*/
 
-fax_state_t *fax_init(fax_state_t *s, int calling_party)
+SPAN_DECLARE(fax_state_t *) fax_init(fax_state_t *s, int calling_party)
 {
     if (s == NULL)
     {
         if ((s = (fax_state_t *) malloc(sizeof(*s))) == NULL)
             return NULL;
     }
-
     memset(s, 0, sizeof(*s));
     span_log_init(&s->logging, SPAN_LOG_NONE, NULL);
     span_log_set_protocol(&s->logging, "FAX");
-    fax_fax_modems_init(&s->modems, FALSE, &s->t30);
+    fax_modems_init(&s->modems,
+                    FALSE,
+                    t30_hdlc_accept,
+                    hdlc_underflow_handler,
+                    t30_non_ecm_put_bit,
+                    t30_non_ecm_get_bit,
+                    tone_detected,
+                    &s->t30);
     t30_init(&s->t30,
              calling_party,
              fax_set_rx_type,
@@ -594,14 +568,14 @@ fax_state_t *fax_init(fax_state_t *s, int calling_party)
 }
 /*- End of function --------------------------------------------------------*/
 
-int fax_release(fax_state_t *s)
+SPAN_DECLARE(int) fax_release(fax_state_t *s)
 {
     t30_release(&s->t30);
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-int fax_free(fax_state_t *s)
+SPAN_DECLARE(int) fax_free(fax_state_t *s)
 {
     t30_release(&s->t30);
     free(s);

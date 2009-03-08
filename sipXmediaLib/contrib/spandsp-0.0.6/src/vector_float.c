@@ -22,26 +22,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: vector_float.c,v 1.17 2008/10/12 07:05:21 steveu Exp $
+ * $Id: vector_float.c,v 1.21 2009/02/05 15:57:27 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <assert.h>
 
 #if defined(SPANDSP_USE_MMX)
@@ -73,7 +73,7 @@
 #include "spandsp/vector_float.h"
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_copyf(float z[], const float x[], int n)
+SPAN_DECLARE(void) vec_copyf(float z[], const float x[], int n)
 {
     int i;
     __m128 n1;
@@ -98,7 +98,7 @@ void vec_copyf(float z[], const float x[], int n)
     }
 }
 #else
-void vec_copyf(float z[], const float x[], int n)
+SPAN_DECLARE(void) vec_copyf(float z[], const float x[], int n)
 {
     int i;
     
@@ -108,7 +108,7 @@ void vec_copyf(float z[], const float x[], int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_copy(double z[], const double x[], int n)
+SPAN_DECLARE(void) vec_copy(double z[], const double x[], int n)
 {
     int i;
     
@@ -118,7 +118,7 @@ void vec_copy(double z[], const double x[], int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_copyl(long double z[], const long double x[], int n)
+SPAN_DECLARE(void) vec_copyl(long double z[], const long double x[], int n)
 {
     int i;
     
@@ -129,16 +129,17 @@ void vec_copyl(long double z[], const long double x[], int n)
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_negatef(float z[], const float x[], int n)
+SPAN_DECLARE(void) vec_negatef(float z[], const float x[], int n)
 {
     int i;
 	static const uint32_t mask = 0x80000000;
+	static const float *fmask = (float *) &mask;
     __m128 n1;
     __m128 n2;
  
     if ((i = n & ~3))
     {
-        n2 = _mm_set1_ps(*((float *) &mask));
+        n2 = _mm_set1_ps(*fmask);
         for (i -= 4;  i >= 0;  i -= 4)
         {
             n1 = _mm_loadu_ps(x + i);
@@ -158,7 +159,7 @@ void vec_negatef(float z[], const float x[], int n)
     }
 }
 #else
-void vec_negatef(float z[], const float x[], int n)
+SPAN_DECLARE(void) vec_negatef(float z[], const float x[], int n)
 {
     int i;
     
@@ -168,7 +169,7 @@ void vec_negatef(float z[], const float x[], int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_negate(double z[], const double x[], int n)
+SPAN_DECLARE(void) vec_negate(double z[], const double x[], int n)
 {
     int i;
     
@@ -178,7 +179,7 @@ void vec_negate(double z[], const double x[], int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_negatel(long double z[], const long double x[], int n)
+SPAN_DECLARE(void) vec_negatel(long double z[], const long double x[], int n)
 {
     int i;
     
@@ -189,7 +190,7 @@ void vec_negatel(long double z[], const long double x[], int n)
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_zerof(float z[], int n)
+SPAN_DECLARE(void) vec_zerof(float z[], int n)
 {
     int i;
     __m128 n1;
@@ -212,7 +213,7 @@ void vec_zerof(float z[], int n)
     }
 }
 #else
-void vec_zerof(float z[], int n)
+SPAN_DECLARE(void) vec_zerof(float z[], int n)
 {
     int i;
     
@@ -222,7 +223,7 @@ void vec_zerof(float z[], int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_zero(double z[], int n)
+SPAN_DECLARE(void) vec_zero(double z[], int n)
 {
     int i;
     
@@ -232,7 +233,7 @@ void vec_zero(double z[], int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_zerol(long double z[], int n)
+SPAN_DECLARE(void) vec_zerol(long double z[], int n)
 {
     int i;
     
@@ -243,7 +244,7 @@ void vec_zerol(long double z[], int n)
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_setf(float z[], float x, int n)
+SPAN_DECLARE(void) vec_setf(float z[], float x, int n)
 {
     int i;
     __m128 n1;
@@ -266,7 +267,7 @@ void vec_setf(float z[], float x, int n)
     }
 }
 #else
-void vec_setf(float z[], float x, int n)
+SPAN_DECLARE(void) vec_setf(float z[], float x, int n)
 {
     int i;
     
@@ -276,7 +277,7 @@ void vec_setf(float z[], float x, int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_set(double z[], double x, int n)
+SPAN_DECLARE(void) vec_set(double z[], double x, int n)
 {
     int i;
     
@@ -286,7 +287,7 @@ void vec_set(double z[], double x, int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_setl(long double z[], long double x, int n)
+SPAN_DECLARE(void) vec_setl(long double z[], long double x, int n)
 {
     int i;
     
@@ -297,7 +298,7 @@ void vec_setl(long double z[], long double x, int n)
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_addf(float z[], const float x[], const float y[], int n)
+SPAN_DECLARE(void) vec_addf(float z[], const float x[], const float y[], int n)
 {
     int i;
     __m128 n1;
@@ -325,7 +326,7 @@ void vec_addf(float z[], const float x[], const float y[], int n)
     }
 }
 #else
-void vec_addf(float z[], const float x[], const float y[], int n)
+SPAN_DECLARE(void) vec_addf(float z[], const float x[], const float y[], int n)
 {
     int i;
 
@@ -335,7 +336,7 @@ void vec_addf(float z[], const float x[], const float y[], int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_add(double z[], const double x[], const double y[], int n)
+SPAN_DECLARE(void) vec_add(double z[], const double x[], const double y[], int n)
 {
     int i;
 
@@ -344,7 +345,8 @@ void vec_add(double z[], const double x[], const double y[], int n)
 }
 /*- End of function --------------------------------------------------------*/
 
-void vec_addl(long double z[], const long double x[], const long double y[], int n)
+#if defined(HAVE_LONG_DOUBLE)
+SPAN_DECLARE(void) vec_addl(long double z[], const long double x[], const long double y[], int n)
 {
     int i;
 
@@ -352,9 +354,10 @@ void vec_addl(long double z[], const long double x[], const long double y[], int
         z[i] = x[i] + y[i];
 }
 /*- End of function --------------------------------------------------------*/
+#endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_scaledxy_addf(float z[], const float x[], float x_scale, const float y[], float y_scale, int n)
+SPAN_DECLARE(void) vec_scaledxy_addf(float z[], const float x[], float x_scale, const float y[], float y_scale, int n)
 {
     int i;
     __m128 n1;
@@ -388,7 +391,7 @@ void vec_scaledxy_addf(float z[], const float x[], float x_scale, const float y[
     }
 }
 #else
-void vec_scaledxy_addf(float z[], const float x[], float x_scale, const float y[], float y_scale, int n)
+SPAN_DECLARE(void) vec_scaledxy_addf(float z[], const float x[], float x_scale, const float y[], float y_scale, int n)
 {
     int i;
 
@@ -398,7 +401,7 @@ void vec_scaledxy_addf(float z[], const float x[], float x_scale, const float y[
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_scaledxy_add(double z[], const double x[], double x_scale, const double y[], double y_scale, int n)
+SPAN_DECLARE(void) vec_scaledxy_add(double z[], const double x[], double x_scale, const double y[], double y_scale, int n)
 {
     int i;
 
@@ -408,7 +411,7 @@ void vec_scaledxy_add(double z[], const double x[], double x_scale, const double
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_scaledxy_addl(long double z[], const long double x[], long double x_scale, const long double y[], long double y_scale, int n)
+SPAN_DECLARE(void) vec_scaledxy_addl(long double z[], const long double x[], long double x_scale, const long double y[], long double y_scale, int n)
 {
     int i;
 
@@ -419,7 +422,7 @@ void vec_scaledxy_addl(long double z[], const long double x[], long double x_sca
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_scaledy_addf(float z[], const float x[], const float y[], float y_scale, int n)
+SPAN_DECLARE(void) vec_scaledy_addf(float z[], const float x[], const float y[], float y_scale, int n)
 {
     int i;
     __m128 n1;
@@ -450,7 +453,7 @@ void vec_scaledy_addf(float z[], const float x[], const float y[], float y_scale
     }
 }
 #else
-void vec_scaledy_addf(float z[], const float x[], const float y[], float y_scale, int n)
+SPAN_DECLARE(void) vec_scaledy_addf(float z[], const float x[], const float y[], float y_scale, int n)
 {
     int i;
 
@@ -460,7 +463,7 @@ void vec_scaledy_addf(float z[], const float x[], const float y[], float y_scale
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_scaledy_add(double z[], const double x[], const double y[], double y_scale, int n)
+SPAN_DECLARE(void) vec_scaledy_add(double z[], const double x[], const double y[], double y_scale, int n)
 {
     int i;
 
@@ -470,7 +473,7 @@ void vec_scaledy_add(double z[], const double x[], const double y[], double y_sc
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_scaledy_addl(long double z[], const long double x[], const long double y[], long double y_scale, int n)
+SPAN_DECLARE(void) vec_scaledy_addl(long double z[], const long double x[], const long double y[], long double y_scale, int n)
 {
     int i;
 
@@ -481,7 +484,7 @@ void vec_scaledy_addl(long double z[], const long double x[], const long double 
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_subf(float z[], const float x[], const float y[], int n)
+SPAN_DECLARE(void) vec_subf(float z[], const float x[], const float y[], int n)
 {
     int i;
     __m128 n1;
@@ -509,7 +512,7 @@ void vec_subf(float z[], const float x[], const float y[], int n)
     }
 }
 #else
-void vec_subf(float z[], const float x[], const float y[], int n)
+SPAN_DECLARE(void) vec_subf(float z[], const float x[], const float y[], int n)
 {
     int i;
 
@@ -519,7 +522,7 @@ void vec_subf(float z[], const float x[], const float y[], int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_sub(double z[], const double x[], const double y[], int n)
+SPAN_DECLARE(void) vec_sub(double z[], const double x[], const double y[], int n)
 {
     int i;
 
@@ -529,7 +532,7 @@ void vec_sub(double z[], const double x[], const double y[], int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_subl(long double z[], const long double x[], const long double y[], int n)
+SPAN_DECLARE(void) vec_subl(long double z[], const long double x[], const long double y[], int n)
 {
     int i;
 
@@ -539,7 +542,7 @@ void vec_subl(long double z[], const long double x[], const long double y[], int
 /*- End of function --------------------------------------------------------*/
 #endif
 
-void vec_scaledxy_subf(float z[], const float x[], float x_scale, const float y[], float y_scale, int n)
+SPAN_DECLARE(void) vec_scaledxy_subf(float z[], const float x[], float x_scale, const float y[], float y_scale, int n)
 {
     int i;
 
@@ -548,7 +551,7 @@ void vec_scaledxy_subf(float z[], const float x[], float x_scale, const float y[
 }
 /*- End of function --------------------------------------------------------*/
 
-void vec_scaledxy_sub(double z[], const double x[], double x_scale, const double y[], double y_scale, int n)
+SPAN_DECLARE(void) vec_scaledxy_sub(double z[], const double x[], double x_scale, const double y[], double y_scale, int n)
 {
     int i;
 
@@ -558,7 +561,7 @@ void vec_scaledxy_sub(double z[], const double x[], double x_scale, const double
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_scaledxy_subl(long double z[], const long double x[], long double x_scale, const long double y[], long double y_scale, int n)
+SPAN_DECLARE(void) vec_scaledxy_subl(long double z[], const long double x[], long double x_scale, const long double y[], long double y_scale, int n)
 {
     int i;
 
@@ -569,7 +572,7 @@ void vec_scaledxy_subl(long double z[], const long double x[], long double x_sca
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_scalar_mulf(float z[], const float x[], float y, int n)
+SPAN_DECLARE(void) vec_scalar_mulf(float z[], const float x[], float y, int n)
 {
     int i;
     __m128 n1;
@@ -597,7 +600,7 @@ void vec_scalar_mulf(float z[], const float x[], float y, int n)
     }
 }
 #else
-void vec_scalar_mulf(float z[], const float x[], float y, int n)
+SPAN_DECLARE(void) vec_scalar_mulf(float z[], const float x[], float y, int n)
 {
     int i;
 
@@ -607,7 +610,7 @@ void vec_scalar_mulf(float z[], const float x[], float y, int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_scalar_mul(double z[], const double x[], double y, int n)
+SPAN_DECLARE(void) vec_scalar_mul(double z[], const double x[], double y, int n)
 {
     int i;
 
@@ -617,7 +620,7 @@ void vec_scalar_mul(double z[], const double x[], double y, int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_scalar_addf(float z[], const float x[], float y, int n)
+SPAN_DECLARE(void) vec_scalar_addf(float z[], const float x[], float y, int n)
 {
     int i;
     __m128 n1;
@@ -645,7 +648,7 @@ void vec_scalar_addf(float z[], const float x[], float y, int n)
     }
 }
 #else
-void vec_scalar_addf(float z[], const float x[], float y, int n)
+SPAN_DECLARE(void) vec_scalar_addf(float z[], const float x[], float y, int n)
 {
     int i;
 
@@ -655,7 +658,7 @@ void vec_scalar_addf(float z[], const float x[], float y, int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_scalar_add(double z[], const double x[], double y, int n)
+SPAN_DECLARE(void) vec_scalar_add(double z[], const double x[], double y, int n)
 {
     int i;
 
@@ -665,7 +668,7 @@ void vec_scalar_add(double z[], const double x[], double y, int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_scalar_addl(long double z[], const long double x[], long double y, int n)
+SPAN_DECLARE(void) vec_scalar_addl(long double z[], const long double x[], long double y, int n)
 {
     int i;
 
@@ -676,7 +679,7 @@ void vec_scalar_addl(long double z[], const long double x[], long double y, int 
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_scalar_subf(float z[], const float x[], float y, int n)
+SPAN_DECLARE(void) vec_scalar_subf(float z[], const float x[], float y, int n)
 {
     int i;
     __m128 n1;
@@ -704,7 +707,7 @@ void vec_scalar_subf(float z[], const float x[], float y, int n)
     }
 }
 #else
-void vec_scalar_subf(float z[], const float x[], float y, int n)
+SPAN_DECLARE(void) vec_scalar_subf(float z[], const float x[], float y, int n)
 {
     int i;
 
@@ -714,7 +717,7 @@ void vec_scalar_subf(float z[], const float x[], float y, int n)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_scalar_sub(double z[], const double x[], double y, int n)
+SPAN_DECLARE(void) vec_scalar_sub(double z[], const double x[], double y, int n)
 {
     int i;
 
@@ -724,7 +727,7 @@ void vec_scalar_sub(double z[], const double x[], double y, int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_scalar_subl(long double z[], const long double x[], long double y, int n)
+SPAN_DECLARE(void) vec_scalar_subl(long double z[], const long double x[], long double y, int n)
 {
     int i;
 
@@ -735,7 +738,7 @@ void vec_scalar_subl(long double z[], const long double x[], long double y, int 
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_mulf(float z[], const float x[], const float y[], int n)
+SPAN_DECLARE(void) vec_mulf(float z[], const float x[], const float y[], int n)
 {
     int i;
     __m128 n1;
@@ -764,7 +767,7 @@ void vec_mulf(float z[], const float x[], const float y[], int n)
     }
 }
 #else
-void vec_mulf(float z[], const float x[], const float y[], int n)
+SPAN_DECLARE(void) vec_mulf(float z[], const float x[], const float y[], int n)
 {
     int i;
 
@@ -774,7 +777,7 @@ void vec_mulf(float z[], const float x[], const float y[], int n)
 /*- End of function --------------------------------------------------------*/
 #endif
 
-void vec_mul(double z[], const double x[], const double y[], int n)
+SPAN_DECLARE(void) vec_mul(double z[], const double x[], const double y[], int n)
 {
     int i;
 
@@ -784,7 +787,7 @@ void vec_mul(double z[], const double x[], const double y[], int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-void vec_mull(long double z[], const long double x[], const long double y[], int n)
+SPAN_DECLARE(void) vec_mull(long double z[], const long double x[], const long double y[], int n)
 {
     int i;
 
@@ -795,7 +798,7 @@ void vec_mull(long double z[], const long double x[], const long double y[], int
 #endif
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-float vec_dot_prodf(const float x[], const float y[], int n)
+SPAN_DECLARE(float) vec_dot_prodf(const float x[], const float y[], int n)
 {
     int i;
     float z;
@@ -832,7 +835,7 @@ float vec_dot_prodf(const float x[], const float y[], int n)
     return z;
 }
 #else
-float vec_dot_prodf(const float x[], const float y[], int n)
+SPAN_DECLARE(float) vec_dot_prodf(const float x[], const float y[], int n)
 {
     int i;
     float z;
@@ -845,7 +848,7 @@ float vec_dot_prodf(const float x[], const float y[], int n)
 /*- End of function --------------------------------------------------------*/
 #endif
 
-double vec_dot_prod(const double x[], const double y[], int n)
+SPAN_DECLARE(double) vec_dot_prod(const double x[], const double y[], int n)
 {
     int i;
     double z;
@@ -858,7 +861,7 @@ double vec_dot_prod(const double x[], const double y[], int n)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(HAVE_LONG_DOUBLE)
-long double vec_dot_prodl(const long double x[], const long double y[], int n)
+SPAN_DECLARE(long double) vec_dot_prodl(const long double x[], const long double y[], int n)
 {
     int i;
     long double z;
@@ -871,7 +874,7 @@ long double vec_dot_prodl(const long double x[], const long double y[], int n)
 /*- End of function --------------------------------------------------------*/
 #endif
 
-float vec_circular_dot_prodf(const float x[], const float y[], int n, int pos)
+SPAN_DECLARE(float) vec_circular_dot_prodf(const float x[], const float y[], int n, int pos)
 {
     float z;
 
@@ -884,7 +887,7 @@ float vec_circular_dot_prodf(const float x[], const float y[], int n, int pos)
 #define LMS_LEAK_RATE   0.9999f
 
 #if defined(__GNUC__)  &&  defined(SPANDSP_USE_SSE2)
-void vec_lmsf(const float x[], float y[], int n, float error)
+SPAN_DECLARE(void) vec_lmsf(const float x[], float y[], int n, float error)
 {
     int i;
     __m128 n1;
@@ -918,7 +921,7 @@ void vec_lmsf(const float x[], float y[], int n, float error)
     }
 }
 #else
-void vec_lmsf(const float x[], float y[], int n, float error)
+SPAN_DECLARE(void) vec_lmsf(const float x[], float y[], int n, float error)
 {
     int i;
 
@@ -931,7 +934,7 @@ void vec_lmsf(const float x[], float y[], int n, float error)
 #endif
 /*- End of function --------------------------------------------------------*/
 
-void vec_circular_lmsf(const float x[], float y[], int n, int pos, float error)
+SPAN_DECLARE(void) vec_circular_lmsf(const float x[], float y[], int n, int pos, float error)
 {
     vec_lmsf(&x[pos], &y[0], n - pos, error);
     vec_lmsf(&x[0], &y[n - pos], pos, error);

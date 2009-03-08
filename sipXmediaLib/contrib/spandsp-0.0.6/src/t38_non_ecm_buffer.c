@@ -23,7 +23,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: t38_non_ecm_buffer.c,v 1.4 2008/10/13 13:14:00 steveu Exp $
+ * $Id: t38_non_ecm_buffer.c,v 1.8 2009/02/10 13:06:46 steveu Exp $
  */
 
 /*! \file */
@@ -38,13 +38,13 @@
 #include <fcntl.h>
 #include <time.h>
 #include <string.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <assert.h>
 #if defined(LOG_FAX_AUDIO)
 #include <unistd.h>
@@ -75,7 +75,7 @@ static void restart_buffer(t38_non_ecm_buffer_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t38_non_ecm_buffer_get_bit(void *user_data)
+SPAN_DECLARE_NONSTD(int) t38_non_ecm_buffer_get_bit(void *user_data)
 {
     t38_non_ecm_buffer_state_t *s;
     int bit;
@@ -114,7 +114,7 @@ int t38_non_ecm_buffer_get_bit(void *user_data)
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_non_ecm_buffer_push(t38_non_ecm_buffer_state_t *s)
+SPAN_DECLARE(void) t38_non_ecm_buffer_push(t38_non_ecm_buffer_state_t *s)
 {
     /* Don't flow control the data any more. Just push out the remainder of the data
        in the buffer as fast as we can, and shut down. */
@@ -123,7 +123,7 @@ void t38_non_ecm_buffer_push(t38_non_ecm_buffer_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_non_ecm_buffer_inject(t38_non_ecm_buffer_state_t *s, const uint8_t *buf, int len)
+SPAN_DECLARE(void) t38_non_ecm_buffer_inject(t38_non_ecm_buffer_state_t *s, const uint8_t *buf, int len)
 {
     int i;
     int upper;
@@ -218,7 +218,7 @@ void t38_non_ecm_buffer_inject(t38_non_ecm_buffer_state_t *s, const uint8_t *buf
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_non_ecm_buffer_report_input_status(t38_non_ecm_buffer_state_t *s, logging_state_t *logging)
+SPAN_DECLARE(void) t38_non_ecm_buffer_report_input_status(t38_non_ecm_buffer_state_t *s, logging_state_t *logging)
 {
     if (s->in_octets  ||  s->min_row_bits_fill_octets)
     {
@@ -235,7 +235,7 @@ void t38_non_ecm_buffer_report_input_status(t38_non_ecm_buffer_state_t *s, loggi
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_non_ecm_buffer_report_output_status(t38_non_ecm_buffer_state_t *s, logging_state_t *logging)
+SPAN_DECLARE(void) t38_non_ecm_buffer_report_output_status(t38_non_ecm_buffer_state_t *s, logging_state_t *logging)
 {
     if (s->out_octets  ||  s->flow_control_fill_octets)
     {
@@ -252,15 +252,20 @@ void t38_non_ecm_buffer_report_output_status(t38_non_ecm_buffer_state_t *s, logg
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_non_ecm_buffer_set_mode(t38_non_ecm_buffer_state_t *s, int mode, int min_row_bits)
+SPAN_DECLARE(void) t38_non_ecm_buffer_set_mode(t38_non_ecm_buffer_state_t *s, int mode, int min_row_bits)
 {
     s->image_data_mode = mode;
     s->min_row_bits = min_row_bits;
 }
 /*- End of function --------------------------------------------------------*/
 
-t38_non_ecm_buffer_state_t *t38_non_ecm_buffer_init(t38_non_ecm_buffer_state_t *s, int mode, int min_row_bits)
+SPAN_DECLARE(t38_non_ecm_buffer_state_t *) t38_non_ecm_buffer_init(t38_non_ecm_buffer_state_t *s, int mode, int min_row_bits)
 {
+    if (s == NULL)
+    {
+        if ((s = (t38_non_ecm_buffer_state_t *) malloc(sizeof(*s))) == NULL)
+            return NULL;
+    }
     memset(s, 0, sizeof(*s));
     s->octet = 0xFF;
     s->flow_control_fill_octet = 0xFF;
@@ -269,6 +274,20 @@ t38_non_ecm_buffer_state_t *t38_non_ecm_buffer_init(t38_non_ecm_buffer_state_t *
     s->image_data_mode = mode;
     s->min_row_bits = min_row_bits;
     return s;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) t38_non_ecm_buffer_release(t38_non_ecm_buffer_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) t38_non_ecm_buffer_free(t38_non_ecm_buffer_state_t *s)
+{
+    if (s)
+        free(s);
+    return 0;
 }
 /*- End of function --------------------------------------------------------*/
 /*- End of file ------------------------------------------------------------*/

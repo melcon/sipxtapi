@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: t4_tests.c,v 1.63 2008/11/30 13:44:35 steveu Exp $
+ * $Id: t4_tests.c,v 1.67 2009/02/20 12:34:20 steveu Exp $
  */
 
 /*! \file */
@@ -219,6 +219,8 @@ int main(int argc, char *argv[])
     int bit_error_rate;
     int dump_as_xxx;
     int tests_failed;
+    unsigned int last_pkt_no;
+    unsigned int pkt_no;
 
     tests_failed = 0;
     decode_test = FALSE;
@@ -290,7 +292,7 @@ int main(int argc, char *argv[])
             printf("Failed to init T.4 rx\n");
             exit(2);
         }
-        
+        span_log_set_level(&receive_state.logging, SPAN_LOG_SHOW_SEVERITY | SPAN_LOG_SHOW_PROTOCOL | SPAN_LOG_SHOW_TAG | SPAN_LOG_SHOW_SAMPLE_TIME | SPAN_LOG_FLOW);
         t4_rx_set_rx_encoding(&receive_state, compression);
         t4_rx_set_x_resolution(&receive_state, T4_X_RESOLUTION_R8);
         //t4_rx_set_y_resolution(&receive_state, T4_Y_RESOLUTION_FINE);
@@ -299,9 +301,10 @@ int main(int argc, char *argv[])
 
         page_no = 1;
         t4_rx_start_page(&receive_state);
+        last_pkt_no = 0;
         while (fgets(buf, 1024, stdin))
         {
-            if (sscanf(buf, "HDLC:  FCD: 06 %x", (unsigned int *) &bit) == 1)
+            if (sscanf(buf, "HDLC:  FCD: 06 %x", &pkt_no) == 1)
             {
                 /* Useful for breaking up T.38 ECM logs */
                 for (i = 0;  i < 256;  i++)
@@ -312,7 +315,7 @@ int main(int argc, char *argv[])
                         break;
                 }
             }
-            else if (sscanf(buf, "HDLC:  %x", (unsigned int *) &bit) == 1)
+            else if (sscanf(buf, "HDLC:  %x", &pkt_no) == 1)
             {
                 /* Useful for breaking up HDLC decodes of ECM logs */
                 for (i = 0;  i < 256;  i++)
@@ -323,12 +326,15 @@ int main(int argc, char *argv[])
                         break;
                 }
             }
-            else if (strlen(buf) > 62  &&  sscanf(buf + 62, "Rx %*d: IFP %*x %*x") == 3)
+            else if (strlen(buf) > 62  &&  sscanf(buf + 57, "Rx %d: IFP %x %x", &pkt_no, (unsigned int *) &bit, (unsigned int *) &bit) == 3)
             {
                 /* Useful for breaking up T.38 non-ECM logs */
+                if (pkt_no != last_pkt_no + 1)
+                    printf("Packet %u\n", pkt_no);
+                last_pkt_no = pkt_no;
                 for (i = 0;  i < 256;  i++)
                 {
-                    if (sscanf(&buf[62 + 29 + 3*i], "%x", (unsigned int *) &bit) != 1)
+                    if (sscanf(&buf[57 + 29 + 3*i], "%x", (unsigned int *) &bit) != 1)
                         break;
                     bit = bit_reverse8(bit);
                     if ((end_of_page = t4_rx_put_byte(&receive_state, bit)))
@@ -348,7 +354,7 @@ int main(int argc, char *argv[])
             dump_image_as_xxx(&receive_state);
         t4_rx_end_page(&receive_state);
         display_page_stats(&receive_state);
-        t4_rx_end(&receive_state);
+        t4_rx_release(&receive_state);
     }
     else
     {
@@ -359,6 +365,7 @@ int main(int argc, char *argv[])
             printf("Failed to init T.4 send\n");
             exit(2);
         }
+        span_log_set_level(&send_state.logging, SPAN_LOG_SHOW_SEVERITY | SPAN_LOG_SHOW_PROTOCOL | SPAN_LOG_SHOW_TAG | SPAN_LOG_SHOW_SAMPLE_TIME | SPAN_LOG_FLOW);
         t4_tx_set_min_row_bits(&send_state, min_row_bits);
         t4_tx_set_local_ident(&send_state, "111 2222 3333");
 
@@ -368,6 +375,7 @@ int main(int argc, char *argv[])
             printf("Failed to init T.4 rx\n");
             exit(2);
         }
+        span_log_set_level(&receive_state.logging, SPAN_LOG_SHOW_SEVERITY | SPAN_LOG_SHOW_PROTOCOL | SPAN_LOG_SHOW_TAG | SPAN_LOG_SHOW_SAMPLE_TIME | SPAN_LOG_FLOW);
         t4_rx_set_x_resolution(&receive_state, t4_tx_get_x_resolution(&send_state));
         t4_rx_set_y_resolution(&receive_state, t4_tx_get_y_resolution(&send_state));
         t4_rx_set_image_width(&receive_state, t4_tx_get_image_width(&send_state));
@@ -495,8 +503,8 @@ int main(int argc, char *argv[])
             t4_rx_end_page(&receive_state);
             sends++;
         }
-        t4_tx_end(&send_state);
-        t4_rx_end(&receive_state);
+        t4_tx_release(&send_state);
+        t4_rx_release(&receive_state);
         /* And we should now have a matching received TIFF file. Note this will only match
            at the image level. TIFF files allow a lot of ways to express the same thing,
            so bit matching of the files is not the normal case. */
@@ -515,6 +523,7 @@ int main(int argc, char *argv[])
             printf("Failed to init T.4 tx\n");
             exit(2);
         }
+        span_log_set_level(&send_state.logging, SPAN_LOG_SHOW_SEVERITY | SPAN_LOG_SHOW_PROTOCOL | SPAN_LOG_SHOW_TAG | SPAN_LOG_SHOW_SAMPLE_TIME | SPAN_LOG_FLOW);
         t4_tx_set_row_read_handler(&send_state, row_read_handler, NULL);
         t4_tx_set_min_row_bits(&send_state, min_row_bits);
         t4_tx_set_local_ident(&send_state, "111 2222 3333");
@@ -525,6 +534,7 @@ int main(int argc, char *argv[])
             printf("Failed to init T.4 rx\n");
             exit(2);
         }
+        span_log_set_level(&receive_state.logging, SPAN_LOG_SHOW_SEVERITY | SPAN_LOG_SHOW_PROTOCOL | SPAN_LOG_SHOW_TAG | SPAN_LOG_SHOW_SAMPLE_TIME | SPAN_LOG_FLOW);
         t4_rx_set_row_write_handler(&receive_state, row_write_handler, NULL);
         t4_rx_set_x_resolution(&receive_state, t4_tx_get_x_resolution(&send_state));
         t4_rx_set_y_resolution(&receive_state, t4_tx_get_y_resolution(&send_state));
@@ -582,8 +592,8 @@ int main(int argc, char *argv[])
             t4_rx_end_page(&receive_state);
             break;
         }
-        t4_tx_end(&send_state);
-        t4_rx_end(&receive_state);
+        t4_tx_release(&send_state);
+        t4_rx_release(&receive_state);
 #endif
 
         printf("Tests passed\n");

@@ -18,6 +18,7 @@
 // APPLICATION INCLUDES
 #include "mp/MpEncoderBase.h"
 extern "C" {
+#include <spandsp/telephony.h>
 #include "spandsp/private/bitstream.h"
 #include "spandsp/bitstream.h"
 #include "spandsp/g726.h"

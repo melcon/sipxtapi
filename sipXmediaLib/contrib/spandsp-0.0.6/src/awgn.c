@@ -22,7 +22,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: awgn.c,v 1.18 2008/11/30 12:38:27 steveu Exp $
+ * $Id: awgn.c,v 1.22 2009/02/10 13:06:46 steveu Exp $
  */
 
 /*! \file */
@@ -43,20 +43,21 @@
    to ever be optimised. */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdlib.h>
 #include <inttypes.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 
 #include "spandsp/telephony.h"
+#include "spandsp/fast_convert.h"
 #include "spandsp/saturated.h"
 #include "spandsp/awgn.h"
 
@@ -95,13 +96,7 @@ static double ran1(awgn_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-awgn_state_t *awgn_init_dbm0(awgn_state_t *s, int idum, float level)
-{
-    return awgn_init_dbov(s, idum, level - DBM0_MAX_POWER);
-}
-/*- End of function --------------------------------------------------------*/
-
-awgn_state_t *awgn_init_dbov(awgn_state_t *s, int idum, float level)
+SPAN_DECLARE(awgn_state_t *) awgn_init_dbov(awgn_state_t *s, int idum, float level)
 {
     int j;
 
@@ -133,7 +128,26 @@ awgn_state_t *awgn_init_dbov(awgn_state_t *s, int idum, float level)
 }
 /*- End of function --------------------------------------------------------*/
 
-int16_t awgn(awgn_state_t *s)
+SPAN_DECLARE(awgn_state_t *) awgn_init_dbm0(awgn_state_t *s, int idum, float level)
+{
+    return awgn_init_dbov(s, idum, level - DBM0_MAX_POWER);
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) awgn_release(awgn_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) awgn_free(awgn_state_t *s)
+{
+    free(s);
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int16_t) awgn(awgn_state_t *s)
 {
     double fac;
     double r;
