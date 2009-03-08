@@ -23,7 +23,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: t38_gateway.c,v 1.147 2008/11/30 13:44:35 steveu Exp $
+ * $Id: t38_gateway.c,v 1.157 2009/02/16 09:57:22 steveu Exp $
  */
 
 /*! \file */
@@ -38,13 +38,13 @@
 #include <fcntl.h>
 #include <time.h>
 #include <string.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <assert.h>
 #if defined(LOG_FAX_AUDIO)
 #include <unistd.h>
@@ -274,42 +274,6 @@ static int v29_v21_rx(void *user_data, const int16_t amp[], int len)
     }
     /*endif*/
     return 0;
-}
-/*- End of function --------------------------------------------------------*/
-
-static void t38_fax_modems_init(fax_modems_state_t *s, int use_tep, void *user_data)
-{
-    s->use_tep = use_tep;
-
-    hdlc_rx_init(&s->hdlc_rx, FALSE, TRUE, HDLC_FRAMING_OK_THRESHOLD, NULL, user_data);
-    hdlc_tx_init(&s->hdlc_tx, FALSE, 2, TRUE, hdlc_underflow_handler, user_data);
-    fsk_rx_init(&s->v21_rx, &preset_fsk_specs[FSK_V21CH2], TRUE, (put_bit_func_t) t38_hdlc_rx_put_bit, &s->hdlc_rx);
-#if 0
-    fsk_rx_signal_cutoff(&s->v21_rx, -45.5);
-#endif
-    fsk_tx_init(&s->v21_tx, &preset_fsk_specs[FSK_V21CH2], (get_bit_func_t) hdlc_tx_get_bit, &s->hdlc_tx);
-    v17_rx_init(&s->v17_rx, 14400, non_ecm_put_bit, user_data);
-    v17_tx_init(&s->v17_tx, 14400, s->use_tep, t38_non_ecm_buffer_get_bit, user_data);
-    v29_rx_init(&s->v29_rx, 9600, non_ecm_put_bit, user_data);
-#if 0
-    v29_rx_signal_cutoff(&s->v29_rx, -45.5);
-#endif
-    v29_tx_init(&s->v29_tx, 9600, s->use_tep, t38_non_ecm_buffer_get_bit, user_data);
-    v27ter_rx_init(&s->v27ter_rx, 4800, non_ecm_put_bit, user_data);
-    v27ter_tx_init(&s->v27ter_tx, 4800, s->use_tep, t38_non_ecm_buffer_get_bit, user_data);
-    silence_gen_init(&s->silence_gen, 0);
-    modem_connect_tones_tx_init(&s->connect_tx, MODEM_CONNECT_TONES_FAX_CNG);
-    modem_connect_tones_rx_init(&s->connect_rx,
-                                MODEM_CONNECT_TONES_FAX_CNG,
-                                tone_detected,
-                                user_data);
-    dc_restore_init(&s->dc_restore);
-
-    s->rx_signal_present = FALSE;
-    s->rx_handler = (span_rx_handler_t *) &span_dummy_rx;
-    s->rx_user_data = NULL;
-    s->tx_handler = (span_tx_handler_t *) &silence_gen;
-    s->tx_user_data = &s->silence_gen;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -668,6 +632,18 @@ static void edit_control_messages(t38_gateway_state_t *s, int from_modem, uint8_
         }
         /*endswitch*/
         break;
+    case 4:
+        switch (buf[2])
+        {
+        case T30_DIS:
+            /* Make sure the V.8 capability doesn't pass through. If it
+               did then two V.34 capable FAX machines might start some
+               V.8 re-negotiation. */
+            buf[3] &= ~DISBIT6;
+            break;
+        }
+        /*endswitch*/
+        break;
     case 5:
         switch (buf[2])
         {
@@ -735,7 +711,10 @@ static void edit_control_messages(t38_gateway_state_t *s, int from_modem, uint8_
 }
 /*- End of function --------------------------------------------------------*/
 
-static void monitor_control_messages(t38_gateway_state_t *s, int from_modem, uint8_t *buf, int len)
+static void monitor_control_messages(t38_gateway_state_t *s,
+                                     int from_modem,
+                                     const uint8_t *buf,
+                                     int len)
 {
     static const struct
     {
@@ -1032,11 +1011,15 @@ static int process_rx_data(t38_core_state_t *t, void *user_data, int data_type, 
         if (hdlc_buf->contents != (data_type | FLAG_DATA))
         {
             queue_missing_indicator(s, data_type);
+            /* All real HDLC messages in the FAX world start with 0xFF. If this one is not starting
+               with 0xFF it would appear some octets must have been missed before this one. */
+            if (len <= 0  ||  buf[0] != 0xFF)
+                s->core.hdlc_to_modem.buf[s->core.hdlc_to_modem.in].flags |= HDLC_FLAG_MISSING_DATA;
             hdlc_buf = &s->core.hdlc_to_modem.buf[s->core.hdlc_to_modem.in];
         }
         /*endif*/
         /* Check if this data would overflow the buffer. */
-        if (hdlc_buf->len + len > T38_MAX_HDLC_LEN)
+        if (len <= 0  ||  hdlc_buf->len + len > T38_MAX_HDLC_LEN)
             break;
         /*endif*/
         hdlc_buf->contents = (data_type | FLAG_DATA);
@@ -1300,7 +1283,8 @@ static int process_rx_data(t38_core_state_t *t, void *user_data, int data_type, 
             queue_missing_indicator(s, data_type);
             hdlc_buf = &s->core.hdlc_to_modem.buf[s->core.hdlc_to_modem.in];
         }
-        t38_non_ecm_buffer_inject(&s->core.non_ecm_to_modem, buf, len);
+        if (len > 0)
+            t38_non_ecm_buffer_inject(&s->core.non_ecm_to_modem, buf, len);
         xx->corrupt_current_frame[0] = FALSE;
         break;
     case T38_FIELD_T4_NON_ECM_SIG_END:
@@ -1588,7 +1572,7 @@ static void non_ecm_push_residue(t38_gateway_state_t *t)
     if (s->bit_no)
     {
         /* There is a fractional octet in progress. We might as well send every last bit we can. */
-        s->data[s->data_ptr++] = s->bit_stream << (8 - s->bit_no);
+        s->data[s->data_ptr++] = (uint8_t) (s->bit_stream << (8 - s->bit_no));
     }
     t38_core_send_data(&t->t38x.t38, t->t38x.current_tx_data_type, T38_FIELD_T4_NON_ECM_SIG_END, s->data, s->data_ptr, t->t38x.t38.data_end_tx_count);
     s->out_octets += s->data_ptr;
@@ -1687,7 +1671,7 @@ static void hdlc_rx_status(hdlc_rx_state_t *t, int status)
 {
     t38_gateway_state_t *s;
 
-    s = (t38_gateway_state_t *) t->user_data;
+    s = (t38_gateway_state_t *) t->frame_user_data;
     span_log(&s->logging, SPAN_LOG_FLOW, "HDLC signal status is %s (%d)\n", signal_status_to_str(status), status);
     switch (status)
     {
@@ -1744,7 +1728,7 @@ static void rx_flag_or_abort(hdlc_rx_state_t *t)
     t38_gateway_state_t *s;
     t38_gateway_to_t38_state_t *u;
     
-    s = (t38_gateway_state_t *) t->user_data;
+    s = (t38_gateway_state_t *) t->frame_user_data;
     u = &s->core.to_t38;
     if ((t->raw_bit_stream & 0x80))
     {
@@ -1899,7 +1883,7 @@ static void t38_hdlc_rx_put_bit(hdlc_rx_state_t *t, int new_bit)
         return;
     }
     /*endif*/
-    s = (t38_gateway_state_t *) t->user_data;
+    s = (t38_gateway_state_t *) t->frame_user_data;
     u = &s->core.to_t38;
     t->buffer[t->len] = (uint8_t) t->byte_in_progress;
     /* Calculate the CRC progressively, before we start altering the frame */
@@ -1951,7 +1935,7 @@ static int restart_rx_modem(t38_gateway_state_t *s)
     s->t38x.current_tx_data_type = T38_DATA_V21;
     fsk_rx_init(&(s->audio.modems.v21_rx), &preset_fsk_specs[FSK_V21CH2], TRUE, (put_bit_func_t) t38_hdlc_rx_put_bit, &(s->audio.modems.hdlc_rx));
 #if 0
-    fsk_rx_signal_cutoff(&(s->audio.modems.v21_rx), -45.5);
+    fsk_rx_signal_cutoff(&(s->audio.modems.v21_rx), -45.5f);
 #endif
     if (s->core.image_data_mode  &&  s->core.ecm_mode)
     {
@@ -1999,7 +1983,7 @@ static int restart_rx_modem(t38_gateway_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t38_gateway_rx(t38_gateway_state_t *s, int16_t amp[], int len)
+SPAN_DECLARE(int) t38_gateway_rx(t38_gateway_state_t *s, int16_t amp[], int len)
 {
     int i;
 
@@ -2042,7 +2026,7 @@ int t38_gateway_rx(t38_gateway_state_t *s, int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t38_gateway_tx(t38_gateway_state_t *s, int16_t amp[], int max_len)
+SPAN_DECLARE(int) t38_gateway_tx(t38_gateway_state_t *s, int16_t amp[], int max_len)
 {
     int len;
 #if defined(LOG_FAX_AUDIO)
@@ -2087,7 +2071,7 @@ int t38_gateway_tx(t38_gateway_state_t *s, int16_t amp[], int max_len)
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_get_transfer_statistics(t38_gateway_state_t *s, t38_stats_t *t)
+SPAN_DECLARE(void) t38_gateway_get_transfer_statistics(t38_gateway_state_t *s, t38_stats_t *t)
 {
     memset(t, 0, sizeof(*t));
     t->bit_rate = s->core.fast_bit_rate;
@@ -2096,31 +2080,31 @@ void t38_gateway_get_transfer_statistics(t38_gateway_state_t *s, t38_stats_t *t)
 }
 /*- End of function --------------------------------------------------------*/
 
-t38_core_state_t *t38_gateway_get_t38_core_state(t38_gateway_state_t *s)
+SPAN_DECLARE(t38_core_state_t *) t38_gateway_get_t38_core_state(t38_gateway_state_t *s)
 {
     return &s->t38x.t38;
 }
 /*- End of function --------------------------------------------------------*/
 
-logging_state_t *t38_gateway_get_logging_state(t38_gateway_state_t *s)
+SPAN_DECLARE(logging_state_t *) t38_gateway_get_logging_state(t38_gateway_state_t *s)
 {
     return &s->logging;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_set_ecm_capability(t38_gateway_state_t *s, int ecm_allowed)
+SPAN_DECLARE(void) t38_gateway_set_ecm_capability(t38_gateway_state_t *s, int ecm_allowed)
 {
     s->core.ecm_allowed = ecm_allowed;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_set_transmit_on_idle(t38_gateway_state_t *s, int transmit_on_idle)
+SPAN_DECLARE(void) t38_gateway_set_transmit_on_idle(t38_gateway_state_t *s, int transmit_on_idle)
 {
     s->audio.modems.transmit_on_idle = transmit_on_idle;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_set_supported_modems(t38_gateway_state_t *s, int supported_modems)
+SPAN_DECLARE(void) t38_gateway_set_supported_modems(t38_gateway_state_t *s, int supported_modems)
 {
     s->core.supported_modems = supported_modems;
     if ((s->core.supported_modems & T30_SUPPORT_V17))
@@ -2133,32 +2117,32 @@ void t38_gateway_set_supported_modems(t38_gateway_state_t *s, int supported_mode
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_set_nsx_suppression(t38_gateway_state_t *s,
-                                     const uint8_t *from_t38,
-                                     int from_t38_len,
-                                     const uint8_t *from_modem,
-                                     int from_modem_len)
+SPAN_DECLARE(void) t38_gateway_set_nsx_suppression(t38_gateway_state_t *s,
+                                                    const uint8_t *from_t38,
+                                                    int from_t38_len,
+                                                    const uint8_t *from_modem,
+                                                    int from_modem_len)
 {
     s->t38x.suppress_nsx_len[0] = (from_t38_len < 0  ||  from_t38_len < MAX_NSX_SUPPRESSION)  ?  (from_t38_len + 3)  :  0;
     s->t38x.suppress_nsx_len[1] = (from_modem_len < 0  ||  from_modem_len < MAX_NSX_SUPPRESSION)  ?  (from_modem_len + 3)  :  0;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_set_tep_mode(t38_gateway_state_t *s, int use_tep)
+SPAN_DECLARE(void) t38_gateway_set_tep_mode(t38_gateway_state_t *s, int use_tep)
 {
     s->audio.modems.use_tep = use_tep;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_set_fill_bit_removal(t38_gateway_state_t *s, int remove)
+SPAN_DECLARE(void) t38_gateway_set_fill_bit_removal(t38_gateway_state_t *s, int remove)
 {
     s->core.to_t38.fill_bit_removal = remove;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t38_gateway_set_real_time_frame_handler(t38_gateway_state_t *s,
-                                             t38_gateway_real_time_frame_handler_t *handler,
-                                             void *user_data)
+SPAN_DECLARE(void) t38_gateway_set_real_time_frame_handler(t38_gateway_state_t *s,
+                                                            t38_gateway_real_time_frame_handler_t *handler,
+                                                            void *user_data)
 {
     s->core.real_time_frame_handler = handler;
     s->core.real_time_frame_user_data = user_data;
@@ -2167,14 +2151,29 @@ void t38_gateway_set_real_time_frame_handler(t38_gateway_state_t *s,
 
 static int t38_gateway_audio_init(t38_gateway_state_t *s)
 {
-    t38_fax_modems_init(&s->audio.modems, FALSE, s);
+    fax_modems_init(&s->audio.modems,
+                    FALSE,
+                    NULL,
+                    hdlc_underflow_handler,
+                    non_ecm_put_bit,
+                    t38_non_ecm_buffer_get_bit,
+                    tone_detected,
+                    s);
+    /* We need to use progressive HDLC transmit, and a special HDLC receiver, which is different
+       from the other uses of FAX modems. */
+    hdlc_tx_init(&s->audio.modems.hdlc_tx, FALSE, 2, TRUE, hdlc_underflow_handler, s);
+    fsk_rx_set_put_bit(&s->audio.modems.v21_rx, (put_bit_func_t) t38_hdlc_rx_put_bit, &s->audio.modems.hdlc_rx);
+    /* TODO: Don't use the very low cutoff levels we would like to. We get some quirks if we do.
+       We need to sort this out. */
+    fsk_rx_signal_cutoff(&s->audio.modems.v21_rx, -30.0f);
+    v29_rx_signal_cutoff(&s->audio.modems.v29_rx, -28.5f);
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
 static int t38_gateway_t38_init(t38_gateway_state_t *t,
-                                t38_tx_packet_handler_t *tx_packet_handler,
-                                void *tx_packet_user_data)
+                                 t38_tx_packet_handler_t *tx_packet_handler,
+                                 void *tx_packet_user_data)
 {
     t38_gateway_t38_state_t *s;
 
@@ -2193,9 +2192,9 @@ static int t38_gateway_t38_init(t38_gateway_state_t *t,
 }
 /*- End of function --------------------------------------------------------*/
 
-t38_gateway_state_t *t38_gateway_init(t38_gateway_state_t *s,
-                                      t38_tx_packet_handler_t *tx_packet_handler,
-                                      void *tx_packet_user_data)
+SPAN_DECLARE(t38_gateway_state_t *) t38_gateway_init(t38_gateway_state_t *s,
+                                                     t38_tx_packet_handler_t *tx_packet_handler,
+                                                     void *tx_packet_user_data)
 {
     if (tx_packet_handler == NULL)
         return NULL;
@@ -2256,7 +2255,13 @@ t38_gateway_state_t *t38_gateway_init(t38_gateway_state_t *s,
 }
 /*- End of function --------------------------------------------------------*/
 
-int t38_gateway_free(t38_gateway_state_t *s)
+SPAN_DECLARE(int) t38_gateway_release(t38_gateway_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) t38_gateway_free(t38_gateway_state_t *s)
 {
     free(s);
     return 0;

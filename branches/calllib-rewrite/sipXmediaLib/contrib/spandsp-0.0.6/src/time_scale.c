@@ -22,13 +22,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: time_scale.c,v 1.25 2008/11/15 14:27:29 steveu Exp $
+ * $Id: time_scale.c,v 1.30 2009/02/10 13:06:47 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -38,15 +38,16 @@
 #include <fcntl.h>
 #include <time.h>
 #include <limits.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 
 #include "spandsp/telephony.h"
+#include "spandsp/fast_convert.h"
 #include "spandsp/time_scale.h"
 #include "spandsp/saturated.h"
 
@@ -99,7 +100,7 @@ static __inline__ void overlap_add(int16_t amp1[], int16_t amp2[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-int time_scale_rate(time_scale_state_t *s, float playout_rate)
+SPAN_DECLARE(int) time_scale_rate(time_scale_state_t *s, float playout_rate)
 {
     if (playout_rate <= 0.0f)
         return -1;
@@ -124,7 +125,7 @@ int time_scale_rate(time_scale_state_t *s, float playout_rate)
 }
 /*- End of function --------------------------------------------------------*/
 
-time_scale_state_t *time_scale_init(time_scale_state_t *s, int sample_rate, float playout_rate)
+SPAN_DECLARE(time_scale_state_t *) time_scale_init(time_scale_state_t *s, int sample_rate, float playout_rate)
 {
     int alloced;
 
@@ -157,14 +158,20 @@ time_scale_state_t *time_scale_init(time_scale_state_t *s, int sample_rate, floa
 }
 /*- End of function --------------------------------------------------------*/
 
-int time_scale_free(time_scale_state_t *s)
+SPAN_DECLARE(int) time_scale_release(time_scale_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) time_scale_free(time_scale_state_t *s)
 {
     free(s);
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-int time_scale(time_scale_state_t *s, int16_t out[], int16_t in[], int len)
+SPAN_DECLARE(int) time_scale(time_scale_state_t *s, int16_t out[], int16_t in[], int len)
 {
     double lcpf;
     int pitch;
@@ -272,9 +279,9 @@ int time_scale(time_scale_state_t *s, int16_t out[], int16_t in[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-int time_scale_max_output_len(time_scale_state_t *s, int input_len)
+SPAN_DECLARE(int) time_scale_max_output_len(time_scale_state_t *s, int input_len)
 {
-    return input_len*s->playout_rate + s->min_pitch + 1;
+    return (int) (input_len*s->playout_rate + s->min_pitch + 1);
 }
 /*- End of function --------------------------------------------------------*/
 /*- End of file ------------------------------------------------------------*/

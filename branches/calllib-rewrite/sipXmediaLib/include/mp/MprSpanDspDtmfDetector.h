@@ -17,6 +17,7 @@
 // APPLICATION INCLUDES
 #include <mp/MprDtmfDetectorBase.h>
 extern "C" {
+#include "spandsp/telephony.h"
 #include "spandsp/super_tone_rx.h"
 #include "spandsp/dtmf.h"
 }

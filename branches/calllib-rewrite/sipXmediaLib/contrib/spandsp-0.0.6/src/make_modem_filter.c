@@ -23,7 +23,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: make_modem_filter.c,v 1.12 2008/09/18 14:59:30 steveu Exp $
+ * $Id: make_modem_filter.c,v 1.14 2009/02/10 17:16:57 steveu Exp $
  */
 
 #if defined(HAVE_CONFIG_H)
@@ -33,13 +33,13 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
@@ -49,8 +49,12 @@
 #include "spandsp/complex.h"
 #include "filter_tools.h"
 
+#if !defined(FALSE)
 #define FALSE 0
+#endif
+#if !defined(TRUE)
 #define TRUE (!FALSE)
+#endif
 
 //#define SAMPLE_RATE         8000.0
 #define MAX_COEFFS_PER_FILTER   128

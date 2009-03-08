@@ -16,7 +16,7 @@
 ## License along with this program; if not, write to the Free Software
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 ##
-## $Id: Makefile.am,v 1.116 2008/12/12 13:18:21 steveu Exp $
+## $Id: Makefile.am,v 1.124 2009/02/14 15:21:14 steveu Exp $
 
 AM_CFLAGS = $(COMP_VENDOR_CFLAGS)
 AM_LDFLAGS = $(COMP_VENDOR_LDFLAGS)
@@ -28,18 +28,22 @@ EXTRA_DIST = floating_fudge.h \
              libspandsp.dsp \
              libspandsp.sln \
              libspandsp.vcproj \
+             msvc/config.h \
+             msvc/getopt.c \
              msvc/gettimeofday.c \
              msvc/inttypes.h \
              msvc/tgmath.h \
              msvc/unistd.h \
+             msvc/spandsp.h \
              msvc/sys/time.h \
-             msvc/spandsp.def \
+             msvc/make_at_dictionary.vcproj \
+             msvc/make_headers.bat \
+             msvc/make_modem_filter.vcproj \
              msvc/msvcproj.head \
              msvc/msvcproj.foot \
              msvc/vc8proj.head \
              msvc/vc8proj.foot \
              spandsp/private/README
-
 INCLUDES = -I$(top_builddir)
 
 lib_LTLIBRARIES = libspandsp.la
@@ -61,6 +65,7 @@ libspandsp_la_SOURCES = adsi.c \
                         dtmf.c \
                         echo.c \
                         fax.c \
+                        fax_modems.c \
                         fsk.c \
                         g711.c \
                         g722.c \
@@ -142,6 +147,7 @@ nobase_include_HEADERS = spandsp/adsi.h \
                          spandsp/dds.h \
                          spandsp/dtmf.h \
                          spandsp/echo.h \
+                         spandsp/fast_convert.h \
                          spandsp/fax.h \
                          spandsp/fax_modems.h \
                          spandsp/fir.h \
@@ -394,7 +400,7 @@ v29tx_floating_rrc.h: make_modem_filter$(EXEEXT)
 DSP = libspandsp.dsp
 VCPROJ = libspandsp.vcproj
 
-WIN32SOURCES = $(libspandsp_la_SOURCES) msvc/gettimeofday.c
+WIN32SOURCES = $(libspandsp_la_SOURCES) .\\msvc\\gettimeofday.c
 WIN32HEADERS = $(nobase_include_HEADERS) spandsp.h
 
 DSPOUT = | awk '{printf("%s\r\n", $$0)}' >> $(DSP)
@@ -432,6 +438,15 @@ $(VCPROJ): msvc/vc8proj.head msvc/vc8proj.foot Makefile.am
 		echo "<File RelativePath=\""$$file"\"></File>" $(VCPROJOUT); \
 	done; \
 	cat $(srcdir)/msvc/vc8proj.foot $(VCPROJOUT) )
+
+$(srcdir)/msvc/spandsp.h: spandsp.h.in
+	echo "creating $(srcdir)/msvc/spandsp.h"
+	@cp $(srcdir)/spandsp.h.in $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@SPANDSP_USE_FIXED_POINT\@/#undef SPANDSP_USE_FIXED_POINT/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@SPANDSP_MISALIGNED_ACCESS_FAILS\@/#undef SPANDSP_MISALIGNED_ACCESS_FAILS/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@SPANDSP_USE_EXPORT_CAPABILITY\@/#define SPANDSP_USE_EXPORT_CAPABILITY 1/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@INSERT_INTTYPES_HEADER\@/#include <inttypes.h>/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@INSERT_MATH_HEADER\@/#include <math.h>/" $(srcdir)/msvc/spandsp.h
 
 spandsp/version.h:
 	NOWDATE=`date --utc +"%Y%m%d"` ; \

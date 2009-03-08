@@ -23,30 +23,31 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: sig_tone.c,v 1.26 2008/11/30 13:08:42 steveu Exp $
+ * $Id: sig_tone.c,v 1.31 2009/02/10 13:06:46 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <memory.h>
 #include <string.h>
 
 #undef SPANDSP_USE_FIXED_POINT
 #include "spandsp/telephony.h"
+#include "spandsp/fast_convert.h"
 #include "spandsp/dc_restore.h"
 #include "spandsp/saturated.h"
 #include "spandsp/complex.h"
@@ -268,7 +269,7 @@ sig_tone_descriptor_t sig_tones[4] =
     }
 };
 
-int sig_tone_tx(sig_tone_tx_state_t *s, int16_t amp[], int len)
+SPAN_DECLARE(int) sig_tone_tx(sig_tone_tx_state_t *s, int16_t amp[], int len)
 {
     int i;
     int j;
@@ -347,7 +348,7 @@ int sig_tone_tx(sig_tone_tx_state_t *s, int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-void sig_tone_tx_set_mode(sig_tone_tx_state_t *s, int mode)
+SPAN_DECLARE(void) sig_tone_tx_set_mode(sig_tone_tx_state_t *s, int mode)
 {
     if ((mode & 0x03) == 0x03  &&  !(s->current_tx_tone & SIG_TONE_1_PRESENT))
         s->high_low_timer = s->desc->high_low_timeout;
@@ -357,7 +358,7 @@ void sig_tone_tx_set_mode(sig_tone_tx_state_t *s, int mode)
 }
 /*- End of function --------------------------------------------------------*/
 
-sig_tone_tx_state_t *sig_tone_tx_init(sig_tone_tx_state_t *s, int tone_type, sig_tone_func_t sig_update, void *user_data)
+SPAN_DECLARE(sig_tone_tx_state_t *) sig_tone_tx_init(sig_tone_tx_state_t *s, int tone_type, sig_tone_func_t sig_update, void *user_data)
 {
     int i;
 
@@ -389,7 +390,20 @@ sig_tone_tx_state_t *sig_tone_tx_init(sig_tone_tx_state_t *s, int tone_type, sig
 }
 /*- End of function --------------------------------------------------------*/
 
-int sig_tone_rx(sig_tone_rx_state_t *s, int16_t amp[], int len)
+SPAN_DECLARE(int) sig_tone_tx_release(sig_tone_tx_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) sig_tone_tx_free(sig_tone_tx_state_t *s)
+{
+    if (s)
+        free(s);
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+SPAN_DECLARE(int) sig_tone_rx(sig_tone_rx_state_t *s, int16_t amp[], int len)
 {
 #if defined(SPANDSP_USE_FIXED_POINT)
     int32_t x;
@@ -457,7 +471,7 @@ int sig_tone_rx(sig_tone_rx_state_t *s, int16_t amp[], int len)
                this isn't used in low tone detect mode, but we must keep notch_zl
                rolling along. */
             s->tone[j].notch_zl = ((s->tone[j].notch_zl*s->desc->notch_slugi) >> 15)
-                                + ((abs(notched_signal)*s->desc->notch_slugp) >> 15);
+                                + ((abs((int) notched_signal)*s->desc->notch_slugp) >> 15);
             /* Mow the grass to weed out the noise! */
             mown_notch[j] = s->tone[0].notch_zl & s->desc->notch_threshold;
         }
@@ -505,7 +519,7 @@ int sig_tone_rx(sig_tone_rx_state_t *s, int16_t amp[], int len)
 #endif            
             /* Leaky integrate the bandpassed data */
             s->broad_zl = ((s->broad_zl*s->desc->broad_slugi) >> 15)
-                        + ((abs(bandpass_signal)*s->desc->broad_slugp) >> 15);
+                        + ((abs((int) bandpass_signal)*s->desc->broad_slugp) >> 15);
     
             /* For the broad band receiver we use a simple linear threshold! */
             if (s->tone_present)
@@ -557,7 +571,7 @@ int sig_tone_rx(sig_tone_rx_state_t *s, int16_t amp[], int len)
 
             /* Modulus and leaky integrate the data */
             s->broad_zl = ((s->broad_zl*s->desc->unfiltered_slugi) >> 15)
-                        + ((abs(amp[i])*s->desc->unfiltered_slugp) >> 15);
+                        + ((abs((int) amp[i])*s->desc->unfiltered_slugp) >> 15);
      
             /* Mow the grass to weed out the noise! */
             mown_bandpass = s->broad_zl & s->desc->unfiltered_threshold;
@@ -648,7 +662,7 @@ int sig_tone_rx(sig_tone_rx_state_t *s, int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-sig_tone_rx_state_t *sig_tone_rx_init(sig_tone_rx_state_t *s, int tone_type, sig_tone_func_t sig_update, void *user_data)
+SPAN_DECLARE(sig_tone_rx_state_t *) sig_tone_rx_init(sig_tone_rx_state_t *s, int tone_type, sig_tone_func_t sig_update, void *user_data)
 {
     if (sig_update == NULL  ||  tone_type < 1  ||  tone_type > 3)
         return NULL;
@@ -671,6 +685,20 @@ sig_tone_rx_state_t *sig_tone_rx_init(sig_tone_rx_state_t *s, int tone_type, sig
     s->tone_persistence_timeout = 0;
     s->signaling_state_duration = 0;
     return s;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) sig_tone_rx_release(sig_tone_rx_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) sig_tone_rx_free(sig_tone_rx_state_t *s)
+{
+    if (s)
+        free(s);
+    return 0;
 }
 /*- End of function --------------------------------------------------------*/
 /*- End of file ------------------------------------------------------------*/

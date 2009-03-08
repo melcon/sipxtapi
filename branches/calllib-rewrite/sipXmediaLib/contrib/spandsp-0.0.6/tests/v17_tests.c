@@ -23,7 +23,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: v17_tests.c,v 1.96 2008/12/06 12:36:29 steveu Exp $
+ * $Id: v17_tests.c,v 1.100 2009/02/12 14:21:16 steveu Exp $
  */
 
 /*! \page v17_tests_page V.17 modem tests
@@ -114,7 +114,7 @@ static void reporter(void *user_data, int reason, bert_results_t *results)
 }
 /*- End of function --------------------------------------------------------*/
 
-static int v17_rx_status(void *user_data, int status)
+static void v17_rx_status(void *user_data, int status)
 {
     v17_rx_state_t *rx;
     int i;
@@ -132,7 +132,6 @@ static int v17_rx_status(void *user_data, int status)
             printf("%3d (%15.5f, %15.5f) -> %15.5f\n", i, coeffs[i].re, coeffs[i].im, powerf(&coeffs[i]));
         break;
     }
-    return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -154,10 +153,9 @@ static void v17putbit(void *user_data, int bit)
 }
 /*- End of function --------------------------------------------------------*/
 
-static int v17_tx_status(void *user_data, int status)
+static void v17_tx_status(void *user_data, int status)
 {
     printf("V.17 tx status is %s (%d)\n", signal_status_to_str(status), status);
-    return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -255,11 +253,19 @@ int main(int argc, char *argv[])
     signal_level = -13;
     bits_per_test = 50000;
     log_audio = FALSE;
-    while ((opt = getopt(argc, argv, "b:c:d:glm:n:r:s:t")) != -1)
+    while ((opt = getopt(argc, argv, "b:B:c:d:glm:n:r:s:t")) != -1)
     {
         switch (opt)
         {
         case 'b':
+            test_bps = atoi(optarg);
+            if (test_bps != 14400  &&  test_bps != 12000  &&  test_bps != 9600  &&  test_bps != 7200)
+            {
+                fprintf(stderr, "Invalid bit rate specified\n");
+                exit(2);
+            }
+            break;
+        case 'B':
             bits_per_test = atoi(optarg);
             break;
         case 'c':
@@ -300,24 +306,6 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    argc -= optind;
-    argv += optind;
-    if (argc > 0)
-    {
-        if (strcmp(argv[0], "14400") == 0)
-            test_bps = 14400;
-        else if (strcmp(argv[0], "12000") == 0)
-            test_bps = 12000;
-        else if (strcmp(argv[0], "9600") == 0)
-            test_bps = 9600;
-        else if (strcmp(argv[0], "7200") == 0)
-            test_bps = 7200;
-        else
-        {
-            fprintf(stderr, "Invalid bit rate\n");
-            exit(2);
-        }
-    }
     inhandle = NULL;
     outhandle = NULL;
 
@@ -344,6 +332,9 @@ int main(int argc, char *argv[])
     {
         /* We will generate V.17 audio, and add some noise to it. */
         tx = v17_tx_init(NULL, test_bps, tep, v17getbit, NULL);
+        logging = v17_tx_get_logging_state(tx);
+        span_log_set_level(logging, SPAN_LOG_SHOW_SEVERITY | SPAN_LOG_SHOW_PROTOCOL | SPAN_LOG_FLOW);
+        span_log_set_tag(logging, "V.17 tx");
         v17_tx_power(tx, signal_level);
         v17_tx_set_modem_status_handler(tx, v17_tx_status, (void *) tx);
 #if defined(WITH_SPANDSP_INTERNALS)
@@ -456,7 +447,7 @@ int main(int argc, char *argv[])
             {
                 outframes = afWriteFrames(outhandle,
                                           AF_DEFAULT_TRACK,
-                                          amp,
+                                          gen_amp,
                                           samples);
                 if (outframes != samples)
                 {

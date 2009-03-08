@@ -22,13 +22,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: t30_logging.c,v 1.8 2008/11/30 13:44:35 steveu Exp $
+ * $Id: t30_logging.c,v 1.11 2009/02/03 16:28:40 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -37,13 +37,13 @@
 #include <string.h>
 #include <fcntl.h>
 #include <time.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <tiffio.h>
 
 #include "spandsp/telephony.h"
@@ -90,7 +90,7 @@ enum
     DISBIT8 = 0x80
 };
 
-const char *t30_completion_code_to_str(int result)
+SPAN_DECLARE(const char *) t30_completion_code_to_str(int result)
 {
     switch (result)
     {
@@ -223,7 +223,7 @@ const char *t30_completion_code_to_str(int result)
 }
 /*- End of function --------------------------------------------------------*/
 
-const char *t30_frametype(uint8_t x)
+SPAN_DECLARE(const char *) t30_frametype(uint8_t x)
 {
     switch (x)
     {
@@ -488,7 +488,7 @@ static void octet_field(logging_state_t *log,
 }
 /*- End of function --------------------------------------------------------*/
 
-void t30_decode_dis_dtc_dcs(t30_state_t *s, const uint8_t *pkt, int len)
+SPAN_DECLARE(void) t30_decode_dis_dtc_dcs(t30_state_t *s, const uint8_t *pkt, int len)
 {
     logging_state_t *log;
     uint8_t frame_type;
