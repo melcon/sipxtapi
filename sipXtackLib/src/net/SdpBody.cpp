@@ -1097,14 +1097,14 @@ void SdpBody::getBodySdpCodecs(SdpCodecList& sdpCodecList,
 
             // Note that video stuff is not supported
             SdpCodec sdpCodec(SdpCodec::SDP_CODEC_UNKNOWN,
-                     SdpCodec::SDP_CODEC_UNKNOWN,
+                     payloadTypes[typeIndex],
                      NULL,
                      NULL,
                      mimeType,
                      mimeSubtype,
                      sampleRate, 
-                     ptime != 0 ? ptime*1000 : 20000,
-                     numChannels,
+                     ptime > 0 ? ptime * 1000 : 0,
+                     numChannels != -1 ? numChannels : 1,
                      fmtp,
                      SdpCodec::SDP_CODEC_CPU_NORMAL);
             sdpCodecList.addCodec(sdpCodec);
