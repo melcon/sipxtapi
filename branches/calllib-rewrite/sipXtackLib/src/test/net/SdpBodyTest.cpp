@@ -39,6 +39,7 @@ class SdpBodyTest : public CppUnit::TestCase
     CPPUNIT_TEST(testVideoCodecSelection);
     CPPUNIT_TEST(testPtime);
     CPPUNIT_TEST(testGetCodecsInCommon);
+    CPPUNIT_TEST(testGetBodySdpCodecs);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -1256,6 +1257,85 @@ public:
            }
 
         }
+    }
+
+    void testGetBodySdpCodecs()
+    {
+       const char* sdpBodyString =
+          "v=0\r\n"
+          "o=- 3440226918 3440226919 IN IP4 127.0.0.1\r\n"
+          "s=SJphone\r\n"
+          "c=IN IP4 127.0.0.1\r\n"
+          "t=0 0\r\n"
+          "m=audio 49154 RTP/AVP 3 97 101\r\n"
+          "c=IN IP4 127.0.0.1\r\n"
+          "a=rtpmap:3 GSM/8000\r\n"
+          "a=rtpmap:97 iLBC/8000\r\n"
+          "a=rtpmap:101 telephone-event/8000\r\n"
+          "a=fmtp:101 0-16\r\n"
+          "a=ptime: 40 \r\n"
+          "m=audio 8710 RTP/AVP 98 99\r\n"
+          "a=rtpmap:98 superaudio/8000/1\r\n"
+          "a=rtpmap:99 superduperaudio/16000/2\r\n"
+          "m=video 8801 RTP/AVP 100\r\n"
+          "a=rtpmap:100 vp71/9000/1\r\n"
+          "a=fmtp:100 size:QCIF/SQCIF\r\n"
+          "c=IN IP4 127.0.0.1\r\n";
+       SdpBody sdpBody(sdpBodyString);
+       SdpCodecList sdpCodecList;
+       // test 1st audio media line
+       sdpBody.getBodySdpCodecs(sdpCodecList, SDP_AUDIO_MEDIA_TYPE, 0);
+       CPPUNIT_ASSERT(sdpCodecList.getCodecCount() == 3);
+       SdpCodec sdpCodec;
+       UtlString mineSubtype;
+       UtlString fmtp;
+       // test 1st codec
+       CPPUNIT_ASSERT_EQUAL(sdpCodecList.getCodecByIndex(SDP_AUDIO_MEDIA_TYPE, 0, sdpCodec), TRUE);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getCodecPayloadId(), 3);
+       sdpCodec.getMimeSubType(mineSubtype);
+       CPPUNIT_ASSERT(mineSubtype.compareTo("GSM") == 0);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getSampleRate(), 8000);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getNumChannels(), 1);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getPacketLength(), 40000);
+       // test 2st codec
+       CPPUNIT_ASSERT_EQUAL(sdpCodecList.getCodecByIndex(SDP_AUDIO_MEDIA_TYPE, 1, sdpCodec), TRUE);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getCodecPayloadId(), 97);
+       sdpCodec.getMimeSubType(mineSubtype);
+          CPPUNIT_ASSERT(mineSubtype.compareTo("iLBC") == 0);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getSampleRate(), 8000);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getNumChannels(), 1);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getPacketLength(), 40000);
+       // test 3rd codec
+       CPPUNIT_ASSERT_EQUAL(sdpCodecList.getCodecByIndex(SDP_AUDIO_MEDIA_TYPE, 2, sdpCodec), TRUE);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getCodecPayloadId(), 101);
+       sdpCodec.getMimeSubType(mineSubtype);
+       CPPUNIT_ASSERT(mineSubtype.compareTo("telephone-event") == 0);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getSampleRate(), 8000);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getNumChannels(), 1);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getPacketLength(), 40000);
+       sdpCodec.getSdpFmtpField(fmtp);
+       CPPUNIT_ASSERT(fmtp.compareTo("0-16") == 0);
+       // end of codec checks
+       sdpCodecList.clearCodecs();
+       // test 2nd audio media line
+       sdpBody.getBodySdpCodecs(sdpCodecList, SDP_AUDIO_MEDIA_TYPE, 1);
+       CPPUNIT_ASSERT(sdpCodecList.getCodecCount() == 2);
+       // test 1st codec
+       CPPUNIT_ASSERT_EQUAL(sdpCodecList.getCodecByIndex(SDP_AUDIO_MEDIA_TYPE, 0, sdpCodec), TRUE);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getCodecPayloadId(), 98);
+       sdpCodec.getMimeSubType(mineSubtype);
+       CPPUNIT_ASSERT(mineSubtype.compareTo("superaudio") == 0);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getSampleRate(), 8000);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getNumChannels(), 1);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getPacketLength(), 0);
+       // test 2st codec
+       CPPUNIT_ASSERT_EQUAL(sdpCodecList.getCodecByIndex(SDP_AUDIO_MEDIA_TYPE, 1, sdpCodec), TRUE);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getCodecPayloadId(), 99);
+       sdpCodec.getMimeSubType(mineSubtype);
+       CPPUNIT_ASSERT(mineSubtype.compareTo("superduperaudio") == 0);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getSampleRate(), 16000);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getNumChannels(), 2);
+       CPPUNIT_ASSERT_EQUAL(sdpCodec.getPacketLength(), 0);
     }
 };
 
