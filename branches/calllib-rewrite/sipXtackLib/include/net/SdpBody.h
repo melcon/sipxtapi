@@ -448,6 +448,16 @@ class SdpBody : public HttpBody
     * payload type id, parse it and return the parameters for it.
     */
 
+   /**
+    * Returns all SdpCodecs contained in SDP body of given mimeType. SdpCodecList is not
+    * cleared.
+    * TODO: Video support is not complete.
+    *
+    * @param mediaIndex Identifies media line for which we want codecs. Starts from 0, ends with MAXIMUM_MEDIA_TYPES.
+    */
+   void getBodySdpCodecs(SdpCodecList& sdpCodecList,
+                         const UtlString& mimeType,
+                         int mediaIndex) const;
 
    /// Find the send and receive codecs from the rtpCodecs array which are compatible with this SdpBody..
    void getBestAudioCodecs(int numRtpCodecs,
