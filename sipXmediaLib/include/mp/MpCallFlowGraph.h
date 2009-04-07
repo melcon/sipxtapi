@@ -486,7 +486,7 @@ private:
 
    OsMsgQ* m_pInterfaceNotificationQueue;
 
-   enum { MAX_CONNECTIONS = 64 };
+   enum { MAX_CONNECTIONS = 16 };
 
    MprBridge*    mpBridge;
    MprFromFile*  mpFromFile;
