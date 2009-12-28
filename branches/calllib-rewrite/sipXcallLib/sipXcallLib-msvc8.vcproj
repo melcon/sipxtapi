@@ -5,7 +5,7 @@
     </Platforms>
     <ToolFiles/>
     <Configurations>
-        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" ConfigurationType="4" IntermediateDirectory=".\Release" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" IntermediateDirectory=".\Release" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -22,24 +22,24 @@
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" ConfigurationType="4" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" WarningLevel="3" CompileAs="0" EnableFunctionLevelLinking="true" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="3" SuppressStartupBanner="true" UsePrecompiledHeader="0" DebugInformationFormat="4" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxDISABLE_LOCAL_AUDIO" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" WarningLevel="3" EnableFunctionLevelLinking="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="3" SuppressStartupBanner="true" UsePrecompiledHeader="0" DebugInformationFormat="4" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxDISABLE_LOCAL_AUDIO" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLibrarianTool" IgnoreDefaultLibraryNames="msvcprtd.lib" IgnoreAllDefaultLibraries="true" SuppressStartupBanner="true" OutputFile="Debug\sipXcallLib.lib"/>
+            <Tool Name="VCLibrarianTool" IgnoreAllDefaultLibraries="true" IgnoreDefaultLibraryNames="msvcprtd.lib" SuppressStartupBanner="true" OutputFile="Debug\sipXcallLib.lib"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -49,7 +49,7 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLibrarianTool" IgnoreDefaultLibraryNames="msvcprtd.lib" IgnoreAllDefaultLibraries="true" SuppressStartupBanner="true" OutputFile="Debug\sipXcallLib.lib"/>
+            <Tool Name="VCLibrarianTool" IgnoreAllDefaultLibraries="true" IgnoreDefaultLibraryNames="msvcprtd.lib" SuppressStartupBanner="true" OutputFile="Debug\sipXcallLib.lib"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
@@ -104,6 +104,7 @@
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsAllMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcStartedMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcStartRtpRedirectMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcStopRtpRedirectMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcSubscribeMsg.cpp"/>
@@ -226,6 +227,7 @@
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsAllMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcSendInfoMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcStartedMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcStartRtpRedirectMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcStopRtpRedirectMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcSubscribeMsg.h"/>

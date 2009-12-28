@@ -5,13 +5,13 @@
     </Platforms>
     <ToolFiles/>
     <Configurations>
-        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Release" ConfigurationType="4" IntermediateDirectory=".\Release" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Release" IntermediateDirectory=".\Release" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" MinimalRebuild="false" BasicRuntimeChecks="0" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS" WarningLevel="3" AssemblerListingLocation="" InlineFunctionExpansion="0" EnableFunctionLevelLinking="false" RuntimeLibrary="2" StringPooling="false" DebugInformationFormat="3" Detect64BitPortabilityProblems="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Optimization="2" PrecompiledHeaderFile=".\Release/sipXmediaAdapterLib-msvc8.pch"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" MinimalRebuild="false" BasicRuntimeChecks="0" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS" WarningLevel="3" AssemblerListingLocation="" InlineFunctionExpansion="0" EnableFunctionLevelLinking="false" RuntimeLibrary="2" StringPooling="false" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="true" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXmediaAdapterLib-msvc8.pch" Optimization="2"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -22,13 +22,13 @@
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Debug" ConfigurationType="4" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" MinimalRebuild="true" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_DEBUG;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" DebugInformationFormat="4" Detect64BitPortabilityProblems="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Optimization="0" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLib-msvc8.pch"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" MinimalRebuild="true" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_DEBUG;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" DebugInformationFormat="4" Detect64BitPortabilityProblems="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLib-msvc8.pch" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -39,13 +39,13 @@
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Debug-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Debug" ConfigurationType="4" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" MinimalRebuild="true" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_DEBUG;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" DebugInformationFormat="3" Detect64BitPortabilityProblems="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Optimization="0" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLib-msvc8.pch"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" MinimalRebuild="true" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_DEBUG;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" DebugInformationFormat="3" Detect64BitPortabilityProblems="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLib-msvc8.pch" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -56,13 +56,13 @@
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Release-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Release" ConfigurationType="4" IntermediateDirectory=".\Release" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Release-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops" OutputDirectory=".\Release" IntermediateDirectory=".\Release" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" MinimalRebuild="false" BasicRuntimeChecks="0" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS" WarningLevel="3" AssemblerListingLocation="" InlineFunctionExpansion="0" EnableFunctionLevelLinking="false" RuntimeLibrary="2" StringPooling="false" Detect64BitPortabilityProblems="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Optimization="2" PrecompiledHeaderFile=".\Release/sipXmediaAdapterLib-msvc8.pch"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" MinimalRebuild="false" BasicRuntimeChecks="0" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS" WarningLevel="3" AssemblerListingLocation="" InlineFunctionExpansion="0" EnableFunctionLevelLinking="false" RuntimeLibrary="2" StringPooling="false" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="true" PrecompiledHeaderFile=".\Release/sipXmediaAdapterLib-msvc8.pch" Optimization="2"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
