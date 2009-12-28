@@ -352,15 +352,6 @@ public:
                                        const SipDialog& sSipDialog);
 
    /**
-   * Put the specified terminal connection on hold. Only works for calls.
-   *
-   * Change the terminal connection state from TALKING to HELD.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * no media should be sent.)
-   */
-   OsStatus holdCallConnection(const UtlString& sCallId);
-
-   /**
     * Convenience method to put all of the terminal connections in
     * the specified conference on hold.
     */
@@ -403,16 +394,6 @@ public:
     */
    OsStatus unholdAbstractCallConnection(const UtlString& sAbstractCallId,
                                          const SipDialog& sSipDialog);
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   * Works only for calls.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   OsStatus unholdCallConnection(const UtlString& sCallId);
 
    /**
     * Enables discarding of inbound RTP at bridge for given call

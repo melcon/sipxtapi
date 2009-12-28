@@ -92,7 +92,7 @@ UtlBoolean SipXConferenceEventListener::handleMessage(OsMsg& rRawMsg)
             // cast succeeded
             const CpConferenceEvent& payload = pMsg->getEventPayloadRef();
             handleConferenceEvent(pMsg->getEvent(), (SIPX_CONFERENCE_CAUSE)payload.m_cause,
-               payload.m_sConferenceId, payload.m_sCallId);
+               payload.m_sConferenceId, payload.m_sSipCallId);
          }
       }
       bResult = TRUE;
@@ -106,9 +106,9 @@ UtlBoolean SipXConferenceEventListener::handleMessage(OsMsg& rRawMsg)
 void SipXConferenceEventListener::sipxFireConferenceEvent(SIPX_CONFERENCE_EVENT event,
                                                           SIPX_CONFERENCE_CAUSE cause,
                                                           const UtlString& sConferenceId,
-                                                          const UtlString& sCallId)
+                                                          const UtlString& sSipCallId)
 {
-   CpConferenceEvent payload((CP_CONFERENCE_CAUSE)cause, sConferenceId, sCallId);
+   CpConferenceEvent payload((CP_CONFERENCE_CAUSE)cause, sConferenceId, sSipCallId);
    ConferenceEventMsg msg(event, payload);
    postMessage(msg);
 }
@@ -124,13 +124,13 @@ void SipXConferenceEventListener::sipxFireConferenceEvent(SIPX_CONFERENCE_EVENT 
 void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT event,
                                                         SIPX_CONFERENCE_CAUSE cause,
                                                         const UtlString& sConferenceId,
-                                                        const UtlString& sCallId)
+                                                        const UtlString& sSipCallId)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "handleConferenceEvent");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
       "handleConferenceEvent ConferenceId=%s CallId=%s Event=%s:%s",
-      sConferenceId.data(), sCallId.data(),
+      sConferenceId.data(), sSipCallId.data(),
       sipxConferenceEventToString(event),
       sipxConferenceCauseToString(cause));
 
@@ -142,9 +142,9 @@ void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT ev
    hConf = sipxConfLookupHandleByConfId(sConferenceId, m_pInst);
    if (hConf != SIPX_CONF_NULL)
    {
-      if (!sCallId.isNull())
+      if (!sSipCallId.isNull())
       {
-         hCall = sipxCallLookupHandleByCallId(sCallId, m_pInst);
+         hCall = sipxCallLookupHandleBySessionCallId(sSipCallId, m_pInst);
       }
 
       // now create event for sipXtapi listeners
@@ -156,6 +156,27 @@ void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT ev
       conferenceInfo.hConf = hConf;
       conferenceInfo.hCall = hCall;
       conferenceInfo.nSize = sizeof(SIPX_RTP_REDIRECT_INFO);
+
+      if (event == CONFERENCE_DESTROYED)
+      {
+         sipxConfFree(hConf);
+      }
+      else if (event == CONFERENCE_CALL_REMOVED)
+      {
+         // CONFERENCE_CALL_REMOVED is fired before CALLSTATE_DESTROYED
+         if (hCall != SIPX_CALL_NULL)
+         {
+            // remove call from conference
+            sipxRemoveCallHandleFromConf(hConf, hCall);
+            sipxCallSetConf(hCall, SIPX_CONF_NULL);
+         }
+         else
+         {
+            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
+               "handleConferenceEvent: unknown call was removed from conference %s. Unable to update call.\n",
+               sConferenceId.data());
+         }
+      }
 
       // fire event
       SipXEventDispatcher::dispatchEvent(m_pInst, EVENT_CATEGORY_CONFERENCE, &conferenceInfo);

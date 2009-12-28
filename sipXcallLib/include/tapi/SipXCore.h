@@ -214,6 +214,27 @@ public:
    {
       nSize = 0;
    }
+
+   /**
+    * Increments conference counter in thread safe manner.
+    */
+   void incrementConferenceCount()
+   {
+      lock.acquire();
+      nConferences++;
+      lock.release();
+   }
+
+   /**
+    * Decrements conference counter in thread safe manner.
+    */
+   void decrementConferenceCount()
+   {
+      lock.acquire();
+      nConferences--;
+      assert(nConferences >= 0);
+      lock.release();
+   }
 };
 
 typedef enum CONF_HOLD_STATE

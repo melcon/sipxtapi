@@ -420,6 +420,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcStartedMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcStartRtpRedirectMsg.cpp"
 					>
 				</File>
@@ -894,6 +898,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcSendInfoMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcStartedMsg.h"
 					>
 				</File>
 				<File

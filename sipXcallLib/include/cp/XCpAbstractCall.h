@@ -55,6 +55,7 @@ class SipSecurityEventListener;
 class CpMediaEventListener;
 class CpRtpRedirectEventListener;
 class AcCommandMsg;
+class AcDestroyConnectionMsg;
 class AcNotificationMsg;
 class AcGainFocusMsg;
 class AcYieldFocusMsg;
@@ -74,6 +75,12 @@ class AcSubscribeMsg;
 class AcUnsubscribeMsg;
 class AcRejectTransferMsg;
 class AcAcceptTransferMsg;
+class AcTransferBlindMsg;
+class AcHoldConnectionMsg;
+class AcUnholdConnectionMsg;
+class AcTransferConsultativeMsg;
+class AcRenegotiateCodecsMsg;
+class AcSendInfoMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
 class AcTimerMsg;
@@ -144,6 +151,11 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
+
+   /**
+    * Starts the abstract call thread.
+    */
+   virtual UtlBoolean start();
 
    /** Connects call to given address. Uses supplied sip call-id. */
    virtual OsStatus connect(const UtlString& sSipCallId,
@@ -220,7 +232,7 @@ public:
 
    /** Blind transfer given call to sTransferSipUrl. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
-                                  const UtlString& sTransferSipUrl) = 0;
+                                  const UtlString& sTransferSipUrl);
 
    /**
     * Consultative transfer given call to target call. Works for simple call and call in a conference. 
@@ -229,7 +241,25 @@ public:
     * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
     */
    virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
-                                         const SipDialog& targetSipDialog) = 0;
+                                         const SipDialog& targetSipDialog);
+
+  /**
+   * Put the specified terminal connection on hold.
+   *
+   * Change the terminal connection state from TALKING to HELD.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * no media should be sent.)
+   */
+   virtual OsStatus holdConnection(const SipDialog& sipDialog);
+
+  /**
+   * Convenience method to take the terminal connection off hold.
+   *
+   * Change the terminal connection state from HELD to TALKING.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * media should be sent.)
+   */
+   virtual OsStatus unholdConnection(const SipDialog& sipDialog);
 
    /** Starts DTMF tone on call connection.*/
    OsStatus audioToneStart(int iToneId,
@@ -276,24 +306,6 @@ public:
    OsStatus audioRecordStop();
 
    /**
-   * Put the specified terminal connection on hold.
-   *
-   * Change the terminal connection state from TALKING to HELD.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * no media should be sent.)
-   */
-   virtual OsStatus holdConnection(const SipDialog& sipDialog) = 0;
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   virtual OsStatus unholdConnection(const SipDialog& sipDialog) = 0;
-
-   /**
    * Enables discarding of inbound RTP at bridge for given call
    * or conference. Useful for server applications without mic/speaker.
    * DTMF on given call will still be decoded.
@@ -331,7 +343,7 @@ public:
    */
    virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
                                                 const UtlString& sAudioCodecs,
-                                                const UtlString& sVideoCodecs) = 0;
+                                                const UtlString& sVideoCodecs);
 
 
    /** Sends an INFO message to the other party(s) on the call */
@@ -339,7 +351,7 @@ public:
                              const UtlString& sContentType,
                              const char* pContent,
                              const size_t nContentLength,
-                             void* pCookie) = 0;
+                             void* pCookie);
 
    /**
    * Subscribe for given notification type with given target sip call.
@@ -476,6 +488,12 @@ protected:
    */       
    virtual OsMsgQ& getGlobalQueue();
 
+   /**
+    * Destroys XSipConnection if it exists by sip dialog. This should be called
+    * after call has been disconnected and connection is ready to be deleted.
+    */
+   virtual void destroySipConnection(const SipDialog& sSipDialog) = 0;
+
    /** Limits codec preferences for future renegotiations */
    OsStatus doLimitCodecPreferences(const UtlString& sAudioCodecs, const UtlString& sVideoCodecs);
 
@@ -530,66 +548,60 @@ protected:
 private:
    /** Handles gain focus command from call manager. Never use directly, go through call manager. */
    OsStatus handleGainFocus(const AcGainFocusMsg& rMsg);
-
    /** Handles defocus command from call manager. Never use directly, go through call manager. */
    OsStatus handleDefocus(const AcYieldFocusMsg& rMsg);
-
    /** Handles command to start playing buffer on call */
    OsStatus handleAudioBufferPlay(const AcAudioBufferPlayMsg& rMsg);
-
    /** Handles command to start playing file on call */
    OsStatus handleAudioFilePlay(const AcAudioFilePlayMsg& rMsg);
-
    /** Handles command to pause playing file/buffer on call */
    OsStatus handleAudioPausePlayback(const AcAudioPausePlaybackMsg& rMsg);
-
    /** Handles command to resume playing file/buffer on call */
    OsStatus handleAudioResumePlayback(const AcAudioResumePlaybackMsg& rMsg);
-
    /** Handles command to stop playing file/buffer on call */
    OsStatus handleAudioStopPlayback(const AcAudioStopPlaybackMsg& rMsg);
-
    /** Handles command to start recording call */
    OsStatus handleAudioRecordStart(const AcAudioRecordStartMsg& rMsg);
-
    /** Handles command to stop recording call */
    OsStatus handleAudioRecordStop(const AcAudioRecordStopMsg& rMsg);
-
    /** Handles command to send audio DTMF (in-band or rfc8233)*/
    OsStatus handleAudioToneStart(const AcAudioToneStartMsg& rMsg);
-
    /** Handles command to stop sending audio DTMF */
    OsStatus handleAudioToneStop(const AcAudioToneStopMsg& rMsg);
-
    /** Handles message to mute inbound RTP in audio bridge */
    OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
-
    /** Handles message to unmute inbound RTP in audio bridge */
    OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
-
    /** Handles message to limit codec preferences for future sip connections */
    OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
-
    /** Handles message to subscribe to notifications */
    OsStatus handleSubscribe(const AcSubscribeMsg& rMsg);
-
    /** Handles message to unsubscribe from notifications */
    OsStatus handleUnsubscribe(const AcUnsubscribeMsg& rMsg);
-
    /** Handles message to accept call transfer */
    OsStatus handleAcceptTransfer(const AcAcceptTransferMsg& rMsg);
-
    /** Handles message to reject call transfer */
    OsStatus handleRejectTransfer(const AcRejectTransferMsg& rMsg);
-
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
-
    /** Handle media connection notification message */
    UtlBoolean handleConnectionNotfMessage(const OsIntPtrMsg& rMsg);
-
    /** Handle media interface notification message */
    UtlBoolean handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg);
+   /** Handles message to destroy sip connection */
+   virtual OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg) = 0;
+   /** Handles message to initiate blind call transfer */
+   OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
+   /** Handles message to initiate consultative call transfer */
+   OsStatus handleTransferConsultative(const AcTransferConsultativeMsg& rMsg);
+   /** Handles message to initiate remote hold on sip connection */
+   OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
+   /** Handles message to initiate remote unhold on sip connection */
+   OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
+   /** Handles message to renegotiate codecs for some sip connection */
+   OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
+   /** Handles message to send SIP INFO to on given sip connection */
+   OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
 
    /** Fires given media interface event to listeners. */
    virtual void fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
@@ -612,6 +624,9 @@ private:
    /** Called when media focus is lost (speaker and mic are disengaged) */
    virtual void onFocusLost() = 0;
 
+   /** Called when abstract call thread is started */
+   virtual void onStarted() = 0;
+
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
 
@@ -633,7 +648,6 @@ private:
    XCpAbstractCall(const XCpAbstractCall& rhs);
 
    XCpAbstractCall& operator=(const XCpAbstractCall& rhs);
-
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from call manager
 };
 

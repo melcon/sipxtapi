@@ -539,6 +539,17 @@ SIPX_CONF sipxCallGetConf(SIPX_CALL hCall)
    return hConf;
 }
 
+void sipxCallSetConf(SIPX_CALL hCall, SIPX_CONF hConf)
+{
+   OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallGetConf");
+
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, logItem);
+   if (pData)
+   {
+      pData->m_hConf = hConf;
+      sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, logItem);
+   }
+}
 
 SIPX_CONTACT_TYPE sipxCallGetLineContactType(SIPX_CALL hCall) 
 {

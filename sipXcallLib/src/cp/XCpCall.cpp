@@ -31,12 +31,6 @@
 #include <cp/msg/AcRejectConnectionMsg.h>
 #include <cp/msg/AcDropConnectionMsg.h>
 #include <cp/msg/AcDestroyConnectionMsg.h>
-#include <cp/msg/AcHoldConnectionMsg.h>
-#include <cp/msg/AcUnholdConnectionMsg.h>
-#include <cp/msg/AcTransferBlindMsg.h>
-#include <cp/msg/AcRenegotiateCodecsMsg.h>
-#include <cp/msg/AcSendInfoMsg.h>
-#include <cp/msg/AcTransferConsultativeMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 #include <cp/msg/CmDestroyAbstractCallMsg.h>
 
@@ -167,63 +161,6 @@ OsStatus XCpCall::dropConnection()
    return postMessage(dropConnectionMsg);
 }
 
-OsStatus XCpCall::transferBlind(const SipDialog& sipDialog,
-                                const UtlString& sTransferSipUrl)
-{
-   AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
-   return postMessage(transferBlindMsg);
-}
-
-OsStatus XCpCall::transferConsultative(const SipDialog& sourceSipDialog,
-                                       const SipDialog& targetSipDialog)
-{
-   AcTransferConsultativeMsg transferConsultativeMsg(sourceSipDialog, targetSipDialog);
-   return postMessage(transferConsultativeMsg);
-}
-
-OsStatus XCpCall::holdConnection(const SipDialog& sipDialog)
-{
-   AcHoldConnectionMsg holdConnectionMsg(sipDialog);
-   return postMessage(holdConnectionMsg);
-}
-
-OsStatus XCpCall::holdConnection()
-{
-   AcHoldConnectionMsg holdConnectionMsg(NULL);
-   return postMessage(holdConnectionMsg);
-}
-
-OsStatus XCpCall::unholdConnection(const SipDialog& sipDialog)
-{
-   AcUnholdConnectionMsg unholdConnectionMsg(sipDialog);
-   return postMessage(unholdConnectionMsg);
-}
-
-OsStatus XCpCall::unholdConnection()
-{
-   AcUnholdConnectionMsg unholdConnectionMsg(NULL);
-   return postMessage(unholdConnectionMsg);
-}
-
-OsStatus XCpCall::renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                              const UtlString& sAudioCodecs,
-                                              const UtlString& sVideoCodecs)
-{
-   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, sAudioCodecs,
-      sVideoCodecs);
-   return postMessage(renegotiateCodecsMsg);
-}
-
-OsStatus XCpCall::sendInfo(const SipDialog& sipDialog,
-                           const UtlString& sContentType,
-                           const char* pContent,
-                           const size_t nContentLength,
-                           void* pCookie)
-{
-   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength, pCookie);
-   return postMessage(sendInfoMsg);
-}
-
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
@@ -311,27 +248,6 @@ UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_DROP_CONNECTION:
       handleDropConnection((const AcDropConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_DESTROY_CONNECTION:
-      handleDestroyConnection((const AcDestroyConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_TRANSFER_BLIND:
-      handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_TRANSFER_CONSULTATIVE:
-      handleTransferConsultative((const AcTransferConsultativeMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_HOLD_CONNECTION:
-      handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_UNHOLD_CONNECTION:
-      handleUnholdConnection((const AcUnholdConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_RENEGOTIATE_CODECS:
-      handleRenegotiateCodecs((const AcRenegotiateCodecsMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_SEND_INFO:
-      handleSendInfo((const AcSendInfoMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -513,126 +429,15 @@ OsStatus XCpCall::handleDropConnection(const AcDropConnectionMsg& rMsg)
 OsStatus XCpCall::handleDestroyConnection(const AcDestroyConnectionMsg& rMsg)
 {
    releaseMediaInterface(); // release audio resources
-   destroySipConnection();
+
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   destroySipConnection(sipDialog);
 
    CmDestroyAbstractCallMsg msg(m_sId);
    getGlobalQueue().send(msg); // instruct call manager to destroy this call
 
    return OS_SUCCESS;
-}
-
-OsStatus XCpCall::handleTransferBlind(const AcTransferBlindMsg& rMsg)
-{
-   SipDialog sipDialog;
-   rMsg.getSipDialog(sipDialog);
-   // find connection by sip dialog
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
-   if (resFound)
-   {
-      return ptrLock->transferBlind(rMsg.getTransferSipUrl());
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleTransferConsultative(const AcTransferConsultativeMsg& rMsg)
-{
-   SipDialog sourceSipDialog;
-   SipDialog targetSipDialog;
-   rMsg.getSourceSipDialog(sourceSipDialog);
-   rMsg.getTargetSipDialog(targetSipDialog);
-   // find connection by sip dialog
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = findConnection(sourceSipDialog, ptrLock);
-   if (resFound)
-   {
-      return ptrLock->transferConsultative(targetSipDialog);
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleHoldConnection(const AcHoldConnectionMsg& rMsg)
-{
-   SipDialog sipDialog;
-   rMsg.getSipDialog(sipDialog);
-   UtlBoolean resFound = FALSE;
-   // find connection by sip dialog if call-id is not null
-   OsPtrLock<XSipConnection> ptrLock;
-   if (sipDialog.getCallId().isNull())
-   {
-      resFound = getConnection(ptrLock);
-   }
-   else
-   {
-      resFound = findConnection(sipDialog, ptrLock);
-   }
-   if (resFound)
-   {
-      return ptrLock->holdConnection();
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleUnholdConnection(const AcUnholdConnectionMsg& rMsg)
-{
-   SipDialog sipDialog;
-   rMsg.getSipDialog(sipDialog);
-   UtlBoolean resFound = FALSE;
-   // find connection by sip dialog if call-id is not null
-   OsPtrLock<XSipConnection> ptrLock;
-   if (sipDialog.getCallId().isNull())
-   {
-      resFound = getConnection(ptrLock);
-   }
-   else
-   {
-      resFound = findConnection(sipDialog, ptrLock);
-   }
-   if (resFound)
-   {
-      return ptrLock->unholdConnection();
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
-{
-   SipDialog sipDialog;
-   rMsg.getSipDialog(sipDialog);
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
-   if (resFound)
-   {
-      UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs()); // add "telephone-event" if its missing
-      if (doLimitCodecPreferences(audioCodecs, rMsg.getVideoCodecs()) == OS_SUCCESS)
-      {
-         return ptrLock->renegotiateCodecsConnection();
-      }
-      else
-      {
-         return OS_FAILED;
-      }
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleSendInfo(const AcSendInfoMsg& rMsg)
-{
-   SipDialog sipDialog;
-   rMsg.getSipDialog(sipDialog);
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
-   if (resFound)
-   {
-      return ptrLock->sendInfo(rMsg.getContentType(), rMsg.getContent(), rMsg.getContentLength(), rMsg.getCookie());
-   }
-
-   return OS_NOT_FOUND;
 }
 
 void XCpCall::createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl)
@@ -659,12 +464,33 @@ void XCpCall::createSipConnection(const SipDialog& sipDialog, const UtlString& s
 
 void XCpCall::destroySipConnection()
 {
-   UtlString sSipCallId;
+   SipDialog sipDialog;
+   // get sip dialog of our single connection
    {
       OsLock lock(m_memberMutex);
       if (m_pSipConnection)
       {
-         m_pSipConnection->getSipCallId(sSipCallId);
+         m_pSipConnection->getSipDialog(sipDialog);
+      }
+   }
+
+   if (!sipDialog.isNull())
+   {
+      destroySipConnection(sipDialog);
+   }
+}
+
+void XCpCall::destroySipConnection(const SipDialog& sSipDialog)
+{
+   UtlString sSipCallId;
+   {
+      // check that we really have connection with given sip dialog
+      OsLock lock(m_memberMutex);
+      if (m_pSipConnection && m_pSipConnection->compareSipDialog(sSipDialog) != SipDialog::DIALOG_MISMATCH)
+      {
+         // dialog matches
+         sSipDialog.getCallId(sSipCallId);
+         m_pSipConnection->acquireExclusive();
          delete m_pSipConnection;
          m_pSipConnection = NULL;
       }
@@ -727,6 +553,11 @@ void XCpCall::onFocusLost()
    {
       ptrLock->onFocusLost();
    }
+}
+
+void XCpCall::onStarted()
+{
+   // this gets called once thread is started
 }
 
 /* ============================ FUNCTIONS ================================= */
