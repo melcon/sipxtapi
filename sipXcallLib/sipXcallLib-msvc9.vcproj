@@ -670,6 +670,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpConferenceEventListener.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CpDefs.h"
 				>
 			</File>

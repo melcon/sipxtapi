@@ -61,6 +61,8 @@ public:
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
+SIPX_CONF sipxConfLookupHandleByConfId(const UtlString& confID, SIPX_INST pInst);
+
 SIPX_CONF_DATA* sipxConfLookup(const SIPX_CONF hConf,
                                SIPX_LOCK_TYPE type,
                                const OsStackTraceLogger& oneBackInStack);

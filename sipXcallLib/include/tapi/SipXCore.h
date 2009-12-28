@@ -57,6 +57,7 @@ class SipDialogMgr;
 class SipRefreshManager;
 class SipXKeepaliveEventListener;
 class SipXRtpRedirectEventListener;
+class SipXConferenceEventListener;
 class SipXEventDispatcher;
 class SipPimClient;
 class SipXMessageObserver;
@@ -137,6 +138,7 @@ public:
    SipXMediaEventListener* pMediaEventListener;
    SipXKeepaliveEventListener* pKeepaliveEventListener;
    SipXRtpRedirectEventListener* pRtpRedirectEventListener;
+   SipXConferenceEventListener* pConferenceEventListener;
    SipDialogMgr* pDialogManager;
    OsSharedServerTaskMgr* pSharedTaskMgr;
 
@@ -179,6 +181,8 @@ public:
       pInfoEventListener(NULL),
       pSecurityEventListener(NULL),
       pMediaEventListener(NULL),
+      pKeepaliveEventListener(NULL),
+      pConferenceEventListener(NULL),
       pDialogManager(NULL),
       pMessageObserver(NULL),
       pStunNotification(NULL),
@@ -191,7 +195,6 @@ public:
       bSupportedHeader(TRUE),
       bDateHeader(TRUE),
       bRtpOverTcp(FALSE),
-      pKeepaliveEventListener(NULL),
       nInputAudioDevices(0),
       nOutputAudioDevices(0),
       pSharedTaskMgr(NULL)

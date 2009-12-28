@@ -5,13 +5,13 @@
     </Platforms>
     <ToolFiles/>
     <Configurations>
-        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" ConfigurationType="4" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="false" DebugInformationFormat="4" PrecompiledHeaderFile="" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" DebugInformationFormat="4" Detect64BitPortabilityProblems="false" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Optimization="0" PrecompiledHeaderFile=""/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -22,13 +22,13 @@
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" IntermediateDirectory=".\Release" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" ConfigurationType="4" IntermediateDirectory=".\Release" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName=".\Release/" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXportLib.pch" Optimization="2"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" DebugInformationFormat="3" ProgramDataBaseFileName=".\Release/" Optimization="2" PrecompiledHeaderFile=".\Release/sipXportLib.pch"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -39,13 +39,13 @@
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" ConfigurationType="4" IntermediateDirectory="$(ConfigurationName)" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include;..\..\openSSL\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048;HAVE_SSL" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="false" DebugInformationFormat="4" PrecompiledHeaderFile="" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include;..\..\openSSL\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048;HAVE_SSL" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" DebugInformationFormat="4" Detect64BitPortabilityProblems="false" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Optimization="0" PrecompiledHeaderFile=""/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>

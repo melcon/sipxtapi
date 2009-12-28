@@ -84,6 +84,54 @@ UtlBoolean sipxRemoveCallHandleFromConf(const SIPX_CONF hConf,
    return bFound;
 }
 
+SIPX_CONF sipxConfLookupHandleByConfId(const UtlString& confID, SIPX_INST pInst)
+{
+   SIPX_CONF hConf = SIPX_CONF_NULL;
+   SIPX_CONF_DATA* pData = NULL;
+   OsStatus status;
+
+   gConfHandleMap.lock();
+   // control iterator scope
+   {
+      UtlHashMapIterator iter(gConfHandleMap);
+
+      UtlInt* pIndex = NULL;
+      UtlVoidPtr* pObj = NULL;
+
+      while ((pIndex = dynamic_cast<UtlInt*>(iter())))       
+      {
+         pObj = dynamic_cast<UtlVoidPtr*>(gConfHandleMap.findValue(pIndex));
+
+         assert(pObj); // if it's NULL, then it's a bug
+         if (pObj)
+         {
+            pData = (SIPX_CONF_DATA*)pObj->getValue();
+            assert(pData);
+
+            if (pData)
+            {
+               status = pData->mutex.acquire();
+               assert(status == OS_SUCCESS);
+
+               if (pData->confCallId.compareTo(confID) == 0 && 
+                  pData->pInst == pInst)
+               {
+                  hConf = pIndex->getValue();
+                  status = pData->mutex.release();
+                  assert(status == OS_SUCCESS);
+                  break;
+               }
+
+               status = pData->mutex.release();
+               assert(status == OS_SUCCESS);
+            }            
+         }
+      }
+   }
+   gConfHandleMap.unlock();
+
+   return hConf;
+}
 
 SIPX_CONF_DATA* sipxConfLookup(const SIPX_CONF hConf,
                                SIPX_LOCK_TYPE type,

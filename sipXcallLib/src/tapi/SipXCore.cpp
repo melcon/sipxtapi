@@ -56,6 +56,7 @@
 #include "tapi/SipXSubscribe.h"
 #include "tapi/SipXKeepaliveEventListener.h"
 #include "tapi/SipXRtpRedirectEventListener.h"
+#include "tapi/SipXConferenceEventListener.h"
 #include "tapi/SipXLineEventListener.h"
 #include "tapi/SipXCallEventListener.h"
 #include "tapi/SipXInfoStatusEventListener.h"
@@ -395,6 +396,10 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pSharedTaskMgr->manage(*pInst->pSecurityEventListener);
    pInst->pMediaEventListener = new SipXMediaEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pMediaEventListener);
+   pInst->pRtpRedirectEventListener = new SipXRtpRedirectEventListener(pInst);
+   pInst->pSharedTaskMgr->manage(*pInst->pRtpRedirectEventListener);
+   pInst->pConferenceEventListener = new SipXConferenceEventListener(pInst);
+   pInst->pSharedTaskMgr->manage(*pInst->pConferenceEventListener);
    // create refresh manager
    pInst->pRefreshManager = new SipRefreshMgr(pInst->pLineEventListener);
    // create Line manager
@@ -493,6 +498,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
       pInst->pRtpRedirectEventListener,
+      pInst->pConferenceEventListener,
       *pInst->pSipUserAgent,
       *pInst->pSelectedCodecList,
       pInst->pLineManager,
@@ -564,8 +570,6 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
 
    pInst->pKeepaliveEventListener = new SipXKeepaliveEventListener(pInst);
    pInst->pSharedTaskMgr->manage(*pInst->pKeepaliveEventListener);
-   pInst->pRtpRedirectEventListener = new SipXRtpRedirectEventListener(pInst);
-   pInst->pSharedTaskMgr->manage(*pInst->pRtpRedirectEventListener);
 
    return rc;
 }
@@ -756,6 +760,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSharedTaskMgr->release(*pInst->pMediaEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pKeepaliveEventListener);
          pInst->pSharedTaskMgr->release(*pInst->pRtpRedirectEventListener);
+         pInst->pSharedTaskMgr->release(*pInst->pConferenceEventListener);
          pInst->pSharedTaskMgr->shutdown();
          pInst->pSharedTaskMgr->flushMessages();
          // get rid of listeners
@@ -771,6 +776,10 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pSecurityEventListener = NULL;
          delete pInst->pMediaEventListener;
          pInst->pMediaEventListener = NULL;
+         delete pInst->pRtpRedirectEventListener;
+         pInst->pRtpRedirectEventListener = NULL;
+         delete pInst->pConferenceEventListener;
+         pInst->pConferenceEventListener = NULL;
          delete pInst->pStunNotification;
          pInst->pStunNotification = NULL;
          delete pInst->pMessageObserver;
@@ -778,8 +787,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          sipxTransportDestroyAll(pInst);
          delete pInst->pKeepaliveEventListener;
          pInst->pKeepaliveEventListener = NULL;
-         delete pInst->pRtpRedirectEventListener;
-         pInst->pRtpRedirectEventListener = NULL;
 #ifdef _WIN32
          Sleep(50); // give it time to dispatch all events
          // this will be removed

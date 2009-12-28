@@ -14,8 +14,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef CpRtpRedirectEventListener_h__
-#define CpRtpRedirectEventListener_h__
+#ifndef CpConferenceEventListener_h__
+#define CpConferenceEventListener_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -34,40 +34,44 @@
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
-class CpRtpRedirectEvent
+class CpConferenceEvent
 {
 public:
-   UtlString m_sCallId; // id of abstract call
-   CP_RTP_REDIRECT_CAUSE m_cause;
+   UtlString m_sConferenceId; // id of conference
+   UtlString m_sCallId; // id of call if available
+   CP_CONFERENCE_CAUSE m_cause;
 
-   CpRtpRedirectEvent(const UtlString& sCallId,
-                      CP_RTP_REDIRECT_CAUSE cause)
-      : m_sCallId(sCallId)
-      , m_cause(cause)
+   CpConferenceEvent(CP_CONFERENCE_CAUSE cause,
+                     const UtlString& sConferenceId,
+	                  const UtlString& sCallId)
+      : m_cause(cause)
+      , m_sConferenceId(sConferenceId)
+      , m_sCallId(sCallId)
    {
    }
 
-   CpRtpRedirectEvent()
+   CpConferenceEvent()
    {
-      m_cause = CP_RTP_REDIRECT_CAUSE_NORMAL;
+      m_cause = CP_CONFERENCE_CAUSE_NORMAL;
    }
 
-   ~CpRtpRedirectEvent()
+   ~CpConferenceEvent()
    {
    }
 
-   CpRtpRedirectEvent(const CpRtpRedirectEvent& event)
+   CpConferenceEvent(const CpConferenceEvent& event)
    {
       *this = event;
    }
 
-   CpRtpRedirectEvent& operator=(const CpRtpRedirectEvent& event)
+   CpConferenceEvent& operator=(const CpConferenceEvent& event)
    {
       if (&event == this)
       {
          return *this;
       }
 
+	  m_sConferenceId = event.m_sConferenceId;
       m_sCallId = event.m_sCallId;
       m_cause = event.m_cause;
       return *this;
@@ -76,26 +80,26 @@ public:
 
 
 /**
-* Listener for RTP redirect events
+* Listener for Conference events
 */
-class CpRtpRedirectEventListener
+class CpConferenceEventListener
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
    /* ============================ CREATORS ================================== */
 public:
-   CpRtpRedirectEventListener() {}
-   virtual ~CpRtpRedirectEventListener() {}
+   CpConferenceEventListener() {}
+   virtual ~CpConferenceEventListener() {}
 
    /* ============================ MANIPULATORS ============================== */
 
-   virtual void OnRtpRedirectRequested(const CpRtpRedirectEvent& event) = 0;
+   virtual void OnConferenceCreated(const CpConferenceEvent& event) = 0;
 
-   virtual void OnRtpRedirectActive(const CpRtpRedirectEvent& event) = 0;
+   virtual void OnConferenceDestroyed(const CpConferenceEvent& event) = 0;
 
-   virtual void OnRtpRedirectError(const CpRtpRedirectEvent& event) = 0;
+   virtual void OnConferenceCallAdded(const CpConferenceEvent& event) = 0;
 
-   virtual void OnRtpRedirectStop(const CpRtpRedirectEvent& event) = 0;
+   virtual void OnConferenceCallRemoved(const CpConferenceEvent& event) = 0;
 
    /* ============================ ACCESSORS ================================= */
 
@@ -109,4 +113,4 @@ private:
 
 };
 
-#endif // CpRtpRedirectEventListener_h__
+#endif // CpConferenceEventListener_h__
