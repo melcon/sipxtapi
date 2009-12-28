@@ -202,13 +202,9 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
 {
    OsStatus result = OS_FAILED;
 
-   sConferenceId.remove(0); // clear string
-
+   sConferenceId.clear();
    // always allow creation of new conference, check for limit only when establishing
-   if (sConferenceId.isNull())
-   {
-      sConferenceId = getNewConferenceId();
-   }
+   sConferenceId = getNewConferenceId();
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
       *getMessageQueue(), m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
       m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
@@ -848,21 +844,6 @@ OsStatus XCpCallManager::holdAbstractCallConnection(const UtlString& sAbstractCa
    return result;
 }
 
-OsStatus XCpCallManager::holdCallConnection(const UtlString& sCallId)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->holdConnection();
-   }
-
-   return result;
-}
-
 OsStatus XCpCallManager::holdAllConferenceConnections(const UtlString& sConferenceId)
 {
    OsStatus result = OS_NOT_FOUND;
@@ -914,21 +895,6 @@ OsStatus XCpCallManager::unholdAbstractCallConnection(const UtlString& sAbstract
    {
       // we found call and have a lock on it
       return ptrLock->unholdConnection(sSipDialog);
-   }
-
-   return result;
-}
-
-OsStatus XCpCallManager::unholdCallConnection(const UtlString& sCallId)
-{
-   OsStatus result = OS_NOT_FOUND;
-
-   OsPtrLock<XCpCall> ptrLock; // auto pointer lock
-   UtlBoolean resFind = m_callStack.findCall(sCallId, ptrLock);
-   if (resFind)
-   {
-      // we found call and have a lock on it
-      return ptrLock->unholdConnection();
    }
 
    return result;

@@ -74,6 +74,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcRenegotiateCodecsAllMsg.cpp \
     cp/msg/AcRenegotiateCodecsMsg.cpp \
     cp/msg/AcSendInfoMsg.cpp \
+    cp/msg/AcStartedMsg.cpp \
     cp/msg/AcStartRtpRedirectMsg.cpp \
     cp/msg/AcStopRtpRedirectMsg.cpp \
     cp/msg/AcSubscribeMsg.cpp \
@@ -129,6 +130,7 @@ libsipXcall_la_SOURCES = \
     cp/state/StateTransitionEventDispatcher.cpp \
     cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
+    tapi/ConferenceEventMsg.cpp \
     tapi/InfoEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \
@@ -141,6 +143,7 @@ libsipXcall_la_SOURCES = \
     tapi/SipXCall.cpp \
     tapi/SipXCallEventListener.cpp \
     tapi/SipXConference.cpp \
+    tapi/SipXConferenceEventListener.cpp \
     tapi/SipXConfig.cpp \
     tapi/SipXCore.cpp \
     tapi/SipXEventDispatcher.cpp \

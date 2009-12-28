@@ -146,6 +146,8 @@ void sipxCallDestroyAll(const SIPX_INST hInst);
 
 SIPX_CONF sipxCallGetConf(SIPX_CALL hCall);
 
+void sipxCallSetConf(SIPX_CALL hCall, SIPX_CONF hConf);
+
 SIPX_CONTACT_TYPE sipxCallGetLineContactType(SIPX_CALL hCall);
 
 SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,

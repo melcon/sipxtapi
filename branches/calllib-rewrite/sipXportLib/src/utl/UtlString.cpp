@@ -424,6 +424,10 @@ UtlString& UtlString::remove(size_t pos, size_t N)
     return *this;
 }
 
+UtlString& UtlString::clear()
+{
+   return remove(0);
+}
 
 // Replace a single character at the designated position
 void UtlString::replaceAt(size_t pos, char newChar)

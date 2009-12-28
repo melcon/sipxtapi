@@ -116,6 +116,14 @@ public:
 
    /* ============================ INQUIRY =================================== */
 
+   /**
+    * Returns TRUE if pointer is NULL.
+    */
+   UtlBoolean isNull() const
+   {
+      return m_pValue == NULL ? TRUE : FALSE;
+   }
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 

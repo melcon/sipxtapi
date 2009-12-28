@@ -548,6 +548,9 @@ public:
      * Invalid position or length results in no changes.
      */
 
+    /// Clears the string leaving empty string.
+    UtlString& clear();
+
 ///@}
 // ================================================================
 /** @name        Stripping and Trimming Operations

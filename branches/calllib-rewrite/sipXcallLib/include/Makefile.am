@@ -8,6 +8,7 @@ nobase_include_HEADERS =  \
     cp/CpCallStateEventListener.h \
     cp/CpCodecInfo.h \
     cp/CpDefs.h \
+    cp/CpConferenceEventListener.h \
     cp/CpLoopDetector.h \
     cp/CpMediaEventListener.h \
     cp/CpMediaInterfaceProvider.h \
@@ -63,6 +64,7 @@ nobase_include_HEADERS =  \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcStartedMsg.h \
     cp/msg/AcStartRtpRedirectMsg.h \
     cp/msg/AcStopRtpRedirectMsg.h \
     cp/msg/AcSubscribeMsg.h \
@@ -129,6 +131,7 @@ nobase_include_HEADERS =  \
     ptapi/PtSessionDesc.h \
     ptapi/PtTerminalConnection.h \
     tapi/CallStateEventMsg.h \
+    tapi/ConferenceEventMsg.h \
     tapi/InfoEventMsg.h \
     tapi/InfoStatusEventMsg.h \
     tapi/KeepaliveEventMsg.h \
@@ -141,6 +144,7 @@ nobase_include_HEADERS =  \
     tapi/SipXCall.h \
     tapi/SipXCallEventListener.h \
     tapi/SipXConference.h \
+    tapi/SipXConferenceEventListener.h \
     tapi/SipXConfig.h \
     tapi/SipXCore.h \
     tapi/SipXEventDispatcher.h \

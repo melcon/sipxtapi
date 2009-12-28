@@ -38,15 +38,15 @@ class CpConferenceEvent
 {
 public:
    UtlString m_sConferenceId; // id of conference
-   UtlString m_sCallId; // id of call if available
+   UtlString m_sSipCallId; // sip call-id of call if available
    CP_CONFERENCE_CAUSE m_cause;
 
    CpConferenceEvent(CP_CONFERENCE_CAUSE cause,
                      const UtlString& sConferenceId,
-	                  const UtlString& sCallId)
+	                  const UtlString& sCallId = NULL)
       : m_cause(cause)
       , m_sConferenceId(sConferenceId)
-      , m_sCallId(sCallId)
+      , m_sSipCallId(sCallId)
    {
    }
 
@@ -72,7 +72,7 @@ public:
       }
 
 	  m_sConferenceId = event.m_sConferenceId;
-      m_sCallId = event.m_sCallId;
+      m_sSipCallId = event.m_sSipCallId;
       m_cause = event.m_cause;
       return *this;
    }

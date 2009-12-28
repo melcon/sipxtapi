@@ -34,12 +34,6 @@ class AcRedirectConnectionMsg;
 class AcAnswerConnectionMsg;
 class AcDropConnectionMsg;
 class AcDestroyConnectionMsg;
-class AcTransferBlindMsg;
-class AcHoldConnectionMsg;
-class AcUnholdConnectionMsg;
-class AcRenegotiateCodecsMsg;
-class AcSendInfoMsg;
-class AcTransferConsultativeMsg;
 
 /**
  * XCpCall wraps XSipConnection realizing all call functionality. XCpCall is designed to hold
@@ -168,75 +162,6 @@ public:
    /** Disconnects call without knowing the sip call-id*/
    OsStatus dropConnection();
 
-   /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
-   virtual OsStatus transferBlind(const SipDialog& sipDialog,
-                                  const UtlString& sTransferSipUrl);
-
-   /**
-   * Consultative transfer given call to target call. Works for simple call and call in a conference. 
-   *
-   * @param sourceSipDialog Source call identifier.
-   * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
-   */
-   virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
-                                         const SipDialog& targetSipDialog);
-
-   /**
-   * Put the specified terminal connection on hold.
-   *
-   * Change the terminal connection state from TALKING to HELD.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * no media should be sent.)
-   */
-   virtual OsStatus holdConnection(const SipDialog& sipDialog);
-
-   /**
-   * Put the specified terminal connection on hold.
-   *
-   * Change the terminal connection state from TALKING to HELD.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * no media should be sent.)
-   */
-   OsStatus holdConnection();
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   virtual OsStatus unholdConnection(const SipDialog& sipDialog);
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   virtual OsStatus unholdConnection();
-
-   /**
-   * Rebuild codec factory on the fly with new audio codec requirements
-   * and one specific video codec.  Renegotiate the codecs to be use for the
-   * specified terminal connection.
-   *
-   * This is typically performed after a capabilities change for the
-   * terminal connection (for example, addition or removal of a codec type).
-   * (Sends a SIP re-INVITE.)
-   */
-   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                const UtlString& sAudioCodecs,
-                                                const UtlString& sVideoCodecs);
-
-   /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const SipDialog& sipDialog,
-                             const UtlString& sContentType,
-                             const char* pContent,
-                             const size_t nContentLength,
-                             void* pCookie);
-
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
@@ -298,25 +223,19 @@ private:
    /** Handles message to drop sip connection */
    OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
    /** Handles message to destroy sip connection */
-   OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg);
-   /** Handles message to initiate blind call transfer */
-   OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
-   /** Handles message to initiate consultative call transfer */
-   OsStatus handleTransferConsultative(const AcTransferConsultativeMsg& rMsg);
-   /** Handles message to initiate remote hold on sip connection */
-   OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
-   /** Handles message to initiate remote unhold on sip connection */
-   OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
-   /** Handles message to renegotiate codecs for some sip connection */
-   OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
-   /** Handles message to send SIP INFO to on given sip connection */
-   OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
+   virtual OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg);
 
    /** Creates new XSipConnection for the call, if it doesn't exist yet */
    void createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl);
 
    /** Destroys XSipConnection if it exists */
    void destroySipConnection();
+
+   /**
+    * Destroys XSipConnection if it exists by sip dialog. This should be called
+    * after call has been disconnected and connection is ready to be deleted.
+    */
+   virtual void destroySipConnection(const SipDialog& sSipDialog);
 
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
@@ -338,6 +257,9 @@ private:
 
    /** Called when media focus is lost (speaker and mic are disengaged) */
    virtual void onFocusLost();
+
+   /** Called when abstract call thread is started */
+   virtual void onStarted();
 
    // begin of members requiring m_memberMutex
    XSipConnection* m_pSipConnection; ///< XSipConnection handling Sip messages. Use destroySipConnection to delete it.

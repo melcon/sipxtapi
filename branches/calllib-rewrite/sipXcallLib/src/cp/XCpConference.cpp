@@ -17,21 +17,19 @@
 #include <os/OsIntPtrMsg.h>
 #include <utl/UtlSListIterator.h>
 #include <net/SipDialog.h>
+#include <sdp/SdpCodecFactory.h>
 #include <cp/XCpConference.h>
 #include <cp/XSipConnection.h>
 #include <cp/msg/AcConnectMsg.h>
 #include <cp/msg/AcDropConnectionMsg.h>
 #include <cp/msg/AcDropAllConnectionsMsg.h>
-#include <cp/msg/AcHoldConnectionMsg.h>
+#include <cp/msg/AcDestroyConnectionMsg.h>
 #include <cp/msg/AcHoldAllConnectionsMsg.h>
-#include <cp/msg/AcUnholdConnectionMsg.h>
 #include <cp/msg/AcUnholdAllConnectionsMsg.h>
-#include <cp/msg/AcTransferBlindMsg.h>
-#include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcRenegotiateCodecsAllMsg.h>
-#include <cp/msg/AcSendInfoMsg.h>
-#include <cp/msg/AcTransferConsultativeMsg.h>
+#include <cp/msg/CmDestroyAbstractCallMsg.h>
 #include <cp/msg/CpTimerMsg.h>
+#include <cp/CpConferenceEventListener.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -80,6 +78,7 @@ XCpConference::XCpConference(const UtlString& sId,
 
 XCpConference::~XCpConference()
 {
+   destroyAllSipConnections();
    waitUntilShutDown();
 }
 
@@ -148,36 +147,10 @@ OsStatus XCpConference::dropAllConnections(UtlBoolean bDestroyConference)
    return postMessage(dropAllConnectionsMsg);
 }
 
-OsStatus XCpConference::transferBlind(const SipDialog& sipDialog,
-                                      const UtlString& sTransferSipUrl)
-{
-   AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
-   return postMessage(transferBlindMsg);
-}
-
-OsStatus XCpConference::transferConsultative(const SipDialog& sourceSipDialog,
-                                             const SipDialog& targetSipDialog)
-{
-   AcTransferConsultativeMsg transferConsultativeMsg(sourceSipDialog, targetSipDialog);
-   return postMessage(transferConsultativeMsg);
-}
-
-OsStatus XCpConference::holdConnection(const SipDialog& sipDialog)
-{
-   AcHoldConnectionMsg holdConnectionMsg(sipDialog);
-   return postMessage(holdConnectionMsg);
-}
-
 OsStatus XCpConference::holdAllConnections()
 {
    AcHoldAllConnectionsMsg holdAllConnectionsMsg;
    return postMessage(holdAllConnectionsMsg);
-}
-
-OsStatus XCpConference::unholdConnection(const SipDialog& sipDialog)
-{
-   AcUnholdConnectionMsg unholdConnectionMsg(sipDialog);
-   return postMessage(unholdConnectionMsg);
 }
 
 OsStatus XCpConference::unholdAllConnections()
@@ -186,30 +159,11 @@ OsStatus XCpConference::unholdAllConnections()
    return postMessage(unholdAllConnectionsMsg);
 }
 
-OsStatus XCpConference::renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                    const UtlString& sAudioCodecs,
-                                                    const UtlString& sVideoCodecs)
-{
-   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, sAudioCodecs,
-      sVideoCodecs);
-   return postMessage(renegotiateCodecsMsg);
-}
-
 OsStatus XCpConference::renegotiateCodecsAllConnections(const UtlString& sAudioCodecs,
                                                         const UtlString& sVideoCodecs)
 {
    AcRenegotiateCodecsAllMsg renegotiateCodecsMsg(sAudioCodecs, sVideoCodecs);
    return postMessage(renegotiateCodecsMsg);
-}
-
-OsStatus XCpConference::sendInfo(const SipDialog& sipDialog,
-                                 const UtlString& sContentType,
-                                 const char* pContent,
-                                 const size_t nContentLength,
-                                 void* pCookie)
-{
-   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength, pCookie);
-   return postMessage(sendInfoMsg);
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -285,41 +239,14 @@ OsStatus XCpConference::getConferenceSipCallIds(UtlSList& sipCallIdList) const
 UtlBoolean XCpConference::findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const
 {
    OsLock lock(m_memberMutex);
+   XSipConnection* pSipConnection = findConnection(sipDialog);
 
-   UtlSListIterator itor(m_sipConnections);
-   XSipConnection* pPartialMatchSipConnection = NULL;
-   XSipConnection* pSipConnection = NULL;
-
-   while (itor())
+   if (pSipConnection)
    {
-      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
-      if (pSipConnection)
-      {
-         SipDialog::DialogMatchEnum tmpResult = pSipConnection->compareSipDialog(sipDialog);
-         if (tmpResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
-             tmpResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
-         {
-            // return immediately if found perfect match for established dialog
-            // initial match is also perfect if supplied dialog is initial
-            ptrLock = pSipConnection;
-            return TRUE;
-         }
-         else if (tmpResult != SipDialog::DIALOG_MISMATCH)
-         {
-            // only override result if we found some match, as we could have some connection at the end of list that would not match
-            pPartialMatchSipConnection = pSipConnection;
-         }
-      }
-   }
-
-   if (pPartialMatchSipConnection)
-   {
-      // return partial match at the end
-      ptrLock = pPartialMatchSipConnection;
+      ptrLock = pSipConnection;
       return TRUE;
    }
 
-   // not even partial match was found
    return FALSE;
 }
 
@@ -336,32 +263,14 @@ UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_DROP_ALL_CONNECTIONS:
       handleDropAllConnections((const AcDropAllConnectionsMsg&)rRawMsg);
       return TRUE;
-   case AcCommandMsg::AC_TRANSFER_BLIND:
-      handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_TRANSFER_CONSULTATIVE:
-      handleTransferConsultative((const AcTransferConsultativeMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_HOLD_CONNECTION:
-      handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
-      return TRUE;
    case AcCommandMsg::AC_HOLD_ALL_CONNECTIONS:
       handleHoldAllConnections((const AcHoldAllConnectionsMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_UNHOLD_CONNECTION:
-      handleUnholdConnection((const AcUnholdConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_UNHOLD_ALL_CONNECTIONS:
       handleUnholdAllConnections((const AcUnholdAllConnectionsMsg&)rRawMsg);
       return TRUE;
-   case AcCommandMsg::AC_RENEGOTIATE_CODECS:
-      handleRenegotiateCodecs((const AcRenegotiateCodecsMsg&)rRawMsg);
-      return TRUE;
    case AcCommandMsg::AC_RENEGOTIATE_CODECS_ALL:
       handleRenegotiateCodecsAll((const AcRenegotiateCodecsAllMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_SEND_INFO:
-      handleSendInfo((const AcSendInfoMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -392,58 +301,220 @@ OsStatus XCpConference::handleConnect(const AcConnectMsg& rMsg)
 
 OsStatus XCpConference::handleDropConnection(const AcDropConnectionMsg& rMsg)
 {
-   return OS_FAILED;
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
+   if (resFind)
+   {
+      return ptrLock->dropConnection();
+   }
+
+   return OS_NOT_FOUND;
 }
 
 OsStatus XCpConference::handleDropAllConnections(const AcDropAllConnectionsMsg& rMsg)
 {
-   m_bDestroyConference = TRUE;
-   return OS_FAILED;
+   m_bDestroyConference = rMsg.getDestroyAbstractCall();
+
+   if (!m_sipConnections.isEmpty())
+   {
+      OsLock lock(m_memberMutex);
+      UtlSListIterator itor(m_sipConnections);
+
+      while (itor())
+      {
+         XSipConnection *pConnection = dynamic_cast<XSipConnection*>(itor.item());
+         if (pConnection)
+         {
+            pConnection->dropConnection();
+         }
+      }
+   }
+   else
+   {
+      // there are no connections to drop
+      if (m_bDestroyConference)
+      {
+         requestConferenceDestruction();
+      }
+   }
+
+   return OS_SUCCESS;
 }
 
-OsStatus XCpConference::handleTransferBlind(const AcTransferBlindMsg& rMsg)
+// called as a result of sip connection requesting its deletion
+OsStatus XCpConference::handleDestroyConnection(const AcDestroyConnectionMsg& rMsg)
 {
-   return OS_FAILED;
-}
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   destroySipConnection(sipDialog);
 
-OsStatus XCpConference::handleTransferConsultative(const AcTransferConsultativeMsg& rMsg)
-{
-   return OS_FAILED;
-}
+   if (m_bDestroyConference && m_sipConnections.isEmpty())
+   {
+      requestConferenceDestruction();
+   }
 
-OsStatus XCpConference::handleHoldConnection(const AcHoldConnectionMsg& rMsg)
-{
-   return OS_FAILED;
+   return OS_SUCCESS;
 }
 
 OsStatus XCpConference::handleHoldAllConnections(const AcHoldAllConnectionsMsg& rMsg)
 {
-   return OS_FAILED;
-}
+   // execute hold on all connections
+   OsLock lock(m_memberMutex);
+   UtlSListIterator itor(m_sipConnections);
 
-OsStatus XCpConference::handleUnholdConnection(const AcUnholdConnectionMsg& rMsg)
-{
-   return OS_FAILED;
+   while (itor())
+   {
+      XSipConnection *pConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pConnection)
+      {
+         pConnection->holdConnection();
+      }
+   }
+
+   return OS_SUCCESS;
 }
 
 OsStatus XCpConference::handleUnholdAllConnections(const AcUnholdAllConnectionsMsg& rMsg)
 {
-   return OS_FAILED;
-}
+   // execute unhold on all connections
+   OsLock lock(m_memberMutex);
+   UtlSListIterator itor(m_sipConnections);
 
-OsStatus XCpConference::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
-{
-   return OS_FAILED;
+   while (itor())
+   {
+      XSipConnection *pConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pConnection)
+      {
+         pConnection->unholdConnection();
+      }
+   }
+
+   return OS_SUCCESS;
 }
 
 OsStatus XCpConference::handleRenegotiateCodecsAll(const AcRenegotiateCodecsAllMsg& rMsg)
 {
+   UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs()); // add "telephone-event" if its missing
+
+   if (doLimitCodecPreferences(audioCodecs, rMsg.getVideoCodecs()) == OS_SUCCESS)
+   {
+      // codec limiting succeeded, renegotiate codecs on all connections
+      OsLock lock(m_memberMutex);
+      UtlSListIterator itor(m_sipConnections);
+
+      while (itor())
+      {
+         XSipConnection *pConnection = dynamic_cast<XSipConnection*>(itor.item());
+         if (pConnection)
+         {
+            pConnection->renegotiateCodecsConnection();
+         }
+      }
+
+      return OS_SUCCESS;
+   }
+
    return OS_FAILED;
 }
 
-OsStatus XCpConference::handleSendInfo(const AcSendInfoMsg& rMsg)
+// assumes external locking on m_memberMutex
+XSipConnection* XCpConference::findConnection(const SipDialog& sipDialog) const
 {
-   return OS_FAILED;
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pPartialMatchSipConnection = NULL;
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         SipDialog::DialogMatchEnum tmpResult = pSipConnection->compareSipDialog(sipDialog);
+         if (tmpResult == SipDialog::DIALOG_ESTABLISHED_MATCH ||
+            tmpResult == SipDialog::DIALOG_INITIAL_INITIAL_MATCH)
+         {
+            // return immediately if found perfect match for established dialog
+            // initial match is also perfect if supplied dialog is initial
+            return pSipConnection;
+         }
+         else if (tmpResult != SipDialog::DIALOG_MISMATCH)
+         {
+            // only override result if we found some match, as we could have some connection at the end of list that would not match
+            pPartialMatchSipConnection = pSipConnection;
+         }
+      }
+   }
+
+   if (pPartialMatchSipConnection)
+   {
+      // return partial match at the end
+      return pPartialMatchSipConnection;
+   }
+
+   return NULL;
+}
+
+void XCpConference::destroyAllSipConnections()
+{
+   UtlSList sipDialogList;
+
+   // prepare list of all SipDialogs
+   {
+      OsLock lock(m_memberMutex);
+      UtlSListIterator itor(m_sipConnections);
+      XSipConnection* pSipConnection = NULL;
+
+      while (itor())
+      {
+         pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+         if (pSipConnection)
+         {
+            SipDialog *pSipDialog = new SipDialog();
+            pSipConnection->getSipDialog(*pSipDialog);
+            sipDialogList.append(pSipDialog);
+         }
+      }
+   }
+
+   // destroy connections one by one without holding global lock
+   UtlSListIterator itor(sipDialogList);
+   while (itor())
+   {
+      SipDialog *pSipDialog = dynamic_cast<SipDialog*>(itor.item());
+      destroySipConnection(*pSipDialog);
+   }
+
+   sipDialogList.destroyAll();
+}
+
+void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
+{
+   UtlString sSipCallId;
+   {
+      OsLock lock(m_memberMutex);
+      XSipConnection* pSipConnection = findConnection(sSipDialog);
+      if (pSipConnection)
+      {
+         pSipConnection->acquireExclusive();
+         pSipConnection->getSipCallId(sSipCallId);
+         m_sipConnections.remove(pSipConnection);
+         // fire event that call was removed from conference
+         CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId, sSipCallId);
+         m_pConferenceEventListener->OnConferenceCallRemoved(event);
+
+         delete pSipConnection;
+         pSipConnection = NULL;
+      }
+   }
+
+   if (!sSipCallId.isNull())
+   {
+      // we destroyed some connection, notify call stack
+      onConnectionRemoved(sSipCallId);
+   }
 }
 
 void XCpConference::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
@@ -521,6 +592,27 @@ void XCpConference::onFocusLost()
          pSipConnection->onFocusLost();
       }
    }
+}
+
+void XCpConference::onStarted()
+{
+   // this gets called once thread is started
+   if (m_pConferenceEventListener)
+   {
+      CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId);
+      m_pConferenceEventListener->OnConferenceCreated(event);
+   }
+}
+
+void XCpConference::requestConferenceDestruction()
+{
+   releaseMediaInterface(); // release audio resources
+
+   CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId);
+   m_pConferenceEventListener->OnConferenceDestroyed(event);
+
+   CmDestroyAbstractCallMsg msg(m_sId);
+   getGlobalQueue().send(msg); // instruct call manager to destroy this conference
 }
 
 /* ============================ FUNCTIONS ================================= */
