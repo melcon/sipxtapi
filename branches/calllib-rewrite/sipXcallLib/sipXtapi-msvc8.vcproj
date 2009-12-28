@@ -5,7 +5,7 @@
     </Platforms>
     <ToolFiles/>
     <Configurations>
-        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)" ConfigurationType="2" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" ConfigurationType="2" IntermediateDirectory="$(ConfigurationName)" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -15,16 +15,16 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" AdditionalIncludeDirectories="..\sipXportLib\include" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" DataExecutionPrevention="0" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib libeay32.lib ssleay32.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib;..\..\openSSL\lib" TargetMachine="1" LinkIncremental="2" GenerateMapFile="true" MapExports="true" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib" RandomizedBaseAddress="1"/>
+            <Tool Name="VCLinkerTool" DataExecutionPrevention="0" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib libeay32.lib ssleay32.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib;..\..\openSSL\lib" TargetMachine="1" MapExports="true" GenerateMapFile="true" LinkIncremental="2" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib" RandomizedBaseAddress="1"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCAppVerifierTool"/>
-            <Tool Name="VCPostBuildEventTool" Description="Populating examples" CommandLine="copy bin\sipXtapid.dll examples\bin\sipXtapid.dll&#xD;&#xA;copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;"/>
+            <Tool Name="VCPostBuildEventTool" CommandLine="copy bin\sipXtapid.dll examples\bin\sipXtapid.dll&#xD;&#xA;copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;" Description="Populating examples"/>
         </Configuration>
-        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" IntermediateDirectory=".\Release" ConfigurationType="2" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Release|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" ConfigurationType="2" IntermediateDirectory=".\Release" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -34,16 +34,16 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" DataExecutionPrevention="2" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Release&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Release&quot;;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" ProgramDatabaseFile="bin\sipXtapi.pdb" EnableCOMDATFolding="2" GenerateDebugInformation="true" ImportLibrary="lib\sipXtapi.lib" RandomizedBaseAddress="2" ModuleDefinitionFile=""/>
+            <Tool Name="VCLinkerTool" DataExecutionPrevention="2" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Release&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Release&quot;;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" ProgramDatabaseFile="bin\sipXtapi.pdb" EnableCOMDATFolding="2" GenerateDebugInformation="true" ImportLibrary="lib\sipXtapi.lib" ModuleDefinitionFile="" RandomizedBaseAddress="2"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCAppVerifierTool"/>
-            <Tool Name="VCPostBuildEventTool" Description="Populating examples" CommandLine="copy bin\sipXtapi.dll examples\bin\sipXtapi.dll&#xD;&#xA;copy lib\sipXtapi.lib examples\lib\sipXtapi.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;"/>
+            <Tool Name="VCPostBuildEventTool" CommandLine="copy bin\sipXtapi.dll examples\bin\sipXtapi.dll&#xD;&#xA;copy lib\sipXtapi.lib examples\lib\sipXtapi.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;" Description="Populating examples"/>
         </Configuration>
-        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="2" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" ConfigurationType="2" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -53,16 +53,16 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" AdditionalIncludeDirectories="..\sipXportLib\include" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" DataExecutionPrevention="0" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Debug&quot;;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="2" GenerateMapFile="true" MapExports="true" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib" RandomizedBaseAddress="1"/>
+            <Tool Name="VCLinkerTool" DataExecutionPrevention="0" AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Debug&quot;;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" MapExports="true" GenerateMapFile="true" LinkIncremental="2" GenerateDebugInformation="true" OutputFile="bin\sipXtapid.dll" ImportLibrary="lib\sipXtapid.lib" RandomizedBaseAddress="1"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCAppVerifierTool"/>
-            <Tool Name="VCPostBuildEventTool" Description="Populating examples" CommandLine="copy bin\sipXtapid.dll examples\bin\sipXtapid.dll&#xD;&#xA;copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;"/>
+            <Tool Name="VCPostBuildEventTool" CommandLine="copy bin\sipXtapid.dll examples\bin\sipXtapid.dll&#xD;&#xA;copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;" Description="Populating examples"/>
         </Configuration>
-        <Configuration Name="Debug-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="2" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" ConfigurationType="2" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -72,16 +72,16 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" DataExecutionPrevention="0" DelayLoadDLLs="" AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="2" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapid.dll" GenerateDebugInformation="true" ImportLibrary="lib\sipXtapid.lib" RandomizedBaseAddress="1" ModuleDefinitionFile=""/>
+            <Tool Name="VCLinkerTool" DataExecutionPrevention="0" DelayLoadDLLs="" AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="2" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapid.dll" GenerateDebugInformation="true" ImportLibrary="lib\sipXtapid.lib" ModuleDefinitionFile="" RandomizedBaseAddress="1"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCAppVerifierTool"/>
-            <Tool Name="VCPostBuildEventTool" Description="Populating examples" CommandLine="copy bin\sipXtapid.dll examples\bin\sipXtapid.dll&#xD;&#xA;copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;"/>
+            <Tool Name="VCPostBuildEventTool" CommandLine="copy bin\sipXtapid.dll examples\bin\sipXtapid.dll&#xD;&#xA;copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;" Description="Populating examples"/>
         </Configuration>
-        <Configuration Name="Release-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" IntermediateDirectory=".\Release" ConfigurationType="2" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Release-IPP|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Release" ConfigurationType="2" IntermediateDirectory=".\Release" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -91,16 +91,16 @@
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
-            <Tool Name="VCLinkerTool" DataExecutionPrevention="2" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" EnableCOMDATFolding="2" GenerateDebugInformation="false" ImportLibrary="lib\sipXtapi.lib" RandomizedBaseAddress="2" ModuleDefinitionFile=""/>
+            <Tool Name="VCLinkerTool" DataExecutionPrevention="2" OptimizeReferences="2" AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib" IgnoreDefaultLibraryNames="" AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib" TargetMachine="1" LinkIncremental="1" GenerateMapFile="true" SuppressStartupBanner="true" OutputFile="bin\sipXtapi.dll" EnableCOMDATFolding="2" GenerateDebugInformation="false" ImportLibrary="lib\sipXtapi.lib" ModuleDefinitionFile="" RandomizedBaseAddress="2"/>
             <Tool Name="VCALinkTool"/>
             <Tool Name="VCManifestTool"/>
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
             <Tool Name="VCFxCopTool"/>
             <Tool Name="VCAppVerifierTool"/>
-            <Tool Name="VCPostBuildEventTool" Description="Populating examples" CommandLine="copy bin\sipXtapi.dll examples\bin\sipXtapi.dll&#xD;&#xA;copy lib\sipXtapi.lib examples\lib\sipXtapi.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;"/>
+            <Tool Name="VCPostBuildEventTool" CommandLine="copy bin\sipXtapi.dll examples\bin\sipXtapi.dll&#xD;&#xA;copy lib\sipXtapi.lib examples\lib\sipXtapi.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;" Description="Populating examples"/>
         </Configuration>
-        <Configuration Name="Debug-Static|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="4" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug-Static|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" ConfigurationType="4" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
@@ -115,13 +115,14 @@
             <Tool Name="VCXDCMakeTool"/>
             <Tool Name="VCBscMakeTool"/>
             <Tool Name="VCFxCopTool"/>
-            <Tool Name="VCPostBuildEventTool" Description="Populating examples" CommandLine="copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;"/>
+            <Tool Name="VCPostBuildEventTool" CommandLine="copy lib\sipXtapid.lib examples\lib\sipXtapid.lib&#xD;&#xA;copy ..\sipXportLib\Debug\sipXportLib.lib examples\lib\sipXportLibD.lib&#xD;&#xA;copy ..\sipXtackLib\Debug\sipXtackLib.lib examples\lib\sipXtackLibD.lib&#xD;&#xA;mkdir examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os examples\include\os&#xD;&#xA;copy ..\sipXportLib\include\os\shared examples\include\os\shared&#xD;&#xA;copy ..\sipXportLib\include\os\wnt examples\include\os\wnt&#xD;&#xA;copy ..\sipXportLib\include\utl examples\include\utl&#xD;&#xA;copy ..\sipXtackLib\include\net examples\include\net&#xD;&#xA;" Description="Populating examples"/>
         </Configuration>
     </Configurations>
     <References/>
     <Files>
         <Filter Name="Source Files" Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
             <File RelativePath=".\src\tapi\CallStateEventMsg.cpp"/>
+            <File RelativePath=".\src\tapi\ConferenceEventMsg.cpp"/>
             <File RelativePath=".\src\tapi\InfoEventMsg.cpp"/>
             <File RelativePath=".\src\tapi\InfoStatusEventMsg.cpp"/>
             <File RelativePath=".\src\tapi\KeepaliveEventMsg.cpp"/>
@@ -134,6 +135,7 @@
             <File RelativePath=".\src\tapi\SipXCall.cpp"/>
             <File RelativePath=".\src\tapi\SipXCallEventListener.cpp"/>
             <File RelativePath=".\src\tapi\SipXConference.cpp"/>
+            <File RelativePath=".\src\tapi\SipXConferenceEventListener.cpp"/>
             <File RelativePath=".\src\tapi\SipXConfig.cpp"/>
             <File RelativePath=".\src\tapi\SipXCore.cpp"/>
             <File RelativePath=".\src\tapi\SipXEventDispatcher.cpp"/>
@@ -159,6 +161,7 @@
         </Filter>
         <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
             <File RelativePath=".\include\tapi\CallStateEventMsg.h"/>
+            <File RelativePath=".\include\tapi\ConferenceEventMsg.h"/>
             <File RelativePath=".\include\tapi\InfoEventMsg.h"/>
             <File RelativePath=".\include\tapi\InfoStatusEventMsg.h"/>
             <File RelativePath=".\include\tapi\KeepaliveEventMsg.h"/>
@@ -171,6 +174,7 @@
             <File RelativePath=".\include\tapi\SipXCall.h"/>
             <File RelativePath=".\include\tapi\SipXCallEventListener.h"/>
             <File RelativePath=".\include\tapi\SipXConference.h"/>
+            <File RelativePath=".\include\tapi\SipXConferenceEventListener.h"/>
             <File RelativePath=".\include\tapi\SipXConfig.h"/>
             <File RelativePath=".\include\tapi\SipXCore.h"/>
             <File RelativePath=".\include\tapi\SipXEventDispatcher.h"/>

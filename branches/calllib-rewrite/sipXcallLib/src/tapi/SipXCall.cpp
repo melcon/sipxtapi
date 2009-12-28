@@ -128,7 +128,7 @@ SIPX_CALL sipxCallLookupHandleBySessionCallId( const UtlString& sessionCallID, S
 
 SIPX_CALL sipxCallLookupHandleByCallId( const UtlString& callID, SIPX_INST pInst )
 {
-   SIPX_CALL hCall = 0;
+   SIPX_CALL hCall = SIPX_CALL_NULL;
    SIPX_CALL_DATA* pData = NULL;
    OsStatus status;
 

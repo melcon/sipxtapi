@@ -38,6 +38,7 @@ class AcRenegotiateCodecsMsg;
 class AcRenegotiateCodecsAllMsg;
 class AcSendInfoMsg;
 class AcTransferConsultativeMsg;
+class CpConferenceEventListener;
 
 /**
  * XCpConference wraps several XSipConnections realizing conference functionality. XCpConference
@@ -88,7 +89,8 @@ public:
                  SipInfoEventListener* pInfoEventListener = NULL,
                  SipSecurityEventListener* pSecurityEventListener = NULL,
                  CpMediaEventListener* pMediaEventListener = NULL,
-                 CpRtpRedirectEventListener* pRtpRedirectEventListener = NULL);
+                 CpRtpRedirectEventListener* pRtpRedirectEventListener = NULL,
+                 CpConferenceEventListener* pConferenceEventListener = NULL);
 
    virtual ~XCpConference();
 
@@ -304,7 +306,11 @@ private:
    // begin of members requiring m_memberMutex
    UtlSList m_sipConnections;
    // end of members requiring m_memberMutex
+
    UtlBoolean m_bDestroyConference; ///< flag set when dropping all connections, if also conference should be destroyed
+
+   // set only once and thread safe
+   CpConferenceEventListener* m_pConferenceEventListener; ///< listener for firing conference events
 };
 
 #endif // XCpConference_h__

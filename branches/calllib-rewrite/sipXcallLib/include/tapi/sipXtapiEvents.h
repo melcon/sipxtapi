@@ -102,13 +102,14 @@ typedef enum SIPX_EVENT_CATEGORY
                                          information.*/                                         
     EVENT_CATEGORY_RTP_REDIRECT,     /**<  Events related to RTP redirect functionality. Reported
                                            events are redirect success, failure, redirect in progress etc. */
+    EVENT_CATEGORY_CONFERENCE,       /**<  Events related to conference functionality. */
 } SIPX_EVENT_CATEGORY;
 
 /**
  * VALID_SIPX_EVENT_CATEGORY utility macro to validate if an event category
  * is valid (within expected range).
  */
-#define VALID_SIPX_EVENT_CATEGORY(x) (((x) >= EVENT_CATEGORY_CALLSTATE) && ((x) <= EVENT_CATEGORY_RTP_REDIRECT))
+#define VALID_SIPX_EVENT_CATEGORY(x) (((x) >= EVENT_CATEGORY_CALLSTATE) && ((x) <= EVENT_CATEGORY_CONFERENCE))
 
 /**
  * Signature for event callback/observer.  Application developers should
@@ -646,6 +647,41 @@ typedef struct
 } SIPX_RTP_REDIRECT_INFO;
 
 /**
+* Enumeration of possible SIPX_CONFERENCE_EVENT events (EVENT_CATEGORY_CONFERENCE)
+*/
+typedef enum
+{
+   CONFERENCE_CREATED = 0, ///< fired when conference is created
+   CONFERENCE_DESTROYED, ///< fired when conference is destroyed
+   CONFERENCE_CALL_ADDED, ///< fired when a new call is added to conference
+   CONFERENCE_CALL_REMOVED ///< fired when a call is removed from conference
+} SIPX_CONFERENCE_EVENT;
+
+/**
+* Enumeration of possible SIPX_CONFERENCE_CAUSE cause codes (EVENT_CATEGORY_CONFERENCE)
+*/
+typedef enum
+{
+   CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
+} SIPX_CONFERENCE_CAUSE;
+
+/**
+* Conference event information structure. This information is passed as 
+* part of the sipXtapi callback mechanism. Based on the 
+* SIPX_EVENT_CATEGORY, the application developer should cast the pInfo 
+* member of your callback to the appropriate structure.
+*/
+typedef struct
+{
+	size_t                  nSize;     /**< Size of the structure */
+	SIPX_CONFERENCE_EVENT   event;     /**< Conference event identifier. */
+	SIPX_CONFERENCE_CAUSE   cause;     /**< Conference event cause */
+
+	SIPX_CONF               hConf;     /**< Conference handle */
+	SIPX_CALL               hCall;     /**< Call handle. Only valid for CONFERENCE_CALL_ADDED, CONFERENCE_CALL_REMOVED */
+} SIPX_CONFERENCE_INFO;
+
+/**
 * Enumeration of possible PIM event types
 */
 typedef enum
@@ -1179,5 +1215,21 @@ SIPXTAPI_API const char* sipxRtpRedirectEventToString(SIPX_RTP_REDIRECT_EVENT ev
 * @param cause RTP redirect cause id
 */
 SIPXTAPI_API const char* sipxRtpRedirectCauseToString(SIPX_RTP_REDIRECT_CAUSE cause);
+
+/**
+* Create a printable string version of the designated conference event.
+* This is generally used for debugging.
+*
+* @param event conference event id
+*/
+SIPXTAPI_API const char* sipxConferenceEventToString(SIPX_CONFERENCE_EVENT event);
+
+/**
+* Create a printable string version of the designated conference cause.
+* This is generally used for debugging.
+*
+* @param cause conference cause id
+*/
+SIPXTAPI_API const char* sipxConferenceCauseToString(SIPX_CONFERENCE_CAUSE cause);
 
 #endif /* ifndef _sipXtapiEvents_h_ */

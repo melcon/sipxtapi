@@ -48,6 +48,7 @@ class XCpCall;
 class XCpConference;
 class CpMediaInterfaceFactory;
 class CpCallStateEventListener;
+class CpConferenceEventListener;
 class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
@@ -80,6 +81,7 @@ public:
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
                   CpRtpRedirectEventListener* pRtpRedirectEventListener,
+				  CpConferenceEventListener* pConferenceEventListener,
                   SipUserAgent& rSipUserAgent,
                   const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
@@ -715,6 +717,7 @@ private:
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
    CpRtpRedirectEventListener* m_pRtpRedirectEventListener; // listener for firing rtp redirect events
+   CpConferenceEventListener* m_pConferenceEventListener; // listener for firing conference events
    SipUserAgent& m_rSipUserAgent; // sends sip messages
    const SdpCodecList& m_rDefaultSdpCodecList; ///< list for SDP codecs supplied to constructor
    SipLineProvider* m_pSipLineProvider; // read only functionality of line manager

@@ -607,6 +607,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\tapi\ConferenceEventMsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\tapi\InfoEventMsg.cpp"
 				>
 			</File>
@@ -652,6 +656,10 @@
 			</File>
 			<File
 				RelativePath=".\src\tapi\SipXConference.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tapi\SipXConferenceEventListener.cpp"
 				>
 			</File>
 			<File
@@ -752,6 +760,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\tapi\ConferenceEventMsg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\tapi\InfoEventMsg.h"
 				>
 			</File>
@@ -797,6 +809,10 @@
 			</File>
 			<File
 				RelativePath=".\include\tapi\SipXConference.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\tapi\SipXConferenceEventListener.h"
 				>
 			</File>
 			<File

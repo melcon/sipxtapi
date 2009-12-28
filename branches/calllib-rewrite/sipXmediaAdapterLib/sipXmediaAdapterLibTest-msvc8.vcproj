@@ -5,13 +5,13 @@
     </Platforms>
     <ToolFiles/>
     <Configurations>
-        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" IntermediateDirectory=".\Debug" ConfigurationType="1" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory=".\Debug" ConfigurationType="1" IntermediateDirectory=".\Debug" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool" HeaderFileName="" TypeLibraryName=".\Debug/sipXmediaAdapterLibTest.tlb"/>
-            <Tool Name="VCCLCompilerTool" CompileAs="0" AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_DEPRECATE" AssemblerListingLocation="" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLibTest.pch" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" CompileAs="0" AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_DEPRECATE" AssemblerListingLocation="" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" Optimization="0" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLibTest.pch"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -24,13 +24,13 @@
             <Tool Name="VCAppVerifierTool"/>
             <Tool Name="VCPostBuildEventTool"/>
         </Configuration>
-        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)" ConfigurationType="1" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
+        <Configuration Name="Debug-TLS|Win32" InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops" OutputDirectory="$(ConfigurationName)" ConfigurationType="1" IntermediateDirectory="$(ConfigurationName)" UseOfMFC="0" ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2">
             <Tool Name="VCPreBuildEventTool"/>
             <Tool Name="VCCustomBuildTool"/>
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool" HeaderFileName="" TypeLibraryName=".\Debug/sipXmediaAdapterLibTest.tlb"/>
-            <Tool Name="VCCLCompilerTool" CompileAs="0" AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include;..\..\openSSL\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;HAVE_SSL" AssemblerListingLocation="" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLibTest.pch" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" CompileAs="0" AdditionalIncludeDirectories="..\sipXportLib\src\test;..\sipXportLib\include;..\sipXcallLib\include;..\sipXportLib\include\glib;interface\include;include;..\sipXtackLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\CPPUnit\include;..\sipXportLib\contrib\pcre\include;..\..\openSSL\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;HAVE_SSL" AssemblerListingLocation="" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" Optimization="0" PrecompiledHeaderFile=".\Debug/sipXmediaAdapterLibTest.pch"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>

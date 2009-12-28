@@ -312,6 +312,25 @@ typedef enum
 } CP_RTP_REDIRECT_CAUSE;
 
 /**
+* Enumeration of possible CP_CONFERENCE_EVENT events.
+*/
+typedef enum
+{
+   CP_CONFERENCE_CREATED = 0, ///< fired when conference is created
+   CP_CONFERENCE_DESTROYED, ///< fired when conference is destroyed
+   CP_CONFERENCE_CALL_ADDED, ///< fired when a new call is added to conference
+   CP_CONFERENCE_CALL_REMOVED ///< fired when a call is removed from conference
+} CP_CONFERENCE_EVENT;
+
+/**
+* Enumeration of possible CP_CONFERENCE_CAUSE cause codes.
+*/
+typedef enum
+{
+   CP_CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
+} CP_CONFERENCE_CAUSE;
+
+/**
 * Configuration of session timer refresher. Refresher is side which is responsible
 * for periodically refreshing the session with re-INVITE or UPDATE within session
 * expiration time. If no session refresh occurs until that period, session may be

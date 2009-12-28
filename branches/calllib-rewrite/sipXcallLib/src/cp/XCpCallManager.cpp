@@ -64,6 +64,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener,
                                CpRtpRedirectEventListener* pRtpRedirectEventListener,
+							   CpConferenceEventListener* pConferenceEventListener,
                                SipUserAgent& rSipUserAgent,
                                const SdpCodecList& rSdpCodecList,
                                SipLineProvider* pSipLineProvider,
@@ -83,6 +84,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_pRtpRedirectEventListener(pRtpRedirectEventListener)
+, m_pConferenceEventListener(pConferenceEventListener)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rDefaultSdpCodecList(rSdpCodecList)
 , m_pSipLineProvider(pSipLineProvider)
@@ -210,7 +212,8 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
       *getMessageQueue(), m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
       m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
-      m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener, m_pRtpRedirectEventListener);
+      m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener, m_pRtpRedirectEventListener,
+	  m_pConferenceEventListener);
 
    UtlBoolean resStart = pConference->start();
    if (resStart)

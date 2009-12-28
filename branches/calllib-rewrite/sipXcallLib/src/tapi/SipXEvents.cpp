@@ -94,6 +94,9 @@ static const char* convertEventCategoryToString(SIPX_EVENT_CATEGORY category)
    case EVENT_CATEGORY_RTP_REDIRECT:
       str = MAKESTR(EVENT_CATEGORY_RTP_REDIRECT);
       break;
+   case EVENT_CATEGORY_CONFERENCE:
+	   str = MAKESTR(EVENT_CATEGORY_CONFERENCE);
+	   break;
    default:
       break;
    }
@@ -522,6 +525,45 @@ SIPXTAPI_API const char* sipxRtpRedirectCauseToString(SIPX_RTP_REDIRECT_CAUSE ca
       break;
    }
    return str;
+}
+
+SIPXTAPI_API const char* sipxConferenceEventToString(SIPX_CONFERENCE_EVENT event)
+{
+	const char* str = "Unknown";
+
+	switch (event)
+	{
+	case CONFERENCE_CREATED:
+		str = MAKESTR(CONFERENCE_CREATED);
+		break;
+	case CONFERENCE_DESTROYED:
+		str = MAKESTR(CONFERENCE_DESTROYED);
+		break;
+	case CONFERENCE_CALL_ADDED:
+		str = MAKESTR(CONFERENCE_CALL_ADDED);
+		break;
+	case CONFERENCE_CALL_REMOVED:
+		str = MAKESTR(CONFERENCE_CALL_REMOVED);
+		break;
+	default:
+		break;
+	}
+	return str;
+}
+
+SIPXTAPI_API const char* sipxConferenceCauseToString(SIPX_CONFERENCE_CAUSE cause)
+{
+	const char* str = "Unknown";
+
+	switch (cause)
+	{
+	case CONFERENCE_CAUSE_NORMAL:
+		str = MAKESTR(CONFERENCE_CAUSE_NORMAL);
+		break;
+	default:
+		break;
+	}
+	return str;
 }
 
 static const char* convertInfoStatusEventToString(SIPX_INFOSTATUS_EVENT event)
@@ -962,6 +1004,15 @@ SIPXTAPI_API void sipxEventToString(const SIPX_EVENT_CATEGORY category,
             sipxRtpRedirectCauseToString(pEventData->cause));
       }
       break;
+   case EVENT_CATEGORY_CONFERENCE:
+	   {
+		   SIPX_CONFERENCE_INFO* pEventData = (SIPX_CONFERENCE_INFO*)pEvent;
+		   SNPRINTF(szBuffer, nBuffer, "%s::%s::%s", 
+			   convertEventCategoryToString(category),
+			   sipxConferenceEventToString(pEventData->event),
+			   sipxConferenceCauseToString(pEventData->cause));
+	   }
+	   break;
    default:
       assert(false);
       break;
@@ -1295,6 +1346,25 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             rc = SIPX_RESULT_SUCCESS;
          }
          break;
+	  case EVENT_CATEGORY_CONFERENCE:
+		  {
+			  SIPX_CONFERENCE_INFO* pSourceInfo = (SIPX_CONFERENCE_INFO*)pEventSource;
+			  assert(pSourceInfo->nSize == sizeof(SIPX_CONFERENCE_INFO));
+
+			  SIPX_CONFERENCE_INFO* pInfo = new SIPX_CONFERENCE_INFO();
+			  memset(pInfo, 0, sizeof(SIPX_CONFERENCE_INFO));
+
+			  pInfo->nSize = pSourceInfo->nSize;
+			  pInfo->event = pSourceInfo->event;
+			  pInfo->cause = pSourceInfo->cause;
+			  pInfo->hConf = pSourceInfo->hConf;
+			  pInfo->hCall = pSourceInfo->hCall;
+
+			  *pEventCopy = pInfo;
+
+			  rc = SIPX_RESULT_SUCCESS;
+		  }
+		  break;
       default:
          *pEventCopy = NULL;
          break;
@@ -1453,6 +1523,15 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             rc = SIPX_RESULT_SUCCESS;
          }
          break;
+	  case EVENT_CATEGORY_CONFERENCE:
+		  {
+			  SIPX_CONFERENCE_INFO* pSourceInfo = (SIPX_CONFERENCE_INFO*)pEventCopy;
+			  assert(pSourceInfo->nSize == sizeof(SIPX_CONFERENCE_INFO));
+			  delete pSourceInfo;
+
+			  rc = SIPX_RESULT_SUCCESS;
+		  }
+		  break;
       default:
          break;
       }
