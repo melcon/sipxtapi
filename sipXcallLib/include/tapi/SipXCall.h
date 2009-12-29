@@ -47,7 +47,7 @@ typedef enum
 class SIPX_CALL_DATA
 {
 public:
-   UtlString m_abstractCallId; ///< Id identifying CpPeerCall instance
+   UtlString m_abstractCallId; ///< Id identifying XCpAbstractCall instance. For conference calls this is conference id.
    Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets. Can be used for new out of dialog requests.
    Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag. Stored here to avoid line lookups.
    SipDialog m_sipDialog; ///< sip dialog of this call
@@ -60,14 +60,7 @@ public:
    SIPX_VIDEO_DISPLAY m_display;
    SIPX_CALLSTATE_EVENT m_callState; ///< current call state
    SIPX_CALLSTATE_CAUSE m_callStateCause; ///< cause of current call state
-
-   SIPX_MEDIA_EVENT m_lastLocalMediaAudioEvent;
-   SIPX_MEDIA_EVENT m_lastLocalMediaVideoEvent;
-   SIPX_MEDIA_EVENT m_lastRemoteMediaAudioEvent;
-   SIPX_MEDIA_EVENT m_lastRemoteMediaVideoEvent;
-
    UtlBoolean m_bInFocus; ///< TRUE when call is in focus
-   SIPX_TRANSPORT m_hTransport;
 
    SIPX_CALL_DATA()
       : m_mutex(OsMutex::Q_FIFO),
@@ -78,16 +71,9 @@ public:
       m_pInst(NULL),
       m_hConf(NULL),
       m_rtpRedirectState(RTP_REDIRECT_STATE_INACTIVE),
-      m_security(),
-      m_display(),
       m_callState(CALLSTATE_UNKNOWN),
       m_callStateCause(CALLSTATE_CAUSE_UNKNOWN),
-      m_lastLocalMediaAudioEvent(MEDIA_UNKNOWN),
-      m_lastLocalMediaVideoEvent(MEDIA_UNKNOWN),
-      m_lastRemoteMediaAudioEvent(MEDIA_UNKNOWN),
-      m_lastRemoteMediaVideoEvent(MEDIA_UNKNOWN),
-      m_bInFocus(false),
-      m_hTransport(0)
+      m_bInFocus(false)
    {
 
    }
@@ -113,16 +99,6 @@ SIPX_CALL sipxCallLookupHandleBySessionCallId(const UtlString& sessionCallID, SI
 SIPX_CALL sipxCallLookupHandleByCallId(const UtlString& callID, SIPX_INST pInst);
 
 void destroyCallData(SIPX_CALL_DATA* pData);
-
-UtlBoolean sipxCallGetMediaState(SIPX_CALL hCall,
-                                 SIPX_MEDIA_EVENT& lastLocalMediaAudioEvent,
-                                 SIPX_MEDIA_EVENT& lastLocalMediaVideoEvent,
-                                 SIPX_MEDIA_EVENT& lastRemoteMediaAudioEvent,
-                                 SIPX_MEDIA_EVENT& lastRemoteMediaVideoEvent);
-
-UtlBoolean sipxCallSetMediaState(SIPX_CALL hCall,
-                                 SIPX_MEDIA_EVENT event,
-                                 SIPX_MEDIA_TYPE type);
 
 UtlBoolean sipxCallGetState(SIPX_CALL hCall, 
                             SIPX_CALLSTATE_EVENT& lastEvent,

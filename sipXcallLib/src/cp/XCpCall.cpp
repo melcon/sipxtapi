@@ -313,6 +313,7 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    if (!m_pSipConnection)
    {
       SipDialog sipDialog(rMsg.getSipCallId(), rMsg.getLocalTag(), NULL, TRUE);
+      sipDialog.setLocalField(Url(rMsg.getFromAddress()));
       createSipConnection(sipDialog, rMsg.getFromAddress()); // use from address as real line url (supports virtual lines)
    }
 

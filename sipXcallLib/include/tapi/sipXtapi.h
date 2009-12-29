@@ -917,9 +917,6 @@ typedef struct
                                               sipxCallAccept at this moment) 
                                               pass 0 for automatic contact. Real contact
                                               IDs start with 1 */
-    SIPX_RTP_TRANSPORT rtpTransportFlags;/**< specifies protocols(s)/role for media. */
-    SIPX_TRANSPORT hTransport;           ///< handle of external transport
-
     /*
      * NOTE: When adding new data to this structure, please always add it to
      *       the end.  This will allow us to maintain some drop-in 
@@ -1245,10 +1242,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst, int bForceShutdown = 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param pDisplay Pointer to an object describing the display object for 
- *        rendering remote video.
- * @param pSecurity Pointer to an object describing the security attributes 
- *        for the call.
  * @param options Pointer to a SIPX_CALL_OPTIONS structure.
  * @param bSendSdp Flag to send SDP in 180 Ringing response, resulting in
  *        early media being sent/received. Either SDP offer or answer will be sent
@@ -1258,8 +1251,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst, int bForceShutdown = 
  * @see sipxConfigSetAudioCodecPreferences
  */
 SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall, 
-                                        SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
-                                        SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                         SIPX_CALL_OPTIONS* options = NULL,
                                         int bSendSdp = 0);
 
@@ -1372,10 +1363,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
  * @param szAddress SIP url of the target party
- * @param pDisplay Pointer to an object describing the display object for 
- *        rendering remote video.
- * @param pSecurity Pointer to an object describing the security attributes for 
- *        the call.
  * @param takeFocus Should SIPxua place the this call in focus (engage 
  *        local microphone and speaker).  In some cases, application developer
  *        may want to place the call in the background and play audio while 
@@ -1404,8 +1391,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
  */
 SIPXTAPI_API SIPX_RESULT sipxCallConnect(const SIPX_CALL hCall,
                                          const char* szAddress,
-                                         SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
-                                         SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                          SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_ALWAYS,
                                          SIPX_CALL_OPTIONS* options = NULL,
                                          const char* szSessionCallId = NULL);
@@ -2447,19 +2432,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
  *        helps defines the "From" caller-id.
  * @param szAddress SIP URL of the conference participant to add
  * @param phNewCall Pointer to a call handle to store new call.
- * @param contactId Id of the desired contact record to use for this call.
- *        The id refers to a Contact Record obtained by a call to
- *        sipxConfigGetLocalContacts.  The application can choose a 
- *        contact record of type LOCAL, NAT_MAPPED, CONFIG, or RELAY.
- *        The Contact Type allows you to control whether the
- *        user agent and  media processing advertises the local address
- *         (e.g. LOCAL contact of 10.1.1.x or 
- *        192.168.x.x), the NAT-derived address to the target party,
- *        or, local contact addresses of other types.
- * @param pDisplay Pointer to an object describing the display object for 
- *        rendering remote video.
- * @param pSecurity Pointer to an object describing the security attributes 
- *        for the call.
  * @param takeFocus Should SIPxua place the newly answered call in focus
  *        (engage local microphone and speaker).  In some cases, application
  *        developer may want to answer the call in the background and play
@@ -2475,9 +2447,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
                                            const SIPX_LINE hLine,
                                            const char* szAddress,
                                            SIPX_CALL* phNewCall,
-                                           SIPX_CONTACT_ID contactId = 0,
-                                           SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
-                                           SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                            SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_IF_AVAILABLE,
                                            SIPX_CALL_OPTIONS* options = NULL);
 

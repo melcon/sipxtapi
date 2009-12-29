@@ -235,6 +235,27 @@ public:
       assert(nConferences >= 0);
       lock.release();
    }
+
+   /**
+    * Increments call counter in thread safe manner.
+    */
+   void incrementCallCount()
+   {
+      lock.acquire();
+      nCalls++;
+      lock.release();
+   }
+
+   /**
+    * Decrements call counter in thread safe manner.
+    */
+   void decrementCallCount()
+   {
+      lock.acquire();
+      nCalls--;
+      assert(nCalls >= 0);
+      lock.release();
+   }
 };
 
 typedef enum CONF_HOLD_STATE
