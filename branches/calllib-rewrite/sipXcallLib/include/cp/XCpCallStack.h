@@ -20,6 +20,7 @@
 #include <utl/UtlString.h>
 #include <utl/UtlHashMap.h>
 #include <cp/XCpCallConnectionListener.h>
+#include <cp/XCpCallLookup.h>
 
 // DEFINES
 // MACROS
@@ -41,7 +42,7 @@ class SipMessage;
  * Class XCpCallStack is a container for XCpCall and XCpConference instances.
  * It supports fast lookup by id, sip call-id, focused call tracking 
  */
-class XCpCallStack : public XCpCallConnectionListener
+class XCpCallStack : public XCpCallConnectionListener, public XCpCallLookup
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -95,7 +96,7 @@ public:
    *
    * @return TRUE if a call was found, FALSE otherwise.
    */
-   UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const;
+   virtual UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const;
 
    /**
    * Finds and returns a XCpCall according to given SipDialog.
@@ -104,7 +105,7 @@ public:
    *
    * @return TRUE if a call was found, FALSE otherwise.
    */
-   UtlBoolean findCall(const SipDialog& sSipDialog, OsPtrLock<XCpCall>& ptrLock) const;
+   virtual UtlBoolean findCall(const SipDialog& sSipDialog, OsPtrLock<XCpCall>& ptrLock) const;
 
    /**
    * Finds and returns a XCpConference according to given id.

@@ -16,6 +16,8 @@
 #include <os/OsWriteLock.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipUserAgent.h>
+#include <cp/CpMediaInterfaceProvider.h>
+#include <cp/CpMessageQueueProvider.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/IdleSipConnectionState.h>
 #include <cp/state/SipConnectionStateObserver.h>
@@ -374,6 +376,18 @@ OsStatus SipConnectionStateMachine::sendInfo(const UtlString& sContentType,
    return result;
 }
 
+OsStatus SipConnectionStateMachine::terminateMediaConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->terminateMediaConnection(result));
+   }
+
+   return result;
+}
+
 OsStatus SipConnectionStateMachine::subscribe(CP_NOTIFICATION_TYPE notificationType,
                                               const SipDialog& callbackSipDialog)
 {
@@ -481,6 +495,24 @@ XSipConnectionContext& SipConnectionStateMachine::getSipConnectionContext() cons
 void SipConnectionStateMachine::setRealLineIdentity(const UtlString& sFullLineUrl)
 {
    m_rStateContext.m_realLineIdentity.fromString(sFullLineUrl, FALSE);
+}
+
+void SipConnectionStateMachine::setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider)
+{
+   m_rMessageQueueProvider = rMessageQueueProvider;
+   if (m_pSipConnectionState)
+   {
+      m_pSipConnectionState->setMessageQueueProvider(rMessageQueueProvider);
+   }
+}
+
+void SipConnectionStateMachine::setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider)
+{
+   m_rMediaInterfaceProvider = rMediaInterfaceProvider;
+   if (m_pSipConnectionState)
+   {
+      m_pSipConnectionState->setMediaInterfaceProvider(rMediaInterfaceProvider);
+   }
 }
 
 /* ============================ INQUIRY =================================== */

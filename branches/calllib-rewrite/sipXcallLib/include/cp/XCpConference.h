@@ -33,6 +33,7 @@ class AcHoldAllConnectionsMsg;
 class AcUnholdAllConnectionsMsg;
 class AcRenegotiateCodecsAllMsg;
 class CpConferenceEventListener;
+class XCpCallLookup;
 
 /**
  * XCpConference wraps several XSipConnections realizing conference functionality. XCpConference
@@ -65,6 +66,7 @@ public:
    XCpConference(const UtlString& sId,
                  SipUserAgent& rSipUserAgent,
                  XCpCallControl& rCallControl,
+                 XCpCallLookup& rCallLookup,
                  SipLineProvider* pSipLineProvider,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
@@ -273,6 +275,7 @@ private:
 
    // set only once and thread safe
    CpConferenceEventListener* m_pConferenceEventListener; ///< listener for firing conference events
+   XCpCallLookup& m_rCallLookup; ///< used to lookup other calls by abstractCallId
 };
 
 #endif // XCpConference_h__

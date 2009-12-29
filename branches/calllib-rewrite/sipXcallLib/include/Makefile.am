@@ -29,6 +29,7 @@ nobase_include_HEADERS =  \
     cp/XCpCallControl.h \
     cp/XCpCallConnectionListener.h \
     cp/XCpCallIdUtil.h \
+    cp/XCpCallLookup.h \
     cp/XCpCallManager.h \
     cp/XCpCallStack.h \
     cp/XCpConference.h \

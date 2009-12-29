@@ -269,39 +269,42 @@ UtlBoolean XCpCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
    return XCpAbstractCall::handleTimerMessage(rRawMsg);
 }
 
-UtlBoolean XCpCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+OsStatus XCpCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
 {
-   const SipMessage* pSipMessage = (SipMessage*)rSipMsgEvent.getMessage();
-   if (pSipMessage)
-   {
-      SipDialog sipDialog(pSipMessage);
+   OsStatus res = XCpAbstractCall::handleSipMessageEvent(rSipMsgEvent);
 
-      OsPtrLock<XSipConnection> ptrLock;
-      UtlBoolean resFound = findConnection(sipDialog, ptrLock);
-      if (resFound)
+   if (res == OS_NOT_FOUND)
+   {
+      const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+      if (pSipMessage && pSipMessage->isInviteRequest())
       {
-         return ptrLock->handleSipMessageEvent(rSipMsgEvent);
-      }
-      else
-      {
-         const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
-         if (!m_pSipConnection && pSipMessage && pSipMessage->isInviteRequest())
+         // we have inbound INVITE request, call doesn't exist yet
+         // discover real line url
+         UtlString sFullLineUrl(getRealLineIdentity(*pSipMessage));
+         SipDialog sipDialog(pSipMessage);
+         // sip connection doesn't yet exist, and we received new INVITE message
+         createSipConnection(sipDialog, sFullLineUrl); // create sip connection
+         OsPtrLock<XSipConnection> ptrLock;
+         UtlBoolean resFound = getConnection(ptrLock);
+         if (resFound)
          {
-            // we have inbound INVITE request, call doesn't exist yet
-            // discover real line url
-            UtlString sFullLineUrl(getRealLineIdentity(*pSipMessage));
-            // sip connection doesn't yet exist, and we received new INVITE message
-            createSipConnection(sipDialog, sFullLineUrl); // create sip connection
-            resFound = getConnection(ptrLock);
-            if (resFound)
+            if (ptrLock->handleSipMessageEvent(rSipMsgEvent)) // let it handle INVITE
             {
-               return ptrLock->handleSipMessageEvent(rSipMsgEvent); // let it handle INVITE
+               return OS_SUCCESS;
+            }
+            else
+            {
+               return OS_FAILED;
             }
          }
       }
+      else
+      {
+         return OS_NOT_FOUND;
+      }
    }
 
-   return FALSE;
+   return res;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -406,22 +409,31 @@ OsStatus XCpCall::handleAnswerConnection(const AcAnswerConnectionMsg& rMsg)
 
 OsStatus XCpCall::handleDropConnection(const AcDropConnectionMsg& rMsg)
 {
-   SipDialog sipDialog;
-   rMsg.getSipDialog(sipDialog);
-   UtlBoolean resFound = FALSE;
-   // find connection by sip dialog if call-id is not null
-   OsPtrLock<XSipConnection> ptrLock;
-   if (sipDialog.getCallId().isNull())
+   if (m_pSipConnection)
    {
-      resFound = getConnection(ptrLock);
+      SipDialog sipDialog;
+      rMsg.getSipDialog(sipDialog);
+      UtlBoolean resFound = FALSE;
+      // find connection by sip dialog if call-id is not null
+      OsPtrLock<XSipConnection> ptrLock;
+      if (sipDialog.getCallId().isNull())
+      {
+         resFound = getConnection(ptrLock);
+      }
+      else
+      {
+         resFound = findConnection(sipDialog, ptrLock);
+      }
+      if (resFound)
+      {
+         return ptrLock->dropConnection();
+      }
    }
    else
    {
-      resFound = findConnection(sipDialog, ptrLock);
-   }
-   if (resFound)
-   {
-      return ptrLock->dropConnection();
+      // we don't have any connection
+      requestCallDestruction();
+      return OS_SUCCESS;
    }
 
    return OS_NOT_FOUND;
@@ -429,15 +441,12 @@ OsStatus XCpCall::handleDropConnection(const AcDropConnectionMsg& rMsg)
 
 OsStatus XCpCall::handleDestroyConnection(const AcDestroyConnectionMsg& rMsg)
 {
-   releaseMediaInterface(); // release audio resources
-
+   // get rid of sip connection
    SipDialog sipDialog;
    rMsg.getSipDialog(sipDialog);
    destroySipConnection(sipDialog);
 
-   CmDestroyAbstractCallMsg msg(m_sId);
-   getGlobalQueue().send(msg); // instruct call manager to destroy this call
-
+   requestCallDestruction();
    return OS_SUCCESS;
 }
 
@@ -502,6 +511,14 @@ void XCpCall::destroySipConnection(const SipDialog& sSipDialog)
       // we destroyed some connection, notify call stack
       onConnectionRemoved(sSipCallId);
    }
+}
+
+void XCpCall::requestCallDestruction()
+{
+   releaseMediaInterface(); // release audio resources
+
+   CmDestroyAbstractCallMsg msg(m_sId);
+   getGlobalQueue().send(msg); // instruct call manager to destroy this call
 }
 
 void XCpCall::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,

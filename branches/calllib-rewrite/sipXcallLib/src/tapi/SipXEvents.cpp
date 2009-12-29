@@ -542,9 +542,15 @@ SIPXTAPI_API const char* sipxConferenceEventToString(SIPX_CONFERENCE_EVENT event
 	case CONFERENCE_CALL_ADDED:
 		str = MAKESTR(CONFERENCE_CALL_ADDED);
 		break;
+   case CONFERENCE_CALL_ADD_FAILURE:
+      str = MAKESTR(CONFERENCE_CALL_ADD_FAILURE);
+      break;
 	case CONFERENCE_CALL_REMOVED:
 		str = MAKESTR(CONFERENCE_CALL_REMOVED);
 		break;
+   case CONFERENCE_CALL_REMOVE_FAILURE:
+      str = MAKESTR(CONFERENCE_CALL_REMOVE_FAILURE);
+      break;
 	default:
 		break;
 	}
@@ -560,6 +566,9 @@ SIPXTAPI_API const char* sipxConferenceCauseToString(SIPX_CONFERENCE_CAUSE cause
 	case CONFERENCE_CAUSE_NORMAL:
 		str = MAKESTR(CONFERENCE_CAUSE_NORMAL);
 		break;
+   case CP_CONFERENCE_CAUSE_INVALID_STATE:
+      str = MAKESTR(CP_CONFERENCE_CAUSE_INVALID_STATE);
+      break;
 	default:
 		break;
 	}

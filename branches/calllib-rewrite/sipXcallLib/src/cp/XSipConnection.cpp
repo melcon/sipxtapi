@@ -13,9 +13,11 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsReadLock.h>
+#include <os/OsWriteLock.h>
 #include <mi/CpMediaInterface.h>
 #include <net/SipInfoEventListener.h>
 #include <cp/CpMediaInterfaceProvider.h>
+#include <cp/CpMessageQueueProvider.h>
 #include <cp/XSipConnection.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpMediaEventListener.h>
@@ -237,6 +239,11 @@ OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
    return m_stateMachine.sendInfo(sContentType, pContent, nContentLength, pCookie);
 }
 
+OsStatus XSipConnection::terminateMediaConnection()
+{
+   return m_stateMachine.terminateMediaConnection();
+}
+
 OsStatus XSipConnection::subscribe(CP_NOTIFICATION_TYPE notificationType, const SipDialog& callbackSipDialog)
 {
    return m_stateMachine.subscribe(notificationType, callbackSipDialog);
@@ -353,6 +360,24 @@ void XSipConnection::getRemoteAddress(UtlString& sRemoteAddress) const
       m_rSipConnectionContext.m_sipDialog.getRemoteField(remoteUrl);
    }
    remoteUrl.toString(sRemoteAddress);
+}
+
+void XSipConnection::setAbstractCallId(const UtlString& sAbstractCallId)
+{
+   OsWriteLock lock(m_rSipConnectionContext);
+   m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
+}
+
+void XSipConnection::setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider)
+{
+   m_rMessageQueueProvider = rMessageQueueProvider;
+   m_stateMachine.setMessageQueueProvider(rMessageQueueProvider);
+}
+
+void XSipConnection::setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider)
+{
+   m_rMediaInterfaceProvider = rMediaInterfaceProvider;
+   m_stateMachine.setMediaInterfaceProvider(rMediaInterfaceProvider);
 }
 
 /* ============================ INQUIRY =================================== */

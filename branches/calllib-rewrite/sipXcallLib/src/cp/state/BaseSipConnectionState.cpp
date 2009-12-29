@@ -763,6 +763,28 @@ SipConnectionStateTransition* BaseSipConnectionState::sendInfo(OsStatus& result,
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::terminateMediaConnection(OsStatus& result)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+   result = OS_FAILED;
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (mayRenegotiateMediaSession())
+      {
+         // only allow termination of media connection if there is no active UPDATE or INVITE
+         deleteMediaConnection();
+         result = OS_SUCCESS;
+      }
+      else
+      {
+         result = OS_BUSY;
+      }
+   }
+
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    switch (timerMsg.getPayloadType())
@@ -814,6 +836,16 @@ SipConnectionStateTransition* BaseSipConnectionState::handleNotificationMessage(
 }
 
 /* ============================ ACCESSORS ================================= */
+
+void BaseSipConnectionState::setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider)
+{
+   m_rMessageQueueProvider = rMessageQueueProvider;
+}
+
+void BaseSipConnectionState::setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider)
+{
+   m_rMediaInterfaceProvider = rMediaInterfaceProvider;
+}
 
 /* ============================ INQUIRY =================================== */
 

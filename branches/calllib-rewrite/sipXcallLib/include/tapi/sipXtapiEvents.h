@@ -654,7 +654,9 @@ typedef enum
    CONFERENCE_CREATED = 0, ///< fired when conference is created
    CONFERENCE_DESTROYED, ///< fired when conference is destroyed
    CONFERENCE_CALL_ADDED, ///< fired when a new call is added to conference
-   CONFERENCE_CALL_REMOVED ///< fired when a call is removed from conference
+   CONFERENCE_CALL_ADD_FAILURE, ///< fired when call failed to be added to conference (join)
+   CONFERENCE_CALL_REMOVED, ///< fired when a call is removed from conference
+   CONFERENCE_CALL_REMOVE_FAILURE ///< fired when call failed to be removed from conference (split)
 } SIPX_CONFERENCE_EVENT;
 
 /**
@@ -663,6 +665,7 @@ typedef enum
 typedef enum
 {
    CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
+   CONFERENCE_CAUSE_INVALID_STATE       ///< call is in invalid state for requested operation
 } SIPX_CONFERENCE_CAUSE;
 
 /**

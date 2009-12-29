@@ -319,7 +319,9 @@ typedef enum
    CP_CONFERENCE_CREATED = 0, ///< fired when conference is created
    CP_CONFERENCE_DESTROYED, ///< fired when conference is destroyed
    CP_CONFERENCE_CALL_ADDED, ///< fired when a new call is added to conference
-   CP_CONFERENCE_CALL_REMOVED ///< fired when a call is removed from conference
+   CP_CONFERENCE_CALL_ADD_FAILURE, ///< fired when call failed to be added to conference (join)
+   CP_CONFERENCE_CALL_REMOVED, ///< fired when a call is removed from conference
+   CP_CONFERENCE_CALL_REMOVE_FAILURE ///< fired when call failed to be removed from conference (split)
 } CP_CONFERENCE_EVENT;
 
 /**
@@ -328,6 +330,7 @@ typedef enum
 typedef enum
 {
    CP_CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
+   CP_CONFERENCE_CAUSE_INVALID_STATE       ///< call is in invalid state for requested operation
 } CP_CONFERENCE_CAUSE;
 
 /**

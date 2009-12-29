@@ -201,6 +201,9 @@ public:
                                                   const size_t nContentLength,
                                                   void* pCookie);
 
+   /** Terminates media connection silently without informing remote call party. Used for conference split/join. */
+   virtual SipConnectionStateTransition* terminateMediaConnection(OsStatus& result);
+
    /** Handles timer message. */
    virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
 
@@ -214,6 +217,12 @@ public:
 
    /** Sets response code returned for inbound INFO messages - used in unit tests. */
    static void setInfoTestResponseCode(int val) { ms_iInfoTestResponseCode = val; }
+
+   /** Sets new message queue provider on the state */
+   void setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider);
+
+   /** Sets new media interface provider on the state */
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider);
 
    /* ============================ INQUIRY =================================== */
 

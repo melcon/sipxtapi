@@ -198,7 +198,7 @@ protected:
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
    /** Handler for inbound SipMessageEvent messages. */
-   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+   virtual OsStatus handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -230,6 +230,11 @@ private:
 
    /** Destroys XSipConnection if it exists */
    void destroySipConnection();
+
+   /**
+    * Request the call to be destroyed by call manager.
+    */
+   void requestCallDestruction();
 
    /**
     * Destroys XSipConnection if it exists by sip dialog. This should be called

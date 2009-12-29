@@ -56,7 +56,11 @@ public:
 
    virtual void OnConferenceCallAdded(const CpConferenceEvent& event);
 
+   virtual void OnConferenceCallAddFailure(const CpConferenceEvent& event);
+
    virtual void OnConferenceCallRemoved(const CpConferenceEvent& event);
+
+   virtual void OnConferenceCallRemoveFailure(const CpConferenceEvent& event);
 
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
 

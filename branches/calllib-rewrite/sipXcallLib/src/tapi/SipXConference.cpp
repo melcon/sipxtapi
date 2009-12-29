@@ -80,6 +80,12 @@ UtlBoolean sipxRemoveCallHandleFromConf(const SIPX_CONF hConf,
          pConfData->m_hCalls[pConfData->m_nCalls] = SIPX_CALL_NULL;
       }
       sipxConfReleaseLock(pConfData, SIPX_LOCK_WRITE, stackLogger);
+
+      if (bFound)
+      {
+         // also clear reference from call to conference
+         sipxCallSetConf(hCall, SIPX_CONF_NULL);
+      }
    }
 
    return bFound;
@@ -436,34 +442,48 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
       hConf, hCall);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   UtlBoolean bDoSplit = FALSE;
-   UtlString sourceSessionCallId;
-   UtlString sourceCallId;
-   UtlString sourceAddress;
-   UtlString targetCallId;
-   SIPX_INSTANCE_DATA* pInst = NULL;
 
-   if (hConf > SIPX_CONF_NULL && hCall > SIPX_CALL_NULL)
+   if (hConf != SIPX_CONF_NULL && hCall != SIPX_CALL_NULL)
    {
-      SIPX_CONF_DATA* pConfData = sipxConfLookup(hConf, SIPX_LOCK_WRITE, stackLogger);
+      SIPX_CONF_DATA* pConfData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
 
       if (pConfData)
       {
-         UtlString confCallId(pConfData->m_sConferenceId);
-         sipxConfReleaseLock(pConfData, SIPX_LOCK_WRITE, stackLogger);
+         UtlString conferenceId(pConfData->m_sConferenceId);
+         size_t nCalls = pConfData->m_nCalls;
+         SIPX_INSTANCE_DATA* pInst1 = pConfData->m_pInst;
+         sipxConfReleaseLock(pConfData, SIPX_LOCK_READ, stackLogger);
 
-         // conference was found as is locked
-         SIPX_CALL_DATA * pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
-         if (pCallData)
+         if (pInst1 && nCalls < CONF_MAX_CONNECTIONS)
          {
-            sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+            SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+            if (pCallData && !pCallData->m_sipDialog.getRemoteField().isNull() && pCallData->m_hConf == SIPX_CONF_NULL)
+            {
+               UtlString callId(pCallData->m_abstractCallId);
+               SIPX_INSTANCE_DATA* pInst2 = pConfData->m_pInst;
+               sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
+
+               if (pInst1 == pInst2)
+               {
+                  sipxAddCallHandleToConf(hCall, hConf);
+                  // call and conference must exist in the same call manager
+                  if (pInst1->pCallManager->conferenceJoin(conferenceId, callId) == OS_SUCCESS)
+                  {
+                     // m_abstractCallId of call will be updated if asynchronous operation succeeds
+                     rc = SIPX_RESULT_SUCCESS;
+                  }
+                  else
+                  {
+                     sipxRemoveCallHandleFromConf(hConf, hCall);
+                  }
+               }
+            }
          }
       }
    }
 
    return rc;
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
                                              const SIPX_CALL hCall)
@@ -474,26 +494,34 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
       hConf, hCall);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   UtlBoolean doSplit = FALSE;
-   UtlString sourceSessionCallId;
-   UtlString sourceAddress;
-   UtlString targetCallId;
-   SIPX_INSTANCE_DATA *pInst = NULL;
 
-   if (hConf > SIPX_CONF_NULL && hCall > SIPX_CALL_NULL)
+   if (hConf != SIPX_CONF_NULL && hCall != SIPX_CALL_NULL)
    {
-      SIPX_CONF_DATA* pConfData = sipxConfLookup(hConf, SIPX_LOCK_WRITE, stackLogger);
+      SIPX_CONF_DATA* pConfData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
 
       if (pConfData)
       {
-         // conference was found
-         sipxConfReleaseLock(pConfData, SIPX_LOCK_WRITE, stackLogger);
+         UtlString conferenceId(pConfData->m_sConferenceId);
+         SIPX_INSTANCE_DATA* pInst1 = pConfData->m_pInst;
+         sipxConfReleaseLock(pConfData, SIPX_LOCK_READ, stackLogger);
 
-         SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
-
-         if (pCallData)
+         if (pInst1)
          {
-            sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+            SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+            if (pCallData)
+            {
+               if (!pCallData->m_sipDialog.getRemoteField().isNull() && pCallData->m_hConf == hConf &&
+                  pInst1 == pCallData->m_pInst)
+               {
+                  UtlString newCallId;
+                  if (pInst1->pCallManager->conferenceSplit(conferenceId, pCallData->m_sipDialog, newCallId) == OS_SUCCESS)
+                  {
+                     pCallData->m_splitCallId = newCallId;
+                     rc = SIPX_RESULT_SUCCESS;
+                  }
+               }
+               sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
+            }
          }
       }
    }
@@ -527,7 +555,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
       {
          // conference was found
          // create sip call-id for conference call
-         UtlString sipCallId = pInst->pCallManager->getNewSipCallId();         
+         UtlString sipCallId = pInst->pCallManager->getNewSipCallId();
 
          // call can be added, create it with conferenceId
          SIPX_RESULT res = sipxCallCreateHelper(pInst,

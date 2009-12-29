@@ -72,9 +72,21 @@ void SipXConferenceEventListener::OnConferenceCallAdded(const CpConferenceEvent&
    postMessage(msg);
 }
 
+void SipXConferenceEventListener::OnConferenceCallAddFailure(const CpConferenceEvent& event)
+{
+   ConferenceEventMsg msg(CONFERENCE_CALL_ADD_FAILURE, event);
+   postMessage(msg);
+}
+
 void SipXConferenceEventListener::OnConferenceCallRemoved(const CpConferenceEvent& event)
 {
    ConferenceEventMsg msg(CONFERENCE_CALL_REMOVED, event);
+   postMessage(msg);
+}
+
+void SipXConferenceEventListener::OnConferenceCallRemoveFailure(const CpConferenceEvent& event)
+{
+   ConferenceEventMsg msg(CONFERENCE_CALL_REMOVE_FAILURE, event);
    postMessage(msg);
 }
 
@@ -157,25 +169,63 @@ void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT ev
       conferenceInfo.hCall = hCall;
       conferenceInfo.nSize = sizeof(SIPX_RTP_REDIRECT_INFO);
 
-      if (event == CONFERENCE_DESTROYED)
+      if (event != CONFERENCE_DESTROYED && event != CONFERENCE_CREATED && hCall == SIPX_CALL_NULL)
       {
-         sipxConfFree(hConf);
+         OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
+            "handleConferenceEvent: unable to find call for conference event for conference %s.\n",
+            sConferenceId.data());
       }
-      else if (event == CONFERENCE_CALL_REMOVED)
+
+      switch (event)
       {
-         // CONFERENCE_CALL_REMOVED is fired before CALLSTATE_DESTROYED
-         if (hCall != SIPX_CALL_NULL)
-         {
-            // remove call from conference
-            sipxRemoveCallHandleFromConf(hConf, hCall);
-            sipxCallSetConf(hCall, SIPX_CONF_NULL);
-         }
-         else
-         {
-            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
-               "handleConferenceEvent: unknown call was removed from conference %s. Unable to update call.\n",
-               sConferenceId.data());
-         }
+         case CONFERENCE_DESTROYED:
+            sipxConfFree(hConf);
+            break;
+         case CONFERENCE_CALL_REMOVED:
+            {
+               // remove call from conference
+               sipxRemoveCallHandleFromConf(hConf, hCall);
+
+               SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
+               if (pCallData)
+               {
+                  if (!pCallData->m_abstractCallId.isNull())
+                  {
+                     // for conference split, m_abstractCallId needs to be updated from m_splitCallId
+                     pCallData->m_abstractCallId = pCallData->m_splitCallId;
+                     pCallData->m_splitCallId.clear();
+                  }
+                  sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+               }
+               break;
+            }
+         case CONFERENCE_CALL_REMOVE_FAILURE:
+            {
+               SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
+               if (pCallData)
+               {
+                  // call is still in conference, clear m_splitCallId
+                  pCallData->m_splitCallId.clear();
+                  sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+               }
+               break;
+            }
+         case CONFERENCE_CALL_ADDED:
+            {
+               SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
+               if (pCallData)
+               {
+                  // update abstractCallId of call
+                  pCallData->m_abstractCallId = sConferenceId;
+                  sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+               }
+            }
+         case CONFERENCE_CALL_ADD_FAILURE:
+            {
+               sipxRemoveCallHandleFromConf(hConf, hCall);
+            }
+         default:
+            ;
       }
 
       // fire event
