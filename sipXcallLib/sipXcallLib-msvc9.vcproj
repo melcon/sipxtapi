@@ -758,6 +758,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\XCpCallLookup.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\XCpCallManager.h"
 				>
 			</File>

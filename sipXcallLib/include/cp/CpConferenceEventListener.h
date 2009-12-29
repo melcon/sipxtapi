@@ -71,7 +71,7 @@ public:
          return *this;
       }
 
-	  m_sConferenceId = event.m_sConferenceId;
+	   m_sConferenceId = event.m_sConferenceId;
       m_sSipCallId = event.m_sSipCallId;
       m_cause = event.m_cause;
       return *this;
@@ -99,7 +99,11 @@ public:
 
    virtual void OnConferenceCallAdded(const CpConferenceEvent& event) = 0;
 
+   virtual void OnConferenceCallAddFailure(const CpConferenceEvent& event) = 0;
+
    virtual void OnConferenceCallRemoved(const CpConferenceEvent& event) = 0;
+
+   virtual void OnConferenceCallRemoveFailure(const CpConferenceEvent& event) = 0;
 
    /* ============================ ACCESSORS ================================= */
 

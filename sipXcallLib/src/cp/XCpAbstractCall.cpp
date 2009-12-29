@@ -564,7 +564,7 @@ UtlBoolean XCpAbstractCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
    return FALSE;
 }
 
-UtlBoolean XCpAbstractCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+OsStatus XCpAbstractCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
 {
    const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
    if (pSipMessage)
@@ -573,11 +573,18 @@ UtlBoolean XCpAbstractCall::handleSipMessageEvent(const SipMessageEvent& rSipMsg
       UtlBoolean resFound = findConnection(*pSipMessage, ptrLock);
       if (resFound)
       {
-         return ptrLock->handleSipMessageEvent(rSipMsgEvent);
+         if (ptrLock->handleSipMessageEvent(rSipMsgEvent))
+         {
+            return OS_SUCCESS;
+         }
+      }
+      else
+      {
+         return OS_NOT_FOUND;
       }
    }
 
-   return FALSE;
+   return OS_FAILED;
 }
 
 UtlBoolean XCpAbstractCall::findConnection(const SipMessage& sipMessage, OsPtrLock<XSipConnection>& ptrLock) const
@@ -867,7 +874,19 @@ UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
    switch (msgSubType)
    {
    case SipMessage::NET_SIP_MESSAGE:
-      return handleSipMessageEvent((const SipMessageEvent&)rRawMsg);
+      {
+         OsStatus res = handleSipMessageEvent((const SipMessageEvent&)rRawMsg);
+         if (res == OS_SUCCESS)
+         {
+            bResult = TRUE;
+         }
+         else if (res == OS_NOT_FOUND)
+         {
+            // if connection for sip message was not found, repost message back to call manager
+            getGlobalQueue().send(rRawMsg);
+         }
+         break;
+      }
    default:
       {
          OsSysLog::add(FAC_CP, PRI_ERR, "Unknown PHONE_APP XCpAbstractCall message subtype: %d\n", msgSubType);

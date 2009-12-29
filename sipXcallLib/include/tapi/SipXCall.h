@@ -48,6 +48,7 @@ class SIPX_CALL_DATA
 {
 public:
    UtlString m_abstractCallId; ///< Id identifying XCpAbstractCall instance. For conference calls this is conference id.
+   UtlString m_splitCallId; ///< temporary Id for conference call splitting. Identifies new call which will receive split call.
    Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets. Can be used for new out of dialog requests.
    Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag. Stored here to avoid line lookups.
    SipDialog m_sipDialog; ///< sip dialog of this call
@@ -65,6 +66,7 @@ public:
    SIPX_CALL_DATA()
       : m_mutex(OsMutex::Q_FIFO),
       m_abstractCallId(NULL),
+      m_splitCallId(NULL),
       m_lineUri(),
       m_sipDialog(NULL),
       m_hLine(0),

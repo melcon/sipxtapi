@@ -30,6 +30,7 @@
 #include <cp/msg/CmDestroyAbstractCallMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 #include <cp/CpConferenceEventListener.h>
+#include <cp/XCpCallLookup.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -47,6 +48,7 @@
 XCpConference::XCpConference(const UtlString& sId,
                              SipUserAgent& rSipUserAgent,
                              XCpCallControl& rCallControl,
+                             XCpCallLookup& rCallLookup,
                              SipLineProvider* pSipLineProvider,
                              CpMediaInterfaceFactory& rMediaInterfaceFactory,
                              const SdpCodecList& rDefaultSdpCodecList,
@@ -72,6 +74,7 @@ XCpConference::XCpConference(const UtlString& sId,
                   pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener, pRtpRedirectEventListener)
 , m_pConferenceEventListener(pConferenceEventListener)
+, m_rCallLookup(rCallLookup)
 , m_bDestroyConference(FALSE)
 {
 

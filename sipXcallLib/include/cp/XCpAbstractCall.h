@@ -225,8 +225,6 @@ public:
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
     * progresses to disconnected and the connection is removed.
-    * @param bDestroyAbstractCall If true, then abstract call will also be destroyed if last connection
-    *        was dropped
     */
    virtual OsStatus dropConnection(const SipDialog& sipDialog) = 0;
 
@@ -435,7 +433,7 @@ protected:
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
    /** Handler for inbound SipMessageEvent messages. */
-   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+   virtual OsStatus handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /** Finds connection handling given Sip dialog. Uses loose dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;

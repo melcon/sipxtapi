@@ -157,6 +157,9 @@ public:
                      const size_t nContentLength,
                      void* pCookie);
 
+   /** Terminates media connection silently without informing remote call party. Used for conference split/join. */
+   OsStatus terminateMediaConnection();
+
    /**
    * Subscribe for given notification type with given target sip call.
    * ScNotificationMsg messages will be sent to callbackSipDialog.
@@ -215,6 +218,12 @@ public:
     * or request uri for inbound calls, and specified for outbound calls.
     */
    void setRealLineIdentity(const UtlString& sFullLineUrl);
+
+   /** Sets new message queue provider on the state machine and current state */
+   void setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider);
+
+   /** Sets new media interface provider on the state machine and current state */
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider);
 
    /* ============================ INQUIRY =================================== */
 

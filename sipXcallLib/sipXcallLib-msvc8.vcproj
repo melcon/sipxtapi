@@ -191,6 +191,7 @@
             <File RelativePath=".\include\cp\XCpCallConnectionListener.h"/>
             <File RelativePath=".\include\cp\XCpCallControl.h"/>
             <File RelativePath=".\include\cp\XCpCallIdUtil.h"/>
+            <File RelativePath=".\include\cp\XCpCallLookup.h"/>
             <File RelativePath=".\include\cp\XCpCallManager.h"/>
             <File RelativePath=".\include\cp\XCpCallStack.h"/>
             <File RelativePath=".\include\cp\XCpConference.h"/>

@@ -2385,15 +2385,15 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
                                               SIPX_CONF* phConference);
 
 /**
- * Join (add) an existing held call into a conference.
+ * Join (add) an existing connected call into a conference.
  * 
- * Call must be connected and on remote/full hold for this operation 
- * to succeed. Hold can be accomplished by calling sipxCallHold on
- * the joining party. The application layer must wait for the 
- * CALLSTATE_HELD or CALLSTATE_REMOTE_HELD event prior to calling join.
- * No events are fired as part of the operation and the newly joined call
- * is left on hold. The application layer should call sipxCallUnhold on the new 
- * participant to unhold the call.
+ * Call must be connected for this operation to succeed. This operation
+ * executes asynchronously and will result in CONFERENCE_CALL_ADDED or
+ * CONFERENCE_CALL_ADD_FAILURE event. Until one of these events is received
+ * no other operation on the call must be performed.
+ *
+ * If an INVITE or UPDATE is in progress operation will fail with
+ * CONFERENCE_CAUSE_INVALID_STATE and may be retried later.
  *
  * @param hConf Conference handle obtained by calling sipxConferenceCreate.
  * @param hCall Call handle of the call to join into the conference.
@@ -2402,15 +2402,17 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
                                             const SIPX_CALL hCall);
 
 /**
- * Split (remove) a held call from a conference.  This method will remove
- * the specified call from the conference.  
+ * Split (remove) a call from a conference. This method will remove
+ * the specified call from the conference. Specified call will continue
+ * to be active.
  *
- * The call must be connected and on remote/full hold for this operation to 
- * succeed. Hold can be accomplished by calling sipxCallHold on 
- * the conference participant or by placing the entire conference on hold 
- * with bridging disabled.  The application layer must wait for the 
- * CALLSTATE_HELD or CALLSTATE_REMOTE_HELD event prior to calling split. No events 
- * are fired as part of the operation and the split call is left on hold.
+ * The call must be connected for this operation to succeed. This operation
+ * executes asynchronously and will result in CONFERENCE_CALL_REMOVED or
+ * CONFERENCE_CALL_REMOVE_FAILURE event. Until one of these events is received
+ * no other operation on the call must be performed.
+ *
+ * If an INVITE or UPDATE is in progress operation will fail with
+ * CONFERENCE_CAUSE_INVALID_STATE and may be retried later.
  *
  * @param hConf Handle to a conference.  Conference handles are obtained 
  *        by invoking sipxConferenceCreate.

@@ -248,6 +248,13 @@ public:
                      void* pCookie);
 
    /**
+    * Terminates media connection silently without informing remote call party. Used for conference split/join.
+    * This operation may fail with OS_BUSY if there is INVITE or UPDATE in progress. In that case operation
+    * may be retried later.
+    */
+   OsStatus terminateMediaConnection();
+
+   /**
    * Subscribe for given notification type with given target sip call.
    * ScNotificationMsg messages will be sent to callbackSipDialog.
    */
@@ -323,6 +330,15 @@ public:
 
    /** Gets Url of the remote connection party field parameters if present (tag)*/
    void getRemoteAddress(UtlString& sRemoteAddress) const;
+
+   /** Sets new abstract call id on the connection */
+   void setAbstractCallId(const UtlString& sAbstractCallId);
+
+   /** Sets new message queue provider on the connection */
+   void setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider);
+
+   /** Sets new media interface provider on the connection */
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider);
 
    /* ============================ INQUIRY =================================== */
 

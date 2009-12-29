@@ -167,13 +167,11 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
 {
    OsStatus result = OS_FAILED;
 
-   sCallId.remove(0); // clear string
-
-   // always allow creation of new call, check for limit only when establishing
    if (sCallId.isNull())
    {
       sCallId = getNewCallId();
    }
+   // always allow creation of new call, check for limit only when establishing
 
    XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
       m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh, m_updateSetting, m_100relSetting, m_sdpOfferingMode,
@@ -202,10 +200,13 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
 {
    OsStatus result = OS_FAILED;
 
-   sConferenceId.clear();
    // always allow creation of new conference, check for limit only when establishing
-   sConferenceId = getNewConferenceId();
-   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
+   if (sConferenceId.isNull())
+   {
+      sConferenceId = getNewConferenceId();
+   }
+   XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, *this, m_callStack,
+      m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
       *getMessageQueue(), m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
       m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener, m_pRtpRedirectEventListener,
@@ -300,6 +301,19 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
    }
 
    return result;
+}
+
+OsStatus XCpCallManager::conferenceJoin(const UtlString& sConferenceId,
+                                        const UtlString& sCallId)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpCallManager::conferenceSplit(const UtlString& sConferenceId,
+                                         const SipDialog& sipDialog,
+                                         UtlString& sNewCallId)
+{
+   return OS_FAILED;
 }
 
 OsStatus XCpCallManager::startCallRedirectRtp(const UtlString& sSrcCallId,

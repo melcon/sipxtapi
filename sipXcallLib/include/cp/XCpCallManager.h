@@ -81,7 +81,7 @@ public:
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
                   CpRtpRedirectEventListener* pRtpRedirectEventListener,
-				  CpConferenceEventListener* pConferenceEventListener,
+				      CpConferenceEventListener* pConferenceEventListener,
                   SipUserAgent& rSipUserAgent,
                   const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
@@ -137,6 +137,37 @@ public:
                                   const UtlString& locationHeader,
                                   CP_CONTACT_ID contactId,
                                   CP_FOCUS_CONFIG focusConfig);
+
+   /**
+    * Joins a call with a conference. Call must not have UPDATE/INVITE in progress
+    * otherwise the operation will fail asynchronously. Because this operation is asynchronous
+    * final result will not be available immediately.
+    *
+    * Joining a conference will result in renegotiation of media codecs, but does not
+    * require call to be held. No call events will be fired.
+    *
+    * @param sConferenceId id of existing conference
+    * @param sCallId abstractCallId of an existing call that should be joined with conference
+    */
+   OsStatus conferenceJoin(const UtlString& sConferenceId,
+                           const UtlString& sCallId);
+
+   /**
+    * Splits a call from a conference. Call must not have UPDATE/INVITE in progress
+    * otherwise the operation will fail asynchronously. Because this operation is asynchronous
+    * final result will not be available immediately.
+    *
+    * Splitting from a conference will result in renegotiation of media codecs, but does not
+    * require call to be held. No call events will be fired.
+    *
+    * @param sConferenceId id of existing conference
+    * @param sipDialog sip dialog of call in conference that should be split
+    * @param sNewCallId generated abstractCallId which will receive split call. If operation fails
+    *        asynchronously this call will be dropped automatically.
+    */
+   OsStatus conferenceSplit(const UtlString& sConferenceId,
+                            const SipDialog& sipDialog,
+                            UtlString& sNewCallId);
 
    /**
    * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
