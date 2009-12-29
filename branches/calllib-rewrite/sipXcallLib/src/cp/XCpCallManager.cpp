@@ -295,7 +295,8 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
          sTmpSipCallId = getNewSipCallId();
       }
       // we found call and have a lock on it
-      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig);
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig,
+         NULL, CP_CALLSTATE_CAUSE_CONFERENCE);
    }
 
    return result;

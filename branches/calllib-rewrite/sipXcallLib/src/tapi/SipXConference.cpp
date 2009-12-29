@@ -506,42 +506,37 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
                                            const SIPX_LINE hLine,
                                            const char* szAddress,
                                            SIPX_CALL* phNewCall,
-                                           SIPX_CONTACT_ID contactId,
-                                           SIPX_VIDEO_DISPLAY* const pDisplay,
-                                           SIPX_SECURITY_ATTRIBUTES* const pSecurity,
                                            SIPX_FOCUS_CONFIG takeFocus,
                                            SIPX_CALL_OPTIONS* options)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceAdd");
 
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConferenceAdd hConf=%d hLine=%d szAddress=%s contactId=%d, pDisplay=%p ",
-      hConf, hLine, szAddress, contactId, pDisplay);
-
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConferenceAdd hConf=%d hLine=%d szAddress=%s ", hConf, hLine, szAddress);
 
    SIPX_CONF_DATA* pData = sipxConfLookup(hConf, SIPX_LOCK_WRITE, stackLogger);
    if (pData)
    {
       SIPX_INSTANCE_DATA* pInst = pData->m_pInst;
       size_t nCalls = pData->m_nCalls;
-      UtlString confCallId(pData->m_sConferenceId);
+      UtlString conferenceId(pData->m_sConferenceId);
       sipxConfReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 
       if (pInst && nCalls < CONF_MAX_CONNECTIONS)
       {
          // conference was found
-         // create session call id for conference call
-         UtlString sessionCallId = pInst->pCallManager->getNewSipCallId();         
+         // create sip call-id for conference call
+         UtlString sipCallId = pInst->pCallManager->getNewSipCallId();         
 
-         // call can be added, create it with confCallId
+         // call can be added, create it with conferenceId
          SIPX_RESULT res = sipxCallCreateHelper(pInst,
             hLine,
             NULL,
             hConf,
             phNewCall,
-            confCallId,
-            sessionCallId,
+            conferenceId,// becomes abstractCallId
+            sipCallId,
             true);// bIsConferenceCall
 
          if (res == SIPX_RESULT_SUCCESS)
@@ -550,8 +545,13 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
             sipxAddCallHandleToConf(*phNewCall, hConf);
 
             // connect call
-            rc = sipxCallConnect(*phNewCall, szAddress, pDisplay, pSecurity,
-               takeFocus, options, sessionCallId);
+            rc = sipxCallConnect(*phNewCall, szAddress, takeFocus, options, sipCallId);
+            if (rc != SIPX_RESULT_SUCCESS)
+            {
+               // destroy the call and remove it from conference
+               sipxRemoveCallHandleFromConf(hConf, *phNewCall);
+               sipxCallObjectFree(*phNewCall, stackLogger);
+            }
          }
          else
          {

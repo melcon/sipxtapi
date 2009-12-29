@@ -241,9 +241,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       {
          // new call was successfully allocated
          // Increment call count
-         pSipXInstance->lock.acquire();
-         pSipXInstance->nCalls++;
-         pSipXInstance->lock.release();
+         pSipXInstance->incrementCallCount();
       }
 
       pCallData->m_abstractCallId = sCallId;

@@ -232,10 +232,8 @@ private:
     */
    virtual void destroySipConnection(const SipDialog& sSipDialog);
 
-   /**
-    * Returns number of 
-    */
-   size_t getSipConnectionCount() const;
+   /** Creates new XSipConnection for the call, if it doesn't exist yet */
+   void createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl);
 
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,

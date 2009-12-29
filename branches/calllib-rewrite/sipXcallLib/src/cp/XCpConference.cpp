@@ -72,6 +72,7 @@ XCpConference::XCpConference(const UtlString& sId,
                   pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener, pRtpRedirectEventListener)
 , m_pConferenceEventListener(pConferenceEventListener)
+, m_bDestroyConference(FALSE)
 {
 
 }
@@ -296,7 +297,28 @@ UtlBoolean XCpConference::handleTimerMessage(const CpTimerMsg& rRawMsg)
 
 OsStatus XCpConference::handleConnect(const AcConnectMsg& rMsg)
 {
-   return OS_FAILED;
+   OsStatus result = OS_FAILED;
+   SipDialog sipDialog(rMsg.getSipCallId(), rMsg.getLocalTag(), NULL, TRUE);
+   sipDialog.setLocalField(Url(rMsg.getFromAddress()));
+
+   // use from address as real line url (supports virtual lines)
+   createSipConnection(sipDialog, rMsg.getFromAddress());
+
+   {
+      OsPtrLock<XSipConnection> ptrLock;
+      UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+      if (resFound)
+      {
+         result = ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
+            rMsg.getLocationHeader(), rMsg.getContactId(), rMsg.getReplacesField(), rMsg.getCallstateCause(), rMsg.getCallbackSipDialog());
+      }
+      else
+      {
+         result = OS_NOT_FOUND;
+      }
+   }
+
+   return result;
 }
 
 OsStatus XCpConference::handleDropConnection(const AcDropConnectionMsg& rMsg)
@@ -502,8 +524,11 @@ void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
          pSipConnection->getSipCallId(sSipCallId);
          m_sipConnections.remove(pSipConnection);
          // fire event that call was removed from conference
-         CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId, sSipCallId);
-         m_pConferenceEventListener->OnConferenceCallRemoved(event);
+         if (m_pConferenceEventListener)
+         {
+            CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId, sSipCallId);
+            m_pConferenceEventListener->OnConferenceCallRemoved(event);
+         }
 
          delete pSipConnection;
          pSipConnection = NULL;
@@ -515,6 +540,31 @@ void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
       // we destroyed some connection, notify call stack
       onConnectionRemoved(sSipCallId);
    }
+}
+
+void XCpConference::createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl)
+{
+   XSipConnection *pSipConnection = new XSipConnection(m_sId,
+      sipDialog,// used only temporarily until real dialog instance is created when connecting
+      m_rSipUserAgent, m_rCallControl, sFullLineUrl, m_sBindIpAddress,
+      m_sessionTimerExpiration, m_sessionTimerRefresh,
+      m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, *this, *this, m_natTraversalConfig,
+      m_pCallEventListener, m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener,
+      m_pRtpRedirectEventListener);
+
+   {
+      OsLock lock(m_memberMutex);
+      m_sipConnections.append(pSipConnection);
+   }
+
+   // fire event that call was added to conference
+   if (m_pConferenceEventListener)
+   {
+      CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId, sipDialog.getCallId());
+      m_pConferenceEventListener->OnConferenceCallAdded(event);
+   }
+
+   onConnectionAddded(sipDialog.getCallId());
 }
 
 void XCpConference::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
@@ -608,8 +658,11 @@ void XCpConference::requestConferenceDestruction()
 {
    releaseMediaInterface(); // release audio resources
 
-   CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId);
-   m_pConferenceEventListener->OnConferenceDestroyed(event);
+   if (m_pConferenceEventListener)
+   {
+      CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId);
+      m_pConferenceEventListener->OnConferenceDestroyed(event);
+   }
 
    CmDestroyAbstractCallMsg msg(m_sId);
    getGlobalQueue().send(msg); // instruct call manager to destroy this conference
