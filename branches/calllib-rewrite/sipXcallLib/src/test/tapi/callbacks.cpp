@@ -285,7 +285,7 @@ bool AutoAnswerCallback_Secure(SIPX_EVENT_CATEGORY category,
       switch(pCallInfo->event)
       {
       case CALLSTATE_OFFERING:
-         sipxCallAccept(pCallInfo->hCall, NULL, gpAcceptSecurity);
+         sipxCallAccept(pCallInfo->hCall, NULL);
          break;
       case CALLSTATE_ALERTING:
          {
