@@ -792,24 +792,24 @@ bool sipXmgr::placeCall(const char* szSipUrl,
         security.setSecurityLevel((SIPX_SRTP_LEVEL)iSecurity);
 		if (thePhoneApp->getFrame().getVideoVisible())
 		{
-			sipxCallConnect(m_hCall, szSipUrl, &display, &security, SIPX_FOCUS_ALWAYS, &options) ;
+			sipxCallConnect(m_hCall, szSipUrl, SIPX_FOCUS_ALWAYS, &options) ;
 		}
 		else
 		{
-			sipxCallConnect(m_hCall, szSipUrl, NULL, &security, SIPX_FOCUS_ALWAYS, &options) ;
+			sipxCallConnect(m_hCall, szSipUrl, SIPX_FOCUS_ALWAYS, &options) ;
 		}
     }
     else
     {
         // options.rtpTransportOptions = SIPX_RTP_TRANSPORT_TCP;
-        options.rtpTransportFlags = SIPX_RTP_TRANSPORT_UDP;
+        //options.rtpTransportFlags = SIPX_RTP_TRANSPORT_UDP;
 		if (thePhoneApp->getFrame().getVideoVisible())
 		{
-	        sipxCallConnect(m_hCall, szSipUrl, &display, NULL, SIPX_FOCUS_ALWAYS, &options);
+	        sipxCallConnect(m_hCall, szSipUrl, SIPX_FOCUS_ALWAYS, &options);
 		}
 		else
 		{
-	        sipxCallConnect(m_hCall, szSipUrl, NULL, NULL, SIPX_FOCUS_ALWAYS, &options);
+	        sipxCallConnect(m_hCall, szSipUrl, SIPX_FOCUS_ALWAYS, &options);
 		}
     }
    
@@ -1114,8 +1114,8 @@ bool sipXmgr::addConfParty(const char* const szParty)
         options.cbSize = sizeof(SIPX_CALL_OPTIONS);
         options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
 
-        if (SIPX_RESULT_SUCCESS == sipxConferenceAdd(m_hConf, getCurrentLine(), szParty, &hNewCall, contactId,
-                                                     pDisplay, pSecurity, SIPX_FOCUS_ALWAYS, &options))
+        if (SIPX_RESULT_SUCCESS == sipxConferenceAdd(m_hConf, getCurrentLine(), szParty, &hNewCall,
+                                                     SIPX_FOCUS_ALWAYS, &options))
         {
             mConfCallHandleMap.insertKeyAndValue(new UtlString(szParty), new UtlInt(hNewCall));
             
