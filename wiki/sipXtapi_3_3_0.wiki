@@ -1,12 +1,13 @@
-sipXtapi 3.3.0 is currently in development in calllib-rewrite branch. At some point, these changes will be merged into trunk and development will continue in trunk.
-
-I estimate that at the beginning of february 2009 refactored sipXcallLib will be usable enough to be merged into trunk and tested by developers, although not yet ready for production.
+sipXtapi 3.3.0 is currently in development in trunk.
 
 To compile sipXtapi with Intel IPP 6.0 support, follow steps from [http://code.google.com/p/sipxtapi/wiki/intel_ipp_6_0_support Intel IPP 6.0 support].
 
 === Code changes from 3.2.0 ===
 ==== sipXtapi ====
  * new API for getting all supported codecs. This was not available in 3.2.0 and had to be worked around (sipxConfigGetNumAvailableAudioCodecs, sipxConfigGetAvailableAudioCodec, sipxConfigGetNumSelectedAudioCodecs, sipxConfigGetSelectedAudioCodec)
+ * public and private conferences. Private conferences work like in 3.2.0. Public conferences are assigned a conference SIP uri. Dialing this SIP uri results in call automatically being created in a conference.
+ * sipxConferenceJoin, sipxConferenceSplit don't require call hold
+ * conference events - see SIPX_CONFERENCE_EVENT, SIPX_CONFERENCE_CAUSE in sipXtapiEvents.h
  * call/media events will not be 100% compatible with 3.2.0. Any changes will be described to make upgrade to 3.3.0 easy.
  * changes in call transfer events - transferee side (recepient of REFER request) gets DIALTONE event instead of NEWCALL, when creating new call, since that call is outbound.
  * possibility to accept/reject call transfer request (sipxCallAcceptTransfer, sipxCallRejectTransfer), no support for out of dialog REFER
@@ -24,7 +25,6 @@ To compile sipXtapi with Intel IPP 6.0 support, follow steps from [http://code.g
  * early and late SDP negotiation (SDP in INVITE, or ACK), configurable
  * sending SDP in unreliable and reliable 18x responses - possibility to send early audio
  * configurable sending of reliable 18x responses, session timer and usage of UPDATE method for hold/unhold/codec renegotiation
- * redirection of RTP stream by re-INVITE/UPDATE
  * refactored handling of inbound INFO
  * special message classes for messages instead of usage of OsIntPtrMsg or CpMultiStringMessage
  * less circular dependencies, various OO design defects fixed
@@ -98,7 +98,6 @@ SipXtapi 3.3.0 will support the following RFCs:
  * RFC 4916 - Connected Identity in the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc4916
  * RFC 5057 - Multiple Dialog Usages in the Session Initiation Protocol - http://tools.ietf.org/html/rfc5057
 
-All above mentioned standards except for "join" extension are already supported in calllib-rewrite branch.
 ==== Supported internet drafts ====
 SipXtapi 3.3.0 will support the same drafts for ICE and TURN as sipXtapi 3.2.0:
  * draft-ietf-mmusic-ice-04 - Interactive Connectivity Establishment (ICE) 
