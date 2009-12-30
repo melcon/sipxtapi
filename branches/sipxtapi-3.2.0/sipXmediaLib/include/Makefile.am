@@ -41,6 +41,7 @@ nobase_include_HEADERS =  \
     mp/MpDataBuf.h \
     mp/MpDecodeBuffer.h \
     mp/MpDecoderBase.h \
+    mp/MpDefs.h \
     mp/MpDspUtils.h \
     mp/MpDspUtilsSerials.h \
     mp/MpDspUtilsShift.h \
@@ -119,6 +120,8 @@ nobase_include_HEADERS =  \
     mp/MprDecode.h \
     mp/MprDecodeInbandDtmf.h \
     mp/MprDejitter.h \
+    mp/MprDtmfDetectorBase.h \
+    mp/MprDtmfDetectorFactory.h \
     mp/MprEchoSuppress.h \
     mp/MprEncode.h \
     mp/MprFromFile.h \
@@ -138,6 +141,7 @@ nobase_include_HEADERS =  \
     mp/MprRtpStartSendMsg.h \
     mp/MprSpeexEchoCancel.h \
     mp/MprSpeexPreProcess.h \
+    mp/MprSimpleDtmfDetector.h \
     mp/MprSplitter.h \
     mp/MprSplitterConstructor.h \
     mp/MprToNet.h \

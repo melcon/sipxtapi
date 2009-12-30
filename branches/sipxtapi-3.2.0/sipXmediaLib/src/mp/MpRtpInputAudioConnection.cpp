@@ -24,7 +24,7 @@
 #include <mp/MprDecode.h>
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
-#include "mp/MprDecodeInbandDtmf.h"
+#include <mp/MprDtmfDetectorFactory.h>
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
 #ifdef RTL_ENABLED
@@ -58,9 +58,11 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 #endif // INCLUDE_RTCP ]
                        )
 , mpDecode(NULL)
-, mpDecodeInBandDtmf(NULL)
+, mpDtmfDetector(NULL)
 , m_bInBandDTMFEnabled(bInBandDTMFEnabled)
 , m_bRFC2833DTMFEnabled(bRFC2833DTMFEnabled)
+, m_samplesPerFrame(samplesPerFrame)
+, m_samplesPerSec(samplesPerSec)
 {
    char         name[50];
    int          i;
@@ -71,9 +73,9 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 
    if (m_bInBandDTMFEnabled)
    {
-      SNPRINTF(name, sizeof(name), "DecodeInBandDtmf-%d", myID);
-      mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, samplesPerFrame, samplesPerSec);
-      mpDecodeInBandDtmf->registerObserver(this);
+      SNPRINTF(name, sizeof(name), "DtmfDetector-%d", myID);
+      mpDtmfDetector = MprDtmfDetectorFactory::createDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
+      mpDtmfDetector->registerObserver(this);
    }   
 
  //memset((char*)mpPayloadMap, 0, (NUM_PAYLOAD_TYPES*sizeof(MpDecoderBase*)));
@@ -100,8 +102,8 @@ MpRtpInputAudioConnection::~MpRtpInputAudioConnection()
 {
    delete mpDecode;
    mpDecode = NULL;
-   delete mpDecodeInBandDtmf;
-   mpDecodeInBandDtmf = NULL;
+   delete mpDtmfDetector;
+   mpDtmfDetector = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -126,15 +128,15 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
                                           mpDecode->getSamplesPerFrame(), 
                                           mpDecode->getSamplesPerSec());
     
-		if(mpDecodeInBandDtmf)
+		if(mpDtmfDetector)
 		{
-			result &= mpDecodeInBandDtmf->doProcessFrame(mpOutBufs, // OutBufs from mpDecoder = InBuf for InBand
+			result &= mpDtmfDetector->doProcessFrame(mpOutBufs, // OutBufs from mpDecoder = InBuf for InBand
 											  NULL,					// No outBufs needed
 											  mMaxOutputs,			// Again MaxOutputs from decoder = maxInput for InBand 
 											  0,					// 0 output 
-											  mpDecodeInBandDtmf->mIsEnabled,
-											  mpDecodeInBandDtmf->getSamplesPerFrame(), 
-											  mpDecodeInBandDtmf->getSamplesPerSec());
+											  mpDtmfDetector->isEnabled(),
+											  m_samplesPerFrame, 
+											  m_samplesPerSec);
 		}
 	}
 
@@ -210,9 +212,9 @@ UtlBoolean MpRtpInputAudioConnection::handleMessage(MpResourceMsg& rMsg)
 UtlBoolean MpRtpInputAudioConnection::handleDisable()
 {
    mpDecode->disable();
-   if (mpDecodeInBandDtmf)
+   if (mpDtmfDetector)
    {
-      mpDecodeInBandDtmf->disable();
+      mpDtmfDetector->disable();
    }
    
    return(MpResource::handleDisable());
@@ -232,9 +234,9 @@ UtlBoolean MpRtpInputAudioConnection::handleDisable()
 UtlBoolean MpRtpInputAudioConnection::handleEnable()
 {
    mpDecode->enable();
-   if (mpDecodeInBandDtmf)
+   if (mpDtmfDetector)
    {
-      mpDecodeInBandDtmf->enable();
+      mpDtmfDetector->enable();
    }
    
    return(MpResource::handleEnable());
@@ -320,9 +322,9 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[],
    if (numCodecs)
    {
       mpDecode->enable();
-      if (mpDecodeInBandDtmf)
+      if (mpDtmfDetector)
       {
-         mpDecodeInBandDtmf->enable();
+         mpDtmfDetector->enable();
       }
    }
 }
@@ -355,9 +357,9 @@ void MpRtpInputAudioConnection::handleStopReceiveRtp()
 
    mpDecode->disable();
 
-   if (mpDecodeInBandDtmf)
+   if (mpDtmfDetector)
    {
-      mpDecodeInBandDtmf->disable();
+      mpDtmfDetector->disable();
    }   
 }
 
