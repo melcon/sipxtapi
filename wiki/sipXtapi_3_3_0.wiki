@@ -90,7 +90,6 @@ SipXtapi 3.3.0 will support the following RFCs:
  * RFC 3581 - An extension to SIP for Symmetric Response Routing - http://tools.ietf.org/html/rfc3581
  * RFC 3891 - The Session Initiation Protocol (SIP) "Replaces" Header - http://tools.ietf.org/html/rfc3891
  * RFC 3903 - Session Initiation Protocol (SIP) Extension for Event State Publication - http://tools.ietf.org/html/rfc3903
- * RFC 3911 - The Session Initiation Protocol (SIP) "Join" Header http://tools.ietf.org/html/rfc3911
  * RFC 3951 - Internet Low Bit Rate Codec (iLBC) - http://tools.ietf.org/html/rfc3951
  * RFC 3952 - Real-time Transport Protocol (RTP) Payload Format for internet Low Bit Rate Codec (iLBC) Speech - http://tools.ietf.org/html/rfc3952
  * RFC 4028 - Session Timers in the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc4028
@@ -111,6 +110,7 @@ We may consider supporting the following RFCs and drafts in the future:
  * RFC 3842 - A Message Summary and Message Waiting Indication Event Package for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc3842
  * RFC 3856 - A Presence Event Package for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc3856
  * RFC 3863 - Presence Information Data Format (PIDF) - http://tools.ietf.org/html/rfc3863
+ * RFC 3911 - The Session Initiation Protocol (SIP) "Join" Header http://tools.ietf.org/html/rfc3911
  * RFC 3994 - Indication of Message Composition for Instant Messaging - http://tools.ietf.org/html/rfc3994
  * RFC 4235 - An INVITE-Initiated Dialog Event Package for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc4235
  * RFC 4575 - A Session Initiation Protocol (SIP) Event Package for Conference State - http://tools.ietf.org/html/rfc4575
