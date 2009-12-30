@@ -23,8 +23,8 @@
 // DECODER DEFINES
 #define PI  3.1415926
 #define TwoPI 6.2831852
-#define GOERTZEL_TRIGGER 19600000000.0  // square(140000.0)
-
+#define GOERTZEL_TRIGGER 21609000000.0  // square(147000.0)
+                        // 
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES

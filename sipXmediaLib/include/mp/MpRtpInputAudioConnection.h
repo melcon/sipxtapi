@@ -23,7 +23,7 @@ class MprDecode;
 class MprRecorder;
 class SdpCodec;
 class OsNotification;
-class MprDecodeInBandDtmf;
+class MprDtmfDetectorBase;
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
@@ -45,7 +45,7 @@ class MpRtpInputAudioConnection : public MpRtpInputConnection
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
-	friend class MprDecodeInBandDtmf;
+   friend class MprSimpleDtmfDetector;
    friend class MprDecode;
 
 
@@ -161,13 +161,16 @@ private:
 
 //   MpFlowGraphBase*   mpFlowGraph;     ///< Parent flowgraph
    MprDecode*         mpDecode;        ///< Inbound component: Decoder
-   MprDecodeInBandDtmf* mpDecodeInBandDtmf; // InBand DTMF decoder
+   MprDtmfDetectorBase* mpDtmfDetector; // InBand DTMF decoder
 
    MpDecoderBase*     mpPayloadMap[NUM_PAYLOAD_TYPES];
                                        ///< Map RTP payload types to our decoders
 
    UtlBoolean m_bInBandDTMFEnabled;
    UtlBoolean m_bRFC2833DTMFEnabled;
+   int m_samplesPerFrame; 
+   int m_samplesPerSec;
+
 };
 
 /* ============================ INLINE METHODS ============================ */

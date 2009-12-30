@@ -138,6 +138,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MprDecode.cpp \
     mp/MprDecodeInbandDtmf.cpp \
     mp/MprDejitter.cpp \
+    mp/MprDtmfDetectorFactory.cpp \
     mp/MprEchoSuppress.cpp \
     mp/MprEncode.cpp \
     mp/MprFromFile.cpp \
@@ -148,6 +149,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MprNull.cpp \
     mp/MprNullAec.cpp \
     mp/MprRecorder.cpp \
+    mp/MprSimpleDtmfDetector.cpp \
     mp/MprSpeexEchoCancel.cpp \
     mp/MprSpeexPreProcess.cpp \
     mp/MprSplitter.cpp \

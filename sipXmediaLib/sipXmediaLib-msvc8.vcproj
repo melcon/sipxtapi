@@ -1337,6 +1337,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MprDtmfDetectorFactory.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MprEchoSuppress.cpp"
 					>
 				</File>
@@ -1398,6 +1402,10 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MprRecorder.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MprSimpleDtmfDetector.cpp"
 					>
 				</File>
 				<File
@@ -1754,6 +1762,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpDefs.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdIPPG7231.h"
 					>
 				</File>
@@ -1958,6 +1970,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MprDtmfDetectorBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MprDtmfDetectorFactory.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MprEchoSuppress.h"
 					>
 				</File>
@@ -2055,6 +2075,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MprRtpStartSendMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MprSimpleDtmfDetector.h"
 					>
 				</File>
 				<File
