@@ -475,60 +475,62 @@ OsStatus XCpConference::handleJoin(const AcConferenceJoinMsg& rMsg)
    XSipConnection *pSipConnection = NULL;
    rMsg.getSipDialog(sipDialog);
 
-   OsPtrLock<XCpCall> ptrLock;
-   UtlBoolean bFound = m_rCallLookup.findCall(sipDialog, ptrLock);
-   if (bFound)
    {
-      ptrLock->waitUntilShutDown(); // stops thread, will not process any more messages
-      if (ptrLock->extractConnection(&pSipConnection) == OS_SUCCESS)
+      OsPtrLock<XCpCall> ptrLock;
+      UtlBoolean bFound = m_rCallLookup.findCall(sipDialog, ptrLock);
+      if (bFound)
       {
-         onConnectionAddded(sipDialog.getCallId());
-         m_sipConnections.append(pSipConnection);
-         // now call thread is suspended and empty, we have the connection
-         if (pSipConnection->terminateMediaConnection() == OS_SUCCESS)
+         ptrLock->waitUntilShutDown(); // stops thread, will not process any more messages
+         if (ptrLock->extractConnection(&pSipConnection) == OS_SUCCESS)
          {
-            // update references to queue, media interface, callId
-            pSipConnection->setAbstractCallId(m_sId);
-            pSipConnection->setMediaInterfaceProvider(this);
-            pSipConnection->setMessageQueueProvider(this);
-            // ask call manager to destroy the old call shell
-            ptrLock->requestCallDestruction();
-            ptrLock->start();
-            // request codec renegotiation
-            pSipConnection->renegotiateCodecsConnection();
-            result = OS_SUCCESS;
-         }
-         else
-         {
-            eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
-            onConnectionRemoved(sipDialog.getCallId());
-            m_sipConnections.remove(pSipConnection);
-            // return the connection to call
-            if (ptrLock->setConnection(pSipConnection) != OS_SUCCESS)
+            m_sipConnections.append(pSipConnection);
+            onConnectionAddded(sipDialog.getCallId());
+            // now call thread is suspended and empty, we have the connection
+            if (pSipConnection->terminateMediaConnection() == OS_SUCCESS)
             {
-               // this would be a major problem. CP_CALLSTATE_DESTROYED will be fired but call will not be disconnected
-               OsSysLog::add(FAC_CP, PRI_ERR,
-                  "handleJoin failed and was unable to restore call connection");
-               delete pSipConnection;
-               pSipConnection = NULL;
-               ptrLock->requestCallDestruction();
+               // update references to queue, media interface, callId
+               pSipConnection->setAbstractCallId(m_sId);
+               pSipConnection->setMediaInterfaceProvider(this);
+               pSipConnection->setMessageQueueProvider(this);
+               // ask call manager to destroy the old call shell
                ptrLock->start();
+               ptrLock->dropConnection();
+               // request codec renegotiation
+               pSipConnection->renegotiateCodecsConnection();
+               result = OS_SUCCESS;
             }
             else
             {
-               ptrLock->start();
+               m_sipConnections.remove(pSipConnection);
+               onConnectionRemoved(sipDialog.getCallId());
+               eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+               // return the connection to call
+               if (ptrLock->setConnection(pSipConnection) != OS_SUCCESS)
+               {
+                  // this would be a major problem. CP_CALLSTATE_DESTROYED will be fired but call will not be disconnected
+                  OsSysLog::add(FAC_CP, PRI_ERR,
+                     "handleJoin failed and was unable to restore call connection");
+                  delete pSipConnection;
+                  pSipConnection = NULL;
+                  ptrLock->start();
+                  ptrLock->dropConnection();
+               }
+               else
+               {
+                  ptrLock->start();
+               }
             }
          }
+         else // extractConnection failed
+         {
+            ptrLock->start();
+            eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+         }
       }
-      else // extractConnection failed
+      else // findCall failed
       {
-         ptrLock->start();
-         eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+         eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
       }
-   }
-   else // findCall failed
-   {
-      eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
    }
 
    if (result == OS_SUCCESS)
@@ -539,6 +541,7 @@ OsStatus XCpConference::handleJoin(const AcConferenceJoinMsg& rMsg)
    {
       fireConferenceEvent(CP_CONFERENCE_CALL_ADD_FAILURE, eventCause, sipDialog.getCallId());
    }
+
    return result;
 }
 
@@ -551,49 +554,51 @@ OsStatus XCpConference::handleSplit(const AcConferenceSplitMsg& rMsg)
    rMsg.getNewCallId(newCallId);
    rMsg.getSipDialog(sipDialog);
 
-   OsPtrLock<XCpCall> ptrLock;
-   UtlBoolean bFound = m_rCallLookup.findCall(newCallId, ptrLock);
-   if (bFound)
    {
-      OsLock lock(m_memberMutex);
-      XSipConnection *pSipConnection = findConnection(sipDialog);
-      if (pSipConnection)
+      OsPtrLock<XCpCall> ptrLock;
+      UtlBoolean bFound = m_rCallLookup.findCall(newCallId, ptrLock);
+      if (bFound)
       {
-         OsLock connectionLock(*pSipConnection);
-         ptrLock->waitUntilShutDown(); // stops thread, will not process any more messages
-         if (pSipConnection->terminateMediaConnection() == OS_SUCCESS)
+         OsLock lock(m_memberMutex);
+         XSipConnection *pSipConnection = findConnection(sipDialog);
+         if (pSipConnection)
          {
-            if (ptrLock->setConnection(pSipConnection) == OS_SUCCESS)
+            OsLock connectionLock(*pSipConnection);
+            ptrLock->waitUntilShutDown(); // stops thread, will not process any more messages
+            if (pSipConnection->terminateMediaConnection() == OS_SUCCESS)
             {
-               onConnectionRemoved(sipDialog.getCallId());
-               m_sipConnections.remove(pSipConnection);
-               // request codec renegotiation
-               pSipConnection->renegotiateCodecsConnection();
-               ptrLock->start();
-               result = OS_SUCCESS;
+               if (ptrLock->setConnection(pSipConnection) == OS_SUCCESS)
+               {
+                  onConnectionRemoved(sipDialog.getCallId());
+                  m_sipConnections.remove(pSipConnection);
+                  // request codec renegotiation
+                  pSipConnection->renegotiateCodecsConnection();
+                  ptrLock->start();
+                  result = OS_SUCCESS;
+               }
+               else // setConnection failed
+               {
+                  ptrLock->start();
+                  ptrLock->dropConnection(); // destroy new call shell, cannot complete split
+                  eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+               }
             }
-            else // setConnection failed
+            else // terminateMediaConnection failed
             {
-               ptrLock->requestCallDestruction(); // destroy new call shell, cannot complete split
                ptrLock->start();
+               ptrLock->dropConnection(); // destroy new call shell, cannot complete split
                eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
             }
          }
-         else // terminateMediaConnection failed
+         else // findConnection failed
          {
-            ptrLock->requestCallDestruction(); // destroy new call shell, cannot complete split
-            ptrLock->start();
-            eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+            eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
          }
       }
-      else // findConnection failed
+      else // findCall failed
       {
          eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
       }
-   }
-   else // findCall failed
-   {
-      eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
    }
 
    if (result == OS_SUCCESS)
