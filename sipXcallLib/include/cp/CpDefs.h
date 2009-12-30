@@ -330,7 +330,8 @@ typedef enum
 typedef enum
 {
    CP_CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
-   CP_CONFERENCE_CAUSE_INVALID_STATE       ///< call is in invalid state for requested operation
+   CP_CONFERENCE_CAUSE_INVALID_STATE,       ///< call is in invalid state for requested operation
+   CP_CONFERENCE_CAUSE_NOT_FOUND            ///< call was not found
 } CP_CONFERENCE_CAUSE;
 
 /**

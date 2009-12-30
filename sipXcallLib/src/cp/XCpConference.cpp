@@ -19,6 +19,7 @@
 #include <net/SipDialog.h>
 #include <sdp/SdpCodecFactory.h>
 #include <cp/XCpConference.h>
+#include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
 #include <cp/msg/AcConnectMsg.h>
 #include <cp/msg/AcDropConnectionMsg.h>
@@ -27,6 +28,8 @@
 #include <cp/msg/AcHoldAllConnectionsMsg.h>
 #include <cp/msg/AcUnholdAllConnectionsMsg.h>
 #include <cp/msg/AcRenegotiateCodecsAllMsg.h>
+#include <cp/msg/AcConferenceJoinMsg.h>
+#include <cp/msg/AcConferenceSplitMsg.h>
 #include <cp/msg/CmDestroyAbstractCallMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 #include <cp/CpConferenceEventListener.h>
@@ -170,6 +173,19 @@ OsStatus XCpConference::renegotiateCodecsAllConnections(const UtlString& sAudioC
    return postMessage(renegotiateCodecsMsg);
 }
 
+OsStatus XCpConference::join(const SipDialog& sipDialog)
+{
+   AcConferenceJoinMsg conferenceJoinMsg(sipDialog);
+   return postMessage(conferenceJoinMsg);
+}
+
+OsStatus XCpConference::split(const SipDialog& sipDialog,
+                              const UtlString& sNewCallId)
+{
+   AcConferenceSplitMsg conferenceSplitMsg(sipDialog, sNewCallId);
+   return postMessage(conferenceSplitMsg);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
@@ -275,6 +291,12 @@ UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_RENEGOTIATE_CODECS_ALL:
       handleRenegotiateCodecsAll((const AcRenegotiateCodecsAllMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_CONFERENCE_JOIN:
+      handleJoin((const AcConferenceJoinMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_CONFERENCE_SPLIT:
+      handleSplit((const AcConferenceSplitMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -445,6 +467,146 @@ OsStatus XCpConference::handleRenegotiateCodecsAll(const AcRenegotiateCodecsAllM
    return OS_FAILED;
 }
 
+OsStatus XCpConference::handleJoin(const AcConferenceJoinMsg& rMsg)
+{
+   OsStatus result = OS_FAILED;
+   CP_CONFERENCE_CAUSE eventCause = CP_CONFERENCE_CAUSE_NORMAL;
+   SipDialog sipDialog;
+   XSipConnection *pSipConnection = NULL;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XCpCall> ptrLock;
+   UtlBoolean bFound = m_rCallLookup.findCall(sipDialog, ptrLock);
+   if (bFound)
+   {
+      ptrLock->waitUntilShutDown(); // stops thread, will not process any more messages
+      if (ptrLock->extractConnection(&pSipConnection) == OS_SUCCESS)
+      {
+         onConnectionAddded(sipDialog.getCallId());
+         m_sipConnections.append(pSipConnection);
+         // now call thread is suspended and empty, we have the connection
+         if (pSipConnection->terminateMediaConnection() == OS_SUCCESS)
+         {
+            // update references to queue, media interface, callId
+            pSipConnection->setAbstractCallId(m_sId);
+            pSipConnection->setMediaInterfaceProvider(this);
+            pSipConnection->setMessageQueueProvider(this);
+            // ask call manager to destroy the old call shell
+            ptrLock->requestCallDestruction();
+            ptrLock->start();
+            // request codec renegotiation
+            pSipConnection->renegotiateCodecsConnection();
+            result = OS_SUCCESS;
+         }
+         else
+         {
+            eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+            onConnectionRemoved(sipDialog.getCallId());
+            m_sipConnections.remove(pSipConnection);
+            // return the connection to call
+            if (ptrLock->setConnection(pSipConnection) != OS_SUCCESS)
+            {
+               // this would be a major problem. CP_CALLSTATE_DESTROYED will be fired but call will not be disconnected
+               OsSysLog::add(FAC_CP, PRI_ERR,
+                  "handleJoin failed and was unable to restore call connection");
+               delete pSipConnection;
+               pSipConnection = NULL;
+               ptrLock->requestCallDestruction();
+               ptrLock->start();
+            }
+            else
+            {
+               ptrLock->start();
+            }
+         }
+      }
+      else // extractConnection failed
+      {
+         ptrLock->start();
+         eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+      }
+   }
+   else // findCall failed
+   {
+      eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
+   }
+
+   if (result == OS_SUCCESS)
+   {
+      fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, eventCause, sipDialog.getCallId());
+   }
+   else
+   {
+      fireConferenceEvent(CP_CONFERENCE_CALL_ADD_FAILURE, eventCause, sipDialog.getCallId());
+   }
+   return result;
+}
+
+OsStatus XCpConference::handleSplit(const AcConferenceSplitMsg& rMsg)
+{
+   OsStatus result = OS_FAILED;
+   CP_CONFERENCE_CAUSE eventCause = CP_CONFERENCE_CAUSE_NORMAL;
+   SipDialog sipDialog;
+   UtlString newCallId;
+   rMsg.getNewCallId(newCallId);
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XCpCall> ptrLock;
+   UtlBoolean bFound = m_rCallLookup.findCall(newCallId, ptrLock);
+   if (bFound)
+   {
+      OsLock lock(m_memberMutex);
+      XSipConnection *pSipConnection = findConnection(sipDialog);
+      if (pSipConnection)
+      {
+         OsLock connectionLock(*pSipConnection);
+         ptrLock->waitUntilShutDown(); // stops thread, will not process any more messages
+         if (pSipConnection->terminateMediaConnection() == OS_SUCCESS)
+         {
+            if (ptrLock->setConnection(pSipConnection) == OS_SUCCESS)
+            {
+               onConnectionRemoved(sipDialog.getCallId());
+               m_sipConnections.remove(pSipConnection);
+               // request codec renegotiation
+               pSipConnection->renegotiateCodecsConnection();
+               ptrLock->start();
+               result = OS_SUCCESS;
+            }
+            else // setConnection failed
+            {
+               ptrLock->requestCallDestruction(); // destroy new call shell, cannot complete split
+               ptrLock->start();
+               eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+            }
+         }
+         else // terminateMediaConnection failed
+         {
+            ptrLock->requestCallDestruction(); // destroy new call shell, cannot complete split
+            ptrLock->start();
+            eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+         }
+      }
+      else // findConnection failed
+      {
+         eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
+      }
+   }
+   else // findCall failed
+   {
+      eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
+   }
+
+   if (result == OS_SUCCESS)
+   {
+      fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, eventCause, sipDialog.getCallId());
+   }
+   else
+   {
+      fireConferenceEvent(CP_CONFERENCE_CALL_REMOVE_FAILURE, eventCause, sipDialog.getCallId());
+   }
+   return result;
+}
+
 // assumes external locking on m_memberMutex
 XSipConnection* XCpConference::findConnection(const SipDialog& sipDialog) const
 {
@@ -527,11 +689,7 @@ void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
          pSipConnection->getSipCallId(sSipCallId);
          m_sipConnections.remove(pSipConnection);
          // fire event that call was removed from conference
-         if (m_pConferenceEventListener)
-         {
-            CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId, sSipCallId);
-            m_pConferenceEventListener->OnConferenceCallRemoved(event);
-         }
+         fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, CP_CONFERENCE_CAUSE_NORMAL, sSipCallId);
 
          delete pSipConnection;
          pSipConnection = NULL;
@@ -551,7 +709,7 @@ void XCpConference::createSipConnection(const SipDialog& sipDialog, const UtlStr
       sipDialog,// used only temporarily until real dialog instance is created when connecting
       m_rSipUserAgent, m_rCallControl, sFullLineUrl, m_sBindIpAddress,
       m_sessionTimerExpiration, m_sessionTimerRefresh,
-      m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, *this, *this, m_natTraversalConfig,
+      m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, this, this, m_natTraversalConfig,
       m_pCallEventListener, m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener,
       m_pRtpRedirectEventListener);
 
@@ -561,11 +719,7 @@ void XCpConference::createSipConnection(const SipDialog& sipDialog, const UtlStr
    }
 
    // fire event that call was added to conference
-   if (m_pConferenceEventListener)
-   {
-      CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId, sipDialog.getCallId());
-      m_pConferenceEventListener->OnConferenceCallAdded(event);
-   }
+   fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, CP_CONFERENCE_CAUSE_NORMAL, sipDialog.getCallId());
 
    onConnectionAddded(sipDialog.getCallId());
 }
@@ -613,6 +767,39 @@ void XCpConference::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
    }
 }
 
+void XCpConference::fireConferenceEvent(CP_CONFERENCE_EVENT event,
+                                        CP_CONFERENCE_CAUSE cause,
+                                        const UtlString& sipCallId)
+{
+   if (m_pConferenceEventListener)
+   {
+      CpConferenceEvent eventObject(cause, m_sId, sipCallId);
+      switch(event)
+      {
+      case CP_CONFERENCE_CREATED:
+         m_pConferenceEventListener->OnConferenceCreated(eventObject);
+         break;
+      case CP_CONFERENCE_DESTROYED:
+         m_pConferenceEventListener->OnConferenceDestroyed(eventObject);
+         break;
+      case CP_CONFERENCE_CALL_ADDED:
+         m_pConferenceEventListener->OnConferenceCallAdded(eventObject);
+         break;
+      case CP_CONFERENCE_CALL_ADD_FAILURE:
+         m_pConferenceEventListener->OnConferenceCallAddFailure(eventObject);
+         break;
+      case CP_CONFERENCE_CALL_REMOVED:
+         m_pConferenceEventListener->OnConferenceCallRemoved(eventObject);
+         break;
+      case CP_CONFERENCE_CALL_REMOVE_FAILURE:
+         m_pConferenceEventListener->OnConferenceCallRemoveFailure(eventObject);
+         break;
+      default:
+         ;
+      }
+   }
+}
+
 void XCpConference::onFocusGained()
 {
    OsLock lock(m_memberMutex);
@@ -650,22 +837,14 @@ void XCpConference::onFocusLost()
 void XCpConference::onStarted()
 {
    // this gets called once thread is started
-   if (m_pConferenceEventListener)
-   {
-      CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId);
-      m_pConferenceEventListener->OnConferenceCreated(event);
-   }
+   fireConferenceEvent(CP_CONFERENCE_CREATED, CP_CONFERENCE_CAUSE_NORMAL);
 }
 
 void XCpConference::requestConferenceDestruction()
 {
    releaseMediaInterface(); // release audio resources
 
-   if (m_pConferenceEventListener)
-   {
-      CpConferenceEvent event(CP_CONFERENCE_CAUSE_NORMAL, m_sId);
-      m_pConferenceEventListener->OnConferenceDestroyed(event);
-   }
+   fireConferenceEvent(CP_CONFERENCE_DESTROYED, CP_CONFERENCE_CAUSE_NORMAL);
 
    CmDestroyAbstractCallMsg msg(m_sId);
    getGlobalQueue().send(msg); // instruct call manager to destroy this conference

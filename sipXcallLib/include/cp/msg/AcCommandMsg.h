@@ -74,6 +74,8 @@ public:
       AC_UNSUBSCRIBE, ///< unsubscribe from notifications
       AC_ACCEPT_TRANSFER, ///< accept transfer request
       AC_REJECT_TRANSFER, ///< reject transfer request
+      AC_CONFERENCE_SPLIT, ///< split connection from conference into new call
+      AC_CONFERENCE_JOIN, ///< join connection from a call into conference
    } SubTypeEnum;
 
    /* ============================ CREATORS ================================== */

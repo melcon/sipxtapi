@@ -32,6 +32,8 @@ class AcDropAllConnectionsMsg;
 class AcHoldAllConnectionsMsg;
 class AcUnholdAllConnectionsMsg;
 class AcRenegotiateCodecsAllMsg;
+class AcConferenceJoinMsg;
+class AcConferenceSplitMsg;
 class CpConferenceEventListener;
 class XCpCallLookup;
 
@@ -166,6 +168,19 @@ public:
    OsStatus renegotiateCodecsAllConnections(const UtlString& sAudioCodecs,
                                             const UtlString& sVideoCodecs);
 
+   /**
+    * Joins given call with this conference. XSipConnection will be extracted from
+    * given call and moved to this conference. Then codec renegotiation will be
+    * triggered and call shell destroyed.
+    */
+   OsStatus join(const SipDialog& sipDialog);
+
+   /**
+    * Splits XSipConnection with given sip dialog into a new existing call with given id.
+    */
+   OsStatus split(const SipDialog& sipDialog,
+                  const UtlString& sNewCallId);
+
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
@@ -216,6 +231,10 @@ private:
    OsStatus handleUnholdAllConnections(const AcUnholdAllConnectionsMsg& rMsg);
    /** Handles message to renegotiate codecs for all sip connections */
    OsStatus handleRenegotiateCodecsAll(const AcRenegotiateCodecsAllMsg& rMsg);
+   /** Handles message to join a call with this conference */
+   OsStatus handleJoin(const AcConferenceJoinMsg& rMsg);
+   /** Handles message to split a call from this conference */
+   OsStatus handleSplit(const AcConferenceSplitMsg& rMsg);
 
    /**
     * Finds connection handling given Sip dialog. Uses loose dialog matching.
@@ -251,6 +270,11 @@ private:
                                             CP_MEDIA_TYPE type,
                                             intptr_t pEventData1,
                                             intptr_t pEventData2);
+
+   /** Fires given conference event to listeners */
+   void fireConferenceEvent(CP_CONFERENCE_EVENT event,
+                            CP_CONFERENCE_CAUSE cause,
+                            const UtlString& sipCallId = NULL);
 
    /** Called when media focus is gained (speaker and mic are engaged) */
    virtual void onFocusGained();

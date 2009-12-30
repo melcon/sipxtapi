@@ -569,6 +569,9 @@ SIPXTAPI_API const char* sipxConferenceCauseToString(SIPX_CONFERENCE_CAUSE cause
    case CP_CONFERENCE_CAUSE_INVALID_STATE:
       str = MAKESTR(CP_CONFERENCE_CAUSE_INVALID_STATE);
       break;
+   case CONFERENCE_CAUSE_NOT_FOUND:
+      str = MAKESTR(CONFERENCE_CAUSE_NOT_FOUND);
+      break;
 	default:
 		break;
 	}

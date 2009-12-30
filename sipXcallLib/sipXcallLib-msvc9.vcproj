@@ -356,6 +356,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcConferenceJoinMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcConferenceSplitMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcConnectMsg.cpp"
 					>
 				</File>
@@ -838,6 +846,14 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcCommandMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcConferenceJoinMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcConferenceSplitMsg.h"
 					>
 				</File>
 				<File

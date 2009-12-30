@@ -55,8 +55,8 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                CP_100REL_CONFIG c100relSetting,
                                CP_SDP_OFFERING_MODE sdpOfferingMode,
                                int inviteExpiresSeconds,
-                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                               CpMessageQueueProvider& rMessageQueueProvider,
+                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                               CpMessageQueueProvider* pMessageQueueProvider,
                                const CpNatTraversalConfig& natTraversalConfig,
                                CpCallStateEventListener* pCallEventListener,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -65,11 +65,11 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                CpMediaEventListener* pMediaEventListener,
                                CpRtpRedirectEventListener* pRtpRedirectEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
-, m_stateMachine(rSipUserAgent, rCallControl, sLocalIpAddress, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
+, m_stateMachine(rSipUserAgent, rCallControl, sLocalIpAddress, pMediaInterfaceProvider, pMessageQueueProvider, *this, natTraversalConfig)
 , m_rSipConnectionContext(m_stateMachine.getSipConnectionContext())
 , m_rSipUserAgent(rSipUserAgent)
-, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
-, m_rMessageQueueProvider(rMessageQueueProvider)
+, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
+, m_pMessageQueueProvider(pMessageQueueProvider)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
 , m_pInfoEventListener(pInfoEventListener)
@@ -205,7 +205,7 @@ OsStatus XSipConnection::unholdConnection()
 OsStatus XSipConnection::muteInputConnection()
 {
    int mediaConnectionId = getMediaConnectionId();
-   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   CpMediaInterface *pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
    if (pMediaInterface)
    {
       return pMediaInterface->muteInput(mediaConnectionId, TRUE);
@@ -217,7 +217,7 @@ OsStatus XSipConnection::muteInputConnection()
 OsStatus XSipConnection::unmuteInputConnection()
 {
    int mediaConnectionId = getMediaConnectionId();
-   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   CpMediaInterface *pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
    if (pMediaInterface)
    {
       return pMediaInterface->muteInput(mediaConnectionId, FALSE);
@@ -368,16 +368,16 @@ void XSipConnection::setAbstractCallId(const UtlString& sAbstractCallId)
    m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
 }
 
-void XSipConnection::setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider)
+void XSipConnection::setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider)
 {
-   m_rMessageQueueProvider = rMessageQueueProvider;
-   m_stateMachine.setMessageQueueProvider(rMessageQueueProvider);
+   m_pMessageQueueProvider = pMessageQueueProvider;
+   m_stateMachine.setMessageQueueProvider(pMessageQueueProvider);
 }
 
-void XSipConnection::setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider)
+void XSipConnection::setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider)
 {
-   m_rMediaInterfaceProvider = rMediaInterfaceProvider;
-   m_stateMachine.setMediaInterfaceProvider(rMediaInterfaceProvider);
+   m_pMediaInterfaceProvider = pMediaInterfaceProvider;
+   m_stateMachine.setMediaInterfaceProvider(pMediaInterfaceProvider);
 }
 
 /* ============================ INQUIRY =================================== */
@@ -655,7 +655,7 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
       // intercept CONNECTED event, and change it to BRIDGED if we don't have focus
       if (eventCode == CP_CALLSTATE_CONNECTED)
       {
-         CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+         CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
          if (pMediaInterface && !pMediaInterface->hasFocus())
          {
             eventCode = CP_CALLSTATE_BRIDGED;

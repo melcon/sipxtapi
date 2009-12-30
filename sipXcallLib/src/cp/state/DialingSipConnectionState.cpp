@@ -40,11 +40,11 @@
 DialingSipConnectionState::DialingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                      SipUserAgent& rSipUserAgent,
                                                      XCpCallControl& rCallControl,
-                                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                                     CpMessageQueueProvider& rMessageQueueProvider,
+                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                                                     CpMessageQueueProvider* pMessageQueueProvider,
                                                      XSipConnectionEventSink& rSipConnectionEventSink,
                                                      const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, pMediaInterfaceProvider, pMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
@@ -122,7 +122,7 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
    initializeSipDialog(sipInvite);
 
    // check if some audio device is available
-   if (!m_rMediaInterfaceProvider.getMediaInterface()->isAudioAvailable())
+   if (!m_pMediaInterfaceProvider->getMediaInterface()->isAudioAvailable())
    {
       GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_RESOURCE_LIMIT);
       return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);

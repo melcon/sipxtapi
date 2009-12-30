@@ -189,7 +189,7 @@ void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT ev
                SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
                if (pCallData)
                {
-                  if (!pCallData->m_abstractCallId.isNull())
+                  if (!pCallData->m_abstractCallId.isNull() && !pCallData->m_splitCallId.isNull())
                   {
                      // for conference split, m_abstractCallId needs to be updated from m_splitCallId
                      pCallData->m_abstractCallId = pCallData->m_splitCallId;
@@ -219,10 +219,12 @@ void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT ev
                   pCallData->m_abstractCallId = sConferenceId;
                   sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
                }
+               break;
             }
          case CONFERENCE_CALL_ADD_FAILURE:
             {
                sipxRemoveCallHandleFromConf(hConf, hCall);
+               break;
             }
          default:
             ;

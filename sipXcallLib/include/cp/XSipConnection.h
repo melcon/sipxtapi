@@ -84,8 +84,8 @@ public:
                   CP_100REL_CONFIG c100relSetting,
                   CP_SDP_OFFERING_MODE sdpOfferingMode,
                   int inviteExpiresSeconds,
-                  CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                  CpMessageQueueProvider& rMessageQueueProvider,
+                  CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                  CpMessageQueueProvider* pMessageQueueProvider,
                   const CpNatTraversalConfig& natTraversalConfig,
                   CpCallStateEventListener* pCallEventListener = NULL,
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -335,10 +335,10 @@ public:
    void setAbstractCallId(const UtlString& sAbstractCallId);
 
    /** Sets new message queue provider on the connection */
-   void setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider);
+   void setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider);
 
    /** Sets new media interface provider on the connection */
-   void setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider);
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider);
 
    /* ============================ INQUIRY =================================== */
 
@@ -454,10 +454,11 @@ private:
    XSipConnectionContext& m_rSipConnectionContext; ///< contains stateful information about sip connection.
    // thread safe
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
-   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
-   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    // thread safe, atomic
    CP_CALLSTATE_EVENT m_lastCallEvent; ///< contains code of last call event (used for firing bridged state)
+   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   CpMessageQueueProvider* m_pMessageQueueProvider; ///< message queue provider
+
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< event listener for INFO responses

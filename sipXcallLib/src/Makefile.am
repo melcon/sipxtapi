@@ -58,6 +58,8 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcAudioToneStartMsg.cpp \
     cp/msg/AcAudioToneStopMsg.cpp \
     cp/msg/AcCommandMsg.cpp \
+    cp/msg/AcConferenceJoinMsg.cpp \
+    cp/msg/AcConferenceSplitMsg.cpp \
     cp/msg/AcConnectMsg.cpp \
     cp/msg/AcDestroyConnectionMsg.cpp \
     cp/msg/AcDropAllConnectionsMsg.cpp \
