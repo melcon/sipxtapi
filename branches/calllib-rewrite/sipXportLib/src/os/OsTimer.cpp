@@ -175,7 +175,12 @@ OsStatus OsTimer::oneshotAt(const OsDateTime& when)
 {
    return startTimer(cvtToTime(when), FALSE, nullInterval);
 }
-     
+
+OsStatus OsTimer::oneshotAt(const OsTime& when)
+{
+   return startTimer(cvtToInterval(when), FALSE, nullInterval);
+}
+
 // Arm the timer to fire once at the current time + offset
 OsStatus OsTimer::oneshotAfter(const OsTime& offset)
 {
@@ -291,6 +296,20 @@ UtlBoolean OsTimer::getWasFired()
 {
    OsLock lock(mBSem);
    return mWasFired;
+}
+
+void OsTimer::getExpiresAt(OsDateTime& dateTime)
+{
+   OsLock lock(mBSem);
+   // mExpiresAt is in micro seconds
+   dateTime = OsDateTime(OsTime((long)(mExpiresAt/1000000), (long)(mExpiresAt % 1000000)));
+}
+
+void OsTimer::getExpiresAt(OsTime& time)
+{
+   OsLock lock(mBSem);
+   // mExpiresAt is in micro seconds
+   time = OsTime((long)(mExpiresAt/1000000), (long)(mExpiresAt % 1000000));
 }
 
 /* ============================ INQUIRY =================================== */

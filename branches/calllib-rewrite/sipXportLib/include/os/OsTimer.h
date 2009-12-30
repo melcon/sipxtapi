@@ -181,6 +181,9 @@ public:
    /// Start the timer to fire once at the indicated date/time
    virtual OsStatus oneshotAt(const OsDateTime& when);
 
+   /// Start the timer to fire once at the indicated time since epoch
+   virtual OsStatus oneshotAt(const OsTime& when);
+
    /// Start the timer to fire once at the current time + offset
    virtual OsStatus oneshotAfter(const OsTime& offset);
 
@@ -244,6 +247,12 @@ public:
     * if stop operation succeeds. It is set to TRUE when timer is fired.
     * Note that stop fails on a stopped timer.
     */
+
+   /// Returns the time when timer expires
+   void getExpiresAt(OsDateTime& dateTime);
+
+   /// Returns the time when timer expires (more accurate than OsDateTime)
+   void getExpiresAt(OsTime& time);
 
 /* ============================ INQUIRY =================================== */
 

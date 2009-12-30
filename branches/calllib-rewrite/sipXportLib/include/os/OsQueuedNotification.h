@@ -63,13 +63,14 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   const OsMsg* getOsMsg() const { return m_pOsMsg; }
+
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
    OsMsgQ& m_rMsgQ; ///< queue where we should send message when notification is signaled
    OsMsg* m_pOsMsg; ///< message that should be sent when notification is signaled
-
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    /** Copy constructor (not implemented for this class) */
