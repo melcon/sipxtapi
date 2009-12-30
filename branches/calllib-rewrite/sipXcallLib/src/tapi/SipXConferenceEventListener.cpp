@@ -104,7 +104,7 @@ UtlBoolean SipXConferenceEventListener::handleMessage(OsMsg& rRawMsg)
             // cast succeeded
             const CpConferenceEvent& payload = pMsg->getEventPayloadRef();
             handleConferenceEvent(pMsg->getEvent(), (SIPX_CONFERENCE_CAUSE)payload.m_cause,
-               payload.m_sConferenceId, payload.m_sSipCallId);
+               payload.m_sConferenceId, payload.m_pSipDialog);
          }
       }
       bResult = TRUE;
@@ -118,9 +118,9 @@ UtlBoolean SipXConferenceEventListener::handleMessage(OsMsg& rRawMsg)
 void SipXConferenceEventListener::sipxFireConferenceEvent(SIPX_CONFERENCE_EVENT event,
                                                           SIPX_CONFERENCE_CAUSE cause,
                                                           const UtlString& sConferenceId,
-                                                          const UtlString& sSipCallId)
+                                                          const SipDialog* pSipDialog)
 {
-   CpConferenceEvent payload((CP_CONFERENCE_CAUSE)cause, sConferenceId, sSipCallId);
+   CpConferenceEvent payload((CP_CONFERENCE_CAUSE)cause, sConferenceId, pSipDialog);
    ConferenceEventMsg msg(event, payload);
    postMessage(msg);
 }
@@ -136,9 +136,15 @@ void SipXConferenceEventListener::sipxFireConferenceEvent(SIPX_CONFERENCE_EVENT 
 void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT event,
                                                         SIPX_CONFERENCE_CAUSE cause,
                                                         const UtlString& sConferenceId,
-                                                        const UtlString& sSipCallId)
+                                                        const SipDialog* pSipDialog)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "handleConferenceEvent");
+
+   UtlString sSipCallId;
+   if (pSipDialog)
+   {
+      pSipDialog->getCallId(sSipCallId);
+   }
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
       "handleConferenceEvent ConferenceId=%s CallId=%s Event=%s:%s",

@@ -535,11 +535,11 @@ OsStatus XCpConference::handleJoin(const AcConferenceJoinMsg& rMsg)
 
    if (result == OS_SUCCESS)
    {
-      fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, eventCause, sipDialog.getCallId());
+      fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, eventCause, &sipDialog);
    }
    else
    {
-      fireConferenceEvent(CP_CONFERENCE_CALL_ADD_FAILURE, eventCause, sipDialog.getCallId());
+      fireConferenceEvent(CP_CONFERENCE_CALL_ADD_FAILURE, eventCause, &sipDialog);
    }
 
    return result;
@@ -603,11 +603,11 @@ OsStatus XCpConference::handleSplit(const AcConferenceSplitMsg& rMsg)
 
    if (result == OS_SUCCESS)
    {
-      fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, eventCause, sipDialog.getCallId());
+      fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, eventCause, &sipDialog);
    }
    else
    {
-      fireConferenceEvent(CP_CONFERENCE_CALL_REMOVE_FAILURE, eventCause, sipDialog.getCallId());
+      fireConferenceEvent(CP_CONFERENCE_CALL_REMOVE_FAILURE, eventCause, &sipDialog);
    }
    return result;
 }
@@ -694,7 +694,7 @@ void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
          pSipConnection->getSipCallId(sSipCallId);
          m_sipConnections.remove(pSipConnection);
          // fire event that call was removed from conference
-         fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, CP_CONFERENCE_CAUSE_NORMAL, sSipCallId);
+         fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, CP_CONFERENCE_CAUSE_NORMAL, &sSipDialog);
 
          delete pSipConnection;
          pSipConnection = NULL;
@@ -724,7 +724,7 @@ void XCpConference::createSipConnection(const SipDialog& sipDialog, const UtlStr
    }
 
    // fire event that call was added to conference
-   fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, CP_CONFERENCE_CAUSE_NORMAL, sipDialog.getCallId());
+   fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, CP_CONFERENCE_CAUSE_NORMAL, &sipDialog);
 
    onConnectionAddded(sipDialog.getCallId());
 }
@@ -774,11 +774,11 @@ void XCpConference::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
 
 void XCpConference::fireConferenceEvent(CP_CONFERENCE_EVENT event,
                                         CP_CONFERENCE_CAUSE cause,
-                                        const UtlString& sipCallId)
+                                        const SipDialog* pSipDialog)
 {
    if (m_pConferenceEventListener)
    {
-      CpConferenceEvent eventObject(cause, m_sId, sipCallId);
+      CpConferenceEvent eventObject(cause, m_sId, pSipDialog);
       switch(event)
       {
       case CP_CONFERENCE_CREATED:

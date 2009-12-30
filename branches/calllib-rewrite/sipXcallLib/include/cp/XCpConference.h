@@ -274,7 +274,7 @@ private:
    /** Fires given conference event to listeners */
    void fireConferenceEvent(CP_CONFERENCE_EVENT event,
                             CP_CONFERENCE_CAUSE cause,
-                            const UtlString& sipCallId = NULL);
+                            const SipDialog* pSipDialog = NULL);
 
    /** Called when media focus is gained (speaker and mic are engaged) */
    virtual void onFocusGained();

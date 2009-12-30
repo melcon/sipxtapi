@@ -72,9 +72,9 @@ public:
 
    CpCallStateEvent()
       : m_pSipDialog(NULL)
+      , m_sipResponseCode(0)
+      , m_cause(CP_CALLSTATE_CAUSE_UNKNOWN)
    {
-      m_sipResponseCode = 0;
-      m_cause = CP_CALLSTATE_CAUSE_UNKNOWN;
    }
 
    ~CpCallStateEvent()
