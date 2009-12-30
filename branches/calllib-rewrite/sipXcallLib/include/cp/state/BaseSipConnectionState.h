@@ -726,6 +726,12 @@ protected:
    /** Deletes all timers */
    void deleteAllTimers();
 
+   /** Updates given timer. Old timer is deleted and new one will be created with new queue. */
+   void updateTimer(OsTimer **pTimer);
+
+   /** Updates all timers to use new queue */
+   void updateAllTimers();
+
    /** Updates known capabilities about remote party. Updates Allow, Supported.*/
    void updateRemoteCapabilities(const SipMessage& sipMessage);
 

@@ -840,6 +840,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handleNotificationMessage(
 void BaseSipConnectionState::setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider)
 {
    m_pMessageQueueProvider = pMessageQueueProvider;
+   // we also need to update timers with new queue
+   updateAllTimers();
 }
 
 void BaseSipConnectionState::setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider)
@@ -4704,6 +4706,48 @@ void BaseSipConnectionState::deleteAllTimers()
    m_rStateContext.m_p100relRetransmitTimer = NULL;
    delete m_rStateContext.m_pDelayedAnswerTimer;
    m_rStateContext.m_pDelayedAnswerTimer = NULL;
+}
+
+void BaseSipConnectionState::updateTimer(OsTimer **pTimer)
+{
+   if (pTimer && *pTimer)
+   {
+      (*pTimer)->stop();
+      if (!(*pTimer)->getWasFired())
+      {
+         // timer has not fired yet, it needs to be restarted
+         OsTime expiresAt;
+         (*pTimer)->getExpiresAt(expiresAt);
+         OsTimerNotification *pOldNotification = dynamic_cast<OsTimerNotification*>((*pTimer)->getNotifier());
+         if (pOldNotification)
+         {
+            OsTimerNotification *pNewNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(),
+               *pOldNotification->getOsTimerMsg());
+            delete *pTimer;
+            *pTimer = new OsTimer(pNewNotification);
+            (*pTimer)->oneshotAt(expiresAt);
+         }
+         else
+         {
+            delete *pTimer;
+            *pTimer = NULL;
+         }
+      } // else timer fired, cannot update it with new queue
+   }
+}
+
+void BaseSipConnectionState::updateAllTimers()
+{
+   updateTimer(&m_rStateContext.m_pByeRetryTimer);
+   updateTimer(&m_rStateContext.m_pCancelTimeoutTimer);
+   updateTimer(&m_rStateContext.m_pByeTimeoutTimer);
+   updateTimer(&m_rStateContext.m_pSessionRenegotiationTimer);
+   updateTimer(&m_rStateContext.m_p2xxInviteRetransmitTimer);
+   updateTimer(&m_rStateContext.m_pSessionTimeoutCheckTimer);
+   updateTimer(&m_rStateContext.m_pSessionRefreshTimer);
+   updateTimer(&m_rStateContext.m_pInviteExpiresTimer);
+   updateTimer(&m_rStateContext.m_p100relRetransmitTimer);
+   updateTimer(&m_rStateContext.m_pDelayedAnswerTimer);
 }
 
 void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessage)
