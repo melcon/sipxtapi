@@ -56,6 +56,14 @@ extern int strncasecmp( const char *s1, const char *s2, int N );
  */
 class UtlString : public UtlCopyableContainable
 {
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+   // for debugging purposes it's better to have these fields at the beginning
+   char*  mpData;      //: The value of UtlString.
+   size_t mSize;       //: The number of bytes of data used.
+   size_t mCapacity;   //: The allocated size of data.
+   char   mBuiltIn[DEFAULT_UTLSTRING_CAPACITY];
+
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
     static const UtlContainableType TYPE;    /** < Class type used for runtime checking */
@@ -675,12 +683,6 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-private:
-    char*  mpData;      //: The value of UtlString.
-    size_t mSize;       //: The number of bytes of data used.
-    size_t mCapacity;   //: The allocated size of data.
-    char   mBuiltIn[DEFAULT_UTLSTRING_CAPACITY];
 };
 
 /* ============================ INLINE METHODS ============================ */
