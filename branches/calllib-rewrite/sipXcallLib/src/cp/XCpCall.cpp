@@ -459,7 +459,7 @@ void XCpCall::createSipConnection(const SipDialog& sipDialog, const UtlString& s
       {
          m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, m_rCallControl, sFullLineUrl, m_sBindIpAddress,
             m_sessionTimerExpiration, m_sessionTimerRefresh,
-            m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, *this, *this, m_natTraversalConfig,
+            m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, this, this, m_natTraversalConfig,
             m_pCallEventListener, m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener,
             m_pRtpRedirectEventListener);
          bAdded = TRUE;
@@ -576,6 +576,48 @@ void XCpCall::onFocusLost()
 void XCpCall::onStarted()
 {
    // this gets called once thread is started
+}
+
+OsStatus XCpCall::extractConnection(XSipConnection **pSipConnection)
+{
+   if (isShutDown())
+   {
+      OsLock lock(m_memberMutex);
+      if (m_pSipConnection && pSipConnection)
+      {
+         UtlString sSipCallId;
+         m_pSipConnection->getSipCallId(sSipCallId);
+         onConnectionRemoved(sSipCallId);
+
+         *pSipConnection = m_pSipConnection;
+         m_pSipConnection = NULL;
+         return OS_SUCCESS;
+      }
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XCpCall::setConnection(XSipConnection *pSipConnection)
+{
+   if (isShutDown())
+   {
+      OsLock lock(m_memberMutex);
+      if (!m_pSipConnection)
+      {
+         m_pSipConnection = pSipConnection;
+         m_pSipConnection->setAbstractCallId(m_sId);
+         m_pSipConnection->setMediaInterfaceProvider(this);
+         m_pSipConnection->setMessageQueueProvider(this);
+
+         UtlString sSipCallId;
+         m_pSipConnection->getSipCallId(sSipCallId);
+         onConnectionAddded(sSipCallId);
+         return OS_SUCCESS;
+      }
+   }
+
+   return OS_FAILED;
 }
 
 /* ============================ FUNCTIONS ================================= */

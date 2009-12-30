@@ -33,6 +33,8 @@
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CmDestroyAbstractCallMsg.h>
 #include <cp/msg/ScNotificationMsg.h>
+#include <cp/msg/CpTimerMsg.h>
+#include <cp/msg/ScTimerMsg.h>
 #include <net/SipDialog.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipLineProvider.h>
@@ -144,6 +146,8 @@ UtlBoolean XCpCallManager::handleMessage(OsMsg& rRawMsg)
       return handleSipConnectionCommandMessage((const ScCommandMsg&)rRawMsg);
    case CpMessageTypes::SC_NOFITICATION:
       return handleSipConnectionNotificationMessage((const ScNotificationMsg&)rRawMsg);
+   case OsMsg::OS_TIMER_MSG:
+      return handleTimerMessage(rRawMsg);
    case OsMsg::OS_EVENT: // timer event
    default:
       {
@@ -304,16 +308,72 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
 }
 
 OsStatus XCpCallManager::conferenceJoin(const UtlString& sConferenceId,
-                                        const UtlString& sCallId)
+                                        const SipDialog& sipDialog)
 {
-   return OS_FAILED;
+   OsStatus result = OS_FAILED;
+
+   // check that call exists
+   {
+      OsPtrLock<XCpCall> ptrLock; // auto pointer lock
+      UtlBoolean resFind = m_callStack.findCall(sipDialog, ptrLock);
+      if (!resFind)
+      {
+         result = OS_NOT_FOUND;
+         return result;
+      }
+   }
+
+   // find conference and execute join on it
+   {
+      OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+      UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
+      if (resFind)
+      {
+         return ptrLock->join(sipDialog);
+      }
+   }
+
+   return result;
 }
 
 OsStatus XCpCallManager::conferenceSplit(const UtlString& sConferenceId,
                                          const SipDialog& sipDialog,
                                          UtlString& sNewCallId)
 {
-   return OS_FAILED;
+   OsStatus result = OS_FAILED;
+   sNewCallId.clear();
+
+   if (sipDialog.isEstablishedDialog())
+   {
+      // create new call for sip connection
+      OsStatus createResult = createCall(sNewCallId);
+      if (createResult == OS_SUCCESS)
+      {
+         // find conference and execute split on it
+         {
+            OsPtrLock<XCpConference> ptrLock; // auto pointer lock
+            UtlBoolean resFind = m_callStack.findConference(sConferenceId, ptrLock);
+            if (resFind)
+            {
+               result = ptrLock->split(sipDialog, sNewCallId);
+               if (result == OS_SUCCESS)
+               {
+                  return result;
+               }
+               else
+               {
+                  destroyCall(sNewCallId);
+               }
+            }
+         }
+      }
+      else
+      {
+         result = createResult;
+      }
+   }
+
+   return result;
 }
 
 OsStatus XCpCallManager::startCallRedirectRtp(const UtlString& sSrcCallId,
@@ -1332,6 +1392,46 @@ UtlBoolean XCpCallManager::handleSipConnectionNotificationMessage(const ScNotifi
    {
       return FALSE;
    }
+}
+
+UtlBoolean XCpCallManager::handleTimerMessage(const OsMsg& rRawMsg)
+{
+   const CpTimerMsg *pTimerMsg = dynamic_cast<const CpTimerMsg*>(&rRawMsg);
+   if (pTimerMsg)
+   {
+      // dynamic cast succeeded
+      switch ((CpTimerMsg::SubTypeEnum)rRawMsg.getMsgSubType())
+      {
+      case CpTimerMsg::CP_SIP_CONNECTION_TIMER:
+         return handleSipConnectionTimer((const ScTimerMsg&)rRawMsg);
+      default:
+         break;
+      }
+   }
+
+   return FALSE;
+}
+
+UtlBoolean XCpCallManager::handleSipConnectionTimer(const ScTimerMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   // find correct call/conference for this timer message
+   OsPtrLock<XCpAbstractCall> ptrLock; // auto pointer lock
+   UtlBoolean resFind = m_callStack.findAbstractCall(sipDialog, ptrLock);
+   if (resFind)
+   {
+      ptrLock->postMessage(rMsg);
+      return TRUE;
+   }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_DEBUG, "No call or conference was found for sip connection timer message subtype %d\n",
+         rMsg.getMsgSubType());
+   }
+
+   return FALSE;
 }
 
 UtlBoolean XCpCallManager::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)

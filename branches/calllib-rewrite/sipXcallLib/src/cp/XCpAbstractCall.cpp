@@ -1214,6 +1214,14 @@ UtlBoolean XCpAbstractCall::handleSipConnectionTimer(const ScTimerMsg& timerMsg)
    {
       msgHandled = ptrLock->handleTimerMessage(timerMsg);
    }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_DEBUG, "No connection was found for sip connection timer message subtype %d. Posting to call manager.\n",
+         timerMsg.getMsgSubType());
+      // connection was not found, send message to call manager, it might be able to find the correct call
+      // this might happen after conference join/split
+      getGlobalQueue().send(timerMsg);
+   }
 
    return resFind && msgHandled;
 }

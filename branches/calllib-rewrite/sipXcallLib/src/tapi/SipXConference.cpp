@@ -459,7 +459,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
             SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
             if (pCallData && !pCallData->m_sipDialog.getRemoteField().isNull() && pCallData->m_hConf == SIPX_CONF_NULL)
             {
-               UtlString callId(pCallData->m_abstractCallId);
+               SipDialog sipDialog(pCallData->m_sipDialog);
                SIPX_INSTANCE_DATA* pInst2 = pConfData->m_pInst;
                sipxCallReleaseLock(pCallData, SIPX_LOCK_READ, stackLogger);
 
@@ -467,7 +467,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
                {
                   sipxAddCallHandleToConf(hCall, hConf);
                   // call and conference must exist in the same call manager
-                  if (pInst1->pCallManager->conferenceJoin(conferenceId, callId) == OS_SUCCESS)
+                  if (pInst1->pCallManager->conferenceJoin(conferenceId, sipDialog) == OS_SUCCESS)
                   {
                      // m_abstractCallId of call will be updated if asynchronous operation succeeds
                      rc = SIPX_RESULT_SUCCESS;

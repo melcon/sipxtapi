@@ -34,6 +34,7 @@ class AcRedirectConnectionMsg;
 class AcAnswerConnectionMsg;
 class AcDropConnectionMsg;
 class AcDestroyConnectionMsg;
+class XCpConference;
 
 /**
  * XCpCall wraps XSipConnection realizing all call functionality. XCpCall is designed to hold
@@ -57,6 +58,8 @@ class AcDestroyConnectionMsg;
  */
 class XCpCall : public XCpAbstractCall
 {
+   friend class XCpConference; // needed for conference split/join
+
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
@@ -265,6 +268,23 @@ private:
 
    /** Called when abstract call thread is started */
    virtual void onStarted();
+
+   /**
+    * Tries to extract sip connection from call. Meant to be used by XCpConference for
+    * join. Reference to queue and media interface, callId will need to be updated by caller.
+    * XCpCall thread must not be running at the time this operation executes.
+    * After this operation call will have no sip connection.
+    */
+   OsStatus extractConnection(XSipConnection **pSipConnection);
+
+   /**
+    * Tries to set sip connection on the call. Meant to be used by XCpConference for
+    * split. Reference to queue and media interface will be updated if operation succeeds.
+    * XCpCall thread must not be running at the time this operation executes.
+    * Operation will fail if call already has some sip connection.
+    */
+   OsStatus setConnection(XSipConnection *pSipConnection);
+
 
    // begin of members requiring m_memberMutex
    XSipConnection* m_pSipConnection; ///< XSipConnection handling Sip messages. Use destroySipConnection to delete it.

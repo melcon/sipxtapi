@@ -665,7 +665,8 @@ typedef enum
 typedef enum
 {
    CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
-   CONFERENCE_CAUSE_INVALID_STATE       ///< call is in invalid state for requested operation
+   CONFERENCE_CAUSE_INVALID_STATE,       ///< call is in invalid state for requested operation
+   CONFERENCE_CAUSE_NOT_FOUND            ///< call was not found
 } SIPX_CONFERENCE_CAUSE;
 
 /**

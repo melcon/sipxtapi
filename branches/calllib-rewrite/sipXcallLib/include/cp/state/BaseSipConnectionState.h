@@ -92,8 +92,8 @@ public:
    BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
                           XCpCallControl& rCallControl,
-                          CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                          CpMessageQueueProvider& rMessageQueueProvider,
+                          CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                          CpMessageQueueProvider* pMessageQueueProvider,
                           XSipConnectionEventSink& rSipConnectionEventSink,
                           const CpNatTraversalConfig& natTraversalConfig);
 
@@ -219,10 +219,10 @@ public:
    static void setInfoTestResponseCode(int val) { ms_iInfoTestResponseCode = val; }
 
    /** Sets new message queue provider on the state */
-   void setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider);
+   void setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider);
 
    /** Sets new media interface provider on the state */
-   void setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider);
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider);
 
    /* ============================ INQUIRY =================================== */
 
@@ -787,8 +787,8 @@ protected:
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    XCpCallControl& m_rCallControl; ///< interface for controlling other calls
-   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
-   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
+   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   CpMessageQueueProvider* m_pMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
    CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 

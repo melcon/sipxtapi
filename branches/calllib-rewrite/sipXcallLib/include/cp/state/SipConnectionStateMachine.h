@@ -60,8 +60,8 @@ public:
    SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                              XCpCallControl& rCallControl,
                              const UtlString& sBindIpAddress, ///< bind IP address. May be 0.0.0.0
-                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                             CpMessageQueueProvider& rMessageQueueProvider,
+                             CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                             CpMessageQueueProvider* pMessageQueueProvider,
                              XSipConnectionEventSink& rSipConnectionEventSink,
                              const CpNatTraversalConfig& natTraversalConfig);
 
@@ -220,10 +220,10 @@ public:
    void setRealLineIdentity(const UtlString& sFullLineUrl);
 
    /** Sets new message queue provider on the state machine and current state */
-   void setMessageQueueProvider(CpMessageQueueProvider& rMessageQueueProvider);
+   void setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider);
 
    /** Sets new media interface provider on the state machine and current state */
-   void setMediaInterfaceProvider(CpMediaInterfaceProvider& rMediaInterfaceProvider);
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider);
 
    /* ============================ INQUIRY =================================== */
 
@@ -260,8 +260,8 @@ private:
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
    XCpCallControl& m_rCallControl; ///< interface for controlling other calls
-   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
-   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
+   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< provider of CpMediaInterface
+   CpMessageQueueProvider* m_pMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
    CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 };

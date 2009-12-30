@@ -62,6 +62,7 @@ class CmYieldFocusMsg;
 class CmDestroyAbstractCallMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
+class ScTimerMsg;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
@@ -147,10 +148,10 @@ public:
     * require call to be held. No call events will be fired.
     *
     * @param sConferenceId id of existing conference
-    * @param sCallId abstractCallId of an existing call that should be joined with conference
+    * @param sipDialog sip dialog of call that should be joined with conference
     */
    OsStatus conferenceJoin(const UtlString& sConferenceId,
-                           const UtlString& sCallId);
+                           const SipDialog& sipDialog);
 
    /**
     * Splits a call from a conference. Call must not have UPDATE/INVITE in progress
@@ -621,6 +622,12 @@ private:
    /** Handler for CpMessageTypes::ScNotificationMsg messages */
    UtlBoolean handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg);
 
+   /** Handler for generic timer message. */
+   UtlBoolean handleTimerMessage(const OsMsg& rRawMsg);
+
+   /** Handler for sip connection timers. If timer fires but connection is not found message goes here. */
+   UtlBoolean handleSipConnectionTimer(const ScTimerMsg& rMsg);
+
    /** Handler for inbound SipMessageEvent messages. Tries to find call for event. */
    UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
@@ -710,7 +717,6 @@ private:
                                         const UtlString& replacesField = NULL, // value of Replaces INVITE field
                                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                                         const SipDialog* pCallbackSipDialog = NULL);
-
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.

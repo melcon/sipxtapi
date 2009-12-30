@@ -88,6 +88,8 @@
                 <File RelativePath=".\src\cp\msg\AcAudioToneStartMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcAudioToneStopMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcCommandMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcConferenceJoinMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcConferenceSplitMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcConnectMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcDestroyConnectionMsg.cpp"/>
                 <File RelativePath=".\src\cp\msg\AcDropAllConnectionsMsg.cpp"/>
@@ -212,6 +214,8 @@
                 <File RelativePath=".\include\cp\msg\AcAudioToneStartMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcAudioToneStopMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcCommandMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcConferenceJoinMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcConferenceSplitMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcConnectMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcDestroyConnectionMsg.h"/>
                 <File RelativePath=".\include\cp\msg\AcDropAllConnectionsMsg.h"/>
