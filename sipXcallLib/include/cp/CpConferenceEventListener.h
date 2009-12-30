@@ -38,28 +38,36 @@ class CpConferenceEvent
 {
 public:
    UtlString m_sConferenceId; // id of conference
-   UtlString m_sSipCallId; // sip call-id of call if available
+   SipDialog* m_pSipDialog; // sip dialog of call if available
    CP_CONFERENCE_CAUSE m_cause;
 
    CpConferenceEvent(CP_CONFERENCE_CAUSE cause,
                      const UtlString& sConferenceId,
-	                  const UtlString& sCallId = NULL)
+	                  const SipDialog* pSipDialog = NULL)
       : m_cause(cause)
       , m_sConferenceId(sConferenceId)
-      , m_sSipCallId(sCallId)
+      , m_pSipDialog(NULL)
    {
+      if (pSipDialog)
+      {
+         m_pSipDialog = new SipDialog(*pSipDialog);
+      }
    }
 
    CpConferenceEvent()
+      : m_cause(CP_CONFERENCE_CAUSE_NORMAL)
+      , m_pSipDialog(NULL)
    {
-      m_cause = CP_CONFERENCE_CAUSE_NORMAL;
    }
 
    ~CpConferenceEvent()
    {
+      delete m_pSipDialog;
+      m_pSipDialog = NULL;
    }
 
    CpConferenceEvent(const CpConferenceEvent& event)
+      : m_pSipDialog(NULL)
    {
       *this = event;
    }
@@ -72,7 +80,17 @@ public:
       }
 
 	   m_sConferenceId = event.m_sConferenceId;
-      m_sSipCallId = event.m_sSipCallId;
+      // get rid of old sip dialog if it exists
+      if (m_pSipDialog)
+      {
+         delete m_pSipDialog;
+         m_pSipDialog = NULL;
+      }
+      if (event.m_pSipDialog)
+      {
+         // copy new sip dialog
+         m_pSipDialog = new SipDialog(*(event.m_pSipDialog));
+      }
       m_cause = event.m_cause;
       return *this;
    }

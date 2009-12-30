@@ -68,7 +68,7 @@ public:
    void sipxFireConferenceEvent(SIPX_CONFERENCE_EVENT event,
 	                             SIPX_CONFERENCE_CAUSE cause,
 	                             const UtlString& sConferenceId,
-							           const UtlString& sSipCallId = NULL);
+							           const SipDialog* pSipDialog = NULL);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -87,7 +87,7 @@ private:
    void handleConferenceEvent(SIPX_CONFERENCE_EVENT event,
                               SIPX_CONFERENCE_CAUSE cause,
                               const UtlString& sConferenceId,
-                              const UtlString& sSipCallId = NULL);
+                              const SipDialog* pSipDialog = NULL);
 
    SIPX_INST m_pInst;
 };
