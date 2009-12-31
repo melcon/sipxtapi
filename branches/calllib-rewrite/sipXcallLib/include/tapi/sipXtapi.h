@@ -94,7 +94,6 @@
 #define MAX_VIDEO_DEVICES       8       /**< Max number of video capture devices. */
 #define MAX_VIDEO_DEVICE_LENGTH 256     /**< Max length of video capture device string. */
 
-#define CONF_MAX_CONNECTIONS    32      /**< Max number of conference participants */
 #define SIPX_MAX_IP_ADDRESSES   32      /**< Maximum number of IP addresses on the host */
 
 

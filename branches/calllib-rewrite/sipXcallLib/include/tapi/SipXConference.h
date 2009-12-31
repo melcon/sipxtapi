@@ -37,18 +37,20 @@ class SIPX_CONF_DATA
 public:
    UtlString           m_sConferenceId;
    SIPX_INSTANCE_DATA* m_pInst;
-   size_t              m_nCalls;
-   SIPX_CALL           m_hCalls[CONF_MAX_CONNECTIONS];
+   UtlSList            m_hCalls;
    CONF_HOLD_STATE     m_confHoldState;
    OsMutex             m_mutex;
-   
+
    SIPX_CONF_DATA() : m_pInst(NULL),
       m_sConferenceId(NULL),
-      m_nCalls(0),
       m_confHoldState(CONF_STATE_UNHELD),
       m_mutex(OsMutex::Q_FIFO)
    {
-      memset(m_hCalls, 0, sizeof(SIPX_CALL) * CONF_MAX_CONNECTIONS);
+   }
+
+   ~SIPX_CONF_DATA()
+   {
+      m_hCalls.destroyAll();
    }
 
 };
