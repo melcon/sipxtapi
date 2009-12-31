@@ -46,6 +46,10 @@
 #include <cp/msg/AcMuteInputConnectionMsg.h>
 #include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcLimitCodecPreferencesMsg.h>
+#include <cp/msg/AcAcceptConnectionMsg.h>
+#include <cp/msg/AcRejectConnectionMsg.h>
+#include <cp/msg/AcRedirectConnectionMsg.h>
+#include <cp/msg/AcAnswerConnectionMsg.h>
 #include <cp/msg/AcHoldConnectionMsg.h>
 #include <cp/msg/AcUnholdConnectionMsg.h>
 #include <cp/msg/AcTransferBlindMsg.h>
@@ -185,6 +189,34 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    }
 
    return bResult;
+}
+
+OsStatus XCpAbstractCall::acceptConnection(const SipDialog& sSipDialog,
+                                           UtlBoolean bSendSDP,
+                                           const UtlString& locationHeader,
+                                           CP_CONTACT_ID contactId)
+{
+   AcAcceptConnectionMsg acceptConnectionMsg(sSipDialog, bSendSDP, locationHeader, contactId);
+   return postMessage(acceptConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::rejectConnection(const SipDialog& sSipDialog)
+{
+   AcRejectConnectionMsg rejectConnectionMsg(sSipDialog);
+   return postMessage(rejectConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::redirectConnection(const SipDialog& sSipDialog,
+                                             const UtlString& sRedirectSipUrl)
+{
+   AcRedirectConnectionMsg redirectConnectionMsg(sSipDialog, sRedirectSipUrl);
+   return postMessage(redirectConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::answerConnection(const SipDialog& sSipDialog)
+{
+   AcAnswerConnectionMsg answerConnectionMsg(sSipDialog);
+   return postMessage(answerConnectionMsg);
 }
 
 OsStatus XCpAbstractCall::acceptConnectionTransfer(const SipDialog& sipDialog)
@@ -500,6 +532,18 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_UNSUBSCRIBE:
       handleUnsubscribe((const AcUnsubscribeMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_ACCEPT_CONNECTION:
+      handleAcceptConnection((const AcAcceptConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_REJECT_CONNECTION:
+      handleRejectConnection((const AcRejectConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_REDIRECT_CONNECTION:
+      handleRedirectConnection((const AcRedirectConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_ANSWER_CONNECTION:
+      handleAnswerConnection((const AcAnswerConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_ACCEPT_TRANSFER:
       handleAcceptTransfer((const AcAcceptTransferMsg&)rRawMsg);
@@ -1001,6 +1045,66 @@ UtlBoolean XCpAbstractCall::handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg)
    }
 
    return TRUE;
+}
+
+OsStatus XCpAbstractCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->acceptConnection(rMsg.getSendSDP() ,rMsg.getLocationHeader(), rMsg.getContactId());
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleRejectConnection(const AcRejectConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->rejectConnection();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleRedirectConnection(const AcRedirectConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->redirectConnection(rMsg.getRedirectSipUrl());
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleAnswerConnection(const AcAnswerConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->answerConnection();
+   }
+
+   return OS_NOT_FOUND;
 }
 
 OsStatus XCpAbstractCall::handleTransferBlind(const AcTransferBlindMsg& rMsg)

@@ -699,7 +699,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall)
       if (!pCallData->m_sipDialog.getRemoteField().isNull() && !pCallData->m_sipDialog.getCallId().isNull())
       {
          // call has been connected
-         pCallData->m_pInst->pCallManager->rejectCallConnection(pCallData->m_abstractCallId);
+         pCallData->m_pInst->pCallManager->rejectAbstractCallConnection(pCallData->m_abstractCallId,
+            pCallData->m_sipDialog);
          sr = SIPX_RESULT_SUCCESS;
       }
 
@@ -724,7 +725,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallRedirect(const SIPX_CALL hCall, const char* szF
    {
       if (!pCallData->m_sipDialog.getRemoteField().isNull() && !pCallData->m_sipDialog.getCallId().isNull() && szForwardURL)
       {
-         pCallData->m_pInst->pCallManager->redirectCallConnection(pCallData->m_abstractCallId, szForwardURL);
+         pCallData->m_pInst->pCallManager->redirectAbstractCallConnection(pCallData->m_abstractCallId,
+            pCallData->m_sipDialog,
+            szForwardURL);
          sr = SIPX_RESULT_SUCCESS;
       }
 
@@ -779,7 +782,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
          pLocationHeader = (bEnableLocationHeader) ? pCallData->m_pInst->szLocationHeader : NULL;
 
          // just posts message
-         pCallData->m_pInst->pCallManager->acceptCallConnection(pCallData->m_abstractCallId,
+         pCallData->m_pInst->pCallManager->acceptAbstractCallConnection(pCallData->m_abstractCallId,
+            pCallData->m_sipDialog,
             bSendSdp,
             pLocationHeader,
             contactId);
@@ -893,7 +897,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, int bTakeFocus)
             pCallData->m_pInst->pCallManager->unholdLocalAbstractCallConnection(pCallData->m_abstractCallId);
          }
          
-         pCallData->m_pInst->pCallManager->answerCallConnection(pCallData->m_abstractCallId);
+         pCallData->m_pInst->pCallManager->answerAbstractCallConnection(pCallData->m_abstractCallId,
+            pCallData->m_sipDialog);
 
          sr = SIPX_RESULT_SUCCESS;
       }// call found but no SipConnection, probably a call we created but didn't connect

@@ -27,8 +27,9 @@
 
 /* ============================ CREATORS ================================== */
 
-AcAnswerConnectionMsg::AcAnswerConnectionMsg()
+AcAnswerConnectionMsg::AcAnswerConnectionMsg(const SipDialog& sSipDialog)
 : AcCommandMsg(AC_ANSWER_CONNECTION)
+, m_sSipDialog(sSipDialog)
 {
 
 }
@@ -40,7 +41,7 @@ AcAnswerConnectionMsg::~AcAnswerConnectionMsg()
 
 OsMsg* AcAnswerConnectionMsg::createCopy(void) const
 {
-   return new AcAnswerConnectionMsg();
+   return new AcAnswerConnectionMsg(m_sSipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

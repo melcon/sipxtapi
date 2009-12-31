@@ -17,6 +17,7 @@
 #include <os/OsIntPtrMsg.h>
 #include <utl/UtlSListIterator.h>
 #include <net/SipDialog.h>
+#include <net/SipLine.h>
 #include <sdp/SdpCodecFactory.h>
 #include <cp/XCpConference.h>
 #include <cp/XCpCall.h>
@@ -49,6 +50,7 @@
 /* ============================ CREATORS ================================== */
 
 XCpConference::XCpConference(const UtlString& sId,
+                             const UtlString& sConferenceUri,
                              SipUserAgent& rSipUserAgent,
                              XCpCallControl& rCallControl,
                              XCpCallLookup& rCallLookup,
@@ -76,11 +78,11 @@ XCpConference::XCpConference(const UtlString& sId,
                   sBindIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting, sdpOfferingMode, inviteExpiresSeconds,
                   pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener, pRtpRedirectEventListener)
+, m_conferenceUri(SipLine::getLineUri(sConferenceUri))
 , m_pConferenceEventListener(pConferenceEventListener)
 , m_rCallLookup(rCallLookup)
 , m_bDestroyConference(FALSE)
 {
-
 }
 
 XCpConference::~XCpConference()
@@ -114,32 +116,6 @@ OsStatus XCpConference::connect(const UtlString& sipCallId,
    AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId,
       replacesField, callstateCause, pCallbackSipDialog);
    return postMessage(connectMsg);
-}
-
-OsStatus XCpConference::acceptConnection(UtlBoolean bSendSDP,
-                                         const UtlString& locationHeader,
-                                         CP_CONTACT_ID contactId)
-{
-   // conference cannot have new inbound call
-   return OS_NOT_SUPPORTED;
-}
-
-OsStatus XCpConference::rejectConnection()
-{
-   // conference cannot have new inbound call
-   return OS_NOT_SUPPORTED;
-}
-
-OsStatus XCpConference::redirectConnection(const UtlString& sRedirectSipUrl)
-{
-   // conference cannot have new inbound call
-   return OS_NOT_SUPPORTED;
-}
-
-OsStatus XCpConference::answerConnection()
-{
-   // conference cannot have new inbound call
-   return OS_NOT_SUPPORTED;
 }
 
 OsStatus XCpConference::dropConnection(const SipDialog& sipDialog)
@@ -326,21 +302,28 @@ OsStatus XCpConference::handleConnect(const AcConnectMsg& rMsg)
    SipDialog sipDialog(rMsg.getSipCallId(), rMsg.getLocalTag(), NULL, TRUE);
    sipDialog.setLocalField(Url(rMsg.getFromAddress()));
 
-   // use from address as real line url (supports virtual lines)
-   createSipConnection(sipDialog, rMsg.getFromAddress());
-
+   if (getCallCount() < CONF_MAX_CONNECTIONS)
    {
-      OsPtrLock<XSipConnection> ptrLock;
-      UtlBoolean resFound = findConnection(sipDialog, ptrLock);
-      if (resFound)
+      // use from address as real line url (supports virtual lines)
+      createSipConnection(sipDialog, rMsg.getFromAddress());
+
       {
-         result = ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
-            rMsg.getLocationHeader(), rMsg.getContactId(), rMsg.getReplacesField(), rMsg.getCallstateCause(), rMsg.getCallbackSipDialog());
+         OsPtrLock<XSipConnection> ptrLock;
+         UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+         if (resFound)
+         {
+            result = ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
+               rMsg.getLocationHeader(), rMsg.getContactId(), rMsg.getReplacesField(), rMsg.getCallstateCause(), rMsg.getCallbackSipDialog());
+         }
+         else
+         {
+            result = OS_NOT_FOUND;
+         }
       }
-      else
-      {
-         result = OS_NOT_FOUND;
-      }
+   }
+   else
+   {
+      result = OS_LIMIT_REACHED;
    }
 
    return result;
@@ -475,6 +458,7 @@ OsStatus XCpConference::handleJoin(const AcConferenceJoinMsg& rMsg)
    XSipConnection *pSipConnection = NULL;
    rMsg.getSipDialog(sipDialog);
 
+   if (getCallCount() < CONF_MAX_CONNECTIONS)
    {
       OsPtrLock<XCpCall> ptrLock;
       UtlBoolean bFound = m_rCallLookup.findCall(sipDialog, ptrLock);
@@ -524,13 +508,18 @@ OsStatus XCpConference::handleJoin(const AcConferenceJoinMsg& rMsg)
          else // extractConnection failed
          {
             ptrLock->start();
-            eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+            eventCause = CP_CONFERENCE_CAUSE_UNEXPECTED_ERROR;
          }
       }
       else // findCall failed
       {
          eventCause = CP_CONFERENCE_CAUSE_NOT_FOUND;
       }
+   }
+   else // too many sip connections in conference
+   {
+      result = OS_LIMIT_REACHED;
+      eventCause = CP_CONFERENCE_CAUSE_LIMIT_REACHED;
    }
 
    if (result == OS_SUCCESS)
@@ -580,7 +569,7 @@ OsStatus XCpConference::handleSplit(const AcConferenceSplitMsg& rMsg)
                {
                   ptrLock->start();
                   ptrLock->dropConnection(); // destroy new call shell, cannot complete split
-                  eventCause = CP_CONFERENCE_CAUSE_INVALID_STATE;
+                  eventCause = CP_CONFERENCE_CAUSE_UNEXPECTED_ERROR;
                }
             }
             else // terminateMediaConnection failed

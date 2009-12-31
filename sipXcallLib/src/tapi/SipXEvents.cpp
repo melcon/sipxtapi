@@ -572,6 +572,12 @@ SIPXTAPI_API const char* sipxConferenceCauseToString(SIPX_CONFERENCE_CAUSE cause
    case CONFERENCE_CAUSE_NOT_FOUND:
       str = MAKESTR(CONFERENCE_CAUSE_NOT_FOUND);
       break;
+   case CONFERENCE_CAUSE_LIMIT_REACHED:
+      str = MAKESTR(CONFERENCE_CAUSE_LIMIT_REACHED);
+      break;
+   case CONFERENCE_CAUSE_UNEXPECTED_ERROR:
+      str = MAKESTR(CONFERENCE_CAUSE_UNEXPECTED_ERROR);
+      break;
 	default:
 		break;
 	}

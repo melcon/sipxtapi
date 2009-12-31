@@ -358,14 +358,15 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceGetCalls(const SIPX_CONF hConf,
 
 
 SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
-                                              SIPX_CONF *phConference)
+                                              SIPX_CONF *phConference,
+                                              const char* szConferenceUri)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceCreate");
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConferenceCreate hInst=%p phConference=%p",
-      hInst, phConference);
+      "sipxConferenceCreate hInst=%p phConference=%p szConferenceUri=%s",
+      hInst, phConference, szConferenceUri);
 
    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
@@ -388,7 +389,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
             pData->m_pInst = pInst;
 
             // create shell call for conference
-            pData->m_pInst->pCallManager->createConference(pData->m_sConferenceId);
+            pData->m_pInst->pCallManager->createConference(pData->m_sConferenceId, szConferenceUri);
 
             pData->m_mutex.release();
             rc = SIPX_RESULT_SUCCESS;

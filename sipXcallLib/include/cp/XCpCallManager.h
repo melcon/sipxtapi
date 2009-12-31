@@ -107,8 +107,15 @@ public:
    /** Creates new empty call. If sCallId is NULL, new id is generated. Generated id is returned in sCallId */
    OsStatus createCall(UtlString& sCallId);
 
-   /** Creates new empty conference. If sConferenceId is NULL, new id is generated. Generated id is returned in sConferenceId */
-   OsStatus createConference(UtlString& sConferenceId);
+   /**
+    * Creates new empty conference. If sConferenceId is NULL, new id is generated.
+    * Generated id is returned in sConferenceId.
+    *
+    * @param conferenceUri if set then conference will be public and capable of handling
+    *        inbound calls
+    */
+   OsStatus createConference(UtlString& sConferenceId,
+                             const UtlString& conferenceUri = NULL);
 
    /**
     * Connects an existing call identified by id, to given address returning SipDialog.
@@ -184,16 +191,17 @@ public:
    OsStatus stopCallRedirectRtp(const UtlString& sCallId);
 
    /** 
-    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
+    * Accepts inbound abstract call connection.
     *
     * Progress the connection from the OFFERING state to the
     * RINGING state. This causes a SIP 180 Ringing provisional
     * response to be sent.
     */
-   OsStatus acceptCallConnection(const UtlString& sCallId,
-                                 UtlBoolean bSendSDP,
-                                 const UtlString& locationHeader,
-                                 CP_CONTACT_ID contactId);
+   OsStatus acceptAbstractCallConnection(const UtlString& sAbstractCallId,
+                                         const SipDialog& sSipDialog,
+                                         UtlBoolean bSendSDP,
+                                         const UtlString& locationHeader,
+                                         CP_CONTACT_ID contactId);
 
    /**
     * Reject the incoming connection.
@@ -202,7 +210,8 @@ public:
     * the FAILED state with the cause of busy. With SIP this
     * causes a 486 Busy Here response to be sent.
     */
-   OsStatus rejectCallConnection(const UtlString& sCallId);
+   OsStatus rejectAbstractCallConnection(const UtlString& sAbstractCallId,
+                                         const SipDialog& sSipDialog);
 
    /**
     * Redirect the incoming connection.
@@ -212,8 +221,9 @@ public:
     * Temporarily response to be sent with the specified
     * contact URI.
     */
-   OsStatus redirectCallConnection(const UtlString& sCallId,
-                                   const UtlString& sRedirectSipUrl);
+   OsStatus redirectAbstractCallConnection(const UtlString& sAbstractCallId,
+                                           const SipDialog& sSipDialog,
+                                           const UtlString& sRedirectSipUrl);
 
    /**
     * Answer the incoming terminal connection.
@@ -222,7 +232,8 @@ public:
     * to the ESTABLISHED state and also creating the terminal
     * connection (with SIP a 200 OK response is sent).
     */
-   OsStatus answerCallConnection(const UtlString& sCallId);
+   OsStatus answerAbstractCallConnection(const UtlString& sAbstractCallId,
+                                         const SipDialog& sSipDialog);
 
    /**
    * Accepts transfer request on given abstract call. Must be called

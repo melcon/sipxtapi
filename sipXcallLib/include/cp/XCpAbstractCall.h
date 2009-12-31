@@ -54,6 +54,10 @@ class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
 class CpRtpRedirectEventListener;
+class AcAcceptConnectionMsg;
+class AcRejectConnectionMsg;
+class AcRedirectConnectionMsg;
+class AcAnswerConnectionMsg;
 class AcCommandMsg;
 class AcDestroyConnectionMsg;
 class AcNotificationMsg;
@@ -176,9 +180,10 @@ public:
    * RINGING state. This causes a SIP 180 Ringing provisional
    * response to be sent.
    */
-   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
+   virtual OsStatus acceptConnection(const SipDialog& sSipDialog,
+                                     UtlBoolean bSendSDP,
                                      const UtlString& locationHeader,
-                                     CP_CONTACT_ID contactId) = 0;
+                                     CP_CONTACT_ID contactId);
 
    /**
    * Reject the incoming connection.
@@ -187,7 +192,7 @@ public:
    * the FAILED state with the cause of busy. With SIP this
    * causes a 486 Busy Here response to be sent.
    */
-   virtual OsStatus rejectConnection() = 0;
+   virtual OsStatus rejectConnection(const SipDialog& sSipDialog);
 
    /**
    * Redirect the incoming connection.
@@ -197,7 +202,8 @@ public:
    * Temporarily response to be sent with the specified
    * contact URI.
    */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl) = 0;
+   virtual OsStatus redirectConnection(const SipDialog& sSipDialog,
+                                       const UtlString& sRedirectSipUrl);
 
    /**
    * Answer the incoming terminal connection.
@@ -206,7 +212,7 @@ public:
    * to the ESTABLISHED state and also creating the terminal
    * connection (with SIP a 200 OK response is sent).
    */
-   virtual OsStatus answerConnection() = 0;
+   virtual OsStatus answerConnection(const SipDialog& sSipDialog);
 
    /**
    * Accepts transfer request on given connection. Must be called
@@ -588,6 +594,14 @@ private:
    UtlBoolean handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg);
    /** Handles message to destroy sip connection */
    virtual OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg) = 0;
+   /** Handles message to accept inbound sip connection */
+   OsStatus handleAcceptConnection(const AcAcceptConnectionMsg& rMsg);
+   /** Handles message to reject inbound sip connection */
+   OsStatus handleRejectConnection(const AcRejectConnectionMsg& rMsg);
+   /** Handles message to redirect inbound sip connection */
+   OsStatus handleRedirectConnection(const AcRedirectConnectionMsg& rMsg);
+   /** Handles message to answer inbound sip connection */
+   OsStatus handleAnswerConnection(const AcAnswerConnectionMsg& rMsg);
    /** Handles message to initiate blind call transfer */
    OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
    /** Handles message to initiate consultative call transfer */
