@@ -2373,15 +2373,21 @@ SIPXTAPI_API SIPX_RESULT sipxPublisherUpdate(const SIPX_PUB hPub,
  * where the audio media is mixed.  sipXtapi supports conferences up to
  * 4 (CONF_MAX_CONNECTIONS) parties in its default configuration. An
  * empty shell call is automatically created which is invisible to the
- * client.
+ * client. Conference by default cannot receive inbound calls.
+ *
+ * Public conference may be created by specifying szConferenceUri.
+ * This enables conference to handle inbound calls.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param phConference Pointer to a conference handle.  Upon success, 
  *        this value is replaced with a valid conference handle.  
  *        Success is determined by the SIPX_RESULT result code.
+ * @param szConferenceUri optional conference sip uri. If present conference
+ *        can handle inbound calls.
  */
 SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
-                                              SIPX_CONF* phConference);
+                                              SIPX_CONF* phConference,
+                                              const char* szConferenceUri = NULL);
 
 /**
  * Join (add) an existing connected call into a conference.

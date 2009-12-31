@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -39,7 +40,7 @@ class AcAnswerConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcAnswerConnectionMsg();
+   AcAnswerConnectionMsg(const SipDialog& sSipDialog);
 
    virtual ~AcAnswerConnectionMsg();
 
@@ -48,6 +49,8 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /* ============================ ACCESSORS ================================= */
+
+   void getSipDialog(SipDialog& sSipDialog) const { sSipDialog = m_sSipDialog; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -61,6 +64,8 @@ private:
 
    /** Private assignment operator */
    AcAnswerConnectionMsg& operator=(const AcAnswerConnectionMsg& rhs);
+
+   SipDialog m_sSipDialog;
 };
 
 #endif // AcAnswerConnectionMsg_h__

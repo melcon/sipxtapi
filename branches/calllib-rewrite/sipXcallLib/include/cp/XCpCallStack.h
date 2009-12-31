@@ -37,6 +37,7 @@ class XCpCall;
 class XCpConference;
 class SipDialog;
 class SipMessage;
+class Url;
 
 /**
  * Class XCpCallStack is a container for XCpCall and XCpConference instances.
@@ -126,11 +127,20 @@ public:
    UtlBoolean findConference(const SipDialog& sSipDialog, OsPtrLock<XCpConference>& ptrLock) const;
 
    /**
-   * Finds and returns XCpAbstractCall capable of handling given SipMessage.
+   * Finds and returns XCpAbstractCall capable of handling given SipMessage. Returns XCpAbstractCall
+   * which has XSipConnection for given SipDialog.
    *
    * @return TRUE if an XCpAbstractCall was found, FALSE otherwise.
    */
    UtlBoolean findHandlingAbstractCall(const SipMessage& rSipMessage, OsPtrLock<XCpAbstractCall>& ptrLock) const;
+
+   /**
+   * Finds and returns XCpConference capable of handling given SipMessage. Tries to match sip message
+   * request uri against conference uri.
+   *
+   * @return TRUE if an XCpAbstractCall was found, FALSE otherwise.
+   */
+   UtlBoolean findConferenceByUri(const Url& requestUri, OsPtrLock<XCpConference>& ptrLock) const;
 
    /**
    * Pushes given XCpCall on the call stack. Call must not be locked to avoid deadlocks.

@@ -28,10 +28,6 @@
 class AcConnectMsg;
 class AcStartRtpRedirectMsg;
 class AcStopRtpRedirectMsg;
-class AcAcceptConnectionMsg;
-class AcRejectConnectionMsg;
-class AcRedirectConnectionMsg;
-class AcAnswerConnectionMsg;
 class AcDropConnectionMsg;
 class AcDestroyConnectionMsg;
 class XCpConference;
@@ -115,45 +111,6 @@ public:
    */
    OsStatus stopCallRedirectRtp();
 
-   /** 
-   * Accepts inbound call connection. Inbound connections can only be part of XCpCall
-   *
-   * Progress the connection from the OFFERING state to the
-   * RINGING state. This causes a SIP 180 Ringing provisional
-   * response to be sent.
-   */
-   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
-                                     const UtlString& locationHeader,
-                                     CP_CONTACT_ID contactId);
-
-   /**
-   * Reject the incoming connection.
-   *
-   * Progress the connection from the OFFERING state to
-   * the FAILED state with the cause of busy. With SIP this
-   * causes a 486 Busy Here response to be sent.
-   */
-   virtual OsStatus rejectConnection();
-
-   /**
-   * Redirect the incoming connection.
-   *
-   * Progress the connection from the OFFERING state to
-   * the FAILED state. This causes a SIP 302 Moved
-   * Temporarily response to be sent with the specified
-   * contact URI.
-   */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
-
-   /**
-   * Answer the incoming terminal connection.
-   *
-   * Progress the connection from the OFFERING or RINGING state
-   * to the ESTABLISHED state and also creating the terminal
-   * connection (with SIP a 200 OK response is sent).
-   */
-   virtual OsStatus answerConnection();
-
    /**
    * Disconnects given call with given sip call-id
    *
@@ -215,14 +172,6 @@ private:
    OsStatus handleStartRtpRedirect(const AcStartRtpRedirectMsg& rMsg);
    /** Handles message to stop RTP redirect */
    OsStatus handleStopRtpRedirect(const AcStopRtpRedirectMsg& rMsg);
-   /** Handles message to accept inbound sip connection */
-   OsStatus handleAcceptConnection(const AcAcceptConnectionMsg& rMsg);
-   /** Handles message to reject inbound sip connection */
-   OsStatus handleRejectConnection(const AcRejectConnectionMsg& rMsg);
-   /** Handles message to redirect inbound sip connection */
-   OsStatus handleRedirectConnection(const AcRedirectConnectionMsg& rMsg);
-   /** Handles message to answer inbound sip connection */
-   OsStatus handleAnswerConnection(const AcAnswerConnectionMsg& rMsg);
    /** Handles message to drop sip connection */
    OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
    /** Handles message to destroy sip connection */

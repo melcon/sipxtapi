@@ -20,6 +20,7 @@
 #include <utl/UtlSList.h>
 #include <utl/UtlSListIterator.h>
 #include <utl/UtlPtr.h>
+#include <net/SipLine.h>
 #include <cp/XCpCallIdUtil.h>
 #include <cp/XCpCallStack.h>
 #include <cp/XCpAbstractCall.h>
@@ -288,6 +289,32 @@ UtlBoolean XCpCallStack::findHandlingAbstractCall(const SipMessage& rSipMessage,
 {
    SipDialog sipDialog(&rSipMessage);
    return findAbstractCall(sipDialog, ptrLock);
+}
+
+UtlBoolean XCpCallStack::findConferenceByUri(const Url& requestUri, OsPtrLock<XCpConference>& ptrLock) const
+{
+   UtlPtr<XCpAbstractCall>* pAbstractPtr = NULL;
+   XCpConference* pConference = NULL;
+   Url conferenceUri;
+
+   OsReadLock lock(m_memberMutex);
+   UtlHashMapIterator conferenceMapItor(m_abstractCallIdMap);
+
+   while(conferenceMapItor())
+   {
+      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
+      if (pConference)
+      {
+         pConference->getConferenceUri(conferenceUri);
+         if (!conferenceUri.isNull() && SipLine::areLineUrisEqual(conferenceUri, requestUri))
+         {
+            ptrLock = pConference;
+            return TRUE;
+         }
+      }
+   }
+
+   return FALSE;
 }
 
 UtlBoolean XCpCallStack::push(XCpCall& call)

@@ -25,10 +25,6 @@
 #include <cp/msg/AcConnectMsg.h>
 #include <cp/msg/AcStartRtpRedirectMsg.h>
 #include <cp/msg/AcStopRtpRedirectMsg.h>
-#include <cp/msg/AcAcceptConnectionMsg.h>
-#include <cp/msg/AcAnswerConnectionMsg.h>
-#include <cp/msg/AcRedirectConnectionMsg.h>
-#include <cp/msg/AcRejectConnectionMsg.h>
 #include <cp/msg/AcDropConnectionMsg.h>
 #include <cp/msg/AcDestroyConnectionMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -123,32 +119,6 @@ OsStatus XCpCall::stopCallRedirectRtp()
    return postMessage(stopRtpRedirectMsg);
 }
 
-OsStatus XCpCall::acceptConnection(UtlBoolean bSendSDP,
-                                   const UtlString& locationHeader,
-                                   CP_CONTACT_ID contactId)
-{
-   AcAcceptConnectionMsg acceptConnectionMsg(bSendSDP, locationHeader, contactId);
-   return postMessage(acceptConnectionMsg);
-}
-
-OsStatus XCpCall::rejectConnection()
-{
-   AcRejectConnectionMsg rejectConnectionMsg;
-   return postMessage(rejectConnectionMsg);
-}
-
-OsStatus XCpCall::redirectConnection(const UtlString& sRedirectSipUrl)
-{
-   AcRedirectConnectionMsg redirectConnectionMsg(sRedirectSipUrl);
-   return postMessage(redirectConnectionMsg);
-}
-
-OsStatus XCpCall::answerConnection()
-{
-   AcAnswerConnectionMsg answerConnectionMsg;
-   return postMessage(answerConnectionMsg);
-}
-
 OsStatus XCpCall::dropConnection(const SipDialog& sipDialog)
 {
    AcDropConnectionMsg dropConnectionMsg(sipDialog);
@@ -233,18 +203,6 @@ UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_STOP_RTP_REDIRECT:
       handleStopRtpRedirect((const AcStopRtpRedirectMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_ACCEPT_CONNECTION:
-      handleAcceptConnection((const AcAcceptConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_REJECT_CONNECTION:
-      handleRejectConnection((const AcRejectConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_REDIRECT_CONNECTION:
-      handleRedirectConnection((const AcRedirectConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_ANSWER_CONNECTION:
-      handleAnswerConnection((const AcAnswerConnectionMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_DROP_CONNECTION:
       handleDropConnection((const AcDropConnectionMsg&)rRawMsg);
@@ -354,54 +312,6 @@ OsStatus XCpCall::handleStopRtpRedirect(const AcStopRtpRedirectMsg& rMsg)
    if (resFound)
    {
       return ptrLock->stopRtpRedirect();
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)
-{
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = getConnection(ptrLock);
-   if (resFound)
-   {
-      return ptrLock->acceptConnection(rMsg.getSendSDP() ,rMsg.getLocationHeader(), rMsg.getContactId());
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleRejectConnection(const AcRejectConnectionMsg& rMsg)
-{
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = getConnection(ptrLock);
-   if (resFound)
-   {
-      return ptrLock->rejectConnection();
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleRedirectConnection(const AcRedirectConnectionMsg& rMsg)
-{
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = getConnection(ptrLock);
-   if (resFound)
-   {
-      return ptrLock->redirectConnection(rMsg.getRedirectSipUrl());
-   }
-
-   return OS_NOT_FOUND;
-}
-
-OsStatus XCpCall::handleAnswerConnection(const AcAnswerConnectionMsg& rMsg)
-{
-   OsPtrLock<XSipConnection> ptrLock;
-   UtlBoolean resFound = getConnection(ptrLock);
-   if (resFound)
-   {
-      return ptrLock->answerConnection();
    }
 
    return OS_NOT_FOUND;

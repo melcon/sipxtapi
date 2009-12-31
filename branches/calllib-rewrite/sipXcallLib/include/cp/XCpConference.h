@@ -66,6 +66,7 @@ public:
    /* ============================ CREATORS ================================== */
 
    XCpConference(const UtlString& sId,
+                 const UtlString& sConferenceUri,
                  SipUserAgent& rSipUserAgent,
                  XCpCallControl& rCallControl,
                  XCpCallLookup& rCallLookup,
@@ -105,29 +106,6 @@ public:
                             const UtlString& replacesField = NULL, // value of Replaces INVITE field
                             CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                             const SipDialog* pCallbackSipDialog = NULL);
-
-   /**
-    * Always fails, as conference cannot accept inbound call. Instead, add calls
-    * to conference.
-    */
-   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
-                                     const UtlString& locationHeader,
-                                     CP_CONTACT_ID contactId);
-
-   /**
-    * Always fails, as conference cannot reject inbound connections.
-    */
-   virtual OsStatus rejectConnection();
-
-   /**
-   * Always fails, as conference cannot redirect inbound connections.
-   */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
-
-   /**
-   * Always fails, as conference cannot answer inbound connections.
-   */
-   virtual OsStatus answerConnection();
 
    /**
    * Disconnects given call with given sip call-id
@@ -182,6 +160,8 @@ public:
                   const UtlString& sNewCallId);
 
    /* ============================ ACCESSORS ================================= */
+
+   void getConferenceUri(Url& conferenceUri) const { conferenceUri = m_conferenceUri; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -300,6 +280,7 @@ private:
    // set only once and thread safe
    CpConferenceEventListener* m_pConferenceEventListener; ///< listener for firing conference events
    XCpCallLookup& m_rCallLookup; ///< used to lookup other calls by abstractCallId
+   const Url m_conferenceUri; ///< sip uri of public conference. Used for matching inbound calls. Only valid for public conferences.
 };
 
 #endif // XCpConference_h__
