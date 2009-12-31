@@ -75,6 +75,20 @@ UtlBoolean sipxCallSetState(SIPX_CALL hCall,
    return FALSE;
 }
 
+UtlBoolean sipxCallSetAbstractCallId(SIPX_CALL hCall, const UtlString& sAbstractCallId)
+{
+   OsStackTraceLogger logItem(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallSetAbstractCallId");
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, logItem);
+
+   if (pData)
+   {
+      pData->m_abstractCallId = sAbstractCallId;
+      sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, logItem);
+      return TRUE;
+   }
+
+   return FALSE;
+}
 
 SIPX_CALL sipxCallLookupHandleBySessionCallId( const UtlString& sessionCallID, SIPX_INST pInst )
 {

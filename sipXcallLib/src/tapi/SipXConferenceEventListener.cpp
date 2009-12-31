@@ -210,7 +210,7 @@ void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT ev
                SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
                if (pCallData)
                {
-                  // call is still in conference, clear m_splitCallId
+                  // call is still in conference when remove failed, clear m_splitCallId
                   pCallData->m_splitCallId.clear();
                   sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
                }
@@ -218,18 +218,11 @@ void SipXConferenceEventListener::handleConferenceEvent(SIPX_CONFERENCE_EVENT ev
             }
          case CONFERENCE_CALL_ADDED:
             {
-               SIPX_CALL_DATA* pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
-               if (pCallData)
+               if (hCall != SIPX_CALL_NULL)
                {
-                  // update abstractCallId of call
-                  pCallData->m_abstractCallId = sConferenceId;
-                  sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+                  sipxAddCallHandleToConf(hCall, hConf);
+                  sipxCallSetAbstractCallId(hCall, sConferenceId);
                }
-               break;
-            }
-         case CONFERENCE_CALL_ADD_FAILURE:
-            {
-               sipxRemoveCallHandleFromConf(hConf, hCall);
                break;
             }
          default:

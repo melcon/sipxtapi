@@ -18,6 +18,8 @@
 #include <utl/UtlSListIterator.h>
 #include <net/SipDialog.h>
 #include <net/SipLine.h>
+#include <net/SipMessageEvent.h>
+#include <net/SipUserAgent.h>
 #include <sdp/SdpCodecFactory.h>
 #include <cp/XCpConference.h>
 #include <cp/XCpCall.h>
@@ -292,6 +294,60 @@ UtlBoolean XCpConference::handleTimerMessage(const CpTimerMsg& rRawMsg)
 {
    // we couldn't handle it, give chance to parent
    return XCpAbstractCall::handleTimerMessage(rRawMsg);
+}
+
+OsStatus XCpConference::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   OsStatus res = XCpAbstractCall::handleSipMessageEvent(rSipMsgEvent);
+
+   if (res == OS_NOT_FOUND)
+   {
+      const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+      if (pSipMessage && pSipMessage->isInviteRequest())
+      {
+         if (getCallCount() < CONF_MAX_CONNECTIONS)
+         {
+            // we have inbound INVITE request, call doesn't exist yet
+            // discover real line url
+            UtlString sFullLineUrl(getRealLineIdentity(*pSipMessage));
+            SipDialog sipDialog(pSipMessage);
+            // sip connection doesn't yet exist, and we received new INVITE message
+            createSipConnection(sipDialog, sFullLineUrl, FALSE); // create sip connection
+            OsPtrLock<XSipConnection> ptrLock;
+            UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+            if (resFound)
+            {
+               if (ptrLock->handleSipMessageEvent(rSipMsgEvent)) // let it handle INVITE
+               {
+                  fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, CP_CONFERENCE_CAUSE_NORMAL, &sipDialog);
+                  return OS_SUCCESS;
+               }
+               else
+               {
+                  destroySipConnection(sipDialog, FALSE);
+                  return OS_FAILED;
+               }
+            }
+         }
+         else // too many conference connections
+         {
+            OsSysLog::add(FAC_CP, PRI_WARNING,
+               "XCpConference::handleSipMessageEvent - unable to receive new call, connection count reached its limit of %d",
+               CONF_MAX_CONNECTIONS);
+            // send 486 Busy here
+            SipMessage busyHereResponse;
+            busyHereResponse.setInviteBusyData(pSipMessage);
+            m_rSipUserAgent.send(busyHereResponse);
+            return OS_SUCCESS;
+         }
+      }
+      else
+      {
+         return OS_NOT_FOUND;
+      }
+   }
+
+   return res;
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -671,7 +727,7 @@ void XCpConference::destroyAllSipConnections()
    sipDialogList.destroyAll();
 }
 
-void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
+void XCpConference::destroySipConnection(const SipDialog& sSipDialog, UtlBoolean bFireEvents)
 {
    UtlString sSipCallId;
    {
@@ -682,8 +738,11 @@ void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
          pSipConnection->acquireExclusive();
          pSipConnection->getSipCallId(sSipCallId);
          m_sipConnections.remove(pSipConnection);
-         // fire event that call was removed from conference
-         fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, CP_CONFERENCE_CAUSE_NORMAL, &sSipDialog);
+         if (bFireEvents)
+         {
+            // fire event that call was removed from conference
+            fireConferenceEvent(CP_CONFERENCE_CALL_REMOVED, CP_CONFERENCE_CAUSE_NORMAL, &sSipDialog);
+         }
 
          delete pSipConnection;
          pSipConnection = NULL;
@@ -697,7 +756,12 @@ void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
    }
 }
 
-void XCpConference::createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl)
+void XCpConference::destroySipConnection(const SipDialog& sSipDialog)
+{
+   destroySipConnection(sSipDialog, TRUE);
+}
+
+void XCpConference::createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl, UtlBoolean bFireEvents)
 {
    XSipConnection *pSipConnection = new XSipConnection(m_sId,
       sipDialog,// used only temporarily until real dialog instance is created when connecting
@@ -712,8 +776,11 @@ void XCpConference::createSipConnection(const SipDialog& sipDialog, const UtlStr
       m_sipConnections.append(pSipConnection);
    }
 
-   // fire event that call was added to conference
-   fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, CP_CONFERENCE_CAUSE_NORMAL, &sipDialog);
+   if (bFireEvents)
+   {
+      // fire event that call was added to conference
+      fireConferenceEvent(CP_CONFERENCE_CALL_ADDED, CP_CONFERENCE_CAUSE_NORMAL, &sipDialog);
+   }
 
    onConnectionAddded(sipDialog.getCallId());
 }

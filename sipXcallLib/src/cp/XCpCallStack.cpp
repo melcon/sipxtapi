@@ -20,7 +20,6 @@
 #include <utl/UtlSList.h>
 #include <utl/UtlSListIterator.h>
 #include <utl/UtlPtr.h>
-#include <net/SipLine.h>
 #include <cp/XCpCallIdUtil.h>
 #include <cp/XCpCallStack.h>
 #include <cp/XCpAbstractCall.h>
@@ -294,6 +293,7 @@ UtlBoolean XCpCallStack::findHandlingAbstractCall(const SipMessage& rSipMessage,
 UtlBoolean XCpCallStack::findConferenceByUri(const Url& requestUri, OsPtrLock<XCpConference>& ptrLock) const
 {
    UtlPtr<XCpAbstractCall>* pAbstractPtr = NULL;
+   XCpConference *pPartialMatch = NULL;
    XCpConference* pConference = NULL;
    Url conferenceUri;
 
@@ -306,12 +306,25 @@ UtlBoolean XCpCallStack::findConferenceByUri(const Url& requestUri, OsPtrLock<XC
       if (pConference)
       {
          pConference->getConferenceUri(conferenceUri);
-         if (!conferenceUri.isNull() && SipLine::areLineUrisEqual(conferenceUri, requestUri))
+         if (!conferenceUri.isNull())
          {
-            ptrLock = pConference;
-            return TRUE;
+            if (conferenceUri.isUserHostEqual(requestUri))
+            {
+               ptrLock = pConference;
+               return TRUE;
+            }
+            else if (conferenceUri.isUserEqual(requestUri))
+            {
+               pPartialMatch = pConference;
+            }
          }
       }
+   }
+
+   if (pPartialMatch)
+   {
+      ptrLock = pPartialMatch;
+      return TRUE;
    }
 
    return FALSE;

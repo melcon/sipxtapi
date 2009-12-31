@@ -447,16 +447,11 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
 
                if (pInst1 == pInst2)
                {
-                  sipxAddCallHandleToConf(hCall, hConf);
                   // call and conference must exist in the same call manager
                   if (pInst1->pCallManager->conferenceJoin(conferenceId, sipDialog) == OS_SUCCESS)
                   {
                      // m_abstractCallId of call will be updated if asynchronous operation succeeds
                      rc = SIPX_RESULT_SUCCESS;
-                  }
-                  else
-                  {
-                     sipxRemoveCallHandleFromConf(hConf, hCall);
                   }
                }
             }
@@ -539,7 +534,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
          // create sip call-id for conference call
          UtlString sipCallId = pInst->pCallManager->getNewSipCallId();
 
-         // call can be added, create it with conferenceId
+         // create SIPX_CALL_DATA structure with conferenceId
          SIPX_RESULT res = sipxCallCreateHelper(pInst,
             hLine,
             NULL,
@@ -547,19 +542,15 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
             phNewCall,
             conferenceId,// becomes abstractCallId
             sipCallId,
-            true);// bIsConferenceCall
+            true);// bIsConferenceCall, will not create it in call manager
 
          if (res == SIPX_RESULT_SUCCESS)
          {
-            // call was created, add it to conference
-            sipxAddCallHandleToConf(*phNewCall, hConf);
-
             // connect call
             rc = sipxCallConnect(*phNewCall, szAddress, takeFocus, options, sipCallId);
             if (rc != SIPX_RESULT_SUCCESS)
             {
-               // destroy the call and remove it from conference
-               sipxRemoveCallHandleFromConf(hConf, *phNewCall);
+               // destroy the call
                sipxCallObjectFree(*phNewCall, stackLogger);
             }
          }
