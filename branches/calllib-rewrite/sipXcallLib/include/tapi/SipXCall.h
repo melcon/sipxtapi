@@ -144,4 +144,7 @@ UtlBoolean sipxCallSetState(SIPX_CALL hCall,
                             SIPX_CALLSTATE_EVENT event,
                             SIPX_CALLSTATE_CAUSE cause);
 
+UtlBoolean sipxCallSetAbstractCallId(SIPX_CALL hCall,
+                                     const UtlString& sAbstractCallId);
+
 #endif // SipXCall_h__

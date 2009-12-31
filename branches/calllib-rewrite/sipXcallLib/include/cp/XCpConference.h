@@ -191,6 +191,9 @@ protected:
    /** Handles timer messages */
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
+   /** Handler for inbound SipMessageEvent messages. */
+   virtual OsStatus handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpConference(const XCpConference& rhs);
@@ -231,10 +234,17 @@ private:
     * Destroys XSipConnection if it exists by sip dialog. This should be called
     * after call has been disconnected and connection is ready to be deleted.
     */
+   void destroySipConnection(const SipDialog& sSipDialog, UtlBoolean bFireEvents);
+
+   /**
+    * Destroys XSipConnection if it exists by sip dialog. This should be called
+    * after call has been disconnected and connection is ready to be deleted.
+    * Conference call removed event will be fired.
+    */
    virtual void destroySipConnection(const SipDialog& sSipDialog);
 
    /** Creates new XSipConnection for the call, if it doesn't exist yet */
-   void createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl);
+   void createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl, UtlBoolean bFireEvents = TRUE);
 
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,

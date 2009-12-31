@@ -1457,20 +1457,7 @@ UtlBoolean XCpCallManager::handleSipMessageEvent(const SipMessageEvent& rSipMsgE
          }
          else
          {
-            // maybe we have public conference capable of handling the message
-            Url requestUri;
-            pSipMessage->getRequestUri(requestUri);
-            OsPtrLock<XCpConference> ptrConferenceLock; // auto pointer lock
-            resFind = m_callStack.findConferenceByUri(requestUri, ptrConferenceLock);
-            if (resFind)
-            {
-               // post message to conference
-               return ptrConferenceLock->postMessage(rSipMsgEvent);
-            }
-            else
-            {
-               return handleUnknownSipMessageEvent(rSipMsgEvent);
-            }
+            return handleUnknownSipMessageEvent(rSipMsgEvent);
          }
       }      
    }
@@ -1532,8 +1519,22 @@ UtlBoolean XCpCallManager::handleUnknownInviteRequest(const SipMessage& rSipMess
       {
          if (!m_bDoNotDisturb)
          {
-            // all checks passed, create new call
-            createNewInboundCall(rSipMessage);
+            // maybe we have public conference capable of handling the message
+            Url requestUri;
+            rSipMessage.getRequestUri(requestUri);
+            OsPtrLock<XCpConference> ptrConferenceLock; // auto pointer lock
+            UtlBoolean resFind = m_callStack.findConferenceByUri(requestUri, ptrConferenceLock);
+            if (resFind)
+            {
+               // post message to conference
+               SipMessageEvent sipMessageEvent(rSipMessage);
+               ptrConferenceLock->postMessage(sipMessageEvent);
+            }
+            else
+            {
+               // all checks passed, create new call
+               createNewInboundCall(rSipMessage);
+            }
          }
          else
          {

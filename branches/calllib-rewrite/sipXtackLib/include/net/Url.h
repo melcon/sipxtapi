@@ -516,6 +516,13 @@ public:
     * @return TRUE if the user Id and host are the same
     */   
 
+   /// Compare two URLs to see if the have the same user
+   UtlBoolean isUserEqual(const Url& url) const ;
+   /**<
+    * Assumes that user id is case sensitive.
+    * @return TRUE if the user Id are the same
+    */   
+
    /// Are angle brackets explicitly included
    UtlBoolean isIncludeAngleBracketsSet() const ;
    /**<

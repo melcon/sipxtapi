@@ -1671,6 +1671,10 @@ UtlBoolean Url::isUserHostEqual(const Url &url) const
            && (mUserId.compareTo(url.mUserId) == 0));
 }
 
+UtlBoolean Url::isUserEqual(const Url& url) const
+{
+   return (mUserId.compareTo(url.mUserId) == 0);
+}
 
 void Url::getIdentity(UtlString &identity) const
 {
