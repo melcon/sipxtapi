@@ -293,7 +293,7 @@ UtlBoolean XCpCallStack::findHandlingAbstractCall(const SipMessage& rSipMessage,
 UtlBoolean XCpCallStack::findConferenceByUri(const Url& requestUri, OsPtrLock<XCpConference>& ptrLock) const
 {
    UtlPtr<XCpAbstractCall>* pAbstractPtr = NULL;
-   XCpConference *pPartialMatch = NULL;
+   XCpConference* pPartialMatch = NULL;
    XCpConference* pConference = NULL;
    Url conferenceUri;
 
@@ -313,7 +313,7 @@ UtlBoolean XCpCallStack::findConferenceByUri(const Url& requestUri, OsPtrLock<XC
                ptrLock = pConference;
                return TRUE;
             }
-            else if (conferenceUri.isUserEqual(requestUri))
+            else if (!pPartialMatch && conferenceUri.isUserEqual(requestUri))
             {
                pPartialMatch = pConference;
             }
