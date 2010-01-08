@@ -36,7 +36,7 @@ AcConnectMsg::AcConnectMsg(const UtlString& sSipCallId,
 : AcCommandMsg(AC_CONNECT)
 , m_sSipCallId(sSipCallId)
 , m_sToAddress(sToAddress)
-, m_sFromTag(sFromTag)
+, m_sLocalTag(sFromTag)
 , m_sFromAddress(sFromAddress)
 , m_sLocationHeader(sLocationHeader)
 , m_contactId(contactId)
@@ -51,7 +51,7 @@ AcConnectMsg::~AcConnectMsg()
 
 OsMsg* AcConnectMsg::createCopy(void) const
 {
-   return new AcConnectMsg(m_sSipCallId, m_sToAddress, m_sFromTag, m_sFromAddress, m_sLocationHeader, m_contactId);
+   return new AcConnectMsg(m_sSipCallId, m_sToAddress, m_sLocalTag, m_sFromAddress, m_sLocationHeader, m_contactId);
 }
 
 /* ============================ MANIPULATORS ============================== */

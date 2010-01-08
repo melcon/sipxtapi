@@ -818,11 +818,11 @@ int local_main(int argc, char* argv[])
             SIPX_VIDEO_CODEC videoCodec;
 
             printf("Audio codecs:\n");
-            if (sipxConfigGetNumAudioCodecs(g_hInst1, &numAudioCodecs) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetNumSelectedAudioCodecs(g_hInst1, &numAudioCodecs) == SIPX_RESULT_SUCCESS)
             {
                 for (index=0; index<numAudioCodecs; ++index)
                 {
-                    if (sipxConfigGetAudioCodec(g_hInst1, index, &audioCodec) == SIPX_RESULT_SUCCESS)
+                    if (sipxConfigGetSelectedAudioCodec(g_hInst1, index, &audioCodec) == SIPX_RESULT_SUCCESS)
                     {
                         printf("  audio %02d : %s\n", index, audioCodec.cName);
                     }
@@ -838,11 +838,11 @@ int local_main(int argc, char* argv[])
             }
 #ifdef VIDEO
             printf("Video codecs:\n");
-            if (sipxConfigGetNumVideoCodecs(g_hInst1, &numVideoCodecs) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetNumSelectedVideoCodecs(g_hInst1, &numVideoCodecs) == SIPX_RESULT_SUCCESS)
             {
                 for (index=0; index<numVideoCodecs; ++index)
                 {
-                    if (sipxConfigGetVideoCodec(g_hInst1, index, &videoCodec) == SIPX_RESULT_SUCCESS)
+                    if (sipxConfigGetSelectedVideoCodec(g_hInst1, index, &videoCodec) == SIPX_RESULT_SUCCESS)
                     {
                         printf("  video %02d : %s\n", index, videoCodec.cName);
                     }
@@ -885,7 +885,7 @@ int local_main(int argc, char* argv[])
         }
         if (szCodec)
         {
-            if (sipxConfigSetAudioCodecByName(g_hInst1, szCodec) == SIPX_RESULT_FAILURE)
+            if (sipxConfigSelectAudioCodecByName(g_hInst1, szCodec) == SIPX_RESULT_FAILURE)
             {
                 printf("!! Setting audio codec to %s failed !!\n", szCodec);
             };

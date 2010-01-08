@@ -16,6 +16,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <net/SipInfoStatusEventListener.h>
+#include <net/SipSecurityEventListener.h>
 #include <cp/CpDefs.h>
 
 // DEFINES
@@ -58,7 +60,13 @@ public:
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                         SIPXTACK_MESSAGE_STATUS status,
                                         const UtlString& sResponseText,
-                                        int responseCode = 0) = 0;
+                                        int responseCode = 0,
+                                        void* pCookie = NULL) = 0;
+
+   /** Fire info message event */
+   virtual void fireSipXInfoEvent(const UtlString& sContentType,
+                                  const char* pContent = NULL,
+                                  size_t nContentLength = 0) = 0;
 
    /** Fire security event */
    virtual void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,

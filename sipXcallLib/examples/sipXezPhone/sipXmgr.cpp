@@ -1168,14 +1168,6 @@ bool sipXmgr::removeConfParty(const char* const szParty)
 bool sipXmgr::getCodecPreferences(int* pCodecPref)
 {
     bool rc = false;
-
-    if (pCodecPref)
-    {
-        if (sipxConfigGetAudioCodecPreferences(m_hInst, (SIPX_AUDIO_BANDWIDTH_ID*)pCodecPref) == SIPX_RESULT_SUCCESS)
-        {
-            rc = true;
-        }
-    }
     return rc;
 }
 
@@ -1189,11 +1181,11 @@ bool sipXmgr::getCodecList(UtlString& codecList)
 
     codecList = "";
     
-    if (sipxConfigGetNumAudioCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigGetNumSelectedAudioCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
     {
         for (int i=0; i<numCodecs; i++)
         {
-            if (sipxConfigGetAudioCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetSelectedAudioCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
             {
                 switch (codec.iBandWidth)
                 {
@@ -1243,11 +1235,11 @@ bool sipXmgr::getVideoCodecList(UtlString& codecList)
 
     codecList = "";
     
-    if (sipxConfigGetNumVideoCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigGetNumSelectedVideoCodecs(m_hInst, &numCodecs) == SIPX_RESULT_SUCCESS)
     {
         for (int i=0; i<numCodecs; i++)
         {
-            if (sipxConfigGetVideoCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
+            if (sipxConfigGetSelectedVideoCodec(m_hInst, i, &codec) == SIPX_RESULT_SUCCESS)
             {
                 switch (codec.iBandWidth)
                 {
@@ -1277,7 +1269,7 @@ bool sipXmgr::setAudioCodecByName(const char* name)
 {
     bool rc = false;
 
-    if (sipxConfigSetAudioCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigSelectAudioCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
     {
         rc = true;
     }
@@ -1288,7 +1280,7 @@ bool sipXmgr::setVideoCodecByName(const char* name)
 {
     bool rc = false;
 #ifdef VIDEO
-    if (sipxConfigSetVideoCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
+    if (sipxConfigSelectVideoCodecByName(m_hInst, name) == SIPX_RESULT_SUCCESS)
     {
         rc = true;
     }
@@ -1362,23 +1354,12 @@ void* sipXmgr::getVideoWindow()
 bool sipXmgr::setCodecPreferences(int codecPref)
 {
     bool rc = false;
-
-    if (sipxConfigSetAudioCodecPreferences(m_hInst, (SIPX_AUDIO_BANDWIDTH_ID)codecPref) == SIPX_RESULT_SUCCESS)
-    {
-        rc = true;
-    }
     return rc;
 }
 
 bool sipXmgr::setVideoCodecPreferences(int codecPref)
 {
     bool rc = false;
-#ifdef VIDEO
-    if (sipxConfigSetVideoBandwidth(m_hInst, (SIPX_VIDEO_BANDWIDTH_ID)codecPref) == SIPX_RESULT_SUCCESS)
-    {
-        rc = true;
-    }
-#endif    
     return rc;
 }
 

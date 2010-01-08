@@ -32,6 +32,7 @@
 #include "os/OsDefs.h"
 #include "os/OsSysLog.h"
 #include "os/OsLock.h"
+#include <utl/UtlSListIterator.h>
 #include "mp/MpResNotification.h"
 #include "mp/MpMisc.h"
 #include "mp/MpBuf.h"
@@ -94,24 +95,29 @@ MprDecode::~MprDecode()
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus MprDecode::selectCodecs(SdpCodec* codecs[], int numCodecs)
+OsStatus MprDecode::selectCodecs(const UtlSList& codecList)
 {
    OsStatus ret = OS_SUCCESS;
    SdpCodec** codecArray;
-   int i;
-   int audioCodecsNum=0;
+   int audioCodecsNum = 0;
    UtlString codecMediaType;
    MpFlowGraphMsg msg(SELECT_CODECS, this, NULL, NULL, 0, 0);
+   int numCodecs = (int)codecList.entries();
 
    codecArray = new SdpCodec*[numCodecs];
-
-   // Copy all audio codecs to new array
-   for (i=0; i<numCodecs; i++) {
-      codecs[i]->getMediaType(codecMediaType);
-      if (codecMediaType.compareTo("audio") == 0)
+   SdpCodec* pCodec = NULL;
+   UtlSListIterator itor(codecList);
+   while (itor())
+   {
+      pCodec = (SdpCodec*)itor.item();
+      if (pCodec)
       {
-         codecArray[audioCodecsNum] = new SdpCodec(*codecs[i]);
-         audioCodecsNum++;
+         pCodec->getMediaType(codecMediaType);
+         if (codecMediaType.compareTo("audio") == 0)
+         {
+            codecArray[audioCodecsNum] = new SdpCodec(*pCodec);
+            audioCodecsNum++;
+         }
       }
    }
 
@@ -293,7 +299,7 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
                        "pCodecs[%d]->getCodecType() = %d, "
                        "pCodecs[%d]->getCodecPayloadFormat() = %d",
                        i, pCodec->getCodecType(),
-                       i, pCodec->getCodecPayloadFormat());
+                       i, pCodec->getCodecPayloadId());
             }
    }
 
@@ -302,7 +308,7 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
    for (i=0; i<numCodecs; i++) {
       pCodec = pCodecs[i];
       ourCodec = pCodec->getCodecType();
-      payload = pCodec->getCodecPayloadFormat();
+      payload = pCodec->getCodecPayloadId();
 #if 0
       osPrintf("  #%d: New=0x%X/i:%d/x:%d, ",
          i, (int)pCodec, ourCodec, payload);
@@ -313,11 +319,7 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
 #if 0
          osPrintf("  Old=0x%X/i:%d", (int)pOldDecoder, oldSdpType);
 #endif
-         canReuse = (ourCodec == oldSdpType)
-            || ((SdpCodec::SDP_CODEC_G729AB == ourCodec)
-                            && (SdpCodec::SDP_CODEC_G729A == oldSdpType))
-            || ((SdpCodec::SDP_CODEC_G729A == ourCodec)
-                            && (SdpCodec::SDP_CODEC_G729AB == oldSdpType));
+         canReuse = (ourCodec == oldSdpType);
       } else {
          // osPrintf("  no Old");
          canReuse = 0;
@@ -345,7 +347,7 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
       for (i=0; i<numCodecs; i++) {
          pCodec = pCodecs[i];
          ourCodec = pCodec->getCodecType();
-         payload = pCodec->getCodecPayloadFormat();
+         payload = pCodec->getCodecPayloadId();
          ret = pFactory->createDecoder(ourCodec, payload, pNewDecoder);
          assert(OS_SUCCESS == ret);
          assert(NULL != pNewDecoder);

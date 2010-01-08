@@ -182,8 +182,9 @@ public:
    *  \param method - the sip request method for this request.
    *  \param request - the request which is to be part of this dialog
    *         and sent as orginating from the local side of the dialog.
+   *  \param cseqNum - allows to specify cseq number from outside.
    */
-   void setRequestData(SipMessage& request, const char* method);
+   void setRequestData(SipMessage& request, const UtlString& method, int cseqNum = -1);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -224,7 +225,7 @@ public:
    //! Get the SIP To/From header value for the local side of this dialog
    void getLocalField(UtlString& sLocalUrl) const;
    //! Get the SIP To/From header value for the local side of this dialog
-   UtlString getLocalField() const;
+   Url getLocalField() const;
    //! Get the tag from the SIP To/From header value for the local side of this dialog
    void getLocalTag(UtlString& localTag) const;
    //! Set the SIP To/From header value for the local side of this dialog
@@ -235,7 +236,7 @@ public:
    //! Get the SIP To/From header value for the remote side of this dialog
    void getRemoteField(UtlString& sRemoteUrl) const;
    //! Get the SIP To/From header value for the remote side of this dialog
-   UtlString getRemoteField() const;
+   Url getRemoteField() const;
    //! Get the tag from the SIP To/From header value for the remote side of this dialog
    void getRemoteTag(UtlString& remoteTag) const;
    //! Set the SIP To/From header value for the remote side of this dialog
@@ -448,8 +449,8 @@ private:
    Url m_remoteField; // To or From depending on who initiated the transaction
    UtlString m_sLocalTag;
    UtlString m_sRemoteTag;
-   Url m_localContact; // our contact, we use in outbound messages
-   Url m_remoteContact; // In RFC-2833 described as "remote target", contact of remote party
+   Url m_localContactField; // our contact url, we use in outbound messages (including display name)
+   Url m_remoteContactField; // In RFC-3261 described as "remote target", contact url of remote party (including display name)
    UtlString m_sRouteSet; // route set for building Record-Route header
    UtlString m_sInitialMethod; // INVITE etc
    Url m_localRequestUri; // request URI used for first inbound request

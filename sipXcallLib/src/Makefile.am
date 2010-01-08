@@ -40,11 +40,17 @@ libsipXcall_la_SOURCES = \
     cp/CpIntMessage.cpp \
     cp/CpMultiStringMessage.cpp \
     cp/CpPeerCall.cpp \
+    cp/Cp100RelTracker.cpp \
+    cp/CpSdpNegotiation.cpp \
+    cp/CpSessionTimerProperties.cpp \
+    cp/CpSipTransactionManager.cpp \
     cp/SipConnection.cpp \
     cp/XCpAbstractCall.cpp \
     cp/XCpCall.cpp \
+    cp/XCpCallIdUtil.cpp \
     cp/XCpCallManager.cpp \
     cp/XCpConference.cpp \
+    cp/XCpCallStack.cpp \
     cp/XSipConnection.cpp \
     cp/XSipConnectionContext.cpp \
     cp/msg/AcAcceptConnectionMsg.cpp \
@@ -60,6 +66,7 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcAudioToneStopMsg.cpp \
     cp/msg/AcCommandMsg.cpp \
     cp/msg/AcConnectMsg.cpp \
+    cp/msg/AcDestroyConnectionMsg.cpp \
     cp/msg/AcDropAllConnectionsMsg.cpp \
     cp/msg/AcDropConnectionMsg.cpp \
     cp/msg/AcGainFocusMsg.cpp \
@@ -79,18 +86,25 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcUnmuteInputConnectionMsg.cpp \
     cp/msg/AcYieldFocusMsg.cpp \
     cp/msg/CmCommandMsg.cpp \
+    cp/msg/CmDestroyAbstractCallMsg.cpp \
     cp/msg/CmGainFocusMsg.cpp \
     cp/msg/CmNotificationMsg.cpp \
     cp/msg/CmYieldFocusMsg.cpp \
     cp/msg/CpTimerMsg.cpp \
+    cp/msg/Sc100RelTimerMsg.cpp \
+    cp/msg/Sc2xxTimerMsg.cpp \
+    cp/msg/ScByeRetryTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
+    cp/msg/ScDisconnectTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
+    cp/msg/ScReInviteTimerMsg.cpp \
+    cp/msg/ScTimerMsg.cpp \
     cp/state/AlertingSipConnectionState.cpp \
     cp/state/BaseSipConnectionState.cpp \
     cp/state/DialingSipConnectionState.cpp \
     cp/state/DisconnectedSipConnectionState.cpp \
     cp/state/EstablishedSipConnectionState.cpp \
-    cp/state/FailedSipConnectionState.cpp \
+    cp/state/GeneralTransitionMemory.cpp \
     cp/state/IdleSipConnectionState.cpp \
     cp/state/NewCallSipConnectionState.cpp \
     cp/state/OfferingSipConnectionState.cpp \
@@ -98,10 +112,15 @@ libsipXcall_la_SOURCES = \
     cp/state/RemoteAlertingSipConnectionState.cpp \
     cp/state/RemoteOfferingSipConnectionState.cpp \
     cp/state/RemoteQueuedSipConnectionState.cpp \
+    cp/state/SipConnectionStateContext.cpp \
     cp/state/SipConnectionStateMachine.cpp \
     cp/state/SipConnectionStateTransition.cpp \
+    cp/state/SipEventTransitionMemory.cpp \
+    cp/state/SipResponseTransitionMemory.cpp \
+    cp/state/StateTransitionEventDispatcher.cpp \
     cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
+    tapi/InfoEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \
     tapi/LineStateEventMsg.cpp \
@@ -118,6 +137,7 @@ libsipXcall_la_SOURCES = \
     tapi/SipXEvents.cpp \
     tapi/SipXHandleMap.cpp \
     tapi/SipXInfo.cpp \
+    tapi/SipXInfoEventListener.cpp \
     tapi/SipXInfoStatusEventListener.cpp \
     tapi/SipXKeepaliveEventListener.cpp \
     tapi/SipXLine.cpp \

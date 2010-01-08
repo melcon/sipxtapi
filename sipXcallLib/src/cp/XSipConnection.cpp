@@ -13,6 +13,9 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsReadLock.h>
+#include <mi/CpMediaInterface.h>
+#include <net/SipInfoEventListener.h>
+#include <cp/CpMediaInterfaceProvider.h>
 #include <cp/XSipConnection.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpMediaEventListener.h>
@@ -29,33 +32,49 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
 
+#ifdef _WIN32
+#pragma warning(disable:4355)
+#endif
+
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
 
 XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
+                               const SipDialog& sipDialog,
                                SipUserAgent& rSipUserAgent,
-                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                               int inviteExpireSeconds,
+                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                               CpMessageQueueProvider& rMessageQueueProvider,
+                               const CpNatTraversalConfig& natTraversalConfig,
                                CpCallStateEventListener* pCallEventListener,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
+                               SipInfoEventListener* pInfoEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
-, m_stateMachine(m_sipConnectionContext, rSipUserAgent, pMediaInterfaceProvider)
+, m_stateMachine(rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
+, m_rSipConnectionContext(m_stateMachine.getSipConnectionContext())
 , m_rSipUserAgent(rSipUserAgent)
-, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
+, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
+, m_rMessageQueueProvider(rMessageQueueProvider)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
+, m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
+, m_natTraversalConfig(natTraversalConfig)
 {
-   m_sipConnectionContext.m_sAbstractCallId = sAbstractCallId;
+   m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
+   m_rSipConnectionContext.m_sipDialog = sipDialog;
+   m_rSipConnectionContext.m_defaultSessionExpiration = inviteExpireSeconds;
    m_stateMachine.setStateObserver(this); // register for state machine state change notifications
 }
 
 XSipConnection::~XSipConnection()
 {
    m_stateMachine.setStateObserver(NULL);
+   fireSipXCallEvent(CP_CALLSTATE_DESTROYED, CP_CALLSTATE_CAUSE_NORMAL);
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -83,6 +102,114 @@ void XSipConnection::handleSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
    fireSipXCallEvent(eventCode, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
 }
 
+OsStatus XSipConnection::connect(const UtlString& sipCallId,
+                                 const UtlString& localTag,
+                                 const UtlString& toAddress,
+                                 const UtlString& fromAddress,
+                                 const UtlString& locationHeader,
+                                 CP_CONTACT_ID contactId)
+{
+   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId);
+}
+
+OsStatus XSipConnection::acceptConnection(const UtlString& locationHeader,
+                                          CP_CONTACT_ID contactId)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::rejectConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::redirectConnection(const UtlString& sRedirectSipUrl)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::answerConnection()
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::dropConnection()
+{
+   return m_stateMachine.dropConnection();
+}
+
+OsStatus XSipConnection::transferBlind(const UtlString& sTransferSipUrl)
+{
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::holdConnection()
+{
+   return m_stateMachine.holdConnection();
+}
+
+OsStatus XSipConnection::unholdConnection()
+{
+   return m_stateMachine.unholdConnection();
+}
+
+OsStatus XSipConnection::muteInputConnection()
+{
+   int mediaConnectionId = getMediaConnectionId();
+   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   if (pMediaInterface)
+   {
+      return pMediaInterface->muteInput(mediaConnectionId, TRUE);
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::unmuteInputConnection()
+{
+   int mediaConnectionId = getMediaConnectionId();
+   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   if (pMediaInterface)
+   {
+      return pMediaInterface->muteInput(mediaConnectionId, FALSE);
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus XSipConnection::renegotiateCodecsConnection()
+{
+   return m_stateMachine.renegotiateCodecsConnection();
+}
+
+OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
+                                  const char* pContent,
+                                  const size_t nContentLength,
+                                  void* pCookie)
+{
+   return m_stateMachine.sendInfo(sContentType, pContent, nContentLength, pCookie);
+}
+
+UtlBoolean XSipConnection::handleTimerMessage(const ScTimerMsg& timerMsg)
+{
+   return m_stateMachine.handleTimerMessage(timerMsg);
+}
+
+UtlBoolean XSipConnection::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   return m_stateMachine.handleSipMessageEvent(rSipMsgEvent);
+}
+
+UtlBoolean XSipConnection::handleCommandMessage(const ScCommandMsg& rMsg)
+{
+   return m_stateMachine.handleCommandMessage(rMsg);
+}
+
+UtlBoolean XSipConnection::handleNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   return m_stateMachine.handleNotificationMessage(rMsg);
+}
+
 /* ============================ ACCESSORS ================================= */
 
 unsigned XSipConnection::hash() const
@@ -97,40 +224,46 @@ UtlContainableType XSipConnection::getContainableType() const
 
 void XSipConnection::getSipDialog(SipDialog& sSipDialog) const
 {
-   OsReadLock lock(m_sipConnectionContext);
-   sSipDialog = m_sipConnectionContext.m_sipDialog;
+   OsReadLock lock(m_rSipConnectionContext);
+   sSipDialog = m_rSipConnectionContext.m_sipDialog;
 }
 
 void XSipConnection::getSipCallId(UtlString& sSipCallId) const
 {
-   OsReadLock lock(m_sipConnectionContext);
-   m_sipConnectionContext.m_sipDialog.getCallId(sSipCallId);
+   OsReadLock lock(m_rSipConnectionContext);
+   m_rSipConnectionContext.m_sipDialog.getCallId(sSipCallId);
 }
 
 void XSipConnection::getRemoteUserAgent(UtlString& sRemoteUserAgent) const
 {
-   OsReadLock lock(m_sipConnectionContext);
-   sRemoteUserAgent = m_sipConnectionContext.m_remoteUserAgent;
+   OsReadLock lock(m_rSipConnectionContext);
+   sRemoteUserAgent = m_rSipConnectionContext.m_remoteUserAgent;
+}
+
+int XSipConnection::getMediaEventConnectionId() const
+{
+   // no need to lock atomic
+   return m_rSipConnectionContext.m_mediaEventConnectionId;
 }
 
 int XSipConnection::getMediaConnectionId() const
 {
-   OsReadLock lock(m_sipConnectionContext);
-   return m_sipConnectionContext.m_mediaConnectionId;
+   // no need to lock atomic
+   return m_rSipConnectionContext.m_mediaConnectionId;
 }
 
 void XSipConnection::getAbstractCallId(UtlString& sAbstractCallId) const
 {
-   OsReadLock lock(m_sipConnectionContext);
-   sAbstractCallId = m_sipConnectionContext.m_sAbstractCallId;
+   OsReadLock lock(m_rSipConnectionContext);
+   sAbstractCallId = m_rSipConnectionContext.m_sAbstractCallId;
 }
 
 void XSipConnection::getRemoteAddress(UtlString& sRemoteAddress) const
 {
    Url remoteUrl;
    {
-      OsReadLock lock(m_sipConnectionContext);
-      m_sipConnectionContext.m_sipDialog.getRemoteField(remoteUrl);
+      OsReadLock lock(m_rSipConnectionContext);
+      m_rSipConnectionContext.m_sipDialog.getRemoteField(remoteUrl);
    }
    remoteUrl.toString(sRemoteAddress);
 }
@@ -155,8 +288,13 @@ int XSipConnection::compareTo(UtlContainable const* inVal) const
 
 SipDialog::DialogMatchEnum XSipConnection::compareSipDialog(const SipDialog& sSipDialog) const
 {
-   OsReadLock lock(m_sipConnectionContext);
-   return m_sipConnectionContext.m_sipDialog.compareDialogs(sSipDialog);
+   OsReadLock lock(m_rSipConnectionContext);
+   return m_rSipConnectionContext.m_sipDialog.compareDialogs(sSipDialog);
+}
+
+SipConnectionStateContext::MediaSessionState XSipConnection::getMediaSessionState() const
+{
+   return m_stateMachine.getMediaSessionState();
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -179,10 +317,10 @@ void XSipConnection::prepareMediaEvent(CpMediaEvent& event,
 {
    Url remoteField;
    {
-      OsReadLock lock(m_sipConnectionContext);
-      event.m_sCallId = m_sipConnectionContext.m_sAbstractCallId; // copy id of abstract call
-      m_sipConnectionContext.m_sipDialog.getCallId(event.m_sSessionCallId); // copy sip callid
-      m_sipConnectionContext.m_sipDialog.getRemoteField(remoteField); // copy remote field (From or To) including tag
+      OsReadLock lock(m_rSipConnectionContext);
+      event.m_sCallId = m_rSipConnectionContext.m_sAbstractCallId; // copy id of abstract call
+      m_rSipConnectionContext.m_sipDialog.getCallId(event.m_sSessionCallId); // copy sip callid
+      m_rSipConnectionContext.m_sipDialog.getRemoteField(remoteField); // copy remote field (From or To) including tag
    }
    remoteField.toString(event.m_sRemoteAddress);
 
@@ -197,9 +335,9 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
                                            const UtlString& sResponseText /*= NULL*/)
 {
    {
-      OsReadLock lock(m_sipConnectionContext);
-      event.m_sCallId = m_sipConnectionContext.m_sAbstractCallId; // copy id of abstract call
-      event.m_pSipDialog = new SipDialog(m_sipConnectionContext.m_sipDialog); // assign copy of sip dialog. Gets deleted in destructor.
+      OsReadLock lock(m_rSipConnectionContext);
+      event.m_sCallId = m_rSipConnectionContext.m_sAbstractCallId; // copy id of abstract call
+      event.m_pSipDialog = new SipDialog(m_rSipConnectionContext.m_sipDialog); // assign copy of sip dialog. Gets deleted in destructor.
    }
 
    event.m_cause = eMinor;
@@ -211,14 +349,14 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
 void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                              SIPXTACK_MESSAGE_STATUS status,
                                              const UtlString& sResponseText,
-                                             int responseCode /*= 0*/)
+                                             int responseCode,
+                                             void* pCookie)
 {
    if (m_pInfoStatusEventListener)
    {
-      SipInfoStatusEvent infoEvent;
-      infoEvent.m_status = status;
-      infoEvent.m_sResponseText = sResponseText;
-      infoEvent.m_iResponseCode = responseCode;
+      UtlString sAbstractCallId;
+      getAbstractCallId(sAbstractCallId);
+      SipInfoStatusEvent infoEvent(sAbstractCallId, status, responseCode, sResponseText, pCookie);
 
       switch(event)
       {
@@ -231,6 +369,20 @@ void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
       default:
          ;
       }
+   }
+}
+
+void XSipConnection::fireSipXInfoEvent(const UtlString& sContentType,
+                                       const char* pContent /*= NULL*/,
+                                       size_t nContentLength /*= 0*/)
+{
+   if (m_pInfoEventListener)
+   {
+      UtlString sAbstractCallId;
+      getAbstractCallId(sAbstractCallId);
+      SipInfoEvent infoEvent(sAbstractCallId, sContentType, pContent, nContentLength);
+
+      m_pInfoEventListener->OnInfoMessage(infoEvent);
    }
 }
 

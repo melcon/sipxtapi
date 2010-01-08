@@ -12,9 +12,10 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
+#include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
-#include <cp/state/UnknownSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -29,11 +30,20 @@
 
 /* ============================ CREATORS ================================== */
 
-UnknownSipConnectionState::UnknownSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+UnknownSipConnectionState::UnknownSipConnectionState(SipConnectionStateContext& rStateContext,
                                                      SipUserAgent& rSipUserAgent,
-                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                     XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                     CpMessageQueueProvider& rMessageQueueProvider,
+                                                     XSipConnectionEventSink& rSipConnectionEventSink,
+                                                     const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+UnknownSipConnectionState::UnknownSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -47,12 +57,30 @@ UnknownSipConnectionState::~UnknownSipConnectionState()
 
 void UnknownSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   terminateSipDialog();
+   deleteMediaConnection();
 
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
+
+   m_rStateContext.m_bRedirecting = FALSE;
+   m_rStateContext.m_redirectContactList.destroyAll();
+
+   OsSysLog::add(FAC_CP, PRI_WARNING, "Entry unknown connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
+
+   requestConnectionDestruction();
 }
 
 void UnknownSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* UnknownSipConnectionState::dropConnection(OsStatus& result)
+{
+   result = OS_SUCCESS;
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
 SipConnectionStateTransition* UnknownSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -77,10 +105,12 @@ SipConnectionStateTransition* UnknownSipConnectionState::getTransition(ISipConne
       BaseSipConnectionState* pDestination = NULL;
       switch(nextState)
       {
+      case ISipConnectionState::CONNECTION_DISCONNECTED:
+         pDestination = new DisconnectedSipConnectionState(*this);
+         break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

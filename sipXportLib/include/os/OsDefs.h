@@ -59,6 +59,8 @@
 #define SAFE_STRCHR(X, Y) (((X) == NULL) ? NULL : strchr((X), (Y)))
 #endif
 
+#define SAFE_PTR_CAST(CLASSTYPE, UNKNOWNPTR) \
+   ((CLASSTYPE*)(UNKNOWNPTR) && ((CLASSTYPE*)(UNKNOWNPTR))->nSize == sizeof(CLASSTYPE)) ? (CLASSTYPE*)(UNKNOWNPTR) : NULL;
 
                        // strncpy_s introduced in MSVC++ 2005
 #if defined(_WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400

@@ -209,8 +209,8 @@ void MpRtpOutputAudioConnection::sendConnectionNotification(MpNotificationMsgTyp
       OsIntPtrMsg connectionMsg(OsMsg::MP_CONNECTION_NOTF_MSG,
          (unsigned char)MP_NOTIFICATION_AUDIO,
          (int)type,
-         data,
-         mMyID);
+         mMyID,
+         data);
 
       m_pConnectionNotificationQueue->send(connectionMsg, OsTime::NO_WAIT_TIME);
    }
@@ -296,6 +296,7 @@ OsStatus MpRtpOutputAudioConnection::handleStartSendRtp(OsSocket& rRtpSocket,
        // flowgraph.
        //mpFlowGraph->synchronize();
        mpEncode->enable();
+       sendConnectionNotification(MP_NOTIFICATION_START_RTP_SEND, 0);
    }
    return(result);
 }
@@ -315,6 +316,7 @@ OsStatus MpRtpOutputAudioConnection::handleStopSendRtp()
    // flowgraph.
    //mpFlowGraph->synchronize();
        mpEncode->disable();
+       sendConnectionNotification(MP_NOTIFICATION_STOP_RTP_SEND, 0);
    }
    return(result);
 }

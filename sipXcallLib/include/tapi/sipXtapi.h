@@ -189,7 +189,7 @@ typedef enum SIPX_AUDIO_BANDWIDTH_ID
 
     AUDIO_CODEC_BW_CUSTOM,		   /**< Possible return value for sipxConfigGetAudioCodecPreferences.
                                       This ID indicates the available list of codecs was
-                                      overridden by a sipxConfigSetAudioCodecByName call. */
+                                      overridden by a sipxConfigSelectAudioCodecByName call. */
     AUDIO_CODEC_BW_DEFAULT       /**< Value used to signify the default bandwidth level 
                                       when calling sipxCallConnect, sipxCallAccept, or 
                                       sipxConferenceAdd */
@@ -219,7 +219,7 @@ typedef enum SIPX_VIDEO_BANDWIDTH_ID
     VIDEO_CODEC_BW_HIGH,         /**< ID for codecs with high bandwidth requirements */
     VIDEO_CODEC_BW_CUSTOM,       /**< Possible return value for sipxConfigGetVideoCodecPreferences.
                                       This ID indicates the available list of codecs was
-                                      overridden by a sipxConfigSetVideoCodecByName call. */
+                                      overridden by a sipxConfigSelectVideoCodecByName call. */
     VIDEO_CODEC_BW_DEFAULT       /**< Value used to signify the default bandwidth level 
                                       when calling sipxCallLimitCodecPreferences */
 } SIPX_VIDEO_BANDWIDTH_ID;
@@ -822,18 +822,6 @@ typedef unsigned int SIPX_CONF;
 const SIPX_CONF SIPX_CONF_NULL = 0; /**< Represents a null conference handle */
 
 /**
- * The SIPX_INFO handle represents a handle to an INFO message sent by
- * a sipXtapi instance.  INFO messages are useful for communicating 
- * information between user agents within a logical call.  The SIPX_INFO 
- * handle is returned when sending an INFO message via 
- * sipxCallSendInfo(...).  The handle is references as part of the 
- * EVENT_CATEGORY_INFO_STATUS event callback/observer.  sipXtapi will 
- * automatically deallocate this handle immediately after the status
- * call back.
- */
-typedef unsigned int SIPX_INFO;
-
-/**
  * The SIPX_PUB handle represent a publisher context.  Publisher are used
  * to publish application-data to interested parties (Subscribers).  This
  * maps directly to the SIP SUBSCRIBE, and NOTIFY methods.  The handle is
@@ -890,7 +878,7 @@ typedef int (SIPX_CALLING_CONVENTION *SIPX_TRANSPORT_WRITE_PROC)(
  *           - When the registration period is longer then NAT bindings 
  *             timeout
  *
- * The STUN, and SIP_PING and SIP_OPTIONS events may also give you more 
+ * The STUN, and SIP_OPTIONS events may also give you more 
  * information about your network NAT mappings.  When you add a keepalive,
  * you may get KEEPALIVE_FEEDBACK events with the IP/port that your
  * peer thinks is you.  For STUN, this comes from the STUN response, for 
@@ -901,7 +889,6 @@ typedef enum
 {
     SIPX_KEEPALIVE_CRLF = 0,    /**<Send a Carriage Return/Line Feed to other side */
     SIPX_KEEPALIVE_STUN,        /**<Send a Stun request to the other side */
-    SIPX_KEEPALIVE_SIP_PING,    /**<Send a SIP PING method request to the other side */
     SIPX_KEEPALIVE_SIP_OPTIONS, /**<Send a SIP OPTIONS method request to the other side */
 } SIPX_KEEPALIVE_TYPE;
 
@@ -1722,14 +1709,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub);
 
 
 /**
- * Sends an INFO event to the specified call.  
+ * Sends an INFO event to the specified call.
  *
- * This method will fail with an SIPX_RESULT_INVALID_STATE return code 
- * if an existing INFO message transaction is still outstanding (sipXtapi 
- * has not received a final response to the initial request).
- * 
- * @param phInfo Pointer to an INFO message handle, whose value is set by 
- *        this method.
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
@@ -1737,12 +1718,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub);
  * @param pContent Pointer to the INFO message's content. Can be a NULL terminated
  *        string or binary data.
  * @param nContentLength Length of data in pContent
+ * @param pCookie Optional argument that will be passed into info status
+ *        event to match send requests with responses.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
-                                          const SIPX_CALL hCall,
+SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
                                           const char* szContentType,
                                           const char* pContent,
-                                          const size_t nContentLength);
+                                          const size_t nContentLength,
+                                          void* pCookie = NULL);
 
 /**
  * Blind transfer the specified call to another party.  Monitor the
@@ -1988,34 +1971,40 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
                                                    SIPX_RTCP_STATS* pStats);
 
 /**
- * Limits the codec preferences on a per-call basis.  This API will force a 
- * codec renegotiation with the specified call regardless if the codecs 
- * changed.  A renegotiation includes sending a new INVITE with an updated SDP
- * list.  Local audio will be stopped and restarted during this process, 
- * however, hold events are not sent to the application.
- *
- * NOTE: If a call is on remote hold, it will be taken off remote hold.
+ * Limits the codec preferences on given call. Can be used on a connected
+ * call to limit preferences for that call.
+ * Preferences will take effect after next unhold.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
- *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
  * @param szAudioCodecs Codec names that limit the supported audio codecs.
- * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
- *        (see sipxConfigSetVideoBandwidth for an explanation on how 
- *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
- *        to leave these parameters unchanged.
  * @param szVideoCodecs Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
-                                                       const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                        const char* szAudioCodecs,
-                                                       const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                        const char* szVideoCodecs);
+
+/**
+* Limits the codec preferences on given call. Can only be used on a connected
+* call. Codec renegotiation will be triggered. If call is held, then after
+* renegotiation it will be held again.
+*
+* @param hCall Handle to a call.  Call handles are obtained either by 
+*        invoking sipxCallCreate or passed to your application through
+*        a listener interface.
+* @param szAudioCodecs Codec names that limit the supported audio codecs.
+* @param szVideoCodecs Codec names that limit the supported video codecs
+*        to this one video codec.
+*        
+* @see sipxConfigSetVideoBandwidth
+*/
+SIPXTAPI_API SIPX_RESULT sipxCallRenegotiateCodecPreferences(const SIPX_CALL hCall,
+                                                             const char* szAudioCodecs,
+                                                             const char* szVideoCodecs);
 
 /**
  * Enables/disables discarding of inbound RTP for given call. Should be used
@@ -2343,33 +2332,37 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStop(const SIPX_CONF hConf
 SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf);
 
 /**
- * Limits the codec preferences on a conference.  This API will force a 
- * codec renegotiation with the specified calls regardless if the codecs 
- * changed.  A renegotiation includes sending a new INVITE with an updated SDP
- * list.  Local audio will be stopped and restarted during this process, 
- * however, hold events are not sent to the application.
- *
- * NOTE: If any calls are on remote hold, they will be taken off hold.
+ * Limits the codec preferences on a conference. Supplied settings will be applied
+ * for new conference calls, or calls that are unheld. First supplied audio codec
+ * matching remote party audio codec will be used.
  *
  * @param hConf Handle to a conference.  Conference handles are obtained 
  *        by invoking sipxConferenceCreate.
- * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
- *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
  * @param szVideoCodecNames Codec names that limit the supported audio codecs.
- * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
- *        (see sipxConfigSetVideoBandwidth for an explanation on how 
- *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
- *        to leave these parameters unchanged.
  * @param szVideoCodecNames Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
-                                                             const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                              const char* szAudioCodecNames,
-                                                             const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                              const char* szVideoCodecNames);
+
+/**
+* Limits the codec preferences on a conference. Supplied settings will be applied
+* immediately. First supplied audio codec matching remote party audio codec will be used.
+*
+* @param hConf Handle to a conference.  Conference handles are obtained 
+*        by invoking sipxConferenceCreate.
+* @param szVideoCodecNames Codec names that limit the supported audio codecs.
+* @param szVideoCodecNames Codec names that limit the supported video codecs
+*        to this one video codec.
+*        
+* @see sipxConfigSetVideoBandwidth
+*/
+SIPXTAPI_API SIPX_RESULT sipxConferenceRenegotiateCodecPreferences(const SIPX_CONF hConf,
+                                                                   const char* szAudioCodecNames,
+                                                                   const char* szVideoCodecNames);
 
 //@}
 
@@ -3341,46 +3334,21 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
 
 
 /**
- * Set the preferred bandwidth requirement for codec selection. Whenever 
- * possible a codec matching that requirement will be selected for a call.
- * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
- * preferences.  SIPX_RESULT_FAILURE is returned if the preference is not set.
- * 
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param bandWidth Valid bandwidth requirements  are AUDIO_CODEC_BW_LOW, 
- *        AUDIO_CODEC_BW_NORMAL, and AUDIO_CODEC_BW_HIGH.
+ * Set the codecs by short names. The name must match one of the supported codecs
+ * otherwise this function will fail. Codecs must be separated by " ".
  *
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hInst, 
-                                                            SIPX_AUDIO_BANDWIDTH_ID bandWidth);
-
-/**
- * Set the codec by name. The name must match one of the supported codecs
- * otherwise this function will fail.
- * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec.
+ * This method will return SIPX_RESULT_SUCCESS if able to set audio codecs.
  * SIPX_RESULT_FAILURE is returned if the codec is not set.
  * 
  * @param hInst Instance pointer obtained by sipxInitialize
- * @param szCodecName codec name
+ * @param szCodecNames multiple codec names separated by space.
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecName);
+SIPXTAPI_API SIPX_RESULT sipxConfigSelectAudioCodecByName(const SIPX_INST hInst, 
+                                                          const char* szCodecNames);
 
 /**
- * Get the current codec preference.
- *
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param pBandWidth pointer to an integer that will contain AUDIO_CODEC_BW_LOW, 
- *        AUDIO_CODEC_BW_NORMAL, or AUDIO_CODEC_BW_HIGH. AUDIO_CODEC_BW_CUSTOM
- *        will be returned if a specific codec was et using the 
- *        sipxConfigSetAudioCodecByName function.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodecPreferences(const SIPX_INST hInst, 
-                                                            SIPX_AUDIO_BANDWIDTH_ID *pBandWidth);
-
-/**
- * Get the number of audio codecs. 
+ * Get the number of selected audio codecs. 
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
  * no be retrieved.
@@ -3389,14 +3357,29 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodecPreferences(const SIPX_INST hIns
  * @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst, 
-                                                     int* pNumCodecs);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumSelectedAudioCodecs(const SIPX_INST hInst, 
+                                                             int* pNumCodecs);
 
+/**
+* Get the number of all available audio codecs. 
+* This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
+* no be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAvailableAudioCodecs(const SIPX_INST hInst, 
+                                                              int* pNumCodecs);
 
 /**
  * Get the audio codec at a certain index in the list of codecs. Use this 
- * function in conjunction with sipxConfigGetNumAudioCodecs to enumerate
- * the list of audio codecs.
+ * function in conjunction with sipxConfigGetNumSelectedAudioCodecs to enumerate
+ * the list of selected audio codecs. This method in conjunction with 
+ * sipxConfigGetNumSelectedAudioCodecs will enumerate only currently selected codecs,
+ * and not all available codecs.
+ *
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the audio codec can not
  * be retrieved.
@@ -3407,31 +3390,30 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst,
  *        (name, bandwidth requirement) about the codec.
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst, 
-                                                 const int index, 
-                                                 SIPX_AUDIO_CODEC* pCodec);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedAudioCodec(const SIPX_INST hInst, 
+                                                         const int index, 
+                                                         SIPX_AUDIO_CODEC* pCodec);
 
 /**
- * Set the bandwidth parameters for video codecs.Depending on the bandwidth
- * parameter that is passed in the settings will be set to:
- *
- * VIDEO_CODEC_BW_LOW     bitrate 5 kbps, framerate 10 fps
- * VIDEO_CODEC_BW_NORMAL  bitrate 70 kbps, framerate is what it was set to
- *                        with sipxConfigSetVideoParameters or 30 if not set.
- * VIDEO_CODEC_BW_HIGH    bitrate 400 kbps, framerate is what it was set to
- *                        with sipxConfigSetVideoParameters or 30 if not set.
- *
- * This method will return SIPX_RESULT_SUCCESS if able to set the video codec
- * preferences.  SIPX_RESULT_FAILURE is returned if the preference is not set.
- * 
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param bandWidth Valid bandwidth requirements  are VIDEO_CODEC_BW_LOW, 
- *        VIDEO_CODEC_BW_NORMAL, and VIDEO_CODEC_BW_HIGH.
- *
- * @see sipxConfigSetVideoParameters
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst, 
-                                                     SIPX_VIDEO_BANDWIDTH_ID bandWidth);
+* Get the audio codec at a certain index in the list of codecs. Use this 
+* function in conjunction with sipxConfigGetNumSelectedAudioCodecs to enumerate
+* the list of selected audio codecs. This method in conjunction with 
+* sipxConfigGetNumSelectedAudioCodecs will enumerate only currently selected codecs,
+* and not all available codecs.
+*
+* This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the audio codec can not
+* be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param index Index in the list of codecs
+* @param pCodec SIPX_AUDIO_CODEC structure that holds information
+*        (name, bandwidth requirement) about the codec.
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableAudioCodec(const SIPX_INST hInst, 
+                                                          const int index, 
+                                                          SIPX_AUDIO_CODEC* pCodec);
 
 /**
  * Gets the list of video capture devices.
@@ -3483,11 +3465,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
  * @param szCodecName codec name
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecName);
+SIPXTAPI_API SIPX_RESULT sipxConfigSelectVideoCodecByName(const SIPX_INST hInst, 
+                                                          const char* szCodecName);
 
 /**
- * Reset the codec list if it was modified by sipxConfigSetVideoCodecByName. This
+ * Reset the codec list if it was modified by sipxConfigSelectVideoCodecByName. This
  * resets the selection to a full codec list.
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec.
  * SIPX_RESULT_FAILURE is returned if the codec is not set.
@@ -3495,22 +3477,10 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst,
  * @param hInst Instance pointer obtained by sipxInitialize
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst);
+SIPXTAPI_API SIPX_RESULT sipxConfigResetSelectedVideoCodecs(const SIPX_INST hInst);
 
 /**
- * Get the current codec preference.
- *
- * @param hInst Instance pointer obtained by sipxInitialize
- * @param pBandWidth pointer to an integer that will contain AUDIO_CODEC_BW_LOW, 
- *        AUDIO_CODEC_BW_NORMAL, or AUDIO_CODEC_BW_HIGH. AUDIO_CODEC_BW_CUSTOM
- *        will be returned if a specific codec was set using the 
- *        sipxConfigSetVideoCodecByName function.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hInst, 
-                                                            SIPX_VIDEO_BANDWIDTH_ID *pBandWidth);
-
-/**
- * Get the number of video codecs. 
+ * Get the number of selected video codecs. 
  * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
  * no be retrieved.
@@ -3519,9 +3489,21 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hIns
  * @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetNumVideoCodecs(const SIPX_INST hInst, 
-                                                     int* pNumCodecs);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumSelectedVideoCodecs(const SIPX_INST hInst, 
+                                                             int* pNumCodecs);
 
+/**
+* Get the number of available video codecs. 
+* This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
+* no be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param pNumCodecs Pointer to the number of codecs.  This value must not be NULL. 
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAvailableVideoCodecs(const SIPX_INST hInst, 
+                                                              int* pNumCodecs);
 
 /**
  * Set the supported video format
@@ -3536,9 +3518,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFormat(const SIPX_INST hInst,
 
 
 /**
- * Get the video codec at a certain index in the list of codecs. Use this 
- * function in conjunction with sipxConfigGetNumVideoCodecs to enumerate
- * the list of video codecs.
+ * Get selected video codec at a certain index in the list of codecs. Use this 
+ * function in conjunction with sipxConfigGetNumSelectedVideoCodecs to enumerate
+ * the list of currently selected video codecs.
  * This method will return SIPX_RESULT_SUCCESS if able to set the video codec
  * preferences.  SIPX_RESULT_FAILURE is returned if the video codec can not
  * be retrieved.
@@ -3549,9 +3531,27 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFormat(const SIPX_INST hInst,
  *        (name, bandwidth requirement) about the codec.
  *
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst, 
-                                                 const int index, 
-                                                 SIPX_VIDEO_CODEC* pCodec);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedVideoCodec(const SIPX_INST hInst, 
+                                                         const int index, 
+                                                         SIPX_VIDEO_CODEC* pCodec);
+
+/**
+* Get available video codec at a certain index in the list of codecs. Use this 
+* function in conjunction with sipxConfigGetNumAvailableVideoCodecs to enumerate
+* the list of all available video codecs.
+* This method will return SIPX_RESULT_SUCCESS if able to set the video codec
+* preferences.  SIPX_RESULT_FAILURE is returned if the video codec can not
+* be retrieved.
+* 
+* @param hInst Instance pointer obtained by sipxInitialize
+* @param index Index in the list of codecs
+* @param pCodec SIPX_VIDEO_CODEC structure that holds information
+*        (name, bandwidth requirement) about the codec.
+*
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableVideoCodec(const SIPX_INST hInst, 
+                                                          const int index, 
+                                                          SIPX_VIDEO_CODEC* pCodec);
 
 /**
  * Get the local contact address available for outbound/inbound signaling and
@@ -3975,6 +3975,26 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
                                                                   const size_t nData);
 
 
+/**
+ * Gets current session interval defined in RFC4028 (session timers) - time between
+ * session updates (INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param iSessionInterval Current value of session timer expiration.
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int* iSessionInterval);
+
+/**
+ * Sets current session interval defined in RFC4028 (session timers) - time between
+ * session updates (INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param iSessionInterval New value of session timer expiration. Values lower than 90
+ *        are ignored. Minimum value is 90.
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int iSessionInterval);
 //@}
 /** @name Utility Functions */
 //@{

@@ -12,11 +12,12 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/QueuedSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/AlertingSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -31,11 +32,20 @@
 
 /* ============================ CREATORS ================================== */
 
-QueuedSipConnectionState::QueuedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+QueuedSipConnectionState::QueuedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                    SipUserAgent& rSipUserAgent,
-                                                   CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                   XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                   CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                   CpMessageQueueProvider& rMessageQueueProvider,
+                                                   XSipConnectionEventSink& rSipConnectionEventSink,
+                                                   const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+QueuedSipConnectionState::QueuedSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -49,12 +59,23 @@ QueuedSipConnectionState::~QueuedSipConnectionState()
 
 void QueuedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry queued connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void QueuedSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* QueuedSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are callee. We queued inbound call, but haven't accepted it yet
+   // to drop call, send 403 Forbidden
+   return doRejectInboundConnectionInProgress(result);
 }
 
 SipConnectionStateTransition* QueuedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -80,21 +101,14 @@ SipConnectionStateTransition* QueuedSipConnectionState::getTransition(ISipConnec
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_ALERTING:
-         pDestination = new AlertingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new AlertingSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

@@ -56,7 +56,7 @@ SIPXTAPI_API SIPX_RESULT sipxPIMSendPagerMessage(SIPX_INST hInst,
       hInst, destinationAor, messageText, subject, responseCode, responseCodeText, buffLength);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst && pInst->pSipPimClient && messageText && subject)
    {

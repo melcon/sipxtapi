@@ -35,11 +35,18 @@ class RemoteAlertingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   RemoteAlertingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   /** Constructor. */
+   RemoteAlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                                     SipUserAgent& rSipUserAgent,
-                                    CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                    XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                                    CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                    CpMessageQueueProvider& rMessageQueueProvider,
+                                    XSipConnectionEventSink& rSipConnectionEventSink,
+                                    const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   RemoteAlertingSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~RemoteAlertingSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */
@@ -54,7 +61,13 @@ public:
    */
    virtual void handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory);
 
+   /** Disconnects call */
+   virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
+
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
+
+   /** Handles inbound SIP INVITE responses */
+   virtual SipConnectionStateTransition* processInviteResponse(const SipMessage& sipMessage);
 
    /* ============================ ACCESSORS ================================= */
 

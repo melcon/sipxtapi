@@ -142,7 +142,7 @@ bool CRTCPTimer::Initialize(void)
     
     if(m_pCallback != NULL)
         delete m_pCallback;
-    m_pCallback = new OsCallback((int)this, ReportingAlarm);
+    m_pCallback = new OsCallback((intptr_t)this, ReportingAlarm);
     
     if(m_pTimer != NULL)
         delete m_pTimer;

@@ -31,14 +31,12 @@ class AcRejectConnectionMsg;
 class AcRedirectConnectionMsg;
 class AcAnswerConnectionMsg;
 class AcDropConnectionMsg;
+class AcDestroyConnectionMsg;
 class AcTransferBlindMsg;
 class AcHoldConnectionMsg;
 class AcUnholdConnectionMsg;
-class AcLimitCodecPreferencesMsg;
 class AcRenegotiateCodecsMsg;
 class AcSendInfoMsg;
-class AcMuteInputConnectionMsg;
-class AcUnmuteInputConnectionMsg;
 
 /**
  * XCpCall wraps XSipConnection realizing all call functionality. XCpCall is designed to hold
@@ -69,9 +67,15 @@ public:
    XCpCall(const UtlString& sId,
            SipUserAgent& rSipUserAgent,
            CpMediaInterfaceFactory& rMediaInterfaceFactory,
+           const SdpCodecList& rDefaultSdpCodecList,
            OsMsgQ& rCallManagerQueue,
+           const CpNatTraversalConfig& rNatTraversalConfig,
+           const UtlString& sLocalIpAddress,
+           int inviteExpireSeconds,
+           XCpCallConnectionListener* pCallConnectionListener = NULL,
            CpCallStateEventListener* pCallEventListener = NULL,
            SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+           SipInfoEventListener* pInfoEventListener = NULL,
            SipSecurityEventListener* pSecurityEventListener = NULL,
            CpMediaEventListener* pMediaEventListener = NULL);
 
@@ -131,10 +135,10 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyCall = FALSE);
+   virtual OsStatus dropConnection(const SipDialog& sipDialog);
 
    /** Disconnects call without knowing the sip call-id*/
-   OsStatus dropConnection(UtlBoolean bDestroyCall = FALSE);
+   OsStatus dropConnection();
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
@@ -177,33 +181,6 @@ public:
    virtual OsStatus unholdConnection();
 
    /**
-   * Enables discarding of inbound RTP at bridge for given call
-   * or conference. Useful for server applications without mic/speaker.
-   * DTMF on given call will still be decoded.
-   */
-   virtual OsStatus muteInputConnection(const SipDialog& sipDialog);
-
-   /**
-   * Disables discarding of inbound RTP for given call
-   * or conference. Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog);
-
-   /**
-   * Rebuild codec factory on the fly with new audio codec requirements
-   * and new video codecs. Preferences will be in effect after the next
-   * INVITE or re-INVITE. Can be called on empty call or conference to limit
-   * codecs for future calls. When called on an established call, hold/unhold
-   * or codec renegotiation needs to be triggered to actually change codecs.
-   * If used on conference, codecs will be applied to all future calls, and all
-   * calls that are unheld.
-   */
-   virtual OsStatus limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                          const UtlString& sAudioCodecs,
-                                          CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                          const UtlString& sVideoCodecs);
-
-   /**
    * Rebuild codec factory on the fly with new audio codec requirements
    * and one specific video codec.  Renegotiate the codecs to be use for the
    * specified terminal connection.
@@ -213,16 +190,15 @@ public:
    * (Sends a SIP re-INVITE.)
    */
    virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
-                                                CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                 const UtlString& sVideoCodecs);
 
    /** Sends an INFO message to the other party(s) on the call */
    virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
                              const char* pContent,
-                             const size_t nContentLength);
+                             const size_t nContentLength,
+                             void* pCookie);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -243,7 +219,7 @@ public:
 protected:
 
    /**
-    * Finds connection handling given Sip dialog. Uses strict dialog matching.
+    * Finds connection handling given Sip dialog. Uses loose dialog matching.
     */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
 
@@ -258,9 +234,6 @@ protected:
 
    /** Handles timer messages */
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
-
-   /** Handler for inbound SipMessageEvent messages. */
-   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -280,22 +253,24 @@ private:
    OsStatus handleAnswerConnection(const AcAnswerConnectionMsg& rMsg);
    /** Handles message to drop sip connection */
    OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
+   /** Handles message to destroy sip connection */
+   OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg);
    /** Handles message to initiate blind call transfer */
    OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
    /** Handles message to initiate remote hold on sip connection */
    OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
    /** Handles message to initiate remote unhold on sip connection */
    OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
-   /** Handles message to limit codec preferences for future sip connections */
-   OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
    /** Handles message to renegotiate codecs for some sip connection */
    OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
    /** Handles message to send SIP INFO to on given sip connection */
    OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
-   /** Handles message to mute inbound RTP in audio bridge */
-   OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
-   /** Handles message to unmute inbound RTP in audio bridge */
-   OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
+
+   /** Creates new XSipConnection for the call, if it doesn't exist yet */
+   void createSipConnection(const SipDialog& sipDialog);
+
+   /** Destroys XSipConnection if it exists */
+   void destroySipConnection();
 
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
@@ -313,7 +288,7 @@ private:
                                             intptr_t pEventData2);
 
    // begin of members requiring m_memberMutex
-   XSipConnection* m_pSipConnection;
+   XSipConnection* m_pSipConnection; ///< XSipConnection handling Sip messages. Use destroySipConnection to delete it.
    // end of members requiring m_memberMutex
 };
 

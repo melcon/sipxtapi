@@ -59,7 +59,7 @@ public:
 ///@name Manipulators
 //@{
 
-   OsStatus initJitterBuffers(SdpCodec* codecs[], int numCodecs);
+   OsStatus initJitterBuffers(const UtlSList& codecList);
 
      /// Add a buffer containing an incoming RTP packet to the dejitter pool
    OsStatus pushPacket(const MpRtpBufPtr &pRtp);

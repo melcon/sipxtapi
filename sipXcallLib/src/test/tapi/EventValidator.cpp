@@ -274,7 +274,7 @@ bool EventValidator::waitForLineEvent(SIPX_LINE hLine,
 }
 
 
-bool EventValidator::waitForInfoStatusEvent(SIPX_INFO hInfo, 
+bool EventValidator::waitForInfoStatusEvent(void* pCookie, 
                                             int status, 
                                             int responseCode, 
                                             const char* szResponseText,
@@ -286,7 +286,7 @@ bool EventValidator::waitForInfoStatusEvent(SIPX_INFO hInfo,
    if (!isIgnoredCateogry(EVENT_CATEGORY_INFO_STATUS))
    {
 
-      UtlString* pString = allocInfoStatusEvent(hInfo, 
+      UtlString* pString = allocInfoStatusEvent(pCookie, 
          status, 
          responseCode, 
          szResponseText);
@@ -311,8 +311,6 @@ bool EventValidator::waitForInfoStatusEvent(SIPX_INFO hInfo,
 
 bool EventValidator::waitForInfoEvent(SIPX_CALL hCall,
                                       SIPX_LINE hLine,
-                                      const char* szFromURL,
-                                      const char* szUserAgent,
                                       const char* szContentType,
                                       const char* szContent,
                                       int nContentLength,
@@ -325,8 +323,6 @@ bool EventValidator::waitForInfoEvent(SIPX_CALL hCall,
    {
       UtlString* pString = allocInfoEvent(hCall,
          hLine,
-         szFromURL,
-         szUserAgent,
          szContentType,
          szContent,
          nContentLength);
@@ -605,7 +601,7 @@ void EventValidator::addEvent(SIPX_EVENT_CATEGORY category, void* pInfo)
          {
             SIPX_INFOSTATUS_INFO* pStateInfo = (SIPX_INFOSTATUS_INFO*) pInfo;
 
-            UtlString* pString = allocInfoStatusEvent(pStateInfo->hInfo, 
+            UtlString* pString = allocInfoStatusEvent(pStateInfo->pCookie, 
                pStateInfo->status, 
                pStateInfo->responseCode, 
                pStateInfo->szResponseText);                                
@@ -620,8 +616,6 @@ void EventValidator::addEvent(SIPX_EVENT_CATEGORY category, void* pInfo)
 
             UtlString* pString = allocInfoEvent(pStateInfo->hCall,
                pStateInfo->hLine,
-               pStateInfo->szFromURL,
-               pStateInfo->szUserAgent,
                pStateInfo->szContentType,
                pStateInfo->pContent,
                pStateInfo->nContentLength);
@@ -781,12 +775,12 @@ UtlString* EventValidator::allocMessageEvent(SIPX_LINE hLine, const char* szMess
 }
 
 
-UtlString* EventValidator::allocInfoStatusEvent(SIPX_INFO hInfo, int status, int responseCode, const char* szResponseText) 
+UtlString* EventValidator::allocInfoStatusEvent(void* pCookie, int status, int responseCode, const char* szResponseText) 
 {
    char szBuffer[1024];    
 
-   sprintf(szBuffer, "<INFO STATUS> hInfo=%d: status=%d, responseCode=%d, responseText=%s",
-      hInfo, 
+   sprintf(szBuffer, "<INFO STATUS> pCookie=%d: status=%d, responseCode=%d, responseText=%s",
+      pCookie, 
       status, 
       responseCode, 
       szResponseText ? szResponseText : "");
@@ -796,22 +790,11 @@ UtlString* EventValidator::allocInfoStatusEvent(SIPX_INFO hInfo, int status, int
 
 UtlString* EventValidator::allocInfoEvent(SIPX_CALL hCall, 
                                           SIPX_LINE hLine, 
-                                          const char* szFromURL, 
-                                          const char* szUserAgent,
                                           const char* szContentType,
                                           const char* szContent,
                                           int nContentLength)
 {
    char szBuffer[1024];
-
-   // TODO:: Need way to validate from url -- not API to get it w/ tag today from
-   // the calling side.  Stripping here.
-   UtlString from(szFromURL ? szFromURL : "");
-   int tagIndex = from.index(';');
-   if (tagIndex >= 0)
-   {
-      from.remove(tagIndex);
-   }
 
    char* szTemp = NULL;
    if (szContent && nContentLength)
@@ -821,11 +804,9 @@ UtlString* EventValidator::allocInfoEvent(SIPX_CALL hCall,
       memcpy(szTemp, szContent, nContentLength);
    }
 
-   sprintf(szBuffer, "<INFO> hCall=%d, hLine=%d, from=%s, szUserAgent=%s, type=%s, content=%s, len=%d",
+   sprintf(szBuffer, "<INFO> hCall=%d, hLine=%d, type=%s, content=%s, len=%d",
       hCall,
       hLine,
-      from.data(),
-      szUserAgent ? szUserAgent : "",
       szContentType ? szContentType : "",
       szTemp ? szTemp : "",
       nContentLength);
@@ -901,9 +882,6 @@ UtlString* EventValidator::allocKeepaliveEvent(SIPX_KEEPALIVE_EVENT event,
       break;
    case SIPX_KEEPALIVE_STUN:
       strcpy(szType, "SIPX_KEEPALIVE_STUN");
-      break;
-   case SIPX_KEEPALIVE_SIP_PING:
-      strcpy(szType, "SIPX_KEEPALIVE_SIP_PING");
       break;
    case SIPX_KEEPALIVE_SIP_OPTIONS:
       strcpy(szType, "SIPX_KEEPALIVE_SIP_OPTIONS");

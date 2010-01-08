@@ -42,8 +42,8 @@
                 <File RelativePath=".\interface\src\mi\CpMediaInterfaceFactory.cpp"/>
             </Filter>
             <Filter Name="sipxmedia">
-                <File RelativePath=".\sipXmediaMediaProcessing\src\CpPhoneMediaInterface.cpp"/>
-                <File RelativePath=".\sipXmediaMediaProcessing\src\sipXmediaFactoryImpl.cpp"/>
+                <File RelativePath=".\sipXmediaMediaProcessing\src\SipXMediaFactoryImpl.cpp"/>
+                <File RelativePath=".\sipXmediaMediaProcessing\src\SipXMediaInterfaceImpl.cpp"/>
             </Filter>
         </Filter>
         <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
@@ -54,8 +54,8 @@
                 <File RelativePath=".\interface\include\mi\CpMediaInterfaceFactoryFactory.h"/>
             </Filter>
             <Filter Name="sipxmedia">
-                <File RelativePath=".\sipXmediaMediaProcessing\include\CpPhoneMediaInterface.h"/>
-                <File RelativePath=".\sipXmediaMediaProcessing\include\sipXmediaFactoryImpl.h"/>
+                <File RelativePath=".\sipXmediaMediaProcessing\include\SipXMediaFactoryImpl.h"/>
+                <File RelativePath=".\sipXmediaMediaProcessing\include\SipXMediaInterfaceImpl.h"/>
             </Filter>
         </Filter>
     </Files>

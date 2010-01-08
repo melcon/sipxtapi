@@ -27,11 +27,8 @@
 #include <cp/msg/AcUnholdConnectionMsg.h>
 #include <cp/msg/AcUnholdAllConnectionsMsg.h>
 #include <cp/msg/AcTransferBlindMsg.h>
-#include <cp/msg/AcLimitCodecPreferencesMsg.h>
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcRenegotiateCodecsAllMsg.h>
-#include <cp/msg/AcMuteInputConnectionMsg.h>
-#include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 
@@ -51,13 +48,20 @@
 XCpConference::XCpConference(const UtlString& sId,
                              SipUserAgent& rSipUserAgent,
                              CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                             const SdpCodecList& rDefaultSdpCodecList,
                              OsMsgQ& rCallManagerQueue,
+                             const CpNatTraversalConfig& rNatTraversalConfig,
+                             const UtlString& sLocalIpAddress,
+                             int inviteExpireSeconds,
+                             XCpCallConnectionListener* pCallConnectionListener,
                              CpCallStateEventListener* pCallEventListener,
                              SipInfoStatusEventListener* pInfoStatusEventListener,
+                             SipInfoEventListener* pInfoEventListener,
                              SipSecurityEventListener* pSecurityEventListener,
                              CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rCallManagerQueue,
-                  pCallEventListener, pInfoStatusEventListener, pSecurityEventListener, pMediaEventListener)
+: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
+                  sLocalIpAddress, inviteExpireSeconds, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
+                  pInfoEventListener, pSecurityEventListener, pMediaEventListener)
 {
 
 }
@@ -113,9 +117,9 @@ OsStatus XCpConference::answerConnection()
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus XCpConference::dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyConference)
+OsStatus XCpConference::dropConnection(const SipDialog& sipDialog)
 {
-   AcDropConnectionMsg dropConnectionMsg(sipDialog, bDestroyConference);
+   AcDropConnectionMsg dropConnectionMsg(sipDialog);
    return postMessage(dropConnectionMsg);
 }
 
@@ -156,55 +160,29 @@ OsStatus XCpConference::unholdAllConnections()
    return postMessage(unholdAllConnectionsMsg);
 }
 
-OsStatus XCpConference::muteInputConnection(const SipDialog& sipDialog)
-{
-   AcMuteInputConnectionMsg muteInputConnectionMsg(sipDialog);
-   return postMessage(muteInputConnectionMsg);
-}
-
-OsStatus XCpConference::unmuteInputConnection(const SipDialog& sipDialog)
-{
-   AcUnmuteInputConnectionMsg unmuteInputConnectionMsg(sipDialog);
-   return postMessage(unmuteInputConnectionMsg);
-}
-
-OsStatus XCpConference::limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                              const UtlString& sAudioCodecs,
-                                              CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                              const UtlString& sVideoCodecs)
-{
-   AcLimitCodecPreferencesMsg limitCodecPreferencesMsg(audioBandwidthId, sAudioCodecs,
-      videoBandwidthId, sVideoCodecs);
-   return postMessage(limitCodecPreferencesMsg);
-}
-
 OsStatus XCpConference::renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                    CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                     const UtlString& sAudioCodecs,
-                                                    CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                     const UtlString& sVideoCodecs)
 {
-   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, audioBandwidthId, sAudioCodecs,
-      videoBandwidthId, sVideoCodecs);
+   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, sAudioCodecs,
+      sVideoCodecs);
    return postMessage(renegotiateCodecsMsg);
 }
 
-OsStatus XCpConference::renegotiateCodecsAllConnections(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                                        const UtlString& sAudioCodecs,
-                                                        CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+OsStatus XCpConference::renegotiateCodecsAllConnections(const UtlString& sAudioCodecs,
                                                         const UtlString& sVideoCodecs)
 {
-   AcRenegotiateCodecsAllMsg renegotiateCodecsMsg(audioBandwidthId, sAudioCodecs,
-      videoBandwidthId, sVideoCodecs);
+   AcRenegotiateCodecsAllMsg renegotiateCodecsMsg(sAudioCodecs, sVideoCodecs);
    return postMessage(renegotiateCodecsMsg);
 }
 
 OsStatus XCpConference::sendInfo(const SipDialog& sipDialog,
                                  const UtlString& sContentType,
                                  const char* pContent,
-                                 const size_t nContentLength)
+                                 const size_t nContentLength,
+                                 void* pCookie)
 {
-   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength);
+   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength, pCookie);
    return postMessage(sendInfoMsg);
 }
 
@@ -347,9 +325,6 @@ UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_UNHOLD_ALL_CONNECTIONS:
       handleUnholdAllConnections((const AcUnholdAllConnectionsMsg&)rRawMsg);
       return TRUE;
-   case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
-      handleLimitCodecPreferences((const AcLimitCodecPreferencesMsg&)rRawMsg);
-      return TRUE;
    case AcCommandMsg::AC_RENEGOTIATE_CODECS:
       handleRenegotiateCodecs((const AcRenegotiateCodecsMsg&)rRawMsg);
       return TRUE;
@@ -358,12 +333,6 @@ UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_SEND_INFO:
       handleSendInfo((const AcSendInfoMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_MUTE_INPUT_CONNECTION:
-      handleMuteInputConnection((const AcMuteInputConnectionMsg&)rRawMsg);
-      return TRUE;
-   case AcCommandMsg::AC_UNMUTE_INPUT_CONNECTION:
-      handleUnmuteInputConnection((const AcUnmuteInputConnectionMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -385,11 +354,6 @@ UtlBoolean XCpConference::handleTimerMessage(const CpTimerMsg& rRawMsg)
    return XCpAbstractCall::handleTimerMessage(rRawMsg);
 }
 
-UtlBoolean XCpConference::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
-{
-   return TRUE;
-}
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 OsStatus XCpConference::handleConnect(const AcConnectMsg& rMsg)
@@ -404,6 +368,7 @@ OsStatus XCpConference::handleDropConnection(const AcDropConnectionMsg& rMsg)
 
 OsStatus XCpConference::handleDropAllConnections(const AcDropAllConnectionsMsg& rMsg)
 {
+   m_bDestroyConference = TRUE;
    return OS_FAILED;
 }
 
@@ -432,11 +397,6 @@ OsStatus XCpConference::handleUnholdAllConnections(const AcUnholdAllConnectionsM
    return OS_FAILED;
 }
 
-OsStatus XCpConference::handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg)
-{
-   return OS_FAILED;
-}
-
 OsStatus XCpConference::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
 {
    return OS_FAILED;
@@ -448,16 +408,6 @@ OsStatus XCpConference::handleRenegotiateCodecsAll(const AcRenegotiateCodecsAllM
 }
 
 OsStatus XCpConference::handleSendInfo(const AcSendInfoMsg& rMsg)
-{
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg)
-{
-   return OS_FAILED;
-}
-
-OsStatus XCpConference::handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg)
 {
    return OS_FAILED;
 }
@@ -477,9 +427,9 @@ void XCpConference::fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
    while (itor())
    {
       pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
-      if (pSipConnection && pSipConnection->getMediaConnectionId() == mediaConnectionId)
+      if (pSipConnection && pSipConnection->getMediaEventConnectionId() == mediaConnectionId)
       {
-         //pSipConnection->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+         pSipConnection->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
       }
    }
 }
@@ -500,7 +450,7 @@ void XCpConference::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
       pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
       if (pSipConnection)
       {
-         //pSipConnection->fireSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+         pSipConnection->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
       }
    }
 }

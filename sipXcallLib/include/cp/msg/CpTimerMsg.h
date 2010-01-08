@@ -27,7 +27,7 @@
 // FORWARD DECLARATIONS
 
 /**
- * CpTimerMsg represents message which gets sent when a timer fires in sipxtacklib.
+ * CpTimerMsg represents message which gets sent when a timer fires in sipxcalllib.
  * Never use directly, but subclass to supply msgSubType automatically
  * and transport any user data in subclass.
  */
@@ -39,6 +39,8 @@ public:
    typedef enum
    {
       CP_TIMER_FIRST = 0, ///< Add your own timer ids here
+      CP_ABSTRACT_CALL_TIMER, ///< Timer which is meant to be processed by abstract call
+      CP_SIP_CONNECTION_TIMER, ///< Timer which is meant to be processed by sip connection state machine
       CP_TIMER_LAST = 255 ///< Keep lower than 255
    } SubTypeEnum;
 

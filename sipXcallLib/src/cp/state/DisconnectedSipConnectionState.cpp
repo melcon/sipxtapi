@@ -12,9 +12,10 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -29,13 +30,21 @@
 
 /* ============================ CREATORS ================================== */
 
-DisconnectedSipConnectionState::DisconnectedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+DisconnectedSipConnectionState::DisconnectedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                                SipUserAgent& rSipUserAgent,
-                                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                               XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                               CpMessageQueueProvider& rMessageQueueProvider,
+                                                               XSipConnectionEventSink& rSipConnectionEventSink,
+                                                               const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
 {
 
+}
+
+DisconnectedSipConnectionState::DisconnectedSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
+{
 }
 
 DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
@@ -47,10 +56,29 @@ DisconnectedSipConnectionState::~DisconnectedSipConnectionState()
 
 void DisconnectedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   terminateSipDialog();
+   deleteMediaConnection();
+
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
+
+   m_rStateContext.m_bRedirecting = FALSE;
+   m_rStateContext.m_redirectContactList.destroyAll();
+
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry disconnected connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
+
+   requestConnectionDestruction(); // request connection deletion
 }
 
 void DisconnectedSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
+}
+
+SipConnectionStateTransition* DisconnectedSipConnectionState::dropConnection(OsStatus& result)
+{
+   result = OS_SUCCESS;
+   return NULL;
 }
 
 SipConnectionStateTransition* DisconnectedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -77,8 +105,7 @@ SipConnectionStateTransition* DisconnectedSipConnectionState::getTransition(ISip
       {
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

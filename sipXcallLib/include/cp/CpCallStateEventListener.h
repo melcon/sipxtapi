@@ -65,6 +65,7 @@ public:
    }
 
    CpCallStateEvent()
+      : m_pSipDialog(NULL)
    {
       m_sipResponseCode = 0;
       m_cause = CP_CALLSTATE_CAUSE_UNKNOWN;
@@ -72,9 +73,15 @@ public:
 
    ~CpCallStateEvent()
    {
+      if (m_pSipDialog)
+      {
+         delete m_pSipDialog;
+         m_pSipDialog = NULL;
+      }
    }
 
    CpCallStateEvent(const CpCallStateEvent& event)
+      : m_pSipDialog(NULL)
    {
       *this = event;
    }

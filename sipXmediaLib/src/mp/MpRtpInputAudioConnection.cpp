@@ -27,6 +27,7 @@
 #include "mp/MprDecodeInbandDtmf.h"
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
+#include <sdp/SdpCodecList.h>
 #ifdef RTL_ENABLED
 #   include <rtl_macro.h>
 #endif
@@ -176,13 +177,12 @@ UtlBoolean MpRtpInputAudioConnection::handleMessage(MpResourceMsg& rMsg)
     case MpResourceMsg::MPRM_START_RECEIVE_RTP:
         {
             MprRtpStartReceiveMsg* startMessage = (MprRtpStartReceiveMsg*) &rMsg;
-            SdpCodec** codecArray = NULL;
-            int numCodecs;
-            startMessage->getCodecArray(numCodecs, codecArray);
+            UtlSList codecList;
+            startMessage->getCodecList(codecList);
             OsSocket* rtpSocket = startMessage->getRtpSocket();
             OsSocket* rtcpSocket = startMessage->getRtcpSocket();
 
-            handleStartReceiveRtp(codecArray, numCodecs, *rtpSocket, *rtcpSocket);
+            handleStartReceiveRtp(codecList, *rtpSocket, *rtcpSocket);
             result = TRUE;
         }
         break;
@@ -244,18 +244,16 @@ UtlBoolean MpRtpInputAudioConnection::handleEnable()
 
 OsStatus MpRtpInputAudioConnection::startReceiveRtp(OsMsgQ& messageQueue,
                                                     const UtlString& resourceName,
-                                                    SdpCodec* codecArray[], 
-                                                    int numCodecs,
+                                                    const SdpCodecList& sdpCodecList,
                                                     OsSocket& rRtpSocket,
                                                     OsSocket& rRtcpSocket)
 {
     OsStatus result = OS_INVALID_ARGUMENT;
-    if(numCodecs > 0 && codecArray)
+    if(sdpCodecList.getCodecCount() > 0)
     {
         // Create a message to contain the startRecieveRtp data
         MprRtpStartReceiveMsg msg(resourceName,
-                                  codecArray,
-                                  numCodecs,
+                                  sdpCodecList,
                                   rRtpSocket,
                                   rRtcpSocket);
 
@@ -265,49 +263,34 @@ OsStatus MpRtpInputAudioConnection::startReceiveRtp(OsMsgQ& messageQueue,
     return(result);
 }
 
-void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[], 
-                                                      int numCodecs,
+void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
                                                       OsSocket& rRtpSocket,
                                                       OsSocket& rRtcpSocket)
 {
-   if (numCodecs)
+   if (codecList.entries() > 0)
    {
       // if RFC2833 DTMF is disabled
       if (!m_bRFC2833DTMFEnabled)
       {
+         UtlSListIterator itor(codecList);
+         SdpCodec* pCodec = NULL;
          // go through all codecs, if you find telephone event, remove it
-         for (int i = 0; i < numCodecs; i++)
+         while (itor())
          {
-            if (pCodecs[i]->getCodecType() == SdpCodec::SDP_CODEC_TONES)
+            pCodec = dynamic_cast<SdpCodec*>(itor.item());
+            if (pCodec && pCodec->getCodecType() == SdpCodec::SDP_CODEC_TONES)
             {
-               if (i == (numCodecs - 1))
-               {
-                  // this is the last codec, lie that we have numCodecs-1
-                  numCodecs = numCodecs - 1;
-               }
-               else
-               {
-                  SdpCodec* tmp;
-                  // swap rfc2833 codec with the last one, and lie that we have one
-                  // less codec than we actually have. It is safe to do, as codecs
-                  // are owned by start RTP message.
-                  tmp = pCodecs[i];
-                  pCodecs[i] = pCodecs[numCodecs - 1];
-                  pCodecs[numCodecs - 1] = tmp;
-
-                  numCodecs = numCodecs - 1;
-               }
-               break;
+               codecList.destroy(pCodec);
             }
          }
       }
 
       // continue only if numCodecs is still greater than 0
-      if (numCodecs > 0)
+      if (codecList.entries() > 0)
       {
          // initialize jitter buffers for all codecs
-         mpDejitter->initJitterBuffers(pCodecs, numCodecs);
-         mpDecode->selectCodecs(pCodecs, numCodecs);
+         mpDejitter->initJitterBuffers(codecList);
+         mpDecode->selectCodecs(codecList);
       }
    }
    // No need to synchronize as the decoder is not part of the
@@ -317,7 +300,7 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[],
    // No need to synchronize as the decoder is not part of the
    // flowgraph.  It is part of this connection/resource
    //mpFlowGraph->synchronize();
-   if (numCodecs)
+   if (codecList.entries() > 0)
    {
       mpDecode->enable();
       if (mpDecodeInBandDtmf)
@@ -325,6 +308,8 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(SdpCodec* pCodecs[],
          mpDecodeInBandDtmf->enable();
       }
    }
+
+   sendConnectionNotification(MP_NOTIFICATION_START_RTP_RECEIVE, 0);
 }
 
 OsStatus MpRtpInputAudioConnection::stopReceiveRtp(OsMsgQ& messageQueue,
@@ -354,6 +339,8 @@ void MpRtpInputAudioConnection::handleStopReceiveRtp()
    //mpFlowGraph->synchronize();
 
    mpDecode->disable();
+
+   sendConnectionNotification(MP_NOTIFICATION_STOP_RTP_RECEIVE, 0);
 
    if (mpDecodeInBandDtmf)
    {

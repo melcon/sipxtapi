@@ -61,8 +61,6 @@ libsipXtack_la_SOURCES =  \
     net/NetMd5Codec.cpp \
     net/PidfBody.cpp \
     net/SdpBody.cpp \
-    net/SdpCodecFactory.cpp \
-    net/SdpHelper.cpp \
     net/SipCallIdGenerator.cpp \
     net/SipClient.cpp \
     net/SipConfigServerAgent.cpp \

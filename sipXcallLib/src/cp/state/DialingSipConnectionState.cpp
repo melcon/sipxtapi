@@ -12,13 +12,17 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
+#include <net/SipMessage.h>
+#include <cp/CpMediaInterfaceProvider.h>
 #include <cp/state/DialingSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/RemoteOfferingSipConnectionState.h>
 #include <cp/state/RemoteAlertingSipConnectionState.h>
 #include <cp/state/RemoteQueuedSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
+#include <cp/state/GeneralTransitionMemory.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -33,11 +37,20 @@
 
 /* ============================ CREATORS ================================== */
 
-DialingSipConnectionState::DialingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+DialingSipConnectionState::DialingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                      SipUserAgent& rSipUserAgent,
-                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                     XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                     CpMessageQueueProvider& rMessageQueueProvider,
+                                                     XSipConnectionEventSink& rSipConnectionEventSink,
+                                                     const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+DialingSipConnectionState::DialingSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -51,7 +64,11 @@ DialingSipConnectionState::~DialingSipConnectionState()
 
 void DialingSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry dialing connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void DialingSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
@@ -65,6 +82,82 @@ SipConnectionStateTransition* DialingSipConnectionState::handleSipMessageEvent(c
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& result,
+                                                                 const UtlString& sipCallId,
+                                                                 const UtlString& localTag,
+                                                                 const UtlString& toAddress,
+                                                                 const UtlString& fromAddress,
+                                                                 const UtlString& locationHeader,
+                                                                 CP_CONTACT_ID contactId)
+{
+   m_rStateContext.m_contactId = contactId;
+   result = OS_FAILED;
+
+   SipMessage sipInvite;
+   Url fromField(fromAddress);
+   int cseqNum = getRandomCSeq();
+
+   secureUrl(fromField);
+   UtlString contactUrl = buildContactUrl(fromField); // fromUrl without tag
+   fromField.setFieldParameter("tag", localTag);
+   sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
+
+   m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
+
+   sipInvite.setInviteData(fromField.toString(), toAddress,
+      NULL, contactUrl, sipCallId,
+      cseqNum, m_rStateContext.m_defaultSessionExpiration);
+
+   if (!locationHeader.isNull())
+   {
+      m_rStateContext.m_locationHeader = locationHeader;
+      sipInvite.setLocationField(locationHeader);
+   }
+
+   initializeSipDialog(sipInvite);
+
+   // check if some audio device is available
+   if (!m_rMediaInterfaceProvider.getMediaInterface()->isAudioAvailable())
+   {
+      GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_RESOURCE_LIMIT);
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   }
+
+   // add SDP if negotiation mode is immediate, otherwise don't add it
+   if (m_rStateContext.m_sdpNegotiation.getSdpOfferingMode() == CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
+   {
+      if (!prepareSdpOffer(sipInvite))
+      {
+         // SDP negotiation start failed
+         // media connection creation failed
+         GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_RESOURCE_LIMIT);
+         return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+      }
+   }
+
+   // try to send sip message
+   UtlBoolean sendSuccess = sendMessage(sipInvite);
+
+   if (sendSuccess)
+   {
+      result = OS_SUCCESS;
+      return getTransition(ISipConnectionState::CONNECTION_REMOTE_OFFERING, NULL);
+   }
+   else
+   {
+      result = OS_FAILED;
+      GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NETWORK);
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
+   }
+}
+
+SipConnectionStateTransition* DialingSipConnectionState::dropConnection(OsStatus& result)
+{
+   // this is unexpected state
+   result = OS_SUCCESS;
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -82,29 +175,20 @@ SipConnectionStateTransition* DialingSipConnectionState::getTransition(ISipConne
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_REMOTE_OFFERING:
-         pDestination = new RemoteOfferingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new RemoteOfferingSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_REMOTE_ALERTING:
-         pDestination = new RemoteAlertingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new RemoteAlertingSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_REMOTE_QUEUED:
-         pDestination = new RemoteQueuedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new RemoteQueuedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

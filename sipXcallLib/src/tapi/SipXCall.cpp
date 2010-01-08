@@ -302,14 +302,8 @@ SIPX_CALL_DATA* sipxCallLookup(const SIPX_CALL hCall,
 
 UtlBoolean validCallData(SIPX_CALL_DATA* pData)
 {
-   UtlString sipCallId;
-   if (pData)
-   {
-      pData->m_sipDialog.getCallId(sipCallId);
-   }
-
    return (pData &&
-      !sipCallId.isNull() && 
+      !pData->m_abstractCallId.isNull() && 
       pData->m_pInst &&
       pData->m_pInst->pCallManager && 
       pData->m_pInst->pRefreshManager &&
@@ -533,7 +527,7 @@ SIPXTAPI_API SIPX_RESULT sipxGetAllAbstractCallIds(SIPX_INST hInst, UtlSList& id
 {
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    if (pInst)
    {
       OsStatus status = pInst->pCallManager->getAbstractCallIds(idList);
@@ -560,7 +554,7 @@ void sipxCallDestroyAll(const SIPX_INST hInst)
    UtlSList sessionCallIdList;
    UtlString* pSessionCallId;
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    if (pInst)
    {
       sipxGetAllAbstractCallIds(hInst, sessionCallIdList);
@@ -705,7 +699,7 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
       hInst, hLine, hConf);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
@@ -1402,7 +1396,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
 
             // connect just checks address and posts a message
             // cannot hold any locks here
-            if (pData->m_hConf != SIPX_CONF_NULL)
+            if (pData->m_hConf == SIPX_CONF_NULL)
             {
                // call is not part of conference
                status = pInst->pCallManager->connectCall(pData->m_abstractCallId, pData->m_sipDialog,
@@ -2065,56 +2059,74 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
    return rc;
 }
 
-
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
-                                                       const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                        const char* szAudioCodecs,
-                                                       const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                        const char* szVideoCodecs)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallLimitCodecPreferences");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallLimitCodecPreferences hCall=%d audioBandwidth=%d videoBandwidth=%d szAudioCodecs=\"%s\"",
+      "sipxCallLimitCodecPreferences hCall=%d szAudioCodecs=\"%s\"",
       hCall,
-      audioBandwidth,
-      videoBandwidth,
       (szAudioCodecs != NULL) ? szAudioCodecs : "");
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
-   // Test bandwidth for legal values
-   if (((audioBandwidth >= AUDIO_CODEC_BW_LOW && audioBandwidth <= AUDIO_CODEC_BW_HIGH) || audioBandwidth == AUDIO_CODEC_BW_DEFAULT) &&
-      ((videoBandwidth >= VIDEO_CODEC_BW_LOW && videoBandwidth <= VIDEO_CODEC_BW_HIGH) || videoBandwidth == VIDEO_CODEC_BW_DEFAULT))
+   // get info about source call
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+   if (pData)
    {
-      // get info about source call
-      SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
-      if (pData)
-      {
-         SIPX_INSTANCE_DATA *pInst = pData->m_pInst;
-         UtlString sCallId = pData->m_abstractCallId;
-         SipDialog sipDialog = pData->m_sipDialog;
-         sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      SIPX_INSTANCE_DATA *pInst = pData->m_pInst;
+      UtlString sCallId = pData->m_abstractCallId;
+      SipDialog sipDialog = pData->m_sipDialog;
+      sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
 
-         if (pInst->pCallManager->limitAbstractCallCodecPreferences(sCallId,
-            (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecs,
-            (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecs) == OS_SUCCESS)
-         {
-            if (pInst->pCallManager->renegotiateCodecsAbstractCallConnection(sCallId, sipDialog,
-               (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecs,
-               (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecs) == OS_SUCCESS)
-            {
-               sr = SIPX_RESULT_SUCCESS;
-            }
-         }
-      }
-      else
+      if (pInst->pCallManager->limitAbstractCallCodecPreferences(sCallId,
+         szAudioCodecs,
+         szVideoCodecs) == OS_SUCCESS)
       {
-         return SIPX_RESULT_INVALID_ARGS;
+         sr = SIPX_RESULT_SUCCESS;
       }
    }
    else
    {
-      sr = SIPX_RESULT_INVALID_ARGS;
+      return SIPX_RESULT_INVALID_ARGS;
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxCallRenegotiateCodecPreferences(const SIPX_CALL hCall,
+                                                             const char* szAudioCodecs,
+                                                             const char* szVideoCodecs)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallRenegotiateCodecPreferences");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxCallRenegotiateCodecPreferences hCall=%d szAudioCodecs=\"%s\"",
+      hCall,
+      (szAudioCodecs != NULL) ? szAudioCodecs : "");
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   // get info about source call
+   SIPX_CALL_DATA* pData = sipxCallLookup(hCall, SIPX_LOCK_READ, stackLogger);
+   if (pData)
+   {
+      SIPX_INSTANCE_DATA *pInst = pData->m_pInst;
+      UtlString sCallId = pData->m_abstractCallId;
+      SipDialog sipDialog = pData->m_sipDialog;
+      sipxCallReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+
+      if (pInst->pCallManager->renegotiateCodecsAbstractCallConnection(sCallId,
+         sipDialog,
+         szAudioCodecs,
+         szVideoCodecs) == OS_SUCCESS)
+      {
+         sr = SIPX_RESULT_SUCCESS;
+      }
+   }
+   else
+   {
+      return SIPX_RESULT_INVALID_ARGS;
    }
 
    return sr;

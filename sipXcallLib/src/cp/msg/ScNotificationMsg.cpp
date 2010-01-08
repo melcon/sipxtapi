@@ -27,8 +27,9 @@
 
 /* ============================ CREATORS ================================== */
 
-ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType)
+ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog)
 : OsMsg(CpMessageTypes::SC_NOFITICATION, (unsigned char)subType)
+, m_sipDialog(sipDialog)
 {
 
 }
@@ -40,7 +41,7 @@ ScNotificationMsg::~ScNotificationMsg()
 
 OsMsg* ScNotificationMsg::createCopy(void) const
 {
-   return new ScNotificationMsg((SubTypesEnum)getMsgSubType());
+   return new ScNotificationMsg((SubTypesEnum)getMsgSubType(), m_sipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

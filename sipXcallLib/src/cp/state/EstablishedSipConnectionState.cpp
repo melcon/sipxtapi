@@ -12,10 +12,13 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
+#include <net/SipMessage.h>
 #include <cp/state/EstablishedSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
+#include <cp/state/GeneralTransitionMemory.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -30,11 +33,20 @@
 
 /* ============================ CREATORS ================================== */
 
-EstablishedSipConnectionState::EstablishedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+EstablishedSipConnectionState::EstablishedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                              SipUserAgent& rSipUserAgent,
-                                                             CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                             XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                             CpMessageQueueProvider& rMessageQueueProvider,
+                                                             XSipConnectionEventSink& rSipConnectionEventSink,
+                                                             const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+EstablishedSipConnectionState::EstablishedSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -48,12 +60,134 @@ EstablishedSipConnectionState::~EstablishedSipConnectionState()
 
 void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
+   // fire held/remotely held events if media session is held
+   fireMediaSessionEvents(TRUE, TRUE);
+
+   m_rStateContext.m_bRedirecting = FALSE;
+   m_rStateContext.m_redirectContactList.destroyAll();
+
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry established connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void EstablishedSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::dropConnection(OsStatus& result)
+{
+   if (!isLocalInitiatedDialog())
+   {
+      // inbound established call
+      if (m_rStateContext.m_bAckReceived)
+      {
+         // we may send BYE
+         return doByeConnection(result);
+      }
+      else
+      {
+         // we may not send BYE, we must wait
+         startByeRetryTimer(); // we will try BYE again later
+         return NULL;
+      }
+   }
+   else
+   {
+      // outbound established call, we may use BYE
+      return doByeConnection(result);
+   }
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::processInviteRequest(const SipMessage& sipMessage)
+{
+   int seqNum;
+   sipMessage.getCSeqField(&seqNum, NULL);
+   UtlBoolean bProtocolError = TRUE;
+   UtlBoolean bSdpNegotiationStarted = FALSE;
+   SipMessage sipResponse;
+
+   CpSipTransactionManager::TransactionState inviteState = getServerTransactionManager().getTransactionState(sipMessage);
+
+   // inbound INVITE will always be found, since its started automatically, unless its 2nd INVITE transaction
+   // at time. In that case, 2nd INVITE transaction won't be started.
+   if (inviteState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+   {
+      // this is either new transaction or retransmit of re-INVITE
+      UtlBoolean bIsRetransmit = m_rStateContext.m_sdpNegotiation.isInSdpNegotiation(sipMessage);
+
+      // this is new INVITE transaction, and we are allowed to continue processing
+      if (!isUpdateActive() && getClientInviteTransactionState() == CpSipTransactionManager::INVITE_INACTIVE)
+      {
+         bSdpNegotiationStarted = TRUE;
+         UtlString sLocalContact(getLocalContactUrl());
+
+         // prepare and send 200 OK
+         sipResponse.setSecurityAttributes(m_rStateContext.m_pSecurity);
+         sipResponse.setOkResponseData(&sipMessage, sLocalContact);
+         if (!m_rStateContext.m_locationHeader.isNull())
+         {
+            sipResponse.setLocationField(m_rStateContext.m_locationHeader);
+         }
+
+         const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
+         if (pSdpBody)
+         {
+            // there is SDP offer
+            handleSdpOffer(sipMessage);
+            // send answer in 200 OK
+            if (prepareSdpAnswer(sipResponse))
+            {
+               commitMediaSessionChanges(); // SDP offer/answer complete, we may commit changes
+               bProtocolError = FALSE;
+            }
+         }
+         else
+         {
+            // there is no SDP offer, send one in 200 OK
+            if (prepareSdpOffer(sipResponse))
+            {
+               bProtocolError = FALSE;
+            }
+         }
+      }
+   }
+
+   if (bProtocolError)
+   {
+      if (bSdpNegotiationStarted)
+      {
+         // only restart if we started it, don't kill negotiation in progress
+         m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+      }
+
+      SipMessage errorResponse;
+      errorResponse.setRequestBadRequest(&sipMessage);
+      sendMessage(errorResponse);
+   }
+   else
+   {
+      m_rStateContext.m_bAckReceived = FALSE;
+      m_rStateContext.m_i2xxInviteRetransmitCount = 0;
+      setLastReceivedInvite(sipMessage);
+      setLastSent2xxToInvite(sipResponse);
+      sendMessage(sipResponse);
+   }
+
+   return NULL;
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::processByeRequest(const SipMessage& sipMessage)
+{
+   // inbound BYE
+   SipMessage sipResponse;
+   sipResponse.setOkResponseData(&sipMessage, getLocalContactUrl());
+   sendMessage(sipResponse);
+
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
 SipConnectionStateTransition* EstablishedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -62,6 +196,36 @@ SipConnectionStateTransition* EstablishedSipConnectionState::handleSipMessageEve
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* EstablishedSipConnectionState::processInviteResponse(const SipMessage& sipMessage)
+{
+   // first let parent handle response
+   SipConnectionStateTransition* pTransition = BaseSipConnectionState::processInviteResponse(sipMessage);
+   if (pTransition)
+   {
+      return pTransition;
+   }
+
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   sipMessage.getResponseStatusText(&responseText);
+
+   switch (responseCode)
+   {
+   case SIP_OK_CODE:
+   case SIP_ACCEPTED_CODE:
+      {
+         // send ACK to retransmitted 200 OK
+         handleInvite2xxResponse(sipMessage);
+         break;
+      }
+   default:
+      ;
+   }
+
+   // no transition
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -79,21 +243,14 @@ SipConnectionStateTransition* EstablishedSipConnectionState::getTransition(ISipC
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_ESTABLISHED:
-         pDestination = new EstablishedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new EstablishedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

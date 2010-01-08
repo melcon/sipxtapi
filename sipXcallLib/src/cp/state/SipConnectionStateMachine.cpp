@@ -17,6 +17,7 @@
 #include <cp/state/IdleSipConnectionState.h>
 #include <cp/state/SipConnectionStateObserver.h>
 #include <cp/state/SipConnectionStateTransition.h>
+#include <cp/state/DialingSipConnectionState.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -31,19 +32,26 @@
 
 /* ============================ CREATORS ================================== */
 
-SipConnectionStateMachine::SipConnectionStateMachine(XSipConnectionContext& rSipConnectionContext,
-                                                     SipUserAgent& rSipUserAgent,
-                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                     XSipConnectionEventSink* pSipConnectionEventSink)
-: m_rSipConnectionContext(rSipConnectionContext)
+SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
+                                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                     CpMessageQueueProvider& rMessageQueueProvider,
+                                                     XSipConnectionEventSink& rSipConnectionEventSink,
+                                                     const CpNatTraversalConfig& natTraversalConfig)
+: m_rStateContext()
 , m_pSipConnectionState(NULL)
+, m_pStateObserver(NULL)
 , m_rSipUserAgent(rSipUserAgent)
-, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
-, m_pSipConnectionEventSink(pSipConnectionEventSink)
+, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
+, m_rMessageQueueProvider(rMessageQueueProvider)
+, m_rSipConnectionEventSink(rSipConnectionEventSink)
+, m_natTraversalConfig(natTraversalConfig)
 {
-   BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-      m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-   SipConnectionStateTransition transition(NULL, pSipConnectionState);
+   m_rStateContext.m_sdpNegotiation.setSecurity(m_rStateContext.m_pSecurity); // wire security into sdp negotiation
+
+   // deleted in handleStateTransition if unsuccessful
+   BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rStateContext, m_rSipUserAgent,
+      m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+   SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
 
    handleStateTransition(transition);
 }
@@ -52,22 +60,149 @@ SipConnectionStateMachine::~SipConnectionStateMachine()
 {
    SipConnectionStateTransition transition(m_pSipConnectionState, NULL);
    handleStateTransition(transition);
-   m_pMediaInterfaceProvider = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-void SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEvent)
+UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEvent& rEvent)
 {
    if (m_pSipConnectionState)
    {
-      SipConnectionStateTransition *pTransition = m_pSipConnectionState->handleSipMessageEvent(rEvent);
-      if (pTransition)
-      {
-         handleStateTransition(*pTransition);
-         delete pTransition;
-         pTransition = NULL;
-      }
+      handleStateTransition(m_pSipConnectionState->handleSipMessageEvent(rEvent));
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
+OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
+                                            const UtlString& localTag,
+                                            const UtlString& toAddress,
+                                            const UtlString& fromAddress,
+                                            const UtlString& locationHeader,
+                                            CP_CONTACT_ID contactId)
+{
+   OsStatus result = OS_FAILED;
+
+   if (getCurrentState() == ISipConnectionState::CONNECTION_IDLE)
+   {
+      // switch to dialing
+      // deleted in doHandleStateTransition if unsuccessful
+      BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rStateContext, m_rSipUserAgent,
+         m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+      SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
+      handleStateTransition(transition);
+   }
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->connect(result, sipCallId, localTag, toAddress, fromAddress,
+         locationHeader, contactId));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::dropConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->dropConnection(result));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::holdConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->holdConnection(result));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::unholdConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->unholdConnection(result));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::renegotiateCodecsConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->renegotiateCodecsConnection(result));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::sendInfo(const UtlString& sContentType,
+                                             const char* pContent,
+                                             const size_t nContentLength,
+                                             void* pCookie)
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->sendInfo(result, sContentType, pContent, nContentLength, pCookie));
+   }
+
+   return result;
+}
+
+UtlBoolean SipConnectionStateMachine::handleTimerMessage(const ScTimerMsg& timerMsg)
+{
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->handleTimerMessage(timerMsg));
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean SipConnectionStateMachine::handleCommandMessage(const ScCommandMsg& rMsg)
+{
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->handleCommandMessage(rMsg));
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
+UtlBoolean SipConnectionStateMachine::handleNotificationMessage(const ScNotificationMsg& rMsg)
+{
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->handleNotificationMessage(rMsg));
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
    }
 }
 
@@ -85,11 +220,31 @@ ISipConnectionState::StateEnum SipConnectionStateMachine::getCurrentState()
    }
 }
 
+XSipConnectionContext& SipConnectionStateMachine::getSipConnectionContext() const
+{
+   return m_rStateContext;
+}
+
 /* ============================ INQUIRY =================================== */
+
+SipConnectionStateContext::MediaSessionState SipConnectionStateMachine::getMediaSessionState() const
+{
+   return m_rStateContext.m_mediaSessionState;
+}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void SipConnectionStateMachine::handleStateTransition(SipConnectionStateTransition* pStateTransition)
+{
+   if (pStateTransition)
+   {
+      handleStateTransition(*pStateTransition);
+      delete pStateTransition;
+      pStateTransition = NULL;
+   }
+}
 
 void SipConnectionStateMachine::handleStateTransition(SipConnectionStateTransition& rStateTransition)
 {

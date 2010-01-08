@@ -12,12 +12,13 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/OfferingSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/QueuedSipConnectionState.h>
 #include <cp/state/AlertingSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -32,11 +33,20 @@
 
 /* ============================ CREATORS ================================== */
 
-OfferingSipConnectionState::OfferingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+OfferingSipConnectionState::OfferingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                        SipUserAgent& rSipUserAgent,
-                                                       CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                       XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                       CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                       CpMessageQueueProvider& rMessageQueueProvider,
+                                                       XSipConnectionEventSink& rSipConnectionEventSink,
+                                                       const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+OfferingSipConnectionState::OfferingSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -50,12 +60,23 @@ OfferingSipConnectionState::~OfferingSipConnectionState()
 
 void OfferingSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry offering connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void OfferingSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* OfferingSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are callee. We sent 100, but not 180 yet
+   // to drop call, send 403 Forbidden
+   return doRejectInboundConnectionInProgress(result);
 }
 
 SipConnectionStateTransition* OfferingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -81,25 +102,17 @@ SipConnectionStateTransition* OfferingSipConnectionState::getTransition(ISipConn
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_QUEUED:
-         pDestination = new QueuedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new QueuedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_ALERTING:
-         pDestination = new AlertingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new AlertingSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

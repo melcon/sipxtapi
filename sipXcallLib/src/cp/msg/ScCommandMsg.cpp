@@ -27,8 +27,9 @@
 
 /* ============================ CREATORS ================================== */
 
-ScCommandMsg::ScCommandMsg(SubTypesEnum subType)
+ScCommandMsg::ScCommandMsg(SubTypesEnum subType, const SipDialog& sipDialog)
 : OsMsg(CpMessageTypes::SC_COMMAND, (unsigned char)subType)
+, m_sipDialog(sipDialog)
 {
 
 }
@@ -40,7 +41,7 @@ ScCommandMsg::~ScCommandMsg()
 
 OsMsg* ScCommandMsg::createCopy(void) const
 {
-   return new ScCommandMsg((SubTypesEnum)getMsgSubType());
+   return new ScCommandMsg((SubTypesEnum)getMsgSubType(), m_sipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

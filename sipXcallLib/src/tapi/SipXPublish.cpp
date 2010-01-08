@@ -275,7 +275,7 @@ SIPXTAPI_API SIPX_RESULT sipxPublisherCreate(const SIPX_INST hInst,
 
    SIPX_RESULT sipXresult = SIPX_RESULT_FAILURE;
    // Get the instance data
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    // Verify that no content has been previously published for this
    // resourceID and eventType

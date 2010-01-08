@@ -17,12 +17,13 @@
 
 // APPLICATION INCLUDES
 #include "os/OsRWMutex.h"
+#include <os/OsProcess.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 
 // CONSTANTS
-static int SEMAPHORE_CNT_MAX = 100;  // upper bound on the number of
+static int SEMAPHORE_CNT_MAX = 200;  // upper bound on the number of
                                      //  simultaneous readers or writers
 
 // STATIC VARIABLE INITIALIZATIONS
@@ -48,15 +49,17 @@ static int SEMAPHORE_CNT_MAX = 100;  // upper bound on the number of
 /* ============================ CREATORS ================================== */
 
 // Constructor
-OsRWMutex::OsRWMutex(const int queueOptions) :
-   mGuard(queueOptions, OsBSem::FULL),
-   mReadSem(queueOptions, SEMAPHORE_CNT_MAX, 0),
-   mWriteSem(queueOptions, SEMAPHORE_CNT_MAX, 0),
-   mWriteExclSem(queueOptions, OsBSem::FULL),
-   mActiveReadersCnt(0),
-   mActiveWritersCnt(0),
-   mRunningReadersCnt(0),
-   mRunningWritersCnt(0)
+OsRWMutex::OsRWMutex(const int queueOptions)
+: mGuard(queueOptions, OsBSem::FULL)
+, mReadSem(queueOptions, SEMAPHORE_CNT_MAX, 0)
+, mWriteSem(queueOptions, SEMAPHORE_CNT_MAX, 0)
+, mWriteExclSem(queueOptions, OsBSem::FULL)
+, mWriterThreadId(0)
+, mWriterRecursion(0)
+, mActiveReadersCnt(0)
+, mActiveWritersCnt(0)
+, mRunningReadersCnt(0)
+, mRunningWritersCnt(0)
 {
    // all of the work is done by the initializers
 }
@@ -124,6 +127,31 @@ OsStatus OsRWMutex::releaseWrite(void)
    OsStatus res;
 
    assert(mRunningWritersCnt > 0);
+
+   TID currentTid = OsProcess::getCurrentTID(); // get current thread id
+   if (mWriterThreadId == currentTid)
+   {
+      // thread safe as thread id is unique, and 1 thread can only execute single function of OsRWMutex at time
+      mWriterRecursion--;
+
+      if (mWriterRecursion > 0)
+      {
+         // writer has another write lock
+         return OS_SUCCESS;
+      }
+      else
+      {
+         assert(mWriterRecursion == 0);
+         // zero and let release exclusive lock
+         mWriterThreadId = 0;
+         mWriterRecursion = 0;
+      }
+   }
+   else
+   {
+      // only holding thread may release write lock
+      return OS_FAILED;
+   }
 
    res = doReleaseExclWrite();     // release the semaphore used to ensure
    assert(res == OS_SUCCESS);      //  exclusive access among multiple writers
@@ -202,6 +230,15 @@ OsStatus OsRWMutex::doAcquireWrite(UtlBoolean dontBlock)
    OsStatus res;
    OsStatus savedRes;
 
+   TID currentTid = OsProcess::getCurrentTID(); // get current thread id
+   if (mWriterThreadId == currentTid)
+   {
+      // thread safe without locking, since only 1 thread can have write exclusive semaphore, and 1 thread
+      // can only execute 1 function at time
+      mWriterRecursion++; // we are already locking this mutex, just increase recursion
+      return OS_SUCCESS;
+   }
+
    res = mGuard.acquire();         // start critical section
    assert(res == OS_SUCCESS);
 
@@ -265,6 +302,14 @@ OsStatus OsRWMutex::doAcquireWrite(UtlBoolean dontBlock)
       // the failure
       res = doReleaseNonExclWrite(FALSE);
       assert(res == OS_SUCCESS);
+   }
+   else
+   {
+      // writeExcl lock taken
+      // thread safe, atomic operations in correct order. Only one thread will be at this line.
+      mWriterRecursion = 1;
+      mWriterThreadId = currentTid;
+      assert(mWriterThreadId != 0);
    }
 
    return savedRes;

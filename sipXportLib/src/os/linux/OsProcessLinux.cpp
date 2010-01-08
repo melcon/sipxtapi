@@ -354,6 +354,11 @@ int OsProcessLinux::getCurrentPID()
     return getpid();
 }
 
+TID OsProcessLinux::getCurrentTID()
+{
+    return (TID)gettid();
+}
+
 /* ============================ INQUIRY =================================== */
 UtlBoolean OsProcessLinux::isRunning() const
 {

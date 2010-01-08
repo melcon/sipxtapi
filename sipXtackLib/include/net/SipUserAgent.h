@@ -276,9 +276,6 @@ public:
    //! For internal use only
    virtual UtlBoolean handleMessage(OsMsg& eventMessage);
 
-   //! Deprecated (Add a SIP message recipient)
-   virtual void addMessageConsumer(OsServerTask* messageConsumer);
-
    //! Add a SIP message observer for receiving SIP messages meeting the
    //! given filter criteria
    /*! SIP messages will be added to the \a messageQueue if they meet
@@ -344,9 +341,9 @@ public:
    *        with responses
    */
    virtual UtlBoolean send(SipMessage& message,
-      OsMsgQ* responseListener = NULL,
-      void* responseListenerData = NULL,
-      SIPX_TRANSPORT_DATA* pTransport = NULL);
+                           OsMsgQ* responseListener = NULL,
+                           void* responseListenerData = NULL,
+                           SIPX_TRANSPORT_DATA* pTransport = NULL);
 
    //! Dispatch the SIP message to the message consumer(s)
    /*! This is typically only used by the SipUserAgent and its sub-system.
@@ -759,7 +756,6 @@ private:
    int mMaxSrvRecords; // Max num of DNS SRV records to use before giving up
    int mDnsSrvTimeout; // second to give up & try the next DNS SRV record
 
-   SipMessage* mpLastSipMessage;
    UtlString defaultUserAgentName;
    long mLastCleanUpTime;
    UtlString mAuthenticationScheme;

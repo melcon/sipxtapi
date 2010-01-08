@@ -98,16 +98,15 @@ SipDialog::SipDialog(const SipMessage* initialMessage)
          }
       }
 
-      UtlString contact;
-      // Get the Contact, but as an addr-spec.
-      initialMessage->getContactUri(0, &contact);
+      UtlString contactField;
+      initialMessage->getContactField(0, contactField);
       if(isFromLocal)
       {
-         m_localContact.fromString(contact, TRUE);
+         m_localContactField.fromString(contactField);
       }
       else
       {
-         m_remoteContact.fromString(contact, TRUE);
+         m_remoteContactField.fromString(contactField);
       }
    }
    else
@@ -172,8 +171,8 @@ SipDialog& SipDialog::operator=(const SipDialog& rhs)
    m_sLocalTag = rhs.m_sLocalTag;
    m_remoteField = rhs.m_remoteField;
    m_sRemoteTag = rhs.m_sRemoteTag;
-   m_localContact = rhs.m_localContact;
-   m_remoteContact = rhs.m_remoteContact;
+   m_localContactField = rhs.m_localContactField;
+   m_remoteContactField = rhs.m_remoteContactField;
    m_sRouteSet = rhs.m_sRouteSet;
    m_sInitialMethod = rhs.m_sInitialMethod;
    m_bLocalInitiatedDialog = rhs.m_bLocalInitiatedDialog;
@@ -233,18 +232,17 @@ void SipDialog::updateDialog(const SipMessage& message)
       if(cSeq == m_iLastLocalCseq) 
       {
          // Always update the contact if it is set
-         UtlString messageContact;
+         UtlString contactField;
          // Get the Contact value, but as an addr-spec.
-         if(message.getContactUri(0, &messageContact) &&
-            !messageContact.isNull())
+         if(message.getContactField(0, contactField) && !contactField.isNull())
          {
             if(message.isResponse())
             {
-               m_remoteContact.fromString(messageContact, TRUE);
+               m_remoteContactField.fromString(contactField);
             }
             else
             {
-               m_localContact.fromString(messageContact, TRUE);
+               m_localContactField.fromString(contactField);
             }
          }
 
@@ -289,18 +287,17 @@ void SipDialog::updateDialog(const SipMessage& message)
       if(cSeq == m_iLastRemoteCseq)
       {
          // Always update the contact if it is set
-         UtlString messageContact;
+         UtlString contactField;
          // Get the Contact value, but as an addr-spec.
-         if(message.getContactUri(0, &messageContact) &&
-            !messageContact.isNull())
+         if(message.getContactField(0, contactField) && !contactField.isNull())
          {
             if(message.isResponse())
             {
-               m_localContact.fromString(messageContact, TRUE);
+               m_localContactField.fromString(contactField);
             }
             else
             {
-               m_remoteContact.fromString(messageContact, TRUE);
+               m_remoteContactField.fromString(contactField);
             }
          }
 
@@ -326,32 +323,30 @@ void SipDialog::updateDialog(const SipMessage& message)
    }
 }
 
-void SipDialog::setRequestData(SipMessage& request, const char* method)
+void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int cseqNum)
 {
-   UtlString methodString(method ? method : "");
-   if(methodString.isNull())
+   Url requestUri;
+   if (m_dialogState != SipDialog::DIALOG_STATE_INITIAL &&
+       m_dialogSubState == SipDialog::DIALOG_SUBSTATE_CONFIRMED)
    {
-      request.getRequestMethod(&methodString);
-   }
-
-   // The request URI should be the remote contact
-   UtlString remoteContact;
-   // Use getUri() to get the contact in addr-spec format.
-   // (mRemoteContact should have no field parameters, but if it has
-   // URI parameters, toString would add <...>, which are not allowed
-   // in URIs.)
-   m_remoteContact.getUri(remoteContact);
-
-   // If the remote contact is empty, use the remote request uri
-   if (remoteContact.compareTo("sip:") == 0)
-   {
-      OsSysLog::add(FAC_ACD, PRI_DEBUG, "SipDialog::setRequestData - using remote request uri %s",
-         m_remoteRequestUri.toString().data());
-      request.setSipRequestFirstHeaderLine(methodString, m_remoteRequestUri.toString());
+      // we are in established confirmed state, request Uri must be constructed from contact
+      m_remoteContactField.getUri(requestUri);
+      request.setSipRequestFirstHeaderLine(method, requestUri.toString());
    }
    else
    {
-      request.setSipRequestFirstHeaderLine(methodString, remoteContact);
+      // request Uri must be constructed either from remote request uri, or remote field
+      if (!m_remoteRequestUri.isNull())
+      {
+         // remote request Uri is know, use it. It is known only for outbound dialog
+         request.setSipRequestFirstHeaderLine(method, m_remoteRequestUri.toString());
+      }
+      else
+      {
+         // use remote field - will be used for inbound dialogs that are not yet confirmed
+         m_remoteField.getUri(requestUri);
+         request.setSipRequestFirstHeaderLine(method, requestUri.toString());
+      }
    }
 
    // The local field is the From field
@@ -364,15 +359,24 @@ void SipDialog::setRequestData(SipMessage& request, const char* method)
    m_remoteField.toString(toField);
    request.setRawToField(toField);
 
-   // Get the next local Cseq, the method should already be set
-   getNextLocalCseq();
-   request.setCSeqField(m_iLastLocalCseq, methodString);
+   if (cseqNum == -1)
+   {
+      // Get the next local Cseq, the method should already be set
+      getNextLocalCseq();
+   }
+   else
+   {
+      m_iLastLocalCseq = cseqNum;
+   }
+   request.setCSeqField(m_iLastLocalCseq, method);
 
    // Set the route header according to the route set
    if(!m_sRouteSet.isNull())
    {
       request.setRouteField(m_sRouteSet);
    }
+
+   request.setContactField(m_localContactField.toString());
 
    // Set the call-id
    request.setCallIdField(*this);
@@ -493,9 +497,9 @@ void SipDialog::getLocalField(UtlString& sLocalUrl) const
    m_localField.toString(sLocalUrl);
 }
 
-UtlString SipDialog::getLocalField() const
+Url SipDialog::getLocalField() const
 {
-   return m_localField.toString();
+   return m_localField;
 }
 
 void SipDialog::getLocalTag(UtlString& localTag) const
@@ -520,9 +524,9 @@ void SipDialog::getRemoteField(UtlString& sRemoteUrl) const
    m_remoteField.toString(sRemoteUrl);
 }
 
-UtlString SipDialog::getRemoteField() const
+Url SipDialog::getRemoteField() const
 {
-   return m_remoteField.toString();
+   return m_remoteField;
 }
 
 void SipDialog::getRemoteTag(UtlString& remoteTag) const
@@ -539,32 +543,32 @@ void SipDialog::setRemoteField(const Url& remoteField)
 
 void SipDialog::getRemoteContact(Url& remoteContact) const
 {
-   remoteContact = m_remoteContact;
+   remoteContact = m_remoteContactField;
 }
 
 void SipDialog::getRemoteContact(UtlString& sRemoteContact) const
 {
-   m_remoteContact.toString(sRemoteContact);
+   m_remoteContactField.toString(sRemoteContact);
 }
 
 void SipDialog::setRemoteContact(const Url& remoteContact)
 {
-   m_remoteContact = remoteContact;
+   m_remoteContactField = remoteContact;
 }
 
 void SipDialog::getLocalContact(Url& localContact) const
 {
-   localContact = m_localContact;
+   localContact = m_localContactField;
 }
 
 void SipDialog::getLocalContact(UtlString& sLocalContact) const
 {
-   m_localContact.toString(sLocalContact);
+   m_localContactField.toString(sLocalContact);
 }
 
 void SipDialog::setLocalContact(const Url& localContact)
 {
-   m_localContact = localContact;
+   m_localContactField = localContact;
 }
 
 void SipDialog::getLocalRequestUri(Url& requestUri) const
@@ -915,10 +919,10 @@ void SipDialog::toString(UtlString& dialogDumpString)
    dialogDumpString.append("\nmRemoteTag:");
    dialogDumpString.append(m_sRemoteTag);
    dialogDumpString.append("\nmLocalContact:");
-   m_localContact.toString(tmpString);
+   m_localContactField.toString(tmpString);
    dialogDumpString.append(tmpString);
    dialogDumpString.append("\nmRemoteContact:");
-   m_remoteContact.toString(tmpString);
+   m_remoteContactField.toString(tmpString);
    dialogDumpString.append(tmpString);
    dialogDumpString.append("\nmRouteSet:");
    dialogDumpString.append(m_sRouteSet);

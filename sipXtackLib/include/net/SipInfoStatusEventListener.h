@@ -44,27 +44,36 @@ typedef enum
 class SipInfoStatusEvent
 {
 public:
+   UtlString m_sCallId;
    SIPXTACK_MESSAGE_STATUS m_status;
    int m_iResponseCode;
    UtlString m_sResponseText;
+   void* m_pCookie;
 
    SipInfoStatusEvent() : m_status(SIPXTACK_MESSAGE_OK)
       , m_iResponseCode(0)
-      , m_sResponseText()
+      , m_pCookie(NULL)
    {
 
    }
 
-   SipInfoStatusEvent(SIPXTACK_MESSAGE_STATUS status, int iResponseCode, const UtlString& sResponseText) : m_status(status)
+   SipInfoStatusEvent(const UtlString& sCallId,
+                      SIPXTACK_MESSAGE_STATUS status,
+                      int iResponseCode,
+                      const UtlString& sResponseText,
+                      void* pCookie = NULL)
+      : m_sCallId(sCallId)
+      , m_status(status)
       , m_iResponseCode(iResponseCode)
       , m_sResponseText(sResponseText)
+      , m_pCookie(pCookie)
    {
 
    }
 
    ~SipInfoStatusEvent()
    {
-      // do nothing
+      m_pCookie = NULL;
    }
 
    SipInfoStatusEvent(const SipInfoStatusEvent& event)
@@ -79,9 +88,11 @@ public:
          return *this;
       }
 
+      m_sCallId = event.m_sCallId;
       m_status = event.m_status;
       m_iResponseCode = event.m_iResponseCode;
       m_sResponseText = event.m_sResponseText;
+      m_pCookie = event.m_pCookie;
 
       return *this;
    }

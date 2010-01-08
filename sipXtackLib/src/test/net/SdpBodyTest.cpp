@@ -18,7 +18,7 @@
 #include <os/OsDefs.h>
 #include <net/HttpMessage.h>
 #include <net/SdpBody.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecList.h>
 #include <net/NetBase64Codec.h>
 
 
@@ -891,13 +891,13 @@ public:
 
     void testVideoCodecSelection()
     {
-        SdpCodecFactory fac;
+        SdpCodecList fac;
 
-        SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 99, "video", "vp71",
+        SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 99, "VP71-QVGA","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_QVGA) ;
-        SdpCodec* pSqcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_SQCIF, 100, "video", "vp71",
+        SdpCodec* pSqcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_SQCIF, 100, "VP71-SQCIF", "video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_SQCIF) ;
-        SdpCodec* pQcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QCIF, 101, "video", "vp71",
+        SdpCodec* pQcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QCIF, 101, "VP71-QCIF", "video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_QCIF) ;
 
         fac.addCodec(*pQvgaCodec);
@@ -1036,9 +1036,10 @@ public:
         CPPUNIT_ASSERT_EQUAL(33, ptimeValue);
 
 
-        SdpCodecFactory sdpFactory;
+        SdpCodecList sdpFactory;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
-                                            SdpCodec::SDP_CODEC_UNKNOWN, 
+                                            SdpCodec::SDP_CODEC_UNKNOWN,
+                                            "PCMU",
                                             MIME_TYPE_AUDIO, 
                                             MIME_SUBTYPE_PCMU,
                                             8000, 
@@ -1046,7 +1047,8 @@ public:
         sdpFactory.addCodec(*pPcmuCodec);
 
         SdpCodec* pPcmaCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA, 
-                                            SdpCodec::SDP_CODEC_UNKNOWN, 
+                                            SdpCodec::SDP_CODEC_UNKNOWN,
+                                            "PCMA",
                                             MIME_TYPE_AUDIO, 
                                             MIME_SUBTYPE_PCMA,
                                             8000, 
@@ -1055,6 +1057,7 @@ public:
 
         SdpCodec* pSuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)333, 
                                             SdpCodec::SDP_CODEC_UNKNOWN, 
+                                            "333",
                                             MIME_TYPE_AUDIO, 
                                             "superaudio",
                                             8000, 
@@ -1063,6 +1066,7 @@ public:
 
         SdpCodec* pSuperDuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)334, 
                                             SdpCodec::SDP_CODEC_UNKNOWN, 
+                                            "334",
                                             MIME_TYPE_AUDIO, 
                                             "superduperaudio",
                                             8000, 
@@ -1070,7 +1074,8 @@ public:
         sdpFactory.addCodec(*pSuperDuperCodec);
 
         SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 
-                                            SdpCodec::SDP_CODEC_UNKNOWN, 
+                                            SdpCodec::SDP_CODEC_UNKNOWN,
+                                            "VP71-QVGA",
                                             MIME_TYPE_VIDEO, 
                                             "vp71", // MIME subtype
                                             9000, 
@@ -1101,8 +1106,8 @@ public:
         int decoderPayloadId;
         for(codecIndex = 0; codecIndex < numCodecsInCommon; codecIndex++)
         {
-            encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadFormat();
-            decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadFormat();
+            encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadId();
+            decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadId();
 
             // decoder codecs keep the payload Id of the factory
             CPPUNIT_ASSERT_EQUAL(-1, decoderPayloadId);
@@ -1165,9 +1170,10 @@ public:
            "c=IN IP4 10.1.1.31\r\n";
         SdpBody sloppyPtimeSdpBody(sloppyPtimeBodyString);
 
-        SdpCodecFactory sdpFactory;
+        SdpCodecList sdpFactory;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
            SdpCodec::SDP_CODEC_PCMU, 
+           "PCMU",
            MIME_TYPE_AUDIO, 
            MIME_SUBTYPE_PCMU,
            8000, 
@@ -1176,6 +1182,7 @@ public:
 
         SdpCodec* pPcmaCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA, 
            SdpCodec::SDP_CODEC_PCMA, 
+           "PCMA",
            MIME_TYPE_AUDIO, 
            MIME_SUBTYPE_PCMA,
            8000, 
@@ -1184,6 +1191,7 @@ public:
 
         SdpCodec* pSuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)102, 
            (SdpCodec::SdpCodecTypes)102, 
+           "102",
            MIME_TYPE_AUDIO, 
            "superaudio",
            8000, 
@@ -1191,7 +1199,8 @@ public:
         sdpFactory.addCodec(*pSuperCodec);
 
         SdpCodec* pSuperDuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)103, 
-           (SdpCodec::SdpCodecTypes)103, 
+           (SdpCodec::SdpCodecTypes)103,
+           "103",
            MIME_TYPE_AUDIO, 
            "superduperaudio",
            8000, 
@@ -1200,6 +1209,7 @@ public:
 
         SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 
            (SdpCodec::SdpCodecTypes)104, 
+           "VP71-QVGA",
            MIME_TYPE_VIDEO, 
            "vp71", // MIME subtype
            9000, 
@@ -1230,8 +1240,8 @@ public:
         int decoderPayloadId;
         for(codecIndex = 0; codecIndex < numCodecsInCommon; codecIndex++)
         {
-           encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadFormat();
-           decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadFormat();
+           encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadId();
+           decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadId();
 
            // decoder codecs keep the payload Id of the factory
 

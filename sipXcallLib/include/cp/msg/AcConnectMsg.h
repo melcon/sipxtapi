@@ -42,7 +42,7 @@ public:
 
    AcConnectMsg(const UtlString& sSipCallId,
                 const UtlString& sToAddress,
-                const UtlString& sFromTag,
+                const UtlString& sLocalTag,
                 const UtlString& sFromAddress,
                 const UtlString& sLocationHeader,
                 CP_CONTACT_ID contactId);
@@ -57,7 +57,7 @@ public:
 
    UtlString getSipCallId() const { return m_sSipCallId; }
    UtlString getToAddress() const { return m_sToAddress; }
-   UtlString getFromTag() const { return m_sFromTag; }
+   UtlString getLocalTag() const { return m_sLocalTag; }
    UtlString getFromAddress() const { return m_sFromAddress; }
    UtlString getLocationHeader() const { return m_sLocationHeader; }
    CP_CONTACT_ID getContactId() const { return m_contactId; }
@@ -77,7 +77,7 @@ private:
 
    UtlString m_sSipCallId;
    UtlString m_sToAddress;
-   UtlString m_sFromTag;
+   UtlString m_sLocalTag;
    UtlString m_sFromAddress;
    UtlString m_sLocationHeader;
    CP_CONTACT_ID m_contactId;

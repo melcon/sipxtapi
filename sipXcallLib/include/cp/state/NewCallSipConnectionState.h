@@ -35,11 +35,18 @@ class NewCallSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   NewCallSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   /** Constructor. */
+   NewCallSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             CpMessageQueueProvider& rMessageQueueProvider,
+                             XSipConnectionEventSink& rSipConnectionEventSink,
+                             const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   NewCallSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~NewCallSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */
@@ -53,6 +60,9 @@ public:
    * State exit handler.
    */
    virtual void handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory);
+
+   /** Disconnects call */
+   virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 

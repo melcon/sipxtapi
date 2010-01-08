@@ -535,7 +535,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
    if (hInst && phSub && szTargetUrl && szEventType && szAcceptType)
    {
       UtlString sTargetUrl(szTargetUrl);
-      SIPX_INSTANCE_DATA *pInst = (SIPX_INSTANCE_DATA*)hInst;
+      SIPX_INSTANCE_DATA *pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
       SIPX_LINE_DATA* pLineData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
 

@@ -20,8 +20,6 @@
 #include <utl/UtlString.h>
 #include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
-#include <cp/CpAudioCodecInfo.h>
-#include <cp/CpVideoCodecInfo.h>
 #include <cp/msg/AcCommandMsg.h>
 
 // DEFINES
@@ -44,9 +42,7 @@ public:
    /* ============================ CREATORS ================================== */
 
    AcRenegotiateCodecsMsg(const SipDialog& sipDialog,
-                          CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                           const UtlString& sAudioCodecs,
-                          CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                           const UtlString& sVideoCodecs);
 
    virtual ~AcRenegotiateCodecsMsg();
@@ -57,10 +53,8 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   void setSipDialog(SipDialog& val) const { val = m_sipDialog; }
-   CP_AUDIO_BANDWIDTH_ID getAudioBandwidthId() const { return m_audioBandwidthId; }
+   void getSipDialog(SipDialog& val) const { val = m_sipDialog; }
    UtlString getAudioCodecs() const { return m_sAudioCodecs; }
-   CP_VIDEO_BANDWIDTH_ID getVideoBandwidthId() const { return m_videoBandwidthId; }
    UtlString getVideoCodecs() const { return m_sVideoCodecs; }
 
    /* ============================ INQUIRY =================================== */
@@ -77,9 +71,7 @@ private:
    AcRenegotiateCodecsMsg& operator=(const AcRenegotiateCodecsMsg& rhs);
 
    SipDialog m_sipDialog;
-   CP_AUDIO_BANDWIDTH_ID m_audioBandwidthId;
    UtlString m_sAudioCodecs;
-   CP_VIDEO_BANDWIDTH_ID m_videoBandwidthId;
    UtlString m_sVideoCodecs;
 };
 

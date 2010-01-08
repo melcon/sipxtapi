@@ -42,6 +42,11 @@
  *
  * This class is meant to contain public members. Destructor is responsible for freeing
  * any pointers.
+ *
+ * When XSipConnection is first constructed, it is immediately assigned a sip dialog.
+ * Sip callId of this sip dialog cannot change during the lifetime of a XSipConnection.
+ * Local tag will also be present if connection was initiated locally, and remote tag will be
+ * present if connection was initiated remotely.
  */
 class XSipConnectionContext : public OsRWSyncBase
 {
@@ -49,13 +54,25 @@ class XSipConnectionContext : public OsRWSyncBase
 public:
    SipDialog m_sipDialog; ///< contains properties of Sip dialog as defined in RFC 3261
    UtlString m_remoteUserAgent;
-   int m_mediaConnectionId; ///< contains Id of media connection for CpMediaInterface
    UtlString m_sAbstractCallId; ///< contains Id of abstract call holding Sip connection
+
+   // thread safe atomic
+   int m_mediaConnectionId; ///< contains Id of media connection for CpMediaInterface
+   /**
+    * Contains Id of media connection for CpMediaInterface - used for media event routing.
+    * This one is synchronized with m_mediaConnectionId, but not set to -1, when media connection
+    * is deleted. This allows us to route media events that arrive after media connection has been
+    * destroyed.
+    */
+   int m_mediaEventConnectionId;
+   int m_defaultSessionExpiration; ///< current session interval according to RFC4028. Negotiated if 422 is received.
 
    /* ============================ CREATORS ================================== */
 
+   /** Constructor */
    XSipConnectionContext();
 
+   /** Destructor */
    virtual ~XSipConnectionContext();
 
    /* ============================ MANIPULATORS ============================== */
