@@ -8,6 +8,8 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -123,10 +125,12 @@ OsStatus MpeIPPG7221::freeEncode(void)
    if (m_pInputBuffer)
    {
       ippsFree(m_pInputBuffer);
+      m_pInputBuffer = NULL;
    }
    if (m_pOutputBuffer)
    {
       ippsFree(m_pOutputBuffer);
+      m_pOutputBuffer = NULL;
    }
 
    return OS_SUCCESS;
@@ -139,9 +143,18 @@ OsStatus MpeIPPG7221::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(160 == numSamples); // 16Khz codec, 10ms internal frame
+
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && m_storedFramesCount == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
 
    if (m_storedFramesCount == 1)
    {
@@ -186,7 +199,6 @@ OsStatus MpeIPPG7221::encode(const short* pAudioSamples,
          frmlen = 0;
       }
 
-      rAudioCategory = MP_SPEECH_UNKNOWN;
       rSamplesConsumed = numSamples;
       m_storedFramesCount = 0;
 
@@ -210,7 +222,6 @@ OsStatus MpeIPPG7221::encode(const short* pAudioSamples,
       sendNow = FALSE;
       rSizeInBytes = 0;
       rSamplesConsumed = numSamples;
-      rAudioCategory = MP_SPEECH_UNKNOWN;
    }
 
    return OS_SUCCESS;

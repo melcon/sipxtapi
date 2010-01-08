@@ -1,6 +1,6 @@
-//  
-// Copyright (C) 2006 SIPez LLC. 
-// Licensed to SIPfoundry under a Contributor Agreement. 
+//
+// Copyright (C) 2005 Pingtel Corp.
+// Licensed to SIPfoundry under a Contributor Agreement.
 //
 // Copyright (C) 2004-2006 SIPfoundry Inc.
 // Licensed by SIPfoundry under the LGPL license.
@@ -8,18 +8,36 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef _MpeIPPG7291_h_
+#define _MpeIPPG7291_h_
 
-#ifndef _MpeSipxPcma_h_
-#define _MpeSipxPcma_h_
+#ifdef HAVE_INTEL_IPP // [
 
+// SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpEncoderBase.h"
 
-/// Derived class for G.711 a-Law (PCMA) encoder.
-class MpeSipxPcma: public MpEncoderBase
+extern "C" {
+#include "usc.h"
+#include "util.h"
+#include "loadcodec.h"
+}
+
+// DEFINES
+// MACROS
+// EXTERNAL FUNCTIONS
+// EXTERNAL VARIABLES
+// CONSTANTS
+// STRUCTS
+// TYPEDEFS
+
+/// Derived class for Intel IPP G.7291.
+class MpeIPPG7291: public MpEncoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -29,15 +47,15 @@ public:
 //@{
 
      /// Constructor
-   MpeSipxPcma(int payloadType);
+   MpeIPPG7291(int payloadType, int bitRate);
      /**<
-     *  @param payloadType - (in) RTP payload type associated with this decoder
+     *  @param payloadType - (in) RTP payload type associated with this encoder
      */
 
      /// Destructor
-   virtual ~MpeSipxPcma(void);
+   virtual ~MpeIPPG7291();
 
-     /// Initializes a codec data structure for use as an encoder
+     /// Initializes a m_pCodec data structure for use as an encoder
    virtual OsStatus initEncode(void);
      /**<
      *  @returns <b>OS_SUCCESS</b> - Success
@@ -58,7 +76,7 @@ public:
 //@{
 
      /// Encode audio samples
-   virtual OsStatus encode(const MpAudioSample* pAudioSamples,
+   virtual OsStatus encode(const short* pAudioSamples,
                            const int numSamples,
                            int& rSamplesConsumed,
                            unsigned char* pCodeBuf,
@@ -84,6 +102,7 @@ public:
      *  @returns <b>OS_SUCCESS</b> - Success
      */
 
+
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -92,9 +111,31 @@ public:
 
 //@}
 
+/* ============================ INQUIRY =================================== */
+///@name Inquiry
+//@{
+
+//@}
+
+/* //////////////////////////// PROTECTED ///////////////////////////////// */
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo smCodecInfo;  ///< static information about the codec
+   static const MpCodecInfo smCodecInfo;  ///< static information about the m_pCodec
+
+   static const MpCodecInfo* getCodecInfo();
+
+   /** Constructs FT header field */
+   char getFTField(int octets) const;
+
+   int m_storedFramesCount;   ///< Number of stored frames.
+   int m_bitRate;
+
+   LoadedCodec *m_pCodec;  ///< Loaded m_pCodec info
+   Ipp8s* m_pInputBuffer;
+   Ipp8u* m_pOutputBuffer;
 };
 
-#endif  // _MpeSipxPcma_h_
+#endif // HAVE_INTEL_IPP ]
+
+#endif  // _MpeIPPG7291_h_

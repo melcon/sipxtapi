@@ -18,7 +18,7 @@
 #include "assert.h"
 // APPLICATION INCLUDES
 #include "winsock2.h"
-#include "mp/MpeIPPGAmr.h"
+#include "mp/MpeIPPGAmrWb.h"
 
 extern "C" {
 #include "ippcore.h"
@@ -26,7 +26,7 @@ extern "C" {
 #include "usccodec.h"
 }
 
-MpeIPPGAmr::MpeIPPGAmr(int payloadType, int bitRate, UtlBoolean bOctetAligned)
+MpeIPPGAmrWb::MpeIPPGAmrWb(int payloadType, int bitRate, UtlBoolean bOctetAligned)
 : MpEncoderBase(payloadType, getCodecInfo())
 , m_bitrate(bitRate)
 , m_bOctetAligned(bOctetAligned)
@@ -40,7 +40,7 @@ MpeIPPGAmr::MpeIPPGAmr(int payloadType, int bitRate, UtlBoolean bOctetAligned)
    m_amrPacketizer = new UMC::AMRPacketizer();
 
    UMC::AMRPacketizerParams params;
-   params.m_CodecType = UMC::NB;
+   params.m_CodecType = UMC::WB;
    params.m_InterleavingFlag = 0;
    params.m_ptType = bOctetAligned ? UMC::OctetAlign : UMC::BandEfficient;
    UMC::Status result = m_amrPacketizer->Init(&params);
@@ -54,7 +54,7 @@ MpeIPPGAmr::MpeIPPGAmr(int payloadType, int bitRate, UtlBoolean bOctetAligned)
    m_pAmrData = new UMC::SpeechData();
 }
 
-MpeIPPGAmr::~MpeIPPGAmr()
+MpeIPPGAmrWb::~MpeIPPGAmrWb()
 {
    freeEncode();
    free(m_pCodec);
@@ -68,12 +68,12 @@ MpeIPPGAmr::~MpeIPPGAmr()
    m_pAmrData = NULL;
 }
 
-OsStatus MpeIPPGAmr::initEncode(void)
+OsStatus MpeIPPGAmrWb::initEncode(void)
 {
    int lCallResult;
 
    ippStaticInit();
-   strcpy((char*)m_pCodec->codecName, "IPP_GSMAMR");
+   strcpy((char*)m_pCodec->codecName, "IPP_AMRWB");
    m_pCodec->lIsVad = 1;
 
    // Load codec by name from command line
@@ -145,7 +145,7 @@ OsStatus MpeIPPGAmr::initEncode(void)
    return OS_SUCCESS;
 }
 
-OsStatus MpeIPPGAmr::freeEncode(void)
+OsStatus MpeIPPGAmrWb::freeEncode(void)
 {
    // Free codec memory
    USCFree(&m_pCodec->uscParams);
@@ -164,7 +164,7 @@ OsStatus MpeIPPGAmr::freeEncode(void)
 }
 
 
-OsStatus MpeIPPGAmr::encode(const short* pAudioSamples,
+OsStatus MpeIPPGAmrWb::encode(const short* pAudioSamples,
                             const int numSamples,
                             int& rSamplesConsumed,
                             unsigned char* pCodeBuf,
@@ -173,13 +173,13 @@ OsStatus MpeIPPGAmr::encode(const short* pAudioSamples,
                             UtlBoolean& sendNow,
                             MpSpeechType& speechType)
 {
-   assert(numSamples == 80);
+   assert(numSamples == 160);
 
    if (m_storedFramesCount == 1)
    {
       ippsSet_8u(0, (Ipp8u *)m_pOutputBuffer, m_pCodec->uscParams.pInfo->maxbitsize);
       ippsCopy_8u((unsigned char *)pAudioSamples, 
-                  (unsigned char *)m_pInputBuffer+m_storedFramesCount*160,
+                  (unsigned char *)m_pInputBuffer+m_storedFramesCount*320,
                   numSamples * sizeof(MpAudioSample));
 
       int infrmLen, FrmDataLen;
@@ -224,7 +224,7 @@ OsStatus MpeIPPGAmr::encode(const short* pAudioSamples,
    else
    {
       ippsCopy_8u((unsigned char *)pAudioSamples,
-         (unsigned char *)m_pInputBuffer+m_storedFramesCount*160,
+         (unsigned char *)m_pInputBuffer+m_storedFramesCount*320,
          numSamples * sizeof(MpAudioSample));
 
       m_storedFramesCount++;
@@ -237,20 +237,20 @@ OsStatus MpeIPPGAmr::encode(const short* pAudioSamples,
    return OS_SUCCESS;
 }
 
-const MpCodecInfo* MpeIPPGAmr::getCodecInfo()
+const MpCodecInfo* MpeIPPGAmrWb::getCodecInfo()
 {
    return &ms_codecInfo;
 }
 
-const MpCodecInfo MpeIPPGAmr::ms_codecInfo(
-   SdpCodec::SDP_CODEC_AMR_10200,    // codecType
+const MpCodecInfo MpeIPPGAmrWb::ms_codecInfo(
+   SdpCodec::SDP_CODEC_AMR_WB_23850,    // codecType
    "Intel IPP 6.0",             // codecVersion
-   8000,                        // samplingRate
+   16000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
    1,                           // numChannels
-   10200,                        // bitRate
-   26*8,                        // minPacketBits
-   26*8,                        // maxPacketBits
-   160);                        // numSamplesPerFrame - 20ms frame
+   23850,                        // bitRate
+   60*8,                        // minPacketBits
+   60*8,                        // maxPacketBits
+   320);                        // numSamplesPerFrame - 20ms frame
 
 #endif // HAVE_INTEL_IPP ]

@@ -5,6 +5,8 @@
 // Copyright (C) 2006-2007 SIPfoundry Inc. 
 // Licensed by SIPfoundry under the LGPL license. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -59,11 +61,13 @@ const MpCodecInfo MpdSipxG726::ms_codecInfo40(
 
 MpdSipxG726::MpdSipxG726(int payloadType, G726_BITRATE bitRate)
 : MpDecoderBase(payloadType, getCodecInfo(bitRate))
+, m_pG726state(NULL)
 {
 }
 
 MpdSipxG726::~MpdSipxG726()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxG726::initDecode()
@@ -82,7 +86,13 @@ OsStatus MpdSipxG726::initDecode()
 
 OsStatus MpdSipxG726::freeDecode(void)
 {
-   int res = g726_release(m_pG726state);
+   int res = 0;
+   
+   if (m_pG726state)
+   {
+      res = g726_release(m_pG726state);
+      m_pG726state = NULL;
+   }
 
    if (res == 0)
    {
@@ -106,7 +116,7 @@ int MpdSipxG726::decode(const MpRtpBufPtr &pPacket,
    unsigned maxPayloadSize = getInfo()->getMaxPacketBits()/8;
    // do not accept frames longer than 20ms from RTP to protect against buffer overflow
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }

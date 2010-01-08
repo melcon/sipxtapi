@@ -8,6 +8,8 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -120,10 +122,12 @@ OsStatus MpeIPPG728::freeEncode(void)
    if (m_pInputBuffer)
    {
       ippsFree(m_pInputBuffer);
+      m_pInputBuffer = NULL;
    }
    if (m_pOutputBuffer)
    {
       ippsFree(m_pOutputBuffer);
+      m_pOutputBuffer = NULL;
    }
 
    return OS_SUCCESS;
@@ -137,9 +141,18 @@ OsStatus MpeIPPG728::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(80 == numSamples);
+
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD) // G.728 doesn't have built in VAD
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
 
    ippsSet_8u(0, m_pOutputBuffer, m_pCodec->uscParams.pInfo->maxbitsize + 1);
    ippsCopy_8u((Ipp8u*)pAudioSamples,
@@ -182,7 +195,6 @@ OsStatus MpeIPPG728::encode(const short* pAudioSamples,
    }
 
    sendNow = FALSE;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
    rSamplesConsumed = FrmDataLen / (m_pCodec->uscParams.pInfo->params.pcmType.bitPerSample / 8);
 
    if (Bitstream.nbytes >= 0)

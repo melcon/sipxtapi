@@ -5,6 +5,8 @@
 // Copyright (C) 2006 SIPfoundry Inc. 
 // Licensed by SIPfoundry under the LGPL license. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -28,11 +30,13 @@ const MpCodecInfo MpeSipxG722::ms_codecInfo64(
 
 MpeSipxG722::MpeSipxG722(int payloadType)
 : MpEncoderBase(payloadType, getCodecInfo())
+, m_pG722state(NULL)
 {
 }
 
 MpeSipxG722::~MpeSipxG722()
 {
+   freeEncode();
 }
 
 OsStatus MpeSipxG722::initEncode(void)
@@ -51,7 +55,13 @@ OsStatus MpeSipxG722::initEncode(void)
 
 OsStatus MpeSipxG722::freeEncode(void)
 {
-   int res = g722_encode_release(m_pG722state);
+   int res = 0;
+   
+   if (m_pG722state)
+   {
+      res = g722_encode_release(m_pG722state);
+      m_pG722state = NULL;
+   }
 
    if (res == 0)
    {
@@ -70,14 +80,22 @@ OsStatus MpeSipxG722::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(numSamples == 160); // we expect 10ms frames (16Khz) - 160 samples
+
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
 
    rSizeInBytes = g722_encode(m_pG722state, pCodeBuf, pAudioSamples, numSamples);
    // 20 ms samples are created in MprEncode
    rSamplesConsumed = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;
 }

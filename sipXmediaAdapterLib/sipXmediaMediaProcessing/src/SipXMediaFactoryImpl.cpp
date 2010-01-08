@@ -464,16 +464,33 @@ OsStatus SipXMediaFactoryImpl::getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_
 }
 
 OsStatus SipXMediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) {
-  if (mode == MEDIA_NOISE_REDUCTION_DISABLED) {
-    if (MpCallFlowGraph::setAudioNoiseReduction(FALSE)) {
+  if (mode == MEDIA_NOISE_REDUCTION_DISABLED)
+  {
+    if (MpCallFlowGraph::setAudioNoiseReduction(FALSE))
+    {
       return OS_SUCCESS;
     }
-  } else {
-    if (MpCallFlowGraph::setAudioNoiseReduction(TRUE)) {
+  }
+  else
+  {
+    if (MpCallFlowGraph::setAudioNoiseReduction(TRUE))
+    {
       return OS_SUCCESS;
     }
   }
   return OS_NOT_SUPPORTED;
+}
+
+OsStatus SipXMediaFactoryImpl::getVADMode(UtlBoolean& bEnable) const
+{
+   bEnable = MpCallFlowGraph::isVADEnabled();
+   return OS_SUCCESS;
+}
+
+OsStatus SipXMediaFactoryImpl::setVADMode(UtlBoolean bEnable)
+{
+   MpCallFlowGraph::enableVAD(bEnable);
+   return OS_SUCCESS;
 }
 
 OsStatus SipXMediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable)
@@ -535,9 +552,10 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
       "ILBC ILBC-20MS "
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
-      "G723.1 G728 G729B G729D G729E AMR_4750 AMR_10200 "
+      "G723.1 G728 G729 G729D G729E AMR_4750 AMR_10200 "
 #ifdef ENABLE_WIDEBAND_AUDIO
-      "G722.1_16 G722.1_24 G722.1_32 "
+      "AMR_WB_12650 AMR_WB_23850 G722.1_16 G722.1_24 G722.1_32 G729.1_8000 G729.1_12000 G729.1_14000 G729.1_16000 G729.1_18000 "
+      "G729.1_20000 G729.1_22000 G729.1_24000 G729.1_26000 G729.1_28000 G729.1_30000 G729.1_32000 "
 #endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_INTEL_IPP ]
 #ifdef HAVE_SPAN_DSP // [

@@ -1,6 +1,6 @@
-//  
-// Copyright (C) 2006 SIPez LLC. 
-// Licensed to SIPfoundry under a Contributor Agreement. 
+//
+// Copyright (C) 2005 Pingtel Corp.
+// Licensed to SIPfoundry under a Contributor Agreement.
 //
 // Copyright (C) 2004-2006 SIPfoundry Inc.
 // Licensed by SIPfoundry under the LGPL license.
@@ -8,18 +8,38 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef _MpeIPPGAmrWb_h_
+#define _MpeIPPGAmrWb_h_
 
-#ifndef _MpeSipxPcma_h_
-#define _MpeSipxPcma_h_
+#ifdef HAVE_INTEL_IPP // [
 
+// SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "mp/MpEncoderBase.h"
 
-/// Derived class for G.711 a-Law (PCMA) encoder.
-class MpeSipxPcma: public MpEncoderBase
+extern "C" {
+#include "usc.h"
+#include "util.h"
+#include "loadcodec.h"
+}
+#include <rtp_amr_payload.h>
+
+// DEFINES
+// MACROS
+// EXTERNAL FUNCTIONS
+// EXTERNAL VARIABLES
+// CONSTANTS
+// STRUCTS
+// TYPEDEFS
+class AMRPacketizer;
+
+/// Derived class for Intel IPP AMR WB encoder.
+class MpeIPPGAmrWb: public MpEncoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -29,13 +49,13 @@ public:
 //@{
 
      /// Constructor
-   MpeSipxPcma(int payloadType);
+   MpeIPPGAmrWb(int payloadType, int bitRate, UtlBoolean bOctetAligned);
      /**<
-     *  @param payloadType - (in) RTP payload type associated with this decoder
+     *  @param payloadType - (in) RTP payload type associated with this encoder
      */
 
      /// Destructor
-   virtual ~MpeSipxPcma(void);
+   virtual ~MpeIPPGAmrWb();
 
      /// Initializes a codec data structure for use as an encoder
    virtual OsStatus initEncode(void);
@@ -58,7 +78,7 @@ public:
 //@{
 
      /// Encode audio samples
-   virtual OsStatus encode(const MpAudioSample* pAudioSamples,
+   virtual OsStatus encode(const short* pAudioSamples,
                            const int numSamples,
                            int& rSamplesConsumed,
                            unsigned char* pCodeBuf,
@@ -84,6 +104,7 @@ public:
      *  @returns <b>OS_SUCCESS</b> - Success
      */
 
+
 //@}
 
 /* ============================ ACCESSORS ================================= */
@@ -92,9 +113,31 @@ public:
 
 //@}
 
+/* ============================ INQUIRY =================================== */
+///@name Inquiry
+//@{
+
+//@}
+
+/* //////////////////////////// PROTECTED ///////////////////////////////// */
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo smCodecInfo;  ///< static information about the codec
+   static const MpCodecInfo ms_codecInfo;  ///< static information about the codec
+   int m_bitrate;
+   UtlBoolean m_bOctetAligned;
+   int m_storedFramesCount;
+
+   static const MpCodecInfo* getCodecInfo();
+
+   LoadedCodec *m_pCodec;  ///< Loaded codec info
+   Ipp8s* m_pInputBuffer;
+   Ipp8u* m_pOutputBuffer;
+   UMC::AMRPacketizer* m_amrPacketizer;
+   UMC::SpeechData* m_pMediaData; ///< stores encoded frames in a class acceptable for amr packetizer
+   UMC::SpeechData* m_pAmrData; ///< stores amr data which can be sent in RTP payload
 };
 
-#endif  // _MpeSipxPcma_h_
+#endif // HAVE_INTEL_IPP ]
+
+#endif  // _MpeIPPGAmrWb_h_

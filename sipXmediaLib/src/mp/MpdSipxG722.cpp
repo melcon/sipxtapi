@@ -5,6 +5,8 @@
 // Copyright (C) 2006-2007 SIPfoundry Inc. 
 // Licensed by SIPfoundry under the LGPL license. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -26,11 +28,13 @@ const MpCodecInfo MpdSipxG722::ms_codecInfo64(
 
 MpdSipxG722::MpdSipxG722(int payloadType)
 : MpDecoderBase(payloadType, getCodecInfo())
+, m_pG722state(NULL)
 {
 }
 
 MpdSipxG722::~MpdSipxG722()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxG722::initDecode()
@@ -49,7 +53,13 @@ OsStatus MpdSipxG722::initDecode()
 
 OsStatus MpdSipxG722::freeDecode(void)
 {
-   int res = g722_decode_release(m_pG722state);
+   int res = 0;
+   
+   if (m_pG722state)
+   {
+      res = g722_decode_release(m_pG722state);
+      m_pG722state = NULL;
+   }
 
    if (res == 0)
    {
@@ -73,7 +83,7 @@ int MpdSipxG722::decode(const MpRtpBufPtr &pPacket,
    unsigned maxPayloadSize = ms_codecInfo64.getMaxPacketBits()/8;
    // do not accept frames longer than 20ms from RTP to protect against buffer overflow
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }

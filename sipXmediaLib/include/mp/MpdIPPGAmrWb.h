@@ -13,8 +13,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _MpdIPPG7221_h_  /* [ */
-#define _MpdIPPG7221_h_
+#ifndef _MpdIPPGAmrWb_h_  /* [ */
+#define _MpdIPPGAmrWb_h_
 
 #ifdef HAVE_INTEL_IPP // [
 
@@ -27,6 +27,7 @@ extern "C" {
 #include "util.h"
 #include "loadcodec.h"
 }
+#include <rtp_amr_payload.h>
 
 // DEFINES
 // MACROS
@@ -36,23 +37,21 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/**
- * Derived class for Intel IPP G.722.1 decoder.
- */
-class MpdIPPG7221: public MpDecoderBase
+/// Derived class for Intel IPP AMR WB decoder.
+class MpdIPPGAmrWb: public MpDecoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
 /* ============================ CREATORS ================================== */
      /// Constructor
-   MpdIPPG7221(int payloadType, int bitrate);
+   MpdIPPGAmrWb(int payloadType, int bitRate, UtlBoolean bOctetAligned);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this decoder
      */
 
      /// Destructor
-   virtual ~MpdIPPG7221(void);
+   virtual ~MpdIPPGAmrWb(void);
 
      /// Initializes a codec data structure for use as a decoder
    virtual OsStatus initDecode();
@@ -87,21 +86,20 @@ public:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo ms_codecInfo16000;  ///< static information about the codec 16000
-   static const MpCodecInfo ms_codecInfo24000;  ///< static information about the codec 24000
-   static const MpCodecInfo ms_codecInfo32000;  ///< static information about the codec 32000
+   static const MpCodecInfo ms_codecInfo;  ///< static information about the codec
 
-   static const MpCodecInfo* getCodecInfo(int bitrate);
+   static const MpCodecInfo* getCodecInfo();
 
-   /**
-    * Configures USC_PCMStream.
-    */
-   void configureBitStream();
+   int m_bitrate;
+   UtlBoolean m_bOctetAligned;
+   LoadedCodec *codec; ///< Loaded codec info
 
-   LoadedCodec *m_pCodec; ///< Loaded codec info. Decodes 12800 and 16000. 9600 does not work.
-
+   Ipp8s* m_pInputBuffer;
    USC_PCMStream PCMStream;    ///< Destination data structure
    USC_Bitstream Bitstream;    ///< Source data structure
+   UMC::AMRDePacketizer* m_amrDepacketizer;
+   UMC::SpeechData* m_pMediaData; ///< stores encoded frames after they have been amr depacketized
+   UMC::SpeechData* m_pAmrData; ///< stores amr data which was received in RTP payload
 };
 
 #endif // HAVE_INTEL_IPP ]

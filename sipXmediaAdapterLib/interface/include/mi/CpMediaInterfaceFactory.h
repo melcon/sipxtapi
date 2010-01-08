@@ -233,6 +233,13 @@ public:
       return OS_NOT_SUPPORTED;
    }
 
+   /**
+    * Enable/disable voice activity detection
+    */
+   virtual OsStatus setVADMode(UtlBoolean bEnable)
+   {
+      return OS_NOT_SUPPORTED;
+   }
 
    /**
    * Enable AGC Status
@@ -478,6 +485,14 @@ public:
    * Return status of noise reduction
    */
    virtual OsStatus getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_MODE& mode) const 
+   {
+      return OS_NOT_SUPPORTED;
+   }
+
+   /**
+    * Returns status of voice activity detection
+    */
+   virtual OsStatus getVADMode(UtlBoolean& bEnable) const
    {
       return OS_NOT_SUPPORTED;
    }

@@ -56,11 +56,19 @@ OsStatus MpeSipxPcmu::encode(const MpAudioSample* pAudioSamples,
                              const int bytesLeft,
                              int& rSizeInBytes,
                              UtlBoolean& sendNow,
-                             MpSpeechType& rAudioCategory)
+                             MpSpeechType& speechType)
 {
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    G711U_Encoder(numSamples, pAudioSamples, (uint8_t*)pCodeBuf);
    rSizeInBytes = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
    sendNow = FALSE;
    rSamplesConsumed = numSamples;
 

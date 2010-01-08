@@ -43,6 +43,13 @@ public:
    /** Checks if audio/telephone-event is present, and if not adds it */
    static UtlString getFixedAudioCodecs(const UtlString& audioCodecs);
 
+   /**
+    * Enables announcement of VAD support for certain codecs like G.729.
+    * There is currently no other way to enable/disable VAD in SDP for some
+    * codecs using static payload format.
+    */
+   static void enableCodecVAD(UtlBoolean bEnable);
+
    /* ============================ INQUIRY =================================== */
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
@@ -50,6 +57,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   static UtlBoolean ms_bEnableCodecVAD; ///< when true then VAD support will be announced in SDP
+
    /** Default constructor */
    SdpCodecFactory();
 

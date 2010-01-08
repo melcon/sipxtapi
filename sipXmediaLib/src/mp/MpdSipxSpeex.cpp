@@ -42,6 +42,7 @@ MpdSipxSpeex::MpdSipxSpeex(int payloadType)
 
 MpdSipxSpeex::~MpdSipxSpeex()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxSpeex::initDecode()
@@ -68,7 +69,8 @@ OsStatus MpdSipxSpeex::initDecode()
 
 OsStatus MpdSipxSpeex::freeDecode(void)
 {
-   if (mpDecoderState != NULL) {
+   if (mpDecoderState)
+   {
       speex_decoder_destroy(mpDecoderState);
       mpDecoderState = NULL;
 
@@ -90,7 +92,7 @@ int MpdSipxSpeex::decode(const MpRtpBufPtr &pPacket,
    unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
 
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }
