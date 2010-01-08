@@ -188,7 +188,14 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResu
 
    MpAudioSample* pTmpDstBuffer = NULL;
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   pTmpDstBuffer = m_resampleSrcBuffer;
+   if (needsResampling(*decoder))
+   {
+      pTmpDstBuffer = m_resampleSrcBuffer;
+   }
+   else
+   {
+      pTmpDstBuffer = m_decodeHelperBuffer;
+   }
 #else
    pTmpDstBuffer = m_decodeHelperBuffer;
 #endif
@@ -197,8 +204,7 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResu
       jbResult == MP_JITTER_BUFFER_PLC);
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   if (decoder->getInfo()->getCodecType() != SdpCodec::SDP_CODEC_TONES &&
-      decoder->getInfo()->getSamplingRate() != m_samplesPerSec)
+   if (needsResampling(*decoder))
    {
       // need to resample
       SpeexResamplerState* pResamplerState = m_pResamplerMap[payloadType];
@@ -303,5 +309,18 @@ void MpDecodeBuffer::generateComfortNoise(MpAudioSample *samplesBuffer, unsigned
    {
       // set all 0s
       memset(samplesBuffer, 0, sampleCount * sizeof(MpAudioSample));
+   }
+}
+
+UtlBoolean MpDecodeBuffer::needsResampling(const MpDecoderBase& rDecoder) const
+{
+   if (rDecoder.getInfo()->getCodecType() != SdpCodec::SDP_CODEC_TONES &&
+      rDecoder.getInfo()->getSamplingRate() != m_samplesPerSec)
+   {
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
    }
 }

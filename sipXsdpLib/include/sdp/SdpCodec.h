@@ -35,6 +35,7 @@
 #define MIME_SUBTYPE_G729D "G729D"
 #define MIME_SUBTYPE_G729E "G729E"
 #define MIME_SUBTYPE_G722 "G722"
+#define MIME_SUBTYPE_G7221 "G7221"
 #define MIME_SUBTYPE_G723 "G723"
 #define MIME_SUBTYPE_G726_16 "G726-16"
 #define MIME_SUBTYPE_G726_24 "G726-24"
@@ -43,6 +44,8 @@
 #define MIME_SUBTYPE_DTMF_TONES "telephone-event"
 #define MIME_SUBTYPE_ILBC "iLBC"
 #define MIME_SUBTYPE_GSM "GSM"
+#define MIME_SUBTYPE_AMR "AMR"
+#define MIME_SUBTYPE_AMR_WB "AMR-WB"
 #define MIME_SUBTYPE_SPEEX "speex"
 #define MIME_SUBTYPE_L16 "L16"
 #define MIME_SUBTYPE_VP71 "VP71"
@@ -171,6 +174,11 @@ public:
         SDP_CODEC_G726_40,   ///< G.726 40 Kbps
         SDP_CODEC_G729D, ///< G.729/D, with DTX Annex F
         SDP_CODEC_G729E, ///< G.729/E, with DTX Annex G
+        SDP_CODEC_G7221_16, ///< G.722.1 16Khz, 16 kbps
+        SDP_CODEC_G7221_24, ///< G.722.1 16Khz, 24 kbps
+        SDP_CODEC_G7221_32, ///< G.722.1 16Khz, 32 kbps
+        SDP_CODEC_AMR_10200, ///< GSM AMR 8Khz, 10.2 kbps
+        SDP_CODEC_AMR_4750, ///< GSM AMR 8Khz, 4.75 kbps
 
         // video codecs
         SDP_CODEC_VP71_CIF,
@@ -370,7 +378,8 @@ public:
                                 const UtlString& mimeSubType,
                                 int sampleRate,
                                 int numChannels,
-                                const UtlString& fmtp) const;
+                                const UtlString& fmtp,
+                                UtlBoolean bStrictMatch = TRUE) const;
 
 //@}
 

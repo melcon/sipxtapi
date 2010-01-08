@@ -51,7 +51,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G728,
          SdpCodec::SDP_CODEC_G728,
          "G728",
-         "G.728",
+         "G.728 16 kbit/s",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G728,
          8000,
@@ -107,7 +107,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G723,
          SdpCodec::SDP_CODEC_G723,
          "G723.1",
-         "G.723.1",
+         "G.723.1 5.3 kbit/s",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_G723,
          8000,
@@ -116,6 +116,76 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          "",
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW); 
+      break;
+   case SdpCodec::SDP_CODEC_G7221_16:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7221_16,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G722.1_16",
+         "G.722.1 16 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7221,
+         16000,
+         20000,
+         1,
+         "bitrate=16000",
+         SdpCodec::SDP_CODEC_CPU_NORMAL,
+         SDP_CODEC_BANDWIDTH_LOW); 
+      break;
+   case SdpCodec::SDP_CODEC_G7221_24:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7221_24,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G722.1_24",
+         "G.722.1 24 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7221,
+         16000,
+         20000,
+         1,
+         "bitrate=24000",
+         SdpCodec::SDP_CODEC_CPU_NORMAL,
+         SDP_CODEC_BANDWIDTH_NORMAL); 
+      break;
+   case SdpCodec::SDP_CODEC_G7221_32:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G7221_32,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G722.1_32",
+         "G.722.1 32 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G7221,
+         16000,
+         20000,
+         1,
+         "bitrate=32000",
+         SdpCodec::SDP_CODEC_CPU_NORMAL,
+         SDP_CODEC_BANDWIDTH_NORMAL); 
+      break;
+   case SdpCodec::SDP_CODEC_AMR_10200:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_10200,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_10200",
+         "AMR 10.2 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR,
+         8000,
+         20000,
+         1,
+         "octet-align=1",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_AMR_4750:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_AMR_4750,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "AMR_4750",
+         "AMR 4.75 kbit/s",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_AMR,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
       break;
 #endif // HAVE_INTEL_IPP
    case SdpCodec::SDP_CODEC_PCMA:
@@ -669,7 +739,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_L16,
          44100,
-         20000,
+         10000, // 20ms frame doesn't fit into RTP
          1,
          "",
          SdpCodec::SDP_CODEC_CPU_LOW,
@@ -683,7 +753,7 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_L16,
          48000,
-         20000,
+         10000, // 20ms frame doesn't fit into RTP
          1,
          "",
          SdpCodec::SDP_CODEC_CPU_LOW,

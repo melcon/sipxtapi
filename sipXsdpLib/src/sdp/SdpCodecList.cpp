@@ -287,19 +287,31 @@ const SdpCodec* SdpCodecList::getCodec(const char* mimeType,
                                        int numChannels,
                                        const UtlString& fmtp) const
 {
-   const SdpCodec* codecFound = NULL;
+   const SdpCodec* pCodec = NULL;
+   const SdpCodec* pNonStrictCodec = NULL;
    OsLock lock(m_memberMutex);
    UtlSListIterator iterator(m_codecsList);
 
-   while((codecFound = (SdpCodec*) iterator()))
+   while((pCodec = (SdpCodec*) iterator()))
    {
-      if (codecFound->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp))
+      if (pCodec->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp, TRUE))
       {
          break;
       }
+      else if (!pNonStrictCodec && pCodec->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp, FALSE))
+      {
+         pNonStrictCodec = pCodec;
+      }
    }
 
-   return(codecFound);
+   if (pCodec)
+   {
+      return pCodec;
+   }
+   else
+   {
+      return pNonStrictCodec;
+   }
 }
 
 int SdpCodecList::getCodecCount() const
@@ -330,6 +342,30 @@ int SdpCodecList::getCodecCount(const UtlString& mimetype) const
    }
 
    return iCount;
+}
+
+UtlBoolean SdpCodecList::hasNonSignallingCodec(const UtlString& mimeType) const
+{
+   OsLock lock(m_memberMutex);
+   SdpCodec* pCodec = NULL;
+   UtlString foundMimeType;
+
+   int iCount = 0;    
+   UtlSListIterator itor(m_codecsList);
+   while((pCodec = (SdpCodec*) itor()))
+   {
+      pCodec = dynamic_cast<SdpCodec*>(itor.item());
+      if (pCodec && pCodec->getCodecType() != SdpCodec::SDP_CODEC_TONES)
+      {
+         pCodec->getMediaType(foundMimeType);
+         if (foundMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0)
+         {
+            return TRUE; // we found non signalling codec
+         }        
+      }
+   }
+
+   return FALSE;
 }
 
 void SdpCodecList::getCodecs(UtlSList& sdpCodecList) const

@@ -535,7 +535,10 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
       "ILBC ILBC-20MS "
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
-      "G723.1 G728 G729B G729D G729E "
+      "G723.1 G728 G729B G729D G729E AMR_4750 AMR_10200 "
+#ifdef ENABLE_WIDEBAND_AUDIO
+      "G722.1_16 G722.1_24 G722.1_32 "
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_INTEL_IPP ]
 #ifdef HAVE_SPAN_DSP // [
 #ifdef ENABLE_WIDEBAND_AUDIO
