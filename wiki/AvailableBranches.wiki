@@ -36,6 +36,6 @@ Contains also beginning of complete sipXcallLib rewrite.
 This branch was meant to be used for big changes in sipxcalllib that never happened. Only unused code in sipxcalllib was removed, to make bugfixing easier. Not used anymore.
 
 === calllib-rewrite ===
-Was used for complete replacement of CpCall, CpPeerCall, CallManager, CpCallManager, SipConnection, CpGhostConnection, Connection classes.
+Was used for complete replacement of CpCall, CpPeerCall, CallManager, CpCallManager, SipConnection, CpGhostConnection, Connection classes. Changes were merged into trunk.
 
 See [http://code.google.com/p/sipxtapi/wiki/sipXtapi_3_3_0 sipXtapi 3.3.0]
