@@ -30,7 +30,10 @@ OsStatus MpdSipxL16::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdSipxL16::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
+int MpdSipxL16::decode(const MpRtpBufPtr &pPacket,
+                       unsigned decodedBufferLength,
+                       MpAudioSample *samplesBuffer,
+                       UtlBoolean bIsPLCFrame)
 {
    if (!pPacket.isValid() || decodedBufferLength <= 0)
    {

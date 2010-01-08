@@ -63,9 +63,6 @@ struct MpGlobals
                                 ///<  muting and as default output. You
                                 ///<  should not modify this buffer, cause
                                 ///<  it is used many times.
-   MpAudioBufPtr m_comfortNoise;  ///< Buffer filled with comfort noise. You
-                                ///<  should not modify this buffer, cause
-                                ///<  it is used many times.
 };
 
 extern struct MpGlobals MpMisc;

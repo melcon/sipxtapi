@@ -106,7 +106,8 @@ void dumpRawAvtPacket(const MpRtpBufPtr &pRtp, int pThis)
 
 int MpdPtAVT::decode(const MpRtpBufPtr &pPacket,
                       unsigned decodedBufferLength,
-                      MpAudioSample *samplesBuffer
+                      MpAudioSample *samplesBuffer,
+                      UtlBoolean bIsPLCFrame
                      )
 {
    const struct AvtPacket* pAvt;

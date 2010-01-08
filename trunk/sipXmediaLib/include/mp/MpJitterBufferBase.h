@@ -24,8 +24,10 @@ class MpRtpBufPtr;
 
 typedef enum JitterBufferResult
 {
-   MP_JITTER_BUFFER_OK = 0,
-   MP_JITTER_BUFFER_MISSING,
+   MP_JITTER_BUFFER_OK = 0, ///< returned when expected frame was found
+   MP_JITTER_BUFFER_PLC, ///< returned when PLC frame was returned from jitter buffer
+   MP_JITTER_BUFFER_FRAME_SKIP, ///< returned when frame skip was detected. Valid frame is returned.
+   MP_JITTER_BUFFER_MISSING, ///< returned when no frame was found, jitter buffer is empty
    MP_JITTER_BUFFER_INCOMPLETE,
    MP_JITTER_BUFFER_ERROR
 } JitterBufferResult;

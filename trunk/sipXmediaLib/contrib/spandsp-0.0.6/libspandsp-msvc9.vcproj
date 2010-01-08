@@ -178,6 +178,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\noise.c"
+				>
+			</File>
+			<File
 				RelativePath=".\src\queue.c"
 				>
 			</File>
@@ -231,6 +235,10 @@
 			</File>
 			<File
 				RelativePath="src\spandsp\g726.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\spandsp\noise.h"
 				>
 			</File>
 			<File

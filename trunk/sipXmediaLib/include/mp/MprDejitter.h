@@ -19,6 +19,7 @@
 #include "os/OsStatus.h"
 #include "os/OsBSem.h"
 #include "mp/MpRtpBuf.h"
+#include <mp/MpJitterBufferBase.h>
 
 // DEFINES
 // MACROS
@@ -72,7 +73,7 @@ public:
      */
 
      /// Get next RTP packet, or NULL if none is available.
-   MpRtpBufPtr pullPacket(int rtpPayloadType);
+   MpRtpBufPtr pullPacket(int rtpPayloadType, JitterBufferResult& jbResult);
      /**<
      *  @note Significant change is that the downstream puller may NOT pull all
      *        the available packets at once. Instead it is paced according to

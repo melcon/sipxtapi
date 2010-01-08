@@ -188,7 +188,8 @@ OsStatus MpdIPPG7231::freeDecode(void)
 
 int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned int decodedBufferLength,
-                       MpAudioSample *samplesBuffer) 
+                       MpAudioSample *samplesBuffer,
+                       UtlBoolean bIsPLCFrame) 
 {
    if (!rtpPacket.isValid())
       return 0;
@@ -202,47 +203,48 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
       return 0;
    }
 
-   int FrmDataLen;
-   unsigned int decodedSamples;
-
    // Prepare encoded buffer parameters
    if (payloadSize == G723_PATTERN_LENGTH_6300)
    {
       Bitstream.bitrate = 6300;
       Bitstream.frametype = 0;
       Bitstream.nbytes = 24;
-      decodedSamples = 240;
    }
    else if (payloadSize == G723_PATTERN_LENGTH_5300)
    {
       Bitstream.bitrate = 5300;
       Bitstream.frametype = 0;
       Bitstream.nbytes = 20;
-      decodedSamples = 240;
-   } else return 0; // we ignore SID frames 4 bytes long, should generate comfort noise
-
-   if (decodedBufferLength < decodedSamples)
+   }
+   else if (!bIsPLCFrame)
    {
-      osPrintf("MpdIPPG723::decode: Jitter buffer overloaded. Glitch!\n");
+      // MpDecodeBuffer will generate comfort noise
       return 0;
    }
 
    Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
    PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
 
+   unsigned int decodedSamples = 0;
+   USC_Status uscStatus;
+
    // Decode one frame
    if (payloadSize == G723_PATTERN_LENGTH_6300)
    {
-      FrmDataLen = USCCodecDecode(&codec6300->uscParams, &Bitstream,
-                                  &PCMStream, 0);
+      uscStatus = codec6300->uscParams.USC_Fns->Decode(codec6300->uscParams.uCodec.hUSCCodec,
+         bIsPLCFrame ? NULL : &Bitstream, &PCMStream);
+      assert(uscStatus == USC_NoError);
+      decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
    }
    else
    {
-      FrmDataLen = USCCodecDecode(&codec5300->uscParams, &Bitstream,
-                                  &PCMStream, 0);
+      uscStatus = codec5300->uscParams.USC_Fns->Decode(codec5300->uscParams.uCodec.hUSCCodec,
+         bIsPLCFrame ? NULL : &Bitstream, &PCMStream);
+      assert(uscStatus == USC_NoError);
+      decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
    }
 
-   if (FrmDataLen < 0)
+   if (uscStatus != USC_NoError)
    {
       return 0;
    }

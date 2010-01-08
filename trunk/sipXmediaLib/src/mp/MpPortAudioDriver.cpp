@@ -14,7 +14,8 @@
 #include <utl/UtlTypedValue.h>
 #include <utl/UtlHashMapIterator.h>
 #include "mp/MpPortAudioDriver.h"
-#include "mp/MpPortAudioStream.h"
+#include "mp/MpAsyncPortAudioStream.h"
+#include "mp/MpSyncPortAudioStream.h"
 #include "mp/MpAudioStreamInfo.h"
 #include "mp/MpAudioStreamParameters.h"
 #include "mp/MpPortAudioMixer.h"
@@ -317,16 +318,14 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
 
    if (numInputChannels > 0 || numOutputChannels > 0)
    {
-      MpPortAudioStream* strm = NULL;
+      MpPortAudioStreamBase* strm = NULL;
 
       if (!synchronous)
       {
-         strm = new MpPortAudioStream(numOutputChannels,
-                                      numInputChannels,
-                                      outputSampleFormat,
-                                      inputSampleFormat,
-                                      sampleRate,
-                                      framesPerBuffer);
+         strm = new MpAsyncPortAudioStream(NULL,
+            numOutputChannels, numInputChannels,
+            outputSampleFormat, inputSampleFormat,
+            sampleRate, framesPerBuffer);
       }
       
       PaError paError = Pa_OpenStream(stream,
@@ -335,27 +334,25 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
             sampleRate,
             framesPerBuffer,
             streamFlags,
-            synchronous ? NULL : MpPortAudioStream::streamCallback,
+            synchronous ? NULL : MpAsyncPortAudioStream::streamCallback,
             strm);
 
       if (paError == paNoError)
       {
-         if (!synchronous)
+         if (synchronous)
          {
-            m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
-                                               new UtlPtr<MpPortAudioStream>(strm, TRUE));
-         }
-         else
-         {
-            // sync streams will have NULL in the map
-            m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream), NULL);
+            strm = new MpSyncPortAudioStream(*stream,
+               numOutputChannels, numInputChannels,
+               outputSampleFormat, inputSampleFormat,
+               sampleRate, framesPerBuffer);
          }
 
+         m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream), strm);
          status = OS_SUCCESS;
       }
       else
       {
-         // delete doesnt mind NULL
+         // delete doesn't mind NULL
          delete strm;
       }
    }
@@ -379,46 +376,40 @@ OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
 
    if ((numInputChannels > 0) || (numOutputChannels > 0))
    {
-      MpPortAudioStream* strm = NULL; 
-
+      MpPortAudioStreamBase* strm = NULL; 
+      
       if (!synchronous)
       {
-         // we only create representation for asynchronous streams
-         strm = new MpPortAudioStream(numOutputChannels,
-                                      numInputChannels,
-                                      sampleFormat,
-                                      sampleFormat,
-                                      sampleRate,
-                                      framesPerBuffer);
+         strm = new MpAsyncPortAudioStream(NULL,
+            numOutputChannels, numInputChannels,
+            sampleFormat, sampleFormat,
+            sampleRate, framesPerBuffer);
       }
-      
+
       PaError paError = Pa_OpenDefaultStream(stream,
          numInputChannels,
          numOutputChannels,
          sampleFormat,
          sampleRate,
          framesPerBuffer,
-         synchronous ? NULL : MpPortAudioStream::streamCallback,
+         synchronous ? NULL : MpAsyncPortAudioStream::streamCallback,
          strm);
 
       if (paError == paNoError)
       {
-         if (!synchronous)
+         if (synchronous)
          {
-            m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream),
-                                               new UtlPtr<MpPortAudioStream>(strm, TRUE));
+            strm = new MpSyncPortAudioStream(*stream,
+               numOutputChannels, numInputChannels,
+               sampleFormat, sampleFormat,
+               sampleRate, framesPerBuffer);
          }
-         else
-         {
-            // sync streams will have NULL in the map
-            m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream), NULL);
-         }
-
+         m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream), strm);
          status = OS_SUCCESS;
       }
       else
       {
-         // delete doesnt mind NULL
+         // delete doesn't mind NULL
          delete strm;
       }
    }
@@ -443,7 +434,7 @@ OsStatus MpPortAudioDriver::closeStream(MpAudioStreamId stream)
          status = OS_SUCCESS;
       }
    }
-      
+
    return status;
 }
 
@@ -461,7 +452,7 @@ OsStatus MpPortAudioDriver::startStream(MpAudioStreamId stream)
          status = OS_SUCCESS;
       }
    }
-   
+
    return status;
 }
 
@@ -476,10 +467,10 @@ OsStatus MpPortAudioDriver::stopStream(MpAudioStreamId stream)
 
       if (paError == paNoError)
       {
-         resetAsyncStream(stream);
+         resetStreamInternal(stream);
          status = OS_SUCCESS;
       }
-   }   
+   }
 
    return status;
 }
@@ -495,7 +486,7 @@ OsStatus MpPortAudioDriver::abortStream(MpAudioStreamId stream)
 
       if (paError == paNoError)
       {
-         resetAsyncStream(stream);
+         resetStreamInternal(stream);
          status = OS_SUCCESS;
       }
    }
@@ -555,7 +546,7 @@ OsStatus MpPortAudioDriver::isStreamActive(MpAudioStreamId stream,
          status = OS_SUCCESS;
       }
    }
-   
+
    return status;
 }
 
@@ -577,7 +568,7 @@ OsStatus MpPortAudioDriver::getStreamInfo(MpAudioStreamId stream,
          status = OS_SUCCESS;
       }
    }
-   
+
    return status;
 }
 
@@ -615,127 +606,53 @@ OsStatus MpPortAudioDriver::getStreamCpuLoad(MpAudioStreamId stream,
    return status;
 }
 
-OsStatus MpPortAudioDriver::readStreamSync(MpAudioStreamId stream,
-                                           void *buffer,
-                                           unsigned long frames)
-{
-   OsLock lock(ms_driverMutex);
-   OsStatus status = OS_FAILED;
-
-   // first verify that stream is synchronous
-   UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.find(&strm);
-
-   if (res)
-   {
-      UtlContainable* pValue = m_audioStreamMap.findValue(&strm); // sync streams have NULL value
-
-      if (pValue == NULL)
-      {
-         // if NULL, stream is synchronous...
-         PaError paError = Pa_ReadStream(stream, buffer, frames);
-
-         if (paError == paNoError)
-         {
-            status = OS_SUCCESS;
-         }
-         else if (paError == paInputOverflowed)
-         {
-            status = OS_OVERFLOW;
-         }
-      }      
-   }
-
-   return status;
-}
-
-OsStatus MpPortAudioDriver::writeStreamSync(MpAudioStreamId stream,
-                                            const void *buffer,
-                                            unsigned long frames)
-{
-   OsLock lock(ms_driverMutex);
-   OsStatus status = OS_FAILED;
-
-   // first verify that stream is synchronous
-   UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.find(&strm);
-
-   if (res)
-   {
-      UtlContainable* pValue = m_audioStreamMap.findValue(&strm); // sync streams have NULL value
-
-      if (pValue == NULL)
-      {
-         // if NULL, stream is synchronous...
-         PaError paError = Pa_WriteStream(stream, buffer, frames);
-
-         if (paError == paNoError)
-         {
-            status = OS_SUCCESS;
-         }
-         else if (paError == paOutputUnderflowed)
-         {
-            status = OS_OVERFLOW;
-         }
-      }      
-   }
-
-   return status;
-}
-
-OsStatus MpPortAudioDriver::readStreamAsync(MpAudioStreamId stream,
-                                            void *buffer,
-                                            unsigned long frames)
+OsStatus MpPortAudioDriver::readStream(MpAudioStreamId stream,
+                                       void *buffer,
+                                       unsigned long frames)
 {
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
    if (frames > 0)
    {
-      // first verify that stream is asynchronous
+      // first lookup the stream
       UtlTypedValue<MpAudioStreamId> strm(stream);
       UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
       if (res)
       {
-         // cast to UtlPtr
-         UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
          // get pointer to MpPortAudioStream
-         MpPortAudioStream* pStrm = pStrmPtr->getValue();
-
+         MpPortAudioStreamBase* pStrm = dynamic_cast<MpPortAudioStreamBase*>(res);
          if (pStrm)
          {
-            return pStrm->readStreamAsync(buffer, frames);
-         }         
+            return pStrm->readStream(buffer, frames);
+         }
       }
-   }   
-   
+   }
+
    return status;
 }
 
-OsStatus MpPortAudioDriver::writeStreamAsync(MpAudioStreamId stream,
-                                             const void *buffer,
-                                             unsigned long frames)
+OsStatus MpPortAudioDriver::writeStream(MpAudioStreamId stream,
+                                        const void *buffer,
+                                        unsigned long frames)
 {
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
    if (frames > 0)
    {
-      // first verify that stream is asynchronous
+      // first lookup the stream
       UtlTypedValue<MpAudioStreamId> strm(stream);
       UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
       if (res)
       {
-         // cast to UtlPtr
-         UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
          // get pointer to MpPortAudioStream
-         MpPortAudioStream* pStrm = pStrmPtr->getValue();
-
+         MpPortAudioStreamBase* pStrm = dynamic_cast<MpPortAudioStreamBase*>(res);
          if (pStrm)
          {
-            return pStrm->writeStreamAsync(buffer, frames);
+            return pStrm->writeStream(buffer, frames);
          }         
       }
    }   
@@ -806,17 +723,13 @@ OsStatus MpPortAudioDriver::getInputVolumeMeterReading(MpAudioStreamId stream,
 {
    OsLock lock(ms_driverMutex);
 
-   // first verify that stream is asynchronous
+   // get stream from map
    UtlTypedValue<MpAudioStreamId> strm(stream);
    UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
    if (res)
    {
-      // cast to UtlPtr
-      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
-      // get pointer to MpPortAudioStream
-      MpPortAudioStream* pStrm = pStrmPtr->getValue();
-
+      MpPortAudioStreamBase* pStrm = dynamic_cast<MpPortAudioStreamBase*>(res);
       if (pStrm)
       {
          volume = pStrm->getInputStreamVolume(type);
@@ -824,7 +737,7 @@ OsStatus MpPortAudioDriver::getInputVolumeMeterReading(MpAudioStreamId stream,
       }      
    }
 
-   return OS_NOT_SUPPORTED;
+   return OS_INVALID_ARGUMENT;
 }
 
 OsStatus MpPortAudioDriver::getOutputVolumeMeterReading(MpAudioStreamId stream,
@@ -833,25 +746,21 @@ OsStatus MpPortAudioDriver::getOutputVolumeMeterReading(MpAudioStreamId stream,
 {
    OsLock lock(ms_driverMutex);
 
-   // first verify that stream is asynchronous
+   // get stream from map
    UtlTypedValue<MpAudioStreamId> strm(stream);
    UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
    if (res)
    {
-      // cast to UtlPtr
-      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
-      // get pointer to MpPortAudioStream
-      MpPortAudioStream* pStrm = pStrmPtr->getValue();
-
+      MpPortAudioStreamBase* pStrm = dynamic_cast<MpPortAudioStreamBase*>(res);
       if (pStrm)
       {
          volume = pStrm->getOutputStreamVolume(type);
          return OS_SUCCESS;
-      }      
+      }
    }
 
-   return OS_NOT_SUPPORTED;
+   return OS_INVALID_ARGUMENT;
 }
 
 void MpPortAudioDriver::release()
@@ -920,20 +829,17 @@ MpPortAudioDriver* MpPortAudioDriver::createInstance()
    return NULL;
 }
 
-void MpPortAudioDriver::resetAsyncStream(MpAudioStreamId stream)
+void MpPortAudioDriver::resetStreamInternal(MpAudioStreamId stream)
 {
    // external lock is assumed
 
-   // first verify that stream is asynchronous
+   // first lookup the stream
    UtlTypedValue<MpAudioStreamId> strm(stream);
    UtlContainable* res = m_audioStreamMap.findValue(&strm);
 
    if (res)
    {
-      // cast to UtlPtr
-      UtlPtr<MpPortAudioStream>* pStrmPtr = (UtlPtr<MpPortAudioStream>*)res;
-      // get pointer to MpPortAudioStream
-      MpPortAudioStream* pStrm = pStrmPtr->getValue();
+      MpPortAudioStreamBase* pStrm = dynamic_cast<MpPortAudioStreamBase*>(res);
       // asynchronous stream needs to be reset after abort
       if (pStrm)
       {
@@ -947,7 +853,7 @@ UtlBoolean MpPortAudioDriver::isStreamValid(MpAudioStreamId stream) const
    // external lock is assumed
 
    UtlTypedValue<MpAudioStreamId> strm(stream);
-   UtlContainable* res = m_audioStreamMap.find(&strm); // lookup key not value, as sync streams have NULL value
+   UtlContainable* res = m_audioStreamMap.find(&strm); // lookup key, if found stream exists
 
    if (res)
    {

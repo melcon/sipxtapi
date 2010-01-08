@@ -9,6 +9,7 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
     mp/MpArrayBuf.h \
+    mp/MpAsyncPortAudioStream.h \
     mp/MpAudioAbstract.h \
     mp/MpAudioBuf.h \
     mp/MpAudioDeviceInfo.h \
@@ -63,7 +64,7 @@ nobase_include_HEADERS =  \
     mp/MpNotificationMsgDef.h \
     mp/MpPortAudioDriver.h \
     mp/MpPortAudioMixer.h \
-    mp/MpPortAudioStream.h \
+    mp/MpPortAudioStreamBase.h \
     mp/MpResNotification.h \
     mp/MpResource.h \
     mp/MpResourceMsg.h \
@@ -74,13 +75,16 @@ nobase_include_HEADERS =  \
     mp/MpRtpOutputAudioConnection.h \
     mp/MpRtpOutputConnection.h \
     mp/MpSipxDecoders.h \
+    mp/MpSyncPortAudioStream.h \
     mp/MpToneResourceMsg.h \
     mp/MpTypes.h \
     mp/MpUdpBuf.h \
     mp/MpVolumeMeter.h \
     mp/MpVolumeMeterBase.h \
     mp/MpdIPPG7231.h \
+    mp/MpdIPPG728.h \
     mp/MpdIPPG729.h \
+    mp/MpdIPPG729i.h \
     mp/MpdPtAVT.h \
     mp/MpdSipxG722.h \
     mp/MpdSipxG726.h \
@@ -93,7 +97,9 @@ nobase_include_HEADERS =  \
     mp/MpdSipxSpeexUWb.h \
     mp/MpdSipxSpeexWb.h \
     mp/MpeIPPG7231.h \
+    mp/MpeIPPG728.h \
     mp/MpeIPPG729.h \
+    mp/MpeIPPG729i.h \
     mp/MpePtAVT.h \
     mp/MpeSipxG722.h \
     mp/MpeSipxG726.h \

@@ -50,7 +50,8 @@ OsStatus MpdSipxPcmu::freeDecode()
 
 int MpdSipxPcmu::decode(const MpRtpBufPtr &pPacket,
                         unsigned decodedBufferLength,// has always sufficient size
-                        MpAudioSample *samplesBuffer) 
+                        MpAudioSample *samplesBuffer,
+                        UtlBoolean bIsPLCFrame) 
 {
    if (!pPacket.isValid())
       return 0;

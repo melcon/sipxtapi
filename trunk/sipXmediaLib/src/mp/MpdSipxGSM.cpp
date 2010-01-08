@@ -65,7 +65,10 @@ OsStatus MpdSipxGSM::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdSipxGSM::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
+int MpdSipxGSM::decode(const MpRtpBufPtr &pPacket,
+                       unsigned decodedBufferLength,
+                       MpAudioSample *samplesBuffer,
+                       UtlBoolean bIsPLCFrame)
 {
    if (!pPacket.isValid())
       return 0;

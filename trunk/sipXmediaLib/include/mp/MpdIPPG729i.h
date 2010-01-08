@@ -11,9 +11,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
-#ifndef _MpdIPPG729_h_  /* [ */
-#define _MpdIPPG729_h_
+#ifndef _MpdIPPG729i_h_  /* [ */
+#define _MpdIPPG729i_h_
 
 #ifdef HAVE_INTEL_IPP // [
 
@@ -35,21 +34,21 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/// Derived class for G.729A decoder.
-class MpdIPPG729: public MpDecoderBase
+/// Derived class for Intel IPP G.729I decoder (Annex D/E). Decodes both annexes D/E.
+class MpdIPPG729i: public MpDecoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
 /* ============================ CREATORS ================================== */
      /// Constructor
-   MpdIPPG729(int payloadType);
+   MpdIPPG729i(int payloadType, int bitRate);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this decoder
      */
 
      /// Destructor
-   virtual ~MpdIPPG729(void);
+   virtual ~MpdIPPG729i(void);
 
      /// Initializes a codec data structure for use as a decoder
    virtual OsStatus initDecode();
@@ -84,9 +83,18 @@ public:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo smCodecInfo;  ///< static information about the codec
+   static const MpCodecInfo smCodecInfo6400;  ///< static information about the codec 6400
+   static const MpCodecInfo smCodecInfo8000;  ///< static information about the codec 8000
+   static const MpCodecInfo smCodecInfo11800;  ///< static information about the codec 11800
 
-   LoadedCodec *codec;          ///< Loaded codec info
+   static const MpCodecInfo* getCodecInfo(int bitRate);
+
+   /**
+    * Configures USC_PCMStream for given count of payload bytes.
+    */
+   void configureBitStream(int rtpPayloadBytes);
+
+   LoadedCodec *codec; ///< Loaded codec info
 
    USC_PCMStream PCMStream;    ///< Destination data structure
    USC_Bitstream Bitstream;    ///< Source data structure

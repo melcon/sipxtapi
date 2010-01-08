@@ -30,7 +30,9 @@
 #endif // HAVE_SPEEX ]
 
 #ifdef HAVE_INTEL_IPP // [
+#include "mp/MpeIPPG728.h"
 #include "mp/MpeIPPG729.h"
+#include "mp/MpeIPPG729i.h"
 #include "mp/MpeIPPG7231.h"
 #endif // HAVE_IPP ]
 
@@ -72,7 +74,9 @@
 #endif // HAVE_ILBC ]
 
 #ifdef HAVE_INTEL_IPP // [
+#include "mp/MpdIPPG728.h"
 #include "mp/MpdIPPG729.h"
+#include "mp/MpdIPPG729i.h"
 #include "mp/MpdIPPG7231.h"
 #endif // HAVE_IPP ]
 
@@ -209,11 +213,20 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       break;
 #endif // HAVE_ILBC ]
 #ifdef HAVE_INTEL_IPP // [
+   case (SdpCodec::SDP_CODEC_G723): 
+      rpDecoder = new MpdIPPG7231(payloadType);
+      break;
+   case (SdpCodec::SDP_CODEC_G728):
+      rpDecoder = new MpdIPPG728(payloadType);
+      break;
    case (SdpCodec::SDP_CODEC_G729):
       rpDecoder = new MpdIPPG729(payloadType);
       break;
-   case (SdpCodec::SDP_CODEC_G723): 
-      rpDecoder = new MpdIPPG7231(payloadType);
+   case (SdpCodec::SDP_CODEC_G729D):
+      rpDecoder = new MpdIPPG729i(payloadType, 6400); // also supports 8000
+      break;
+   case (SdpCodec::SDP_CODEC_G729E):
+      rpDecoder = new MpdIPPG729i(payloadType, 11800);
       break;
 #endif // HAVE_IPP ]
    default:
@@ -390,11 +403,20 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
 #endif // HAVE_ILBC ]
 
 #ifdef HAVE_INTEL_IPP // [
+   case (SdpCodec::SDP_CODEC_G723):
+      rpEncoder = new MpeIPPG7231(payloadType);
+      break;
+   case (SdpCodec::SDP_CODEC_G728):
+      rpEncoder = new MpeIPPG728(payloadType);
+      break;
    case (SdpCodec::SDP_CODEC_G729):
       rpEncoder = new MpeIPPG729(payloadType);
       break;
-   case (SdpCodec::SDP_CODEC_G723):
-      rpEncoder = new MpeIPPG7231(payloadType);
+   case (SdpCodec::SDP_CODEC_G729D):
+      rpEncoder = new MpeIPPG729i(payloadType, 6400);
+      break;
+   case (SdpCodec::SDP_CODEC_G729E):
+      rpEncoder = new MpeIPPG729i(payloadType, 11800);
       break;
 #endif // HAVE_IPP ]
 
