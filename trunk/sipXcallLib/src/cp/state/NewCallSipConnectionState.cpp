@@ -97,7 +97,7 @@ SipConnectionStateTransition* NewCallSipConnectionState::processInviteRequest(co
    // don't call superclass method
    // here we process the initial INVITE
    setLastReceivedInvite(sipMessage); // remember the INVITE
-   m_rStateContext.m_sLocalIpAddress = sipMessage.getLocalIp();
+   m_rStateContext.m_sBindIpAddress = sipMessage.getLocalIp(); // override bind IP for inbound calls
    // Invite transaction was already started automatically
    // 100 Trying is sent by SipUserAgent
 

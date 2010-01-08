@@ -86,51 +86,48 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
 
    switch (internalCodecId)
    {
-
    case (SdpCodec::SDP_CODEC_TONES):
       rpDecoder = new MpdPtAVT(payloadType);
       break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_PCMA):
+   case (SdpCodec::SDP_CODEC_PCMA):
       rpDecoder = new MpdSipxPcma(payloadType);
       break;
-
-   case (SdpCodec::SDP_CODEC_GIPS_PCMU):
+   case (SdpCodec::SDP_CODEC_PCMU):
       rpDecoder = new MpdSipxPcmu(payloadType);
       break;
-
 #ifdef HAVE_SPEEX // [
-
-   case (SdpCodec::SDP_CODEC_SPEEX):
+   case (SdpCodec::SDP_CODEC_SPEEX_6):
       rpDecoder = new MpdSipxSpeex(payloadType);
       break;
-
-   case (SdpCodec::SDP_CODEC_SPEEX_5):
+   case (SdpCodec::SDP_CODEC_SPEEX_8):
       rpDecoder = new MpdSipxSpeex(payloadType);
       break;
-
-    case (SdpCodec::SDP_CODEC_SPEEX_15):
+   case (SdpCodec::SDP_CODEC_SPEEX_11):
       rpDecoder = new MpdSipxSpeex(payloadType);
       break;
-
-    case (SdpCodec::SDP_CODEC_SPEEX_24):
+   case (SdpCodec::SDP_CODEC_SPEEX_15):
       rpDecoder = new MpdSipxSpeex(payloadType);
       break;
-
+   case (SdpCodec::SDP_CODEC_SPEEX_18):
+      rpDecoder = new MpdSipxSpeex(payloadType);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_24):
+      rpDecoder = new MpdSipxSpeex(payloadType);
+      break;
 #endif // HAVE_SPEEX ]
-
 #ifdef HAVE_GSM // [
    case (SdpCodec::SDP_CODEC_GSM):
       rpDecoder = new MpdSipxGSM(payloadType);
       break;
 #endif // HAVE_GSM ]
-
 #ifdef HAVE_ILBC // [
    case (SdpCodec::SDP_CODEC_ILBC):
-      rpDecoder = new MpdSipxILBC(payloadType);
+      rpDecoder = new MpdSipxILBC(payloadType, 30);
+      break;
+   case (SdpCodec::SDP_CODEC_ILBC_20MS):
+      rpDecoder = new MpdSipxILBC(payloadType, 20);
       break;
 #endif // HAVE_ILBC ]
-
 #ifdef HAVE_INTEL_IPP // [
    case (SdpCodec::SDP_CODEC_G729):
       rpDecoder = new MpdIPPG729(payloadType);
@@ -139,7 +136,6 @@ OsStatus MpCodecFactory::createDecoder(SdpCodec::SdpCodecTypes internalCodecId,
       rpDecoder = new MpdIPPG7231(payloadType);
       break;
 #endif // HAVE_IPP ]
-
    default:
       OsSysLog::add(FAC_MP, PRI_WARNING, 
                     "MpCodecFactory::createDecoder unknown codec type "
@@ -173,25 +169,31 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
       rpEncoder = new MpePtAVT(payloadType);
       break;
 
-   case (SdpCodec::SDP_CODEC_GIPS_PCMA):
+   case (SdpCodec::SDP_CODEC_PCMA):
       rpEncoder = new MpeSipxPcma(payloadType);
       break;
 
-   case (SdpCodec::SDP_CODEC_GIPS_PCMU):
+   case (SdpCodec::SDP_CODEC_PCMU):
       rpEncoder = new MpeSipxPcmu(payloadType);
       break;
 
 #ifdef HAVE_SPEEX // [
-   case (SdpCodec::SDP_CODEC_SPEEX):
-      rpEncoder = new MpeSipxSpeex(payloadType);
-      break;
-   case (SdpCodec::SDP_CODEC_SPEEX_5):
+   case (SdpCodec::SDP_CODEC_SPEEX_6):
       rpEncoder = new MpeSipxSpeex(payloadType, 2);
       break;
-    case (SdpCodec::SDP_CODEC_SPEEX_15):
+   case (SdpCodec::SDP_CODEC_SPEEX_8):
+      rpEncoder = new MpeSipxSpeex(payloadType, 3);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_11):
+      rpEncoder = new MpeSipxSpeex(payloadType, 4);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_15):
       rpEncoder = new MpeSipxSpeex(payloadType, 5);
       break;
-    case (SdpCodec::SDP_CODEC_SPEEX_24):
+   case (SdpCodec::SDP_CODEC_SPEEX_18):
+      rpEncoder = new MpeSipxSpeex(payloadType, 6);
+      break;
+   case (SdpCodec::SDP_CODEC_SPEEX_24):
       rpEncoder = new MpeSipxSpeex(payloadType, 7);
       break;
 #endif // HAVE_SPEEX ]
@@ -204,7 +206,10 @@ OsStatus MpCodecFactory::createEncoder(SdpCodec::SdpCodecTypes internalCodecId,
 
 #ifdef HAVE_ILBC // [
    case (SdpCodec::SDP_CODEC_ILBC):
-      rpEncoder = new MpeSipxILBC(payloadType);
+      rpEncoder = new MpeSipxILBC(payloadType, 30);
+      break;
+   case (SdpCodec::SDP_CODEC_ILBC_20MS):
+      rpEncoder = new MpeSipxILBC(payloadType, 20);
       break;
 #endif // HAVE_ILBC ]
 

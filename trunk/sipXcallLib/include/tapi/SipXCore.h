@@ -209,19 +209,6 @@ public:
    }
 };
 
-typedef enum SIPX_INTERNAL_CALLSTATE
-{
-   SIPX_INTERNAL_CALLSTATE_UNKNOWN = 0,        /** Unknown call state */
-   SIPX_INTERNAL_CALLSTATE_OUTBOUND_ATTEMPT,   /** Early dialog: outbound */
-   SIPX_INTERNAL_CALLSTATE_INBOUND_ATEMPT,     /** Early dialog: inbound */
-   SIPX_INTERNAL_CALLSTATE_CONNECTED,          /** Active call - remote audio */
-   SIPX_INTERNAL_CALLSTATE_HELD,               /** both on hold due to a local hold */
-   SIPX_INTERNAL_CALLSTATE_REMOTE_HELD,        /** Remotely held call */
-   SIPX_INTERNAL_CALLSTATE_BRIDGED,            /** Locally held call, bridging */
-   SIPX_INTERNAL_CALLSTATE_DISCONNECTED,       /** Disconnected or failed */
-   SIPX_INTERNAL_CALLSTATE_DESTROYING          /** In the process of being destroyed */
-} SIPX_INTERNAL_CALLSTATE;
-
 typedef enum CONF_HOLD_STATE
 {
    CONF_STATE_UNHELD = 0,

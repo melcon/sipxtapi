@@ -13,17 +13,6 @@
 
 #ifdef HAVE_SPEEX /* [ */
 
-
-// WIN32: Add libspeex to linker input.
-#ifdef WIN32 // [
-#   ifdef _DEBUG // [
-#      pragma comment(lib, "libspeexd.lib")
-#   else // _DEBUG ][
-#      pragma comment(lib, "libspeex.lib")
-#   endif // _DEBUG ]
-#endif // WIN32 ]
-
-
 #define TEST_PRINT
 #include "assert.h"
 // APPLICATION INCLUDES
@@ -36,7 +25,7 @@
 
 
 const MpCodecInfo MpeSipxSpeex::smCodecInfo(
-         SdpCodec::SDP_CODEC_SPEEX,    // codecType
+         SdpCodec::SDP_CODEC_SPEEX_8,    // codecType
          "Speex",                      // codecVersion
          true,                         // usesNetEq
          8000,                         // samplingRate

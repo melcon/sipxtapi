@@ -49,8 +49,6 @@ SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
    mVideoFmtp(videoFmtp),
    m_sCodecName(sCodecName)
 {
-   mMimeSubtype.toLower();
-   mMimeType.toLower();
    setValue(sdpCodecType);
 }
 
@@ -244,113 +242,84 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
     UtlString compareString(shortCodecName);
     compareString.toUpper();
 
-    if (strcmp(compareString,"TELEPHONE-EVENT") == 0 ||
-       strcmp(compareString,"AUDIO/TELEPHONE-EVENT") == 0 || 
-       strcmp(compareString,"128") == 0 ||
-       strcmp(compareString,"AVT-TONES") == 0 ||
-       strcmp(compareString,"AVT") == 0)
-        retType = SdpCodec::SDP_CODEC_TONES;
-    else
-    if (strcmp(compareString,"PCMU") == 0 ||
-       strcmp(compareString,"G711U") == 0 || 
-       strcmp(compareString,"0") == 0 ||
-       strcmp(compareString,"258") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_PCMU;
-    else
-    if (strcmp(compareString,"PCMA") == 0 ||
-       strcmp(compareString,"G711A") == 0 || 
-       strcmp(compareString,"8") == 0 ||
-       strcmp(compareString,"257") == 0)
-        retType = SdpCodec::SDP_CODEC_GIPS_PCMA;
-    else
-    if (strcmp(compareString,"G729") == 0 ||
-       strcmp(compareString,"G729A") == 0)
-        retType = SdpCodec::SDP_CODEC_G729;
-    else
-    if (strcmp(compareString,"G723") == 0 ||
-        strcmp(compareString,"G723.1") == 0)
-        retType = SdpCodec::SDP_CODEC_G723;
-    else
-    if (strcmp(compareString,"ILBC") == 0)
-        retType = SdpCodec::SDP_CODEC_ILBC;
-    else
-    if (strcmp(compareString,"GSM") == 0)
-        retType = SdpCodec::SDP_CODEC_GSM;
-   else
-      if (strcmp(compareString,"SPEEX") == 0)
-         retType = SdpCodec::SDP_CODEC_SPEEX;
-   else 
-      if (strcmp(compareString,"SPEEX_5") == 0)
-         retType = SdpCodec::SDP_CODEC_SPEEX_5;
-   else 
-      if (strcmp(compareString,"SPEEX_15") == 0)
-         retType = SdpCodec::SDP_CODEC_SPEEX_15;
-   else 
-      if (strcmp(compareString,"SPEEX_24") == 0)
-         retType = SdpCodec::SDP_CODEC_SPEEX_24;
-   else 
-      if (strcmp(compareString,"GSM") == 0)
-         retType = SdpCodec::SDP_CODEC_GSM;
-   else
-    if (strcmp(compareString,"VP71-CIF") == 0)
-        retType = SdpCodec::SDP_CODEC_VP71_CIF;
-   else
-    if (strcmp(compareString,"VP71-QCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_VP71_QCIF;
-   else
-    if (strcmp(compareString,"VP71-SQCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_VP71_SQCIF;
-   else
-    if (strcmp(compareString,"VP71-QVGA") == 0)
-        retType = SdpCodec::SDP_CODEC_VP71_QVGA;
-   else
-    if (strcmp(compareString,"IYUV-CIF") == 0)
-        retType = SdpCodec::SDP_CODEC_IYUV_CIF;
-   else
-    if (strcmp(compareString,"IYUV-QCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_IYUV_QCIF;
-   else
-    if (strcmp(compareString,"IYUV-SQCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_IYUV_SQCIF;
-   else
-    if (strcmp(compareString,"IYUV-QVGA") == 0)
-        retType = SdpCodec::SDP_CODEC_IYUV_QVGA;
-   else
-    if (strcmp(compareString,"I420-CIF") == 0)
-        retType = SdpCodec::SDP_CODEC_I420_CIF;
-   else
-    if (strcmp(compareString,"I420-QCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_I420_QCIF;
-   else
-    if (strcmp(compareString,"I420-SQCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_I420_SQCIF;
-   else
-    if (strcmp(compareString,"I420-QVGA") == 0)
-        retType = SdpCodec::SDP_CODEC_I420_QVGA;
-   else
-    if (strcmp(compareString,"H263-CIF") == 0)
-        retType = SdpCodec::SDP_CODEC_H263_CIF;
-   else
-    if (strcmp(compareString,"H263-QCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_H263_QCIF;
-   else
-    if (strcmp(compareString,"H263-SQCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_H263_SQCIF;
-   else
-    if (strcmp(compareString,"H263-QVGA") == 0)
-        retType = SdpCodec::SDP_CODEC_H263_QVGA;
-   else
-    if (strcmp(compareString,"RGB24-CIF") == 0)
-        retType = SdpCodec::SDP_CODEC_RGB24_CIF;
-   else
-    if (strcmp(compareString,"RGB24-QCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_RGB24_QCIF;
-   else
-    if (strcmp(compareString,"RGB24-SQCIF") == 0)
-        retType = SdpCodec::SDP_CODEC_RGB24_SQCIF;
-   else
-    if (strcmp(compareString,"RGB24-QVGA") == 0)
-        retType = SdpCodec::SDP_CODEC_RGB24_QVGA;
+    if (strcmp(compareString,"TELEPHONE-EVENT") == 0)
+       retType = SdpCodec::SDP_CODEC_TONES;
+    else if (strcmp(compareString,"PCMU") == 0)
+       retType = SdpCodec::SDP_CODEC_PCMU;
+    else if (strcmp(compareString,"PCMA") == 0)
+       retType = SdpCodec::SDP_CODEC_PCMA;
+    else if (strcmp(compareString,"G729A") == 0)
+       retType = SdpCodec::SDP_CODEC_G729;
+    else if (strcmp(compareString,"G723.1") == 0)
+       retType = SdpCodec::SDP_CODEC_G723;
+    else if (strcmp(compareString,"G726_16") == 0)
+       retType = SdpCodec::SDP_CODEC_G726_16;
+    else if (strcmp(compareString,"G726_24") == 0)
+       retType = SdpCodec::SDP_CODEC_G726_24;
+    else if (strcmp(compareString,"G726_32") == 0)
+       retType = SdpCodec::SDP_CODEC_G726_32;
+    else if (strcmp(compareString,"G726_40") == 0)
+       retType = SdpCodec::SDP_CODEC_G726_40;
+    else if (strcmp(compareString,"ILBC") == 0)
+       retType = SdpCodec::SDP_CODEC_ILBC;
+    else if (strcmp(compareString,"ILBC-20MS") == 0)
+       retType = SdpCodec::SDP_CODEC_ILBC_20MS;
+    else if (strcmp(compareString,"GSM") == 0)
+       retType = SdpCodec::SDP_CODEC_GSM;
+    else if (strcmp(compareString,"SPEEX_6") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_6;
+    else if (strcmp(compareString,"SPEEX_8") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_8;
+    else if (strcmp(compareString,"SPEEX_11") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_11;
+    else if (strcmp(compareString,"SPEEX_15") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_15;
+    else if (strcmp(compareString,"SPEEX_18") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_18;
+    else if (strcmp(compareString,"SPEEX_24") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_24;
+    else if (strcmp(compareString,"GSM") == 0)
+       retType = SdpCodec::SDP_CODEC_GSM;
+    else if (strcmp(compareString,"VP71-CIF") == 0)
+       retType = SdpCodec::SDP_CODEC_VP71_CIF;
+    else if (strcmp(compareString,"VP71-QCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_VP71_QCIF;
+    else if (strcmp(compareString,"VP71-SQCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_VP71_SQCIF;
+    else if (strcmp(compareString,"VP71-QVGA") == 0)
+       retType = SdpCodec::SDP_CODEC_VP71_QVGA;
+    else if (strcmp(compareString,"IYUV-CIF") == 0)
+       retType = SdpCodec::SDP_CODEC_IYUV_CIF;
+    else if (strcmp(compareString,"IYUV-QCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_IYUV_QCIF;
+    else if (strcmp(compareString,"IYUV-SQCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_IYUV_SQCIF;
+    else if (strcmp(compareString,"IYUV-QVGA") == 0)
+       retType = SdpCodec::SDP_CODEC_IYUV_QVGA;
+    else if (strcmp(compareString,"I420-CIF") == 0)
+       retType = SdpCodec::SDP_CODEC_I420_CIF;
+    else if (strcmp(compareString,"I420-QCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_I420_QCIF;
+    else if (strcmp(compareString,"I420-SQCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_I420_SQCIF;
+    else if (strcmp(compareString,"I420-QVGA") == 0)
+       retType = SdpCodec::SDP_CODEC_I420_QVGA;
+    else if (strcmp(compareString,"H263-CIF") == 0)
+       retType = SdpCodec::SDP_CODEC_H263_CIF;
+    else if (strcmp(compareString,"H263-QCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_H263_QCIF;
+    else if (strcmp(compareString,"H263-SQCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_H263_SQCIF;
+    else if (strcmp(compareString,"H263-QVGA") == 0)
+       retType = SdpCodec::SDP_CODEC_H263_QVGA;
+    else if (strcmp(compareString,"RGB24-CIF") == 0)
+       retType = SdpCodec::SDP_CODEC_RGB24_CIF;
+    else if (strcmp(compareString,"RGB24-QCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_RGB24_QCIF;
+    else if (strcmp(compareString,"RGB24-SQCIF") == 0)
+       retType = SdpCodec::SDP_CODEC_RGB24_SQCIF;
+    else if (strcmp(compareString,"RGB24-QVGA") == 0)
+       retType = SdpCodec::SDP_CODEC_RGB24_QVGA;
     else
        retType = SdpCodec::SDP_CODEC_UNKNOWN;
     return retType;

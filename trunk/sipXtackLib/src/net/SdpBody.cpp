@@ -485,6 +485,7 @@ UtlBoolean SdpBody::getPayloadFormat(int payloadType,
 
    numVideoSizes = 0;
    valueFmtp = 0;
+   fmtp.remove(0);
 
    while((nv = (NameValuePair*) iterator.findNext(&aFieldMatch)) != NULL)
    {
@@ -1332,22 +1333,21 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
       if(getPayloadRtpMap(audioPayloadTypes[typeIndex],
                           mimeSubtype, sampleRate, numChannels))
       {
-         
+         int codecMode;
+         getPayloadFormat(audioPayloadTypes[typeIndex], fmtp, codecMode, 
+            numVideoSizes, videoSizes);
+
          // Find a match for the mime type
-         matchingCodec = localRtpCodecs.getCodec(MIME_TYPE_AUDIO, mimeSubtype.data());
-         if((matchingCodec != NULL) &&
-            (matchingCodec->getSampleRate() == sampleRate ||
-             sampleRate == -1) &&
-            (matchingCodec->getNumChannels() == numChannels ||
-             numChannels == -1))
+         matchingCodec = localRtpCodecs.getCodec(MIME_TYPE_AUDIO, mimeSubtype, sampleRate, numChannels, fmtp);
+         if (matchingCodec)
          {
-            commonCodec = TRUE;
             int frameSize = 0;
+            commonCodec = TRUE;
 
             if (matchingCodec->getCodecType() == SdpCodec::SDP_CODEC_ILBC)
             {
-                getPayloadFormat(audioPayloadTypes[typeIndex], fmtp, frameSize, 
-                                 numVideoSizes, videoSizes);
+               frameSize = codecMode;
+
                 if (frameSize == 20 || frameSize == 30 || frameSize == 0)
                 {
                    if (frameSize == 0)
@@ -1813,7 +1813,6 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
    int sampleRate;
    int numChannels;
    int videoFmtp;
-   char valueBuf[64];
    UtlString formatParameters;
    UtlString mimeType;
    UtlString formatTemp;
@@ -1873,11 +1872,6 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
                      break;
                  }
              }
-         }
-         if (codec->getCodecType() == SdpCodec::SDP_CODEC_ILBC)
-         {
-             SNPRINTF(valueBuf, sizeof(valueBuf), "mode=%d", codec->getPacketLength()/1000);
-             formatParameters = valueBuf;
          }
          // Add the format specific parameters if present
          if(!formatParameters.isNull())

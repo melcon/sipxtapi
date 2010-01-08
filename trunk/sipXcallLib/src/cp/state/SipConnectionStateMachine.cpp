@@ -41,7 +41,7 @@
 
 SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                                                      XCpCallControl& rCallControl,
-                                                     const UtlString& sLocalIpAddress,
+                                                     const UtlString& sBindlIpAddress,
                                                      CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                      CpMessageQueueProvider& rMessageQueueProvider,
                                                      XSipConnectionEventSink& rSipConnectionEventSink,
@@ -56,7 +56,7 @@ SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
 , m_natTraversalConfig(natTraversalConfig)
 {
-   m_rStateContext.m_sLocalIpAddress = sLocalIpAddress;
+   m_rStateContext.m_sBindIpAddress = sBindlIpAddress;
    m_rStateContext.m_sdpNegotiation.setSecurity(m_rStateContext.m_pSecurity); // wire security into sdp negotiation
 
    // deleted in handleStateTransition if unsuccessful

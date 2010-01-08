@@ -73,8 +73,8 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SDP_CODEC_BANDWIDTH_LOW); 
       break;
 #endif // HAVE_INTEL_IPP
-   case SdpCodec::SDP_CODEC_GIPS_PCMA:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_GIPS_PCMA,
+   case SdpCodec::SDP_CODEC_PCMA:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA,
          SdpCodec::SDP_CODEC_PCMA,
          "PCMA",
          MIME_TYPE_AUDIO,
@@ -86,8 +86,8 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
-   case SdpCodec::SDP_CODEC_GIPS_PCMU:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_GIPS_PCMU,
+   case SdpCodec::SDP_CODEC_PCMU:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU,
          SdpCodec::SDP_CODEC_PCMU,
          "PCMU",
          MIME_TYPE_AUDIO,
@@ -112,6 +112,19 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_HIGH,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
+   case SdpCodec::SDP_CODEC_ILBC_20MS:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_ILBC_20MS,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "ILBC-20MS",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_ILBC,
+         8000,
+         20000,
+         1,
+         "mode=20",
+         SdpCodec::SDP_CODEC_CPU_HIGH,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
 #ifdef HAVE_GSM
    case SdpCodec::SDP_CODEC_GSM:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_GSM,
@@ -128,10 +141,23 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
       break;
 #endif // HAVE_GSM
 #ifdef HAVE_SPEEX
-   case SdpCodec::SDP_CODEC_SPEEX:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX,
+   case SdpCodec::SDP_CODEC_SPEEX_6:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_6,
          SdpCodec::SDP_CODEC_UNKNOWN,
-         "SPEEX",
+         "SPEEX_6",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         8000,
+         20000,
+         1,
+         "mode=2",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_LOW);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_8:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_8,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_8",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
@@ -141,16 +167,16 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
-   case SdpCodec::SDP_CODEC_SPEEX_5:
-      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_5,
+   case SdpCodec::SDP_CODEC_SPEEX_11:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_11,
          SdpCodec::SDP_CODEC_UNKNOWN,
-         "SPEEX_5",
+         "SPEEX_11",
          MIME_TYPE_AUDIO,
          MIME_SUBTYPE_SPEEX,
          8000,
          20000,
          1,
-         "mode=2",
+         "mode=4",
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_LOW);
       break;
@@ -164,6 +190,19 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          20000,
          1,
          "mode=5",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_SPEEX_18:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_SPEEX_18,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "SPEEX_18",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_SPEEX,
+         8000,
+         20000,
+         1,
+         "mode=6",
          SdpCodec::SDP_CODEC_CPU_LOW,
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
@@ -181,6 +220,60 @@ SdpCodec* SdpCodecFactory::buildSdpCodec(SdpCodec::SdpCodecTypes codecType)
          SDP_CODEC_BANDWIDTH_NORMAL);
       break;
 #endif // HAVE_SPEEX
+#ifdef HAVE_SPAN_DSP
+   case SdpCodec::SDP_CODEC_G726_16:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_16,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_16",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_16,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G726_24:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_24,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_24",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_24,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G726_32:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_32,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_32",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_32,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+   case SdpCodec::SDP_CODEC_G726_40:
+      pCodec = new SdpCodec(SdpCodec::SDP_CODEC_G726_40,
+         SdpCodec::SDP_CODEC_UNKNOWN,
+         "G726_40",
+         MIME_TYPE_AUDIO,
+         MIME_SUBTYPE_G726_40,
+         8000,
+         20000,
+         1,
+         "",
+         SdpCodec::SDP_CODEC_CPU_LOW,
+         SDP_CODEC_BANDWIDTH_NORMAL);
+      break;
+#endif // HAVE_SPAN_DSP
 #ifdef VIDEO
    case SdpCodec::SDP_CODEC_VP71_CIF:
       pCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_CIF,
@@ -481,16 +574,17 @@ UtlString SdpCodecFactory::getFixedAudioCodecs(const UtlString& audioCodecs)
    if (!lcAudioCodecs.contains(MIME_SUBTYPE_DTMF_TONES))
    {
       // audio/telephone-event is missing, add it
-      UtlString res(audioCodecs);
+      UtlString result;
       if (audioCodecs.length() > 0)
       {
-         res += " "MIME_SUBTYPE_DTMF_TONES;
+         result.appendFormat("%s ", MIME_SUBTYPE_DTMF_TONES);
+         result.append(audioCodecs);
       }
       else
       {
-         res = MIME_SUBTYPE_DTMF_TONES;
+         result = MIME_SUBTYPE_DTMF_TONES;
       }
-      return res;
+      return result;
    }
    else
    {

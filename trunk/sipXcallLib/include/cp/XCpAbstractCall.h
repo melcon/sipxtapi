@@ -123,7 +123,7 @@ public:
                    const SdpCodecList& rDefaultSdpCodecList,
                    OsMsgQ& rCallManagerQueue,
                    const CpNatTraversalConfig& rNatTraversalConfig,
-                   const UtlString& sLocalIpAddress,
+                   const UtlString& sBindIpAddress,
                    int sessionTimerExpiration,
                    CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                    CP_SIP_UPDATE_CONFIG updateSetting,
@@ -513,7 +513,7 @@ protected:
    SipSecurityEventListener* m_pSecurityEventListener; ///< listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; ///< listener for firing media events
    const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
-   const UtlString m_sLocalIpAddress; ///< default local IP for media interface
+   const UtlString m_sBindIpAddress; ///< default local IP for media interface. May be 0.0.0.0
    const UtlString m_sLocale; ///< locale for DTMF, empty by default
    const int m_sessionTimerExpiration; ///< time between RFC4028 session refreshes
    const CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
