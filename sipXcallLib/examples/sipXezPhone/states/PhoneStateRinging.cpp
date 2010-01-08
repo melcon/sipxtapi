@@ -66,7 +66,7 @@ PhoneState* PhoneStateRinging::Execute()
     sipXmgr::getInstance().setCurrentCall(mhCall); 
     
     char szIncomingNumber[256];
-    sipxCallGetRemoteID(mhCall, szIncomingNumber, 256);
+    sipxCallGetRemoteField(mhCall, szIncomingNumber, 256);
     wxString incomingNumber(szIncomingNumber);
 
     thePhoneApp->setStatusMessage(incomingNumber);

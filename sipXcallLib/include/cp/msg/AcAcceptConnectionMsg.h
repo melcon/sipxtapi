@@ -40,7 +40,8 @@ class AcAcceptConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcAcceptConnectionMsg(const UtlString& sLocationHeader,
+   AcAcceptConnectionMsg(UtlBoolean bSendSDP,
+                         const UtlString& sLocationHeader,
                          CP_CONTACT_ID contactId);
 
    virtual ~AcAcceptConnectionMsg();
@@ -51,6 +52,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   UtlBoolean getSendSDP() const { return m_bSendSDP; }
    UtlString getLocationHeader() const { return m_sLocationHeader; }
    CP_CONTACT_ID getContactId() const { return m_contactId; }
 
@@ -67,6 +69,7 @@ private:
    /** Private assignment operator */
    AcAcceptConnectionMsg& operator=(const AcAcceptConnectionMsg& rhs);
 
+   UtlBoolean m_bSendSDP;
    UtlString m_sLocationHeader;
    CP_CONTACT_ID m_contactId;
 };

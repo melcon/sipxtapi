@@ -43,6 +43,7 @@ class SipMessageEvent;
 class CpMediaEvent;
 class CpCallStateEvent;
 class CpCallStateEventListener;
+class XCpCallControl;
 class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
@@ -72,7 +73,15 @@ public:
    XSipConnection(const UtlString& sAbstractCallId,
                   const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
-                  int inviteExpireSeconds,
+                  XCpCallControl& rCallControl,
+                  const UtlString& sFullLineUrl,
+                  const UtlString& sLocalIpAddress, ///< default IP for outbound calls
+                  int sessionTimerExpiration,
+                  CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                  CP_SIP_UPDATE_CONFIG updateSetting,
+                  CP_100REL_CONFIG c100relSetting,
+                  CP_SDP_OFFERING_MODE sdpOfferingMode,
+                  int inviteExpiresSeconds,
                   CpMediaInterfaceProvider& rMediaInterfaceProvider,
                   CpMessageQueueProvider& rMessageQueueProvider,
                   const CpNatTraversalConfig& natTraversalConfig,
@@ -112,7 +121,10 @@ public:
                     const UtlString& toAddress,
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
-                    CP_CONTACT_ID contactId);
+                    CP_CONTACT_ID contactId,
+                    const UtlString& replacesField = NULL, // value of Replaces INVITE field
+                    CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                    const SipDialog* pCallbackSipDialog = NULL);
 
    /** 
    * Accepts inbound call connection.
@@ -121,7 +133,8 @@ public:
    * RINGING state. This causes a SIP 180 Ringing provisional
    * response to be sent.
    */
-   OsStatus acceptConnection(const UtlString& locationHeader,
+   OsStatus acceptConnection(UtlBoolean bSendSDP,
+                             const UtlString& locationHeader,
                              CP_CONTACT_ID contactId);
 
    /**
@@ -152,11 +165,26 @@ public:
    */
    OsStatus answerConnection();
 
+   /**
+   * Accepts transfer request on given connection. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   OsStatus acceptTransfer();
+
+   /**
+   * Rejects transfer request on given connection. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   OsStatus rejectTransfer();
+
    /** Disconnects call */
    OsStatus dropConnection();
 
    /** Blind transfer given call to sTransferSipUri. */
    OsStatus transferBlind(const UtlString& sTransferSipUrl);
+
+   /** Consultative transfer call to target call. */
+   OsStatus transferConsultative(const SipDialog& targetSipDialog);
 
    /**
    * Put the specified terminal connection on hold.
@@ -204,6 +232,19 @@ public:
                      const size_t nContentLength,
                      void* pCookie);
 
+   /**
+   * Subscribe for given notification type with given target sip call.
+   * ScNotificationMsg messages will be sent to callbackSipDialog.
+   */
+   OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                      const SipDialog& callbackSipDialog);
+
+   /**
+   * Unsubscribes for given notification type with given target sip call.
+   */
+   OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                        const SipDialog& callbackSipDialog);
+
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 
@@ -215,6 +256,12 @@ public:
 
    /** Handles CpMessageTypes::ScNotificationMsg message */
    UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
+
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   void onFocusGained();
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   void onFocusLost();
 
    /* ============================ ACCESSORS ================================= */
 
@@ -280,6 +327,9 @@ public:
    /** Gets state of media session */
    SipConnectionStateContext::MediaSessionState getMediaSessionState() const;
 
+   /** Checks if connection is established. */
+   UtlBoolean isConnectionEstablished() const;
+
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
@@ -308,7 +358,9 @@ private:
                               CP_CALLSTATE_CAUSE eMinor,
                               const UtlString& sOriginalSessionCallId = NULL,
                               int sipResponseCode = 0,
-                              const UtlString& sResponseText = NULL);
+                              const UtlString& sResponseText = NULL,
+                              const UtlString& sReferredBy = NULL,
+                              const UtlString& sReferTo = NULL);
 
    /** Fire info status event */
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
@@ -344,7 +396,9 @@ private:
                                   CP_CALLSTATE_CAUSE causeCode,
                                   const UtlString& sOriginalSessionCallId = NULL,
                                   int sipResponseCode = 0,
-                                  const UtlString& sResponseText = NULL);
+                                  const UtlString& sResponseText = NULL,
+                                  const UtlString& sReferredBy = NULL,
+                                  const UtlString& sReferTo = NULL);
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
@@ -363,6 +417,8 @@ private:
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
    CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
+   // thread safe, atomic
+   CP_CALLSTATE_EVENT m_lastCallEvent; ///< contains code of last call event (used for firing bridged state)
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< event listener for INFO responses

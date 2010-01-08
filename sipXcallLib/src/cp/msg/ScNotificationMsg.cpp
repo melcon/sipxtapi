@@ -34,6 +34,13 @@ ScNotificationMsg::ScNotificationMsg(SubTypesEnum subType, const SipDialog& sipD
 
 }
 
+ScNotificationMsg::ScNotificationMsg(const ScNotificationMsg& rMsg)
+: OsMsg(rMsg)
+, m_sipDialog(rMsg.m_sipDialog)
+{
+
+}
+
 ScNotificationMsg::~ScNotificationMsg()
 {
 
@@ -41,10 +48,24 @@ ScNotificationMsg::~ScNotificationMsg()
 
 OsMsg* ScNotificationMsg::createCopy(void) const
 {
-   return new ScNotificationMsg((SubTypesEnum)getMsgSubType(), m_sipDialog);
+   return new ScNotificationMsg(*this);
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+ScNotificationMsg& ScNotificationMsg::operator=(const ScNotificationMsg& rhs)
+{
+   if (this == &rhs)
+   {
+      return *this;
+   }
+
+   OsMsg::operator=(rhs); // assign fields for parent class
+
+   m_sipDialog = rhs.m_sipDialog;
+
+   return *this;
+}
 
 /* ============================ ACCESSORS ================================= */
 

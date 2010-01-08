@@ -38,6 +38,7 @@ public:
    /** Constructor. */
    NewCallSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
+                             XCpCallControl& rCallControl,
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
                              CpMessageQueueProvider& rMessageQueueProvider,
                              XSipConnectionEventSink& rSipConnectionEventSink,
@@ -66,6 +67,9 @@ public:
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
 
+   /** Handles initial INVITE request */
+   virtual SipConnectionStateTransition* processInviteRequest(const SipMessage& sipMessage);
+
    /* ============================ ACCESSORS ================================= */
 
    virtual ISipConnectionState::StateEnum getCurrentState() const { return ISipConnectionState::CONNECTION_NEWCALL; }
@@ -84,6 +88,13 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   /**
+   * Must be called for inbound calls to progress to early established dialog, which results in local tag being
+   * generated.
+   */
+   void progressToEarlyEstablishedDialog();
+
 };
 
 #endif // NewCallSipConnectionState_h__

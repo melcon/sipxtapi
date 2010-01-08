@@ -49,7 +49,10 @@ public:
       PAYLOAD_TYPE_2XX, ///< 2xx retransmit
       PAYLOAD_TYPE_DISCONNECT, ///< force disconnect request
       PAYLOAD_TYPE_REINVITE, ///< delayed re-INVITE requested
-      PAYLOAD_TYPE_BYE_RETRY, ///< retrying BYE for inbound call
+      PAYLOAD_TYPE_BYE_RETRY, ///< retrying BYE for inbound call (check if ACK was received, and then BYE)
+      PAYLOAD_TYPE_SESSION_TIMEOUT_CHECK, ///< check for session timeout (session timer support)
+      PAYLOAD_TYPE_INVITE_EXPIRATION, ///< check for invite expiration (some final response must arrive before timeout)
+      PAYLOAD_TYPE_DELAYED_ANSWER, ///< delayed call answer action
    } PayloadTypeEnum;
 
    /**

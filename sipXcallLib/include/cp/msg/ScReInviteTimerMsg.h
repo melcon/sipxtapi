@@ -35,12 +35,18 @@ class ScReInviteTimerMsg : public ScTimerMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+   /**
+    * There are several reasons why re-INVITE/UPDATE is needed. This reason is sent
+    * as part of ScReInviteTimerMsg.
+    * REASON_NORMAL, REASON_HOLD, REASON_UNHOLD - always renegotiate codecs
+    * REASON_SESSION_EXTENSION - only re-INVITE renegotiates codecs, UPDATE doesn't
+    */
    typedef enum
    {
       REASON_NORMAL, ///< re-INVITE to renegotiate codecs, hold/unhold. Failure will not cause problem.
       REASON_HOLD,
       REASON_UNHOLD,
-      REASON_SESSION_EXTENSION ///< re-INVITE to extend session (after session timer fires). If fails call is dropped.
+      REASON_SESSION_EXTENSION ///< re-INVITE to extend session (after session timer fires)
    } ReInviteReason;
 
    /* ============================ CREATORS ================================== */

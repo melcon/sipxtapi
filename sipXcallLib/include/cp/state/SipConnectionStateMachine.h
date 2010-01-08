@@ -35,6 +35,7 @@ class SipMessageEvent;
 class XSipConnectionContext;
 class SipConnectionStateObserver;
 class SipUserAgent;
+class XCpCallControl;
 class CpMediaInterfaceProvider;
 class CpMessageQueueProvider;
 class XSipConnectionEventSink;
@@ -57,6 +58,8 @@ public:
    
    /** Constructor. */
    SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
+                             XCpCallControl& rCallControl,
+                             const UtlString& sLocalIpAddress, ///< default IP for outbound calls
                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
                              CpMessageQueueProvider& rMessageQueueProvider,
                              XSipConnectionEventSink& rSipConnectionEventSink,
@@ -79,10 +82,53 @@ public:
                     const UtlString& toAddress,
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
-                    CP_CONTACT_ID contactId);
+                    CP_CONTACT_ID contactId,
+                    const UtlString& replacesField, // value of Replaces INVITE field
+                    CP_CALLSTATE_CAUSE callstateCause,
+                    const SipDialog* pCallbackSipDialog);
+
+   /** 
+   * Accepts inbound call connection.
+   */
+   OsStatus acceptConnection(UtlBoolean bSendSDP,
+                             const UtlString& locationHeader,
+                             CP_CONTACT_ID contactId);
+
+   /**
+   * Reject the incoming connection.
+   */
+   OsStatus rejectConnection();
+
+   /**
+   * Redirect the incoming connection.
+   */
+   OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
+
+   /**
+   * Answer the incoming terminal connection.
+   */
+   OsStatus answerConnection();
+
+   /**
+   * Accepts transfer request on given connection. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   OsStatus acceptTransfer();
+
+   /**
+   * Rejects transfer request on given connection. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   OsStatus rejectTransfer();
 
    /** Disconnects call */
    OsStatus dropConnection();
+
+   /** Blind transfer the call to sTransferSipUri. */
+   OsStatus transferBlind(const UtlString& sTransferSipUrl);
+
+   /** Consultative transfer call to target call. */
+   OsStatus transferConsultative(const SipDialog& targetSipDialog);
 
    /** Put the specified terminal connection on hold. */
    OsStatus holdConnection();
@@ -99,6 +145,19 @@ public:
                      const size_t nContentLength,
                      void* pCookie);
 
+   /**
+   * Subscribe for given notification type with given target sip call.
+   * ScNotificationMsg messages will be sent to callbackSipDialog.
+   */
+   OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                      const SipDialog& callbackSipDialog);
+
+   /**
+   * Unsubscribes for given notification type with given target sip call.
+   */
+   OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                        const SipDialog& callbackSipDialog);
+
    /** Handles timer message */
    UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
 
@@ -107,6 +166,21 @@ public:
 
    /** Handles CpMessageTypes::ScNotificationMsg message */
    UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
+
+   /** Configures session timer properties */
+   void configureSessionTimer(int sessionExpiration, CP_SESSION_TIMER_REFRESH sessionTimerRefresh);
+
+   /** Configures SIP UPDATE usage */
+   void configureUpdate(CP_SIP_UPDATE_CONFIG updateSetting);
+
+   /** Configures 100rel (PRACK) support */
+   void configure100rel(CP_100REL_CONFIG c100relSetting);
+
+   /** Configures expiration time for INVITE requests. If no final response is received, INVITE is cancelled. */
+   void configureInviteExpiration(int inviteExpiresSeconds);
+
+   /** Configures SDP offering mode */
+   void configureSdpOfferingMode(CP_SDP_OFFERING_MODE sdpOfferingMode);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -119,10 +193,16 @@ public:
    /**
     * Gets current state code of state machine.
     */
-   ISipConnectionState::StateEnum getCurrentState();
+   ISipConnectionState::StateEnum getCurrentState() const;
 
    /** Gets reference to public Sip connection context. Must be locked when modified. */
    XSipConnectionContext& getSipConnectionContext() const;
+
+   /** 
+    * Sets real line identity for this sip connection. This is normally discovered from line provider
+    * or request uri for inbound calls, and specified for outbound calls.
+    */
+   void setRealLineIdentity(const UtlString& sFullLineUrl);
 
    /* ============================ INQUIRY =================================== */
 
@@ -158,6 +238,7 @@ private:
    BaseSipConnectionState* m_pSipConnectionState; ///< pointer to state object handling commands and SipMessageEvents
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
+   XCpCallControl& m_rCallControl; ///< interface for controlling other calls
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
    CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types

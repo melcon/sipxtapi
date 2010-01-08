@@ -43,7 +43,15 @@ const UtlContainableType XSipConnection::TYPE = "XSipConnection";
 XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                const SipDialog& sipDialog,
                                SipUserAgent& rSipUserAgent,
-                               int inviteExpireSeconds,
+                               XCpCallControl& rCallControl,
+                               const UtlString& sFullLineUrl,
+                               const UtlString& sLocalIpAddress,
+                               int sessionTimerExpiration,
+                               CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                               CP_SIP_UPDATE_CONFIG updateSetting,
+                               CP_100REL_CONFIG c100relSetting,
+                               CP_SDP_OFFERING_MODE sdpOfferingMode,
+                               int inviteExpiresSeconds,
                                CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                CpMessageQueueProvider& rMessageQueueProvider,
                                const CpNatTraversalConfig& natTraversalConfig,
@@ -53,7 +61,7 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                SipSecurityEventListener* pSecurityEventListener,
                                CpMediaEventListener* pMediaEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
-, m_stateMachine(rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
+, m_stateMachine(rSipUserAgent, rCallControl, sLocalIpAddress, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
 , m_rSipConnectionContext(m_stateMachine.getSipConnectionContext())
 , m_rSipUserAgent(rSipUserAgent)
 , m_rMediaInterfaceProvider(rMediaInterfaceProvider)
@@ -64,11 +72,17 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_natTraversalConfig(natTraversalConfig)
+, m_lastCallEvent(CP_CALLSTATE_UNKNOWN)
 {
    m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
    m_rSipConnectionContext.m_sipDialog = sipDialog;
-   m_rSipConnectionContext.m_defaultSessionExpiration = inviteExpireSeconds;
    m_stateMachine.setStateObserver(this); // register for state machine state change notifications
+   m_stateMachine.configureSessionTimer(sessionTimerExpiration, sessionTimerRefresh);
+   m_stateMachine.configureUpdate(updateSetting);
+   m_stateMachine.configure100rel(c100relSetting);
+   m_stateMachine.configureInviteExpiration(inviteExpiresSeconds);
+   m_stateMachine.setRealLineIdentity(sFullLineUrl);
+   m_stateMachine.configureSdpOfferingMode(sdpOfferingMode);
 }
 
 XSipConnection::~XSipConnection()
@@ -107,30 +121,45 @@ OsStatus XSipConnection::connect(const UtlString& sipCallId,
                                  const UtlString& toAddress,
                                  const UtlString& fromAddress,
                                  const UtlString& locationHeader,
-                                 CP_CONTACT_ID contactId)
+                                 CP_CONTACT_ID contactId,
+                                 const UtlString& replacesField,
+                                 CP_CALLSTATE_CAUSE callstateCause,
+                                 const SipDialog* pCallbackSipDialog)
 {
-   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId);
+   return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId,
+      replacesField, callstateCause, pCallbackSipDialog);
 }
 
-OsStatus XSipConnection::acceptConnection(const UtlString& locationHeader,
+OsStatus XSipConnection::acceptConnection(UtlBoolean bSendSDP,
+                                          const UtlString& locationHeader,
                                           CP_CONTACT_ID contactId)
 {
-   return OS_FAILED;
+   return m_stateMachine.acceptConnection(bSendSDP, locationHeader, contactId);
 }
 
 OsStatus XSipConnection::rejectConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.rejectConnection();
 }
 
 OsStatus XSipConnection::redirectConnection(const UtlString& sRedirectSipUrl)
 {
-   return OS_FAILED;
+   return m_stateMachine.redirectConnection(sRedirectSipUrl);
 }
 
 OsStatus XSipConnection::answerConnection()
 {
-   return OS_FAILED;
+   return m_stateMachine.answerConnection();
+}
+
+OsStatus XSipConnection::acceptTransfer()
+{
+   return m_stateMachine.acceptTransfer();
+}
+
+OsStatus XSipConnection::rejectTransfer()
+{
+   return m_stateMachine.rejectTransfer();
 }
 
 OsStatus XSipConnection::dropConnection()
@@ -140,7 +169,12 @@ OsStatus XSipConnection::dropConnection()
 
 OsStatus XSipConnection::transferBlind(const UtlString& sTransferSipUrl)
 {
-   return OS_FAILED;
+   return m_stateMachine.transferBlind(sTransferSipUrl);
+}
+
+OsStatus XSipConnection::transferConsultative(const SipDialog& targetSipDialog)
+{
+   return m_stateMachine.transferConsultative(targetSipDialog);
 }
 
 OsStatus XSipConnection::holdConnection()
@@ -190,6 +224,16 @@ OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
    return m_stateMachine.sendInfo(sContentType, pContent, nContentLength, pCookie);
 }
 
+OsStatus XSipConnection::subscribe(CP_NOTIFICATION_TYPE notificationType, const SipDialog& callbackSipDialog)
+{
+   return m_stateMachine.subscribe(notificationType, callbackSipDialog);
+}
+
+OsStatus XSipConnection::unsubscribe(CP_NOTIFICATION_TYPE notificationType, const SipDialog& callbackSipDialog)
+{
+   return m_stateMachine.unsubscribe(notificationType, callbackSipDialog);
+}
+
 UtlBoolean XSipConnection::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    return m_stateMachine.handleTimerMessage(timerMsg);
@@ -208,6 +252,36 @@ UtlBoolean XSipConnection::handleCommandMessage(const ScCommandMsg& rMsg)
 UtlBoolean XSipConnection::handleNotificationMessage(const ScNotificationMsg& rMsg)
 {
    return m_stateMachine.handleNotificationMessage(rMsg);
+}
+
+void XSipConnection::onFocusGained()
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   ISipConnectionState::StateEnum connectionState = m_stateMachine.getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (m_lastCallEvent == CP_CALLSTATE_BRIDGED)
+      {
+         fireSipXCallEvent(CP_CALLSTATE_CONNECTED, CP_CALLSTATE_CAUSE_NORMAL);
+      }
+   }
+#endif
+}
+
+void XSipConnection::onFocusLost()
+{
+#ifndef DISABLE_LOCAL_AUDIO
+   ISipConnectionState::StateEnum connectionState = m_stateMachine.getCurrentState();
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (m_lastCallEvent == CP_CALLSTATE_CONNECTED)
+      {
+         fireSipXCallEvent(CP_CALLSTATE_BRIDGED, CP_CALLSTATE_CAUSE_NORMAL);
+      }
+   }
+#endif
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -297,6 +371,11 @@ SipConnectionStateContext::MediaSessionState XSipConnection::getMediaSessionStat
    return m_stateMachine.getMediaSessionState();
 }
 
+UtlBoolean XSipConnection::isConnectionEstablished() const
+{
+   return m_stateMachine.getCurrentState() == ISipConnectionState::CONNECTION_ESTABLISHED;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
@@ -332,7 +411,9 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
                                            CP_CALLSTATE_CAUSE eMinor,
                                            const UtlString& sOriginalSessionCallId /*= NULL*/,
                                            int sipResponseCode /*= 0*/,
-                                           const UtlString& sResponseText /*= NULL*/)
+                                           const UtlString& sResponseText /*= NULL*/,
+                                           const UtlString& sReferredBy,
+                                           const UtlString& sReferTo)
 {
    {
       OsReadLock lock(m_rSipConnectionContext);
@@ -344,6 +425,8 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
    event.m_sOriginalSessionCallId = sOriginalSessionCallId;
    event.m_sipResponseCode = sipResponseCode;
    event.m_sResponseText = sResponseText;
+   event.m_sReferredBy = sReferredBy;
+   event.m_sReferTo = sReferTo;
 }
 
 void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
@@ -519,56 +602,74 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
                                        CP_CALLSTATE_CAUSE causeCode,
                                        const UtlString& sOriginalSessionCallId /*= NULL*/,
                                        int sipResponseCode /*= 0*/,
-                                       const UtlString& sResponseText /*= NULL*/)
+                                       const UtlString& sResponseText /*= NULL*/,
+                                       const UtlString& sReferredBy,
+                                       const UtlString& sReferTo)
 {
    if (m_pCallEventListener)
    {
-      CpCallStateEvent event;
-      prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText);
-
-      switch(eventCode)
+#ifndef DISABLE_LOCAL_AUDIO
+      // intercept CONNECTED event, and change it to BRIDGED if we don't have focus
+      if (eventCode == CP_CALLSTATE_CONNECTED)
       {
-      case CP_CALLSTATE_NEWCALL:
-         m_pCallEventListener->OnNewCall(event);
-         break;
-      case CP_CALLSTATE_DIALTONE:
-         m_pCallEventListener->OnDialTone(event);
-         break;
-      case CP_CALLSTATE_REMOTE_OFFERING:
-         m_pCallEventListener->OnRemoteOffering(event);
-         break;
-      case CP_CALLSTATE_REMOTE_ALERTING:
-         m_pCallEventListener->OnRemoteAlerting(event);
-         break;
-      case CP_CALLSTATE_CONNECTED:
-         m_pCallEventListener->OnConnected(event);
-         break;
-      case CP_CALLSTATE_BRIDGED:
-         m_pCallEventListener->OnBridged(event);
-         break;
-      case CP_CALLSTATE_HELD:
-         m_pCallEventListener->OnHeld(event);
-         break;
-      case CP_CALLSTATE_REMOTE_HELD:
-         m_pCallEventListener->OnRemoteHeld(event);
-         break;
-      case CP_CALLSTATE_DISCONNECTED:
-         m_pCallEventListener->OnDisconnected(event);
-         break;
-      case CP_CALLSTATE_OFFERING:  
-         m_pCallEventListener->OnOffering(event);
-         break;
-      case CP_CALLSTATE_ALERTING:
-         m_pCallEventListener->OnAlerting(event);
-         break;
-      case CP_CALLSTATE_DESTROYED:
-         m_pCallEventListener->OnDestroyed(event);
-         break;
-      case CP_CALLSTATE_TRANSFER_EVENT:
-         m_pCallEventListener->OnTransferEvent(event);
-         break;
-      default:
-         ;
+         CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+         if (pMediaInterface && !pMediaInterface->hasFocus())
+         {
+            eventCode = CP_CALLSTATE_BRIDGED;
+         }
+      }
+#endif
+      m_lastCallEvent = eventCode;
+
+      if (!m_rSipConnectionContext.m_bSupressCallEvents)
+      {
+         CpCallStateEvent event;
+         prepareCallStateEvent(event, causeCode, sOriginalSessionCallId, sipResponseCode, sResponseText, sReferredBy, sReferTo);
+
+         switch(eventCode)
+         {
+         case CP_CALLSTATE_NEWCALL:
+            m_pCallEventListener->OnNewCall(event);
+            break;
+         case CP_CALLSTATE_DIALTONE:
+            m_pCallEventListener->OnDialTone(event);
+            break;
+         case CP_CALLSTATE_REMOTE_OFFERING:
+            m_pCallEventListener->OnRemoteOffering(event);
+            break;
+         case CP_CALLSTATE_REMOTE_ALERTING:
+            m_pCallEventListener->OnRemoteAlerting(event);
+            break;
+         case CP_CALLSTATE_CONNECTED:
+            m_pCallEventListener->OnConnected(event);
+            break;
+         case CP_CALLSTATE_BRIDGED:
+            m_pCallEventListener->OnBridged(event);
+            break;
+         case CP_CALLSTATE_HELD:
+            m_pCallEventListener->OnHeld(event);
+            break;
+         case CP_CALLSTATE_REMOTE_HELD:
+            m_pCallEventListener->OnRemoteHeld(event);
+            break;
+         case CP_CALLSTATE_DISCONNECTED:
+            m_pCallEventListener->OnDisconnected(event);
+            break;
+         case CP_CALLSTATE_OFFERING:  
+            m_pCallEventListener->OnOffering(event);
+            break;
+         case CP_CALLSTATE_ALERTING:
+            m_pCallEventListener->OnAlerting(event);
+            break;
+         case CP_CALLSTATE_DESTROYED:
+            m_pCallEventListener->OnDestroyed(event);
+            break;
+         case CP_CALLSTATE_TRANSFER_EVENT:
+            m_pCallEventListener->OnTransferEvent(event);
+            break;
+         default:
+            ;
+         }
       }
    }
 }

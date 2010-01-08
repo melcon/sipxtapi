@@ -54,7 +54,9 @@ public:
                                   CP_CALLSTATE_CAUSE causeCode,
                                   const UtlString& sOriginalSessionCallId = NULL,
                                   int sipResponseCode = 0,
-                                  const UtlString& sResponseText = NULL) = 0;
+                                  const UtlString& sResponseText = NULL,
+                                  const UtlString& sReferredBy = NULL,
+                                  const UtlString& sReferTo = NULL) = 0;
 
    /** Fire info status event */
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,

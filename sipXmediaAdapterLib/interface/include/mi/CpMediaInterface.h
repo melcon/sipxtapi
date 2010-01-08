@@ -489,6 +489,11 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070802 >>
      */
 
+   /**
+    * Returns TRUE if this media interface is in focus.
+    */
+   virtual UtlBoolean hasFocus() = 0;
+
      /// @brief Record the microphone data to a file
    virtual OsStatus recordMic(int ms,
                               int silenceLength,

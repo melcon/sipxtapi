@@ -162,25 +162,25 @@ public:
    UtlBoolean deleteAbstractCall(const UtlString& sAbstractCallId);
 
    /** Gains focus for given call, defocusing old focused call. */
-   OsStatus doGainFocus(const UtlString& sAbstractCallId,
-                        UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);
+   OsStatus gainFocus(const UtlString& sAbstractCallId,
+                      UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);
 
    /**
    * Gains focus for next call, avoiding sAvoidAbstractCallId when looking for next call to focus.
    * If there is no other call than sAvoidAbstractCallId, then no focus is gained. Meant to be used
    * from doYieldFocus to gain next focus. Works only if no call has currently focus.
    */
-   OsStatus doGainNextFocus(const UtlString& sAvoidAbstractCallId);
+   OsStatus gainNextFocus(const UtlString& sAvoidAbstractCallId);
 
    /**
    * Defocuses given call if its focused. Shifts focus to next call if requested.
    * Has no effect if given call is not focused anymore.
    */
-   OsStatus doYieldFocus(const UtlString& sAbstractCallId,
-                         UtlBoolean bShiftFocus = TRUE);
+   OsStatus yieldFocus(const UtlString& sAbstractCallId,
+                       UtlBoolean bShiftFocus = TRUE);
 
    /** Defocuses current call in focus, and lets other call gain focus if requested */
-   OsStatus doYieldFocus(UtlBoolean bShiftFocus = TRUE);
+   OsStatus yieldFocus(UtlBoolean bShiftFocus = TRUE);
 
    /** Shuts down threads of all calls */
    void shutdownAllAbstractCallThreads();

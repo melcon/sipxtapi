@@ -38,7 +38,9 @@ libsipXcall_la_SOURCES = \
     cp/CpCallManager.cpp \
     cp/CpGhostConnection.cpp \
     cp/CpIntMessage.cpp \
+    cp/CpLoopDetector.cpp \
     cp/CpMultiStringMessage.cpp \
+    cp/CpNotificationRegister.cpp \
     cp/CpPeerCall.cpp \
     cp/Cp100RelTracker.cpp \
     cp/CpSdpNegotiation.cpp \
@@ -54,6 +56,7 @@ libsipXcall_la_SOURCES = \
     cp/XSipConnection.cpp \
     cp/XSipConnectionContext.cpp \
     cp/msg/AcAcceptConnectionMsg.cpp \
+    cp/msg/AcAcceptTransferMsg.cpp \
     cp/msg/AcAnswerConnectionMsg.cpp \
     cp/msg/AcAudioBufferPlayMsg.cpp \
     cp/msg/AcAudioFilePlayMsg.cpp \
@@ -77,13 +80,18 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcNotificationMsg.cpp \
     cp/msg/AcRedirectConnectionMsg.cpp \
     cp/msg/AcRejectConnectionMsg.cpp \
+    cp/msg/AcRejectTransferMsg.cpp \
     cp/msg/AcRenegotiateCodecsAllMsg.cpp \
     cp/msg/AcRenegotiateCodecsMsg.cpp \
     cp/msg/AcSendInfoMsg.cpp \
+    cp/msg/AcSubscribeMsg.cpp \
     cp/msg/AcTransferBlindMsg.cpp \
+    cp/msg/AcTransferConsultativeMsg.cpp \
+    cp/msg/AcTunneledNotificationMsg.cpp \
     cp/msg/AcUnholdAllConnectionsMsg.cpp \
     cp/msg/AcUnholdConnectionMsg.cpp \
     cp/msg/AcUnmuteInputConnectionMsg.cpp \
+    cp/msg/AcUnsubscribeMsg.cpp \
     cp/msg/AcYieldFocusMsg.cpp \
     cp/msg/CmCommandMsg.cpp \
     cp/msg/CmDestroyAbstractCallMsg.cpp \
@@ -95,9 +103,12 @@ libsipXcall_la_SOURCES = \
     cp/msg/Sc2xxTimerMsg.cpp \
     cp/msg/ScByeRetryTimerMsg.cpp \
     cp/msg/ScCommandMsg.cpp \
+    cp/msg/ScDelayedAnswerTimerMsg.cpp \
     cp/msg/ScDisconnectTimerMsg.cpp \
+    cp/msg/ScInviteExpirationTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
     cp/msg/ScReInviteTimerMsg.cpp \
+    cp/msg/ScSessionTimeoutTimerMsg.cpp \
     cp/msg/ScTimerMsg.cpp \
     cp/state/AlertingSipConnectionState.cpp \
     cp/state/BaseSipConnectionState.cpp \

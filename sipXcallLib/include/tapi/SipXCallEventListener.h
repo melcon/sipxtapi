@@ -107,7 +107,9 @@ private:
                         SIPX_CALLSTATE_CAUSE cause, 
                         const UtlString& sOriginalSessionCallId,
                         int sipResponseCode,
-                        const UtlString& sResponseText);
+                        const UtlString& sResponseText,
+                        const UtlString& sReferredBy = NULL,
+                        const UtlString& sReferTo = NULL);
 
    SIPX_INST m_pInst;
 };

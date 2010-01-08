@@ -125,14 +125,14 @@ public:
     * transport parameter. Field parameters are removed. Contains <>. Useful for new
     * sip request messages, can be used in from field.
     */
-   static Url getFullLineUrl(const Url& url);
+   static Url buildFullLineUrl(const Url& url);
 
    /**
    * Constructs full line url from given url. Keeps display name, sip uri, but strips
    * transport parameter. Field parameters are removed. Contains <>. Useful for new
    * sip request messages, can be used in from field.
    */
-   static Url getFullLineUrl(const UtlString& sUrl);
+   static Url buildFullLineUrl(const UtlString& sUrl);
    //@}
 
    /* ============================ ACCESSORS ================================= */

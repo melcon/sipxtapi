@@ -34,19 +34,30 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_previousMediaSessionState(SipConnectionStateContext::MEDIA_SESSION_NONE)
 , m_localMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE)
 , m_remoteMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_NONE)
-, m_allowedRemote(NULL)
 , m_implicitAllowedRemote("INVITE, ACK, CANCEL, BYE, OPTIONS, REGISTER")
+, m_100relSetting(CP_100REL_PREFER_RELIABLE)
+, m_allowedRemoteDiscovered(FALSE)
+, m_supportedRemoteDiscovered(FALSE)
 , m_contactId(AUTOMATIC_CONTACT_ID)
 , m_rtpTransport(RTP_TRANSPORT_UDP)
 , m_pSecurity(NULL)
-, m_pLastSentInvite(NULL)
 , m_pLastReceivedInvite(NULL)
 , m_pLastSent2xxToInvite(NULL)
+, m_pLastSentRefer(NULL)
+, m_pLastReceivedRefer(NULL)
+, m_491failureCounter(0)
 , m_bUseLocalHoldSDP(FALSE)
-, m_bSdpRenegotiationUseUpdate(FALSE)
+, m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
+, m_inviteExpiresSeconds(CP_MAXIMUM_RINGING_EXPIRE_SECONDS)
+, m_connectedIdentityState(SipConnectionStateContext::IDENTITY_NOT_YET_ANNOUNCED)
+, m_localEntityType(SipConnectionStateContext::ENTITY_NORMAL)
+, m_referInSubscriptionActive(FALSE)
+, m_bDropReferencedCall(FALSE)
+, m_referOutSubscriptionActive(FALSE)
+, m_inboundReferResponse(SipConnectionStateContext::REFER_NO_RESPONSE)
 , m_bRedirecting(FALSE)
 , m_bAckReceived(FALSE)
-, m_bCallDisconnecting(FALSE)
+, m_bCancelSent(FALSE)
 , m_bByeSent(FALSE)
 , m_iByeRetryCount(0)
 , m_pByeRetryTimer(NULL)
@@ -56,6 +67,13 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_iRenegotiationRetryCount(0)
 , m_p2xxInviteRetransmitTimer(NULL)
 , m_i2xxInviteRetransmitCount(0)
+, m_pSessionTimeoutCheckTimer(NULL)
+, m_pSessionRefreshTimer(NULL)
+, m_pInviteExpiresTimer(NULL)
+, m_p100relRetransmitTimer(NULL)
+, m_i100relRetransmitCount(0)
+, m_pDelayedAnswerTimer(NULL)
+, m_iDelayedAnswerCount(0)
 {
    m_sipClientTransactionMgr.setSipTransactionListener(&m_100RelTracker);
 }
@@ -64,12 +82,14 @@ SipConnectionStateContext::~SipConnectionStateContext()
 {
    delete m_pSecurity;
    m_pSecurity = NULL;
-   delete m_pLastSentInvite;
-   m_pLastSentInvite = NULL;
    delete m_pLastReceivedInvite;
    m_pLastReceivedInvite = NULL;
    delete m_pLastSent2xxToInvite;
    m_pLastSent2xxToInvite = NULL;
+   delete m_pLastSentRefer;
+   m_pLastSentRefer = NULL;
+   delete m_pLastReceivedRefer;
+   m_pLastReceivedRefer = NULL;
    delete m_pByeRetryTimer;
    m_pByeRetryTimer = NULL;
    delete m_pCancelTimeoutTimer;
@@ -80,6 +100,16 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pSessionRenegotiationTimer = NULL;
    delete m_p2xxInviteRetransmitTimer;
    m_p2xxInviteRetransmitTimer = NULL;
+   delete m_pSessionTimeoutCheckTimer;
+   m_pSessionTimeoutCheckTimer = NULL;
+   delete m_pSessionRefreshTimer;
+   m_pSessionRefreshTimer = NULL;
+   delete m_pInviteExpiresTimer;
+   m_pInviteExpiresTimer = NULL;
+   delete m_p100relRetransmitTimer;
+   m_p100relRetransmitTimer = NULL;
+   delete m_pDelayedAnswerTimer;
+   m_pDelayedAnswerTimer = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */

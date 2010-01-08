@@ -38,6 +38,7 @@ public:
    /** Constructor. */
    RemoteQueuedSipConnectionState(SipConnectionStateContext& rStateContext,
                                   SipUserAgent& rSipUserAgent,
+                                  XCpCallControl& rCallControl,
                                   CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                   CpMessageQueueProvider& rMessageQueueProvider,
                                   XSipConnectionEventSink& rSipConnectionEventSink,
@@ -65,6 +66,9 @@ public:
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
+
+   /** Handles inbound SIP INVITE responses */
+   virtual SipConnectionStateTransition* processInviteResponse(const SipMessage& sipMessage);
 
    /* ============================ ACCESSORS ================================= */
 

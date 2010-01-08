@@ -2283,30 +2283,126 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAllLocalNetworkIps(char* arrAddresses[],
    return rc;
 }
 
-SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int* iSessionInterval) 
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimer(const SIPX_INST hInst,
+                                                   int* iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH* refresh)
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      *iSessionInterval = pInst->pCallManager->getInviteExpireSeconds();
+      CP_SESSION_TIMER_REFRESH cpSessionRefresh = CP_SESSION_REFRESH_AUTO;
+
+      pInst->pCallManager->getSessionTimerConfig(*iSessionInterval, cpSessionRefresh);
+      *refresh = (SIPX_SESSION_TIMER_REFRESH)cpSessionRefresh;
+
       rc = SIPX_RESULT_SUCCESS;
    }
 
    return rc;
 }
 
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int iSessionInterval) 
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimer(const SIPX_INST hInst,
+                                                   int iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH refresh) 
 {
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      pInst->pCallManager->setInviteExpireSeconds(iSessionInterval);
+      pInst->pCallManager->setSessionTimerConfig(iSessionInterval, (CP_SESSION_TIMER_REFRESH)refresh);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG* updateConfig)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      *updateConfig = (SIPX_SIP_UPDATE_CONFIG)pInst->pCallManager->getUpdateSetting();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG updateConfig) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      pInst->pCallManager->setUpdateSetting((CP_SIP_UPDATE_CONFIG)updateConfig);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG* relConfig)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      *relConfig = (SIPX_100REL_CONFIG)pInst->pCallManager->get100relSetting();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG relConfig) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      pInst->pCallManager->set100relSetting((CP_100REL_CONFIG)relConfig);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE* sdpOfferingMode)
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      *sdpOfferingMode = (SIPX_SDP_OFFERING_MODE)pInst->pCallManager->getSdpOfferingMode();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE sdpOfferingMode) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      pInst->pCallManager->setSdpOfferingMode((CP_SDP_OFFERING_MODE)sdpOfferingMode);
       rc = SIPX_RESULT_SUCCESS;
    }
 

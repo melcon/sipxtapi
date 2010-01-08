@@ -35,11 +35,12 @@
 
 AlertingSipConnectionState::AlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                        SipUserAgent& rSipUserAgent,
+                                                       XCpCallControl& rCallControl,
                                                        CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                        CpMessageQueueProvider& rMessageQueueProvider,
                                                        XSipConnectionEventSink& rSipConnectionEventSink,
                                                        const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
@@ -63,6 +64,8 @@ void AlertingSipConnectionState::handleStateEntry(StateEnum previousState, const
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   notifyConnectionStateObservers();
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry alerting connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }
@@ -75,8 +78,8 @@ void AlertingSipConnectionState::handleStateExit(StateEnum nextState, const Stat
 SipConnectionStateTransition* AlertingSipConnectionState::dropConnection(OsStatus& result)
 {
    // we are callee. We sent 180, but not 200 OK yet
-   // to drop call, send 403 Forbidden
-   return doRejectInboundConnectionInProgress(result);
+   // to drop call, reject it
+   return rejectConnection(result);
 }
 
 SipConnectionStateTransition* AlertingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)

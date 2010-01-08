@@ -34,11 +34,12 @@
 
 QueuedSipConnectionState::QueuedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                    SipUserAgent& rSipUserAgent,
+                                                   XCpCallControl& rCallControl,
                                                    CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                    CpMessageQueueProvider& rMessageQueueProvider,
                                                    XSipConnectionEventSink& rSipConnectionEventSink,
                                                    const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
@@ -62,6 +63,8 @@ void QueuedSipConnectionState::handleStateEntry(StateEnum previousState, const S
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   notifyConnectionStateObservers();
+
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry queued connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
 }
@@ -74,8 +77,8 @@ void QueuedSipConnectionState::handleStateExit(StateEnum nextState, const StateT
 SipConnectionStateTransition* QueuedSipConnectionState::dropConnection(OsStatus& result)
 {
    // we are callee. We queued inbound call, but haven't accepted it yet
-   // to drop call, send 403 Forbidden
-   return doRejectInboundConnectionInProgress(result);
+   // to drop call, reject it
+   return rejectConnection(result);
 }
 
 SipConnectionStateTransition* QueuedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)

@@ -43,7 +43,9 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_SESSION_TIMER_EXTENSION "timer"
 #define SIP_REPLACES_EXTENSION "replaces"
 #define SIP_JOIN_EXTENSION "join"
-#define SIP_PRACK_EXTENSION "100rel"
+#define SIP_PRACK_EXTENSION "100rel" // rfc3262
+#define SIP_FROM_CHANGE_EXTENSION "from-change" // must not appear in Require: header
+#define SIP_NO_REFER_SUB_EXTENSION "norefersub" // rfc4488
 
 // SIP Methods
 #define SIP_INVITE_METHOD "INVITE"
@@ -97,12 +99,15 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_P_ASSERTED_IDENTITY_FIELD "P-ASSERTED-IDENTITY"
 #define SIP_Q_FIELD "Q"
 #define SIP_REASON_FIELD "REASON"          //  RFC 3326 Reason header
+#define SIP_JOIN_FIELD "JOIN"          //  RFC 3911 Join header
 #define SIP_RECORD_ROUTE_FIELD "RECORD-ROUTE"
 #define SIP_REFER_TO_FIELD "REFER-TO"
+#define SIP_REFER_SUB_FIELD "REFER-SUB"
 #define SIP_SHORT_REFER_TO_FIELD "r"
 #define SIP_REFERRED_BY_FIELD "REFERRED-BY"
 #define SIP_SHORT_REFERRED_BY_FIELD "b"
 #define SIP_REPLACES_FIELD "REPLACES"
+#define SIP_RETRY_AFTER_FIELD "RETRY-AFTER"
 #define SIP_REQUEST_DISPOSITION_FIELD "REQUEST-DISPOSITION"
 #define SIP_REQUESTED_BY_FIELD "REQUESTED-BY"
 #define SIP_REQUIRE_FIELD "REQUIRE"
@@ -139,11 +144,14 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_RINGING_CODE 180
 #define SIP_RINGING_TEXT "Ringing"
 
+#define SIP_CALL_BEING_FORWARDED_CODE 181
+#define SIP_CALL_BEING_FORWARDED_TEXT "Call Is Being Forwarded"
+
 #define SIP_QUEUED_CODE 182
 #define SIP_QUEUED_TEXT "Queued"
 
-#define SIP_EARLY_MEDIA_CODE 183
-#define SIP_EARLY_MEDIA_TEXT "Session Progress"
+#define SIP_SESSION_PROGRESS_CODE 183
+#define SIP_SESSION_PROGRESS_TEXT "Session Progress"
 
 #define SIP_2XX_CLASS_CODE 200
 
@@ -190,8 +198,14 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_BAD_METHOD_CODE 405
 #define SIP_BAD_METHOD_TEXT "Method Not Allowed"
 
+#define SIP_NOT_ACCEPTABLE_CODE 406
+#define SIP_NOT_ACCEPTABLE_TEXT "Not Acceptable"
+
+#define SIP_PROXY_AUTH_REQUIRED_CODE 407
+#define SIP_PROXY_AUTH_REQUIRED_TEXT "Proxy Authentication Required"
+
 #define SIP_REQUEST_TIMEOUT_CODE 408
-#define SIP_REQUEST_TIMEOUT_TEXT "Request timeout"
+#define SIP_REQUEST_TIMEOUT_TEXT "Request Timeout"
 
 #define SIP_GONE_CODE 410
 #define SIP_GONE_TEXT "Gone"
@@ -219,7 +233,7 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_TEMPORARILY_UNAVAILABLE_TEXT "Temporarily Unavailable"
 
 #define SIP_BAD_TRANSACTION_CODE 481
-#define SIP_BAD_TRANSACTION_TEXT "Transaction Does Not Exist"
+#define SIP_BAD_TRANSACTION_TEXT "Call/Transaction Does Not Exist"
 
 #define SIP_LOOP_DETECTED_CODE 482
 #define SIP_LOOP_DETECTED_TEXT "Loop Detected"
@@ -265,8 +279,17 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_SERVICE_UNAVAILABLE_CODE 503
 #define SIP_SERVICE_UNAVAILABLE_TEXT "Service Unavailable"
 
+#define SIP_SERVER_TIMEOUT_CODE 504
+#define SIP_SERVER_TIMEOUT_TEXT "Server Timeout"
+
 #define SIP_BAD_VERSION_CODE 505
 #define SIP_BAD_VERSION_TEXT "Version Not Supported"
+
+#define SIP_MESSAGE_TOO_LARGE_CODE 513
+#define SIP_MESSAGE_TOO_LARGE_TEXT "Message Too Large"
+
+#define SIP_PRECONDITION_FAILURE_CODE 580
+#define SIP_PRECONDITION_FAILURE_TEXT "Precondition Failure"
 
 #define SIP_6XX_CLASS_CODE 600
 
@@ -278,6 +301,9 @@ class SipRegInfoBody;        // for RFC 3680
 
 #define SIP_DECLINE_CODE 603
 #define SIP_DECLINE_TEXT "Declined"
+
+#define SIP_GLOBAL_NOT_ACCEPTABLE_CODE 606
+#define SIP_GLOBAL_NOT_ACCEPTABLE_TEXT "Not Acceptable"
 
 // there is no class 7 code, this is only end marker
 #define SIP_7XX_CLASS_CODE 700
@@ -996,7 +1022,7 @@ public:
 
     UtlBoolean getEventField(UtlString& eventField) const;
 
-    void setEventField(const char* eventField);
+    void setEventField(const char* eventField, const char* id = NULL);
 
     UtlBoolean getExpiresField(int* expiresInSeconds) const;
 
@@ -1004,6 +1030,25 @@ public:
 
     UtlBoolean getRequestDisposition(int tokenIndex,
                                     UtlString* dispositionToken) const;
+
+    /**
+     * Sets Subscription-State header field value.
+     */
+    void setSubscriptionState(const UtlString& state,
+                              const UtlString& reason = NULL,
+                              int* expiresInSeconds = NULL,
+                              int* retryAfterSeconds = NULL);
+
+    /**
+    * Gets Subscription-State header field value.
+    *
+    * Default value of integer values is -1. String values
+    * will be empty if not present.
+    */
+    UtlBoolean getSubscriptionState(UtlString& state,
+                                    UtlString& reason,
+                                    int& expiresInSeconds,
+                                    int& retryAfterSeconds) const;
 
     UtlBoolean getSessionExpires(int* sessionExpiresSeconds, UtlString* refresher) const;
 
@@ -1024,6 +1069,9 @@ public:
      * Gets the value of Min-SE header field used in session timers.
      */
     UtlBoolean getMinSe(int& minSe) const;
+
+    /** Sets value of Retry-After field. */
+    void setRetryAfterField(int periodSeconds);
 
     UtlBoolean getSupportedField(UtlString& supportedField) const;
 
@@ -1130,6 +1178,10 @@ public:
 
     UtlBoolean getReferToField(UtlString& referToField) const;
 
+    UtlBoolean getReferSubField(UtlBoolean& referSubField) const;
+
+    void setReferSubField(UtlBoolean referSubField);
+
     void setReferredByField(const char* referredByField);
 
     UtlBoolean getReferredByField(UtlString& referredByField) const;
@@ -1140,6 +1192,9 @@ public:
     void setAllowField(const char* referToField);
 
     UtlBoolean getAllowField(UtlString& referToField) const;
+
+    /** Sets Replaces field, used in INVITE */
+    void setReplacesField(const char* replacesField);
 
     UtlBoolean getReplacesData(UtlString& callId,
                               UtlString& toTag,
@@ -1157,16 +1212,40 @@ public:
     // RFC 3326 REASON-header
     void setReasonField(const char* reasonField);
 
+    /**
+     * Sets RFC 3326 REASON header. Only 1 reason can be specified.
+     * Example:
+     * Reason: SIP ;cause=200 ;text="Call completed elsewhere"
+     */
+    void setReasonField(const UtlString& protocol, int cause, const UtlString& text);
+
     /** Gets value of whole unparsed Reason: field.*/
     UtlBoolean getReasonField(UtlString& reasonField) const;
 
     /** 
      * Gets protocol, first cause and text values from Reason: header field.
+     * Example:
+     * Reason: SIP ;cause=600 ;text="Busy Everywhere"
      *
      * @param index - index of the "reason-value" from RFC3326 to parse. Normally 0 can be used.
      */
     UtlBoolean getReasonField(int index, UtlString& protocol, int& cause, UtlString& text) const;
-	
+
+    /**
+     * Gets values of Join header field - call-id, from tag, to tag
+     * Example:
+     * Join: 12adf2f34456gs5;to-tag=12345;from-tag=54321
+     */
+    UtlBoolean getJoinField(UtlString& sipCallId, UtlString& fromTag, UtlString& toTag) const;
+
+    /** Gets value of whole unparsed Join: field.*/
+    UtlBoolean getJoinField(UtlString& joinField) const;
+
+    /**
+    * Sets value of Join header field - call-id, from tag, to tag
+    */
+    void setJoinField(const UtlString& sipCallId, const UtlString& fromTag, const UtlString& toTag);
+
     // Diversion-header
     void addDiversionField(const char* addr, const char* reasonParam,
     								UtlBoolean afterOtherDiversions=FALSE);
@@ -1242,6 +1321,48 @@ public:
 
     /** TRUE if this message is PRACK request */
     UtlBoolean isPrackRequest() const;
+
+    /** TRUE if this message is INVITE request */
+    UtlBoolean isInviteRequest() const;
+
+    /** TRUE if this message is CANCEL request */
+    UtlBoolean isCancelRequest() const;
+
+    /** TRUE if this message is BYE request */
+    UtlBoolean isByeRequest() const;
+
+    /** TRUE if this message is OPTIONS request */
+    UtlBoolean isOptionsRequest() const;
+
+    /** TRUE if this message is REFER request */
+    UtlBoolean isReferRequest() const;
+
+    /** TRUE if this message is UPDATE request */
+    UtlBoolean isUpdateRequest() const;
+
+    /** TRUE if this message is INFO request */
+    UtlBoolean isInfoRequest() const;
+
+    /** TRUE if this message is SUBSCRIBE request */
+    UtlBoolean isSubscribeRequest() const;
+
+    /** TRUE if this message is NOTIFY request */
+    UtlBoolean isNotifyRequest() const;
+
+    /** TRUE if this message is REGISTER request */
+    UtlBoolean isRegisterRequest() const;
+
+    /** TRUE if this message is ACK request */
+    UtlBoolean isAckRequest() const;
+
+    /** TRUE if this message belongs to INVITE dialog usage */
+    UtlBoolean isInviteDialogUsage() const;
+
+    /** TRUE if this message belongs to SUBSCRIBE dialog usage */
+    UtlBoolean isSubscribeDialogUsage() const;
+
+    /** TRUE if this message is target refresh request or response */
+    UtlBoolean isTargetRefresh() const;
 
     //! @ Transaction and session related inquiry methods
     //@{

@@ -16,7 +16,10 @@
 #include <os/OsPtrLock.h>
 #include <os/OsIntPtrMsg.h>
 #include <sdp/SdpCodecFactory.h>
+#include <net/SipMessageEvent.h>
+#include <net/SipMessage.h>
 #include <net/SipDialog.h>
+#include <net/SipLineProvider.h>
 #include <cp/XCpCall.h>
 #include <cp/XSipConnection.h>
 #include <cp/msg/AcConnectMsg.h>
@@ -31,6 +34,7 @@
 #include <cp/msg/AcTransferBlindMsg.h>
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
+#include <cp/msg/AcTransferConsultativeMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 #include <cp/msg/CmDestroyAbstractCallMsg.h>
 
@@ -49,20 +53,28 @@
 
 XCpCall::XCpCall(const UtlString& sId,
                  SipUserAgent& rSipUserAgent,
+                 XCpCallControl& rCallControl,
+                 SipLineProvider* pSipLineProvider,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
                  const CpNatTraversalConfig& rNatTraversalConfig,
                  const UtlString& sLocalIpAddress,
-                 int inviteExpireSeconds,
+                 int sessionTimerExpiration,
+                 CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                 CP_SIP_UPDATE_CONFIG updateSetting,
+                 CP_100REL_CONFIG c100relSetting,
+                 CP_SDP_OFFERING_MODE sdpOfferingMode,
+                 int inviteExpiresSeconds,
                  XCpCallConnectionListener* pCallConnectionListener,
                  CpCallStateEventListener* pCallEventListener,
                  SipInfoStatusEventListener* pInfoStatusEventListener,
                  SipInfoEventListener* pInfoEventListener,
                  SipSecurityEventListener* pSecurityEventListener,
                  CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
-                  sLocalIpAddress, inviteExpireSeconds, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
+: XCpAbstractCall(sId, rSipUserAgent, rCallControl, pSipLineProvider, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
+                  sLocalIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting, sdpOfferingMode, inviteExpiresSeconds,
+                  pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener)
 , m_pSipConnection(NULL)
 {
@@ -82,24 +94,31 @@ OsStatus XCpCall::connect(const UtlString& sipCallId,
                           const UtlString& toAddress,
                           const UtlString& fromAddress,
                           const UtlString& locationHeader,
-                          CP_CONTACT_ID contactId)
+                          CP_CONTACT_ID contactId,
+                          CP_FOCUS_CONFIG focusConfig,
+                          const UtlString& replacesField,
+                          CP_CALLSTATE_CAUSE callstateCause,
+                          const SipDialog* pCallbackSipDialog)
 {
    if (sipCallId.isNull() || toAddress.isNull() || fromAddress.isNull())
    {
       return OS_FAILED;
    }
+   m_focusConfig = focusConfig;
 
    UtlString localTag(m_sipTagGenerator.getNewTag());
    sipDialog = SipDialog(sipCallId, localTag, NULL);
 
-   AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId);
+   AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId,
+      replacesField, callstateCause, pCallbackSipDialog);
    return postMessage(connectMsg);
 }
 
-OsStatus XCpCall::acceptConnection(const UtlString& locationHeader,
+OsStatus XCpCall::acceptConnection(UtlBoolean bSendSDP,
+                                   const UtlString& locationHeader,
                                    CP_CONTACT_ID contactId)
 {
-   AcAcceptConnectionMsg acceptConnectionMsg(locationHeader, contactId);
+   AcAcceptConnectionMsg acceptConnectionMsg(bSendSDP, locationHeader, contactId);
    return postMessage(acceptConnectionMsg);
 }
 
@@ -138,6 +157,13 @@ OsStatus XCpCall::transferBlind(const SipDialog& sipDialog,
 {
    AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
    return postMessage(transferBlindMsg);
+}
+
+OsStatus XCpCall::transferConsultative(const SipDialog& sourceSipDialog,
+                                       const SipDialog& targetSipDialog)
+{
+   AcTransferConsultativeMsg transferConsultativeMsg(sourceSipDialog, targetSipDialog);
+   return postMessage(transferConsultativeMsg);
 }
 
 OsStatus XCpCall::holdConnection(const SipDialog& sipDialog)
@@ -271,6 +297,9 @@ UtlBoolean XCpCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_TRANSFER_BLIND:
       handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
       return TRUE;
+   case AcCommandMsg::AC_TRANSFER_CONSULTATIVE:
+      handleTransferConsultative((const AcTransferConsultativeMsg&)rRawMsg);
+      return TRUE;
    case AcCommandMsg::AC_HOLD_CONNECTION:
       handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
       return TRUE;
@@ -303,6 +332,41 @@ UtlBoolean XCpCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
    return XCpAbstractCall::handleTimerMessage(rRawMsg);
 }
 
+UtlBoolean XCpCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+{
+   const SipMessage* pSipMessage = (SipMessage*)rSipMsgEvent.getMessage();
+   if (pSipMessage)
+   {
+      SipDialog sipDialog(pSipMessage);
+
+      OsPtrLock<XSipConnection> ptrLock;
+      UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+      if (resFound)
+      {
+         return ptrLock->handleSipMessageEvent(rSipMsgEvent);
+      }
+      else
+      {
+         const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
+         if (!m_pSipConnection && pSipMessage && pSipMessage->isInviteRequest())
+         {
+            // we have inbound INVITE request, call doesn't exist yet
+            // discover real line url
+            UtlString sFullLineUrl(getRealLineIdentity(*pSipMessage));
+            // sip connection doesn't yet exist, and we received new INVITE message
+            createSipConnection(sipDialog, sFullLineUrl); // create sip connection
+            resFound = getConnection(ptrLock);
+            if (resFound)
+            {
+               return ptrLock->handleSipMessageEvent(rSipMsgEvent); // let it handle INVITE
+            }
+         }
+      }
+   }
+
+   return FALSE;
+}
+
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
@@ -312,7 +376,7 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    if (!m_pSipConnection)
    {
       SipDialog sipDialog(rMsg.getSipCallId(), rMsg.getLocalTag(), NULL, TRUE);
-      createSipConnection(sipDialog);
+      createSipConnection(sipDialog, rMsg.getFromAddress()); // use from address as real line url (supports virtual lines)
    }
 
    OsPtrLock<XSipConnection> ptrLock;
@@ -320,7 +384,7 @@ OsStatus XCpCall::handleConnect(const AcConnectMsg& rMsg)
    if (resFound)
    {
       result = ptrLock->connect(rMsg.getSipCallId(), rMsg.getLocalTag(), rMsg.getToAddress(), rMsg.getFromAddress(),
-         rMsg.getLocationHeader(), rMsg.getContactId());
+         rMsg.getLocationHeader(), rMsg.getContactId(), rMsg.getReplacesField(), rMsg.getCallstateCause(), rMsg.getCallbackSipDialog());
    }
 
    return result;
@@ -332,7 +396,7 @@ OsStatus XCpCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)
    UtlBoolean resFound = getConnection(ptrLock);
    if (resFound)
    {
-      return ptrLock->acceptConnection(rMsg.getLocationHeader(), rMsg.getContactId());
+      return ptrLock->acceptConnection(rMsg.getSendSDP() ,rMsg.getLocationHeader(), rMsg.getContactId());
    }
 
    return OS_NOT_FOUND;
@@ -423,6 +487,23 @@ OsStatus XCpCall::handleTransferBlind(const AcTransferBlindMsg& rMsg)
    return OS_NOT_FOUND;
 }
 
+OsStatus XCpCall::handleTransferConsultative(const AcTransferConsultativeMsg& rMsg)
+{
+   SipDialog sourceSipDialog;
+   SipDialog targetSipDialog;
+   rMsg.getSourceSipDialog(sourceSipDialog);
+   rMsg.getTargetSipDialog(targetSipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sourceSipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->transferConsultative(targetSipDialog);
+   }
+
+   return OS_NOT_FOUND;
+}
+
 OsStatus XCpCall::handleHoldConnection(const AcHoldConnectionMsg& rMsg)
 {
    SipDialog sipDialog;
@@ -505,14 +586,16 @@ OsStatus XCpCall::handleSendInfo(const AcSendInfoMsg& rMsg)
    return OS_NOT_FOUND;
 }
 
-void XCpCall::createSipConnection(const SipDialog& sipDialog)
+void XCpCall::createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl)
 {
    UtlBoolean bAdded = FALSE;
    {
       OsLock lock(m_memberMutex);
       if (!m_pSipConnection)
       {
-         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, m_inviteExpireSeconds, *this, *this, m_natTraversalConfig,
+         m_pSipConnection = new XSipConnection(m_sId, sipDialog, m_rSipUserAgent, m_rCallControl, sFullLineUrl, m_sLocalIpAddress,
+            m_sessionTimerExpiration, m_sessionTimerRefresh,
+            m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, *this, *this, m_natTraversalConfig,
             m_pCallEventListener, m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
          bAdded = TRUE;
       }
@@ -573,6 +656,26 @@ void XCpCall::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
    if (resFound)
    {
       ptrLock->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+   }
+}
+
+void XCpCall::onFocusGained()
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+      ptrLock->onFocusGained();
+   }
+}
+
+void XCpCall::onFocusLost()
+{
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = getConnection(ptrLock);
+   if (resFound)
+   {
+      ptrLock->onFocusLost();
    }
 }
 

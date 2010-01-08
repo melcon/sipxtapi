@@ -146,6 +146,9 @@ public:
    /** Gets data stored with transaction */
    void* getTransactionData(const UtlString& sipMethod, int cseqNum) const;
 
+   /** Gets Invite transaction cseq number */
+   int getInviteCSeqNum() const;
+
    /* ============================ INQUIRY =================================== */
 
    /**

@@ -497,12 +497,11 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       szBindToAddr,
       FALSE, // doNotDisturb
       FALSE, // bEnableICE
-      TRUE, // bEnableSipInfo
       FALSE, // bIsRequiredLineMatch
       rtpPortStart, // rtpPortStart
       rtpPortStart + (2 * maxConnections), // rtpPortEnd
+      CP_MAXIMUM_RINGING_EXPIRE_SECONDS,
       maxConnections, // maxCalls - max calls before sending busy. -1 means unlimited
-      3600, // inviteExpireSeconds - RFC4028 session timer
       *sipXmediaFactoryFactory(NULL));
 
    // Start up the call processing system

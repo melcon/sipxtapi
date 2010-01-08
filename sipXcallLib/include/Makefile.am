@@ -15,6 +15,7 @@ nobase_include_HEADERS =  \
     cp/CpDefs.h \
     cp/CpGhostConnection.h \
     cp/CpIntMessage.h \
+    cp/CpLoopDetector.h \
     cp/CpMediaEventListener.h \
     cp/CpMediaInterfaceProvider.h \
     cp/CpMessageQueueProvider.h \
@@ -22,6 +23,7 @@ nobase_include_HEADERS =  \
     cp/CpMultiStringMessage.h \
     cp/CpNatTraversalConfig.h \
     cp/CpNotificationMsgDef.h \
+    cp/CpNotificationRegister.h \
     cp/CpPeerCall.h \
     cp/Cp100RelTracker.h \
     cp/CpSdpNegotiation.h \
@@ -32,6 +34,7 @@ nobase_include_HEADERS =  \
     cp/SipConnection.h \
     cp/XCpAbstractCall.h \
     cp/XCpCall.h \
+    cp/XCpCallControl.h \
     cp/XCpCallConnectionListener.h \
     cp/XCpCallIdUtil.h \
     cp/XCpCallManager.h \
@@ -41,6 +44,7 @@ nobase_include_HEADERS =  \
     cp/XSipConnectionContext.h \
     cp/XSipConnectionEventSink.h \
     cp/msg/AcAcceptConnectionMsg.h \
+    cp/msg/AcAcceptTransferMsg.h \
     cp/msg/AcAnswerConnectionMsg.h \
     cp/msg/AcAudioBufferPlayMsg.h \
     cp/msg/AcAudioFilePlayMsg.h \
@@ -64,14 +68,19 @@ nobase_include_HEADERS =  \
     cp/msg/AcNotificationMsg.h \
     cp/msg/AcRedirectConnectionMsg.h \
     cp/msg/AcRejectConnectionMsg.h \
+    cp/msg/AcRejectTransferMsg.h \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcSubscribeMsg.h \
     cp/msg/AcTimerMsg.h \
     cp/msg/AcTransferBlindMsg.h \
+    cp/msg/AcTransferConsultativeMsg.h \
+    cp/msg/AcTunneledNotificationMsg.h \
     cp/msg/AcUnholdAllConnectionsMsg.h \
     cp/msg/AcUnholdConnectionMsg.h \
     cp/msg/AcUnmuteInputConnectionMsg.h \
+    cp/msg/AcUnsubscribeMsg.h \
     cp/msg/AcYieldFocusMsg.h \
     cp/msg/CmCommandMsg.h \
     cp/msg/CmDestroyAbstractCallMsg.h \
@@ -83,9 +92,13 @@ nobase_include_HEADERS =  \
     cp/msg/Sc2xxTimerMsg.h \
     cp/msg/ScByeRetryTimerMsg.h \
     cp/msg/ScCommandMsg.h \
+    cp/msg/ScConnStateNotificationMsg.h \
+    cp/msg/ScDelayedAnswerTimerMsg.h \
     cp/msg/ScDisconnectTimerMsg.h \
+    cp/msg/ScInviteExpirationTimerMsg.h \
     cp/msg/ScNotificationMsg.h \
     cp/msg/ScReInviteTimerMsg.h \
+    cp/msg/ScSessionTimeoutTimerMsg.h \
     cp/msg/ScTimerMsg.h \
     cp/state/AlertingSipConnectionState.h \
     cp/state/BaseSipConnectionState.h \

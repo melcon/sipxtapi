@@ -149,7 +149,7 @@ void sipXtapiTestSuite::testConfBasic1()
 
 
       char szCallerId[256];
-      sipxCallGetRemoteID(g_hAutoAnswerCallbackCall2, szCallerId, 256);
+      sipxCallGetRemoteField(g_hAutoAnswerCallbackCall2, szCallerId, 256);
       Url callerUrl(szCallerId);
       UtlString displayName;
       callerUrl.getDisplayName(displayName);
@@ -1335,7 +1335,7 @@ void sipXtapiTestSuite::testConferenceDisplayName()
       // reset events, we are not interested in hold/unhold check
 
       char szCallerId[256];
-      sipxCallGetRemoteID(g_hAutoAnswerCallbackCall, szCallerId, 256);
+      sipxCallGetRemoteField(g_hAutoAnswerCallbackCall, szCallerId, 256);
       Url callerUrl(szCallerId);
       UtlString displayName;
       callerUrl.getDisplayName(displayName);
@@ -1369,7 +1369,7 @@ void sipXtapiTestSuite::testConferenceDisplayName()
       CPPUNIT_ASSERT(bRC);
 
 
-      sipxCallGetRemoteID(g_hAutoAnswerCallbackCall2, szCallerId, 256);
+      sipxCallGetRemoteField(g_hAutoAnswerCallbackCall2, szCallerId, 256);
       Url callerUrl2(szCallerId);
       callerUrl2.getDisplayName(displayName);
 

@@ -43,19 +43,25 @@ public:
    UtlString m_sOriginalSessionCallId; // callId supplied sometimes for transfer events
    int m_sipResponseCode;
    UtlString m_sResponseText;
+   UtlString m_sReferredBy;
+   UtlString m_sReferTo;
 
    CpCallStateEvent(const UtlString& sCallId,
       const SipDialog* pSipDialog,
       CP_CALLSTATE_CAUSE cause,
       const UtlString& sOriginalSessionCallId = NULL,
       int sipResponseCode = 0,
-      const UtlString& sResponseText = NULL)
+      const UtlString& sResponseText = NULL,
+      const UtlString& sReferredBy = NULL,
+      const UtlString& sReferTo = NULL)
       : m_sCallId(sCallId),
       m_pSipDialog(NULL),
       m_cause(cause),
       m_sOriginalSessionCallId(sOriginalSessionCallId),
       m_sipResponseCode(sipResponseCode),
-      m_sResponseText(sResponseText)
+      m_sResponseText(sResponseText),
+      m_sReferredBy(sReferredBy),
+      m_sReferTo(sReferTo)
    {
       if (pSipDialog)
       {
@@ -109,6 +115,8 @@ public:
       m_sOriginalSessionCallId = event.m_sOriginalSessionCallId;
       m_sipResponseCode = event.m_sipResponseCode;
       m_sResponseText = event.m_sResponseText;
+      m_sReferredBy = event.m_sReferredBy;
+      m_sReferTo = event.m_sReferTo;
 
       return *this;
    }

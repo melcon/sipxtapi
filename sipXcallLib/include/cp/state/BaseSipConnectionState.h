@@ -31,12 +31,24 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
+typedef enum ERROR_RESPONSE_TYPE
+{
+   ERROR_RESPONSE_400, // Bad Request
+   ERROR_RESPONSE_481, // Call/Transaction Does Not Exist
+   ERROR_RESPONSE_487, // Request Terminated
+   ERROR_RESPONSE_488, // Not Acceptable Here
+   ERROR_RESPONSE_491, // Request Pending
+   ERROR_RESPONSE_500, // Internal Server Error
+   ERROR_RESPONSE_603, // Declined
+} ERROR_RESPONSE_TYPE;
+
 // MACROS
 // FORWARD DECLARATIONS
 class SipUserAgent;
 class CpMediaInterfaceProvider;
 class CpMessageQueueProvider;
 class XSipConnectionEventSink;
+class XCpCallControl;
 class SipConnectionStateTransition;
 class StateTransitionMemory;
 class SipMessage;
@@ -47,11 +59,28 @@ class Sc100RelTimerMsg;
 class Sc2xxTimerMsg;
 class ScDisconnectTimerMsg;
 class ScByeRetryTimerMsg;
+class ScSessionTimeoutTimerMsg;
+class ScInviteExpirationTimerMsg;
+class ScDelayedAnswerTimerMsg;
+class ScConnStateNotificationMsg;
 
 /**
  * Parent to all concrete sip connection states. Should be used for handling
  * common to all states. This should be used as the last resort handler, usually
  * responding with errors to requests.
+ *
+ * Specific response handlers are only called for SIP response messages, for which
+ * an active transaction exists, and not for retransmissions (except for INVITE 200 OK).
+ * There is one common fatal response handler, processResponse() which processes responses
+ * according to rfc5057. Any 4xx, 5xx, 6xx to initial INVITE transaction is also treated
+ * as fatal (with exception 422).
+ * Responses which only affect transaction may be seen in specific response handlers.
+ *
+ * Some additional response codes are treated as fatal responses, and will result in immediate termination
+ * of call for INVITE/UPDATE/BYE/CANCEL methods.
+ * - 401 Unauthorized (will only be received for bad credentials)
+ * - 407 Proxy Authentication Required (will only be received for bad credentials) - for BYE and CANCEL
+ * - 408 Request Timeout (received from SipUserAgent) - for BYE and CANCEL
  */
 class BaseSipConnectionState : public ISipConnectionState
 {
@@ -62,6 +91,7 @@ public:
    /** Constructor. */
    BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
+                          XCpCallControl& rCallControl,
                           CpMediaInterfaceProvider& rMediaInterfaceProvider,
                           CpMessageQueueProvider& rMessageQueueProvider,
                           XSipConnectionEventSink& rSipConnectionEventSink,
@@ -102,10 +132,45 @@ public:
                                                  const UtlString& toAddress,
                                                  const UtlString& fromAddress,
                                                  const UtlString& locationHeader,
-                                                 CP_CONTACT_ID contactId);
+                                                 CP_CONTACT_ID contactId,
+                                                 const UtlString& replacesField);
+
+   /**
+   * Accepts inbound call connection, sends 180 Ringing.
+   */
+   virtual SipConnectionStateTransition* acceptConnection(OsStatus& result,
+                                                          UtlBoolean bSendSDP,
+                                                          const UtlString& locationHeader,
+                                                          CP_CONTACT_ID contactId);
+   /**
+   * Reject the incoming connection.
+   */
+   virtual SipConnectionStateTransition* rejectConnection(OsStatus& result);
+
+   /**
+   * Redirect the incoming connection.
+   */
+   virtual SipConnectionStateTransition* redirectConnection(OsStatus& result,
+                                                            const UtlString& sRedirectSipUrl);
+   /**
+   * Answer the incoming terminal connection, sends 200 OK.
+   */
+   virtual SipConnectionStateTransition* answerConnection(OsStatus& result);
+
+   /** Accepts call transfer */
+   virtual SipConnectionStateTransition* acceptTransfer(OsStatus& result);
+
+   /** Rejects call transfer with 603 Declined */
+   virtual SipConnectionStateTransition* rejectTransfer(OsStatus& result);
 
    /** Disconnects call */
    virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
+
+   /** Blind transfer the call to sTransferSipUri. */
+   virtual SipConnectionStateTransition* transferBlind(OsStatus& result, const UtlString& sTransferSipUrl);
+
+   /** Consultative transfer call to target call. */
+   virtual SipConnectionStateTransition* transferConsultative(OsStatus& result, const SipDialog& targetSipDialog);
 
    /** Put the specified terminal connection on hold. */
    virtual SipConnectionStateTransition* holdConnection(OsStatus& result);
@@ -166,6 +231,9 @@ protected:
    /** Sends specified sip message, updating the state of SipDialog. SipMessage will be updated. */
    UtlBoolean sendMessage(SipMessage& sipMessage);
 
+   /** Sends specified provisional response reliably */
+   UtlBoolean sendReliableResponse(SipMessage& sipMessage);
+
    /** Handles SIP request and response messages. */
    virtual SipConnectionStateTransition* processSipMessage(const SipMessage& sipMessage);
 
@@ -199,8 +267,19 @@ protected:
    /** Handles inbound SIP REFER requests */
    virtual SipConnectionStateTransition* processReferRequest(const SipMessage& sipMessage);
 
+   /**
+    * Handles inbound SIP NOTIFY body for REFER. Response has already been sent.
+    */
+   virtual SipConnectionStateTransition* handleReferNotifyBody(const SipMessage& sipNotifyBody);
+
    /** Handles inbound SIP PRACK requests */
    virtual SipConnectionStateTransition* processPrackRequest(const SipMessage& sipMessage);
+
+   /** Handles inbound SIP OPTIONS requests */
+   virtual SipConnectionStateTransition* processOptionsRequest(const SipMessage& sipMessage);
+
+   /** Handles inbound SIP SUBSCRIBE requests */
+   virtual SipConnectionStateTransition* processSubscribeRequest(const SipMessage& sipMessage);
 
    /**
     * Processes inbound SIP response message. This is the default handler than needs to
@@ -222,6 +301,9 @@ protected:
 
    /** Handles inbound SIP INVITE responses */
    virtual SipConnectionStateTransition* processInviteResponse(const SipMessage& sipMessage);
+
+   /** Handles inbound 1xx SIP INVITE responses */
+   virtual SipConnectionStateTransition* processProvisionalInviteResponse(const SipMessage& sipMessage);
 
    /** Handles inbound SIP UPDATE responses */
    virtual SipConnectionStateTransition* processUpdateResponse(const SipMessage& sipMessage);
@@ -247,11 +329,17 @@ protected:
    /** Handles inbound SIP PRACK responses */
    virtual SipConnectionStateTransition* processPrackResponse(const SipMessage& sipMessage);
 
+   /** Handles inbound SIP SUBSCRIBE responses */
+   virtual SipConnectionStateTransition* processSubscribeResponse(const SipMessage& sipMessage);
+
    /** Called when authentication retry occurs. We need to update dialogs. */
    virtual SipConnectionStateTransition* handleAuthenticationRetryEvent(const SipMessage& sipMessage);
 
    /** Returns TRUE if some SIP method is allowed (may be sent) */
-   UtlBoolean isMethodAllowed(const UtlString& sMethod);
+   UtlBoolean isMethodAllowed(const UtlString& sMethod) const;
+
+   /** Returns TRUE if some SIP extension is allowed */
+   UtlBoolean isExtensionSupported(const UtlString& sExtension) const;
 
    /** Deletes media connection if it exists, stopping remote and local audio */
    void deleteMediaConnection();
@@ -289,8 +377,23 @@ protected:
    /** Handles session renegotiation timer message. */
    virtual SipConnectionStateTransition* handleRenegotiateTimerMessage(const ScReInviteTimerMsg& timerMsg);
 
+   /** Handles session refresh timer message. */
+   virtual SipConnectionStateTransition* handleRefreshSessionTimerMessage(const ScReInviteTimerMsg& timerMsg);
+
+   /** Handles session timeout check timer message. */
+   virtual SipConnectionStateTransition* handleSessionTimeoutCheckTimerMessage(const ScSessionTimeoutTimerMsg& timerMsg);
+
+   /** Handles invite expiration timer message. */
+   virtual SipConnectionStateTransition* handleInviteExpirationTimerMessage(const ScInviteExpirationTimerMsg& timerMsg);
+
    /** Handles bye retry timer message. */
    virtual SipConnectionStateTransition* handleByeRetryTimerMessage(const ScByeRetryTimerMsg& timerMsg);
+
+   /** Handles delayed answer timer message. */
+   virtual SipConnectionStateTransition* handleDelayedAnswerTimerMessage(const ScDelayedAnswerTimerMsg& timerMsg);
+
+   /** Handles connection state notification message. */
+   virtual SipConnectionStateTransition* handleConnStateNotificationMessage(const ScConnStateNotificationMsg& rMsg);
 
    /** Quick access to sip call-id */
    UtlString getCallId() const;
@@ -304,19 +407,28 @@ protected:
     */
    UtlString buildContactUrl(const Url& fromAddress) const;
 
+   /** Initializes contact of dialog. Must be called for inbound calls, after we know contact Id */
+   void initDialogContact(CP_CONTACT_ID contactId, const Url& localField);
+
    /** 
     * Gets local contact URL from SipDialog. Can only be used once SipDialog has been initialized with first
     * outbound request. Contact Url will have display name if its available.
     */
-   void getLocalContactUrl(Url& contactUrl);
+   void getLocalContactUrl(Url& contactUrl) const;
 
    /**
     * Gets local contact URL as string.
     */
-   UtlString getLocalContactUrl();
+   UtlString getLocalContactUrl() const;
 
-   /** Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress*/
+   /**
+    * Builds default contact URL. URL will not be sips, and will contain UserId, display name from fromAddress.
+    * This function builds contact if we haven't selected any contact ID.
+    */
    UtlString buildDefaultContactUrl(const Url& fromAddress) const;
+
+   /** Gets local tag from sip dialog */
+   UtlString getLocalTag() const;
 
    /** Changes scheme to sips: if secured transport is used based on contactId */
    void secureUrl(Url& fromAddress) const;
@@ -348,41 +460,56 @@ protected:
    /** Commits changes negotiated by SDP offer/answer, starting/stopping RTP flow */
    UtlBoolean commitMediaSessionChanges();
 
-   /** Sets last sent invite */
-   void setLastSentInvite(const SipMessage& sipMessage);
-
    /** Sets last received invite */
    void setLastReceivedInvite(const SipMessage& sipMessage);
 
    /** Sets last sent 2xx response to invite */
    void setLastSent2xxToInvite(const SipMessage& sipMessage);
 
+   /** Sets last sent REFER message */
+   void setLastSentRefer(const SipMessage& sipMessage);
+
+   /** Sets last received and accepted REFER message */
+   void setLastReceivedRefer(const SipMessage& sipMessage);
+
    /** Gets session timer properties */
    CpSessionTimerProperties& getSessionTimerProperties();
 
-   /** Handles 422 INVITE response */
-   void handleSmallInviteSessionInterval(const SipMessage& sipMessage);
+   /** Handles 422 INVITE/UPDATE response */
+   void handleSmallSessionIntervalResponse(const SipMessage& sipMessage);
 
-   /** Sends options request */
+   /** Sends options request, regardless of whether dialog is established */
    void sendOptionsRequest();
 
-   /** Checks if we know Allow of remote side, and optionally sends options if we don't */
-   void checkRemoteAllow();
+   /** Checks if we may send in dialog OPTIONS request, and sends it if we can. */
+   void discoverRemoteCapabilities();
 
    /** Sends ACK to given 200 OK response */
-   void handleInvite2xxResponse(const SipMessage& sipResponse);
+   virtual SipConnectionStateTransition* handleInvite2xxResponse(const SipMessage& sipResponse);
 
-   /** Sends BYE to terminate call */
-   void sendBye();
+   /** Sends BYE to terminate call. Optionally also specify values of Reason field. */
+   void sendBye(int cause = 0, const UtlString& text = NULL);
 
-   /** Sends CANCEL to terminate call */
-   void sendInviteCancel();
+   /** Sends CANCEL to terminate call. Optionally also specify values of Reason field. */
+   void sendInviteCancel(int cause = 0, const UtlString& text = NULL);
 
-   /** Sends re-INVITE for hold/unhold/codec renegotiation */
-   void sendReInvite();
+   /** Sends re-INVITE for hold/unhold/codec renegotiation, or initial INVITE after 422 response */
+   void sendInvite();
 
    /** Sends UPDATE for hold/unhold/codec renegotiation */
-   void sendUpdate();
+   void sendUpdate(UtlBoolean bRenegotiateCodecs = TRUE);
+
+   /** Sends NOTIFY for inbound REFER, for given connection state of newly created call */
+   void sendReferNotify(ISipConnectionState::StateEnum connectionState);
+
+   /** 
+    * Sends PRACK request, confirming reception of specified 1xx sip response.
+    * @param bSendSDPAnswer When TRUE, then SDP answer will be generated. Otherwise
+    *        an SDP offer might be generated.
+    * @return TRUE if no error occurred. FALSE if there was an error. An attempt will be
+    *         made to send PRACK regardless of error.
+    */
+   UtlBoolean sendPrack(const SipMessage& sipResponse, UtlBoolean bSendSDPAnswer);
 
    /**
     * Sets media connection destination to given host/ports if ICE is disabled, or to all
@@ -433,8 +560,35 @@ protected:
    /** Deletes timer responsible for retransmit of 2xx invite responses */
    void delete2xxRetransmitTimer();
 
-   /** Rejects inbound connection that is in progress (not yet established by sending 403 Forbidden */
-   SipConnectionStateTransition* doRejectInboundConnectionInProgress(OsStatus& result);
+   /** Starts timer to check session timeout */
+   void startSessionTimeoutCheckTimer();
+
+   /** Deletes timer for checking session timeout */
+   void deleteSessionTimeoutCheckTimer();
+
+   /** Starts timer to refresh session */
+   void startSessionRefreshTimer();
+
+   /** Deletes timer for refreshing session */
+   void deleteSessionRefreshTimer();
+
+   /** Starts timer for checking invite expiration */
+   void startInviteExpirationTimer(int timeoutSec, int cseqNum, UtlBoolean bIsOutbound);
+
+   /** Deletes timer for checking invite expiration */
+   void deleteInviteExpirationTimer();
+
+   /** Starts timer to retransmit 100rel message */
+   void start100relRetransmitTimer(const SipMessage& c100relResponse);
+
+   /** Deletes timer to retransmit 100rel message */
+   void delete100relRetransmitTimer();
+
+   /** Starts timer to answer call with delay */
+   void startDelayedAnswerTimer();
+
+   /** Deletes timer for answering call with delay */
+   void deleteDelayedAnswerTimer();
 
    /** Gets Id of sip dialog */
    void getSipDialogId(UtlString& sipCallId,
@@ -453,6 +607,13 @@ protected:
 
    /** Must be called for responses to track inbound/outbound transactions */
    void trackTransactionResponse(const SipMessage& sipMessage);
+
+   /**
+    * Verifies inbound request cseq number (must be monotonous), and does
+    * loop detection. If error is detected then sends answer immediately.
+    * Returns FALSE if processing of message should stop.
+    */
+   UtlBoolean verifyInboundRequest(const SipMessage& sipMessage);
 
    /**
     * Gets state of invite transaction. Considers both outbound and inbound invite transactions.
@@ -474,6 +635,12 @@ protected:
    /** Returns TRUE if some UPDATE is active. */
    UtlBoolean isUpdateActive();
 
+   /** Returns TRUE if some outbound UPDATE is active. */
+   UtlBoolean isOutboundUpdateActive();
+
+   /** Returns TRUE if some inbound UPDATE is active. */
+   UtlBoolean isInboundUpdateActive();
+
    /** Returns TRUE if we may start renegotiating media session now */
    UtlBoolean mayRenegotiateMediaSession();
 
@@ -483,8 +650,12 @@ protected:
    /** Initiates unhold via re-INVITE or UPDATE */
    void doUnhold();
 
-   /** Renegotiates media session */
-   void renegotiateMediaSession();
+   /**
+    * Refreshes session. May also renegotiate codecs. Uses re-INVITE or UPDATE.
+    * @param bRenegotiateCodecs When FALSE, then codecs won't be renegotiated if UPDATE
+    *        method is used.
+    */
+   void refreshSession(UtlBoolean bRenegotiateCodecs = TRUE);
 
    /** Sets state of local media connection. Don't update state directly. Use this function. */
    void setLocalMediaConnectionState(SipConnectionStateContext::MediaConnectionState state,
@@ -512,8 +683,88 @@ protected:
    /** Follows next redirect, or terminates call if none are left */
    virtual SipConnectionStateTransition* followNextRedirect();
 
+   /** Gets sip call-id. Useful for log messages. */
+   UtlString getSipCallId() const;
+
+   /**
+    * Handles answer of session timer request in sip response message. This method can handle
+    * both answers from remote side, but also responses which we are about to send.
+    */
+   void handleSessionTimerResponse(const SipMessage& sipResponse);
+
+   /** Prepares session timer response, based on request */
+   void prepareSessionTimerResponse(const SipMessage& sipRequest, SipMessage& sipResponse);
+
+   /** Prepares session timer request */
+   void prepareSessionTimerRequest(SipMessage& sipRequest);
+
+   /** Prepares error response to given sip request, based on enum value. */
+   void prepareErrorResponse(const SipMessage& sipRequest, SipMessage& sipResponse, ERROR_RESPONSE_TYPE responseType) const;
+
+   /** Deletes all timers */
+   void deleteAllTimers();
+
+   /** Updates known capabilities about remote party. Updates Allow, Supported.*/
+   void updateRemoteCapabilities(const SipMessage& sipMessage);
+
+   /** Call to reset remote party capabilities. Must be called when following redirect. */
+   void resetRemoteCapabilities();
+
+   /** Adds Require: 100rel if 100rel is configured to be mandatory */
+   void maybeRequire100rel(SipMessage& sipRequest) const;
+
+   /** Returns TRUE if we should send reliable 18x response */
+   UtlBoolean shouldSend100relResponse() const;
+
+   /**
+    * Gets type of SDP body in PRACK request. This method uses heuristic based
+    * on the assumption that we send only one 18x reliable response. If we want
+    * to support sending multiple reliable responses, we need more powerful SDP type
+    * tracking.
+    */
+   CpSdpNegotiation::SdpBodyType getPrackSdpBodyType(const SipMessage& sipMessage) const;
+
+   /**
+    * If needed and remote side supports it, try to announce new remote identity
+    * if it has changed. Modifies supplied SipMessage request to have different from
+    * field, using the same tag.
+    */
+   void announceConnectedIdentity(SipMessage& sipRequest) const;
+
+   /**
+   * Announcement of connected identity has been accepted, update localField of dialog.
+   */
+   void onConnectedIdentityAccepted();
+
+   /**
+    * Connected identity was rejected.
+    */
+   void onConnectedIdentityRejected();
+
+   /** Updates remote sip dialog field with that from sip message */
+   void updateSipDialogRemoteField(const SipMessage& sipRequest);
+
+   /**
+    * Initiates call transfer to given url. For consultative transfer, the url must contain header parameter Replaces,
+    * to-tag and from-tag.
+    */
+   OsStatus transferCall(const Url& sReferToSipUrl);
+
+   /** notifies connection state observers about current state */
+   void notifyConnectionStateObservers();
+
+   /** Called when REFER message is received, and we are ready to process it. Basic checks have already been done. */
+   UtlBoolean followRefer(const SipMessage& sipRequest);
+
+   /**
+    * Gets status code for sending in NOTIFY message as status for REFER (transferee). Returns FALSE
+    * if NOTIFY should not be sent.
+    */
+   UtlBoolean getReferNotifyCode(ISipConnectionState::StateEnum connectionState, int& code, UtlString& text) const;
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   XCpCallControl& m_rCallControl; ///< interface for controlling other calls
    CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
    CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types

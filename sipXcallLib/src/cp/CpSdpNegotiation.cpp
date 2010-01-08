@@ -37,6 +37,7 @@ CpSdpNegotiation::CpSdpNegotiation()
 : m_negotiationState(CpSdpNegotiation::SDP_NOT_NEGOTIATED)
 , m_bSdpOfferFinished(FALSE)
 , m_bSdpAnswerFinished(FALSE)
+, m_bUnreliableSdpAnswerFinished(FALSE)
 , m_bLocallyInitiated(FALSE)
 , m_sdpOfferingMode(CpSdpNegotiation::SDP_OFFERING_IMMEDIATE)
 , m_pOfferSipMessage(NULL)
@@ -69,6 +70,7 @@ void CpSdpNegotiation::startSdpNegotiation(const SipMessage& sipMessage, UtlBool
    m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS;
    m_bSdpOfferFinished = FALSE;
    m_bSdpAnswerFinished = FALSE;
+   m_bUnreliableSdpAnswerFinished = FALSE;
    m_bLocallyInitiated = sipMessage.isFromThisSide();
 
    delete m_pOfferSipMessage;
@@ -83,24 +85,72 @@ void CpSdpNegotiation::startSdpNegotiation(const SipMessage& sipMessage, UtlBool
    sipMessage.getCSeqField(&m_cseqNum, NULL); // save transaction number
 }
 
-void CpSdpNegotiation::handleInboundSdpOffer(const SipMessage& rOfferSipMessage)
+UtlBoolean CpSdpNegotiation::handleInboundSdpOffer(const SipMessage& rOfferSipMessage)
 {
-   m_bSdpOfferFinished = TRUE;
+   if ((m_bLocallyInitiated && rOfferSipMessage.isFromThisSide()) ||
+      (!m_bLocallyInitiated && !rOfferSipMessage.isFromThisSide()))
+   {
+      m_bSdpOfferFinished = TRUE;
 
-   delete m_pOfferSipMessage;
-   m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
+      delete m_pOfferSipMessage;
+      m_pOfferSipMessage = new SipMessage(rOfferSipMessage); // keep copy of sdp offer
+
+      return TRUE;
+   }
+
+   return FALSE;
 }
 
-void CpSdpNegotiation::handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage)
+UtlBoolean CpSdpNegotiation::handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage)
 {
-   if (m_bSdpOfferFinished)
+   UtlBoolean bFinishSdpAnswer = FALSE;
+   // SDP answer must come from other side than offer
+   if ((m_bLocallyInitiated && !rAnswerSipMessage.isFromThisSide()) ||
+      (!m_bLocallyInitiated && rAnswerSipMessage.isFromThisSide()))
    {
-      delete m_pAnswerSipMessage;
-      m_pAnswerSipMessage = new SipMessage(rAnswerSipMessage); // keep copy of sdp answer
+      if (m_bSdpOfferFinished)
+      {
+         if (rAnswerSipMessage.isResponse())
+         {
+            int seqNum;
+            UtlString seqMethod;
+            rAnswerSipMessage.getCSeqField(&seqNum, &seqMethod);
+            UtlBoolean bIsReliable = rAnswerSipMessage.isRequireExtensionSet(SIP_PRACK_EXTENSION);
+            int responseCode = rAnswerSipMessage.getResponseStatusCode();
+            if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
+               responseCode > SIP_1XX_CLASS_CODE &&
+               responseCode < SIP_2XX_CLASS_CODE &&
+               !bIsReliable)
+            {
+               // unreliable provisional response
+               m_bUnreliableSdpAnswerFinished = TRUE;
+               delete m_pAnswerSipMessage;
+               m_pAnswerSipMessage = new SipMessage(rAnswerSipMessage); // keep copy of sdp answer
+            }
+            else
+            {
+               bFinishSdpAnswer = TRUE;
+            }
+         }
+         else
+         {
+            bFinishSdpAnswer = TRUE;
+         }
 
-      m_bSdpAnswerFinished = TRUE;
-      m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+         if (bFinishSdpAnswer)
+         {
+            delete m_pAnswerSipMessage;
+            m_pAnswerSipMessage = new SipMessage(rAnswerSipMessage); // keep copy of sdp answer
+
+            m_bSdpAnswerFinished = TRUE;
+            m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+         }
+
+         return TRUE;
+      }
    }
+
+   return FALSE;
 }
 
 void CpSdpNegotiation::resetSdpNegotiation()
@@ -233,17 +283,49 @@ void CpSdpNegotiation::addSdpAnswer(SipMessage& rSipMessage,
                                     int videoFramerate,
                                     RTP_TRANSPORT rtpTransportOptions)
 {
+   UtlBoolean bFinishSdpAnswer = FALSE;
+
    if (m_pOfferSipMessage)
    {
       addSdpBody(rSipMessage, m_pOfferSipMessage, nRtpContacts, hostAddresses, rtpAudioPorts, rtcpAudiopPorts,
          rtpVideoPorts, rtcpVideoPorts, transportTypes, sdpCodecList, srtpParams, videoBandwidth,
          videoFramerate, rtpTransportOptions);
 
-      delete m_pAnswerSipMessage;
-      m_pAnswerSipMessage = new SipMessage(rSipMessage); // keep copy of sdp answer
+      if (rSipMessage.isResponse())
+      {
+         int seqNum;
+         UtlString seqMethod;
+         rSipMessage.getCSeqField(&seqNum, &seqMethod);
+         UtlBoolean bIsReliable = rSipMessage.isRequireExtensionSet(SIP_PRACK_EXTENSION);
+         int responseCode = rSipMessage.getResponseStatusCode();
+         if (seqMethod.compareTo(SIP_INVITE_METHOD) == 0 &&
+            responseCode > SIP_1XX_CLASS_CODE &&
+            responseCode < SIP_2XX_CLASS_CODE &&
+            !bIsReliable)
+         {
+            // unreliable provisional response
+            m_bUnreliableSdpAnswerFinished = TRUE;
+            delete m_pAnswerSipMessage;
+            m_pAnswerSipMessage = new SipMessage(rSipMessage); // keep copy of sdp answer
+         }
+         else
+         {
+            bFinishSdpAnswer = TRUE;
+         }
+      }
+      else
+      {
+         bFinishSdpAnswer = TRUE;
+      }
 
-      m_bSdpAnswerFinished = TRUE;
-      m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+      if (bFinishSdpAnswer)
+      {
+         delete m_pAnswerSipMessage;
+         m_pAnswerSipMessage = new SipMessage(rSipMessage); // keep copy of sdp answer
+
+         m_bSdpAnswerFinished = TRUE;
+         m_negotiationState = CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+      }
    }
    else
    {
@@ -305,6 +387,12 @@ UtlBoolean CpSdpNegotiation::isSdpNegotiationInProgress() const
 UtlBoolean CpSdpNegotiation::isSdpNegotiationComplete() const
 {
    return m_negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_COMPLETE;
+}
+
+UtlBoolean CpSdpNegotiation::isSdpNegotiationUnreliablyComplete() const
+{
+   return m_negotiationState == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS &&
+      m_bUnreliableSdpAnswerFinished;
 }
 
 CpSdpNegotiation::SdpBodyType CpSdpNegotiation::getSdpBodyType(const SipMessage& sipMessage) const

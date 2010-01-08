@@ -23,6 +23,7 @@
 #include <cp/CpDefs.h>
 #include <cp/CpNatTraversalConfig.h>
 #include <cp/XCpCallStack.h>
+#include <cp/XCpCallControl.h>
 #include <cp/CpAudioCodecInfo.h>
 #include <cp/CpVideoCodecInfo.h>
 
@@ -66,7 +67,7 @@ class ScNotificationMsg;
  * maxCalls value is not strictly respected, it is only a soft limit that can be exceeded a little bit if there are
  * lots of inbound calls at the same time. Set it to number of calls that cause 80% of CPU consumption.
  */
-class XCpCallManager : public OsServerTask
+class XCpCallManager : public OsServerTask, public XCpCallControl
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -80,15 +81,14 @@ public:
                   SipUserAgent& rSipUserAgent,
                   const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
-                  const UtlString& sLocalIpAddress, // default IP address for CpMediaInterface
+                  const UtlString& sLocalIpAddress, // default IP address for CpMediaInterface, may be 0.0.0.0
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
-                  UtlBoolean bEnableSipInfo,
                   UtlBoolean bIsRequiredLineMatch,
                   int rtpPortStart,
                   int rtpPortEnd,
+                  int inviteExpiresSeconds, // timeout if 2xx for INVITE is not received
                   int maxCalls, // max calls before sending busy. -1 means unlimited. Doesn't limit outbound calls.
-                  int inviteExpireSeconds, // default use 180
                   CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
    virtual ~XCpCallManager();
@@ -99,13 +99,13 @@ public:
 
    virtual void requestShutdown(void);
 
-   /** Creates new empty call. If sCallId, new id is generated. Generated id is returned in sCallId */
+   /** Creates new empty call. If sCallId is NULL, new id is generated. Generated id is returned in sCallId */
    OsStatus createCall(UtlString& sCallId);
 
-   /** Creates new empty conference. If sConferenceId, new id is generated. Generated id is returned in sConferenceId */
+   /** Creates new empty conference. If sConferenceId is NULL, new id is generated. Generated id is returned in sConferenceId */
    OsStatus createConference(UtlString& sConferenceId);
 
-   /** 
+   /**
     * Connects an existing call identified by id, to given address returning SipDialog.
     * SipDialog can be used to retrieve sip call-id and from tag
     */
@@ -113,9 +113,13 @@ public:
                         SipDialog& sSipDialog,
                         const UtlString& toAddress,
                         const UtlString& fullLineUrl,// includes display name, SIP URI
-                        const UtlString& sSipCallId, // can be used to suggest sip call-id
-                        const UtlString& locationHeader,
-                        CP_CONTACT_ID contactId);
+                        const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
+                        const UtlString& locationHeader = NULL,
+                        CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                        CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                        const UtlString& replacesField = NULL, // value of Replaces INVITE field
+                        CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                        const SipDialog* pCallbackSipDialog = NULL);
 
    /** 
     * Connects a call in an existing conference identified by id, to given address returning SipDialog.
@@ -127,7 +131,8 @@ public:
                                   const UtlString& fullLineUrl,// includes display name, SIP URI
                                   const UtlString& sSipCallId, // can be used to suggest sip call-id
                                   const UtlString& locationHeader,
-                                  CP_CONTACT_ID contactId);
+                                  CP_CONTACT_ID contactId,
+                                  CP_FOCUS_CONFIG focusConfig);
 
    /** 
     * Accepts inbound call connection. Inbound connections can only be part of XCpCall
@@ -137,6 +142,7 @@ public:
     * response to be sent.
     */
    OsStatus acceptCallConnection(const UtlString& sCallId,
+                                 UtlBoolean bSendSDP,
                                  const UtlString& locationHeader,
                                  CP_CONTACT_ID contactId);
 
@@ -169,6 +175,20 @@ public:
     */
    OsStatus answerCallConnection(const UtlString& sCallId);
 
+   /**
+   * Accepts transfer request on given abstract call. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   OsStatus acceptAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                       const SipDialog& sSipDialog);
+
+   /**
+   * Rejects transfer request on given abstract call. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   OsStatus rejectAbstractCallTransfer(const UtlString& sAbstractCallId,
+                                       const SipDialog& sSipDialog);
+
    /** 
     * Disconnects given simple call or conference call, not destroying the XCpCall/XCpConference
     * object so that it can be reused
@@ -178,6 +198,9 @@ public:
     */
    OsStatus dropAbstractCallConnection(const UtlString& sAbstractCallId,
                                        const SipDialog& sSipDialog);
+
+   /** Attempts to drop connection of some abstract call, for given sip dialog */
+   virtual OsStatus dropAbstractCallConnection(const SipDialog& sSipDialog);
 
    /**
     * Disconnects all connections of abstract call (call, conference).
@@ -195,7 +218,7 @@ public:
     */
    OsStatus dropCallConnection(const UtlString& sCallId);
 
-   /** 
+   /**
    * Disconnects given conference call not destroying the XCpConference object so that it can be reused.
    *
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
@@ -464,6 +487,12 @@ public:
    /** Generates new id for conference */
    UtlString getNewConferenceId();
 
+   /** Gets actual session timer properties for new calls */
+   void getSessionTimerConfig(int& sessionExpiration, CP_SESSION_TIMER_REFRESH& refresh) const;
+
+   /** Configures session timer properties. */
+   void setSessionTimerConfig(int sessionExpiration, CP_SESSION_TIMER_REFRESH refresh);
+
    /* ============================ ACCESSORS ================================= */
 
    UtlBoolean getDoNotDisturb() const { return m_bDoNotDisturb; }
@@ -472,17 +501,19 @@ public:
    UtlBoolean getEnableICE() const { return m_natTraversalConfig.m_bEnableICE; }
    void setEnableICE(UtlBoolean val) { m_natTraversalConfig.m_bEnableICE = val; }
 
-   /** Enable/disable reception of SIP INFO. Sending is always allowed. Only affects new calls. */
-   UtlBoolean getEnableSipInfo() const { return m_bEnableSipInfo; }
-   void setEnableSipInfo(UtlBoolean val) { m_bEnableSipInfo = val; }
-
    int getMaxCalls() const { return m_maxCalls; }
    void setMaxCalls(int val) { m_maxCalls = val; }
 
-   int getInviteExpireSeconds() const { return m_inviteExpireSeconds; }
-   void setInviteExpireSeconds(int val);
-
    CpMediaInterfaceFactory* getMediaInterfaceFactory() const;
+
+   CP_SIP_UPDATE_CONFIG getUpdateSetting() const { return m_updateSetting; }
+   void setUpdateSetting(CP_SIP_UPDATE_CONFIG val) { m_updateSetting = val; }
+
+   CP_100REL_CONFIG get100relSetting() const { return m_100relSetting; }
+   void set100relSetting(CP_100REL_CONFIG val) { m_100relSetting = val; }
+
+   CP_SDP_OFFERING_MODE getSdpOfferingMode() const { return m_sdpOfferingMode; }
+   void setSdpOfferingMode(CP_SDP_OFFERING_MODE val) { m_sdpOfferingMode = val; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -523,6 +554,9 @@ public:
    OsStatus getSipDialog(const UtlString& sAbstractCallId,
                          const SipDialog& sSipDialog,
                          SipDialog& sOutputSipDialog) const;
+
+   /** Checks if given call exists and is established. */
+   virtual UtlBoolean isCallEstablished(const SipDialog& sipDialog) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -599,6 +633,54 @@ private:
    /** Stops observing SipMessages */
    void stopSipMessageObserving();
 
+   /** Returns TRUE if given message should not be processed */
+   UtlBoolean skipMessage(const SipMessage& sipMessage) const;
+
+   /** Checks if given SIP address is valid */
+   UtlBoolean isAddressValid(const UtlString& address) const;
+
+   /**
+   * Sends message to specified call connection. If connection cannot be found,
+   * OS_NOT_FOUND will be returned, and no more messages should be sent to the same
+   * destination.
+   */
+   virtual OsStatus sendMessage(const OsMsg& msg, const SipDialog& sSipDialog);
+
+   /**
+   * Subscribe for given notification type with given target sip call.
+   * ScNotificationMsg messages will be sent to callbackSipDialog.
+   */
+   virtual OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                              const SipDialog& targetSipDialog,
+                              const SipDialog& callbackSipDialog);
+
+   /**
+   * Unsubscribes for given notification type with given target sip call.
+   */
+   virtual OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                const SipDialog& targetSipDialog,
+                                const SipDialog& callbackSipDialog);
+
+   /**
+   * Creates new call, and starts dialing. Allows to specify call state cause,
+   * that will be used to fire CP_CALLSTATE_DIALTONE event.
+   * @param sipDialog Output parameter, that will receive sip dialog details
+   *        of created call.
+   * @param pCallbackSipDialog Optional parameter. If present, then call state
+   *        notifications will be sent to this call. To cancel notifications, use
+   *        unsubscribe with sipDialog.
+   */
+   virtual OsStatus createConnectedCall(SipDialog& sipDialog,
+                                        const UtlString& toAddress,
+                                        const UtlString& fullLineUrl,// includes display name, SIP URI
+                                        const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
+                                        const UtlString& locationHeader = NULL,
+                                        CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                                        CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
+                                        const UtlString& replacesField = NULL, // value of Replaces INVITE field
+                                        CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                                        const SipDialog* pCallbackSipDialog = NULL);
+
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
@@ -622,15 +704,19 @@ private:
 
    // thread safe atomic
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)
-   UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
    UtlBoolean m_bIsRequiredLineMatch; ///< if inbound SIP message must correspond to some line to be handled
    int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
-   int m_inviteExpireSeconds; ///< session interval (RFC4028) - time between refresh requests (INVITE or UPDATE)
+   int m_sessionTimerExpiration; ///< session interval (RFC4028) - time between refresh requests (INVITE or UPDATE)
+   CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
+   CP_SIP_UPDATE_CONFIG m_updateSetting; ///< configuration of SIP UPDATE method
+   CP_100REL_CONFIG m_100relSetting; ///< configuration of 100rel support
+   CP_SDP_OFFERING_MODE m_sdpOfferingMode; ///< SDP offering mode configuration. Late or immediate.
 
    // read only fields
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
-   const UtlString m_sLocalIpAddress;
+   UtlString m_sLocalIpAddress; // once set, never modified
+   const int m_inviteExpiresSeconds; ///< time in which INVITE must be answered with final response in seconds
 };
 
 #endif // XCallManager_h__

@@ -48,6 +48,7 @@ public:
       AC_DROP_CONNECTION, ///< drops connection
       AC_DROP_ALL_CONNECTIONS, ///< drops all connections
       AC_TRANSFER_BLIND, ///< initiates blind call transfer
+      AC_TRANSFER_CONSULTATIVE, ///< initiates consultative call transfer
       AC_HOLD_CONNECTION, ///< holds connection
       AC_HOLD_ALL_CONNECTIONS, ///< holds all connections
       AC_UNHOLD_CONNECTION, ///< unholds connection
@@ -67,6 +68,10 @@ public:
       AC_AUDIO_RECORD_STOP, ///< stops call/conference recording
       AC_AUDIO_TONE_START, ///< starts DTMF tone
       AC_AUDIO_TONE_STOP, ///< stops DTMF tone
+      AC_SUBSCRIBE, ///< subscribe to notifications
+      AC_UNSUBSCRIBE, ///< unsubscribe from notifications
+      AC_ACCEPT_TRANSFER, ///< accept transfer request
+      AC_REJECT_TRANSFER, ///< reject transfer request
    } SubTypeEnum;
 
    /* ============================ CREATORS ================================== */
