@@ -24,7 +24,11 @@
 #include <mp/MprDecode.h>
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
-#include "mp/MprDecodeInbandDtmf.h"
+#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+#   include "mp/MprSpanDspDtmfDetector.h"
+#else
+#   include "mp/MprSimpleDtmfDetector.h"
+#endif // defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
 #include <sdp/SdpCodecList.h>
@@ -59,22 +63,28 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
 #endif // INCLUDE_RTCP ]
                        )
 , mpDecode(NULL)
-, mpDecodeInBandDtmf(NULL)
+, mpDtmfDetector(NULL)
 , m_bInBandDTMFEnabled(bInBandDTMFEnabled)
 , m_bRFC2833DTMFEnabled(bRFC2833DTMFEnabled)
+, m_samplesPerFrame(samplesPerFrame)
+, m_samplesPerSec(samplesPerSec)
 {
    char         name[50];
    int          i;
 
    SNPRINTF(name, sizeof(name), "Decode-%d", myID);
-   mpDecode    = new MprDecode(name, this, samplesPerFrame, samplesPerSec);
+   mpDecode    = new MprDecode(name, this, m_samplesPerFrame, m_samplesPerSec);
    mpDecode->registerObserver(this);
 
    if (m_bInBandDTMFEnabled)
    {
-      SNPRINTF(name, sizeof(name), "DecodeInBandDtmf-%d", myID);
-      mpDecodeInBandDtmf = new MprDecodeInBandDtmf(name, samplesPerFrame, samplesPerSec);
-      mpDecodeInBandDtmf->registerObserver(this);
+      SNPRINTF(name, sizeof(name), "DtmfDetector-%d", myID);
+#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+      mpDtmfDetector = new MprSpanDspDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
+#else
+      mpDtmfDetector = new MprSimpleDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
+#endif // defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+      mpDtmfDetector->registerObserver(this);
    }   
 
  //memset((char*)mpPayloadMap, 0, (NUM_PAYLOAD_TYPES*sizeof(MpDecoderBase*)));
@@ -88,12 +98,6 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
    //////////////////////////////////////////////////////////////////////////
    // connect Dejitter -> Decode (Non synchronous resources)
    mpDecode->setMyDejitter(mpDejitter);
-
-   //  This got moved to the call flowgraph when the connection is
-   // added to the flowgraph.  Not sure it is still needed there either
-   //pParent->synchronize("new Connection, before enable(), %dx%X\n");
-   //enable();
-   //pParent->synchronize("new Connection, after enable(), %dx%X\n");
 }
 
 // Destructor
@@ -101,8 +105,8 @@ MpRtpInputAudioConnection::~MpRtpInputAudioConnection()
 {
    delete mpDecode;
    mpDecode = NULL;
-   delete mpDecodeInBandDtmf;
-   mpDecodeInBandDtmf = NULL;
+   delete mpDtmfDetector;
+   mpDtmfDetector = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -123,19 +127,19 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
                                           mpOutBufs,
                                           mMaxInputs, 
                                           mMaxOutputs, 
-                                          mpDecode->mIsEnabled,
-                                          mpDecode->getSamplesPerFrame(), 
-                                          mpDecode->getSamplesPerSec());
+                                          mpDecode->isEnabled(),
+                                          m_samplesPerFrame, 
+                                          m_samplesPerSec);
     
-		if(mpDecodeInBandDtmf)
+		if(mpDtmfDetector)
 		{
-			result &= mpDecodeInBandDtmf->doProcessFrame(mpOutBufs, // OutBufs from mpDecoder = InBuf for InBand
+			result &= mpDtmfDetector->doProcessFrame(mpOutBufs, // OutBufs from mpDecoder = InBuf for InBand
 											  NULL,					// No outBufs needed
 											  mMaxOutputs,			// Again MaxOutputs from decoder = maxInput for InBand 
 											  0,					// 0 output 
-											  mpDecodeInBandDtmf->mIsEnabled,
-											  mpDecodeInBandDtmf->getSamplesPerFrame(), 
-											  mpDecodeInBandDtmf->getSamplesPerSec());
+											  mpDtmfDetector->isEnabled(),
+											  m_samplesPerFrame, 
+											  m_samplesPerSec);
 		}
 	}
 
@@ -210,9 +214,9 @@ UtlBoolean MpRtpInputAudioConnection::handleMessage(MpResourceMsg& rMsg)
 UtlBoolean MpRtpInputAudioConnection::handleDisable()
 {
    mpDecode->disable();
-   if (mpDecodeInBandDtmf)
+   if (mpDtmfDetector)
    {
-      mpDecodeInBandDtmf->disable();
+      mpDtmfDetector->disable();
    }
    
    return(MpResource::handleDisable());
@@ -232,9 +236,9 @@ UtlBoolean MpRtpInputAudioConnection::handleDisable()
 UtlBoolean MpRtpInputAudioConnection::handleEnable()
 {
    mpDecode->enable();
-   if (mpDecodeInBandDtmf)
+   if (mpDtmfDetector)
    {
-      mpDecodeInBandDtmf->enable();
+      mpDtmfDetector->enable();
    }
    
    return(MpResource::handleEnable());
@@ -303,9 +307,9 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
    if (codecList.entries() > 0)
    {
       mpDecode->enable();
-      if (mpDecodeInBandDtmf)
+      if (mpDtmfDetector)
       {
-         mpDecodeInBandDtmf->enable();
+         mpDtmfDetector->enable();
       }
    }
 
@@ -342,9 +346,9 @@ void MpRtpInputAudioConnection::handleStopReceiveRtp()
 
    sendConnectionNotification(MP_NOTIFICATION_STOP_RTP_RECEIVE, 0);
 
-   if (mpDecodeInBandDtmf)
+   if (mpDtmfDetector)
    {
-      mpDecodeInBandDtmf->disable();
+      mpDtmfDetector->disable();
    }   
 }
 

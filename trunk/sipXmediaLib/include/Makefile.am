@@ -97,6 +97,7 @@ nobase_include_HEADERS =  \
     mp/MpdIPPG7231.h \
     mp/MpdIPPG729.h \
     mp/MpdPtAVT.h \
+    mp/MpdSipxG726.h \
     mp/MpdSipxGSM.h \
     mp/MpdSipxILBC.h \
     mp/MpdSipxPcma.h \
@@ -105,6 +106,7 @@ nobase_include_HEADERS =  \
     mp/MpeIPPG7231.h \
     mp/MpeIPPG729.h \
     mp/MpePtAVT.h \
+    mp/MpeSipxG726.h \
     mp/MpeSipxGSM.h \
     mp/MpeSipxILBC.h \
     mp/MpeSipxPcma.h \
@@ -117,8 +119,10 @@ nobase_include_HEADERS =  \
     mp/MprBufferRecorder.h \
     mp/MprBufferRecorderConstructor.h \
     mp/MprDecode.h \
-    mp/MprDecodeInbandDtmf.h \
+    mp/MprSimpleDtmfDetector.h \
+    mp/MprSpanDspDtmfDetector.h \
     mp/MprDejitter.h \
+    mp/MprDtmfDetectorBase.h \
     mp/MprEchoSuppress.h \
     mp/MprEncode.h \
     mp/MprFromFile.h \

@@ -11,7 +11,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXmediaLib.pch" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXmediaLib.pch" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -28,7 +28,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXmediaLib.pch" Optimization="2"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXmediaLib.pch" Optimization="2"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -45,7 +45,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_INTEL_IPP;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXmediaLib.pch" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;HAVE_INTEL_IPP;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXmediaLib.pch" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -62,7 +62,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_INTEL_IPP;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXmediaLib.pch" Optimization="2"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;" ObjectFile="$(IntDir)\" SuppressStartupBanner="true" PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;HAVE_INTEL_IPP;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXmediaLib.pch" Optimization="2"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -113,6 +113,7 @@
                 <File RelativePath=".\src\mp\MpdIPPG7231.cpp"/>
                 <File RelativePath=".\src\mp\MpdIPPG729.cpp"/>
                 <File RelativePath=".\src\mp\MpdPtAVT.cpp"/>
+                <File RelativePath=".\src\mp\MpdSipxG726.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxGSM.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxILBC.cpp"/>
                 <File RelativePath=".\src\mp\MpdSipxPcma.cpp"/>
@@ -123,6 +124,7 @@
                 <File RelativePath=".\src\mp\MpeIPPG729.cpp"/>
                 <File RelativePath=".\src\mp\MpEncoderBase.cpp"/>
                 <File RelativePath=".\src\mp\MpePtAVT.cpp"/>
+                <File RelativePath=".\src\mp\MpeSipxG726.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxGSM.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxILBC.cpp"/>
                 <File RelativePath=".\src\mp\MpeSipxPcma.cpp"/>
@@ -151,7 +153,6 @@
                 <File RelativePath=".\src\mp\MprBridge.cpp"/>
                 <File RelativePath=".\src\mp\MprBufferRecorder.cpp"/>
                 <File RelativePath=".\src\mp\MprDecode.cpp"/>
-                <File RelativePath=".\src\mp\MprDecodeInbandDtmf.cpp"/>
                 <File RelativePath=".\src\mp\MprDejitter.cpp"/>
                 <File RelativePath=".\src\mp\MprEchoSuppress.cpp"/>
                 <File RelativePath=".\src\mp\MprEncode.cpp"/>
@@ -169,6 +170,8 @@
                 <File RelativePath=".\src\mp\MprNull.cpp"/>
                 <File RelativePath=".\src\mp\MprNullAec.cpp"/>
                 <File RelativePath=".\src\mp\MprRecorder.cpp"/>
+                <File RelativePath=".\src\mp\MprSimpleDtmfDetector.cpp"/>
+                <File RelativePath=".\src\mp\MprSpanDspDtmfDetector.cpp"/>
                 <File RelativePath=".\src\mp\MprSpeexEchoCancel.cpp"/>
                 <File RelativePath=".\src\mp\MprSpeexPreProcess.cpp"/>
                 <File RelativePath=".\src\mp\MprSplitter.cpp"/>
@@ -263,6 +266,7 @@
                 <File RelativePath=".\include\mp\MpdIPPG7231.h"/>
                 <File RelativePath=".\include\mp\MpdIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpdPtAVT.h"/>
+                <File RelativePath=".\include\mp\MpdSipxG726.h"/>
                 <File RelativePath=".\include\mp\MpdSipxGSM.h"/>
                 <File RelativePath=".\include\mp\MpdSipxILBC.h"/>
                 <File RelativePath=".\include\mp\MpdSipxPcma.h"/>
@@ -276,6 +280,7 @@
                 <File RelativePath=".\include\mp\MpeIPPG729.h"/>
                 <File RelativePath=".\include\mp\MpEncoderBase.h"/>
                 <File RelativePath=".\include\mp\MpePtAVT.h"/>
+                <File RelativePath=".\include\mp\MpeSipxG726.h"/>
                 <File RelativePath=".\include\mp\MpeSipxGSM.h"/>
                 <File RelativePath=".\include\mp\MpeSipxILBC.h"/>
                 <File RelativePath=".\include\mp\MpeSipxPcma.h"/>
@@ -309,8 +314,8 @@
                 <File RelativePath=".\include\mp\MprBufferRecorder.h"/>
                 <File RelativePath=".\include\mp\MprBufferRecorderConstructor.h"/>
                 <File RelativePath=".\include\mp\MprDecode.h"/>
-                <File RelativePath=".\include\mp\MprDecodeInbandDtmf.h"/>
                 <File RelativePath=".\include\mp\MprDejitter.h"/>
+                <File RelativePath=".\include\mp\MprDtmfDetectorBase.h"/>
                 <File RelativePath=".\include\mp\MprEchoSuppress.h"/>
                 <File RelativePath=".\include\mp\MprEncode.h"/>
                 <File RelativePath=".\include\mp\MpResNotification.h"/>
@@ -336,6 +341,8 @@
                 <File RelativePath=".\include\mp\MprRtpOutputAudioConnectionConstructor.h"/>
                 <File RelativePath=".\include\mp\MprRtpStartReceiveMsg.h"/>
                 <File RelativePath=".\include\mp\MprRtpStartSendMsg.h"/>
+                <File RelativePath=".\include\mp\MprSimpleDtmfDetector.h"/>
+                <File RelativePath=".\include\mp\MprSpanDspDtmfDetector.h"/>
                 <File RelativePath=".\include\mp\MprSpeexEchoCancel.h"/>
                 <File RelativePath=".\include\mp\MprSpeexPreProcess.h"/>
                 <File RelativePath=".\include\mp\MprSplitter.h"/>

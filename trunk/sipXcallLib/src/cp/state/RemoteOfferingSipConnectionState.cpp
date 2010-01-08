@@ -81,8 +81,16 @@ void RemoteOfferingSipConnectionState::handleStateExit(StateEnum nextState, cons
 SipConnectionStateTransition* RemoteOfferingSipConnectionState::dropConnection(OsStatus& result)
 {
    // we are caller. We sent INVITE, maybe received 100 Trying
-   // to drop call, send CANCEL
-   return doCancelConnection(result);
+   if (getClientTransactionManager().isInviteTransactionActive())
+   {
+      // INVITE is active, send CANCEL
+      return doCancelConnection(result);
+   }
+   else
+   {
+      // INVITE is not active, just disconnect the call
+      return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+   }
 }
 
 SipConnectionStateTransition* RemoteOfferingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
