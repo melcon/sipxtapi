@@ -356,7 +356,7 @@ unsigned int __stdcall CRTCPTimer::TimerThreadProc(void * lpParameter)
  *
  *
  */
-void  CRTCPTimer::ReportingAlarm(timer_t tTimer, int iArgument)
+void  CRTCPTimer::ReportingAlarm(timer_t tTimer, intptr_t iArgument)
 {
     CRTCPTimer   *poRTCPTimer = (CRTCPTimer  *)iArgument;
 
@@ -370,7 +370,7 @@ void  CRTCPTimer::ReportingAlarm(timer_t tTimer, int iArgument)
 #include <sys/time.h>
 #endif
 
-void CRTCPTimer::ReportingAlarm(const int userData, const int eventData)
+void CRTCPTimer::ReportingAlarm(const intptr_t userData, const intptr_t eventData)
 {
 #ifdef RTCP_LINUX_DEBUG
     struct timeval tv;

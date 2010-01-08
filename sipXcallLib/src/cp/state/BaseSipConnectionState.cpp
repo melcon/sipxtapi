@@ -946,13 +946,14 @@ SipConnectionStateTransition* BaseSipConnectionState::processSipMessage(const Si
 SipConnectionStateTransition* BaseSipConnectionState::processRequest(const SipMessage& sipMessage)
 {
    trackTransactionRequest(sipMessage);
-   updateRemoteCapabilities(sipMessage);
 
    if (!verifyInboundRequest(sipMessage))
    {
       // message didn't satisfy some checks
       return NULL;
    }
+
+   updateRemoteCapabilities(sipMessage);
 
    // process inbound sip message request
    UtlString method;
@@ -2522,7 +2523,8 @@ SipConnectionStateTransition* BaseSipConnectionState::handle2xxTimerMessage(cons
 
 SipConnectionStateTransition* BaseSipConnectionState::handleDisconnectTimerMessage(const ScDisconnectTimerMsg& timerMsg)
 {
-   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
+   GeneralTransitionMemory memory(CP_CALLSTATE_CAUSE_NO_RESPONSE);
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
 }
 
 SipConnectionStateTransition* BaseSipConnectionState::handleReInviteTimerMessage(const ScReInviteTimerMsg& timerMsg)
@@ -3342,16 +3344,22 @@ void BaseSipConnectionState::sendOptionsRequest()
 
 void BaseSipConnectionState::discoverRemoteCapabilities()
 {
-   UtlBoolean bIsDialogEstablished = FALSE;
-   {
-      OsReadLock lock(m_rStateContext);
-      bIsDialogEstablished = m_rStateContext.m_sipDialog.isEstablishedDialog();
-   }
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
 
-   if (bIsDialogEstablished)
+   if (connectionState != ISipConnectionState::CONNECTION_DISCONNECTED &&
+      connectionState != ISipConnectionState::CONNECTION_UNKNOWN)
    {
-      // allow was not set in response, send in dialog OPTIONS
-      sendOptionsRequest();
+      UtlBoolean bIsDialogEstablished = FALSE;
+      {
+         OsReadLock lock(m_rStateContext);
+         bIsDialogEstablished = m_rStateContext.m_sipDialog.isEstablishedDialog();
+      }
+
+      if (bIsDialogEstablished && !m_rStateContext.m_bCancelSent && !m_rStateContext.m_bByeSent)
+      {
+         // allow was not set in response, send in dialog OPTIONS
+         sendOptionsRequest();
+      }
    }
 }
 
@@ -4713,13 +4721,12 @@ void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessa
    UtlString supportedField;
    UtlBoolean supportedPresent = sipMessage.getSupportedField(supportedField);
    UtlBoolean updateCapabilities = FALSE;
+   int seqNum;
+   UtlString seqMethod;
+   sipMessage.getCSeqField(seqNum, seqMethod);
 
    if (sipMessage.isResponse())
    {
-      int seqNum;
-      UtlString seqMethod;
-      sipMessage.getCSeqField(seqNum, seqMethod);
-
       int responseCode = sipMessage.getResponseStatusCode();
       if (responseCode > SIP_1XX_CLASS_CODE && responseCode < SIP_3XX_CLASS_CODE)
       {

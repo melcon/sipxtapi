@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="src;src\spandsp;src\msvc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBSPANDSP_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;HAVE_MATH_H;HAVE_TGMATH_H;_FLOATING_FUDGE_H_"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBSPANDSP_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;HAVE_MATH_H;HAVE_TGMATH_H"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -106,7 +106,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="src;src\spandsp;src\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBSPANDSP_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;HAVE_TGMATH_H;_FLOATING_FUDGE_H_"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBSPANDSP_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;HAVE_TGMATH_H"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
@@ -154,6 +154,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\dds_float.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\dds_int.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\dtmf.c"
+				>
+			</File>
+			<File
 				RelativePath="src\g711.c"
 				>
 			</File>
@@ -163,6 +175,18 @@
 			</File>
 			<File
 				RelativePath="src\g726.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\queue.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tone_detect.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\tone_generate.c"
 				>
 			</File>
 			<File
@@ -186,6 +210,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\spandsp\dds.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\spandsp\dtmf.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\floating_fudge.h"
+				>
+			</File>
+			<File
 				RelativePath="src\spandsp\g711.h"
 				>
 			</File>
@@ -198,7 +234,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\spandsp\queue.h"
+				>
+			</File>
+			<File
 				RelativePath="src\spandsp\telephony.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\spandsp\tone_detect.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\spandsp\tone_generate.h"
 				>
 			</File>
 		</Filter>

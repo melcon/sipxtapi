@@ -1,15 +1,25 @@
-//
-// Copyright (C) 2007 stipus@stipus.com
-//
-// $$
-///////////////////////////////////////////////////////////////////////////////
+//  
+// Copyright (C) 2007 SIPfoundry Inc. 
+// Licensed by SIPfoundry under the LGPL license. 
+//  
+// Copyright (C) 2007 SIPez LLC. 
+// Licensed to SIPfoundry under a Contributor Agreement. 
+// 
+// Copyright (C) 2009 Jaroslav Libak
+// $$ 
+////////////////////////////////////////////////////////////////////////////// 
 
-#ifndef _MprDecodeInBandDtmf_h_
-#define _MprDecodeInBandDtmf_h_
+#ifndef _MprSpanDspDtmfDetector_h_
+#define _MprSpanDspDtmfDetector_h_
+
+#ifdef HAVE_SPAN_DSP /* [ */
 
 // APPLICATION INCLUDES
-#include "mp/MpFlowGraphMsg.h"
-#include "mp/MpAudioResource.h"
+#include <mp/MprDtmfDetectorBase.h>
+extern "C" {
+#include "spandsp/super_tone_rx.h"
+#include "spandsp/dtmf.h"
+}
 
 // DEFINES
 // MACROS
@@ -23,9 +33,9 @@
 class MpRtpInputAudioConnection;
 
 /**
-*  @brief The "Audio from file" media processing resource
+*  Inband DTMF detector using Span DSP library.
 */
-class MprDecodeInBandDtmf : public MpAudioResource
+class MprSpanDspDtmfDetector : public MprDtmfDetectorBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -37,25 +47,23 @@ public:
 //@{
 
      //:Constructor
-   MprDecodeInBandDtmf(const UtlString& rName, 
-                       int samplesPerFrame,
-                       int samplesPerSec);
+   MprSpanDspDtmfDetector(const UtlString& rName, 
+                          int samplesPerFrame,
+                          int samplesPerSec);
 
      //:Destructor
-   virtual ~MprDecodeInBandDtmf();
+   virtual ~MprSpanDspDtmfDetector();
 
 //@}
 
 /* ============================ MANIPULATORS ============================== */
 ///@name Manipulators
 //@{
-
 //@}
 
 /* ============================ ACCESSORS ================================= */
 ///@name Accessors
 //@{
-
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -67,20 +75,6 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-/* //////////////////////////// PRIVATE /////////////////////////////////// */
-private:
-
-   int m_dtmfLastDigit;
-   int m_sameDtmfDigitCount;
-   double Mk697;
-   double Mk770;
-   double Mk852;
-   double Mk941;
-   double Mk1209;
-   double Mk1336;
-   double Mk1477;
-   double Mk1633;
-
    virtual UtlBoolean doProcessFrame(MpBufPtr inBufs[],
                                      MpBufPtr outBufs[],
                                      int inBufsSize,
@@ -89,20 +83,28 @@ private:
                                      int samplesPerFrame = 80,
                                      int samplesPerSecond = 8000);
 
-   /// Goertzel
-   double Goertzel(const MpAudioSample *input, int numsamples, double mk);
-
-   /// Handle messages for this resource.
-   virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
 
      /// Copy constructor (not implemented for this class)
-   MprDecodeInBandDtmf(const MprDecodeInBandDtmf& rMprDecodeInBandDtmf);
+   MprSpanDspDtmfDetector(const MprSpanDspDtmfDetector& rhs);
 
      /// Assignment operator (not implemented for this class)
-   MprDecodeInBandDtmf& operator=(const MprDecodeInBandDtmf& rhs);
+   MprSpanDspDtmfDetector& operator=(const MprSpanDspDtmfDetector& rhs);
 
+   static void tone_report_func_t(void *user_data, int code, int level, int delay);
+
+   /**
+    * Called when DTMF tone starts or stops. Code is translated from original char value,
+    * so digit '0' will be 0 etc.
+    */
+   void onDtmfTone(char dtmfDigitCode, int level, int delay);
+
+   dtmf_rx_state_t* m_pDtmfState;
 };
 
 /* ============================ INLINE METHODS ============================ */
+
+#endif /* HAVE_SPAN_DSP ] */
 
 #endif  // _MprDecodeInBandDtmf_h_
