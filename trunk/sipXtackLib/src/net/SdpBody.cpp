@@ -18,7 +18,9 @@
 
 #include <utl/UtlSListIterator.h>
 #include <utl/UtlTokenizer.h>
+#include <utl/UtlHashBag.h>
 #include <sdp/SdpCodec.h>
+#include <sdp/SdpCodecFactory.h>
 #include <net/SdpBody.h>
 #include <net/NameValuePair.h>
 #include <net/NameValueTokenizer.h>
@@ -484,7 +486,7 @@ UtlBoolean SdpBody::getPayloadFormat(int payloadType,
    UtlString aFieldMatch("a");
 
    numVideoSizes = 0;
-   valueFmtp = 0;
+   valueFmtp = -1;
    fmtp.remove(0);
 
    while((nv = (NameValuePair*) iterator.findNext(&aFieldMatch)) != NULL)
@@ -526,7 +528,6 @@ UtlBoolean SdpBody::getPayloadFormat(int payloadType,
                                                     &temp);
 
 
-            valueFmtp = 0;
             index = 3;
             if (modifierString.compareTo("mode") == 0)
             {
@@ -545,7 +546,6 @@ UtlBoolean SdpBody::getPayloadFormat(int payloadType,
                     videoSizes[videoIndex++] = SDP_VIDEO_FORMAT_CIF;
                     break;
                 }
-                valueFmtp = 0;
                 numVideoSizes = videoIndex;
             }
             else if (modifierString.compareTo("size") == 0)
@@ -1322,6 +1322,8 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
        mediaSetIndex++;
    }
 
+   UtlHashBag usedPayloadFormats; // bag with all payload formats that are in common
+
    for(typeIndex = 0; typeIndex < audioPayloadIdCount; typeIndex++)
    {
       // Until the real SdpCodec is needed we assume all of
@@ -1333,7 +1335,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
       if(getPayloadRtpMap(audioPayloadTypes[typeIndex],
                           mimeSubtype, sampleRate, numChannels))
       {
-         int codecMode;
+         int codecMode = -1;
          getPayloadFormat(audioPayloadTypes[typeIndex], fmtp, codecMode, 
             numVideoSizes, videoSizes);
 
@@ -1348,50 +1350,42 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
          matchingCodec = localRtpCodecs.getCodec(MIME_TYPE_AUDIO, mimeSubtype, sampleRate, numChannels, fmtp);
          if (matchingCodec)
          {
-            int frameSize = 0;
+            int matchingCodecPayloadId = matchingCodec->getCodecPayloadId();
+            UtlBoolean bILBC20msOverride = FALSE;
+            // for ILBC 20MS we may have to override frame length
+            if (matchingCodec->getCodecType() == SdpCodec::SDP_CODEC_ILBC_20MS)
+            {
+               if (codecMode == 30 || codecMode == -1)
+               {
+                  // if mode is not present or 30, then 30ms mode needs to be used according to rfc3952
+                  bILBC20msOverride = TRUE;
+               }
+            }
+
             commonCodec = TRUE;
-
-            if (matchingCodec->getCodecType() == SdpCodec::SDP_CODEC_ILBC)
-            {
-               frameSize = codecMode;
-
-                if (frameSize == 20 || frameSize == 30 || frameSize == 0)
-                {
-                   if (frameSize == 0)
-                   {
-                       frameSize = 20;
-                   }
-                }
-                else
-                {
-                    // Nothing in common here
-                    commonCodec = FALSE;
-                }
-            }
-            else if(defaultPtime > 0)
-            {
-                frameSize = defaultPtime;
-            }
+            UtlInt matchingPayloadFormat(matchingCodec->getCodecPayloadId());
+            UtlBoolean bUsedAlready = (usedPayloadFormats.find(&matchingPayloadFormat) != NULL);
 
             // Create a copy of the SDP codec and set
             // the payload type for it
-            if (commonCodec)
+            if (commonCodec && !bUsedAlready) // don't use 2 codecs with the same payload Id
             {
-               commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
-               commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
-
+               usedPayloadFormats.insert(matchingPayloadFormat.clone());
+               if (!bILBC20msOverride)
+               {
+                  commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
+                  commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
+               }
+               else
+               {
+                  commonCodecsForEncoder[numCodecsInCommon] = SdpCodecFactory::buildSdpCodec(SdpCodec::SDP_CODEC_ILBC_30MS);
+                  commonCodecsForDecoder[numCodecsInCommon] = SdpCodecFactory::buildSdpCodec(SdpCodec::SDP_CODEC_ILBC_30MS);
+               }
                commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadId(audioPayloadTypes[typeIndex]);
                // decoder uses our own SDP payload IDs, not remote
-
-               if (frameSize)
-               {
-                  commonCodecsForEncoder[numCodecsInCommon]->setPacketSize(frameSize*1000);
-                  commonCodecsForDecoder[numCodecsInCommon]->setPacketSize(frameSize*1000);
-               }
+               commonCodecsForDecoder[numCodecsInCommon]->setCodecPayloadId(matchingCodecPayloadId);
+               numCodecsInCommon++;
             }
-         
-            numCodecsInCommon++;
-
          }
       }
 
@@ -1406,14 +1400,6 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
             // Create a copy of the SDP codec
             commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
             commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
-
-            // Set the preferred frame size if ptime was set
-            if (defaultPtime > 0)
-            {
-               commonCodecsForEncoder[numCodecsInCommon]->setPacketSize(defaultPtime*1000);
-               commonCodecsForDecoder[numCodecsInCommon]->setPacketSize(defaultPtime*1000);
-            }
-
             numCodecsInCommon++;
          }
       }
@@ -1904,9 +1890,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
 
    switch (streamDirection)
    {
-   case SDP_STREAM_SENDRECV:
-      addValue("a", "sendrecv");
-      break;
+   // no need to add sendrecv, it is the default value
    case SDP_STREAM_SENDONLY:
       addValue("a", "sendonly");
       break;
@@ -2455,7 +2439,7 @@ UtlBoolean SdpBody::getCandidateAttribute(int mediaIndex,
             {
                 aFieldType.toLower() ;
                 aFieldType.strip(UtlString::both, ' ') ;
-                if(aFieldType.compareTo("cand") == 0)
+                if(aFieldType.compareTo("candidate") == 0)
                 {
                     if (aFieldIndex == candidateIndex)
                     {

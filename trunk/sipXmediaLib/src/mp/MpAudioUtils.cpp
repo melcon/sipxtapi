@@ -60,37 +60,6 @@ int gcd(int a, int b)
    return a;
 }
 
-//pass in Size as bytes, and newsize in bytes is returned
-int reSample(char *charBuffer,
-               int Size, int CurrentSampleRate, int NewSampleRate)
-{
-   if (CurrentSampleRate > NewSampleRate)
-   {
-      /* downsampling */
-      MpAudioSample * buffer = (MpAudioSample *) charBuffer;
-      int keptSamples = 0, currentSample = 0;
-      int rkeptSamples = 0, rcurrentSample = 0;
-      int totalSamples = Size / sizeof(MpAudioSample);
-      
-      int rateGcd = gcd(CurrentSampleRate, NewSampleRate);
-      CurrentSampleRate /= rateGcd;
-      NewSampleRate /= rateGcd;
-      
-      for(; currentSample < totalSamples; currentSample++, rcurrentSample++)
-         if (rkeptSamples * CurrentSampleRate <= rcurrentSample * NewSampleRate)
-         {
-            buffer[rkeptSamples++, keptSamples++] = buffer[currentSample];
-            if(rkeptSamples == NewSampleRate && rcurrentSample == CurrentSampleRate)
-               rkeptSamples = rcurrentSample = 0;
-         }
-      Size = keptSamples * sizeof(MpAudioSample);
-   }
-   //should really up-sample here someday...
-   
-   // If we are not actually resampling, we just fall through to here...
-   return Size;
-}
-
 int mergeChannels(char * charBuffer, int Size, int nTotalChannels)
 {
    MpAudioSample * buffer = (MpAudioSample *) charBuffer;

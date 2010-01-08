@@ -71,7 +71,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib"
+				AdditionalDependencies="Ws2_32.lib"
 				OutputFile="..\bin\PlaceCall.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -159,7 +159,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib"
+				AdditionalDependencies="Ws2_32.lib winmm.lib"
 				OutputFile="..\bin\PlaceCall_dbg.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -248,7 +248,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib winmm.lib libeay32.lib ssleay32.lib"
+				AdditionalDependencies="Ws2_32.lib winmm.lib libeay32.lib ssleay32.lib"
 				OutputFile="..\bin\PlaceCall_dbg.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

@@ -62,6 +62,9 @@ class SdpCodec;
 class SdpCodecList;
 class MpRtpInputAudioConnection;
 class MpRtpOutputAudioConnection;
+class MpStopDTMFTimerMsg;
+class MpTimerMsg;
+class OsTimer;
 
 /// Flow graph used to handle a basic call
 #ifdef INCLUDE_RTCP /* [ */
@@ -104,11 +107,13 @@ public:
 ///@name Manipulators
 //@{
 
-     /// Starts playing the indicated tone.
-   void startTone(int toneId, int toneOptions);
+   /// Starts playing the indicated tone.
+   void startTone(int toneId, int toneOptions, int duration = -1);
 
-     /// Stops playing the tone (applies to all tone destinations).
-   void stopTone(void);
+   /**
+   * Stops playing the tone (applies to all tone destinations).
+   */ 
+   void stopTone();
 
    int closeRecorders(void);
 
@@ -218,6 +223,9 @@ public:
    virtual void setInterfaceNotificationQueue(OsMsgQ* pInterfaceNotificationQueue);
 
 //@}
+
+   /** Sets timeout in seconds for media connections. After that timeout, notifications will be sent. */
+   static OsStatus setConnectionIdleTimeout(const int idleTimeout);
 
      /// Enables/Disable the transmission of inband DTMF audio. Othersise RFC 2833 will be used.
    static UtlBoolean enableSendInbandDTMF(UtlBoolean bEnable);
@@ -424,6 +432,7 @@ private:
    /// Event Interest Attribute for RTCP Notifications
    unsigned long mulEventInterest;
 #endif /* INCLUDE_RTCP ] */
+   OsTimer* m_pStopDTMFToneTimer; ///< timer which is started when DTMF tone starts playing
 
    /// these array should really be made into a structure
    /// but for now we'll just use em this way.
@@ -457,6 +466,12 @@ private:
      *  @returns <b>FALSE</b> otherwise.
      */
 
+   /** Handles timer messages. */
+   UtlBoolean handleTimerMessage(const MpTimerMsg& rMsg);
+
+   /** Handles stop DTMF timer message. */
+   UtlBoolean handleStopDTMFTimerMessage(const MpStopDTMFTimerMsg& rMsg);
+
      /// Handle the FLOWGRAPH_REMOVE_CONNECTION message.
    UtlBoolean handleRemoveConnection(MpFlowGraphMsg& rMsg);
      /**<
@@ -485,7 +500,7 @@ private:
      *  @returns <b>FALSE</b> otherwise.
      */
 
-     /// Handle the FLOWGRAPH_STOP_TONE and FLOWGRAPH_STOP_PLAY messages.
+     /// Handle the FLOWGRAPH_STOP_PLAY messages.
    UtlBoolean handleStopToneOrPlay(void);
      /**<
      *  @returns <b>TRUE</b> if the message was handled

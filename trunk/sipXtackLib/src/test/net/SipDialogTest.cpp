@@ -229,7 +229,7 @@ Content-Length: 0\r\n\r\n";
          UtlString localContactString;
          subDialog.getLocalContact(localContactUri);
          localContactUri.toString(localContactString);
-         ASSERT_STR_EQUAL("sip:10.1.1.10", localContactString.data());
+         ASSERT_STR_EQUAL("<sip:10.1.1.10>", localContactString.data());
 
          Url remoteRequestUri;
          subDialog.getRemoteRequestUri(remoteRequestUri);

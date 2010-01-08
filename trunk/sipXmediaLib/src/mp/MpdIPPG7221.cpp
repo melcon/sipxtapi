@@ -158,6 +158,12 @@ int MpdIPPG7221::decode(const MpRtpBufPtr &rtpPacket,
    USC_Status uscStatus = m_pCodec->uscParams.USC_Fns->Decode(m_pCodec->uscParams.uCodec.hUSCCodec,
       &Bitstream, &PCMStream); // G.722.1 has no internal PLC support
    assert(uscStatus == USC_NoError);
+
+   if (uscStatus != USC_NoError)
+   {
+      return 0;
+   }
+
    decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
 
    // Return number of decoded samples

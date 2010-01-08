@@ -641,7 +641,8 @@ OsStatus XCpCallManager::transferConsultativeAbstractCall(const UtlString& sSour
 OsStatus XCpCallManager::audioToneStart(const UtlString& sAbstractCallId,
                                         int iToneId,
                                         UtlBoolean bLocal,
-                                        UtlBoolean bRemote)
+                                        UtlBoolean bRemote,
+                                        int duration)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -650,7 +651,7 @@ OsStatus XCpCallManager::audioToneStart(const UtlString& sAbstractCallId,
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->audioToneStart(iToneId, bLocal, bRemote);
+      return ptrLock->audioToneStart(iToneId, bLocal, bRemote, duration);
    }
 
    return result;

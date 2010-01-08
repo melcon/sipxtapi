@@ -36,14 +36,15 @@
 #include "mp/MpEncoderBase.h"
 #include "mp/MpMediaTask.h"
 #include "mp/MpCodecFactory.h"
+#include <mp/MpResamplerFactory.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-   // At 10 ms each, 10 seconds.  We will send an RTP packet to each active
-   // destination at least this often, even when muted.
-   const int MprEncode::RTP_KEEP_ALIVE_FRAME_INTERVAL = 1000;
+// At 10 ms each, 10 seconds.  We will send an RTP packet to each active
+// destination at least this often, even when muted.
+const int MprEncode::RTP_KEEP_ALIVE_FRAME_INTERVAL = 1000;
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -77,13 +78,9 @@ MprEncode::MprEncode(const UtlString& rName,
 , mMaxPacketSamples(0)
 , mpToNet(NULL)
 , mTimestampStep(samplesPerFrame)
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
 , m_pResampler(NULL)
-#endif
 {
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    memset(m_tmpBuffer, 0, sizeof(m_tmpBuffer));
-#endif
 }
 
 // Destructor
@@ -107,9 +104,7 @@ MprEncode::~MprEncode()
    }
    mpToNet = NULL;
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    destroyResampler();
-#endif
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -212,9 +207,7 @@ void MprEncode::handleDeselectCodecs(void)
          mPayloadBytesUsed = 0;
          mSamplesPacked = 0;
       }
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
       destroyResampler();
-#endif
    }
    if (NULL != mpDtmfCodec) {
       delete mpDtmfCodec;
@@ -272,7 +265,7 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
    {
       ourCodec = pPrimary->getCodecType();
       payload = pPrimary->getCodecPayloadId();
-      ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
+      ret = pFactory->createEncoder(*pPrimary, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);
       pNewEncoder->initEncode();
@@ -284,32 +277,28 @@ void MprEncode::handleSelectCodecs(MpFlowGraphMsg& rMsg)
       // adjust timestamp step by sampling rate difference of flowgraph and primary codec
       // when codec uses 8000, but flowgraph 16000, then samples we get will be downsampled to 1/2 of samples
       // and thus timestamp must be advanced by lower value
-      mTimestampStep = (unsigned int)(((double)pNewEncoder->getInfo()->getSamplingRate() / getSamplesPerSec()) * getSamplesPerFrame());
-      mMaxPacketSamples = mMaxPacketTime * pNewEncoder->getInfo()->getSamplingRate()/1000;
-      if (mMaxPacketSamples * MP_AUDIO_SAMPLE_SIZE >= RTP_MTU)
-      {
-         // can't send more than what fits into RTP payload. This fixes L16 44Khz and 48Khz which are not compressed.
-         mMaxPacketSamples /= 2;
-      }
+      unsigned int encoderSamplingRate = pNewEncoder->getInfo()->getSamplingRate();
+      unsigned int flowgraphSamplingRate = (unsigned int)getSamplesPerSec();
+      mTimestampStep = (unsigned int)(((double)encoderSamplingRate / flowgraphSamplingRate) * getSamplesPerFrame());
+      mMaxPacketTime = pPrimary->getPacketLength() / 1000; // update RTP payload size in ms
+      mMaxPacketSamples = mMaxPacketTime * encoderSamplingRate / 1000;
       if (pNewEncoder->getInfo()->getCodecType() == SdpCodec::SDP_CODEC_G722)
       {
          // Workaround RFC bug with G.722 samplerate.
          // Read RFC 3551 Section 4.5.2 "G722" for details.
          mTimestampStep /= 2;
       }
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
       destroyResampler();
-      // setup speex resampler
-      int error;
-      m_pResampler = speex_resampler_init(1, getSamplesPerSec(), pNewEncoder->getInfo()->getSamplingRate(),
-         SPEEX_RESAMPLER_QUALITY_VOIP, &error);
-#endif
+      if (encoderSamplingRate != flowgraphSamplingRate)
+      {
+         // setup resampler
+         m_pResampler = MpResamplerFactory::createResampler(flowgraphSamplingRate, encoderSamplingRate);
+      }
    }
 
-   if (NULL != pDtmf) {
-      ourCodec = pDtmf->getCodecType();
-      payload = pDtmf->getCodecPayloadId();
-      ret = pFactory->createEncoder(ourCodec, payload, pNewEncoder);
+   if (pDtmf)
+   {
+      ret = pFactory->createEncoder(*pDtmf, pNewEncoder);
       assert(OS_SUCCESS == ret);
       assert(NULL != pNewEncoder);
       pNewEncoder->initEncode();
@@ -429,7 +418,6 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
 {
    int numSamplesIn;
    int numSamplesOut;
-   const MpAudioSample* pSamplesIn;
    int payloadBytesLeft;
    unsigned char* pDest;
    int bytesAdded; //$$$
@@ -443,16 +431,17 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    if (!in.isValid())
       return;
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   unsigned int inSpeexSamplesCount = in->getSamplesNumber();
-   unsigned int outSpeexSamplesCount = SAMPLES_PER_FRAME;
-   if (mpPrimaryCodec->getInfo()->getSamplingRate() != getSamplesPerSec())
+   const MpAudioSample* pSamplesIn = NULL;
+
+   if (mpPrimaryCodec->getInfo()->getSamplingRate() != getSamplesPerSec() && m_pResampler)
    {
+      uint32_t inResampleSamplesCount = in->getSamplesNumber();
+      uint32_t outResampleSamplesCount = SAMPLES_PER_FRAME;
       // we need to resample
-      speex_resampler_process_int(m_pResampler, 0,
-         in->getSamplesPtr(), &inSpeexSamplesCount,
-         m_tmpBuffer, &outSpeexSamplesCount);
-      numSamplesIn = outSpeexSamplesCount;
+      OsStatus res = m_pResampler->resample(in->getSamplesPtr(), inResampleSamplesCount, inResampleSamplesCount,
+         m_tmpBuffer, outResampleSamplesCount, outResampleSamplesCount);
+      assert(res == OS_SUCCESS);
+      numSamplesIn = outResampleSamplesCount;
       pSamplesIn = m_tmpBuffer;
    }
    else
@@ -461,11 +450,6 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
       numSamplesIn = in->getSamplesNumber();
       pSamplesIn = in->getSamplesPtr();
    }
-#else
-   // no need to resample
-   numSamplesIn = in->getSamplesNumber();
-   pSamplesIn = in->getSamplesPtr();
-#endif
 
    while (numSamplesIn > 0)
    {
@@ -644,13 +628,8 @@ UtlBoolean MprEncode::doProcessFrame(MpBufPtr inBufs[],
    return TRUE;
 }
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
 void MprEncode::destroyResampler()
 {
-   if (m_pResampler)
-   {
-      speex_resampler_destroy(m_pResampler);
-      m_pResampler = NULL;
-   }
+   delete m_pResampler;
+   m_pResampler = NULL;
 }
-#endif

@@ -111,7 +111,7 @@ OsStatus MpeIPPG7221::initEncode(void)
    // Allocate memory for the output buffer. Size of output buffer is equal
    // to the size of 1 frame
    m_pInputBuffer = (Ipp8s *)ippsMalloc_8s(m_pCodec->uscParams.pInfo->params.framesize);
-   m_pOutputBuffer = (Ipp8u *)ippsMalloc_8u(m_pCodec->uscParams.pInfo->maxbitsize + 1);
+   m_pOutputBuffer = (Ipp8u *)ippsMalloc_8u(m_pCodec->uscParams.pInfo->maxbitsize + 10);
 
    m_storedFramesCount = 0;
 

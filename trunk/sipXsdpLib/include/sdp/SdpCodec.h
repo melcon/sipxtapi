@@ -167,8 +167,8 @@ public:
         SDP_CODEC_L16_24000_MONO, ///< Mono PCM 16 bit/sample 24000 samples/sec.
         SDP_CODEC_L16_32000_MONO, ///< Mono PCM 16 bit/sample 32000 samples/sec.
         SDP_CODEC_L16_48000_MONO, ///< Mono PCM 16 bit/sample 48000 samples/sec.
-        SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
-        SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)
+        SDP_CODEC_ILBC_30MS,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
+        SDP_CODEC_ILBC_20MS,      ///< Internet Low Bit Rate Codec, 20ms (RFC3951) preferred, or 30ms if overridden
         SDP_CODEC_G726_16,   ///< G.726 16 Kbps
         SDP_CODEC_G726_24,   ///< G.726 24 Kbps
         SDP_CODEC_G726_32,   ///< G.726 32 Kbps
@@ -388,6 +388,9 @@ public:
     * Returns true, if right hand side codec is compatible with our codec.
     * Fmtp is taken into consideration. This method contains code specific to
     * some codecs.
+    *
+    * Normally we first do strict match over a list of codecs, and if perfect match
+    * is not found then relax requirements.
     */
    UtlBoolean isCodecCompatible(const UtlString& mimeType, 
                                 const UtlString& mimeSubType,

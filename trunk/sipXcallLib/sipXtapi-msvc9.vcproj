@@ -77,7 +77,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib libeay32.lib ssleay32.lib"
+				AdditionalDependencies="Ws2_32.lib ksuser.lib dxguid.lib libeay32.lib ssleay32.lib"
 				OutputFile="bin\sipXtapid.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib;..\..\openSSL\lib"
@@ -175,7 +175,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapi.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -278,7 +278,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pcre.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapid.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="lib;..\..\IPP\5.1\ia32\lib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\application\usc_speech_codec\Debug&quot;;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\bin\ia32\lib&quot;;..\..\IPP\5.1\ia32\stublib;&quot;..\..\IPP\ipp_sample\speech-coding\win_speech-coding\codec\vm\Debug&quot;;..\sipXportLib\contrib\pcre\lib"
@@ -373,9 +373,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib speech.lib speech_rtp.lib usc_speech_codec.lib umc.lib vm.lib"
+				AdditionalDependencies="Ws2_32.lib pdh.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapid.dll"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="lib;..\sipXportLib\contrib\pcre\lib"
 				IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib"
@@ -473,7 +473,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib pdh.lib pcre.lib ksuser.lib dxguid.lib speech.lib speech_rtp.lib usc_speech_codec.lib umc.lib vm.lib"
+				AdditionalDependencies="Ws2_32.lib pdh.lib ksuser.lib dxguid.lib"
 				OutputFile="bin\sipXtapi.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

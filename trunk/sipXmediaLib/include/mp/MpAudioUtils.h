@@ -24,9 +24,6 @@ int gcd(int a, int b);
 *  Don't pass it negative numbers or (0, 0)
 */
 
-/// Downsamples from current rate to new rate. Doesn't upsample yet
-int reSample(char * charBuffer, int numBytes, int currentSampleRate, int newSampleRate);
-
 /// Merges two or more channels into one.
 int mergeChannels(char * charBuffer, int Size, int nTotalChannels);
 /**<

@@ -18,17 +18,14 @@
 #include <os/OsLock.h>
 #include "os/OsIntPtrMsg.h"
 #include <os/OsSysLog.h>
+#include <mp/MpDefs.h>
 #include <mp/MpRtpInputAudioConnection.h>
 #include <mp/MpFlowGraphBase.h>
 #include <mp/MprDejitter.h>
 #include <mp/MprDecode.h>
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
-#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF) && !defined(ENABLE_WIDEBAND_AUDIO)
-#   include "mp/MprSpanDspDtmfDetector.h"
-#else
-#   include "mp/MprSimpleDtmfDetector.h"
-#endif // defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+#include <mp/MprDtmfDetectorFactory.h>
 #include "mp/MpResNotification.h"
 #include <sdp/SdpCodec.h>
 #include <sdp/SdpCodecList.h>
@@ -36,10 +33,14 @@
 #   include <rtl_macro.h>
 #endif
 
+// minimum is 5 second
+#define MIN_CONNECTION_IDLE_TIMEOUT 5
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
+long MpRtpInputAudioConnection::ms_maxInactiveFrameCount = FRAMES_PER_SECOND * 120; // default is 2 minutes
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
@@ -64,6 +65,8 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
                        )
 , mpDecode(NULL)
 , mpDtmfDetector(NULL)
+, m_inactiveFrameCount(0)
+, m_bAudioReceived(FALSE)
 , m_bInBandDTMFEnabled(bInBandDTMFEnabled)
 , m_bRFC2833DTMFEnabled(bRFC2833DTMFEnabled)
 , m_samplesPerFrame(samplesPerFrame)
@@ -79,12 +82,7 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
    if (m_bInBandDTMFEnabled)
    {
       SNPRINTF(name, sizeof(name), "DtmfDetector-%d", myID);
-#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF) && !defined(ENABLE_WIDEBAND_AUDIO)
-      // Span DSP doesn't support more than 8Khz DTMF detection
-      mpDtmfDetector = new MprSpanDspDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
-#else
-      mpDtmfDetector = new MprSimpleDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
-#endif // defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+      mpDtmfDetector = MprDtmfDetectorFactory::createDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
       mpDtmfDetector->registerObserver(this);
    }   
 
@@ -144,6 +142,36 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
 		}
 	}
 
+   if (mpOutBufs)
+   {
+      MpAudioBufPtr audioBufPtr = *mpOutBufs;
+      if (audioBufPtr.isValid())
+      {
+         MpSpeechType speechType = audioBufPtr->getSpeechType();
+         if (speechType == MP_SPEECH_COMFORT_NOISE)
+         {
+            // comfort noise was generated, no frame was received
+            m_inactiveFrameCount++;
+            if (m_inactiveFrameCount >= ms_maxInactiveFrameCount)
+            {
+               // fire notification
+               sendConnectionNotification(MP_NOTIFICATION_REMOTE_SILENT, m_inactiveFrameCount / FRAMES_PER_SECOND);
+               m_inactiveFrameCount = 0;
+               m_bAudioReceived = FALSE; // reset flag, so that we get notification when audio is received again
+            }
+         }
+         else
+         {
+            m_inactiveFrameCount = 0;
+            if (!m_bAudioReceived)
+            {
+               m_bAudioReceived = TRUE;
+               // fire notification
+               sendConnectionNotification(MP_NOTIFICATION_REMOTE_ACTIVE, 0);
+            }
+         }
+      }
+   }
 
     // No input buffers to release
    assert(mMaxInputs == 0);
@@ -153,7 +181,6 @@ UtlBoolean MpRtpInputAudioConnection::processFrame(void)
    pushBufferDownsream(0, mpOutBufs[0]);
    // release the output buffer
    mpOutBufs[0].release();
-
 
    return(result);
 }
@@ -272,6 +299,9 @@ void MpRtpInputAudioConnection::handleStartReceiveRtp(UtlSList& codecList,
                                                       OsSocket& rRtpSocket,
                                                       OsSocket& rRtcpSocket)
 {
+   m_bAudioReceived = FALSE;
+   m_inactiveFrameCount = 0;
+
    if (codecList.entries() > 0)
    {
       // if RFC2833 DTMF is disabled
@@ -331,6 +361,9 @@ OsStatus MpRtpInputAudioConnection::stopReceiveRtp(OsMsgQ& messageQueue,
 // Stop receiving RTP and RTCP packets.
 void MpRtpInputAudioConnection::handleStopReceiveRtp()
 {
+   m_bAudioReceived = FALSE;
+   m_inactiveFrameCount = 0;
+
    prepareStopReceiveRtp();
 
    // No need to synchronize as the decoder is not part of the
@@ -426,6 +459,16 @@ void MpRtpInputAudioConnection::onNotify(UtlObservable* subject, int code, intpt
 }
 
 /* ============================ ACCESSORS ================================= */
+
+void MpRtpInputAudioConnection::setConnectionIdleTimeout(long timeoutSeconds)
+{
+   if (timeoutSeconds < MIN_CONNECTION_IDLE_TIMEOUT)
+   {
+      timeoutSeconds = MIN_CONNECTION_IDLE_TIMEOUT;
+   }
+
+   ms_maxInactiveFrameCount = timeoutSeconds * FRAMES_PER_SECOND;
+}
 
 MpDecoderBase* MpRtpInputAudioConnection::mapPayloadType(int payloadType)
 {

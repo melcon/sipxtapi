@@ -41,7 +41,8 @@ public:
 
    AcAudioToneStartMsg(int iToneId,
                        UtlBoolean bLocal,
-                       UtlBoolean bRemote);
+                       UtlBoolean bRemote,
+                       int duration);
 
    virtual ~AcAudioToneStartMsg();
 
@@ -54,6 +55,7 @@ public:
    int getToneId() const { return m_iToneId; }
    UtlBoolean getLocal() const { return m_bLocal; }
    UtlBoolean getRemote() const { return m_bRemote; }
+   int getDuration() const { return m_duration; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -71,6 +73,7 @@ private:
    int m_iToneId;
    UtlBoolean m_bLocal;
    UtlBoolean m_bRemote;
+   int m_duration;
 };
 
 #endif // AcAudioToneStartMsg_h__

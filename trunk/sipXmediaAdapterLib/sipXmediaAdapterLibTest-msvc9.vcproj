@@ -72,11 +72,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib ksuser.lib dxguid.lib"
+				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib ksuser.lib dxguid.lib pdh.lib"
 				OutputFile=".\Debug/sipXmediaAdapterLibTest.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\CPPUnit\lib;..\sipXmediaLib\contrib\libgsm\lib;..\sipXmediaLib\contrib\libspeex\lib;..\sipXportLib\contrib\pcre\lib"
+				AdditionalLibraryDirectories="..\CPPUnit\lib;..\sipXmediaLib\contrib\libgsm\lib;&quot;..\sipXmediaLib\contrib\speex-1.2rc1\lib&quot;;..\sipXportLib\contrib\pcre\lib;&quot;..\sipXmediaLib\contrib\spandsp-0.0.6\lib&quot;"
 				IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/sipXmediaAdapterLibTest.pdb"
@@ -166,7 +166,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib pcre.lib ksuser.lib dxguid.lib libeay32.lib ssleay32.lib"
+				AdditionalDependencies="Ws2_32.lib winmm.lib cppunitd.lib ksuser.lib dxguid.lib libeay32.lib ssleay32.lib"
 				OutputFile=".\Debug/sipXmediaAdapterLibTest.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

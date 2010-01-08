@@ -110,6 +110,8 @@ class SipXMediaFactoryImpl : public CpMediaInterfaceFactory
 
     virtual UtlString getAllSupportedVideoCodecs() const;
 
+    virtual OsStatus setConnectionIdleTimeout(const int idleTimeout);
+
     virtual OsStatus updateVideoPreviewWindow(void* displayContext) ;
 
     /**

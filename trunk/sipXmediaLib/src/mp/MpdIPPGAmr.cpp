@@ -214,6 +214,12 @@ int MpdIPPGAmr::decode(const MpRtpBufPtr &rtpPacket,
          bIsPLCFrame ? NULL : &Bitstream,
          &PCMStream);
       assert(uscStatus == USC_NoError);
+
+      if (uscStatus != USC_NoError)
+      {
+         return 0;
+      }
+
       decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
    }
 

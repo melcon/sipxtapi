@@ -60,6 +60,10 @@ nobase_include_HEADERS =  \
     mp/MpMediaTaskHelper.h \
     mp/MpMediaTaskMsg.h \
     mp/MpMisc.h \
+    mp/MpNoiseGeneratorBase.h \
+    mp/MpNoiseGeneratorDefault.h \
+    mp/MpNoiseGeneratorFactory.h \
+    mp/MpNoiseGeneratorSpanDsp.h \
     mp/MpNotificationDispatcher.h \
     mp/MpNotificationMsgDef.h \
     mp/MpPortAudioDriver.h \
@@ -75,7 +79,9 @@ nobase_include_HEADERS =  \
     mp/MpRtpOutputAudioConnection.h \
     mp/MpRtpOutputConnection.h \
     mp/MpSipxDecoders.h \
+    mp/MpStopDTMFTimerMsg \
     mp/MpSyncPortAudioStream.h \
+    mp/MpTimerMsg.h \
     mp/MpToneResourceMsg.h \
     mp/MpTypes.h \
     mp/MpUdpBuf.h \
@@ -87,8 +93,11 @@ nobase_include_HEADERS =  \
     mp/MpdIPPG729.h \
     mp/MpdIPPG7291.h \
     mp/MpdIPPG729i.h \
-    mp/MpdIPPGAmr.h
-    mp/MpdIPPGAmrWb.h
+    mp/MpdIPPGAmr.h \
+    mp/MpdIPPGAmrWb.h \
+    mp/MpdIPPGSM.h \
+    mp/MpdIPPPcma.h \
+    mp/MpdIPPPcmu.h \
     mp/MpdPtAVT.h \
     mp/MpdSipxG722.h \
     mp/MpdSipxG726.h \
@@ -108,6 +117,9 @@ nobase_include_HEADERS =  \
     mp/MpeIPPG729i.h \
     mp/MpeIPPGAmr.h \
     mp/MpeIPPGAmrWb.h \
+    mp/MpeIPPGSM.h \
+    mp/MpeIPPPcma.h \
+    mp/MpeIPPPcmu.h \
     mp/MpePtAVT.h \
     mp/MpeSipxG722.h \
     mp/MpeSipxG726.h \
@@ -126,7 +138,12 @@ nobase_include_HEADERS =  \
     mp/MprSpanDspDtmfDetector.h \
     mp/MprDejitter.h \
     mp/MprDtmfDetectorBase.h \
+    mp/MprDtmfDetectorFactory.h \
     mp/MprEncode.h \
+    mp/MpResamplerBase.h \
+    mp/MpResamplerDefault.h \
+    mp/MpResamplerFactory.h \
+    mp/MpResamplerSpeex.h \
     mp/MprFromFile.h \
     mp/MprFromMic.h \
     mp/MprFromNet.h \

@@ -127,8 +127,8 @@ private:
    *  Pointer to array of length mNumCurrentCodecs of MpDecoderBase*'s
    *  which represent the codecs, or NULL if mNumCurrentCodecs == 0.
    */
-   MpDecoderBase** mpCurrentCodecs;
-   int             mNumCurrentCodecs; ///< Length of mpCurrentCodecs array.
+   MpDecoderBase** m_pCurrentDecoders;
+   int             m_nCurrentDecoders; ///< Length of mpCurrentCodecs array.
 
    /// Similar list of all codecs that have ever been listed on mpCurrentCodecs.
    MpDecoderBase** mpPrevCodecs;

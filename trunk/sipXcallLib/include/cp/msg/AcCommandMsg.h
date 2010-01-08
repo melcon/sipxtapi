@@ -66,8 +66,8 @@ public:
       AC_AUDIO_RESUME_PLAYBACK, ///< resumes buffer/file playback
       AC_AUDIO_RECORD_START, ///< starts call/conference recording
       AC_AUDIO_RECORD_STOP, ///< stops call/conference recording
-      AC_AUDIO_TONE_START, ///< starts DTMF tone
-      AC_AUDIO_TONE_STOP, ///< stops DTMF tone
+      AC_AUDIO_TONE_START, ///< sends DTMF tone (in-band or rfc2833)
+      AC_AUDIO_TONE_STOP, ///< stops sending DTMF tone
       AC_SUBSCRIBE, ///< subscribe to notifications
       AC_UNSUBSCRIBE, ///< unsubscribe from notifications
       AC_ACCEPT_TRANSFER, ///< accept transfer request

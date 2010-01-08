@@ -872,7 +872,7 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
       sipMessage.setLocationField(m_rStateContext.m_locationHeader);
    }
 
-   if (m_rStateContext.m_sBindIpAddress.compareTo("0.0.0.0"))
+   if (m_rStateContext.m_sBindIpAddress.compareTo("0.0.0.0") != 0)
    {
       // if its not 0.0.0.0, then use it as local IP of sip message
       sipMessage.setLocalIp(m_rStateContext.m_sBindIpAddress);
@@ -4674,9 +4674,9 @@ void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessa
       {
          updateCapabilities = TRUE;
       }
-      if (seqMethod.compareTo(SIP_OPTIONS_METHOD) && responseCode == SIP_OK_CODE)
+      if (seqMethod.compareTo(SIP_OPTIONS_METHOD) == 0)
       {
-         // if we get 200 OK OPTIONS response, assume we know all that we can discover.
+         // if we get OPTIONS response, assume we know all that we can discover.
          m_rStateContext.m_allowedRemoteDiscovered = TRUE;
          m_rStateContext.m_supportedRemoteDiscovered = TRUE;
       }

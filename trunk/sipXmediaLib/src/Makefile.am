@@ -90,10 +90,18 @@ libsipXmedia_la_SOURCES =  \
     mp/MpMediaTaskHelper.cpp \
     mp/MpMediaTaskMsg.cpp \
     mp/MpMisc.cpp \
+    mp/MpNoiseGeneratorBase.cpp \
+    mp/MpNoiseGeneratorDefault.cpp \
+    mp/MpNoiseGeneratorFactory.cpp \
+    mp/MpNoiseGeneratorSpanDsp.cpp \
     mp/MpNotificationDispatcher.cpp \
     mp/MpPortAudioDriver.cpp \
     mp/MpPortAudioMixer.cpp \
     mp/MpPortAudioStreamBase.cpp \
+    mp/MpResamplerBase.cpp \
+    mp/MpResamplerDefault.cpp \
+    mp/MpResamplerFactory.cpp \
+    mp/MpResamplerSpeex.cpp \
     mp/MpResource.cpp \
     mp/MpResourceMsg.cpp \
     mp/MpResourceSortAlg.cpp \
@@ -103,7 +111,9 @@ libsipXmedia_la_SOURCES =  \
     mp/MpRtpOutputAudioConnection.cpp \
     mp/MpRtpOutputConnection.cpp \
     mp/MpSipxDecoders.cpp \
+    mp/MpStopDTMFTimerMsg.cpp \
     mp/MpSyncPortAudioStream.cpp \
+    mp/MpTimerMsg.cpp \
     mp/MpTypes.cpp \
     mp/MpUdpBuf.cpp \
     mp/MpdIPPG7221.cpp \
@@ -114,6 +124,9 @@ libsipXmedia_la_SOURCES =  \
     mp/MpdIPPG729i.cpp \
     mp/MpdIPPGAmr.cpp \
     mp/MpdIPPGAmrWb.cpp \
+    mp/MpdIPPGSM.cpp \
+    mp/MpdIPPPcma.cpp \
+    mp/MpdIPPPcmu.cpp \
     mp/MpdPtAVT.cpp \
     mp/MpdSipxG722.cpp \
     mp/MpdSipxG726.cpp \
@@ -133,6 +146,9 @@ libsipXmedia_la_SOURCES =  \
     mp/MpeIPPG729i.cpp \
     mp/MpeIPPGAmr.cpp \
     mp/MpeIPPGAmrWb.cpp \
+    mp/MpeIPPGSM.cpp \
+    mp/MpeIPPPcma.cpp \
+    mp/MpeIPPPcmu.cpp \
     mp/MpePtAVT.cpp \
     mp/MpeSipxG722.cpp \
     mp/MpeSipxG726.cpp \
@@ -149,6 +165,7 @@ libsipXmedia_la_SOURCES =  \
     mp/MprSimpleDtmfDetector.cpp \
     mp/MprSpanDspDtmfDetector.cpp \
     mp/MprDejitter.cpp \
+    mp/MprDtmfDetectorFactory.cpp \
     mp/MprEncode.cpp \
     mp/MprFromFile.cpp \
     mp/MprFromMic.cpp \
