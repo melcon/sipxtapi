@@ -8,16 +8,15 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _OsRWMutex_h_
 #define _OsRWMutex_h_
 
 // SYSTEM INCLUDES
-
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
 #include "os/OsBSem.h"
 #include "os/OsCSem.h"
+#include <os/OsRWSyncBase.h>
 #include "utl/UtlDefs.h"
 
 // DEFINES
@@ -34,7 +33,7 @@
 // single resource. The readers can use the resource simultaneously, but each
 // writer must have exclusive access to it. When a writer is ready to use the
 // resource, it should be enabled to do so as soon as possible.
-class OsRWMutex
+class OsRWMutex : public OsRWSyncBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -49,11 +48,10 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   OsRWMutex(const int queueOptions);
+   OsRWMutex(const int queueOptions = Q_FIFO);
      //:Constructor
 
-   virtual
-   ~OsRWMutex();
+   virtual ~OsRWMutex();
      //:Destructor
 
 /* ============================ MANIPULATORS ============================== */
@@ -138,13 +136,10 @@ private:
      // and, if so, grant sufficient write "tickets" for all active but not
      // yet running writers.
 
-   OsRWMutex();
-     //:Default constructor (not implemented for this class)
-
    OsRWMutex(const OsRWMutex& rOsRWMutex);
      //:Copy constructor (not implemented for this class)
 
-           OsRWMutex& operator=(const OsRWMutex& rhs);
+   OsRWMutex& operator=(const OsRWMutex& rhs);
      //:Assignment operator (not implemented for this class)
 
 };

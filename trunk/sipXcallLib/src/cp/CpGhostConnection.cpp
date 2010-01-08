@@ -215,11 +215,11 @@ UtlBoolean CpGhostConnection::getRemoteAddress(UtlString* remoteAddress, UtlBool
    return(FALSE);
 }
 
-UtlBoolean CpGhostConnection::getSession(SipSession& session)
+/*UtlBoolean CpGhostConnection::getSession(SipSession& session)
 {
    unimplemented("CpGhostConnection::getSession");
    return(FALSE);
-}
+}*/
 
 
 // Enumerate possible contact addresses

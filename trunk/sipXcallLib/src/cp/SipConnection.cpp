@@ -30,7 +30,6 @@
 #include <net/NameValueTokenizer.h>
 #include <net/SdpCodecFactory.h>
 #include <net/Url.h>
-#include <net/SipSession.h>
 #include <net/NetBase64Codec.h>
 #include <cp/SipConnection.h>
 #include <mi/CpMediaInterface.h>
@@ -6124,7 +6123,7 @@ UtlBoolean SipConnection::isSameRemoteAddress(Url& remoteAddress,
    return(isSame);
 }
 
-UtlBoolean SipConnection::getSession(SipSession& session)
+/*UtlBoolean SipConnection::getSession(SipSession& session)
 {
    UtlString callId;
    getCallId(&callId);
@@ -6146,7 +6145,7 @@ UtlBoolean SipConnection::getSession(SipSession& session)
 
    session = ssn;
    return(TRUE);
-}
+}*/
 
 int SipConnection::getNextCseq()
 {

@@ -21,6 +21,7 @@
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
 #include <net/Url.h>
+#include <net/SipDialog.h>
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
 #include "tapi/SipXCore.h"
@@ -38,14 +39,11 @@ class OsStackTraceLogger;
 class SIPX_CALL_DATA
 {
 public:
-   UtlString m_callId; ///< Id identifying CpPeerCall instance
-   UtlString m_sessionCallId; ///< SIP CallId used in SIP Messages, identifies SipConnection
+   UtlString m_abstractCallId; ///< Id identifying CpPeerCall instance
    UtlString m_ghostCallId;
-   UtlString m_remoteAddress;
-   UtlString m_fromUrl; ///< from URL used for call, will contain tag. For outbound calls tag is added later.
-   Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets
-   Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag.
-   UtlString m_remoteContactAddress;///< Remote Contact URI
+   Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets. Can be used for new out of dialog requests.
+   Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag. Stored here to avoid line lookups.
+   SipDialog m_sipDialog; ///< sip dialog of this call
    SIPX_LINE m_hLine;
    SIPX_INSTANCE_DATA* m_pInst;
    OsMutex m_mutex;
@@ -78,13 +76,10 @@ public:
                                       Set to fales if sipxCallUnhold has been invoked. */                                          
    SIPX_CALL_DATA()
       : m_mutex(OsMutex::Q_FIFO),
-      m_callId(NULL),
-      m_sessionCallId(NULL),
+      m_abstractCallId(NULL),
       m_ghostCallId(NULL),
-      m_remoteAddress(NULL),
-      m_fromUrl(NULL),
       m_lineUri(),
-      m_remoteContactAddress(NULL),
+      m_sipDialog(NULL),
       m_hLine(0),
       m_pInst(NULL),
       m_hConf(NULL),
@@ -148,15 +143,15 @@ UtlBoolean sipxCallGetCommonData(SIPX_CALL hCall,
                                  SIPX_INSTANCE_DATA** pInst,
                                  UtlString* pCallId,
                                  UtlString* pSessionCallId,
-                                 UtlString* pStrRemoteAddress,
-                                 UtlString* pLineUri,
+                                 UtlString* pRemoteField,
+                                 UtlString* pLocalField,
                                  UtlString* pGhostCallId = NULL, 
                                  UtlString* pRemoteContactAddress = NULL);
 
 /**
-* Get the list of active calls for the specified call manager instance
+* Get the list of active calls for the specified sipxtapi instance.
 */
-SIPXTAPI_API SIPX_RESULT sipxGetAllCallIds(SIPX_INST hInst, UtlSList& sessionCallIdList);
+SIPXTAPI_API SIPX_RESULT sipxGetAllAbstractCallIds(SIPX_INST hInst, UtlSList& idList);
 
 void sipxCallDestroyAll(const SIPX_INST hInst);
 
@@ -175,8 +170,8 @@ SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
                                  SIPX_CALL* phCall,
                                  const UtlString& sCallId = "",
                                  const UtlString& sSessionCallId = "",
-                                 bool bCreateInCallManager = true,
-                                 bool bFireDialtone = true);
+                                 bool bFireDialtone = true,
+                                 bool bIsConferenceCall = false);
 
 
 SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall);

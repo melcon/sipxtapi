@@ -36,6 +36,8 @@ class OsPtrLock
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
+   // make friend with self, to allow access to private members of different templates of OsPtrLock
+   friend class OsPtrLock;
 
    /**
     * Constructor accepting an optional default value.
@@ -60,7 +62,7 @@ public:
     * Copy constructor for assigning instance of OsPtrLock. Copies the pointer
     * stored in OsPtrLock, and locks it again.
     */
-   OsPtrLock(const OsPtrLock& rhs)
+   OsPtrLock(const OsPtrLock<T>& rhs)
    {
       superclassCheck();
       m_pValue = rhs.m_pValue;
@@ -70,20 +72,21 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /** 
-    * Assignment operator for assigning instance of OsPtrLock into OsPtrLock.
-    * Locks the assigned object. Object will get unlocked during destruction or
-    * another assignment.
-    */
-   OsPtrLock& operator=(const OsPtrLock& rhs)
+   * Assignment operator for assigning instance of OsPtrLock into OsPtrLock.
+   * Locks the assigned object. Object will get unlocked during destruction or
+   * another assignment.
+   */
+   template <class Y>
+   OsPtrLock<T>& operator=(const OsPtrLock<Y>& rhs)
    {
-      if (rhs == this)
+      if ((void*)&rhs == (void*)this)
       {
          // when self assignment do not lock or unlock anything
          return *this;
       }
 
       release(); // release old lock
-      m_pValue = rhs.m_pValue;
+      m_pValue = dynamic_cast<T*>(rhs.m_pValue);
       acquire(); // acquire new lock
       return *this;
    }

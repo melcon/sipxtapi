@@ -24,8 +24,10 @@
 #endif /* _WIN32 */
 
 // APPLICATION INCLUDES
+#include <tapi/sipXtapi.h>
 #include "tapi/SipXAudio.h"
-#include "cp/CallManager.h"
+#include <tapi/SipXCore.h>
+#include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include <mi/CpAudioDeviceInfo.h>
@@ -314,8 +316,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetInputVolume(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -577,8 +578,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAECMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -607,8 +607,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAECMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -639,8 +638,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetAGCMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -669,8 +667,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetAGCMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -701,8 +698,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetNoiseReductionMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
@@ -731,8 +727,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetNoiseReductionMode(const SIPX_INST hInst,
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {

@@ -41,7 +41,6 @@
 #include <net/SipLineProvider.h>
 #include <net/NameValueTokenizer.h>
 #include <net/Url.h>
-#include <net/SipSession.h>
 #include "net/SmimeBody.h"
 #include "ptapi/PtCall.h"
 #include <ptapi/PtConnection.h>
@@ -1058,12 +1057,12 @@ UtlBoolean CpPeerCall::handleGetSession(OsMsg* pEventMessage)
          (callId.compareTo(connCallId) == 0) &&
          (address.compareTo(localAddress) == 0 || address.compareTo(remoteAddress) == 0))
       {
-         SipSession session;
-         connection->getSession(session);
+//         SipSession session;
+//         connection->getSession(session);
          OsSysLog::add(FAC_CP, PRI_DEBUG, "CpPeerCall::handleGetSession copying session: %p",
             sessionPtr);
 
-         *sessionPtr = SipSession(session);
+//         *sessionPtr = SipSession(session);
          // Signal the caller that we are done.
          break;
       }
@@ -1076,8 +1075,8 @@ UtlBoolean CpPeerCall::handleGetSession(OsMsg* pEventMessage)
       OsSysLog::add(FAC_CP, PRI_DEBUG,
          "CpPeerCall::handleGetSession deleting session: %p",
          sessionPtr);
-      delete sessionPtr;
-      sessionPtr = NULL;
+/*      delete sessionPtr;
+      sessionPtr = NULL;*/
 
       OsProtectEventMgr* eventMgr = OsProtectEventMgr::getEventMgr();
       eventMgr->release(getFieldEvent);
@@ -1226,16 +1225,16 @@ UtlBoolean CpPeerCall::handleOfferingExpired(OsMsg* pEventMessage)
       if (connectionState == Connection::CONNECTION_OFFERING)
       {
          UtlString    msg;            
-         SipSession  session;
+//         SipSession  session;
          Url         urlFrom, urlTo;
          UtlString    callId, from, to;
 
-         connection->getSession(session);
-         session.getCallId(callId);
+//         connection->getSession(session);
+/*         session.getCallId(callId);
          session.getFromUrl(urlFrom);
          urlFrom.toString(from);
          session.getToUrl(urlTo);
-         urlTo.toString(to);                                                  
+         urlTo.toString(to);*/
 
          msg = "CP_OFFERING_EXPIRED for address: " + address;
          msg += "\n\tHandling CallId: " + callId;
@@ -2720,7 +2719,7 @@ void CpPeerCall::dropIfDead()
                // fire DESTROYED event for the CpPeerCall, call is not connected
                UtlString sCallId;
                getCallId(sCallId);
-               CpCallStateEvent event(NULL, sCallId, SipSession(), NULL, CALLSTATE_CAUSE_NORMAL);
+               CpCallStateEvent event(sCallId, NULL, CP_CALLSTATE_CAUSE_NORMAL);
 
                m_pCallEventListener->OnDestroyed(event);
             }

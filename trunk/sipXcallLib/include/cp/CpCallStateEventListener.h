@@ -20,8 +20,8 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
-#include "tapi/sipXtapiEvents.h"
-#include <net/SipSession.h>
+#include <net/SipDialog.h>
+#include <cp/CpDefs.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -37,40 +37,37 @@
 class CpCallStateEvent
 {
 public:
-
-   UtlString m_sSessionCallId;
-   UtlString m_sCallId;
-   SipSession m_Session;
-   UtlString m_sRemoteAddress;
-   SIPX_CALLSTATE_CAUSE m_cause;
+   UtlString m_sCallId; // id of abstract call
+   SipDialog* m_pSipDialog;
+   CP_CALLSTATE_CAUSE m_cause;
    UtlString m_sOriginalSessionCallId; // callId supplied sometimes for transfer events
    int m_sipResponseCode;
    UtlString m_sResponseText;
 
-   CpCallStateEvent(const UtlString& sSessionCallId,
-      const UtlString& sCallId,
-      const SipSession& session,
-      const UtlString& sRemoteAddress,
-      SIPX_CALLSTATE_CAUSE cause,
+   CpCallStateEvent(const UtlString& sCallId,
+      const SipDialog* pSipDialog,
+      CP_CALLSTATE_CAUSE cause,
       const UtlString& sOriginalSessionCallId = NULL,
       int sipResponseCode = 0,
       const UtlString& sResponseText = NULL)
-      : m_sSessionCallId(sSessionCallId),
-      m_sCallId(sCallId),
-      m_Session(session),
-      m_sRemoteAddress(sRemoteAddress),
+      : m_sCallId(sCallId),
+      m_pSipDialog(NULL),
       m_cause(cause),
       m_sOriginalSessionCallId(sOriginalSessionCallId),
       m_sipResponseCode(sipResponseCode),
       m_sResponseText(sResponseText)
    {
-
+      if (pSipDialog)
+      {
+         // create copy of sip dialog
+         m_pSipDialog = new SipDialog(*pSipDialog);
+      }
    }
 
    CpCallStateEvent()
    {
       m_sipResponseCode = 0;
-      m_cause = CALLSTATE_CAUSE_UNKNOWN;
+      m_cause = CP_CALLSTATE_CAUSE_UNKNOWN;
    }
 
    ~CpCallStateEvent()
@@ -90,9 +87,17 @@ public:
       }
 
       m_sCallId = event.m_sCallId;
-      m_sSessionCallId = event.m_sSessionCallId;
-      m_Session = event.m_Session;
-      m_sRemoteAddress = event.m_sRemoteAddress;
+      // get rid of old sip dialog if it exists
+      if (m_pSipDialog)
+      {
+         delete m_pSipDialog;
+         m_pSipDialog = NULL;
+      }
+      if (event.m_pSipDialog)
+      {
+         // copy new sip dialog
+         m_pSipDialog = new SipDialog(*(event.m_pSipDialog));
+      }
       m_cause = event.m_cause;
       m_sOriginalSessionCallId = event.m_sOriginalSessionCallId;
       m_sipResponseCode = event.m_sipResponseCode;

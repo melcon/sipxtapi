@@ -167,8 +167,8 @@ public:
                               void* pCookie = NULL);
 
 
-    virtual OsStatus playBuffer(char* buf, 
-                               unsigned long bufSize,
+    virtual OsStatus playBuffer(void* buf, 
+                               size_t bufSize,
                                int type, 
                               UtlBoolean repeat,
                               UtlBoolean local, 
@@ -215,6 +215,11 @@ public:
            double& duration, 
            int& dtmfterm,
            OsProtectedEvent* ev = NULL);
+
+   /**
+   * Starts recording all audio channels into given file.
+   */
+   virtual OsStatus recordAudio(const char* szFile);
 
      /// @copydoc CpMediaInterface::recordMic(UtlString*)
    virtual OsStatus recordMic(UtlString* pAudioBuffer);

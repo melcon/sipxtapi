@@ -39,16 +39,15 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
                                                     SipLineCredential& lineCredential) const
 {
    UtlBoolean result = FALSE;
-   UtlString lineId;
    Url lineUri;
    UtlString userId;
 
-   // get LINEID, lineUri, userId from SipMessage
-   extractLineData(sipRequest, lineId, lineUri, userId);
+   // get lineUri, userId from SipMessage
+   extractLineData(sipRequest, lineUri, userId);
 
    // get copy of SipLine
    SipLine sipLine;
-   UtlBoolean lineFound = findLineCopy(lineId, lineUri, userId, sipLine); // slow lookup during authentication is ok
+   UtlBoolean lineFound = findLineCopy(lineUri, userId, sipLine); // slow lookup during authentication is ok
    if (lineFound)
    {
       // get authentication details from response
@@ -87,19 +86,17 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
 UtlBoolean SipLineProvider::getProxyServersForMessage(const SipMessage& sipRequest,
                                                       UtlString& proxyServer) const
 {
-   UtlString lineId;
    Url lineUri;
    UtlString userId;
 
-   // get LINEID, lineUri, userId from SipMessage
-   extractLineData(sipRequest, lineId, lineUri, userId);
+   // get lineUri, userId from SipMessage
+   extractLineData(sipRequest, lineUri, userId);
 
    // do fast lookup to get proxy servers
    return getLineProxyServers(lineUri, proxyServer);
 }
 
 void SipLineProvider::extractLineData(const SipMessage& sipMsg,
-                                      UtlString& lineId,
                                       Url& lineUri,
                                       UtlString& userId)
 {
@@ -159,7 +156,6 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
       }
    }
 
-   lineUri.getUrlParameter(SIP_LINE_IDENTIFIER , lineId); // get LINEID from lineUri
    lineUri.getUserId(userId); // get userId from lineUri
 }
 
@@ -167,14 +163,13 @@ void SipLineProvider::extractLineData(const SipMessage& sipMsg,
 
 UtlBoolean SipLineProvider::lineExists(const SipMessage& sipMsg) const
 {
-   UtlString lineId;
    Url lineUri;
    UtlString userId;
 
-   // get LINEID, lineUri, userId
-   extractLineData(sipMsg, lineId, lineUri, userId);
+   // get lineUri, userId
+   extractLineData(sipMsg, lineUri, userId);
 
-   return lineExists(lineId, lineUri, userId);
+   return lineExists(lineUri, userId);
 }
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

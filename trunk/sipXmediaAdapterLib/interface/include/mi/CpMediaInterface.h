@@ -447,8 +447,8 @@ public:
                                      void* pCookie = NULL) = 0 ;
 
      /// @brief Play the specified audio buffer to the call. 
-   virtual OsStatus playBuffer(char* buf, 
-                               unsigned long bufSize,
+   virtual OsStatus playBuffer(void* buf, 
+                               size_t bufSize,
                                int type, 
                                UtlBoolean repeat,
                                UtlBoolean local, 
@@ -539,6 +539,11 @@ public:
      *             recording is terminated.
      *  @param[in] fileName - The path and name of a file to record to.
      */
+
+   /**
+    * Starts recording all audio channels into given file.
+    */
+   virtual OsStatus recordAudio(const char* szFile) = 0;
 
      /// Record the microphone data
    virtual OsStatus recordMic(UtlString* pAudioBuf);

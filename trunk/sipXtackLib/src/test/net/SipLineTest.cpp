@@ -61,7 +61,6 @@ class SipLineTest : public CppUnit::TestCase
    CPPUNIT_TEST(testSipLineContainableType);
    CPPUNIT_TEST(testSipLineContainableHash);
    CPPUNIT_TEST(testSipLineContainableCompareTo);
-   CPPUNIT_TEST(testSipLineId);
    CPPUNIT_TEST(testSipLineState);
    CPPUNIT_TEST(testSipLineUserId);
    CPPUNIT_TEST(testSipLineUri);
@@ -138,16 +137,6 @@ public:
       CPPUNIT_ASSERT((result1 > 0 && result2 < 0) || (result1 < 0 && result2 > 0));
    }
 
-   void testSipLineId()
-   {
-      SipLine line1(FULL_LINE_URL_1);
-      SipLine line2(FULL_LINE_URL_2);
-      SipLine line3 = line1;
-
-      CPPUNIT_ASSERT(!areTheSame(line1.getLineId(), line2.getLineId()));
-      CPPUNIT_ASSERT(areTheSame(line1.getLineId(), line3.getLineId()));
-   }
-
    void testSipLineState()
    {
       SipLine line1(FULL_LINE_URL_1, SipLine::LINE_STATE_DISABLED);
@@ -192,7 +181,6 @@ public:
       Url correctContact(FULL_LINE_URL_1);
       correctContact.setPassword(NULL);
       correctContact.setPath(NULL);
-      correctContact.setUrlParameter(SIP_LINE_IDENTIFIER, line1.getLineId());
       correctContact.removeFieldParameters();
       correctContact.includeAngleBrackets();
 

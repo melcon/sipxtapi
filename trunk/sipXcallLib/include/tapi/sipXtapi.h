@@ -1143,12 +1143,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param errorCode RFC specified error code.
- * @param szErrorText null terminated text string to explain the error code.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall,
-                                        const int errorCode = 400,
-                                        const char* szErrorText = "Bad Request");
+SIPXTAPI_API SIPX_RESULT sipxCallReject(const SIPX_CALL hCall);
 
 
 /**
@@ -1628,21 +1624,12 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
  * playback will stop automatically.
  * If call is destroyed but sipxCallPlayBufferStop is not called, MEDIA_PLAYBUFFER_STOP
  * will be missing.
- * Supplied buffer can be freed or reused only after it has been copied
- * internally. This will occur when MEDIA_PLAYBUFFER_START event is fired
- * or call is destroyed. If MEDIA_PLAYBUFFER_START is not received within
- * a reasonable time, playback start probably failed and user can attempt
- * to invoke sipxCallPlayBufferStop. This should fire MEDIA_PLAYBUFFER_STOP
- * event, after which it is safe to dispose the supplied buffer.
- * If MEDIA_PLAYBUFFER_STOP is not fired either, pointer to supplied buffer
- * is not kept anywhere and it is safe to delete.
- * If attention is not paid to this problem, it can result in illegal memory access.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.  Audio can only be played in the context
  *        of a call.
- * @param szBuffer Pointer to the audio data to be played.
+ * @param pBuffer Pointer to the audio data to be played.
  * @param bufSize Length, in bytes, of the audio data.
  * @param bufType The audio encoding format for the data as specified
  *                by the SIPX_AUDIO_DATA_FORMAT enumerations.  Currently
@@ -1655,7 +1642,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAudioRecordFileStop(const SIPX_CALL hCall);
  *               sipxCallPlayBufferStart is called multiple times very fast.
  */
 SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStart(const SIPX_CALL hCall,
-                                                 const char* szBuffer,
+                                                 const void* pBuffer,
                                                  const int bufSize,
                                                  const int bufType,
                                                  const int bRepeat,
@@ -1684,20 +1671,27 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall);
  * you to use the contact address from the remote party as the subscription
  * target (see the bRemoteContactIsGruu parameter).
  *
+ * Successful invocation will result in sending SIP SUBSCRIBE message in a new
+ * sip dialog separate from the sip dialog of the call.
+ *
  * sipXtapi will automatically refresh subscriptions until sipxCallUnsubscribe
  * is called.  Please make sure you call sipxCallUnsubscribe before tearing 
- * down your call.
+ * down your call, although this is only a recommendation and not a requirement.
  *
  * @param hCall The call handle of the call associated with the subscription.
+ *        Used for selection of from and to fields, unless bRemoteContactIsGruu
+ *        is true. It doesn't mean subscription is in any way associated with
+ *        the call.
  * @param szEventType A string representing the type of event that can be 
  *        published.  This string is used to populate the "Event" header in
  *        the SIP SUBSCRIBE request.  For example, if checking voicemail 
- *        status, your would use "message-summary".
+ *        status, your would use "message-summary". For presence, it would be
+ *        "presence". Acceptable values can be found in event package RFCs.
  * @param szAcceptType A string representing the types of NOTIFY events that 
  *        this client will accept.  This string is used to populate the 
  *        "Accept" header in the SIP SUBSCRIBE request.  For example, if
- *        checking voicemail status, you would use 
- *        "application/simple-message-summary"
+ *        checking voicemail status, you would use "application/simple-message-summary".
+ *        This value is optional. Check event package RFC for its meaning.
  * @param phSub Pointer to a subscription handle whose value is set by this 
  *        function.  This handle allows you to cancel the subscription and
  *        differentiate between NOTIFY events.
@@ -1705,7 +1699,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall);
  *        side of the call can be assumed to be a Globally Routable Unique URI
  *        (GRUU).  Normally one cannot assume that a contact is a GRUU and the
  *        To or From address for the remote side is assumed to be an Address Of
- *        Record (AOR) that is globally routable.
+ *        Record (AOR) that is globally routable. 0 value is recommended.
  * @param subscriptionPeriod Subscription expiration period. After this
  *        period, new SUBSCRIBE message will be sent.
  */                                          
@@ -1740,13 +1734,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnsubscribe(const SIPX_SUB hSub);
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
  * @param szContentType String representation of the INFO content type
- * @param szContent Pointer to the INFO messasge's content
- * @param nContentLength Size of the INFO content
+ * @param pContent Pointer to the INFO message's content. Can be a NULL terminated
+ *        string or binary data.
+ * @param nContentLength Length of data in pContent
  */
 SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(SIPX_INFO* phInfo,
                                           const SIPX_CALL hCall,
                                           const char* szContentType,
-                                          const char* szContent,
+                                          const char* pContent,
                                           const size_t nContentLength);
 
 /**
@@ -2006,19 +2001,21 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
  *        a listener interface.
  * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
  *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
+ * @param szAudioCodecs Codec names that limit the supported audio codecs.
  * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
  *        (see sipxConfigSetVideoBandwidth for an explanation on how 
  *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
  *        to leave these parameters unchanged.
- * @param szVideoCodecName Codec name that limits the supported video codecs
+ * @param szVideoCodecs Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
                                                        const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
+                                                       const char* szAudioCodecs,
                                                        const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
-                                                       const char* szVideoCodecName);
+                                                       const char* szVideoCodecs);
 
 /**
  * Enables/disables discarding of inbound RTP for given call. Should be used
@@ -2345,28 +2342,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAudioRecordFileStop(const SIPX_CONF hConf
  */ 
 SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf);
 
-
-/**
- * Gets energy levels for a conference.  The conference must be in the 
- * connected state (not held or bridged) for this request to succeed.
- *
- * This API is only supported when sipXtapi is bundled with VoiceEngine from 
- * GIPS.
- *
- * @param hConf Handle to a conference.  Conference handles are obtained 
- *        by invoking sipxConferenceCreate.
- * @param iInputEnergyLevel Input/Microphone energy level ranging from 0 to 9.
- * @param iOutputEnergyLevel Output/Speaker energy level ranging from 0 to 9. 
- *        The output energy level is post-mixed (after mixing all files/tones
- *        and other parties.  sipxCallGetEnergyLevel provides an API to obtain
- *        pre-mixed energy levels.
- */
-SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
-                                                       int* iInputEnergyLevel,
-                                                       int* iOutputEnergyLevel);
-
-
-
 /**
  * Limits the codec preferences on a conference.  This API will force a 
  * codec renegotiation with the specified calls regardless if the codecs 
@@ -2380,19 +2355,21 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceGetEnergyLevels(const SIPX_CONF hConf,
  *        by invoking sipxConferenceCreate.
  * @param audioBandwidth A bandwidth id to limit audio codecs. Pass in
  *        AUDIO_CODEC_BW_DEFAULT to leave audio codecs unchanged.
+ * @param szVideoCodecNames Codec names that limit the supported audio codecs.
  * @param videoBandwidth A bandwidth id to limit video bitrate and framerate.
  *        (see sipxConfigSetVideoBandwidth for an explanation on how 
  *        bandwidth ids affect bitrate and framerate). Pass in AUDIO_CODEC_BW_DEFAULT
  *        to leave these parameters unchanged.
- * @param szVideoCodecName Codec name that limits the supported video codecs
+ * @param szVideoCodecNames Codec names that limit the supported video codecs
  *        to this one video codec.
  *        
  * @see sipxConfigSetVideoBandwidth
  */
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
                                                              const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
+                                                             const char* szAudioCodecNames,
                                                              const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
-                                                             const char* szVideoCodecName);
+                                                             const char* szVideoCodecNames);
 
 //@}
 
@@ -3860,23 +3837,27 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
  * Subscribe for NOTIFY events which may be published by another end-point or
  * server.
  *
+ * Successful invocation will result in sending SIP SUBSCRIBE message in a new
+ * sip dialog.
+ *
  * sipXtapi will automatically refresh subscriptions until 
  * sipxConfigUnsubscribe is called.  Please make sure you call 
  * sipxCallUnsubscribe before tearing down your instance of sipXtapi.
  * 
  * @param hInst Instance pointer obtained by sipxInitialize
- * @param hLine Line Identity for the outbound call.  The line identity 
- *        helps defines the "From" caller-id.
+ * @param hLine Line Identity for the outbound call. Line identity 
+ *        defines the "From" field.
  * @param szTargetUrl The Url of the publishing end-point. 
  * @param szEventType A string representing the type of event that can be 
  *        published.  This string is used to populate the "Event" header in
  *        the SIP SUBSCRIBE request.  For example, if checking voicemail 
- *        status, your would use "message-summary".
+ *        status, your would use "message-summary". For presence, it would be
+ *        "presence". Acceptable values can be found in event package RFCs.
  * @param szAcceptType A string representing the types of NOTIFY events that 
  *        this client will accept.  This string is used to populate the 
  *        "Accept" header in the SIP SUBSCRIBE request.  For example, if
- *        checking voicemail status, you would use 
- *        "application/simple-message-summary"
+ *        checking voicemail status, you would use "application/simple-message-summary".
+ *        This value is optional. Check event package RFC for its meaning.
  * @param contactId Id of the desired contact record to use for this call.
  *        The id refers to a Contact Record obtained by a call to
  *        sipxConfigGetLocalContacts.  The application can choose a 
@@ -3993,21 +3974,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
                                                                   const void* pData,
                                                                   const size_t nData);
 
-/**
- * Sets the SIP target URL for voice quality reports.  Voice Quality reports 
- * are sent at the completion of each call and give details on the voice 
- * quality (latency, noise, MOS scores, etc).  Presently, this is not 
- * implemented in the open source version.
- *
- * This must be enabled prior to creating a call or receiving a new call 
- * indiciation.  Likewise, changes will not take effect for existing calls.
- *
- * @param hInst An instance handle obtained from sipxInitialize. 
- * @param szServer Target SIP URL for the voice quality reports.  A 
- *        value of NULL will disable voice quality reports.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVoiceQualityServer(const SIPX_INST hInst,
-                                                         const char* szServer);
 
 //@}
 /** @name Utility Functions */

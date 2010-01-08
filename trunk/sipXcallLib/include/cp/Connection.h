@@ -40,7 +40,6 @@ class CpCall;
 class CpMediaInterface;
 class OsDatagramSocket;
 class SdpCodec;
-class SipSession;
 class OsMsg;
 class OsServerTask;
 class Url;
@@ -365,7 +364,7 @@ public:
    //: get Connection address
    //! returns: TRUE/FALSE if the connection has an address.  The connection may not have an address assigned yet (i.e. if it is not fully setup).
 
-   virtual UtlBoolean getSession(SipSession& sessioon) = 0;
+   //virtual UtlBoolean getSession(SipSession& sessioon) = 0;
 
    int getResponseCode() { return mResponseCode; };
 

@@ -29,6 +29,8 @@
 // EXTERNAL VARIABLES
 // CONSTANTS
 // FORWARD DECLARATIONS
+class SipDialog;
+
 // STRUCTS
 // TYPEDEFS
 // MACROS
@@ -78,9 +80,7 @@ public:
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
 
    void sipxFireCallEvent(const UtlString& sCallId,
-                          const UtlString& sSessionCallId,
-                          const SipSession& pSession,
-                          const UtlString& szRemoteAddress,
+                          const SipDialog* pSipDialog,
                           SIPX_CALLSTATE_EVENT event,
                           SIPX_CALLSTATE_CAUSE cause,
                           const UtlString& sOriginalSessionCallId = NULL,
@@ -102,9 +102,7 @@ private:
    SipXCallEventListener& operator=(const SipXCallEventListener& rhs);
 
    void handleCallEvent(const UtlString& sCallId, 
-                        const UtlString& sSessionCallId,
-                        const SipSession& session, 
-                        const UtlString& szRemoteAddress, 
+                        const SipDialog* pSipDialog, 
                         SIPX_CALLSTATE_EVENT event, 
                         SIPX_CALLSTATE_CAUSE cause, 
                         const UtlString& sOriginalSessionCallId,

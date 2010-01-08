@@ -12,7 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/XCpSipConnection.h>
+#include <cp/msg/AcHoldConnectionMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -27,15 +27,21 @@
 
 /* ============================ CREATORS ================================== */
 
-XCpSipConnection::XCpSipConnection()
-: XCpAbstractConnection()
+AcHoldConnectionMsg::AcHoldConnectionMsg(const SipDialog& sipDialog)
+: AcCommandMsg(AC_HOLD_CONNECTION)
+, m_sipDialog(sipDialog)
 {
 
 }
 
-XCpSipConnection::~XCpSipConnection()
+AcHoldConnectionMsg::~AcHoldConnectionMsg()
 {
 
+}
+
+OsMsg* AcHoldConnectionMsg::createCopy(void) const
+{
+   return new AcHoldConnectionMsg(m_sipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -49,3 +55,4 @@ XCpSipConnection::~XCpSipConnection()
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
+

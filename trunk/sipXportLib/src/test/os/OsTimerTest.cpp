@@ -22,7 +22,7 @@
 #include <os/OsDateTime.h>
 #include <os/OsLock.h>
 #include <os/OsEvent.h>
-#include <os/OsTimerMsg.h>
+#include <os/OsTimerTaskCommandMsg.h>
 
 #include <time.h>
 #include <string.h>
@@ -839,7 +839,7 @@ public:
                 if (synchronous) {
                    // Send message and wait.
                    OsEvent event;
-                   OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE_SYNC, &timer, &event);
+                   OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE_SYNC, &timer, &event);
                    OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
                    assert(res == OS_SUCCESS);
                    event.wait();
@@ -847,7 +847,7 @@ public:
                 else
                 {
                    // Send message.
-                   OsTimerMsg msg(OsTimerMsg::OS_TIMER_UPDATE, &timer, NULL);
+                   OsTimerTaskCommandMsg msg(OsTimerTaskCommandMsg::OS_TIMER_UPDATE, &timer, NULL);
                    OsStatus res = OsTimerTask::getTimerTask()->postMessage(msg);
                    assert(res == OS_SUCCESS);
                 }
