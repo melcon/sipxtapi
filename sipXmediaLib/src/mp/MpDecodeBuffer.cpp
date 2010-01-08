@@ -28,6 +28,7 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int 
 : m_pDejitter(pDejitter)
 , m_samplesPerFrame(samplesPerFrame)
 , m_samplesPerSec(samplesPerSec)
+, m_pNoiseState(NULL)
 {
    for (int i=0; i<JbPayloadMapSize; i++)
       m_pDecoderMap[i] = NULL;
@@ -44,12 +45,24 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int 
    m_decodeBufferOut = 0;
 
    debugCount = 0;
+
+#ifdef HAVE_SPAN_DSP
+   m_pNoiseState = noise_init_dbm0(NULL, 6513, NOISE_LEVEL, NOISE_CLASS_HOTH, 5);
+#endif
 }
 
 // Destructor
 MpDecodeBuffer::~MpDecodeBuffer()
 {
    destroyResamplers();
+
+#ifdef HAVE_SPAN_DSP
+   if (m_pNoiseState)
+   {
+      free((void*)m_pNoiseState);
+      m_pNoiseState = NULL;
+   }
+#endif
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -62,6 +75,7 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
       // first do actions that need to be done regardless of whether we have enough
       // samples
       m_pDejitter->frameIncrement();
+      JitterBufferResult jbResult = MP_JITTER_BUFFER_ERROR;
 
       // now get more samples if we don't have enough of them
       if (m_decodeBufferCount < requiredSamples)
@@ -71,18 +85,19 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
          {
             // loop through all decoders and pull frames for them
             int payloadType = m_pDecoderList[i]->getPayloadType();
-            MpRtpBufPtr rtp = m_pDejitter->pullPacket(payloadType);
+            MpRtpBufPtr rtp = m_pDejitter->pullPacket(payloadType, jbResult);
 
             while (rtp.isValid())
             {
                // if buffer is valid, then there is undecoded data, we decode it
                // until we have enough samples here or jitter buffer has no more data
-               pushPacket(rtp);
+               // also pass jbResult, since codec may have PLC. In that case we will use codec PLC
+               pushPacket(rtp, jbResult);
 
                if (m_decodeBufferCount < requiredSamples)
                {
                   // still don't have enough, pull more data
-                  rtp = m_pDejitter->pullPacket(payloadType);
+                  rtp = m_pDejitter->pullPacket(payloadType, jbResult);
                }
                else
                {
@@ -94,13 +109,14 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
       }
    }
 
+   int suppliedSamples = 0;
    // Check we have some available decoded data
    if (m_decodeBufferCount != 0)
    {
       // We could not return more then we have
-      requiredSamples = min(requiredSamples, m_decodeBufferCount);
-      int count1 = min(requiredSamples, g_decodeBufferSize - m_decodeBufferOut); // samples to copy before wrap around occurs
-      int count2 = requiredSamples - count1; // number of samples to copy after wrap around
+      suppliedSamples = min(requiredSamples, m_decodeBufferCount);
+      int count1 = min(suppliedSamples, g_decodeBufferSize - m_decodeBufferOut); // samples to copy before wrap around occurs
+      int count2 = suppliedSamples - count1; // number of samples to copy after wrap around
       memcpy(samplesBuffer, m_decodeBuffer + m_decodeBufferOut, count1 * sizeof(MpAudioSample));
       if (count2 > 0)
       {
@@ -108,11 +124,17 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
          memcpy(samplesBuffer + count1, m_decodeBuffer, count2 * sizeof(MpAudioSample));
       }
 
-      m_decodeBufferCount -= requiredSamples;
-      m_decodeBufferOut += requiredSamples;
+      m_decodeBufferCount -= suppliedSamples;
+      m_decodeBufferOut += suppliedSamples;
 
       if (m_decodeBufferOut >= g_decodeBufferSize)
          m_decodeBufferOut -= g_decodeBufferSize;
+   }
+
+   if (suppliedSamples < requiredSamples)
+   {
+      int noiseFramesNeeded = requiredSamples - suppliedSamples;
+      generateComfortNoise(samplesBuffer + suppliedSamples, noiseFramesNeeded);
    }
 
    return requiredSamples;
@@ -136,12 +158,12 @@ int MpDecodeBuffer::setCodecList(MpDecoderBase** decoderList, int decoderCount)
    return 0;
 }
 
-int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
+int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResult)
 {
-   unsigned int availableBufferSize;          // number of samples could be written to decoded buffer
-   unsigned decodedSamples = 0; // number of samples, returned from decoder
-   uint8_t payloadType;     // RTP packet payload type
-   MpDecoderBase* decoder;  // decoder for the packet
+   unsigned int availableBufferSize =0;          // number of samples could be written to decoded buffer
+   unsigned producedSamples = 0; // number of samples, returned from decoder
+   uint8_t payloadType = 0;     // RTP packet payload type
+   MpDecoderBase* decoder = NULL;  // decoder for the packet
 
    payloadType = rtpPacket->getRtpPayloadType();
 
@@ -164,7 +186,16 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
       availableBufferSize = m_decodeBufferOut-m_decodeBufferIn;
    }
 
+   MpAudioSample* pTmpDstBuffer = NULL;
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   pTmpDstBuffer = m_resampleSrcBuffer;
+#else
+   pTmpDstBuffer = m_decodeHelperBuffer;
+#endif
    // decode samples from decoder, and copy them into decode buffer
+   producedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, pTmpDstBuffer,
+      jbResult == MP_JITTER_BUFFER_PLC);
+
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    if (decoder->getInfo()->getCodecType() != SdpCodec::SDP_CODEC_TONES &&
       decoder->getInfo()->getSamplingRate() != m_samplesPerSec)
@@ -173,15 +204,15 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
       SpeexResamplerState* pResamplerState = m_pResamplerMap[payloadType];
       if (pResamplerState)
       {
-         unsigned int resampleSrcCount = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_resampleSrcBuffer);
-         if (resampleSrcCount > 0)
+         if (producedSamples > 0)
          {
+            unsigned int resampleSrcCount = producedSamples;// speex will overwrite resampleSrcCount
             unsigned int availableHelperBufferSize = g_decodeHelperBufferSize;
             int err = speex_resampler_process_int(pResamplerState, 0,
-               m_resampleSrcBuffer, &resampleSrcCount,
+               pTmpDstBuffer, &resampleSrcCount,
                m_decodeHelperBuffer, &availableHelperBufferSize);
             assert(!err);
-            decodedSamples = availableHelperBufferSize; // speex overwrites availableHelperBufferSize with number of output samples
+            producedSamples = availableHelperBufferSize; // speex overwrites availableHelperBufferSize with number of output samples
          }
       }
       else
@@ -190,24 +221,16 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
          assert(false);
       }
    }
-   else
-   {
-      // no need to resample
-      decodedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_decodeHelperBuffer);
-   }
-#else
-   // no need to resample
-   decodedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_decodeHelperBuffer);
 #endif
    int addedSamples = 0;
    // now we have decoded & resampled samples in m_decodeHelperBuffer, with decodedSamples count
    // copy them into main buffer
-   if (decodedSamples > 0)
+   if (producedSamples > 0)
    {
       // count1 is number of samples to copy before wrapping occurs
-      int count1 = min(decodedSamples, availableBufferSize);
+      int count1 = min(producedSamples, availableBufferSize);
       // count 2 is number of samples to copy after wrapping
-      int count2 = decodedSamples - count1;
+      int count2 = producedSamples - count1;
       memcpy(m_decodeBuffer + m_decodeBufferIn, m_decodeHelperBuffer, count1 * sizeof(MpAudioSample));
       addedSamples += count1;
       if (count2 > 0)
@@ -260,4 +283,25 @@ void MpDecodeBuffer::setupResamplers(MpDecoderBase** decoderList, int decoderCou
       }
    }
 #endif
+}
+
+void MpDecodeBuffer::generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount)
+{
+   UtlBoolean bGenerated = FALSE;
+#ifdef HAVE_SPAN_DSP
+   if (m_pNoiseState && samplesBuffer)
+   {
+      for (int i = 0; i < sampleCount; i++)
+      {
+         samplesBuffer[i] = noise(m_pNoiseState); // generate 1 sample of noise
+      }
+      bGenerated = TRUE;
+   }
+#endif
+
+   if (!bGenerated)
+   {
+      // set all 0s
+      memset(samplesBuffer, 0, sampleCount * sizeof(MpAudioSample));
+   }
 }

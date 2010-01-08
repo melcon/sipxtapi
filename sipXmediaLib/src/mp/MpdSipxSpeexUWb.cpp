@@ -77,7 +77,10 @@ OsStatus MpdSipxSpeexUWb::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdSipxSpeexUWb::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
+int MpdSipxSpeexUWb::decode(const MpRtpBufPtr &pPacket,
+                            unsigned decodedBufferLength,
+                            MpAudioSample *samplesBuffer,
+                            UtlBoolean bIsPLCFrame)
 {
    if (!pPacket.isValid())
       return 0;
@@ -91,11 +94,16 @@ int MpdSipxSpeexUWb::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLe
       return 0;
    }
 
-   // Prepare data for Speex decoder
-   speex_bits_read_from(&mDecbits,(char*)pPacket->getDataPtr(),pPacket->getPayloadSize());
+   if (!bIsPLCFrame)
+   {
+      // Prepare data for Speex decoder
+      speex_bits_read_from(&mDecbits, (char*)pPacket->getDataPtr(), pPacket->getPayloadSize());
+   }
 
    // Decode frame
-   speex_decode_int(mpDecoderState,&mDecbits,(spx_int16_t*)samplesBuffer);   
+   speex_decode_int(mpDecoderState,
+      bIsPLCFrame ? NULL : &mDecbits,
+      (spx_int16_t*)samplesBuffer);   
 
    return mNumSamplesPerFrame;
 }

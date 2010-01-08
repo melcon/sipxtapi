@@ -11,9 +11,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
-#ifndef _MpdIPPG729_h_  /* [ */
-#define _MpdIPPG729_h_
+#ifndef _MpdIPPG728_h_  /* [ */
+#define _MpdIPPG728_h_
 
 #ifdef HAVE_INTEL_IPP // [
 
@@ -35,21 +34,24 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/// Derived class for G.729A decoder.
-class MpdIPPG729: public MpDecoderBase
+/**
+ * Derived class for Intel IPP G.728 decoder. Decodecs bitrates 16 kbit/s, 12.8 kbit/s.
+ * Decoding 9.6 kbit/s seems to be broken in Intel IPP 6.0 samples, encoding works.
+ */
+class MpdIPPG728: public MpDecoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
 /* ============================ CREATORS ================================== */
      /// Constructor
-   MpdIPPG729(int payloadType);
+   MpdIPPG728(int payloadType);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this decoder
      */
 
      /// Destructor
-   virtual ~MpdIPPG729(void);
+   virtual ~MpdIPPG728(void);
 
      /// Initializes a codec data structure for use as a decoder
    virtual OsStatus initDecode();
@@ -84,9 +86,18 @@ public:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo smCodecInfo;  ///< static information about the codec
+   static const MpCodecInfo smCodecInfo9600;  ///< static information about the codec 9600
+   static const MpCodecInfo smCodecInfo12800;  ///< static information about the codec 12800
+   static const MpCodecInfo smCodecInfo16000;  ///< static information about the codec 16000
 
-   LoadedCodec *codec;          ///< Loaded codec info
+   static const MpCodecInfo* getCodecInfo(int bitRate);
+
+   /**
+    * Configures USC_PCMStream for given count of payload bytes.
+    */
+   void configureBitStream(int rtpPayloadBytes);
+
+   LoadedCodec *m_pCodec; ///< Loaded codec info. Decodes 12800 and 16000. 9600 does not work.
 
    USC_PCMStream PCMStream;    ///< Destination data structure
    USC_Bitstream Bitstream;    ///< Source data structure

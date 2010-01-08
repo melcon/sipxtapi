@@ -345,6 +345,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpAsyncPortAudioStream.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\mpau.cpp"
 					>
 				</File>
@@ -457,7 +461,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdIPPG728.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdIPPG729.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpdIPPG729i.cpp"
 					>
 				</File>
 				<File
@@ -513,7 +525,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpeIPPG728.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpeIPPG729.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeIPPG729i.cpp"
 					>
 				</File>
 				<File
@@ -625,7 +645,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPortAudioStream.cpp"
+					RelativePath=".\src\mp\MpPortAudioStreamBase.cpp"
 					>
 				</File>
 				<File
@@ -737,6 +757,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpSyncPortAudioStream.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpTypes.cpp"
 					>
 				</File>
@@ -843,6 +867,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpArrayBuf.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpAsyncPortAudioStream.h"
 					>
 				</File>
 				<File
@@ -970,7 +998,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdIPPG728.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdIPPG729.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpdIPPG729i.h"
 					>
 				</File>
 				<File
@@ -1050,7 +1086,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpeIPPG728.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpeIPPG729.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeIPPG729i.h"
 					>
 				</File>
 				<File
@@ -1166,7 +1210,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPortAudioStream.h"
+					RelativePath=".\include\mp\MpPortAudioStreamBase.h"
 					>
 				</File>
 				<File
@@ -1291,6 +1335,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpSipxDecoders.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpSyncPortAudioStream.h"
 					>
 				</File>
 				<File

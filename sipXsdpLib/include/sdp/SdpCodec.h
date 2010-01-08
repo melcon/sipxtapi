@@ -30,7 +30,10 @@
 // Mime Sub types
 #define MIME_SUBTYPE_PCMU "PCMU"
 #define MIME_SUBTYPE_PCMA "PCMA"
+#define MIME_SUBTYPE_G728 "G728"
 #define MIME_SUBTYPE_G729 "G729"
+#define MIME_SUBTYPE_G729D "G729D"
+#define MIME_SUBTYPE_G729E "G729E"
 #define MIME_SUBTYPE_G722 "G722"
 #define MIME_SUBTYPE_G723 "G723"
 #define MIME_SUBTYPE_G726_16 "G726-16"
@@ -126,6 +129,7 @@ public:
         SDP_CODEC_G722 = 9,        ///< G.722 audio codec, 16000 samples/sec
         SDP_CODEC_L16_44100_STEREO = 10, ///< Stereo PCM 16 bit/sample 44100 samples/sec.
         SDP_CODEC_L16_44100_MONO = 11, ///< Mono PCM 16 bit/sample 44100 samples/sec.
+        SDP_CODEC_G728 = 15,        ///< G.728 audio codec, 8000 samples/sec
         SDP_CODEC_G729 = 18,       ///< G.729, with or without Annexes A or B
         SDP_CODEC_H263 = 34,       ///< H.263 video codec
         SDP_CODEC_MAXIMUM_STATIC_CODEC = 95,
@@ -165,6 +169,8 @@ public:
         SDP_CODEC_G726_24,   ///< G.726 24 Kbps
         SDP_CODEC_G726_32,   ///< G.726 32 Kbps
         SDP_CODEC_G726_40,   ///< G.726 40 Kbps
+        SDP_CODEC_G729D, ///< G.729/D, with DTX Annex F
+        SDP_CODEC_G729E, ///< G.729/E, with DTX Annex G
 
         // video codecs
         SDP_CODEC_VP71_CIF,

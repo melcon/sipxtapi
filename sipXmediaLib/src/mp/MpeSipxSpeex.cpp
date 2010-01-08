@@ -71,8 +71,8 @@ MpeSipxSpeex::MpeSipxSpeex(int payloadType, int mode)
       mMode = 3;  // 8,000 bps
    }
 
-//   mDoVad = 1; // Voice activity detection enabled
-//   mDoDtx = 1; // Discontinuous transmission
+   mDoVad = 1; // Voice activity detection enabled
+   mDoDtx = 1; // Discontinuous transmission
 //   mDoVbr = 1; // VBR (not used at the moment)
    
 }

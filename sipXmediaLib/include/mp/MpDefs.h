@@ -58,6 +58,12 @@
  */
 #define SAMPLES_PER_FRAME_8KHZ 80
 
+/**
+ * Noise power level in dBmO. -67 seems to give good results. -80 will be quieter, -50 louder.
+ * For noise generation we use Span DSP Hoth noise generator. It is generated in decoder, when 
+ */
+#define NOISE_LEVEL -67
+
 // MACROS
 // EXTERNAL FUNCTIONS
 // CONSTANTS

@@ -94,7 +94,10 @@ OsStatus MpdSipxG726::freeDecode(void)
    }
 }
 
-int MpdSipxG726::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
+int MpdSipxG726::decode(const MpRtpBufPtr &pPacket,
+                        unsigned decodedBufferLength,
+                        MpAudioSample *samplesBuffer,
+                        UtlBoolean bIsPLCFrame)
 {
    if (!pPacket.isValid())
       return 0;

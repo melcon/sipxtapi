@@ -11,9 +11,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
-#ifndef _MpeIPPG723_h_
-#define _MpeIPPG723_h_
+#ifndef _MpeIPPG729i_h_
+#define _MpeIPPG729i_h_
 
 #ifdef HAVE_INTEL_IPP // [
 
@@ -35,8 +34,8 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/// Derived class for G.7231 encoder. Produces 30ms frame every 10ms. We encode in 5.3kbit/s mode.
-class MpeIPPG7231: public MpEncoderBase
+/// Derived class for Intel IPP G.729I encoder (Annex D/E).
+class MpeIPPG729i: public MpEncoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -46,13 +45,13 @@ public:
 //@{
 
      /// Constructor
-   MpeIPPG7231(int payloadType);
+   MpeIPPG729i(int payloadType, int bitRate);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this encoder
      */
 
      /// Destructor
-   virtual ~MpeIPPG7231();
+   virtual ~MpeIPPG729i();
 
      /// Initializes a codec data structure for use as an encoder
    virtual OsStatus initEncode(void);
@@ -120,16 +119,17 @@ public:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo smCodecInfo;  // static information about the codec
+   static const MpCodecInfo smCodecInfo6400;  ///< static information about the codec 6400
+   static const MpCodecInfo smCodecInfo8000;  ///< static information about the codec 8000
+   static const MpCodecInfo smCodecInfo11800;  ///< static information about the codec 11800
 
-   int   mStoredFramesCount;   ///< Number of stored frames.
-   Ipp8s *m_pInputBuffer; ///< Buffer for stored frames - we could encode
-                               ///< only 20ms frames.
-   Ipp8s *m_pOutputBuffer; ///< Encoded buffer. It is allocated in
-   LoadedCodec *codec6300;      ///< Loaded codec info.
-   LoadedCodec *codec5300;      ///< Loaded codec info.
+   static const MpCodecInfo* getCodecInfo(int bitRate);
+
+   LoadedCodec *codec;  ///< Loaded codec info
+   Ipp8s* inputBuffer;
+   Ipp8u* outputBuffer;
 };
 
 #endif // HAVE_INTEL_IPP ]
 
-#endif  // _MpeIPPG723_h_
+#endif  // _MpeIPPG729i_h_

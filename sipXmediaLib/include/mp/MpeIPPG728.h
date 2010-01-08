@@ -11,9 +11,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
-#ifndef _MpeIPPG723_h_
-#define _MpeIPPG723_h_
+#ifndef _MpeIPPG728_h_
+#define _MpeIPPG728_h_
 
 #ifdef HAVE_INTEL_IPP // [
 
@@ -35,8 +34,11 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/// Derived class for G.7231 encoder. Produces 30ms frame every 10ms. We encode in 5.3kbit/s mode.
-class MpeIPPG7231: public MpEncoderBase
+/**
+ * Derived class for Intel IPP G.728. Capable of encoding to 9.6 kbit/s, 12.8 kbit/s
+ * and 16 kbit/s. rfc3551 mentions only 16 kbit/s therefore we encode using this rate.
+ */
+class MpeIPPG728: public MpEncoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -46,13 +48,13 @@ public:
 //@{
 
      /// Constructor
-   MpeIPPG7231(int payloadType);
+   MpeIPPG728(int payloadType, int bitRate = 16000);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this encoder
      */
 
      /// Destructor
-   virtual ~MpeIPPG7231();
+   virtual ~MpeIPPG728();
 
      /// Initializes a codec data structure for use as an encoder
    virtual OsStatus initEncode(void);
@@ -120,16 +122,17 @@ public:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo smCodecInfo;  // static information about the codec
+   static const MpCodecInfo ms_codecInfo9600;  ///< static information about the codec 9600
+   static const MpCodecInfo ms_codecInfo12800;  ///< static information about the codec 12800
+   static const MpCodecInfo ms_codecInfo16000;  ///< static information about the codec 16000
 
-   int   mStoredFramesCount;   ///< Number of stored frames.
-   Ipp8s *m_pInputBuffer; ///< Buffer for stored frames - we could encode
-                               ///< only 20ms frames.
-   Ipp8s *m_pOutputBuffer; ///< Encoded buffer. It is allocated in
-   LoadedCodec *codec6300;      ///< Loaded codec info.
-   LoadedCodec *codec5300;      ///< Loaded codec info.
+   static const MpCodecInfo* getCodecInfo(int bitRate);
+
+   LoadedCodec *m_pCodec;  ///< Loaded codec info
+   Ipp8s* m_pInputBuffer;
+   Ipp8u* m_pOutputBuffer;
 };
 
 #endif // HAVE_INTEL_IPP ]
 
-#endif  // _MpeIPPG723_h_
+#endif  // _MpeIPPG728_h_
