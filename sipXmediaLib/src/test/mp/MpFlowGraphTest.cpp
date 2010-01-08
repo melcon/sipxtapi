@@ -235,9 +235,9 @@ public:
         MpTestResource*  pResource3 = NULL;
         OsStatus         res;
 
-        mpStartUp(8000, 80);
+        mpStartUp();
 
-        pFlowGraph = new MpFlowGraphBase(80, 8000);
+        pFlowGraph = new MpFlowGraphBase(SAMPLES_PER_FRAME, SAMPLES_PER_SECOND);
         pResource1 = new MpTestResource("resource1", 4, 4, 4, 4);
         pResource2 = new MpTestResource("resource2", 4, 4, 4, 4);
         pResource3 = new MpTestResource("resource3", 4, 4, 4, 4);
@@ -460,9 +460,9 @@ public:
        MpTestResource*  pResource1 = NULL;
        OsStatus         res;
 
-       mpStartUp(8000, 80);
+       mpStartUp();
 
-       pFlowGraph = new MpFlowGraphBase(80, 8000);
+       pFlowGraph = new MpFlowGraphBase(SAMPLES_PER_FRAME, SAMPLES_PER_SECOND);
        pResource1 = new MpTestResource("resource1", 4, 4, 4, 4);
 
        res = pFlowGraph->addResource(*pResource1);
@@ -528,11 +528,11 @@ public:
        OsStatus         res;
 
        // Setup media task
-       res = mpStartUp(8000, 80);
+       res = mpStartUp();
        CPPUNIT_ASSERT(res == OS_SUCCESS);
 
-       pFlowGraph = new MpFlowGraphBase(80, 8000);
-       pToneGen1  = new MprToneGen("toneGen1", 80, 8000, "");
+       pFlowGraph = new MpFlowGraphBase(SAMPLES_PER_FRAME, SAMPLES_PER_SECOND);
+       pToneGen1  = new MprToneGen("toneGen1", SAMPLES_PER_FRAME, SAMPLES_PER_SECOND, "");
 
        // TODO: START HERE
 

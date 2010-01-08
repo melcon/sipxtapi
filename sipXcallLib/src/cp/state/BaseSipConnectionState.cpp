@@ -1349,31 +1349,22 @@ SipConnectionStateTransition* BaseSipConnectionState::processInfoRequest(const S
          sendMessage(sipResponse);
       }
 
-      // check for retransmits
-      int cseqNum;
-      UtlString cseqMethod;
-      sipMessage.getCSeqField(&cseqNum, &cseqMethod);
-
-      CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(cseqMethod, cseqNum);
-      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      // we won't see duplicate INFO request here, SipUserAgent filters them
+      UtlString contentType;
+      sipMessage.getContentType(&contentType);
+      UtlString bodyContent;
+      int contentLength = sipMessage.getContentLength();
+      const HttpBody* pBody = sipMessage.getBody();
+      if (pBody)
       {
-         // this is not a retransmit
-         UtlString contentType;
-         sipMessage.getContentType(&contentType);
-         UtlString bodyContent;
-         int contentLength = sipMessage.getContentLength();
-         const HttpBody* pBody = sipMessage.getBody();
-         if (pBody)
-         {
-            pBody->getBytes(&bodyContent, &contentLength);
-         }
-         else
-         {
-            contentLength = 0;
-         }
-
-         m_rSipConnectionEventSink.fireSipXInfoEvent(contentType, bodyContent.data(), contentLength);
+         pBody->getBytes(&bodyContent, &contentLength);
       }
+      else
+      {
+         contentLength = 0;
+      }
+
+      m_rSipConnectionEventSink.fireSipXInfoEvent(contentType, bodyContent.data(), contentLength);
    }
    else
    {
@@ -1421,34 +1412,22 @@ SipConnectionStateTransition* BaseSipConnectionState::processNotifyRequest(const
                m_rStateContext.m_referInSubscriptionActive = TRUE; // mark subscription as active, we will need to unsubscribe
             }
 
-            if (pBody &&
-               contentType.compareTo(CONTENT_TYPE_MESSAGE_SIPFRAG) == 0)
+            if (pBody && contentType.compareTo(CONTENT_TYPE_MESSAGE_SIPFRAG) == 0)
             {
-               CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(sipRequest);
-
                SipMessage sipResponse;
                sipResponse.setResponseData(&sipRequest, SIP_OK_CODE, SIP_OK_TEXT, getLocalContactUrl());
                sendMessage(sipResponse);
 
-               // check for retransmission
-               if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
-               {
-                  // we only like message/sipfrag content
-                  m_rStateContext.m_subscriptionId = eventId;
-                  // extract sipfrag body
-                  const char* bodyBytes; // copy of pointer to internal body
-                  int bodyLength;
-                  pBody->getBytes(&bodyBytes, &bodyLength);
-                  // construct sip message from body
-                  SipMessage notifyBody(bodyBytes, bodyLength);
-                  // handle inner message
-                  return handleReferNotifyBody(notifyBody);
-               }
-               else
-               {
-                  // this is a retransmission, ignore NOTIFY
-                  return NULL;
-               }
+               // we only like message/sipfrag content
+               m_rStateContext.m_subscriptionId = eventId;
+               // extract sipfrag body
+               const char* bodyBytes; // copy of pointer to internal body
+               int bodyLength;
+               pBody->getBytes(&bodyBytes, &bodyLength);
+               // construct sip message from body
+               SipMessage notifyBody(bodyBytes, bodyLength);
+               // handle inner message
+               return handleReferNotifyBody(notifyBody);
             }
          }
       }
@@ -1477,60 +1456,33 @@ SipConnectionStateTransition* BaseSipConnectionState::processReferRequest(const 
 
    if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
    {
-      CpSipTransactionManager::TransactionState transactionState = getServerTransactionManager().getTransactionState(sipRequest);
-
-      if (transactionState == CpSipTransactionManager::TRANSACTION_ACTIVE)
+      // retransmits are filtered out by SipUserAgent, we only get new requests
+      // SipUserAgent will resend last response if available, if not then does nothing
+      // but we won't see duplicate request in any case
+      if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_NORMAL)
       {
-         if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_NORMAL)
+         // verify the REFER
+         if(sipRequest.getHeaderValue(1, SIP_REFERRED_BY_FIELD) ||
+            sipRequest.getHeaderValue(1, SIP_REFER_TO_FIELD))
          {
-            // verify the REFER
-            if(sipRequest.getHeaderValue(1, SIP_REFERRED_BY_FIELD) ||
-               sipRequest.getHeaderValue(1, SIP_REFER_TO_FIELD))
-            {
-               errorResponseType = ERROR_RESPONSE_400;
-            }
-            else
-            {
-               setLastReceivedRefer(sipRequest); // remember received REFER
-               m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_TRANSFEREE;
-               m_rStateContext.m_inboundReferResponse = SipConnectionStateContext::REFER_NO_RESPONSE;
-               // don't send response, wait for user to either accept or reject refer
-               UtlString referredBy;
-               UtlString referTo;
-               sipRequest.getReferredByField(referredBy);
-               sipRequest.getReferToField(referTo);
-               // fire transfer event, so that user can confirm or reject transfer
-               m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_TRANSFER_EVENT, CP_CALLSTATE_CAUSE_TRANSFER, NULL,
-                  0, NULL, referredBy, referredBy);
-               bSendError = FALSE;
-            }
+            errorResponseType = ERROR_RESPONSE_400;
          }
-         else if (m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFEREE)
+         else
          {
-            // REFER retransmit, we haven't responded yet
-            if (m_rStateContext.m_pLastReceivedRefer &&
-               m_rStateContext.m_pLastReceivedRefer->isSameMessage(&sipRequest))
-            {
-               bSendError = FALSE; // don't decline retransmit of last received REFER, but decline all other REFERs
-            }
+            setLastReceivedRefer(sipRequest); // remember received REFER
+            m_rStateContext.m_localEntityType = SipConnectionStateContext::ENTITY_TRANSFEREE;
+            m_rStateContext.m_inboundReferResponse = SipConnectionStateContext::REFER_NO_RESPONSE;
+            // don't send response, wait for user to either accept or reject refer
+            UtlString referredBy;
+            UtlString referTo;
+            sipRequest.getReferredByField(referredBy);
+            sipRequest.getReferToField(referTo);
+            // fire transfer event, so that user can confirm or reject transfer
+            m_rSipConnectionEventSink.fireSipXCallEvent(CP_CALLSTATE_TRANSFER_EVENT, CP_CALLSTATE_CAUSE_TRANSFER, NULL,
+               0, NULL, referredBy, referredBy);
+            bSendError = FALSE;
          }
       }
-      else if (transactionState == CpSipTransactionManager::TRANSACTION_TERMINATED &&
-               m_rStateContext.m_localEntityType == SipConnectionStateContext::ENTITY_TRANSFEREE)
-      {
-         if (m_rStateContext.m_pLastReceivedRefer &&
-            m_rStateContext.m_pLastReceivedRefer->isSameMessage(&sipRequest))
-         {
-            if (m_rStateContext.m_inboundReferResponse == SipConnectionStateContext::REFER_ACCEPTED)
-            {
-               // retransmit, send 202 Accepted again
-               SipMessage sipResponse;
-               sipResponse.setResponseData(&sipRequest, SIP_ACCEPTED_CODE, SIP_ACCEPTED_TEXT, getLocalContactUrl());
-               sendMessage(sipResponse);
-               bSendError = FALSE;
-            }
-         }
-      } // else reject REFER, another one is in progress
    }
    else if (connectionState == ISipConnectionState::CONNECTION_DISCONNECTED ||
       connectionState == ISipConnectionState::CONNECTION_UNKNOWN)
@@ -2961,7 +2913,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
    SdpSrtpParameters srtpParams;
    SdpCodecList supportedCodecs;
    int videoFramerate = 0;
-   const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
    OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
          MAX_ADDRESS_CANDIDATES,
          hostAddresses,
@@ -2973,7 +2924,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
          nRtpContacts,
          supportedCodecs,
          srtpParams,
-         bandWidth,
          totalBandwidth,
          videoFramerate);
 
@@ -3061,7 +3011,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
       SdpSrtpParameters srtpParams;
       SdpCodecList supportedCodecs;
       int videoFramerate = 0;
-      const int bandWidth = AUDIO_MICODEC_BW_DEFAULT;
       OsStatus res = pMediaInterface->getCapabilitiesEx(mediaConnectionId,
          MAX_ADDRESS_CANDIDATES,
          hostAddresses,
@@ -3073,7 +3022,6 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
          nRtpContacts,
          supportedCodecs,
          srtpParams,
-         bandWidth,
          totalBandwidth,
          videoFramerate);
 
@@ -3119,8 +3067,6 @@ UtlBoolean BaseSipConnectionState::handleSdpAnswer(const SipMessage& sipMessage)
 UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
 {
    UtlString rtpAddress;
-   int totalBandwidth = 0;
-   int matchingBandwidth = 0;
    int videoFramerate = 0;
    int matchingVideoFramerate = 0;
    SdpCodecList supportedCodecs;
@@ -3146,7 +3092,6 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
       commonCodecsForEncoder, commonCodecsForDecoder,
       remoteRtpAddress, remoteRtpPort, remoteRtcpPort, remoteVideoRtpPort, remoteVideoRtcpPort,
       srtpParams, matchingSrtpParams,
-      totalBandwidth, matchingBandwidth,
       videoFramerate, matchingVideoFramerate);
 
    if (numMatchingCodecs > 0)
@@ -3169,8 +3114,6 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
       if (bodyFound)
       {
          UtlString rtpAddress;
-         int totalBandwidth = 0;
-         int matchingBandwidth = 0;
          int videoFramerate = 0;
          int matchingVideoFramerate = 0;
          SdpCodecList supportedCodecs;
@@ -3196,15 +3139,10 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
             commonCodecsForEncoder, commonCodecsForDecoder,
             remoteRtpAddress, remoteRtpPort, remoteRtcpPort, remoteVideoRtpPort, remoteVideoRtcpPort,
             srtpParams, matchingSrtpParams,
-            totalBandwidth, matchingBandwidth,
             videoFramerate, matchingVideoFramerate);
 
          if (numMatchingCodecs > 0)
          {
-            if (matchingBandwidth != 0)
-            {
-               pMediaInterface->setConnectionBitrate(mediaConnectionId, matchingBandwidth);
-            }
             if (matchingVideoFramerate != 0)
             {
                pMediaInterface->setConnectionFramerate(mediaConnectionId, matchingVideoFramerate);

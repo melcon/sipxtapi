@@ -24,7 +24,7 @@
 #include <mp/MprDecode.h>
 #include <mp/MpResourceMsg.h>
 #include <mp/MprRtpStartReceiveMsg.h>
-#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF) && !defined(ENABLE_WIDEBAND_AUDIO)
 #   include "mp/MprSpanDspDtmfDetector.h"
 #else
 #   include "mp/MprSimpleDtmfDetector.h"
@@ -79,7 +79,8 @@ MpRtpInputAudioConnection::MpRtpInputAudioConnection(const UtlString& resourceNa
    if (m_bInBandDTMFEnabled)
    {
       SNPRINTF(name, sizeof(name), "DtmfDetector-%d", myID);
-#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF)
+#if defined(HAVE_SPAN_DSP) && defined(USE_SPAN_DSP_DTMF) && !defined(ENABLE_WIDEBAND_AUDIO)
+      // Span DSP doesn't support more than 8Khz DTMF detection
       mpDtmfDetector = new MprSpanDspDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);
 #else
       mpDtmfDetector = new MprSimpleDtmfDetector(name, m_samplesPerFrame, m_samplesPerSec);

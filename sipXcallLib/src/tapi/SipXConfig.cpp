@@ -953,7 +953,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipShortNames(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -980,7 +981,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -992,8 +994,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst, 
                                                         const int bEnabled)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigEnableSipAllowHeader");
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
       "sipxConfigEnableSipAllowHeader hInst=%p, bEnabled=%d",
       hInst, bEnabled);
 
@@ -1007,7 +1008,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -1015,6 +1017,31 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst,
    return rc;
 }
 
+SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipSupportedHeader(const SIPX_INST hInst, 
+                                                            const int bEnabled)
+{
+   OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
+      "sipxConfigEnableSipSupportedHeader hInst=%p, bEnabled=%d",
+      hInst, bEnabled);
+
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   assert(pInst);
+
+   if (pInst)
+   {
+      pInst->bSupportedHeader = bEnabled;
+
+      if (pInst->pSipUserAgent)
+      {
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
+         rc = SIPX_RESULT_SUCCESS;
+      }
+   }
+
+   return rc;
+}
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst, 
                                                         const char* szLanguage)
@@ -1034,7 +1061,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst,
 
       if (pInst->pSipUserAgent)
       {
-         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader, pInst->bShortNames, pInst->szAcceptLanguage);
+         pInst->pSipUserAgent->setHeaderOptions(pInst->bAllowHeader, pInst->bDateHeader,
+            pInst->bShortNames, pInst->szAcceptLanguage, pInst->bSupportedHeader);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -1529,9 +1557,22 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedAudioCodec(const SIPX_INST hInst,
       UtlBoolean bFound = pInst->pSelectedCodecList->getCodecByIndex(MIME_TYPE_AUDIO, index, sdpCodec);
       if (bFound)
       {
-         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
-         pCodec->iBandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
-         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
+         UtlString sSubMimeType;
+         sdpCodec.getMimeSubType(sSubMimeType);
+         UtlString sFormatSpecificData;
+         sdpCodec.getSdpFmtpField(sFormatSpecificData);
+
+         pCodec->payloadType = sdpCodec.getCodecPayloadId();
+         SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->bandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         pCodec->sampleRate = sdpCodec.getSampleRate();
+         pCodec->frameLength = sdpCodec.getPacketLength() / 1000;
+         pCodec->numChannels = sdpCodec.getNumChannels();
+         SAFE_STRNCPY(pCodec->cFormatSpecificData, sFormatSpecificData.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->cpuCost = (SIPX_CODEC_CPU_COST)sdpCodec.getCPUCost();
+
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -1561,9 +1602,22 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableAudioCodec(const SIPX_INST hInst,
       UtlBoolean bFound = pInst->pAvailableCodecList->getCodecByIndex(MIME_TYPE_AUDIO, index, sdpCodec);
       if (bFound)
       {
-         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
-         pCodec->iBandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
-         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
+         UtlString sSubMimeType;
+         sdpCodec.getMimeSubType(sSubMimeType);
+         UtlString sFormatSpecificData;
+         sdpCodec.getSdpFmtpField(sFormatSpecificData);
+
+         pCodec->payloadType = sdpCodec.getCodecPayloadId();
+         SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->bandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         pCodec->sampleRate = sdpCodec.getSampleRate();
+         pCodec->frameLength = sdpCodec.getPacketLength() / 1000;
+         pCodec->numChannels = sdpCodec.getNumChannels();
+         SAFE_STRNCPY(pCodec->cFormatSpecificData, sFormatSpecificData.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->cpuCost = (SIPX_CODEC_CPU_COST)sdpCodec.getCPUCost();
+
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -1777,9 +1831,19 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedVideoCodec(const SIPX_INST hInst,
       UtlBoolean bFound = pInst->pSelectedCodecList->getCodecByIndex(MIME_TYPE_VIDEO, index, sdpCodec);
       if (bFound)
       {
-         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
-         pCodec->iBandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
-         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
+         UtlString sSubMimeType;
+         sdpCodec.getMimeSubType(sSubMimeType);
+         UtlString sFormatSpecificData;
+         sdpCodec.getSdpFmtpField(sFormatSpecificData);
+
+         pCodec->payloadType = sdpCodec.getCodecPayloadId();
+         SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->bandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         SAFE_STRNCPY(pCodec->cFormatSpecificData, sFormatSpecificData.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->cpuCost = (SIPX_CODEC_CPU_COST)sdpCodec.getCPUCost();
+
          rc = SIPX_RESULT_SUCCESS;
       }
    }
@@ -1809,9 +1873,19 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableVideoCodec(const SIPX_INST hInst,
       UtlBoolean bFound = pInst->pAvailableCodecList->getCodecByIndex(MIME_TYPE_VIDEO, index, sdpCodec);
       if (bFound)
       {
-         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
-         pCodec->iBandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
-         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
+         UtlString sSubMimeType;
+         sdpCodec.getMimeSubType(sSubMimeType);
+         UtlString sFormatSpecificData;
+         sdpCodec.getSdpFmtpField(sFormatSpecificData);
+
+         pCodec->payloadType = sdpCodec.getCodecPayloadId();
+         SAFE_STRNCPY(pCodec->cCodecName, sdpCodec.getCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cDisplayName, sdpCodec.getDisplayCodecName().data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         SAFE_STRNCPY(pCodec->cSubMimeType, sSubMimeType.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->bandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         SAFE_STRNCPY(pCodec->cFormatSpecificData, sFormatSpecificData.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+         pCodec->cpuCost = (SIPX_CODEC_CPU_COST)sdpCodec.getCPUCost();
+
          rc = SIPX_RESULT_SUCCESS;
       }
    }

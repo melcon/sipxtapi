@@ -107,7 +107,6 @@ public:
                                     int& rtcpVideoPort,
                                     SdpCodecList& supportedCodecs,
                                     SdpSrtpParameters& srtpParams,
-                                    int bandWidth,
                                     int& videoBandwidth,
                                     int& videoFramerate) ;
 
@@ -122,7 +121,6 @@ public:
                                       int& nActualAddresses,
                                       SdpCodecList& supportedCodecs,
                                       SdpSrtpParameters& srtpParameters,
-                                      int bandWidth,
                                       int& videoBandwidth,
                                       int& videoFramerate);
 
@@ -177,11 +175,6 @@ public:
 
     virtual OsStatus resumePlayback();
 
-   virtual OsStatus recordChannelAudio(int connectionId,
-                                       const char* szFile) ;
-
-   virtual OsStatus stopRecordChannelAudio(int connectionId) ;
-
    virtual OsStatus giveFocus();
    virtual OsStatus defocus();
    virtual UtlBoolean hasFocus();
@@ -193,22 +186,11 @@ public:
    */
    virtual OsStatus recordAudio(const char* szFile);
 
-     /// @copydoc CpMediaInterface::recordMic(UtlString*)
-   virtual OsStatus recordMic(UtlString* pAudioBuffer);
-
-     /// @copydoc CpMediaInterface::recordMic(int, int, const char*)
-   virtual OsStatus recordMic(int ms,
-                              int silenceLength,
-                              const char* fileName) ; 
-
     virtual void setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) ;
      //: Set the contact type for this Phone media interface.  
      //  It is important to set the contact type BEFORE creating the 
      //  connection -- setting after the connection has been created
      //  is essentially a NOP.
-
-    //! Rebuild the codec factory on the fly
-    virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) ;
 
     /**
      * Rebuilds internal SdpCodecList using supplied SdpCodecList
@@ -220,9 +202,6 @@ public:
 
     /** Copies internal SdpCodecList of media connection into supplied SdpCodecList */
     virtual OsStatus getCodecList(int connectionId, SdpCodecList& sdpCodecList);
-
-    //! Set conneection bitrate on the fly
-    virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) ;
 
     //! Set connection framerate on the fly
     virtual OsStatus setConnectionFramerate(int connectionId, int framerate) ;
@@ -254,18 +233,7 @@ public:
         // NOT IMPLEMENTED
     }
 
-	virtual OsStatus generateVoiceQualityReport(int         connectiond,
-                                                const char* callId,
-                                                UtlString&  report) ;
-
-
 /* ============================ ACCESSORS ================================= */
-
-   virtual int getCodecCPUCost();
-      //:Calculate the current cost for our sending/receiving codecs
-
-   virtual int getCodecCPULimit();
-      //:Calculate the worst cost for our sending/receiving codecs
 
    virtual OsStatus getVideoQuality(int& quality);
    virtual OsStatus getVideoBitRate(int& bitRate);
@@ -274,26 +242,6 @@ public:
      //:Returns primary codec for the connection
    virtual OsStatus setVideoWindowDisplay(const void* hWnd);
    virtual const void* getVideoWindowDisplay();
-
-   //! Set a media property on the media interface
-   virtual OsStatus setMediaProperty(const UtlString& propertyName,
-                                     const UtlString& propertyValue);
-
-   //! Get a media property on the media interface
-   virtual OsStatus getMediaProperty(const UtlString& propertyName,
-                                     UtlString& propertyValue);
-
-   //! Set a media property associated with a connection
-   virtual OsStatus setMediaProperty(int connectionId,
-                                     const UtlString& propertyName,
-                                     const UtlString& propertyValue);
-
-   //! Get a media property associated with a connection
-   virtual OsStatus getMediaProperty(int connectionId,
-                                     const UtlString& propertyName,
-                                     UtlString& propertyValue);
-
-
 
    virtual OsStatus setVideoQuality(int quality);
    virtual OsStatus setVideoParameters(int bitRate, int frameRate);
@@ -418,7 +366,6 @@ private:
    UtlString mTurnUsername ;
    UtlString mTurnPassword ;
    UtlBoolean mEnableIce ;
-   UtlHashMap mInterfaceProperties;
    OsMsgQ* m_pInterfaceNotificationQueue;
 
    // Disabled copy constructor

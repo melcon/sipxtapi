@@ -26,6 +26,7 @@
 SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
                    int payloadId,
                    const UtlString& sCodecName,
+                   const UtlString& sDisplayCodecName,
                    const char* mimeType,
                    const char* mimeSubtype,
                    int sampleRate,
@@ -35,19 +36,20 @@ SdpCodec::SdpCodec(enum SdpCodecTypes sdpCodecType,
                    const int CPUCost,
                    const int BWCost,
                    const int videoFormat,
-                   const int videoFmtp) :
-   mCodecPayloadId(payloadId),
-   mMimeType(mimeType),
-   mMimeSubtype(mimeSubtype),
-   mSampleRate(sampleRate),
-   mPacketLength(preferredPacketLength),
-   mNumChannels(numChannels),
-   mFormatSpecificData(formatSpecificData),
-   mCPUCost(CPUCost),
-   mBWCost(BWCost),
-   mVideoFormat(videoFormat),
-   mVideoFmtp(videoFmtp),
-   m_sCodecName(sCodecName)
+                   const int videoFmtp)
+: mCodecPayloadId(payloadId)
+, mMimeType(mimeType)
+, mMimeSubtype(mimeSubtype)
+, mSampleRate(sampleRate)
+, mPacketLength(preferredPacketLength)
+, mNumChannels(numChannels)
+, mFormatSpecificData(formatSpecificData)
+, mCPUCost(CPUCost)
+, mBWCost(BWCost)
+, mVideoFormat(videoFormat)
+, mVideoFmtp(videoFmtp)
+, m_sCodecName(sCodecName)
+, m_sDisplayCodecName(sDisplayCodecName)
 {
    setValue(sdpCodecType);
 }
@@ -69,6 +71,7 @@ SdpCodec::SdpCodec(const SdpCodec& rSdpCodec)
     mVideoFmtp = rSdpCodec.mVideoFmtp;
     mVideoFmtpString = rSdpCodec.mVideoFmtpString;
     m_sCodecName = rSdpCodec.m_sCodecName;
+    m_sDisplayCodecName = rSdpCodec.m_sDisplayCodecName;
 }
 
 // Destructor
@@ -99,6 +102,7 @@ SdpCodec::operator=(const SdpCodec& rhs)
     mVideoFmtp = rhs.mVideoFmtp;
     mVideoFmtpString = rhs.mVideoFmtpString;
     m_sCodecName = rhs.m_sCodecName;
+    m_sDisplayCodecName = rhs.m_sDisplayCodecName;
 
    return *this;
 }
@@ -130,7 +134,7 @@ void SdpCodec::getMediaType(UtlString& mimeType) const
     mimeType = mMimeType;
 }
 
-void SdpCodec::getEncodingName(UtlString& mimeSubtype) const
+void SdpCodec::getMimeSubType(UtlString& mimeSubtype) const
 {
     mimeSubtype = mMimeSubtype;
 }
@@ -236,6 +240,38 @@ UtlBoolean SdpCodec::isSameDefinition(const SdpCodec& codec) const
            mMimeSubtype.compareTo(codec.mMimeSubtype, UtlString::ignoreCase) == 0);
 }
 
+UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType, 
+                                       const UtlString& mimeSubType,
+                                       int sampleRate,
+                                       int numChannels,
+                                       const UtlString& fmtp) const
+{
+   // If the mime type matches
+   if(mMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0)
+   {
+      // and if the mime subtype, sample rate, number of channels
+      // and fmtp match.
+      if ((mMimeSubtype.compareTo(mimeSubType, UtlString::ignoreCase) == 0) &&
+         (sampleRate == -1 || mSampleRate == sampleRate) &&
+         (numChannels == -1 || mNumChannels == numChannels))
+      {
+         // TODO:: checking for fmtp match must be made intelligent, e.g. by
+         //        defining isCompatible(fmtp) method for SdpCodec. Checking
+         //        by string comparison leads to errors when there are two
+         //        or more parameters and they're presented in random order.
+         if ((!fmtp.isNull() && mFormatSpecificData.isNull()) ||
+            (fmtp.isNull() && !mFormatSpecificData.isNull()) ||
+            (fmtp == mFormatSpecificData))
+         {
+            // we found a match
+            return TRUE;
+         }
+      }
+   }
+
+   return FALSE;
+}
+
 SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
 {
     SdpCodec::SdpCodecTypes retType = SdpCodec::SDP_CODEC_UNKNOWN;
@@ -252,6 +288,7 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_G729;
     else if (strcmp(compareString,"G723.1") == 0)
        retType = SdpCodec::SDP_CODEC_G723;
+    // G.726
     else if (strcmp(compareString,"G726_16") == 0)
        retType = SdpCodec::SDP_CODEC_G726_16;
     else if (strcmp(compareString,"G726_24") == 0)
@@ -264,10 +301,15 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_ILBC;
     else if (strcmp(compareString,"ILBC-20MS") == 0)
        retType = SdpCodec::SDP_CODEC_ILBC_20MS;
+    // G.722 codec
+    else if (strcmp(compareString,"G722") == 0)
+       retType = SdpCodec::SDP_CODEC_G722;
+    // gsm full rate
     else if (strcmp(compareString,"GSM") == 0)
        retType = SdpCodec::SDP_CODEC_GSM;
-    else if (strcmp(compareString,"SPEEX_6") == 0)
-       retType = SdpCodec::SDP_CODEC_SPEEX_6;
+    // speex narrowband codecs
+    else if (strcmp(compareString,"SPEEX_5") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_5;
     else if (strcmp(compareString,"SPEEX_8") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_8;
     else if (strcmp(compareString,"SPEEX_11") == 0)
@@ -278,8 +320,58 @@ SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
        retType = SdpCodec::SDP_CODEC_SPEEX_18;
     else if (strcmp(compareString,"SPEEX_24") == 0)
        retType = SdpCodec::SDP_CODEC_SPEEX_24;
-    else if (strcmp(compareString,"GSM") == 0)
-       retType = SdpCodec::SDP_CODEC_GSM;
+    // speex wideband codecs
+    else if (strcmp(compareString,"SPEEX_WB_9") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_9;
+    else if (strcmp(compareString,"SPEEX_WB_12") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_12;
+    else if (strcmp(compareString,"SPEEX_WB_16") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_16;
+    else if (strcmp(compareString,"SPEEX_WB_20") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_20;
+    else if (strcmp(compareString,"SPEEX_WB_23") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_23;
+    else if (strcmp(compareString,"SPEEX_WB_27") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_27;
+    else if (strcmp(compareString,"SPEEX_WB_34") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_34;
+    else if (strcmp(compareString,"SPEEX_WB_42") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_WB_42;
+    // speex ultra wideband codecs
+    else if (strcmp(compareString,"SPEEX_UWB_11") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_11;
+    else if (strcmp(compareString,"SPEEX_UWB_14") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_14;
+    else if (strcmp(compareString,"SPEEX_UWB_18") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_18;
+    else if (strcmp(compareString,"SPEEX_UWB_22") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_22;
+    else if (strcmp(compareString,"SPEEX_UWB_25") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_25;
+    else if (strcmp(compareString,"SPEEX_UWB_29") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_29;
+    else if (strcmp(compareString,"SPEEX_UWB_36") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_36;
+    else if (strcmp(compareString,"SPEEX_UWB_44") == 0)
+       retType = SdpCodec::SDP_CODEC_SPEEX_UWB_44;
+    // L16 codec
+    else if (strcmp(compareString,"L16_8000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_8000_MONO;
+    else if (strcmp(compareString,"L16_11025_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_11025_MONO;
+    else if (strcmp(compareString,"L16_16000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_16000_MONO;
+    else if (strcmp(compareString,"L16_22050_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_22050_MONO;
+    else if (strcmp(compareString,"L16_24000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_24000_MONO;
+    else if (strcmp(compareString,"L16_32000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_32000_MONO;
+    else if (strcmp(compareString,"L16_44100_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_44100_MONO;
+    else if (strcmp(compareString,"L16_48000_MONO") == 0)
+       retType = SdpCodec::SDP_CODEC_L16_48000_MONO;
+    // video codecs
     else if (strcmp(compareString,"VP71-CIF") == 0)
        retType = SdpCodec::SDP_CODEC_VP71_CIF;
     else if (strcmp(compareString,"VP71-QCIF") == 0)

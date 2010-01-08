@@ -564,10 +564,11 @@ public:
    //! Sets the User Agent name sent with outgoing sip messages.
 
 
-   void setHeaderOptions(const UtlBoolean bAllowHeader,
-      const UtlBoolean bDateHeader,
-      const UtlBoolean bShortNames,
-      const UtlString& acceptLanguage);                                   
+   void setHeaderOptions(UtlBoolean bAllowHeader,
+      UtlBoolean bDateHeader,
+      UtlBoolean bShortNames,
+      const UtlString& acceptLanguage,
+      UtlBoolean bSupportedHeader);                                   
    //! Sets header options - send or not send
 
    UtlBoolean getEnabledShortNames()
@@ -843,7 +844,8 @@ private:
    UtlBoolean mbShutdownDone;
    UtlBoolean mbBlockingShutdown;
 
-   UtlBoolean mbAllowHeader;
+   UtlBoolean mbAllowHeader; ///< whether to send Allow header
+   UtlBoolean mbSupportedHeader; ///< whether to send Supported header
    UtlBoolean mbDateHeader;
    UtlBoolean mbShortNames;
    UtlString mAcceptLanguage;

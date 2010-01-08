@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _MprEncode_h_
 #define _MprEncode_h_
 
@@ -20,10 +19,15 @@
 // SYSTEM INCLUDES
 
 // APPLICATION INCLUDES
+#include <mp/MpDefs.h>
 #include "mp/MpAudioResource.h"
 #include "sdp/SdpCodec.h"
 #include "mp/MpFlowGraphMsg.h"
 #include "mp/MprToNet.h"
+
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+#include <speex/speex_resampler.h>
+#endif
 
 // DEFINES
 // MACROS
@@ -130,6 +134,8 @@ private:
    int   mPacket1PayloadBytes;      ///< Size of mpPacket1Payload buffer
    int   mPayloadBytesUsed;         ///< Number of bytes in mpPacket1Payload,
                                     ///<  already filled with encoded data
+   unsigned int mSamplesPacked;     ///< Number of samples already encoded
+                                    ///<  to current packet.
    unsigned int mStartTimestamp1;
    UtlBoolean mActiveAudio1;        ///< Does current RTP packet contain active voice?
    UtlBoolean mMarkNext1;           ///< Set Mark bit on next RTP packet
@@ -150,17 +156,24 @@ private:
    int   mTotalTime;    ///< # samples tone was active, set when tone stops
    int   mNewTone;      ///< set when tone starts
 
-   unsigned int   mCurrentTimestamp;
+   unsigned int mCurrentTimestamp; ///< timestamp of primary codec
+   unsigned int mTimestampStep; ///< value by which timestamp is incremented
+
+   unsigned int mMaxPacketTime;  ///< Maximum duration of one packet in milliseconds.
+   int   mMaxPacketSamples;         ///< Maximum number of samples in RTP packet.
 
    MprToNet* mpToNet;  ///< Pointer to ToNet resource, which will send generated
                        ///< RTP packets.
 
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   SpeexResamplerState *m_pResampler;
+   MpAudioSample m_tmpBuffer[SAMPLES_PER_FRAME]; // buffer for storing samples after resampling, before encoding
+
+   void destroyResampler();
+#endif
+
      /// Handle messages for this resource.
    virtual UtlBoolean handleMessage(MpFlowGraphMsg& rMsg);
-
-     /// @brief Get maximum payload size, estimated from
-     /// MpEncoderBase::getMaxPacketBits().
-   int payloadByteLength(MpEncoderBase& rEncoder);
 
      /// Allocate memory for RTP packet.
    OsStatus allocPacketBuffer(MpEncoderBase& rEncoder,

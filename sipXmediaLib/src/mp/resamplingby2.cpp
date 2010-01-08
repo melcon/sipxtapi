@@ -8,7 +8,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef __pingtel_on_posix__ /* [ */
 
 #include "mp/resamplingby2.h"
@@ -16,34 +15,6 @@
 /* C + the 32 most significant bits of A * B */
 #define GIPS_SCALEDIFF32(A, B, C) \
       ((C) + ((B)>>16)*(A) + (((GIPS_UWord32)(0x0000FFFF & (B))*(A)) >> 16))
-
-#if 0 /* [ */
-#undef GIPS_SCALEDIFF32
-
-static
-GIPS_Word32 GIPS_SCALEDIFF32(GIPS_Word32 A, GIPS_Word32 B, GIPS_Word32 C)
-{
-   return (C + (B>>16)*A + ( ((GIPS_UWord32)(0x0000FFFF & B)*A) >> 16 ));
-}
-
-#undef GIPS_SCALEDIFF32
-#define GIPS_SCALEDIFF32(A, B, C) GIPS_SCALEDIFF32X((A), (B), (C))
-
-static
-GIPS_Word32 GIPS_SCALEDIFF32X(GIPS_Word16 a, GIPS_Word32 b, GIPS_Word32 c)
-{
-   long long A, B, C;
-   GIPS_Word32 D;
-
-   A = a;
-   B = b;
-   C = (A * B);
-   C = (C >> 16) & 0xFFFFFFFF;
-   D = C;
-   return (c + D);
-}
-#undef GIPS_SCALEDIFF32
-#endif /* 0 ] */
 
 /* allpass filter coefficients. */
 static const GIPS_Word32 allpassfilter1[3] = {3284, 24441, 49528};

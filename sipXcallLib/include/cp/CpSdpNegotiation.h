@@ -135,8 +135,6 @@ public:
                                   int& remoteVideoRtcpPort,
                                   const SdpSrtpParameters& localSrtpParams,
                                   SdpSrtpParameters& matchingSrtpParams,
-                                  int localBandwidth,
-                                  int& matchingBandwidth,
                                   int localVideoFramerate,
                                   int& matchingVideoFramerate);
 

@@ -261,13 +261,8 @@ SIPX_CODEC_INFO getSipXCodecInfo(const CpCodecInfo& codecInfo)
    memset(&sipxCodecInfo, 0, sizeof(SIPX_CODEC_INFO));
 
    sipxCodecInfo.bIsEncrypted = codecInfo.m_bIsEncrypted;
-   SAFE_STRNCPY(sipxCodecInfo.audioCodec.cName, codecInfo.m_audioCodec.m_codecName.data(), SIPXTAPI_CODEC_NAMELEN);
-   sipxCodecInfo.audioCodec.iBandWidth = (SIPX_AUDIO_BANDWIDTH_ID)codecInfo.m_audioCodec.m_iBandWidth;
-   sipxCodecInfo.audioCodec.iPayloadType = codecInfo.m_audioCodec.m_iPayloadId;
-
-   SAFE_STRNCPY(sipxCodecInfo.videoCodec.cName, codecInfo.m_videoCodec.m_codecName.data(), SIPXTAPI_CODEC_NAMELEN);
-   sipxCodecInfo.videoCodec.iBandWidth = (SIPX_VIDEO_BANDWIDTH_ID)codecInfo.m_videoCodec.m_iBandWidth;
-   sipxCodecInfo.videoCodec.iPayloadType = codecInfo.m_videoCodec.m_iPayloadType;
+   SAFE_STRNCPY(sipxCodecInfo.cAudioCodecName, codecInfo.m_audioCodec.m_codecName.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
+   SAFE_STRNCPY(sipxCodecInfo.cVideoCodecName, codecInfo.m_videoCodec.m_codecName.data(), SIPXTAPI_STRING_MEDIUM_LENGTH);
 
    return sipxCodecInfo;
 }

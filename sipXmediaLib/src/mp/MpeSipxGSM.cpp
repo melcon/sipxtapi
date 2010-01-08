@@ -22,14 +22,11 @@ extern "C" {
 const MpCodecInfo MpeSipxGSM::smCodecInfo(
          SdpCodec::SDP_CODEC_GSM,    // codecType
          "GSM 6.10",                 // codecVersion
-         false,                      // usesNetEq
          8000,                       // samplingRate
-         8,                          // numBitsPerSample
+         16,                          // numBitsPerSample
          1,                          // numChannels
-         160,                        // interleaveBlockSize
          13200,                      // bitRate. It doesn't matter right now.
          33*8,                       // minPacketBits
-         33*8,                       // avgPacketBits
          33*8,                       // maxPacketBits
          160);                       // numSamplesPerFrame
 
@@ -39,7 +36,7 @@ MpeSipxGSM::MpeSipxGSM(int payloadType)
 , mpGsmState(NULL)
 , mBufferLoad(0)
 {
-   assert(SdpCodec::SDP_CODEC_G723 == payloadType);
+   assert(SdpCodec::SDP_CODEC_GSM == payloadType);
 }
 
 MpeSipxGSM::~MpeSipxGSM()
@@ -72,10 +69,11 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpAudioBuf::SpeechType& rAudioCategory)
+                            MpSpeechType& rAudioCategory)
 {
    int size = 0;   
    
+   assert(numSamples == 80);
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad+numSamples;
    assert(mBufferLoad <= 160);
@@ -93,7 +91,7 @@ OsStatus MpeSipxGSM::encode(const MpAudioSample* pAudioSamples,
 
    rSamplesConsumed = numSamples;
    rSizeInBytes = size;
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rAudioCategory = MP_SPEECH_UNKNOWN;
    return OS_SUCCESS;
 }
 

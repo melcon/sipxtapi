@@ -15,7 +15,7 @@
 // APPLICATION INCLUDES
 #include <utl/UtlSList.h>
 #include <os/OsBSem.h>
-#include <os/OsRWMutex.h>
+#include <os/OsMutex.h>
 #include <sdp/SdpCodec.h>
 
 // DEFINES
@@ -80,12 +80,6 @@ public:
    /** Assign any unset payload type ids */
    void bindPayloadIds();
 
-   /** If there is a matching codec in this factory, set its payload type to that of the given codec */
-   void copyPayloadId(const SdpCodec& codec);
-
-   /** For all matching codecs, copy the payload type from the codecArray to the matching codec in this factory */
-   void copyPayloadIds(const UtlSList& codecList);
-
    /** Discard all codecs */
    void clearCodecs(void);
 
@@ -106,8 +100,8 @@ public:
    /** Get a codec given the mime type and subtype. Returns internal pointer! */
    const SdpCodec* getCodec(const char* mimeType, 
                             const char* mimeSubType,
-                            unsigned sampleRate,
-                            unsigned numChannels,
+                            int sampleRate,
+                            int numChannels,
                             const UtlString& fmtp) const;
 
    /** Get the number of codecs */
@@ -142,7 +136,7 @@ protected:
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    UtlSList m_codecsList;
-   mutable OsRWMutex m_memberMutex;
+   mutable OsMutex m_memberMutex;
 };
 
 /* ============================ INLINE METHODS ============================ */

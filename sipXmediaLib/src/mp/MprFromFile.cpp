@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
 #include <assert.h>
 #include <os/fstream>
@@ -36,15 +35,12 @@
 #include "mp/MpMisc.h"
 #include "mp/MpFlowGraphBase.h"
 #include "os/OsSysLog.h"
-#include "os/OsProtectEventMgr.h"
-#include "mp/MpResNotificationMsg.h"
-
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 
 // CONSTANTS
-const unsigned int MprFromFile::sFromFileReadBufferSize = 8000;
+const unsigned int MprFromFile::sFromFileReadBufferSize = 8192;
 
 static const unsigned int MAXFILESIZE = 50000000;
 static const unsigned int MINFILESIZE = 8000;
@@ -194,9 +190,10 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
    int samplesReaded;
    int compressionType = 0;
    int channelsMin = 1, channelsMax = 2, channelsPreferred = 0;
-   long rateMin = 8000, rateMax = 44100, ratePreferred = 22050;
+   long rateMin = 8000, rateMax = 48000, ratePreferred = 22050;
    UtlBoolean bDetectedFormatIsOk = TRUE;
    MpAudioAbstract *audioFile = NULL;
+   int requiredSamplesPerSec = getSamplesPerSec();
 
    // Assume audioBuffer passed in is NULL..
    assert(audioBuffer == NULL);
@@ -305,8 +302,8 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                   filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
 
                // Resample if needed
-               if (ratePreferred > 8000)
-                  filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
+               if (ratePreferred > requiredSamplesPerSec)
+                  filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
             }
             break;
 
@@ -323,8 +320,8 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                   filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
 
                // Resample if needed
-               if (ratePreferred > 8000)
-                  filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
+               if (ratePreferred > requiredSamplesPerSec)
+                  filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
             }
             break;
          }
@@ -356,8 +353,8 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                      filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
 
                   // Resample if needed
-                  if (ratePreferred > 8000)
-                     filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
+                  if (ratePreferred > requiredSamplesPerSec)
+                     filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
                }
                break;
 
@@ -374,8 +371,8 @@ OsStatus MprFromFile::readAudioFile(UtlString*& audioBuffer,
                      filesize = mergeChannels(charBuffer, filesize, iTotalChannels);
 
                   // Resample if needed
-                  if (ratePreferred > 8000)
-                     filesize = reSample(charBuffer, filesize, ratePreferred, 8000);
+                  if (ratePreferred > requiredSamplesPerSec)
+                     filesize = reSample(charBuffer, filesize, ratePreferred, requiredSamplesPerSec);
                }
                break;
             }
@@ -488,7 +485,7 @@ UtlBoolean MprFromFile::doProcessFrame(MpBufPtr inBufs[],
          {
             return FALSE;
          }
-         out->setSpeechType(MpAudioBuf::MP_SPEECH_TONE);
+         out->setSpeechType(MP_SPEECH_TONE);
          out->setSamplesNumber(samplesPerFrame);
          count = out->getSamplesNumber();
          outbuf = out->getSamplesWritePtr();

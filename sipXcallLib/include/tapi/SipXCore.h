@@ -150,9 +150,10 @@ public:
    int             nConferences;  /**< Counter for inprocess conferences */
    int             nLines;        /**< Counter for inprocess lines */
    void*           pVoiceEngine;  /**< Cache VoiceEngine pointer */
-   UtlBoolean      bShortNames;   /**< short names in sip messages >*/
-   UtlBoolean      bAllowHeader;  /**< use allow header in sip messages>*/
-   UtlBoolean      bDateHeader;   /**< use Date header in sip messages>*/
+   UtlBoolean      bShortNames;   /**< short names in sip messages */
+   UtlBoolean      bAllowHeader;  /**< use Allow header in sip messages */
+   UtlBoolean      bSupportedHeader;  /**< use Supported header in sip messages */
+   UtlBoolean      bDateHeader;   /**< use Date header in sip messages */
    char            szAcceptLanguage[16]; /**< accept language to use in sip messages>*/
    char            szLocationHeader[256]; /**< location header */
    UtlBoolean      bRtpOverTcp;   /**< allow RTP over TCP */
@@ -184,8 +185,9 @@ public:
       nLines(0),
       pVoiceEngine(NULL),
       bShortNames(FALSE),
-      bAllowHeader(FALSE),
-      bDateHeader(FALSE),
+      bAllowHeader(TRUE),
+      bSupportedHeader(TRUE),
+      bDateHeader(TRUE),
       bRtpOverTcp(FALSE),
       pKeepaliveEventListener(NULL),
       nInputAudioDevices(0),

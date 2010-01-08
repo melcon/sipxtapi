@@ -258,7 +258,7 @@ void sipXtapiTestSuite::testBlindTransferFailureBusy()
       // Setup call to transfer source (transferee)
       sipxRC = sipxCallCreate(g_hInst1, hLine, &hTransferee);
       CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
-      sipxRC = sipxCallConnect(hTransferee, "blah:foo@127.0.0.1:9100", 0, NULL, true);
+      sipxRC = sipxCallConnect(hTransferee, "blah:foo@127.0.0.1:9100", 0, NULL, SIPX_FOCUS_MANUAL);
       CPPUNIT_ASSERT(sipxRC == SIPX_RESULT_SUCCESS);
 
       // Validate Calling Side: Transferee

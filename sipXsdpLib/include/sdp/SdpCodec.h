@@ -31,6 +31,7 @@
 #define MIME_SUBTYPE_PCMU "PCMU"
 #define MIME_SUBTYPE_PCMA "PCMA"
 #define MIME_SUBTYPE_G729 "G729"
+#define MIME_SUBTYPE_G722 "G722"
 #define MIME_SUBTYPE_G723 "G723"
 #define MIME_SUBTYPE_G726_16 "G726-16"
 #define MIME_SUBTYPE_G726_24 "G726-24"
@@ -40,6 +41,7 @@
 #define MIME_SUBTYPE_ILBC "iLBC"
 #define MIME_SUBTYPE_GSM "GSM"
 #define MIME_SUBTYPE_SPEEX "speex"
+#define MIME_SUBTYPE_L16 "L16"
 #define MIME_SUBTYPE_VP71 "VP71"
 #define MIME_SUBTYPE_IYUV "IYUV"
 #define MIME_SUBTYPE_I420 "I420"
@@ -121,19 +123,42 @@ public:
         SDP_CODEC_GSM = 3,         ///< GSM codec
         SDP_CODEC_G723 = 4,        ///< G.723.1 audio codec
         SDP_CODEC_PCMA = 8,        ///< G.711 a-law
-        SDP_CODEC_L16_STEREO = 10, ///< PCM 16 bit/sample 44100 samples/sec.
-        SDP_CODEC_L16_MONO = 11,   ///< PCM 16 bit/sample 44100 samples/sec.
+        SDP_CODEC_G722 = 9,        ///< G.722 audio codec, 16000 samples/sec
+        SDP_CODEC_L16_44100_STEREO = 10, ///< Stereo PCM 16 bit/sample 44100 samples/sec.
+        SDP_CODEC_L16_44100_MONO = 11, ///< Mono PCM 16 bit/sample 44100 samples/sec.
         SDP_CODEC_G729 = 18,       ///< G.729, with or without Annexes A or B
         SDP_CODEC_H263 = 34,       ///< H.263 video codec
         SDP_CODEC_MAXIMUM_STATIC_CODEC = 95,
         SDP_CODEC_TONES,     ///< AVT/DTMF Tones, RFC 2833
-        SDP_CODEC_SPEEX_6,   ///< Speex narrowband mode 2 (5,950 bps)
+        SDP_CODEC_SPEEX_5,   ///< Speex narrowband mode 2 (5,950 bps)
         SDP_CODEC_SPEEX_8,   ///< Speex narrowband mode 3 (8,000 bps)
         SDP_CODEC_SPEEX_11,  ///< Speex narrowband mode 4 (11,000 bps)
         SDP_CODEC_SPEEX_15,  ///< Speex narrowband mode 5 (15,000 bps)
         SDP_CODEC_SPEEX_18,  ///< Speex narrowband mode 6 (18,200 bps)
         SDP_CODEC_SPEEX_24,  ///< Speex narrowband mode 7 (24,600 bps)
-        SDP_CODEC_L16_8K,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
+        SDP_CODEC_SPEEX_WB_9,   ///< Speex wideband mode 3 (9,800 bps)
+        SDP_CODEC_SPEEX_WB_12,   ///< Speex wideband mode 4 (12,800 bps)
+        SDP_CODEC_SPEEX_WB_16,   ///< Speex wideband mode 5 (16,800 bps)
+        SDP_CODEC_SPEEX_WB_20,  ///< Speex wideband mode 6 (20,600 bps)
+        SDP_CODEC_SPEEX_WB_23,  ///< Speex wideband mode 7 (23,800 bps)
+        SDP_CODEC_SPEEX_WB_27,  ///< Speex wideband mode 8 (27,800 bps)
+        SDP_CODEC_SPEEX_WB_34,  ///< Speex wideband mode 9 (34,400 bps)
+        SDP_CODEC_SPEEX_WB_42,  ///< Speex wideband mode 10 (42,400 bps)
+        SDP_CODEC_SPEEX_UWB_11,   ///< Speex ultra wideband mode 3 (11,600 bps)
+        SDP_CODEC_SPEEX_UWB_14,   ///< Speex ultra wideband mode 4 (14,600 bps)
+        SDP_CODEC_SPEEX_UWB_18,   ///< Speex ultra wideband mode 5 (18,600 bps)
+        SDP_CODEC_SPEEX_UWB_22,  ///< Speex ultra wideband mode 6 (22,400 bps)
+        SDP_CODEC_SPEEX_UWB_25,  ///< Speex ultra wideband mode 7 (25,600 bps)
+        SDP_CODEC_SPEEX_UWB_29,  ///< Speex ultra wideband mode 8 (29,600 bps)
+        SDP_CODEC_SPEEX_UWB_36,  ///< Speex ultra wideband mode 9 (36,000 bps)
+        SDP_CODEC_SPEEX_UWB_44,  ///< Speex ultra wideband mode 10 (44,000 bps)
+        SDP_CODEC_L16_8000_MONO, ///< Mono PCM 16 bit/sample 8000 samples/sec.
+        SDP_CODEC_L16_11025_MONO, ///< Mono PCM 16 bit/sample 11025 samples/sec.
+        SDP_CODEC_L16_16000_MONO, ///< Mono PCM 16 bit/sample 16000 samples/sec.
+        SDP_CODEC_L16_22050_MONO, ///< Mono PCM 16 bit/sample 22050 samples/sec.
+        SDP_CODEC_L16_24000_MONO, ///< Mono PCM 16 bit/sample 24000 samples/sec.
+        SDP_CODEC_L16_32000_MONO, ///< Mono PCM 16 bit/sample 32000 samples/sec.
+        SDP_CODEC_L16_48000_MONO, ///< Mono PCM 16 bit/sample 48000 samples/sec.
         SDP_CODEC_ILBC,      ///< Internet Low Bit Rate Codec, 30ms (RFC3951)
         SDP_CODEC_ILBC_20MS, ///< Internet Low Bit Rate Codec, 20ms (RFC3951)
         SDP_CODEC_G726_16,   ///< G.726 16 Kbps
@@ -169,7 +194,8 @@ public:
     enum SdpCodecCPUCost
     {
        SDP_CODEC_CPU_LOW = 0,
-       SDP_CODEC_CPU_HIGH = 1
+       SDP_CODEC_CPU_NORMAL,
+       SDP_CODEC_CPU_HIGH
     };
 
 /* ============================ CREATORS ================================== */
@@ -180,6 +206,7 @@ public:
    SdpCodec(enum SdpCodecTypes sdpCodecType = SDP_CODEC_UNKNOWN,
             int payloadId = SDP_CODEC_UNKNOWN, ///< if SDP_CODEC_UNKNOWN then it is dynamic
             const UtlString& sCodecName = NULL, ///< codec name which can be used in factory
+            const UtlString& sDisplayCodecName = NULL, ///< codec name displayable to user
             const char* mimeType = MIME_TYPE_AUDIO,
             const char* mimeSubtype = "",
             int sampleRate = 8000,             ///< samples per second
@@ -247,7 +274,7 @@ public:
    */
 
    /// MimeSubtype used as encoding name
-   void getEncodingName(UtlString& mimeSubtype) const;
+   void getMimeSubType(UtlString& mimeSubtype) const;
    /**<
    *  This is the encoding name used in the SDP
    *  "a=rtpmap: <payloadFormat> <mimeSubtype/sampleRate[/numChannels]"
@@ -309,6 +336,8 @@ public:
    /** Gets codec name. This is not the same as mime subtype. */
    void getCodecName(UtlString& codecName) const { codecName = m_sCodecName; }
    UtlString getCodecName() const { return m_sCodecName; }
+   UtlString getDisplayCodecName() const { return m_sDisplayCodecName; }
+   void getDisplayCodecName(UtlString& displayCodecName) const { displayCodecName = m_sDisplayCodecName; }
 
 //@}
 
@@ -319,11 +348,23 @@ public:
    /// Returns TRUE if this codec is the same definition as the given codec
    UtlBoolean isSameDefinition(const SdpCodec& codec) const;
    /**<
-   *  That is the encoding type and its characteristics, not the payload type.
-   */
+     *  That is the encoding type and its characteristics, not the payload type.
+     *  Doesn't take fmtp into consideration.
+     */
 
    /** Converts the short codec name into an enum */
    static SdpCodec::SdpCodecTypes getCodecType(const UtlString& shortCodecName);
+
+   /**
+    * Returns true, if right hand side codec is compatible with our codec.
+    * Fmtp is taken into consideration. This method contains code specific to
+    * some codecs.
+    */
+   UtlBoolean isCodecCompatible(const UtlString& mimeType, 
+                                const UtlString& mimeSubType,
+                                int sampleRate,
+                                int numChannels,
+                                const UtlString& fmtp) const;
 
 //@}
 
@@ -333,7 +374,6 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
-//    enum SdpCodecTypes mCodecType; ///< Internal id
     int mCodecPayloadId;       ///< The id which appears in SDP & RTP
     UtlString mMimeType;           ///< audio, video, etc.
     UtlString mMimeSubtype;        ///< a=rtpmap mime subtype value
@@ -347,6 +387,7 @@ private:
     int mVideoFmtp;
     UtlString mVideoFmtpString;    ///< video format string
     UtlString m_sCodecName; ///< codec name which can be used in factory
+    UtlString m_sDisplayCodecName; ///< displayable codec name
 };
 
 /* ============================ INLINE METHODS ============================ */

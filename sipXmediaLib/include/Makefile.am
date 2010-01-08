@@ -8,10 +8,6 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 # was generated automatically? (HZM, 20040616)
 
 nobase_include_HEADERS =  \
-    mp/DspResampling.h \
-    mp/FilterBank.h \
-    mp/HandsetFilterBank.h \
-    mp/HandsetFilterbankWindows.h \
     mp/MpArrayBuf.h \
     mp/MpAudioAbstract.h \
     mp/MpAudioBuf.h \
@@ -25,26 +21,30 @@ nobase_include_HEADERS =  \
     mp/MpAudioFileUtils.h \
     mp/MpAudioMixerBase.h \
     mp/MpAudioResource.h \
-    mp/MpAudioResourceConstructor.h \
     mp/MpAudioStreamInfo.h \
     mp/MpAudioStreamParameters.h \
     mp/MpAudioUtils.h \
     mp/MpAudioWaveFileRead.h \
+    mp/MpBridgeAlgBase.h \
+    mp/MpBridgeAlgLinear.h \
+    mp/MpBridgeAlgSimple.h \
     mp/MpBuf.h \
     mp/MpBufPool.h \
-    mp/MpBufRecStartResourceMsg.h \
     mp/MpBufferMsg.h \
     mp/MpCallFlowGraph.h \
-    mp/MpCodec.h \
     mp/MpCodecFactory.h \
     mp/MpCodecInfo.h \
     mp/MpDataBuf.h \
     mp/MpDecodeBuffer.h \
     mp/MpDecoderBase.h \
+    mp/MpDefs.h \
     mp/MpDspUtils.h \
+    mp/MpDspUtilsConvertVect.h \
+    mp/MpDspUtilsIntSqrt.h \
     mp/MpDspUtilsSerials.h \
     mp/MpDspUtilsShift.h \
     mp/MpDspUtilsSum.h \
+    mp/MpDspUtilsSumVect.h \
     mp/MpEncoderBase.h \
     mp/MpFlowGraphBase.h \
     mp/MpFlowGraphMsg.h \
@@ -61,35 +61,20 @@ nobase_include_HEADERS =  \
     mp/MpMisc.h \
     mp/MpNotificationDispatcher.h \
     mp/MpNotificationMsgDef.h \
-    mp/MpPlayer.h \
-    mp/MpPlayerEvent.h \
-    mp/MpPlayerListener.h \
     mp/MpPortAudioDriver.h \
     mp/MpPortAudioMixer.h \
     mp/MpPortAudioStream.h \
-    mp/MpQueuePlayerListener.h \
-    mp/MpRawAudioBuffer.h \
     mp/MpResNotification.h \
-    mp/MpResNotificationMsg.h \
     mp/MpResource.h \
-    mp/MpResourceConstructor.h \
-    mp/MpResourceFactory.h \
     mp/MpResourceMsg.h \
     mp/MpResourceSortAlg.h \
-    mp/MpResourceTopology.h \
     mp/MpRtpBuf.h \
     mp/MpRtpInputAudioConnection.h \
     mp/MpRtpInputConnection.h \
     mp/MpRtpOutputAudioConnection.h \
     mp/MpRtpOutputConnection.h \
     mp/MpSipxDecoders.h \
-    mp/MpStreamFeeder.h \
-    mp/MpStreamMsg.h \
-    mp/MpStreamPlayer.h \
-    mp/MpStreamPlaylistPlayer.h \
-    mp/MpStreamQueuePlayer.h \
     mp/MpToneResourceMsg.h \
-    mp/MpTopologyGraph.h \
     mp/MpTypes.h \
     mp/MpUdpBuf.h \
     mp/MpVolumeMeter.h \
@@ -97,70 +82,52 @@ nobase_include_HEADERS =  \
     mp/MpdIPPG7231.h \
     mp/MpdIPPG729.h \
     mp/MpdPtAVT.h \
+    mp/MpdSipxG722.h \
     mp/MpdSipxG726.h \
     mp/MpdSipxGSM.h \
     mp/MpdSipxILBC.h \
+    mp/MpdSipxL16.h \
     mp/MpdSipxPcma.h \
     mp/MpdSipxPcmu.h \
     mp/MpdSipxSpeex.h \
+    mp/MpdSipxSpeexUWb.h \
+    mp/MpdSipxSpeexWb.h \
     mp/MpeIPPG7231.h \
     mp/MpeIPPG729.h \
     mp/MpePtAVT.h \
+    mp/MpeSipxG722.h \
     mp/MpeSipxG726.h \
     mp/MpeSipxGSM.h \
     mp/MpeSipxILBC.h \
+    mp/MpeSipxL16.h \
     mp/MpeSipxPcma.h \
     mp/MpeSipxPcmu.h \
     mp/MpeSipxSpeex.h \
-    mp/MprAudioFrameBuffer.h \
+    mp/MpeSipxSpeexUWb.h \
+    mp/MpeSipxSpeexWb.h \
     mp/MprBridge.h \
-    mp/MprBridgeConstructor.h \
     mp/MprBridgeSetGainsMsg.h \
-    mp/MprBufferRecorder.h \
-    mp/MprBufferRecorderConstructor.h \
     mp/MprDecode.h \
     mp/MprSimpleDtmfDetector.h \
     mp/MprSpanDspDtmfDetector.h \
     mp/MprDejitter.h \
     mp/MprDtmfDetectorBase.h \
-    mp/MprEchoSuppress.h \
     mp/MprEncode.h \
     mp/MprFromFile.h \
-    mp/MprFromFileConstructor.h \
     mp/MprFromMic.h \
     mp/MprFromNet.h \
-    mp/MprFromStream.h \
     mp/MprMixer.h \
     mp/MprNull.h \
-    mp/MprNullAec.h \
-    mp/MprNullAecConstructor.h \
-    mp/MprNullConstructor.h \
     mp/MprRecorder.h \
-    mp/MprRtpInputAudioConnectionConstructor.h \
-    mp/MprRtpOutputAudioConnectionConstructor.h \
     mp/MprRtpStartReceiveMsg.h \
     mp/MprRtpStartSendMsg.h \
     mp/MprSpeexEchoCancel.h \
     mp/MprSpeexPreProcess.h \
     mp/MprSplitter.h \
-    mp/MprSplitterConstructor.h \
     mp/MprToNet.h \
     mp/MprToSpkr.h \
     mp/MprToneGen.h \
-    mp/MprToneGenConstructor.h \
     mp/NetInTask.h \
-    mp/StreamBufferDataSource.h \
-    mp/StreamDataSource.h \
-    mp/StreamDataSourceListener.h \
-    mp/StreamDecoderListener.h \
-    mp/StreamDefs.h \
-    mp/StreamFileDataSource.h \
-    mp/StreamFormatDecoder.h \
-    mp/StreamHttpDataSource.h \
-    mp/StreamQueueMsg.h \
-    mp/StreamQueueingFormatDecoder.h \
-    mp/StreamRAWFormatDecoder.h \
-    mp/StreamWAVFormatDecoder.h \
     mp/dsplib.h \
     mp/dtmflib.h \
     mp/mpau.h \

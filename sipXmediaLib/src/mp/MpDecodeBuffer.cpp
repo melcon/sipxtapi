@@ -11,7 +11,6 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #include "assert.h"
 #include "string.h"
 
@@ -25,17 +24,24 @@ static int debugCount = 0;
 
 /* ============================ CREATORS ================================== */
 
-MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter)
-: m_pMyDejitter(pDejitter)
+MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int samplesPerSec)
+: m_pDejitter(pDejitter)
+, m_samplesPerFrame(samplesPerFrame)
+, m_samplesPerSec(samplesPerSec)
 {
    for (int i=0; i<JbPayloadMapSize; i++)
-      payloadMap[i] = NULL;
+      m_pDecoderMap[i] = NULL;
 
    memset(m_pDecoderList, 0, sizeof(m_pDecoderList));
 
-   JbQCount = 0;
-   JbQIn = 0;
-   JbQOut = 0;
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   memset(m_pResamplerMap, 0, sizeof(m_pResamplerMap));
+   memset(m_resampleSrcBuffer, 0, sizeof(m_resampleSrcBuffer));
+#endif
+
+   m_decodeBufferCount = 0;
+   m_decodeBufferIn = 0;
+   m_decodeBufferOut = 0;
 
    debugCount = 0;
 }
@@ -43,27 +49,29 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter)
 // Destructor
 MpDecodeBuffer::~MpDecodeBuffer()
 {
+   destroyResamplers();
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
+int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
+                               int requiredSamples) // required number of samples, for flowgraph sample rate
 {
-   if (m_pMyDejitter)
+   if (m_pDejitter)
    {
       // first do actions that need to be done regardless of whether we have enough
       // samples
-      m_pMyDejitter->frameIncrement();
+      m_pDejitter->frameIncrement();
 
       // now get more samples if we don't have enough of them
-      if (JbQCount < samplesNumber)
+      if (m_decodeBufferCount < requiredSamples)
       {
          // we don't have enough samples. pull some from jitter buffer
          for (int i = 0; m_pDecoderList[i]; i++)
          {
             // loop through all decoders and pull frames for them
             int payloadType = m_pDecoderList[i]->getPayloadType();
-            MpRtpBufPtr rtp = m_pMyDejitter->pullPacket(payloadType);
+            MpRtpBufPtr rtp = m_pDejitter->pullPacket(payloadType);
 
             while (rtp.isValid())
             {
@@ -71,10 +79,10 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
                // until we have enough samples here or jitter buffer has no more data
                pushPacket(rtp);
 
-               if (JbQCount < samplesNumber)
+               if (m_decodeBufferCount < requiredSamples)
                {
                   // still don't have enough, pull more data
-                  rtp = m_pMyDejitter->pullPacket(payloadType);
+                  rtp = m_pDejitter->pullPacket(payloadType);
                }
                else
                {
@@ -85,45 +93,53 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer, int samplesNumber)
          }  
       }
    }
-      
+
    // Check we have some available decoded data
-   if (JbQCount != 0)
+   if (m_decodeBufferCount != 0)
    {
       // We could not return more then we have
-      samplesNumber = min(samplesNumber, JbQCount);
+      requiredSamples = min(requiredSamples, m_decodeBufferCount);
+      int count1 = min(requiredSamples, g_decodeBufferSize - m_decodeBufferOut); // samples to copy before wrap around occurs
+      int count2 = requiredSamples - count1; // number of samples to copy after wrap around
+      memcpy(samplesBuffer, m_decodeBuffer + m_decodeBufferOut, count1 * sizeof(MpAudioSample));
+      if (count2 > 0)
+      {
+         // handle wrap around, and copy the rest from the beginning of decode buffer
+         memcpy(samplesBuffer + count1, m_decodeBuffer, count2 * sizeof(MpAudioSample));
+      }
 
-      memcpy(samplesBuffer, JbQ + JbQOut, samplesNumber * sizeof(MpAudioSample));
+      m_decodeBufferCount -= requiredSamples;
+      m_decodeBufferOut += requiredSamples;
 
-      JbQCount -= samplesNumber;
-      JbQOut += samplesNumber;
-
-      if (JbQOut >= JbQueueSize)
-         JbQOut -= JbQueueSize;
+      if (m_decodeBufferOut >= g_decodeBufferSize)
+         m_decodeBufferOut -= g_decodeBufferSize;
    }
 
-   return samplesNumber;
+   return requiredSamples;
 }
 
 
-int MpDecodeBuffer::setCodecList(MpDecoderBase** codecList, int codecCount)
+int MpDecodeBuffer::setCodecList(MpDecoderBase** decoderList, int decoderCount)
 {
    memset(m_pDecoderList, 0, sizeof(m_pDecoderList));
 
    // For every payload type, load in a codec pointer, or a NULL if it isn't there
-	for(int i = 0; (i < codecCount) && (i < JbPayloadMapSize); i++)
+	for(int i = 0; (i < decoderCount) && (i < JbPayloadMapSize); i++)
    {
-		int payloadType = codecList[i]->getPayloadType();
-   	payloadMap[payloadType] = codecList[i];
-      m_pDecoderList[i] = codecList[i];
+		int payloadType = decoderList[i]->getPayloadType();
+   	m_pDecoderMap[payloadType] = decoderList[i];
+      m_pDecoderList[i] = decoderList[i];
 	}
+
+   setupResamplers(decoderList, decoderCount);
 
    return 0;
 }
 
 int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
 {
-   int bufferSize;          // number of samples could be written to decoded buffer
-   unsigned decodedSamples; // number of samples, returned from decoder
+   unsigned int availableBufferSize;          // number of samples could be written to decoded buffer
+   unsigned decodedSamples = 0; // number of samples, returned from decoder
    uint8_t payloadType;     // RTP packet payload type
    MpDecoderBase* decoder;  // decoder for the packet
 
@@ -134,31 +150,114 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket)
       return 0;
 
    // Get decoder
-   decoder = payloadMap[payloadType];
+   decoder = m_pDecoderMap[payloadType];
    if (decoder == NULL)
       return 0; // If we can't decode it, we must ignore it?
 
    // Calculate space available for decoded samples
-   if (JbQIn > JbQOut || JbQCount == 0)
+   if (m_decodeBufferIn > m_decodeBufferOut || m_decodeBufferCount == 0)
    {
-      bufferSize = JbQueueSize-JbQIn;
-   } else {
-      bufferSize = JbQOut-JbQIn;
+      availableBufferSize = g_decodeBufferSize-m_decodeBufferIn;
    }
-   // Decode packet
-   decodedSamples = decoder->decode(rtpPacket, bufferSize, JbQ+JbQIn);
-   // TODO:: If packet jitter buffer size is not integer multiple of decoded size,
-   //        then part of the packet will be lost here. We should consider one of
-   //        two ways: set JB size on creation depending on packet size, reported 
-   //        by codec, OR push packet into decoder and then pull decoded data in
-   //        chunks.
+   else
+   {
+      availableBufferSize = m_decodeBufferOut-m_decodeBufferIn;
+   }
+
+   // decode samples from decoder, and copy them into decode buffer
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   if (decoder->getInfo()->getCodecType() != SdpCodec::SDP_CODEC_TONES &&
+      decoder->getInfo()->getSamplingRate() != m_samplesPerSec)
+   {
+      // need to resample
+      SpeexResamplerState* pResamplerState = m_pResamplerMap[payloadType];
+      if (pResamplerState)
+      {
+         unsigned int resampleSrcCount = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_resampleSrcBuffer);
+         if (resampleSrcCount > 0)
+         {
+            unsigned int availableHelperBufferSize = g_decodeHelperBufferSize;
+            int err = speex_resampler_process_int(pResamplerState, 0,
+               m_resampleSrcBuffer, &resampleSrcCount,
+               m_decodeHelperBuffer, &availableHelperBufferSize);
+            assert(!err);
+            decodedSamples = availableHelperBufferSize; // speex overwrites availableHelperBufferSize with number of output samples
+         }
+      }
+      else
+      {
+         // we can't resample, and can't decode
+         assert(false);
+      }
+   }
+   else
+   {
+      // no need to resample
+      decodedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_decodeHelperBuffer);
+   }
+#else
+   // no need to resample
+   decodedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, m_decodeHelperBuffer);
+#endif
+   int addedSamples = 0;
+   // now we have decoded & resampled samples in m_decodeHelperBuffer, with decodedSamples count
+   // copy them into main buffer
+   if (decodedSamples > 0)
+   {
+      // count1 is number of samples to copy before wrapping occurs
+      int count1 = min(decodedSamples, availableBufferSize);
+      // count 2 is number of samples to copy after wrapping
+      int count2 = decodedSamples - count1;
+      memcpy(m_decodeBuffer + m_decodeBufferIn, m_decodeHelperBuffer, count1 * sizeof(MpAudioSample));
+      addedSamples += count1;
+      if (count2 > 0)
+      {
+         count2 = min(count2, m_decodeBufferOut); // reduce count2 by available space since start of array
+         memcpy(m_decodeBuffer, m_decodeHelperBuffer + count1, count2 * sizeof(MpAudioSample)); // copy to beginning of buffer
+         addedSamples += count2;
+      }
+   }
 
    // Update buffer state
-   JbQCount += decodedSamples;
-   JbQIn += decodedSamples;
+   m_decodeBufferCount += addedSamples;
+   m_decodeBufferIn += addedSamples;
    // Reset write pointer if we reach end of buffer
-   if (JbQIn >= JbQueueSize)
-      JbQIn = 0;
+   if (m_decodeBufferIn >= g_decodeBufferSize)
+      m_decodeBufferIn -= g_decodeBufferSize;
 
    return 0;
+}
+
+void MpDecodeBuffer::destroyResamplers()
+{
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   for (int i = 0; i < JbPayloadMapSize; i++)
+   {
+      if (m_pResamplerMap[i])
+      {
+         speex_resampler_destroy(m_pResamplerMap[i]);
+         m_pResamplerMap[i] = NULL;
+      }      
+   }
+#endif
+}
+
+void MpDecodeBuffer::setupResamplers(MpDecoderBase** decoderList, int decoderCount)
+{
+#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+   destroyResamplers();
+
+   for(int i = 0; (i < decoderCount) && (i < JbPayloadMapSize); i++)
+   {
+      int payloadType = decoderList[i]->getPayloadType();
+      if (!m_pResamplerMap[payloadType])
+      {
+         int error;
+         m_pResamplerMap[payloadType] = speex_resampler_init(1,
+            decoderList[i]->getInfo()->getSamplingRate(), // resample from codec sample rate
+            m_samplesPerSec, // into flowgraph sample rate
+            SPEEX_RESAMPLER_QUALITY_VOIP, &error);
+      }
+   }
+#endif
 }

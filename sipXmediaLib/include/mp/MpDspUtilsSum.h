@@ -32,8 +32,20 @@ void MpDspUtils::add_I(int16_t &a, int16_t b)
    a = add(a, b);
 }
 
+void MpDspUtils::addMul_I(int32_t &a, int16_t b, int16_t c)
+{
+   a = add(a, b*c);
+}
+
 int32_t MpDspUtils::add(int32_t a, int32_t b)
 {
+#ifdef ARMv5E_ASM
+   int32_t tmp;
+   __asm__ __volatile__ ("qadd  %0,%1,%2;\n"
+            : "=&r"(tmp)
+            : "r"(a),"r"(b));
+   return tmp;
+#else
    int32_t c;
    c = a + b;
 
@@ -53,6 +65,7 @@ int32_t MpDspUtils::add(int32_t a, int32_t b)
       c = INT32_MIN+1;
    }
    return c;
+#endif
 }
 
 void MpDspUtils::add_I(int32_t &a, int32_t b)
@@ -72,6 +85,43 @@ void MpDspUtils::add_I(float &a, float b)
    a = add(a, b);
 }
 
+void MpDspUtils::addMul_I(float &a, float b, float c)
+{
+   a = add(a, b*c);
+}
+
 #endif // MP_FIXED_POINT ]
+
+int16_t MpDspUtils::abs(int16_t a)
+{
+   return (a < 0) ? 
+      ((a == INT16_MIN) ? INT16_MAX : -a) : a;
+}
+
+int16_t MpDspUtils::minimum(int16_t a, int16_t b)
+{
+   return (a < b) ? a : b;
+}
+
+int16_t MpDspUtils::maximum(int16_t a, int16_t b)
+{
+   return (a > b) ? a : b;
+}
+
+int32_t MpDspUtils::abs(int32_t a)
+{
+   return (a < 0) ? 
+      ((a == INT32_MIN) ? INT32_MAX : -a) : a;
+}
+
+int32_t MpDspUtils::minimum(int32_t a, int32_t b)
+{
+   return (a < b) ? a : b;
+}
+
+int32_t MpDspUtils::maximum(int32_t a, int32_t b)
+{
+   return (a > b) ? a : b;
+}
 
 #endif  // _MpDspUtilsSum_h_

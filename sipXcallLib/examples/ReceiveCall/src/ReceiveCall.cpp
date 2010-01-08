@@ -29,7 +29,6 @@ DWORD WINAPI ConsoleStart(LPVOID lpParameter);
 #include "tapi/sipXtapiEvents.h"
 #include "ExternalTransport.h"
 
-#define SAMPLES_PER_FRAME   80          // Number of samples per frame time
 #define LOOPBACK_LENGTH     200         // Frames for loopback delay (10ms per frame)
 
 #define portIsValid(p) ((p) >= 1 && (p) <= 65535)
