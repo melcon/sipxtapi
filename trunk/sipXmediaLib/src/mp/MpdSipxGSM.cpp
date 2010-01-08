@@ -5,6 +5,8 @@
 // Copyright (C) 2006-2007 SIPfoundry Inc. 
 // Licensed by SIPfoundry under the LGPL license. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -44,6 +46,7 @@ MpdSipxGSM::MpdSipxGSM(int payloadType)
 
 MpdSipxGSM::~MpdSipxGSM()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxGSM::initDecode()
@@ -77,7 +80,7 @@ int MpdSipxGSM::decode(const MpRtpBufPtr &pPacket,
    unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
    // do not accept frames longer than 20ms from RTP to protect against buffer overflow
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }

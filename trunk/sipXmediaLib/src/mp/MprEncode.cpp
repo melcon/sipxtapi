@@ -433,7 +433,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
    int payloadBytesLeft;
    unsigned char* pDest;
    int bytesAdded; //$$$
-   MpSpeechType content;
+   MpSpeechType speechType;
    OsStatus ret;
    UtlBoolean isPacketReady = FALSE;
 
@@ -442,9 +442,6 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
 
    if (!in.isValid())
       return;
-
-   // Initialize variables
-   content = MP_SPEECH_UNKNOWN;
 
 #if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    unsigned int inSpeexSamplesCount = in->getSamplesNumber();
@@ -478,7 +475,8 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
          mActiveAudio1 = mDoesVad1 || mDisableDTX;
       }
 
-      mActiveAudio1 = mActiveAudio1 || isActiveAudio(in->getSpeechType());
+      speechType = in->getSpeechType();
+      mActiveAudio1 = mActiveAudio1 || isActiveAudio(speechType);
 
       payloadBytesLeft = mPacket1PayloadBytes - mPayloadBytesUsed;
 
@@ -487,7 +485,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
       bytesAdded = 0;
       ret = mpPrimaryCodec->encode(pSamplesIn, numSamplesIn, numSamplesOut,
                                    pDest, payloadBytesLeft, bytesAdded,
-                                   isPacketReady, content);
+                                   isPacketReady, speechType);
       mPayloadBytesUsed += bytesAdded;
       assert (mPacket1PayloadBytes >= mPayloadBytesUsed);
 
@@ -499,7 +497,7 @@ void MprEncode::doPrimaryCodec(MpAudioBufPtr in, unsigned int startTs)
       numSamplesIn -= numSamplesOut;
       startTs += numSamplesOut;
 
-      if (content == MP_SPEECH_ACTIVE)
+      if (speechType == MP_SPEECH_ACTIVE)
       {
          mActiveAudio1 = TRUE;
       }

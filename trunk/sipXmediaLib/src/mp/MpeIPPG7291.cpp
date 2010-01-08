@@ -18,7 +18,7 @@
 #include "assert.h"
 // APPLICATION INCLUDES
 #include "winsock2.h"
-#include "mp/MpeIPPGAmr.h"
+#include "mp/MpeIPPG7291.h"
 
 extern "C" {
 #include "ippcore.h"
@@ -26,64 +26,39 @@ extern "C" {
 #include "usccodec.h"
 }
 
-MpeIPPGAmr::MpeIPPGAmr(int payloadType, int bitRate, UtlBoolean bOctetAligned)
+MpeIPPG7291::MpeIPPG7291(int payloadType, int bitRate)
 : MpEncoderBase(payloadType, getCodecInfo())
-, m_bitrate(bitRate)
-, m_bOctetAligned(bOctetAligned)
+, m_bitRate(bitRate)
 , m_storedFramesCount(0)
-, m_amrPacketizer(NULL)
 , m_pInputBuffer(NULL)
 , m_pOutputBuffer(NULL)
 {
    m_pCodec = (LoadedCodec*)malloc(sizeof(LoadedCodec));
    memset(m_pCodec, 0, sizeof(LoadedCodec));
-   m_amrPacketizer = new UMC::AMRPacketizer();
-
-   UMC::AMRPacketizerParams params;
-   params.m_CodecType = UMC::NB;
-   params.m_InterleavingFlag = 0;
-   params.m_ptType = bOctetAligned ? UMC::OctetAlign : UMC::BandEfficient;
-   UMC::Status result = m_amrPacketizer->Init(&params);
-   assert(result == USC_NoError);
-
-   UMC::AMRControlParams controlParams; // use default values
-   result = m_amrPacketizer->SetControls(&controlParams);
-   assert(result == USC_NoError);
-
-   m_pMediaData = new UMC::SpeechData();
-   m_pAmrData = new UMC::SpeechData();
 }
 
-MpeIPPGAmr::~MpeIPPGAmr()
+MpeIPPG7291::~MpeIPPG7291()
 {
    freeEncode();
    free(m_pCodec);
-   delete m_amrPacketizer;
-   m_amrPacketizer = NULL;
-   m_pMediaData->Reset();
-   delete m_pMediaData;
-   m_pMediaData = NULL;
-   m_pAmrData->Reset();
-   delete m_pAmrData;
-   m_pAmrData = NULL;
 }
 
-OsStatus MpeIPPGAmr::initEncode(void)
+OsStatus MpeIPPG7291::initEncode(void)
 {
    int lCallResult;
 
    ippStaticInit();
-   strcpy((char*)m_pCodec->codecName, "IPP_GSMAMR");
-   m_pCodec->lIsVad = 1;
+   strcpy((char*)m_pCodec->codecName, "IPP_G729.1");
+   m_pCodec->lIsVad = 0; // built in VAD is not yet supported by Intel IPP
 
-   // Load codec by name from command line
+   // Load m_pCodec by name from command line
    lCallResult = LoadUSCCodecByName(m_pCodec, NULL);
    if (lCallResult < 0)
    {
       return OS_FAILED;
    }
 
-   // Get USC codec params
+   // Get USC m_pCodec params
    lCallResult = USCCodecAllocInfo(&m_pCodec->uscParams, NULL);
    if (lCallResult < 0)
    {
@@ -118,10 +93,10 @@ OsStatus MpeIPPGAmr::initEncode(void)
    // instead of SetUSCEncoderParams(...)
    m_pCodec->uscParams.pInfo->params.direction = USC_ENCODE;
    m_pCodec->uscParams.pInfo->params.law = 0;
-   m_pCodec->uscParams.pInfo->params.modes.bitrate = m_bitrate;
-   m_pCodec->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
+   m_pCodec->uscParams.pInfo->params.modes.bitrate = m_bitRate;
+   m_pCodec->uscParams.pInfo->params.modes.vad = 0; // built in VAD is not yet supported by Intel IPP
 
-   // Alloc memory for the codec
+   // Alloc memory for the m_pCodec
    lCallResult = USCCodecAlloc(&m_pCodec->uscParams, NULL);
    if (lCallResult < 0)
    {
@@ -137,17 +112,17 @@ OsStatus MpeIPPGAmr::initEncode(void)
 
    // Allocate memory for the output buffer. Size of output buffer is equal
    // to the size of 1 frame
-   m_pInputBuffer = (Ipp8s *)ippsMalloc_8s(m_pCodec->uscParams.pInfo->params.framesize);
-   m_pOutputBuffer = (Ipp8u *)ippsMalloc_8u(m_pCodec->uscParams.pInfo->maxbitsize);
+   m_pInputBuffer = (Ipp8s*)ippsMalloc_8s(m_pCodec->uscParams.pInfo->params.framesize);
+   m_pOutputBuffer = (Ipp8u*)ippsMalloc_8u(m_pCodec->uscParams.pInfo->maxbitsize);
 
    m_storedFramesCount = 0;
 
    return OS_SUCCESS;
 }
 
-OsStatus MpeIPPGAmr::freeEncode(void)
+OsStatus MpeIPPG7291::freeEncode(void)
 {
-   // Free codec memory
+   // Free m_pCodec memory
    USCFree(&m_pCodec->uscParams);
    if (m_pInputBuffer)
    {
@@ -164,7 +139,7 @@ OsStatus MpeIPPGAmr::freeEncode(void)
 }
 
 
-OsStatus MpeIPPGAmr::encode(const short* pAudioSamples,
+OsStatus MpeIPPG7291::encode(const short* pAudioSamples,
                             const int numSamples,
                             int& rSamplesConsumed,
                             unsigned char* pCodeBuf,
@@ -173,22 +148,31 @@ OsStatus MpeIPPGAmr::encode(const short* pAudioSamples,
                             UtlBoolean& sendNow,
                             MpSpeechType& speechType)
 {
-   assert(numSamples == 80);
+   assert(numSamples == 160);
+
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
 
    if (m_storedFramesCount == 1)
    {
-      ippsSet_8u(0, (Ipp8u *)m_pOutputBuffer, m_pCodec->uscParams.pInfo->maxbitsize);
-      ippsCopy_8u((unsigned char *)pAudioSamples, 
-                  (unsigned char *)m_pInputBuffer+m_storedFramesCount*160,
-                  numSamples * sizeof(MpAudioSample));
+      ippsSet_8u(0, (Ipp8u*)m_pOutputBuffer, m_pCodec->uscParams.pInfo->maxbitsize);
+      ippsCopy_8u((unsigned char *)pAudioSamples,
+                  (unsigned char *)m_pInputBuffer + m_storedFramesCount*320,
+                  numSamples*sizeof(MpAudioSample));
 
-      int infrmLen, FrmDataLen;
+      int frmlen, infrmLen, FrmDataLen;
       USC_PCMStream PCMStream;
       USC_Bitstream Bitstream;
 
       // Do the pre-procession of the frame
       infrmLen = USCEncoderPreProcessFrame(&m_pCodec->uscParams , m_pInputBuffer,
-                 (Ipp8s *)m_pOutputBuffer, &PCMStream, &Bitstream);
+                 (Ipp8s*)m_pOutputBuffer, &PCMStream, &Bitstream);
       // Encode one frame
       FrmDataLen = USCCodecEncode(&m_pCodec->uscParams, &PCMStream, &Bitstream, 0);
       if(FrmDataLen < 0)
@@ -198,59 +182,124 @@ OsStatus MpeIPPGAmr::encode(const short* pAudioSamples,
 
       infrmLen += FrmDataLen;
       // Do the post-procession of the frame
-      USCEncoderPostProcessFrame(&m_pCodec->uscParams, m_pInputBuffer,
-               (Ipp8s *)m_pOutputBuffer, &PCMStream, &Bitstream);
+      frmlen = USCEncoderPostProcessFrame(&m_pCodec->uscParams, m_pInputBuffer,
+               (Ipp8s*)m_pOutputBuffer, &PCMStream, &Bitstream);
 
-      ippsSet_8u(0, pCodeBuf, Bitstream.nbytes);
+      ippsSet_8u(0, pCodeBuf, m_pCodec->uscParams.pInfo->maxbitsize);
 
-      // store encoded frames in AMR format. Frames cannot go directly into RTP payload
-      UMC::Status result;
-      m_pMediaData->Reset();
-      result = m_pMediaData->SetBufferPointer(m_pOutputBuffer + 6, Bitstream.nbytes);
-      m_pMediaData->SetDataSize(Bitstream.nbytes);
-      m_pMediaData->SetFrameType(Bitstream.frametype);
-      m_pMediaData->SetBitrate(Bitstream.bitrate);
-      m_pMediaData->SetNBytes(Bitstream.nbytes);
-      result = m_amrPacketizer->AddFrame(m_pMediaData);
-      m_pAmrData->Reset();
-      result = m_pAmrData->SetBufferPointer(pCodeBuf, bytesLeft);
-      result = m_amrPacketizer->GetPacket(m_pAmrData);// creates data in amr format in pCodeBuf
-      assert(result == USC_NoError);
-      rSizeInBytes = m_pAmrData->GetDataSize();
+      if (Bitstream.nbytes > 0)
+      {
+         // construct G.729.1 header
+         pCodeBuf[0] = 0xF0 | getFTField(Bitstream.nbytes);
+         // copy the rest
+         for(int k = 0; k < Bitstream.nbytes; ++k)
+         {
+            pCodeBuf[k + 1] = m_pOutputBuffer[6 + k];
+         }
+         sendNow = TRUE;
+      }
+      else
+      {
+         sendNow = FALSE;
+         frmlen = 0;
+      }
 
-      sendNow = TRUE;
+      rSamplesConsumed = numSamples;
       m_storedFramesCount = 0;
+
+      if (Bitstream.nbytes >= 0)
+      {
+         rSizeInBytes = Bitstream.nbytes + 1;
+      }
+      else
+      {
+         rSizeInBytes = 0;
+      }
    }
    else
    {
       ippsCopy_8u((unsigned char *)pAudioSamples,
-         (unsigned char *)m_pInputBuffer+m_storedFramesCount*160,
-         numSamples * sizeof(MpAudioSample));
+         (unsigned char *)m_pInputBuffer+m_storedFramesCount*320,
+         numSamples * sizeof(MpAudioSample));  
 
       m_storedFramesCount++;
+
       sendNow = FALSE;
       rSizeInBytes = 0;
+      rSamplesConsumed = numSamples;
    }
-
-   rSamplesConsumed = numSamples;
 
    return OS_SUCCESS;
 }
 
-const MpCodecInfo* MpeIPPGAmr::getCodecInfo()
+const MpCodecInfo* MpeIPPG7291::getCodecInfo()
 {
-   return &ms_codecInfo;
+   return &smCodecInfo;
 }
 
-const MpCodecInfo MpeIPPGAmr::ms_codecInfo(
-   SdpCodec::SDP_CODEC_AMR_10200,    // codecType
+char MpeIPPG7291::getFTField(int octets) const
+{
+   char ftField = 15;
+
+   switch (octets)
+   {
+   case 20:
+      ftField = 0;
+      break;
+   case 30:
+      ftField = 1;
+      break;
+   case 35:
+      ftField = 2;
+      break;
+   case 40:
+      ftField = 3;
+      break;
+   case 45:
+      ftField = 4;
+      break;
+   case 50:
+      ftField = 5;
+      break;
+   case 55:
+      ftField = 6;
+      break;
+   case 60:
+      ftField = 7;
+      break;
+   case 65:
+      ftField = 8;
+      break;
+   case 70:
+      ftField = 9;
+      break;
+   case 75:
+      ftField = 10;
+      break;
+   case 80:
+      ftField = 11;
+      break;
+   case 2: // SID
+   case 3:
+   case 6:
+      ftField = 14;
+      break;
+   default:
+      ;
+   }
+
+   return ftField;
+}
+
+const MpCodecInfo MpeIPPG7291::smCodecInfo(
+   SdpCodec::SDP_CODEC_G7291_32000,    // codecType
    "Intel IPP 6.0",             // codecVersion
-   8000,                        // samplingRate
+   16000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
    1,                           // numChannels
-   10200,                        // bitRate
-   26*8,                        // minPacketBits
-   26*8,                        // maxPacketBits
-   160);                        // numSamplesPerFrame - 20ms frame
+   32000,                        // bitRate
+   80*8,                        // minPacketBits
+   80*8,                        // maxPacketBits
+   320);                        // numSamplesPerFrame - 20ms frame
 
 #endif // HAVE_INTEL_IPP ]

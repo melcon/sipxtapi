@@ -8,6 +8,8 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -132,7 +134,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    codec6300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec6300->uscParams.pInfo->params.law = 0;
    codec6300->uscParams.pInfo->params.modes.bitrate = 6300;
-   codec6300->uscParams.pInfo->params.modes.vad = 1;
+   codec6300->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Set params for encode
    lCallResult = SetUSCEncoderPCMType(&codec5300->uscParams, LINEAR_PCM, &streamType, NULL);
@@ -145,7 +147,7 @@ OsStatus MpeIPPG7231::initEncode(void)
    codec5300->uscParams.pInfo->params.direction = USC_ENCODE;
    codec5300->uscParams.pInfo->params.law = 0;
    codec5300->uscParams.pInfo->params.modes.bitrate = 5300;
-   codec5300->uscParams.pInfo->params.modes.vad = 1;
+   codec5300->uscParams.pInfo->params.modes.vad = ms_bEnableVAD ? 1 : 0;
 
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec6300->uscParams, NULL);
@@ -193,10 +195,12 @@ OsStatus MpeIPPG7231::freeEncode(void)
    if (m_pInputBuffer)
    {
       ippsFree(m_pInputBuffer);
+      m_pInputBuffer = NULL;
    }
    if (m_pOutputBuffer)
    {
       ippsFree(m_pOutputBuffer);
+      m_pOutputBuffer = NULL;
    }
 
    return OS_SUCCESS;
@@ -210,7 +214,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(80 == numSamples);
 
@@ -268,7 +272,6 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
          frmlen =0;
       }
 
-      rAudioCategory = MP_SPEECH_UNKNOWN;
       rSamplesConsumed = numSamples;
       mStoredFramesCount = 0;
 
@@ -295,7 +298,6 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       sendNow = FALSE;
       rSizeInBytes = 0;
       rSamplesConsumed = numSamples;
-      rAudioCategory = MP_SPEECH_UNKNOWN;
    }
 
    return OS_SUCCESS;

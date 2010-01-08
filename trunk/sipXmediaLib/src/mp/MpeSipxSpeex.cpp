@@ -71,8 +71,8 @@ MpeSipxSpeex::MpeSipxSpeex(int payloadType, int mode)
       mMode = 3;  // 8,000 bps
    }
 
-   mDoVad = 1; // Voice activity detection enabled
-   mDoDtx = 1; // Discontinuous transmission
+//   mDoVad = 1; // Voice activity detection enabled
+//   mDoDtx = 1; // Discontinuous transmission
 //   mDoVbr = 1; // VBR (not used at the moment)
    
 }
@@ -97,22 +97,22 @@ OsStatus MpeSipxSpeex::initEncode(void)
 
    if(mDoPreprocess)
    {
-      mpPreprocessState = speex_preprocess_state_init(160, mSampleRate);
-      speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_DENOISE,
-                          &mDoDenoise);
+      mpPreprocessState = speex_preprocess_state_init(getInfo()->getNumSamplesPerFrame(), mSampleRate);
+      speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_DENOISE, &mDoDenoise);
       speex_preprocess_ctl(mpPreprocessState, SPEEX_PREPROCESS_SET_AGC, &mDoAgc);
-   }
-
-   
+   }   
 
    return OS_SUCCESS;
 }
 
 OsStatus MpeSipxSpeex::freeEncode(void)
 {
-   speex_bits_destroy(&mBits);
-   speex_encoder_destroy(mpEncoderState);
-   mpEncoderState = NULL;
+   if (mpEncoderState)
+   {
+      speex_encoder_destroy(mpEncoderState);
+      mpEncoderState = NULL;
+      speex_bits_destroy(&mBits);
+   }
 
    return OS_SUCCESS;
 }
@@ -126,10 +126,19 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
                               const int bytesLeft,
                               int& rSizeInBytes,
                               UtlBoolean& sendNow,
-                              MpSpeechType& rAudioCategory)
+                              MpSpeechType& speechType)
 {
-   int size = 0;   
-   
+   int size = 0;
+
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && mBufferLoad == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad+numSamples;
    assert(mBufferLoad <= 160);
@@ -142,7 +151,10 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
       // We don't have echo data, but it should be possible to use the
       // Speex echo cancelator in sipxtapi.
       if(mDoPreprocess)
+      {
          speex_preprocess(mpPreprocessState, mpBuffer, NULL);
+      }
+
       speex_encode_int(mpEncoderState, mpBuffer, &mBits);
 
       // Copy to the byte buffer
@@ -157,10 +169,9 @@ OsStatus MpeSipxSpeex::encode(const MpAudioSample* pAudioSamples,
    }
    else
    {
-      sendNow = false;
+      sendNow = FALSE;
    }
 
-   rAudioCategory = MP_SPEECH_UNKNOWN;
    rSamplesConsumed = numSamples;
    rSizeInBytes = size;
    

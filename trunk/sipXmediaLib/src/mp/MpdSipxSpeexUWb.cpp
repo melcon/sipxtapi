@@ -8,6 +8,8 @@
 // Copyright (C) 2006 Hector Izquierdo Seliva. 
 // Licensed to SIPfoundry under a Contributor Agreement. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -40,6 +42,7 @@ MpdSipxSpeexUWb::MpdSipxSpeexUWb(int payloadType)
 
 MpdSipxSpeexUWb::~MpdSipxSpeexUWb()
 {
+   freeDecode();
 }
 
 OsStatus MpdSipxSpeexUWb::initDecode()
@@ -67,7 +70,8 @@ OsStatus MpdSipxSpeexUWb::initDecode()
 
 OsStatus MpdSipxSpeexUWb::freeDecode(void)
 {
-   if (mpDecoderState != NULL) {
+   if (mpDecoderState)
+   {
       speex_decoder_destroy(mpDecoderState);
       mpDecoderState = NULL;
 
@@ -89,7 +93,7 @@ int MpdSipxSpeexUWb::decode(const MpRtpBufPtr &pPacket,
    unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
 
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }

@@ -13,8 +13,8 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _MpdIPPG7221_h_  /* [ */
-#define _MpdIPPG7221_h_
+#ifndef _MpdIPPG7291_h_  /* [ */
+#define _MpdIPPG7291_h_
 
 #ifdef HAVE_INTEL_IPP // [
 
@@ -36,23 +36,21 @@ extern "C" {
 // STRUCTS
 // TYPEDEFS
 
-/**
- * Derived class for Intel IPP G.722.1 decoder.
- */
-class MpdIPPG7221: public MpDecoderBase
+/// Derived class for Intel IPP G.729.1 decoder.
+class MpdIPPG7291: public MpDecoderBase
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
 
 /* ============================ CREATORS ================================== */
      /// Constructor
-   MpdIPPG7221(int payloadType, int bitrate);
+   MpdIPPG7291(int payloadType);
      /**<
      *  @param payloadType - (in) RTP payload type associated with this decoder
      */
 
      /// Destructor
-   virtual ~MpdIPPG7221(void);
+   virtual ~MpdIPPG7291(void);
 
      /// Initializes a codec data structure for use as a decoder
    virtual OsStatus initDecode();
@@ -87,18 +85,16 @@ public:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   static const MpCodecInfo ms_codecInfo16000;  ///< static information about the codec 16000
-   static const MpCodecInfo ms_codecInfo24000;  ///< static information about the codec 24000
-   static const MpCodecInfo ms_codecInfo32000;  ///< static information about the codec 32000
+   static const MpCodecInfo smCodecInfo;  ///< static information about the codec
 
-   static const MpCodecInfo* getCodecInfo(int bitrate);
+   static const MpCodecInfo* getCodecInfo();
 
    /**
-    * Configures USC_PCMStream.
+    * Configures USC_PCMStream for given count of payload bytes.
     */
-   void configureBitStream();
+   void configureBitStream(int rtpPayloadBytes, char* bitstream);
 
-   LoadedCodec *m_pCodec; ///< Loaded codec info. Decodes 12800 and 16000. 9600 does not work.
+   LoadedCodec *codec; ///< Loaded codec info
 
    USC_PCMStream PCMStream;    ///< Destination data structure
    USC_Bitstream Bitstream;    ///< Source data structure

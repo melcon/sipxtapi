@@ -8,6 +8,8 @@
 // Copyright (C) 2006 Hector Izquierdo Seliva. 
 // Licensed to SIPfoundry under a Contributor Agreement. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -107,9 +109,12 @@ OsStatus MpeSipxSpeexWb::initEncode(void)
 
 OsStatus MpeSipxSpeexWb::freeEncode(void)
 {
-   speex_bits_destroy(&mBits);
-   speex_encoder_destroy(mpEncoderState);
-   mpEncoderState = NULL;
+   if (mpEncoderState)
+   {
+      speex_encoder_destroy(mpEncoderState);
+      mpEncoderState = NULL;
+      speex_bits_destroy(&mBits);
+   }
 
    return OS_SUCCESS;
 }
@@ -121,9 +126,18 @@ OsStatus MpeSipxSpeexWb::encode(const MpAudioSample* pAudioSamples,
                               const int bytesLeft,
                               int& rSizeInBytes,
                               UtlBoolean& sendNow,
-                              MpSpeechType& rAudioCategory)
+                              MpSpeechType& speechType)
 {
    int size = 0;
+
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && mBufferLoad == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
 
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad = mBufferLoad + numSamples;
@@ -156,7 +170,6 @@ OsStatus MpeSipxSpeexWb::encode(const MpAudioSample* pAudioSamples,
       sendNow = false;
    }
 
-   rAudioCategory = MP_SPEECH_UNKNOWN;
    rSamplesConsumed = numSamples;
    rSizeInBytes = size;
    

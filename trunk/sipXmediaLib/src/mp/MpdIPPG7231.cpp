@@ -8,6 +8,8 @@
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -198,7 +200,7 @@ int MpdIPPG7231::decode(const MpRtpBufPtr &rtpPacket,
    unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
 
    assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize)
+   if (payloadSize > maxPayloadSize || payloadSize <= 1)
    {
       return 0;
    }

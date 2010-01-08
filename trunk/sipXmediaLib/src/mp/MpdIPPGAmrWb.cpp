@@ -24,7 +24,7 @@
 #endif // WIN32 ]
 
 // APPLICATION INCLUDES
-#include "mp/MpdIPPGAmr.h"
+#include "mp/MpdIPPGAmrWb.h"
 
 extern "C" {
 #include "ippcore.h"
@@ -32,7 +32,7 @@ extern "C" {
 #include "usccodec.h"
 }
 
-MpdIPPGAmr::MpdIPPGAmr(int payloadType, int bitRate, UtlBoolean bOctetAligned)
+MpdIPPGAmrWb::MpdIPPGAmrWb(int payloadType, int bitRate, UtlBoolean bOctetAligned)
 : MpDecoderBase(payloadType, getCodecInfo())
 , m_bitrate(bitRate)
 , m_pInputBuffer(NULL)
@@ -47,7 +47,7 @@ MpdIPPGAmr::MpdIPPGAmr(int payloadType, int bitRate, UtlBoolean bOctetAligned)
    m_amrDepacketizer = new UMC::AMRDePacketizer();
 
    UMC::AMRDePacketizerParams params;
-   params.m_CodecType = UMC::NB;
+   params.m_CodecType = UMC::WB;
    params.m_InterleavingFlag = 0;
    params.m_ptType = bOctetAligned ? UMC::OctetAlign : UMC::BandEfficient;
    UMC::Status result = m_amrDepacketizer->Init(&params);
@@ -57,7 +57,7 @@ MpdIPPGAmr::MpdIPPGAmr(int payloadType, int bitRate, UtlBoolean bOctetAligned)
    m_pAmrData = new UMC::SpeechData();
 }
 
-MpdIPPGAmr::~MpdIPPGAmr()
+MpdIPPGAmrWb::~MpdIPPGAmrWb()
 {
    freeDecode();
    free(codec);
@@ -71,13 +71,13 @@ MpdIPPGAmr::~MpdIPPGAmr()
    m_pAmrData = NULL;
 }
 
-OsStatus MpdIPPGAmr::initDecode()
+OsStatus MpdIPPGAmrWb::initDecode()
 {
    int lCallResult;
 
    ippStaticInit();
    codec->lIsVad = 1;
-   strcpy((char*)codec->codecName, "IPP_GSMAMR");
+   strcpy((char*)codec->codecName, "IPP_AMRWB");
 
    // Load codec by name
    lCallResult = LoadUSCCodecByName(codec, NULL);
@@ -143,7 +143,7 @@ OsStatus MpdIPPGAmr::initDecode()
    return OS_SUCCESS;
 }
 
-OsStatus MpdIPPGAmr::freeDecode(void)
+OsStatus MpdIPPGAmrWb::freeDecode(void)
 {
    // Free codec memory
    USCFree(&codec->uscParams);
@@ -156,7 +156,7 @@ OsStatus MpdIPPGAmr::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdIPPGAmr::decode(const MpRtpBufPtr &rtpPacket,
+int MpdIPPGAmrWb::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned decodedBufferLength,
                        MpAudioSample *samplesBuffer,
                        UtlBoolean bIsPLCFrame) 
@@ -205,9 +205,8 @@ int MpdIPPGAmr::decode(const MpRtpBufPtr &rtpPacket,
       // Setup input and output pointers
       Bitstream.pBuffer = (char*)m_pMediaData->GetDataPointer();
       PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
-      // zero the buffer in case we decode less than 320 bytes
-      // as it happens sometimes
-      memset(PCMStream.pBuffer, 0, 320);
+      // zero the buffer in case we decode less than 640 bytes
+      memset(PCMStream.pBuffer, 0, 640);
 
       // Decode one frame
       USC_Status uscStatus = codec->uscParams.USC_Fns->Decode(codec->uscParams.uCodec.hUSCCodec,
@@ -221,20 +220,20 @@ int MpdIPPGAmr::decode(const MpRtpBufPtr &rtpPacket,
    return decodedSamples;
 }
 
-const MpCodecInfo* MpdIPPGAmr::getCodecInfo()
+const MpCodecInfo* MpdIPPGAmrWb::getCodecInfo()
 {
    return &ms_codecInfo;
 }
 
-const MpCodecInfo MpdIPPGAmr::ms_codecInfo(
-   SdpCodec::SDP_CODEC_AMR_10200,    // codecType
+const MpCodecInfo MpdIPPGAmrWb::ms_codecInfo(
+   SdpCodec::SDP_CODEC_AMR_WB_23850,    // codecType
    "Intel IPP 6.0",             // codecVersion
-   8000,                        // samplingRate
+   16000,                        // samplingRate
    16,                          // numBitsPerSample (not used)
    1,                           // numChannels
-   10200,                        // bitRate
-   26*8,                        // minPacketBits
-   26*8,                        // maxPacketBits
-   160);                        // numSamplesPerFrame - 20ms frame
+   23850,                        // bitRate
+   60*8,                        // minPacketBits
+   60*8,                        // maxPacketBits
+   320);                        // numSamplesPerFrame - 20ms frame
 
 #endif /* !HAVE_INTEL_IPP ] */

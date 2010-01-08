@@ -86,8 +86,17 @@ OsStatus MpeSipxILBC::encode(const MpAudioSample* pAudioSamples,
                               const int bytesLeft,
                               int& rSizeInBytes,
                               UtlBoolean& sendNow,
-                              MpSpeechType& rAudioCategory)
+                              MpSpeechType& speechType)
 {
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD && mBufferLoad == 0)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
+
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad += numSamples;
    assert(mBufferLoad <= m_samplesPerFrame);
@@ -111,7 +120,6 @@ OsStatus MpeSipxILBC::encode(const MpAudioSample* pAudioSamples,
    }
 
    rSamplesConsumed = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
    return OS_SUCCESS;
 }
 

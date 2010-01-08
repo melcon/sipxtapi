@@ -81,12 +81,14 @@ MprDecode::~MprDecode()
       OsLock lock(mLock);
       if (mNumPrevCodecs > 0)
       {
-         for (i=0; i<mNumPrevCodecs; i++)
+         for (i = 0; i < mNumPrevCodecs; i++)
          {
             mpPrevCodecs[i]->freeDecode();
             delete mpPrevCodecs[i];
+            mpPrevCodecs[i] = NULL;
          }
          delete[] mpPrevCodecs;
+         mNumPrevCodecs = 0;
       }
    }
 }

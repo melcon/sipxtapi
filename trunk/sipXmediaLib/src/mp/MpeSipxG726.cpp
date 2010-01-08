@@ -5,6 +5,8 @@
 // Copyright (C) 2006 SIPfoundry Inc. 
 // Licensed by SIPfoundry under the LGPL license. 
 //  
+// Copyright (C) 2008-2009 Jaroslav Libak.  All rights reserved.
+// Licensed under the LGPL license.
 // $$ 
 ////////////////////////////////////////////////////////////////////////////// 
 
@@ -61,11 +63,13 @@ const MpCodecInfo MpeSipxG726::ms_codecInfo40(
 
 MpeSipxG726::MpeSipxG726(int payloadType, G726_BITRATE bitRate)
 : MpEncoderBase(payloadType, getCodecInfo(bitRate))
+, m_pG726state(NULL)
 {
 }
 
 MpeSipxG726::~MpeSipxG726()
 {
+   freeEncode();
 }
 
 OsStatus MpeSipxG726::initEncode(void)
@@ -84,7 +88,13 @@ OsStatus MpeSipxG726::initEncode(void)
 
 OsStatus MpeSipxG726::freeEncode(void)
 {
-   int res = g726_release(m_pG726state);
+   int res = 0;
+   
+   if (m_pG726state)
+   {
+      res = g726_release(m_pG726state);
+      m_pG726state = NULL;
+   }
 
    if (res == 0)
    {
@@ -103,14 +113,22 @@ OsStatus MpeSipxG726::encode(const MpAudioSample* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpSpeechType& rAudioCategory)
+                            MpSpeechType& speechType)
 {
    assert(numSamples == 80); // we expect 10ms frames
+
+   if (speechType == MP_SPEECH_SILENT && ms_bEnableVAD)
+   {
+      // VAD must be enabled, do DTX
+      rSamplesConsumed = numSamples;
+      rSizeInBytes = 0;
+      sendNow = TRUE; // sends any unsent frames now
+      return OS_SUCCESS;
+   }
 
    rSizeInBytes = g726_encode(m_pG726state, pCodeBuf, pAudioSamples, numSamples);
 
    rSamplesConsumed = numSamples;
-   rAudioCategory = MP_SPEECH_UNKNOWN;
 
    return OS_SUCCESS;
 }

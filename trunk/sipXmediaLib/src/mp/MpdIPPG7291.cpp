@@ -24,7 +24,7 @@
 #endif // WIN32 ]
 
 // APPLICATION INCLUDES
-#include "mp/MpdIPPG729.h"
+#include "mp/MpdIPPG7291.h"
 
 extern "C" {
 #include "ippcore.h"
@@ -32,39 +32,26 @@ extern "C" {
 #include "usccodec.h"
 }
 
-#define G729_PATTERN_LENGTH 20
-
-const MpCodecInfo MpdIPPG729::smCodecInfo(
-   SdpCodec::SDP_CODEC_G729,    // codecType
-   "Intel IPP 6.0",             // codecVersion
-   8000,                        // samplingRate
-   16,                          // numBitsPerSample (not used)
-   1,                           // numChannels
-   8000,                        // bitRate
-   20*8,                        // minPacketBits
-   20*8,                        // maxPacketBits
-   160);                        // numSamplesPerFrame - 20ms frame
-
-MpdIPPG729::MpdIPPG729(int payloadType)
-: MpDecoderBase(payloadType, &smCodecInfo)
+MpdIPPG7291::MpdIPPG7291(int payloadType)
+: MpDecoderBase(payloadType, getCodecInfo())
 {
    codec = (LoadedCodec*)malloc(sizeof(LoadedCodec));
    memset(codec, 0, sizeof(LoadedCodec));
 }
 
-MpdIPPG729::~MpdIPPG729()
+MpdIPPG7291::~MpdIPPG7291()
 {
    freeDecode();
    free(codec);
 }
 
-OsStatus MpdIPPG729::initDecode()
+OsStatus MpdIPPG7291::initDecode()
 {
    int lCallResult;
 
    ippStaticInit();
-   codec->lIsVad = 1;
-   strcpy((char*)codec->codecName, "IPP_G729A");
+   codec->lIsVad = 0; // built in VAD is not yet supported by Intel IPP
+   strcpy((char*)codec->codecName, "IPP_G729.1");
 
    // Load codec by name
    lCallResult = LoadUSCCodecByName(codec, NULL);
@@ -109,12 +96,9 @@ OsStatus MpdIPPG729::initDecode()
    // instead of SetUSCDecoderParams(...)
    codec->uscParams.pInfo->params.direction = USC_DECODE;
    codec->uscParams.pInfo->params.law = 0;
+   codec->uscParams.pInfo->params.modes.vad = 0; // built in VAD is not yet supported by Intel IPP
 
    // Prepare input buffer parameters
-   Bitstream.bitrate = 8000;
-   Bitstream.frametype = 3;
-   Bitstream.nbytes = 10;
-
    // Alloc memory for the codec
    lCallResult = USCCodecAlloc(&codec->uscParams, NULL);
    if (lCallResult < 0)
@@ -132,7 +116,7 @@ OsStatus MpdIPPG729::initDecode()
    return OS_SUCCESS;
 }
 
-OsStatus MpdIPPG729::freeDecode(void)
+OsStatus MpdIPPG7291::freeDecode(void)
 {
    // Free codec memory
    USCFree(&codec->uscParams);
@@ -140,7 +124,7 @@ OsStatus MpdIPPG729::freeDecode(void)
    return OS_SUCCESS;
 }
 
-int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
+int MpdIPPG7291::decode(const MpRtpBufPtr &rtpPacket,
                        unsigned decodedBufferLength,
                        MpAudioSample *samplesBuffer,
                        UtlBoolean bIsPLCFrame) 
@@ -149,52 +133,85 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
       return 0;
 
    unsigned payloadSize = rtpPacket->getPayloadSize();
-   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
+   unsigned maxPayloadSize = getInfo()->getMaxPacketBits()/8;
 
-   assert(payloadSize <= maxPayloadSize);
-   if (payloadSize > maxPayloadSize || payloadSize <= 1)
+   assert(payloadSize <= maxPayloadSize + 1);
+   if (payloadSize > (maxPayloadSize+1) || payloadSize <= 2)
    {
       return 0;
    }
 
    unsigned int decodedSamples = 0;
 
-   if (payloadSize <= 2 && !bIsPLCFrame)
+   if (payloadSize <= 6 && !bIsPLCFrame)
    {
       // MpDecodeBuffer will generate comfort noise
       return 0;
    }
    else
    {
-      // Each decode pattern must have 10 bytes or less (in case VAD enabled)
-      int frames = 0;
-      frames = payloadSize / Bitstream.nbytes;
-
+      configureBitStream(payloadSize-1, (char*)(rtpPacket->getDataPtr()));
       // Setup input and output pointers
-      Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr());
+      Bitstream.pBuffer = const_cast<char*>(rtpPacket->getDataPtr()) + 1; // skip 1 byte header
       PCMStream.pBuffer = reinterpret_cast<char*>(samplesBuffer);
-      // zero the buffer in case we decode less than 320 bytes
+      // zero the buffer in case we decode less than 640 bytes
       // as it happens sometimes
-      memset(PCMStream.pBuffer, 0, 320);
+      memset(PCMStream.pBuffer, 0, 640);
 
-      // Decode frames
-      for (int i = 0; i < frames; i++)
+      // Decode one frame
+      USC_Status uscStatus = codec->uscParams.USC_Fns->Decode(codec->uscParams.uCodec.hUSCCodec,
+         bIsPLCFrame ? NULL : &Bitstream,
+         &PCMStream);
+      assert(uscStatus == USC_NoError);
+
+      if (uscStatus == USC_NoError)
       {
-         // Decode one frame
-         USC_Status uscStatus = codec->uscParams.USC_Fns->Decode(codec->uscParams.uCodec.hUSCCodec,
-            bIsPLCFrame ? NULL : &Bitstream,
-            &PCMStream);
-         assert(uscStatus == USC_NoError);
-
-         // move pointers
-         Bitstream.pBuffer += Bitstream.nbytes;
-         PCMStream.pBuffer += codec->uscParams.pInfo->params.framesize;
-         decodedSamples += PCMStream.nbytes / sizeof(MpAudioSample);
+         decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
       }
    }
 
    // Return number of decoded samples
    return decodedSamples;
 }
+
+void MpdIPPG7291::configureBitStream(int rtpPayloadBytes, char* bitstream)
+{
+   static int ftToBitrate[] = {8000, 12000, 14000, 16000, 18000, 20000, 22000, 24000, 26000, 28000, 30000,
+      32000, 0, 0, 0, 0};
+
+   Bitstream.nbytes = rtpPayloadBytes;
+
+   int ftField = 0;
+   if (bitstream)
+   {
+      ftField = bitstream[0] & 0x0F;
+   }
+
+   if (ftField == 14)
+   {
+      Bitstream.frametype = 0; // TODO - use real frame type once Intel IPP implement VAD/DTX for G.729.1
+   }
+   else
+   {
+      Bitstream.frametype = 0;
+   }
+   Bitstream.bitrate = ftToBitrate[ftField];
+}
+
+const MpCodecInfo* MpdIPPG7291::getCodecInfo()
+{
+   return &smCodecInfo;
+}
+
+const MpCodecInfo MpdIPPG7291::smCodecInfo(
+   SdpCodec::SDP_CODEC_G7291_32000,    // codecType
+   "Intel IPP 6.0",             // codecVersion
+   16000,                        // samplingRate
+   16,                          // numBitsPerSample (not used)
+   1,                           // numChannels
+   32000,                        // bitRate
+   80*8,                        // minPacketBits
+   80*8,                        // maxPacketBits
+   320);                        // numSamplesPerFrame - 20ms frame
 
 #endif /* !HAVE_INTEL_IPP ] */
