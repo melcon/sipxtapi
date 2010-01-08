@@ -12,15 +12,13 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/XCpAbstractConnection.h>
+#include <cp/msg/AcAudioPausePlaybackMsg.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
-const UtlContainableType XCpAbstractConnection::TYPE = "XCpAbstractConnection";
-
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
@@ -29,66 +27,31 @@ const UtlContainableType XCpAbstractConnection::TYPE = "XCpAbstractConnection";
 
 /* ============================ CREATORS ================================== */
 
-XCpAbstractConnection::XCpAbstractConnection()
-: m_memberMutex(OsMutex::Q_FIFO)
+AcAudioPausePlaybackMsg::AcAudioPausePlaybackMsg()
+: AcCommandMsg(AC_AUDIO_PAUSE_PLAYBACK)
 {
 
 }
 
-XCpAbstractConnection::~XCpAbstractConnection()
+AcAudioPausePlaybackMsg::~AcAudioPausePlaybackMsg()
 {
 
+}
+
+OsMsg* AcAudioPausePlaybackMsg::createCopy(void) const
+{
+   return new AcAudioPausePlaybackMsg();
 }
 
 /* ============================ MANIPULATORS ============================== */
 
-OsStatus XCpAbstractConnection::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)
-{
-   return m_memberMutex.acquire(rTimeout);
-}
-
-OsStatus XCpAbstractConnection::tryAcquire()
-{
-   return m_memberMutex.tryAcquire();
-}
-
-OsStatus XCpAbstractConnection::release()
-{
-   return m_memberMutex.release();
-}
-
 /* ============================ ACCESSORS ================================= */
 
-unsigned XCpAbstractConnection::hash() const
-{
-   return (unsigned)this;
-}
-
-UtlContainableType XCpAbstractConnection::getContainableType() const
-{
-   return XCpAbstractConnection::TYPE;
-}
-
 /* ============================ INQUIRY =================================== */
-
-int XCpAbstractConnection::compareTo(UtlContainable const* inVal) const
-{
-   int result;
-
-   if (inVal->isInstanceOf(XCpAbstractConnection::TYPE))
-   {
-      result = hash() - inVal->hash();
-   }
-   else
-   {
-      result = -1; 
-   }
-
-   return result;
-}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 
 /* ============================ FUNCTIONS ================================= */
+

@@ -55,7 +55,7 @@ public:
 //@{
 
       /// Play sound from buffer w/repeat option
-    OsStatus playBuffer(const char* audioBuffer, unsigned long bufSize, 
+    OsStatus playBuffer(const void* audioBuffer, size_t bufSize, 
                         int type, UtlBoolean repeat, void* pCookie = NULL);
       /**<
       *  @param type - can be one of following:  (need a OsSoundType)<br>
@@ -161,8 +161,8 @@ private:
      /// @brief Convert generic audio data into flowgraph audio data.
    static OsStatus genericAudioBufToFGAudioBuf(
                                              UtlString*& fgAudioBuf,
-                                             const char* audioBuffer, 
-                                             unsigned long bufSize, 
+                                             const void* audioBuffer, 
+                                             size_t bufSize, 
                                              int type);
      /**<
      *  Method to convert a generic char* audio buffer, in one of several

@@ -397,7 +397,7 @@ void sipXtapiTestSuite::checkForCallLeaks(SIPX_INST hInst)
    SIPX_RESULT rc;
    UtlSList callIDs;
 
-   rc = sipxGetAllCallIds(hInst, callIDs);
+   rc = sipxGetAllAbstractCallIds(hInst, callIDs);
    CPPUNIT_ASSERT_EQUAL(rc, SIPX_RESULT_SUCCESS);
    if (rc == SIPX_RESULT_SUCCESS)
    {

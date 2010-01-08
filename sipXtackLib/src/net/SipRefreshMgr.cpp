@@ -1226,11 +1226,6 @@ UtlString SipRefreshMgr::buildContactField(const Url& registerToField,
 
    contactUrl.setDisplayName(displayName);
    contactUrl.setUserId(userId);
-   if ( !lineId.isNull() )
-   {
-      contactUrl.setUrlParameter(SIP_LINE_IDENTIFIER, lineId);
-      contactUrl.includeAngleBrackets();
-   }
 
    int index = 0;
    UtlString paramName;

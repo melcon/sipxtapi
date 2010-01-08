@@ -34,7 +34,6 @@
 #include <net/SipUserAgent.h>
 #include <net/SdpCodecFactory.h>
 #include <net/Url.h>
-#include <net/SipSession.h>
 #include <net/SipDialog.h>
 #include <net/SipLineProvider.h>
 #include <net/NameValueTokenizer.h>
@@ -887,7 +886,7 @@ PtStatus CallManager::connect(const char* callId,
    {
       if (m_pCallEventListener)
       {
-         m_pCallEventListener->OnDisconnected(CpCallStateEvent(NULL, callId, SipSession(), toAddressString, CALLSTATE_CAUSE_BAD_ADDRESS));
+         m_pCallEventListener->OnDisconnected(CpCallStateEvent(callId, NULL, CP_CALLSTATE_CAUSE_BAD_ADDRESS));
       }
    }
    return(returnCode);
@@ -1441,7 +1440,7 @@ OsStatus CallManager::getFromField(const char* callId,
                                    const char* address,
                                    UtlString& fromField)
 {
-   SipSession session;
+/*   SipSession session;
    OsStatus status = getSession(callId, address, session);
 
    if(status == OS_SUCCESS)
@@ -1453,9 +1452,9 @@ OsStatus CallManager::getFromField(const char* callId,
    else
    {
       fromField.remove(0);
-   }
+   }*/
 
-   return(status);
+   return OS_FAILED;
 }
 
 void CallManager::limitCodecPreferences(const char* callId,
@@ -1491,7 +1490,7 @@ void CallManager::limitCodecPreferences(const char* callId,
    postMessage(message);
 }
 
-OsStatus CallManager::getSession(const char* callId,
+/*OsStatus CallManager::getSession(const char* callId,
                                  const char* address,
                                  SipSession& session)
 {
@@ -1535,10 +1534,10 @@ OsStatus CallManager::getSession(const char* callId,
       }
    }
    return(returnCode);
-}
+}*/
 
 
-OsStatus CallManager::getSipDialog(const char* callId,
+/*OsStatus CallManager::getSipDialog(const char* callId,
                                    const char* address,
                                    SipDialog& dialog)
 {
@@ -1574,17 +1573,19 @@ OsStatus CallManager::getSipDialog(const char* callId,
       dialog.setInitialMethod(uValue);
 
       ssn.getLocalRequestUri(uValue);
-      dialog.setLocalRequestUri(uValue);
+      Url localRequestUri(uValue, TRUE);
+      dialog.setLocalRequestUri(localRequestUri);
 
       ssn.getRemoteRequestUri(uValue);
-      dialog.setRemoteRequestUri(uValue);
+      Url remoteRequestUri(uValue, TRUE);
+      dialog.setRemoteRequestUri(remoteRequestUri);
 
       dialog.setLastLocalCseq(ssn.getLastFromCseq());
       dialog.setLastRemoteCseq(ssn.getLastToCseq());
    }
 
    return(returnCode);
-}
+}*/
 
 void CallManager::answerTerminalConnection(const char* callId, const char* address,
                                            const void* pDisplay, const void* pSecurity)

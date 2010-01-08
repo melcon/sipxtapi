@@ -17,12 +17,16 @@
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <os/OsMutex.h>
+#include <os/OsRWMutex.h>
 #include <os/OsSyncBase.h>
 #include <os/OsServerTask.h>
 #include <utl/UtlContainable.h>
+#include <net/SipDialog.h>
+#include <net/SipTagGenerator.h>
 #include <cp/CpDefs.h>
 #include <cp/CpAudioCodecInfo.h>
 #include <cp/CpVideoCodecInfo.h>
+#include <cp/CpMediaInterfaceProvider.h>
 
 // DEFINES
 // MACROS
@@ -32,17 +36,60 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+template <class T>
+class OsPtrLock; // forward template class declaration
 class SipDialog;
+class SipUserAgent;
+class SipMessageEvent;
+class XSipConnection;
+class CpMediaInterfaceFactory;
+class CpMediaInterface;
+class CpCallStateEventListener;
+class SipInfoStatusEventListener;
+class SipSecurityEventListener;
+class CpMediaEventListener;
+class AcCommandMsg;
+class AcNotificationMsg;
+class AcGainFocusMsg;
+class AcYieldFocusMsg;
+class AcAudioBufferPlayMsg;
+class AcAudioFilePlayMsg;
+class AcAudioPausePlaybackMsg;
+class AcAudioResumePlaybackMsg;
+class AcAudioStopPlaybackMsg;
+class AcAudioRecordStartMsg;
+class AcAudioRecordStopMsg;
+class AcAudioToneStartMsg;
+class AcAudioToneStopMsg;
+class CpTimerMsg;
+class OsIntPtrMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
  * common functionality. This class can be stored in Utl containers.
- * Inherits from OsSyncBase, and can be locked externally. Locking the object ensures
- * that its state doesn't change.
+ * Inherits from OsSyncBase, and can be locked externally. Locking the object with m_instanceRWMutex ensures
+ * that it doesn't get deleted.
  *
- * Most public methods must acquire the object mutex first.
+ * Most public methods must acquire the object mutex m_instanceRWMutex first.
+ *
+ * Locking strategy:
+ * - m_instanceRWMutex - used to implement methods of OsSyncBase. This is normally locked only for reading.
+ * Write lock is used only when instance of this class is about to be deleted. This is meant only to be used
+ * outside this class for automatic pointer locking.
+ * - m_memberMutex - protects all members which are marked to be protected by it. This is the real mutex that
+ * protects against member corruption due to parallel access. Members which require this mutex to be locked
+ * must always be marked.
+ *
+ * Dialog matching:
+ * - hasSipDialog - uses strict dialog matching. First we try to return connection with perfect dialog match.
+ * Perfect dialog match means either established dialog match (callid + both tags), or match of an initial dialog
+ * against an initial dialog (callid + 1 tag). Until such a perfect match is found, we have to go through all connections
+ * and check each one for partial match. Partial match means callid + 1 tag match - either initial against established
+ * or established against initial.
+ * - findConnection - uses the same dialog matching like hasSipDialog
+ * 
  */
-class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase
+class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase, CpMediaInterfaceProvider
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -50,7 +97,14 @@ public:
 
    /* ============================ CREATORS ================================== */
 
-   XCpAbstractCall(const UtlString& sId);
+   XCpAbstractCall(const UtlString& sId,
+                   SipUserAgent& rSipUserAgent,
+                   CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                   OsMsgQ& rCallManagerQueue,
+                   CpCallStateEventListener* pCallEventListener = NULL,
+                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+                   SipSecurityEventListener* pSecurityEventListener = NULL,
+                   CpMediaEventListener* pMediaEventListener = NULL);
 
    virtual ~XCpAbstractCall();
 
@@ -60,9 +114,9 @@ public:
 
    /** Connects call to given address. Uses supplied sip call-id. */
    virtual OsStatus connect(const UtlString& sSipCallId,
-                            SipDialog& sSipDialog,
+                            SipDialog& sipDialog,
                             const UtlString& toAddress,
-                            const UtlString& lineURI,
+                            const UtlString& fromAddress,
                             const UtlString& locationHeader,
                             CP_CONTACT_ID contactId) = 0;
 
@@ -93,7 +147,7 @@ public:
    * Temporarily response to be sent with the specified
    * contact URI.
    */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUri) = 0;
+   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl) = 0;
 
    /**
    * Answer the incoming terminal connection.
@@ -109,12 +163,14 @@ public:
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
     * progresses to disconnected and the connection is removed.
+    * @param bDestroyAbstractCall If true, then abstract call will also be destroyed if last connection
+    *        was dropped
     */
-   virtual OsStatus dropConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyAbstractCall = FALSE) = 0;
 
-   /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
-   virtual OsStatus transferBlind(const SipDialog& sSipDialog,
-                                  const UtlString& sTransferSipUri) = 0;
+   /** Blind transfer given call to sTransferSipUrl. Works for simple call and call in a conference */
+   virtual OsStatus transferBlind(const SipDialog& sipDialog,
+                                  const UtlString& sTransferSipUrl) = 0;
 
    /** Starts DTMF tone on call connection.*/
    OsStatus audioToneStart(int iToneId,
@@ -134,16 +190,18 @@ public:
                           void* pCookie = NULL);
 
    /** Starts playing audio buffer on call connection. Passed buffer will be copied internally. */
-   OsStatus audioBufferPlay(void* pAudiobuf,
+   OsStatus audioBufferPlay(const void* pAudiobuf,
                             size_t iBufSize,
                             int iType,
                             UtlBoolean bRepeat,
                             UtlBoolean bLocal,
                             UtlBoolean bRemote,
+                            UtlBoolean bMixWithMic = FALSE,
+                            int iDownScaling = 100,
                             void* pCookie = NULL);
 
    /** Stops playing audio file or buffer on call connection */
-   OsStatus audioStop();
+   OsStatus audioStopPlayback();
 
    /** Pauses audio playback of file or buffer. */
    OsStatus pauseAudioPlayback();
@@ -164,24 +222,7 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * no media should be sent.)
    */
-   virtual OsStatus holdConnection(const SipDialog& sSipDialog) = 0;
-
-   /**
-   * Convenience method to put the local terminal connection on hold.
-   * Can be used for both calls and conferences.
-   * Microphone will be disconnected from the call or conference, local
-   * audio will stop flowing to remote party. Remote party will still
-   * be audible to local user.
-   */
-   OsStatus holdLocalConnection();
-
-   /**
-   * Take the specified local terminal connection off hold,.
-   *
-   * Microphone will be reconnected to the call or conference,
-   * and audio will start flowing from local machine to remote party.
-   */
-   OsStatus unholdLocalConnection();
+   virtual OsStatus holdConnection(const SipDialog& sipDialog) = 0;
 
    /**
    * Convenience method to take the terminal connection off hold.
@@ -190,31 +231,20 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * media should be sent.)
    */
-   virtual OsStatus unholdConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus unholdConnection(const SipDialog& sipDialog) = 0;
 
    /**
-   * Enables discarding of inbound RTP for given call
+   * Enables discarding of inbound RTP at bridge for given call
    * or conference. Useful for server applications without mic/speaker.
+   * DTMF on given call will still be decoded.
    */
-   virtual OsStatus silentHoldRemoteConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus muteInputConnection(const SipDialog& sipDialog) = 0;
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentUnholdRemoteConnection(const SipDialog& sSipDialog) = 0;
-
-   /**
-   * Stops outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus silentHoldLocalConnection(const SipDialog& sSipDialog) = 0;
-
-   /**
-   * Starts outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus silentUnholdLocalConnection(const SipDialog& sSipDialog) = 0;
+   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog) = 0;
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -239,7 +269,7 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sSipDialog,
+   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
@@ -247,19 +277,13 @@ public:
 
 
    /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const SipDialog& sSipDialog,
+   virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
-                             const UtlString& sContentEncoding,
-                             const UtlString& sContent) = 0;
+                             const char* pContent,
+                             const size_t nContentLength) = 0;
 
-   /** Block until the sync object is acquired or the timeout expires */
-   virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
-
-   /** Conditionally acquire the semaphore (i.e., don't block) */
-   virtual OsStatus tryAcquire();
-
-   /** Release the sync object */
-   virtual OsStatus release();
+   /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
+   virtual OsStatus acquireExclusive();
 
    /* ============================ ACCESSORS ================================= */
 
@@ -291,42 +315,152 @@ public:
    virtual int compareTo(UtlContainable const* inVal) const;
 
    /**
-    * Checks if this abstract call has given sip dialog.
+    * Checks if this abstract call has given sip dialog. Uses strict dialog matching.
     */
-   virtual UtlBoolean hasSipDialog(const SipDialog& sSipDialog) const = 0;
+   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sipDialog) const = 0;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const = 0;
 
-   /** Gets audio energy levels for call */
-   virtual OsStatus getAudioEnergyLevels(int& iInputEnergyLevel,
-                                         int& iOutputEnergyLevel) const = 0;
-
    /** gets remote user agent for call or conference */
-   virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
-                                       UtlString& userAgent) const = 0;
+   OsStatus getRemoteUserAgent(const SipDialog& sipDialog,
+                               UtlString& userAgent) const;
 
    /** Gets internal id of media connection for given call or conference. Only for unit tests */
-   virtual OsStatus getMediaConnectionId(int& mediaConnID) const = 0;
+   OsStatus getMediaConnectionId(const SipDialog& sipDialog,
+                                 int& mediaConnID) const;
 
-   /** Gets copy of SipDialog for given call */
-   virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
-                                 SipDialog& sOutputSipDialog) const = 0;
+   /** Gets copy of SipDialog for given call. Uses strict dialog matching. */
+   OsStatus getSipDialog(const SipDialog& sipDialog,
+                         SipDialog& sOutputSipDialog) const;
+
+   /** Returns TRUE if call is in focus. */
+   UtlBoolean isFocused() const { return m_bIsFocused; }
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+   /** Handles command messages */
+   virtual UtlBoolean handleCommandMessage(const AcCommandMsg& rRawMsg);
 
-   /* //////////////////////////// PRIVATE /////////////////////////////////// */
-private:
-   XCpAbstractCall(const XCpAbstractCall& rhs);
+   /** Handles command messages */
+   virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
 
-   XCpAbstractCall& operator=(const XCpAbstractCall& rhs);
+   /** Handles timer messages */
+   virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
+
+   /** Handler for inbound SipMessageEvent messages. */
+   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent) = 0;
+
+   /** Finds connection handling given Sip dialog. Uses strict dialog matching. */
+   virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
+
+   /** Tries to gain focus on this call asynchronously through call manager. */
+   OsStatus gainFocus();
+
+   /** Tries to yield focus on this call asynchronously through call manager */
+   OsStatus yieldFocus();
 
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
+   // begin of members requiring m_memberMutex
+   // end of members requiring m_memberMutex
 
+   // no mutex required, used only from OsServerTask
+   CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
+   UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
+
+   // thread safe
+   SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    const UtlString m_sId; ///< unique identifier of the abstract call
+   SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
+   OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
+   // set only once and thread safe
+   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
+   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
+   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+
+   /* //////////////////////////// PRIVATE /////////////////////////////////// */
+private:
+   /** Handles gain focus command from call manager. Never use directly, go through call manager. */
+   OsStatus handleGainFocus(const AcGainFocusMsg& rMsg);
+
+   /** Handles defocus command from call manager. Never use directly, go through call manager. */
+   OsStatus handleDefocus(const AcYieldFocusMsg& rMsg);
+
+   /** Handles command to start playing buffer on call */
+   OsStatus handleAudioBufferPlay(const AcAudioBufferPlayMsg& rMsg);
+
+   /** Handles command to start playing file on call */
+   OsStatus handleAudioFilePlay(const AcAudioFilePlayMsg& rMsg);
+
+   /** Handles command to pause playing file/buffer on call */
+   OsStatus handleAudioPausePlayback(const AcAudioPausePlaybackMsg& rMsg);
+
+   /** Handles command to resume playing file/buffer on call */
+   OsStatus handleAudioResumePlayback(const AcAudioResumePlaybackMsg& rMsg);
+
+   /** Handles command to stop playing file/buffer on call */
+   OsStatus handleAudioStopPlayback(const AcAudioStopPlaybackMsg& rMsg);
+
+   /** Handles command to start recording call */
+   OsStatus handleAudioRecordStart(const AcAudioRecordStartMsg& rMsg);
+
+   /** Handles command to stop recording call */
+   OsStatus handleAudioRecordStop(const AcAudioRecordStopMsg& rMsg);
+
+   /** Handles command to start sending audio DTMF */
+   OsStatus handleAudioToneStart(const AcAudioToneStartMsg& rMsg);
+
+   /** Handles command to stop sending audio DTMF */
+   OsStatus handleAudioToneStop(const AcAudioToneStopMsg& rMsg);
+
+   /** Handler for OsMsg::PHONE_APP messages */
+   UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
+
+   /** Handle media connection notification message */
+   UtlBoolean handleConnectionNotfMessage(const OsIntPtrMsg& rMsg);
+
+   /** Handle media interface notification message */
+   UtlBoolean handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg);
+
+   /** Fires given media interface event to listeners. */
+   virtual void fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
+                                            CP_MEDIA_CAUSE cause,
+                                            CP_MEDIA_TYPE type,
+                                            intptr_t pEventData1,
+                                            intptr_t pEventData2) = 0;
+
+   /** Finds the correct connection by mediaConnectionId and fires media event for it. */
+   virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
+                                             CP_MEDIA_CAUSE cause,
+                                             CP_MEDIA_TYPE type,
+                                             int mediaConnectionId,
+                                             intptr_t pEventData1,
+                                             intptr_t pEventData2) = 0;
+
+   /** Releases media interface */
+   void releaseMediaInterface();
+
+   /** Gets current media interface of abstract call. Returns NULL if there is none. */
+   virtual CpMediaInterface* getMediaInterface() const;
+
+   /** Block until the sync object is acquired. Timeout is not supported! */
+   virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
+
+   /** Conditionally acquire the semaphore (i.e., don't block) */
+   virtual OsStatus tryAcquire();
+
+   /** Release the sync object */
+   virtual OsStatus release();
+
+   XCpAbstractCall(const XCpAbstractCall& rhs);
+
+   XCpAbstractCall& operator=(const XCpAbstractCall& rhs);
+
+   mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from call manager
 };
 
 #endif // XCpAbstractCall_h__

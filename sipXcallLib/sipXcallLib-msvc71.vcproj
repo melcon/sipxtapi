@@ -1,270 +1,205 @@
-<?xml version="1.0" encoding="Windows-1252"?>
-<VisualStudioProject
-	ProjectType="Visual C++"
-	Version="7.10"
-	Name="sipXcallLib-msvc71"
-	ProjectGUID="{E878E8F3-72DD-44B9-8F39-36E19678312D}"
-	RootNamespace="sipXcallLibmsvc71"
-	Keyword="ManagedCProj">
-	<Platforms>
-		<Platform
-			Name="Win32"/>
-	</Platforms>
-	<Configurations>
-		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="2"
-			ManagedExtensions="FALSE">
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="WIN32;_DEBUG"
-				MinimalRebuild="FALSE"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="3"
-				RuntimeTypeInfo="TRUE"
-				WarningLevel="3"
-				DebugInformationFormat="3"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXcallLib.lib"
-				IgnoreDefaultLibraryNames="msvcprtd.lib"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="4"
-			CharacterSet="2"
-			ManagedExtensions="FALSE">
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include"
-				PreprocessorDefinitions="WIN32;NDEBUG"
-				MinimalRebuild="FALSE"
-				RuntimeLibrary="2"
-				RuntimeTypeInfo="TRUE"
-				WarningLevel="3"
-				DebugInformationFormat="3"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXcallLib.lib"/>
-			<Tool
-				Name="VCMIDLTool"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
-	</Configurations>
-	<References>
-	</References>
-	<Files>
-		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-			>
-			<File
-				RelativePath=".\src\cp\CallManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\Connection.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpCall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpCallManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpGhostConnection.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpIntMessage.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpMultiStringMessage.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CpPeerCall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\CSeqManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\SipConnection.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\XCpAbstractCall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\XCpAbstractConnection.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\XCpCall.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\XCpCallManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\XCpConference.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\cp\XCpSipConnection.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl"
-			>
-			<File
-				RelativePath="include\cp\CallManager.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\Connection.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CpAudioCodecInfo.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpCall.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpCallManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CpCallStateEventListener.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CpCodecInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CpDefs.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpGhostConnection.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpIntMessage.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CpMediaEventListener.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpMultiStringMessage.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CpNotificationMsgDef.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\CpPeerCall.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CpVideoCodecInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\CSeqManager.h"
-				>
-			</File>
-			<File
-				RelativePath="include\cp\SipConnection.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\XCpAbstractCall.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\XCpAbstractConnection.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\XCpCall.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\XCpCallManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\XCpConference.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\cp\XCpSipConnection.h"
-				>
-			</File>
-		</Filter>
-	</Files>
-	<Globals>
-	</Globals>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<VisualStudioProject Name="sipXcallLib-msvc71" Keyword="ManagedCProj" RootNamespace="sipXcallLibmsvc71" ProjectGUID="{E878E8F3-72DD-44B9-8F39-36E19678312D}" Version="7.10" ProjectType="Visual C++">
+    <Platforms>
+        <Platform Name="Win32"/>
+    </Platforms>
+    <Configurations>
+        <Configuration Name="Debug|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)" ConfigurationType="4" CharacterSet="2">
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="3" MinimalRebuild="FALSE" DebugInformationFormat="3" BasicRuntimeChecks="0" PreprocessorDefinitions="WIN32;_DEBUG" Optimization="0"/>
+            <Tool Name="VCCustomBuildTool"/>
+            <Tool Name="VCLibrarianTool" IgnoreDefaultLibraryNames="msvcprtd.lib" OutputFile="$(OutDir)\sipXcallLib.lib"/>
+            <Tool Name="VCMIDLTool"/>
+            <Tool Name="VCPostBuildEventTool"/>
+            <Tool Name="VCPreBuildEventTool"/>
+            <Tool Name="VCPreLinkEventTool"/>
+            <Tool Name="VCResourceCompilerTool"/>
+            <Tool Name="VCWebServiceProxyGeneratorTool"/>
+            <Tool Name="VCXMLDataGeneratorTool"/>
+            <Tool Name="VCManagedWrapperGeneratorTool"/>
+            <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+        </Configuration>
+        <Configuration Name="Release|Win32" ManagedExtensions="FALSE" OutputDirectory="$(ConfigurationName)" IntermediateDirectory="$(ConfigurationName)" ConfigurationType="4" CharacterSet="2">
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="TRUE" WarningLevel="3" AdditionalIncludeDirectories="include;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXmediaLib\include;..\sipXmediaAdapterLib\interface\include;..\sipXportLib\contrib\pcre\include" RuntimeLibrary="2" MinimalRebuild="FALSE" DebugInformationFormat="3" PreprocessorDefinitions="WIN32;NDEBUG"/>
+            <Tool Name="VCCustomBuildTool"/>
+            <Tool Name="VCLibrarianTool" OutputFile="$(OutDir)\sipXcallLib.lib"/>
+            <Tool Name="VCMIDLTool"/>
+            <Tool Name="VCPostBuildEventTool"/>
+            <Tool Name="VCPreBuildEventTool"/>
+            <Tool Name="VCPreLinkEventTool"/>
+            <Tool Name="VCResourceCompilerTool"/>
+            <Tool Name="VCWebServiceProxyGeneratorTool"/>
+            <Tool Name="VCXMLDataGeneratorTool"/>
+            <Tool Name="VCManagedWrapperGeneratorTool"/>
+            <Tool Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+        </Configuration>
+    </Configurations>
+    <References/>
+    <Files>
+        <Filter Name="Source Files" Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+            <File RelativePath=".\src\cp\CallManager.cpp"/>
+            <File RelativePath=".\src\cp\Connection.cpp"/>
+            <File RelativePath=".\src\cp\CpCall.cpp"/>
+            <File RelativePath=".\src\cp\CpCallManager.cpp"/>
+            <File RelativePath=".\src\cp\CpGhostConnection.cpp"/>
+            <File RelativePath=".\src\cp\CpIntMessage.cpp"/>
+            <File RelativePath=".\src\cp\CpMultiStringMessage.cpp"/>
+            <File RelativePath=".\src\cp\CpPeerCall.cpp"/>
+            <File RelativePath=".\src\cp\CSeqManager.cpp"/>
+            <File RelativePath=".\src\cp\SipConnection.cpp"/>
+            <File RelativePath=".\src\cp\XCpAbstractCall.cpp"/>
+            <File RelativePath=".\src\cp\XCpCall.cpp"/>
+            <File RelativePath=".\src\cp\XCpCallManager.cpp"/>
+            <File RelativePath=".\src\cp\XCpConference.cpp"/>
+            <File RelativePath=".\src\cp\XSipConnection.cpp"/>
+            <File RelativePath=".\src\cp\XSipConnectionContext.cpp"/>
+            <Filter Name="msg">
+                <File RelativePath=".\src\cp\msg\AcAcceptConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAnswerConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioBufferPlayMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioFilePlayMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioPausePlaybackMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioRecordStartMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioRecordStopMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioResumePlaybackMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioStopPlaybackMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioToneStartMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcAudioToneStopMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcCommandMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcConnectMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcDropAllConnectionsMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcDropConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcGainFocusMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcHoldAllConnectionsMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcHoldConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcLimitCodecPreferencesMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcMuteInputConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcNotificationMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcRedirectConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcRejectConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsAllMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcRenegotiateCodecsMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcUnholdAllConnectionsMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcUnholdConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcUnmuteInputConnectionMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\AcYieldFocusMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\CmCommandMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\CmGainFocusMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\CmNotificationMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\CmYieldFocusMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\CpTimerMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScCommandMsg.cpp"/>
+                <File RelativePath=".\src\cp\msg\ScNotificationMsg.cpp"/>
+            </Filter>
+            <Filter Name="state">
+                <File RelativePath=".\src\cp\state\AlertingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\BaseSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\DialingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\DisconnectedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\EstablishedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\FailedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\IdleSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\NewCallSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\OfferingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\QueuedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\RemoteAlertingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\RemoteOfferingSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\RemoteQueuedSipConnectionState.cpp"/>
+                <File RelativePath=".\src\cp\state\SipConnectionStateMachine.cpp"/>
+                <File RelativePath=".\src\cp\state\SipConnectionStateTransition.cpp"/>
+                <File RelativePath=".\src\cp\state\UnknownSipConnectionState.cpp"/>
+            </Filter>
+        </Filter>
+        <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
+            <File RelativePath="include\cp\CallManager.h"/>
+            <File RelativePath="include\cp\Connection.h"/>
+            <File RelativePath=".\include\cp\CpAudioCodecInfo.h"/>
+            <File RelativePath="include\cp\CpCall.h"/>
+            <File RelativePath="include\cp\CpCallManager.h"/>
+            <File RelativePath=".\include\cp\CpCallStateEventListener.h"/>
+            <File RelativePath=".\include\cp\CpCodecInfo.h"/>
+            <File RelativePath=".\include\cp\CpDefs.h"/>
+            <File RelativePath="include\cp\CpGhostConnection.h"/>
+            <File RelativePath="include\cp\CpIntMessage.h"/>
+            <File RelativePath=".\include\cp\CpMediaEventListener.h"/>
+            <File RelativePath=".\include\cp\CpMediaInterfaceProvider.h"/>
+            <File RelativePath=".\include\cp\CpMessageTypes.h"/>
+            <File RelativePath="include\cp\CpMultiStringMessage.h"/>
+            <File RelativePath=".\include\cp\CpNotificationMsgDef.h"/>
+            <File RelativePath="include\cp\CpPeerCall.h"/>
+            <File RelativePath=".\include\cp\CpVideoCodecInfo.h"/>
+            <File RelativePath=".\include\cp\CSeqManager.h"/>
+            <File RelativePath="include\cp\SipConnection.h"/>
+            <File RelativePath=".\include\cp\XCpAbstractCall.h"/>
+            <File RelativePath=".\include\cp\XCpCall.h"/>
+            <File RelativePath=".\include\cp\XCpCallManager.h"/>
+            <File RelativePath=".\include\cp\XCpConference.h"/>
+            <File RelativePath=".\include\cp\XSipConnection.h"/>
+            <File RelativePath=".\include\cp\XSipConnectionContext.h"/>
+            <File RelativePath=".\include\cp\XSipConnectionEventSink.h"/>
+            <Filter Name="msg">
+                <File RelativePath=".\include\cp\msg\AcAcceptConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAnswerConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioBufferPlayMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioFilePlayMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioPausePlaybackMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioRecordStartMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioRecordStopMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioResumePlaybackMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioStopPlaybackMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioToneStartMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcAudioToneStopMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcCommandMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcConnectMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcDropAllConnectionsMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcDropConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcGainFocusMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcHoldAllConnectionsMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcHoldConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcLimitCodecPreferencesMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcMuteInputConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcNotificationMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcRedirectConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcRejectConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsAllMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcRenegotiateCodecsMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcSendInfoMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcUnholdAllConnectionsMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcUnholdConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcUnmuteInputConnectionMsg.h"/>
+                <File RelativePath=".\include\cp\msg\AcYieldFocusMsg.h"/>
+                <File RelativePath=".\include\cp\msg\CmCommandMsg.h"/>
+                <File RelativePath=".\include\cp\msg\CmGainFocusMsg.h"/>
+                <File RelativePath=".\include\cp\msg\CmNotificationMsg.h"/>
+                <File RelativePath=".\include\cp\msg\CmYieldFocusMsg.h"/>
+                <File RelativePath=".\include\cp\msg\CpTimerMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScCommandMsg.h"/>
+                <File RelativePath=".\include\cp\msg\ScNotificationMsg.h"/>
+            </Filter>
+            <Filter Name="state">
+                <File RelativePath=".\include\cp\state\AlertingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\BaseSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\DialingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\DisconnectedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\EstablishedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\FailedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\IdleSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\ISipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\NewCallSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\OfferingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\QueuedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\RemoteAlertingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\RemoteOfferingSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\RemoteQueuedSipConnectionState.h"/>
+                <File RelativePath=".\include\cp\state\SipConnectionStateMachine.h"/>
+                <File RelativePath=".\include\cp\state\SipConnectionStateObserver.h"/>
+                <File RelativePath=".\include\cp\state\SipConnectionStateTransition.h"/>
+                <File RelativePath=".\include\cp\state\StateTransitionMemory.h"/>
+                <File RelativePath=".\include\cp\state\UnknownSipConnectionState.h"/>
+            </Filter>
+        </Filter>
+    </Files>
+    <Globals/>
 </VisualStudioProject>

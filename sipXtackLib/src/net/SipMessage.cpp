@@ -4944,29 +4944,26 @@ UtlBoolean SipMessage::isRecordRouteAccepted( void ) const
 { 
    UtlBoolean isRecordRoutable;
 
-   if( isResponse() )
+   // RFC3261 suggests record route may come even in response in "12.1.2 UAC Behavior"
+   // "The route set MUST be set to the list of URIs in the Record-Route
+   //  header field from the response"
+
+   // We are dealing with a request, check if it can
+   // accept a Record-Route header.  If the request
+   // is not REGISTER, MESSAGE or PUBLISH, the request
+   // is assumed to accept Record-Route headers.
+   UtlString method;
+   getRequestMethod(&method);
+
+   if (method.compareTo(SIP_MESSAGE_METHOD) == 0 ||
+      method.compareTo(SIP_REGISTER_METHOD) == 0 ||
+      method.compareTo(SIP_PUBLISH_METHOD) == 0 )
    {
-      isRecordRoutable = FALSE;
+      isRecordRoutable = FALSE;        
    }
    else
    {
-      // We are dealing with a request, check if it can
-      // accept a Record-Route header.  If the request
-      // is not REGISTER, MESSAGE or PUBLISH, the request
-      // is assumed to accept Record-Route headers.
-      UtlString method;
-      getRequestMethod(&method);
-
-      if (method.compareTo(SIP_MESSAGE_METHOD)  == 0 ||
-         method.compareTo(SIP_REGISTER_METHOD) == 0 ||
-         method.compareTo(SIP_PUBLISH_METHOD)  == 0 )
-      {
-         isRecordRoutable = FALSE;        
-      }
-      else
-      {
-         isRecordRoutable = TRUE;
-      }
+      isRecordRoutable = TRUE;
    }
    return isRecordRoutable;
 }

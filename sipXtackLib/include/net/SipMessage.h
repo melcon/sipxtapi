@@ -123,7 +123,6 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_MIN_EXPIRES_FIELD "MIN-EXPIRES"
 
 ///custom fields
-#define SIP_LINE_IDENTIFIER "LINEID"
 #define SIPX_IMPLIED_SUB "sipx-implied" ///< integer expiration duration for subscription
 // Response codes and text
 #define SIP_1XX_CLASS_CODE 100

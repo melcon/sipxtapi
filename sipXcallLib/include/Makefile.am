@@ -4,6 +4,7 @@
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
+    cp/CSeqManager.h \
     cp/CallManager.h \
     cp/Connection.h \
     cp/CpAudioCodecInfo.h \
@@ -15,18 +16,77 @@ nobase_include_HEADERS =  \
     cp/CpGhostConnection.h \
     cp/CpIntMessage.h \
     cp/CpMediaEventListener.h \
+    cp/CpMediaInterfaceProvider.h \
+    cp/CpMessageTypes.h \
     cp/CpMultiStringMessage.h \
     cp/CpNotificationMsgDef.h \
     cp/CpPeerCall.h \
     cp/CpVideoCodecInfo.h \
-    cp/CSeqManager.h \
     cp/SipConnection.h \
     cp/XCpAbstractCall.h \
-    cp/XCpAbstractConnection.h \
     cp/XCpCall.h \
     cp/XCpCallManager.h \
     cp/XCpConference.h \
-    cp/XCpSipConnection.h \
+    cp/XSipConnection.h \
+    cp/XSipConnectionContext.h \
+    cp/XSipConnectionEventSink.h \
+    cp/msg/AcAcceptConnectionMsg.h \
+    cp/msg/AcAnswerConnectionMsg.h \
+    cp/msg/AcAudioBufferPlayMsg.h \
+    cp/msg/AcAudioFilePlayMsg.h \
+    cp/msg/AcAudioPausePlaybackMsg.h \
+    cp/msg/AcAudioRecordStartMsg.h \
+    cp/msg/AcAudioRecordStopMsg.h \
+    cp/msg/AcAudioResumePlaybackMsg.h \
+    cp/msg/AcAudioStopPlaybackMsg.h \
+    cp/msg/AcAudioToneStartMsg.h \
+    cp/msg/AcAudioToneStopMsg.h \
+    cp/msg/AcCommandMsg.h \
+    cp/msg/AcConnectMsg.h \
+    cp/msg/AcDropAllConnectionsMsg.h \
+    cp/msg/AcDropConnectionMsg.h \
+    cp/msg/AcGainFocusMsg.h \
+    cp/msg/AcHoldAllConnectionsMsg.h \
+    cp/msg/AcHoldConnectionMsg.h \
+    cp/msg/AcLimitCodecPreferencesMsg.h \
+    cp/msg/AcMuteInputConnectionMsg.h \
+    cp/msg/AcNotificationMsg.h \
+    cp/msg/AcRedirectConnectionMsg.h \
+    cp/msg/AcRejectConnectionMsg.h \
+    cp/msg/AcRenegotiateCodecsAllMsg.h \
+    cp/msg/AcRenegotiateCodecsMsg.h \
+    cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcTransferBlindMsg.h \
+    cp/msg/AcUnholdAllConnectionsMsg.h \
+    cp/msg/AcUnholdConnectionMsg.h \
+    cp/msg/AcUnmuteInputConnectionMsg.h \
+    cp/msg/AcYieldFocusMsg.h \
+    cp/msg/CmCommandMsg.h \
+    cp/msg/CmGainFocusMsg.h \
+    cp/msg/CmNotificationMsg.h \
+    cp/msg/CmYieldFocusMsg.h \
+    cp/msg/CpTimerMsg.h \
+    cp/msg/ScCommandMsg.h \
+    cp/msg/ScNotificationMsg.h \
+    cp/state/AlertingSipConnectionState.h \
+    cp/state/BaseSipConnectionState.h \
+    cp/state/DialingSipConnectionState.h \
+    cp/state/DisconnectedSipConnectionState.h \
+    cp/state/EstablishedSipConnectionState.h \
+    cp/state/FailedSipConnectionState.h \
+    cp/state/ISipConnectionState.h \
+    cp/state/IdleSipConnectionState.h \
+    cp/state/NewCallSipConnectionState.h \
+    cp/state/OfferingSipConnectionState.h \
+    cp/state/QueuedSipConnectionState.h \
+    cp/state/RemoteAlertingSipConnectionState.h \
+    cp/state/RemoteOfferingSipConnectionState.h \
+    cp/state/RemoteQueuedSipConnectionState.h \
+    cp/state/SipConnectionStateMachine.h \
+    cp/state/SipConnectionStateObserver.h \
+    cp/state/SipConnectionStateTransition.h \
+    cp/state/StateTransitionMemory.h \
+    cp/state/UnknownSipConnectionState.h \
     ptapi/PtCall.h \
     ptapi/PtConnection.h \
     ptapi/PtDefs.h \

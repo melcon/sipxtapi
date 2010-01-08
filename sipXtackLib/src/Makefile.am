@@ -97,12 +97,13 @@ libsipXtack_la_SOURCES =  \
     net/SipServerBase.cpp \
     net/SipServerBroker.cpp \
     net/SipServerBrokerListener.cpp \
-    net/SipSession.cpp \
     net/SipSrvLookup.cpp \
     net/SipSubscribeClient.cpp \
     net/SipSubscribeServer.cpp \
     net/SipSubscribeServerEventHandler.cpp \
     net/SipSubscriptionMgr.cpp \
+    net/SipTagGenerator.cpp \
+    net/msg/SipTimerMsg.cpp \
     net/SipTcpServer.cpp \
     net/SipTransaction.cpp \
     net/SipTransactionList.cpp \

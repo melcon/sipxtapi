@@ -25,9 +25,40 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
+class AcConnectMsg;
+class AcAcceptConnectionMsg;
+class AcRejectConnectionMsg;
+class AcRedirectConnectionMsg;
+class AcAnswerConnectionMsg;
+class AcDropConnectionMsg;
+class AcTransferBlindMsg;
+class AcHoldConnectionMsg;
+class AcUnholdConnectionMsg;
+class AcLimitCodecPreferencesMsg;
+class AcRenegotiateCodecsMsg;
+class AcSendInfoMsg;
+class AcMuteInputConnectionMsg;
+class AcUnmuteInputConnectionMsg;
 
 /**
- * XCpCall wraps XSipConnection realizing all call functionality.
+ * XCpCall wraps XSipConnection realizing all call functionality. XCpCall is designed to hold
+ * only single XSipConnection, and corresponds to a sip connection and media session.
+ *
+ * Call management functions are asynchronous, and post message to the OsServerTask thread. This is
+ * useful because sending a sip message can take more time, and we don't want to block the call manager
+ * during that time. Also audio functionality can take several 10ms, or even 100ms if media task is
+ * getting overloaded.
+ * Audio functionality is synchronous, except for focus gain/yield. Focus gain/yield always needs to go through
+ * XCpCallManager, since we need a single place to manage focus. It will also ensure that no attept to gain
+ * focus is made before media interface is created.
+ *
+ * Locking strategy:
+ * @see XCpAbstractCall
+ * - local members that require locking are always after comment mentioning which mutex needs to be locked
+ * - const members and pointers/references set from constructor do not require locking, they are deleted by
+ *   caller at suitable time
+ *
+ * This class should have absolute minimum knowledge about sip, all sip communication is done in XSipConnection.
  */
 class XCpCall : public XCpAbstractCall
 {
@@ -35,17 +66,24 @@ class XCpCall : public XCpAbstractCall
 public:
    /* ============================ CREATORS ================================== */
 
-   XCpCall(const UtlString& sId);
+   XCpCall(const UtlString& sId,
+           SipUserAgent& rSipUserAgent,
+           CpMediaInterfaceFactory& rMediaInterfaceFactory,
+           OsMsgQ& rCallManagerQueue,
+           CpCallStateEventListener* pCallEventListener = NULL,
+           SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+           SipSecurityEventListener* pSecurityEventListener = NULL,
+           CpMediaEventListener* pMediaEventListener = NULL);
 
    virtual ~XCpCall();
 
    /* ============================ MANIPULATORS ============================== */
 
    /** Connects call to given address. Uses supplied sip call-id. */
-   virtual OsStatus connect(const UtlString& sSipCallId,
-                            SipDialog& sSipDialog,
+   virtual OsStatus connect(const UtlString& sipCallId,
+                            SipDialog& sipDialog,
                             const UtlString& toAddress,
-                            const UtlString& lineURI,
+                            const UtlString& fromAddress,
                             const UtlString& locationHeader,
                             CP_CONTACT_ID contactId);
 
@@ -76,7 +114,7 @@ public:
    * Temporarily response to be sent with the specified
    * contact URI.
    */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUri);
+   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
 
    /**
    * Answer the incoming terminal connection.
@@ -93,14 +131,14 @@ public:
    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
    * progresses to disconnected and the connection is removed.
    */
-   virtual OsStatus dropConnection(const SipDialog& sSipDialog);
+   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyCall = FALSE);
 
    /** Disconnects call without knowing the sip call-id*/
-   OsStatus dropConnection();
+   OsStatus dropConnection(UtlBoolean bDestroyCall = FALSE);
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
-   virtual OsStatus transferBlind(const SipDialog& sSipDialog,
-                                  const UtlString& sTransferSipUri);
+   virtual OsStatus transferBlind(const SipDialog& sipDialog,
+                                  const UtlString& sTransferSipUrl);
 
    /**
    * Put the specified terminal connection on hold.
@@ -109,7 +147,7 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * no media should be sent.)
    */
-   virtual OsStatus holdConnection(const SipDialog& sSipDialog);
+   virtual OsStatus holdConnection(const SipDialog& sipDialog);
 
    /**
    * Put the specified terminal connection on hold.
@@ -127,7 +165,7 @@ public:
    * (With SIP a re-INVITE message is sent with SDP indicating
    * media should be sent.)
    */
-   virtual OsStatus unholdConnection(const SipDialog& sSipDialog);
+   virtual OsStatus unholdConnection(const SipDialog& sipDialog);
 
    /**
    * Convenience method to take the terminal connection off hold.
@@ -139,28 +177,17 @@ public:
    virtual OsStatus unholdConnection();
 
    /**
-   * Enables discarding of inbound RTP for given call
+   * Enables discarding of inbound RTP at bridge for given call
    * or conference. Useful for server applications without mic/speaker.
+   * DTMF on given call will still be decoded.
    */
-   virtual OsStatus silentHoldRemoteConnection(const SipDialog& sSipDialog);
+   virtual OsStatus muteInputConnection(const SipDialog& sipDialog);
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus silentUnholdRemoteConnection(const SipDialog& sSipDialog);
-
-   /**
-   * Stops outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus silentHoldLocalConnection(const SipDialog& sSipDialog);
-
-   /**
-   * Starts outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   virtual OsStatus silentUnholdLocalConnection(const SipDialog& sSipDialog);
+   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog);
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -185,26 +212,26 @@ public:
    * terminal connection (for example, addition or removal of a codec type).
    * (Sends a SIP re-INVITE.)
    */
-   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sSipDialog,
+   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
                                                 CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
                                                 CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                 const UtlString& sVideoCodecs);
 
    /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const SipDialog& sSipDialog,
+   virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
-                             const UtlString& sContentEncoding,
-                             const UtlString& sContent);
+                             const char* pContent,
+                             const size_t nContentLength);
 
    /* ============================ ACCESSORS ================================= */
 
    /* ============================ INQUIRY =================================== */
 
    /**
-   * Checks if this call has given sip dialog.
+   * Checks if this call has given sip dialog. Uses strict dialog matching.
    */
-   virtual UtlBoolean hasSipDialog(const SipDialog& sSipDialog) const;
+   virtual SipDialog::DialogMatchEnum hasSipDialog(const SipDialog& sipDialog) const;
 
    /** Gets the number of sip connections in this call */
    virtual int getCallCount() const;
@@ -212,29 +239,82 @@ public:
    /** Gets sip call-id of call if its available */
    OsStatus getCallSipCallId(UtlString& sSipCallId) const;
 
-   /** Gets audio energy levels for call */
-   virtual OsStatus getAudioEnergyLevels(int& iInputEnergyLevel,
-                                         int& iOutputEnergyLevel) const;
-
-   /** Gets remote user agent for call or conference */
-   virtual OsStatus getRemoteUserAgent(const SipDialog& sSipDialog,
-                                       UtlString& userAgent) const;
-
-   /** Gets internal id of media connection for given call or conference. Only for unit tests */
-   virtual OsStatus getMediaConnectionId(int& mediaConnID) const;
-
-   /** Gets copy of SipDialog for given call */
-   virtual OsStatus getSipDialog(const SipDialog& sSipDialog,
-                                 SipDialog& dialog) const;
-
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
+
+   /**
+    * Finds connection handling given Sip dialog. Uses strict dialog matching.
+    */
+   virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const;
+
+   /** Gets Sip connection of the call if there is any */
+   virtual UtlBoolean getConnection(OsPtrLock<XSipConnection>& ptrLock) const;
+
+   /** Handles command messages */
+   virtual UtlBoolean handleCommandMessage(const AcCommandMsg& rRawMsg);
+
+   /** Handles command messages */
+   virtual UtlBoolean handleNotificationMessage(const AcNotificationMsg& rRawMsg);
+
+   /** Handles timer messages */
+   virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
+
+   /** Handler for inbound SipMessageEvent messages. */
+   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpCall(const XCpCall& rhs);
 
    XCpCall& operator=(const XCpCall& rhs);
+
+   /** Handles message to create new sip connection for call */
+   OsStatus handleConnect(const AcConnectMsg& rMsg);
+   /** Handles message to accept inbound sip connection */
+   OsStatus handleAcceptConnection(const AcAcceptConnectionMsg& rMsg);
+   /** Handles message to reject inbound sip connection */
+   OsStatus handleRejectConnection(const AcRejectConnectionMsg& rMsg);
+   /** Handles message to redirect inbound sip connection */
+   OsStatus handleRedirectConnection(const AcRedirectConnectionMsg& rMsg);
+   /** Handles message to answer inbound sip connection */
+   OsStatus handleAnswerConnection(const AcAnswerConnectionMsg& rMsg);
+   /** Handles message to drop sip connection */
+   OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
+   /** Handles message to initiate blind call transfer */
+   OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
+   /** Handles message to initiate remote hold on sip connection */
+   OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
+   /** Handles message to initiate remote unhold on sip connection */
+   OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
+   /** Handles message to limit codec preferences for future sip connections */
+   OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
+   /** Handles message to renegotiate codecs for some sip connection */
+   OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
+   /** Handles message to send SIP INFO to on given sip connection */
+   OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
+   /** Handles message to mute inbound RTP in audio bridge */
+   OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
+   /** Handles message to unmute inbound RTP in audio bridge */
+   OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
+
+   /** Finds the correct connection by mediaConnectionId and fires media event for it. */
+   virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
+                                             CP_MEDIA_CAUSE cause,
+                                             CP_MEDIA_TYPE type,
+                                             int mediaConnectionId,
+                                             intptr_t pEventData1,
+                                             intptr_t pEventData2);
+
+   /** Fires given media interface event to listeners. */
+   virtual void fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
+                                            CP_MEDIA_CAUSE cause,
+                                            CP_MEDIA_TYPE type,
+                                            intptr_t pEventData1,
+                                            intptr_t pEventData2);
+
+   // begin of members requiring m_memberMutex
+   XSipConnection* m_pSipConnection;
+   // end of members requiring m_memberMutex
 };
 
 #endif // XCpCall_h__

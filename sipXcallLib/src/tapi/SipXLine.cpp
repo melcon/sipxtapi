@@ -365,7 +365,7 @@ SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI
                   urlURI.getUserId(uriUsername);
                   pData->m_lineUri.getUserId(hostUsername);
 
-                  if (uriUsername.compareTo(hostUsername, UtlString::ignoreCase) == 0)
+                  if (uriUsername.compareTo(hostUsername) == 0)
                   {
                      hLine = pIndex->getValue();
                      break;
@@ -383,7 +383,7 @@ SIPX_LINE sipxLineLookupHandleByURI(SIPX_INSTANCE_DATA* pInst, const char* szURI
 
                      pUrl->getUserId(aliasUsername);
 
-                     if (uriUsername.compareTo(aliasUsername, UtlString::ignoreCase) == 0)
+                     if (uriUsername.compareTo(aliasUsername) == 0)
                      {
                         hLine = pIndex->getValue();
                         break;

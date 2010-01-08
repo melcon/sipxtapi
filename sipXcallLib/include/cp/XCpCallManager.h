@@ -34,20 +34,28 @@
 // FORWARD DECLARATIONS
 template <class T>
 class OsPtrLock; // forward template class declaration
+class OsNotification;
+class UtlSList;
+class SipDialog;
+class SipUserAgent;
+class SipLineProvider;
+class SdpCodecFactory;
 class XCpAbstractCall;
 class XCpCall;
 class XCpConference;
 class CpMediaInterfaceFactory;
-class UtlSList;
-class SipUserAgent;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
-class SipDialog;
+class SipMessageEvent;
+class SipMessage;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
+ *
+ * maxCalls value is not strictly respected, it is only a soft limit that can be exceeded a little bit if there are
+ * lots of inbound calls at the same time. Set it to number of calls that cause 80% of CPU consumption.
  */
 class XCpCallManager : public OsServerTask
 {
@@ -59,14 +67,18 @@ public:
                   SipInfoStatusEventListener* pInfoStatusEventListener,
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
-                  SipUserAgent* pSipUserAgent,
+                  SipUserAgent& rSipUserAgent,
+                  SdpCodecFactory& rSdpCodecFactory,
+                  SipLineProvider* pSipLineProvider,
                   UtlBoolean doNotDisturb,
                   UtlBoolean bEnableICE,
                   UtlBoolean bEnableSipInfo,
+                  UtlBoolean bIsRequiredLineMatch,
                   int rtpPortStart,
                   int rtpPortEnd,
                   int maxCalls, // max calls before sending busy. -1 means unlimited. Doesn't limit outbound calls.
-                  CpMediaInterfaceFactory* pMediaFactory);
+                  int inviteExpireSeconds, // default use 180
+                  CpMediaInterfaceFactory& rMediaInterfaceFactory);
 
    virtual ~XCpCallManager();
 
@@ -76,10 +88,10 @@ public:
 
    virtual void requestShutdown(void);
 
-   /** Creates new empty call, returning id if successful */
+   /** Creates new empty call. If sCallId, new id is generated. Generated id is returned in sCallId */
    OsStatus createCall(UtlString& sCallId);
 
-   /** Creates new empty conference, returning id if successful */
+   /** Creates new empty conference. If sConferenceId, new id is generated. Generated id is returned in sConferenceId */
    OsStatus createConference(UtlString& sConferenceId);
 
    /** 
@@ -89,7 +101,8 @@ public:
    OsStatus connectCall(const UtlString& sCallId,
                         SipDialog& sSipDialog,
                         const UtlString& toAddress,
-                        const UtlString& lineURI,
+                        const UtlString& fullLineUrl,// includes display name, SIP URI
+                        const UtlString& sSipCallId, // can be used to suggest sip call-id
                         const UtlString& locationHeader,
                         CP_CONTACT_ID contactId);
 
@@ -100,7 +113,8 @@ public:
    OsStatus connectConferenceCall(const UtlString& sConferenceId,
                                   SipDialog& sSipDialog,
                                   const UtlString& toAddress,
-                                  const UtlString& lineURI,
+                                  const UtlString& fullLineUrl,// includes display name, SIP URI
+                                  const UtlString& sSipCallId, // can be used to suggest sip call-id
                                   const UtlString& locationHeader,
                                   CP_CONTACT_ID contactId);
 
@@ -133,7 +147,7 @@ public:
     * contact URI.
     */
    OsStatus redirectCallConnection(const UtlString& sCallId,
-                                   const UtlString& sRedirectSipUri);
+                                   const UtlString& sRedirectSipUrl);
 
    /**
     * Answer the incoming terminal connection.
@@ -154,35 +168,70 @@ public:
    OsStatus dropAbstractCallConnection(const UtlString& sAbstractCallId,
                                        const SipDialog& sSipDialog);
 
+   /**
+    * Disconnects all connections of abstract call (call, conference).
+    *
+    * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+    * progresses to disconnected and the connection is removed. The XCpAbstractCall object is not destroyed.
+    */
+   OsStatus dropAllAbstractCallConnections(const UtlString& sAbstractCallId);
+
    /** 
     * Disconnects given simple call not destroying the XCpCall object so that it can be reused.
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
-    * progresses to disconnected and the connection is removed.
+    * progresses to disconnected and the connection is removed. The XCpCall object is not destroyed.
     */
    OsStatus dropCallConnection(const UtlString& sCallId);
+
+   /** 
+   * Disconnects given conference call not destroying the XCpConference object so that it can be reused.
+   *
+   * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
+   * progresses to disconnected and the connection is removed. The XCpConference object is not destroyed.
+   */
+   OsStatus dropConferenceConnection(const UtlString& sConferenceId,
+                                     const SipDialog& sSipDialog);
 
    /**
     * Disconnects given all conference calls not destroying the XCpConference object so that it can be reused.
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
-    * progresses to disconnected and the connection is removed.
+    * progresses to disconnected and the connection is removed. The XCpConference object is not destroyed.
     */
    OsStatus dropAllConferenceConnections(const UtlString& sConferenceId);
 
-   /** Deletes the XCpCall/XCpConference object, doesn't disconnect call */
+   /**
+   * Drops all XCpCall/XCpConference connections, and destroys the object once all connections
+   * are disconnected. Asynchronous method.
+   */
    OsStatus dropAbstractCall(const UtlString& sAbstractCallId);
 
-   /** Deletes the XCpCall object, doesn't disconnect call */
+   /**
+   * Drops XCpCall connection, and destroys the object once connection
+   * is disconnected. Asynchronous method.
+   */
    OsStatus dropCall(const UtlString& sCallId);
 
-   /** Deletes the XCpConference object, doesn't disconnect conference calls */
+   /**
+   * Drops all XCpConference connections, and destroys the object once all connections
+   * are disconnected. Asynchronous method.
+   */
    OsStatus dropConference(const UtlString& sConferenceId);
+
+   /** Deletes the XCpCall/XCpConference object, doesn't disconnect call */
+   OsStatus destroyAbstractCall(const UtlString& sAbstractCallId);
+
+   /** Deletes the XCpCall object, doesn't disconnect call */
+   OsStatus destroyCall(const UtlString& sCallId);
+
+   /** Deletes the XCpConference object, doesn't disconnect conference calls */
+   OsStatus destroyConference(const UtlString& sConferenceId);
 
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    OsStatus transferBlindAbstractCall(const UtlString& sAbstractCallId,
                                       const SipDialog& sSipDialog,
-                                      const UtlString& sTransferSipUri);
+                                      const UtlString& sTransferSipUrl);
 
    /**
     * Transfer an individual participant from one end point to another using REFER w/replaces.
@@ -213,16 +262,18 @@ public:
 
    /** Starts playing audio buffer on call connection. Passed buffer will be copied internally. */
    OsStatus audioBufferPlay(const UtlString& sAbstractCallId,
-                            void* pAudiobuf,
+                            const void* pAudiobuf,
                             size_t iBufSize,
                             int iType,
                             UtlBoolean bRepeat,
                             UtlBoolean bLocal,
                             UtlBoolean bRemote,
+                            UtlBoolean bMixWithMic = FALSE,
+                            int iDownScaling = 100,
                             void* pCookie = NULL);
 
    /** Stops playing audio file or buffer on call connection */
-   OsStatus audioStop(const UtlString& sAbstractCallId);
+   OsStatus audioStopPlayback(const UtlString& sAbstractCallId);
 
    /** Pauses audio playback of file or buffer. */
    OsStatus pauseAudioPlayback(const UtlString& sAbstractCallId);
@@ -312,32 +363,19 @@ public:
    OsStatus unholdCallConnection(const UtlString& sCallId);
 
    /**
-    * Enables discarding of inbound RTP for given call
+    * Enables discarding of inbound RTP at bridge for given call
     * or conference. Useful for server applications without mic/speaker.
+    * DTMF on given call will still be decoded.
     */
-   OsStatus silentHoldRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                   const SipDialog& sSipDialog);
+   OsStatus muteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                            const SipDialog& sSipDialog);
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   OsStatus silentUnholdRemoteAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                     const SipDialog& sSipDialog);
-
-   /**
-   * Stops outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   OsStatus silentHoldLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                  const SipDialog& sSipDialog);
-
-   /**
-   * Starts outbound RTP for given call or conference.
-   * Useful for server applications without mic/speaker.
-   */
-   OsStatus silentUnholdLocalAbstractCallConnection(const UtlString& sAbstractCallId,
-                                                    const SipDialog& sSipDialog);
+   OsStatus unmuteInputAbstractCallConnection(const UtlString& sAbstractCallId,
+                                              const SipDialog& sSipDialog);
 
    /**
     * Rebuild codec factory on the fly with new audio codec requirements
@@ -402,12 +440,21 @@ public:
                    const UtlString& sTurnPassword,
                    int iKeepAlivePeriodSecs = 0);
 
-   /** Sends an INFO message to the other party(s) on the call */
+   /** Sends an INFO message to the other party(s) on the call. Allows transfer of binary data. */
    OsStatus sendInfo(const UtlString& sAbstractCallId,
                      const SipDialog& sSipDialog,
                      const UtlString& sContentType,
-                     const UtlString& sContentEncoding,
-                     const UtlString& sContent);
+                     const char* pContent,
+                     const size_t nContentLength);
+
+   /** Generates new sip call-id */
+   UtlString getNewSipCallId();
+
+   /** Generates new id for call. It is not the call-id field used in sip messages, instead its an internal id */
+   UtlString getNewCallId();
+
+   /** Generates new id for conference */
+   UtlString getNewConferenceId();
 
    /* ============================ ACCESSORS ================================= */
 
@@ -431,11 +478,14 @@ public:
    /** gets total amount of calls. Also calls in conference are counted */
    int getCallCount() const;
 
-   /** Gets ids of all calls */
-   OsStatus getCallIds(UtlSList& idList) const;
+   /** Gets ids of all calls and conferences. Ids are appended into list. */
+   OsStatus getAbstractCallIds(UtlSList& idList) const;
 
-   /** Gets ids of all conferences */
-   OsStatus getConferenceIds(UtlSList& idList) const;
+   /** Gets ids of all calls. Ids are appended into list. */
+   OsStatus getCallIds(UtlSList& callIdList) const;
+
+   /** Gets ids of all conferences. Ids are appended into list. */
+   OsStatus getConferenceIds(UtlSList& conferenceIdList) const;
 
    /** Gets sip call-id of call if its available */
    OsStatus getCallSipCallId(const UtlString& sCallId,
@@ -445,11 +495,6 @@ public:
    OsStatus getConferenceSipCallIds(const UtlString& sConferenceId,
                                     UtlSList& sipCallIdList) const;
 
-   /** Gets audio energy levels for call or conference identified by sId */
-   OsStatus getAudioEnergyLevels(const UtlString& sAbstractCallId,
-                                 int& iInputEnergyLevel,
-                                 int& iOutputEnergyLevel) const;
-
    /** Gets remote user agent for call or conference */
    OsStatus getRemoteUserAgent(const UtlString& sAbstractCallId,
                                const SipDialog& sSipDialog,
@@ -457,6 +502,7 @@ public:
 
    /** Gets internal id of media connection for given call or conference. Only for unit tests */
    OsStatus getMediaConnectionId(const UtlString& sAbstractCallId,
+                                 const SipDialog& sSipDialog,
                                  int& mediaConnID) const;
 
    /** 
@@ -483,23 +529,14 @@ private:
       ID_TYPE_UNKNOWN
    } ID_TYPE;
 
-   /** Generates new id for call. It is not the call-id field used in sip messages, instead its an internal id */
-   UtlString getNewCallId();
-
-   /** Generates new id for conference */
-   UtlString getNewConferenceId();
-
-   /** Generates new sip call-id */
-   UtlString getNewSipCallId();
-
    /** Checks if given Id identifies a call instance */
-   UtlBoolean isCallId(const UtlString& sId) const;
+   static UtlBoolean isCallId(const UtlString& sId);
 
    /** Checks if given Id identifies a conference instance */
-   UtlBoolean isConferenceId(const UtlString& sId) const;
+   static UtlBoolean isConferenceId(const UtlString& sId);
 
    /** Gets the type of Id. Can be call, conference or unknown. */
-   ID_TYPE getIdType(const UtlString& sId) const;
+   static ID_TYPE getIdType(const UtlString& sId);
 
    /**
    * Finds and returns a call or conference as XCpAbstractCall according to given id.
@@ -511,6 +548,17 @@ private:
    */
    UtlBoolean findAbstractCall(const UtlString& sAbstractCallId,
                                OsPtrLock<XCpAbstractCall>& ptrLock) const;
+
+   /**
+   * Gets some abstract call, which is different from supplied id. Useful when some call
+   * is getting shut down, and some resource needs to move to other call, different from
+   * the old one.
+   * @param sID Identifier of call or conference to avoid. Must not be sip call-id.
+   *
+   * @return TRUE if a call or conference was found, FALSE otherwise.
+   */
+   UtlBoolean findSomeAbstractCall(const UtlString& sAvoidAbstractCallId,
+                                   OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
    * Finds and returns a call or conference as XCpAbstractCall according to given sip call-id.
@@ -535,6 +583,15 @@ private:
    UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const;
 
    /**
+   * Finds and returns a XCpCall according to given SipDialog.
+   * Returned OsPtrLock unlocks XCpCall automatically, and the object should not
+   * be used outside its scope.
+   *
+   * @return TRUE if a call was found, FALSE otherwise.
+   */
+   UtlBoolean findCall(const SipDialog& sSipDialog, OsPtrLock<XCpCall>& ptrLock) const;
+
+   /**
    * Finds and returns a XCpConference according to given id.
    * Returned OsPtrLock unlocks XCpConference automatically, and the object should not
    * be used outside its scope.
@@ -542,6 +599,22 @@ private:
    * @return TRUE if a conference was found, FALSE otherwise.
    */
    UtlBoolean findConference(const UtlString& sId, OsPtrLock<XCpConference>& ptrLock) const;
+
+   /**
+   * Finds and returns a XCpConference according to given SipDialog.
+   * Returned OsPtrLock unlocks XCpConference automatically, and the object should not
+   * be used outside its scope.
+   *
+   * @return TRUE if a conference was found, FALSE otherwise.
+   */
+   UtlBoolean findConference(const SipDialog& sSipDialog, OsPtrLock<XCpConference>& ptrLock) const;
+
+   /**
+    * Finds and returns XCpAbstractCall capable of handling given SipMessage.
+    *
+    * @return TRUE if an XCpAbstractCall was found, FALSE otherwise.
+    */
+   UtlBoolean findHandlingAbstractCall(const SipMessage& rSipMessage, OsPtrLock<XCpAbstractCall>& ptrLock) const;
 
    /**
     * Pushes given XCpCall on the call stack. Call must not be locked to avoid deadlocks.
@@ -559,13 +632,13 @@ private:
     * Deletes call identified by Id from stack. Doesn't hang up the call, just shuts
     * media resources and deletes the call.
     */
-   UtlBoolean deleteCall(const UtlString& sId);
+   UtlBoolean deleteCall(const UtlString& sCallId);
 
    /**
     * Deletes conference identified by Id from stack. Doesn't hang up the conference, just shuts
     * media resources and deletes the conference.
     */
-   UtlBoolean deleteConference(const UtlString& sId);
+   UtlBoolean deleteConference(const UtlString& sConferenceId);
 
    /**
    * Deletes abstract call identified by Id from stack. Doesn't hang up the call, just shuts
@@ -586,7 +659,46 @@ private:
    void deleteAllConferences();
 
    /** Checks if we can create new call. Only used when new inbound call is created. */
-   UtlBoolean canCreateNewCall();
+   UtlBoolean checkCallLimit();
+
+   /** Handler for OsMsg::PHONE_APP messages */
+   UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
+
+   /** Handler for inbound SipMessageEvent messages. Tries to find call for event. */
+   UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+
+   /** Handler for inbound SipMessageEvent, for which there is no existing call or conference. */
+   UtlBoolean handleUnknownSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+
+   /** Checks if we should further process SipMessage. Checks are done on the event. Sends response if rejected. */
+   UtlBoolean basicSipMessageEventCheck(const SipMessageEvent& rSipMsgEvent);
+
+   /** Does some basic checks on the SipMessage itself, and sends response if message is rejected. */
+   UtlBoolean basicSipMessageRequestCheck(const SipMessage& rSipMessage);
+
+   /** Creates new XCpCall, starts it and posts message into it for handling. */
+   void createNewInboundCall(const SipMessageEvent& rSipMsgEvent);
+
+   /** Gains focus for given call, defocusing old focused call. */
+   OsStatus doGainFocus(const UtlString& sAbstractCallId,
+                        UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);
+
+   /**
+   * Gains focus for next call, avoiding sAvoidAbstractCallId when looking for next call to focus.
+   * If there is no other call than sAvoidAbstractCallId, then no focus is gained. Meant to be used
+   * from doYieldFocus to gain next focus. Works only if no call has currently focus.
+   */
+   OsStatus doGainNextFocus(const UtlString& sAvoidAbstractCallId);
+
+   /**
+   * Defocuses given call if its focused. Shifts focus to next call if requested.
+   * Has no effect if given call is not focused anymore.
+   */
+   OsStatus doYieldFocus(const UtlString& sAbstractCallId,
+                         UtlBoolean bShiftFocus = TRUE);
+
+   /** Defocuses current call in focus, and lets other call gain focus if requested */
+   OsStatus doYieldFocus(UtlBoolean bShiftFocus = TRUE);
 
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
@@ -606,27 +718,36 @@ private:
    UtlString m_sTurnPassword; ///< turn password
    int m_iTurnKeepAlivePeriodSecs; ///< turn refresh period
 
+   // focus
+   mutable OsMutex m_focusMutex; ///< required for access to m_sAbstractCallInFocus
+   UtlString m_sAbstractCallInFocus; ///< holds id of call currently in focus.
+
    // thread safe fields
    SipCallIdGenerator m_callIdGenerator; ///< generates string ids for calls
    SipCallIdGenerator m_conferenceIdGenerator; ///< generates string ids for conferences
    SipCallIdGenerator m_sipCallIdGenerator; ///< generates string sip call-ids
 
-   CpMediaInterfaceFactory* m_pMediaFactory;
-   CpCallStateEventListener* m_pCallEventListener;
-   SipInfoStatusEventListener* m_pInfoStatusEventListener;
-   SipSecurityEventListener* m_pSecurityEventListener;
-   CpMediaEventListener* m_pMediaEventListener;
-   SipUserAgent* m_pSipUserAgent;
+   CpMediaInterfaceFactory& m_rMediaInterfaceFactory;
+   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
+   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
+   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+   SipUserAgent& m_rSipUserAgent; // sends sip messages
+   SdpCodecFactory& m_rSdpCodecFactory;
+   SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
 
    // thread safe atomic
    UtlBoolean m_bDoNotDisturb; ///< if DND is enabled, we reject inbound calls (INVITE)
    UtlBoolean m_bEnableICE; 
    UtlBoolean m_bEnableSipInfo; ///< whether INFO support is enabled for new calls. If disabled, we send "415 Unsupported Media Type"
+   UtlBoolean m_bIsRequiredLineMatch; ///< if inbound SIP message must correspond to some line to be handled
    int m_maxCalls; ///< maximum number of calls we should support. -1 means unlimited. In effect only when new inbound call arrives.
+   int m_inviteExpireSeconds;
 
    // read only fields
    const int m_rtpPortStart;
    const int m_rtpPortEnd;
+
 };
 
 #endif // XCallManager_h__

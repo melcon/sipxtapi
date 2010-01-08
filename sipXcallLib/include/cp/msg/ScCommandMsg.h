@@ -10,12 +10,14 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef XCpSipConnection_h__
-#define XCpSipConnection_h__
+#ifndef ScCommandMsg_h__
+#define ScCommandMsg_h__
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
-#include <cp/XCpAbstractConnection.h>
+#include <os/OsDefs.h>
+#include <os/OsMsg.h>
+#include <cp/CpMessageTypes.h>
 
 // DEFINES
 // MACROS
@@ -27,17 +29,24 @@
 // FORWARD DECLARATIONS
 
 /**
-* XCpSipConnection realizes sip communication.
+* Sip connection command message. Instructs sip connection to carry out some action.
 */
-class XCpSipConnection : public XCpAbstractConnection
+class ScCommandMsg : public OsMsg
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+   typedef enum
+   {
+      CM_EMPTY = 0,
+   } SubTypesEnum;
+
    /* ============================ CREATORS ================================== */
 
-   XCpSipConnection();
+   ScCommandMsg(SubTypesEnum subType);
 
-   virtual ~XCpSipConnection();
+   virtual ~ScCommandMsg();
+
+   virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
 
@@ -50,7 +59,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /** Private copy constructor */
+   ScCommandMsg(const ScCommandMsg& rMsg);
+
+   /** Private assignment operator */
+   ScCommandMsg& operator=(const ScCommandMsg& rhs);
 
 };
 
-#endif // XCpSipConnection_h__
+#endif // ScCommandMsg_h__

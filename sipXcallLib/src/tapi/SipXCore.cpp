@@ -39,7 +39,7 @@
 #include "net/SipSubscribeServer.h"
 #include "net/SipDialogMgr.h"
 #include "net/SdpCodecFactory.h"
-#include "cp/CallManager.h"
+#include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "tapi/SipXCore.h"
 #include "tapi/sipXtapi.h"
@@ -60,6 +60,7 @@
 #include "tapi/SipXInfoStatusEventListener.h"
 #include "tapi/SipXSecurityEventListener.h"
 #include "tapi/SipXMediaEventListener.h"
+#include <tapi/SipXTransport.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -486,38 +487,24 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->pCodecFactory = new SdpCodecFactory();
 
    // Instantiate the call processing subsystem
-   UtlString utlIdentity(szIdentity);
-
    // create call manager
-   pInst->pCallManager = new CallManager(FALSE,
-      pInst->pLineManager,
-      TRUE, // early media in 180 ringing
-      pInst->pCodecFactory,
-      rtpPortStart, // rtp start
-      rtpPortStart + (2*maxConnections), // rtp end
-      pInst->pSipUserAgent,
-      0, // sipSessionReinviteTimer
+   pInst->pCallManager = new XCpCallManager(
       pInst->pCallEventListener,
       pInst->pInfoStatusEventListener,
       pInst->pSecurityEventListener,
       pInst->pMediaEventListener,
-      NULL, // mgcpStackTask
-      Connection::RING, // availableBehavior
-      NULL, // unconditionalForwardUrl
-      -1, // forwardOnNoAnswerSeconds
-      NULL, // forwardOnNoAnswerUrl
-      Connection::BUSY, // busyBehavior
-      NULL, // sipForwardOnBusyUrl
-      NULL, // speedNums
-      CallManager::SIP_CALL, // phonesetOutgoingCallProtocol
-      4, // numDialPlanDigits
-      5000, // offeringDelay
-      "",
-      CP_MAXIMUM_RINGING_EXPIRE_SECONDS,
-      QOS_LAYER3_LOW_DELAY_IP_TOS,
-      maxConnections, // max calls before we start rejecting inbound calls
-      sipXmediaFactoryFactory(NULL));
-   pInst->pCallManager->setBindIPAddress(szBindToAddr);
+      *pInst->pSipUserAgent,
+      *pInst->pCodecFactory,
+      pInst->pLineManager,
+      FALSE, // doNotDisturb
+      FALSE, // bEnableICE
+      TRUE, // bEnableSipInfo
+      FALSE, // bIsRequiredLineMatch
+      rtpPortStart, // rtpPortStart
+      rtpPortStart + (2 * maxConnections), // rtpPortEnd
+      maxConnections, // maxCalls - max calls before sending busy. -1 means unlimited
+      180, // inviteExpireSeconds
+      *sipXmediaFactoryFactory(NULL));
 
    // Start up the call processing system
    pInst->pCallManager->start();
@@ -694,7 +681,7 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->lock.release();
 
          sessionCallIdList.destroyAll(); // empty the list
-         sipxGetAllCallIds(hInst, sessionCallIdList);
+         sipxGetAllAbstractCallIds(hInst, sessionCallIdList);
          nCallManagerCalls = sessionCallIdList.entries();
 
          if ((nCalls != 0) || (nConferences != 0) || (nLines != 0) || (nCallManagerCalls != 0))
