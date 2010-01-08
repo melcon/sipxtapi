@@ -1567,7 +1567,7 @@ OsStatus SipXMediaInterfaceImpl::getPrimaryCodec(int connectionId,
 
     if (pConnection->mpAudioCodec != NULL)
     {
-        pConnection->mpAudioCodec->getEncodingName(audioCodec);
+        pConnection->mpAudioCodec->getCodecName(audioCodec);
         *audioPayloadType = pConnection->mpAudioCodec->getCodecPayloadId();
     }
 

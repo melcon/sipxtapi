@@ -530,10 +530,6 @@ void XSipConnection::fireSipXMediaEvent(CP_MEDIA_EVENT event,
          m_pMediaEventListener->OnMediaLocalStart(mediaEvent);
          break;
       case CP_MEDIA_LOCAL_STOP:
-         if (pEventData1)
-         {
-            mediaEvent.m_codec = *(CpCodecInfo*)pEventData1;
-         }
          m_pMediaEventListener->OnMediaLocalStop(mediaEvent);
          break;
       case CP_MEDIA_REMOTE_START:

@@ -6574,7 +6574,7 @@ void SipConnection::fireAudioStartEvents(CP_MEDIA_CAUSE cause)
       if (mpMediaInterface->getPrimaryCodec(mConnectionId,
          tapiCodec.m_audioCodec.m_codecName,
          tapiCodec.m_videoCodec.m_codecName,
-         &tapiCodec.m_audioCodec.m_iPayloadType,
+         &tapiCodec.m_audioCodec.m_iPayloadId,
          &tapiCodec.m_videoCodec.m_iPayloadType,
          tapiCodec.m_bIsEncrypted) == OS_SUCCESS)
       {
