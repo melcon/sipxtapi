@@ -94,6 +94,13 @@ public:
                                Url& lineUri,
                                UtlString& userId);
 
+   /** 
+   * Discovers real line identity from sip request. Returns full line url. This is
+   * needed for inbound calls, since request uri can be different than to url after redirect,
+   * and may be slightly different than identity of locally defined line (for example by display name).
+   */
+   void getFullLineUrl(const SipMessage& sipRequest, UtlString& sFullLineUrl) const;
+
    /* ============================ INQUIRY =================================== */
 
    /**

@@ -383,6 +383,102 @@ typedef enum SIPX_TONE_ID
 } SIPX_TONE_ID;                 
 
 /**
+ * Configuration of session timer refresher. Refresher is side which is responsible
+ * for periodically refreshing the session with re-INVITE or UPDATE within session
+ * expiration time. If no session refresh occurs until that period, session may be
+ * torn down. Refresher is negotiated by default.
+ */
+typedef enum SIPX_SESSION_TIMER_REFRESH
+{
+   SIPX_SESSION_REFRESH_AUTO = 0, /**< Refresher negotiation is automatic  */
+   SIPX_SESSION_REFRESH_LOCAL,  /**< Our side will carry out session refresh */
+   SIPX_SESSION_REFRESH_REMOTE   /**< Remote side will carry out session refresh */
+} SIPX_SESSION_TIMER_REFRESH;
+
+/**
+ * Configuration of SIP UPDATE method. By default, processing of inbound UPDATE
+ * is enabled, but sipXtapi will never send UPDATE itself. It is possible to enable
+ * sending UPDATE instead of re-INVITE for hold/unhold/session refresh/codec renegotiation.
+ * UPDATE is faster than re-INVITE, but requires immediate response without user interaction,
+ * and could therefore be rejected.
+ *
+ * UPDATE will only be sent, if remote party supports it. Otherwise re-INVITE will be used, even
+ * if UPDATE is enabled.
+ */
+typedef enum SIPX_SIP_UPDATE_CONFIG
+{
+   SIPX_SIP_UPDATE_DISABLED = 0, /**< UPDATE is completely disabled, UPDATE requests will be rejected,
+                                  *   but sipXtapi will continue advertising support for UPDATE
+                                  *   method. RFC4916 (Connected Identity) will use re-INVITE.
+                                  */
+   SIPX_SIP_UPDATE_ONLY_INBOUND, /**< UPDATE is enabled only for inbound requests - default.
+                                  *   RFC4916 (Connected Identity) will use re-INVITE.
+                                  */
+   SIPX_SIP_UPDATE_BOTH          /**< We may send UPDATE if remote side supports it,
+                                  *   and accept inbound requests. RFC4916 support will use
+                                  *   UPDATE if possible.
+                                  */
+} SIPX_SIP_UPDATE_CONFIG;
+
+/**
+ * Configuration of reliable provisional responses (100rel) support in sipXtapi. Reliable
+ * provisional responses are defined in rfc3262. Reliable 18x responses are important for
+ * interoperability with PTST world, and also bring advantages for early session negotiation.
+ *
+ * SipXtapi supports sending SDP offer in unreliable 18x responses, to enable unreliable early
+ * audio for inbound calls. It is also capable of processing SDP answers in unreliable 18x responses.
+ * This method is unreliable, because the 18x response could be lost, and cannot be used if late SDP
+ * negotiation is employed, when SDP offer of caller not presented in INVITE.
+ *
+ * With reliable 18x responses, it is possible to send SDP offer in the reliable response itself.
+ * Remote side then must send SDP answer in PRACK, and thus early session can be established. Or
+ * if SDP offer was in PRACK, then SDP answer will be in PRACK response.
+ *
+ * 100rel support also enables usage of UPDATE method for negotiation of early session parameters.
+ * So called "early-session" disposition type (rfc3959) is not supported. This however doesn't prevent
+ * negotiation of early session parameters.
+ */
+typedef enum SIPX_100REL_CONFIG
+{
+   SIPX_100REL_PREFER_UNRELIABLE = 0, /**< Prefer sending unreliable 18x responses */
+   SIPX_100REL_PREFER_RELIABLE,       /**< Prefer sending reliable 18x responses, if remote
+                                       *   side supports it - default.
+                                       */
+   SIPX_100REL_REQUIRE_RELIABLE       /**< We will require support for 100rel when connecting
+                                       *   new outbound calls, and prefer sending reliable 18x
+                                       *   responses when possible for inbound calls.
+                                       */
+} SIPX_100REL_CONFIG;
+
+/**
+* We support 2 SDP offering modes - immediate and delayed. Immediate sends
+* offer as soon as possible, to be able to receive early audio.
+* Delayed offering sends SDP offer as late as possible. This saves media
+* resources, in case lots of calls are made which might be rejected.
+*/
+typedef enum SIPX_SDP_OFFERING_MODE
+{
+   SIPX_SDP_OFFERING_IMMEDIATE = 0, /**
+                                     * Offer SDP in the initial INVITE request.
+                                     */
+   SIPX_SDP_OFFERING_DELAYED = 1,   /**
+                                     * Do not offer SDP in INVITE. SDP will be sent in ACK or PRACK for
+                                     * outbound calls.
+                                     */
+} SIPX_SDP_OFFERING_MODE;
+
+/**
+ * Configures how sipXtapi should manage focus for calls. If call is focused then speaker and microphone
+ * are available for it.
+ */
+typedef enum SIPX_FOCUS_CONFIG
+{
+   SIPX_FOCUS_MANUAL = 0,   /**< Setting focus is completely manual, call will not be put in focus */
+   SIPX_FOCUS_IF_AVAILABLE, /**< Focus call only if there is no other focused call */
+   SIPX_FOCUS_ALWAYS        /**< Always focus new call, and defocus previously active call */
+} SIPX_FOCUS_CONFIG;
+
+/**
  * Various log levels available for the sipxConfigEnableLog method.  
  * Developers can choose the amount of detail available in the log.
  * Each level includes messages generated at lower levels.  For 
@@ -1108,7 +1204,9 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst, int bForceShutdown = 
  * @param pSecurity Pointer to an object describing the security attributes 
  *        for the call.
  * @param options Pointer to a SIPX_CALL_OPTIONS structure.
- * @param bSendEarlyMedia flag to send early media (RTP) upon accepting the call
+ * @param bSendSdp Flag to send SDP in 180 Ringing response, resulting in
+ *        early media being sent/received. Either SDP offer or answer will be sent
+ *        depending on SDP negotiation state.
  *
  * @see sipxConfigSetLocationHeader
  * @see sipxConfigSetAudioCodecPreferences
@@ -1117,7 +1215,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
                                         SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
                                         SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                         SIPX_CALL_OPTIONS* options = NULL,
-                                        int bSendEarlyMedia = 0);
+                                        int bSendSdp = 0);
 
 
 /**
@@ -1125,7 +1223,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
  * be invoked before the end user is alerted (before sipxCallAccept).
  * Whenever a new call is received, the application developer should ACCEPT 
  * (proceed to ringing), REJECT (send back busy), or REDIRECT the call.
- * Error code and text are currently ignored.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1162,6 +1259,27 @@ SIPXTAPI_API SIPX_RESULT sipxCallRedirect(const SIPX_CALL hCall,
 SIPXTAPI_API SIPX_RESULT sipxCallAnswer(const SIPX_CALL hCall, 
                                         int bTakeFocus = 1);
 
+/**
+ * Accepts inbound call transfer request. Call which progresses to
+ * CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER state will contain
+ * szReferredBy and szReferTo fields in SIPX_CALLSTATE_INFO structure.
+ * Based on this information, a decision should be made whether to accept
+ * or reject the transfer request. This decision must be made immediately.
+ *
+ * @param hCall Handle to a call. Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallAcceptTransfer(const SIPX_CALL hCall);
+
+/**
+ * Rejects inbound call transfer request.
+ *
+ * @param hCall Handle to a call. Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallRejectTransfer(const SIPX_CALL hCall);
 
 /**
  * Create a new call for the purpose of creating an outbound connection/call.
@@ -1212,7 +1330,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
  *        rendering remote video.
  * @param pSecurity Pointer to an object describing the security attributes for 
  *        the call.
- * @param bTakeFocus Should SIPxua place the this call in focus (engage 
+ * @param takeFocus Should SIPxua place the this call in focus (engage 
  *        local microphone and speaker).  In some cases, application developer
  *        may want to place the call in the background and play audio while 
  *        the user finishes up with their active (in focus) call. 
@@ -1242,7 +1360,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(const SIPX_CALL hCall,
                                          const char* szAddress,
                                          SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
                                          SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
-                                         int bTakeFocus = 1,
+                                         SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_ALWAYS,
                                          SIPX_CALL_OPTIONS* options = NULL,
                                          const char* szSessionCallId = NULL);
 
@@ -1336,47 +1454,51 @@ SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall);
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szId Buffer to store the ID.  A zero-terminated string will be 
+ * @param szSipCallId Buffer to store the call-id.  A zero-terminated string will be 
  *        copied into this buffer on success. Empty string will be passed
  *        if call is not connected.
- * @param iMaxLength Max length of the ID buffer
+ * @param iMaxLength Max length of the szSipCallId buffer
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetID(const SIPX_CALL hCall,
-                                       char* szId, 
-                                       const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetSipCallId(const SIPX_CALL hCall,
+                                              char* szSipCallId, 
+                                              const size_t iMaxLength);
 
 /**
  * Get the SIP identity of the local connection. It may contain a tag.
+ * This value is taken from SIP message from field for outbound calls,
+ * and to field for inbound calls.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szLineUri Buffer to store the ID.  A zero-terminated string will be 
+ * @param szLocalField Buffer to store the ID.  A zero-terminated string will be 
  *        copied into this buffer on success.
  * @param iMaxLength Max length of the ID buffer.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetLocalID(const SIPX_CALL hCall, 
-                                            char* szLineUri, 
-                                            const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetLocalField(const SIPX_CALL hCall, 
+                                               char* szLocalField, 
+                                               const size_t iMaxLength);
 
 
 /**
  * Get the SIP identity of the remote connection. It may contain a tag.
+ * This value is taken from SIP message to field for outbound calls,
+ * and from field for inbound calls.
  * 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szRemoteAddress Buffer to store the ID.  A zero-terminated string will be 
+ * @param szRemoteField Buffer to store the ID.  A zero-terminated string will be 
  *        copied into this buffer on success.
  * @param iMaxLength Max length of the ID buffer.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall, 
-                                             char* szRemoteAddress, 
-                                             const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteField(const SIPX_CALL hCall, 
+                                                char* szRemoteField, 
+                                                const size_t iMaxLength);
 
 /**
- * Get the SIP identity of the contact connection.  The identity represents
- * the originator of the message.
+ * Get the SIP address of local contact.  The identity represents
+ * the originator of the message, and is sent in contact SIP message field.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1385,20 +1507,23 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteID(const SIPX_CALL hCall,
  *        copied into this buffer on success.
  * @param iMaxLength Max length of the ID buffer.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetContactID(const SIPX_CALL hCall, 
-                                              char* szContactAddress, 
-                                              const size_t iMaxLength);
+SIPXTAPI_API SIPX_RESULT sipxCallGetLocalContact(const SIPX_CALL hCall, 
+                                                 char* szContactAddress, 
+                                                 const size_t iMaxLength);
 
 /**
- * Gets the connection ID. For testing only.
+ * Gets the media connection ID. For testing only.
+ *
+ * Media connection ID is an internal identifier used to manage media
+ * connections of sipXmediaAdapterLib.
  * 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
  * @param connectionId Reference to the returned connection identifier.
  */
-SIPXTAPI_API SIPX_RESULT sipxCallGetConnectionId(const SIPX_CALL hCall,
-                                                 int* connectionId);
+SIPXTAPI_API SIPX_RESULT sipxCallGetMediaConnectionId(const SIPX_CALL hCall,
+                                                      int* connectionId);
 
 
 /**
@@ -1420,31 +1545,36 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetConference(const SIPX_CALL hCall,
  * from sent or received SIP INVITE depending on whether it is an outbound
  * or inbound call.
  *
- * @param hCall Handle to a call.  Call handles are obtained either by 
- *        invoking sipxCallCreate or passed to your application through
- *        a listener interface.
- * @param szUri Buffer to store the request URI.  A zero-terminated string will
- *        be copied into this buffer on success.
- * @param iMaxLength Max length of the request URI buffer.
- */
-SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall, 
-                                               char* szUri, 
-                                               const size_t iMaxLength);
-
-
-                                                           
-/**
- * Get the SIP remote contact.
+ * If outbound call was redirected, SIP request URI will contain SIP URI
+ * of the correct party. For redirected calls, sipxCallGetRemoteField
+ * and sipxCallGetRequestURI will yield different results, with sipxCallGetRequestURI
+ * being correct.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param szContact Buffer to store the remote contact.  A zero-terminated
+ * @param szRequestUri Buffer to store the request URI.  A zero-terminated string will
+ *        be copied into this buffer on success.
+ * @param iMaxLength Max length of the request URI buffer.
+ */
+SIPXTAPI_API SIPX_RESULT sipxCallGetRequestURI(const SIPX_CALL hCall, 
+                                               char* szRequestUri, 
+                                               const size_t iMaxLength);
+
+
+
+/**
+ * Get the SIP remote contact. It may contain a display name.
+ *
+ * @param hCall Handle to a call.  Call handles are obtained either by 
+ *        invoking sipxCallCreate or passed to your application through
+ *        a listener interface.
+ * @param szContactAddress Buffer to store the remote contact.  A zero-terminated
  *        string will be copied into this buffer on success.
  * @param iMaxLength Max length of the remote contact buffer.
  */
 SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteContact(const SIPX_CALL hCall, 
-                                                  char* szContact, 
+                                                  char* szContactAddress, 
                                                   const size_t iMaxLength);
 
                                                            
@@ -1728,28 +1858,39 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
                                           void* pCookie = NULL);
 
 /**
- * Blind transfer the specified call to another party.  Monitor the
- * TRANSFER state events for details on the transfer attempt.
+ * Blind transfer the specified call to another party using REFER (rfc3515).
+ * Monitor the TRANSFER state events for details on the transfer attempt.
  *
- * Assuming that all parties are using sipXtapi, all of the calls
- * are active (not held), and the transfer works, you should expect the 
- * following event sequence:
+ * There are three parties involved in blind transfer:
+ * 1.) Transfer controller (this user agent) - sends REFER request
+ * 2.) Transferee - receives REFER request, accepts or rejects it, creates
+ *     new call and drops original call automatically.
+ * 3.) Transfer target - receives INVITE request from transferee
+ *
+ * Received event sequence depends on whether transferee supports sending NOTIFY
+ * requests to transfer controller for the duration of call transfer. If NOTIFY
+ * is not supported by transferee, then some transfer events will be missing.
+ *
+ * SIP message flow of unattended transfer can be seen
+ * on http://www.tech-invite.com/Ti-sip-service-4.html .
+ *
+ * Supression of implicit REFER subscription (norefersub - rfc4488) is supported.
+ * SipXtapi will never ask for supression of subscription, but approves it if asked
+ * in inbound REFER request.
  *
  * <h3>Transferee (party being transfered):</h3>
  *
- * The transfer is implemented as a new call -- this allows
- * the developer to reclaim the original call if the transfer fails. The 
- * NEWCALL event will include a cause for of CALLSTATE_CAUSE_TRANSFER and
- * the hAssociatedCall member of the SIPX_CALLSTATE_INFO structure will
- * include the handle of the original call.
+ * The transfer is implemented as a new call. New call will have different SIPX_CALL
+ * handle, and will not be part of any conference even if original call was.
  *
  * <pre>
+ * Original Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
  * Original Call: MEDIA_LOCAL_STOP
  * Original Call: MEDIA_REMOTE_STOP
- * Original Call: CALLSTATE_REMOTE_HELD
- * Original Call: CALLSTATE_HELD
+ * Original Call: CALLSTATE_DISCONNECTED
+ * Original Call: CALLSTATE_DESTROYED
  *
- * New Call: CALLSTATE_NEWCALL
+ * New Call: CALLSTATE_DIALTONE::CALLSTATE_CAUSE_TRANSFER
  * New Call: CALLSTATE_REMOTE_OFFERING
  * New Call: CALLSTATE_REMOTE_ALERTING
  * New Call: CALLSTATE_CONNECTED
@@ -1757,30 +1898,33 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
  * New Call: MEDIA_REMOTE_START
  * </pre>
  *
- * After the transfer completes, the application developer must destroy 
- * the original call using sipxCallDestroy.
+ * sipxCallAcceptTransfer or sipxCallRejectTransfer must be called
+ * when original call enters CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
+ * state.
+ *
+ * After the transfer completes, the original call will be destroyed automatically
+ * by sipXtapi.
  *
  * <h3>Transfer Controller (this user agent):</h3>
  *
- * The transfer controller will automatically take the call out of 
- * focus. Afterwards, the transfer controller
- * will receive CALLSTATE_TRANSFER_EVENTs indicating the status of
- * the transfer.
+ * The transfer controller will see the following call state sequence:
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
- * Source Call: CALLSTATE_BRIDGED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
+ * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_TRYING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_RINGING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
+ * Source Call: CALLSTATE_DISCONNECTED
  * Source Call: MEDIA_LOCAL_STOP
  * Source Call: MEDIA_REMOTE_STOP
- * Source Call: CALLSTATE_DISCONNECTED
+ * Source Call: CALLSTATE_DESTROYED
  * </pre>
  *
- * Upon success, the call will automatically be disconnected, however,
- * the application layer needs to call sipXcallDestroy to free the handle
- * and call processing resources.
+ * Upon success, the call will be automatically destroyed. Reception of
+ * CALLSTATE_CAUSE_TRANSFER_TRYING, CALLSTATE_CAUSE_TRANSFER_RINGING and
+ * CALLSTATE_CAUSE_TRANSFER_SUCCESS events will depend on reception of corresponding
+ * SIP NOTIFY messages.
  *
  * <h3>Transfer Target (identified by szAddress):</h3>
  *
@@ -1791,14 +1935,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallSendInfo(const SIPX_CALL hCall,
  * New Call: CALLSTATE_NEWCALL::CALLSTATE_CAUSE_NORMAL
  * New Call: CALLSTATE_OFFERING::CALLSTATE_CAUSE_NORMAL
  * New Call: CALLSTATE_ALERTING::CALLSTATE_CAUSE_NORMAL
+ * New Call: MEDIA_LOCAL_START
  * New Call: MEDIA_REMOTE_START
  * New Call: CALLSTATE_CONNECTED::CALLSTATE_CAUSE_NORMAL
- * New Call: MEDIA_LOCAL_START
  * </pre>
  *
  * If the transfer target rejects the call or fails to answer, the transfer 
- * will fail.
- *
+ * will fail. If transfer fails, original calls will return back into
+ * CALLSTATE_CONNECTED state.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1821,18 +1965,38 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * conversation, create a conference and then transfer one leg to 
  * another.
  *
- * The event sequence may differ slightly depending on whether the calls
- * are part of a conference (attended transfer) or individual calls (semi-
- * attended transfer).
+ * Consultative transfer is implemented using in dialog REFER (rfc3515) request.
+ * Out of dialog transfers are not supported and are always rejected.
  *
- * Assuming the calls are part of a conference and not on hold, the event
- * sequences are as follows:
+ * There are three parties involved in consultative transfer:
+ * 1.) Transfer controller (this user agent) - sends REFER request
+ * 2.) Transferee - receives REFER request, accepts or rejects it, creates
+ *     new call and drops original call automatically.
+ * 3.) Transfer target - receives INVITE request from transferee, with Replaces header
+ *     set. If INVITE succeeds, referenced call is dropped.
+ *
+ * Received event sequence depends on whether transferee supports sending NOTIFY
+ * requests to transfer controller for the duration of call transfer. If NOTIFY
+ * is not supported by transferee, then some transfer events will be missing.
+ *
+ * SIP message flow of attended transfer can be seen
+ * on http://www.tech-invite.com/Ti-sip-service-5.html .
+ *
+ * Supression of implicit REFER subscription (norefersub - rfc4488) is supported.
+ * SipXtapi will never ask for supression of subscription, but approves it if asked
+ * in inbound REFER request.
+ *
+ * SipXtapi does not put calls on hold to speed up the call transfer. If user wishes
+ * to place calls on hold, they must be placed on hold using sipxCallHold. User must
+ * then wait for CALLSTATE_HELD event before proceeding with attended transfer.
  *
  * <h3>Transfer Controller (this user agent):</h3>
  *
  * <pre>
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_INITIATED
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_ACCEPTED
+ * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_TRYING
+ * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_RINGING
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER_SUCCESS
  * Source Call: MEDIA_LOCAL_STOP
  * Source Call: MEDIA_REMOTE_STOP
@@ -1840,10 +2004,12 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * Source Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_DESTROYED
  * </pre>
  *
- * The source call will automatically be disconnected if the transfer is 
- * successful. Also, if the source call is part of a conference, the call 
- * will automatically be destroyed.  If not part of a conference, the 
- * application must destroy the call using sipxCallDestroy.
+ * The source call will automatically be destroyed if the transfer is 
+ * successful. CALLSTATE_CAUSE_TRANSFER_ACCEPTED will be fired when REFER
+ * request is accepted with 202 response. Reception of
+ * CALLSTATE_CAUSE_TRANSFER_TRYING, CALLSTATE_CAUSE_TRANSFER_RINGING and
+ * CALLSTATE_CAUSE_TRANSFER_SUCCESS events will depend on reception of corresponding
+ * SIP NOTIFY messages.
  *
  * <pre>
  * Target Call: MEDIA_LOCAL_STOP
@@ -1852,52 +2018,65 @@ SIPXTAPI_API SIPX_RESULT sipxCallBlindTransfer(const SIPX_CALL hCall,
  * Target Call: CALLSTATE_DESTROYED
  * </pre>
  * 
- * If the target call is part of a conference, it will automatically be destroyed.
- * Otherwise, the application layer is responsible for calling 
- * sipxCallDestroy.
+ * Target call will be automatically destroyed when remote party hangs up
+ * after receiving INVITE with Replaces.
  *
  * <h3>Transferee (user agent on other side of hSourceCall):</h3>
  *
  * The transferee will create a new call to the transfer target and 
  * automatically disconnect the original call upon success.  The new call
  * will be created with a cause of CALLSTATE_CAUSE_TRANSFER in the
- * SIPX_CALLSTATE_INFO event data.  The application layer can look at
- * the hAssociatedCall member to connect the new call to the original
- * call. 
+ * SIPX_CALLSTATE_INFO event data.
  *
  * <pre>
+ * Original Call: CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
  * Original Call: MEDIA_LOCAL_STOP
  * Original Call: MEDIA_REMOTE_STOP
- * Original Call: CALLSTATE_REMOTE_HELD
- * Original Call: CALLSTATE_HELD
  * Original Call: CALLSTATE_DISCONNECTED
+ * Original Call: CALLSTATE_DESTROYED
  *
- * New Call: CALLSTATE_NEWCALL::CALLSTATE_CAUSE_TRANSFER
+ * New Call: CALLSTATE_DIALTONE::CALLSTATE_CAUSE_TRANSFER
  * New Call: CALLSTATE_REMOTE_OFFERING
+ * New Call: CALLSTATE_REMOTE_ALERTING
  * New Call: CALLSTATE_CONNECTED
  * New Call: MEDIA_LOCAL_START
  * New Call: MEDIA_REMOTE_START
  * </pre>
  *
- * The application is responsible for calling sipxCallDestroy on the original
- * call after the CALLSTATE_DISCONNECT event.
+ * sipxCallAcceptTransfer or sipxCallRejectTransfer must be called
+ * when original call enters CALLSTATE_TRANSFER_EVENT::CALLSTATE_CAUSE_TRANSFER
+ * state.
+ *
+ * Original call will be automatically destroyed if transfer succeeds.
+ * If transfer fails, new call will be disconnected and original call
+ * will return into CALLSTATE_CONNECTED state.
  *
  * <h3>Transfer Target (user agent on other side of hTargetCall):</h3>
  *
- * The transfer target will automatically receive and answer the inbound call 
- * from the transferee.  After this completes, the original call is 
- * disconnected.
+ * The transfer target will receive INVITE request with Replaces header
+ * from the transferee.  After this completes, the referenced call is 
+ * disconnected. hAssociatedCall member of SIPX_CALLSTATE_INFO will be
+ * set to the value of call referenced by Replaces header.
  *
  * <pre>
- * CALLSTATE_NEWCALL::CALLSTATE_CAUSE_TRANSFERRED
- * CALLSTATE_CONNECTED
- * MEDIA_LOCAL_START
- * MEDIA_REMOTE_START
+ * New Call: CALLSTATE_NEWCALL::CALLSTATE_CAUSE_TRANSFERRED
+ * New Call: CALLSTATE_OFFERING
+ * New Call: CALLSTATE_ALERTING
+ * New Call: CALLSTATE_CONNECTED
+ * New Call: MEDIA_LOCAL_START
+ * New Call: MEDIA_REMOTE_START
+ *
+ * Referenced Call: MEDIA_LOCAL_STOP
+ * Referenced Call: MEDIA_REMOTE_STOP
+ * Referenced Call: CALLSTATE_DISCONNECTED
+ * Referenced Call: CALLSTATE_DESTROYED
  * </pre>
  *
- * Please note that no offering event was fired.  The target does not have
- * the option to accept or reject the call.  If this call was part of a 
- * conference, the new call is automatically added to the same conference.
+ * Transfer target may reject the new call. In that case call transfer will fail,
+ * and original calls will be reclaimed automatically. If call is accepted and
+ * proceeds into CALLSTATE_CONNECTED, referenced call is destroyed automatically.
+ *
+ * New call will not be part of a local conference.
  *
  * @param hSourceCall Handle to the source call (transferee).
  * @param hTargetCall Handle to the target call (transfer target).
@@ -2173,7 +2352,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
  *        rendering remote video.
  * @param pSecurity Pointer to an object describing the security attributes 
  *        for the call.
- * @param bTakeFocus Should SIPxua place the newly answered call in focus
+ * @param takeFocus Should SIPxua place the newly answered call in focus
  *        (engage local microphone and speaker).  In some cases, application
  *        developer may want to answer the call in the background and play
  *        audio while the user finishes up with their active (in focus) call.
@@ -2191,7 +2370,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
                                            SIPX_CONTACT_ID contactId = 0,
                                            SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
                                            SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
-                                           int bTakeFocus = 1,
+                                           SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_IF_AVAILABLE,
                                            SIPX_CALL_OPTIONS* options = NULL);
 
 /**
@@ -3982,19 +4161,111 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRA
  * @param hInst An instance handle obtained from sipxInitialize.
  * @param iSessionInterval Current value of session timer expiration.
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int* iSessionInterval);
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimer(const SIPX_INST hInst,
+                                                   int* iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH* refresh);
 
 /**
  * Sets current session interval defined in RFC4028 (session timers) - time between
- * session updates (INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ * session updates (re-INVITE or UPDATE) in seconds. If refresh fails, call is dropped.
+ * By default re-INVITE is used unless UPDATE is enabled.
  *
  * @param hInst An instance handle obtained from sipxInitialize.
  * @param iSessionInterval New value of session timer expiration. Values lower than 90
  *        are ignored. Minimum value is 90.
+ * @param refresh Configures side which is responsible for session refresh. Can be automatic,
+ *        local, or remote.
  */
-SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
-                                                             int iSessionInterval);
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimer(const SIPX_INST hInst,
+                                                   int iSessionInterval,
+                                                   SIPX_SESSION_TIMER_REFRESH refresh);
+
+/**
+ * Gets configuration of SIP UPDATE method. By default we accept UPDATE, but never send it.
+ * SIP UPDATE is faster, but could potentially be rejected, as it requires an immediate response.
+ * It is possible to enable UPDATE for hold/unhold/session refresh/codec renegotiation. If remote
+ * side doesn't support UPDATE, then re-INVITE will be used.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param updateConfig Configuration of SIP UPDATE method.
+ *
+ * @see SIPX_SIP_UPDATE_CONFIG
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigGetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG* updateConfig);
+
+/**
+ * Sets configuration of SIP UPDATE method.
+ * It is recommended to leave this setting at default value.
+ *
+ * @param hInst An instance handle obtained from sipxInitialize.
+ * @param updateConfig Configuration of SIP UPDATE method.
+ *
+ * @see sipxConfigGetUpdateSetting
+ * @see SIPX_SIP_UPDATE_CONFIG
+ */
+SIPXTAPI_API SIPX_RESULT sipxConfigSetUpdateSetting(const SIPX_INST hInst,
+                                                    SIPX_SIP_UPDATE_CONFIG updateConfig);
+
+/**
+* Gets configuration of 100rel (PRACK) support. 100rel enables sending of reliable provisional
+* responses, which are by default unreliable. SDP may also be negotiated in reliable 18x
+* responses and PRACKs.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param relConfig Configuration 100rel support.
+*
+* @see SIPX_100REL_CONFIG
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG* relConfig);
+
+/**
+* Sets configuration of 100rel (PRACK) support. See rfc3262.
+* It is recommended to leave this setting at default value.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param relConfig Configuration 100rel support.
+*
+* @see sipxConfigGet100relSetting
+* @see SIPX_100REL_CONFIG
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigSet100relSetting(const SIPX_INST hInst,
+                                                    SIPX_100REL_CONFIG relConfig);
+
+/**
+* Gets configuration of SDP offering mode.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param sdpOfferingMode Configuration of SDP offering. Can be early or immediate.
+*        Immediate SDP offering is the default.
+*
+* @see SIPX_SDP_OFFERING_MODE
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE* sdpOfferingMode);
+
+/**
+* Sets configuration of SDP offering mode. This setting only affects the initial
+* INVITE, and not subsequent re-INVITE requests used to hold/unhold call. It is not
+* possible to use late SDP negotiation for unhold, since remote party might disallow
+* audio stream activation.
+* For outbound calls, we can send SDP offer either in initial INVITE, or SDP answer in ACK.
+* If 100rel extension is supported by remote client, and there was no SDP offer in INVITE,
+* one will be received in reliable 18x response. SDP answer will then be sent in PRACK request.
+*
+* Late SDP negotiation saves media resources, if call is likely to be rejected.
+*
+* @param hInst An instance handle obtained from sipxInitialize.
+* @param sdpOfferingMode Configuration of SDP offering. Can be early or immediate.
+*        Immediate SDP offering is the default.
+*
+* @see sipxConfigGetSdpOfferingMode
+* @see SIPX_SDP_OFFERING_MODE
+*/
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSdpOfferingMode(const SIPX_INST hInst,
+                                                      SIPX_SDP_OFFERING_MODE sdpOfferingMode = SIPX_SDP_OFFERING_IMMEDIATE);
+
 //@}
 /** @name Utility Functions */
 //@{

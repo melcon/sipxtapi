@@ -44,6 +44,11 @@ struct SdpSrtpParameters;
  *
  * SDP negotiation tracking is manual, startSdpNegotiation, sdpOfferFinished
  * and sdpAnswerFinished need to be called.
+ *
+ * If SDP negotiation is completed unreliably with 18x response (unreliable), then
+ * SDP negotiation will keep looking as if it was SDP_NEGOTIATION_IN_PROGRESS, but
+ * isSdpNegotiationUnreliablyComplete() will return TRUE, and also remote SDP body
+ * will be available. It will be possible to apply negotiated changes.
  */
 class CpSdpNegotiation
 {
@@ -77,7 +82,7 @@ public:
    typedef enum
    {
       SDP_OFFERING_IMMEDIATE = 0, ///< offer SDP in the first request or the first reliable non failure response (rel 1xx or 200) if was not in inbound request
-      SDP_OFFERING_DELAYED = 1 ///< do not offer SDP in INVITE, offer it only in the first reliable non failure message
+      SDP_OFFERING_DELAYED = 1 ///< do not offer SDP in INVITE, offer it only in the first reliable non failure response
    } SdpOfferingMode;
 
    /* ============================ CREATORS ================================== */
@@ -99,10 +104,10 @@ public:
    void startSdpNegotiation(const SipMessage& sipMessage, UtlBoolean bLocalHoldRequest = TRUE);
 
    /** Call to notify class that SDP offer was received. */
-   void handleInboundSdpOffer(const SipMessage& rOfferSipMessage);
+   UtlBoolean handleInboundSdpOffer(const SipMessage& rOfferSipMessage);
 
    /** Call to notify class that SDP answer was received */
-   void handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage);
+   UtlBoolean handleInboundSdpAnswer(const SipMessage& rAnswerSipMessage);
 
    /** Resets negotiation of SDP. Not required to start new sdp negotiation. */
    void resetSdpNegotiation();
@@ -202,8 +207,11 @@ public:
    /** Returns TRUE if SDP negotiation is in progress */
    UtlBoolean isSdpNegotiationInProgress() const;
 
-   /** Returns TRUE if SDP negotiation is complete */
+   /** Returns TRUE if SDP negotiation is reliably complete */
    UtlBoolean isSdpNegotiationComplete() const;
+
+   /** Returns TRUE if SDP negotiation is unreliably complete (after SDP answer in unreliable 18x response) */
+   UtlBoolean isSdpNegotiationUnreliablyComplete() const;
 
    /** Returns TRUE if SDP negotiation was initiated locally (offer was sent) */
    UtlBoolean isLocallyInitiated() const { return m_bLocallyInitiated; }
@@ -223,7 +231,8 @@ public:
 
    /**
     * Returns TRUE if given sip message belongs to transaction involved in SDP negotiation.
-    * This can be used to detect retransmits.
+    * This can be used to detect retransmits. This method will not work for inbound PRACK,
+    * since PRACK request will have different cseq than INVITE/UPDATE request.
     */
    UtlBoolean isInSdpNegotiation(const SipMessage& sipMessage) const;
 
@@ -258,7 +267,8 @@ private:
 
    SdpNegotiationState m_negotiationState; ///< keeps track of SDP negotiation state
    UtlBoolean m_bSdpOfferFinished; ///< TRUE if SDP offer was sent or received
-   UtlBoolean m_bSdpAnswerFinished; ///< TRUE if SDP answer was sent or received
+   UtlBoolean m_bSdpAnswerFinished; ///< TRUE if reliable SDP answer was sent or received
+   UtlBoolean m_bUnreliableSdpAnswerFinished; ///< TRUE if unreliable SDP answer was sent or received
    UtlBoolean m_bLocallyInitiated; ///< TRUE if we are the SDP negotiation initiator
 
    UtlBoolean m_bLocalHoldRequest; ///< TRUE if SDP with a=sendonly should be used - for initiating hold

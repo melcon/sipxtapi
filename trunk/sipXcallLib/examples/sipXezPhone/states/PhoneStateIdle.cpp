@@ -62,7 +62,7 @@ PhoneState* PhoneStateIdle::OnOffer(SIPX_CALL hCall)
     
     // get remote sip url
     char szIncomingID[256];
-    sipxCallGetRemoteID(hCall, szIncomingID, 256);    
+    sipxCallGetRemoteField(hCall, szIncomingID, 256);    
     
     const UtlString* pCertFile = sipXezPhoneSettings::getInstance().lookupCertificate(szIncomingID);
     

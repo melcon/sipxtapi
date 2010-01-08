@@ -238,7 +238,12 @@ void SipDialog::updateDialog(const SipMessage& message)
          {
             if(message.isResponse())
             {
-               m_remoteContactField.fromString(contactField);
+               if (message.isTargetRefresh() &&
+                   responseCode >= SIP_1XX_CLASS_CODE &&
+                   responseCode < SIP_3XX_CLASS_CODE)
+               {
+                  m_remoteContactField.fromString(contactField);
+               }
             }
             else
             {
@@ -297,7 +302,10 @@ void SipDialog::updateDialog(const SipMessage& message)
             }
             else
             {
-               m_remoteContactField.fromString(contactField);
+               if (message.isTargetRefresh())
+               {
+                  m_remoteContactField.fromString(contactField);
+               }
             }
          }
 
@@ -362,13 +370,18 @@ void SipDialog::setRequestData(SipMessage& request, const UtlString& method, int
    if (cseqNum == -1)
    {
       // Get the next local Cseq, the method should already be set
-      getNextLocalCseq();
+      cseqNum = getNextLocalCseq();
    }
    else
    {
-      m_iLastLocalCseq = cseqNum;
+      if (cseqNum > m_iLastLocalCseq)
+      {
+         // don't overwrite local cseq num with lower value. It might happen, as somebody might be trying
+         // to send request with previous seq num (for example ACK)
+         m_iLastLocalCseq = cseqNum;
+      }
    }
-   request.setCSeqField(m_iLastLocalCseq, method);
+   request.setCSeqField(cseqNum, method);
 
    // Set the route header according to the route set
    if(!m_sRouteSet.isNull())

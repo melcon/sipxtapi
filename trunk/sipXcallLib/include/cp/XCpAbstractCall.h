@@ -48,6 +48,7 @@ class XCpCallConnectionListener;
 class CpMediaInterfaceFactory;
 class CpMediaInterface;
 class CpCallStateEventListener;
+class XCpCallControl;
 class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
@@ -68,12 +69,17 @@ class AcAudioToneStopMsg;
 class AcMuteInputConnectionMsg;
 class AcUnmuteInputConnectionMsg;
 class AcLimitCodecPreferencesMsg;
+class AcSubscribeMsg;
+class AcUnsubscribeMsg;
+class AcRejectTransferMsg;
+class AcAcceptTransferMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
 class AcTimerMsg;
 class ScTimerMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
+class SipLineProvider;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -111,12 +117,19 @@ public:
 
    XCpAbstractCall(const UtlString& sId,
                    SipUserAgent& rSipUserAgent,
+                   XCpCallControl& rCallControl,
+                   SipLineProvider* pSipLineProvider,
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
                    const SdpCodecList& rDefaultSdpCodecList,
                    OsMsgQ& rCallManagerQueue,
                    const CpNatTraversalConfig& rNatTraversalConfig,
                    const UtlString& sLocalIpAddress,
-                   int inviteExpireSeconds,
+                   int sessionTimerExpiration,
+                   CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                   CP_SIP_UPDATE_CONFIG updateSetting,
+                   CP_100REL_CONFIG c100relSetting,
+                   CP_SDP_OFFERING_MODE sdpOfferingMode,
+                   int inviteExpiresSeconds,
                    XCpCallConnectionListener* pCallConnectionListener = NULL,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -136,7 +149,11 @@ public:
                             const UtlString& toAddress,
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId) = 0;
+                            CP_CONTACT_ID contactId,
+                            CP_FOCUS_CONFIG focusConfig,
+                            const UtlString& replacesField = NULL, // value of Replaces INVITE field
+                            CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                            const SipDialog* pCallbackSipDialog = NULL) = 0;
 
    /** 
    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
@@ -145,7 +162,8 @@ public:
    * RINGING state. This causes a SIP 180 Ringing provisional
    * response to be sent.
    */
-   virtual OsStatus acceptConnection(const UtlString& locationHeader,
+   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
+                                     const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId) = 0;
 
    /**
@@ -177,6 +195,18 @@ public:
    virtual OsStatus answerConnection() = 0;
 
    /**
+   * Accepts transfer request on given connection. Must be called
+   * when in dialog REFER request is received to follow transfer.
+   */
+   virtual OsStatus acceptConnectionTransfer(const SipDialog& sipDialog);
+
+   /**
+   * Rejects transfer request on given connection. Must be called
+   * when in dialog REFER request is received to reject transfer.
+   */
+   virtual OsStatus rejectConnectionTransfer(const SipDialog& sipDialog);
+
+   /**
     * Disconnects given call with given sip call-id
     *
     * The appropriate disconnect signal is sent (e.g. with SIP BYE or CANCEL).  The connection state
@@ -189,6 +219,15 @@ public:
    /** Blind transfer given call to sTransferSipUrl. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
                                   const UtlString& sTransferSipUrl) = 0;
+
+   /**
+    * Consultative transfer given call to target call. Works for simple call and call in a conference. 
+    *
+    * @param sourceSipDialog Source call identifier.
+    * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
+    */
+   virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
+                                         const SipDialog& targetSipDialog) = 0;
 
    /** Starts DTMF tone on call connection.*/
    OsStatus audioToneStart(int iToneId,
@@ -299,6 +338,21 @@ public:
                              const size_t nContentLength,
                              void* pCookie) = 0;
 
+   /**
+   * Subscribe for given notification type with given target sip call.
+   * ScNotificationMsg messages will be sent to callbackSipDialog.
+   */
+   OsStatus subscribe(CP_NOTIFICATION_TYPE notificationType,
+                      const SipDialog& targetSipDialog,
+                      const SipDialog& callbackSipDialog);
+
+   /**
+   * Unsubscribes for given notification type with given target sip call.
+   */
+   OsStatus unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                        const SipDialog& targetSipDialog,
+                        const SipDialog& callbackSipDialog);
+
    /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
    virtual OsStatus acquireExclusive();
 
@@ -351,8 +405,8 @@ public:
    OsStatus getSipDialog(const SipDialog& sipDialog,
                          SipDialog& sOutputSipDialog) const;
 
-   /** Returns TRUE if call is in focus. */
-   UtlBoolean isFocused() const { return m_bIsFocused; }
+   /** Checks if given call exists and is established. */
+   UtlBoolean isConnectionEstablished(const SipDialog& sipDialog) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -422,6 +476,13 @@ protected:
    /** Limits codec preferences for future renegotiations */
    OsStatus doLimitCodecPreferences(const UtlString& sAudioCodecs, const UtlString& sVideoCodecs);
 
+   /** 
+    * Discovers real line identity for new inbound call. Returns full line url. This is
+    * needed for inbound calls, since request uri can be different than to url after redirect,
+    * and may be slightly different than identity of locally defined line (for example by display name).
+    */
+   UtlString getRealLineIdentity(const SipMessage& sipRequest) const;
+
    static const int CALL_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization
@@ -430,15 +491,20 @@ protected:
 
    // no mutex required, used only from OsServerTask
    CpMediaInterface* m_pMediaInterface; ///< media interface handling RTP
-   UtlBoolean m_bIsFocused; ///< TRUE if this abstract call is focused
 
    // thread safe
    SipTagGenerator m_sipTagGenerator; ///< generator for sip tags
    const UtlString m_sId; ///< unique identifier of the abstract call
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
+   XCpCallControl& m_rCallControl; ///< interface for managing other calls
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
    const SdpCodecList m_rDefaultSdpCodecList; ///< default SdpCodec factory for new calls. Independent of codec list of call manager.
+   const SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
+
+   // thread safe, atomic
+   CP_FOCUS_CONFIG m_focusConfig; ///< configuration of media focus policy
+
    // set only once and thread safe
    XCpCallConnectionListener* m_pCallConnectionListener; ///< listener for updating call stack
    CpCallStateEventListener* m_pCallEventListener; ///< listener for firing call events
@@ -449,7 +515,12 @@ protected:
    const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
    const UtlString m_sLocalIpAddress; ///< default local IP for media interface
    const UtlString m_sLocale; ///< locale for DTMF, empty by default
-   const int m_inviteExpireSeconds; ///< time between RFC4028 session refreshes
+   const int m_sessionTimerExpiration; ///< time between RFC4028 session refreshes
+   const CP_SESSION_TIMER_REFRESH m_sessionTimerRefresh; ///< type of refresh to use with session timer
+   const CP_SIP_UPDATE_CONFIG m_updateSetting; ///< configuration of SIP UPDATE method
+   const CP_100REL_CONFIG m_100relSetting; ///< configuration of 100rel support
+   const CP_SDP_OFFERING_MODE m_sdpOfferingMode; ///< SDP offering mode configuration. Late or immediate.
+   const int m_inviteExpiresSeconds; ///< time in which INVITE must be answered with final response in seconds
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -495,6 +566,18 @@ private:
    /** Handles message to limit codec preferences for future sip connections */
    OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
 
+   /** Handles message to subscribe to notifications */
+   OsStatus handleSubscribe(const AcSubscribeMsg& rMsg);
+
+   /** Handles message to unsubscribe from notifications */
+   OsStatus handleUnsubscribe(const AcUnsubscribeMsg& rMsg);
+
+   /** Handles message to accept call transfer */
+   OsStatus handleAcceptTransfer(const AcAcceptTransferMsg& rMsg);
+
+   /** Handles message to reject call transfer */
+   OsStatus handleRejectTransfer(const AcRejectTransferMsg& rMsg);
+
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
 
@@ -518,6 +601,12 @@ private:
                                              int mediaConnectionId,
                                              intptr_t pEventData1,
                                              intptr_t pEventData2) = 0;
+
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   virtual void onFocusGained() = 0;
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   virtual void onFocusLost() = 0;
 
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);

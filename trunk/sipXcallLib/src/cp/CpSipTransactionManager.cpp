@@ -264,6 +264,11 @@ void* CpSipTransactionManager::getTransactionData(const UtlString& sipMethod, in
    return NULL;
 }
 
+int CpSipTransactionManager::getInviteCSeqNum() const
+{
+   return m_iInviteCSeq;
+}
+
 /* ============================ INQUIRY =================================== */
 
 CpSipTransactionManager::TransactionState CpSipTransactionManager::getTransactionState(const UtlString& sipMethod,
@@ -330,7 +335,7 @@ CpSipTransactionManager::InviteTransactionState CpSipTransactionManager::getInvi
 
 UtlBoolean CpSipTransactionManager::isInviteTransactionActive() const
 {
-   return m_inviteTransactionState == CpSipTransactionManager::INITIAL_INVITE_ACTIVE;
+   return m_inviteTransactionState != CpSipTransactionManager::INVITE_INACTIVE;
 }
 
 UtlBoolean CpSipTransactionManager::isInviteTransaction(int cseqNum) const

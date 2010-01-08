@@ -27,6 +27,7 @@
 #define CP_CALL_HISTORY_LENGTH 50
 
 #define CP_MAXIMUM_RINGING_EXPIRE_SECONDS 180
+#define CP_MINIMUM_RINGING_EXPIRE_SECONDS 1
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -285,6 +286,110 @@ typedef enum
    CP_CALLSTATE_CAUSE_SERVER_ERROR,/**< Result of unknown 5xx response */
    CP_CALLSTATE_CAUSE_GLOBAL_ERROR,/**< Result of unknown 6xx response */
 } CP_CALLSTATE_CAUSE;
+
+/**
+* Configuration of session timer refresher. Refresher is side which is responsible
+* for periodically refreshing the session with re-INVITE or UPDATE within session
+* expiration time. If no session refresh occurs until that period, session may be
+* torn down. Refresher is negotiated by default.
+*/
+typedef enum CP_SESSION_TIMER_REFRESH
+{
+   CP_SESSION_REFRESH_AUTO = 0, /**< Refresher negotiation is automatic  */
+   CP_SESSION_REFRESH_LOCAL,  /**< Our side will carry out session refresh */
+   CP_SESSION_REFRESH_REMOTE   /**< Remote side will carry out session refresh */
+} CP_SESSION_TIMER_REFRESH;
+
+/**
+ * Configuration of SIP UPDATE method. By default, processing of inbound UPDATE
+ * is enabled, but sipXtapi will never send UPDATE itself. It is possible to enable
+ * sending UPDATE instead of re-INVITE for hold/unhold/session refresh/codec renegotiation.
+ * UPDATE is faster than re-INVITE, but requires immediate response without user interaction,
+ * and could therefore be rejected.
+ *
+ * UPDATE will only be sent, if remote party supports it. Otherwise re-INVITE will be used, even
+ * if UPDATE is enabled.
+ */
+typedef enum CP_SIP_UPDATE_CONFIG
+{
+   CP_SIP_UPDATE_DISABLED = 0, /**< UPDATE is completely disabled, UPDATE requests will be rejected,
+                                *   but sipXtapi will continue advertising support for UPDATE
+                                *   method. RFC4916 (Connected Identity) will use re-INVITE.
+                                */
+   CP_SIP_UPDATE_ONLY_INBOUND, /**< UPDATE is enabled only for inbound requests - default.
+                                *   RFC4916 (Connected Identity) will use re-INVITE.
+                                */
+   CP_SIP_UPDATE_BOTH          /**< We may send UPDATE if remote side supports it,
+                                *   and accept inbound requests. RFC4916 support will use
+                                *   UPDATE if possible.
+                                */
+} CP_SIP_UPDATE_CONFIG;
+
+/**
+ * Configuration of reliable provisional responses (100rel) support in sipXtapi. Reliable
+ * provisional responses are defined in rfc3262. Reliable 18x responses are important for
+ * interoperability with PTST world, and also bring advantages for early session negotiation.
+ *
+ * SipXtapi supports sending SDP offer in unreliable 18x responses, to enable unreliable early
+ * audio for inbound calls. It is also capable of processing SDP answers in unreliable 18x responses.
+ * This method is unreliable, because the 18x response could be lost, and cannot be used if late SDP
+ * negotiation is employed, when SDP offer of caller not presented in INVITE.
+ *
+ * With reliable 18x responses, it is possible to send SDP offer in the reliable response itself.
+ * Remote side then must send SDP answer in PRACK, and thus early session can be established. Or
+ * if SDP offer was in PRACK, then SDP answer will be in PRACK response.
+ *
+ * 100rel support also enables usage of UPDATE method for negotiation of early session parameters.
+ * So called "early-session" disposition type (rfc3959) is not supported. This however doesn't prevent
+ * negotiation of early session parameters.
+ */
+typedef enum CP_100REL_CONFIG
+{
+   CP_100REL_PREFER_UNRELIABLE = 0, /**< Prefer sending unreliable 18x responses */
+   CP_100REL_PREFER_RELIABLE,       /**< Prefer sending reliable 18x responses, if remote
+                                     *   side supports it - default.
+                                     */
+   CP_100REL_REQUIRE_RELIABLE       /**< We will require support for 100rel when connecting
+                                     *   new outbound calls, and prefer sending reliable 18x
+                                     *   responses when possible for inbound calls.
+                                     */
+} CP_100REL_CONFIG;
+
+/**
+* We support 2 SDP offering modes - immediate and delayed. Immediate sends
+* offer as soon as possible, to be able to receive early audio.
+* Delayed offering sends SDP offer as late as possible. This saves media
+* resources, in case lots of calls are made which might be rejected.
+*/
+typedef enum CP_SDP_OFFERING_MODE
+{
+   CP_SDP_OFFERING_IMMEDIATE = 0, /**
+                                   * Offer SDP in the initial INVITE request.
+                                   */
+   CP_SDP_OFFERING_DELAYED = 1,   /**
+                                  * Do not offer SDP in INVITE. SDP will be sent in ACK or PRACK for
+                                  * outbound calls.
+                                   */
+} CP_SDP_OFFERING_MODE;
+
+/**
+* Configures how sipXcallLib should manage focus for calls. If call is focused then speaker and microphone
+* are available for it.
+*/
+typedef enum CP_FOCUS_CONFIG
+{
+   CP_FOCUS_MANUAL = 0,   /**< Setting focus is completely manual, call will not be put in focus */
+   CP_FOCUS_IF_AVAILABLE, /**< Focus call only if there is no other focused call */
+   CP_FOCUS_ALWAYS        /**< Always focus new call, and defocus previously active call */
+} CP_FOCUS_CONFIG;
+
+/**
+ * Defines types of notifications that can exist between call connections.
+ */
+typedef enum CP_NOTIFICATION_TYPE
+{
+   CP_NOTIFICATION_CONNECTION_STATE
+} CP_NOTIFICATION_TYPE;
 
 // MACROS
 // GLOBAL VARIABLES

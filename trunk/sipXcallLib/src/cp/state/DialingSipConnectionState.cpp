@@ -39,11 +39,12 @@
 
 DialingSipConnectionState::DialingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                      SipUserAgent& rSipUserAgent,
+                                                     XCpCallControl& rCallControl,
                                                      CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                      CpMessageQueueProvider& rMessageQueueProvider,
                                                      XSipConnectionEventSink& rSipConnectionEventSink,
                                                      const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
@@ -66,6 +67,8 @@ void DialingSipConnectionState::handleStateEntry(StateEnum previousState, const 
 {
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
+
+   notifyConnectionStateObservers();
 
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry dialing connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
@@ -90,9 +93,12 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
                                                                  const UtlString& toAddress,
                                                                  const UtlString& fromAddress,
                                                                  const UtlString& locationHeader,
-                                                                 CP_CONTACT_ID contactId)
+                                                                 CP_CONTACT_ID contactId,
+                                                                 const UtlString& replacesField)
 {
    m_rStateContext.m_contactId = contactId;
+   m_rStateContext.m_locationHeader = locationHeader;
+   m_rStateContext.m_sessionTimerProperties.reset(TRUE);
    result = OS_FAILED;
 
    SipMessage sipInvite;
@@ -102,18 +108,15 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
    secureUrl(fromField);
    UtlString contactUrl = buildContactUrl(fromField); // fromUrl without tag
    fromField.setFieldParameter("tag", localTag);
-   sipInvite.setSecurityAttributes(m_rStateContext.m_pSecurity);
-
-   m_rStateContext.m_sessionTimerProperties.setSessionExpires(m_rStateContext.m_defaultSessionExpiration);
 
    sipInvite.setInviteData(fromField.toString(), toAddress,
-      NULL, contactUrl, sipCallId,
-      cseqNum, m_rStateContext.m_defaultSessionExpiration);
+      NULL, contactUrl, sipCallId, cseqNum);
+   prepareSessionTimerRequest(sipInvite); // add session timer parameters
+   maybeRequire100rel(sipInvite); // optionally require 100rel
 
-   if (!locationHeader.isNull())
+   if (!replacesField.isNull())
    {
-      m_rStateContext.m_locationHeader = locationHeader;
-      sipInvite.setLocationField(locationHeader);
+      sipInvite.setReplacesField(replacesField); // used in consultative transfer, references some sip dialog
    }
 
    initializeSipDialog(sipInvite);
@@ -136,6 +139,8 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
          return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, &memory);
       }
    }
+   sipInvite.setExpiresField(m_rStateContext.m_inviteExpiresSeconds);
+   startInviteExpirationTimer(m_rStateContext.m_inviteExpiresSeconds, cseqNum, TRUE);
 
    // try to send sip message
    UtlBoolean sendSuccess = sendMessage(sipInvite);

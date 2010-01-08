@@ -43,7 +43,7 @@ const UtlContainableType SipLine::TYPE = "SipLine";
 SipLine::SipLine(const Url& fullLineUrl,
                  LineStateEnum state)
 {
-   m_fullLineUrl = SipLine::getFullLineUrl(fullLineUrl);
+   m_fullLineUrl = SipLine::buildFullLineUrl(fullLineUrl);
    //then get uri from user entered url ...uri is complete in it
    m_lineUri = SipLine::getLineUri(fullLineUrl);
    m_currentState = state;
@@ -330,7 +330,7 @@ UtlBoolean SipLine::areLineUrisEqual(const Url& leftUri, const Url& rightUri)
    return leftUri.isUserHostEqual(rightUri);
 }
 
-Url SipLine::getFullLineUrl(const Url& url)
+Url SipLine::buildFullLineUrl(const Url& url)
 {
    Url fullLineUrl(url.toString());
    fullLineUrl.includeAngleBrackets();
@@ -339,7 +339,7 @@ Url SipLine::getFullLineUrl(const Url& url)
    return fullLineUrl;
 }
 
-Url SipLine::getFullLineUrl(const UtlString& sUrl)
+Url SipLine::buildFullLineUrl(const UtlString& sUrl)
 {
    Url fullLineUrl(sUrl);
    fullLineUrl.includeAngleBrackets();

@@ -37,6 +37,7 @@ class AcHoldConnectionMsg;
 class AcUnholdConnectionMsg;
 class AcRenegotiateCodecsMsg;
 class AcSendInfoMsg;
+class AcTransferConsultativeMsg;
 
 /**
  * XCpCall wraps XSipConnection realizing all call functionality. XCpCall is designed to hold
@@ -66,12 +67,19 @@ public:
 
    XCpCall(const UtlString& sId,
            SipUserAgent& rSipUserAgent,
+           XCpCallControl& rCallControl,
+           SipLineProvider* pSipLineProvider,
            CpMediaInterfaceFactory& rMediaInterfaceFactory,
            const SdpCodecList& rDefaultSdpCodecList,
            OsMsgQ& rCallManagerQueue,
            const CpNatTraversalConfig& rNatTraversalConfig,
            const UtlString& sLocalIpAddress,
-           int inviteExpireSeconds,
+           int sessionTimerExpiration,
+           CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+           CP_SIP_UPDATE_CONFIG updateSetting,
+           CP_100REL_CONFIG c100relSetting,
+           CP_SDP_OFFERING_MODE sdpOfferingMode,
+           int inviteExpiresSeconds,
            XCpCallConnectionListener* pCallConnectionListener = NULL,
            CpCallStateEventListener* pCallEventListener = NULL,
            SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -89,7 +97,11 @@ public:
                             const UtlString& toAddress,
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId);
+                            CP_CONTACT_ID contactId,
+                            CP_FOCUS_CONFIG focusConfig,
+                            const UtlString& replacesField = NULL, // value of Replaces INVITE field
+                            CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                            const SipDialog* pCallbackSipDialog = NULL);
 
    /** 
    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
@@ -98,7 +110,8 @@ public:
    * RINGING state. This causes a SIP 180 Ringing provisional
    * response to be sent.
    */
-   virtual OsStatus acceptConnection(const UtlString& locationHeader,
+   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
+                                     const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId);
 
    /**
@@ -143,6 +156,15 @@ public:
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
                                   const UtlString& sTransferSipUrl);
+
+   /**
+   * Consultative transfer given call to target call. Works for simple call and call in a conference. 
+   *
+   * @param sourceSipDialog Source call identifier.
+   * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
+   */
+   virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
+                                         const SipDialog& targetSipDialog);
 
    /**
    * Put the specified terminal connection on hold.
@@ -235,6 +257,9 @@ protected:
    /** Handles timer messages */
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
+   /** Handler for inbound SipMessageEvent messages. */
+   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
    XCpCall(const XCpCall& rhs);
@@ -257,6 +282,8 @@ private:
    OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg);
    /** Handles message to initiate blind call transfer */
    OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
+   /** Handles message to initiate consultative call transfer */
+   OsStatus handleTransferConsultative(const AcTransferConsultativeMsg& rMsg);
    /** Handles message to initiate remote hold on sip connection */
    OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
    /** Handles message to initiate remote unhold on sip connection */
@@ -267,7 +294,7 @@ private:
    OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
 
    /** Creates new XSipConnection for the call, if it doesn't exist yet */
-   void createSipConnection(const SipDialog& sipDialog);
+   void createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl);
 
    /** Destroys XSipConnection if it exists */
    void destroySipConnection();
@@ -286,6 +313,12 @@ private:
                                             CP_MEDIA_TYPE type,
                                             intptr_t pEventData1,
                                             intptr_t pEventData2);
+
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   virtual void onFocusGained();
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   virtual void onFocusLost();
 
    // begin of members requiring m_memberMutex
    XSipConnection* m_pSipConnection; ///< XSipConnection handling Sip messages. Use destroySipConnection to delete it.

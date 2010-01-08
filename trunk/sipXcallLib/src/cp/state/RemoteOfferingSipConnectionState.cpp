@@ -38,11 +38,12 @@
 
 RemoteOfferingSipConnectionState::RemoteOfferingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                                    SipUserAgent& rSipUserAgent,
+                                                                   XCpCallControl& rCallControl,
                                                                    CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                                    CpMessageQueueProvider& rMessageQueueProvider,
                                                                    XSipConnectionEventSink& rSipConnectionEventSink,
                                                                    const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
@@ -65,6 +66,8 @@ void RemoteOfferingSipConnectionState::handleStateEntry(StateEnum previousState,
 {
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
+
+   notifyConnectionStateObservers();
 
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry remote offering connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
@@ -112,23 +115,14 @@ SipConnectionStateTransition* RemoteOfferingSipConnectionState::processInviteRes
    case SIP_ACCEPTED_CODE:
       {
          // send ACK to 200 OK
-         handleInvite2xxResponse(sipMessage);
-         // proceed to established state
-         SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_ESTABLISHED, &memory);
+         return handleInvite2xxResponse(sipMessage);
       }
    case SIP_RINGING_CODE:
-   case SIP_EARLY_MEDIA_CODE:
-      {
-         // proceed to remote alerting state
-         SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_REMOTE_ALERTING, &memory);
-      }
+   case SIP_CALL_BEING_FORWARDED_CODE:
+   case SIP_SESSION_PROGRESS_CODE:
    case SIP_QUEUED_CODE:
       {
-         // proceed to queued state
-         SipResponseTransitionMemory memory(responseCode, responseText);
-         return getTransition(ISipConnectionState::CONNECTION_REMOTE_QUEUED, &memory);
+         return processProvisionalInviteResponse(sipMessage);
       }
    case SIP_ALTERNATIVE_SERVICE_CODE:
       {

@@ -21,6 +21,8 @@
 #include <net/SipMessage.h>
 #include <net/SipMessageEvent.h>
 #include <net/QoS.h>
+#include <net/SipLineProvider.h>
+#include <net/SipLine.h>
 #include <sdp/SdpCodecFactory.h>
 #include <mi/CpMediaInterfaceFactory.h>
 #include <mi/CpMediaInterface.h>
@@ -43,6 +45,10 @@
 #include <cp/msg/AcMuteInputConnectionMsg.h>
 #include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcLimitCodecPreferencesMsg.h>
+#include <cp/msg/AcSubscribeMsg.h>
+#include <cp/msg/AcUnsubscribeMsg.h>
+#include <cp/msg/AcAcceptTransferMsg.h>
+#include <cp/msg/AcRejectTransferMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -69,12 +75,19 @@ const UtlContainableType XCpAbstractCall::TYPE = "XCpAbstractCall";
 
 XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipUserAgent& rSipUserAgent,
+                                 XCpCallControl& rCallControl,
+                                 SipLineProvider* pSipLineProvider,
                                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                                  const SdpCodecList& rDefaultSdpCodecList,
                                  OsMsgQ& rCallManagerQueue,
                                  const CpNatTraversalConfig& rNatTraversalConfig,
                                  const UtlString& sLocalIpAddress,
-                                 int inviteExpireSeconds,
+                                 int sessionTimerExpiration,
+                                 CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                                 CP_SIP_UPDATE_CONFIG updateSetting,
+                                 CP_100REL_CONFIG c100relSetting,
+                                 CP_SDP_OFFERING_MODE sdpOfferingMode,
+                                 int inviteExpiresSeconds,
                                  XCpCallConnectionListener* pCallConnectionListener,
                                  CpCallStateEventListener* pCallEventListener,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
@@ -85,11 +98,12 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
 , m_rSipUserAgent(rSipUserAgent)
+, m_rCallControl(rCallControl)
+, m_pSipLineProvider(pSipLineProvider)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
 , m_rDefaultSdpCodecList(rDefaultSdpCodecList)
 , m_rCallManagerQueue(rCallManagerQueue)
 , m_pMediaInterface(NULL)
-, m_bIsFocused(FALSE)
 , m_instanceRWMutex(OsRWMutex::Q_FIFO)
 , m_pCallConnectionListener(pCallConnectionListener)
 , m_pCallEventListener(pCallEventListener)
@@ -99,7 +113,13 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pMediaEventListener(pMediaEventListener)
 , m_natTraversalConfig(rNatTraversalConfig)
 , m_sLocalIpAddress(sLocalIpAddress)
-, m_inviteExpireSeconds(inviteExpireSeconds)
+, m_sessionTimerExpiration(sessionTimerExpiration)
+, m_sessionTimerRefresh(sessionTimerRefresh)
+, m_updateSetting(updateSetting)
+, m_100relSetting(c100relSetting)
+, m_sdpOfferingMode(sdpOfferingMode)
+, m_focusConfig(CP_FOCUS_IF_AVAILABLE)
+, m_inviteExpiresSeconds(inviteExpiresSeconds)
 {
 
 }
@@ -141,6 +161,18 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    }
 
    return bResult;
+}
+
+OsStatus XCpAbstractCall::acceptConnectionTransfer(const SipDialog& sipDialog)
+{
+   AcAcceptTransferMsg acceptTransferMsg(sipDialog);
+   return postMessage(acceptTransferMsg);
+}
+
+OsStatus XCpAbstractCall::rejectConnectionTransfer(const SipDialog& sipDialog)
+{
+   AcRejectTransferMsg rejectTransferMsg(sipDialog);
+   return postMessage(rejectTransferMsg);
 }
 
 OsStatus XCpAbstractCall::audioToneStart(int iToneId,
@@ -233,6 +265,22 @@ OsStatus XCpAbstractCall::limitCodecPreferences(const UtlString& sAudioCodecs,
    return postMessage(limitCodecPreferencesMsg);
 }
 
+OsStatus XCpAbstractCall::subscribe(CP_NOTIFICATION_TYPE notificationType,
+                                    const SipDialog& targetSipDialog,
+                                    const SipDialog& callbackSipDialog)
+{
+   AcSubscribeMsg subscribeMsg(notificationType, targetSipDialog, callbackSipDialog);
+   return postMessage(subscribeMsg);
+}
+
+OsStatus XCpAbstractCall::unsubscribe(CP_NOTIFICATION_TYPE notificationType,
+                                      const SipDialog& targetSipDialog,
+                                      const SipDialog& callbackSipDialog)
+{
+   AcUnsubscribeMsg unsubscribeMsg(notificationType, targetSipDialog, callbackSipDialog);
+   return postMessage(unsubscribeMsg);
+}
+
 OsStatus XCpAbstractCall::acquireExclusive()
 {
    return m_instanceRWMutex.acquireWrite();
@@ -319,6 +367,18 @@ OsStatus XCpAbstractCall::getSipDialog(const SipDialog& sipDialog,
    return result;
 }
 
+UtlBoolean XCpAbstractCall::isConnectionEstablished(const SipDialog& sipDialog) const
+{
+   OsPtrLock<XSipConnection> ptrLock; // auto pointer lock
+   UtlBoolean resFind = findConnection(sipDialog, ptrLock);
+   if (resFind)
+   {
+      return ptrLock->isConnectionEstablished();
+   }
+
+   return FALSE;
+}
+
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
@@ -366,6 +426,18 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
       return TRUE;
    case AcCommandMsg::AC_LIMIT_CODEC_PREFERENCES:
       handleLimitCodecPreferences((const AcLimitCodecPreferencesMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_SUBSCRIBE:
+      handleSubscribe((const AcSubscribeMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_UNSUBSCRIBE:
+      handleUnsubscribe((const AcUnsubscribeMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_ACCEPT_TRANSFER:
+      handleAcceptTransfer((const AcAcceptTransferMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_REJECT_TRANSFER:
+      handleRejectTransfer((const AcRejectTransferMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -470,14 +542,9 @@ UtlBoolean XCpAbstractCall::handleCallTimer(const AcTimerMsg& timerMsg)
 OsStatus XCpAbstractCall::handleGainFocus(const AcGainFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   if (m_pMediaInterface && !m_bIsFocused)
+   if (m_pMediaInterface && !m_pMediaInterface->hasFocus())
    {
-      OsStatus resFocus = m_pMediaInterface->giveFocus();
-      if (resFocus == OS_SUCCESS)
-      {
-         m_bIsFocused = TRUE;
-         return OS_SUCCESS;
-      }
+      return m_pMediaInterface->giveFocus();
    }
 
    return OS_FAILED;
@@ -489,14 +556,9 @@ OsStatus XCpAbstractCall::handleGainFocus(const AcGainFocusMsg& rMsg)
 OsStatus XCpAbstractCall::handleDefocus(const AcYieldFocusMsg& rMsg)
 {
 #ifndef DISABLE_LOCAL_AUDIO
-   if (m_pMediaInterface && m_bIsFocused)
+   if (m_pMediaInterface && m_pMediaInterface->hasFocus())
    {
-      OsStatus resFocus = m_pMediaInterface->defocus();
-      if (resFocus == OS_SUCCESS)
-      {
-         m_bIsFocused = FALSE;
-         return OS_SUCCESS;
-      }
+      return m_pMediaInterface->defocus();
    }
 
    return OS_FAILED;
@@ -634,6 +696,70 @@ OsStatus XCpAbstractCall::handleLimitCodecPreferences(const AcLimitCodecPreferen
    return doLimitCodecPreferences(audioCodecs, rMsg.getVideoCodecs());
 }
 
+OsStatus XCpAbstractCall::handleSubscribe(const AcSubscribeMsg& rMsg)
+{
+   SipDialog targetSipDialog;
+   SipDialog callbackSipDialog;
+   rMsg.getTargetSipDialog(targetSipDialog);
+   rMsg.getCallbackSipDialog(callbackSipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(targetSipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->subscribe(rMsg.getNotificationType(), callbackSipDialog);
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleUnsubscribe(const AcUnsubscribeMsg& rMsg)
+{
+   SipDialog targetSipDialog;
+   SipDialog callbackSipDialog;
+   rMsg.getTargetSipDialog(targetSipDialog);
+   rMsg.getCallbackSipDialog(callbackSipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(targetSipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->unsubscribe(rMsg.getNotificationType(), callbackSipDialog);
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleAcceptTransfer(const AcAcceptTransferMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->acceptTransfer();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleRejectTransfer(const AcRejectTransferMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->rejectTransfer();
+   }
+
+   return OS_NOT_FOUND;
+}
+
 UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
 {
    UtlBoolean bResult = FALSE;
@@ -721,6 +847,12 @@ UtlBoolean XCpAbstractCall::handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg)
    case CP_NOTIFICATION_RECORDING_STOPPED:
       fireSipXMediaInterfaceEvent(CP_MEDIA_RECORDING_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, pData1, pData2);
       break;
+   case CP_NOTIFICATION_FOCUS_GAINED:
+      onFocusGained();
+      break;
+   case CP_NOTIFICATION_FOCUS_LOST:
+      onFocusLost();
+      break;
    default:
       assert(false);
    }
@@ -758,8 +890,16 @@ CpMediaInterface* XCpAbstractCall::getMediaInterface(UtlBoolean bCreateIfNull)
          m_natTraversalConfig.m_sTurnPassword,
          m_natTraversalConfig.m_iTurnKeepAlivePeriodSecs,
          m_natTraversalConfig.m_bEnableICE);
-
-      gainFocus(TRUE); // only gain focus if there is no focused call
+#ifndef DISABLE_LOCAL_AUDIO
+      if (m_focusConfig == CP_FOCUS_ALWAYS)
+      {
+         gainFocus(FALSE); // always gain focus
+      }
+      else if (m_focusConfig == CP_FOCUS_IF_AVAILABLE)
+      {
+         gainFocus(TRUE); // only gain focus if there is no focused call
+      }
+#endif
    }
 
    return m_pMediaInterface;
@@ -788,6 +928,21 @@ OsStatus XCpAbstractCall::doLimitCodecPreferences(const UtlString& sAudioCodecs,
    }
 
    return OS_FAILED;
+}
+
+UtlString XCpAbstractCall::getRealLineIdentity(const SipMessage& sipRequest) const
+{
+   UtlString sLineIdentity;
+
+   if (m_pSipLineProvider)
+   {
+      m_pSipLineProvider->getFullLineUrl(sipRequest, sLineIdentity);
+      return sLineIdentity;
+   }
+
+   // we didn't find line, or line provider is not set, use request uri
+   sipRequest.getRequestUri(&sLineIdentity);
+   return sLineIdentity;
 }
 
 OsStatus XCpAbstractCall::acquire(const OsTime& rTimeout /*= OsTime::OS_INFINITY*/)

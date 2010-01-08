@@ -33,7 +33,7 @@ extern "C" {
 #define G729_PATTERN_LENGTH 20
 
 const MpCodecInfo MpdIPPG729::smCodecInfo(
-   SdpCodec::SDP_CODEC_G729A,   // codecType
+   SdpCodec::SDP_CODEC_G729,   // codecType
    "Intel IPP 5.3",             // codecVersion
    true,                        // usesNetEq
    8000,                        // samplingRate
@@ -68,7 +68,6 @@ OsStatus MpdIPPG729::initDecode()
 
    switch (getPayloadType())
    {
-   case SdpCodec::SDP_CODEC_G729A:
    case SdpCodec::SDP_CODEC_G729: 
       // Apply codec name and VAD to codec definition structure
       strcpy((char*)codec->codecName, "IPP_G729A");

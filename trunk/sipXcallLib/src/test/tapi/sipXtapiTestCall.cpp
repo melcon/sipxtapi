@@ -97,7 +97,7 @@ void sipXtapiTestSuite::testCallGetID()
 
       // SIP CallId of unconnected call must be empty
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetID(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetSipCallId(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 0);
 
       destroyCall(hLine, hCall);
@@ -113,11 +113,11 @@ void sipXtapiTestSuite::testCallGetID()
 
       // SIP CallId of connected call must be non empty
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetID(hCallingCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetSipCallId(hCallingCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) > 0);
 
       memset(cBuf, ' ', sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetID(hCallingCall, cBuf, 4), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetSipCallId(hCallingCall, cBuf, 4), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 3);
       CPPUNIT_ASSERT(cBuf[5] == ' ');
 
@@ -227,14 +227,14 @@ void sipXtapiTestSuite::testCallGetRemoteID()
       bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
       CPPUNIT_ASSERT(bRC);
 
-      // Test sipxCallGetRemoteID
+      // Test sipxCallGetRemoteField
       char cBuf[128];
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL( sipxCallGetRemoteID(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL( sipxCallGetRemoteField(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) > 0);
 
       memset(cBuf, ' ', sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetRemoteID(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetRemoteField(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 3);
       CPPUNIT_ASSERT(cBuf[5] == ' ');
 
@@ -281,11 +281,11 @@ void sipXtapiTestSuite::testCallGetLocalID()
       char cBuf[128];
 
       memset(cBuf, 0, sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalID(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalField(hCall, cBuf, sizeof(cBuf)), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) > 0);
 
       memset(cBuf, ' ', sizeof(cBuf));
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalID(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetLocalField(hCall, cBuf, 4), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(strlen(cBuf) == 3);
       CPPUNIT_ASSERT(cBuf[5] == ' ');
 
@@ -429,7 +429,7 @@ void sipXtapiTestSuite::doCallBasic(SIPX_INST              hCallingInst,
    */
    int connectionId = -1;
 
-   rc = sipxCallGetConnectionId(hCall, &connectionId);
+   rc = sipxCallGetMediaConnectionId(hCall, &connectionId);
    CPPUNIT_ASSERT(rc == SIPX_RESULT_SUCCESS);
    CPPUNIT_ASSERT(connectionId != -1);
 
@@ -701,7 +701,7 @@ void sipXtapiTestSuite::testCallDestroyRinging()
 
       int connectionId = -1;
 
-      CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+      CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT(connectionId != -1);
 
       OsTask::delay(50); // small delay before destroying call
@@ -1636,7 +1636,7 @@ void sipXtapiTestSuite::testCallShutdown()
 
    int connectionId = -1;
 
-   CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
+   CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, &connectionId), SIPX_RESULT_SUCCESS);
    CPPUNIT_ASSERT(connectionId != -1);
 
    CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst1, UniversalEventValidatorCallback, &validatorCalling), SIPX_RESULT_SUCCESS);
@@ -2639,7 +2639,7 @@ CPPUNIT_ASSERT(bRC);
 
 int connectionId = -1;
 
-CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
+CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
 CPPUNIT_ASSERT(connectionId != -1);
 
 SIPX_CALL hDestroyedCall = hCall;
@@ -2992,7 +2992,7 @@ CPPUNIT_ASSERT(bRC);
 
 int connectionId = -1;
 
-CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
+CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
 CPPUNIT_ASSERT(connectionId != -1);
 
 SIPX_CALL hDestroyedCall = hCall;
@@ -3101,7 +3101,7 @@ CPPUNIT_ASSERT(bRC);
 
 int connectionId = -1;
 
-CPPUNIT_ASSERT_EQUAL(sipxCallGetConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
+CPPUNIT_ASSERT_EQUAL(sipxCallGetMediaConnectionId(hCall, connectionId), SIPX_RESULT_SUCCESS);
 CPPUNIT_ASSERT(connectionId != -1);
 
 SIPX_CALL hDestroyedCall = hCall;

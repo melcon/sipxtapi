@@ -17,6 +17,7 @@
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 
 // DEFINES
@@ -37,12 +38,16 @@ class AcNotificationMsg : public OsMsg
 public:
    typedef enum
    {
-      AC_EMPTY = 0,
+      ACN_FIRST = 0,
+      ACN_TUNNELED, ///< tunneled abstract call notification message. Payload will be another message.
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */
 
-   AcNotificationMsg(SubTypesEnum subType);
+   AcNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog);
+
+   /** Copy constructor */
+   AcNotificationMsg(const AcNotificationMsg& rhs);
 
    virtual ~AcNotificationMsg();
 
@@ -50,7 +55,12 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
+   /** Assignment operator */
+   AcNotificationMsg& operator=(const AcNotificationMsg& rhs);
+
    /* ============================ ACCESSORS ================================= */
+
+   void getSipDialog(SipDialog& val) { val = m_sipDialog; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -59,12 +69,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Private copy constructor */
-   AcNotificationMsg(const AcNotificationMsg& rMsg);
 
-   /** Private assignment operator */
-   AcNotificationMsg& operator=(const AcNotificationMsg& rhs);
-
+   SipDialog m_sipDialog; ///< sip dialog of call this message should be sent to
 };
 
 #endif // AcNotificationMsg_h__

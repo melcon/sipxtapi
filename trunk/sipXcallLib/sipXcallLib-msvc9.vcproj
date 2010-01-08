@@ -272,7 +272,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\cp\CpLoopDetector.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\cp\CpMultiStringMessage.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\cp\CpNotificationRegister.cpp"
 				>
 			</File>
 			<File
@@ -336,6 +344,10 @@
 				>
 				<File
 					RelativePath=".\src\cp\msg\AcAcceptConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcAcceptTransferMsg.cpp"
 					>
 				</File>
 				<File
@@ -431,6 +443,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcRejectTransferMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcRenegotiateCodecsAllMsg.cpp"
 					>
 				</File>
@@ -443,11 +459,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcSubscribeMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcTimerMsg.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\AcTransferBlindMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcTransferConsultativeMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcTunneledNotificationMsg.cpp"
 					>
 				</File>
 				<File
@@ -460,6 +488,10 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\AcUnmuteInputConnectionMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcUnsubscribeMsg.cpp"
 					>
 				</File>
 				<File
@@ -495,6 +527,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\Sc2xxTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScByeRetryTimerMsg.cpp"
 					>
 				</File>
@@ -503,7 +539,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\ScConnStateNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScDelayedAnswerTimerMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScDisconnectTimerMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScInviteExpirationTimerMsg.cpp"
 					>
 				</File>
 				<File
@@ -512,6 +560,10 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\ScReInviteTimerMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScSessionTimeoutTimerMsg.cpp"
 					>
 				</File>
 				<File
@@ -572,10 +624,6 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\state\RemoteQueuedSipConnectionState.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\cp\msg\Sc2xxTimerMsg.cpp"
 					>
 				</File>
 				<File
@@ -657,6 +705,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpLoopDetector.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CpMediaEventListener.h"
 				>
 			</File>
@@ -682,6 +734,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpNotificationMsgDef.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpNotificationRegister.h"
 				>
 			</File>
 			<File
@@ -729,6 +785,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\XCpCallControl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\XCpCallIdUtil.h"
 				>
 			</File>
@@ -761,6 +821,10 @@
 				>
 				<File
 					RelativePath=".\include\cp\msg\AcAcceptConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcAcceptTransferMsg.h"
 					>
 				</File>
 				<File
@@ -856,6 +920,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcRejectTransferMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcRenegotiateCodecsAllMsg.h"
 					>
 				</File>
@@ -868,11 +936,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcSubscribeMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcTimerMsg.h"
 					>
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcTransferBlindMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcTransferConsultativeMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcTunneledNotificationMsg.h"
 					>
 				</File>
 				<File
@@ -885,6 +965,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcUnmuteInputConnectionMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcUnsubscribeMsg.h"
 					>
 				</File>
 				<File
@@ -932,7 +1016,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\ScConnStateNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScDelayedAnswerTimerMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\ScDisconnectTimerMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScInviteExpirationTimerMsg.h"
 					>
 				</File>
 				<File
@@ -941,6 +1037,10 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\ScReInviteTimerMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScSessionTimeoutTimerMsg.h"
 					>
 				</File>
 				<File

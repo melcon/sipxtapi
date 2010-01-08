@@ -30,6 +30,7 @@
 #include <cp/msg/AcRenegotiateCodecsMsg.h>
 #include <cp/msg/AcRenegotiateCodecsAllMsg.h>
 #include <cp/msg/AcSendInfoMsg.h>
+#include <cp/msg/AcTransferConsultativeMsg.h>
 #include <cp/msg/CpTimerMsg.h>
 
 // DEFINES
@@ -47,20 +48,28 @@
 
 XCpConference::XCpConference(const UtlString& sId,
                              SipUserAgent& rSipUserAgent,
+                             XCpCallControl& rCallControl,
+                             SipLineProvider* pSipLineProvider,
                              CpMediaInterfaceFactory& rMediaInterfaceFactory,
                              const SdpCodecList& rDefaultSdpCodecList,
                              OsMsgQ& rCallManagerQueue,
                              const CpNatTraversalConfig& rNatTraversalConfig,
                              const UtlString& sLocalIpAddress,
-                             int inviteExpireSeconds,
+                             int sessionTimerExpiration,
+                             CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                             CP_SIP_UPDATE_CONFIG updateSetting,
+                             CP_100REL_CONFIG c100relSetting,
+                             CP_SDP_OFFERING_MODE sdpOfferingMode,
+                             int inviteExpiresSeconds,
                              XCpCallConnectionListener* pCallConnectionListener,
                              CpCallStateEventListener* pCallEventListener,
                              SipInfoStatusEventListener* pInfoStatusEventListener,
                              SipInfoEventListener* pInfoEventListener,
                              SipSecurityEventListener* pSecurityEventListener,
                              CpMediaEventListener* pMediaEventListener)
-: XCpAbstractCall(sId, rSipUserAgent, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
-                  sLocalIpAddress, inviteExpireSeconds, pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
+: XCpAbstractCall(sId, rSipUserAgent, rCallControl, pSipLineProvider, rMediaInterfaceFactory, rDefaultSdpCodecList, rCallManagerQueue, rNatTraversalConfig,
+                  sLocalIpAddress, sessionTimerExpiration, sessionTimerRefresh, updateSetting, c100relSetting, sdpOfferingMode, inviteExpiresSeconds,
+                  pCallConnectionListener, pCallEventListener, pInfoStatusEventListener,
                   pInfoEventListener, pSecurityEventListener, pMediaEventListener)
 {
 
@@ -78,21 +87,28 @@ OsStatus XCpConference::connect(const UtlString& sipCallId,
                                 const UtlString& toAddress,
                                 const UtlString& fromAddress,
                                 const UtlString& locationHeader,
-                                CP_CONTACT_ID contactId)
+                                CP_CONTACT_ID contactId,
+                                CP_FOCUS_CONFIG focusConfig,
+                                const UtlString& replacesField,
+                                CP_CALLSTATE_CAUSE callstateCause,
+                                const SipDialog* pCallbackSipDialog)
 {
    if (sipCallId.isNull() || toAddress.isNull() || fromAddress.isNull())
    {
       return OS_FAILED;
    }
+   m_focusConfig = focusConfig;
 
    UtlString localTag(m_sipTagGenerator.getNewTag());
    sipDialog = SipDialog(sipCallId, localTag, NULL);
 
-   AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId);
+   AcConnectMsg connectMsg(sipCallId, toAddress, localTag, fromAddress, locationHeader, contactId,
+      replacesField, callstateCause, pCallbackSipDialog);
    return postMessage(connectMsg);
 }
 
-OsStatus XCpConference::acceptConnection(const UtlString& locationHeader,
+OsStatus XCpConference::acceptConnection(UtlBoolean bSendSDP,
+                                         const UtlString& locationHeader,
                                          CP_CONTACT_ID contactId)
 {
    // conference cannot have new inbound call
@@ -134,6 +150,13 @@ OsStatus XCpConference::transferBlind(const SipDialog& sipDialog,
 {
    AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
    return postMessage(transferBlindMsg);
+}
+
+OsStatus XCpConference::transferConsultative(const SipDialog& sourceSipDialog,
+                                             const SipDialog& targetSipDialog)
+{
+   AcTransferConsultativeMsg transferConsultativeMsg(sourceSipDialog, targetSipDialog);
+   return postMessage(transferConsultativeMsg);
 }
 
 OsStatus XCpConference::holdConnection(const SipDialog& sipDialog)
@@ -313,6 +336,9 @@ UtlBoolean XCpConference::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_TRANSFER_BLIND:
       handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
       return TRUE;
+   case AcCommandMsg::AC_TRANSFER_CONSULTATIVE:
+      handleTransferConsultative((const AcTransferConsultativeMsg&)rRawMsg);
+      return TRUE;
    case AcCommandMsg::AC_HOLD_CONNECTION:
       handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
       return TRUE;
@@ -373,6 +399,11 @@ OsStatus XCpConference::handleDropAllConnections(const AcDropAllConnectionsMsg& 
 }
 
 OsStatus XCpConference::handleTransferBlind(const AcTransferBlindMsg& rMsg)
+{
+   return OS_FAILED;
+}
+
+OsStatus XCpConference::handleTransferConsultative(const AcTransferConsultativeMsg& rMsg)
 {
    return OS_FAILED;
 }
@@ -451,6 +482,40 @@ void XCpConference::fireSipXMediaInterfaceEvent(CP_MEDIA_EVENT event,
       if (pSipConnection)
       {
          pSipConnection->handleSipXMediaEvent(event, cause, type, pEventData1, pEventData2);
+      }
+   }
+}
+
+void XCpConference::onFocusGained()
+{
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         pSipConnection->onFocusGained();
+      }
+   }
+}
+
+void XCpConference::onFocusLost()
+{
+   OsLock lock(m_memberMutex);
+
+   UtlSListIterator itor(m_sipConnections);
+   XSipConnection* pSipConnection = NULL;
+
+   while (itor())
+   {
+      pSipConnection = dynamic_cast<XSipConnection*>(itor.item());
+      if (pSipConnection)
+      {
+         pSipConnection->onFocusLost();
       }
    }
 }

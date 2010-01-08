@@ -27,9 +27,11 @@
 
 /* ============================ CREATORS ================================== */
 
-AcAcceptConnectionMsg::AcAcceptConnectionMsg(const UtlString& sLocationHeader,
+AcAcceptConnectionMsg::AcAcceptConnectionMsg(UtlBoolean bSendSDP,
+                                             const UtlString& sLocationHeader,
                                              CP_CONTACT_ID contactId)
 : AcCommandMsg(AC_ACCEPT_CONNECTION)
+, m_bSendSDP(bSendSDP)
 , m_sLocationHeader(sLocationHeader)
 , m_contactId(contactId)
 {
@@ -43,7 +45,7 @@ AcAcceptConnectionMsg::~AcAcceptConnectionMsg()
 
 OsMsg* AcAcceptConnectionMsg::createCopy(void) const
 {
-   return new AcAcceptConnectionMsg(m_sLocationHeader, m_contactId);
+   return new AcAcceptConnectionMsg(m_bSendSDP, m_sLocationHeader, m_contactId);
 }
 
 /* ============================ MANIPULATORS ============================== */

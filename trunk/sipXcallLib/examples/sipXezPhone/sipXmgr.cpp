@@ -348,7 +348,7 @@ bool sipXmgr::handleCallstateEvent(void* pInfo, void* pUserData)
     char szCallID[1024];
     memset(szCallID, 0, sizeof(szCallID));
     
-    sipxCallGetID(pCallInfo->hCall, szCallID, 1024);
+    sipxCallGetSipCallId(pCallInfo->hCall, szCallID, 1024);
     thePhoneApp->addLogMessage("CallID = " + UtlString(szCallID) + "\n");
 
     mCallId = szCallID;
@@ -613,7 +613,7 @@ void sipXmgr::SipCallbackProc( SIPX_CALL hCall,
 
    char szCallID[1024];
    
-   sipxCallGetID(hCall, szCallID, 1024);
+   sipxCallGetSipCallId(hCall, szCallID, 1024);
    thePhoneApp->addLogMessage("CallID = " + UtlString(szCallID) + "\n");
    
    char szLineURI[1024];

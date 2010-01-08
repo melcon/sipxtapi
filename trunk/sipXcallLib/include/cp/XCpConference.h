@@ -37,6 +37,7 @@ class AcUnholdAllConnectionsMsg;
 class AcRenegotiateCodecsMsg;
 class AcRenegotiateCodecsAllMsg;
 class AcSendInfoMsg;
+class AcTransferConsultativeMsg;
 
 /**
  * XCpConference wraps several XSipConnections realizing conference functionality. XCpConference
@@ -68,12 +69,19 @@ public:
 
    XCpConference(const UtlString& sId,
                  SipUserAgent& rSipUserAgent,
+                 XCpCallControl& rCallControl,
+                 SipLineProvider* pSipLineProvider,
                  CpMediaInterfaceFactory& rMediaInterfaceFactory,
                  const SdpCodecList& rDefaultSdpCodecList,
                  OsMsgQ& rCallManagerQueue,
                  const CpNatTraversalConfig& rNatTraversalConfig,
                  const UtlString& sLocalIpAddress,
-                 int inviteExpireSeconds,
+                 int sessionTimerExpiration,
+                 CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
+                 CP_SIP_UPDATE_CONFIG updateSetting,
+                 CP_100REL_CONFIG c100relSetting,
+                 CP_SDP_OFFERING_MODE sdpOfferingMode,
+                 int inviteExpiresSeconds,
                  XCpCallConnectionListener* pCallConnectionListener = NULL,
                  CpCallStateEventListener* pCallEventListener = NULL,
                  SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
@@ -91,13 +99,18 @@ public:
                             const UtlString& toAddress,
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
-                            CP_CONTACT_ID contactId);
+                            CP_CONTACT_ID contactId,
+                            CP_FOCUS_CONFIG focusConfig,
+                            const UtlString& replacesField = NULL, // value of Replaces INVITE field
+                            CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
+                            const SipDialog* pCallbackSipDialog = NULL);
 
    /**
     * Always fails, as conference cannot accept inbound call. Instead, add calls
     * to conference.
     */
-   virtual OsStatus acceptConnection(const UtlString& locationHeader,
+   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
+                                     const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId);
 
    /**
@@ -129,6 +142,15 @@ public:
    /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
                                   const UtlString& sTransferSipUrl);
+
+   /**
+   * Consultative transfer given call to target call. Works for simple call and call in a conference. 
+   *
+   * @param sourceSipDialog Source call identifier.
+   * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
+   */
+   virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
+                                         const SipDialog& targetSipDialog);
 
    /**
    * Put the specified terminal connection on hold.
@@ -240,6 +262,8 @@ private:
    OsStatus handleDropAllConnections(const AcDropAllConnectionsMsg& rMsg);
    /** Handles message to initiate blind call transfer */
    OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
+   /** Handles message to initiate consultative call transfer */
+   OsStatus handleTransferConsultative(const AcTransferConsultativeMsg& rMsg);
    /** Handles message to initiate remote hold on sip connection */
    OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
    /** Handles message to initiate remote hold on all sip connections */
@@ -269,6 +293,12 @@ private:
                                             CP_MEDIA_TYPE type,
                                             intptr_t pEventData1,
                                             intptr_t pEventData2);
+
+   /** Called when media focus is gained (speaker and mic are engaged) */
+   virtual void onFocusGained();
+
+   /** Called when media focus is lost (speaker and mic are disengaged) */
+   virtual void onFocusLost();
 
    // begin of members requiring m_memberMutex
    UtlSList m_sipConnections;

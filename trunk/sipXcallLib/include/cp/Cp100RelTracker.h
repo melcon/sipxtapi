@@ -96,6 +96,9 @@ public:
     */
    UtlBoolean canSend1xxRel() const;
 
+   /** Returns TRUE if all sent reliable provisional responses have been acknowledged */
+   UtlBoolean are1xxRelsAcknowledged() const;
+
    /**
     * Returns TRUE if 100RelId is valid - is being tracked.
     */
@@ -106,6 +109,9 @@ public:
     * of 100rel can stop.
     */
    UtlBoolean wasPrackReceived(const UtlString& s100RelId) const;
+
+   /** Returns TRUE if there was SDP body in 100rel response */
+   UtlBoolean wasSdpBodyIn100rel(const UtlString& s100RelId) const;
 
    /** Constructs Id for 100rel tracking */
    static UtlString get100RelId(int cSeqNumber, const UtlString& cSeqMethod, int rSeqNumber);

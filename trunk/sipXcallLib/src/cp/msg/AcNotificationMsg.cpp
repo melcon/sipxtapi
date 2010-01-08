@@ -27,8 +27,16 @@
 
 /* ============================ CREATORS ================================== */
 
-AcNotificationMsg::AcNotificationMsg(SubTypesEnum subType)
+AcNotificationMsg::AcNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog)
 : OsMsg(CpMessageTypes::AC_NOTIFICATION, (unsigned char)subType)
+, m_sipDialog(sipDialog)
+{
+
+}
+
+AcNotificationMsg::AcNotificationMsg(const AcNotificationMsg& rhs)
+: OsMsg(rhs)
+, m_sipDialog(rhs.m_sipDialog)
 {
 
 }
@@ -40,10 +48,24 @@ AcNotificationMsg::~AcNotificationMsg()
 
 OsMsg* AcNotificationMsg::createCopy(void) const
 {
-   return new AcNotificationMsg((SubTypesEnum)getMsgSubType());
+   return new AcNotificationMsg(*this);
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+AcNotificationMsg& AcNotificationMsg::operator=(const AcNotificationMsg& rhs)
+{
+   if (this == &rhs)
+   {
+      return *this;
+   }
+
+   OsMsg::operator=(rhs); // assign fields for parent class
+
+   m_sipDialog = rhs.m_sipDialog;
+
+   return *this;
+}
 
 /* ============================ ACCESSORS ================================= */
 

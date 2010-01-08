@@ -38,6 +38,7 @@ public:
    /** Constructor. */
    DisconnectedSipConnectionState(SipConnectionStateContext& rStateContext,
                                   SipUserAgent& rSipUserAgent,
+                                  XCpCallControl& rCallControl,
                                   CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                   CpMessageQueueProvider& rMessageQueueProvider,
                                   XSipConnectionEventSink& rSipConnectionEventSink,
@@ -84,6 +85,12 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   /** Terminates subscription established when REFER is sent and accepted */
+   void terminateInReferSubscription();
+
+   /** Terminates subscription established when REFER is accepted (transferee side) */
+   void terminateOutReferSubscription();
 };
 
 #endif // DisconnectedSipConnectionState_h__

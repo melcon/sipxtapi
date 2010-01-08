@@ -19,6 +19,7 @@
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/StateTransitionEventDispatcher.h>
 #include <cp/state/GeneralTransitionMemory.h>
+#include <cp/XCpCallControl.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -35,11 +36,12 @@
 
 EstablishedSipConnectionState::EstablishedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                              SipUserAgent& rSipUserAgent,
+                                                             XCpCallControl& rCallControl,
                                                              CpMediaInterfaceProvider& rMediaInterfaceProvider,
                                                              CpMessageQueueProvider& rMessageQueueProvider,
                                                              XSipConnectionEventSink& rSipConnectionEventSink,
                                                              const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 
@@ -63,11 +65,26 @@ void EstablishedSipConnectionState::handleStateEntry(StateEnum previousState, co
    StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
    eventDispatcher.dispatchEvent(getCurrentState());
 
+   notifyConnectionStateObservers();
+
    // fire held/remotely held events if media session is held
    fireMediaSessionEvents(TRUE, TRUE);
 
    m_rStateContext.m_bRedirecting = FALSE;
    m_rStateContext.m_redirectContactList.destroyAll();
+
+   // if we are referencing a call, drop it
+   if (m_rStateContext.m_bDropReferencedCall)
+   {
+      m_rCallControl.dropAbstractCallConnection(m_rStateContext.m_referencedSipDialog);
+      m_rStateContext.m_bDropReferencedCall = FALSE;
+      m_rStateContext.m_referencedSipDialog = SipDialog();
+   }
+
+   // set SDP offering to immediate, even if late SDP offering was configured for initial INVITE
+   // the reason is, that with late SDP offering, we wouldn't be able to take call off hold
+   // if stream was marked with "inactive" flag in SDP offer contained in 200 OK.
+   m_rStateContext.m_sdpNegotiation.setSdpOfferingMode(CpSdpNegotiation::SDP_OFFERING_IMMEDIATE);
 
    OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry established connection state from state: %d, sip call-id: %s\r\n",
       (int)previousState, getCallId().data());
@@ -109,6 +126,8 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
    UtlBoolean bProtocolError = TRUE;
    UtlBoolean bSdpNegotiationStarted = FALSE;
    SipMessage sipResponse;
+   SipMessage errorResponse;
+   ERROR_RESPONSE_TYPE errorResponseType = ERROR_RESPONSE_488;
 
    CpSipTransactionManager::TransactionState inviteState = getServerTransactionManager().getTransactionState(sipMessage);
 
@@ -126,13 +145,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
          UtlString sLocalContact(getLocalContactUrl());
 
          // prepare and send 200 OK
-         sipResponse.setSecurityAttributes(m_rStateContext.m_pSecurity);
          sipResponse.setOkResponseData(&sipMessage, sLocalContact);
-         if (!m_rStateContext.m_locationHeader.isNull())
-         {
-            sipResponse.setLocationField(m_rStateContext.m_locationHeader);
-         }
-
          const SdpBody* pSdpBody = sipMessage.getSdpBody(m_rStateContext.m_pSecurity);
          if (pSdpBody)
          {
@@ -141,8 +154,10 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
             // send answer in 200 OK
             if (prepareSdpAnswer(sipResponse))
             {
-               commitMediaSessionChanges(); // SDP offer/answer complete, we may commit changes
-               bProtocolError = FALSE;
+               if (commitMediaSessionChanges()) // SDP offer/answer complete, we may commit changes
+               {
+                  bProtocolError = FALSE;
+               }
             }
          }
          else
@@ -154,6 +169,10 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
             }
          }
       }
+      else
+      {
+         errorResponseType = ERROR_RESPONSE_491;
+      }
    }
 
    if (bProtocolError)
@@ -164,8 +183,7 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
          m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
       }
 
-      SipMessage errorResponse;
-      errorResponse.setRequestBadRequest(&sipMessage);
+      prepareErrorResponse(sipMessage, errorResponse, errorResponseType);
       sendMessage(errorResponse);
    }
    else
@@ -174,7 +192,16 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteReques
       m_rStateContext.m_i2xxInviteRetransmitCount = 0;
       setLastReceivedInvite(sipMessage);
       setLastSent2xxToInvite(sipResponse);
+      prepareSessionTimerResponse(sipMessage, sipResponse); // construct session timer response
+      handleSessionTimerResponse(sipResponse); // handle our own response, start session timer..
       sendMessage(sipResponse);
+      start2xxRetransmitTimer();
+
+      // 200 OK was sent, update connected identity
+      if (sipMessage.isInSupportedField(SIP_FROM_CHANGE_EXTENSION))
+      {
+         updateSipDialogRemoteField(sipMessage);
+      }
    }
 
    return NULL;
@@ -213,12 +240,19 @@ SipConnectionStateTransition* EstablishedSipConnectionState::processInviteRespon
 
    switch (responseCode)
    {
+   case SIP_RINGING_CODE:
+   case SIP_CALL_BEING_FORWARDED_CODE:
+   case SIP_SESSION_PROGRESS_CODE:
+   case SIP_QUEUED_CODE:
+      {
+         // if established then there will be no transition
+         return processProvisionalInviteResponse(sipMessage);
+      }
    case SIP_OK_CODE:
    case SIP_ACCEPTED_CODE:
       {
-         // send ACK to retransmitted 200 OK
-         handleInvite2xxResponse(sipMessage);
-         break;
+         // send ACK to retransmitted 200 OK, or to 200 OK from re-INVITE
+         return handleInvite2xxResponse(sipMessage);
       }
    default:
       ;
