@@ -177,10 +177,11 @@ OsStatus XCpAbstractCall::rejectConnectionTransfer(const SipDialog& sipDialog)
 }
 
 OsStatus XCpAbstractCall::audioToneStart(int iToneId,
-                                         UtlBoolean bLocal,
-                                         UtlBoolean bRemote)
+                                       UtlBoolean bLocal,
+                                       UtlBoolean bRemote,
+                                       int duration)
 {
-   AcAudioToneStartMsg audioToneStartMsg(iToneId, bLocal, bRemote);
+   AcAudioToneStartMsg audioToneStartMsg(iToneId, bLocal, bRemote, duration);
    return postMessage(audioToneStartMsg);
 }
 
@@ -645,7 +646,8 @@ OsStatus XCpAbstractCall::handleAudioToneStart(const AcAudioToneStartMsg& rMsg)
 {
    if (m_pMediaInterface)
    {
-      return m_pMediaInterface->startTone(rMsg.getToneId(), rMsg.getLocal(), rMsg.getRemote());
+      return m_pMediaInterface->startTone(rMsg.getToneId(), rMsg.getLocal(), rMsg.getRemote(),
+         rMsg.getDuration());
    }
 
    return OS_FAILED;
@@ -826,6 +828,12 @@ UtlBoolean XCpAbstractCall::handleConnectionNotfMessage(const OsIntPtrMsg& rMsg)
       break;
    case CP_NOTIFICATION_STOP_RTP_RECEIVE:
       fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_STOP, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
+      break;
+   case CP_NOTIFICATION_REMOTE_SILENT:
+      fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_SILENT, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, NULL);
+      break;
+   case CP_NOTIFICATION_REMOTE_ACTIVE:
+      fireSipXMediaConnectionEvent(CP_MEDIA_REMOTE_ACTIVE, CP_MEDIA_CAUSE_NORMAL, (CP_MEDIA_TYPE)media, mediaConnectionId, NULL, NULL);
       break;
    default:
       assert(false);

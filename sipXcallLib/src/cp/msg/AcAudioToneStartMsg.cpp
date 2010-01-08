@@ -29,11 +29,13 @@
 
 AcAudioToneStartMsg::AcAudioToneStartMsg(int iToneId,
                                          UtlBoolean bLocal,
-                                         UtlBoolean bRemote)
+                                         UtlBoolean bRemote,
+                                         int duration)
 : AcCommandMsg(AC_AUDIO_TONE_START)
 , m_iToneId(iToneId)
 , m_bLocal(bLocal)
 , m_bRemote(bRemote)
+, m_duration(duration)
 {
 
 }
@@ -45,7 +47,7 @@ AcAudioToneStartMsg::~AcAudioToneStartMsg()
 
 OsMsg* AcAudioToneStartMsg::createCopy(void) const
 {
-   return new AcAudioToneStartMsg(m_iToneId, m_bLocal, m_bRemote);
+   return new AcAudioToneStartMsg(m_iToneId, m_bLocal, m_bRemote, m_duration);
 }
 
 /* ============================ MANIPULATORS ============================== */

@@ -171,6 +171,11 @@ int MpdIPPG728::decode(const MpRtpBufPtr &rtpPacket,
          &PCMStream);
       assert(uscStatus == USC_NoError);
 
+      if (uscStatus != USC_NoError)
+      {
+         return 0;
+      }
+
       // move pointers
       Bitstream.pBuffer += Bitstream.nbytes;
       PCMStream.pBuffer += m_pCodec->uscParams.pInfo->params.framesize;

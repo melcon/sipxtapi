@@ -34,9 +34,8 @@ class SdpBodyTest : public CppUnit::TestCase
     CPPUNIT_TEST(testTimeHeaders);
     CPPUNIT_TEST(testGetMediaSetCount);
     CPPUNIT_TEST(testGetMediaAddress);
-    //CPPUNIT_TEST(testCandidateParsing);
+    CPPUNIT_TEST(testCandidateParsing);
     CPPUNIT_TEST(testRtcpPortParsing);
-    // CPPUNIT_TEST(testCryptoParsing);
     CPPUNIT_TEST(testVideoCodecSelection);
     CPPUNIT_TEST(testPtime);
     CPPUNIT_TEST(testGetCodecsInCommon);
@@ -678,7 +677,7 @@ public:
         CPPUNIT_ASSERT(bRC == TRUE) ;
         CPPUNIT_ASSERT(candidateId == 0) ;
         ASSERT_STR_EQUAL("tid1", transportId.data()) ;
-        ASSERT_STR_EQUAL("UDP", transportType.data()) ;
+        ASSERT_STR_EQUAL("TCP", transportType.data()) ;
         CPPUNIT_ASSERT(qValue == 0.4) ;
         ASSERT_STR_EQUAL("10.1.1.104", candidateIp.data()) ;
         CPPUNIT_ASSERT(candidatePort == 9999) ;
@@ -688,7 +687,7 @@ public:
         CPPUNIT_ASSERT(bRC == TRUE) ;
         CPPUNIT_ASSERT(candidateId == 1) ;
         ASSERT_STR_EQUAL("tid2", transportId.data()) ;
-        ASSERT_STR_EQUAL("UDP", transportType.data()) ;
+        ASSERT_STR_EQUAL("TCP", transportType.data()) ;
         CPPUNIT_ASSERT(qValue == 0.5) ;
         ASSERT_STR_EQUAL("10.1.1.104", candidateIp.data()) ;
         CPPUNIT_ASSERT(candidatePort == 10000) ;
@@ -698,7 +697,7 @@ public:
         CPPUNIT_ASSERT(bRC == TRUE) ;
         CPPUNIT_ASSERT(candidateId == 2) ;
         ASSERT_STR_EQUAL("tid3", transportId.data()) ;
-        ASSERT_STR_EQUAL("UDP", transportType.data()) ;
+        ASSERT_STR_EQUAL("TCP", transportType.data()) ;
         CPPUNIT_ASSERT(qValue == 0.6) ;
         ASSERT_STR_EQUAL("10.1.1.105", candidateIp.data()) ;
         CPPUNIT_ASSERT(candidatePort == 9999) ;
@@ -775,7 +774,6 @@ public:
         int rtpVideoPorts[1];
         int rtcpVideoPorts[1];
         RTP_TRANSPORT transportTypes[1];
-        
 
         testSrtp.securityLevel = 0;
 
@@ -893,11 +891,11 @@ public:
     {
         SdpCodecList fac;
 
-        SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 99, "VP71-QVGA","video", "vp71",
+        SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 99, "VP71-QVGA","VP71-QVGA","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_QVGA) ;
-        SdpCodec* pSqcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_SQCIF, 100, "VP71-SQCIF", "video", "vp71",
+        SdpCodec* pSqcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_SQCIF, 100, "VP71-SQCIF", "VP71-SQCIF","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_SQCIF) ;
-        SdpCodec* pQcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QCIF, 101, "VP71-QCIF", "video", "vp71",
+        SdpCodec* pQcifCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QCIF, 101, "VP71-QCIF", "VP71-QCIF","video", "vp71",
             9000, 20000, 1, "", 0, 2, SDP_VIDEO_FORMAT_QCIF) ;
 
         fac.addCodec(*pQvgaCodec);
@@ -1036,46 +1034,46 @@ public:
         CPPUNIT_ASSERT_EQUAL(33, ptimeValue);
 
 
-        SdpCodecList sdpFactory;
+        SdpCodecList sdpCodecList;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
                                             SdpCodec::SDP_CODEC_UNKNOWN,
-                                            "PCMU",
+                                            "PCMU", "PCMU",
                                             MIME_TYPE_AUDIO, 
                                             MIME_SUBTYPE_PCMU,
                                             8000, 
                                             20000); // ptime
-        sdpFactory.addCodec(*pPcmuCodec);
+        sdpCodecList.addCodec(*pPcmuCodec);
 
         SdpCodec* pPcmaCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA, 
                                             SdpCodec::SDP_CODEC_UNKNOWN,
-                                            "PCMA",
+                                            "PCMA", "PCMA",
                                             MIME_TYPE_AUDIO, 
                                             MIME_SUBTYPE_PCMA,
                                             8000, 
                                             20000); // ptime
-        sdpFactory.addCodec(*pPcmaCodec);
+        sdpCodecList.addCodec(*pPcmaCodec);
 
         SdpCodec* pSuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)333, 
                                             SdpCodec::SDP_CODEC_UNKNOWN, 
-                                            "333",
+                                            "333", "333",
                                             MIME_TYPE_AUDIO, 
                                             "superaudio",
                                             8000, 
                                             20000); // ptime
-        sdpFactory.addCodec(*pSuperCodec);
+        sdpCodecList.addCodec(*pSuperCodec);
 
         SdpCodec* pSuperDuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)334, 
                                             SdpCodec::SDP_CODEC_UNKNOWN, 
-                                            "334",
+                                            "334", "334",
                                             MIME_TYPE_AUDIO, 
                                             "superduperaudio",
                                             8000, 
                                             20000); // ptime
-        sdpFactory.addCodec(*pSuperDuperCodec);
+        sdpCodecList.addCodec(*pSuperDuperCodec);
 
         SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 
                                             SdpCodec::SDP_CODEC_UNKNOWN,
-                                            "VP71-QVGA",
+                                            "VP71-QVGA", "VP71-QVGA",
                                             MIME_TYPE_VIDEO, 
                                             "vp71", // MIME subtype
                                             9000, 
@@ -1085,8 +1083,9 @@ public:
                                             0, 
                                             2, 
                                             SDP_VIDEO_FORMAT_QCIF);
-        sdpFactory.addCodec(*pQvgaCodec);
-        CPPUNIT_ASSERT_EQUAL(5, sdpFactory.getCodecCount());
+        sdpCodecList.addCodec(*pQvgaCodec);
+        CPPUNIT_ASSERT_EQUAL(5, sdpCodecList.getCodecCount());
+        sdpCodecList.bindPayloadIds();
 
         SdpCodec* codecArrayForEncoder[5];
         SdpCodec* codecArrayForDecoder[5];
@@ -1097,7 +1096,7 @@ public:
         int audioPayloads[4] = {96, 97, 98, 99};
         int videoPayloads[1] = {100};
         sloppyPtimeSdpBody.getCodecsInCommon(4, 1, audioPayloads, videoPayloads,
-            videoRtpPort, sdpFactory, numCodecsInCommon, codecArrayForEncoder,
+            videoRtpPort, sdpCodecList, numCodecsInCommon, codecArrayForEncoder,
             codecArrayForDecoder);
         CPPUNIT_ASSERT_EQUAL(5, numCodecsInCommon);
 
@@ -1109,43 +1108,8 @@ public:
             encoderPayloadId = codecArrayForEncoder[codecIndex]->getCodecPayloadId();
             decoderPayloadId = codecArrayForDecoder[codecIndex]->getCodecPayloadId();
 
-            // decoder codecs keep the payload Id of the factory
-            CPPUNIT_ASSERT_EQUAL(-1, decoderPayloadId);
-
-            switch(encoderPayloadId)
-            {
-            case 98:
-            case 99:
-                // Because of the broken nature of how media sets are treated
-                // in the SdpBody (codecs are considered global accross all
-                // media sets), the first ptime in the first media set becomes
-                // global accross all media sets
-                //CPPUNIT_ASSERT_EQUAL(codecArray[codecIndex]->getPacketLength(),
-                //                     22000);
-                //break;
-
-            case 96:
-            case 97:
-                CPPUNIT_ASSERT_EQUAL(11000,
-                                     codecArrayForEncoder[codecIndex]->getPacketLength());
-                CPPUNIT_ASSERT_EQUAL(11000,
-                                     codecArrayForDecoder[codecIndex]->getPacketLength());
-                break;
-
-            case 100:
-                // currently video ptime is ignored in SdpBody
-                // Should be 33000
-                CPPUNIT_ASSERT_EQUAL(20000, 
-                                     codecArrayForEncoder[codecIndex]->getPacketLength());
-                CPPUNIT_ASSERT_EQUAL(20000, 
-                                     codecArrayForDecoder[codecIndex]->getPacketLength());
-                break;
-
-            default:
-                CPPUNIT_ASSERT_EQUAL(-2, encoderPayloadId);
-                break;
-            }
-
+            // codec must exist in list
+            CPPUNIT_ASSERT(sdpCodecList.getCodecByPayloadId(decoderPayloadId) != NULL);
         }
      }
 
@@ -1173,7 +1137,7 @@ public:
         SdpCodecList sdpFactory;
         SdpCodec* pPcmuCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMU, 
            SdpCodec::SDP_CODEC_PCMU, 
-           "PCMU",
+           "PCMU", "PCMU",
            MIME_TYPE_AUDIO, 
            MIME_SUBTYPE_PCMU,
            8000, 
@@ -1182,7 +1146,7 @@ public:
 
         SdpCodec* pPcmaCodec = new SdpCodec(SdpCodec::SDP_CODEC_PCMA, 
            SdpCodec::SDP_CODEC_PCMA, 
-           "PCMA",
+           "PCMA", "PCMA",
            MIME_TYPE_AUDIO, 
            MIME_SUBTYPE_PCMA,
            8000, 
@@ -1191,7 +1155,7 @@ public:
 
         SdpCodec* pSuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)102, 
            (SdpCodec::SdpCodecTypes)102, 
-           "102",
+           "102", "102",
            MIME_TYPE_AUDIO, 
            "superaudio",
            8000, 
@@ -1200,7 +1164,7 @@ public:
 
         SdpCodec* pSuperDuperCodec = new SdpCodec((SdpCodec::SdpCodecTypes)103, 
            (SdpCodec::SdpCodecTypes)103,
-           "103",
+           "103", "103",
            MIME_TYPE_AUDIO, 
            "superduperaudio",
            8000, 
@@ -1209,7 +1173,7 @@ public:
 
         SdpCodec* pQvgaCodec = new SdpCodec(SdpCodec::SDP_CODEC_VP71_QVGA, 
            (SdpCodec::SdpCodecTypes)104, 
-           "VP71-QVGA",
+           "VP71-QVGA", "VP71-QVGA",
            MIME_TYPE_VIDEO, 
            "vp71", // MIME subtype
            9000, 

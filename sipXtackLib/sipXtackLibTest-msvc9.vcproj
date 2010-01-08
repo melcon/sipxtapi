@@ -64,7 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib cppunitd.lib pcre.lib"
+				AdditionalDependencies="Ws2_32.lib cppunitd.lib"
 				OutputFile="$(OutDir)/sipXtackLibTest.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=".\Debug;..\sipXportLib\debug;..\CPPUnit\lib;..\sipXportLib\contrib\pcre\lib"
@@ -147,7 +147,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib cppunitd.lib pcre.lib libeay32.lib ssleay32.lib"
+				AdditionalDependencies="Ws2_32.lib cppunitd.lib libeay32.lib ssleay32.lib"
 				OutputFile="$(OutDir)/sipXtackLibTest.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=".\Debug;..\sipXportLib\debug;..\CPPUnit\lib;..\sipXportLib\contrib\pcre\lib;..\..\openSSL\lib"

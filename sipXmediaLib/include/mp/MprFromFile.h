@@ -223,6 +223,18 @@ private:
      /// Handle resource messages for this resource (new messaging model - 2007).
    virtual UtlBoolean handleMessage(MpResourceMsg& rMsg);
 
+   /**
+    * Resamples buffer to new sampler rate. Function will allocate required amount of memory
+    * and pass the buffer out in outBuffer.
+    *
+    * @return number of bytes in output buffer.
+    */
+   int resample(char* inBuffer,
+                int numBytes,
+                int currentSampleRate,
+                int newSampleRate,
+                char*& outBuffer);
+
      /// Copy constructor (not implemented for this class)
    MprFromFile(const MprFromFile& rMprFromFile);
 

@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXcallLib.lib"
+				OutputFile="Release\sipXcallLib.lib"
 				SuppressStartupBanner="true"
 				IgnoreAllDefaultLibraries="true"
 			/>
@@ -121,6 +121,7 @@
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxDISABLE_LOCAL_AUDIO"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				EnableFunctionLevelLinking="true"
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -141,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXcallLib.lib"
+				OutputFile="Debug\sipXcallLib.lib"
 				SuppressStartupBanner="true"
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames="msvcprtd.lib"
@@ -214,7 +215,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\sipXcallLib.lib"
+				OutputFile="Debug\sipXcallLib.lib"
 				SuppressStartupBanner="true"
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames="msvcprtd.lib"

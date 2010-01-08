@@ -175,9 +175,9 @@ public:
 #     define TLT_LOOP_CNT 2000
       unsigned periodUSecs = 10000;
       long lowerThresh = -(long)periodUSecs; // Assert when outside an error range
-      long lowerMeanThresh = -50;            // specified below.
+      long lowerMeanThresh = -100;            // specified below.
       long upperThresh = periodUSecs*2;      // One for single values
-      long upperMeanThresh = 50;             // One for mean values
+      long upperMeanThresh = 100;             // One for mean values
 
 
       MpMMTimer* pMMTimer = NULL;

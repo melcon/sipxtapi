@@ -275,11 +275,12 @@ public:
                                              const UtlString& sTargetAbstractCallId,
                                              const SipDialog& sTargetSipDialog);
 
-   /** Starts DTMF tone on call connection.*/
+   /** Starts DTMF tone (in-band or rfc2833) on call connection.*/
    OsStatus audioToneStart(const UtlString& sAbstractCallId,
                            int iToneId,
                            UtlBoolean bLocal,
-                           UtlBoolean bRemote);
+                           UtlBoolean bRemote,
+                           int duration);
 
    /** Stops DTMF tone on call connection */
    OsStatus audioToneStop(const UtlString& sAbstractCallId);

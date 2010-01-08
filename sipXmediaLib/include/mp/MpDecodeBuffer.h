@@ -18,15 +18,9 @@
 // APPLICATION INCLUDES
 
 #include <mp/MpDefs.h>
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-#include <speex/speex_resampler.h>
-#endif
 #include "mp/MpRtpBuf.h"
 #include <mp/MpJitterBufferDefault.h>
-
-#ifdef HAVE_SPAN_DSP
-#include <spandsp/noise.h>
-#endif
+#include <mp/MpNoiseGeneratorBase.h>
 
 // DEFINES
 // MACROS
@@ -41,6 +35,7 @@ static const int g_decodeHelperBufferSize = (8 * (sizeof(MpAudioSample) * SAMPLE
 // TYPEDEFS
 // FORWARD DECLARATIONS
 class MpDecoderBase;
+class MpResamplerBase;
 class MprDejitter;
 
 /// Class for managing dejitter/decode of incoming RTP.
@@ -68,7 +63,7 @@ public:
 //@{
 
      /// Get samples from jitter buffer
-   int getSamples(MpAudioSample *samplesBuffer, int samplesNumber);
+   int getSamples(MpAudioSample *samplesBuffer, int samplesNumber, MpSpeechType& speechType);
      /**<
      *  @param voiceSamples - (out) buffer for audio samples
      *  @param samplesNumber - (in) number of samples to write
@@ -135,19 +130,9 @@ private:
    int m_samplesPerFrame;
    int m_samplesPerSec; // flowgraph sample rate
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   SpeexResamplerState* m_pResamplerMap[JbPayloadMapSize];
+   MpResamplerBase* m_pResamplerMap[JbPayloadMapSize];
    MpAudioSample m_resampleSrcBuffer[g_decodeHelperBufferSize]; // buffer for storing samples after decoding, but before resampling
-
-#endif
-#ifdef HAVE_SPAN_DSP
-   noise_state_t* m_pNoiseState; ///< state of noise generator
-#endif
-
-   /**
-   * Generates quiet comfort noise.
-   */
-   void generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount);
+   MpNoiseGeneratorBase* m_pNoiseGenerator; ///< util class for generating noise
 
    /**
     * Returns TRUE if samples from given decoder need to be resampled to current flowgraph sampling rate.

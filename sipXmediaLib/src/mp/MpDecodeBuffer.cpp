@@ -15,10 +15,13 @@
 #include "string.h"
 
 #include "os/OsDefs.h"
+#include <os/OsSysLog.h>
 #include "mp/MpDecodeBuffer.h"
 #include "mp/MpDecoderBase.h"
 #include "mp/MpMisc.h"
 #include <mp/MprDejitter.h>
+#include <mp/MpNoiseGeneratorFactory.h>
+#include <mp/MpResamplerFactory.h>
 
 static int debugCount = 0;
 
@@ -28,17 +31,14 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int 
 : m_pDejitter(pDejitter)
 , m_samplesPerFrame(samplesPerFrame)
 , m_samplesPerSec(samplesPerSec)
-, m_pNoiseState(NULL)
+, m_pNoiseGenerator(NULL)
 {
    for (int i=0; i<JbPayloadMapSize; i++)
       m_pDecoderMap[i] = NULL;
 
    memset(m_pDecoderList, 0, sizeof(m_pDecoderList));
-
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    memset(m_pResamplerMap, 0, sizeof(m_pResamplerMap));
    memset(m_resampleSrcBuffer, 0, sizeof(m_resampleSrcBuffer));
-#endif
 
    m_decodeBufferCount = 0;
    m_decodeBufferIn = 0;
@@ -46,9 +46,7 @@ MpDecodeBuffer::MpDecodeBuffer(MprDejitter* pDejitter, int samplesPerFrame, int 
 
    debugCount = 0;
 
-#ifdef HAVE_SPAN_DSP
-   m_pNoiseState = noise_init_dbm0(NULL, 6513, NOISE_LEVEL, NOISE_CLASS_HOTH, 5);
-#endif
+   m_pNoiseGenerator = MpNoiseGeneratorFactory::createNoiseGenerator();
 }
 
 // Destructor
@@ -56,20 +54,18 @@ MpDecodeBuffer::~MpDecodeBuffer()
 {
    destroyResamplers();
 
-#ifdef HAVE_SPAN_DSP
-   if (m_pNoiseState)
-   {
-      free((void*)m_pNoiseState);
-      m_pNoiseState = NULL;
-   }
-#endif
+   delete m_pNoiseGenerator;
+   m_pNoiseGenerator = NULL;
 }
 
 /* ============================ MANIPULATORS ============================== */
 
 int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
-                               int requiredSamples) // required number of samples, for flowgraph sample rate
+                               int requiredSamples, // required number of samples, for flowgraph sample rate
+                               MpSpeechType& speechType)
 {
+   speechType = MP_SPEECH_UNKNOWN;
+
    if (m_pDejitter)
    {
       // first do actions that need to be done regardless of whether we have enough
@@ -131,10 +127,16 @@ int MpDecodeBuffer::getSamples(MpAudioSample *samplesBuffer,
          m_decodeBufferOut -= g_decodeBufferSize;
    }
 
+   if (suppliedSamples == 0)
+   {
+      // we will have to generate full noise frame
+      speechType = MP_SPEECH_COMFORT_NOISE;
+   }
+
    if (suppliedSamples < requiredSamples)
    {
       int noiseFramesNeeded = requiredSamples - suppliedSamples;
-      generateComfortNoise(samplesBuffer + suppliedSamples, noiseFramesNeeded);
+      m_pNoiseGenerator->generateComfortNoise(samplesBuffer + suppliedSamples, noiseFramesNeeded);
    }
 
    return requiredSamples;
@@ -187,8 +189,7 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResu
    }
 
    MpAudioSample* pTmpDstBuffer = NULL;
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   if (needsResampling(*decoder))
+   if (needsResampling(*decoder)) // for 8Khz flowgraph we will never resample
    {
       pTmpDstBuffer = m_resampleSrcBuffer;
    }
@@ -196,38 +197,48 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResu
    {
       pTmpDstBuffer = m_decodeHelperBuffer;
    }
-#else
-   pTmpDstBuffer = m_decodeHelperBuffer;
-#endif
+
    // decode samples from decoder, and copy them into decode buffer
    producedSamples = decoder->decode(rtpPacket, g_decodeHelperBufferSize, pTmpDstBuffer,
       jbResult == MP_JITTER_BUFFER_PLC);
 
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
-   if (needsResampling(*decoder))
+   if (needsResampling(*decoder) && producedSamples > 0)
    {
       // need to resample
-      SpeexResamplerState* pResamplerState = m_pResamplerMap[payloadType];
-      if (pResamplerState)
+      MpResamplerBase* pResampler = m_pResamplerMap[payloadType];
+      if (pResampler)
       {
-         if (producedSamples > 0)
+         uint32_t inSampleCount = producedSamples;
+         uint32_t inSampleProcessed = 0;
+         OsStatus res = pResampler->resample(pTmpDstBuffer, inSampleCount, inSampleProcessed,
+            m_decodeHelperBuffer, g_decodeHelperBufferSize, producedSamples);
+         assert(res == OS_SUCCESS);
+         if (res != OS_SUCCESS)
          {
-            unsigned int resampleSrcCount = producedSamples;// speex will overwrite resampleSrcCount
-            unsigned int availableHelperBufferSize = g_decodeHelperBufferSize;
-            int err = speex_resampler_process_int(pResamplerState, 0,
-               pTmpDstBuffer, &resampleSrcCount,
-               m_decodeHelperBuffer, &availableHelperBufferSize);
-            assert(!err);
-            producedSamples = availableHelperBufferSize; // speex overwrites availableHelperBufferSize with number of output samples
+            OsSysLog::add(FAC_AUDIO, PRI_ERR, "Resampling failure for payload format %d. Status %d.",
+               payloadType, (int)res);
+            return 0;
          }
       }
       else
       {
          // we can't resample, and can't decode
-         assert(false);
+         OsSysLog::add(FAC_AUDIO, PRI_ERR, "Resampling is needed for payload format %d, but no such resampler is available.",
+            payloadType);
+         return 0;
       }
    }
-#endif
+
+   // don't even think about resampling noise, it still sounds noisy!
+   if (producedSamples == 0 &&
+      decoder->getInfo()->getCodecType() != SdpCodec::SDP_CODEC_TONES)
+   {
+      // if decoder didn't produce samples from RTP packet, generate noise according to decoder frame size
+      int decoderSamplesPerFrame = decoder->getInfo()->getNumSamplesPerFrame();
+      m_pNoiseGenerator->generateComfortNoise(m_decodeHelperBuffer, decoderSamplesPerFrame);
+      producedSamples = decoderSamplesPerFrame;
+   }
+
    int addedSamples = 0;
    // now we have decoded & resampled samples in m_decodeHelperBuffer, with decodedSamples count
    // copy them into main buffer
@@ -259,56 +270,39 @@ int MpDecodeBuffer::pushPacket(MpRtpBufPtr &rtpPacket, JitterBufferResult jbResu
 
 void MpDecodeBuffer::destroyResamplers()
 {
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
    for (int i = 0; i < JbPayloadMapSize; i++)
    {
       if (m_pResamplerMap[i])
       {
-         speex_resampler_destroy(m_pResamplerMap[i]);
+         delete m_pResamplerMap[i];
          m_pResamplerMap[i] = NULL;
       }      
    }
-#endif
 }
 
 void MpDecodeBuffer::setupResamplers(MpDecoderBase** decoderList, int decoderCount)
 {
-#if defined(ENABLE_WIDEBAND_AUDIO) && defined(HAVE_SPEEX)
+#if !defined(ENABLE_WIDEBAND_AUDIO)
+   return;
+#endif
    destroyResamplers();
 
    for(int i = 0; (i < decoderCount) && (i < JbPayloadMapSize); i++)
    {
-      int payloadType = decoderList[i]->getPayloadType();
-      if (!m_pResamplerMap[payloadType])
+      if (decoderList[i])
       {
-         int error;
-         m_pResamplerMap[payloadType] = speex_resampler_init(1,
-            decoderList[i]->getInfo()->getSamplingRate(), // resample from codec sample rate
-            m_samplesPerSec, // into flowgraph sample rate
-            SPEEX_RESAMPLER_QUALITY_VOIP, &error);
+         if (needsResampling(*decoderList[i]))
+         {
+            int payloadType = decoderList[i]->getPayloadType();
+            if (!m_pResamplerMap[payloadType])
+            {
+               m_pResamplerMap[payloadType] = MpResamplerFactory::createResampler(
+                  decoderList[i]->getInfo()->getSamplingRate(), // resample from codec sample rate
+                  m_samplesPerSec, // into flowgraph sample rate
+                  3);
+            }
+         }
       }
-   }
-#endif
-}
-
-void MpDecodeBuffer::generateComfortNoise(MpAudioSample *samplesBuffer, unsigned sampleCount)
-{
-   UtlBoolean bGenerated = FALSE;
-#ifdef HAVE_SPAN_DSP
-   if (m_pNoiseState && samplesBuffer)
-   {
-      for (int i = 0; i < sampleCount; i++)
-      {
-         samplesBuffer[i] = noise(m_pNoiseState); // generate 1 sample of noise
-      }
-      bGenerated = TRUE;
-   }
-#endif
-
-   if (!bGenerated)
-   {
-      // set all 0s
-      memset(samplesBuffer, 0, sampleCount * sizeof(MpAudioSample));
    }
 }
 

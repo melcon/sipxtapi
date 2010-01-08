@@ -164,10 +164,12 @@ int MpdIPPG7291::decode(const MpRtpBufPtr &rtpPacket,
          &PCMStream);
       assert(uscStatus == USC_NoError);
 
-      if (uscStatus == USC_NoError)
+      if (uscStatus != USC_NoError)
       {
-         decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
+         return 0;
       }
+
+      decodedSamples = PCMStream.nbytes / sizeof(MpAudioSample);
    }
 
    // Return number of decoded samples

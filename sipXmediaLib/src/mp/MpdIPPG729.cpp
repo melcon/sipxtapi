@@ -21,6 +21,11 @@
 #   pragma comment(lib, "ippcore.lib")
 #   pragma comment(lib, "ippsr.lib")
 #   pragma comment(lib, "libircmt.lib")
+#   pragma comment(lib, "speech.lib")
+#   pragma comment(lib, "speech_rtp.lib")
+#   pragma comment(lib, "usc_speech_codec.lib")
+#   pragma comment(lib, "umc.lib")
+#   pragma comment(lib, "vm.lib")
 #endif // WIN32 ]
 
 // APPLICATION INCLUDES
@@ -185,6 +190,11 @@ int MpdIPPG729::decode(const MpRtpBufPtr &rtpPacket,
             bIsPLCFrame ? NULL : &Bitstream,
             &PCMStream);
          assert(uscStatus == USC_NoError);
+
+         if (uscStatus != USC_NoError)
+         {
+            return 0;
+         }
 
          // move pointers
          Bitstream.pBuffer += Bitstream.nbytes;

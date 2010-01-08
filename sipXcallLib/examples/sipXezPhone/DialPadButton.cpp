@@ -50,9 +50,5 @@ void DialPadButton::OnMouseDown(wxMouseEvent& event)
 
 void DialPadButton::OnMouseUp(wxMouseEvent& event)
 {
-    if (sipXmgr::getInstance().getCurrentCall() > 0)
-    {
-        sipxCallStopTone(sipXmgr::getInstance().getCurrentCall());
-    }
     event.Skip();
 }

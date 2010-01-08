@@ -237,7 +237,7 @@ typedef enum
 typedef enum
 {
    SIPX_CODEC_CPU_LOW = 0, ///< complexity of algorithm is lower than 8
-   SIPX_CODEC_CPU_NORMAL = 0, ///< complexity of algorithm is lower than 12
+   SIPX_CODEC_CPU_NORMAL, ///< complexity of algorithm is lower than 12
    SIPX_CODEC_CPU_HIGH
 } SIPX_CODEC_CPU_COST;
 
@@ -1642,8 +1642,10 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
 /**
  * Play a tone (DTMF, dialtone, ring back, etc) to the local and/or
  * remote party.  See the DTMF_ constants for built-in tones.
- * DTMF is sent via RFC 2833 method. sipxCallDestroy stops tones automatically.
- * Minimum DTMF length must be 60msec. It is not enforced by sipxtapi.
+ *
+ * DTMF is sent via RFC 2833 method or in-band. DTMF method is configured
+ * via sipxConfigSetOutboundDTMFMode function. sipxCallDestroy stops tones automatically.
+ * Minimum DTMF length must be 60msec.
  *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
@@ -1651,11 +1653,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetRemoteUserAgent(const SIPX_CALL hCall,
  * @param toneId ID of the tone to play
  * @param bLocal Should the tone be played locally? 
  * @param bRemote Should the tone be played to the remote party?
+ * @param duration Tone duration in milliseconds. Minimum value is 60. Use -1 for manual stop.
  */
 SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall, 
                                            const SIPX_TONE_ID toneId,
                                            const int bLocal,
-                                           const int bRemote);
+                                           const int bRemote,
+                                           const int duration = 120);
+
 
 /**
  * Stop playing a tone (DTMF, dialtone, ring back, etc). to local
@@ -1667,15 +1672,15 @@ SIPXTAPI_API SIPX_RESULT sipxCallStartTone(const SIPX_CALL hCall,
  */
 SIPXTAPI_API SIPX_RESULT sipxCallStopTone(const SIPX_CALL hCall);
 
-
 /**
- * Play the designated file.
+ * Play the designated file to remote call participant.
  * The file must be a WAV file 8bit unsigned or 16bit signed, mono or stereo.
  * Stereo files will be merged to mono.
  *
- * Sampling rate of supplied file must be greater or must match internal sampling
- * rate of sipXmediaLib. If wideband audio is enabled, then internal sampling
- * rate is 48Khz, otherwise it is 8Khz.
+ * Sampling rate of supplied file will be automatically resampled to internal
+ * sampling rate of sipXmediaLib. If wideband audio is enabled, then internal sampling
+ * rate is 48Khz, otherwise it is 8Khz. If sipXtapi is not bundled with Speex library,
+ * then only downsampling is supported.
  *
  * If a sipxCallDestroy is attempted while an audio file is playing,
  * sipxCallDestroy will fail with a SIPX_RESULT_BUSY return code.
@@ -2207,6 +2212,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallGetAudioRtcpStats(const SIPX_CALL hCall,
  * call to limit preferences for that call.
  * Preferences will take effect after next unhold.
  *
+ * Care should be taken when using this API, since using it may easily violate
+ * rfc4566 - dynamic payload formats may not change during session.
+ *
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
@@ -2224,6 +2232,9 @@ SIPXTAPI_API SIPX_RESULT sipxCallLimitCodecPreferences(const SIPX_CALL hCall,
 * Limits the codec preferences on given call. Can only be used on a connected
 * call. Codec renegotiation will be triggered. If call is held, then after
 * renegotiation it will be held again.
+*
+* Care should be taken when using this API, since using it may easily violate
+* rfc4566 - dynamic payload formats may not change during session.
 *
 * @param hCall Handle to a call.  Call handles are obtained either by 
 *        invoking sipxCallCreate or passed to your application through
@@ -2493,13 +2504,20 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceUnhold(const SIPX_CONF hConf);
 
 /**
  * Play the designated audio file to all conference participants and/or the 
- * local speaker.  The file may be a raw 16 bit signed PCM at 8000 
- * samples/sec, mono, little endian or a .WAV file.
+ * local speaker. 
+ *
+ * The file must be a WAV file 8bit unsigned or 16bit signed, mono or stereo.
+ * Stereo files will be merged to mono.
+ *
+ * Sampling rate of supplied file will be automatically resampled to internal
+ * sampling rate of sipXmediaLib. If wideband audio is enabled, then internal sampling
+ * rate is 48Khz, otherwise it is 8Khz. If sipXtapi is not bundled with Speex library,
+ * then only downsampling is supported.
+*
  * If a sipxConferenceDestroy is attempted while an audio file is playing,
  * sipxConferenceDestroy will fail with a SIPX_RESULT_BUSY return code.
  * Call sipxConferencePlayAudioFileStop before making the call to
  * sipxConferenceDestroy.
- *
  * 
  * @param hConf Conference handle obtained by calling sipxConferenceCreate.
  * @param szFile Filename for the audio file to be played.
@@ -2568,6 +2586,9 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf);
  * for new conference calls, or calls that are unheld. First supplied audio codec
  * matching remote party audio codec will be used.
  *
+ * Care should be taken when using this API, since using it may easily violate
+ * rfc4566 - dynamic payload formats may not change during session.
+ *
  * @param hConf Handle to a conference.  Conference handles are obtained 
  *        by invoking sipxConferenceCreate.
  * @param szVideoCodecNames Codec names that limit the supported audio codecs.
@@ -2583,6 +2604,9 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
 /**
 * Limits the codec preferences on a conference. Supplied settings will be applied
 * immediately. First supplied audio codec matching remote party audio codec will be used.
+*
+* Care should be taken when using this API, since using it may easily violate
+* rfc4566 - dynamic payload formats may not change during session.
 *
 * @param hConf Handle to a conference.  Conference handles are obtained 
 *        by invoking sipxConferenceCreate.
@@ -3630,10 +3654,16 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTcpPort(SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
                                                       int* pPort);
 
-
 /**
  * Set the codecs by short names. The name must match one of the supported codecs
  * otherwise this function will fail. Codecs must be separated by " ".
+ *
+ * Only one ILBC version should be enabled at time - either 20ms or 30ms. Enabling
+ * both versions might confuse other clients, since rfc3952 didn't expect to handle
+ * two ILBC codec offers in SDP. 20ms ILBC version might be overridden, so it is
+ * possible that 30ms version will be used even if 20ms was selected.
+ * sipXtapi is capable of decoding both 20ms and 30ms ILBC regardless of mode negotiated
+ * in SDP.
  *
  * This method will return SIPX_RESULT_SUCCESS if able to set audio codecs.
  * SIPX_RESULT_FAILURE is returned if the codec is not set.

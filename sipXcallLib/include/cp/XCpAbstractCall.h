@@ -232,7 +232,8 @@ public:
    /** Starts DTMF tone on call connection.*/
    OsStatus audioToneStart(int iToneId,
                            UtlBoolean bLocal,
-                           UtlBoolean bRemote);
+                           UtlBoolean bRemote,
+                           int duration);
 
    /** Stops DTMF tone on call connection */
    OsStatus audioToneStop();
@@ -551,7 +552,7 @@ private:
    /** Handles command to stop recording call */
    OsStatus handleAudioRecordStop(const AcAudioRecordStopMsg& rMsg);
 
-   /** Handles command to start sending audio DTMF */
+   /** Handles command to send audio DTMF (in-band or rfc8233)*/
    OsStatus handleAudioToneStart(const AcAudioToneStartMsg& rMsg);
 
    /** Handles command to stop sending audio DTMF */
