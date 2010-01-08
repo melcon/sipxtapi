@@ -17,15 +17,25 @@ nobase_include_HEADERS =  \
     cp/CpIntMessage.h \
     cp/CpMediaEventListener.h \
     cp/CpMediaInterfaceProvider.h \
+    cp/CpMessageQueueProvider.h \
     cp/CpMessageTypes.h \
     cp/CpMultiStringMessage.h \
+    cp/CpNatTraversalConfig.h \
     cp/CpNotificationMsgDef.h \
     cp/CpPeerCall.h \
+    cp/Cp100RelTracker.h \
+    cp/CpSdpNegotiation.h \
+    cp/CpSessionTimerProperties.h \
+    cp/CpSipTransactionListener.h \
+    cp/CpSipTransactionManager.h \
     cp/CpVideoCodecInfo.h \
     cp/SipConnection.h \
     cp/XCpAbstractCall.h \
     cp/XCpCall.h \
+    cp/XCpCallConnectionListener.h \
+    cp/XCpCallIdUtil.h \
     cp/XCpCallManager.h \
+    cp/XCpCallStack.h \
     cp/XCpConference.h \
     cp/XSipConnection.h \
     cp/XSipConnectionContext.h \
@@ -42,6 +52,7 @@ nobase_include_HEADERS =  \
     cp/msg/AcAudioToneStartMsg.h \
     cp/msg/AcAudioToneStopMsg.h \
     cp/msg/AcCommandMsg.h \
+    cp/msg/AcDestroyConnectionMsg.h \
     cp/msg/AcConnectMsg.h \
     cp/msg/AcDropAllConnectionsMsg.h \
     cp/msg/AcDropConnectionMsg.h \
@@ -56,24 +67,32 @@ nobase_include_HEADERS =  \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcTimerMsg.h \
     cp/msg/AcTransferBlindMsg.h \
     cp/msg/AcUnholdAllConnectionsMsg.h \
     cp/msg/AcUnholdConnectionMsg.h \
     cp/msg/AcUnmuteInputConnectionMsg.h \
     cp/msg/AcYieldFocusMsg.h \
     cp/msg/CmCommandMsg.h \
+    cp/msg/CmDestroyAbstractCallMsg.h \
     cp/msg/CmGainFocusMsg.h \
     cp/msg/CmNotificationMsg.h \
     cp/msg/CmYieldFocusMsg.h \
     cp/msg/CpTimerMsg.h \
+    cp/msg/Sc100RelTimerMsg.h \
+    cp/msg/Sc2xxTimerMsg.h \
+    cp/msg/ScByeRetryTimerMsg.h \
     cp/msg/ScCommandMsg.h \
+    cp/msg/ScDisconnectTimerMsg.h \
     cp/msg/ScNotificationMsg.h \
+    cp/msg/ScReInviteTimerMsg.h \
+    cp/msg/ScTimerMsg.h \
     cp/state/AlertingSipConnectionState.h \
     cp/state/BaseSipConnectionState.h \
     cp/state/DialingSipConnectionState.h \
     cp/state/DisconnectedSipConnectionState.h \
     cp/state/EstablishedSipConnectionState.h \
-    cp/state/FailedSipConnectionState.h \
+    cp/state/GeneralTransitionMemory.h \
     cp/state/ISipConnectionState.h \
     cp/state/IdleSipConnectionState.h \
     cp/state/NewCallSipConnectionState.h \
@@ -82,10 +101,14 @@ nobase_include_HEADERS =  \
     cp/state/RemoteAlertingSipConnectionState.h \
     cp/state/RemoteOfferingSipConnectionState.h \
     cp/state/RemoteQueuedSipConnectionState.h \
+    cp/state/SipConnectionStateContext.h \
     cp/state/SipConnectionStateMachine.h \
     cp/state/SipConnectionStateObserver.h \
     cp/state/SipConnectionStateTransition.h \
+    cp/state/SipEventTransitionMemory.h \
+    cp/state/SipResponseTransitionMemory.h \
     cp/state/StateTransitionMemory.h \
+    cp/state/StateTransitionEventDispatcher.h \
     cp/state/UnknownSipConnectionState.h \
     ptapi/PtCall.h \
     ptapi/PtConnection.h \
@@ -94,6 +117,7 @@ nobase_include_HEADERS =  \
     ptapi/PtSessionDesc.h \
     ptapi/PtTerminalConnection.h \
     tapi/CallStateEventMsg.h \
+    tapi/InfoEventMsg.h \
     tapi/InfoStatusEventMsg.h \
     tapi/KeepaliveEventMsg.h \
     tapi/LineStateEventMsg.h \
@@ -110,6 +134,7 @@ nobase_include_HEADERS =  \
     tapi/SipXEvents.h \
     tapi/SipXHandleMap.h \
     tapi/SipXInfo.h \
+    tapi/SipXInfoEventListener.h \
     tapi/SipXInfoStatusEventListener.h \
     tapi/SipXKeepaliveEventListener.h \
     tapi/SipXLine.h \

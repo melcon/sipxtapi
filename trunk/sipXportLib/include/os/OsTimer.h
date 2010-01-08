@@ -136,8 +136,11 @@ public:
     *  @code
     *  rNotifier.signal((int) this)
     *  @endcode
+    *
+    *  Timer will become manager of the passed object, and is responsible for
+    *  deleting it.
     */
-   OsTimer(OsNotification& rNotifier ///< OsNotification object to report event
+   OsTimer(OsNotification* pNotification ///< OsNotification object to report event
            );
 
    /** Construct a timer that signals by calling

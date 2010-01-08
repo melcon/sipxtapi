@@ -21,7 +21,6 @@
 #include <utl/UtlInt.h>
 #include <utl/UtlString.h>
 
-
 // DEFINES
 
 // Mime major types
@@ -31,16 +30,10 @@
 // Mime Sub types
 #define MIME_SUBTYPE_PCMU "PCMU"
 #define MIME_SUBTYPE_PCMA "PCMA"
-#define MIME_SUBTYPE_G729A "G729"
-#define MIME_SUBTYPE_G729AB "G729"
-#define MIME_SUBTYPE_G729ACISCO7960 "G729a"
+#define MIME_SUBTYPE_G729 "G729"
 #define MIME_SUBTYPE_G723 "G723"
 #define MIME_SUBTYPE_DTMF_TONES "telephone-event"
-#define MIME_SUBTYPE_IPCMU "EG711U"
-#define MIME_SUBTYPE_IPCMA "EG711A"
-#define MIME_SUBTYPE_IPCMWB "IPCMWB"
 #define MIME_SUBTYPE_ILBC "iLBC"
-#define MIME_SUBTYPE_ISAC "ISAC"
 #define MIME_SUBTYPE_GSM "GSM"
 #define MIME_SUBTYPE_SPEEX "speex"
 #define MIME_SUBTYPE_VP71 "VP71"
@@ -119,7 +112,7 @@ public:
     */
     enum SdpCodecTypes
     {
-        SDP_CODEC_UNKNOWN = -1,
+        SDP_CODEC_UNKNOWN = -1,    ///< dynamic payload id will be used
         SDP_CODEC_PCMU = 0,        ///< G.711 mu-law
         SDP_CODEC_GSM = 3,         ///< GSM codec
         SDP_CODEC_G723 = 4,
@@ -134,21 +127,13 @@ public:
         SDP_CODEC_SPEEX_15 = 112,  ///< Speex Profile 2
         SDP_CODEC_SPEEX_24 = 113,  ///< Speex Profile 3
         SDP_CODEC_TONES = 128,     ///< AVT/DTMF Tones, RFC 2833
-        SDP_CODEC_G729A = 129,
-        SDP_CODEC_G7221 = 130,     ///< Siren
         SDP_CODEC_L16_8K = 131,    ///< Mono PCM 16 bit/sample 8000 samples/sec.
-        SDP_CODEC_G729AB = 132,
-        SDP_CODEC_G729ACISCO7960 = 133,
 
          // Range for 3rd party add in codec types
         SDP_CODEC_3RD_PARTY_START = 256,
         SDP_CODEC_GIPS_PCMA  = 257,
         SDP_CODEC_GIPS_PCMU  = 258,
-        SDP_CODEC_GIPS_IPCMA = 259,
-        SDP_CODEC_GIPS_IPCMU = 260,
-        SDP_CODEC_GIPS_IPCMWB = 261,
         SDP_CODEC_ILBC = 262,
-        SDP_CODEC_GIPS_ISAC = 263,
         SDP_CODEC_VP71_CIF = 264,
         SDP_CODEC_VP71_QCIF = 265,
         SDP_CODEC_VP71_SQCIF = 266,
@@ -180,14 +165,14 @@ public:
        SDP_CODEC_CPU_HIGH = 1
     };
 
-
 /* ============================ CREATORS ================================== */
 ///@name Creators
 //@{
 
      ///Default constructor
    SdpCodec(enum SdpCodecTypes sdpCodecType = SDP_CODEC_UNKNOWN,
-            int payloadFormat = -1,
+            int payloadId = SDP_CODEC_UNKNOWN, ///< if SDP_CODEC_UNKNOWN then it is dynamic
+            const UtlString& sCodecName = NULL, ///< codec name which can be used in factory
             const char* mimeType = MIME_TYPE_AUDIO,
             const char* mimeSubtype = "",
             int sampleRate = 8000,             ///< samples per second
@@ -198,14 +183,6 @@ public:
             const int BWCost = SDP_CODEC_BANDWIDTH_NORMAL,
             const int videoFormat = SDP_VIDEO_FORMAT_QCIF,
             const int videoFmtp = 0);
-
-   SdpCodec(int payloadFormat,
-            const char* mimeType,
-            const char* mimeSubType,
-            int sampleRate,
-            int preferredPacketLength,
-            int numChannels,
-            const char* formatSpecificData);
 
      ///Copy constructor
    SdpCodec(const SdpCodec& rSdpCodec);
@@ -240,14 +217,14 @@ public:
    */
 
    /// Get the SDP/RTP payload id to be used for this codec
-   int getCodecPayloadFormat() const;
+   int getCodecPayloadId() const;
    /**<
    *  This is the id used in the SDP "m" format sub-field
    *  and RTP header.
    */
 
    /// Set the SDP/RTP payload id to be used for this codec
-   void setCodecPayloadFormat(int formatId);
+   void setCodecPayloadId(int formatId);
 
    /// Get the format specific parameters for the SDP
    virtual void getSdpFmtpField(UtlString& formatSpecificData) const;
@@ -322,6 +299,8 @@ public:
    ///Set the packet size
    void setPacketSize(const int packetSize);
 
+   UtlString getCodecName() const { return m_sCodecName; }
+
 //@}
 
 /* ============================ INQUIRY =================================== */
@@ -329,10 +308,13 @@ public:
 //@{
 
    /// Returns TRUE if this codec is the same definition as the given codec
-   UtlBoolean isSameDefinition(SdpCodec& codec) const;
+   UtlBoolean isSameDefinition(const SdpCodec& codec) const;
    /**<
    *  That is the encoding type and its characteristics, not the payload type.
    */
+
+   /** Converts the short codec name into an enum */
+   static SdpCodec::SdpCodecTypes getCodecType(const UtlString& shortCodecName);
 
 //@}
 
@@ -343,7 +325,7 @@ protected:
 private:
 
 //    enum SdpCodecTypes mCodecType; ///< Internal id
-    int mCodecPayloadFormat;       ///< The id which appears in SDP & RTP
+    int mCodecPayloadId;       ///< The id which appears in SDP & RTP
     UtlString mMimeType;           ///< audio, video, etc.
     UtlString mMimeSubtype;        ///< a=rtpmap mime subtype value
     int mSampleRate;               ///< samples per second
@@ -355,7 +337,7 @@ private:
     int mVideoFormat;
     int mVideoFmtp;
     UtlString mVideoFmtpString;    ///< video format string
-
+    UtlString m_sCodecName; ///< codec name which can be used in factory
 };
 
 /* ============================ INLINE METHODS ============================ */

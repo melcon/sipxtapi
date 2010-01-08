@@ -17,6 +17,7 @@
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 
 // DEFINES
@@ -30,6 +31,9 @@
 
 /**
 * Sip connection notification message. Informs sip connection about some event.
+*
+* This message is meant for communication between different XSipConnections through
+* XCpCallManager. XCpCallManager knows how to route these messages correctly.
 */
 class ScNotificationMsg : public OsMsg
 {
@@ -42,7 +46,7 @@ public:
 
    /* ============================ CREATORS ================================== */
 
-   ScNotificationMsg(SubTypesEnum subType);
+   ScNotificationMsg(SubTypesEnum subType, const SipDialog& sipDialog);
 
    virtual ~ScNotificationMsg();
 
@@ -51,6 +55,8 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /* ============================ ACCESSORS ================================= */
+
+   void getSipDialog(SipDialog& val) const { val = m_sipDialog; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -65,6 +71,7 @@ private:
    /** Private assignment operator */
    ScNotificationMsg& operator=(const ScNotificationMsg& rhs);
 
+   SipDialog m_sipDialog; ///< sip dialog where this message should be routed
 };
 
 #endif // ScNotificationMsg_h__

@@ -25,7 +25,8 @@
 #include "os/OsNatAgentTask.h"
 #include "os/HostAdapterAddress.h"
 #include "net/SipUserAgent.h"
-#include "net/SdpCodecFactory.h"
+#include "sdp/SdpCodecList.h"
+#include <sdp/SdpCodecFactory.h>
 #include "net/SipRefreshMgr.h"
 #include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
@@ -61,7 +62,7 @@ OsStatus initLogger()
 
 SIPXTAPI_API SIPX_RESULT sipxConfigAllowMethod(const SIPX_INST hInst, const char* method, const bool bAllow)
 {
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    SIPX_RESULT res = SIPX_RESULT_FAILURE;
 
    if (pInst)
@@ -70,46 +71,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigAllowMethod(const SIPX_INST hInst, const char
       res = SIPX_RESULT_SUCCESS;
    }
    return res;
-}
-
-
-void freeAudioCodecs(SIPX_INSTANCE_DATA& pInst)
-{
-   // Did we previously allocate an audio codecs array and store it in our codec settings?
-   if (pInst.audioCodecSetting.bInitialized)
-   {
-      // Free up the previously allocated codecs and the array
-      for (int codecIndex = 0; codecIndex < pInst.audioCodecSetting.numCodecs; codecIndex++)
-      {
-
-         delete pInst.audioCodecSetting.sdpCodecArray[codecIndex];
-         pInst.audioCodecSetting.sdpCodecArray[codecIndex] = NULL;
-      }
-      delete[] pInst.audioCodecSetting.sdpCodecArray;
-      pInst.audioCodecSetting.sdpCodecArray = NULL;
-      pInst.audioCodecSetting.numCodecs = 0;
-   }
-}
-
-
-void freeVideoCodecs(SIPX_INSTANCE_DATA& pInst)
-{
-   // Did we previously allocate a video codecs array and store it in our codec settings?
-   if (pInst.videoCodecSetting.bInitialized)
-   {
-      // Free up the previuosly allocated codecs and the array
-      for (int codecIndex = 0; codecIndex < pInst.videoCodecSetting.numCodecs; codecIndex++)
-      {
-         if (pInst.videoCodecSetting.sdpCodecArray[codecIndex])
-         {
-            delete pInst.videoCodecSetting.sdpCodecArray[codecIndex];
-            pInst.videoCodecSetting.sdpCodecArray[codecIndex] = NULL;
-         }
-      }
-      delete[] pInst.videoCodecSetting.sdpCodecArray;
-      pInst.videoCodecSetting.sdpCodecArray = NULL;
-      pInst.videoCodecSetting.numCodecs = 0;
-   }
 }
 
 /***************************************************************************
@@ -196,7 +157,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundProxy(const SIPX_INST hInst,
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -245,7 +206,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterResponseWaitSeconds(const SIPX_INS
       hInst, seconds);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -271,7 +232,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRport(const SIPX_INST hInst,
       hInst, bEnable);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -298,7 +259,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetUserAgentName(const SIPX_INST hInst,
       hInst, szName);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -325,7 +286,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetRegisterExpiration(const SIPX_INST hInst,
       hInst, nRegisterExpirationSecs);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -351,7 +312,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetDnsSrvFailoverTimeout(const SIPX_INST hIns
       hInst, failoverTimeoutInSecs);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -379,7 +340,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableStun(const SIPX_INST hInst,
       hInst, szServer, iServerPort, iKeepAliveInSecs);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -407,7 +368,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigDisableStun(const SIPX_INST hInst)
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -433,7 +394,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableTurn(const SIPX_INST hInst,
       hInst, szServer, iServerPort, iKeepAliveInSecs);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -455,7 +416,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigDisableTurn(const SIPX_INST hInst)
       hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -475,7 +436,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableIce(const SIPX_INST hInst)
       "sipxConfigEnableICE hInst=%p", hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -495,7 +456,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigDisableIce(const SIPX_INST hInst)
       "sipxConfigDisableICE hInst=%p", hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -527,7 +488,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    UtlString localSocket = "0.0.0.0";
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    assert(pInst);
    assert(remoteIp);
@@ -574,21 +535,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
             rc = SIPX_RESULT_FAILURE;
          }
          break;
-      case SIPX_KEEPALIVE_SIP_PING:
-         // keep alive by sending SIP PING message
-         if (pInst->pSipUserAgent->addSipKeepAlive(localSocket,
-                  remoteIp, remotePort, "PING", keepAliveSecs, pInst->pKeepaliveEventListener))
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         else
-         {
-            rc = SIPX_RESULT_FAILURE;
-         }
-         break;
       case SIPX_KEEPALIVE_SIP_OPTIONS:
          if (pInst->pSipUserAgent->addSipKeepAlive(localSocket,
-                  remoteIp, remotePort, "OPTIONS", keepAliveSecs, pInst->pKeepaliveEventListener))
+                  remoteIp, remotePort, SIP_OPTIONS_METHOD, keepAliveSecs, pInst->pKeepaliveEventListener))
          {
             rc = SIPX_RESULT_SUCCESS;
          }
@@ -622,12 +571,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST     hInst,
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    UtlString localSocket = "0.0.0.0";
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    assert(pInst);
    assert(remoteIp);
    assert(remotePort > 0);
-   assert(type >= SIPX_KEEPALIVE_CRLF && type <= SIPX_KEEPALIVE_SIP_OPTIONS);
 
    if (pInst && remoteIp && remotePort > 0)
    {
@@ -667,20 +615,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST     hInst,
             rc = SIPX_RESULT_FAILURE;
          }
          break;
-      case SIPX_KEEPALIVE_SIP_PING:
-         if (pInst->pSipUserAgent->removeSipKeepAlive(localSocket,
-                  remoteIp, remotePort, "PING"))
-         {
-            rc = SIPX_RESULT_SUCCESS;
-         }
-         else
-         {
-            rc = SIPX_RESULT_FAILURE;
-         }
-         break;
       case SIPX_KEEPALIVE_SIP_OPTIONS:
          if (pInst->pSipUserAgent->removeSipKeepAlive(localSocket,
-            remoteIp, remotePort, "OPTIONS"))
+            remoteIp, remotePort, SIP_OPTIONS_METHOD))
          {
             rc = SIPX_RESULT_SUCCESS;
          }
@@ -725,7 +662,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipUdpPort(SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst && pPort)
@@ -754,7 +691,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTcpPort(SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst && pPort)
@@ -783,7 +720,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalSipTlsPort(SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst && pPort)
@@ -826,7 +763,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetOutboundDTMFMode(const SIPX_INST hInst,
       hInst, mode);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -850,7 +787,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetOutboundDTMFMode(const SIPX_INST hInst,
                                                        SIPX_OUTBOUND_DTMF_MODE* mode)
 {
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -883,7 +820,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableInboundDTMF(const SIPX_INST hInst,
 		hInst, mode);
 
 	SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-	SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+	SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 	assert(pInst);
 
 	if (pInst)
@@ -908,7 +845,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigIsInboundDTMFEnabled(const SIPX_INST hInst,
                                                         int* bEnabled)
 {
 	SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-	SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+	SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 	assert(pInst);
 
 	if (pInst)
@@ -942,7 +879,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRTCP(const SIPX_INST hInst,
       hInst, bEnable);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -1007,7 +944,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipShortNames(const SIPX_INST hInst,
       hInst, bEnabled);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -1034,7 +971,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipDateHeader(const SIPX_INST hInst,
       hInst, bEnabled);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -1061,7 +998,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableSipAllowHeader(const SIPX_INST hInst,
       hInst, bEnabled);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -1088,7 +1025,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetSipAcceptLanguage(const SIPX_INST hInst,
       hInst, szLanguage);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -1115,7 +1052,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLocationHeader(const SIPX_INST hInst,
       hInst, szHeader);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst && szHeader)
@@ -1136,7 +1073,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetConnectionIdleTimeout(const SIPX_INST hIns
       hInst, idleTimeout);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -1181,7 +1118,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportAdd(SIPX_INST const hInst,
       szLocalRoutingId ? szLocalRoutingId : "<NULL>") ;
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
    assert(szTransport);
    assert(szTransport[0] != '\0');
@@ -1377,7 +1314,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigPrepareToHibernate(const SIPX_INST hInst)
    }
    }
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) hInst ;  
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {   
@@ -1435,7 +1372,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigUnHibernate(const SIPX_INST hInst)
    pTimer->start();        
    }
    }
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*) hInst ;  
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {   
@@ -1467,7 +1404,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRtpOverTcp(const SIPX_INST hInst,
       "sipxConfigEnableRtpOverTcp Inst=%p bEnable=%d", hInst, bEnable);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pInst);
 
    if (pInst)
@@ -1479,159 +1416,45 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableRtpOverTcp(const SIPX_INST hInst,
    return rc;
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecPreferences(const SIPX_INST hInst, 
-                                                            const SIPX_AUDIO_BANDWIDTH_ID bandWidth)
+SIPXTAPI_API SIPX_RESULT sipxConfigSelectAudioCodecByName(const SIPX_INST hInst, 
+                                                          const char* szCodecNames)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetAudioCodecPreferences");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSelectAudioCodecByName");
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetAudioCodecPreferences hInst=%p bandWidth=%d",
-      hInst, bandWidth);
+      "sipxConfigSelectAudioCodecByName hInst=%p codec=%s",
+      hInst, szCodecNames);
 
    if (pInst)
    {
-      // Check if bandwidth is legal, do not allow variable bandwidth
-      if (bandWidth >= AUDIO_CODEC_BW_LOW && bandWidth <= AUDIO_CODEC_BW_HIGH)
+      CpMediaInterfaceFactory* pInterfaceFactory = pInst->pCallManager->getMediaInterfaceFactory();
+
+      if (pInterfaceFactory)
       {
-         CpMediaInterfaceFactory* pInterface = 
-            pInst->pCallManager->getMediaInterfaceFactory();
-
-         if (pInterface)
+         if (szCodecNames)
          {
-            int numCodecs;
-            SdpCodec** codecsArray = NULL;
-            UtlString codecName;
-            int iRejected;
-
-            pInst->audioCodecSetting.preferences = "";
-            int codecIndex;
-
-            /* Unconditionally rebuild codec factory with all supported codecs. If we 
-            * don't do this first then only the previously preferred codecs will be used to
-            * build the new factory -> that doesn't work for changing from a lower bandwidth to
-            * a higher bandwidth.
-            */
-            pInterface->buildCodecFactory(pInst->pCodecFactory, 
-               pInst->audioCodecSetting.preferences, // No audio preferences
-               pInst->videoCodecSetting.preferences, // Keep video prefs
-               -1, // Allow all formats
-               &iRejected);
-
-            // Now pick preferences out of all available codecs
-            pInst->pCodecFactory->getCodecs(numCodecs, codecsArray, "audio");
-
-            OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
-               "sipxConfigSetAudioCodecPreferences number of Codec = %d for hInst=%p",
-               numCodecs, hInst);
-
-            // pick codecs which have smaller bandwidth, DTMF has low bandwidth
-            for (int i = 0; i < numCodecs; i++)
-            {
-               if (codecsArray[i]->getBWCost() <= bandWidth)
-               {
-                  if (pInterface->getCodecNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
-                  {
-                     pInst->audioCodecSetting.preferences += " " + codecName;
-                  }
-               }
-            }
-            // print selected codecs to logfile
-            OsSysLog::add(FAC_SIPXTAPI, PRI_DEBUG,
-               "sipxConfigSetAudioCodecPreferences: %s", pInst->audioCodecSetting.preferences.data());
-
-            // select codecs by name
-            SIPX_RESULT res = sipxConfigSetAudioCodecByName(hInst, pInst->audioCodecSetting.preferences);
-
-            // override bandwidth, as it was set to AUDIO_CODEC_BW_CUSTOM
-            pInst->audioCodecSetting.codecPref = bandWidth;
-
-            if (res == SIPX_RESULT_SUCCESS)
-            {
-               rc = SIPX_RESULT_SUCCESS;
-            }
-
-            // Free up the codecs and the array
-            for (codecIndex = 0; codecIndex < numCodecs; codecIndex++)
-            {
-               delete codecsArray[codecIndex];
-               codecsArray[codecIndex] = NULL;
-            }
-            delete[] codecsArray;
-            codecsArray = NULL;
+            // add telephone-event if some codec names were specified
+            pInst->selectedAudioCodecNames = SdpCodecFactory::getFixedAudioCodecs(szCodecNames);
          }
-      }
-      else
-      {
-         rc = SIPX_RESULT_INVALID_ARGS;
-      }
-   }
-
-   return rc;
-}
-
-
-SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecName)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetAudioCodecByName");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetAudioCodecByName hInst=%p codec=%s",
-      hInst, szCodecName);
-
-   if (pInst)
-   {
-      int iRejected;
-
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory();
-
-      if (pInterface)
-      {
-         pInst->audioCodecSetting.preferences = szCodecName;
-
-         // maybe add " audio/telephone-event"
-         if (!pInst->audioCodecSetting.preferences.contains("audio/telephone-event"))
+         else
          {
-            pInst->audioCodecSetting.preferences += " audio/telephone-event";
+            pInst->selectedAudioCodecNames = szCodecNames;
          }
 
-         if (pInst->audioCodecSetting.preferences.length() != 0)
+         OsStatus res = pInterfaceFactory->buildCodecList(*pInst->pSelectedCodecList,
+               pInst->selectedAudioCodecNames,
+               pInst->selectedVideoCodecNames);
+
+         if (res == OS_SUCCESS)
          {
-            freeAudioCodecs(*pInst);
-
-            pInterface->buildCodecFactory(pInst->pCodecFactory,
-                  pInst->audioCodecSetting.preferences,
-                  pInst->videoCodecSetting.preferences,
-                  pInst->videoCodecSetting.videoFormat, // Allow all formats
-                  &iRejected);
-
-            // We've rebuilt the factory, so get the new count of codecs
-            pInst->pCodecFactory->getCodecs(pInst->audioCodecSetting.numCodecs,
-                  pInst->audioCodecSetting.sdpCodecArray,
-                  "audio");
-
-            pInst->audioCodecSetting.codecPref = AUDIO_CODEC_BW_CUSTOM;
-
-            if (pInst->audioCodecSetting.numCodecs > 1)
-            {
-               rc = SIPX_RESULT_SUCCESS;
-            }
-            else
-            {
-               OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
-                  "sipxConfigSetAudioCodecByName: Setting %s failed, only DTMF is active", 
-                  szCodecName);
-            }
-
-            pInst->audioCodecSetting.bInitialized = true;
+            rc = SIPX_RESULT_SUCCESS;
+         }
+         else
+         {
+            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "sipxConfigSelectAudioCodecByName: Setting %s failed", szCodecNames);
          }
       }
    }
@@ -1639,94 +1462,115 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetAudioCodecByName(const SIPX_INST hInst,
    return rc;
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodecPreferences(const SIPX_INST hInst,
-                                                            SIPX_AUDIO_BANDWIDTH_ID *pBandWidth)
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumSelectedAudioCodecs(const SIPX_INST hInst, 
+                                                             int* pNumCodecs)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetAudioCodecPreferences");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetNumSelectedAudioCodecs");
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst && pInst->audioCodecSetting.bInitialized)
-   {
-      *pBandWidth = pInst->audioCodecSetting.codecPref;
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetAudioCodecPreferences hInst=%p bandWidth=%d",
-      hInst, *pBandWidth);
-
-   return rc;
-}
-
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAudioCodecs(const SIPX_INST hInst, 
-                                                     int* pNumCodecs)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetNumAudioCodecs");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst && pNumCodecs)
    {
-      assert(pInst->audioCodecSetting.bInitialized);
+      assert(pInst->pSelectedCodecList);
 
-      if (pInst->audioCodecSetting.bInitialized)
+      if (pInst->pSelectedCodecList)
       {
-         *pNumCodecs = pInst->audioCodecSetting.numCodecs;
+         *pNumCodecs = pInst->pSelectedCodecList->getCodecCount(MIME_TYPE_AUDIO);
          rc = SIPX_RESULT_SUCCESS;
       }
    }
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetNumAudioCodecs hInst=%p numCodecs=%d",
+      "sipxConfigGetNumSelectedAudioCodecs hInst=%p numCodecs=%d",
       hInst, *pNumCodecs);
 
    return rc;
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
-                                                 const int index,
-                                                 SIPX_AUDIO_CODEC* pCodec)
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAvailableAudioCodecs(const SIPX_INST hInst, 
+                                                              int* pNumCodecs)
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetAudioCodec");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetNumAvailableAudioCodecs");
+
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst && pNumCodecs)
+   {
+      *pNumCodecs = pInst->pAvailableCodecList->getCodecCount(MIME_TYPE_AUDIO);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConfigGetNumAvailableAudioCodecs hInst=%p numCodecs=%d",
+      hInst, *pNumCodecs);
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedAudioCodec(const SIPX_INST hInst,
+                                                         const int index,
+                                                         SIPX_AUDIO_CODEC* pCodec)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetSelectedAudioCodec");
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
    UtlString codecName;
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pCodec);
 
-   if (pInst && pCodec && pInst->audioCodecSetting.bInitialized)
+   if (pInst && pCodec)
    {
       memset((void*)pCodec, 0, sizeof(SIPX_AUDIO_CODEC));
 
-      if (index >= 0 && index < pInst->audioCodecSetting.numCodecs)
+      SdpCodec sdpCodec;
+      UtlBoolean bFound = pInst->pSelectedCodecList->getCodecByIndex(MIME_TYPE_AUDIO, index, sdpCodec);
+      if (bFound)
       {
-         CpMediaInterfaceFactory* pInterface = 
-            pInst->pCallManager->getMediaInterfaceFactory();
-
-         // If a name is found for the codec type, copy name and bandwidth cost
-         if (pInterface->getCodecNameByType(pInst->audioCodecSetting.sdpCodecArray[index]->getCodecType(),
-            codecName))
-         {
-            SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
-            pCodec->iBandWidth = 
-               (SIPX_AUDIO_BANDWIDTH_ID)pInst->audioCodecSetting.sdpCodecArray[index]->getBWCost();
-            pCodec->iPayloadType = pInst->audioCodecSetting.sdpCodecArray[index]->getCodecPayloadFormat();
-
-            rc = SIPX_RESULT_SUCCESS;
-         }
+         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
+         pCodec->iBandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
+         rc = SIPX_RESULT_SUCCESS;
       }
    }
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetAudioCodec hInst=%p index=%d, codec-%s",
+      "sipxConfigGetSelectedAudioCodec hInst=%p index=%d, codec-%s",
       hInst, index, codecName.data());
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableAudioCodec(const SIPX_INST hInst,
+                                                          const int index,
+                                                          SIPX_AUDIO_CODEC* pCodec)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetAvailableAudioCodec");
+
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   assert(pCodec);
+
+   if (pInst && pCodec)
+   {
+      memset((void*)pCodec, 0, sizeof(SIPX_AUDIO_CODEC));
+
+      SdpCodec sdpCodec;
+      UtlBoolean bFound = pInst->pAvailableCodecList->getCodecByIndex(MIME_TYPE_AUDIO, index, sdpCodec);
+      if (bFound)
+      {
+         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
+         pCodec->iBandWidth = (SIPX_AUDIO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
+         rc = SIPX_RESULT_SUCCESS;
+      }
+   }
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConfigGetAvailableAudioCodec hInst=%p index=%d",
+      hInst, index);
 
    return rc;
 }
@@ -1735,93 +1579,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAudioCodec(const SIPX_INST hInst,
 * Public Video Config Functions
 ***************************************************************************/
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodecPreferences(const SIPX_INST hInst,
-                                                            SIPX_VIDEO_BANDWIDTH_ID *pBandWidth)
-{
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetVideoCodecPreferences");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst && pInst->videoCodecSetting.bInitialized)
-   {
-      *pBandWidth = pInst->videoCodecSetting.codecPref;
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetVideoCodecPreferences hInst=%p bandWidth=%d",
-      hInst, *pBandWidth);
-
-   return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
-}
-
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBandwidth(const SIPX_INST hInst,
-                                                     SIPX_VIDEO_BANDWIDTH_ID bandWidth)
-{
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoBandwidth");
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetVideoBandwidth hInst=%p bandWidth=%d",
-      hInst, bandWidth);
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
-
-   if (pInst)
-   {
-      if (!pInst->videoCodecSetting.bInitialized)
-      {
-         sipxConfigResetVideoCodecs(hInst);
-      }
-
-      // Check if bandwidth is legal, do not allow variable bandwidth
-      if (bandWidth >= VIDEO_CODEC_BW_LOW && bandWidth <= VIDEO_CODEC_BW_HIGH)
-      {
-         CpMediaInterfaceFactory* pImpl = 
-            pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
-
-         if (pImpl)
-         {
-            int frameRate;
-            pImpl->getVideoFrameRate(frameRate);
-
-            switch (bandWidth)
-            {
-            case VIDEO_CODEC_BW_LOW:
-               sipxConfigSetVideoParameters(hInst, 5, 10);
-               break;
-            case VIDEO_CODEC_BW_NORMAL:
-               sipxConfigSetVideoParameters(hInst, 70, frameRate);
-               break;
-            case VIDEO_CODEC_BW_HIGH:
-               sipxConfigSetVideoParameters(hInst, 400, frameRate);
-               break;
-            }
-            rc = SIPX_RESULT_SUCCESS;
-         }         
-      }
-   }
-
-   return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
-}
-
-
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
                                                           char** arrSzCaptureDevices,
                                                           int nDeviceStringLength,
                                                           int nArrayLength)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetVideoCaptureDevices");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1829,15 +1591,14 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    char *pTemp = (char*)arrSzCaptureDevices;
    memset(arrSzCaptureDevices, 0, nDeviceStringLength * nArrayLength);
 
    if (pInst && pInst->pCallManager)
    {
-      CpMediaInterfaceFactory* pImpl = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -1854,7 +1615,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
             {
                if (pDevice->length() > 0)
                {
-                  if (pDevice->length() > nDeviceStringLength)
+                  if (pDevice->length() > (size_t)nDeviceStringLength)
                   {
                      bytesToCopy = nDeviceStringLength;
                   }
@@ -1879,17 +1640,12 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevices(const SIPX_INST hInst,
    }
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }                                                          
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
                                                          char* szCaptureDevice,
                                                          int nLength)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetVideoCaptureDevice");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1897,12 +1653,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
       hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst && pInst->pCallManager)
    {
-      CpMediaInterfaceFactory* pImpl =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -1912,7 +1667,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
          {
             int bytesToCopy;
 
-            if (captureDevice.length() > nLength)
+            if (captureDevice.length() > (size_t)nLength)
             {
                bytesToCopy = nLength;
             }
@@ -1929,16 +1684,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCaptureDevice(const SIPX_INST hInst,
    }
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
                                                          const char* szCaptureDevice)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoCaptureDevice");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -1946,12 +1696,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
       hInst, szCaptureDevice);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst && pInst->pCallManager)
    {
-      CpMediaInterfaceFactory* pImpl = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -1965,210 +1714,195 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCaptureDevice(const SIPX_INST hInst,
    }
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetNumVideoCodecs(const SIPX_INST hInst,
-                                                     int* pNumCodecs)
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumSelectedVideoCodecs(const SIPX_INST hInst,
+                                                             int* pNumCodecs)
 {
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetNumVideoCodecs");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetNumSelectedVideoCodecs");
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst && pNumCodecs)
    {
-      assert(pInst->videoCodecSetting.bInitialized);
+      *pNumCodecs = pInst->pSelectedCodecList->getCodecCount(MIME_TYPE_VIDEO);
+      rc = SIPX_RESULT_SUCCESS;
+   }
 
-      if (pInst->videoCodecSetting.bInitialized)
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConfigGetNumSelectedVideoCodecs hInst=%p numCodecs=%d",
+      hInst, *pNumCodecs);
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetNumAvailableVideoCodecs(const SIPX_INST hInst,
+                                                              int* pNumCodecs)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetNumAvailableVideoCodecs");
+
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst && pNumCodecs)
+   {
+      *pNumCodecs = pInst->pAvailableCodecList->getCodecCount(MIME_TYPE_VIDEO);
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConfigGetNumAvailableVideoCodecs hInst=%p numCodecs=%d",
+      hInst, *pNumCodecs);
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedVideoCodec(const SIPX_INST hInst, 
+                                                         const int index, 
+                                                         SIPX_VIDEO_CODEC* pCodec)
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetSelectedVideoCodec");
+
+   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
+   UtlString codecName;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+   assert(pCodec);
+
+   if (pInst && pCodec)
+   {
+      memset((void*)pCodec, 0, sizeof(SIPX_VIDEO_CODEC));
+
+      SdpCodec sdpCodec;
+      UtlBoolean bFound = pInst->pSelectedCodecList->getCodecByIndex(MIME_TYPE_VIDEO, index, sdpCodec);
+      if (bFound)
       {
-         *pNumCodecs = pInst->videoCodecSetting.numCodecs;
+         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
+         pCodec->iBandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
          rc = SIPX_RESULT_SUCCESS;
       }
    }
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetNumVideoCodecs hInst=%p numCodecs=%d",
-      hInst, *pNumCodecs);
+      "sipxConfigGetSelectedVideoCodec hInst=%p index=%d, codec-%s",
+      hInst, index, codecName.data());
 
    return rc;
-#else
-   if (pNumCodecs)
-   {
-      *pNumCodecs = 0;
-   }
-   return SIPX_RESULT_SUCCESS;
-#endif
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigGetVideoCodec(const SIPX_INST hInst, 
-                                                 const int index, 
-                                                 SIPX_VIDEO_CODEC* pCodec)
+SIPXTAPI_API SIPX_RESULT sipxConfigGetAvailableVideoCodec(const SIPX_INST hInst, 
+                                                          const int index, 
+                                                          SIPX_VIDEO_CODEC* pCodec)
 {
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetVideoCodec");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigGetAvailableAudioCodec");
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   UtlString codecName;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    assert(pCodec);
 
-   if (pInst && pCodec && pInst->videoCodecSetting.bInitialized)
+   if (pInst && pCodec)
    {
       memset((void*)pCodec, 0, sizeof(SIPX_VIDEO_CODEC));
 
-      if (index >= 0 && index < pInst->videoCodecSetting.numCodecs)
+      SdpCodec sdpCodec;
+      UtlBoolean bFound = pInst->pAvailableCodecList->getCodecByIndex(MIME_TYPE_VIDEO, index, sdpCodec);
+      if (bFound)
       {
-         CpMediaInterfaceFactory* pInterface = 
-            pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
-
-         // If a name is found for the codec type, copy name and bandwidth cost
-         if (pInterface->getCodecNameByType(pInst->videoCodecSetting.sdpCodecArray[index]->getCodecType(),
-            codecName))
-         {
-            SAFE_STRNCPY(pCodec->cName, codecName, SIPXTAPI_CODEC_NAMELEN);
-            pCodec->iBandWidth = 
-               (SIPX_VIDEO_BANDWIDTH_ID)pInst->videoCodecSetting.sdpCodecArray[index]->getBWCost();
-            pCodec->iPayloadType = pInst->videoCodecSetting.sdpCodecArray[index]->getCodecPayloadFormat();
-
-            rc = SIPX_RESULT_SUCCESS;
-         }
+         SAFE_STRNCPY(pCodec->cName, sdpCodec.getCodecName().data(), SIPXTAPI_CODEC_NAMELEN);
+         pCodec->iBandWidth = (SIPX_VIDEO_BANDWIDTH_ID)sdpCodec.getBWCost();
+         pCodec->iPayloadType = sdpCodec.getCodecPayloadId();
+         rc = SIPX_RESULT_SUCCESS;
       }
    }
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigGetVideoCodec hInst=%p index=%d, codec-%s",
-      hInst, index, codecName.data());
+      "sipxConfigGetAvailableAudioCodec hInst=%p index=%d",
+      hInst, index);
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCodecByName(const SIPX_INST hInst, 
-                                                       const char* szCodecName)
+SIPXTAPI_API SIPX_RESULT sipxConfigSelectVideoCodecByName(const SIPX_INST hInst, 
+                                                          const char* szCodecName)
 {
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoCodecByName");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSelectVideoCodecByName");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigSetVideoCodecByName hInst=%p codec=%s",
+      "sipxConfigSelectVideoCodecByName hInst=%p codec=%s",
       hInst, szCodecName);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      int iRejected;
-
-      CpMediaInterfaceFactory* pInterface = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pInterface = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pInterface)
       {
-         freeVideoCodecs(*pInst);
+         pInst->selectedVideoCodecNames = szCodecName;
 
-         pInst->videoCodecSetting.preferences = szCodecName;
+         OsStatus res = pInterface->buildCodecList(*pInst->pSelectedCodecList, 
+               pInst->selectedAudioCodecNames,
+               pInst->selectedVideoCodecNames);
 
-         pInterface->buildCodecFactory(pInst->pCodecFactory, 
-               pInst->audioCodecSetting.preferences,
-               pInst->videoCodecSetting.preferences,
-               pInst->videoCodecSetting.videoFormat, // Allow all formats
-               &iRejected);
-
-         // We've rebuilt the factory, so get the new count of codecs
-         pInst->pCodecFactory->getCodecs(pInst->videoCodecSetting.numCodecs,
-               pInst->videoCodecSetting.sdpCodecArray,
-               "video");
-
-         if (pInst->videoCodecSetting.numCodecs > 0)
+         if (res == OS_SUCCESS)
          {
-            pInst->videoCodecSetting.codecPref = VIDEO_CODEC_BW_CUSTOM;
             rc = SIPX_RESULT_SUCCESS;
          }
          else
          {
             // Codec setting by name failed - we have an empty codec factory.
             // Fall back to previously set bandwidth Id
-            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
-               "sipxConfigSetVideoCodecByName: Setting %s failed", 
-               szCodecName);
+            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "sipxConfigSelectVideoCodecByName: Setting %s failed", szCodecName);
          }
-         pInst->videoCodecSetting.bInitialized = true;
       }
    }
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
 
-SIPXTAPI_API SIPX_RESULT sipxConfigResetVideoCodecs(const SIPX_INST hInst)
+SIPXTAPI_API SIPX_RESULT sipxConfigResetSelectedVideoCodecs(const SIPX_INST hInst)
 {
-#ifdef VIDEO
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigResetVideoCodecs");
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigResetSelectedVideoCodecs");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigResetVideoCodecs hInst=%p", hInst);
+      "sipxConfigResetSelectedVideoCodecs hInst=%p", hInst);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
 
    // passing zero string resets codecs
-   rc = sipxConfigSetVideoCodecByName(hInst, "");
+   rc = sipxConfigSelectVideoCodecByName(hInst, "");
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
 
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFormat(const SIPX_INST hInst,
                                                   SIPX_VIDEO_FORMAT videoFormat)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoFormat");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxConfigSetVideoFormat hInst=%p videoFormat=%d", hInst, videoFormat);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      pInst->videoCodecSetting.videoFormat = videoFormat;
-
-      if (pInst->videoCodecSetting.bInitialized)
-      {
-         rc = sipxConfigSetVideoCodecByName(hInst, pInst->videoCodecSetting.preferences);
-      }
-      else
-      {
-         rc = sipxConfigResetVideoCodecs(hInst);
-      }
+      pInst->videoFormat = videoFormat;
+      // TODO: rebuild video codecs, with only those video codecs that have given format
+      // currently we only support rebuilding codecs by name
    }
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoPreviewDisplay(const SIPX_INST hInst,
                                                           SIPX_VIDEO_DISPLAY* const pDisplay)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoPreviewDisplay");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2176,12 +1910,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoPreviewDisplay(const SIPX_INST hInst,
       hInst, pDisplay);
 
    SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pImpl = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -2193,16 +1926,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoPreviewDisplay(const SIPX_INST hInst,
    }
 
    return rc;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigUpdatePreviewWindow(const SIPX_INST hInst,
                                                        const SIPX_WINDOW_HANDLE hWnd)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigUpdatePreviewWindow");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2210,17 +1938,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigUpdatePreviewWindow(const SIPX_INST hInst,
       hInst, hWnd);
 
    return SIPX_RESULT_NOT_IMPLEMENTED;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
-
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxCallResizeWindow(const SIPX_CALL hCall,
                                               const SIPX_WINDOW_HANDLE hWnd)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallResizeWindow");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2228,17 +1950,11 @@ SIPXTAPI_API SIPX_RESULT sipxCallResizeWindow(const SIPX_CALL hCall,
       hCall, hWnd);
 
    return SIPX_RESULT_NOT_IMPLEMENTED;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
-
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxCallUpdateVideoWindow(const SIPX_CALL hCall,
                                                    const SIPX_WINDOW_HANDLE hWnd)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallUpdateVideoWindow");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2257,16 +1973,11 @@ SIPXTAPI_API SIPX_RESULT sipxCallUpdateVideoWindow(const SIPX_CALL hCall,
    }
 
    return sr;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoQuality(const SIPX_INST hInst,
                                                    const SIPX_VIDEO_QUALITY_ID quality)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoQuality");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2277,10 +1988,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoQuality(const SIPX_INST hInst,
 
    if (quality >= VIDEO_QUALITY_LOW && quality <= VIDEO_QUALITY_HIGH)
    {
-      SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+      SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
-      CpMediaInterfaceFactory* pImpl =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -2296,25 +2006,19 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoQuality(const SIPX_INST hInst,
    }
 
    return sr;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
-
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoParameters(const SIPX_INST hInst,
                                                       const int bitRate,
                                                       const int frameRate)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoParameters");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxConfigSetVideoParameters hInst=%p, bitRate=%d, frameRate=%d",
       hInst, bitRate, frameRate);
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
    int localBitrate = bitRate;
 
@@ -2333,8 +2037,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoParameters(const SIPX_INST hInst,
          localBitrate = MAX_VIDEO_BITRATE;
       }
 
-      CpMediaInterfaceFactory* pImpl = 
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -2346,16 +2049,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoParameters(const SIPX_INST hInst,
    }
    
    return sr;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
                                                     const int cpuUsage)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoCpuUsage");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2363,12 +2061,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
       hInst, cpuUsage);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pImpl =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -2380,16 +2077,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
    }
 
    return sr;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
-
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBitrate(const SIPX_INST hInst,
                                                    const int bitRate)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoBitrate");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2397,12 +2089,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBitrate(const SIPX_INST hInst,
       hInst, bitRate);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pImpl =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -2429,16 +2120,12 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoBitrate(const SIPX_INST hInst,
    }
 
    return sr;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
 
 
 SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFramerate(const SIPX_INST hInst,
                                                      const int frameRate)
 {
-#ifdef VIDEO
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSetVideoFramerate");
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -2446,12 +2133,11 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFramerate(const SIPX_INST hInst,
       hInst, frameRate);
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
-      CpMediaInterfaceFactory* pImpl =
-         pInst->pCallManager->getMediaInterfaceFactory()->getFactoryImplementation();
+      CpMediaInterfaceFactory* pImpl = pInst->pCallManager->getMediaInterfaceFactory();
 
       if (pImpl)
       {
@@ -2463,9 +2149,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoFramerate(const SIPX_INST hInst,
    }
 
    return sr;
-#else
-   return SIPX_RESULT_NOT_SUPPORTED;
-#endif
 }
 
 /***************************************************************************
@@ -2481,7 +2164,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalContacts(const SIPX_INST hInst,
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
    UtlString address;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    assert(pInst);
    assert(pInst->pSipUserAgent);
@@ -2539,7 +2222,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalFeedbackAddress(const SIPX_INST hInst
       hInst, szRemoteIp ? szRemoteIp : "<NULL>", iRemotePort);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst && szRemoteIp && (iRemotePort > 0) && szContactIp)
    {
@@ -2595,6 +2278,36 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAllLocalNetworkIps(char* arrAddresses[],
    else
    {
       *numAddresses = 0;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigGetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int* iSessionInterval) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      *iSessionInterval = pInst->pCallManager->getInviteExpireSeconds();
+      rc = SIPX_RESULT_SUCCESS;
+   }
+
+   return rc;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConfigSetSessionTimerExpiration(const SIPX_INST hInst,
+                                                             int iSessionInterval) 
+{
+   SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+   if (pInst)
+   {
+      pInst->pCallManager->setInviteExpireSeconds(iSessionInterval);
+      rc = SIPX_RESULT_SUCCESS;
    }
 
    return rc;

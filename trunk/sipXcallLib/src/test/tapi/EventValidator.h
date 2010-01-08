@@ -98,7 +98,7 @@ public:
       int iTimeoutInSecs = DEFAULT_TIMEOUT);
 
 
-   bool waitForInfoStatusEvent(SIPX_INFO hInfo, 
+   bool waitForInfoStatusEvent(void* pCookie, 
       int status, 
       int responseCode, 
       const char* szResponseText,
@@ -107,8 +107,6 @@ public:
 
    bool waitForInfoEvent(SIPX_CALL hCall,
       SIPX_LINE hLine,
-      const char* szFromURL,
-      const char* szUserAgent,
       const char* szContentType,
       const char* szContent,
       int nContentLength,
@@ -168,15 +166,13 @@ protected:
    UtlString* allocMessageEvent(SIPX_LINE hLine, 
       const char* szMessage);
 
-   UtlString* allocInfoStatusEvent(SIPX_INFO hInfo, 
+   UtlString* allocInfoStatusEvent(void* pCookie, 
       int status, 
       int responseCode, 
       const char* szResponseText) ;
 
    UtlString* allocInfoEvent(SIPX_CALL hCall, 
       SIPX_LINE hLine, 
-      const char* szFromURL, 
-      const char* szUserAgent,
       const char* szContentType,
       const char* szContent,
       int nContentLength);

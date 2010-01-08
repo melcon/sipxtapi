@@ -35,11 +35,18 @@ class DialingSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   DialingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   /** Constructor. */
+   DialingSipConnectionState(SipConnectionStateContext& rStateContext,
                              SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             CpMessageQueueProvider& rMessageQueueProvider,
+                             XSipConnectionEventSink& rSipConnectionEventSink,
+                             const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   DialingSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~DialingSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */
@@ -55,6 +62,18 @@ public:
    virtual void handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory);
 
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
+
+   /** Connects call to given address. Uses supplied sip call-id. */
+   virtual SipConnectionStateTransition* connect(OsStatus& result,
+                                                 const UtlString& sipCallId,
+                                                 const UtlString& localTag,
+                                                 const UtlString& toAddress,
+                                                 const UtlString& fromAddress,
+                                                 const UtlString& locationHeader,
+                                                 CP_CONTACT_ID contactId);
+
+   /** Disconnects call */
+   virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
 
    /* ============================ ACCESSORS ================================= */
 

@@ -44,8 +44,9 @@ public:
       AC_REJECT_CONNECTION, ///< rejects inbound call
       AC_REDIRECT_CONNECTION, ///< redirects inbound call
       AC_ANSWER_CONNECTION, ///< answers inbound call
-      AC_DROP_CONNECTION, ///< drops connection, optionally also dropping the call
-      AC_DROP_ALL_CONNECTIONS, ///< drops all connections, optionally also dropping the call
+      AC_DESTROY_CONNECTION, ///< destroys connection. Connection is progressed into destroyed state and deleted.
+      AC_DROP_CONNECTION, ///< drops connection
+      AC_DROP_ALL_CONNECTIONS, ///< drops all connections
       AC_TRANSFER_BLIND, ///< initiates blind call transfer
       AC_HOLD_CONNECTION, ///< holds connection
       AC_HOLD_ALL_CONNECTIONS, ///< holds all connections

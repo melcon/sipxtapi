@@ -12,8 +12,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/IdleSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/NewCallSipConnectionState.h>
@@ -32,11 +32,20 @@
 
 /* ============================ CREATORS ================================== */
 
-IdleSipConnectionState::IdleSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+IdleSipConnectionState::IdleSipConnectionState(SipConnectionStateContext& rStateContext,
                                                SipUserAgent& rSipUserAgent,
-                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                               XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                               CpMessageQueueProvider& rMessageQueueProvider,
+                                               XSipConnectionEventSink& rSipConnectionEventSink,
+                                               const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+IdleSipConnectionState::IdleSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -50,12 +59,19 @@ IdleSipConnectionState::~IdleSipConnectionState()
 
 void IdleSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
-
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry idle connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void IdleSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* IdleSipConnectionState::dropConnection(OsStatus& result)
+{
+   result = OS_SUCCESS;
+   return getTransition(ISipConnectionState::CONNECTION_DISCONNECTED, NULL);
 }
 
 SipConnectionStateTransition* IdleSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -81,25 +97,17 @@ SipConnectionStateTransition* IdleSipConnectionState::getTransition(ISipConnecti
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_NEWCALL:
-         pDestination = new NewCallSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new NewCallSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DIALING:
-         pDestination = new DialingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DialingSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

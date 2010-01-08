@@ -22,7 +22,7 @@
 #include <net/SdpBody.h>
 #include <net/NameValuePair.h>
 #include <net/NameValueTokenizer.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecList.h>
 #include <utl/UtlTokenizer.h>
 #include <net/NetBase64Codec.h>
 
@@ -113,6 +113,42 @@ SdpBody::SdpBody(const SdpBody& rSdpBody) :
    }
 }
 
+// Assignment operator
+SdpBody& SdpBody::operator=(const SdpBody& rhs)
+{
+   if (this == &rhs)            // handle the assignment to self case
+      return *this;
+
+   // Copy the base class stuff
+   this->HttpBody::operator=((const HttpBody&)rhs);
+
+   if(sdpFields)
+   {
+      sdpFields->destroyAll();
+   }
+
+   if(rhs.sdpFields)
+   {
+      if(sdpFields == NULL)
+      {
+         sdpFields = new UtlSList();
+      }
+
+      NameValuePair* headerField;
+      NameValuePair* copiedHeader = NULL;
+      UtlSListIterator iterator((UtlSList&)(*(rhs.sdpFields)));
+      while((headerField = (NameValuePair*) iterator()))
+      {
+         copiedHeader = new NameValuePair(*headerField);
+         sdpFields->append(copiedHeader);
+      }
+   }
+
+   // Set the class type just to play it safe
+   mClassType = SDP_BODY_CLASS;
+   return *this;
+}
+
 // Destructor
 SdpBody::~SdpBody()
 {
@@ -158,44 +194,6 @@ void SdpBody::parseBody(const char* bodyBytes, int byteCount)
       }
       while(nameFound);
    }
-}
-
-
-// Assignment operator
-SdpBody&
-SdpBody::operator=(const SdpBody& rhs)
-{
-   if (this == &rhs)            // handle the assignment to self case
-      return *this;
-
-   // Copy the base class stuff
-   this->HttpBody::operator=((const HttpBody&)rhs);
-
-   if(sdpFields)
-   {
-      sdpFields->destroyAll();
-   }
-
-   if(rhs.sdpFields)
-   {
-      if(sdpFields == NULL)
-      {
-         sdpFields = new UtlSList();
-      }
-
-      NameValuePair* headerField;
-      NameValuePair* copiedHeader = NULL;
-      UtlSListIterator iterator((UtlSList&)(*(rhs.sdpFields)));
-      while((headerField = (NameValuePair*) iterator()))
-      {
-         copiedHeader = new NameValuePair(*headerField);
-         sdpFields->append(copiedHeader);
-      }
-   }
-
-   // Set the class type just to play it safe
-   mClassType = SDP_BODY_CLASS;
-   return *this;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -760,6 +758,79 @@ UtlBoolean SdpBody::getBandwidthField(int& bandwidth) const
    return bFound;
 }
 
+SDP_STREAM_DIRECTION SdpBody::getStreamDirection() const
+{
+   SDP_STREAM_DIRECTION streamDirection = SDP_STREAM_SENDRECV;
+
+   if(findValueInField("a", "sendonly"))
+   {
+      return SDP_STREAM_SENDONLY;
+   }
+   else if(findValueInField("a", "recvonly"))
+   {
+      return SDP_STREAM_RECVONLY;
+   }
+   else if(findValueInField("a", "inactive"))
+   {
+      return SDP_STREAM_INACTIVE;
+   }
+
+   return streamDirection;
+}
+
+SDP_STREAM_DIRECTION SdpBody::translateStreamDirection(const SdpBody* offerSdpRequest, UtlBoolean bLocalHold)
+{
+   SDP_STREAM_DIRECTION answerStreamDirection = SDP_STREAM_SENDRECV;
+
+   // ATT: This logic is not very good, it puts all streams on hold regardless which stream
+   // should actually be on hold. The problem is in this class, which is written in a very poor
+   // way and doesn't let us do it the proper way.
+   if (offerSdpRequest)
+   {
+      SDP_STREAM_DIRECTION offerStreamDirection = offerSdpRequest->getStreamDirection();
+      if (bLocalHold)
+      {
+         // we want hold
+         switch (offerStreamDirection)
+         {
+         case SDP_STREAM_SENDONLY:
+            answerStreamDirection = SDP_STREAM_INACTIVE;
+            break;
+         case SDP_STREAM_RECVONLY:
+            answerStreamDirection = SDP_STREAM_SENDONLY;
+            break;
+         case SDP_STREAM_INACTIVE:
+            answerStreamDirection = SDP_STREAM_INACTIVE;
+            break;
+         case SDP_STREAM_SENDRECV:
+            answerStreamDirection = SDP_STREAM_SENDONLY;
+            break;
+         default:
+            ;
+         }
+      }
+      else
+      {
+         // we don't want hold
+         switch (offerStreamDirection)
+         {
+         case SDP_STREAM_SENDONLY:
+            answerStreamDirection = SDP_STREAM_RECVONLY;
+            break;
+         case SDP_STREAM_RECVONLY:
+            answerStreamDirection = SDP_STREAM_SENDONLY;
+            break;
+         case SDP_STREAM_INACTIVE:
+         case SDP_STREAM_SENDRECV:
+         default:
+            answerStreamDirection = offerStreamDirection;
+         }
+      }
+   }
+
+   return answerStreamDirection;
+}
+
 UtlBoolean SdpBody::getValue(int fieldIndex, UtlString* name, UtlString* value) const
 {
    NameValuePair* nv = NULL;
@@ -1058,7 +1129,7 @@ void SdpBody::getBestAudioCodecs(int numRtpCodecs, SdpCodec rtpCodecs[],
 }
 
 
-void SdpBody::getBestAudioCodecs(SdpCodecFactory& localRtpCodecs,
+void SdpBody::getBestAudioCodecs(const SdpCodecList& localRtpCodecs,
                                  int& numCodecsInCommon,
                                  SdpCodec**& commonCodecsForEncoder,
                                  SdpCodec**& commonCodecsForDecoder,
@@ -1067,7 +1138,7 @@ void SdpBody::getBestAudioCodecs(SdpCodecFactory& localRtpCodecs,
                                  int& rtcpPort,
                                  int& videoRtpPort,
                                  int& videoRtcpPort,
-                                 SdpSrtpParameters& localSrtpParams,
+                                 const SdpSrtpParameters& localSrtpParams,
                                  SdpSrtpParameters& matchingSrtpParams,
                                  int localBandwidth,
                                  int& matchingBandwidth,
@@ -1146,7 +1217,7 @@ void SdpBody::getBestAudioCodecs(SdpCodecFactory& localRtpCodecs,
 }
 
 
-void SdpBody::getEncryptionInCommon(SdpSrtpParameters& audioParams,
+void SdpBody::getEncryptionInCommon(const SdpSrtpParameters& audioParams,
                                     SdpSrtpParameters& remoteParams,
                                     SdpSrtpParameters& commonAudioParams) const
 {
@@ -1203,7 +1274,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                                 int audioPayloadTypes[],
                                 int videoPayloadTypes[],
                                 int videoRtpPort,
-                                SdpCodecFactory& localRtpCodecs,
+                                const SdpCodecList& localRtpCodecs,
                                 int& numCodecsInCommon,
                                 SdpCodec* commonCodecsForEncoder[],
                                 SdpCodec* commonCodecsForDecoder[]) const
@@ -1303,7 +1374,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
                commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
 
-               commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadFormat(audioPayloadTypes[typeIndex]);
+               commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadId(audioPayloadTypes[typeIndex]);
                // decoder uses our own SDP payload IDs, not remote
 
                if (frameSize)
@@ -1325,7 +1396,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
       else if(audioPayloadTypes[typeIndex] <=
               SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC)
       {
-         if((matchingCodec = localRtpCodecs.getCodecByType(audioPayloadTypes[typeIndex])))
+         if((matchingCodec = localRtpCodecs.getCodecByPayloadId(audioPayloadTypes[typeIndex])))
          {
             // Create a copy of the SDP codec
             commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
@@ -1407,7 +1478,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
                             commonCodecsForEncoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
                             commonCodecsForDecoder[numCodecsInCommon] = new SdpCodec(*matchingCodec);
 
-                            commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadFormat(videoPayloadTypes[typeIndex]);
+                            commonCodecsForEncoder[numCodecsInCommon]->setCodecPayloadId(videoPayloadTypes[typeIndex]);
                             // decoder will use our SDP payload IDs, not those we received
 
                             numCodecsInCommon++;
@@ -1433,7 +1504,7 @@ void SdpBody::getCodecsInCommon(int audioPayloadIdCount,
             else if(videoPayloadTypes[typeIndex] <=
                     SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC)
             {
-                if((matchingCodec = localRtpCodecs.getCodecByType(videoPayloadTypes[typeIndex])))
+                if((matchingCodec = localRtpCodecs.getCodecByPayloadId(videoPayloadTypes[typeIndex])))
                 {
                     // Create a copy of the SDP codec and set
                     // the payload type for it
@@ -1457,10 +1528,11 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                              RTP_TRANSPORT transportTypes[],
                              int numRtpCodecs,
                              SdpCodec* rtpCodecs[],
-                             SdpSrtpParameters& srtpParams,
+                             const SdpSrtpParameters& srtpParams,
                              int totalBandwidth,
                              int videoFramerate,
-                             RTP_TRANSPORT transportOffering)
+                             RTP_TRANSPORT transportOffering,
+                             UtlBoolean bLocalHold)
 {
     int codecArray[MAXIMUM_MEDIA_TYPES];
     int formatArray[MAXIMUM_MEDIA_TYPES];
@@ -1503,7 +1575,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
             seenMimeType = mimeType;
             ++numAudioCodecs;
             codecArray[destIndex++] =
-                (rtpCodecs[codecIndex])->getCodecPayloadFormat();
+                (rtpCodecs[codecIndex])->getCodecPayloadId();
         }
     }
 
@@ -1590,7 +1662,8 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
         }
 
         // add attribute records defining the extended types
-        addCodecParameters(numRtpCodecs, rtpCodecs, seenMimeType.data(), videoFramerate);
+        addCodecParameters(numRtpCodecs, rtpCodecs, seenMimeType.data(), videoFramerate,
+           bLocalHold ? SDP_STREAM_SENDONLY : SDP_STREAM_SENDRECV);
 
     }
 
@@ -1624,7 +1697,7 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
                 ++numVideoCodecs;
                 formatArray[destIndex] = (rtpCodecs[codecIndex])->getVideoFormat();
                 codecArray[destIndex] =
-                    (rtpCodecs[codecIndex])->getCodecPayloadFormat();
+                    (rtpCodecs[codecIndex])->getCodecPayloadId();
                 (rtpCodecs[firstMimeSubTypeIndex])->setVideoFmtp(formatArray[destIndex]);
                 (rtpCodecs[firstMimeSubTypeIndex])->clearVideoFmtpString();
                 (rtpCodecs[firstMimeSubTypeIndex])->setVideoFmtpString((rtpCodecs[codecIndex])->getVideoFormat());
@@ -1714,7 +1787,8 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
         }
 
         // add attribute records defining the extended types
-        addCodecParameters(numRtpCodecs, rtpCodecs, SDP_VIDEO_MEDIA_TYPE, videoFramerate);
+        addCodecParameters(numRtpCodecs, rtpCodecs, SDP_VIDEO_MEDIA_TYPE, videoFramerate,
+           bLocalHold ? SDP_STREAM_SENDONLY : SDP_STREAM_SENDRECV);
 
         if (totalBandwidth != 0)
         {
@@ -1730,7 +1804,8 @@ void SdpBody::addCodecsOffer(int iNumAddresses,
 void SdpBody::addCodecParameters(int numRtpCodecs,
                                  SdpCodec* rtpCodecs[],
                                  const char *szMimeType, 
-                                 int videoFramerate)
+                                 int videoFramerate,
+                                 SDP_STREAM_DIRECTION streamDirection)
 {
    const SdpCodec* codec = NULL;
    UtlString mimeSubtype;
@@ -1758,7 +1833,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
          sampleRate = codec->getSampleRate();
          numChannels = codec->getNumChannels();
          codec->getSdpFmtpField(formatParameters);
-         payloadType = codec->getCodecPayloadFormat();
+         payloadType = codec->getCodecPayloadId();
 
          // Not sure what the right heuristic is for determining the
          // correct ptime.  ptime is a media (m line) parameters.  As such
@@ -1777,7 +1852,7 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
 
          if ((videoFmtp=codec->getVideoFmtp()) != 0)
          {
-             if (codec->getCodecPayloadFormat() != SdpCodec::SDP_CODEC_H263)
+             if (codec->getCodecPayloadId() != SdpCodec::SDP_CODEC_H263)
              {
                  codec->getVideoFmtpString(formatString);
                  formatTemp = "size:" + formatString;
@@ -1821,6 +1896,24 @@ void SdpBody::addCodecParameters(int numRtpCodecs,
       }
    }
 
+   switch (streamDirection)
+   {
+   case SDP_STREAM_SENDRECV:
+      addValue("a", "sendrecv");
+      break;
+   case SDP_STREAM_SENDONLY:
+      addValue("a", "sendonly");
+      break;
+   case SDP_STREAM_RECVONLY:
+      addValue("a", "recvonly");
+      break;
+   case SDP_STREAM_INACTIVE:
+      addValue("a", "inactive");
+      break;
+   default:
+      ;
+   }
+
    // ptime only really make sense for audio
    if(pTime > 0 &&
       strcmp(szMimeType, SDP_AUDIO_MEDIA_TYPE) == 0 )
@@ -1839,10 +1932,11 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                              RTP_TRANSPORT transportTypes[],
                              int numRtpCodecs, 
                              SdpCodec* rtpCodecs[], 
-                             SdpSrtpParameters& srtpParams,
+                             const SdpSrtpParameters& srtpParams,
                              int totalBandwidth,
                              int videoFramerate,
-                             const SdpBody* sdpRequest)
+                             const SdpBody* sdpRequest,
+                             UtlBoolean bLocalHold)
 {
    int preExistingMedia = getMediaSetCount();
    int mediaIndex = 0;
@@ -1898,6 +1992,8 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
    numVideoPayloadTypes = 0 ;
    memset(&videoPayloadTypes, 0, sizeof(int) * MAXIMUM_MEDIA_TYPES) ;
    memset(&receivedVideoSrtpParams,0 , sizeof(SdpSrtpParameters));
+
+   SDP_STREAM_DIRECTION answerStreamDirection = translateStreamDirection(sdpRequest, bLocalHold);
 
    // Loop through the fields in the sdpRequest
    while(fieldFound)
@@ -1962,7 +2058,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
       mediaIndex++;
    }
 
-   SdpCodecFactory codecFactory(numRtpCodecs,
+   SdpCodecList codecFactory(numRtpCodecs,
                                     rtpCodecs);
 
    supportedPayloadCount = 0;
@@ -1999,7 +2095,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
             if (mediaType.compareTo(SDP_AUDIO_MEDIA_TYPE) == 0)
             {
                 supportedPayloadTypes[destIndex++] =
-                        codecsInCommon[payloadIndex]->getCodecPayloadFormat();
+                        codecsInCommon[payloadIndex]->getCodecPayloadId();
             }
         }
         addMediaData(SDP_AUDIO_MEDIA_TYPE, rtpAudioPorts[0], 1,
@@ -2053,7 +2149,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
         }
 
         addCodecParameters(supportedPayloadCount,
-                            codecsInCommon, SDP_AUDIO_MEDIA_TYPE, videoFramerate);
+                            codecsInCommon, SDP_AUDIO_MEDIA_TYPE, videoFramerate, answerStreamDirection);
 
         // Then do this for video
         destIndex = -1;
@@ -2084,7 +2180,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
                     firstMimeSubTypeIndex = payloadIndex;
                     formatArray[destIndex] = (codecsInCommon[payloadIndex])->getVideoFormat();
                     supportedPayloadTypes[destIndex] =
-                        codecsInCommon[firstMimeSubTypeIndex]->getCodecPayloadFormat();
+                        codecsInCommon[firstMimeSubTypeIndex]->getCodecPayloadId();
                     (codecsInCommon[firstMimeSubTypeIndex])->setVideoFmtp(formatArray[destIndex]);
                     (codecsInCommon[firstMimeSubTypeIndex])->clearVideoFmtpString();
                     (codecsInCommon[firstMimeSubTypeIndex])->setVideoFmtpString((codecsInCommon[payloadIndex])->getVideoFormat());
@@ -2143,7 +2239,7 @@ void SdpBody::addCodecsAnswer(int iNumAddresses,
             }
 
             addCodecParameters(supportedPayloadCount,
-                                codecsInCommon, SDP_VIDEO_MEDIA_TYPE, videoFramerate);
+                                codecsInCommon, SDP_VIDEO_MEDIA_TYPE, videoFramerate, answerStreamDirection);
         }
     }
 
@@ -2214,7 +2310,7 @@ void SdpBody::addRtpmap(int payloadType,
 }
 
 
-void SdpBody::addSrtpCryptoField(SdpSrtpParameters& params)
+void SdpBody::addSrtpCryptoField(const SdpSrtpParameters& params)
 {
     UtlString fieldValue("crypto:1 ");
 
@@ -2868,5 +2964,5 @@ UtlString SdpBody::getRtpTcpRole()
     }
     return sRole;
 }
-                                   
+
 /* ============================ FUNCTIONS ================================= */

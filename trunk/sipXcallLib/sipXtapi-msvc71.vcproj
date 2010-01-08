@@ -39,6 +39,7 @@
     <Files>
         <Filter Name="Source Files" Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
             <File RelativePath=".\src\tapi\CallStateEventMsg.cpp"/>
+            <File RelativePath=".\src\tapi\InfoEventMsg.cpp"/>
             <File RelativePath=".\src\tapi\InfoStatusEventMsg.cpp"/>
             <File RelativePath=".\src\tapi\KeepaliveEventMsg.cpp"/>
             <File RelativePath=".\src\tapi\LineStateEventMsg.cpp"/>
@@ -55,6 +56,7 @@
             <File RelativePath=".\src\tapi\SipXEvents.cpp"/>
             <File RelativePath=".\src\tapi\SipXHandleMap.cpp"/>
             <File RelativePath=".\src\tapi\SipXInfo.cpp"/>
+            <File RelativePath=".\src\tapi\SipXInfoEventListener.cpp"/>
             <File RelativePath=".\src\tapi\SipXInfoStatusEventListener.cpp"/>
             <File RelativePath=".\src\tapi\SipXKeepaliveEventListener.cpp"/>
             <File RelativePath=".\src\tapi\SipXLine.cpp"/>
@@ -72,6 +74,7 @@
         </Filter>
         <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
             <File RelativePath=".\include\tapi\CallStateEventMsg.h"/>
+            <File RelativePath=".\include\tapi\InfoEventMsg.h"/>
             <File RelativePath=".\include\tapi\InfoStatusEventMsg.h"/>
             <File RelativePath=".\include\tapi\KeepaliveEventMsg.h"/>
             <File RelativePath=".\include\tapi\LineStateEventMsg.h"/>
@@ -88,6 +91,7 @@
             <File RelativePath=".\include\tapi\SipXEvents.h"/>
             <File RelativePath="include\tapi\SipXHandleMap.h"/>
             <File RelativePath=".\include\tapi\SipXInfo.h"/>
+            <File RelativePath=".\include\tapi\SipXInfoEventListener.h"/>
             <File RelativePath=".\include\tapi\SipXInfoStatusEventListener.h"/>
             <File RelativePath=".\include\tapi\SipXKeepaliveEventListener.h"/>
             <File RelativePath=".\include\tapi\SipXLine.h"/>

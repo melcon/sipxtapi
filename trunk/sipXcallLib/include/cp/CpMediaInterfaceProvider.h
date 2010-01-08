@@ -15,6 +15,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <mi/CpMediaInterface.h>
+
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -23,7 +25,6 @@
 // TYPEDEFS
 // MACROS
 // FORWARD DECLARATIONS
-class CpMediaInterface;
 
 /**
  * Abstraction for CpMediaInterface provider. Sometimes we might need to share
@@ -42,9 +43,11 @@ public:
    /* ============================ ACCESSORS ================================= */
 
    /**
-    * Gets current CpMediaInterface if it exists.
+    * Gets current CpMediaInterface.
+    *
+    * @param bCreateIfNull If TRUE then a new one is created if it doesn't exist.
     */
-   virtual CpMediaInterface* getMediaInterface() const = 0;
+   virtual CpMediaInterface* getMediaInterface(UtlBoolean bCreateIfNull = TRUE) = 0;
 
    /* ============================ INQUIRY =================================== */
 

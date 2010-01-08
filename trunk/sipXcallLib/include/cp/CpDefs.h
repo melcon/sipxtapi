@@ -35,6 +35,9 @@
 // STRUCTS
 // TYPEDEFS
 
+#define AUTOMATIC_CONTACT_TYPE -1
+#define AUTOMATIC_CONTACT_ID -1
+
 typedef int CP_CONTACT_ID; 
 
 /**
@@ -195,6 +198,8 @@ typedef enum
    CP_CALLSTATE_TRANSFER_EVENT   = 12000, /**< The transfer state indicates a state change in a 
                                        transfer attempt.  Please see the CALLSTATE_TRANSFER_EVENT cause 
                                        codes for details on each state transition */
+   CP_CALLSTATE_QUEUED          = 13000,/**< inbound Call has been queued - is awaiting processing. */
+   CP_CALLSTATE_REMOTE_QUEUED   = 14000, /**< Outbound call has been put into queued state by remote party. */
 } CP_CALLSTATE_EVENT;
 
 /**
@@ -276,6 +281,9 @@ typedef enum
                                                     is part of a transfer. */
    CP_CALLSTATE_CAUSE_CANCEL,        /**< The event was fired in response to a cancel
                                        attempt from the remote party */
+   CP_CALLSTATE_CAUSE_CLIENT_ERROR,/**< Result of unknown 4xx response */
+   CP_CALLSTATE_CAUSE_SERVER_ERROR,/**< Result of unknown 5xx response */
+   CP_CALLSTATE_CAUSE_GLOBAL_ERROR,/**< Result of unknown 6xx response */
 } CP_CALLSTATE_CAUSE;
 
 // MACROS

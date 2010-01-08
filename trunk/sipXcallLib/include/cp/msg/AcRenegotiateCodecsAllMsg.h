@@ -19,8 +19,6 @@
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
 #include <cp/CpMessageTypes.h>
-#include <cp/CpAudioCodecInfo.h>
-#include <cp/CpVideoCodecInfo.h>
 #include <cp/msg/AcCommandMsg.h>
 
 // DEFINES
@@ -41,9 +39,7 @@ class AcRenegotiateCodecsAllMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcRenegotiateCodecsAllMsg(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                             const UtlString& sAudioCodecs,
-                             CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
+   AcRenegotiateCodecsAllMsg(const UtlString& sAudioCodecs,
                              const UtlString& sVideoCodecs);
 
    virtual ~AcRenegotiateCodecsAllMsg();
@@ -54,9 +50,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
-   CP_AUDIO_BANDWIDTH_ID getAudioBandwidthId() const { return m_audioBandwidthId; }
    UtlString getAudioCodecs() const { return m_sAudioCodecs; }
-   CP_VIDEO_BANDWIDTH_ID getVideoBandwidthId() const { return m_videoBandwidthId; }
    UtlString getVideoCodecs() const { return m_sVideoCodecs; }
 
    /* ============================ INQUIRY =================================== */
@@ -72,9 +66,7 @@ private:
    /** Private assignment operator */
    AcRenegotiateCodecsAllMsg& operator=(const AcRenegotiateCodecsAllMsg& rhs);
 
-   CP_AUDIO_BANDWIDTH_ID m_audioBandwidthId;
    UtlString m_sAudioCodecs;
-   CP_VIDEO_BANDWIDTH_ID m_videoBandwidthId;
    UtlString m_sVideoCodecs;
 };
 

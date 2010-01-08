@@ -32,7 +32,7 @@
 class SipUserAgent;
 class SipMessage;
 class SdpCodec;
-class SdpCodecFactory;
+class SdpCodecList;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
@@ -184,7 +184,7 @@ public:
 
    static UtlBoolean shouldCreateConnection(SipUserAgent& sipUa,
       OsMsg& eventMessage,
-      SdpCodecFactory* codecFactory = NULL);
+      SdpCodecList* codecFactory = NULL);
 
    virtual UtlBoolean willHandleMessage(OsMsg& eventMessage) const;
 
@@ -232,7 +232,7 @@ protected:
 
    static UtlBoolean requestShouldCreateConnection(const SipMessage* sipMsg,
       SipUserAgent& sipUa,
-      SdpCodecFactory* codecFactory);
+      SdpCodecList* codecFactory);
 
    UtlBoolean doOffHold(UtlBoolean forceReInvite);
 
@@ -293,7 +293,7 @@ protected:
 
    void processInviteRequestReinvite(const SipMessage* request, int tag);
 
-   void fireIncompatibleCodecsEvent(SdpCodecFactory* pSupportedCodecs,
+   void fireIncompatibleCodecsEvent(SdpCodecList* pSupportedCodecs,
       SdpCodec**       ppMatchedCodecs,
       int              nMatchedCodces);
    void fireAudioStartEvents(CP_MEDIA_CAUSE cause = CP_MEDIA_CAUSE_NORMAL);
@@ -357,7 +357,7 @@ private:
    UtlString mVoiceQualityReportTarget;
 
    UtlBoolean getInitialSdpCodecs(const SipMessage* sdpMessage,
-      SdpCodecFactory& supportedCodecsArray,
+      SdpCodecList& supportedCodecsArray,
       int& numCodecsInCommon,
       SdpCodec** &commonCodecsForEncoder,
       SdpCodec** &commonCodecsForDecoder,

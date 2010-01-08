@@ -65,14 +65,14 @@ OsTimer::OsTimer(OsMsgQ* pQueue, const int userData) :
 
 // The address of "this" OsTimer object is the eventData that is
 // conveyed to the Listener when the notification is signaled.
-OsTimer::OsTimer(OsNotification& rNotifier) :
+OsTimer::OsTimer(OsNotification* pNotification) :
    mBSem(OsBSem::Q_PRIORITY, OsBSem::FULL),
    mApplicationState(0),
    mTaskState(0),
    // Always initialize mDeleting, as we may print its value.
    mDeleting(FALSE),
-   mpNotifier(&rNotifier) ,
-   mbManagedNotifier(FALSE),
+   mpNotifier(pNotification) ,
+   mbManagedNotifier(TRUE),
    mOutstandingMessages(0),
    mTimerQueueLink(0),
    mWasFired(FALSE)
@@ -131,6 +131,7 @@ OsTimer::~OsTimer()
    // If mbManagedNotifier, free *mpNotifier.
    if (mbManagedNotifier) {
       delete mpNotifier;
+      mpNotifier = NULL;
    }
 }
 

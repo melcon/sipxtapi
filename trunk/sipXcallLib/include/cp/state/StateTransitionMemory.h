@@ -36,7 +36,10 @@ class StateTransitionMemory
 public:
    typedef enum
    {
-      TYPE_UNKNOWN
+      TYPE_UNKNOWN = 0,
+      SIP_RESPONSE_MEMORY,
+      SIP_MESSAGE_EVENT_MEMORY,
+      GENERAL_EVENT_MEMORY
    } Type;
 
    /* ============================ CREATORS ================================== */
@@ -44,16 +47,17 @@ public:
    /** Constructor. */
    StateTransitionMemory() { }
 
-   StateTransitionMemory(const StateTransitionMemory& rhs) { }
-
    /** Virtual destructor. */
    virtual ~StateTransitionMemory() { }
 
    /* ============================ MANIPULATORS ============================== */
 
+   /** Creates copy of transition memory. */
+   virtual StateTransitionMemory* clone() const = 0;
+
    /* ============================ ACCESSORS ================================= */
 
-   virtual Type getType() const
+   virtual StateTransitionMemory::Type getType() const
    {
       return TYPE_UNKNOWN;
    }

@@ -21,12 +21,13 @@
 #include <os/OsSyncBase.h>
 #include <os/OsServerTask.h>
 #include <utl/UtlContainable.h>
+#include <sdp/SdpCodecList.h>
 #include <net/SipDialog.h>
 #include <net/SipTagGenerator.h>
 #include <cp/CpDefs.h>
-#include <cp/CpAudioCodecInfo.h>
-#include <cp/CpVideoCodecInfo.h>
+#include <cp/CpNatTraversalConfig.h>
 #include <cp/CpMediaInterfaceProvider.h>
+#include <cp/CpMessageQueueProvider.h>
 
 // DEFINES
 // MACROS
@@ -39,13 +40,16 @@
 template <class T>
 class OsPtrLock; // forward template class declaration
 class SipDialog;
+class SipMessage;
 class SipUserAgent;
 class SipMessageEvent;
 class XSipConnection;
+class XCpCallConnectionListener;
 class CpMediaInterfaceFactory;
 class CpMediaInterface;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
+class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
 class AcCommandMsg;
@@ -61,8 +65,15 @@ class AcAudioRecordStartMsg;
 class AcAudioRecordStopMsg;
 class AcAudioToneStartMsg;
 class AcAudioToneStopMsg;
+class AcMuteInputConnectionMsg;
+class AcUnmuteInputConnectionMsg;
+class AcLimitCodecPreferencesMsg;
 class CpTimerMsg;
 class OsIntPtrMsg;
+class AcTimerMsg;
+class ScTimerMsg;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * XCpAbstractCall is the top class for XCpConference and XCpCall providing
@@ -89,7 +100,8 @@ class OsIntPtrMsg;
  * - findConnection - uses the same dialog matching like hasSipDialog
  * 
  */
-class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase, CpMediaInterfaceProvider
+class XCpAbstractCall : public OsServerTask, public UtlContainable, public OsSyncBase,
+   protected CpMediaInterfaceProvider, protected CpMessageQueueProvider
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -100,9 +112,15 @@ public:
    XCpAbstractCall(const UtlString& sId,
                    SipUserAgent& rSipUserAgent,
                    CpMediaInterfaceFactory& rMediaInterfaceFactory,
+                   const SdpCodecList& rDefaultSdpCodecList,
                    OsMsgQ& rCallManagerQueue,
+                   const CpNatTraversalConfig& rNatTraversalConfig,
+                   const UtlString& sLocalIpAddress,
+                   int inviteExpireSeconds,
+                   XCpCallConnectionListener* pCallConnectionListener = NULL,
                    CpCallStateEventListener* pCallEventListener = NULL,
                    SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+                   SipInfoEventListener* pInfoEventListener = NULL,
                    SipSecurityEventListener* pSecurityEventListener = NULL,
                    CpMediaEventListener* pMediaEventListener = NULL);
 
@@ -166,7 +184,7 @@ public:
     * @param bDestroyAbstractCall If true, then abstract call will also be destroyed if last connection
     *        was dropped
     */
-   virtual OsStatus dropConnection(const SipDialog& sipDialog, UtlBoolean bDestroyAbstractCall = FALSE) = 0;
+   virtual OsStatus dropConnection(const SipDialog& sipDialog) = 0;
 
    /** Blind transfer given call to sTransferSipUrl. Works for simple call and call in a conference */
    virtual OsStatus transferBlind(const SipDialog& sipDialog,
@@ -238,27 +256,27 @@ public:
    * or conference. Useful for server applications without mic/speaker.
    * DTMF on given call will still be decoded.
    */
-   virtual OsStatus muteInputConnection(const SipDialog& sipDialog) = 0;
+   OsStatus muteInputConnection(const SipDialog& sipDialog);
 
    /**
    * Disables discarding of inbound RTP for given call
    * or conference. Useful for server applications without mic/speaker.
    */
-   virtual OsStatus unmuteInputConnection(const SipDialog& sipDialog) = 0;
+   OsStatus unmuteInputConnection(const SipDialog& sipDialog);
 
    /**
-   * Rebuild codec factory on the fly with new audio codec requirements
-   * and new video codecs. Preferences will be in effect after the next
+   * Rebuild codec factory of the call (media interface) on the fly with new audio
+   * codec requirements and new video codecs. Preferences will be in effect after the next
    * INVITE or re-INVITE. Can be called on empty call or conference to limit
    * codecs for future calls. When called on an established call, hold/unhold
    * or codec renegotiation needs to be triggered to actually change codecs.
    * If used on conference, codecs will be applied to all future calls, and all
    * calls that are unheld.
+   *
+   * This method doesn't affect codec factory used for new outbound/inbound calls.
    */
-   virtual OsStatus limitCodecPreferences(CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
-                                          const UtlString& sAudioCodecs,
-                                          CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
-                                          const UtlString& sVideoCodecs) = 0;
+   OsStatus limitCodecPreferences(const UtlString& sAudioCodecs,
+                                  const UtlString& sVideoCodecs);
 
    /**
    * Rebuild codec factory on the fly with new audio codec requirements
@@ -270,9 +288,7 @@ public:
    * (Sends a SIP re-INVITE.)
    */
    virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                CP_AUDIO_BANDWIDTH_ID audioBandwidthId,
                                                 const UtlString& sAudioCodecs,
-                                                CP_VIDEO_BANDWIDTH_ID videoBandwidthId,
                                                 const UtlString& sVideoCodecs) = 0;
 
 
@@ -280,7 +296,8 @@ public:
    virtual OsStatus sendInfo(const SipDialog& sipDialog,
                              const UtlString& sContentType,
                              const char* pContent,
-                             const size_t nContentLength) = 0;
+                             const size_t nContentLength,
+                             void* pCookie) = 0;
 
    /** Acquires exclusive lock on instance. Use only when deleting. It is never released. */
    virtual OsStatus acquireExclusive();
@@ -349,16 +366,61 @@ protected:
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
    /** Handler for inbound SipMessageEvent messages. */
-   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent) = 0;
+   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
-   /** Finds connection handling given Sip dialog. Uses strict dialog matching. */
+   /** Finds connection handling given Sip dialog. Uses loose dialog matching. */
    virtual UtlBoolean findConnection(const SipDialog& sipDialog, OsPtrLock<XSipConnection>& ptrLock) const = 0;
 
+   /** Finds connection handling given Sip message. Uses loose dialog matching. */
+   virtual UtlBoolean findConnection(const SipMessage& sipMessage, OsPtrLock<XSipConnection>& ptrLock) const;
+
    /** Tries to gain focus on this call asynchronously through call manager. */
-   OsStatus gainFocus();
+   OsStatus gainFocus(UtlBoolean bGainOnlyIfNoFocusedCall = FALSE);
 
    /** Tries to yield focus on this call asynchronously through call manager */
    OsStatus yieldFocus();
+
+   /**
+    * Called to notify call stack that we have new sip call-id to route messages to.
+    * May not be called while holding any locks.
+    */
+   void onConnectionAddded(const UtlString& sSipCallId);
+
+   /**
+    * Called to notify call stack that a sip call-id is no longer valid.
+    * May not be called while holding any locks.
+    */
+   void onConnectionRemoved(const UtlString& sSipCallId);
+
+   /** Handle call timer notification. When overriding, first call parent */
+   virtual UtlBoolean handleCallTimer(const AcTimerMsg& timerMsg);
+
+   /**
+   * Releases media interface.
+   *
+   * Must be called from the OsServerTask only or destructor.
+   */
+   void releaseMediaInterface();
+
+   /**
+   * Gets current media interface of abstract call. Creates one if it doesn't exist.
+   * 
+   * Must be called from the OsServerTask only.
+   */
+   virtual CpMediaInterface* getMediaInterface(UtlBoolean bCreateIfNull = TRUE);
+
+   /**
+   * Gets local call queue for sending messages.
+   */       
+   virtual OsMsgQ& getLocalQueue();
+
+   /**
+   * Gets global queue for inter call communication.
+   */       
+   virtual OsMsgQ& getGlobalQueue();
+
+   /** Limits codec preferences for future renegotiations */
+   OsStatus doLimitCodecPreferences(const UtlString& sAudioCodecs, const UtlString& sVideoCodecs);
 
    static const int CALL_MAX_REQUEST_MSGS;
 
@@ -376,11 +438,18 @@ protected:
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    CpMediaInterfaceFactory& m_rMediaInterfaceFactory; // factory for creating CpMediaInterface
    OsMsgQ& m_rCallManagerQueue; ///< message queue of call manager
+   const SdpCodecList m_rDefaultSdpCodecList; ///< default SdpCodec factory for new calls. Independent of codec list of call manager.
    // set only once and thread safe
-   CpCallStateEventListener* m_pCallEventListener; // listener for firing call events
-   SipInfoStatusEventListener* m_pInfoStatusEventListener; // listener for firing info events
-   SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
-   CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+   XCpCallConnectionListener* m_pCallConnectionListener; ///< listener for updating call stack
+   CpCallStateEventListener* m_pCallEventListener; ///< listener for firing call events
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< listener for firing info status events
+   SipInfoEventListener* m_pInfoEventListener; ///< listener for firing info message events
+   SipSecurityEventListener* m_pSecurityEventListener; ///< listener for firing security events
+   CpMediaEventListener* m_pMediaEventListener; ///< listener for firing media events
+   const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
+   const UtlString m_sLocalIpAddress; ///< default local IP for media interface
+   const UtlString m_sLocale; ///< locale for DTMF, empty by default
+   const int m_inviteExpireSeconds; ///< time between RFC4028 session refreshes
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -417,6 +486,15 @@ private:
    /** Handles command to stop sending audio DTMF */
    OsStatus handleAudioToneStop(const AcAudioToneStopMsg& rMsg);
 
+   /** Handles message to mute inbound RTP in audio bridge */
+   OsStatus handleMuteInputConnection(const AcMuteInputConnectionMsg& rMsg);
+
+   /** Handles message to unmute inbound RTP in audio bridge */
+   OsStatus handleUnmuteInputConnection(const AcUnmuteInputConnectionMsg& rMsg);
+
+   /** Handles message to limit codec preferences for future sip connections */
+   OsStatus handleLimitCodecPreferences(const AcLimitCodecPreferencesMsg& rMsg);
+
    /** Handler for OsMsg::PHONE_APP messages */
    UtlBoolean handlePhoneAppMessage(const OsMsg& rRawMsg);
 
@@ -441,12 +519,6 @@ private:
                                              intptr_t pEventData1,
                                              intptr_t pEventData2) = 0;
 
-   /** Releases media interface */
-   void releaseMediaInterface();
-
-   /** Gets current media interface of abstract call. Returns NULL if there is none. */
-   virtual CpMediaInterface* getMediaInterface() const;
-
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
 
@@ -455,6 +527,15 @@ private:
 
    /** Release the sync object */
    virtual OsStatus release();
+
+   /** Handles sip connection timer notification. Lets sip connection to handle the timer. */
+   UtlBoolean handleSipConnectionTimer(const ScTimerMsg& timerMsg);
+
+   /** Handler for CpMessageTypes::SC_COMMAND messages */
+   UtlBoolean handleSipConnectionCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handler for CpMessageTypes::ScNotificationMsg messages */
+   UtlBoolean handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg);
 
    XCpAbstractCall(const XCpAbstractCall& rhs);
 

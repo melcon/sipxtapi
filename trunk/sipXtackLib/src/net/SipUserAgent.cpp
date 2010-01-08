@@ -148,7 +148,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
                            , mbDateHeader(true)
                            , mbShortNames(false)
                            , mAcceptLanguage("")
-                           , mpLastSipMessage(NULL)
 {    
    OsSysLog::add(FAC_SIP, PRI_DEBUG,
       "SipUserAgent::_ sipTcpPort = %d, sipUdpPort = %d, sipTlsPort = %d",
@@ -391,7 +390,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
    allowMethod(SIP_BYE_METHOD);
    allowMethod(SIP_REFER_METHOD);
    allowMethod(SIP_OPTIONS_METHOD);
-   allowMethod(SIP_PING_METHOD);
 
    defaultUserAgentName.append( VENDOR );
    defaultUserAgentName.append( "/" );
@@ -544,21 +542,6 @@ void SipUserAgent::enableStun(const char* szStunServer,
    }
 }
 
-void SipUserAgent::addMessageConsumer(OsServerTask* messageEventListener)
-{
-   // Need to do the real thing by keeping a list of consumers
-   // and putting a mutex around the add to list
-   //if(messageListener)
-   //{
-   //      osPrintf("WARNING: message consumer is NOT a LIST\n");
-   //}
-   //messageListener = messageEventListener;
-   if(messageEventListener)
-   {
-      addMessageObserver(*(messageEventListener->getMessageQueue()));
-   }
-}
-
 void SipUserAgent::addMessageObserver(OsMsgQ& messageQueue,
                                       const char* sipMethod,
                                       UtlBoolean wantRequests,
@@ -661,8 +644,6 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
 
    UtlBoolean sendSucceeded = FALSE;
    UtlBoolean isResponse = message.isResponse();
-
-   mpLastSipMessage = &message;
 
    // ===========================================
 
@@ -2051,7 +2032,6 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                }
                else if(message)
                {
-                  mpLastSipMessage = message;
                   shouldDispatch =
                      transaction->handleIncoming(*message,
                      *this,

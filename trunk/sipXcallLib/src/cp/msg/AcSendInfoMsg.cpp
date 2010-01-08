@@ -30,12 +30,14 @@
 AcSendInfoMsg::AcSendInfoMsg(const SipDialog& sipDialog,
                              const UtlString& sContentType,
                              const char* pContent,
-                             const size_t nContentLength)
+                             const size_t nContentLength,
+                             void* pCookie)
 : AcCommandMsg(AC_SEND_INFO)
 , m_sipDialog(sipDialog)
 , m_sContentType(sContentType)
 , m_pContent(NULL)
 , m_nContentLength(nContentLength)
+, m_pCookie(pCookie)
 {
    if (m_nContentLength > 0 && pContent)
    {
@@ -54,11 +56,12 @@ AcSendInfoMsg::~AcSendInfoMsg()
       free((void*)m_pContent);
       m_pContent = NULL;
    }
+   m_pCookie = NULL;
 }
 
 OsMsg* AcSendInfoMsg::createCopy(void) const
 {
-   return new AcSendInfoMsg(m_sipDialog, m_sContentType, m_pContent, m_nContentLength);
+   return new AcSendInfoMsg(m_sipDialog, m_sContentType, m_pContent, m_nContentLength, m_pCookie);
 }
 
 /* ============================ MANIPULATORS ============================== */

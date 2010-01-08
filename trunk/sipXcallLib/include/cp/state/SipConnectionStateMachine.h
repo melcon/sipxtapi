@@ -16,7 +16,10 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
+#include <cp/CpDefs.h>
 #include <cp/state/ISipConnectionState.h>
+#include <cp/state/SipConnectionStateContext.h>
+#include <cp/CpNatTraversalConfig.h>
 
 // DEFINES
 // MACROS
@@ -33,8 +36,12 @@ class XSipConnectionContext;
 class SipConnectionStateObserver;
 class SipUserAgent;
 class CpMediaInterfaceProvider;
+class CpMessageQueueProvider;
 class XSipConnectionEventSink;
 class SipConnectionStateTransition;
+class ScTimerMsg;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * State machine handling various connection states.
@@ -48,11 +55,14 @@ class SipConnectionStateMachine
 public:
    /* ============================ CREATORS ================================== */
    
-   SipConnectionStateMachine(XSipConnectionContext& rSipConnectionContext,
-                             SipUserAgent& rSipUserAgent,
-                             CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                             XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+   /** Constructor. */
+   SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
+                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                             CpMessageQueueProvider& rMessageQueueProvider,
+                             XSipConnectionEventSink& rSipConnectionEventSink,
+                             const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Destructor. */
    virtual ~SipConnectionStateMachine();
 
    /* ============================ MANIPULATORS ============================== */
@@ -61,7 +71,42 @@ public:
     * Handles SipMessageEvent, which can be inbound SipMessage or notification about
     * send failure.
     */
-   void handleSipMessageEvent(const SipMessageEvent& rEvent);
+   UtlBoolean handleSipMessageEvent(const SipMessageEvent& rEvent);
+
+   /** Connects call to given address. Uses supplied sip call-id. */
+   OsStatus connect(const UtlString& sipCallId,
+                    const UtlString& localTag,
+                    const UtlString& toAddress,
+                    const UtlString& fromAddress,
+                    const UtlString& locationHeader,
+                    CP_CONTACT_ID contactId);
+
+   /** Disconnects call */
+   OsStatus dropConnection();
+
+   /** Put the specified terminal connection on hold. */
+   OsStatus holdConnection();
+
+   /** Convenience method to take the terminal connection off hold. */
+   OsStatus unholdConnection();
+
+   /** Renegotiates media session codecs */
+   OsStatus renegotiateCodecsConnection();
+
+   /** Sends an INFO message to the other party(s) on the call */
+   OsStatus sendInfo(const UtlString& sContentType,
+                     const char* pContent,
+                     const size_t nContentLength,
+                     void* pCookie);
+
+   /** Handles timer message */
+   UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
+
+   /** Handles CpMessageTypes::SC_COMMAND message */
+   UtlBoolean handleCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handles CpMessageTypes::ScNotificationMsg message */
+   UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -76,7 +121,13 @@ public:
     */
    ISipConnectionState::StateEnum getCurrentState();
 
+   /** Gets reference to public Sip connection context. Must be locked when modified. */
+   XSipConnectionContext& getSipConnectionContext() const;
+
    /* ============================ INQUIRY =================================== */
+
+   /** Gets state of media session */
+   SipConnectionStateContext::MediaSessionState getMediaSessionState() const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -89,9 +140,13 @@ private:
 
    /**
     * Handles state changes. Responsible for deletion of previous state and state change
-    * notifications.
+    * notifications. Doesn't attempt to delete passed transition object. Use for static
+    * transition objects.
     */
    void handleStateTransition(SipConnectionStateTransition& rStateTransition);
+
+   /** Handles state transition, including deletion of passed transition object */
+   void handleStateTransition(SipConnectionStateTransition* pStateTransition);
 
    /** Notify observer that we entered new state */
    void notifyStateEntry();
@@ -99,12 +154,14 @@ private:
    /** Notify observer that we left old state */
    void notifyStateExit();
 
-   XSipConnectionContext& m_rSipConnectionContext; ///< context containing state of sip connection. Needs to be locked when accessed.
+   mutable SipConnectionStateContext m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    BaseSipConnectionState* m_pSipConnectionState; ///< pointer to state object handling commands and SipMessageEvents
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
-   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< provider of CpMediaInterface
-   XSipConnectionEventSink* m_pSipConnectionEventSink; ///< event sink (router) for various sip connection event types
+   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
+   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
+   XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
+   CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 };
 
 #endif // SipConnectionStateMachine_h__

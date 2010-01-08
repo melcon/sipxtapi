@@ -26,6 +26,7 @@
 #include <cp/XSipConnectionEventSink.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/SipConnectionStateObserver.h>
+#include <cp/CpNatTraversalConfig.h>
 
 // DEFINES
 // MACROS
@@ -36,19 +37,29 @@
 // MACROS
 // FORWARD DECLARATIONS
 class CpMediaInterfaceProvider;
+class CpMessageQueueProvider;
 class SipUserAgent;
+class SipMessageEvent;
 class CpMediaEvent;
 class CpCallStateEvent;
 class CpCallStateEventListener;
 class SipInfoStatusEventListener;
+class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class ScTimerMsg;
+class ScCommandMsg;
+class ScNotificationMsg;
 
 /**
  * XSipConnection is responsible for SIP communication.
  *
  * All manipulators except OsSyncBase methods must be called from single thread only.
  * Inquiry and accessor methods may be called from multiple threads.
+ *
+ * Result codes from connect, acceptConnection etc. which are executed in state machine
+ * only mean that the operation was handled. It doesn't mean the operation succeeded.
+ * Failures should be logged, and perhaps a sipxtapi event should be fired.
  */
 class XSipConnection : public UtlContainable, public OsSyncBase, public SipConnectionStateObserver, public XSipConnectionEventSink
 {
@@ -59,10 +70,15 @@ public:
    /* ============================ CREATORS ================================== */
 
    XSipConnection(const UtlString& sAbstractCallId,
+                  const SipDialog& sipDialog,
                   SipUserAgent& rSipUserAgent,
-                  CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
+                  int inviteExpireSeconds,
+                  CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                  CpMessageQueueProvider& rMessageQueueProvider,
+                  const CpNatTraversalConfig& natTraversalConfig,
                   CpCallStateEventListener* pCallEventListener = NULL,
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
+                  SipInfoEventListener* pInfoEventListener = NULL,
                   SipSecurityEventListener* pSecurityEventListener = NULL,
                   CpMediaEventListener* pMediaEventListener = NULL);
 
@@ -86,6 +102,119 @@ public:
                                     const UtlString& sOriginalSessionCallId = NULL,
                                     int sipResponseCode = 0,
                                     const UtlString& sResponseText = NULL);
+
+   /**
+    * Connects call to given address. Sip callId is not supplied here, because
+    * sip connection has a callId assigned to its during creation.
+    */
+   OsStatus connect(const UtlString& sipCallId,
+                    const UtlString& localTag,
+                    const UtlString& toAddress,
+                    const UtlString& fromAddress,
+                    const UtlString& locationHeader,
+                    CP_CONTACT_ID contactId);
+
+   /** 
+   * Accepts inbound call connection.
+   *
+   * Progress the connection from the OFFERING state to the
+   * RINGING state. This causes a SIP 180 Ringing provisional
+   * response to be sent.
+   */
+   OsStatus acceptConnection(const UtlString& locationHeader,
+                             CP_CONTACT_ID contactId);
+
+   /**
+   * Reject the incoming connection.
+   *
+   * Progress the connection from the OFFERING state to
+   * the FAILED state with the cause of busy. With SIP this
+   * causes a 486 Busy Here response to be sent.
+   */
+   OsStatus rejectConnection();
+
+   /**
+   * Redirect the incoming connection.
+   *
+   * Progress the connection from the OFFERING state to
+   * the FAILED state. This causes a SIP 302 Moved
+   * Temporarily response to be sent with the specified
+   * contact URI.
+   */
+   OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
+
+   /**
+   * Answer the incoming terminal connection.
+   *
+   * Progress the connection from the OFFERING or RINGING state
+   * to the ESTABLISHED state and also creating the terminal
+   * connection (with SIP a 200 OK response is sent).
+   */
+   OsStatus answerConnection();
+
+   /** Disconnects call */
+   OsStatus dropConnection();
+
+   /** Blind transfer given call to sTransferSipUri. */
+   OsStatus transferBlind(const UtlString& sTransferSipUrl);
+
+   /**
+   * Put the specified terminal connection on hold.
+   *
+   * Change the terminal connection state from TALKING to HELD.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * no media should be sent.)
+   */
+   OsStatus holdConnection();
+
+   /**
+   * Convenience method to take the terminal connection off hold.
+   *
+   * Change the terminal connection state from HELD to TALKING.
+   * (With SIP a re-INVITE message is sent with SDP indicating
+   * media should be sent.)
+   */
+   OsStatus unholdConnection();
+
+   /**
+   * Enables discarding of inbound RTP at bridge for given call
+   * or conference. Useful for server applications without mic/speaker.
+   * DTMF on given call will still be decoded.
+   */
+   OsStatus muteInputConnection();
+
+   /**
+   * Disables discarding of inbound RTP for given call
+   * or conference. Useful for server applications without mic/speaker.
+   */
+   OsStatus unmuteInputConnection();
+
+   /**
+   * Renegotiate the codecs to be use for the specified terminal connection.
+   *
+   * This is typically performed after a capabilities change for the
+   * terminal connection (for example, addition or removal of a codec type).
+   * (Sends a SIP re-INVITE/UPDATE)
+   */
+   OsStatus renegotiateCodecsConnection();
+
+   /** Sends an INFO message to the other party(s) on the call */
+   OsStatus sendInfo(const UtlString& sContentType,
+                     const char* pContent,
+                     const size_t nContentLength,
+                     void* pCookie);
+
+   /** Handles timer message */
+   UtlBoolean handleTimerMessage(const ScTimerMsg& timerMsg);
+
+   /** Handler for inbound SipMessageEvent messages. */
+   UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+
+   /** Handles CpMessageTypes::SC_COMMAND message */
+   UtlBoolean handleCommandMessage(const ScCommandMsg& rMsg);
+
+   /** Handles CpMessageTypes::ScNotificationMsg message */
+   UtlBoolean handleNotificationMessage(const ScNotificationMsg& rMsg);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -116,6 +245,14 @@ public:
     */
    void getRemoteUserAgent(UtlString& sRemoteUserAgent) const;
 
+   /**
+    * Gets internal id of media connection for connection for routing media events.
+    * Same as getMediaConnectionId(), but doesn't return -1 once media connection is
+    * destroyed but old value, to allow media event routing even after media connection
+    * is destroyed.
+    */
+   int getMediaEventConnectionId() const;
+
    /** Gets internal id of media connection for connection. */
    int getMediaConnectionId() const;
 
@@ -139,6 +276,9 @@ public:
    * Checks if this call has given sip dialog.
    */
    SipDialog::DialogMatchEnum compareSipDialog(const SipDialog& sSipDialog) const;
+
+   /** Gets state of media session */
+   SipConnectionStateContext::MediaSessionState getMediaSessionState() const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -174,7 +314,13 @@ private:
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                         SIPXTACK_MESSAGE_STATUS status,
                                         const UtlString& sResponseText,
-                                        int responseCode = 0);
+                                        int responseCode = 0,
+                                        void* pCookie = NULL);
+
+   /** Fire info message event */
+   virtual void fireSipXInfoEvent(const UtlString& sContentType,
+                                  const char* pContent = NULL,
+                                  size_t nContentLength = 0);
 
    /** Fire security event */
    virtual void fireSipXSecurityEvent(SIPXTACK_SECURITY_EVENT event,
@@ -209,18 +355,21 @@ private:
    /** Release the sync object */
    virtual OsStatus release();
 
-   // needs special locking
-   mutable XSipConnectionContext m_sipConnectionContext; ///< contains stateful information about sip connection.
    // not thread safe, must be used from single thread only
    SipConnectionStateMachine m_stateMachine; ///< state machine for handling commands and SipMessageEvents
+   // needs special external locking
+   XSipConnectionContext& m_rSipConnectionContext; ///< contains stateful information about sip connection.
    // thread safe
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
-   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
+   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
-   SipInfoStatusEventListener* m_pInfoStatusEventListener;
+   SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< event listener for INFO responses
+   SipInfoEventListener* m_pInfoEventListener; ///< event listener for inbound INFO messages
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
+   const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall
 };

@@ -11,20 +11,20 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 // SYSTEM INCLUDES
 #include <stdlib.h>
 
 // APPLICATION INCLUDES
 #include "os/OsConfigDb.h"
-#include "include/sipXmediaFactoryImpl.h"
-#include "include/CpPhoneMediaInterface.h"
+#include "include/SipXMediaFactoryImpl.h"
+#include "include/SipXMediaInterfaceImpl.h"
 #include "sdp/SdpCodec.h"
+#include <sdp/SdpCodecFactory.h>
 #include "mp/MpMediaTask.h"
 #include "mp/MpMisc.h"
 #include "mp/MpCodec.h"
 #include "mp/MpCallFlowGraph.h"
-#include "net/SdpCodecFactory.h"
+#include "sdp/SdpCodecList.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
 #include "mp/MpAudioDriverDefs.h"
 #include "mp/MpAudioDriverManager.h"
@@ -34,61 +34,12 @@
 #include "rtcp/RTCManager.h"
 #endif /* INCLUDE_RTCP ] */
 
-#ifdef ENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY
-#include "mp/NetInTask.h"
-#endif
-
-
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // GLOBAL FUNCTION
-
-#define CONFIG_PHONESET_SEND_INBAND_DTMF  "PHONESET_SEND_INBAND_DTMF"
-// initial pool size for audio buffers, if we run out of them,
-// we allocate a new pool. They are deleted only during shutdown.
-// Audio codecs number calculation:
-
-#define GENERIC_AUDIO_CODECS_NUM 3
-
-#define SPEEX_AUDIO_CODECS_BEGIN  GENERIC_AUDIO_CODECS_NUM
-#ifdef HAVE_SPEEX /* [ */
-#define SPEEX_AUDIO_CODECS_NUM 4
-#else /* HAVE_SPEEX ] [ */
-#define SPEEX_AUDIO_CODECS_NUM 0
-#endif /* HAVE_SPEEX ] */
-
-#define GSM_AUDIO_CODECS_BEGIN  (SPEEX_AUDIO_CODECS_BEGIN+SPEEX_AUDIO_CODECS_NUM)
-#ifdef HAVE_GSM /* [ */
-#define GSM_AUDIO_CODECS_NUM 1
-#else /* HAVE_GSM ] [ */
-#define GSM_AUDIO_CODECS_NUM 0
-#endif /* HAVE_GSM ] */
-
-#define ILBC_AUDIO_CODECS_BEGIN  (GSM_AUDIO_CODECS_BEGIN+GSM_AUDIO_CODECS_NUM)
-#ifdef HAVE_ILBC /* [ */
-#define ILBC_AUDIO_CODECS_NUM 1
-#else /* HAVE_ILBC ] [ */
-#define ILBC_AUDIO_CODECS_NUM 0
-#endif /* HAVE_ILBC ] */
- 
-#define IPP_AUDIO_CODECS_BEGIN (ILBC_AUDIO_CODECS_BEGIN + ILBC_AUDIO_CODECS_NUM)
-#ifdef HAVE_INTEL_IPP /* [ */
-#define IPP_AUDIO_CODECS_NUM 2
-#else /* HAVE_INTEL_IPP ] [ */
-#define IPP_AUDIO_CODECS_NUM 0
-#endif /* HAVE_INTEL_IPP ] */
-
-#define TOTAL_AUDIO_CODECS_NUM (IPP_AUDIO_CODECS_BEGIN + IPP_AUDIO_CODECS_NUM)
-
-// Video codecs  number calculation:
-
-
-#define TOTAL_VIDEO_CODECS_NUM 0
-
 // STATIC VARIABLE INITIALIZATIONS
-int sipXmediaFactoryImpl::miInstanceCount = 0;
-
+int SipXMediaFactoryImpl::miInstanceCount = 0;
 CpMediaInterfaceFactory* spFactory = NULL;
 int siInstanceCount = 0;
 
@@ -96,7 +47,7 @@ extern "C" CpMediaInterfaceFactory* cpDefaultMediaFactoryFactory(OsConfigDb* pCo
 {
     if (!spFactory)
     {
-        spFactory = new sipXmediaFactoryImpl(pConfigDb);
+        spFactory = new SipXMediaFactoryImpl(pConfigDb);
     }
     siInstanceCount++;
     
@@ -123,40 +74,21 @@ extern "C" void sipxDestroyMediaFactoryFactory()
     }
 }
 
-
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 
 /* ============================ CREATORS ================================== */
 
 // Constructor
-sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
+SipXMediaFactoryImpl::SipXMediaFactoryImpl(OsConfigDb* pConfigDb)
 : m_bIsAudioOutputMuted(FALSE)
 , m_bIsAudioInputMuted(FALSE)
 , m_fMutedAudioOutputVolume(0.0)
 , m_fMutedAudioInputVolume(0.0)
 {    
-    UtlString strInBandDTMF;
-    
-    if (pConfigDb)
-    {
-        pConfigDb->get(CONFIG_PHONESET_SEND_INBAND_DTMF, strInBandDTMF);
-        strInBandDTMF.toUpper();
-    }
-
     // Start audio subsystem if still not started.
     if (miInstanceCount == 0)
     {
         mpStartUp(8000, 80);
-    }
-
-    // Should we send inband DTMF by default?    
-    if (strInBandDTMF.compareTo("DISABLE") == 0)
-    {
-        MpCallFlowGraph::setInbandDTMF(false) ;
-    }
-    else
-    {
-        MpCallFlowGraph::setInbandDTMF(true) ;
     }
 
 #ifdef INCLUDE_RTCP /* [ */
@@ -172,7 +104,7 @@ sipXmediaFactoryImpl::sipXmediaFactoryImpl(OsConfigDb* pConfigDb)
 
 
 // Destructor
-sipXmediaFactoryImpl::~sipXmediaFactoryImpl()
+SipXMediaFactoryImpl::~SipXMediaFactoryImpl()
 {
     // TODO: Shutdown
     --miInstanceCount;
@@ -184,12 +116,11 @@ sipXmediaFactoryImpl::~sipXmediaFactoryImpl()
 
 /* ============================ MANIPULATORS ============================== */
 
-CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,
-															 const char* publicAddress,
-                                                             const char* localAddress,
-                                                             int numCodecs,
-                                                             SdpCodec* sdpCodecArray[],
-                                                             const char* locale,
+CpMediaInterface* SipXMediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
+                                                             const SdpCodecList* pCodecList,///< list of SdpCodec instances
+															                const char* publicAddress,///< ignored
+                                                             const char* localIPAddress,///< local bind IP address
+                                                             const char* locale,///< locale for tone generator
                                                              int expeditedIpTos,
                                                              const char* szStunServer,
                                                              int iStunPort,
@@ -201,14 +132,14 @@ CpMediaInterface* sipXmediaFactoryImpl::createMediaInterface(OsMsgQ* pInterfaceN
                                                              int iTurnKeepAlivePeriodSecs,
                                                              UtlBoolean bEnableICE) 
 {
-    return new CpPhoneMediaInterface(this, pInterfaceNotificationQueue, publicAddress, localAddress, 
-            numCodecs, sdpCodecArray, locale, expeditedIpTos, szStunServer,
+    return new SipXMediaInterfaceImpl(this, pInterfaceNotificationQueue, pCodecList, publicAddress, localIPAddress, 
+            locale, expeditedIpTos, szStunServer,
             iStunPort, iStunKeepAliveSecs, szTurnServer, iTurnPort, 
             szTurnUsername, szTurnPassword, iTurnKeepAlivePeriodSecs, 
             bEnableICE) ;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioInputDeviceCount(int& count) const
+OsStatus SipXMediaFactoryImpl::getAudioInputDeviceCount(int& count) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -224,7 +155,7 @@ OsStatus sipXmediaFactoryImpl::getAudioInputDeviceCount(int& count) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioOutputDeviceCount(int& count) const
+OsStatus SipXMediaFactoryImpl::getAudioOutputDeviceCount(int& count) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -240,7 +171,7 @@ OsStatus sipXmediaFactoryImpl::getAudioOutputDeviceCount(int& count) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioInputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
+OsStatus SipXMediaFactoryImpl::getAudioInputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -267,7 +198,7 @@ OsStatus sipXmediaFactoryImpl::getAudioInputDeviceInfo(int deviceIndex, CpAudioD
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioOutputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
+OsStatus SipXMediaFactoryImpl::getAudioOutputDeviceInfo(int deviceIndex, CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -294,7 +225,7 @@ OsStatus sipXmediaFactoryImpl::getAudioOutputDeviceInfo(int deviceIndex, CpAudio
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioOutputDevice(const UtlString& device, const UtlString& driverName) 
+OsStatus SipXMediaFactoryImpl::setAudioOutputDevice(const UtlString& device, const UtlString& driverName) 
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -309,7 +240,7 @@ OsStatus sipXmediaFactoryImpl::setAudioOutputDevice(const UtlString& device, con
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioInputDevice(const UtlString& device, const UtlString& driverName) 
+OsStatus SipXMediaFactoryImpl::setAudioInputDevice(const UtlString& device, const UtlString& driverName) 
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -324,7 +255,7 @@ OsStatus sipXmediaFactoryImpl::setAudioInputDevice(const UtlString& device, cons
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::muteAudioOutput(UtlBoolean bMute)
+OsStatus SipXMediaFactoryImpl::muteAudioOutput(UtlBoolean bMute)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -367,7 +298,7 @@ OsStatus sipXmediaFactoryImpl::muteAudioOutput(UtlBoolean bMute)
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::muteAudioInput(UtlBoolean bMute) 
+OsStatus SipXMediaFactoryImpl::muteAudioInput(UtlBoolean bMute) 
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -410,7 +341,7 @@ OsStatus sipXmediaFactoryImpl::muteAudioInput(UtlBoolean bMute)
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioAECMode(MEDIA_AEC_MODE& mode) const
+OsStatus SipXMediaFactoryImpl::getAudioAECMode(MEDIA_AEC_MODE& mode) const
 {
    if (MpCallFlowGraph::getAECMode((FLOWGRAPH_AEC_MODE&)mode)) {
       return OS_SUCCESS;
@@ -419,7 +350,7 @@ OsStatus sipXmediaFactoryImpl::getAudioAECMode(MEDIA_AEC_MODE& mode) const
    }
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioAECMode(const MEDIA_AEC_MODE mode)
+OsStatus SipXMediaFactoryImpl::setAudioAECMode(const MEDIA_AEC_MODE mode)
 {
   if (MpCallFlowGraph::setAECMode((FLOWGRAPH_AEC_MODE)mode)) {
     return OS_SUCCESS;
@@ -428,7 +359,7 @@ OsStatus sipXmediaFactoryImpl::setAudioAECMode(const MEDIA_AEC_MODE mode)
   }
 }
 
-OsStatus sipXmediaFactoryImpl::isAGCEnabled(UtlBoolean& bEnable) const {
+OsStatus SipXMediaFactoryImpl::isAGCEnabled(UtlBoolean& bEnable) const {
    if (MpCallFlowGraph::getAGC(bEnable)) {
       return OS_SUCCESS;
    } else {
@@ -436,7 +367,7 @@ OsStatus sipXmediaFactoryImpl::isAGCEnabled(UtlBoolean& bEnable) const {
    }
 }
 
-OsStatus sipXmediaFactoryImpl::enableAGC(UtlBoolean bEnable) {
+OsStatus SipXMediaFactoryImpl::enableAGC(UtlBoolean bEnable) {
   if (MpCallFlowGraph::setAGC(bEnable)) {
     return OS_SUCCESS;
   } else {
@@ -444,7 +375,7 @@ OsStatus sipXmediaFactoryImpl::enableAGC(UtlBoolean bEnable) {
   }
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_MODE& mode) const {
+OsStatus SipXMediaFactoryImpl::getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_MODE& mode) const {
    UtlBoolean bMode = FALSE;
    if (MpCallFlowGraph::getAudioNoiseReduction(bMode)) {
       if (bMode) {
@@ -458,7 +389,7 @@ OsStatus sipXmediaFactoryImpl::getAudioNoiseReductionMode(MEDIA_NOISE_REDUCTION_
    }
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) {
+OsStatus SipXMediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDUCTION_MODE mode) {
   if (mode == MEDIA_NOISE_REDUCTION_DISABLED) {
     if (MpCallFlowGraph::setAudioNoiseReduction(FALSE)) {
       return OS_SUCCESS;
@@ -471,7 +402,7 @@ OsStatus sipXmediaFactoryImpl::setAudioNoiseReductionMode(const MEDIA_NOISE_REDU
   return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable)
+OsStatus SipXMediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean enable)
 {
    switch(mode)
    {
@@ -488,156 +419,76 @@ OsStatus sipXmediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, U
    return OS_SUCCESS;
 }
 
-OsStatus sipXmediaFactoryImpl::buildCodecFactory(SdpCodecFactory *pFactory, 
-                                                 const UtlString& sAudioPreferences,
-                                                 const UtlString& sVideoPreferences,
-                                                 int videoFormat,
-                                                 int* iRejected)
+UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 {
-    OsStatus rc = OS_FAILED;
+   UtlString supportedCodecs = 
+#ifdef HAVE_SPEEX // [
+      "SPEEX SPEEX_5 SPEEX_15 SPEEX_24 "
+#endif // HAVE_SPEEX ]
+#ifdef HAVE_GSM // [
+      "GSM "
+#endif // HAVE_GSM ]
+#ifdef HAVE_ILBC // [
+      "ILBC "
+#endif // HAVE_ILBC ]
+#ifdef HAVE_INTEL_IPP // [
+      "G729A G723.1 "
+#endif // HAVE_INTEL_IPP ]
+      "PCMU PCMA TELEPHONE-EVENT";
+   return supportedCodecs;
+}
 
-    UtlString codecName;
-    UtlString codecList;
+UtlString SipXMediaFactoryImpl::getAllSupportedVideoCodecs() const
+{
+   return "";
+}
 
-    SdpCodec::SdpCodecTypes codecs[TOTAL_AUDIO_CODECS_NUM+TOTAL_VIDEO_CODECS_NUM];
+OsStatus SipXMediaFactoryImpl::buildAllCodecList(SdpCodecList& codecList)
+{
+   codecList.clearCodecs();
+   codecList.addCodecs(getAllSupportedAudioCodecs());
+   codecList.addCodecs(getAllSupportedVideoCodecs());
+   codecList.bindPayloadIds();
+   return OS_SUCCESS;
+}
 
-    *iRejected = 0;
+OsStatus SipXMediaFactoryImpl::buildCodecList(SdpCodecList& codecList, 
+                                              const UtlString& sAudioPreferences,
+                                              const UtlString& sVideoPreferences)
+{
+   OsStatus rc = OS_SUCCESS;
+   codecList.clearCodecs();
 
-    int numAudioCodecs = TOTAL_AUDIO_CODECS_NUM;
-    SdpCodec::SdpCodecTypes *audioCodecs = codecs;
-    int numVideoCodecs = TOTAL_VIDEO_CODECS_NUM;
-    SdpCodec::SdpCodecTypes *videoCodecs = codecs+TOTAL_AUDIO_CODECS_NUM;
+   // add preferred audio codecs first
+   if (sAudioPreferences.length() > 0)
+   {
+      UtlString audioCodecs(SdpCodecFactory::getFixedAudioCodecs(sAudioPreferences));
+      codecList.addCodecs(audioCodecs);
+   }
+   else
+   {
+      // Build up all supported audio codecs
+      codecList.addCodecs(getAllSupportedAudioCodecs());
+   }
 
-    codecs[0] = SdpCodec::SDP_CODEC_GIPS_PCMU;
-    codecs[1] = SdpCodec::SDP_CODEC_GIPS_PCMA;
-    codecs[2] = SdpCodec::SDP_CODEC_TONES;
+   // add preferred video codecs first
+   if (sVideoPreferences.length() > 0)
+   {
+      codecList.addCodecs(sVideoPreferences);
+   }
+   else
+   {
+      // Build up all supported video codecs
+      codecList.addCodecs(getAllSupportedVideoCodecs());
+   }
 
-#ifdef HAVE_SPEEX /* [ */
-    codecs[SPEEX_AUDIO_CODECS_BEGIN+0] = SdpCodec::SDP_CODEC_SPEEX;
-    codecs[SPEEX_AUDIO_CODECS_BEGIN+1] = SdpCodec::SDP_CODEC_SPEEX_5;
-    codecs[SPEEX_AUDIO_CODECS_BEGIN+2] = SdpCodec::SDP_CODEC_SPEEX_15;
-    codecs[SPEEX_AUDIO_CODECS_BEGIN+3] = SdpCodec::SDP_CODEC_SPEEX_24;
-#endif /* HAVE_SPEEX ] */
+   codecList.bindPayloadIds();
 
-#ifdef HAVE_GSM /* [ */
-    codecs[GSM_AUDIO_CODECS_BEGIN+0] = SdpCodec::SDP_CODEC_GSM;
-#endif /* HAVE_GSM ] */
-
-#ifdef HAVE_ILBC /* [ */
-    codecs[ILBC_AUDIO_CODECS_BEGIN+0] = SdpCodec::SDP_CODEC_ILBC;
-#endif /* HAVE_ILBC ] */
-
-#ifdef HAVE_INTEL_IPP /* [ */
-    codecs[IPP_AUDIO_CODECS_BEGIN+0] = SdpCodec::SDP_CODEC_G729A;
-    codecs[IPP_AUDIO_CODECS_BEGIN+1] = SdpCodec::SDP_CODEC_G723;
-#endif /* HAVE_INTEL_IPP ] */
-
-    if (pFactory)
-    {
-        pFactory->clearCodecs();
-
-        // add preferred audio codecs first
-        if (sAudioPreferences.length() > 0)
-        {
-            UtlString references = sAudioPreferences;
-            *iRejected = pFactory->buildSdpCodecFactory(references);
-            OsSysLog::add(FAC_MP, PRI_DEBUG, 
-                          "sipXmediaFactoryImpl::buildCodecFactory: sReferences = %s with NumReject %d",
-                           references.data(), *iRejected);
-                           
-            // Now pick preferences out of all available codecs
-            SdpCodec** codecsArray = NULL;
-            pFactory->getCodecs(numAudioCodecs, codecsArray);
-            
-            UtlString preferences;
-            int i;
-            for (i = 0; i < numAudioCodecs; i++)
-            {
-                if (getCodecNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
-                {
-                    preferences = preferences + " " + codecName;
-                }
-            }
-            
-            pFactory->clearCodecs();
-            *iRejected = pFactory->buildSdpCodecFactory(preferences);
-            OsSysLog::add(FAC_MP, PRI_DEBUG, 
-                          "sipXmediaFactoryImpl::buildCodecFactory: supported codecs = %s with NumReject %d",
-                          preferences.data(), *iRejected);
-                          
-            // Free up the codecs and the array
-            for (i = 0; i < numAudioCodecs; i++)
-            {
-                delete codecsArray[i];
-                codecsArray[i] = NULL;
-            }
-            delete[] codecsArray;
-            codecsArray = NULL;
-                          
-            rc = OS_SUCCESS;
-        }
-        else
-        {
-            // Build up the supported codecs
-            *iRejected = pFactory->buildSdpCodecFactory(numAudioCodecs, audioCodecs);
-            rc = OS_SUCCESS;
-        }
-
-
-        // add preferred video codecs first
-        if (sVideoPreferences.length() > 0)
-        {
-            UtlString references = sVideoPreferences;
-            *iRejected = pFactory->buildSdpCodecFactory(references);
-            OsSysLog::add(FAC_MP, PRI_DEBUG, 
-                          "sipXmediaFactoryImpl::buildCodecFactory: sReferences = %s with NumReject %d",
-                           references.data(), *iRejected);
-                           
-            // Now pick preferences out of all available codecs
-            SdpCodec** codecsArray = NULL;
-            pFactory->getCodecs(numVideoCodecs, codecsArray);
-            
-            UtlString preferences;
-            int i;
-            for (i = 0; i < numVideoCodecs; i++)
-            {
-                if (getCodecNameByType(codecsArray[i]->getCodecType(), codecName) == OS_SUCCESS)
-                {
-                    preferences = preferences + " " + codecName;
-                }
-            }
-            
-            pFactory->clearCodecs();
-            *iRejected = pFactory->buildSdpCodecFactory(preferences);
-            OsSysLog::add(FAC_MP, PRI_DEBUG, 
-                          "sipXmediaFactoryImpl::buildCodecFactory: supported codecs = %s with NumReject %d",
-                          preferences.data(), *iRejected);
-                          
-            // Free up the codecs and the array
-            for (i = 0; i < numVideoCodecs; i++)
-            {
-                delete codecsArray[i];
-                codecsArray[i] = NULL;
-            }
-            delete[] codecsArray;
-            codecsArray = NULL;
-                          
-            rc = OS_SUCCESS;
-        }
-        else
-        {
-            // Build up the supported codecs
-            *iRejected = pFactory->buildSdpCodecFactory(numVideoCodecs, videoCodecs);
-            rc = OS_SUCCESS;
-        }
-
-    }            
-
-    return rc;
+   return rc;
 }
 
 
-OsStatus sipXmediaFactoryImpl::updateVideoPreviewWindow(void* displayContext) 
+OsStatus SipXMediaFactoryImpl::updateVideoPreviewWindow(void* displayContext) 
 {
     return OS_NOT_SUPPORTED ;
 }
@@ -645,7 +496,7 @@ OsStatus sipXmediaFactoryImpl::updateVideoPreviewWindow(void* displayContext)
 
 /* ============================ ACCESSORS ================================= */
 
-OsStatus sipXmediaFactoryImpl::getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const
+OsStatus SipXMediaFactoryImpl::getCurrentAudioOutputDevice(CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -672,7 +523,7 @@ OsStatus sipXmediaFactoryImpl::getCurrentAudioOutputDevice(CpAudioDeviceInfo& de
 }
 
 
-OsStatus sipXmediaFactoryImpl::getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const
+OsStatus SipXMediaFactoryImpl::getCurrentAudioInputDevice(CpAudioDeviceInfo& deviceInfo) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -698,169 +549,37 @@ OsStatus sipXmediaFactoryImpl::getCurrentAudioInputDevice(CpAudioDeviceInfo& dev
    return OS_NOT_SUPPORTED;
 }
 
-
-OsStatus sipXmediaFactoryImpl::getNumOfCodecs(int& iCodecs) const
-{
-    iCodecs = TOTAL_AUDIO_CODECS_NUM;
-    return OS_SUCCESS;
-}
-
-
-OsStatus sipXmediaFactoryImpl::getCodec(int iCodec, UtlString& codec, int &bandWidth) const
-{
-    OsStatus rc = OS_SUCCESS;
-
-    switch (iCodec)
-    {
-    case 0: codec = (const char*) SdpCodec::SDP_CODEC_GIPS_PCMU;
-        break;
-    case 1: codec = (const char*) SdpCodec::SDP_CODEC_GIPS_PCMA;
-        break;
-    case 2: codec = (const char*) SdpCodec::SDP_CODEC_TONES;
-        break;
-
-#ifdef HAVE_SPEEX /* [ */
-    case SPEEX_AUDIO_CODECS_BEGIN+0: codec = (const char*) SdpCodec::SDP_CODEC_SPEEX;
-        break;
-    case SPEEX_AUDIO_CODECS_BEGIN+1: codec = (const char*) SdpCodec::SDP_CODEC_SPEEX_5;
-        break;
-    case SPEEX_AUDIO_CODECS_BEGIN+2: codec = (const char*) SdpCodec::SDP_CODEC_SPEEX_15;
-        break;
-    case SPEEX_AUDIO_CODECS_BEGIN+3: codec = (const char*) SdpCodec::SDP_CODEC_SPEEX_24;
-        break;
-#endif /* HAVE_SPEEX ] */
-
-#ifdef HAVE_GSM /* [ */
-    case GSM_AUDIO_CODECS_BEGIN+0: codec = (const char*) SdpCodec::SDP_CODEC_GSM;
-        break;
-#endif /* HAVE_GSM ] */
-
-#ifdef HAVE_ILBC /* [ */
-    case ILBC_AUDIO_CODECS_BEGIN+0: codec = (const char*) SdpCodec::SDP_CODEC_ILBC;
-        break;
-#endif /* HAVE_ILBC ] */
-
-#ifdef HAVE_INTEL_IPP /* [ */
-    case IPP_AUDIO_CODECS_BEGIN+0: codec = (const char*) SdpCodec::SDP_CODEC_G729A;
-       break;
-    case IPP_AUDIO_CODECS_BEGIN+1: codec = (const char*) SdpCodec::SDP_CODEC_G723;
-       break;
-#endif /* HAVE_INTEL_IPP ] */
-
-    default: rc = OS_FAILED;
-    }
-
-    return rc;
-}
-
-OsStatus sipXmediaFactoryImpl::setVideoPreviewDisplay(void* pDisplay)
+OsStatus SipXMediaFactoryImpl::setVideoPreviewDisplay(void* pDisplay)
 {
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setVideoQuality(int quality)
+OsStatus SipXMediaFactoryImpl::setVideoQuality(int quality)
 {
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setVideoParameters(int bitRate, int frameRate)
+OsStatus SipXMediaFactoryImpl::setVideoParameters(int bitRate, int frameRate)
 {
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getVideoQuality(int& quality) const
+OsStatus SipXMediaFactoryImpl::getVideoQuality(int& quality) const
 {
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getVideoBitRate(int& bitRate) const
+OsStatus SipXMediaFactoryImpl::getVideoBitRate(int& bitRate) const
 {
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getVideoFrameRate(int& frameRate) const
+OsStatus SipXMediaFactoryImpl::getVideoFrameRate(int& frameRate) const
 {
     return OS_NOT_YET_IMPLEMENTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getCodecNameByType(SdpCodec::SdpCodecTypes type, UtlString& codecName) const
-{
-    OsStatus rc = OS_FAILED;
-
-    codecName = "";
-
-    switch (type)
-    {
-    case SdpCodec::SDP_CODEC_TONES:
-        codecName = SIPX_CODEC_ID_TELEPHONE;
-        break;
-    case SdpCodec::SDP_CODEC_G729:
-    case SdpCodec::SDP_CODEC_G729A:
-        codecName = SIPX_CODEC_ID_G729A;
-        break;
-    case SdpCodec::SDP_CODEC_G723:
-        codecName = SIPX_CODEC_ID_G723;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_PCMA:
-        codecName = SIPX_CODEC_ID_PCMA;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_PCMU:
-        codecName = SIPX_CODEC_ID_PCMU;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_IPCMA:
-        codecName = SIPX_CODEC_ID_EG711A;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_IPCMU:
-        codecName = SIPX_CODEC_ID_EG711U;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_IPCMWB:
-        codecName = SIPX_CODEC_ID_IPCMWB;
-        break;
-    case SdpCodec::SDP_CODEC_ILBC:
-        codecName = SIPX_CODEC_ID_ILBC;
-        break;
-    case SdpCodec::SDP_CODEC_GIPS_ISAC:
-        codecName = SIPX_CODEC_ID_ISAC;
-        break;
-    case SdpCodec::SDP_CODEC_SPEEX:
-        codecName = SIPX_CODEC_ID_SPEEX;
-        break;
-    case SdpCodec::SDP_CODEC_SPEEX_5:
-        codecName = SIPX_CODEC_ID_SPEEX_5;
-        break;
-    case SdpCodec::SDP_CODEC_SPEEX_15:
-        codecName = SIPX_CODEC_ID_SPEEX_15;
-        break;
-    case SdpCodec::SDP_CODEC_SPEEX_24:
-        codecName = SIPX_CODEC_ID_SPEEX_24;
-        break;
-    case SdpCodec::SDP_CODEC_GSM:
-        codecName = SIPX_CODEC_ID_GSM;
-        break;
-    default:
-        OsSysLog::add(FAC_MP, PRI_WARNING,
-                      "sipXmediaFactoryImpl::getCodecNameByType unsupported type %d.",
-                      type);
-    
-    }
-
-    if (codecName != "")
-    {
-        rc = OS_SUCCESS;
-    }
-
-    return rc;
-}
-
-OsStatus sipXmediaFactoryImpl::getLocalAudioConnectionId(int& connectionId) const 
-{
-    connectionId = -1 ;
-
-    return OS_NOT_SUPPORTED ;
-
-}
-
-OsStatus sipXmediaFactoryImpl::getAudioInputMixerName(UtlString& name) const
+OsStatus SipXMediaFactoryImpl::getAudioInputMixerName(UtlString& name) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -876,7 +595,7 @@ OsStatus sipXmediaFactoryImpl::getAudioInputMixerName(UtlString& name) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioOutputMixerName(UtlString& name) const
+OsStatus SipXMediaFactoryImpl::getAudioOutputMixerName(UtlString& name) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -892,7 +611,7 @@ OsStatus sipXmediaFactoryImpl::getAudioOutputMixerName(UtlString& name) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioMasterVolume(int& volume) const
+OsStatus SipXMediaFactoryImpl::getAudioMasterVolume(int& volume) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -911,7 +630,7 @@ OsStatus sipXmediaFactoryImpl::getAudioMasterVolume(int& volume) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioMasterVolume(int volume)
+OsStatus SipXMediaFactoryImpl::setAudioMasterVolume(int volume)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -927,7 +646,7 @@ OsStatus sipXmediaFactoryImpl::setAudioMasterVolume(int volume)
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioPCMOutputVolume(int& volume) const
+OsStatus SipXMediaFactoryImpl::getAudioPCMOutputVolume(int& volume) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -946,7 +665,7 @@ OsStatus sipXmediaFactoryImpl::getAudioPCMOutputVolume(int& volume) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioPCMOutputVolume(int volume)
+OsStatus SipXMediaFactoryImpl::setAudioPCMOutputVolume(int volume)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -972,7 +691,7 @@ OsStatus sipXmediaFactoryImpl::setAudioPCMOutputVolume(int volume)
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioInputVolume(int& volume) const
+OsStatus SipXMediaFactoryImpl::getAudioInputVolume(int& volume) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -991,7 +710,7 @@ OsStatus sipXmediaFactoryImpl::getAudioInputVolume(int& volume) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioInputVolume(int volume)
+OsStatus SipXMediaFactoryImpl::setAudioInputVolume(int volume)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -1017,7 +736,7 @@ OsStatus sipXmediaFactoryImpl::setAudioInputVolume(int volume)
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioOutputBalance(int& balance) const
+OsStatus SipXMediaFactoryImpl::getAudioOutputBalance(int& balance) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -1034,7 +753,7 @@ OsStatus sipXmediaFactoryImpl::getAudioOutputBalance(int& balance) const
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::setAudioOutputBalance(int balance)
+OsStatus SipXMediaFactoryImpl::setAudioOutputBalance(int balance)
 {
 #ifndef DISABLE_LOCAL_AUDIO
    MpAudioDriverManager* pAudioManager = MpAudioDriverManager::getInstance();
@@ -1050,7 +769,7 @@ OsStatus sipXmediaFactoryImpl::setAudioOutputBalance(int balance)
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioOutputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
+OsStatus SipXMediaFactoryImpl::getAudioOutputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
                                                                 double& volume) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
@@ -1066,7 +785,7 @@ OsStatus sipXmediaFactoryImpl::getAudioOutputVolumeMeterReading(MEDIA_VOLUME_MET
    return OS_NOT_SUPPORTED;
 }
 
-OsStatus sipXmediaFactoryImpl::getAudioInputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
+OsStatus SipXMediaFactoryImpl::getAudioInputVolumeMeterReading(MEDIA_VOLUME_METER_TYPE type,
                                                                double& volume) const
 {
 #ifndef DISABLE_LOCAL_AUDIO
@@ -1084,7 +803,7 @@ OsStatus sipXmediaFactoryImpl::getAudioInputVolumeMeterReading(MEDIA_VOLUME_METE
 
 /* ============================ INQUIRY =================================== */
 
-OsStatus sipXmediaFactoryImpl::isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled)
+OsStatus SipXMediaFactoryImpl::isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode, UtlBoolean& enabled)
 {
    switch(mode)
    {
@@ -1101,18 +820,17 @@ OsStatus sipXmediaFactoryImpl::isInboundDTMFEnabled(MEDIA_INBOUND_DTMF_MODE mode
    return OS_SUCCESS;  
 }
 
-OsStatus sipXmediaFactoryImpl::isAudioOutputMuted(UtlBoolean& bIsMuted) const
+OsStatus SipXMediaFactoryImpl::isAudioOutputMuted(UtlBoolean& bIsMuted) const
 {
    bIsMuted = m_bIsAudioOutputMuted;
    return OS_SUCCESS;
 }
 
-OsStatus sipXmediaFactoryImpl::isAudioInputMuted(UtlBoolean& bIsMuted) const
+OsStatus SipXMediaFactoryImpl::isAudioInputMuted(UtlBoolean& bIsMuted) const
 {
    bIsMuted = m_bIsAudioInputMuted;
    return OS_SUCCESS;
 }
-
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 

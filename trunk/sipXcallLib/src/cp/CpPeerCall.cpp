@@ -1553,7 +1553,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->startChannelTone(connectionId, toneId, local, remote);
+//            mpMediaInterface->startChannelTone(connectionId, toneId, local, remote);
          }                
       }
       break;            
@@ -1566,7 +1566,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->stopChannelTone(connectionId);
+            //mpMediaInterface->stopChannelTone(connectionId);
          }                
       }
       break;
@@ -1587,8 +1587,8 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->playChannelAudio(connectionId, url, repeat, 
-               local, remote, mixWithMic, downScaling, pCookie);
+/*            mpMediaInterface->playChannelAudio(connectionId, url, repeat, 
+               local, remote, mixWithMic, downScaling, pCookie);*/
          }     
          else if (mpMediaInterface)
          {
@@ -1608,7 +1608,7 @@ UtlBoolean CpPeerCall::handleCallMessage(OsMsg& eventMessage)
          if (connection && mpMediaInterface)
          {   
             int connectionId = connection->getConnectionId();
-            mpMediaInterface->stopChannelAudio(connectionId);
+//            mpMediaInterface->stopChannelAudio(connectionId);
          }
       }
       break;
@@ -1772,9 +1772,9 @@ UtlBoolean CpPeerCall::handleConnectionNotfMessage(OsMsg& eventMessage)
    case CP_NOTIFICATION_DTMF_RFC2833:
       fireSipXMediaEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_RFC2833, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
       break;
-   case CP_NOTIFICATION_DTMF_SIPINFO:
+/*   case CP_NOTIFICATION_DTMF_SIPINFO:
       fireSipXMediaEvent(CP_MEDIA_REMOTE_DTMF, CP_MEDIA_CAUSE_DTMF_SIPINFO, (CP_MEDIA_TYPE)media, mediaConnectionId, pData1, pData2);
-      break;
+      break;*/
    default:
       assert(false);
    }
@@ -1951,10 +1951,10 @@ UtlBoolean CpPeerCall::handleLimitCodecPreferences(OsMsg* pEventMessage)
 
             if (pInstData != NULL)
             {
-               ((CpMediaInterface*)pInstData)->rebuildCodecFactory(connectionId, 
+/*               ((CpMediaInterface*)pInstData)->rebuildCodecFactory(connectionId, 
                   audioBandwidth, 
                   videoBandwidth, 
-                  videoCodec);
+                  videoCodec);*/
             }
          }
       }
@@ -2827,7 +2827,7 @@ void CpPeerCall::offHook(const void* pDisplay)
 /* ============================ INQUIRY =================================== */
 
 UtlBoolean CpPeerCall::shouldCreateCall(SipUserAgent& sipUa, OsMsg& eventMessage,
-                                        SdpCodecFactory& codecFactory)
+                                        SdpCodecList& codecFactory)
 {
    UtlBoolean createCall = FALSE;
    int msgType = eventMessage.getMsgType();

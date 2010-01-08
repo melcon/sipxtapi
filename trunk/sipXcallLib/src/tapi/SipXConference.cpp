@@ -337,7 +337,7 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
       "sipxConferenceCreate hInst=%p phConference=%p",
       hInst, phConference);
 
-   SIPX_INSTANCE_DATA* pInst = (SIPX_INSTANCE_DATA*)hInst;
+   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    if (pInst)
    {
@@ -895,25 +895,19 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceDestroy(SIPX_CONF hConf)
 }
 
 SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hConf,
-                                                             const SIPX_AUDIO_BANDWIDTH_ID audioBandwidth,
                                                              const char* szAudioCodecNames,
-                                                             const SIPX_VIDEO_BANDWIDTH_ID videoBandwidth,
                                                              const char* szVideoCodecNames) 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceLimitCodecPreferences");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConferenceLimitCodecPreferences hCall=%d audioBandwidth=%d videoBandwidth=%d szVideoCodecName=\"%s\"",
+      "sipxConferenceLimitCodecPreferences hCall=%d szAudioCodecNames=\"%s\"",
       hConf,
-      audioBandwidth,
-      videoBandwidth,
       (szAudioCodecNames) ? szAudioCodecNames : "");
 
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
 
    // Test bandwidth for legal values
-   if (((audioBandwidth >= AUDIO_CODEC_BW_LOW && audioBandwidth <= AUDIO_CODEC_BW_HIGH) || audioBandwidth == AUDIO_CODEC_BW_DEFAULT) &&
-      ((videoBandwidth >= VIDEO_CODEC_BW_LOW && videoBandwidth <= VIDEO_CODEC_BW_HIGH) || videoBandwidth == VIDEO_CODEC_BW_DEFAULT) &&
-      (hConf != SIPX_CONF_NULL))
+   if (hConf != SIPX_CONF_NULL)
    {
       SIPX_CONF_DATA* pData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
 
@@ -923,11 +917,51 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceLimitCodecPreferences(const SIPX_CONF hCo
          {
             // just reposts message
             pData->pInst->pCallManager->limitAbstractCallCodecPreferences(pData->confCallId,
-               (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecNames,
-               (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecNames);
+               szAudioCodecNames,
+               szVideoCodecNames);
+            sr = SIPX_RESULT_SUCCESS;
+         }
+         else
+         {
+            sr = SIPX_RESULT_INVALID_ARGS;
+         }
+
+         sipxConfReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
+      }      
+   }
+   else
+   {
+      sr = SIPX_RESULT_INVALID_ARGS;
+   }
+
+   return sr;
+}
+
+SIPXTAPI_API SIPX_RESULT sipxConferenceRenegotiateCodecPreferences(const SIPX_CONF hConf,
+                                                                   const char* szAudioCodecNames,
+                                                                   const char* szVideoCodecNames) 
+{
+   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConferenceRenegotiateCodecPreferences");
+   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+      "sipxConferenceRenegotiateCodecPreferences hCall=%d szAudioCodecNames=\"%s\"",
+      hConf,
+      (szAudioCodecNames) ? szAudioCodecNames : "");
+
+   SIPX_RESULT sr = SIPX_RESULT_FAILURE;
+
+   // Test bandwidth for legal values
+   if (hConf != SIPX_CONF_NULL)
+   {
+      SIPX_CONF_DATA* pData = sipxConfLookup(hConf, SIPX_LOCK_READ, stackLogger);
+
+      if (pData)
+      {
+         if (!pData->confCallId.isNull())
+         {
+            // just reposts message
             pData->pInst->pCallManager->renegotiateCodecsAllConferenceConnections(pData->confCallId,
-               (CP_AUDIO_BANDWIDTH_ID)audioBandwidth, szAudioCodecNames,
-               (CP_VIDEO_BANDWIDTH_ID)videoBandwidth, szVideoCodecNames);
+               szAudioCodecNames,
+               szVideoCodecNames);
 
             sr = SIPX_RESULT_SUCCESS;
          }

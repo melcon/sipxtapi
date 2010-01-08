@@ -1,4 +1,4 @@
 noinst_HEADERS = \
-   CpPhoneMediaInterface.h \
-   sipXmediaFactoryImpl.h 
+   SipXMediaInterfaceImpl.h \
+   SipXMediaFactoryImpl.h
 

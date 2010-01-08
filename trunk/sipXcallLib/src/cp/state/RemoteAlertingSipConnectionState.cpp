@@ -12,11 +12,14 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
+#include <net/SipMessage.h>
+#include <cp/state/SipResponseTransitionMemory.h>
 #include <cp/state/RemoteAlertingSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/EstablishedSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -31,11 +34,20 @@
 
 /* ============================ CREATORS ================================== */
 
-RemoteAlertingSipConnectionState::RemoteAlertingSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+RemoteAlertingSipConnectionState::RemoteAlertingSipConnectionState(SipConnectionStateContext& rStateContext,
                                                                    SipUserAgent& rSipUserAgent,
-                                                                   CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                                   XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                                   CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                                   CpMessageQueueProvider& rMessageQueueProvider,
+                                                                   XSipConnectionEventSink& rSipConnectionEventSink,
+                                                                   const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+RemoteAlertingSipConnectionState::RemoteAlertingSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -49,12 +61,23 @@ RemoteAlertingSipConnectionState::~RemoteAlertingSipConnectionState()
 
 void RemoteAlertingSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry remote alerting connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void RemoteAlertingSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* RemoteAlertingSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are caller. We received 180 ringing, but not 200 OK yet
+   // to drop call, send CANCEL
+   return doCancelConnection(result);
 }
 
 SipConnectionStateTransition* RemoteAlertingSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -63,6 +86,38 @@ SipConnectionStateTransition* RemoteAlertingSipConnectionState::handleSipMessage
 
    // as a last resort, let parent handle event
    return BaseSipConnectionState::handleSipMessageEvent(rEvent);
+}
+
+SipConnectionStateTransition* RemoteAlertingSipConnectionState::processInviteResponse(const SipMessage& sipMessage)
+{
+   // first let parent handle response
+   SipConnectionStateTransition* pTransition = BaseSipConnectionState::processInviteResponse(sipMessage);
+   if (pTransition)
+   {
+      return pTransition;
+   }
+
+   int responseCode = sipMessage.getResponseStatusCode();
+   UtlString responseText;
+   sipMessage.getResponseStatusText(&responseText);
+
+   switch (responseCode)
+   {
+   case SIP_OK_CODE:
+   case SIP_ACCEPTED_CODE:
+      {
+         // send ACK to 200 OK
+         handleInvite2xxResponse(sipMessage);
+         // proceed to established state
+         SipResponseTransitionMemory memory(responseCode, responseText);
+         return getTransition(ISipConnectionState::CONNECTION_ESTABLISHED, &memory);
+      }
+   default:
+      ;
+   }
+
+   // no transition
+   return NULL;
 }
 
 /* ============================ ACCESSORS ================================= */
@@ -80,21 +135,14 @@ SipConnectionStateTransition* RemoteAlertingSipConnectionState::getTransition(IS
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_ESTABLISHED:
-         pDestination = new EstablishedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new EstablishedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

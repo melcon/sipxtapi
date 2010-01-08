@@ -50,7 +50,6 @@ public:
       CONNECTION_OFFERING, ///< for inbound calls
       CONNECTION_ALERTING, ///< for inbound calls
       CONNECTION_ESTABLISHED,
-      CONNECTION_FAILED, ///< reached when error occurs during sending sip message, authorization failure
       CONNECTION_DISCONNECTED, ///< reached when call is hang up, refused by remote party etc
       CONNECTION_UNKNOWN ///< this state should never occur, it is only theoretical
    } StateEnum;

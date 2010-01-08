@@ -13,8 +13,8 @@
 
 // Author: Dan Petrie (dpetrie AT SIPez DOT com)
 
-#ifndef _CpPhoneMediaInterface_h_
-#define _CpPhoneMediaInterface_h_
+#ifndef _SipXMediaInterfaceImpl_h_
+#define _SipXMediaInterfaceImpl_h_
 
 // SYSTEM INCLUDES
 //#include <>
@@ -23,7 +23,7 @@
 #include <os/OsStatus.h>
 #include <os/OsDefs.h>
 #include <net/QoS.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecList.h>
 #include "mi/CpMediaInterface.h"
 
 // DEFINES
@@ -37,12 +37,12 @@
 class MpCallFlowGraph;
 class SdpCodec;
 class OsDatagramSocket;
-class CpPhoneMediaConnection;
+class SipXMediaConnection;
 class ISocketEvent;
 
 //:Class short description which may consist of multiple lines (note the ':')
 // Class detailed description which may extend to multiple lines
-class CpPhoneMediaInterface : public CpMediaInterface
+class SipXMediaInterfaceImpl : public CpMediaInterface
 {
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -57,13 +57,12 @@ public:
 
 /* ============================ CREATORS ================================== */
 
-   CpPhoneMediaInterface(CpMediaInterfaceFactory* pFactoryImpl,
-						 OsMsgQ* pInterfaceNotificationQueue,
-                         const char* publicAddress = NULL, 
-                         const char* localAddress = NULL,
-                         int numCodecs = 0, 
-                         SdpCodec* sdpCodecArray[] = NULL,
-                         const char* pLocale = "",
+   SipXMediaInterfaceImpl(CpMediaInterfaceFactory* pFactoryImpl,
+						       OsMsgQ* pInterfaceNotificationQueue,///< queue for sending interface notifications
+                         const SdpCodecList* pCodecList = NULL,///< list of SdpCodec instances
+                         const char* publicIPAddress = NULL,///< ignored
+                         const char* localIPAddress = NULL,///< local bind IP address
+                         const char* pLocale = "",///< locale for tone generator
                          int expeditedIpTos = QOS_LAYER3_LOW_DELAY_IP_TOS,
                          const char* szStunServer = NULL,
                          int iStunPort = PORT_NONE,
@@ -78,7 +77,7 @@ public:
 
   protected:
    virtual
-   ~CpPhoneMediaInterface();
+   ~SipXMediaInterfaceImpl();
      //:Destructor
   public:
 
@@ -90,8 +89,8 @@ public:
 /* ============================ MANIPULATORS ============================== */
 
 
-   virtual OsStatus createConnection(int& connectionId,
-                                     const char* szLocalAddress,
+   virtual OsStatus createConnection(int& connectionId, ///< will get assigned connection id
+                                     const char* szLocalAddress, ///< optionally override local bind address of media interface
                                      int localPort = 0,
                                      void* videoWindowHandle = NULL,
                                      void* const pSecurityAttributes = NULL,
@@ -106,7 +105,7 @@ public:
                                     int& rtcpAudioPort,
                                     int& rtpVideoPort,
                                     int& rtcpVideoPort,
-                                    SdpCodecFactory& supportedCodecs,
+                                    SdpCodecList& supportedCodecs,
                                     SdpSrtpParameters& srtpParams,
                                     int bandWidth,
                                     int& videoBandwidth,
@@ -121,7 +120,7 @@ public:
                                       int rtcpVideoPorts[],
                                       RTP_TRANSPORT transportTypes[],
                                       int& nActualAddresses,
-                                      SdpCodecFactory& supportedCodecs,
+                                      SdpCodecList& supportedCodecs,
                                       SdpSrtpParameters& srtpParameters,
                                       int bandWidth,
                                       int& videoBandwidth,
@@ -138,12 +137,10 @@ public:
                                              int rtcpVideoPort);
 
    virtual OsStatus startRtpSend(int connectionId, 
-                                 int numCodecs,
-                                 SdpCodec* sendCodec[]);
+                                 const SdpCodecList& codecList);
 
    virtual OsStatus startRtpReceive(int connectionId,
-                                    int numCodecs,
-                                    SdpCodec* sendCodec[]);
+                                    const SdpCodecList& codecList);
 
    virtual OsStatus stopRtpSend(int connectionId);
    virtual OsStatus stopRtpReceive(int connectionId);
@@ -152,9 +149,6 @@ public:
 
    virtual OsStatus startTone(int toneId, UtlBoolean local, UtlBoolean remote);
    virtual OsStatus stopTone();
-
-   virtual OsStatus startChannelTone(int connectionId, int toneId, UtlBoolean local, UtlBoolean remote) ;
-   virtual OsStatus stopChannelTone(int connectionId) ;
 
    virtual OsStatus muteInput(int connectionId, UtlBoolean bMute);
 
@@ -183,19 +177,6 @@ public:
 
     virtual OsStatus resumePlayback();
 
-    virtual OsStatus playChannelAudio(int connectionId,
-                                     const char* url,
-                                     UtlBoolean repeat,
-                                     UtlBoolean local,
-                                     UtlBoolean remote,
-                                     UtlBoolean mixWithMic = false,
-                                     int downScaling = 100,
-                                     void* pCookie = NULL) ;
-
-
-   virtual OsStatus stopChannelAudio(int connectionId) ;
-
-
    virtual OsStatus recordChannelAudio(int connectionId,
                                        const char* szFile) ;
 
@@ -204,17 +185,7 @@ public:
    virtual OsStatus giveFocus();
    virtual OsStatus defocus();
 
-   virtual void setCodecCPULimit(int iLimit);
-     //:Limits the available codecs to only those within the designated
-     //:limit.
-
    virtual OsStatus stopRecording();
-   virtual OsStatus ezRecord(int ms, 
-           int silenceLength, 
-           const char* fileName, 
-           double& duration, 
-           int& dtmfterm,
-           OsProtectedEvent* ev = NULL);
 
    /**
    * Starts recording all audio channels into given file.
@@ -238,10 +209,16 @@ public:
     //! Rebuild the codec factory on the fly
     virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) ;
 
-   virtual OsStatus rebuildCodecFactory(int connectionId, 
-                                        int audioBandwidth, 
-                                        int videoBandwidth, 
-                                        UtlString& videoCodec);
+    /**
+     * Rebuilds internal SdpCodecList using supplied SdpCodecList
+     */
+    virtual OsStatus setCodecList(const SdpCodecList& sdpCodecList);
+
+    /** Copies internal SdpCodecList into supplied SdpCodecList */
+    virtual OsStatus getCodecList(SdpCodecList& sdpCodecList);
+
+    /** Copies internal SdpCodecList of media connection into supplied SdpCodecList */
+    virtual OsStatus getCodecList(int connectionId, SdpCodecList& sdpCodecList);
 
     //! Set conneection bitrate on the fly
     virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) ;
@@ -289,12 +266,6 @@ public:
    virtual int getCodecCPULimit();
       //:Calculate the worst cost for our sending/receiving codecs
 
-   virtual OsMsgQ* getMsgQ();
-     //:Returns the flowgraph's message queue
-
-     /// @copydoc CpMediaInterface::getMediaNotificationDispatcher()
-   virtual OsMsgDispatcher* getMediaNotificationDispatcher();
-
    virtual OsStatus getVideoQuality(int& quality);
    virtual OsStatus getVideoBitRate(int& bitRate);
    virtual OsStatus getVideoFrameRate(int& frameRate);
@@ -334,7 +305,7 @@ public:
                                     int* videoPayloadType,
                                     bool& isEncrypted) ;
 
-   virtual UtlString getType() { return "CpPhoneMediaInterface"; };
+   virtual UtlString getType() { return "SipXMediaInterfaceImpl"; };
 
 /* ============================ INQUIRY =================================== */
 
@@ -353,12 +324,14 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-    UtlBoolean getLocalAddresses( int connectionId,
-                                  UtlString& hostIp,
-                                  int& rtpAudioPort,
-                                  int& rtcpAudioPort,
-                                  int& rtpVideoPort,
-                                  int& rtcpVideoPort) ;
+    UtlBoolean getLocalAddresses(int connectionId,
+                                 int nMaxAddresses,
+                                 UtlString hostIps[], ///< host ip addresses to which socket is bound (in case 0.0.0.0 we get real ips)
+                                 int& rtpAudioPort,
+                                 int& rtcpAudioPort,
+                                 int& rtpVideoPort,
+                                 int& rtcpVideoPort,
+                                 int& nActualAddresses);
 
     UtlBoolean getNatedAddresses( int connectionId,
                                   UtlString& hostIp,
@@ -414,7 +387,7 @@ protected:
       /**<
       *  For RTP/RTCP port pair will be set next free port pair.
       *  
-      *  @param[in] localAddress - Address to bind to (for multihomed hosts).
+      *  @param[in] localIPAddress - Address to bind to (for multihomed hosts).
       *  @param[in] localPort - Local port to bind to (0 for auto select).
       *  @param[in] contactType - Contact type (see SIPX_CONTACT_TYPE).
       *  @param[out] rtpSocket - Created socket for RTP stream.
@@ -424,15 +397,15 @@ protected:
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-    CpPhoneMediaConnection* getMediaConnection(int connectionId);
-    CpPhoneMediaConnection* removeMediaConnection(int connectionId);
-    OsStatus doDeleteConnection(CpPhoneMediaConnection* mediaConnection);
+    SipXMediaConnection* getMediaConnection(int connectionId);
+    SipXMediaConnection* removeMediaConnection(int connectionId);
+    OsStatus doDeleteConnection(SipXMediaConnection* mediaConnection);
 
    UtlString mRtpReceiveHostAddress; ///< Advertised as place to send RTP/RTCP
-   UtlString mLocalAddress;          ///< Address on which ports are bound
+   UtlString mLocalIPAddress;          ///< Address on which ports are bound
    MpCallFlowGraph* mpFlowGraph;     ///< Flowgraph for audio part of call
    UtlBoolean mRingToneFromFile;
-   SdpCodecFactory mSupportedCodecs;
+   SdpCodecList mSdpCodecList;
    UtlDList mMediaConnections;
    int mExpeditedIpTos;
    UtlString mStunServer ;
@@ -448,13 +421,13 @@ private:
    OsMsgQ* m_pInterfaceNotificationQueue;
 
    // Disabled copy constructor
-   CpPhoneMediaInterface(const CpPhoneMediaInterface& rCpPhoneMediaInterface);
+   SipXMediaInterfaceImpl(const SipXMediaInterfaceImpl& rCpPhoneMediaInterface);
 
    // Disabled equals operator
-   CpPhoneMediaInterface& operator=(const CpPhoneMediaInterface& rhs);
+   SipXMediaInterfaceImpl& operator=(const SipXMediaInterfaceImpl& rhs);
      
 
 };
 
 /* ============================ INLINE METHODS ============================ */
-#endif  // _CpPhoneMediaInterface_h_
+#endif  // _SipXMediaInterfaceImpl_h_

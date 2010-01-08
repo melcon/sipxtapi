@@ -38,5 +38,5 @@ libsipXmediaProcessing_la_LIBADD = \
 	-lresolv
 
 libsipXmediaProcessing_la_SOURCES =  \
-    sipXmediaFactoryImpl.cpp \
-    CpPhoneMediaInterface.cpp
+    SipXMediaFactoryImpl.cpp \
+    SipXMediaInterfaceImpl.cpp

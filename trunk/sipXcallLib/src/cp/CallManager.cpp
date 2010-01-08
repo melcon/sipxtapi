@@ -32,7 +32,7 @@
 #include <utl/UtlRegex.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipUserAgent.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecList.h>
 #include <net/Url.h>
 #include <net/SipDialog.h>
 #include <net/SipLineProvider.h>
@@ -83,7 +83,7 @@ Flash                 16
 CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
                          SipLineProvider* pLineProvider,
                          UtlBoolean isEarlyMediaFor180Enabled,
-                         SdpCodecFactory* pCodecFactory,
+                         SdpCodecList* pCodecList,
                          int rtpPortStart,
                          int rtpPortEnd,
                          SipUserAgent* userAgent,
@@ -243,7 +243,7 @@ CallManager::CallManager(UtlBoolean isRequredUserIdMatch,
 
    infocusCall = NULL;
    mOutGoingCallType = phonesetOutgoingCallProtocol;
-   mpCodecFactory = pCodecFactory;
+   mpCodecList = pCodecList;
    // Disable the message log
    stopCallStateLog();
 
@@ -354,7 +354,7 @@ UtlBoolean CallManager::handleMessage(OsMsg& eventMessage)
                   ////////////////
 
                   if( isUserValid && CpPeerCall::shouldCreateCall(
-                     *sipUserAgent, eventMessage, *mpCodecFactory))
+                     *sipUserAgent, eventMessage, *mpCodecList))
                   {
                      // If this call would exceed the limit that we have been
                      // given for calls to handle simultaneously,
@@ -978,8 +978,9 @@ CpMediaInterface* CallManager::createMediaInterface(const UtlString& sSuggestedL
 
       pMediaInterface = mpMediaFactory->createMediaInterface(
          NULL,
+         NULL, // list of SdpCodec instances
          publicIPAddress, 
-         localIPAddress, numCodecs, codecArray, 
+         localIPAddress, 
          mLocale.data(), mExpeditedIpTos, stunServer, 
          mStunPort, mStunKeepAlivePeriodSecs, turnServer,
          mTurnPort, turnUsername, turnPassword,
@@ -2221,7 +2222,7 @@ void CallManager::enableTurn(const UtlString& turnServer,
 
 void CallManager::getCodecs(int& numCodecs, SdpCodec**& codecArray)
 {
-   mpCodecFactory->getCodecs(numCodecs,
+   mpCodecList->getCodecs(numCodecs,
       codecArray);
 
 }

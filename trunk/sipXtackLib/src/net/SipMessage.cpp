@@ -419,11 +419,12 @@ void SipMessage::addSdpBody(int nRtpContacts,
                             RTP_TRANSPORT transportTypes[],
                             int numRtpCodecs, 
                             SdpCodec* rtpCodecs[],
-                            SdpSrtpParameters* srtpParams,
+                            const SdpSrtpParameters& srtpParams,
                             int videoBandwidth,
                             int videoFramerate,
                             const SipMessage* pRequest,
-                            RTP_TRANSPORT rtpTransportOptions)
+                            RTP_TRANSPORT rtpTransportOptions,
+                            UtlBoolean bLocalHold)
 {
    if(numRtpCodecs > 0)
    {
@@ -448,10 +449,11 @@ void SipMessage::addSdpBody(int nRtpContacts,
                                 transportTypes,
                                 numRtpCodecs, 
                                 rtpCodecs,
-                                *srtpParams,
+                                srtpParams,
                                 videoBandwidth,
                                 videoFramerate,
-                                pRequest->getSdpBody());
+                                pRequest->getSdpBody(),
+                                bLocalHold);
       }
       else
       {
@@ -464,10 +466,11 @@ void SipMessage::addSdpBody(int nRtpContacts,
                                 transportTypes,
                                 numRtpCodecs, 
                                 rtpCodecs,
-                                *srtpParams,
+                                srtpParams,
                                 videoBandwidth,
                                 videoFramerate,
-                                rtpTransportOptions);
+                                rtpTransportOptions,
+                                bLocalHold);
       }
 
       setBody(sdpBody);
@@ -506,9 +509,10 @@ const SdpBody* SipMessage::getSdpBody(SIPXTACK_SECURITY_ATTRIBUTES* const pSecur
     smimeType.toLower();
 
     // If the body is of SDP type, return it
-    if(dynamic_cast<const SdpBody*>(getBody()))
+    body = dynamic_cast<const SdpBody*>(getBody());
+    if (body)
     {
-        body = (const SdpBody*) getBody();
+       return body;
     }
 #if __SMIME
     // If we have a private key and this is a S/MIME body
@@ -570,7 +574,7 @@ const SdpBody* SipMessage::getSdpBody(SIPXTACK_SECURITY_ATTRIBUTES* const pSecur
                 if(strcmp(bodyPart->getContentType(), SDP_CONTENT_TYPE) == 0)
                 {
                     // Temporarily disable while fixing multipart bodies
-                    body = (const SdpBody*) bodyPart;
+                    body = dynamic_cast<const SdpBody*>(bodyPart);
                     break;
                 }
 #ifdef SMIME
@@ -1874,6 +1878,20 @@ void SipMessage::setCancelData(const SipMessage* inviteRequest,
                   callId, sequenceNum, localContact);
 }
 
+void SipMessage::setPrackData(const char* fromAddress,
+                              const char* toAddress,
+                              const char* callId,
+                              int sequenceNumber,
+                              int prackRSequenceNumber,
+                              int prackCSequenceNumber,
+                              const char* prackMethod,
+                              const char* localContact)
+{
+   setRequestData(SIP_PRACK_METHOD, toAddress,
+      fromAddress, toAddress,
+      callId, sequenceNumber, localContact);
+   setRAckField(prackRSequenceNumber, prackCSequenceNumber, prackMethod);
+}
 
 void SipMessage::setPublishData(const char* uri,
                                 const char* fromField,
@@ -2291,6 +2309,34 @@ void SipMessage::setCSeqField(int sequenceNumber, const char* method)
     setHeaderValue(SIP_CSEQ_FIELD, value.data());
 }
 
+void SipMessage::setRSeqField(int sequenceNumber)
+{
+   UtlString value;
+   char numString[HTTP_LONG_INT_CHARS];
+
+   SNPRINTF(numString, sizeof(numString), "%d", sequenceNumber);
+   value.append(numString);
+
+   setHeaderValue(SIP_RSEQ_FIELD, value.data());
+}
+
+void SipMessage::setRAckField(int rsequenceNumber, int csequenceNumber, const char* method)
+{
+   UtlString value;
+   char numString1[HTTP_LONG_INT_CHARS];
+   char numString2[HTTP_LONG_INT_CHARS];
+
+   SNPRINTF(numString1, sizeof(numString1), "%d", rsequenceNumber);
+   SNPRINTF(numString2, sizeof(numString2), "%d", csequenceNumber);
+   value.append(numString1);
+   value.append(SIP_SUBFIELD_SEPARATOR);
+   value.append(numString2);
+   value.append(SIP_SUBFIELD_SEPARATOR);
+   value.append(method);
+
+   setHeaderValue(SIP_RACK_FIELD, value.data());
+}
+
 void SipMessage::incrementCSeqNumber()
 {
     int seqNum;
@@ -2545,6 +2591,13 @@ void SipMessage::getFromField(UtlString* field) const
     }
 }
 
+void SipMessage::getFromFieldTag(UtlString& fromTag) const
+{
+   Url fromUrl;
+   getFromUrl(fromUrl);
+   fromUrl.getFieldParameter("tag", fromTag);
+}
+
 void SipMessage::getToField(UtlString* field) const
 {
    const char* value = getHeaderValue(0, SIP_TO_FIELD);
@@ -2557,6 +2610,13 @@ void SipMessage::getToField(UtlString* field) const
    {
       field->remove(0);
    }
+}
+
+void SipMessage::getToFieldTag(UtlString& toTag) const
+{
+   Url toUrl;
+   getToUrl(toUrl);
+   toUrl.getFieldParameter("tag", toTag);
 }
 
 void SipMessage::getToUrl(Url& toUrl) const
@@ -3296,8 +3356,7 @@ UtlBoolean SipMessage::getCSeqField(int* sequenceNum, UtlString* sequenceMethod)
         int valueStart = strspn(value, SIP_SUBFIELD_SEPARATORS);
 
         // Find the end of the sequence number
-        int numStringLen = strcspn(&value[valueStart], SIP_SUBFIELD_SEPARATORS)
-            - valueStart;
+        int numStringLen = strcspn(&value[valueStart], SIP_SUBFIELD_SEPARATORS);
 
         // Get the method
         if(sequenceMethod)
@@ -3338,6 +3397,72 @@ UtlBoolean SipMessage::getCSeqField(int* sequenceNum, UtlString* sequenceMethod)
     }
 
     return(value != NULL);
+}
+
+UtlBoolean SipMessage::getRSeqField(int& rsequenceNum) const
+{
+   const char* value = getHeaderValue(0, SIP_RSEQ_FIELD);
+   if(value)
+   {
+      // Ignore white space in the beginning
+      int valueStart = strspn(value, SIP_SUBFIELD_SEPARATORS); // find first char that is not separator
+      // Find the end of the sequence number
+      int numStringLen = strcspn(&value[valueStart], SIP_SUBFIELD_SEPARATORS);
+
+      if(numStringLen > MAXIMUM_INTEGER_STRING_LENGTH)
+      {
+         numStringLen = MAXIMUM_INTEGER_STRING_LENGTH;
+      }
+
+      // Convert the sequence number
+      char numBuf[MAXIMUM_INTEGER_STRING_LENGTH + 1];
+      memcpy(numBuf, &value[valueStart], numStringLen);
+      numBuf[numStringLen] = '\0';
+      rsequenceNum = atoi(numBuf);
+   }
+
+   return value != NULL;
+}
+
+UtlBoolean SipMessage::getRAckField(int& rsequenceNum, int& csequenceNum, UtlString& sequenceMethod) const
+{
+   const char* value = getHeaderValue(0, SIP_RACK_FIELD);
+   if(value)
+   {
+      // Ignore white space in the beginning
+      int value1Start = strspn(value, SIP_SUBFIELD_SEPARATORS); // find first char that is not separator
+      int value1End = strcspn(&value[value1Start], SIP_SUBFIELD_SEPARATORS) + value1Start; // find next separator for value1
+      int value2Start = strspn(&value[value1End], SIP_SUBFIELD_SEPARATORS) + value1End; // find first char that is not separator
+      int value2End = strcspn(&value[value2Start], SIP_SUBFIELD_SEPARATORS) + value2Start; // find next separator for value2
+      int value3Start = strspn(&value[value2End], SIP_SUBFIELD_SEPARATORS) + value2End; // find first char that is not separator
+      int value3End = strcspn(&value[value3Start], SIP_SUBFIELD_SEPARATORS) + value3Start; // find next separator for value3
+
+      int numString1Len = value1End - value1Start;
+      int numString2Len = value2End - value2Start;
+      if(numString1Len > MAXIMUM_INTEGER_STRING_LENGTH)
+      {
+         numString1Len = MAXIMUM_INTEGER_STRING_LENGTH;
+      }
+      if(numString2Len > MAXIMUM_INTEGER_STRING_LENGTH)
+      {
+         numString2Len = MAXIMUM_INTEGER_STRING_LENGTH;
+      }
+
+      // Convert the sequence number
+      char numBuf1[MAXIMUM_INTEGER_STRING_LENGTH + 1];
+      char numBuf2[MAXIMUM_INTEGER_STRING_LENGTH + 1];
+      memcpy(numBuf1, &value[value1Start], numString1Len);
+      memcpy(numBuf2, &value[value2Start], numString2Len);
+      numBuf1[numString1Len] = '\0';
+      numBuf2[numString2Len] = '\0';
+      rsequenceNum = atoi(numBuf1);
+      csequenceNum = atoi(numBuf2);
+      sequenceMethod.remove(0);
+      sequenceMethod.append(value, value3Start, value3End - value3Start);
+      NameValueTokenizer::frontBackTrim(&sequenceMethod, SIP_SUBFIELD_SEPARATORS);           
+   }
+
+   return value != NULL;
 }
 
 UtlBoolean SipMessage::getContactUri(int addressIndex, UtlString* uri) const
@@ -4118,12 +4243,46 @@ UtlBoolean SipMessage::getSessionExpires(int* sessionExpiresSeconds, UtlString* 
     return(value != NULL);
 }
 
-void SipMessage::setSessionExpires(int sessionExpiresSeconds)
+void SipMessage::setSessionExpires(int sessionExpiresSeconds, const UtlString& refresher)
 {
-   char numString[HTTP_LONG_INT_CHARS];
+   UtlString fieldValue;
+   fieldValue.appendFormat("%d", sessionExpiresSeconds);
 
-   SNPRINTF(numString, sizeof(numString), "%d", sessionExpiresSeconds);
-   setHeaderValue(SIP_SESSION_EXPIRES_FIELD, numString);
+   if (!refresher.isNull())
+   {
+      fieldValue.appendFormat(";refresher=%s", refresher.data());
+   }
+
+   setHeaderValue(SIP_SESSION_EXPIRES_FIELD, fieldValue);
+}
+
+void SipMessage::setMinSe(int minSe)
+{
+   UtlString sMinSe;
+   sMinSe.appendFormat("%d", minSe);
+   setHeaderValue(SIP_MIN_SE_FIELD, sMinSe);
+}
+
+UtlBoolean SipMessage::getMinSe(int& minSe) const
+{
+   const char* value = getHeaderValue(0, SIP_MIN_SE_FIELD);
+   if (value)
+   {
+      UtlString sMinSe;
+      NameValueTokenizer::getSubField(value, 0, ";", &sMinSe);
+      NameValueTokenizer::frontBackTrim(&sMinSe, SIP_SUBFIELD_SEPARATORS);
+      if (!sMinSe.isNull())
+      {
+         minSe = atoi(sMinSe.data());
+         return TRUE;
+      }
+   }
+   else
+   {
+      minSe = 0;
+   }
+
+   return FALSE;
 }
 
 bool SipMessage::hasSelfHeader() const
@@ -4404,6 +4563,63 @@ UtlBoolean SipMessage::getReasonField(UtlString& reasonField) const
     }
     return(value != NULL);
 }
+
+UtlBoolean SipMessage::getReasonField(int index, UtlString& protocol, int& cause, UtlString& text) const
+{
+   const char* value;
+   protocol.remove(0);
+   cause = 0;
+   text.remove(0);
+   value = getHeaderValue(0, SIP_REASON_FIELD);
+
+   if(value && *value)
+   {
+      UtlBoolean bCauseFound = FALSE;
+      UtlBoolean bTextFound = FALSE;
+      UtlBoolean bFieldFound = TRUE;
+      UtlString sReasonValue;
+      UtlString sValue;
+      int i = 1;
+      NameValueTokenizer::getSubField(value, index, ",", &sReasonValue);
+      NameValueTokenizer::frontBackTrim(&sReasonValue, SIP_SUBFIELD_SEPARATORS);
+      if (!sReasonValue.isNull())
+      {
+         // get protocol value
+         NameValueTokenizer::getSubField(sReasonValue, 0, ";", &protocol);
+         NameValueTokenizer::frontBackTrim(&protocol, SIP_SUBFIELD_SEPARATORS);
+         // get cause & text
+         while(bFieldFound && (!bCauseFound || !bTextFound))
+         {
+            sValue.remove(0);
+            bFieldFound = NameValueTokenizer::getSubField(sReasonValue, i++, ";", &sValue);
+            if (bFieldFound)
+            {
+               NameValueTokenizer::frontBackTrim(&sValue, SIP_SUBFIELD_SEPARATORS);
+
+               if (!bCauseFound && sValue.index("cause") == 0)
+               {
+                  UtlString sCause;
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &sCause);
+                  NameValueTokenizer::frontBackTrim(&sCause, SIP_SUBFIELD_SEPARATORS);
+                  cause = atoi(sCause);
+                  bCauseFound = TRUE;
+               }
+               else if (!bTextFound && sValue.index("text") == 0)
+               {
+                  NameValueTokenizer::getSubField(sValue, 1, "=", &text);
+                  NameValueTokenizer::frontBackTrim(&text, "\t \"");
+                  bTextFound = TRUE;
+               }
+            }
+         }
+
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
 ////////////////////////////////
 
 
@@ -4552,9 +4768,42 @@ UtlBoolean SipMessage::isResponse() const
    return(responseType);
 }
 
+UtlBoolean SipMessage::is100RelResponse() const
+{
+   if (isResponse())
+   {
+      int statusCode = getResponseStatusCode();
+
+      if (statusCode > SIP_1XX_CLASS_CODE && // 100 cannot be sent reliably
+          statusCode < SIP_2XX_CLASS_CODE &&
+          isRequireExtensionSet(SIP_PRACK_EXTENSION))
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
+}
+
 UtlBoolean SipMessage::isRequest() const
 {
    return !isResponse();
+}
+
+UtlBoolean SipMessage::isPrackRequest() const
+{
+   if (isRequest())
+   {
+      UtlString requestMethod;
+      getRequestMethod(&requestMethod);
+
+      if (requestMethod.compareTo(SIP_PRACK_METHOD) == 0)
+      {
+         return TRUE;
+      }
+   }
+
+   return FALSE;
 }
 
 UtlBoolean SipMessage::isServerTransaction(UtlBoolean isOutgoing) const
@@ -5340,6 +5589,7 @@ void SipMessage::SipMessageFieldProps::initNames()
    mLongFieldNames.insert(new NameValuePair(SIP_TO_FIELD, SIP_SHORT_TO_FIELD));
    mLongFieldNames.insert(new NameValuePair(SIP_VIA_FIELD, SIP_SHORT_VIA_FIELD));
    mLongFieldNames.insert(new NameValuePair(SIP_EVENT_FIELD, SIP_SHORT_EVENT_FIELD));
+   mLongFieldNames.insert(new NameValuePair(SIP_SESSION_EXPIRES_FIELD, SIP_SHORT_SESSION_EXPIRES_FIELD));
 
    // Reverse the pairs to load the table to translate short header names to
    // long ones.

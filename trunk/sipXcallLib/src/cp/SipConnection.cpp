@@ -28,7 +28,7 @@
 #include <net/SipMessageEvent.h>
 #include <net/SipUserAgent.h>
 #include <net/NameValueTokenizer.h>
-#include <net/SdpCodecFactory.h>
+#include <sdp/SdpCodecList.h>
 #include <net/Url.h>
 #include <net/NetBase64Codec.h>
 #include <cp/SipConnection.h>
@@ -303,7 +303,7 @@ UtlBoolean SipConnection::dequeue(UtlBoolean callInFocus)
 
 UtlBoolean SipConnection::requestShouldCreateConnection(const SipMessage* sipMsg,
                                                         SipUserAgent& sipUa,
-                                                        SdpCodecFactory* codecFactory)
+                                                        SdpCodecList* codecFactory)
 {
    UtlBoolean createConnection = FALSE;
    UtlString method;
@@ -458,7 +458,7 @@ UtlBoolean SipConnection::requestShouldCreateConnection(const SipMessage* sipMsg
 
 UtlBoolean SipConnection::shouldCreateConnection(SipUserAgent& sipUa,
                                                  OsMsg& eventMessage,
-                                                 SdpCodecFactory* codecFactory)
+                                                 SdpCodecList* codecFactory)
 {
    UtlBoolean createConnection = FALSE;
    int msgType = eventMessage.getMsgType();
@@ -904,7 +904,7 @@ UtlBoolean SipConnection::dial(const char* dialString,
          int numCodecs;
          SdpCodec** rtpCodecsArray = NULL;
          mpMediaInterface->setContactType(mConnectionId, mContactType, mContactId);
-         SdpCodecFactory supportedCodecs;
+         SdpCodecList supportedCodecs;
          nRtpContacts = 0;
          int videoFramerate = 0;
          mpMediaInterface->getCapabilitiesEx(mConnectionId,
@@ -961,7 +961,7 @@ UtlBoolean SipConnection::dial(const char* dialString,
          sipInvite.addSdpBody(nRtpContacts, hostAddresses, receiveRtpPorts,
             receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
             transportTypes,
-            numCodecs, rtpCodecsArray, &srtpParams, totalBandwidth,
+            numCodecs, rtpCodecsArray, srtpParams, totalBandwidth,
             videoFramerate, NULL, rtpTransportOptions);
 
 
@@ -1037,9 +1037,9 @@ UtlBoolean SipConnection::dial(const char* dialString,
                // for early media
                if (!mbLocallyInitiatedRemoteHold)
                {
-                  mpMediaInterface->startRtpReceive(mConnectionId,
+                  /*mpMediaInterface->startRtpReceive(mConnectionId,
                      numCodecs,
-                     rtpCodecsArray);
+                     rtpCodecsArray);*/
                   fireAudioStartEvents();
                   mpMediaInterface->enableRtpReadNotification(mConnectionId);
                }
@@ -1143,7 +1143,7 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
    int videoFramerate = 0;
    int matchingBandwidth = 0;
    int matchingVideoFramerate = 0;
-   SdpCodecFactory supportedCodecs;
+   SdpCodecList supportedCodecs;
    SdpSrtpParameters srtpParams;
    SdpSrtpParameters matchingSrtpParams;
 
@@ -1309,7 +1309,7 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
                sipResponse.addSdpBody(1, hostAddresses, receiveRtpPorts,
                   receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                   transportTypes,
-                  numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+                  numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                   totalBandwidth, matchingVideoFramerate, inviteMsg);
             }
             else
@@ -1323,7 +1323,7 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
                sipResponse.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
                   receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                   transportTypes,
-                  numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+                  numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                   totalBandwidth, matchingVideoFramerate, inviteMsg);
             }
 
@@ -1406,9 +1406,9 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
                   // if we have a send codec chosen Start sending media
                   if(numMatchingCodecs > 0)
                   {
-                     mpMediaInterface->startRtpReceive(mConnectionId,
+                     /*mpMediaInterface->startRtpReceive(mConnectionId,
                         numMatchingCodecs, decoderCodecs);
-                     fireAudioStartEvents();
+                     fireAudioStartEvents();*/
                      mpMediaInterface->enableRtpReadNotification(mConnectionId);
 
                      setMediaDestination(remoteRtpAddress.data(),
@@ -1420,8 +1420,8 @@ UtlBoolean SipConnection::answer(const void* pDisplay)
 
                      if(remoteRtpPort > 0)
                      {
-                        mpMediaInterface->startRtpSend(mConnectionId,
-                           numMatchingCodecs, encoderCodecs);
+                        /*mpMediaInterface->startRtpSend(mConnectionId,
+                           numMatchingCodecs, encoderCodecs);*/
                      }
                      fireAudioStartEvents();
                   }
@@ -1521,7 +1521,7 @@ UtlBoolean SipConnection::accept(int ringingTimeOutSeconds,
       int matchingVideoFramerate;
       SdpCodec** encoderCodecs = NULL;
       SdpCodec** decoderCodecs = NULL;
-      SdpCodecFactory supportedCodecs;
+      SdpCodecList supportedCodecs;
       UtlString replaceCallId;
       UtlString replaceToTag;
       UtlString replaceFromTag;
@@ -1628,8 +1628,8 @@ UtlBoolean SipConnection::accept(int ringingTimeOutSeconds,
          // Try to setup for early receipt of media.
          if(numMatchingCodecs > 0)
          {
-            mpMediaInterface->startRtpReceive(mConnectionId,
-               numMatchingCodecs, decoderCodecs);
+            /*mpMediaInterface->startRtpReceive(mConnectionId,
+               numMatchingCodecs, decoderCodecs);*/
             fireAudioStartEvents();
             mpMediaInterface->enableRtpReadNotification(mConnectionId);
 
@@ -1645,9 +1645,9 @@ UtlBoolean SipConnection::accept(int ringingTimeOutSeconds,
 
                if(remoteRtpPort > 0)
                {
-                  mpMediaInterface->startRtpSend(mConnectionId,
+                  /*mpMediaInterface->startRtpSend(mConnectionId,
                      numMatchingCodecs, 
-                     encoderCodecs);
+                     encoderCodecs);*/
                }
                fireAudioStartEvents();
             }
@@ -1787,7 +1787,7 @@ UtlBoolean SipConnection::hold()
       int numAddresses = 0;
       int totalBandwidth = 0;
       int videoFramerate = 0;
-      SdpCodecFactory supportedCodecs;
+      SdpCodecList supportedCodecs;
       mpMediaInterface->getCapabilitiesEx(mConnectionId,
          MAX_ADDRESS_CANDIDATES,
          hostAddresses,
@@ -1825,7 +1825,7 @@ UtlBoolean SipConnection::hold()
       holdMessage.addSdpBody(1, hostAddresses, receiveRtpPorts,
          receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes,
-         numCodecs, codecsArray, &srtpParams, totalBandwidth, videoFramerate);
+         numCodecs, codecsArray, srtpParams, totalBandwidth, videoFramerate);
 
       prepareInviteSdpForSend(&holdMessage, mConnectionId, mpSecurity);
       if(inviteMsg)
@@ -1946,7 +1946,7 @@ UtlBoolean SipConnection::doOffHold(UtlBoolean forceReInvite)
       int receiveVideoRtcpPorts[MAX_ADDRESS_CANDIDATES];
       RTP_TRANSPORT transportTypes[MAX_ADDRESS_CANDIDATES];
       int numAddresses = 0;
-      SdpCodecFactory supportedCodecs;
+      SdpCodecList supportedCodecs;
       mpMediaInterface->getCapabilitiesEx(mConnectionId,
          MAX_ADDRESS_CANDIDATES,
          hostAddresses,
@@ -1990,7 +1990,7 @@ UtlBoolean SipConnection::doOffHold(UtlBoolean forceReInvite)
       offHoldMessage.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
          receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
          transportTypes,
-         numCodecs, rtpCodecs, &srtpParams, totalBandwidth, videoFramerate);
+         numCodecs, rtpCodecs, srtpParams, totalBandwidth, videoFramerate);
       mHoldState = TERMCONNECTION_UNHOLDING ;
 
       // Free up the codec copies and array
@@ -2423,7 +2423,7 @@ UtlBoolean SipConnection::doHangUp(const char* dialString,
          }
          mpMediaInterface->deleteConnection(mConnectionId);
          mpMediaInterface = NULL;
-         mConnectionId = CpMediaInterface::getInvalidConnectionId();
+         mConnectionId = CpMediaInterface::INVALID_CONNECTION_ID;
       }
    }
 
@@ -2998,7 +2998,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
    int matchingBandwidth = 0;
    int videoFramerate = 0;
    int matchingVideoFramerate = 0;
-   SdpCodecFactory supportedCodecs;
+   SdpCodecList supportedCodecs;
    SdpSrtpParameters srtpParams;
    SdpSrtpParameters matchingSrtpParams;
    memset(&srtpParams, 0, sizeof(srtpParams));
@@ -3118,12 +3118,12 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
             else
             {
                // Allow unhold
-               mpMediaInterface->startRtpReceive(mConnectionId,
-                  numMatchingCodecs, decoderCodecs);
+               /*mpMediaInterface->startRtpReceive(mConnectionId,
+                  numMatchingCodecs, decoderCodecs);*/
                mpMediaInterface->enableRtpReadNotification(mConnectionId);
 
-               mpMediaInterface->startRtpSend(mConnectionId,
-                  numMatchingCodecs, encoderCodecs);
+               /*mpMediaInterface->startRtpSend(mConnectionId,
+                  numMatchingCodecs, encoderCodecs);*/
                mRemoteRequestedHold = FALSE;
                fireAudioStartEvents(CP_MEDIA_CAUSE_UNHOLD);
 
@@ -3176,7 +3176,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
             sipResponse.addSdpBody(1, hostAddresses, receiveRtpPorts,
                receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                transportTypes,
-               numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+               numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                totalBandwidth, matchingVideoFramerate, inviteMsg);
          }
          else
@@ -3188,7 +3188,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
             sipResponse.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
                receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
                transportTypes,
-               numMatchingCodecs, decoderCodecs, &matchingSrtpParams,
+               numMatchingCodecs, decoderCodecs, matchingSrtpParams,
                totalBandwidth, matchingVideoFramerate, inviteMsg);
          }
 
@@ -3243,7 +3243,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
          sipResponse.addSdpBody(1, hostAddresses, receiveRtpPorts,
             receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
             transportTypes,
-            numMatchingCodecs, decoderCodecs, &srtpParams,
+            numMatchingCodecs, decoderCodecs, srtpParams,
             totalBandwidth, matchingVideoFramerate, inviteMsg);
          mHoldState = TERMCONNECTION_HELD;
       }
@@ -3256,7 +3256,7 @@ void SipConnection::processInviteRequestReinvite(const SipMessage* request, int 
          sipResponse.addSdpBody(numAddresses, hostAddresses, receiveRtpPorts,
             receiveRtcpPorts, receiveVideoRtpPorts, receiveVideoRtcpPorts,
             transportTypes,
-            numMatchingCodecs, decoderCodecs, &srtpParams,
+            numMatchingCodecs, decoderCodecs, srtpParams,
             totalBandwidth, matchingVideoFramerate, inviteMsg);
          mHoldState = TERMCONNECTION_HELD;
       }
@@ -3825,7 +3825,7 @@ void SipConnection::processAckRequest(const SipMessage* request)
       int matchingBandwidth = 0;
       int videoFramerate = 0;
       int matchingVideoFramerate = 0;
-      SdpCodecFactory supportedCodecs;
+      SdpCodecList supportedCodecs;
       SdpSrtpParameters srtpParams;
       memset(&srtpParams, 0, sizeof(srtpParams));
 
@@ -3885,8 +3885,8 @@ void SipConnection::processAckRequest(const SipMessage* request)
             remoteVideoRtcpPort,
             request->getSdpBody(mpSecurity));
 
-         mpMediaInterface->startRtpSend(mConnectionId,
-            numMatchingCodecs, encoderCodecs);
+         /*mpMediaInterface->startRtpSend(mConnectionId,
+            numMatchingCodecs, encoderCodecs);*/
          fireAudioStartEvents();
       }
 
@@ -4082,7 +4082,7 @@ void SipConnection::processCancelRequest(const SipMessage* request)
 } // End of processCancelRequest
 
 UtlBoolean SipConnection::getInitialSdpCodecs(const SipMessage* sdpMessage,
-                                              SdpCodecFactory& supportedCodecsArray,
+                                              SdpCodecList& supportedCodecsArray,
                                               int& numCodecsInCommon,
                                               SdpCodec** &commonCodecsForEncoder,
                                               SdpCodec** &commonCodecsForDecoder,
@@ -4415,7 +4415,7 @@ void SipConnection::processInviteResponseRinging(const SipMessage* response)
          int matchingBandwidth = 0;
          int videoFramerate = 0;
          int matchingVideoFramerate = 0;
-         SdpCodecFactory supportedCodecs;
+         SdpCodecList supportedCodecs;
          SdpSrtpParameters srtpParams;
          memset(&srtpParams, 0, sizeof(srtpParams));
          mpMediaInterface->getCapabilities(mConnectionId,
@@ -4490,15 +4490,15 @@ void SipConnection::processInviteResponseRinging(const SipMessage* response)
                   remoteVideoRtcpPort,
                   response->getSdpBody(mpSecurity));
 
-               mpMediaInterface->startRtpReceive(mConnectionId,
+               /*mpMediaInterface->startRtpReceive(mConnectionId,
                   numMatchingCodecs,
-                  decoderCodecs);
+                  decoderCodecs);*/
                fireAudioStartEvents();
                mpMediaInterface->enableRtpReadNotification(mConnectionId);
 
-               mpMediaInterface->startRtpSend(mConnectionId,
+               /*mpMediaInterface->startRtpSend(mConnectionId,
                   numMatchingCodecs,
-                  encoderCodecs);
+                  encoderCodecs);*/
 
                fireAudioStartEvents();
             }
@@ -4961,7 +4961,7 @@ void SipConnection::processInviteResponseNormal(const SipMessage* response)
       int matchingBandwidth = 0;
       int videoFramerate = 0;
       int matchingVideoFramerate = 0;
-      SdpCodecFactory supportedCodecs;
+      SdpCodecList supportedCodecs;
       SdpSrtpParameters srtpParams;
       memset(&srtpParams, 0, sizeof(srtpParams));
 
@@ -5076,14 +5076,14 @@ void SipConnection::processInviteResponseNormal(const SipMessage* response)
             mHoldState = TERMCONNECTION_TALKING;
 
             // mpMediaInterface->stopRtpReceive(mConnectionId);
-            mpMediaInterface->startRtpReceive(mConnectionId,
+            /*mpMediaInterface->startRtpReceive(mConnectionId,
                numMatchingCodecs,
-               decoderCodecs);
+               decoderCodecs);*/
             mpMediaInterface->enableRtpReadNotification(mConnectionId);
 
-            mpMediaInterface->startRtpSend(mConnectionId,
+            /*mpMediaInterface->startRtpSend(mConnectionId,
                numMatchingCodecs,
-               encoderCodecs);
+               encoderCodecs);*/
             
             fireAudioStartEvents(cause);
 
@@ -6516,7 +6516,7 @@ void SipConnection::getRemoteUserAgent(UtlString* userAgent)
 }
 
 
-void SipConnection::fireIncompatibleCodecsEvent(SdpCodecFactory* pSupportedCodecs,
+void SipConnection::fireIncompatibleCodecsEvent(SdpCodecList* pSupportedCodecs,
                                                 SdpCodec**       ppMatchedCodecs,
                                                 int              nMatchedCodces)
 {
@@ -6690,7 +6690,7 @@ void SipConnection::proceedToRinging(const SipMessage* inviteMessage,
          transportTypes,
          numMatchingCodecs, 
          matchingCodecs, 
-         matchingSrtpParams,
+         *matchingSrtpParams,
          totalBandwidth, 
          matchingVideoFramerate,
          inviteMessage);

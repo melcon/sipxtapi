@@ -12,12 +12,13 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSysLog.h>
 #include <cp/state/RemoteQueuedSipConnectionState.h>
-#include <cp/state/FailedSipConnectionState.h>
 #include <cp/state/UnknownSipConnectionState.h>
 #include <cp/state/DisconnectedSipConnectionState.h>
 #include <cp/state/EstablishedSipConnectionState.h>
 #include <cp/state/RemoteAlertingSipConnectionState.h>
+#include <cp/state/StateTransitionEventDispatcher.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -32,11 +33,20 @@
 
 /* ============================ CREATORS ================================== */
 
-RemoteQueuedSipConnectionState::RemoteQueuedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+RemoteQueuedSipConnectionState::RemoteQueuedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                                SipUserAgent& rSipUserAgent,
-                                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
-                                                               XSipConnectionEventSink* pSipConnectionEventSink)
-: BaseSipConnectionState(rSipConnectionContext, rSipUserAgent, pMediaInterfaceProvider, pSipConnectionEventSink)
+                                                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                                               CpMessageQueueProvider& rMessageQueueProvider,
+                                                               XSipConnectionEventSink& rSipConnectionEventSink,
+                                                               const CpNatTraversalConfig& natTraversalConfig)
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rMediaInterfaceProvider, rMessageQueueProvider,
+                         rSipConnectionEventSink, natTraversalConfig)
+{
+
+}
+
+RemoteQueuedSipConnectionState::RemoteQueuedSipConnectionState(const BaseSipConnectionState& rhs)
+: BaseSipConnectionState(rhs)
 {
 
 }
@@ -50,12 +60,23 @@ RemoteQueuedSipConnectionState::~RemoteQueuedSipConnectionState()
 
 void RemoteQueuedSipConnectionState::handleStateEntry(StateEnum previousState, const StateTransitionMemory* pTransitionMemory)
 {
+   StateTransitionEventDispatcher eventDispatcher(m_rSipConnectionEventSink, pTransitionMemory);
+   eventDispatcher.dispatchEvent(getCurrentState());
 
+   OsSysLog::add(FAC_CP, PRI_DEBUG, "Entry remote queued connection state from state: %d, sip call-id: %s\r\n",
+      (int)previousState, getCallId().data());
 }
 
 void RemoteQueuedSipConnectionState::handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory)
 {
 
+}
+
+SipConnectionStateTransition* RemoteQueuedSipConnectionState::dropConnection(OsStatus& result)
+{
+   // we are caller. We sent INVITE, received 182 Queued, but call was not accepted
+   // to drop call, send CANCEL
+   return doCancelConnection(result);
 }
 
 SipConnectionStateTransition* RemoteQueuedSipConnectionState::handleSipMessageEvent(const SipMessageEvent& rEvent)
@@ -81,25 +102,17 @@ SipConnectionStateTransition* RemoteQueuedSipConnectionState::getTransition(ISip
       switch(nextState)
       {
       case ISipConnectionState::CONNECTION_REMOTE_ALERTING:
-         pDestination = new RemoteAlertingSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new RemoteAlertingSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_ESTABLISHED:
-         pDestination = new EstablishedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
-         break;
-      case ISipConnectionState::CONNECTION_FAILED:
-         pDestination = new FailedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new EstablishedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_DISCONNECTED:
-         pDestination = new DisconnectedSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new DisconnectedSipConnectionState(*this);
          break;
       case ISipConnectionState::CONNECTION_UNKNOWN:
       default:
-         pDestination = new UnknownSipConnectionState(m_rSipConnectionContext, m_rSipUserAgent,
-            m_pMediaInterfaceProvider, m_pSipConnectionEventSink);
+         pDestination = new UnknownSipConnectionState(*this);
          break;
       }
 

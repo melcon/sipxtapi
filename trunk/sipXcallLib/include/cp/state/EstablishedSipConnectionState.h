@@ -35,11 +35,18 @@ class EstablishedSipConnectionState : public BaseSipConnectionState
 public:
    /* ============================ CREATORS ================================== */
 
-   EstablishedSipConnectionState(XSipConnectionContext& rSipConnectionContext,
+   /** Constructor. */
+   EstablishedSipConnectionState(SipConnectionStateContext& rStateContext,
                                  SipUserAgent& rSipUserAgent,
-                                 CpMediaInterfaceProvider* pMediaInterfaceProvider = NULL,
-                                 XSipConnectionEventSink* pSipConnectionEventSink = NULL);
+                                 CpMediaInterfaceProvider& rMediaInterfaceProvider,
+                                 CpMessageQueueProvider& rMessageQueueProvider,
+                                 XSipConnectionEventSink& rSipConnectionEventSink,
+                                 const CpNatTraversalConfig& natTraversalConfig);
 
+   /** Constructor. */
+   EstablishedSipConnectionState(const BaseSipConnectionState& rhs);
+
+   /** Destructor. */
    virtual ~EstablishedSipConnectionState();
 
    /* ============================ MANIPULATORS ============================== */
@@ -54,7 +61,19 @@ public:
    */
    virtual void handleStateExit(StateEnum nextState, const StateTransitionMemory* pTransitionMemory);
 
+   /** Disconnects call */
+   virtual SipConnectionStateTransition* dropConnection(OsStatus& result);
+
+   /** Handles inbound SIP re-INVITE requests. It won't handle initial INVITEs. */
+   virtual SipConnectionStateTransition* processInviteRequest(const SipMessage& sipMessage);
+
+   /** Handles inbound SIP BYE requests */
+   virtual SipConnectionStateTransition* processByeRequest(const SipMessage& sipMessage);
+
    virtual SipConnectionStateTransition* handleSipMessageEvent(const SipMessageEvent& rEvent);
+
+   /** Handles inbound SIP INVITE responses */
+   virtual SipConnectionStateTransition* processInviteResponse(const SipMessage& sipMessage);
 
    /* ============================ ACCESSORS ================================= */
 

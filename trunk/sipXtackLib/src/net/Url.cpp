@@ -369,6 +369,29 @@ void Url::setScheme(Url::Scheme scheme)
    mScheme = scheme;
 }
 
+UtlBoolean Url::isNull() const
+{
+
+   if (mDisplayName.isNull() &&
+       mUserId.isNull() &&
+       mPassword.isNull() &&
+       !mPasswordSet &&
+       mHostAddress.isNull() &&
+       mHostPort == PORT_NONE &&
+       mPath.isNull() &&
+       mRawUrlParameters.isNull() &&
+       mRawHeaderOrQueryParameters.isNull() &&
+       mRawFieldParameters.isNull() &&
+       (mpUrlParameters == NULL || mpUrlParameters->entries() == 0) &&
+       (mpHeaderOrQueryParameters == NULL || mpHeaderOrQueryParameters->entries() == 0) &&
+       (mpFieldParameters == NULL || mpFieldParameters->entries() == 0))
+   {
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
 void Url::setUrlType(const char* urlProtocol)
 {
    if (urlProtocol)

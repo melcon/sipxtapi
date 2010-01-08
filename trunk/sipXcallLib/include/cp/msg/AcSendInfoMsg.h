@@ -43,7 +43,8 @@ public:
    AcSendInfoMsg(const SipDialog& sipDialog,
                  const UtlString& sContentType,
                  const char* pContent,
-                 const size_t nContentLength);
+                 const size_t nContentLength,
+                 void* pCookie);
 
    virtual ~AcSendInfoMsg();
 
@@ -57,6 +58,7 @@ public:
    UtlString getContentType() const { return m_sContentType; }
    const char* getContent() const { return m_pContent; }
    size_t getContentLength() const { return m_nContentLength; }
+   void* getCookie() const { return m_pCookie; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -75,6 +77,7 @@ private:
    UtlString m_sContentType;
    char* m_pContent; ///< payload bytes
    size_t m_nContentLength; ///< length of content
+   void* m_pCookie;
 };
 
 #endif // AcSendInfoMsg_h__

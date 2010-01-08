@@ -37,8 +37,6 @@ nobase_include_HEADERS =  \
     net/PidfBody.h \
     net/QoS.h \
     net/SdpBody.h \
-    net/SdpCodecFactory.h \
-    net/SdpHelper.h \
     net/SipCallIdGenerator.h \
     net/SipClient.h \
     net/SipConfigServerAgent.h \
@@ -47,6 +45,7 @@ nobase_include_HEADERS =  \
     net/SipDialogEvent.h \
     net/SipDialogMgr.h \
     net/SipDialogMonitor.h \
+    net/SipInfoEventListener.h \
     net/SipInfoStatusEventListener.h \
     net/SipLine.h \
     net/SipLineAlias.h \
