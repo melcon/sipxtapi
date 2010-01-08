@@ -82,7 +82,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  const SdpCodecList& rDefaultSdpCodecList,
                                  OsMsgQ& rCallManagerQueue,
                                  const CpNatTraversalConfig& rNatTraversalConfig,
-                                 const UtlString& sLocalIpAddress,
+                                 const UtlString& sBindIpAddress,
                                  int sessionTimerExpiration,
                                  CP_SESSION_TIMER_REFRESH sessionTimerRefresh,
                                  CP_SIP_UPDATE_CONFIG updateSetting,
@@ -113,7 +113,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
 , m_natTraversalConfig(rNatTraversalConfig)
-, m_sLocalIpAddress(sLocalIpAddress)
+, m_sBindIpAddress(sBindIpAddress)
 , m_sessionTimerExpiration(sessionTimerExpiration)
 , m_sessionTimerRefresh(sessionTimerRefresh)
 , m_updateSetting(updateSetting)
@@ -898,7 +898,7 @@ CpMediaInterface* XCpAbstractCall::getMediaInterface(UtlBoolean bCreateIfNull)
       m_pMediaInterface = m_rMediaInterfaceFactory.createMediaInterface(getMessageQueue(),
          &m_rDefaultSdpCodecList,
          NULL, // public IP address is ignored by media interface factory
-         m_sLocalIpAddress,
+         m_sBindIpAddress,
          m_sLocale,
          QOS_LAYER3_LOW_DELAY_IP_TOS,
          m_natTraversalConfig.m_sStunServer,

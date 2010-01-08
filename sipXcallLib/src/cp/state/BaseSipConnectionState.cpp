@@ -872,6 +872,12 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
       sipMessage.setLocationField(m_rStateContext.m_locationHeader);
    }
 
+   if (m_rStateContext.m_sBindIpAddress.compareTo("0.0.0.0"))
+   {
+      // if its not 0.0.0.0, then use it as local IP of sip message
+      sipMessage.setLocalIp(m_rStateContext.m_sBindIpAddress);
+   }
+
    UtlBoolean res =  m_rSipUserAgent.send(sipMessage);
    if (!res)
    {
@@ -2853,10 +2859,11 @@ UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) con
 {
    // automatic contact or id not found
    // Get host and port from default local contact
-   UtlString address(m_rStateContext.m_sLocalIpAddress); // use selected IP
    UtlString contactHostPort;
    m_rSipUserAgent.getContactUri(&contactHostPort);
    Url hostPort(contactHostPort);
+   UtlString address; // use selected IP
+   hostPort.getHostAddress(address); // sip user agent contact address will match bind IP
    int port = hostPort.getHostPort();
 
    // Get display name and user id from from Url
@@ -2901,7 +2908,7 @@ void BaseSipConnectionState::secureUrl(Url& fromUrl) const
 UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTransportOptions, int& mediaConnectionId)
 {
    OsStatus res = m_rMediaInterfaceProvider.getMediaInterface()->createConnection(mediaConnectionId,
-               m_rStateContext.m_sLocalIpAddress,
+               m_rStateContext.m_sBindIpAddress,
                0,
                NULL, // no display settings
                (void*)m_rStateContext.m_pSecurity,
@@ -3221,7 +3228,7 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
 
             if (!m_rStateContext.m_bUseLocalHoldSDP)
             {
-               pMediaInterface->startRtpReceive(mediaConnectionId, localSdpCodecList);
+               pMediaInterface->startRtpReceive(mediaConnectionId, commonCodecsForDecoder);
                setLocalMediaConnectionState(SipConnectionStateContext::MEDIA_CONNECTION_ACTIVE);
             }
             else

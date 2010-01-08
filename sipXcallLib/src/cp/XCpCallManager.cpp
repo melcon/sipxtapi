@@ -66,7 +66,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
                                SipUserAgent& rSipUserAgent,
                                const SdpCodecList& rSdpCodecList,
                                SipLineProvider* pSipLineProvider,
-                               const UtlString& sLocalIpAddress,
+                               const UtlString& sBindIpAddress,
                                UtlBoolean bDoNotDisturb,
                                UtlBoolean bEnableICE,
                                UtlBoolean bIsRequiredLineMatch,
@@ -92,7 +92,7 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_maxCalls(maxCalls)
 , m_rMediaInterfaceFactory(rMediaInterfaceFactory)
-, m_sLocalIpAddress(NULL)
+, m_sBindIpAddress(sBindIpAddress)
 , m_sessionTimerExpiration(DEFAULT_SESSION_TIMER_EXPIRATION)
 , m_sessionTimerRefresh(CP_SESSION_REFRESH_AUTO)
 , m_updateSetting(CP_SIP_UPDATE_ONLY_INBOUND)
@@ -114,19 +114,6 @@ XCpCallManager::XCpCallManager(CpCallStateEventListener* pCallEventListener,
    m_rSipUserAgent.allowExtension(SIP_NO_REFER_SUB_EXTENSION);
 
    m_rMediaInterfaceFactory.setRtpPortRange(m_rtpPortStart, m_rtpPortEnd);
-
-   if (sLocalIpAddress.compareTo("0.0.0.0") == 0 ||
-      !OsSocket::isIp4Address(sLocalIpAddress))
-   {
-      UtlString contactHostPort;
-      m_rSipUserAgent.getContactUri(&contactHostPort);
-      Url hostPort(contactHostPort);
-      hostPort.getHostAddress(m_sLocalIpAddress);
-   }
-   else
-   {
-      m_sLocalIpAddress = sLocalIpAddress;
-   }
 }
 
 XCpCallManager::~XCpCallManager()
@@ -185,7 +172,7 @@ OsStatus XCpCallManager::createCall(UtlString& sCallId)
    }
 
    XCpCall *pCall = new XCpCall(sCallId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, *getMessageQueue(),
-      m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh, m_updateSetting, m_100relSetting, m_sdpOfferingMode,
+      m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh, m_updateSetting, m_100relSetting, m_sdpOfferingMode,
       m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener, m_pInfoStatusEventListener,
       m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
@@ -219,7 +206,7 @@ OsStatus XCpCallManager::createConference(UtlString& sConferenceId)
       sConferenceId = getNewConferenceId();
    }
    XCpConference *pConference = new XCpConference(sConferenceId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList,
-      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
+      *getMessageQueue(), m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
       m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 
@@ -1569,7 +1556,7 @@ void XCpCallManager::createNewInboundCall(const SipMessage& rSipMessage)
    UtlString sSipCallId = getNewSipCallId();
 
    XCpCall* pCall = new XCpCall(sSipCallId, m_rSipUserAgent, *this, m_pSipLineProvider, m_rMediaInterfaceFactory, m_rDefaultSdpCodecList, 
-      *getMessageQueue(), m_natTraversalConfig, m_sLocalIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
+      *getMessageQueue(), m_natTraversalConfig, m_sBindIpAddress, m_sessionTimerExpiration, m_sessionTimerRefresh,
       m_updateSetting, m_100relSetting, m_sdpOfferingMode, m_inviteExpiresSeconds, &m_callStack, m_pCallEventListener,
       m_pInfoStatusEventListener, m_pInfoEventListener, m_pSecurityEventListener, m_pMediaEventListener);
 

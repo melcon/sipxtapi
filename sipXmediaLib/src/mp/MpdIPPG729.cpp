@@ -14,11 +14,11 @@
 #ifdef HAVE_INTEL_IPP /* [ */
 
 #ifdef WIN32 // [
-#   pragma comment(lib, "usc.lib")
 #   pragma comment(lib, "ipps.lib")
 #   pragma comment(lib, "ippsc.lib")
 #   pragma comment(lib, "ippcore.lib")
 #   pragma comment(lib, "ippsr.lib")
+#   pragma comment(lib, "libircmt.lib")
 #endif // WIN32 ]
 
 // APPLICATION INCLUDES

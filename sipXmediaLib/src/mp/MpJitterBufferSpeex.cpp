@@ -85,7 +85,7 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
       packet.data = buffer;
 
       // pull packet from speex
-      result = jitter_buffer_get(m_pJitterBuffer, &packet, NULL);
+      result = jitter_buffer_get(m_pJitterBuffer, &packet, m_frameSize, NULL);
 
       assert(packet.len < sizeof(buffer)); // TODO: remove when pool is implemented
 
@@ -120,8 +120,6 @@ JitterBufferResult MpJitterBufferSpeex::pull(MpRtpBufPtr &pOutRtp)
       return MP_JITTER_BUFFER_OK;
    case JITTER_BUFFER_MISSING:
       return MP_JITTER_BUFFER_MISSING;
-   case JITTER_BUFFER_INCOMPLETE:
-      return MP_JITTER_BUFFER_INCOMPLETE;
    default:
       return MP_JITTER_BUFFER_ERROR;
    }

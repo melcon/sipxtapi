@@ -79,6 +79,7 @@ public:
 
    virtual UtlBoolean handleMessage(OsMsg& rRawMsg);
 
+   /** Fire call even manually. Avoid using if possible. Let events work automatically. */
    void sipxFireCallEvent(const UtlString& sCallId,
                           const SipDialog* pSipDialog,
                           SIPX_CALLSTATE_EVENT event,
