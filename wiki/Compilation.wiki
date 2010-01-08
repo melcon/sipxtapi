@@ -14,7 +14,7 @@ Visual Studio 2003 or later is required. Solution and projects for VS2005 are pr
  * wxWidgets 2.6 - used by sipXezPhone (no upgrade planned, sipXezPhone is obsolete with wxCommunicator)
 
 === Libraries not included in sipxtapi: ===
- * DirectX SDK - required by portaudio. If server version of sipxtapi is compiled, not needed. Download from http://msdn.microsoft.com/en-us/directx/default.aspx
+ * DirectX SDK - required by portaudio. If server version of sipxtapi is compiled, not needed. Download from http://msdn.microsoft.com/en-us/directx/default.aspx (version from November 2008 works, newer is not tested)
  * OpenSSL - needed for TLS support. Optional dependency. Download stable snapshot openssl-0.9.8-stable-SNAP from ftp://ftp.openssl.org/snapshot/ and compile. OpenSSL needs to be located in openssl directory outside sipxtapi.
  * cppunit 1.12 or later - needed to run unittests. Optional dependency. Download from http://cppunit.sourceforge.net/
 
