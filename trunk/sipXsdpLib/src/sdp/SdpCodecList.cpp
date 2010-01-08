@@ -14,8 +14,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlSListIterator.h>
-#include <os/OsWriteLock.h>
-#include <os/OsReadLock.h>
+#include <os/OsLock.h>
 #include <sdp/SdpCodecFactory.h>
 #include <sdp/SdpCodecList.h>
 #include <sdp/SdpCodec.h>
@@ -32,19 +31,19 @@
 
 // Constructor
 SdpCodecList::SdpCodecList(int numCodecs, SdpCodec* codecs[])
-: m_memberMutex(OsRWMutex::Q_FIFO)
+: m_memberMutex(OsMutex::Q_FIFO)
 {
    addCodecs(numCodecs, codecs);
 }
 
 SdpCodecList::SdpCodecList(const UtlSList& sdpCodecList)
-: m_memberMutex(OsRWMutex::Q_FIFO)
+: m_memberMutex(OsMutex::Q_FIFO)
 {
    addCodecs(sdpCodecList);
 }
 
 SdpCodecList::SdpCodecList(const SdpCodecList& rSdpCodecList)
-: m_memberMutex(OsRWMutex::Q_FIFO)
+: m_memberMutex(OsMutex::Q_FIFO)
 {
    // populate our codec list with codecs from the other list
    rSdpCodecList.getCodecs(m_codecsList);
@@ -61,7 +60,7 @@ SdpCodecList& SdpCodecList::operator=(const SdpCodecList& rhs)
    rhs.getCodecs(tmpCodecList);
 
    {
-      OsWriteLock lock(m_memberMutex);
+      OsLock lock(m_memberMutex);
       m_codecsList.destroyAll();
       SdpCodec* pCodec = NULL;
       UtlSListIterator itor(tmpCodecList);
@@ -89,7 +88,7 @@ SdpCodecList::~SdpCodecList()
 
 void SdpCodecList::addCodecs(int numCodecs, SdpCodec* codecs[])
 {
-   OsWriteLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    for(int index = 0; index < numCodecs; index++)
    {
       if (codecs[index])
@@ -101,7 +100,7 @@ void SdpCodecList::addCodecs(int numCodecs, SdpCodec* codecs[])
 
 void SdpCodecList::addCodecs(const UtlSList& sdpCodecList)
 {
-   OsWriteLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
 
    SdpCodec* pCodec = NULL;
    UtlSListIterator itor(sdpCodecList);
@@ -117,7 +116,7 @@ void SdpCodecList::addCodecs(const UtlSList& sdpCodecList)
 
 void SdpCodecList::addCodecs(const UtlString &codecList)
 {
-   OsWriteLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    UtlString codecName;
    int codecStringIndex = 0;
    SdpCodec::SdpCodecTypes codecType;
@@ -160,7 +159,7 @@ void SdpCodecList::addCodecs(const SdpCodecList& sdpCodecList)
    sdpCodecList.getCodecs(tmpCodecList);
 
    {
-      OsWriteLock lock(m_memberMutex);
+      OsLock lock(m_memberMutex);
       SdpCodec* pCodec = NULL;
       UtlSListIterator itor(tmpCodecList);
       while (itor())
@@ -177,12 +176,13 @@ void SdpCodecList::addCodecs(const SdpCodecList& sdpCodecList)
 
 void SdpCodecList::addCodec(const SdpCodec& newCodec)
 {
-   OsWriteLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    m_codecsList.insert(new SdpCodec(newCodec));
 }
 
 void SdpCodecList::bindPayloadIds()
 {
+   OsLock lock(m_memberMutex);
    int unusedDynamicPayloadId = SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC + 1;
    SdpCodec* codecWithoutPayloadId = NULL;
 
@@ -201,39 +201,9 @@ void SdpCodecList::bindPayloadIds()
    }
 }
 
-void SdpCodecList::copyPayloadId(const SdpCodec& codec)
-{
-   SdpCodec* pFoundCodec = NULL;
-   OsWriteLock lock(m_memberMutex);
-   UtlSListIterator itor(m_codecsList);
-
-   while(itor())
-   {
-      pFoundCodec = dynamic_cast<SdpCodec*>(itor.item());
-      if(pFoundCodec && pFoundCodec->isSameDefinition(codec))
-      {
-         pFoundCodec->setCodecPayloadId(codec.getCodecPayloadId());
-      }
-   }
-}
-
-void SdpCodecList::copyPayloadIds(const UtlSList& codecList)
-{
-   UtlSListIterator itor(codecList);
-   SdpCodec* pCodec = NULL;
-   while (itor())
-   {
-      pCodec = dynamic_cast<SdpCodec*>(itor.item());
-      if (pCodec)
-      {
-         copyPayloadId(*pCodec);
-      }
-   }
-}
-
 void SdpCodecList::clearCodecs(void)
 {
-   OsWriteLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    m_codecsList.destroyAll();
 }
 
@@ -242,7 +212,7 @@ void SdpCodecList::clearCodecs(void)
 const SdpCodec* SdpCodecList::getCodec(SdpCodec::SdpCodecTypes internalCodecId) const
 {
    UtlInt codecToMatch(internalCodecId);
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    return dynamic_cast<const SdpCodec*>(m_codecsList.find(&codecToMatch));
 }
 
@@ -250,7 +220,7 @@ UtlBoolean SdpCodecList::getCodec(SdpCodec::SdpCodecTypes internalCodecId,
                                   SdpCodec& sdpCodec) const
 {
    UtlInt codecToMatch(internalCodecId);
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    const SdpCodec* pCodec = dynamic_cast<const SdpCodec*>(m_codecsList.find(&codecToMatch));
    if (pCodec)
    {
@@ -266,7 +236,7 @@ UtlBoolean SdpCodecList::getCodecByIndex(const UtlString& mimeType, int index, S
    const SdpCodec* pTmpCodec = NULL;
    UtlString foundMimeType;
 
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    UtlSListIterator iterator(m_codecsList);
    int position = 0;
 
@@ -296,7 +266,7 @@ const SdpCodec* SdpCodecList::getCodecByPayloadId(int payloadTypeId) const
 {
    SdpCodec* pCodecFound = NULL;
 
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    UtlSListIterator itor(m_codecsList);
 
    while((pCodecFound = (SdpCodec*) itor()))
@@ -313,43 +283,19 @@ const SdpCodec* SdpCodecList::getCodecByPayloadId(int payloadTypeId) const
 
 const SdpCodec* SdpCodecList::getCodec(const char* mimeType, 
                                        const char* mimeSubType,
-                                       unsigned sampleRate,
-                                       unsigned numChannels,
+                                       int sampleRate,
+                                       int numChannels,
                                        const UtlString& fmtp) const
 {
    const SdpCodec* codecFound = NULL;
-   UtlString foundMimeType;
-   UtlString foundMimeSubType;
-   UtlString foundFmtp;
-   UtlString mimeTypeString(mimeType ? mimeType : "");
-   mimeTypeString.toLower();
-   UtlString mimeSubTypeString(mimeSubType ? mimeSubType : "");
-   mimeSubTypeString.toLower();
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    UtlSListIterator iterator(m_codecsList);
 
    while((codecFound = (SdpCodec*) iterator()))
    {
-      // If the mime type matches
-      codecFound->getMediaType(foundMimeType);
-      if(foundMimeType.compareTo(mimeTypeString, UtlString::ignoreCase) == 0)
+      if (codecFound->isCodecCompatible(mimeType, mimeSubType, sampleRate, numChannels, fmtp))
       {
-         // and if the mime subtype, sample rate, number of channels
-         // and fmtp match.
-         // TODO:: checking for fmtp match must be made intelligent, e.g. by
-         //        defining isCompatible(fmtp) method for SdpCodec. Checking
-         //        by string comparison leads to errors when there are two
-         //        or more parameters and they're presented in random order.
-         codecFound->getEncodingName(foundMimeSubType);
-         codecFound->getSdpFmtpField(foundFmtp);
-         if ((foundMimeSubType.compareTo(mimeSubTypeString, UtlString::ignoreCase) == 0) &&
-            (sampleRate == -1 || codecFound->getSampleRate() == sampleRate) &&
-            (numChannels == -1 || codecFound->getNumChannels() == numChannels) &&
-            (fmtp == foundFmtp))
-         {
-            // we found a match
-            break;
-         }
+         break;
       }
    }
 
@@ -358,13 +304,13 @@ const SdpCodec* SdpCodecList::getCodec(const char* mimeType,
 
 int SdpCodecList::getCodecCount() const
 {
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    return (int)m_codecsList.entries();
 }
 
 int SdpCodecList::getCodecCount(const UtlString& mimetype) const
 {
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    SdpCodec* codecFound = NULL;
    UtlString foundMimeType;
 
@@ -388,7 +334,7 @@ int SdpCodecList::getCodecCount(const UtlString& mimetype) const
 
 void SdpCodecList::getCodecs(UtlSList& sdpCodecList) const
 {
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    SdpCodec* pCodec = NULL;
    UtlSListIterator itor(m_codecsList);
    while (itor())
@@ -405,7 +351,7 @@ void SdpCodecList::getCodecs(int& numCodecs,
                              SdpCodec**& codecArray) const
 {
    const SdpCodec* codecFound = NULL;
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    int arrayMaximum = m_codecsList.entries();
    codecArray = new SdpCodec*[arrayMaximum];
    UtlSListIterator iterator(m_codecsList);
@@ -426,7 +372,7 @@ void SdpCodecList::getCodecs(int& numCodecs,
                              const char* mimeType) const
 {
    const SdpCodec* codecFound = NULL;
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    int arrayMaximum = m_codecsList.entries();
    codecArray = new SdpCodec*[arrayMaximum];
    UtlSListIterator iterator(m_codecsList);
@@ -453,7 +399,7 @@ void SdpCodecList::getCodecs(int& numCodecs,
                              const char* subMimeType) const
 {
    const SdpCodec* codecFound = NULL;
-   OsReadLock lock(m_memberMutex);
+   OsLock lock(m_memberMutex);
    int arrayMaximum = m_codecsList.entries();
    codecArray = new SdpCodec*[arrayMaximum];
    UtlSListIterator iterator(m_codecsList);
@@ -465,7 +411,7 @@ void SdpCodecList::getCodecs(int& numCodecs,
       (codecFound = (SdpCodec*) iterator()) != NULL)
    {
       codecFound->getMediaType(sMimeType);
-      codecFound->getEncodingName(sSubMimeType);
+      codecFound->getMimeSubType(sSubMimeType);
       if (sMimeType.compareTo(mimeType, UtlString::ignoreCase) == 0 && 
          sSubMimeType.compareTo(subMimeType, UtlString::ignoreCase) == 0)
       {
@@ -481,6 +427,7 @@ void SdpCodecList::toString(UtlString& str) const
 {
    str.remove(0);
    const SdpCodec* codecFound = NULL;
+   OsLock lock(m_memberMutex);
    UtlSListIterator iterator(m_codecsList);
    int index = 0;
 

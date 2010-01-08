@@ -27,17 +27,14 @@ extern "C" {
 
 const MpCodecInfo MpeIPPG7231::smCodecInfo(
    SdpCodec::SDP_CODEC_G723,     // codecType
-   "Intel IPP 5.3",              // codecVersion
-   true,                         // usesNetEq
+   "Intel IPP 6.0",              // codecVersion
    8000,                         // samplingRate
    16,                           // numBitsPerSample
    1,                            // numChannels
-   80,                           // interleaveBlockSize
    8000,                         // bitRate
    20*8,                          // minPacketBits
-   20*8,                          // avgPacketBits
    24*8,                          // maxPacketBits
-   80);                         // numSamplesPerFrame
+   240);                         // numSamplesPerFrame
 
 MpeIPPG7231::MpeIPPG7231(int payloadType)
 : MpEncoderBase(payloadType, &smCodecInfo)
@@ -207,7 +204,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
                             const int bytesLeft,
                             int& rSizeInBytes,
                             UtlBoolean& sendNow,
-                            MpAudioBuf::SpeechType& rAudioCategory)
+                            MpSpeechType& rAudioCategory)
 {
    assert(80 == numSamples);
 
@@ -266,7 +263,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
 
       sendNow = TRUE;
 
-      rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+      rAudioCategory = MP_SPEECH_UNKNOWN;
       rSamplesConsumed = numSamples;
       mStoredFramesCount = 0;
 
@@ -293,7 +290,7 @@ OsStatus MpeIPPG7231::encode(const short* pAudioSamples,
       sendNow = FALSE;
       rSizeInBytes = 0;
       rSamplesConsumed = numSamples;
-      rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+      rAudioCategory = MP_SPEECH_UNKNOWN;
    }
 
    return OS_SUCCESS;

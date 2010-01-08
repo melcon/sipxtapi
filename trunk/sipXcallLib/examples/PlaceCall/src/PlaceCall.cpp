@@ -439,7 +439,7 @@ bool EventCallBack(SIPX_EVENT_CATEGORY category,
         // ::TODO:: Fix w/ update media events
         //if (pCallInfo->cause == CALLSTATE_CAUSE_AUDIO_START)
         //{
-        //    printf("* Negotiated codec: %s, payload type %d\n", pCallInfo->codecs.audioCodec.cName, pCallInfo->codecs.audioCodec.iPayloadType);
+        //    printf("* Negotiated codec: %s, payload type %d\n", pCallInfo->codecs.audioCodec.cCodecName, pCallInfo->codecs.audioCodec.iPayloadType);
         //}
         g_eRecordEvents[g_iNextEvent] = pCallInfo->event;
         g_iNextEvent = (g_iNextEvent + 1) % MAX_RECORD_EVENTS ;
@@ -824,7 +824,7 @@ int local_main(int argc, char* argv[])
                 {
                     if (sipxConfigGetSelectedAudioCodec(g_hInst1, index, &audioCodec) == SIPX_RESULT_SUCCESS)
                     {
-                        printf("  audio %02d : %s\n", index, audioCodec.cName);
+                        printf("  audio %02d : %s\n", index, audioCodec.cCodecName);
                     }
                     else
                     {
@@ -844,7 +844,7 @@ int local_main(int argc, char* argv[])
                 {
                     if (sipxConfigGetSelectedVideoCodec(g_hInst1, index, &videoCodec) == SIPX_RESULT_SUCCESS)
                     {
-                        printf("  video %02d : %s\n", index, videoCodec.cName);
+                        printf("  video %02d : %s\n", index, videoCodec.cCodecName);
                     }
                     else
                     {

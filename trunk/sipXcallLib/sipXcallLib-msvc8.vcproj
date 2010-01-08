@@ -60,22 +60,12 @@
     <References/>
     <Files>
         <Filter Name="Source Files" Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
-            <File RelativePath=".\src\cp\CallManager.cpp"/>
-            <File RelativePath=".\src\cp\Connection.cpp"/>
             <File RelativePath=".\src\cp\Cp100RelTracker.cpp"/>
-            <File RelativePath=".\src\cp\CpCall.cpp"/>
-            <File RelativePath=".\src\cp\CpCallManager.cpp"/>
-            <File RelativePath=".\src\cp\CpGhostConnection.cpp"/>
-            <File RelativePath=".\src\cp\CpIntMessage.cpp"/>
             <File RelativePath=".\src\cp\CpLoopDetector.cpp"/>
-            <File RelativePath=".\src\cp\CpMultiStringMessage.cpp"/>
             <File RelativePath=".\src\cp\CpNotificationRegister.cpp"/>
-            <File RelativePath=".\src\cp\CpPeerCall.cpp"/>
             <File RelativePath=".\src\cp\CpSdpNegotiation.cpp"/>
             <File RelativePath=".\src\cp\CpSessionTimerProperties.cpp"/>
             <File RelativePath=".\src\cp\CpSipTransactionManager.cpp"/>
-            <File RelativePath=".\src\cp\CSeqManager.cpp"/>
-            <File RelativePath=".\src\cp\SipConnection.cpp"/>
             <File RelativePath=".\src\cp\XCpAbstractCall.cpp"/>
             <File RelativePath=".\src\cp\XCpCall.cpp"/>
             <File RelativePath=".\src\cp\XCpCallIdUtil.cpp"/>
@@ -167,34 +157,24 @@
             </Filter>
         </Filter>
         <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
-            <File RelativePath="include\cp\CallManager.h"/>
-            <File RelativePath="include\cp\Connection.h"/>
             <File RelativePath=".\include\cp\Cp100RelTracker.h"/>
             <File RelativePath=".\include\cp\CpAudioCodecInfo.h"/>
-            <File RelativePath="include\cp\CpCall.h"/>
-            <File RelativePath="include\cp\CpCallManager.h"/>
             <File RelativePath=".\include\cp\CpCallStateEventListener.h"/>
             <File RelativePath=".\include\cp\CpCodecInfo.h"/>
             <File RelativePath=".\include\cp\CpDefs.h"/>
-            <File RelativePath="include\cp\CpGhostConnection.h"/>
-            <File RelativePath="include\cp\CpIntMessage.h"/>
             <File RelativePath=".\include\cp\CpLoopDetector.h"/>
             <File RelativePath=".\include\cp\CpMediaEventListener.h"/>
             <File RelativePath=".\include\cp\CpMediaInterfaceProvider.h"/>
             <File RelativePath=".\include\cp\CpMessageQueueProvider.h"/>
             <File RelativePath=".\include\cp\CpMessageTypes.h"/>
-            <File RelativePath="include\cp\CpMultiStringMessage.h"/>
             <File RelativePath=".\include\cp\CpNatTraversalConfig.h"/>
             <File RelativePath=".\include\cp\CpNotificationMsgDef.h"/>
             <File RelativePath=".\include\cp\CpNotificationRegister.h"/>
-            <File RelativePath="include\cp\CpPeerCall.h"/>
             <File RelativePath=".\include\cp\CpSdpNegotiation.h"/>
             <File RelativePath=".\include\cp\CpSessionTimerProperties.h"/>
             <File RelativePath=".\include\cp\CpSipTransactionListener.h"/>
             <File RelativePath=".\include\cp\CpSipTransactionManager.h"/>
             <File RelativePath=".\include\cp\CpVideoCodecInfo.h"/>
-            <File RelativePath=".\include\cp\CSeqManager.h"/>
-            <File RelativePath="include\cp\SipConnection.h"/>
             <File RelativePath=".\include\cp\XCpAbstractCall.h"/>
             <File RelativePath=".\include\cp\XCpCall.h"/>
             <File RelativePath=".\include\cp\XCpCallConnectionListener.h"/>

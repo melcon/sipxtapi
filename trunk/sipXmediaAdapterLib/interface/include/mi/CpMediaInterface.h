@@ -29,75 +29,15 @@
 #include <os/IStunSocket.h>
 
 // DEFINES
-#define MAX_CONFERENCE_PARTICIPANTS 64
-
 // MACROS
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-  /// The intended data that will be flowing through a socket.
-typedef enum SocketPurpose
-{
-   UNKNOWN,
-     /// Socket is intended to transport RTP Audio data
-   RTP_AUDIO,
-     /// Socket is intended to transport RTCP Audio control data
-   RTCP_AUDIO,
-     /// Socket is intended to transport RTP Video data
-   RTP_VIDEO,
-     /// Socket is intended to transport RTCP Video control data
-   RTCP_VIDEO
-} SocketPurpose;
-
-  /// SipX Media Interface Audio Bandwidth IDs
-typedef enum SIPXMI_AUDIO_BANDWIDTH_ID
-{
-     /// ID for codecs with variable bandwidth requirements
-   AUDIO_MICODEC_BW_VARIABLE=0,
-
-     /// ID for codecs with low bandwidth requirements
-   AUDIO_MICODEC_BW_LOW,
-     /// ID for codecs with normal bandwidth requirements
-   AUDIO_MICODEC_BW_NORMAL,
-     /// ID for codecs with high bandwidth requirements
-   AUDIO_MICODEC_BW_HIGH,
-
-     /// Possible return value for sipxConfigGetAudioCodecPreferences.
-     /// This ID indicates the available list of codecs was overridden by a 
-     /// sipxConfigSetAudioCodecByName call.
-   AUDIO_MICODEC_BW_CUSTOM,       
-
-     /// Value used to signify the default bandwidth level when calling 
-     /// sipxCallConnect, sipxCallAccept, or sipxConferenceAdd 
-   AUDIO_MICODEC_BW_DEFAULT       
-
-} SIPXMI_AUDIO_BANDWIDTH_ID;
-
-class IMediaEventEmitter
-{
-public:
-   virtual void onListenerRemoved() = 0;
-};
-
-typedef enum IMediaEvent_DeviceErrors
-{
-   IError_DeviceUnplugged
-} IMediaEvent_DeviceErrors;
-
-typedef enum IMediaEvent_DeviceTypes
-{
-   IDevice_Audio,
-   IDevice_Video
-} IMediaEvent_DeviceTypes;
-
 // FORWARD DECLARATIONS
 class SdpCodec;
 class SdpCodecList;
-class MpStreamPlaylistPlayer;
-class MpStreamPlayer;
-class MpStreamQueuePlayer;
 class CpMediaInterfaceFactory;
 class OsMsgDispatcher;
 
@@ -396,11 +336,6 @@ public:
      *             failure codes to expect, etc. -- kkyzivat 20070801 >>
      */
 
-   virtual OsStatus recordChannelAudio(int connectionId,
-                                       const char* szFile) = 0 ;
-
-   virtual OsStatus stopRecordChannelAudio(int connectionId) = 0 ;
-
      /// @brief Play the specified audio URL to the call.
    virtual OsStatus playAudio(const char* url, 
                               UtlBoolean repeat,
@@ -494,43 +429,16 @@ public:
     */
    virtual UtlBoolean hasFocus() = 0;
 
-     /// @brief Record the microphone data to a file
-   virtual OsStatus recordMic(int ms,
-                              int silenceLength,
-                              const char* fileName) = 0 ;
-     /**<
-     *  Record a fixed amount of audio from the microphone to a file.
-     *  @note The flowgraph must be in focus for this to work properly.
-     *
-     *  @param[in] ms - The amount of time, in milliseconds, to record.
-     *  @param[in] silenceLength - The amount of silence, in SECONDS, before
-     *             recording is terminated.
-     *  @param[in] fileName - The path and name of a file to record to.
-     */
-
    /**
     * Starts recording all audio channels into given file.
     */
    virtual OsStatus recordAudio(const char* szFile) = 0;
-
-     /// Record the microphone data
-   virtual OsStatus recordMic(UtlString* pAudioBuf);
-     /**<
-     *  Record a fixed amount of audio from the microphone to a buffer 
-     *  passed in.
-     *  @note The flowgraph must be in focus for this to work properly.
-     *
-     *  @param pAudioBuf a fixed audio buffer to record to.
-     */
 
    //! Stop recording for this call.
    virtual OsStatus stopRecording() = 0;
 
    //! Set the preferred contact type for this media connection
    virtual void setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) = 0 ;
-
-   //! Rebuild the codec factory on the fly
-   virtual OsStatus setAudioCodecBandwidth(int connectionId, int bandWidth) = 0;
 
    /** Rebuilds internal SdpCodecList using supplied SdpCodecList */
    virtual OsStatus setCodecList(const SdpCodecList& sdpCodecList) = 0;
@@ -541,20 +449,12 @@ public:
    /** Copies internal SdpCodecList of media connection into supplied SdpCodecList */
    virtual OsStatus getCodecList(int connectionId, SdpCodecList& sdpCodecList) = 0;
 
-   //! Set connection bitrate on the fly
-   virtual OsStatus setConnectionBitrate(int connectionId, int bitrate) = 0 ;
-
    //! Set connection framerate on the fly
    virtual OsStatus setConnectionFramerate(int connectionId, int framerate) = 0;
 
    virtual OsStatus setVideoWindowDisplay(const void* hWnd) = 0;
 
    virtual OsStatus setSecurityAttributes(const void* security) = 0;
-
-   virtual OsStatus generateVoiceQualityReport(int         connectionId,
-                                               const char* callId,
-                                               UtlString&  report) = 0 ;
-
 
    virtual void setConnectionTcpRole(const int connectionId,
                                      const RtpTcpRoles role) = 0;
@@ -574,7 +474,6 @@ public:
     * @param rtcpPort RTCP port number that should be advertised in SDP.
     * @param supportedCodecs List of supported codecs.
     * @param srtParams supported SRTP parameters
-    * @param bandWidth bandwidth limitation id
     */
    virtual OsStatus getCapabilities(int connectionId, 
                                     UtlString& rtpHostAddress, 
@@ -584,7 +483,6 @@ public:
                                     int& rtcpVideoPort, 
                                     SdpCodecList& supportedCodecs,
                                     SdpSrtpParameters& srtpParams,
-                                    int bandWidth,
                                     int& videoBandwidth,
                                     int& videoFramerate) = 0;
     
@@ -602,18 +500,9 @@ public:
                                       int& nActualAddresses,
                                       SdpCodecList& supportedCodecs,
                                       SdpSrtpParameters& srtpParameters,
-                                      int bandWidth,
                                       int& videoBandwidth,
                                       int& videoFramerate) = 0 ;
 
-
-   //! Calculate the current cost for the current set of 
-   //! sending/receiving codecs.
-   virtual int getCodecCPUCost() = 0 ;
-
-   //! Calculate the worst case cost for the current set of 
-   //! sending/receiving codecs.
-   virtual int getCodecCPULimit() = 0 ;
 
    // Returns the primary codec for the connection
    virtual OsStatus getPrimaryCodec(int connectionId, 
@@ -651,38 +540,6 @@ public:
    {
        return OS_NOT_SUPPORTED; 
    };
-
-
-   //! Set a media property on the media interface
-    /*
-     * Media interfaces that wish to inter-operate should implement the following properties
-     * and values:
-     *
-     * Property Name                  Property Values
-     * =======================        ===============
-     * "audioInput1.muteState"        "true", "false" for systems that may have a microphone for each conference or 2-way call
-     * "audioInput1.device"           same value as szDevice in sipxAudioSetCallInputDevice
-     * "audioOutput1.deviceType"      "speaker", "ringer" same as sipxAudioEnableSpeaker, but for specific conference or 2-way call
-     * "audioOutput1.ringerDevice"    same value as szDevice in sipxAudioSetRingerOutputDevice 
-     * "audioOutput1.speakerDevice"   same values as szDevice in sipxAudioSetCallOutputDevice
-     * "audioOutput1.volume"          string value of iLevel in sipxAudioSetVolume
-     */
-   virtual OsStatus setMediaProperty(const UtlString& propertyName,
-                                     const UtlString& propertyValue) = 0;
-
-   //! Get a media property on the media interface
-   virtual OsStatus getMediaProperty(const UtlString& propertyName,
-                                     UtlString& propertyValue) = 0;
-
-   //! Set a media property associated with a connection
-   virtual OsStatus setMediaProperty(int connectionId,
-                                     const UtlString& propertyName,
-                                     const UtlString& propertyValue) = 0;
-
-   //! Get a media property associated with a connection
-   virtual OsStatus getMediaProperty(int connectionId,
-                                     const UtlString& propertyName,
-                                     UtlString& propertyValue) = 0;
 
      ///< Get the specific type of this media interface
    virtual UtlString getType() = 0;

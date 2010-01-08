@@ -820,7 +820,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAccept");
    UtlBoolean bEnableLocationHeader = FALSE;
-   int bandWidth = AUDIO_CODEC_BW_DEFAULT;
    SIPX_CONTACT_ID contactId = 0;
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
    char* pLocationHeader = NULL;
@@ -830,7 +829,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
       if (options->cbSize == sizeof(SIPX_CALL_OPTIONS))
       {
          bEnableLocationHeader = options->sendLocation;
-         bandWidth = options->bandwidthId;
          contactId = options->contactId;
       }
       else
@@ -842,8 +840,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
    }
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallAccept hCall=%d display=%p bEnableLocationHeader=%d bandWidth=%d, contactId=%d bSendEarlyMedia=%s",
-      hCall, pDisplay, bEnableLocationHeader, bandWidth, contactId, 
+      "sipxCallAccept hCall=%d display=%p bEnableLocationHeader=%d contactId=%d bSendEarlyMedia=%s",
+      hCall, pDisplay, bEnableLocationHeader, contactId, 
       bSendSdp ? "true" : "false");
 
    if (contactId < 0)
@@ -1240,7 +1238,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
 
    // default values if options are not passed
    UtlBoolean bEnableLocationHeader = FALSE;
-   int bandWidth = AUDIO_CODEC_BW_DEFAULT; // passed to CallManager
    SIPX_RTP_TRANSPORT rtpTransportOptions = SIPX_RTP_TRANSPORT_UDP; // passed to CallManager
    SIPX_CONTACT_ID contactId = 0; // passed to CallManager
    SIPX_TRANSPORT hTransport = SIPX_TRANSPORT_NULL;
@@ -1250,7 +1247,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
       if (options->cbSize == sizeof(SIPX_CALL_OPTIONS))
       {
          bEnableLocationHeader = options->sendLocation;
-         bandWidth = options->bandwidthId;
          rtpTransportOptions = options->rtpTransportFlags;
          contactId = options->contactId;
          hTransport = options->hTransport;
@@ -1264,8 +1260,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
    }
 
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxCallConnect hCall=%d szAddress=%s contactId=%d bEnableLocationHeader=%d bandWidth=%d",
-      hCall, szAddress, contactId, bEnableLocationHeader, bandWidth);
+      "sipxCallConnect hCall=%d szAddress=%s contactId=%d bEnableLocationHeader=%d",
+      hCall, szAddress, contactId, bEnableLocationHeader);
 
    if (pDisplay)
    {

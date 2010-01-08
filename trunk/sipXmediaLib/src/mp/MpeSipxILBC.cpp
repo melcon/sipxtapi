@@ -25,28 +25,22 @@ extern "C" {
 const MpCodecInfo MpeSipxILBC::smCodecInfo30ms(
     SdpCodec::SDP_CODEC_ILBC,   // codecType
     "iLBC",                     // codecVersion
-    false,                      // usesNetEq
     8000,                       // samplingRate
-    8,                          // numBitsPerSample
+    16,                          // numBitsPerSample
     1,                          // numChannels
-    240,                        // interleaveBlockSize
     13334,                      // bitRate. It doesn't matter right now.
     NO_OF_BYTES_30MS*8,         // minPacketBits
-    NO_OF_BYTES_30MS*8,         // avgPacketBits
     NO_OF_BYTES_30MS*8,         // maxPacketBits
     240);                       // numSamplesPerFrame
 
 const MpCodecInfo MpeSipxILBC::smCodecInfo20ms(
    SdpCodec::SDP_CODEC_ILBC_20MS,   // codecType
    "iLBC",                     // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
-   8,                          // numBitsPerSample
+   16,                          // numBitsPerSample
    1,                          // numChannels
-   160,                        // interleaveBlockSize
    13334,                      // bitRate. It doesn't matter right now.
    NO_OF_BYTES_20MS*8,         // minPacketBits
-   NO_OF_BYTES_20MS*8,         // avgPacketBits
    NO_OF_BYTES_20MS*8,         // maxPacketBits
    160);                       // numSamplesPerFrame
 
@@ -92,7 +86,7 @@ OsStatus MpeSipxILBC::encode(const MpAudioSample* pAudioSamples,
                               const int bytesLeft,
                               int& rSizeInBytes,
                               UtlBoolean& sendNow,
-                              MpAudioBuf::SpeechType& rAudioCategory)
+                              MpSpeechType& rAudioCategory)
 {
    memcpy(&mpBuffer[mBufferLoad], pAudioSamples, sizeof(MpAudioSample)*numSamples);
    mBufferLoad += numSamples;
@@ -117,7 +111,7 @@ OsStatus MpeSipxILBC::encode(const MpAudioSample* pAudioSamples,
    }
 
    rSamplesConsumed = numSamples;
-   rAudioCategory = MpAudioBuf::MP_SPEECH_UNKNOWN;
+   rAudioCategory = MP_SPEECH_UNKNOWN;
    return OS_SUCCESS;
 }
 

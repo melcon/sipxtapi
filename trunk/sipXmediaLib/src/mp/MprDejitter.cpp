@@ -26,6 +26,7 @@
 #include "os/OsLock.h"
 #include "os/OsSysLog.h"
 #include <utl/UtlSListIterator.h>
+#include <mp/MpDefs.h>
 #include "mp/MpBuf.h"
 #include "mp/MprDejitter.h"
 #include "mp/MpMisc.h"
@@ -54,13 +55,7 @@ MprDejitter::MprDejitter()
 // Destructor
 MprDejitter::~MprDejitter()
 {
-   // free jitter buffers
-   for (int i = 0; i < MAX_PAYLOADS; i++)
-   {
-      delete m_jitterBufferArray[i];
-      m_jitterBufferArray[i] = NULL;
-      m_jitterBufferList[i] = NULL;
-   }
+   freeJitterBuffers();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -69,13 +64,7 @@ OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
 {
    OsLock lock(m_rtpLock);
 
-   // free old jitter buffers
-   for (int i = 0; i < MAX_PAYLOADS; i++)
-   {
-      delete m_jitterBufferArray[i];
-      m_jitterBufferArray[i] = NULL;
-      m_jitterBufferList[i] = NULL;
-   }
+   freeJitterBuffers();
 
    int listCounter = 0;
    SdpCodec* pCodec = NULL;
@@ -86,28 +75,35 @@ OsStatus MprDejitter::initJitterBuffers(const UtlSList& codecList)
       if (pCodec)
       {
          UtlString encodingName;
-         pCodec->getEncodingName(encodingName);
+         pCodec->getMimeSubType(encodingName);
          int codecPayloadId = pCodec->getCodecPayloadId();
 
-         if (codecPayloadId >=0 && codecPayloadId < MAX_PAYLOADS
-            && !m_jitterBufferArray[codecPayloadId])
+         if (codecPayloadId >=0 && codecPayloadId < MAX_PAYLOADS && !m_jitterBufferArray[codecPayloadId])
          {
-            // index is valid and there is no jitter buffer for it
-            // TODO: 80 has to be replaced with ptime from SDP
+            // jitter buffer uses samples per frame of flowgraph, and not codec itself
+            // that is because frameIncrement is called every 10ms, regardless of type of codec
             if (pCodec->getCodecType() == SdpCodec::SDP_CODEC_TONES)
             {
                // for RFC2833, disable prefetch & PLC
                m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
-                  codecPayloadId,
-                  MpMisc.m_audioSamplesPerFrame,
-                  false);
+                  codecPayloadId, SAMPLES_PER_FRAME_8KHZ, false);
             }
             else
             {
+               double frameSizeCoeff = (1 / (double)pCodec->getPacketLength()) * 20000; // will be 1 for 20ms frame, 2 for 10ms frame
+               unsigned int minPreferch = (unsigned int)(MpJitterBufferDefault::DEFAULT_MIN_PREFETCH_COUNT * frameSizeCoeff);
+               unsigned int maxPreferch = (unsigned int)(MpJitterBufferDefault::DEFAULT_MAX_PREFETCH_COUNT * frameSizeCoeff);
+               // we supply different value of samples per frame to jitter buffer, if flowgraph and code sampling rate
+               // is different. When frameIncrement() is called, jitter buffer will increment rtp timestamp by this value.
+               unsigned int samplesPerFrame = (unsigned int)(((double)pCodec->getSampleRate() / MpMisc.m_audioSamplesPerSec) * MpMisc.m_audioSamplesPerFrame);
+               if (pCodec->getCodecType() == SdpCodec::SDP_CODEC_G722)
+               {
+                  // Workaround RFC bug with G.722 samplerate.
+                  // Read RFC 3551 Section 4.5.2 "G722" for details.
+                  samplesPerFrame /= 2;
+               }
                m_jitterBufferArray[codecPayloadId] = new MpJitterBufferDefault(encodingName,
-                  codecPayloadId,
-                  MpMisc.m_audioSamplesPerFrame,
-                  true, 6, true, 3);
+                  codecPayloadId, samplesPerFrame, true, minPreferch, minPreferch, maxPreferch, true, 3);
             }
             m_jitterBufferList[listCounter++] = m_jitterBufferArray[codecPayloadId];
          }
@@ -187,5 +183,16 @@ int MprDejitter::getBufferLength(int rtpPayloadType)
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void MprDejitter::freeJitterBuffers()
+{
+   // free jitter buffers
+   for (int i = 0; i < MAX_PAYLOADS; i++)
+   {
+      delete m_jitterBufferArray[i];
+      m_jitterBufferArray[i] = NULL;
+      m_jitterBufferList[i] = NULL;
+   }
+}
 
 /* ============================ FUNCTIONS ================================= */

@@ -22,7 +22,6 @@
 #include <sdp/SdpCodecFactory.h>
 #include "mp/MpMediaTask.h"
 #include "mp/MpMisc.h"
-#include "mp/MpCodec.h"
 #include "mp/MpCallFlowGraph.h"
 #include "sdp/SdpCodecList.h"
 #include "mi/CpMediaInterfaceFactoryFactory.h"
@@ -88,7 +87,7 @@ SipXMediaFactoryImpl::SipXMediaFactoryImpl(OsConfigDb* pConfigDb)
     // Start audio subsystem if still not started.
     if (miInstanceCount == 0)
     {
-        mpStartUp(8000, 80);
+        mpStartUp();
     }
 
 #ifdef INCLUDE_RTCP /* [ */
@@ -419,12 +418,41 @@ OsStatus SipXMediaFactoryImpl::enableInboundDTMF(MEDIA_INBOUND_DTMF_MODE mode, U
    return OS_SUCCESS;
 }
 
+OsStatus SipXMediaFactoryImpl::setOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE mode)
+{
+   MpCallFlowGraph::enableSendInbandDTMF(mode == MEDIA_OUTBOUND_DTMF_INBAND);
+
+   return OS_SUCCESS;
+}
+
+OsStatus SipXMediaFactoryImpl::getOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE& mode)
+{
+   UtlBoolean inBandDtmfEnabled = MpCallFlowGraph::isSendInbandDTMFEnabled();
+   if (inBandDtmfEnabled)
+   {
+      mode = MEDIA_OUTBOUND_DTMF_INBAND;
+   }
+   else
+   {
+      mode = MEDIA_OUTBOUND_DTMF_RFC2833;
+   }
+
+   return OS_SUCCESS;
+}
+
 UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 {
    UtlString supportedCodecs = 
 #ifdef HAVE_SPEEX // [
-      "SPEEX_6 SPEEX_8 SPEEX_11 SPEEX_15 SPEEX_18 SPEEX_24 "
+      "SPEEX_5 SPEEX_8 SPEEX_11 SPEEX_15 SPEEX_18 SPEEX_24 "
+#ifdef ENABLE_WIDEBAND_AUDIO
+      "SPEEX_WB_9 SPEEX_WB_12 SPEEX_WB_16 SPEEX_WB_20 SPEEX_WB_23 SPEEX_WB_27 SPEEX_WB_34 SPEEX_WB_42 "
+      "SPEEX_UWB_11 SPEEX_UWB_14 SPEEX_UWB_18 SPEEX_UWB_22 SPEEX_UWB_25 SPEEX_UWB_29 SPEEX_UWB_36 SPEEX_UWB_44 "
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPEEX ]
+#ifdef ENABLE_WIDEBAND_AUDIO
+      "L16_8000_MONO L16_11025_MONO L16_16000_MONO L16_22050_MONO L16_24000_MONO L16_32000_MONO L16_44100_MONO L16_48000_MONO "
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #ifdef HAVE_GSM // [
       "GSM "
 #endif // HAVE_GSM ]
@@ -436,6 +464,9 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 #endif // HAVE_INTEL_IPP ]
 #ifdef HAVE_SPAN_DSP // [
       "G726_16 G726_24 G726_32 G726_40 "
+#ifdef ENABLE_WIDEBAND_AUDIO
+      "G722 "
+#endif // ENABLE_WIDEBAND_AUDIO ]
 #endif // HAVE_SPAN_DSP ]
       "PCMU PCMA TELEPHONE-EVENT";
    return supportedCodecs;

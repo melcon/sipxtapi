@@ -2131,7 +2131,7 @@ void sipXtapiTestSuite::testSendInfoExternalTransport()
          {
             options.contactId = aAddress[j].id;
 
-            sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100", NULL, NULL, TRUE, &options);
+            sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100", NULL, NULL, SIPX_FOCUS_MANUAL, &options);
             break;
          }
       }

@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;"
-				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO"
+				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;ENABLE_WIDEBAND_AUDIO;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO"
 				StringPooling="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -121,7 +121,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;"
-				PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048"
+				PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;ENABLE_WIDEBAND_AUDIO;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -197,7 +197,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;"
-				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;HAVE_INTEL_IPP;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO"
+				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048;xxDISABLE_LOCAL_AUDIO"
 				StringPooling="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -274,7 +274,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="include;contrib\libgsm\inc;&quot;contrib\speex-1.2rc1\include&quot;;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXtackLib\include;contrib\libilbc;..\sipXportLib\contrib\pcre\include;contrib\portaudio_v19\include;contrib\portmixer\include;&quot;contrib\spandsp-0.0.6\src&quot;"
-				PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;HAVE_INTEL_IPP;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048"
+				PreprocessorDefinitions="HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;USE_SPAN_DSP_DTMF;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;FD_SETSIZE=2048"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -333,27 +333,11 @@
 				Name="mp"
 				>
 				<File
-					RelativePath=".\src\mp\dft.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\DSPlib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\DspResampling.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\dtmflib.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\FilterBank.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\HandsetFilterBank.cpp"
 					>
 				</File>
 				<File
@@ -425,6 +409,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpBridgeAlgLinear.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpBridgeAlgSimple.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpBuf.cpp"
 					>
 				</File>
@@ -473,6 +465,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdSipxG722.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdSipxG726.cpp"
 					>
 				</File>
@@ -485,6 +481,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpdSipxL16.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpdSipxPcma.cpp"
 					>
 				</File>
@@ -494,6 +494,14 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpdSipxSpeex.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpdSipxSpeexUWb.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpdSipxSpeexWb.cpp"
 					>
 				</File>
 				<File
@@ -517,6 +525,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpeSipxG722.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpeSipxG726.cpp"
 					>
 				</File>
@@ -529,6 +541,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mp\MpeSipxL16.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mp\MpeSipxPcma.cpp"
 					>
 				</File>
@@ -538,6 +554,14 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpeSipxSpeex.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeSipxSpeexUWb.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mp\MpeSipxSpeexWb.cpp"
 					>
 				</File>
 				<File
@@ -593,14 +617,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpPlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpPlayerEvent.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpPortAudioDriver.cpp"
 					>
 				</File>
@@ -613,19 +629,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprAudioFrameBuffer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpRawAudioBuffer.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprBridge.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MprBufferRecorder.cpp"
 					>
 				</File>
 				<File
@@ -637,23 +641,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprEchoSuppress.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprEncode.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpResNotificationMsg.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MpResource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpResourceFactory.cpp"
 					>
 				</File>
 				<File
@@ -662,10 +654,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\MpResourceSortAlg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpResourceTopology.cpp"
 					>
 				</File>
 				<File
@@ -681,19 +669,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MprFromStream.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\mp\MprMixer.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\mp\MprNull.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MprNullAec.cpp"
 					>
 				</File>
 				<File
@@ -757,27 +737,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\mp\MpStreamFeeder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamMsg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamPlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamPlaylistPlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpStreamQueuePlayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\MpTopologyGraph.cpp"
+					RelativePath=".\src\mp\MpTypes.cpp"
 					>
 				</File>
 				<File
@@ -790,50 +750,6 @@
 				</File>
 				<File
 					RelativePath=".\src\mp\resamplingby2.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamBufferDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamDataSourceListener.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamDecoderListener.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamFileDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamFormatDecoder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamHttpDataSource.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamQueueingFormatDecoder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamQueueMsg.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamRAWFormatDecoder.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\mp\StreamWAVFormatDecoder.cpp"
 					>
 				</File>
 			</Filter>
@@ -922,23 +838,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\DspResampling.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\dtmflib.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\FilterBank.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\HandsetFilterBank.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\HandsetFilterbankWindows.h"
 					>
 				</File>
 				<File
@@ -998,10 +898,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpAudioResourceConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpAudioStreamInfo.h"
 					>
 				</File>
@@ -1018,6 +914,18 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpBridgeAlgBase.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpBridgeAlgLinear.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpBridgeAlgSimple.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpBuf.h"
 					>
 				</File>
@@ -1030,15 +938,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpBufRecStartResourceMsg.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpCallFlowGraph.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpCodec.h"
 					>
 				</File>
 				<File
@@ -1062,6 +962,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpDefs.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdIPPG7231.h"
 					>
 				</File>
@@ -1071,6 +975,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpdPtAVT.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpdSipxG722.h"
 					>
 				</File>
 				<File
@@ -1086,6 +994,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdSipxL16.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpdSipxPcma.h"
 					>
 				</File>
@@ -1098,7 +1010,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpdSipxSpeexUWb.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpdSipxSpeexWb.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpDspUtils.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpDspUtilsConvertVect.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpDspUtilsIntSqrt.h"
 					>
 				</File>
 				<File
@@ -1111,6 +1039,10 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpDspUtilsSum.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpDspUtilsSumVect.h"
 					>
 				</File>
 				<File
@@ -1130,6 +1062,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpeSipxG722.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpeSipxG726.h"
 					>
 				</File>
@@ -1142,6 +1078,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\mp\MpeSipxL16.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\mp\MpeSipxPcma.h"
 					>
 				</File>
@@ -1151,6 +1091,14 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\MpeSipxSpeex.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeSipxSpeexUWb.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\mp\MpeSipxSpeexWb.h"
 					>
 				</File>
 				<File
@@ -1210,18 +1158,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpPlayer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpPlayerEvent.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpPlayerListener.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpPortAudioDriver.h"
 					>
 				</File>
@@ -1234,31 +1170,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpQueuePlayerListener.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprAudioFrameBuffer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpRawAudioBuffer.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprBridge.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprBridgeConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprBufferRecorder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprBufferRecorderConstructor.h"
 					>
 				</File>
 				<File
@@ -1274,10 +1186,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprEchoSuppress.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprEncode.h"
 					>
 				</File>
@@ -1286,19 +1194,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResNotificationMsg.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpResource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpResourceConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpResourceFactory.h"
 					>
 				</File>
 				<File
@@ -1310,15 +1206,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpResourceTopology.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprFromFile.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprFromFileConstructor.h"
 					>
 				</File>
 				<File
@@ -1330,10 +1218,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprFromStream.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprMixer.h"
 					>
 				</File>
@@ -1342,27 +1226,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprNullAec.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprNullAecConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprNullConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprRecorder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprRtpInputAudioConnectionConstructor.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprRtpOutputAudioConnectionConstructor.h"
 					>
 				</File>
 				<File
@@ -1394,15 +1258,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MprSplitterConstructor.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MprToneGen.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MprToneGenConstructor.h"
 					>
 				</File>
 				<File
@@ -1438,31 +1294,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\include\mp\MpStreamFeeder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamPlayer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamPlaylistPlayer.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpStreamQueuePlayer.h"
-					>
-				</File>
-				<File
 					RelativePath=".\include\mp\MpToneResourceMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\MpTopologyGraph.h"
 					>
 				</File>
 				<File
@@ -1487,54 +1319,6 @@
 				</File>
 				<File
 					RelativePath=".\include\mp\resamplingby2.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamBufferDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDataSourceListener.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDecoderListener.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamDefs.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamFileDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamFormatDecoder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamHttpDataSource.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamQueueingFormatDecoder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamQueueMsg.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamRAWFormatDecoder.h"
-					>
-				</File>
-				<File
-					RelativePath=".\include\mp\StreamWAVFormatDecoder.h"
 					>
 				</File>
 			</Filter>

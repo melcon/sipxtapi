@@ -188,7 +188,7 @@ public:
 ///@name Accessors
 //@{
 
-    /// Get current number of samples in payload data.
+    /// Get current number of bytes in payload data.
     unsigned getPayloadSize() const {return mpData->getDataSize();}
 
     /// Get direct access to RtpHeader structure.

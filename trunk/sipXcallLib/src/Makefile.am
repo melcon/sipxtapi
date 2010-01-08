@@ -31,22 +31,12 @@ libsipXcall_la_CXXFLAGS = \
 libsipXcall_la_SOURCES = \
     ../config/sipxcalllib-buildstamp.h \
     ../config/sipxcalllib-buildstamp.cpp \
-    cp/CSeqManager.cpp \
-    cp/CallManager.cpp \
-    cp/Connection.cpp \
-    cp/CpCall.cpp \
-    cp/CpCallManager.cpp \
-    cp/CpGhostConnection.cpp \
-    cp/CpIntMessage.cpp \
     cp/CpLoopDetector.cpp \
-    cp/CpMultiStringMessage.cpp \
     cp/CpNotificationRegister.cpp \
-    cp/CpPeerCall.cpp \
     cp/Cp100RelTracker.cpp \
     cp/CpSdpNegotiation.cpp \
     cp/CpSessionTimerProperties.cpp \
     cp/CpSipTransactionManager.cpp \
-    cp/SipConnection.cpp \
     cp/XCpAbstractCall.cpp \
     cp/XCpCall.cpp \
     cp/XCpCallIdUtil.cpp \

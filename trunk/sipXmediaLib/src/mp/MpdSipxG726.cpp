@@ -16,58 +16,46 @@
 const MpCodecInfo MpdSipxG726::ms_codecInfo16(
    SdpCodec::SDP_CODEC_G726_16,    // codecType
    "G726-16",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
-   8,                          // numBitsPerSample
+   16,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    16000,                      // bitRate. It doesn't matter right now.
-   20*8,                       // minPacketBits
-   20*8,                       // avgPacketBits
-   20*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   40*8,                       // minPacketBits
+   40*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame - 20ms frame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo24(
    SdpCodec::SDP_CODEC_G726_24,    // codecType
    "G726-24",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
-   8,                          // numBitsPerSample
+   16,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    24000,                      // bitRate. It doesn't matter right now.
-   30*8,                       // minPacketBits
-   30*8,                       // avgPacketBits
-   30*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   60*8,                       // minPacketBits
+   60*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame - 20ms frame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo32(
    SdpCodec::SDP_CODEC_G726_32,    // codecType
    "G726-32",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
-   8,                          // numBitsPerSample
+   16,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    32000,                      // bitRate. It doesn't matter right now.
-   40*8,                       // minPacketBits
-   40*8,                       // avgPacketBits
-   40*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   80*8,                       // minPacketBits
+   80*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame - 20ms frame
 
 const MpCodecInfo MpdSipxG726::ms_codecInfo40(
    SdpCodec::SDP_CODEC_G726_40,    // codecType
    "G726-40",                 // codecVersion
-   false,                      // usesNetEq
    8000,                       // samplingRate
-   8,                          // numBitsPerSample
+   16,                          // numBitsPerSample
    1,                          // numChannels
-   80,                        // interleaveBlockSize
    40000,                      // bitRate. It doesn't matter right now.
-   50*8,                       // minPacketBits
-   50*8,                       // avgPacketBits
-   50*8,                       // maxPacketBits
-   80);                       // numSamplesPerFrame
+   100*8,                       // minPacketBits
+   100*8,                       // maxPacketBits
+   160);                       // numSamplesPerFrame - 20ms frame
 
 MpdSipxG726::MpdSipxG726(int payloadType, G726_BITRATE bitRate)
 : MpDecoderBase(payloadType, getCodecInfo(bitRate))
@@ -108,28 +96,21 @@ OsStatus MpdSipxG726::freeDecode(void)
 
 int MpdSipxG726::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
 {
-   // Assert that available buffer size is enough for the packet.
-   assert(pPacket->getPayloadSize() == getInfo()->getMaxPacketBits()/8);
-   if (pPacket->getPayloadSize() != getInfo()->getMaxPacketBits()/8)
+   if (!pPacket.isValid())
       return 0;
 
-   if (decodedBufferLength < 80)
+   unsigned payloadSize = pPacket->getPayloadSize();
+   unsigned maxPayloadSize = getInfo()->getMaxPacketBits()/8;
+   // do not accept frames longer than 20ms from RTP to protect against buffer overflow
+   assert(payloadSize <= maxPayloadSize);
+   if (payloadSize > maxPayloadSize)
    {
-      osPrintf("MpdSipxG726::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
    int samplesDecoded = g726_decode(m_pG726state, samplesBuffer, (const uint8_t*)pPacket->getDataPtr(), (int)pPacket->getPayloadSize());
-   assert(samplesDecoded == 80);
 
-   if (samplesDecoded == 80)
-   {
-      return samplesDecoded;
-   }
-   else
-   {
-      return 0;
-   }
+   return samplesDecoded;
 }
 
 const MpCodecInfo* MpdSipxG726::getCodecInfo(G726_BITRATE bitRate)

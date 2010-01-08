@@ -23,10 +23,10 @@
 
 MpJitterBufferBase::MpJitterBufferBase(const UtlString& name,
                                        int payloadType,
-                                       unsigned int frameSize)
+                                       unsigned int samplesPerFrame)
 : m_name(name)
 , m_payloadType(payloadType)
-, m_frameSize(frameSize)
+, m_samplesPerFrame(samplesPerFrame)
 {
 
 }

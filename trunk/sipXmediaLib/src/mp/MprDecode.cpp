@@ -47,9 +47,7 @@
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
-
 // CONSTANTS
-
 // STATIC VARIABLE INITIALIZATIONS
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -60,7 +58,7 @@
 MprDecode::MprDecode(const UtlString& rName, MpRtpInputAudioConnection* pConn,
                      int samplesPerFrame, int samplesPerSec)
 :  MpAudioResource(rName, 0, 0, 1, 1, samplesPerFrame, samplesPerSec),
-   mpJB(NULL),
+   m_pDecodeBuffer(NULL),
    m_pMyDejitter(NULL),
    mpCurrentCodecs(NULL),
    mNumCurrentCodecs(0),
@@ -76,15 +74,15 @@ MprDecode::~MprDecode()
    // Clean up decoder object
    int i;
 
-   // Release our codecs (if any), and the array of pointers to them.
-   // Jitter buffer instance (mpJB) is also deleted here.
    handleDeselectCodecs();
 
-   // Delete the list of codecs used in the past.
+   // Delete the list of decoders used in the past.
    {
       OsLock lock(mLock);
-      if (mNumPrevCodecs > 0) {
-         for (i=0; i<mNumPrevCodecs; i++) {
+      if (mNumPrevCodecs > 0)
+      {
+         for (i=0; i<mNumPrevCodecs; i++)
+         {
             mpPrevCodecs[i]->freeDecode();
             delete mpPrevCodecs[i];
          }
@@ -162,14 +160,14 @@ void MprDecode::onNotify(UtlObservable* subject, int code, intptr_t userData)
 
 /* ============================ ACCESSORS ================================= */
 
-MpDecodeBuffer* MprDecode::getJBinst(UtlBoolean optional)
+MpDecodeBuffer* MprDecode::getDecodeBuffer(UtlBoolean optional)
 {
-   if ((NULL == mpJB) && (!optional))
+   if ((NULL == m_pDecodeBuffer) && (!optional))
    {
-      mpJB = new MpDecodeBuffer(m_pMyDejitter);
-      assert(NULL != mpJB);
+      m_pDecodeBuffer = new MpDecodeBuffer(m_pMyDejitter, getSamplesPerFrame(), getSamplesPerSec());
+      assert(NULL != m_pDecodeBuffer);
    }
-   return mpJB;
+   return m_pDecodeBuffer;
 }
 
 /* ============================ INQUIRY =================================== */
@@ -183,23 +181,6 @@ MprDejitter* MprDecode::getMyDejitter(void)
    assert(NULL != m_pMyDejitter);
    return m_pMyDejitter;
 }
-
-#ifdef SIPX_DEBUG /* [ */
-static void showRtpPacket(MpRtpBufPtr rtp)
-{
-   struct RtpHeader &rh = rtp->getRtpHeader();
-   int len;
-
-   rh.vpxcc = rp->vpxcc;
-   rh.mpt = rp->mpt;
-   rh.seq = ntohs(rp->seq);
-   rh.timestamp = ntohl(rp->timestamp);
-   rh.ssrc = ntohl(rp->ssrc);
-   len = rtp->getPayloadSize();
-   Zprintf("RcvRTP: %02X, %02X, %d, %d, %08X, and %d bytes of data\n",
-      rh.vpxcc, rh.mpt, rh.seq, rh.timestamp, rh.ssrc, len);
-}
-#endif /* DEBUG ] */
 
 UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
                                      MpBufPtr outBufs[],
@@ -232,18 +213,18 @@ UtlBoolean MprDecode::doProcessFrame(MpBufPtr inBufs[],
    out->setSamplesNumber(samplesPerFrame);
    MpAudioSample* pSamples = out->getSamplesWritePtr();
    memset(pSamples, 0, out->getSamplesNumber() * sizeof(MpAudioSample));
-   out->setSpeechType(MpAudioBuf::MP_SPEECH_SILENT);
+   out->setSpeechType(MP_SPEECH_SILENT);
 
    // Decode one packet from Jitter Buffer
-   MpDecodeBuffer* pJBState = getJBinst();
-   if (pJBState)
+   MpDecodeBuffer* pDecodeBuffer = getDecodeBuffer();
+   if (pDecodeBuffer)
    {
       // This should be a JB_something or other.  However the only
       // current choices is a short or long equivalent and this needs
       // to be a plain old int:
-      pJBState->getSamples(pSamples, samplesPerFrame);
+      pDecodeBuffer->getSamples(pSamples, samplesPerFrame);
       assert(samplesPerFrame == (int)out->getSamplesNumber());
-      out->setSpeechType(MpAudioBuf::MP_SPEECH_UNKNOWN);
+      out->setSpeechType(MP_SPEECH_UNKNOWN);
    }
    
    // Push decoded audio packet downstream
@@ -286,10 +267,6 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
    MpCodecFactory* pFactory = MpCodecFactory::getMpCodecFactory();
    int allReusable = 1;
    int canReuse;
-#if 0
-   osPrintf("MprDecode::handleSelectCodecs(%d codec%s):\n",
-      numCodecs, ((1 == numCodecs) ? "" : "s"));
-#endif
    if (OsSysLog::willLog(FAC_MP, PRI_DEBUG))
    {
       for (i=0; i<numCodecs; i++) {
@@ -309,27 +286,15 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
       pCodec = pCodecs[i];
       ourCodec = pCodec->getCodecType();
       payload = pCodec->getCodecPayloadId();
-#if 0
-      osPrintf("  #%d: New=0x%X/i:%d/x:%d, ",
-         i, (int)pCodec, ourCodec, payload);
-#endif
       pOldDecoder = mpConnection->mapPayloadType(payload);
       if (NULL != pOldDecoder) {
          oldSdpType = pOldDecoder->getInfo()->getCodecType();
-#if 0
-         osPrintf("  Old=0x%X/i:%d", (int)pOldDecoder, oldSdpType);
-#endif
          canReuse = (ourCodec == oldSdpType);
       } else {
          // osPrintf("  no Old");
          canReuse = 0;
       }
       allReusable &= canReuse;
-#if 0
-      osPrintf(" i:%d/x:%d (%sreusable%s)\n", ourCodec, payload,
-         (canReuse ? "" : "not "),
-         (canReuse && (ourCodec != oldSdpType) ? "[*]" : ""));
-#endif
    }
 
    // If the new list is not a subset of the old list, we have to copy
@@ -367,7 +332,7 @@ UtlBoolean MprDecode::handleSelectCodecs(SdpCodec* pCodecs[], int numCodecs)
       }
    }
 
-   MpDecodeBuffer* pJBState = getJBinst();   
+   MpDecodeBuffer* pJBState = getDecodeBuffer();   
    pJBState->setCodecList(mpCurrentCodecs,numCodecs);
 
    // Delete the list pCodecs.
@@ -403,11 +368,6 @@ UtlBoolean MprDecode::handleDeselectCodecs(UtlBoolean shouldLock)
 
       newN = mNumCurrentCodecs + mNumPrevCodecs;
       pPrevCodecs = new MpDecoderBase*[newN];
-#if 0
-      osPrintf("|handleDeselectCodecs(0x%X): (0x%X,%d) -> (0x%X,%d) (+%d)\n",
-         (int) this, (int) mpPrevCodecs, mNumPrevCodecs, (int) pPrevCodecs,
-         newN, mNumCurrentCodecs);
-#endif
       if (mNumPrevCodecs > 0) {
          for (i=0; i<mNumPrevCodecs; i++) {
             pPrevCodecs[i] = mpPrevCodecs[i];
@@ -430,8 +390,8 @@ UtlBoolean MprDecode::handleDeselectCodecs(UtlBoolean shouldLock)
       mNumPrevCodecs = newN;
    }
 
-   delete mpJB;
-   mpJB = NULL;
+   delete m_pDecodeBuffer;
+   m_pDecodeBuffer = NULL;
 
    if(shouldLock)
    {

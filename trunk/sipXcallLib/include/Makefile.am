@@ -4,34 +4,24 @@
 nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 
 nobase_include_HEADERS =  \
-    cp/CSeqManager.h \
-    cp/CallManager.h \
-    cp/Connection.h \
     cp/CpAudioCodecInfo.h \
-    cp/CpCall.h \
-    cp/CpCallManager.h \
     cp/CpCallStateEventListener.h \
     cp/CpCodecInfo.h \
     cp/CpDefs.h \
-    cp/CpGhostConnection.h \
-    cp/CpIntMessage.h \
     cp/CpLoopDetector.h \
     cp/CpMediaEventListener.h \
     cp/CpMediaInterfaceProvider.h \
     cp/CpMessageQueueProvider.h \
     cp/CpMessageTypes.h \
-    cp/CpMultiStringMessage.h \
     cp/CpNatTraversalConfig.h \
     cp/CpNotificationMsgDef.h \
     cp/CpNotificationRegister.h \
-    cp/CpPeerCall.h \
     cp/Cp100RelTracker.h \
     cp/CpSdpNegotiation.h \
     cp/CpSessionTimerProperties.h \
     cp/CpSipTransactionListener.h \
     cp/CpSipTransactionManager.h \
     cp/CpVideoCodecInfo.h \
-    cp/SipConnection.h \
     cp/XCpAbstractCall.h \
     cp/XCpCall.h \
     cp/XCpCallControl.h \

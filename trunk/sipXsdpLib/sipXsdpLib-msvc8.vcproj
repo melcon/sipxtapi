@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<VisualStudioProject Name="sipXsdpLib-msvc8" RootNamespace="sipXsdpLib-msvc8" ProjectGUID="{E1D81EA9-4AC3-4CF5-B600-090FD822B1F6}" Version="8.00" ProjectType="Visual C++">
+<VisualStudioProject Name="sipXsdpLib-msvc9" RootNamespace="sipXsdpLib-msvc8" ProjectGUID="{E1D81EA9-4AC3-4CF5-B600-090FD822B1F6}" Version="8,00" ProjectType="Visual C++" TargetFrameworkVersion="131072">
     <Platforms>
         <Platform Name="Win32"/>
     </Platforms>
@@ -11,7 +11,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Debug/" BrowseInformation="1" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;HAVE_SPEEX;HAVE_GSM;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName=".\Debug/" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXsdpLib.pch" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Debug/" BrowseInformation="1" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName=".\Debug/" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXsdpLib.pch" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -28,7 +28,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName=".\Release/" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXsdpLib.pch" Optimization="2"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName=".\Release/" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXsdpLib.pch" Optimization="2"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -45,7 +45,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Debug/" BrowseInformation="1" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_INTEL_IPP;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName=".\Debug/" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXsdpLib.pch" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Debug/" BrowseInformation="1" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" AssemblerListingLocation=".\Debug/" WarningLevel="3" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName=".\Debug/" DebugInformationFormat="4" PrecompiledHeaderFile=".\Debug/sipXsdpLib.pch" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -62,7 +62,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_INTEL_IPP;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName=".\Release/" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXsdpLib.pch" Optimization="2"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXsdpLib\include;..\sipXtackLib\include;..\sipXportLib\include;..\..\resip\" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_LIB;DISABLE_MEM_POOLS;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName=".\Release/" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXsdpLib.pch" Optimization="2"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>

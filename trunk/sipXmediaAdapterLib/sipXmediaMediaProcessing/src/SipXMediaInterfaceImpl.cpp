@@ -22,17 +22,12 @@
 #include <os/OsDatagramSocket.h>
 #include <os/OsNatDatagramSocket.h>
 #include <os/OsMulticastSocket.h>
-#include <os/OsProtectEventMgr.h>
 #include <os/HostAdapterAddress.h>
 #include "include/SipXMediaInterfaceImpl.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include <mp/MpMediaTask.h>
 #include <mp/MpCallFlowGraph.h>
-#include <mp/MpStreamPlayer.h>
-#include <mp/MpStreamPlaylistPlayer.h>
-#include <mp/MpStreamQueuePlayer.h>
 #include <mp/dtmflib.h>
-
 #include <sdp/SdpCodec.h>
 
 #ifdef _WIN32
@@ -125,8 +120,6 @@ public:
             delete mpAudioCodec;
             mpAudioCodec = NULL; 
         }              
-
-        mConnectionProperties.destroyAll();
     }
 
     UtlString mRtpSendHostAddress;
@@ -141,11 +134,10 @@ public:
     UtlBoolean mRtpAudioSending;
     UtlBoolean mRtpAudioReceiving;
     SdpCodec* mpAudioCodec;
-    SdpCodecList* mpSdpCodecList;
+    SdpCodecList* mpSdpCodecList; /// list of SDP codecs used for SDP negotiation, but not up to date when RTP is flowing
     SIPX_CONTACT_TYPE mContactType ;
     UtlString mLocalIPAddress; ///< local bind IP address
     UtlBoolean mbAlternateDestinations ;
-    UtlHashMap mConnectionProperties;
 };
 
 /* //////////////////////////// PUBLIC //////////////////////////////////// */
@@ -254,9 +246,6 @@ SipXMediaInterfaceImpl::~SipXMediaInterfaceImpl()
         delete mpFlowGraph;
         mpFlowGraph = NULL;
     }
-
-    // Delete the properties and their values
-    mInterfaceProperties.destroyAll();
 }
 
 /**
@@ -364,7 +353,6 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
                                                 int& rtcpVideoPort,
                                                 SdpCodecList& supportedCodecs,
                                                 SdpSrtpParameters& srtpParams,
-                                                int bandWidth,
                                                 int& videoBandwidth,
                                                 int& videoFramerate)
 {
@@ -467,11 +455,6 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
             }
         }
 
-        // Codecs
-        if (bandWidth != AUDIO_MICODEC_BW_DEFAULT)
-        {
-            setAudioCodecBandwidth(connectionId, bandWidth);
-        }
         supportedCodecs.clearCodecs();
         UtlSList codecList;
         pMediaConn->mpSdpCodecList->getCodecs(codecList);
@@ -499,7 +482,6 @@ OsStatus SipXMediaInterfaceImpl::getCapabilitiesEx(int connectionId,
                                                   int& nActualAddresses,
                                                   SdpCodecList& supportedCodecs,
                                                   SdpSrtpParameters& srtpParameters,
-                                                  int bandWidth,
                                                   int& videoBandwidth,
                                                   int& videoFramerate)
 {   
@@ -559,11 +541,6 @@ OsStatus SipXMediaInterfaceImpl::getCapabilitiesEx(int connectionId,
 
         }
 
-        // Codecs
-        if (bandWidth != AUDIO_MICODEC_BW_DEFAULT)
-        {
-            setAudioCodecBandwidth(connectionId, bandWidth);
-        }
         supportedCodecs.clearCodecs();
         supportedCodecs.addCodecs(*pMediaConn->mpSdpCodecList);
         supportedCodecs.bindPayloadIds();
@@ -910,13 +887,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
       applyAlternateDestinations(connectionId) ;
    }
 
-   // Make sure we use the same payload types as the remote
-   // side.  Its the friendly thing to do.
-   if (mediaConnection->mpSdpCodecList)
-   {
-      mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
-   }
-
    if (mpFlowGraph)
    {
        // Store the primary codec for cost calculations later
@@ -929,13 +899,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpSend(int connectionId,
        {
            mediaConnection->mpAudioCodec = new SdpCodec();
            *mediaConnection->mpAudioCodec = *audioCodec ;
-       }
-
-       // Make sure we use the same payload types as the remote
-       // side.  Its the friendly thing to do.
-       if (mediaConnection->mpSdpCodecList)
-       {
-           mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
        }
 
       if (!mediaConnection->mRtpSendHostAddress.isNull() && mediaConnection->mRtpSendHostAddress.compareTo("0.0.0.0"))
@@ -967,13 +930,6 @@ OsStatus SipXMediaInterfaceImpl::startRtpReceive(int connectionId,
 
    UtlSList utlCodecList;
    sdpCodecList.getCodecs(utlCodecList);
-
-   // Make sure we use the same payload types as the remote
-   // side.  It's the friendly thing to do.
-   if (mediaConnection->mpSdpCodecList)
-   {
-         mediaConnection->mpSdpCodecList->copyPayloadIds(utlCodecList);
-   }
 
    if (mpFlowGraph)
    {
@@ -1188,33 +1144,6 @@ OsStatus SipXMediaInterfaceImpl::resumePlayback()
    return(returnCode);
 }
 
-OsStatus SipXMediaInterfaceImpl::recordChannelAudio(int connectionId,
-                                                   const char* szFile) 
-{
-    // TODO:: This API is designed to record the audio from a single channel.  
-    // If the connectionId is -1, record all.
-
-    double duration = 0 ; // this means it will record for very long time
-    int dtmf = 0 ;
-
-    /* use new call recorder
-       from now on, call recorder records both mic, speaker and local dtmf      
-       we don't want raw pcm, but wav pcm, raw pcm should be passed to a callback
-       meant for recording, for example for conversion to mp3 or other format */
-    return mpFlowGraph->record(0, -1, NULL, NULL, NULL, NULL, NULL, NULL,
-                               NULL, NULL, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16) ;
-}
-
-OsStatus SipXMediaInterfaceImpl::stopRecordChannelAudio(int connectionId) 
-{
-    // TODO:: This API is designed to record the audio from a single channel.  
-    // If the connectionId is -1, record all.
-
-
-    return stopRecording() ;
-}
-
-
 OsStatus SipXMediaInterfaceImpl::startTone(int toneId,
                                           UtlBoolean local,
                                           UtlBoolean remote)
@@ -1325,8 +1254,7 @@ OsStatus SipXMediaInterfaceImpl::recordAudio(const char* szFile)
       from now on, call recorder records both mic, speaker and local dtmf      
       we don't want raw pcm, but wav pcm, raw pcm should be passed to a callback
       meant for recording, for example for conversion to mp3 or other format */
-      return mpFlowGraph->record(0, -1, NULL, NULL, NULL, NULL, NULL, NULL,
-                                 NULL, NULL, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16);
+      return mpFlowGraph->record(0, -1, szFile, 0, 0, NULL, MprRecorder::WAV_PCM_16);
    }
 
    return OS_FAILED;
@@ -1348,28 +1276,6 @@ OsStatus SipXMediaInterfaceImpl::stopRecording()
    return ret;
 }
 
-OsStatus SipXMediaInterfaceImpl::recordMic(UtlString* pAudioBuffer)
-{
-   OsStatus stat = OS_UNSPECIFIED;
-   if(mpFlowGraph != NULL)
-   {
-      stat = mpFlowGraph->recordMic(pAudioBuffer);
-   }
-   return stat;
-}
-
-OsStatus SipXMediaInterfaceImpl::recordMic(int ms,
-                                          int silenceLength,
-                                          const char* fileName)
-{
-    OsStatus ret = OS_UNSPECIFIED;
-    if (mpFlowGraph && fileName)
-    {
-        ret = mpFlowGraph->recordMic(ms, silenceLength, fileName);
-    }
-    return ret ;
-}
-
 void SipXMediaInterfaceImpl::setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) 
 {
     SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
@@ -1387,11 +1293,6 @@ void SipXMediaInterfaceImpl::setContactType(int connectionId, SIPX_CONTACT_TYPE 
             pMediaConn->mContactType = eType;
         }
     }
-}
-
-OsStatus SipXMediaInterfaceImpl::setAudioCodecBandwidth(int connectionId, int bandWidth) 
-{
-    return OS_NOT_SUPPORTED ;
 }
 
 OsStatus SipXMediaInterfaceImpl::setCodecList(const SdpCodecList& sdpCodecList)
@@ -1425,12 +1326,6 @@ OsStatus SipXMediaInterfaceImpl::getCodecList(int connectionId, SdpCodecList& sd
    return rc;
 }
 
-OsStatus SipXMediaInterfaceImpl::setConnectionBitrate(int connectionId, int bitrate) 
-{
-    return OS_NOT_SUPPORTED ;
-}
-
-
 OsStatus SipXMediaInterfaceImpl::setConnectionFramerate(int connectionId, int framerate) 
 {
     return OS_NOT_SUPPORTED ;
@@ -1440,13 +1335,6 @@ OsStatus SipXMediaInterfaceImpl::setConnectionFramerate(int connectionId, int fr
 OsStatus SipXMediaInterfaceImpl::setSecurityAttributes(const void* security) 
 {
     return OS_NOT_SUPPORTED ;
-}
-
-OsStatus SipXMediaInterfaceImpl::generateVoiceQualityReport(int         connectiond,
-                                                           const char* callId,
-                                                           UtlString&  report) 
-{
-	return OS_NOT_SUPPORTED ;
 }
 
 
@@ -1461,96 +1349,6 @@ OsStatus SipXMediaInterfaceImpl::setVideoQuality(int quality)
 OsStatus SipXMediaInterfaceImpl::setVideoParameters(int bitRate, int frameRate)
 {
    return OS_SUCCESS;
-}
-
-// Calculate the current cost for our sending/receiving codecs
-int SipXMediaInterfaceImpl::getCodecCPUCost()
-{   
-   int iCost = SdpCodec::SDP_CODEC_CPU_LOW ;   
-
-   if (mMediaConnections.entries() > 0)
-   {      
-      SipXMediaConnection* mediaConnection = NULL;
-
-      // Iterate the connections and determine the most expensive supported 
-      // codec.
-      UtlDListIterator connectionIterator(mMediaConnections);
-      while ((mediaConnection = (SipXMediaConnection*) connectionIterator()))
-      {
-         // If the codec is null, assume LOW.
-         if (mediaConnection->mpAudioCodec != NULL)
-         {
-            int iCodecCost = mediaConnection->mpAudioCodec->getCPUCost();
-            if (iCodecCost > iCost)
-               iCost = iCodecCost;
-         }
-
-         // Optimization: If we have already hit the highest, kick out.
-         if (iCost == SdpCodec::SDP_CODEC_CPU_HIGH)
-            break ;
-      }
-   }
-   
-   return iCost ;
-}
-
-
-// Calculate the worst case cost for our sending/receiving codecs
-int SipXMediaInterfaceImpl::getCodecCPULimit()
-{   
-   int iCost = SdpCodec::SDP_CODEC_CPU_LOW ;   
-   int         iCodecs = 0 ;
-   SdpCodec**  codecs ;
-
-
-   //
-   // If have connections; report what we have offered
-   //
-   if (mMediaConnections.entries() > 0)
-   {      
-      SipXMediaConnection* mediaConnection = NULL;
-
-      // Iterate the connections and determine the most expensive supported 
-      // codec.
-      UtlDListIterator connectionIterator(mMediaConnections);
-      while ((mediaConnection = (SipXMediaConnection*) connectionIterator()))
-      {
-         mediaConnection->mpSdpCodecList->getCodecs(iCodecs, codecs) ;      
-         for(int i = 0; i < iCodecs; i++)
-         {
-            // If the cost is greater than what we have, then make that the cost.
-            int iCodecCost = codecs[i]->getCPUCost();
-            if (iCodecCost > iCost)
-               iCost = iCodecCost;
-
-             delete codecs[i];
-         }
-         delete[] codecs;
-
-         // Optimization: If we have already hit the highest, kick out.
-         if (iCost == SdpCodec::SDP_CODEC_CPU_HIGH)
-            break ;
-      }
-   }
-   //
-   // If no connections; report what we plan on using
-   //
-   else
-   {
-      mSdpCodecList.getCodecs(iCodecs, codecs) ;  
-      for(int i = 0; i < iCodecs; i++)
-      {
-         // If the cost is greater than what we have, then make that the cost.
-         int iCodecCost = codecs[i]->getCPUCost();
-         if (iCodecCost > iCost)
-            iCost = iCodecCost;
-
-          delete codecs[i];
-      }
-      delete[] codecs;
-   }
-
-   return iCost ;
 }
 
 OsStatus SipXMediaInterfaceImpl::getPrimaryCodec(int connectionId, 
@@ -1666,9 +1464,9 @@ UtlBoolean SipXMediaInterfaceImpl::isDestinationSet(int connectionId)
 
 UtlBoolean SipXMediaInterfaceImpl::canAddParty() 
 {
-    return (mMediaConnections.entries() < MAX_CONFERENCE_PARTICIPANTS);
+   // this limit is due to limit of MpCallFlowGraph using arrays
+   return mMediaConnections.entries() < MAX_CONNECTIONS;
 }
-
 
 UtlBoolean SipXMediaInterfaceImpl::isVideoInitialized(int connectionId)
 {
@@ -2209,110 +2007,6 @@ void SipXMediaInterfaceImpl::applyAlternateDestinations(int connectionId)
     }
 }
 
-OsStatus SipXMediaInterfaceImpl::setMediaProperty(const UtlString& propertyName,
-                                                 const UtlString& propertyValue)
-{
-    OsSysLog::add(FAC_CP, PRI_ERR, 
-        "SipXMediaInterfaceImpl::setMediaProperty %p propertyName=\"%s\" propertyValue=\"%s\"",
-        this, propertyName.data(), propertyValue.data());
-
-    UtlString* oldProperty = (UtlString*)mInterfaceProperties.findValue(&propertyValue);
-    if(oldProperty)
-    {
-        // Update the old value
-        (*oldProperty) = propertyValue;
-    }
-    else
-    {
-        // No prior value for this property create copies for the map
-        mInterfaceProperties.insertKeyAndValue(new UtlString(propertyName),
-                                               new UtlString(propertyValue));
-    }
-    return OS_NOT_YET_IMPLEMENTED;
-}
-
-OsStatus SipXMediaInterfaceImpl::getMediaProperty(const UtlString& propertyName,
-                                                 UtlString& propertyValue)
-{
-    OsStatus returnCode = OS_NOT_FOUND;
-    OsSysLog::add(FAC_CP, PRI_ERR, 
-        "SipXMediaInterfaceImpl::getMediaProperty %p propertyName=\"%s\"",
-        this, propertyName.data());
-
-    UtlString* foundValue = (UtlString*)mInterfaceProperties.findValue(&propertyName);
-    if(foundValue)
-    {
-        propertyValue = *foundValue;
-        returnCode = OS_SUCCESS;
-    }
-    else
-    {
-        propertyValue = "";
-        returnCode = OS_NOT_FOUND;
-    }
-
-    returnCode = OS_NOT_YET_IMPLEMENTED;
-    return(returnCode);
-}
-
-OsStatus SipXMediaInterfaceImpl::setMediaProperty(int connectionId,
-                                                 const UtlString& propertyName,
-                                                 const UtlString& propertyValue)
-{
-    OsStatus returnCode = OS_NOT_YET_IMPLEMENTED;
-    OsSysLog::add(FAC_CP, PRI_ERR, 
-        "SipXMediaInterfaceImpl::setMediaProperty %p connectionId=%d propertyName=\"%s\" propertyValue=\"%s\"",
-        this, connectionId, propertyName.data(), propertyValue.data());
-
-    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
-    if(mediaConnection)
-    {
-        UtlString* oldProperty = (UtlString*)(mediaConnection->mConnectionProperties.findValue(&propertyValue));
-        if(oldProperty)
-        {
-            // Update the old value
-            (*oldProperty) = propertyValue;
-        }
-        else
-        {
-            // No prior value for this property create copies for the map
-            mediaConnection->mConnectionProperties.insertKeyAndValue(new UtlString(propertyName),
-                                                                     new UtlString(propertyValue));
-        }
-    }
-    else
-    {
-        returnCode = OS_NOT_FOUND;
-    }
-
-
-    return(returnCode);
-}
-
-OsStatus SipXMediaInterfaceImpl::getMediaProperty(int connectionId,
-                                                 const UtlString& propertyName,
-                                                 UtlString& propertyValue)
-{
-    OsStatus returnCode = OS_NOT_FOUND;
-    propertyValue = "";
-
-    OsSysLog::add(FAC_CP, PRI_ERR, 
-        "SipXMediaInterfaceImpl::getMediaProperty %p connectionId=%d propertyName=\"%s\"",
-        this, connectionId, propertyName.data());
-
-    SipXMediaConnection* mediaConnection = getMediaConnection(connectionId);
-    if(mediaConnection)
-    {
-        UtlString* oldProperty = (UtlString*)(mediaConnection->mConnectionProperties.findValue(&propertyName));
-        if(oldProperty)
-        {
-            propertyValue = *oldProperty;
-            returnCode = OS_SUCCESS;
-        }
-    }
-
-    return OS_NOT_YET_IMPLEMENTED;//(returnCode);
-}
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 OsStatus SipXMediaInterfaceImpl::createRtpSocketPair(UtlString localAddress,

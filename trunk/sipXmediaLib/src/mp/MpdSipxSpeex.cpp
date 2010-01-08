@@ -21,21 +21,16 @@
 
 
 const MpCodecInfo MpdSipxSpeex::smCodecInfo(
-         SdpCodec::SDP_CODEC_SPEEX_8,    // codecType
+         SdpCodec::SDP_CODEC_SPEEX_24,    // codecType
          "Speex codec",                // codecVersion
-         false,                        // usesNetEq
          8000,                         // samplingRate
-         8,                            // numBitsPerSample (not used)
+         16,                            // numBitsPerSample (not used)
          1,                            // numChannels
-         38,                           // interleaveBlockSize
-         15000,                        // bitRate
+         24600,                        // bitRate
          1*8,                          // minPacketBits
-         38*8,                         // avgPacketBits
          63*8,                         // maxPacketBits
-         160,                          // numSamplesPerFrame
-         5);                           // preCodecJitterBufferSize (should be adjusted)
+         160);                          // numSamplesPerFrame
 
-              
 
 MpdSipxSpeex::MpdSipxSpeex(int payloadType)
 : MpDecoderBase(payloadType, &smCodecInfo)
@@ -85,10 +80,15 @@ OsStatus MpdSipxSpeex::freeDecode(void)
 
 int MpdSipxSpeex::decode(const MpRtpBufPtr &pPacket, unsigned decodedBufferLength, MpAudioSample *samplesBuffer)
 {
-   // Assert that available buffer size is enough for the packet.
-   if (mNumSamplesPerFrame > decodedBufferLength)
+   if (!pPacket.isValid())
+      return 0;
+
+   unsigned payloadSize = pPacket->getPayloadSize();
+   unsigned maxPayloadSize = smCodecInfo.getMaxPacketBits()/8;
+
+   assert(payloadSize <= maxPayloadSize);
+   if (payloadSize > maxPayloadSize)
    {
-      osPrintf("MpdSipxSpeex::decode: Jitter buffer overloaded. Glitch!\n");
       return 0;
    }
 
