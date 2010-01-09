@@ -74,9 +74,7 @@ libsipXport_la_SOURCES =  \
     os/OsNameDb.cpp \
     os/OsNameDbInit.cpp \
     os/OsNatAgentTask.cpp \
-    os/OsNatConnectionSocket.cpp \
     os/OsNatDatagramSocket.cpp \
-    os/OsNatServerSocket.cpp \
     os/OsNatSocketBaseImpl.cpp \
     os/OsPathBase.cpp \
     os/OsProcessBase.cpp \
@@ -93,6 +91,9 @@ libsipXport_la_SOURCES =  \
     os/OsSSL.cpp \
     os/OsSSLConnectionSocket.cpp \
     os/OsSSLServerSocket.cpp \
+    os/OsStunResultFailureMsg.cpp \
+    os/OsStunResultMsg.cpp \
+    os/OsStunResultSuccessMsg.cpp \
     os/OsServerSocket.cpp \
     os/OsServerTask.cpp \
     os/OsSharedLibMgr.cpp \

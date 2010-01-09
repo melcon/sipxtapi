@@ -62,10 +62,8 @@ nobase_include_HEADERS = \
     os/OsNameDb.h \
     os/OsNameDbInit.h \
     os/OsNatAgentTask.h \
-    os/OsNatConnectionSocket.h \
     os/OsNatDatagramSocket.h \
     os/OsNatKeepaliveListener.h \
-    os/OsNatServerSocket.h \
     os/OsNatSocketBaseImpl.h \
     os/OsNotification.h \
     os/OsPathBase.h \
@@ -96,6 +94,9 @@ nobase_include_HEADERS = \
     os/OsSSLConnectionSocket.h \
     os/OsSSLServerSocket.h \
     os/OsStatus.h \
+    os/OsStunResultFailureMsg.h \
+    os/OsStunResultMsg.h \
+    os/OsStunResultSuccessMsg.h \
     os/OsSyncBase.h \
     os/OsSysLog.h \
     os/OsSysLogFacilities.h \

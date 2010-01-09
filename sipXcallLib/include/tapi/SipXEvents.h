@@ -48,7 +48,7 @@ SIPX_RESULT sipxEventListenerRemoveInternal(const SIPX_INST hInst,
 
 void sipxFireConfigEvent(const SIPX_INST pInst,                                                        
                          SIPX_CONFIG_EVENT event,
-                         void* pEventData);
+                         const SIPX_CONTACT_ADDRESS* pContactAddress);
 
 /**
 * Fires SipPimClient events

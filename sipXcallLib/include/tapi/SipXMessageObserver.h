@@ -17,10 +17,6 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "os/OsServerTask.h"
-#include "net/SipMessage.h"
-#include "net/SipMessageEvent.h"
-#include "sipXtapi.h"
-
 
 // DEFINES
 #define SIPXMO_NOTIFICATION_STUN    1
@@ -30,9 +26,12 @@
 // STRUCTS
 // TYPEDEFS
 // MACROS
-
 // FORWARD DECLARATIONS
 class OsEventMsg;
+class SIPX_INSTANCE_DATA;
+class OsStunResultMsg;
+class OsStunResultSuccessMsg;
+class OsStunResultFailureMsg;
 
 /**
  *  Class that is an OsServerTask, and has a message queue that observes SIP messages.
@@ -42,7 +41,7 @@ class SipXMessageObserver : public OsServerTask
 public:
 /* ============================ CREATORS ================================== */
 
-    SipXMessageObserver(const SIPX_INST hInst);
+    SipXMessageObserver(SIPX_INSTANCE_DATA* pInst);
     virtual ~SipXMessageObserver(void);
     
 /* ============================ MANIPULATORS ============================== */
@@ -50,12 +49,16 @@ public:
     /**
      * Implementation of OsServerTask's pure virtual method
      */
-    UtlBoolean handleMessage(OsMsg& rMsg);
+    virtual UtlBoolean handleMessage(OsMsg& rMsg);
       
 private:
-    UtlBoolean handleStunOutcome(OsEventMsg* pMsg);
+    UtlBoolean handleStunOutcome(const OsStunResultMsg& pResultMsg);
 
-    SIPX_INST m_hInst;
+    UtlBoolean handleStunSuccess(const OsStunResultSuccessMsg& pResultMsg);
+
+    UtlBoolean handleStunFailure(const OsStunResultFailureMsg& pResultMsg);
+
+    SIPX_INSTANCE_DATA* m_pInst;
 };
 
 #endif

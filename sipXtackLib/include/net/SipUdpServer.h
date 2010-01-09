@@ -80,7 +80,7 @@ public:
                     int iStunPort,
                     const char* szLocalIp, 
                     int refreshPeriodInSecs, 
-                    OsNotification* pNotification) ;
+                    OsMsgQ* pNotificationQueue);
       //:Enable stun lookups for UDP signaling
       // Use a NULL szStunServer to disable
 

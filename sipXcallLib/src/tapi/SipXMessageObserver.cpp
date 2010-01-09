@@ -14,20 +14,13 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include "tapi/SipXMessageObserver.h"
-#include <tapi/SipXInfoStatusEventListener.h>
-#include "tapi/sipXtapi.h"
-#include "tapi/sipXtapiEvents.h"
+#include <tapi/SipXCore.h>
 #include "tapi/SipXEvents.h"
-#include "tapi/SipXHandleMap.h"
-#include "tapi/SipXCall.h"
-#include "tapi/SipXLine.h"
-#include "tapi/SipXInfo.h"
 #include "tapi/SipXEventDispatcher.h"
 #include "net/SipUserAgent.h"
-#include "utl/UtlVoidPtr.h"
 #include "os/OsEventMsg.h"
-#include "os/OsLock.h"
-#include "os/OsTimer.h"
+#include <os/OsStunResultFailureMsg.h>
+#include <os/OsStunResultSuccessMsg.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -40,16 +33,16 @@
 /* ============================ CREATORS ================================== */
 
 
-SipXMessageObserver::SipXMessageObserver(const SIPX_INST hInst) :
-    OsServerTask("SipXMessageObserver%d", NULL, 2000),
-    m_hInst(hInst)
+SipXMessageObserver::SipXMessageObserver(SIPX_INSTANCE_DATA* pInst)
+: OsServerTask("SipXMessageObserver%d", NULL, 2000)
+, m_pInst(pInst)
 {
 }
 
 
 SipXMessageObserver::~SipXMessageObserver(void)
 {
-    waitUntilShutDown();
+   waitUntilShutDown();
 }
 
 /* ============================ MANIPULATORS ============================== */
@@ -57,84 +50,78 @@ SipXMessageObserver::~SipXMessageObserver(void)
 
 UtlBoolean SipXMessageObserver::handleMessage(OsMsg& rMsg)
 {
-    UtlBoolean bRet = FALSE;
-    unsigned char msgType = rMsg.getMsgType();
-    unsigned char msgSubType = rMsg.getMsgSubType();
+   UtlBoolean bRet = FALSE;
+   unsigned char msgType = rMsg.getMsgType();
+   unsigned char msgSubType = rMsg.getMsgSubType();
 
-    // Queued event notification
-    if (msgType == OsMsg::OS_EVENT)
-    {
-        OsEventMsg* pEventMsg = (OsEventMsg*)&rMsg;
-        int eventType;
-        pEventMsg->getUserData(eventType);
-
-        // fine select by event user data
-        switch (eventType)
-        {
-            case SIPXMO_NOTIFICATION_STUN:
-                handleStunOutcome(pEventMsg);
-                bRet = TRUE;
-                break;
-            default:
-               // this shouldn't be used at all
-               assert(false);
-               break;
-        }                
-    }
-    else if (msgType == OsMsg::PHONE_APP && msgSubType == SipMessage::NET_SIP_MESSAGE)
-    {
-       SipMessage* pSipMessage = (SipMessage*)((SipMessageEvent&)rMsg).getMessage();
-       // add handlers for any other messages
-    }
-    return bRet;
+   // Stun event notification
+   if (msgType == OsMsg::OS_STUN_RESULT_MSG)
+   {
+      const OsStunResultMsg* pResultMsg = dynamic_cast<const OsStunResultMsg*>(&rMsg);
+      if (pResultMsg)
+      {
+         return handleStunOutcome(*pResultMsg);
+      }
+   }
+   return bRet;
 }
 
-UtlBoolean SipXMessageObserver::handleStunOutcome(OsEventMsg* pMsg) 
+UtlBoolean SipXMessageObserver::handleStunOutcome(const OsStunResultMsg& pResultMsg) 
 {
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "SipXMessageObserver::handleStunOutcome");
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, m_hInst);
-   SIPX_CONTACT_ADDRESS* pStunContact = NULL;
-   pMsg->getEventData((int&)pStunContact);
+   switch(pResultMsg.getMsgSubType())
+   {
+      case OsStunResultMsg::STUN_RESULT_SUCCESS:
+         {
+            const OsStunResultSuccessMsg* pResultSuccessMsg = dynamic_cast<const OsStunResultSuccessMsg*>(&pResultMsg);
+            if (pResultSuccessMsg)
+            {
+               return handleStunSuccess(*pResultSuccessMsg);
+            }
+            break;
+         }
+      case OsStunResultMsg::STUN_RESULT_FAILURE:
+         {
+            const OsStunResultFailureMsg* pResultFailureMsg = dynamic_cast<const OsStunResultFailureMsg*>(&pResultMsg);
+            if (pResultFailureMsg)
+            {
+               return handleStunFailure(*pResultFailureMsg);
+            }
+            break;
+         }
+      default:
+         ;
+   }
 
-    if (pStunContact)
-    {
-        // first, find the user-agent, and add the contact to
-        // the user-agent's db
-        assert(pInst);
-        pInst->pSipUserAgent->addContactAddress(*pStunContact);
-        sipxFireConfigEvent(pInst, CONFIG_STUN_SUCCESS, pStunContact);
+   return TRUE;
+}
 
-        // If we have an external transport, also create a record for the 
-        // external transport
-        SIPX_CONTACT_ADDRESS externalTransportContact;
+UtlBoolean SipXMessageObserver::handleStunSuccess(const OsStunResultSuccessMsg& pResultMsg)
+{
+   UtlString adapterName;
+   UtlString mappedIp;
+   int mappedPort;
+   pResultMsg.getAdapterName(adapterName);
+   pResultMsg.getMappedIp(mappedIp);
+   mappedPort = pResultMsg.getMappedPort();
+   // create SIPX_CONTACT_ADDRESS
+   SIPX_CONTACT_ADDRESS stunContact;
+   stunContact.id = 0; // will be assigned by SipUserAgent
+   SAFE_STRNCPY(stunContact.cInterface, adapterName.data(), sizeof(stunContact.cInterface));
+   SAFE_STRNCPY(stunContact.cIpAddress, mappedIp.data(), sizeof(stunContact.cIpAddress));
+   stunContact.iPort = mappedPort;
+   stunContact.eContactType = CONTACT_NAT_MAPPED;
+   stunContact.eTransportType = TRANSPORT_UDP;
+   // first, find the user-agent, and add the contact to
+   // the user-agent's db
+   m_pInst->pSipUserAgent->addContactAddress(stunContact);
+   sipxFireConfigEvent(m_pInst, CONFIG_STUN_SUCCESS, &stunContact);
 
-        // TODO: At the point where we support multiple external 
-        // transports, this code needs to iterate through ALL of
-        // the external transports.
+   return TRUE;
+}
 
-        // ????? VERIFY
-        if (pInst->pSipUserAgent->getContactDb().getRecordForAdapter(externalTransportContact,
-                                                                     pStunContact->cInterface,
-                                                                     CONTACT_LOCAL,
-                                                                     TRANSPORT_CUSTOM))
-        {
-            SIPX_CONTACT_ADDRESS* pExtContact = NULL;
-            pExtContact = new SIPX_CONTACT_ADDRESS(externalTransportContact);
-            pExtContact->eContactType = CONTACT_NAT_MAPPED;
-            pExtContact->id = 0;
-            SAFE_STRNCPY(pExtContact->cIpAddress, pStunContact->cIpAddress, sizeof(pExtContact->cIpAddress));
-            pExtContact->iPort = pStunContact->iPort;
-            pInst->pSipUserAgent->addContactAddress(*pExtContact);
-            sipxFireConfigEvent(pInst, CONFIG_STUN_SUCCESS, pExtContact);
-            delete pExtContact;
-        }
-        
-        delete pStunContact;
-    }
-    else
-    {
-       sipxFireConfigEvent(pInst, CONFIG_STUN_FAILURE, NULL);
-    }
+UtlBoolean SipXMessageObserver::handleStunFailure(const OsStunResultFailureMsg& pResultMsg)
+{
+   sipxFireConfigEvent(m_pInst, CONFIG_STUN_FAILURE, NULL);
 
-    return TRUE;
+   return TRUE;
 }

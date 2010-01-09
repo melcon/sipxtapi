@@ -377,85 +377,77 @@ void SipUdpServer::enableStun(const char* szStunServer,
                               int iStunPort,
                               const char* szLocalIp, 
                               int refreshPeriodInSecs, 
-                              OsNotification* pNotification) 
+                              OsMsgQ* pNotificationQueue) 
 {
     OsLock lock(mMapLock);
     // Store settings
-    mStunPort = iStunPort ;
-    mStunRefreshSecs = refreshPeriodInSecs ;   
+    mStunPort = iStunPort;
+    mStunRefreshSecs = refreshPeriodInSecs;
     if (szStunServer)
     {
-        mStunServer = szStunServer ;
+        mStunServer = szStunServer;
     }
     else
     {
-        mStunServer.remove(0) ;
+        mStunServer.clear();
     }
     
+    UtlBoolean bStunAll = FALSE;
     UtlHashMapIterator iterator(mServerSocketMap);
-    UtlString* pKey = NULL;
-
-    char szIpToStun[256];
-    memset((void*)szIpToStun, 0, sizeof(szIpToStun));
+    UtlString* pMapKey = NULL;
+    UtlString sIpToStun;
     
     if (szLocalIp)
     {
-        strcpy(szIpToStun, szLocalIp);
+       sIpToStun.append(szLocalIp);
     }
-    bool bStunAll = false;
-    if (0 == strcmp(szIpToStun, "") || 0 == strcmp(szIpToStun, "0.0.0.0"))
+    if (sIpToStun.isNull() || sIpToStun.compareTo("0.0.0.0") == 0)
     {
         bStunAll = true;
         // if no ip specified, start on the first one
-        pKey = (UtlString*) iterator();
-        if (pKey)
+        pMapKey = dynamic_cast<UtlString*>(iterator());
+        if (pMapKey)
         {
-            strcpy(szIpToStun, pKey->data());
+           sIpToStun = *pMapKey;
         }
     }
     
-    while (0 != strcmp(szIpToStun, ""))
+    while (!sIpToStun.isNull())
     {
-        UtlPtr<OsNatDatagramSocket>* pSocketContainer;
-        UtlString key(szIpToStun);
-        
-        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)this->mServerSocketMap.findValue(&key);
-        OsNatDatagramSocket* pSocket = NULL;
+        const UtlPtr<OsNatDatagramSocket>* pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&sIpToStun);
         
         if (pSocketContainer)
         {
-            pSocket = pSocketContainer->getValue();
-        }                                                                  
-        if (pSocket)
-        {
-            pSocket->disableStun() ;
-            
-            // Update server client
-            if (pSocket && mStunServer.length()) 
-            {
-                pSocket->setNotifier(pNotification) ;
-                pSocket->enableStun(mStunServer,  mStunPort, refreshPeriodInSecs, 0, false) ;
-            }  
+           OsNatDatagramSocket* pSocket = pSocketContainer->getValue();
+           if (pSocket)
+           {
+              pSocket->disableStun();
+              // Update server client
+              if (!mStunServer.isNull()) 
+              {
+                 pSocket->setStunNotificationQueue(pNotificationQueue);
+                 pSocket->enableStun(mStunServer, mStunPort, refreshPeriodInSecs, 0, false);
+              }
+           }
         }
         if (bStunAll)
         {
             // get the next address to stun
-            pKey = (UtlString*) iterator();
-            if (pKey)
+            pMapKey = dynamic_cast<UtlString*>(iterator());
+            if (pMapKey)
             {
-                strcpy(szIpToStun, pKey->data());
+                sIpToStun = *pMapKey;
             }
             else
             {
-                strcpy(szIpToStun, "");
+                break; // no more server sockets
             }
         }
         else
         {
             break;
         }
-    } // end while  
-    
+    } // end while
 }
 
 UtlBoolean SipUdpServer::startListener()

@@ -780,8 +780,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pRtpRedirectEventListener = NULL;
          delete pInst->pConferenceEventListener;
          pInst->pConferenceEventListener = NULL;
-         delete pInst->pStunNotification;
-         pInst->pStunNotification = NULL;
          delete pInst->pMessageObserver;
          pInst->pMessageObserver = NULL;
          sipxTransportDestroyAll(pInst);

@@ -20,7 +20,7 @@
 #include "utl/UtlDefs.h"
 #include "utl/UtlSListIterator.h"
 #include "os/OsSocket.h"
-#include "os/OsNatConnectionSocket.h"
+#include "os/IStunSocket.h"
 
 #include <net/HttpBody.h>
 #include <net/NameValuePair.h>

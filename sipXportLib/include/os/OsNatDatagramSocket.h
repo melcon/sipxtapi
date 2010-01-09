@@ -117,14 +117,14 @@ public:
      *        PORT_DEFAULT to autoselect
      * @param localHostName Local host name for the socket (e.g. which interface
      *        to bind on.
-     * @param pNotification Optional notification event that is signaled upon
-     *        the initial successful stun response or on failure.
+     * @param pStunNotificationQueue Optional queue for receiving initial STUN
+     *        notifications.
      */
     OsNatDatagramSocket(int remoteHostPort, 
                         const char* remoteHostName, 
                         int localHostPort = PORT_DEFAULT,
                         const char* localHostName = NULL,
-                        OsNotification* pNotification = NULL) ;
+                        OsMsgQ* pStunNotificationQueue = NULL) ;
 
     /**
      * Standard Destructor
@@ -188,9 +188,9 @@ public:
      *
      * @param szStunServer
      * @param stunPort
-     * @param iKeepAlive
+     * @param iKeepAlive how often to resend STUN request
      * @param stunOptions
-     * @param bReadFromSocket
+     * @param bReadFromSocket when true method will block until STUN result is available
      */
     virtual void enableStun(const char* szStunServer, 
                             int stunPort,
@@ -285,16 +285,12 @@ public:
     virtual void readyDestination(const char* szAddress, int iPort) ;
 
     /**
-     * Sets as notification event that is signaled upon the next successful 
-     * stun response or on failure (did not receive a stun response within 
-     * (STUN_ABORT_THRESHOLD * STUN_TIMEOUT_RESPONSE_MS).  If a notification
-     * event was previous set either by calling this method or via the 
-     * constructor, it will be overridden.  If the initial STUN success/failure
-     * state has already been determined, this method is undefined.
+     * Sets event queue which receives notifications about STUN success/failures.
+     * Only one notification is sent per socket (either success or failure).
      *
-     * @param pNotification Notification event signaled on success or failure.
+     * @param pNotificationQueue queue which will receive notification events
      */ 
-    virtual void setNotifier(OsNotification* pNotification) ;
+    virtual void setStunNotificationQueue(OsMsgQ* pNotificationQueue);
 
     virtual UtlBoolean addCrLfKeepAlive(const char* szRemoteIp,
                                         const int   remotePort, 
@@ -422,8 +418,8 @@ private:
     /* Global Attributes */
     OsNatAgentTask* mpNatAgent;      /**< Pointer to Nat agent task (handles refreshes) */
     bool mbTransparentReads ;        /**< Block until a non-stun/turn packet is read */
-    OsNotification* mpNotification ; /** Notify on initial stun success or failure */
-    bool            mbNotified ;     /** Have we notified the requestor? */
+    OsMsgQ* mpStunNotificationQueue; /** Notify on initial stun success or failure */
+    bool mbStunNotified;     /** Have we notified the requestor? */
 };
 
 /* ============================ INLINE METHODS ============================ */

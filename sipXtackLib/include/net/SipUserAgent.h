@@ -270,7 +270,7 @@ public:
    virtual void enableStun(const char* szStunServer, 
       int iStunPort,
       int refreshPeriodInSecs, 
-      OsNotification* pNotification = NULL,
+      OsMsgQ* pNotificationQueue = NULL,
       const char* szIp = NULL) ;
 
    //! For internal use only

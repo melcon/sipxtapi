@@ -345,13 +345,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigEnableStun(const SIPX_INST hInst,
 
    if (pInst)
    {
-      if (!pInst->pStunNotification)
-      {
-         pInst->pStunNotification = new OsQueuedEvent(*pInst->pMessageObserver->getMessageQueue(),
-                                                      SIPXMO_NOTIFICATION_STUN);
-      }
-
-      pInst->pCallManager->enableStun(szServer, iServerPort, iKeepAliveInSecs, pInst->pStunNotification);
+      pInst->pCallManager->enableStun(szServer, iServerPort, iKeepAliveInSecs,
+         pInst->pMessageObserver->getMessageQueue());
       rc = SIPX_RESULT_SUCCESS;
    }
 

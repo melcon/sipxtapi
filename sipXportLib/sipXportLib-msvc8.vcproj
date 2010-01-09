@@ -11,7 +11,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="false" DebugInformationFormat="4" PrecompiledHeaderFile="" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\pcre\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="false" DebugInformationFormat="4" PrecompiledHeaderFile="" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -28,7 +28,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName=".\Release/" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXportLib.pch" Optimization="2"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\pcre\include" ObjectFile=".\Release/" SuppressStartupBanner="true" PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048" WarningLevel="3" AssemblerListingLocation=".\Release/" InlineFunctionExpansion="1" EnableFunctionLevelLinking="true" RuntimeLibrary="2" UsePrecompiledHeader="0" StringPooling="true" ProgramDataBaseFileName=".\Release/" DebugInformationFormat="3" PrecompiledHeaderFile=".\Release/sipXportLib.pch" Optimization="2"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="NDEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -45,7 +45,7 @@
             <Tool Name="VCXMLDataGeneratorTool"/>
             <Tool Name="VCWebServiceProxyGeneratorTool"/>
             <Tool Name="VCMIDLTool"/>
-            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include;..\..\openSSL\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048;HAVE_SSL" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="false" DebugInformationFormat="4" PrecompiledHeaderFile="" Optimization="0"/>
+            <Tool Name="VCCLCompilerTool" RuntimeTypeInfo="true" CompileAs="0" AdditionalIncludeDirectories="include;contrib\pcre\include;..\..\openSSL\include" ObjectFile="$(IntDir)\" BrowseInformation="1" FloatingPointExceptions="false" SuppressStartupBanner="true" BasicRuntimeChecks="3" PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048;HAVE_SSL" WarningLevel="3" AssemblerListingLocation="" EnableFunctionLevelLinking="true" RuntimeLibrary="3" UsePrecompiledHeader="0" ProgramDataBaseFileName="$(IntDir)\vc80.pdb" Detect64BitPortabilityProblems="false" DebugInformationFormat="4" PrecompiledHeaderFile="" Optimization="0"/>
             <Tool Name="VCManagedResourceCompilerTool"/>
             <Tool Name="VCResourceCompilerTool" Culture="1033" PreprocessorDefinitions="_DEBUG"/>
             <Tool Name="VCPreLinkEventTool"/>
@@ -100,8 +100,6 @@
             <File RelativePath=".\src\os\Wnt\OsMutexWntC.c"/>
             <File RelativePath=".\src\os\OsNameDb.cpp"/>
             <File RelativePath=".\src\os\OsNameDbInit.cpp"/>
-            <File RelativePath=".\src\os\OsNatConnectionSocket.cpp"/>
-            <File RelativePath=".\src\os\OsNatServerSocket.cpp"/>
             <File RelativePath=".\src\os\OsNatSocketBaseImpl.cpp"/>
             <File RelativePath=".\src\os\OsPathBase.cpp"/>
             <File RelativePath=".\src\os\Wnt\OsPathWnt.cpp"/>
@@ -132,6 +130,9 @@
             <File RelativePath=".\src\os\OsSSL.cpp"/>
             <File RelativePath=".\src\os\OsSSLConnectionSocket.cpp"/>
             <File RelativePath=".\src\os\OsSSLServerSocket.cpp"/>
+            <File RelativePath=".\src\os\OsStunResultFailureMsg.cpp"/>
+            <File RelativePath=".\src\os\OsStunResultMsg.cpp"/>
+            <File RelativePath=".\src\os\OsStunResultSuccessMsg.cpp"/>
             <File RelativePath=".\src\os\OsSysLog.cpp"/>
             <File RelativePath=".\src\os\OsSysLogFacilities.cpp"/>
             <File RelativePath=".\src\os\OsSysLogMsg.cpp"/>
@@ -240,9 +241,7 @@
             <File RelativePath="include\os\wnt\OsMutexWnt.h"/>
             <File RelativePath="include\os\OsNameDb.h"/>
             <File RelativePath=".\include\os\OsNameDbInit.h"/>
-            <File RelativePath=".\include\os\OsNatConnectionSocket.h"/>
             <File RelativePath=".\include\os\OsNatKeepaliveListener.h"/>
-            <File RelativePath=".\include\os\OsNatServerSocket.h"/>
             <File RelativePath=".\include\os\OsNatSocketBaseImpl.h"/>
             <File RelativePath="include\os\OsNotification.h"/>
             <File RelativePath="include\os\OsPathBase.h"/>
@@ -277,6 +276,9 @@
             <File RelativePath="include\os\OsSSLConnectionSocket.h"/>
             <File RelativePath="include\os\OsSSLServerSocket.h"/>
             <File RelativePath="include\os\OsStatus.h"/>
+            <File RelativePath=".\include\os\OsStunResultFailureMsg.h"/>
+            <File RelativePath=".\include\os\OsStunResultMsg.h"/>
+            <File RelativePath=".\include\os\OsStunResultSuccessMsg.h"/>
             <File RelativePath="include\os\OsSyncBase.h"/>
             <File RelativePath="include\os\OsSysLog.h"/>
             <File RelativePath="include\os\OsSysLogFacilities.h"/>

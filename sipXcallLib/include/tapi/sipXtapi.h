@@ -663,7 +663,7 @@ class SIPX_SECURITY_ATTRIBUTES
  */
 typedef enum
 {
-    CONTACT_LOCAL,      /**< Local address for a particular interface */
+    CONTACT_LOCAL = 0,      /**< Local address for a particular interface */
     CONTACT_NAT_MAPPED, /**< NAT mapped address (e.g. STUN)           */
     CONTACT_RELAY,      /**< Relay address (e.g. TURN)                */
     CONTACT_CONFIG,     /**< Manually configured address              */
