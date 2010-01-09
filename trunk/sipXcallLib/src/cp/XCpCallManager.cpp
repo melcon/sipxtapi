@@ -1066,7 +1066,7 @@ OsStatus XCpCallManager::renegotiateCodecsAllConferenceConnections(const UtlStri
 void XCpCallManager::enableStun(const UtlString& sStunServer,
                                 int iServerPort,
                                 int iKeepAlivePeriodSecs /*= 0*/,
-                                OsNotification* pNotification /*= NULL*/)
+                                OsMsgQ* pNotificationQueue /*= NULL*/)
 {
    OsLock lock(m_memberMutex); // use wide lock to make sure we enable stun for the correct server
 
@@ -1074,7 +1074,7 @@ void XCpCallManager::enableStun(const UtlString& sStunServer,
    m_natTraversalConfig.m_iStunPort = iServerPort;
    m_natTraversalConfig.m_iStunKeepAlivePeriodSecs = iKeepAlivePeriodSecs;
 
-   m_rSipUserAgent.enableStun(sStunServer, iServerPort, iKeepAlivePeriodSecs, pNotification);
+   m_rSipUserAgent.enableStun(sStunServer, iServerPort, iKeepAlivePeriodSecs, pNotificationQueue);
 }
 
 void XCpCallManager::enableTurn(const UtlString& sTurnServer,

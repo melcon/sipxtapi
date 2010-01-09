@@ -147,13 +147,10 @@ public:
    char*            outputAudioDevices[MAX_AUDIO_DEVICES];
    int              nOutputAudioDevices;
    SipXMessageObserver* pMessageObserver;
-   OsNotification   *pStunNotification;   /**< Signals the initial stun success/failure
-                                           when calling sipXconfigEnableStun */
    OsMutex         lock;
    int             nCalls;        /**< Counter for inprocess calls */
    int             nConferences;  /**< Counter for inprocess conferences */
    int             nLines;        /**< Counter for inprocess lines */
-   void*           pVoiceEngine;  /**< Cache VoiceEngine pointer */
    UtlBoolean      bShortNames;   /**< short names in sip messages */
    UtlBoolean      bAllowHeader;  /**< use Allow header in sip messages */
    UtlBoolean      bSupportedHeader;  /**< use Supported header in sip messages */
@@ -185,11 +182,9 @@ public:
       pConferenceEventListener(NULL),
       pDialogManager(NULL),
       pMessageObserver(NULL),
-      pStunNotification(NULL),
       nCalls(0),
       nConferences(0),
       nLines(0),
-      pVoiceEngine(NULL),
       bShortNames(FALSE),
       bAllowHeader(TRUE),
       bSupportedHeader(TRUE),

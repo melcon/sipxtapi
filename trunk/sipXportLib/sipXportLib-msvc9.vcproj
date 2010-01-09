@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include"
+				AdditionalIncludeDirectories="include;contrib\pcre\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -124,7 +124,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include"
+				AdditionalIncludeDirectories="include;contrib\pcre\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -200,7 +200,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="include;..\sipXcallLib\include;contrib\pcre\include;..\..\openSSL\include"
+				AdditionalIncludeDirectories="include;contrib\pcre\include;..\..\openSSL\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS;FD_SETSIZE=2048;HAVE_SSL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -421,14 +421,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\os\OsNatConnectionSocket.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\os\OsNatServerSocket.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\os\OsNatSocketBaseImpl.cpp"
 				>
 			</File>
@@ -546,6 +538,18 @@
 			</File>
 			<File
 				RelativePath=".\src\os\OsSSLServerSocket.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsStunResultFailureMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsStunResultMsg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\OsStunResultSuccessMsg.cpp"
 				>
 			</File>
 			<File
@@ -978,15 +982,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\os\OsNatConnectionSocket.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\os\OsNatKeepaliveListener.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\os\OsNatServerSocket.h"
 				>
 			</File>
 			<File
@@ -1123,6 +1119,18 @@
 			</File>
 			<File
 				RelativePath="include\os\OsStatus.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsStunResultFailureMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsStunResultMsg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsStunResultSuccessMsg.h"
 				>
 			</File>
 			<File

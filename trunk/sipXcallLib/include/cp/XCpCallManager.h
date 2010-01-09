@@ -503,7 +503,7 @@ public:
    void enableStun(const UtlString& sStunServer, 
                    int iServerPort,
                    int iKeepAlivePeriodSecs = 0, 
-                   OsNotification* pNotification = NULL);
+                   OsMsgQ* pNotificationQueue = NULL);
 
    /** Enable TURN for NAT/Firewall traversal */
    void enableTurn(const UtlString& sTurnServer,

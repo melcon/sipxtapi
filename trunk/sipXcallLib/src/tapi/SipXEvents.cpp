@@ -1611,7 +1611,7 @@ void sipxFirePIMEvent(void* userData,
 
 void sipxFireConfigEvent(const SIPX_INST pInst,                                                        
                          SIPX_CONFIG_EVENT event,
-                         void* pEventData)
+                         const SIPX_CONTACT_ADDRESS* pContactAddress)
 {
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxFireConfigEvent src=%p event=%s\n",
@@ -1620,7 +1620,6 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
 
    SIPX_CONFIG_INFO eventInfo;
    memset(&eventInfo, 0, sizeof(SIPX_CONFIG_INFO));
-
    eventInfo.nSize = sizeof(SIPX_CONFIG_INFO);
    eventInfo.event = event;
 
@@ -1628,20 +1627,21 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
    {
    case CONFIG_STUN_SUCCESS:
       {
-         SIPX_CONTACT_ADDRESS* pContact = (SIPX_CONTACT_ADDRESS*)pEventData;
-         SIPX_CONTACT_ADDRESS sipxContact(*pContact);
-
-         // Fire off an event for the STUN contact (normal)
-         sipxContact.eContactType = CONTACT_NAT_MAPPED;
-         eventInfo.pData = &sipxContact;
-         SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CONFIG, &eventInfo);
+         if (pContactAddress)
+         {
+            SIPX_CONTACT_ADDRESS sipxContact(*pContactAddress);
+            // Fire off an event for the STUN contact (normal)
+            sipxContact.eContactType = CONTACT_NAT_MAPPED;
+            eventInfo.pData = &sipxContact;
+            SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CONFIG, &eventInfo);
+         }
+         break;
       }
-      break;
    case CONFIG_STUN_FAILURE:
       {
          SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CONFIG, &eventInfo);
+         break;
       }
-      break;
    }
 }
 

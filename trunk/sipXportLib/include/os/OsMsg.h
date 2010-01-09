@@ -44,6 +44,7 @@ public:
       OS_TIMERTASK_COMMAND,  // Timer request messages. Internal for OsTimerTask.
       OS_TIMER_MSG,          // Message sent when timer fires
       OS_EVENT,              // Event notification messages, old message type when timer fires for OsQueuedEvent
+      OS_STUN_RESULT_MSG,     // STUN result message
       PHONE_APP,             // Phone application messages
       MP_TASK_MSG,           // Media processing task messages
       MP_FLOWGRAPH_MSG,      // Media processing flowgraph messages
