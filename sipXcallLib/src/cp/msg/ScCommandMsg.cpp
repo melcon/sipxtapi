@@ -34,6 +34,13 @@ ScCommandMsg::ScCommandMsg(SubTypesEnum subType, const SipDialog& sipDialog)
 
 }
 
+ScCommandMsg::ScCommandMsg(const ScCommandMsg& rMsg)
+: OsMsg(rMsg)
+, m_sipDialog(rMsg.m_sipDialog)
+{
+
+}
+
 ScCommandMsg::~ScCommandMsg()
 {
 
@@ -45,6 +52,20 @@ OsMsg* ScCommandMsg::createCopy(void) const
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+ScCommandMsg& ScCommandMsg::operator=(const ScCommandMsg& rhs)
+{
+   if (this == &rhs)
+   {
+      return *this;
+   }
+
+   OsMsg::operator=(rhs); // assign fields for parent class
+
+   m_sipDialog = rhs.m_sipDialog;
+
+   return *this;
+}
 
 /* ============================ ACCESSORS ================================= */
 

@@ -22,11 +22,43 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: t4.h,v 1.1 2008/10/13 13:14:01 steveu Exp $
+ * $Id: t4.h,v 1.4 2009/02/20 12:34:20 steveu Exp $
  */
 
 #if !defined(_SPANDSP_PRIVATE_T4_H_)
 #define _SPANDSP_PRIVATE_T4_H_
+
+/*!
+    TIFF specific state information to go with T.4 compression or decompression handling.
+*/
+typedef struct
+{
+    /*! \brief The libtiff context for the current TIFF file */
+    TIFF *tiff_file;
+
+    /*! \brief The compression type for output to the TIFF file. */
+    int output_compression;
+    /*! \brief The TIFF G3 FAX options. */
+    int output_t4_options;
+    /*! \brief The TIFF photometric setting for the current page. */
+    uint16_t photo_metric;
+    /*! \brief The TIFF fill order setting for the current page. */
+    uint16_t fill_order;
+
+    /* "Background" information about the FAX, which can be stored in the image file. */
+    /*! \brief The vendor of the machine which produced the file. */ 
+    const char *vendor;
+    /*! \brief The model of machine which produced the file. */ 
+    const char *model;
+    /*! \brief The local ident string. */ 
+    const char *local_ident;
+    /*! \brief The remote end's ident string. */ 
+    const char *far_ident;
+    /*! \brief The FAX sub-address. */ 
+    const char *sub_address;
+    /*! \brief The FAX DCS information, as an ASCII string. */ 
+    const char *dcs;
+} t4_tiff_state_t;
 
 /*!
     T.4 FAX compression/decompression descriptor. This defines the working state
@@ -37,22 +69,6 @@ struct t4_state_s
     /*! \brief The same structure is used for T.4 transmit and receive. This variable
                records which mode is in progress. */
     int rx;
-    /* "Background" information about the FAX, which can be stored in a TIFF file. */
-    /*! \brief The vendor of the machine which produced the TIFF file. */ 
-    const char *vendor;
-    /*! \brief The model of machine which produced the TIFF file. */ 
-    const char *model;
-    /*! \brief The local ident string. */ 
-    const char *local_ident;
-    /*! \brief The remote end's ident string. */ 
-    const char *far_ident;
-    /*! \brief The FAX sub-address. */ 
-    const char *sub_address;
-    /*! \brief The FAX DCS information, as an ASCII string. */ 
-    const char *dcs;
-    /*! \brief The text which will be used in FAX page header. No text results
-               in no header line. */
-    const char *header_info;
 
     /*! \brief The type of compression used between the FAX machines. */
     int line_encoding;
@@ -60,11 +76,6 @@ struct t4_state_s
                for hardware FAX machines. */
     int min_bits_per_row;
     
-    /*! \brief The compression type for output to the TIFF file. */
-    int output_compression;
-    /*! \brief The TIFF G3 FAX options. */
-    int output_t4_options;
-
     /*! \brief Callback function to read a row of pixels from the image source. */
     t4_row_read_handler_t row_read_handler;
     /*! \brief Opaque pointer passed to row_read_handler. */
@@ -88,8 +99,6 @@ struct t4_state_s
     /*! \brief A point to the image buffer. */
     uint8_t *image_buffer;
 
-    /*! \brief The libtiff context for the current TIFF file */
-    TIFF *tiff_file;
     /*! \brief The current file name. */
     const char *file;
     /*! \brief The first page to transfer. -1 to start at the beginning of the file. */
@@ -98,8 +107,8 @@ struct t4_state_s
     int stop_page;
 
     /*! \brief The number of pages transferred to date. */
-    int pages_transferred;
-    /*! \brief The number of pages in the current TIFF file. */
+    int current_page;
+    /*! \brief The number of pages in the current image file. */
     int pages_in_file;
     /*! \brief Column-to-column (X) resolution in pixels per metre. */
     int x_resolution;
@@ -193,8 +202,15 @@ struct t4_state_s
     /*! \brief The maximum bits in any row of the current page. For monitoring only. */
     int max_row_bits;
 
+    /*! \brief The text which will be used in FAX page header. No text results
+               in no header line. */
+    const char *header_info;
+
     /*! \brief Error and flow logging control */
     logging_state_t logging;
+
+    /*! \brief All TIFF file specific state information for the T.4 context. */
+    t4_tiff_state_t tiff;
 };
 
 #endif

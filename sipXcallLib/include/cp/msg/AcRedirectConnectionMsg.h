@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -39,7 +40,8 @@ class AcRedirectConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcRedirectConnectionMsg(const UtlString& sRedirectSipUrl);
+   AcRedirectConnectionMsg(const SipDialog& sSipDialog,
+                           const UtlString& sRedirectSipUrl);
 
    virtual ~AcRedirectConnectionMsg();
 
@@ -49,6 +51,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   void getSipDialog(SipDialog& sSipDialog) const { sSipDialog = m_sSipDialog; }
    UtlString getRedirectSipUrl() const { return m_sRedirectSipUrl; }
 
    /* ============================ INQUIRY =================================== */
@@ -64,6 +67,7 @@ private:
    /** Private assignment operator */
    AcRedirectConnectionMsg& operator=(const AcRedirectConnectionMsg& rhs);
 
+   SipDialog m_sSipDialog;
    UtlString m_sRedirectSipUrl;
 };
 

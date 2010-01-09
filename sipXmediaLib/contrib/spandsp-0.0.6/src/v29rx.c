@@ -22,26 +22,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: v29rx.c,v 1.146 2008/11/30 13:44:35 steveu Exp $
+ * $Id: v29rx.c,v 1.154 2009/02/10 13:06:47 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
 #include <stdio.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 
 #include "spandsp/telephony.h"
 #include "spandsp/logging.h"
@@ -139,25 +139,25 @@ static const uint8_t space_map_9600[20][20] =
 #define SYNC_CROSS_CORR_COEFF_C         -0.378857f                      /* -alpha*sin(low_edge) */
 #endif
 
-float v29_rx_carrier_frequency(v29_rx_state_t *s)
+SPAN_DECLARE(float) v29_rx_carrier_frequency(v29_rx_state_t *s)
 {
     return dds_frequencyf(s->carrier_phase_rate);
 }
 /*- End of function --------------------------------------------------------*/
 
-float v29_rx_symbol_timing_correction(v29_rx_state_t *s)
+SPAN_DECLARE(float) v29_rx_symbol_timing_correction(v29_rx_state_t *s)
 {
     return (float) s->total_baud_timing_correction/((float) RX_PULSESHAPER_COEFF_SETS*10.0f/3.0f);
 }
 /*- End of function --------------------------------------------------------*/
 
-float v29_rx_signal_power(v29_rx_state_t *s)
+SPAN_DECLARE(float) v29_rx_signal_power(v29_rx_state_t *s)
 {
     return power_meter_current_dbm0(&s->power);
 }
 /*- End of function --------------------------------------------------------*/
 
-void v29_rx_signal_cutoff(v29_rx_state_t *s, float cutoff)
+SPAN_DECLARE(void) v29_rx_signal_cutoff(v29_rx_state_t *s, float cutoff)
 {
     /* The 0.4 factor allows for the gain of the DC blocker */
     s->carrier_on_power = (int32_t) (power_meter_level_dbm0(cutoff + 2.5f)*0.4f);
@@ -175,9 +175,9 @@ static void report_status_change(v29_rx_state_t *s, int status)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(SPANDSP_USE_FIXED_POINT)
-int v29_rx_equalizer_state(v29_rx_state_t *s, complexi16_t **coeffs)
+SPAN_DECLARE(int) v29_rx_equalizer_state(v29_rx_state_t *s, complexi16_t **coeffs)
 #else
-int v29_rx_equalizer_state(v29_rx_state_t *s, complexf_t **coeffs)
+SPAN_DECLARE(int) v29_rx_equalizer_state(v29_rx_state_t *s, complexf_t **coeffs)
 #endif
 {
     *coeffs = s->eq_coeff;
@@ -514,7 +514,11 @@ static __inline__ void symbol_sync(v29_rx_state_t *s)
     s->symbol_sync_dc_filter[0] = v;
     /* A little integration will now filter away much of the noise */
     s->baud_phase -= p;
+#if 0
     if (fabsf(s->baud_phase) > 100.0f)
+#else
+    if (fabsf(s->baud_phase) > 30.0f)
+#endif
     {
         if (s->baud_phase > 0.0f)
             i = (s->baud_phase > 1000.0f)  ?  5  :  1;
@@ -734,7 +738,7 @@ static void process_half_baud(v29_rx_state_t *s, complexf_t *sample)
         if (++s->training_count >= V29_TRAINING_SEG_3_LEN)
         {
             span_log(&s->logging, SPAN_LOG_FLOW, "Constellation mismatch %f\n", s->training_error);
-            if (s->training_error < 100.0f)
+            if (s->training_error < 48.0f*2.0f)
             {
                 s->training_count = 0;
                 s->training_error = 0.0f;
@@ -775,10 +779,10 @@ static void process_half_baud(v29_rx_state_t *s, complexf_t *sample)
 #endif
         if (++s->training_count >= V29_TRAINING_SEG_4_LEN)
         {
-            if (s->training_error < 50.0f)
+            if (s->training_error < 48.0f)
             {
                 /* We are up and running */
-                span_log(&s->logging, SPAN_LOG_FLOW, "Training succeeded (constellation mismatch %f)\n", s->training_error);
+                span_log(&s->logging, SPAN_LOG_FLOW, "Training succeeded at %dbps (constellation mismatch %f)\n", s->bit_rate, s->training_error);
                 report_status_change(s, SIG_STATUS_TRAINING_SUCCEEDED);
                 /* Apply some lag to the carrier off condition, to ensure the last few bits get pushed through
                    the processing. */
@@ -825,12 +829,12 @@ static void process_half_baud(v29_rx_state_t *s, complexf_t *sample)
 }
 /*- End of function --------------------------------------------------------*/
 
-int v29_rx(v29_rx_state_t *s, const int16_t amp[], int len)
+SPAN_DECLARE(int) v29_rx(v29_rx_state_t *s, const int16_t amp[], int len)
 {
     int i;
     int step;
     int16_t x;
-    int32_t diff;
+    int16_t diff;
 #if defined(SPANDSP_USE_FIXED_POINT)
     complexi16_t z;
     complexi16_t zz;
@@ -854,6 +858,7 @@ int v29_rx(v29_rx_state_t *s, const int16_t amp[], int len)
            We need to measure the power with the DC blocked, but not using
            a slow to respond DC blocker. Use the most elementary HPF. */
         x = amp[i] >> 1;
+        /* There could be oveflow here, but it isn't a problem in practice */
         diff = x - s->last_sample;
         power = power_meter_update(&(s->power), diff);
 #if defined(IAXMODEM_STUFF)
@@ -994,27 +999,27 @@ int v29_rx(v29_rx_state_t *s, const int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-void v29_rx_set_put_bit(v29_rx_state_t *s, put_bit_func_t put_bit, void *user_data)
+SPAN_DECLARE(void) v29_rx_set_put_bit(v29_rx_state_t *s, put_bit_func_t put_bit, void *user_data)
 {
     s->put_bit = put_bit;
     s->put_bit_user_data = user_data;
 }
 /*- End of function --------------------------------------------------------*/
 
-void v29_rx_set_modem_status_handler(v29_rx_state_t *s, modem_tx_status_func_t handler, void *user_data)
+SPAN_DECLARE(void) v29_rx_set_modem_status_handler(v29_rx_state_t *s, modem_tx_status_func_t handler, void *user_data)
 {
     s->status_handler = handler;
     s->status_user_data = user_data;
 }
 /*- End of function --------------------------------------------------------*/
 
-logging_state_t *v29_rx_get_logging_state(v29_rx_state_t *s)
+SPAN_DECLARE(logging_state_t *) v29_rx_get_logging_state(v29_rx_state_t *s)
 {
     return &s->logging;
 }
 /*- End of function --------------------------------------------------------*/
 
-int v29_rx_restart(v29_rx_state_t *s, int bit_rate, int old_train)
+SPAN_DECLARE(int) v29_rx_restart(v29_rx_state_t *s, int bit_rate, int old_train)
 {
     switch (bit_rate)
     {
@@ -1111,7 +1116,7 @@ int v29_rx_restart(v29_rx_state_t *s, int bit_rate, int old_train)
 }
 /*- End of function --------------------------------------------------------*/
 
-v29_rx_state_t *v29_rx_init(v29_rx_state_t *s, int rate, put_bit_func_t put_bit, void *user_data)
+SPAN_DECLARE(v29_rx_state_t *) v29_rx_init(v29_rx_state_t *s, int rate, put_bit_func_t put_bit, void *user_data)
 {
     if (s == NULL)
     {
@@ -1136,14 +1141,20 @@ v29_rx_state_t *v29_rx_init(v29_rx_state_t *s, int rate, put_bit_func_t put_bit,
 }
 /*- End of function --------------------------------------------------------*/
 
-int v29_rx_free(v29_rx_state_t *s)
+SPAN_DECLARE(int) v29_rx_release(v29_rx_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) v29_rx_free(v29_rx_state_t *s)
 {
     free(s);
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-void v29_rx_set_qam_report_handler(v29_rx_state_t *s, qam_report_handler_t handler, void *user_data)
+SPAN_DECLARE(void) v29_rx_set_qam_report_handler(v29_rx_state_t *s, qam_report_handler_t handler, void *user_data)
 {
     s->qam_report = handler;
     s->qam_user_data = user_data;

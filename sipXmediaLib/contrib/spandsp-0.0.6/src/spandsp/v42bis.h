@@ -22,7 +22,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: v42bis.h,v 1.23 2008/11/15 14:43:08 steveu Exp $
+ * $Id: v42bis.h,v 1.26 2009/02/10 13:06:47 steveu Exp $
  */
 
 /*! \page v42bis_page V.42bis modem data compression
@@ -75,24 +75,32 @@ extern "C"
     \param buf The data to be compressed.
     \param len The length of the data buffer.
     \return 0 */
-int v42bis_compress(v42bis_state_t *s, const uint8_t *buf, int len);
+SPAN_DECLARE(int) v42bis_compress(v42bis_state_t *s, const uint8_t *buf, int len);
 
 /*! Flush out any data remaining in a compression buffer.
     \param s The V.42bis context.
     \return 0 */
-int v42bis_compress_flush(v42bis_state_t *s);
+SPAN_DECLARE(int) v42bis_compress_flush(v42bis_state_t *s);
 
 /*! Decompress a block of octets.
     \param s The V.42bis context.
     \param buf The data to be decompressed.
     \param len The length of the data buffer.
     \return 0 */
-int v42bis_decompress(v42bis_state_t *s, const uint8_t *buf, int len);
+SPAN_DECLARE(int) v42bis_decompress(v42bis_state_t *s, const uint8_t *buf, int len);
     
 /*! Flush out any data remaining in the decompression buffer.
     \param s The V.42bis context.
     \return 0 */
-int v42bis_decompress_flush(v42bis_state_t *s);
+SPAN_DECLARE(int) v42bis_decompress_flush(v42bis_state_t *s);
+
+/*! Set the compression mode.
+    \param s The V.42bis context.
+    \param mode One of the V.42bis compression modes -
+            V42BIS_COMPRESSION_MODE_DYNAMIC,
+            V42BIS_COMPRESSION_MODE_ALWAYS,
+            V42BIS_COMPRESSION_MODE_NEVER */
+SPAN_DECLARE(void) v42bis_compression_control(v42bis_state_t *s, int mode);
 
 /*! Initialise a V.42bis context.
     \param s The V.42bis context.
@@ -106,29 +114,26 @@ int v42bis_decompress_flush(v42bis_state_t *s);
     \param data_user_data .
     \param max_data_len The maximum length that should be passed to the data handler.
     \return The V.42bis context. */
-v42bis_state_t *v42bis_init(v42bis_state_t *s,
-                            int negotiated_p0,
-                            int negotiated_p1,
-                            int negotiated_p2,
-                            v42bis_frame_handler_t frame_handler,
-                            void *frame_user_data,
-                            int max_frame_len,
-                            v42bis_data_handler_t data_handler,
-                            void *data_user_data,
-                            int max_data_len);
-
-/*! Set the compression mode.
-    \param s The V.42bis context.
-    \param mode One of the V.42bis compression modes -
-            V42BIS_COMPRESSION_MODE_DYNAMIC,
-            V42BIS_COMPRESSION_MODE_ALWAYS,
-            V42BIS_COMPRESSION_MODE_NEVER */
-void v42bis_compression_control(v42bis_state_t *s, int mode);
+SPAN_DECLARE(v42bis_state_t *) v42bis_init(v42bis_state_t *s,
+                                           int negotiated_p0,
+                                           int negotiated_p1,
+                                           int negotiated_p2,
+                                           v42bis_frame_handler_t frame_handler,
+                                           void *frame_user_data,
+                                           int max_frame_len,
+                                           v42bis_data_handler_t data_handler,
+                                           void *data_user_data,
+                                           int max_data_len);
 
 /*! Release a V.42bis context.
     \param s The V.42bis context.
     \return 0 if OK */
-int v42bis_release(v42bis_state_t *s);
+SPAN_DECLARE(int) v42bis_release(v42bis_state_t *s);
+
+/*! Free a V.42bis context.
+    \param s The V.42bis context.
+    \return 0 if OK */
+SPAN_DECLARE(int) v42bis_free(v42bis_state_t *s);
 
 #if defined(__cplusplus)
 }

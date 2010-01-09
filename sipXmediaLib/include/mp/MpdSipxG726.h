@@ -19,6 +19,7 @@
 // APPLICATION INCLUDES
 #include "mp/MpDecoderBase.h"
 extern "C" {
+#include <spandsp/telephony.h>
 #include "spandsp/private/bitstream.h"
 #include "spandsp/bitstream.h"
 #include "spandsp/g726.h"

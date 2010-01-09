@@ -40,6 +40,7 @@ public:
    {
       ACN_FIRST = 0,
       ACN_TUNNELED, ///< tunneled abstract call notification message. Payload will be another message.
+      ACN_STARTED, ///< dispatched to abstract call after thread starts
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */

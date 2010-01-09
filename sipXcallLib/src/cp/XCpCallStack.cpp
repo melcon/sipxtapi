@@ -290,6 +290,46 @@ UtlBoolean XCpCallStack::findHandlingAbstractCall(const SipMessage& rSipMessage,
    return findAbstractCall(sipDialog, ptrLock);
 }
 
+UtlBoolean XCpCallStack::findConferenceByUri(const Url& requestUri, OsPtrLock<XCpConference>& ptrLock) const
+{
+   UtlPtr<XCpAbstractCall>* pAbstractPtr = NULL;
+   XCpConference* pPartialMatch = NULL;
+   XCpConference* pConference = NULL;
+   Url conferenceUri;
+
+   OsReadLock lock(m_memberMutex);
+   UtlHashMapIterator conferenceMapItor(m_abstractCallIdMap);
+
+   while(conferenceMapItor())
+   {
+      pConference = dynamic_cast<XCpConference*>(conferenceMapItor.value());
+      if (pConference)
+      {
+         pConference->getConferenceUri(conferenceUri);
+         if (!conferenceUri.isNull())
+         {
+            if (conferenceUri.isUserHostEqual(requestUri))
+            {
+               ptrLock = pConference;
+               return TRUE;
+            }
+            else if (!pPartialMatch && conferenceUri.isUserEqual(requestUri))
+            {
+               pPartialMatch = pConference;
+            }
+         }
+      }
+   }
+
+   if (pPartialMatch)
+   {
+      ptrLock = pPartialMatch;
+      return TRUE;
+   }
+
+   return FALSE;
+}
+
 UtlBoolean XCpCallStack::push(XCpCall& call)
 {
    OsReadLock lock(m_memberMutex); // we use write lock only when deleting, not needed when adding

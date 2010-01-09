@@ -114,7 +114,7 @@ PhoneState* PhoneStateIdle::OnOffer(SIPX_CALL hCall)
     options.cbSize = sizeof(SIPX_CALL_OPTIONS);
     options.sendLocation = sipXmgr::getInstance().isLocationHeaderEnabled();
 
-    sipxCallAccept(hCall, pDisplay, pSecurity, &options);
+    sipxCallAccept(hCall, &options);
 
     // just accept the call
     // We don't need to explicitly change state,

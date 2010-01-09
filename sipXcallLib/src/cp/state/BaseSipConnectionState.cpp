@@ -74,15 +74,15 @@ int BaseSipConnectionState::ms_iInfoTestResponseCode = 0;
 BaseSipConnectionState::BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                                                SipUserAgent& rSipUserAgent,
                                                XCpCallControl& rCallControl,
-                                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                               CpMessageQueueProvider& rMessageQueueProvider,
+                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                                               CpMessageQueueProvider* pMessageQueueProvider,
                                                XSipConnectionEventSink& rSipConnectionEventSink,
                                                const CpNatTraversalConfig& natTraversalConfig)
 : m_rStateContext(rStateContext)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rCallControl(rCallControl)
-, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
-, m_rMessageQueueProvider(rMessageQueueProvider)
+, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
+, m_pMessageQueueProvider(pMessageQueueProvider)
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
 , m_natTraversalConfig(natTraversalConfig)
 {
@@ -93,8 +93,8 @@ BaseSipConnectionState::BaseSipConnectionState(const BaseSipConnectionState& rhs
 : m_rStateContext(rhs.m_rStateContext)
 , m_rSipUserAgent(rhs.m_rSipUserAgent)
 , m_rCallControl(rhs.m_rCallControl)
-, m_rMediaInterfaceProvider(rhs.m_rMediaInterfaceProvider)
-, m_rMessageQueueProvider(rhs.m_rMessageQueueProvider)
+, m_pMediaInterfaceProvider(rhs.m_pMediaInterfaceProvider)
+, m_pMessageQueueProvider(rhs.m_pMessageQueueProvider)
 , m_rSipConnectionEventSink(rhs.m_rSipConnectionEventSink)
 , m_natTraversalConfig(rhs.m_natTraversalConfig)
 {
@@ -164,6 +164,20 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(OsStatus& result,
                                                               const UtlString& replacesField)
 {
    // we reject connect in all states except for Dialing
+   result = OS_FAILED;
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::startRtpRedirect(OsStatus& result,
+                                                                       const UtlString& slaveAbstractCallId,
+                                                                       const SipDialog& slaveSipDialog)
+{
+   result = OS_FAILED;
+   return NULL;
+}
+
+SipConnectionStateTransition* BaseSipConnectionState::stopRtpRedirect(OsStatus& result)
+{
    result = OS_FAILED;
    return NULL;
 }
@@ -749,6 +763,28 @@ SipConnectionStateTransition* BaseSipConnectionState::sendInfo(OsStatus& result,
    return NULL;
 }
 
+SipConnectionStateTransition* BaseSipConnectionState::terminateMediaConnection(OsStatus& result)
+{
+   ISipConnectionState::StateEnum connectionState = getCurrentState();
+   result = OS_FAILED;
+
+   if (connectionState == ISipConnectionState::CONNECTION_ESTABLISHED)
+   {
+      if (mayRenegotiateMediaSession())
+      {
+         // only allow termination of media connection if there is no active UPDATE or INVITE
+         deleteMediaConnection();
+         result = OS_SUCCESS;
+      }
+      else
+      {
+         result = OS_BUSY;
+      }
+   }
+
+   return NULL;
+}
+
 SipConnectionStateTransition* BaseSipConnectionState::handleTimerMessage(const ScTimerMsg& timerMsg)
 {
    switch (timerMsg.getPayloadType())
@@ -800,6 +836,18 @@ SipConnectionStateTransition* BaseSipConnectionState::handleNotificationMessage(
 }
 
 /* ============================ ACCESSORS ================================= */
+
+void BaseSipConnectionState::setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider)
+{
+   m_pMessageQueueProvider = pMessageQueueProvider;
+   // we also need to update timers with new queue
+   updateAllTimers();
+}
+
+void BaseSipConnectionState::setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider)
+{
+   m_pMediaInterfaceProvider = pMediaInterfaceProvider;
+}
 
 /* ============================ INQUIRY =================================== */
 
@@ -1956,8 +2004,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
 
    if (connectionState == ISipConnectionState::CONNECTION_REMOTE_ALERTING ||
       connectionState == ISipConnectionState::CONNECTION_REMOTE_OFFERING ||
-      connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED ||
-      connectionState == ISipConnectionState::CONNECTION_ESTABLISHED) // re-INVITE can also have 18x response
+      connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED)
    {
       int responseCode = sipResponse.getResponseStatusCode();
       UtlString responseText;
@@ -2005,7 +2052,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
                }
             } // else 18x retransmit, but we sent PRACK, ignore as PRACK will be resent automatically
          }
-         else if (connectionState != ISipConnectionState::CONNECTION_ESTABLISHED)
+         else
          {
             // unreliable 18x response
             if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
@@ -2357,7 +2404,7 @@ UtlBoolean BaseSipConnectionState::isExtensionSupported(const UtlString& sExtens
 
 void BaseSipConnectionState::deleteMediaConnection()
 {
-   CpMediaInterface* pInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   CpMediaInterface* pInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
 
    if (pInterface)
    {
@@ -2861,12 +2908,12 @@ void BaseSipConnectionState::secureUrl(Url& fromUrl) const
 
 UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTransportOptions, int& mediaConnectionId)
 {
-   OsStatus res = m_rMediaInterfaceProvider.getMediaInterface()->createConnection(mediaConnectionId,
+   OsStatus res = m_pMediaInterfaceProvider->getMediaInterface()->createConnection(mediaConnectionId,
                m_rStateContext.m_sBindIpAddress,
                0,
                NULL, // no display settings
                (void*)m_rStateContext.m_pSecurity,
-               &m_rMessageQueueProvider.getLocalQueue(),
+               &m_pMessageQueueProvider->getLocalQueue(),
                rtpTransportOptions);
    
    if (res == OS_SUCCESS)
@@ -2881,7 +2928,7 @@ UtlBoolean BaseSipConnectionState::setupMediaConnection(RTP_TRANSPORT rtpTranspo
 UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
 {
    m_rStateContext.m_sdpNegotiation.startSdpNegotiation(sipMessage, m_rStateContext.m_bUseLocalHoldSDP);
-   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+   CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface();
 
    int mediaConnectionId = getMediaConnectionId();
    if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
@@ -2951,15 +2998,20 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
    if (pSdpBody)
    {
       m_rStateContext.m_sdpNegotiation.startSdpNegotiation(sipMessage, m_rStateContext.m_bUseLocalHoldSDP);
-      CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
-      int mediaConnectionId = getMediaConnectionId();
 
-      if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
+      if (!m_rStateContext.m_bRTPRedirectActive)
       {
-         if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+         // if we are not redirecting RTP, initialize media connection if not already initialized
+         CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface();
+         int mediaConnectionId = getMediaConnectionId();
+
+         if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
          {
-            m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
-            return FALSE;
+            if (!setupMediaConnection(m_rStateContext.m_rtpTransport, mediaConnectionId))
+            {
+               m_rStateContext.m_sdpNegotiation.resetSdpNegotiation();
+               return FALSE;
+            }
          }
       }
 
@@ -2979,7 +3031,7 @@ UtlBoolean BaseSipConnectionState::handleSdpOffer(const SipMessage& sipMessage)
 
 UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
 {
-   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+   CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface();
 
    int mediaConnectionId = getMediaConnectionId();
    if (mediaConnectionId == CpMediaInterface::INVALID_CONNECTION_ID)
@@ -3084,7 +3136,7 @@ UtlBoolean BaseSipConnectionState::handleRemoteSdpBody(const SdpBody& sdpBody)
    int remoteVideoRtcpPort = -1; // only used if ICE is disabled
 
    int mediaConnectionId = getMediaConnectionId();
-   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+   CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface();
    pMediaInterface->getCodecList(mediaConnectionId, supportedCodecs);
 
    CpSdpNegotiation::getCommonSdpCodecs(sdpBody,
@@ -3133,7 +3185,7 @@ UtlBoolean BaseSipConnectionState::commitMediaSessionChanges()
          int remoteVideoRtcpPort = -1; // only used if ICE is disabled
 
          int mediaConnectionId = getMediaConnectionId();
-         CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+         CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface();
          pMediaInterface->getCodecList(mediaConnectionId, supportedCodecs);
 
          CpSdpNegotiation::getCommonSdpCodecs(sdpBody,
@@ -3609,7 +3661,7 @@ void BaseSipConnectionState::setMediaDestination(const char* hostAddress,
    UtlBoolean bSetDestination = FALSE;
 
    int mediaConnectionId = getMediaConnectionId();
-   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface();
+   CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface();
 
    /*
    * Assumption: that ICE is either enabled for both audio and video or not
@@ -3773,7 +3825,7 @@ void BaseSipConnectionState::requestConnectionDestruction()
       sipDialog = m_rStateContext.m_sipDialog;
    }
    AcDestroyConnectionMsg msg(sipDialog);
-   m_rMessageQueueProvider.getLocalQueue().send(msg);
+   m_pMessageQueueProvider->getLocalQueue().send(msg);
 }
 
 void BaseSipConnectionState::startCancelTimeoutTimer()
@@ -3787,7 +3839,7 @@ void BaseSipConnectionState::startCancelTimeoutTimer()
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScDisconnectTimerMsg msg(ScDisconnectTimerMsg::REASON_CANCEL_TIMEOUT, sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pCancelTimeoutTimer = new OsTimer(pNotification);
    int sipTransactionTimeout = m_rSipUserAgent.getSipStateTransactionTimeout();
    OsTime timerTime(T1_PERIOD_MSEC * 64);
@@ -3814,7 +3866,7 @@ void BaseSipConnectionState::startByeTimeoutTimer()
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScDisconnectTimerMsg msg(ScDisconnectTimerMsg::REASON_BYE_TIMEOUT, sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pByeTimeoutTimer = new OsTimer(pNotification);
    int sipTransactionTimeoutMs = m_rSipUserAgent.getSipStateTransactionTimeout();
    OsTime timerTime(sipTransactionTimeoutMs);
@@ -3841,7 +3893,7 @@ void BaseSipConnectionState::startByeRetryTimer()
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScByeRetryTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pByeRetryTimer = new OsTimer(pNotification);
    OsTime timerTime(1, 0); // try BYE in 1 second again
    m_rStateContext.m_pByeRetryTimer->oneshotAfter(timerTime); // start timer
@@ -3867,7 +3919,7 @@ void BaseSipConnectionState::start2xxRetransmitTimer()
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    Sc2xxTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_p2xxInviteRetransmitTimer = new OsTimer(pNotification);
    OsTime timerTime(max(T1_PERIOD_MSEC * (m_rStateContext.m_i2xxInviteRetransmitCount + 1), T2_PERIOD_MSEC));
    m_rStateContext.m_p2xxInviteRetransmitTimer->oneshotAfter(timerTime); // start timer
@@ -3893,7 +3945,7 @@ void BaseSipConnectionState::startSessionTimeoutCheckTimer()
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScSessionTimeoutTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pSessionTimeoutCheckTimer = new OsTimer(pNotification);
    OsTime timerTime(m_rStateContext.m_sessionTimerProperties.getSessionExpires() / 2, 0);
    m_rStateContext.m_pSessionTimeoutCheckTimer->oneshotAfter(timerTime); // start timer
@@ -3919,7 +3971,7 @@ void BaseSipConnectionState::startSessionRefreshTimer()
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScReInviteTimerMsg msg(ScReInviteTimerMsg::REASON_SESSION_EXTENSION, sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pSessionRefreshTimer = new OsTimer(pNotification);
    OsTime timerTime(m_rStateContext.m_sessionTimerProperties.getSessionExpires() / 2, 0); // refresh in the middle
    m_rStateContext.m_pSessionRefreshTimer->oneshotAfter(timerTime); // start timer
@@ -3945,7 +3997,7 @@ void BaseSipConnectionState::startInviteExpirationTimer(int timeoutSec, int cseq
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScInviteExpirationTimerMsg msg(cseqNum, bIsOutbound, sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pInviteExpiresTimer = new OsTimer(pNotification);
    OsTime timerTime(timeoutSec, 0);
    m_rStateContext.m_pInviteExpiresTimer->oneshotAfter(timerTime); // start timer
@@ -3971,7 +4023,7 @@ void BaseSipConnectionState::start100relRetransmitTimer(const SipMessage& c100re
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    Sc100RelTimerMsg msg(c100relResponse, sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_p100relRetransmitTimer = new OsTimer(pNotification);
    OsTime timerTime(T1_PERIOD_MSEC, 0);
    m_rStateContext.m_p100relRetransmitTimer->oneshotAfter(timerTime); // start timer
@@ -3997,7 +4049,7 @@ void BaseSipConnectionState::startDelayedAnswerTimer()
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScDelayedAnswerTimerMsg msg(sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pDelayedAnswerTimer = new OsTimer(pNotification);
    OsTime timerTime(T1_PERIOD_MSEC);
    m_rStateContext.m_pDelayedAnswerTimer->oneshotAfter(timerTime); // start timer
@@ -4210,7 +4262,7 @@ void BaseSipConnectionState::startSessionRenegotiationTimer(ScReInviteTimerMsg::
 
    getSipDialogId(sipCallId, localTag, remoteTag, isFromLocal);
    ScReInviteTimerMsg msg(reason, sipCallId, localTag, remoteTag, isFromLocal);
-   OsTimerNotification* pNotification = new OsTimerNotification(m_rMessageQueueProvider.getLocalQueue(), msg);
+   OsTimerNotification* pNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(), msg);
    m_rStateContext.m_pSessionRenegotiationTimer = new OsTimer(pNotification);
    OsTime timerTime(T1_PERIOD_MSEC); // try again in 500ms
    m_rStateContext.m_pSessionRenegotiationTimer->oneshotAfter(timerTime); // start timer
@@ -4656,6 +4708,48 @@ void BaseSipConnectionState::deleteAllTimers()
    m_rStateContext.m_pDelayedAnswerTimer = NULL;
 }
 
+void BaseSipConnectionState::updateTimer(OsTimer **pTimer)
+{
+   if (pTimer && *pTimer)
+   {
+      (*pTimer)->stop();
+      if (!(*pTimer)->getWasFired())
+      {
+         // timer has not fired yet, it needs to be restarted
+         OsTime expiresAt;
+         (*pTimer)->getExpiresAt(expiresAt);
+         OsTimerNotification *pOldNotification = dynamic_cast<OsTimerNotification*>((*pTimer)->getNotifier());
+         if (pOldNotification)
+         {
+            OsTimerNotification *pNewNotification = new OsTimerNotification(m_pMessageQueueProvider->getLocalQueue(),
+               *pOldNotification->getOsTimerMsg());
+            delete *pTimer;
+            *pTimer = new OsTimer(pNewNotification);
+            (*pTimer)->oneshotAt(expiresAt);
+         }
+         else
+         {
+            delete *pTimer;
+            *pTimer = NULL;
+         }
+      } // else timer fired, cannot update it with new queue
+   }
+}
+
+void BaseSipConnectionState::updateAllTimers()
+{
+   updateTimer(&m_rStateContext.m_pByeRetryTimer);
+   updateTimer(&m_rStateContext.m_pCancelTimeoutTimer);
+   updateTimer(&m_rStateContext.m_pByeTimeoutTimer);
+   updateTimer(&m_rStateContext.m_pSessionRenegotiationTimer);
+   updateTimer(&m_rStateContext.m_p2xxInviteRetransmitTimer);
+   updateTimer(&m_rStateContext.m_pSessionTimeoutCheckTimer);
+   updateTimer(&m_rStateContext.m_pSessionRefreshTimer);
+   updateTimer(&m_rStateContext.m_pInviteExpiresTimer);
+   updateTimer(&m_rStateContext.m_p100relRetransmitTimer);
+   updateTimer(&m_rStateContext.m_pDelayedAnswerTimer);
+}
+
 void BaseSipConnectionState::updateRemoteCapabilities(const SipMessage& sipMessage)
 {
    UtlString allowField;
@@ -4939,7 +5033,7 @@ UtlBoolean BaseSipConnectionState::followRefer(const SipMessage& sipRequest)
    referToUrl.removeHeaderParameters();
    referToUrl.removeFieldParameters(); // remove some parameters
 
-   CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
    if (pMediaInterface && pMediaInterface->hasFocus())
    {
       focusConfig = CP_FOCUS_ALWAYS; // if this call is in focus, then we also want new call to take focus

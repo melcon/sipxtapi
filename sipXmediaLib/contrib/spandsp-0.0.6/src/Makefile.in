@@ -50,6 +50,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/ax_compiler_vendor.m4 \
 	$(top_srcdir)/config/ax_fixed_point_machine.m4 \
 	$(top_srcdir)/config/ax_misaligned_access_fails.m4 \
 	$(top_srcdir)/config/ax_c99_features.m4 \
+	$(top_srcdir)/config/ax_check_export_capability.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -71,7 +72,7 @@ am_libspandsp_la_OBJECTS = adsi.lo async.lo at_interpreter.lo awgn.lo \
 	bell_r2_mf.lo bert.lo bit_operations.lo bitstream.lo \
 	complex_filters.lo complex_vector_float.lo \
 	complex_vector_int.lo crc.lo dds_float.lo dds_int.lo dtmf.lo \
-	echo.lo fax.lo fsk.lo g711.lo g722.lo g726.lo \
+	echo.lo fax.lo fax_modems.lo fsk.lo g711.lo g722.lo g726.lo \
 	gsm0610_decode.lo gsm0610_encode.lo gsm0610_long_term.lo \
 	gsm0610_lpc.lo gsm0610_preprocess.lo gsm0610_rpe.lo \
 	gsm0610_short_term.lo hdlc.lo ima_adpcm.lo logging.lo \
@@ -206,6 +207,7 @@ SPANDSP_LT_AGE = @SPANDSP_LT_AGE@
 SPANDSP_LT_CURRENT = @SPANDSP_LT_CURRENT@
 SPANDSP_LT_REVISION = @SPANDSP_LT_REVISION@
 SPANDSP_MISALIGNED_ACCESS_FAILS = @SPANDSP_MISALIGNED_ACCESS_FAILS@
+SPANDSP_USE_EXPORT_CAPABILITY = @SPANDSP_USE_EXPORT_CAPABILITY@
 SPANDSP_USE_FIXED_POINT = @SPANDSP_USE_FIXED_POINT@
 STRIP = @STRIP@
 TESTLIBS = @TESTLIBS@
@@ -265,12 +267,17 @@ EXTRA_DIST = floating_fudge.h \
              libspandsp.dsp \
              libspandsp.sln \
              libspandsp.vcproj \
+             msvc/config.h \
+             msvc/getopt.c \
              msvc/gettimeofday.c \
              msvc/inttypes.h \
              msvc/tgmath.h \
              msvc/unistd.h \
+             msvc/spandsp.h \
              msvc/sys/time.h \
-             msvc/spandsp.def \
+             msvc/make_at_dictionary.vcproj \
+             msvc/make_headers.bat \
+             msvc/make_modem_filter.vcproj \
              msvc/msvcproj.head \
              msvc/msvcproj.foot \
              msvc/vc8proj.head \
@@ -296,6 +303,7 @@ libspandsp_la_SOURCES = adsi.c \
                         dtmf.c \
                         echo.c \
                         fax.c \
+                        fax_modems.c \
                         fsk.c \
                         g711.c \
                         g722.c \
@@ -376,6 +384,7 @@ nobase_include_HEADERS = spandsp/adsi.h \
                          spandsp/dds.h \
                          spandsp/dtmf.h \
                          spandsp/echo.h \
+                         spandsp/fast_convert.h \
                          spandsp/fax.h \
                          spandsp/fax_modems.h \
                          spandsp/fir.h \
@@ -497,7 +506,7 @@ make_modem_filter_SOURCES = make_modem_filter.c \
 
 DSP = libspandsp.dsp
 VCPROJ = libspandsp.vcproj
-WIN32SOURCES = $(libspandsp_la_SOURCES) msvc/gettimeofday.c
+WIN32SOURCES = $(libspandsp_la_SOURCES) .\\msvc\\gettimeofday.c
 WIN32HEADERS = $(nobase_include_HEADERS) spandsp.h
 DSPOUT = | awk '{printf("%s\r\n", $$0)}' >> $(DSP)
 VCPROJOUT = | awk '{printf("%s\r\n", $$0)}' >> $(VCPROJ)
@@ -620,6 +629,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtmf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/echo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fax.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fax_modems.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter_tools.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fsk.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/g711.Plo@am__quote@
@@ -1090,6 +1100,15 @@ $(VCPROJ): msvc/vc8proj.head msvc/vc8proj.foot Makefile.am
 		echo "<File RelativePath=\""$$file"\"></File>" $(VCPROJOUT); \
 	done; \
 	cat $(srcdir)/msvc/vc8proj.foot $(VCPROJOUT) )
+
+$(srcdir)/msvc/spandsp.h: spandsp.h.in
+	echo "creating $(srcdir)/msvc/spandsp.h"
+	@cp $(srcdir)/spandsp.h.in $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@SPANDSP_USE_FIXED_POINT\@/#undef SPANDSP_USE_FIXED_POINT/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@SPANDSP_MISALIGNED_ACCESS_FAILS\@/#undef SPANDSP_MISALIGNED_ACCESS_FAILS/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@SPANDSP_USE_EXPORT_CAPABILITY\@/#define SPANDSP_USE_EXPORT_CAPABILITY 1/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@INSERT_INTTYPES_HEADER\@/#include <inttypes.h>/" $(srcdir)/msvc/spandsp.h
+	@sed -i -e "s/\@INSERT_MATH_HEADER\@/#include <math.h>/" $(srcdir)/msvc/spandsp.h
 
 spandsp/version.h:
 	NOWDATE=`date --utc +"%Y%m%d"` ; \

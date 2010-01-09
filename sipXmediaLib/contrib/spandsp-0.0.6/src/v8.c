@@ -22,26 +22,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: v8.c,v 1.34 2008/11/30 13:44:35 steveu Exp $
+ * $Id: v8.c,v 1.38 2009/02/03 16:28:40 steveu Exp $
  */
  
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 
 #include "spandsp/telephony.h"
 #include "spandsp/logging.h"
@@ -91,7 +91,7 @@ enum
     V8_SYNC_V92
 } v8_sync_types_e;
 
-const char *v8_call_function_to_str(int call_function)
+SPAN_DECLARE(const char *) v8_call_function_to_str(int call_function)
 {
     switch (call_function)
     {
@@ -116,7 +116,7 @@ const char *v8_call_function_to_str(int call_function)
 }
 /*- End of function --------------------------------------------------------*/
 
-const char *v8_modulation_to_str(int modulation_scheme)
+SPAN_DECLARE(const char *) v8_modulation_to_str(int modulation_scheme)
 {
     switch (modulation_scheme)
     {
@@ -125,21 +125,21 @@ const char *v8_modulation_to_str(int modulation_scheme)
     case V8_MOD_V21:
         return "V.21 duplex";
     case V8_MOD_V22:
-        return "V.22/V22.bis duplex";
+        return "V.22/V.22bis duplex";
     case V8_MOD_V23HALF:
         return "V.23 half-duplex";
     case V8_MOD_V23:
         return "V.23 duplex";
     case V8_MOD_V26BIS:
-        return "V.23 duplex";
+        return "V.26bis duplex";
     case V8_MOD_V26TER:
-        return "V.23 duplex";
+        return "V.26ter duplex";
     case V8_MOD_V27TER:
-        return "V.23 duplex";
+        return "V.27ter duplex";
     case V8_MOD_V29:
         return "V.29 half-duplex";
     case V8_MOD_V32:
-        return "V.32/V32.bis duplex";
+        return "V.32/V.32bis duplex";
     case V8_MOD_V34HALF:
         return "V.34 half-duplex";
     case V8_MOD_V34:
@@ -155,7 +155,7 @@ const char *v8_modulation_to_str(int modulation_scheme)
 }
 /*- End of function --------------------------------------------------------*/
 
-const char *v8_protocol_to_str(int protocol)
+SPAN_DECLARE(const char *) v8_protocol_to_str(int protocol)
 {
     switch (protocol)
     {
@@ -170,19 +170,19 @@ const char *v8_protocol_to_str(int protocol)
 }
 /*- End of function --------------------------------------------------------*/
 
-const char *v8_pstn_access_to_str(int pstn_access)
+SPAN_DECLARE(const char *) v8_pstn_access_to_str(int pstn_access)
 {
     return "???";
 }
 /*- End of function --------------------------------------------------------*/
 
-const char *v8_pcm_modem_availability_to_str(int pcm_modem_availability)
+SPAN_DECLARE(const char *) v8_pcm_modem_availability_to_str(int pcm_modem_availability)
 {
     return "???";
 }
 /*- End of function --------------------------------------------------------*/
 
-void v8_log_supported_modulations(v8_state_t *s, int modulation_schemes)
+SPAN_DECLARE(void) v8_log_supported_modulations(v8_state_t *s, int modulation_schemes)
 {
     const char *comma;
     int i;
@@ -609,7 +609,7 @@ static int select_modulation(int mask)
 }
 /*- End of function --------------------------------------------------------*/
 
-int v8_tx(v8_state_t *s, int16_t *amp, int max_len)
+SPAN_DECLARE(int) v8_tx(v8_state_t *s, int16_t *amp, int max_len)
 {
     int len;
 
@@ -632,7 +632,7 @@ int v8_tx(v8_state_t *s, int16_t *amp, int max_len)
 }
 /*- End of function --------------------------------------------------------*/
 
-int v8_rx(v8_state_t *s, const int16_t *amp, int len)
+SPAN_DECLARE(int) v8_rx(v8_state_t *s, const int16_t *amp, int len)
 {
     int i;
     int residual_samples;
@@ -850,17 +850,17 @@ int v8_rx(v8_state_t *s, const int16_t *amp, int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-logging_state_t *v8_get_logging_state(v8_state_t *s)
+SPAN_DECLARE(logging_state_t *) v8_get_logging_state(v8_state_t *s)
 {
     return &s->logging;
 }
 /*- End of function --------------------------------------------------------*/
 
-v8_state_t *v8_init(v8_state_t *s,
-                    int caller,
-                    int available_modulations,
-                    v8_result_handler_t *result_handler,
-                    void *user_data)
+SPAN_DECLARE(v8_state_t *) v8_init(v8_state_t *s,
+                                   int caller,
+                                   int available_modulations,
+                                   v8_result_handler_t *result_handler,
+                                   void *user_data)
 {
     if (s == NULL)
     {
@@ -890,13 +890,13 @@ v8_state_t *v8_init(v8_state_t *s,
 }
 /*- End of function --------------------------------------------------------*/
 
-int v8_release(v8_state_t *s)
+SPAN_DECLARE(int) v8_release(v8_state_t *s)
 {
     return queue_free(s->tx_queue);
 }
 /*- End of function --------------------------------------------------------*/
 
-int v8_free(v8_state_t *s)
+SPAN_DECLARE(int) v8_free(v8_state_t *s)
 {
     int ret;
     

@@ -243,8 +243,6 @@ void SipXMediaEventListener::handleMediaEvent(const SipXMediaEvent& eventPayload
       mediaInfo.toneId = eventPayload.m_toneId;
 
       SipXEventDispatcher::dispatchEvent((SIPX_INST)m_pInst, EVENT_CATEGORY_MEDIA, &mediaInfo);
-
-      sipxCallSetMediaState(hCall, event, eventPayload.m_mediaType);
    }
    else
    {

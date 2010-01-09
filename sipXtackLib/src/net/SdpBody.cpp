@@ -1066,6 +1066,53 @@ UtlBoolean SdpBody::getPtime(int mediaIndex, int& pTime) const
     return(foundPtime);
 }
 
+
+void SdpBody::getBodySdpCodecs(SdpCodecList& sdpCodecList,
+                               const UtlString& mimeType,
+                               int mediaIndex) const
+{
+   mediaIndex = findMediaType(mimeType, mediaIndex); // check that media line really exists
+   if(mediaIndex >= 0)
+   {
+      int ptime = 0;
+      int numPayloadTypes;
+      int payloadTypes[MAXIMUM_MEDIA_TYPES];
+      UtlString mimeSubtype;
+      UtlString fmtp;
+      int sampleRate;
+      int numChannels;
+      int videoSizes[MAXIMUM_VIDEO_SIZES];
+      int numVideoSizes;
+      // get ptime
+      UtlBoolean ptimeFound = getPtime(mediaIndex, ptime);
+      // get payload types for given media line
+      getMediaPayloadType(mediaIndex, MAXIMUM_MEDIA_TYPES, &numPayloadTypes, payloadTypes);
+
+      for(int typeIndex = 0; typeIndex < numPayloadTypes; typeIndex++)
+      {
+         if(getPayloadRtpMap(payloadTypes[typeIndex], mimeSubtype, sampleRate, numChannels))
+         {
+            int codecMode = -1;
+            getPayloadFormat(payloadTypes[typeIndex], fmtp, codecMode, numVideoSizes, videoSizes);
+
+            // Note that video stuff is not supported
+            SdpCodec sdpCodec(SdpCodec::SDP_CODEC_UNKNOWN,
+                     payloadTypes[typeIndex],
+                     NULL,
+                     NULL,
+                     mimeType,
+                     mimeSubtype,
+                     sampleRate, 
+                     ptime > 0 ? ptime * 1000 : 0,
+                     numChannels != -1 ? numChannels : 1,
+                     fmtp,
+                     SdpCodec::SDP_CODEC_CPU_NORMAL);
+            sdpCodecList.addCodec(sdpCodec);
+         }
+      }
+   }
+}
+
 void SdpBody::getBestAudioCodecs(int numRtpCodecs, SdpCodec rtpCodecs[],
                                  UtlString* rtpAddress, int* rtpPort,
                                  int* sendCodecIndex,

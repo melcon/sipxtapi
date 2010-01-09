@@ -41,18 +41,27 @@ class ScCommandMsg : public OsMsg
 public:
    typedef enum
    {
-      CM_EMPTY = 0,
+      SCC_FIRST = 0,
+      SCC_START_RTP_REDIRECT, ///< sent from master call to slave call to order it to start RTP redirect
+      SCC_STOP_RTP_REDIRECT, ///< sent from master/slave call to slave/master call to stop RTP redirect
+      SCC_REESTABLISH_RTP_REDIRECT, ///< sent from master/slave call to slave/master call to reestablish RTP redirect
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */
 
    ScCommandMsg(SubTypesEnum subType, const SipDialog& sipDialog);
 
+   /** Copy constructor */
+   ScCommandMsg(const ScCommandMsg& rMsg);
+
    virtual ~ScCommandMsg();
 
    virtual OsMsg* createCopy(void) const;
 
    /* ============================ MANIPULATORS ============================== */
+
+   /** Assignment operator */
+   ScCommandMsg& operator=(const ScCommandMsg& rhs);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -65,11 +74,6 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-   /** Private copy constructor */
-   ScCommandMsg(const ScCommandMsg& rMsg);
-
-   /** Private assignment operator */
-   ScCommandMsg& operator=(const ScCommandMsg& rhs);
 
    SipDialog m_sipDialog; ///< sip dialog where this message should be routed
 };

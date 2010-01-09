@@ -154,6 +154,13 @@ public:
    UtlBoolean m_bByeSent; ///< TRUE when we are disconnecting and BYE was already sent
    int m_iByeRetryCount; ///< counter when retrying BYE for inbound call
 
+   // members used for RTP redirect
+   UtlBoolean m_bRTPRedirectActive; ///< TRUE if we are attached to some other call, which remote SDP we use
+   SipDialog m_bRTPRedirectSipDialog; ///< SIP dialog of the call we are attached to
+   UtlBoolean m_bRTPRedirectMasterRole; ///< TRUE if we are in master (not slave) role for RTP redirect
+   SdpBody* m_pRemoteAttachedSdpBody; ///< last SDP body of remote party of attached call
+   SdpBody* m_pRemoteSdpBody; ///< last SDP body of remote party of our call
+
    // timers
    OsTimer* m_pByeRetryTimer; ///< timer started if drop is attempted for inbound call, but call cannot be dropped at current state
    OsTimer* m_pCancelTimeoutTimer; ///< timer started after CANCEL is sent to force drop connection if timeout
@@ -181,6 +188,9 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /* ============================ ACCESSORS ================================= */
+
+   void setRemoteAttachedSdpBody(SdpBody* val);
+   void setRemoteSdpBody(SdpBody* val);
 
    /* ============================ INQUIRY =================================== */
 

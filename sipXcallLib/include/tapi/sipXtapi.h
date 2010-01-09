@@ -94,7 +94,6 @@
 #define MAX_VIDEO_DEVICES       8       /**< Max number of video capture devices. */
 #define MAX_VIDEO_DEVICE_LENGTH 256     /**< Max length of video capture device string. */
 
-#define CONF_MAX_CONNECTIONS    32      /**< Max number of conference participants */
 #define SIPX_MAX_IP_ADDRESSES   32      /**< Maximum number of IP addresses on the host */
 
 
@@ -917,9 +916,6 @@ typedef struct
                                               sipxCallAccept at this moment) 
                                               pass 0 for automatic contact. Real contact
                                               IDs start with 1 */
-    SIPX_RTP_TRANSPORT rtpTransportFlags;/**< specifies protocols(s)/role for media. */
-    SIPX_TRANSPORT hTransport;           ///< handle of external transport
-
     /*
      * NOTE: When adding new data to this structure, please always add it to
      *       the end.  This will allow us to maintain some drop-in 
@@ -1245,10 +1241,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst, int bForceShutdown = 
  * @param hCall Handle to a call.  Call handles are obtained either by 
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
- * @param pDisplay Pointer to an object describing the display object for 
- *        rendering remote video.
- * @param pSecurity Pointer to an object describing the security attributes 
- *        for the call.
  * @param options Pointer to a SIPX_CALL_OPTIONS structure.
  * @param bSendSdp Flag to send SDP in 180 Ringing response, resulting in
  *        early media being sent/received. Either SDP offer or answer will be sent
@@ -1258,8 +1250,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst, int bForceShutdown = 
  * @see sipxConfigSetAudioCodecPreferences
  */
 SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall, 
-                                        SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
-                                        SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                         SIPX_CALL_OPTIONS* options = NULL,
                                         int bSendSdp = 0);
 
@@ -1372,10 +1362,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
  *        invoking sipxCallCreate or passed to your application through
  *        a listener interface.
  * @param szAddress SIP url of the target party
- * @param pDisplay Pointer to an object describing the display object for 
- *        rendering remote video.
- * @param pSecurity Pointer to an object describing the security attributes for 
- *        the call.
  * @param takeFocus Should SIPxua place the this call in focus (engage 
  *        local microphone and speaker).  In some cases, application developer
  *        may want to place the call in the background and play audio while 
@@ -1404,8 +1390,6 @@ SIPXTAPI_API SIPX_RESULT sipxCallCreateOnVirtualLine(const SIPX_INST hInst,
  */
 SIPXTAPI_API SIPX_RESULT sipxCallConnect(const SIPX_CALL hCall,
                                          const char* szAddress,
-                                         SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
-                                         SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                          SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_ALWAYS,
                                          SIPX_CALL_OPTIONS* options = NULL,
                                          const char* szSessionCallId = NULL);
@@ -1493,6 +1477,54 @@ SIPXTAPI_API SIPX_RESULT sipxCallUnhold(const SIPX_CALL hCall,
  */ 
 SIPXTAPI_API SIPX_RESULT sipxCallDestroy(SIPX_CALL* hCall);
 
+/**
+ * Initiates RTP redirect between two calls. SipXtapi will no longer send or receive RTP, and all audio
+ * resources will be released. Source call will use SDP of remote party of destination call and vice versa.
+ * This will result in source and destination calls to send RTP directly to each other, bypassing sipXtapi.
+ *
+ * Because both parties will talk directly to each other, they both must have public IP addresses.
+ * SipXtapi will keep control over SIP signalling and will be able to drop both calls.
+ *
+ * If operation is successful, the following event sequence can be expected:
+ * - RTP_REDIRECT_REQUESTED
+ * - RTP_REDIRECT_ACTIVE
+ *
+ * If operation fails before RTP redirect is activated, RTP_REDIRECT_ERROR event will be reported.
+ * If RTP redirect succeeds but later cannot continue due to attached call being dropped or re-INVITE codec
+ * renegotiation failure, RTP_REDIRECT_STOP will be fired with proper event cause.
+ *
+ * RTP_REDIRECT_STOP will be fired only after RTP_REDIRECT_ACTIVE.
+ *
+ * If one of calls participating in RTP redirect is destroyed, the other call automatically stops redirecting
+ * RTP. Operation will fail if one of calls has RTP redirect request pending, RTP redirect is active or
+ * call is in conference.
+ *
+ * NOT FULLY IMPLEMENTED
+ *
+ * @param hSrcCall Call handle of source call. Must be in established state.
+ * @param hDstCall Call handle of destination call. Must be in established state and belong to the same
+ *        sipXtapi instance like hSrcCall.
+ */
+//SIPXTAPI_API SIPX_RESULT sipxCallStartRtpRedirect(const SIPX_CALL hSrcCall, const SIPX_CALL hDstCall);
+
+/**
+ * Stops redirecting RTP on given call, and its attached call. Causes initialization
+ * of local audio resources and re-INVITE with local codecs. It is not necessary to call
+ * this function if sipxCallStartRtpRedirect failed, or the RTP redirection fails at some point.
+ *
+ * This operation is executed asynchronously. Immediate SIPX_RESULT_SUCCESS merely means
+ * that call was found and command dispatched. Success will be confirmed by RTP_REDIRECT_STOP event.
+ *
+ * Must be called only for a single call participating in RTP redirect. Other call will be notified
+ * automatically and stop RTP redirect. Operation will fail if RTP redirect has been requeted (but not
+ * activated) or is already inactive.
+ *
+ * NOT FULLY IMPLEMENTED
+ *
+ * @param hCall Handle to a call participating in RTP redirect. May be source or destination
+ *        call from sipxCallStartRtpRedirect.
+ */
+//SIPXTAPI_API SIPX_RESULT sipxCallStopRtpRedirect(const SIPX_CALL hCall);
 
 /**
  * Get the SIP Call-Id of the call represented by the specified call handle.
@@ -2345,26 +2377,32 @@ SIPXTAPI_API SIPX_RESULT sipxPublisherUpdate(const SIPX_PUB hPub,
  * where the audio media is mixed.  sipXtapi supports conferences up to
  * 4 (CONF_MAX_CONNECTIONS) parties in its default configuration. An
  * empty shell call is automatically created which is invisible to the
- * client.
+ * client. Conference by default cannot receive inbound calls.
+ *
+ * Public conference may be created by specifying szConferenceUri.
+ * This enables conference to handle inbound calls.
  *
  * @param hInst Instance pointer obtained by sipxInitialize.
  * @param phConference Pointer to a conference handle.  Upon success, 
  *        this value is replaced with a valid conference handle.  
  *        Success is determined by the SIPX_RESULT result code.
+ * @param szConferenceUri optional conference sip uri. If present conference
+ *        can handle inbound calls.
  */
 SIPXTAPI_API SIPX_RESULT sipxConferenceCreate(const SIPX_INST hInst,
-                                              SIPX_CONF* phConference);
+                                              SIPX_CONF* phConference,
+                                              const char* szConferenceUri = NULL);
 
 /**
- * Join (add) an existing held call into a conference.
+ * Join (add) an existing connected call into a conference.
  * 
- * Call must be connected and on remote/full hold for this operation 
- * to succeed. Hold can be accomplished by calling sipxCallHold on
- * the joining party. The application layer must wait for the 
- * CALLSTATE_HELD or CALLSTATE_REMOTE_HELD event prior to calling join.
- * No events are fired as part of the operation and the newly joined call
- * is left on hold. The application layer should call sipxCallUnhold on the new 
- * participant to unhold the call.
+ * Call must be connected for this operation to succeed. This operation
+ * executes asynchronously and will result in CONFERENCE_CALL_ADDED or
+ * CONFERENCE_CALL_ADD_FAILURE event. Until one of these events is received
+ * no other operation on the call must be performed.
+ *
+ * If an INVITE or UPDATE is in progress operation will fail with
+ * CONFERENCE_CAUSE_INVALID_STATE and may be retried later.
  *
  * @param hConf Conference handle obtained by calling sipxConferenceCreate.
  * @param hCall Call handle of the call to join into the conference.
@@ -2373,15 +2411,17 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceJoin(const SIPX_CONF hConf,
                                             const SIPX_CALL hCall);
 
 /**
- * Split (remove) a held call from a conference.  This method will remove
- * the specified call from the conference.  
+ * Split (remove) a call from a conference. This method will remove
+ * the specified call from the conference. Specified call will continue
+ * to be active.
  *
- * The call must be connected and on remote/full hold for this operation to 
- * succeed. Hold can be accomplished by calling sipxCallHold on 
- * the conference participant or by placing the entire conference on hold 
- * with bridging disabled.  The application layer must wait for the 
- * CALLSTATE_HELD or CALLSTATE_REMOTE_HELD event prior to calling split. No events 
- * are fired as part of the operation and the split call is left on hold.
+ * The call must be connected for this operation to succeed. This operation
+ * executes asynchronously and will result in CONFERENCE_CALL_REMOVED or
+ * CONFERENCE_CALL_REMOVE_FAILURE event. Until one of these events is received
+ * no other operation on the call must be performed.
+ *
+ * If an INVITE or UPDATE is in progress operation will fail with
+ * CONFERENCE_CAUSE_INVALID_STATE and may be retried later.
  *
  * @param hConf Handle to a conference.  Conference handles are obtained 
  *        by invoking sipxConferenceCreate.
@@ -2403,19 +2443,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceSplit(const SIPX_CONF hConf,
  *        helps defines the "From" caller-id.
  * @param szAddress SIP URL of the conference participant to add
  * @param phNewCall Pointer to a call handle to store new call.
- * @param contactId Id of the desired contact record to use for this call.
- *        The id refers to a Contact Record obtained by a call to
- *        sipxConfigGetLocalContacts.  The application can choose a 
- *        contact record of type LOCAL, NAT_MAPPED, CONFIG, or RELAY.
- *        The Contact Type allows you to control whether the
- *        user agent and  media processing advertises the local address
- *         (e.g. LOCAL contact of 10.1.1.x or 
- *        192.168.x.x), the NAT-derived address to the target party,
- *        or, local contact addresses of other types.
- * @param pDisplay Pointer to an object describing the display object for 
- *        rendering remote video.
- * @param pSecurity Pointer to an object describing the security attributes 
- *        for the call.
  * @param takeFocus Should SIPxua place the newly answered call in focus
  *        (engage local microphone and speaker).  In some cases, application
  *        developer may want to answer the call in the background and play
@@ -2431,9 +2458,6 @@ SIPXTAPI_API SIPX_RESULT sipxConferenceAdd(const SIPX_CONF hConf,
                                            const SIPX_LINE hLine,
                                            const char* szAddress,
                                            SIPX_CALL* phNewCall,
-                                           SIPX_CONTACT_ID contactId = 0,
-                                           SIPX_VIDEO_DISPLAY* const pDisplay = NULL,
-                                           SIPX_SECURITY_ATTRIBUTES* const pSecurity = NULL,
                                            SIPX_FOCUS_CONFIG takeFocus = SIPX_FOCUS_IF_AVAILABLE,
                                            SIPX_CALL_OPTIONS* options = NULL);
 

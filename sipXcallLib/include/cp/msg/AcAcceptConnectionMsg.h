@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpDefs.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
@@ -40,7 +41,8 @@ class AcAcceptConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcAcceptConnectionMsg(UtlBoolean bSendSDP,
+   AcAcceptConnectionMsg(const SipDialog& sSipDialog,
+                         UtlBoolean bSendSDP,
                          const UtlString& sLocationHeader,
                          CP_CONTACT_ID contactId);
 
@@ -52,6 +54,7 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   void getSipDialog(SipDialog& sSipDialog) const { sSipDialog = m_sSipDialog; }
    UtlBoolean getSendSDP() const { return m_bSendSDP; }
    UtlString getLocationHeader() const { return m_sLocationHeader; }
    CP_CONTACT_ID getContactId() const { return m_contactId; }
@@ -69,6 +72,7 @@ private:
    /** Private assignment operator */
    AcAcceptConnectionMsg& operator=(const AcAcceptConnectionMsg& rhs);
 
+   SipDialog m_sSipDialog;
    UtlBoolean m_bSendSDP;
    UtlString m_sLocationHeader;
    CP_CONTACT_ID m_contactId;

@@ -27,8 +27,10 @@
 
 /* ============================ CREATORS ================================== */
 
-AcRedirectConnectionMsg::AcRedirectConnectionMsg(const UtlString& sRedirectSipUrl)
+AcRedirectConnectionMsg::AcRedirectConnectionMsg(const SipDialog& sSipDialog,
+                                                 const UtlString& sRedirectSipUrl)
 : AcCommandMsg(AC_REDIRECT_CONNECTION)
+, m_sSipDialog(sSipDialog)
 , m_sRedirectSipUrl(sRedirectSipUrl)
 {
 
@@ -41,7 +43,7 @@ AcRedirectConnectionMsg::~AcRedirectConnectionMsg()
 
 OsMsg* AcRedirectConnectionMsg::createCopy(void) const
 {
-   return new AcRedirectConnectionMsg(m_sRedirectSipUrl);
+   return new AcRedirectConnectionMsg(m_sSipDialog, m_sRedirectSipUrl);
 }
 
 /* ============================ MANIPULATORS ============================== */

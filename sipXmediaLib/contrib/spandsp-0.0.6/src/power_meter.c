@@ -22,13 +22,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: power_meter.c,v 1.24 2008/07/02 14:48:26 steveu Exp $
+ * $Id: power_meter.c,v 1.28 2009/02/10 13:06:46 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <inttypes.h>
@@ -37,19 +37,19 @@
 #include <fcntl.h>
 #include <string.h>
 #include <float.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <assert.h>
 
 #include "spandsp/telephony.h"
 #include "spandsp/power_meter.h"
 
-power_meter_t *power_meter_init(power_meter_t *s, int shift)
+SPAN_DECLARE(power_meter_t *) power_meter_init(power_meter_t *s, int shift)
 {
     if (s == NULL)
     {
@@ -62,21 +62,35 @@ power_meter_t *power_meter_init(power_meter_t *s, int shift)
 }
 /*- End of function --------------------------------------------------------*/
 
-power_meter_t *power_meter_damping(power_meter_t *s, int shift)
+SPAN_DECLARE(int) power_meter_release(power_meter_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) power_meter_free(power_meter_t *s)
+{
+    if (s)
+        free(s);
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(power_meter_t *) power_meter_damping(power_meter_t *s, int shift)
 {
     s->shift = shift;
     return s;
 }
 /*- End of function --------------------------------------------------------*/
 
-int32_t power_meter_update(power_meter_t *s, int16_t amp)
+SPAN_DECLARE(int32_t) power_meter_update(power_meter_t *s, int16_t amp)
 {
     s->reading += ((amp*amp - s->reading) >> s->shift);
     return s->reading;
 }
 /*- End of function --------------------------------------------------------*/
 
-int32_t power_meter_level_dbm0(float level)
+SPAN_DECLARE(int32_t) power_meter_level_dbm0(float level)
 {
     float l;
 
@@ -88,7 +102,7 @@ int32_t power_meter_level_dbm0(float level)
 }
 /*- End of function --------------------------------------------------------*/
 
-int32_t power_meter_level_dbov(float level)
+SPAN_DECLARE(int32_t) power_meter_level_dbov(float level)
 {
     float l;
 
@@ -99,13 +113,13 @@ int32_t power_meter_level_dbov(float level)
 }
 /*- End of function --------------------------------------------------------*/
 
-int32_t power_meter_current(power_meter_t *s)
+SPAN_DECLARE(int32_t) power_meter_current(power_meter_t *s)
 {
     return s->reading;
 }
 /*- End of function --------------------------------------------------------*/
 
-float power_meter_current_dbm0(power_meter_t *s)
+SPAN_DECLARE(float) power_meter_current_dbm0(power_meter_t *s)
 {
     if (s->reading <= 0)
         return FLT_MIN;
@@ -114,7 +128,7 @@ float power_meter_current_dbm0(power_meter_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-float power_meter_current_dbov(power_meter_t *s)
+SPAN_DECLARE(float) power_meter_current_dbov(power_meter_t *s)
 {
     if (s->reading <= 0)
         return FLT_MIN;

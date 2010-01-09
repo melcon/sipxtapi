@@ -8,6 +8,7 @@ nobase_include_HEADERS =  \
     cp/CpCallStateEventListener.h \
     cp/CpCodecInfo.h \
     cp/CpDefs.h \
+    cp/CpConferenceEventListener.h \
     cp/CpLoopDetector.h \
     cp/CpMediaEventListener.h \
     cp/CpMediaInterfaceProvider.h \
@@ -16,6 +17,7 @@ nobase_include_HEADERS =  \
     cp/CpNatTraversalConfig.h \
     cp/CpNotificationMsgDef.h \
     cp/CpNotificationRegister.h \
+    cp/CpRtpRedirectEventListener.h \
     cp/Cp100RelTracker.h \
     cp/CpSdpNegotiation.h \
     cp/CpSessionTimerProperties.h \
@@ -27,6 +29,7 @@ nobase_include_HEADERS =  \
     cp/XCpCallControl.h \
     cp/XCpCallConnectionListener.h \
     cp/XCpCallIdUtil.h \
+    cp/XCpCallLookup.h \
     cp/XCpCallManager.h \
     cp/XCpCallStack.h \
     cp/XCpConference.h \
@@ -46,6 +49,8 @@ nobase_include_HEADERS =  \
     cp/msg/AcAudioToneStartMsg.h \
     cp/msg/AcAudioToneStopMsg.h \
     cp/msg/AcCommandMsg.h \
+    cp/msg/AcConferenceJoinMsg.h \
+    cp/msg/AcConferenceSplitMsg.h \    
     cp/msg/AcDestroyConnectionMsg.h \
     cp/msg/AcConnectMsg.h \
     cp/msg/AcDropAllConnectionsMsg.h \
@@ -62,6 +67,9 @@ nobase_include_HEADERS =  \
     cp/msg/AcRenegotiateCodecsAllMsg.h \
     cp/msg/AcRenegotiateCodecsMsg.h \
     cp/msg/AcSendInfoMsg.h \
+    cp/msg/AcStartedMsg.h \
+    cp/msg/AcStartRtpRedirectMsg.h \
+    cp/msg/AcStopRtpRedirectMsg.h \
     cp/msg/AcSubscribeMsg.h \
     cp/msg/AcTimerMsg.h \
     cp/msg/AcTransferBlindMsg.h \
@@ -87,8 +95,14 @@ nobase_include_HEADERS =  \
     cp/msg/ScDisconnectTimerMsg.h \
     cp/msg/ScInviteExpirationTimerMsg.h \
     cp/msg/ScNotificationMsg.h \
+    cp/msg/ScReestablishRtpRedirectCommandMsg.h \
     cp/msg/ScReInviteTimerMsg.h \
+    cp/msg/ScRtpRedirectCompleteNotificationMsg.h \
+    cp/msg/ScRtpRedirectErrorNotificationMsg.h \
     cp/msg/ScSessionTimeoutTimerMsg.h \
+    cp/msg/ScStartRtpRedirectAckNotificationMsg.h \
+    cp/msg/ScStartRtpRedirectCommandMsg.h \
+    cp/msg/ScStopRtpRedirectCommandMsg.h \
     cp/msg/ScTimerMsg.h \
     cp/state/AlertingSipConnectionState.h \
     cp/state/BaseSipConnectionState.h \
@@ -120,17 +134,20 @@ nobase_include_HEADERS =  \
     ptapi/PtSessionDesc.h \
     ptapi/PtTerminalConnection.h \
     tapi/CallStateEventMsg.h \
+    tapi/ConferenceEventMsg.h \
     tapi/InfoEventMsg.h \
     tapi/InfoStatusEventMsg.h \
     tapi/KeepaliveEventMsg.h \
     tapi/LineStateEventMsg.h \
     tapi/MediaEventMsg.h \
+    tapi/RtpRedirectEventMsg.h \
     tapi/SecurityEventMsg.h \
     tapi/SecurityHelper.h \
     tapi/SipXAudio.h \
     tapi/SipXCall.h \
     tapi/SipXCallEventListener.h \
     tapi/SipXConference.h \
+    tapi/SipXConferenceEventListener.h \
     tapi/SipXConfig.h \
     tapi/SipXCore.h \
     tapi/SipXEventDispatcher.h \
@@ -146,6 +163,7 @@ nobase_include_HEADERS =  \
     tapi/SipXMessageObserver.h \
     tapi/SipXPim.h \
     tapi/SipXPublish.h \
+    tapi/SipXRtpRedirectEventListener.h \
     tapi/SipXSecurityEventListener.h \
     tapi/SipXSubscribe.h \
     tapi/sipXtapi.h \

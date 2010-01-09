@@ -22,26 +22,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: v17rx.c,v 1.125 2008/11/30 13:44:35 steveu Exp $
+ * $Id: v17rx.c,v 1.133 2009/02/10 13:06:47 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
 #include <stdio.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 
 #include "spandsp/telephony.h"
 #include "spandsp/logging.h"
@@ -114,25 +114,43 @@ enum
 #define SYNC_CROSS_CORR_COEFF_B          0.700036f    /* alpha*sin(high_edge) */
 #define SYNC_CROSS_CORR_COEFF_C         -0.449451f    /* -alpha*sin(low_edge) */
 
-float v17_rx_carrier_frequency(v17_rx_state_t *s)
+#if defined(SPANDSP_USE_FIXED_POINTx)
+static const int constellation_spacing[4] =
+{
+    ((int)(FP_FACTOR*1.414f),
+    ((int)(FP_FACTOR*2.0f)},
+    ((int)(FP_FACTOR*2.828f)},
+    ((int)(FP_FACTOR*4.0f)},
+};
+#else
+static const float constellation_spacing[4] =
+{
+    1.414f,
+    2.0f,
+    2.828f,
+    4.0f
+};
+#endif
+
+SPAN_DECLARE(float) v17_rx_carrier_frequency(v17_rx_state_t *s)
 {
     return dds_frequencyf(s->carrier_phase_rate);
 }
 /*- End of function --------------------------------------------------------*/
 
-float v17_rx_symbol_timing_correction(v17_rx_state_t *s)
+SPAN_DECLARE(float) v17_rx_symbol_timing_correction(v17_rx_state_t *s)
 {
     return (float) s->total_baud_timing_correction/((float) RX_PULSESHAPER_COEFF_SETS*10.0f/3.0f);
 }
 /*- End of function --------------------------------------------------------*/
 
-float v17_rx_signal_power(v17_rx_state_t *s)
+SPAN_DECLARE(float) v17_rx_signal_power(v17_rx_state_t *s)
 {
     return power_meter_current_dbm0(&s->power);
 }
 /*- End of function --------------------------------------------------------*/
 
-void v17_rx_signal_cutoff(v17_rx_state_t *s, float cutoff)
+SPAN_DECLARE(void) v17_rx_signal_cutoff(v17_rx_state_t *s, float cutoff)
 {
     /* The 0.4 factor allows for the gain of the DC blocker */
     s->carrier_on_power = (int32_t) (power_meter_level_dbm0(cutoff + 2.5f)*0.4f);
@@ -150,9 +168,9 @@ static void report_status_change(v17_rx_state_t *s, int status)
 /*- End of function --------------------------------------------------------*/
 
 #if defined(SPANDSP_USE_FIXED_POINTx)
-int v17_rx_equalizer_state(v17_rx_state_t *s, complexi16_t **coeffs)
+SPAN_DECLARE(int) v17_rx_equalizer_state(v17_rx_state_t *s, complexi16_t **coeffs)
 #else
-int v17_rx_equalizer_state(v17_rx_state_t *s, complexf_t **coeffs)
+SPAN_DECLARE(int) v17_rx_equalizer_state(v17_rx_state_t *s, complexf_t **coeffs)
 #endif
 {
     *coeffs = s->eq_coeff;
@@ -780,7 +798,7 @@ static void process_half_baud(v17_rx_state_t *s, const complexf_t *sample)
         else if (s->training_count >= V17_TRAINING_SEG_2_LEN)
         {
             span_log(&s->logging, SPAN_LOG_FLOW, "Long training error %f\n", s->training_error);
-            if (s->training_error < 40.0f)
+            if (s->training_error < 20.0f*1.414f*constellation_spacing[s->space_map])
             {
                 s->training_count = 0;
                 s->training_error = 0.0f;
@@ -854,10 +872,10 @@ static void process_half_baud(v17_rx_state_t *s, const complexf_t *sample)
             span_log(&s->logging, SPAN_LOG_FLOW, "Short training error %f\n", s->training_error);
             s->carrier_track_i = 100.0f;
             s->carrier_track_p = 500000.0f;
-            /* TODO: This was changed from 20.0 to 200.0 after studying real world failures.
+            /* TODO: This was increased by a factor of 10 after studying real world failures.
                      However, it is not clear why this is an improvement, If something gives
-                     a training error way over 20, surely it shouldn't decode too well? */
-            if (s->training_error < 200.0f)
+                     a huge training error, surely it shouldn't decode too well? */
+            if (s->training_error < (V17_TRAINING_SHORT_SEG_2_LEN - 8)*4.0f*constellation_spacing[s->space_map])
             {
                 s->training_count = 0;
                 s->training_stage = TRAINING_STAGE_TCM_WINDUP;
@@ -900,14 +918,10 @@ static void process_half_baud(v17_rx_state_t *s, const complexf_t *sample)
         s->training_error += powerf(&zz);
         if (++s->training_count >= V17_TRAINING_SEG_4_LEN)
         {
-#if defined(IAXMODEM_STUFF)
-            if (s->training_error < 80.0f)
-#else
-            if (s->training_error < 30.0f)
-#endif
+            if (s->training_error < V17_TRAINING_SEG_4_LEN*constellation_spacing[s->space_map])
             {
                 /* We are up and running */
-                span_log(&s->logging, SPAN_LOG_FLOW, "Training succeeded (constellation mismatch %f)\n", s->training_error);
+                span_log(&s->logging, SPAN_LOG_FLOW, "Training succeeded at %dbps (constellation mismatch %f)\n", s->bit_rate, s->training_error);
                 report_status_change(s, SIG_STATUS_TRAINING_SUCCEEDED);
                 /* Apply some lag to the carrier off condition, to ensure the last few bits get pushed through
                    the processing. */
@@ -941,12 +955,12 @@ static void process_half_baud(v17_rx_state_t *s, const complexf_t *sample)
 }
 /*- End of function --------------------------------------------------------*/
 
-int v17_rx(v17_rx_state_t *s, const int16_t amp[], int len)
+SPAN_DECLARE(int) v17_rx(v17_rx_state_t *s, const int16_t amp[], int len)
 {
     int i;
     int step;
     int16_t x;
-    int32_t diff;
+    int16_t diff;
     complexf_t z;
     complexf_t zz;
     complexf_t sample;
@@ -970,6 +984,7 @@ int v17_rx(v17_rx_state_t *s, const int16_t amp[], int len)
            We need to measure the power with the DC blocked, but not using
            a slow to respond DC blocker. Use the most elementary HPF. */
         x = amp[i] >> 1;
+        /* There could be oveflow here, but it isn't a problem in practice */
         diff = x - s->last_sample;
         power = power_meter_update(&(s->power), diff);
 #if defined(IAXMODEM_STUFF)
@@ -1096,27 +1111,27 @@ int v17_rx(v17_rx_state_t *s, const int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-void v17_rx_set_put_bit(v17_rx_state_t *s, put_bit_func_t put_bit, void *user_data)
+SPAN_DECLARE(void) v17_rx_set_put_bit(v17_rx_state_t *s, put_bit_func_t put_bit, void *user_data)
 {
     s->put_bit = put_bit;
     s->put_bit_user_data = user_data;
 }
 /*- End of function --------------------------------------------------------*/
 
-void v17_rx_set_modem_status_handler(v17_rx_state_t *s, modem_tx_status_func_t handler, void *user_data)
+SPAN_DECLARE(void) v17_rx_set_modem_status_handler(v17_rx_state_t *s, modem_tx_status_func_t handler, void *user_data)
 {
     s->status_handler = handler;
     s->status_user_data = user_data;
 }
 /*- End of function --------------------------------------------------------*/
 
-logging_state_t *v17_rx_get_logging_state(v17_rx_state_t *s)
+SPAN_DECLARE(logging_state_t *) v17_rx_get_logging_state(v17_rx_state_t *s)
 {
     return &s->logging;
 }
 /*- End of function --------------------------------------------------------*/
 
-int v17_rx_restart(v17_rx_state_t *s, int bit_rate, int short_train)
+SPAN_DECLARE(int) v17_rx_restart(v17_rx_state_t *s, int bit_rate, int short_train)
 {
     int i;
 
@@ -1225,7 +1240,7 @@ int v17_rx_restart(v17_rx_state_t *s, int bit_rate, int short_train)
 }
 /*- End of function --------------------------------------------------------*/
 
-v17_rx_state_t *v17_rx_init(v17_rx_state_t *s, int bit_rate, put_bit_func_t put_bit, void *user_data)
+SPAN_DECLARE(v17_rx_state_t *) v17_rx_init(v17_rx_state_t *s, int bit_rate, put_bit_func_t put_bit, void *user_data)
 {
     if (s == NULL)
     {
@@ -1248,14 +1263,20 @@ v17_rx_state_t *v17_rx_init(v17_rx_state_t *s, int bit_rate, put_bit_func_t put_
 }
 /*- End of function --------------------------------------------------------*/
 
-int v17_rx_free(v17_rx_state_t *s)
+SPAN_DECLARE(int) v17_rx_release(v17_rx_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) v17_rx_free(v17_rx_state_t *s)
 {
     free(s);
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-void v17_rx_set_qam_report_handler(v17_rx_state_t *s, qam_report_handler_t handler, void *user_data)
+SPAN_DECLARE(void) v17_rx_set_qam_report_handler(v17_rx_state_t *s, qam_report_handler_t handler, void *user_data)
 {
     s->qam_report = handler;
     s->qam_user_data = user_data;

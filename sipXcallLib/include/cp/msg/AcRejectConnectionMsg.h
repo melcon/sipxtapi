@@ -18,6 +18,7 @@
 #include <os/OsDefs.h>
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
+#include <net/SipDialog.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
 
@@ -39,7 +40,7 @@ class AcRejectConnectionMsg : public AcCommandMsg
 public:
    /* ============================ CREATORS ================================== */
 
-   AcRejectConnectionMsg();
+   AcRejectConnectionMsg(const SipDialog& sSipDialog);
 
    virtual ~AcRejectConnectionMsg();
 
@@ -48,6 +49,8 @@ public:
    /* ============================ MANIPULATORS ============================== */
 
    /* ============================ ACCESSORS ================================= */
+
+   void getSipDialog(SipDialog& sSipDialog) const { sSipDialog = m_sSipDialog; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -62,6 +65,7 @@ private:
    /** Private assignment operator */
    AcRejectConnectionMsg& operator=(const AcRejectConnectionMsg& rhs);
 
+   SipDialog m_sSipDialog;
 };
 
 #endif // AcRejectConnectionMsg_h__

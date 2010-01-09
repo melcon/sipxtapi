@@ -20,6 +20,7 @@
 #include <utl/UtlString.h>
 #include <utl/UtlHashMap.h>
 #include <cp/XCpCallConnectionListener.h>
+#include <cp/XCpCallLookup.h>
 
 // DEFINES
 // MACROS
@@ -36,12 +37,13 @@ class XCpCall;
 class XCpConference;
 class SipDialog;
 class SipMessage;
+class Url;
 
 /**
  * Class XCpCallStack is a container for XCpCall and XCpConference instances.
  * It supports fast lookup by id, sip call-id, focused call tracking 
  */
-class XCpCallStack : public XCpCallConnectionListener
+class XCpCallStack : public XCpCallConnectionListener, public XCpCallLookup
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
@@ -95,7 +97,7 @@ public:
    *
    * @return TRUE if a call was found, FALSE otherwise.
    */
-   UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const;
+   virtual UtlBoolean findCall(const UtlString& sId, OsPtrLock<XCpCall>& ptrLock) const;
 
    /**
    * Finds and returns a XCpCall according to given SipDialog.
@@ -104,7 +106,7 @@ public:
    *
    * @return TRUE if a call was found, FALSE otherwise.
    */
-   UtlBoolean findCall(const SipDialog& sSipDialog, OsPtrLock<XCpCall>& ptrLock) const;
+   virtual UtlBoolean findCall(const SipDialog& sSipDialog, OsPtrLock<XCpCall>& ptrLock) const;
 
    /**
    * Finds and returns a XCpConference according to given id.
@@ -125,11 +127,20 @@ public:
    UtlBoolean findConference(const SipDialog& sSipDialog, OsPtrLock<XCpConference>& ptrLock) const;
 
    /**
-   * Finds and returns XCpAbstractCall capable of handling given SipMessage.
+   * Finds and returns XCpAbstractCall capable of handling given SipMessage. Returns XCpAbstractCall
+   * which has XSipConnection for given SipDialog.
    *
    * @return TRUE if an XCpAbstractCall was found, FALSE otherwise.
    */
    UtlBoolean findHandlingAbstractCall(const SipMessage& rSipMessage, OsPtrLock<XCpAbstractCall>& ptrLock) const;
+
+   /**
+   * Finds and returns XCpConference capable of handling given SipMessage. Tries to match sip message
+   * request uri against conference uri.
+   *
+   * @return TRUE if an XCpAbstractCall was found, FALSE otherwise.
+   */
+   UtlBoolean findConferenceByUri(const Url& requestUri, OsPtrLock<XCpConference>& ptrLock) const;
 
    /**
    * Pushes given XCpCall on the call stack. Call must not be locked to avoid deadlocks.

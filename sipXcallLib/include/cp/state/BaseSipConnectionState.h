@@ -92,8 +92,8 @@ public:
    BaseSipConnectionState(SipConnectionStateContext& rStateContext,
                           SipUserAgent& rSipUserAgent,
                           XCpCallControl& rCallControl,
-                          CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                          CpMessageQueueProvider& rMessageQueueProvider,
+                          CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                          CpMessageQueueProvider* pMessageQueueProvider,
                           XSipConnectionEventSink& rSipConnectionEventSink,
                           const CpNatTraversalConfig& natTraversalConfig);
 
@@ -134,6 +134,19 @@ public:
                                                  const UtlString& locationHeader,
                                                  CP_CONTACT_ID contactId,
                                                  const UtlString& replacesField);
+
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling. Current call will become the master call.
+   */
+   virtual SipConnectionStateTransition* startRtpRedirect(OsStatus& result,
+                                                          const UtlString& slaveAbstractCallId,
+                                                          const SipDialog& slaveSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   virtual SipConnectionStateTransition* stopRtpRedirect(OsStatus& result);
 
    /**
    * Accepts inbound call connection, sends 180 Ringing.
@@ -188,6 +201,9 @@ public:
                                                   const size_t nContentLength,
                                                   void* pCookie);
 
+   /** Terminates media connection silently without informing remote call party. Used for conference split/join. */
+   virtual SipConnectionStateTransition* terminateMediaConnection(OsStatus& result);
+
    /** Handles timer message. */
    virtual SipConnectionStateTransition* handleTimerMessage(const ScTimerMsg& timerMsg);
 
@@ -201,6 +217,12 @@ public:
 
    /** Sets response code returned for inbound INFO messages - used in unit tests. */
    static void setInfoTestResponseCode(int val) { ms_iInfoTestResponseCode = val; }
+
+   /** Sets new message queue provider on the state */
+   void setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider);
+
+   /** Sets new media interface provider on the state */
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider);
 
    /* ============================ INQUIRY =================================== */
 
@@ -704,6 +726,12 @@ protected:
    /** Deletes all timers */
    void deleteAllTimers();
 
+   /** Updates given timer. Old timer is deleted and new one will be created with new queue. */
+   void updateTimer(OsTimer **pTimer);
+
+   /** Updates all timers to use new queue */
+   void updateAllTimers();
+
    /** Updates known capabilities about remote party. Updates Allow, Supported.*/
    void updateRemoteCapabilities(const SipMessage& sipMessage);
 
@@ -765,8 +793,8 @@ protected:
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    XCpCallControl& m_rCallControl; ///< interface for controlling other calls
-   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
-   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
+   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   CpMessageQueueProvider* m_pMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
    CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 
