@@ -133,7 +133,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(ProjectDir)/../../../lib/libspeexdspd.lib"
+				OutputFile="$(ProjectDir)/../../../lib/libspeexdsp.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
