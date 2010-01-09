@@ -58,6 +58,8 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcAudioToneStartMsg.cpp \
     cp/msg/AcAudioToneStopMsg.cpp \
     cp/msg/AcCommandMsg.cpp \
+    cp/msg/AcConferenceJoinMsg.cpp \
+    cp/msg/AcConferenceSplitMsg.cpp \
     cp/msg/AcConnectMsg.cpp \
     cp/msg/AcDestroyConnectionMsg.cpp \
     cp/msg/AcDropAllConnectionsMsg.cpp \
@@ -74,6 +76,9 @@ libsipXcall_la_SOURCES = \
     cp/msg/AcRenegotiateCodecsAllMsg.cpp \
     cp/msg/AcRenegotiateCodecsMsg.cpp \
     cp/msg/AcSendInfoMsg.cpp \
+    cp/msg/AcStartedMsg.cpp \
+    cp/msg/AcStartRtpRedirectMsg.cpp \
+    cp/msg/AcStopRtpRedirectMsg.cpp \
     cp/msg/AcSubscribeMsg.cpp \
     cp/msg/AcTransferBlindMsg.cpp \
     cp/msg/AcTransferConsultativeMsg.cpp \
@@ -97,8 +102,14 @@ libsipXcall_la_SOURCES = \
     cp/msg/ScDisconnectTimerMsg.cpp \
     cp/msg/ScInviteExpirationTimerMsg.cpp \
     cp/msg/ScNotificationMsg.cpp \
+    cp/msg/ScReestablishRtpRedirectCommandMsg.cpp \
     cp/msg/ScReInviteTimerMsg.cpp \
+    cp/msg/ScRtpRedirectCompleteNotificationMsg.cpp \
+    cp/msg/ScRtpRedirectErrorNotificationMsg.cpp \
     cp/msg/ScSessionTimeoutTimerMsg.cpp \
+    cp/msg/ScStartRtpRedirectAckNotificationMsg.cpp \
+    cp/msg/ScStartRtpRedirectCommandMsg.cpp \
+    cp/msg/ScStopRtpRedirectCommandMsg.cpp \
     cp/msg/ScTimerMsg.cpp \
     cp/state/AlertingSipConnectionState.cpp \
     cp/state/BaseSipConnectionState.cpp \
@@ -121,17 +132,20 @@ libsipXcall_la_SOURCES = \
     cp/state/StateTransitionEventDispatcher.cpp \
     cp/state/UnknownSipConnectionState.cpp \
     tapi/CallStateEventMsg.cpp \
+    tapi/ConferenceEventMsg.cpp \
     tapi/InfoEventMsg.cpp \
     tapi/InfoStatusEventMsg.cpp \
     tapi/KeepaliveEventMsg.cpp \
     tapi/LineStateEventMsg.cpp \
     tapi/MediaEventMsg.cpp \
+    tapi/RtpRedirectEventMsg.cpp \
     tapi/SecurityEventMsg.cpp \
     tapi/SecurityHelper.cpp \
     tapi/SipXAudio.cpp \
     tapi/SipXCall.cpp \
     tapi/SipXCallEventListener.cpp \
     tapi/SipXConference.cpp \
+    tapi/SipXConferenceEventListener.cpp \
     tapi/SipXConfig.cpp \
     tapi/SipXCore.cpp \
     tapi/SipXEventDispatcher.cpp \
@@ -147,6 +161,7 @@ libsipXcall_la_SOURCES = \
     tapi/SipXMessageObserver.cpp \
     tapi/SipXPim.cpp \
     tapi/SipXPublish.cpp \
+    tapi/SipXRtpRedirectEventListener.cpp \
     tapi/SipXSecurityEventListener.cpp \
     tapi/SipXSubscribe.cpp \
     tapi/sipXtapi.cpp \

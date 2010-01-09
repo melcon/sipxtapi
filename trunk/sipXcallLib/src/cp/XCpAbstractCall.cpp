@@ -46,10 +46,21 @@
 #include <cp/msg/AcMuteInputConnectionMsg.h>
 #include <cp/msg/AcUnmuteInputConnectionMsg.h>
 #include <cp/msg/AcLimitCodecPreferencesMsg.h>
+#include <cp/msg/AcAcceptConnectionMsg.h>
+#include <cp/msg/AcRejectConnectionMsg.h>
+#include <cp/msg/AcRedirectConnectionMsg.h>
+#include <cp/msg/AcAnswerConnectionMsg.h>
+#include <cp/msg/AcHoldConnectionMsg.h>
+#include <cp/msg/AcUnholdConnectionMsg.h>
+#include <cp/msg/AcTransferBlindMsg.h>
+#include <cp/msg/AcTransferConsultativeMsg.h>
+#include <cp/msg/AcRenegotiateCodecsMsg.h>
+#include <cp/msg/AcSendInfoMsg.h>
 #include <cp/msg/AcSubscribeMsg.h>
 #include <cp/msg/AcUnsubscribeMsg.h>
 #include <cp/msg/AcAcceptTransferMsg.h>
 #include <cp/msg/AcRejectTransferMsg.h>
+#include <cp/msg/AcStartedMsg.h>
 #include <cp/msg/CmGainFocusMsg.h>
 #include <cp/msg/CmYieldFocusMsg.h>
 #include <cp/msg/CpTimerMsg.h>
@@ -94,7 +105,8 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
                                  SipInfoStatusEventListener* pInfoStatusEventListener,
                                  SipInfoEventListener* pInfoEventListener,
                                  SipSecurityEventListener* pSecurityEventListener,
-                                 CpMediaEventListener* pMediaEventListener)
+                                 CpMediaEventListener* pMediaEventListener,
+                                 CpRtpRedirectEventListener* pRtpRedirectEventListener)
 : OsServerTask("XCpAbstractCall-%d", NULL, CALL_MAX_REQUEST_MSGS)
 , m_memberMutex(OsMutex::Q_FIFO)
 , m_sId(sId)
@@ -112,6 +124,7 @@ XCpAbstractCall::XCpAbstractCall(const UtlString& sId,
 , m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
+, m_pRtpRedirectEventListener(pRtpRedirectEventListener)
 , m_natTraversalConfig(rNatTraversalConfig)
 , m_sBindIpAddress(sBindIpAddress)
 , m_sessionTimerExpiration(sessionTimerExpiration)
@@ -133,6 +146,20 @@ XCpAbstractCall::~XCpAbstractCall()
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+UtlBoolean XCpAbstractCall::start()
+{
+   UtlBoolean res = OsServerTask::start();
+
+   if (res)
+   {
+      // post notification that abstract call has been started
+      AcStartedMsg msg;
+      postMessage(msg);
+   }
+
+   return res;
+}
 
 UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
 {
@@ -164,6 +191,34 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
    return bResult;
 }
 
+OsStatus XCpAbstractCall::acceptConnection(const SipDialog& sSipDialog,
+                                           UtlBoolean bSendSDP,
+                                           const UtlString& locationHeader,
+                                           CP_CONTACT_ID contactId)
+{
+   AcAcceptConnectionMsg acceptConnectionMsg(sSipDialog, bSendSDP, locationHeader, contactId);
+   return postMessage(acceptConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::rejectConnection(const SipDialog& sSipDialog)
+{
+   AcRejectConnectionMsg rejectConnectionMsg(sSipDialog);
+   return postMessage(rejectConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::redirectConnection(const SipDialog& sSipDialog,
+                                             const UtlString& sRedirectSipUrl)
+{
+   AcRedirectConnectionMsg redirectConnectionMsg(sSipDialog, sRedirectSipUrl);
+   return postMessage(redirectConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::answerConnection(const SipDialog& sSipDialog)
+{
+   AcAnswerConnectionMsg answerConnectionMsg(sSipDialog);
+   return postMessage(answerConnectionMsg);
+}
+
 OsStatus XCpAbstractCall::acceptConnectionTransfer(const SipDialog& sipDialog)
 {
    AcAcceptTransferMsg acceptTransferMsg(sipDialog);
@@ -174,6 +229,30 @@ OsStatus XCpAbstractCall::rejectConnectionTransfer(const SipDialog& sipDialog)
 {
    AcRejectTransferMsg rejectTransferMsg(sipDialog);
    return postMessage(rejectTransferMsg);
+}
+
+OsStatus XCpAbstractCall::transferBlind(const SipDialog& sipDialog, const UtlString& sTransferSipUrl)
+{
+   AcTransferBlindMsg transferBlindMsg(sipDialog, sTransferSipUrl);
+   return postMessage(transferBlindMsg);
+}
+
+OsStatus XCpAbstractCall::transferConsultative(const SipDialog& sourceSipDialog, const SipDialog& targetSipDialog)
+{
+   AcTransferConsultativeMsg transferConsultativeMsg(sourceSipDialog, targetSipDialog);
+   return postMessage(transferConsultativeMsg);
+}
+
+OsStatus XCpAbstractCall::holdConnection(const SipDialog& sipDialog)
+{
+   AcHoldConnectionMsg holdConnectionMsg(sipDialog);
+   return postMessage(holdConnectionMsg);
+}
+
+OsStatus XCpAbstractCall::unholdConnection(const SipDialog& sipDialog)
+{
+   AcUnholdConnectionMsg unholdConnectionMsg(sipDialog);
+   return postMessage(unholdConnectionMsg);
 }
 
 OsStatus XCpAbstractCall::audioToneStart(int iToneId,
@@ -265,6 +344,25 @@ OsStatus XCpAbstractCall::limitCodecPreferences(const UtlString& sAudioCodecs,
 {
    AcLimitCodecPreferencesMsg limitCodecPreferencesMsg(sAudioCodecs, sVideoCodecs);
    return postMessage(limitCodecPreferencesMsg);
+}
+
+OsStatus XCpAbstractCall::renegotiateCodecsConnection(const SipDialog& sipDialog,
+                                                      const UtlString& sAudioCodecs,
+                                                      const UtlString& sVideoCodecs)
+{
+   AcRenegotiateCodecsMsg renegotiateCodecsMsg(sipDialog, sAudioCodecs,
+      sVideoCodecs);
+   return postMessage(renegotiateCodecsMsg);
+}
+
+OsStatus XCpAbstractCall::sendInfo(const SipDialog& sipDialog,
+                                   const UtlString& sContentType,
+                                   const char* pContent,
+                                   const size_t nContentLength,
+                                   void* pCookie)
+{
+   AcSendInfoMsg sendInfoMsg(sipDialog, sContentType, pContent, nContentLength, pCookie);
+   return postMessage(sendInfoMsg);
 }
 
 OsStatus XCpAbstractCall::subscribe(CP_NOTIFICATION_TYPE notificationType,
@@ -435,11 +533,44 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
    case AcCommandMsg::AC_UNSUBSCRIBE:
       handleUnsubscribe((const AcUnsubscribeMsg&)rRawMsg);
       return TRUE;
+   case AcCommandMsg::AC_ACCEPT_CONNECTION:
+      handleAcceptConnection((const AcAcceptConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_REJECT_CONNECTION:
+      handleRejectConnection((const AcRejectConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_REDIRECT_CONNECTION:
+      handleRedirectConnection((const AcRedirectConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_ANSWER_CONNECTION:
+      handleAnswerConnection((const AcAnswerConnectionMsg&)rRawMsg);
+      return TRUE;
    case AcCommandMsg::AC_ACCEPT_TRANSFER:
       handleAcceptTransfer((const AcAcceptTransferMsg&)rRawMsg);
       return TRUE;
    case AcCommandMsg::AC_REJECT_TRANSFER:
       handleRejectTransfer((const AcRejectTransferMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_DESTROY_CONNECTION:
+      handleDestroyConnection((const AcDestroyConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_TRANSFER_BLIND:
+      handleTransferBlind((const AcTransferBlindMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_TRANSFER_CONSULTATIVE:
+      handleTransferConsultative((const AcTransferConsultativeMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_HOLD_CONNECTION:
+      handleHoldConnection((const AcHoldConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_UNHOLD_CONNECTION:
+      handleUnholdConnection((const AcUnholdConnectionMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_RENEGOTIATE_CODECS:
+      handleRenegotiateCodecs((const AcRenegotiateCodecsMsg&)rRawMsg);
+      return TRUE;
+   case AcCommandMsg::AC_SEND_INFO:
+      handleSendInfo((const AcSendInfoMsg&)rRawMsg);
       return TRUE;
    default:
       break;
@@ -450,6 +581,15 @@ UtlBoolean XCpAbstractCall::handleCommandMessage(const AcCommandMsg& rRawMsg)
 
 UtlBoolean XCpAbstractCall::handleNotificationMessage(const AcNotificationMsg& rRawMsg)
 {
+   switch ((AcNotificationMsg::SubTypesEnum)rRawMsg.getMsgSubType())
+   {
+   case AcNotificationMsg::ACN_STARTED:
+      onStarted();
+      return TRUE;
+   default:
+      break;
+   }
+
    return FALSE;
 }
 
@@ -468,7 +608,7 @@ UtlBoolean XCpAbstractCall::handleTimerMessage(const CpTimerMsg& rRawMsg)
    return FALSE;
 }
 
-UtlBoolean XCpAbstractCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
+OsStatus XCpAbstractCall::handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent)
 {
    const SipMessage* pSipMessage = rSipMsgEvent.getMessage();
    if (pSipMessage)
@@ -477,11 +617,18 @@ UtlBoolean XCpAbstractCall::handleSipMessageEvent(const SipMessageEvent& rSipMsg
       UtlBoolean resFound = findConnection(*pSipMessage, ptrLock);
       if (resFound)
       {
-         return ptrLock->handleSipMessageEvent(rSipMsgEvent);
+         if (ptrLock->handleSipMessageEvent(rSipMsgEvent))
+         {
+            return OS_SUCCESS;
+         }
+      }
+      else
+      {
+         return OS_NOT_FOUND;
       }
    }
 
-   return FALSE;
+   return OS_FAILED;
 }
 
 UtlBoolean XCpAbstractCall::findConnection(const SipMessage& sipMessage, OsPtrLock<XSipConnection>& ptrLock) const
@@ -771,7 +918,19 @@ UtlBoolean XCpAbstractCall::handlePhoneAppMessage(const OsMsg& rRawMsg)
    switch (msgSubType)
    {
    case SipMessage::NET_SIP_MESSAGE:
-      return handleSipMessageEvent((const SipMessageEvent&)rRawMsg);
+      {
+         OsStatus res = handleSipMessageEvent((const SipMessageEvent&)rRawMsg);
+         if (res == OS_SUCCESS)
+         {
+            bResult = TRUE;
+         }
+         else if (res == OS_NOT_FOUND)
+         {
+            // if connection for sip message was not found, repost message back to call manager
+            getGlobalQueue().send(rRawMsg);
+         }
+         break;
+      }
    default:
       {
          OsSysLog::add(FAC_CP, PRI_ERR, "Unknown PHONE_APP XCpAbstractCall message subtype: %d\n", msgSubType);
@@ -888,6 +1047,164 @@ UtlBoolean XCpAbstractCall::handleInterfaceNotfMessage(const OsIntPtrMsg& rMsg)
    return TRUE;
 }
 
+OsStatus XCpAbstractCall::handleAcceptConnection(const AcAcceptConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->acceptConnection(rMsg.getSendSDP() ,rMsg.getLocationHeader(), rMsg.getContactId());
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleRejectConnection(const AcRejectConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->rejectConnection();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleRedirectConnection(const AcRedirectConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->redirectConnection(rMsg.getRedirectSipUrl());
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleAnswerConnection(const AcAnswerConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->answerConnection();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleTransferBlind(const AcTransferBlindMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->transferBlind(rMsg.getTransferSipUrl());
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleTransferConsultative(const AcTransferConsultativeMsg& rMsg)
+{
+   SipDialog sourceSipDialog;
+   SipDialog targetSipDialog;
+   rMsg.getSourceSipDialog(sourceSipDialog);
+   rMsg.getTargetSipDialog(targetSipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sourceSipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->transferConsultative(targetSipDialog);
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleHoldConnection(const AcHoldConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog if call-id is not null
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->holdConnection();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleUnholdConnection(const AcUnholdConnectionMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   // find connection by sip dialog
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->unholdConnection();
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      UtlString audioCodecs = SdpCodecFactory::getFixedAudioCodecs(rMsg.getAudioCodecs()); // add "telephone-event" if its missing
+      if (doLimitCodecPreferences(audioCodecs, rMsg.getVideoCodecs()) == OS_SUCCESS)
+      {
+         return ptrLock->renegotiateCodecsConnection();
+      }
+      else
+      {
+         return OS_FAILED;
+      }
+   }
+
+   return OS_NOT_FOUND;
+}
+
+OsStatus XCpAbstractCall::handleSendInfo(const AcSendInfoMsg& rMsg)
+{
+   SipDialog sipDialog;
+   rMsg.getSipDialog(sipDialog);
+   OsPtrLock<XSipConnection> ptrLock;
+   UtlBoolean resFound = findConnection(sipDialog, ptrLock);
+   if (resFound)
+   {
+      return ptrLock->sendInfo(rMsg.getContentType(), rMsg.getContent(), rMsg.getContentLength(), rMsg.getCookie());
+   }
+
+   return OS_NOT_FOUND;
+}
+
 void XCpAbstractCall::releaseMediaInterface()
 {
    if (m_pMediaInterface)
@@ -1000,6 +1317,14 @@ UtlBoolean XCpAbstractCall::handleSipConnectionTimer(const ScTimerMsg& timerMsg)
    if (resFind)
    {
       msgHandled = ptrLock->handleTimerMessage(timerMsg);
+   }
+   else
+   {
+      OsSysLog::add(FAC_CP, PRI_DEBUG, "No connection was found for sip connection timer message subtype %d. Posting to call manager.\n",
+         timerMsg.getMsgSubType());
+      // connection was not found, send message to call manager, it might be able to find the correct call
+      // this might happen after conference join/split
+      getGlobalQueue().send(timerMsg);
    }
 
    return resFind && msgHandled;

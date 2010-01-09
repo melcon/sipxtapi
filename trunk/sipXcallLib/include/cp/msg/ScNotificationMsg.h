@@ -42,7 +42,10 @@ public:
    typedef enum
    {
       SCN_FIRST = 0,
-      SCN_CONNECTION_STATE, ///< connection state notification
+      SCN_CONNECTION_STATE, ///< connection state notification. Sent when connection state changes.
+      SCN_START_RTP_REDIRECT_ACK, ///< sent to notify master call from slave call that order was confirmed. Carries SDP body.
+      SCN_RTP_REDIRECT_COMPLETE, ///< sent to notify master call that slave has completed rtp redirect. Carries the latest SDP body.
+      SCN_RTP_REDIRECT_ERROR, ///< sent to notify call that there was an error in rtp redirect, and it should be cancelled.
    } SubTypesEnum;
 
    /* ============================ CREATORS ================================== */

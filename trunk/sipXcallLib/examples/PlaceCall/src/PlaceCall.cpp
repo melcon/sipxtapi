@@ -97,7 +97,8 @@ void usage(const char* szExecutable)
     printf("   -B ip address to bind to\n");
     printf("   -u username (for authentication)\n") ;
     printf("   -a password  (for authentication)\n") ;
-    printf("   -m realm  (for authentication)\n") ;
+    printf("   -m realm  (for authentication, optional)\n") ;
+    printf("   -register registers line with sip proxy\n") ;
     printf("   -i from identity\n") ;
     printf("   -S stun server\n") ;
     printf("   -x proxy (outbound proxy)\n");
@@ -146,7 +147,8 @@ bool parseArgs(int argc,
                bool*  bAGC,
                bool*  bDenoise,
                bool*  bUseCustomTransportReliable,
-               bool*  bUseCustomTransportUnreliable)
+               bool*  bUseCustomTransportUnreliable,
+               bool*  bRegisterLine)
 {
     bool bRC = false ;
     char szBuffer[64];
@@ -175,10 +177,15 @@ bool parseArgs(int argc,
     *bAEC = false;
     *bAGC = false;
     *bDenoise = false;
+    *bRegisterLine = false;
 
     for (int i=1; i<argc; i++)
     {
-        if (strcmp(argv[i], "-d") == 0)
+       if (strcmp(argv[i], "-register") == 0)
+       {
+          *bRegisterLine = true;
+       }
+        else if (strcmp(argv[i], "-d") == 0)
         {
             if ((i+1) < argc)
             {
@@ -448,7 +455,7 @@ bool EventCallBack(SIPX_EVENT_CATEGORY category,
 }
 
 // Wait for the designated event for at worst ~iTimeoutInSecs seconds
-bool WaitForSipXEvent(SIPX_CALLSTATE_EVENT event, int iTimeoutInSecs)
+bool WaitForSipXEvent(SIPX_CALLSTATE_EVENT event, int iTimeoutInSecs, bool bQuitOnCallDestroyed = false)
 {
     bool bFound = false ;
     int  tries = 0;
@@ -461,7 +468,7 @@ bool WaitForSipXEvent(SIPX_CALLSTATE_EVENT event, int iTimeoutInSecs)
     {
         for (int i=0;i<MAX_RECORD_EVENTS; i++)
         {
-            if (g_eRecordEvents[i] == event)
+            if (g_eRecordEvents[i] == event || (bQuitOnCallDestroyed && g_eRecordEvents[i] == CALLSTATE_DESTROYED))
             {
                 bFound = true ;
                 break ;
@@ -534,7 +541,7 @@ void dumpLocalContacts(SIPX_CALL hCall)
 
 
 // Place a call to szSipUrl as szFromIdentity
-bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szPassword, char *szRealm)
+bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szPassword, char *szRealm, bool bRegisterLine)
 {
     bool bRC = false ;
 
@@ -547,9 +554,15 @@ bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szP
     printf("<-> Username: %s, passwd: %s, realm: %s (all required for auth)\n", szUsername, szPassword, szRealm) ;
 
     sipxLineAdd(g_hInst1, szFromIdentity, &g_hLine) ;
-    if (szUsername && szPassword && szRealm)
+    if (szUsername && szPassword)
     {
         sipxLineAddCredential(g_hLine, szUsername, szPassword, szRealm) ;
+    }
+    if (bRegisterLine)
+    {
+       sipxLineRegister(g_hLine, TRUE);
+       // give it time to register
+       SLEEP(1000);
     }
 #if defined(_WIN32) && defined(VIDEO)
     if (bVideo)
@@ -613,7 +626,7 @@ bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szP
     {
         sipxCallConnect(g_hCall, szSipUrl);
     }
-    bRC = WaitForSipXEvent(CALLSTATE_CONNECTED, 30) ;
+    bRC = WaitForSipXEvent(CALLSTATE_CONNECTED, 30, true) ;
 
     return bRC ;
 }
@@ -775,13 +788,14 @@ int local_main(int argc, char* argv[])
     bool bAEC;
     bool bAGC;
     bool bDenoise;
+    bool bRegisterLine;
 
     // Parse Arguments
     if (parseArgs(argc, argv, &iDuration, &iSipPort, &iRtpPort, &szPlayTones,
             &szFile, &szFileBuffer, &szSipUrl, &bUseRport, &szUsername, 
             &szPassword, &szRealm, &szFromIdentity, &szStunServer, &szProxy, 
             &szBindAddr, &iRepeatCount, &szInDevice, &szOutDevice, &szCodec, &bCList,
-            &bAEC, &bAGC, &bDenoise, &bUseCustomTransportReliable, &bUseCustomTransportUnreliable) 
+            &bAEC, &bAGC, &bDenoise, &bUseCustomTransportReliable, &bUseCustomTransportUnreliable, &bRegisterLine) 
             && (iDuration > 0) && (portIsValid(iSipPort)) && (portIsValid(iRtpPort)))
     {
         // initialize sipx TAPI-like API
@@ -888,6 +902,13 @@ int local_main(int argc, char* argv[])
                 printf("!! Setting audio codec to %s failed !!\n", szCodec);
             };
         }
+        else
+        {
+           if (sipxConfigSelectAudioCodecByName(g_hInst1, "PCMU PCMA") == SIPX_RESULT_FAILURE)
+           {
+              printf("!! Setting audio codecs to PCMU PCMA failed !!\n", szCodec);
+           };
+        }
         // Wait for a STUN response (should actually look for the STUN event status
         // (config event) ;
         SLEEP(1500) ;
@@ -900,7 +921,7 @@ int local_main(int argc, char* argv[])
             printf("<-> Attempt %d of %d\n", i+1, iRepeatCount) ;
 
             // Place a call to designed URL
-            if (placeCall(szSipUrl, szFromIdentity, szUsername, szPassword, szRealm))
+            if (placeCall(szSipUrl, szFromIdentity, szUsername, szPassword, szRealm, bRegisterLine))
             {
                 bError = false ;
 

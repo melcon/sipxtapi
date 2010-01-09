@@ -16,6 +16,8 @@
 #include <os/OsWriteLock.h>
 #include <net/SipMessageEvent.h>
 #include <net/SipUserAgent.h>
+#include <cp/CpMediaInterfaceProvider.h>
+#include <cp/CpMessageQueueProvider.h>
 #include <cp/state/SipConnectionStateMachine.h>
 #include <cp/state/IdleSipConnectionState.h>
 #include <cp/state/SipConnectionStateObserver.h>
@@ -42,8 +44,8 @@
 SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                                                      XCpCallControl& rCallControl,
                                                      const UtlString& sBindlIpAddress,
-                                                     CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                                     CpMessageQueueProvider& rMessageQueueProvider,
+                                                     CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                                                     CpMessageQueueProvider* pMessageQueueProvider,
                                                      XSipConnectionEventSink& rSipConnectionEventSink,
                                                      const CpNatTraversalConfig& natTraversalConfig)
 : m_rStateContext()
@@ -51,8 +53,8 @@ SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent
 , m_pStateObserver(NULL)
 , m_rSipUserAgent(rSipUserAgent)
 , m_rCallControl(rCallControl)
-, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
-, m_rMessageQueueProvider(rMessageQueueProvider)
+, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
+, m_pMessageQueueProvider(pMessageQueueProvider)
 , m_rSipConnectionEventSink(rSipConnectionEventSink)
 , m_natTraversalConfig(natTraversalConfig)
 {
@@ -61,7 +63,7 @@ SipConnectionStateMachine::SipConnectionStateMachine(SipUserAgent& rSipUserAgent
 
    // deleted in handleStateTransition if unsuccessful
    BaseSipConnectionState* pSipConnectionState = new IdleSipConnectionState(m_rStateContext, m_rSipUserAgent,
-      m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+      m_rCallControl, m_pMediaInterfaceProvider, m_pMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
    SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
 
    handleStateTransition(transition);
@@ -116,7 +118,7 @@ UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEven
                m_rStateContext.m_bSupressCallEvents = TRUE; // don't fire DISCONNECTED event
                // transition to disconnected state silently
                BaseSipConnectionState* pSipConnectionState = new DisconnectedSipConnectionState(m_rStateContext, m_rSipUserAgent,
-                  m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+                  m_rCallControl, m_pMediaInterfaceProvider, m_pMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
                SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState);
                handleStateTransition(transition);
                return TRUE;
@@ -126,7 +128,7 @@ UtlBoolean SipConnectionStateMachine::handleSipMessageEvent(const SipMessageEven
          // switch to newcall
          // deleted in doHandleStateTransition if unsuccessful
          BaseSipConnectionState* pSipConnectionState = new NewCallSipConnectionState(m_rStateContext, m_rSipUserAgent,
-            m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+            m_rCallControl, m_pMediaInterfaceProvider, m_pMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
          GeneralTransitionMemory* pMemory = new GeneralTransitionMemory(callstateCause, 0, NULL, originalSessionCallId);
          SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState, pMemory);
          handleStateTransition(transition);
@@ -159,7 +161,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
       // switch to dialing
       // deleted in doHandleStateTransition if unsuccessful
       BaseSipConnectionState* pSipConnectionState = new DialingSipConnectionState(m_rStateContext, m_rSipUserAgent,
-         m_rCallControl, m_rMediaInterfaceProvider, m_rMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
+         m_rCallControl, m_pMediaInterfaceProvider, m_pMessageQueueProvider, m_rSipConnectionEventSink, m_natTraversalConfig);
       GeneralTransitionMemory* pMemory = new GeneralTransitionMemory(callstateCause);
       SipConnectionStateTransition transition(m_pSipConnectionState, pSipConnectionState, pMemory);
       handleStateTransition(transition);
@@ -176,6 +178,32 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    {
       handleStateTransition(m_pSipConnectionState->connect(result, sipCallId, localTag, toAddress, fromAddress,
          locationHeader, contactId, replacesField));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::startRtpRedirect(const UtlString& slaveAbstractCallId, const SipDialog& slaveSipDialog)
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->startRtpRedirect(result, slaveAbstractCallId, slaveSipDialog));
+   }
+
+   return result;
+}
+
+OsStatus SipConnectionStateMachine::stopRtpRedirect()
+{
+   OsStatus result = OS_FAILED;
+
+   // now let state handle request
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->stopRtpRedirect(result));
    }
 
    return result;
@@ -348,6 +376,18 @@ OsStatus SipConnectionStateMachine::sendInfo(const UtlString& sContentType,
    return result;
 }
 
+OsStatus SipConnectionStateMachine::terminateMediaConnection()
+{
+   OsStatus result = OS_FAILED;
+
+   if (m_pSipConnectionState)
+   {
+      handleStateTransition(m_pSipConnectionState->terminateMediaConnection(result));
+   }
+
+   return result;
+}
+
 OsStatus SipConnectionStateMachine::subscribe(CP_NOTIFICATION_TYPE notificationType,
                                               const SipDialog& callbackSipDialog)
 {
@@ -455,6 +495,24 @@ XSipConnectionContext& SipConnectionStateMachine::getSipConnectionContext() cons
 void SipConnectionStateMachine::setRealLineIdentity(const UtlString& sFullLineUrl)
 {
    m_rStateContext.m_realLineIdentity.fromString(sFullLineUrl, FALSE);
+}
+
+void SipConnectionStateMachine::setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider)
+{
+   m_pMessageQueueProvider = pMessageQueueProvider;
+   if (m_pSipConnectionState)
+   {
+      m_pSipConnectionState->setMessageQueueProvider(pMessageQueueProvider);
+   }
+}
+
+void SipConnectionStateMachine::setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider)
+{
+   m_pMediaInterfaceProvider = pMediaInterfaceProvider;
+   if (m_pSipConnectionState)
+   {
+      m_pSipConnectionState->setMediaInterfaceProvider(pMediaInterfaceProvider);
+   }
 }
 
 /* ============================ INQUIRY =================================== */

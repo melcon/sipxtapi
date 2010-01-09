@@ -60,8 +60,8 @@ public:
    SipConnectionStateMachine(SipUserAgent& rSipUserAgent,
                              XCpCallControl& rCallControl,
                              const UtlString& sBindIpAddress, ///< bind IP address. May be 0.0.0.0
-                             CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                             CpMessageQueueProvider& rMessageQueueProvider,
+                             CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                             CpMessageQueueProvider* pMessageQueueProvider,
                              XSipConnectionEventSink& rSipConnectionEventSink,
                              const CpNatTraversalConfig& natTraversalConfig);
 
@@ -86,6 +86,18 @@ public:
                     const UtlString& replacesField, // value of Replaces INVITE field
                     CP_CALLSTATE_CAUSE callstateCause,
                     const SipDialog* pCallbackSipDialog);
+
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling. Current call will become the master call.
+   */
+   OsStatus startRtpRedirect(const UtlString& slaveAbstractCallId,
+                             const SipDialog& slaveSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   OsStatus stopRtpRedirect();
 
    /** 
    * Accepts inbound call connection.
@@ -144,6 +156,9 @@ public:
                      const char* pContent,
                      const size_t nContentLength,
                      void* pCookie);
+
+   /** Terminates media connection silently without informing remote call party. Used for conference split/join. */
+   OsStatus terminateMediaConnection();
 
    /**
    * Subscribe for given notification type with given target sip call.
@@ -204,6 +219,12 @@ public:
     */
    void setRealLineIdentity(const UtlString& sFullLineUrl);
 
+   /** Sets new message queue provider on the state machine and current state */
+   void setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider);
+
+   /** Sets new media interface provider on the state machine and current state */
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider);
+
    /* ============================ INQUIRY =================================== */
 
    /** Gets state of media session */
@@ -239,8 +260,8 @@ private:
    SipConnectionStateObserver* m_pStateObserver; ///< observer for state changes
    SipUserAgent& m_rSipUserAgent; ///< sip user agent
    XCpCallControl& m_rCallControl; ///< interface for controlling other calls
-   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< provider of CpMediaInterface
-   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
+   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< provider of CpMediaInterface
+   CpMessageQueueProvider* m_pMessageQueueProvider; ///< message queue provider
    XSipConnectionEventSink& m_rSipConnectionEventSink; ///< event sink (router) for various sip connection event types
    CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 };

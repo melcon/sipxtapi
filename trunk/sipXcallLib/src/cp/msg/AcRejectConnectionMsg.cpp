@@ -27,8 +27,9 @@
 
 /* ============================ CREATORS ================================== */
 
-AcRejectConnectionMsg::AcRejectConnectionMsg()
+AcRejectConnectionMsg::AcRejectConnectionMsg(const SipDialog& sSipDialog)
 : AcCommandMsg(AC_REJECT_CONNECTION)
+, m_sSipDialog(sSipDialog)
 {
 
 }
@@ -40,7 +41,7 @@ AcRejectConnectionMsg::~AcRejectConnectionMsg()
 
 OsMsg* AcRejectConnectionMsg::createCopy(void) const
 {
-   return new AcRejectConnectionMsg();
+   return new AcRejectConnectionMsg(m_sSipDialog);
 }
 
 /* ============================ MANIPULATORS ============================== */

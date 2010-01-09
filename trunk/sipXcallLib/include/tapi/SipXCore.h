@@ -56,6 +56,8 @@ class SipRefreshMgr;
 class SipDialogMgr;
 class SipRefreshManager;
 class SipXKeepaliveEventListener;
+class SipXRtpRedirectEventListener;
+class SipXConferenceEventListener;
 class SipXEventDispatcher;
 class SipPimClient;
 class SipXMessageObserver;
@@ -135,6 +137,8 @@ public:
    SipXSecurityEventListener* pSecurityEventListener;
    SipXMediaEventListener* pMediaEventListener;
    SipXKeepaliveEventListener* pKeepaliveEventListener;
+   SipXRtpRedirectEventListener* pRtpRedirectEventListener;
+   SipXConferenceEventListener* pConferenceEventListener;
    SipDialogMgr* pDialogManager;
    OsSharedServerTaskMgr* pSharedTaskMgr;
 
@@ -177,6 +181,8 @@ public:
       pInfoEventListener(NULL),
       pSecurityEventListener(NULL),
       pMediaEventListener(NULL),
+      pKeepaliveEventListener(NULL),
+      pConferenceEventListener(NULL),
       pDialogManager(NULL),
       pMessageObserver(NULL),
       pStunNotification(NULL),
@@ -189,7 +195,6 @@ public:
       bSupportedHeader(TRUE),
       bDateHeader(TRUE),
       bRtpOverTcp(FALSE),
-      pKeepaliveEventListener(NULL),
       nInputAudioDevices(0),
       nOutputAudioDevices(0),
       pSharedTaskMgr(NULL)
@@ -208,6 +213,48 @@ public:
    ~SIPX_INSTANCE_DATA()
    {
       nSize = 0;
+   }
+
+   /**
+    * Increments conference counter in thread safe manner.
+    */
+   void incrementConferenceCount()
+   {
+      lock.acquire();
+      nConferences++;
+      lock.release();
+   }
+
+   /**
+    * Decrements conference counter in thread safe manner.
+    */
+   void decrementConferenceCount()
+   {
+      lock.acquire();
+      nConferences--;
+      assert(nConferences >= 0);
+      lock.release();
+   }
+
+   /**
+    * Increments call counter in thread safe manner.
+    */
+   void incrementCallCount()
+   {
+      lock.acquire();
+      nCalls++;
+      lock.release();
+   }
+
+   /**
+    * Decrements call counter in thread safe manner.
+    */
+   void decrementCallCount()
+   {
+      lock.acquire();
+      nCalls--;
+      assert(nCalls >= 0);
+      lock.release();
    }
 };
 

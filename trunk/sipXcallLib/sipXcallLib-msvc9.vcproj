@@ -356,6 +356,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\AcConferenceJoinMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcConferenceSplitMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\AcConnectMsg.cpp"
 					>
 				</File>
@@ -417,6 +425,18 @@
 				</File>
 				<File
 					RelativePath=".\src\cp\msg\AcSendInfoMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcStartedMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcStartRtpRedirectMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\AcStopRtpRedirectMsg.cpp"
 					>
 				</File>
 				<File
@@ -520,11 +540,35 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\ScReestablishRtpRedirectCommandMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScReInviteTimerMsg.cpp"
 					>
 				</File>
 				<File
+					RelativePath=".\src\cp\msg\ScRtpRedirectCompleteNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScRtpRedirectErrorNotificationMsg.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\cp\msg\ScSessionTimeoutTimerMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScStartRtpRedirectAckNotificationMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScStartRtpRedirectCommandMsg.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\cp\msg\ScStopRtpRedirectCommandMsg.cpp"
 					>
 				</File>
 				<File
@@ -638,6 +682,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\cp\CpConferenceEventListener.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\cp\CpDefs.h"
 				>
 			</File>
@@ -671,6 +719,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\CpNotificationRegister.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\CpRtpRedirectEventListener.h"
 				>
 			</File>
 			<File
@@ -711,6 +763,10 @@
 			</File>
 			<File
 				RelativePath=".\include\cp\XCpCallIdUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\cp\XCpCallLookup.h"
 				>
 			</File>
 			<File
@@ -793,6 +849,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\AcConferenceJoinMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcConferenceSplitMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\AcConnectMsg.h"
 					>
 				</File>
@@ -854,6 +918,18 @@
 				</File>
 				<File
 					RelativePath=".\include\cp\msg\AcSendInfoMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcStartedMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcStartRtpRedirectMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\AcStopRtpRedirectMsg.h"
 					>
 				</File>
 				<File
@@ -957,11 +1033,35 @@
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\ScReestablishRtpRedirectCommandMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\ScReInviteTimerMsg.h"
 					>
 				</File>
 				<File
+					RelativePath=".\include\cp\msg\ScRtpRedirectCompleteNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScRtpRedirectErrorNotificationMsg.h"
+					>
+				</File>
+				<File
 					RelativePath=".\include\cp\msg\ScSessionTimeoutTimerMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScStartRtpRedirectAckNotificationMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScStartRtpRedirectCommandMsg.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\cp\msg\ScStopRtpRedirectCommandMsg.h"
 					>
 				</File>
 				<File

@@ -40,6 +40,8 @@ public:
       AC_GAIN_FOCUS = 0,///< gain local focus (mic, speaker)
       AC_YIELD_FOCUS, ///< loose local focus
       AC_CONNECT, ///< connects existing free call shell
+      AC_START_RTP_REDIRECT, ///< starts RTP redirect operation on 2 calls
+      AC_STOP_RTP_REDIRECT, ///< stops RTP redirect operation on 2 calls
       AC_ACCEPT_CONNECTION, ///< accepts inbound call
       AC_REJECT_CONNECTION, ///< rejects inbound call
       AC_REDIRECT_CONNECTION, ///< redirects inbound call
@@ -72,6 +74,8 @@ public:
       AC_UNSUBSCRIBE, ///< unsubscribe from notifications
       AC_ACCEPT_TRANSFER, ///< accept transfer request
       AC_REJECT_TRANSFER, ///< reject transfer request
+      AC_CONFERENCE_SPLIT, ///< split connection from conference into new call
+      AC_CONFERENCE_JOIN, ///< join connection from a call into conference
    } SubTypeEnum;
 
    /* ============================ CREATORS ================================== */

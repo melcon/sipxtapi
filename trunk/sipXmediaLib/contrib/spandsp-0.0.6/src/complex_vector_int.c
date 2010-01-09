@@ -22,26 +22,26 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: complex_vector_int.c,v 1.4 2008/10/12 07:05:21 steveu Exp $
+ * $Id: complex_vector_int.c,v 1.7 2009/02/03 16:28:39 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <assert.h>
 
 #if defined(SPANDSP_USE_MMX)
@@ -75,7 +75,7 @@
 #include "spandsp/vector_int.h"
 #include "spandsp/complex_vector_int.h"
 
-complexi32_t cvec_dot_prodi16(const complexi16_t x[], const complexi16_t y[], int n)
+SPAN_DECLARE(complexi32_t) cvec_dot_prodi16(const complexi16_t x[], const complexi16_t y[], int n)
 {
     int i;
     complexi32_t z;
@@ -90,7 +90,7 @@ complexi32_t cvec_dot_prodi16(const complexi16_t x[], const complexi16_t y[], in
 }
 /*- End of function --------------------------------------------------------*/
 
-complexi32_t cvec_dot_prodi32(const complexi32_t x[], const complexi32_t y[], int n)
+SPAN_DECLARE(complexi32_t) cvec_dot_prodi32(const complexi32_t x[], const complexi32_t y[], int n)
 {
     int i;
     complexi32_t z;
@@ -105,7 +105,7 @@ complexi32_t cvec_dot_prodi32(const complexi32_t x[], const complexi32_t y[], in
 }
 /*- End of function --------------------------------------------------------*/
 
-complexi32_t cvec_circular_dot_prodi16(const complexi16_t x[], const complexi16_t y[], int n, int pos)
+SPAN_DECLARE(complexi32_t) cvec_circular_dot_prodi16(const complexi16_t x[], const complexi16_t y[], int n, int pos)
 {
     complexi32_t z;
     complexi32_t z1;
@@ -117,7 +117,7 @@ complexi32_t cvec_circular_dot_prodi16(const complexi16_t x[], const complexi16_
 }
 /*- End of function --------------------------------------------------------*/
 
-void cvec_lmsi16(const complexi16_t x[], complexi16_t y[], int n, const complexi16_t *error)
+SPAN_DECLARE(void) cvec_lmsi16(const complexi16_t x[], complexi16_t y[], int n, const complexi16_t *error)
 {
     int i;
 
@@ -129,7 +129,7 @@ void cvec_lmsi16(const complexi16_t x[], complexi16_t y[], int n, const complexi
 }
 /*- End of function --------------------------------------------------------*/
 
-void cvec_circular_lmsi16(const complexi16_t x[], complexi16_t y[], int n, int pos, const complexi16_t *error)
+SPAN_DECLARE(void) cvec_circular_lmsi16(const complexi16_t x[], complexi16_t y[], int n, int pos, const complexi16_t *error)
 {
     cvec_lmsi16(&x[pos], &y[0], n - pos, error);
     cvec_lmsi16(&x[0], &y[n - pos], pos, error);

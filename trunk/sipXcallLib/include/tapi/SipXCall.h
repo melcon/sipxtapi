@@ -34,12 +34,21 @@
 class SIPX_INSTANCE_DATA;
 class OsStackTraceLogger;
 
+typedef enum
+{
+   RTP_REDIRECT_STATE_INACTIVE = 0,
+   RTP_REDIRECT_STATE_ACTIVE,
+   RTP_REDIRECT_STATE_REQUESTED,
+   RTP_REDIRECT_STATE_ERROR
+} RTP_REDIRECT_STATE;
+
 // STRUCTS
 // TYPEDEFS
 class SIPX_CALL_DATA
 {
 public:
-   UtlString m_abstractCallId; ///< Id identifying CpPeerCall instance
+   UtlString m_abstractCallId; ///< Id identifying XCpAbstractCall instance. For conference calls this is conference id.
+   UtlString m_splitCallId; ///< temporary Id for conference call splitting. Identifies new call which will receive split call.
    Url m_fullLineUrl; ///< like lineURI, but with display name, field parameters or brackets. Can be used for new out of dialog requests.
    Url m_lineUri; ///< URI of line. Copy of m_lineURI from SIPX_LINE_DATA. This one will never contain a tag. Stored here to avoid line lookups.
    SipDialog m_sipDialog; ///< sip dialog of this call
@@ -47,37 +56,26 @@ public:
    SIPX_INSTANCE_DATA* m_pInst;
    OsMutex m_mutex;
    SIPX_CONF m_hConf;
+   RTP_REDIRECT_STATE m_rtpRedirectState; ///< state of RTP redirecting. If active then call cannot be used in conference.
    SIPX_SECURITY_ATTRIBUTES m_security;
    SIPX_VIDEO_DISPLAY m_display;
    SIPX_CALLSTATE_EVENT m_callState; ///< current call state
    SIPX_CALLSTATE_CAUSE m_callStateCause; ///< cause of current call state
-
-   SIPX_MEDIA_EVENT m_lastLocalMediaAudioEvent;
-   SIPX_MEDIA_EVENT m_lastLocalMediaVideoEvent;
-   SIPX_MEDIA_EVENT m_lastRemoteMediaAudioEvent;
-   SIPX_MEDIA_EVENT m_lastRemoteMediaVideoEvent;
-
    UtlBoolean m_bInFocus; ///< TRUE when call is in focus
-   SIPX_TRANSPORT m_hTransport;
 
    SIPX_CALL_DATA()
       : m_mutex(OsMutex::Q_FIFO),
       m_abstractCallId(NULL),
+      m_splitCallId(NULL),
       m_lineUri(),
       m_sipDialog(NULL),
       m_hLine(0),
       m_pInst(NULL),
       m_hConf(NULL),
-      m_security(),
-      m_display(),
+      m_rtpRedirectState(RTP_REDIRECT_STATE_INACTIVE),
       m_callState(CALLSTATE_UNKNOWN),
       m_callStateCause(CALLSTATE_CAUSE_UNKNOWN),
-      m_lastLocalMediaAudioEvent(MEDIA_UNKNOWN),
-      m_lastLocalMediaVideoEvent(MEDIA_UNKNOWN),
-      m_lastRemoteMediaAudioEvent(MEDIA_UNKNOWN),
-      m_lastRemoteMediaVideoEvent(MEDIA_UNKNOWN),
-      m_bInFocus(false),
-      m_hTransport(0)
+      m_bInFocus(false)
    {
 
    }
@@ -104,16 +102,6 @@ SIPX_CALL sipxCallLookupHandleByCallId(const UtlString& callID, SIPX_INST pInst)
 
 void destroyCallData(SIPX_CALL_DATA* pData);
 
-UtlBoolean sipxCallGetMediaState(SIPX_CALL hCall,
-                                 SIPX_MEDIA_EVENT& lastLocalMediaAudioEvent,
-                                 SIPX_MEDIA_EVENT& lastLocalMediaVideoEvent,
-                                 SIPX_MEDIA_EVENT& lastRemoteMediaAudioEvent,
-                                 SIPX_MEDIA_EVENT& lastRemoteMediaVideoEvent);
-
-UtlBoolean sipxCallSetMediaState(SIPX_CALL hCall,
-                                 SIPX_MEDIA_EVENT event,
-                                 SIPX_MEDIA_TYPE type);
-
 UtlBoolean sipxCallGetState(SIPX_CALL hCall, 
                             SIPX_CALLSTATE_EVENT& lastEvent,
                             SIPX_CALLSTATE_CAUSE& lastCause);
@@ -136,6 +124,8 @@ void sipxCallDestroyAll(const SIPX_INST hInst);
 
 SIPX_CONF sipxCallGetConf(SIPX_CALL hCall);
 
+void sipxCallSetConf(SIPX_CALL hCall, SIPX_CONF hConf);
+
 SIPX_CONTACT_TYPE sipxCallGetLineContactType(SIPX_CALL hCall);
 
 SIPX_RESULT sipxCallCreateHelper(const SIPX_INST hInst,
@@ -153,5 +143,8 @@ SIPX_RESULT sipxCallDrop(SIPX_CALL& hCall);
 UtlBoolean sipxCallSetState(SIPX_CALL hCall, 
                             SIPX_CALLSTATE_EVENT event,
                             SIPX_CALLSTATE_CAUSE cause);
+
+UtlBoolean sipxCallSetAbstractCallId(SIPX_CALL hCall,
+                                     const UtlString& sAbstractCallId);
 
 #endif // SipXCall_h__

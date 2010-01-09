@@ -157,7 +157,7 @@ void sipXtapiTestSuite::testPublishAndSubscribe(bool bCallContext,
          /*
          * Initiate Call
          */ 
-         rc = sipxCallConnect(hCall1, publisherUrl1.data(), NULL, NULL, SIPX_FOCUS_MANUAL);
+         rc = sipxCallConnect(hCall1, publisherUrl1.data(), SIPX_FOCUS_MANUAL);
          CPPUNIT_ASSERT(rc == SIPX_RESULT_SUCCESS);
 
          /*
@@ -198,7 +198,7 @@ void sipXtapiTestSuite::testPublishAndSubscribe(bool bCallContext,
             /*
             * Initiate Call
             */ 
-            rc = sipxCallConnect(hCall2, publisherUrl1.data(), NULL, NULL, SIPX_FOCUS_MANUAL);
+            rc = sipxCallConnect(hCall2, publisherUrl1.data(), SIPX_FOCUS_MANUAL);
             CPPUNIT_ASSERT(rc == SIPX_RESULT_SUCCESS);
 
             /*

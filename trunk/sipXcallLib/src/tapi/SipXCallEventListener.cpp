@@ -241,9 +241,7 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       {
          // new call was successfully allocated
          // Increment call count
-         pSipXInstance->lock.acquire();
-         pSipXInstance->nCalls++;
-         pSipXInstance->lock.release();
+         pSipXInstance->incrementCallCount();
       }
 
       pCallData->m_abstractCallId = sCallId;
@@ -370,12 +368,6 @@ void SipXCallEventListener::handleCallEvent(const UtlString& sCallId,
       // If this is a DESTROY message, free up resources
       if (CALLSTATE_DESTROYED == event)
       {
-         SIPX_CONF hConf = sipxCallGetConf(hCall);
-         if (hConf != SIPX_CONF_NULL)
-         {
-            // remove call from conference
-            sipxRemoveCallHandleFromConf(hConf, hCall);
-         }
          // free call object
          sipxCallObjectFree(hCall, stackLogger);
       }

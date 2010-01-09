@@ -55,6 +55,10 @@ SipConnectionStateContext::SipConnectionStateContext()
 , m_bDropReferencedCall(FALSE)
 , m_referOutSubscriptionActive(FALSE)
 , m_inboundReferResponse(SipConnectionStateContext::REFER_NO_RESPONSE)
+, m_bRTPRedirectActive(FALSE)
+, m_bRTPRedirectMasterRole(FALSE)
+, m_pRemoteAttachedSdpBody(NULL)
+, m_pRemoteSdpBody(NULL)
 , m_bRedirecting(FALSE)
 , m_bAckReceived(FALSE)
 , m_bCancelSent(FALSE)
@@ -90,6 +94,10 @@ SipConnectionStateContext::~SipConnectionStateContext()
    m_pLastSentRefer = NULL;
    delete m_pLastReceivedRefer;
    m_pLastReceivedRefer = NULL;
+   delete m_pRemoteAttachedSdpBody;
+   m_pRemoteAttachedSdpBody = NULL;
+   delete m_pRemoteSdpBody;
+   m_pRemoteSdpBody = NULL;
    delete m_pByeRetryTimer;
    m_pByeRetryTimer = NULL;
    delete m_pCancelTimeoutTimer;
@@ -115,6 +123,26 @@ SipConnectionStateContext::~SipConnectionStateContext()
 /* ============================ MANIPULATORS ============================== */
 
 /* ============================ ACCESSORS ================================= */
+
+void SipConnectionStateContext::setRemoteAttachedSdpBody(SdpBody* val)
+{
+   if(m_pRemoteAttachedSdpBody)
+   {
+      delete m_pRemoteAttachedSdpBody;
+      m_pRemoteAttachedSdpBody = NULL;
+   }
+   m_pRemoteAttachedSdpBody = val;
+}
+
+void SipConnectionStateContext::setRemoteSdpBody(SdpBody* val)
+{
+   if(m_pRemoteSdpBody)
+   {
+      delete m_pRemoteSdpBody;
+      m_pRemoteSdpBody = NULL;
+   }
+   m_pRemoteSdpBody = val;
+}
 
 /* ============================ INQUIRY =================================== */
 

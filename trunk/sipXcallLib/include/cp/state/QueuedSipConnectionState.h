@@ -42,8 +42,8 @@ public:
    QueuedSipConnectionState(SipConnectionStateContext& rStateContext,
                             SipUserAgent& rSipUserAgent,
                             XCpCallControl& rCallControl,
-                            CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                            CpMessageQueueProvider& rMessageQueueProvider,
+                            CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                            CpMessageQueueProvider* pMessageQueueProvider,
                             XSipConnectionEventSink& rSipConnectionEventSink,
                             const CpNatTraversalConfig& natTraversalConfig);
 

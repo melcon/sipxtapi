@@ -22,29 +22,30 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: plc.c,v 1.23 2008/09/19 14:02:05 steveu Exp $
+ * $Id: plc.c,v 1.27 2009/02/10 13:06:46 steveu Exp $
  */
 
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <limits.h>
 
 #include "spandsp/telephony.h"
+#include "spandsp/fast_convert.h"
 #include "spandsp/saturated.h"
 #include "spandsp/plc.h"
 
@@ -115,7 +116,7 @@ static __inline__ int amdf_pitch(int min_pitch, int max_pitch, int16_t amp[], in
 }
 /*- End of function --------------------------------------------------------*/
 
-int plc_rx(plc_state_t *s, int16_t amp[], int len)
+SPAN_DECLARE(int) plc_rx(plc_state_t *s, int16_t amp[], int len)
 {
     int i;
     int pitch_overlap;
@@ -159,7 +160,7 @@ int plc_rx(plc_state_t *s, int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-int plc_fillin(plc_state_t *s, int16_t amp[], int len)
+SPAN_DECLARE(int) plc_fillin(plc_state_t *s, int16_t amp[], int len)
 {
     int i;
     int pitch_overlap;
@@ -235,7 +236,7 @@ int plc_fillin(plc_state_t *s, int16_t amp[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-plc_state_t *plc_init(plc_state_t *s)
+SPAN_DECLARE(plc_state_t *) plc_init(plc_state_t *s)
 {
     if (s == NULL)
     {
@@ -247,7 +248,13 @@ plc_state_t *plc_init(plc_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int plc_free(plc_state_t *s)
+SPAN_DECLARE(int) plc_release(plc_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) plc_free(plc_state_t *s)
 {
     if (s)
         free(s);

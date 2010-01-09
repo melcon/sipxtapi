@@ -24,7 +24,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: t4.c,v 1.115 2008/11/30 13:44:35 steveu Exp $
+ * $Id: t4.c,v 1.126 2009/02/20 12:34:20 steveu Exp $
  */
 
 /*
@@ -60,7 +60,7 @@
 /*! \file */
 
 #if defined(HAVE_CONFIG_H)
-#include <config.h>
+#include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -72,13 +72,13 @@
 #include <time.h>
 #include <memory.h>
 #include <string.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 #include <tiffio.h>
 
 #include "spandsp/telephony.h"
@@ -90,7 +90,14 @@
 #include "spandsp/private/logging.h"
 #include "spandsp/private/t4.h"
 
-#define CM_PER_INCH     2.54f
+#define CM_PER_INCH                 2.54f
+
+#define EOLS_TO_END_T4_TX_PAGE      6
+#define EOLS_TO_END_T6_TX_PAGE      2
+
+#define EOLS_TO_END_ANY_RX_PAGE     6
+#define EOLS_TO_END_T4_RX_PAGE      5
+#define EOLS_TO_END_T6_RX_PAGE      2
 
 /* Finite state machine state codes */
 enum
@@ -109,6 +116,8 @@ enum
 };
 
 #include "faxfont.h"
+
+static int encode_row(t4_state_t *s);
 
 #if defined(T4_STATE_DEBUGGING)
 static void STATE_TRACE(const char *format, ...)
@@ -141,6 +150,7 @@ typedef struct
 
 #include "t4_states.h"
 
+#if defined(HAVE_LIBTIFF)
 static int set_tiff_directory_info(t4_state_t *s)
 {
     time_t now;
@@ -149,66 +159,68 @@ static int set_tiff_directory_info(t4_state_t *s)
     uint16_t resunit;
     float x_resolution;
     float y_resolution;
+    t4_tiff_state_t *t;
 
+    t = &s->tiff;
     /* Prepare the directory entry fully before writing the image, or libtiff complains */
-    TIFFSetField(s->tiff_file, TIFFTAG_COMPRESSION, s->output_compression);
-    if (s->output_compression == COMPRESSION_CCITT_T4)
+    TIFFSetField(t->tiff_file, TIFFTAG_COMPRESSION, t->output_compression);
+    if (t->output_compression == COMPRESSION_CCITT_T4)
     {
-        TIFFSetField(s->tiff_file, TIFFTAG_T4OPTIONS, s->output_t4_options);
-        TIFFSetField(s->tiff_file, TIFFTAG_FAXMODE, FAXMODE_CLASSF);
+        TIFFSetField(t->tiff_file, TIFFTAG_T4OPTIONS, t->output_t4_options);
+        TIFFSetField(t->tiff_file, TIFFTAG_FAXMODE, FAXMODE_CLASSF);
     }
-    TIFFSetField(s->tiff_file, TIFFTAG_IMAGEWIDTH, s->image_width);
-    TIFFSetField(s->tiff_file, TIFFTAG_BITSPERSAMPLE, 1);
-    TIFFSetField(s->tiff_file, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-    TIFFSetField(s->tiff_file, TIFFTAG_SAMPLESPERPIXEL, 1);
-    if (s->output_compression == COMPRESSION_CCITT_T4
+    TIFFSetField(t->tiff_file, TIFFTAG_IMAGEWIDTH, s->image_width);
+    TIFFSetField(t->tiff_file, TIFFTAG_BITSPERSAMPLE, 1);
+    TIFFSetField(t->tiff_file, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
+    TIFFSetField(t->tiff_file, TIFFTAG_SAMPLESPERPIXEL, 1);
+    if (t->output_compression == COMPRESSION_CCITT_T4
         ||
-        s->output_compression == COMPRESSION_CCITT_T6)
+        t->output_compression == COMPRESSION_CCITT_T6)
     {
-        TIFFSetField(s->tiff_file, TIFFTAG_ROWSPERSTRIP, -1L);
+        TIFFSetField(t->tiff_file, TIFFTAG_ROWSPERSTRIP, -1L);
     }
     else
     {
-        TIFFSetField(s->tiff_file,
+        TIFFSetField(t->tiff_file,
                      TIFFTAG_ROWSPERSTRIP,
-                     TIFFDefaultStripSize(s->tiff_file, 0));
+                     TIFFDefaultStripSize(t->tiff_file, 0));
     }
-    TIFFSetField(s->tiff_file, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-    TIFFSetField(s->tiff_file, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
-    TIFFSetField(s->tiff_file, TIFFTAG_FILLORDER, FILLORDER_LSB2MSB);
+    TIFFSetField(t->tiff_file, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+    TIFFSetField(t->tiff_file, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
+    TIFFSetField(t->tiff_file, TIFFTAG_FILLORDER, FILLORDER_LSB2MSB);
 
     x_resolution = s->x_resolution/100.0f;
     y_resolution = s->y_resolution/100.0f;
     /* Metric seems the sane thing to use in the 21st century, but a lot of lousy software
        gets FAX resolutions wrong, and more get it wrong using metric than using inches. */
 #if 0
-    TIFFSetField(s->tiff_file, TIFFTAG_XRESOLUTION, x_resolution);
-    TIFFSetField(s->tiff_file, TIFFTAG_YRESOLUTION, y_resolution);
+    TIFFSetField(t->tiff_file, TIFFTAG_XRESOLUTION, x_resolution);
+    TIFFSetField(t->tiff_file, TIFFTAG_YRESOLUTION, y_resolution);
     resunit = RESUNIT_CENTIMETER;
-    TIFFSetField(s->tiff_file, TIFFTAG_RESOLUTIONUNIT, resunit);
+    TIFFSetField(t->tiff_file, TIFFTAG_RESOLUTIONUNIT, resunit);
 #else
-    TIFFSetField(s->tiff_file, TIFFTAG_XRESOLUTION, floorf(x_resolution*CM_PER_INCH + 0.5f));
-    TIFFSetField(s->tiff_file, TIFFTAG_YRESOLUTION, floorf(y_resolution*CM_PER_INCH + 0.5f));
+    TIFFSetField(t->tiff_file, TIFFTAG_XRESOLUTION, floorf(x_resolution*CM_PER_INCH + 0.5f));
+    TIFFSetField(t->tiff_file, TIFFTAG_YRESOLUTION, floorf(y_resolution*CM_PER_INCH + 0.5f));
     resunit = RESUNIT_INCH;
-    TIFFSetField(s->tiff_file, TIFFTAG_RESOLUTIONUNIT, resunit);
+    TIFFSetField(t->tiff_file, TIFFTAG_RESOLUTIONUNIT, resunit);
 #endif
     /* TODO: add the version of spandsp */
-    TIFFSetField(s->tiff_file, TIFFTAG_SOFTWARE, "spandsp");
+    TIFFSetField(t->tiff_file, TIFFTAG_SOFTWARE, "spandsp");
     if (gethostname(buf, sizeof(buf)) == 0)
-        TIFFSetField(s->tiff_file, TIFFTAG_HOSTCOMPUTER, buf);
+        TIFFSetField(t->tiff_file, TIFFTAG_HOSTCOMPUTER, buf);
 
 #if defined(TIFFTAG_FAXDCS)
-    if (s->dcs)
-        TIFFSetField(s->tiff_file, TIFFTAG_FAXDCS, s->dcs);
+    if (t->dcs)
+        TIFFSetField(t->tiff_file, TIFFTAG_FAXDCS, t->dcs);
 #endif
-    if (s->sub_address)
-        TIFFSetField(s->tiff_file, TIFFTAG_FAXSUBADDRESS, s->sub_address);
-    if (s->far_ident)
-        TIFFSetField(s->tiff_file, TIFFTAG_IMAGEDESCRIPTION, s->far_ident);
-    if (s->vendor)
-        TIFFSetField(s->tiff_file, TIFFTAG_MAKE, s->vendor);
-    if (s->model)
-        TIFFSetField(s->tiff_file, TIFFTAG_MODEL, s->model);
+    if (t->sub_address)
+        TIFFSetField(t->tiff_file, TIFFTAG_FAXSUBADDRESS, t->sub_address);
+    if (t->far_ident)
+        TIFFSetField(t->tiff_file, TIFFTAG_IMAGEDESCRIPTION, t->far_ident);
+    if (t->vendor)
+        TIFFSetField(t->tiff_file, TIFFTAG_MAKE, t->vendor);
+    if (t->model)
+        TIFFSetField(t->tiff_file, TIFFTAG_MODEL, t->model);
 
     time(&now);
     tm = localtime(&now);
@@ -220,40 +232,30 @@ static int set_tiff_directory_info(t4_state_t *s)
             tm->tm_hour,
             tm->tm_min,
             tm->tm_sec);
-    TIFFSetField(s->tiff_file, TIFFTAG_DATETIME, buf);
-    TIFFSetField(s->tiff_file, TIFFTAG_FAXRECVTIME, now - s->page_start_time);
+    TIFFSetField(t->tiff_file, TIFFTAG_DATETIME, buf);
+    TIFFSetField(t->tiff_file, TIFFTAG_FAXRECVTIME, now - s->page_start_time);
 
-    TIFFSetField(s->tiff_file, TIFFTAG_IMAGELENGTH, s->image_length);
+    TIFFSetField(t->tiff_file, TIFFTAG_IMAGELENGTH, s->image_length);
     /* Set the total pages to 1. For any one page document we will get this
        right. For multi-page documents we will need to come back and fill in
        the right answer when we know it. */
-    TIFFSetField(s->tiff_file, TIFFTAG_PAGENUMBER, s->pages_transferred++, 1);
-    s->pages_in_file = s->pages_transferred;
-    if (s->output_compression == COMPRESSION_CCITT_T4)
+    TIFFSetField(t->tiff_file, TIFFTAG_PAGENUMBER, s->current_page++, 1);
+    s->pages_in_file = s->current_page;
+    if (t->output_compression == COMPRESSION_CCITT_T4)
     {
         if (s->bad_rows)
         {
-            TIFFSetField(s->tiff_file, TIFFTAG_BADFAXLINES, s->bad_rows);
-            TIFFSetField(s->tiff_file, TIFFTAG_CLEANFAXDATA, CLEANFAXDATA_REGENERATED);
-            TIFFSetField(s->tiff_file, TIFFTAG_CONSECUTIVEBADFAXLINES, s->longest_bad_row_run);
+            TIFFSetField(t->tiff_file, TIFFTAG_BADFAXLINES, s->bad_rows);
+            TIFFSetField(t->tiff_file, TIFFTAG_CLEANFAXDATA, CLEANFAXDATA_REGENERATED);
+            TIFFSetField(t->tiff_file, TIFFTAG_CONSECUTIVEBADFAXLINES, s->longest_bad_row_run);
         }
         else
         {
-            TIFFSetField(s->tiff_file, TIFFTAG_CLEANFAXDATA, CLEANFAXDATA_CLEAN);
+            TIFFSetField(t->tiff_file, TIFFTAG_CLEANFAXDATA, CLEANFAXDATA_CLEAN);
         }
     }
-    TIFFSetField(s->tiff_file, TIFFTAG_IMAGEWIDTH, s->image_width);
+    TIFFSetField(t->tiff_file, TIFFTAG_IMAGEWIDTH, s->image_width);
     return 0;
-}
-/*- End of function --------------------------------------------------------*/
-
-static void update_row_bit_info(t4_state_t *s)
-{
-    if (s->row_bits > s->max_row_bits)
-        s->max_row_bits = s->row_bits;
-    if (s->row_bits < s->min_row_bits)
-        s->min_row_bits = s->row_bits;
-    s->row_bits = 0;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -303,24 +305,34 @@ static int get_tiff_directory_info(t4_state_t *s)
     float x_resolution;
     float y_resolution;
     int i;
+    t4_tiff_state_t *t;
 
+    t = &s->tiff;
     parm = 0;
-    TIFFGetField(s->tiff_file, TIFFTAG_BITSPERSAMPLE, &parm);
+    TIFFGetField(t->tiff_file, TIFFTAG_BITSPERSAMPLE, &parm);
     if (parm != 1)
         return -1;
     parm = 0;
-    TIFFGetField(s->tiff_file, TIFFTAG_IMAGEWIDTH, &parm);
+    TIFFGetField(t->tiff_file, TIFFTAG_IMAGEWIDTH, &parm);
     s->image_width = parm;
     s->bytes_per_row = (s->image_width + 7)/8;
     parm = 0;
-    TIFFGetField(s->tiff_file, TIFFTAG_IMAGELENGTH, &parm);
+    TIFFGetField(t->tiff_file, TIFFTAG_IMAGELENGTH, &parm);
     s->image_length = parm;
     x_resolution = 0.0f;
-    TIFFGetField(s->tiff_file, TIFFTAG_XRESOLUTION, &x_resolution);
+    TIFFGetField(t->tiff_file, TIFFTAG_XRESOLUTION, &x_resolution);
     y_resolution = 0.0f;
-    TIFFGetField(s->tiff_file, TIFFTAG_YRESOLUTION, &y_resolution);
+    TIFFGetField(t->tiff_file, TIFFTAG_YRESOLUTION, &y_resolution);
     res_unit = RESUNIT_INCH;
-    TIFFGetField(s->tiff_file, TIFFTAG_RESOLUTIONUNIT, &res_unit);
+    TIFFGetField(t->tiff_file, TIFFTAG_RESOLUTIONUNIT, &res_unit);
+    t->photo_metric = PHOTOMETRIC_MINISWHITE;
+    TIFFGetField(t->tiff_file, TIFFTAG_PHOTOMETRIC, &t->photo_metric);
+    if (t->photo_metric != PHOTOMETRIC_MINISWHITE)
+        span_log(&s->logging, SPAN_LOG_FLOW, "%s: Photometric needs swapping.\n", s->file);
+    t->fill_order = FILLORDER_LSB2MSB;
+    TIFFGetField(t->tiff_file, TIFFTAG_FILLORDER, &t->fill_order);
+    if (t->fill_order != FILLORDER_LSB2MSB)
+        span_log(&s->logging, SPAN_LOG_FLOW, "%s: Fill order needs swapping.\n", s->file);
 
     /* Allow a little range for the X resolution in centimeters. The spec doesn't pin down the
        precise value. The other value should be exact. */
@@ -351,18 +363,150 @@ static int get_tiff_directory_info(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
+static int test_tiff_directory_info(t4_state_t *s)
+{
+    static const struct
+    {
+        float resolution;
+        int code;
+    } x_res_table[] =
+    {
+        { 102.0f/CM_PER_INCH, T4_X_RESOLUTION_R4},
+        { 204.0f/CM_PER_INCH, T4_X_RESOLUTION_R8},
+        { 300.0f/CM_PER_INCH, T4_X_RESOLUTION_300},
+        { 408.0f/CM_PER_INCH, T4_X_RESOLUTION_R16},
+        { 600.0f/CM_PER_INCH, T4_X_RESOLUTION_600},
+        { 800.0f/CM_PER_INCH, T4_X_RESOLUTION_800},
+        {1200.0f/CM_PER_INCH, T4_X_RESOLUTION_1200},
+        {             -1.00f, -1}
+    };
+    static const struct
+    {
+        float resolution;
+        int code;
+        int max_rows_to_next_1d_row;
+    } y_res_table[] =
+    {
+        {             38.50f, T4_Y_RESOLUTION_STANDARD, 2},
+        {             77.00f, T4_Y_RESOLUTION_FINE, 4},
+        { 300.0f/CM_PER_INCH, T4_Y_RESOLUTION_300, 6},
+        {            154.00f, T4_Y_RESOLUTION_SUPERFINE, 8},
+        { 600.0f/CM_PER_INCH, T4_Y_RESOLUTION_600, 12},
+        { 800.0f/CM_PER_INCH, T4_Y_RESOLUTION_800, 16},
+        {1200.0f/CM_PER_INCH, T4_Y_RESOLUTION_1200, 24},
+        {             -1.00f, -1, -1}
+    };
+    uint16_t res_unit;
+    uint32_t parm;
+    float x_resolution;
+    float y_resolution;
+    int i;
+    t4_tiff_state_t *t;
+
+    t = &s->tiff;
+    parm = 0;
+    TIFFGetField(t->tiff_file, TIFFTAG_BITSPERSAMPLE, &parm);
+    if (parm != 1)
+        return -1;
+    parm = 0;
+    TIFFGetField(t->tiff_file, TIFFTAG_IMAGEWIDTH, &parm);
+    if (s->image_width != parm)
+    {
+printf("Width changed\n");
+        return 1;
+    }
+    x_resolution = 0.0f;
+    TIFFGetField(t->tiff_file, TIFFTAG_XRESOLUTION, &x_resolution);
+    y_resolution = 0.0f;
+    TIFFGetField(t->tiff_file, TIFFTAG_YRESOLUTION, &y_resolution);
+    res_unit = RESUNIT_INCH;
+    TIFFGetField(t->tiff_file, TIFFTAG_RESOLUTIONUNIT, &res_unit);
+
+    /* Allow a little range for the X resolution in centimeters. The spec doesn't pin down the
+       precise value. The other value should be exact. */
+    /* Treat everything we can't match as R8. Most FAXes are this resolution anyway. */
+    for (i = 0;  x_res_table[i].code > 0;  i++)
+    {
+        if (test_resolution(res_unit, x_resolution, x_res_table[i].resolution))
+            break;
+    }
+    if (s->x_resolution != x_res_table[i].code)
+    {
+printf("X-res changed\n");
+        return 1;
+    }
+    for (i = 0;  y_res_table[i].code > 0;  i++)
+    {
+        if (test_resolution(res_unit, y_resolution, y_res_table[i].resolution))
+            break;
+    }
+    if (s->y_resolution != y_res_table[i].code)
+    {
+printf("Y-res changed\n");
+        return 1;
+    }
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int get_tiff_total_pages(t4_state_t *s)
+{
+    int max;
+
+    /* Each page *should* contain the total number of pages, but can this be
+       trusted? Some files say 0. Actually searching for the last page is
+       more reliable. */
+    max = 0;
+    while (TIFFSetDirectory(s->tiff.tiff_file, (tdir_t) max))
+        max++;
+    /* Back to the previous page */
+    if (!TIFFSetDirectory(s->tiff.tiff_file, (tdir_t) s->current_page))
+        return -1;
+    return max;
+}
+/*- End of function --------------------------------------------------------*/
+
 static int open_tiff_input_file(t4_state_t *s, const char *file)
 {
-    if ((s->tiff_file = TIFFOpen(file, "r")) == NULL)
+    if ((s->tiff.tiff_file = TIFFOpen(file, "r")) == NULL)
         return -1;
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
+static int read_tiff_image(t4_state_t *s)
+{
+    int row;
+    int image_length;
+    int i;
+
+    image_length = 0;
+    TIFFGetField(s->tiff.tiff_file, TIFFTAG_IMAGELENGTH, &image_length);
+    for (row = 0;  row < image_length;  row++)
+    {
+        if (TIFFReadScanline(s->tiff.tiff_file, s->row_buf, row, 0) <= 0)
+        {
+            span_log(&s->logging, SPAN_LOG_WARNING, "%s: Read error at row %d.\n", s->file, row);
+            break;
+        }
+        if (s->tiff.photo_metric != PHOTOMETRIC_MINISWHITE)
+        {
+            for (i = 0;  i < s->bytes_per_row;  i++)
+                s->row_buf[i] = ~s->row_buf[i];
+        }
+        if (s->tiff.fill_order != FILLORDER_LSB2MSB)
+            bit_reverse(s->row_buf, s->row_buf, s->bytes_per_row);
+        if (encode_row(s))
+            return -1;
+    }
+    return image_length;
+}
+/*- End of function --------------------------------------------------------*/
+
 static int close_tiff_input_file(t4_state_t *s)
 {
-    TIFFClose(s->tiff_file);
-    s->tiff_file = NULL;
+    TIFFClose(s->tiff.tiff_file);
+    s->tiff.tiff_file = NULL;
     if (s->file)
         free((char *) s->file);
     s->file = NULL;
@@ -372,42 +516,123 @@ static int close_tiff_input_file(t4_state_t *s)
 
 static int open_tiff_output_file(t4_state_t *s, const char *file)
 {
-    if ((s->tiff_file = TIFFOpen(file, "w")) == NULL)
+    if ((s->tiff.tiff_file = TIFFOpen(file, "w")) == NULL)
         return -1;
     return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static void write_tiff_image(t4_state_t *s)
+{
+    /* Set up the TIFF directory info... */
+    set_tiff_directory_info(s);
+    /* ..and then write the image... */
+    if (TIFFWriteEncodedStrip(s->tiff.tiff_file, 0, s->image_buffer, s->image_length*s->bytes_per_row) < 0)
+        span_log(&s->logging, SPAN_LOG_WARNING, "%s: Error writing TIFF strip.\n", s->file);
+    /* ...then the directory entry, and libtiff is happy. */
+    TIFFWriteDirectory(s->tiff.tiff_file);
 }
 /*- End of function --------------------------------------------------------*/
 
 static int close_tiff_output_file(t4_state_t *s)
 {
     int i;
+    t4_tiff_state_t *t;
 
+    t = &s->tiff;
     /* Perform any operations needed to tidy up a written TIFF file before
        closure. */
-    if (s->pages_transferred > 1)
+    if (s->current_page > 1)
     {
         /* We need to edit the TIFF directories. Until now we did not know
            the total page count, so the TIFF file currently says one. Now we
            need to set the correct total page count associated with each page. */
-        for (i = 0;  i < s->pages_transferred;  i++)
+        for (i = 0;  i < s->current_page;  i++)
         {
-            TIFFSetDirectory(s->tiff_file, (tdir_t) i);
-            TIFFSetField(s->tiff_file, TIFFTAG_PAGENUMBER, i, s->pages_transferred);
-            TIFFWriteDirectory(s->tiff_file);
+            TIFFSetDirectory(t->tiff_file, (tdir_t) i);
+            TIFFSetField(t->tiff_file, TIFFTAG_PAGENUMBER, i, s->current_page);
+            TIFFWriteDirectory(t->tiff_file);
         }
     }
-    TIFFClose(s->tiff_file);
-    s->tiff_file = NULL;
+    TIFFClose(t->tiff_file);
+    t->tiff_file = NULL;
     if (s->file)
     {
         /* Try not to leave a file behind, if we didn't receive any pages to
            put in it. */
-        if (s->pages_transferred == 0)
+        if (s->current_page == 0)
             remove(s->file);
         free((char *) s->file);
     }
     s->file = NULL;
     return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+#else
+
+static int set_tiff_directory_info(t4_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int get_tiff_directory_info(t4_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int test_tiff_directory_info(t4_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int open_tiff_input_file(t4_state_t *s, const char *file)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int read_tiff_image(t4_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int close_tiff_input_file(t4_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int open_tiff_output_file(t4_state_t *s, const char *file)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static void write_tiff_image(t4_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+static int close_tiff_output_file(t4_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+#endif
+
+static void update_row_bit_info(t4_state_t *s)
+{
+    if (s->row_bits > s->max_row_bits)
+        s->max_row_bits = s->row_bits;
+    if (s->row_bits < s->min_row_bits)
+        s->min_row_bits = s->row_bits;
+    s->row_bits = 0;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -604,6 +829,7 @@ static int put_decoded_row(t4_state_t *s)
     int fudge;
     int row_starts_at;
     int x;
+    int j;
 
     if (s->run_length)
         add_run_to_row(s);
@@ -652,7 +878,7 @@ static int put_decoded_row(t4_state_t *s)
         for (x = 0, fudge = 0;  x < s->a_cursor;  x++, fudge ^= 0xFF)
         {
             i = s->cur_runs[x];
-            if (i >= s->tx_bits)
+            if ((int) i >= s->tx_bits)
             {
                 s->tx_bitstream = (s->tx_bitstream << s->tx_bits) | (msbmask[s->tx_bits] & fudge);
                 for (i += (8 - s->tx_bits);  i >= 8;  i -= 8)
@@ -674,8 +900,8 @@ static int put_decoded_row(t4_state_t *s)
            row for the next row. Use a copy of the previous good row as the actual current
            row. If the row only fell apart near the end, reusing it might be the best
            solution. */
-        for (i = 0, fudge = 0;  i < s->a_cursor  &&  fudge < s->image_width;  i++)
-            fudge += s->cur_runs[i];
+        for (j = 0, fudge = 0;  j < s->a_cursor  &&  fudge < s->image_width;  j++)
+            fudge += s->cur_runs[j];
         if (fudge < s->image_width)
         {
             /* Try to pad with white, and avoid black, to minimise mess on the image. */
@@ -735,7 +961,7 @@ static int put_decoded_row(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_rx_end_page(t4_state_t *s)
+SPAN_DECLARE(int) t4_rx_end_page(t4_state_t *s)
 {
     int row;
     int i;
@@ -772,18 +998,12 @@ int t4_rx_end_page(t4_state_t *s)
     }
     else
     {
-        /* Set up the TIFF directory info... */
-        set_tiff_directory_info(s);
-        /* ..and then write the image... */
-        if (TIFFWriteEncodedStrip(s->tiff_file, 0, s->image_buffer, s->image_length*s->bytes_per_row) < 0)
-            span_log(&s->logging, SPAN_LOG_WARNING, "%s: Error writing TIFF strip.\n", s->file);
-        /* ...then the directory entry, and libtiff is happy. */
-        TIFFWriteDirectory(s->tiff_file);
+        write_tiff_image(s);
     }
     s->rx_bits = 0;
     s->rx_skip_bits = 0;
     s->rx_bitstream = 0;
-    s->consecutive_eols = 5;
+    s->consecutive_eols = EOLS_TO_END_ANY_RX_PAGE;
 
     s->image_size = 0;
     return 0;
@@ -793,7 +1013,8 @@ int t4_rx_end_page(t4_state_t *s)
 static __inline__ void drop_rx_bits(t4_state_t *s, int bits)
 {
     /* Only remove one bit right now. The rest need to be removed step by step,
-       checking for a misaligned EOL along the way. */
+       checking for a misaligned EOL along the way. This is time consuming, but
+       if we don't do it a single bit error can severely damage an image. */
     s->row_bits += bits;
     s->rx_skip_bits += (bits - 1);
     s->rx_bits--;
@@ -827,18 +1048,23 @@ static int rx_put_bits(t4_state_t *s, uint32_t bit_string, int quantity)
         return FALSE;
     if (s->consecutive_eols)
     {
-        /* Check if the image has already terminated */
-        if (s->consecutive_eols >= 5)
+        /* Check if the image has already terminated. */
+        if (s->consecutive_eols >= EOLS_TO_END_ANY_RX_PAGE)
             return TRUE;
+        /* Check if the image hasn't even started. */
         if (s->consecutive_eols < 0)
         {
             /* We are waiting for the very first EOL (1D or 2D only). */
+            /* We need to take this bit by bit, as the EOL could be anywhere,
+               and any junk could preceed it. */
             while ((s->rx_bitstream & 0xFFF) != 0x800)
             {
                 s->rx_bitstream >>= 1;
                 if (--s->rx_bits < 13)
                     return FALSE;
             }
+            /* We have an EOL, so now the page begins and we can proceed to
+               process the bit stream as image data. */
             s->consecutive_eols = 0;
             if (s->line_encoding == T4_COMPRESSION_ITU_T4_1D)
             {
@@ -850,7 +1076,6 @@ static int rx_put_bits(t4_state_t *s, uint32_t bit_string, int quantity)
                 s->row_is_2d = !(s->rx_bitstream & 0x1000);
                 force_drop_rx_bits(s, 13);
             }
-            /* We can proceed to processing the bit stream as an image now */
         }
     }
 
@@ -867,11 +1092,39 @@ static int rx_put_bits(t4_state_t *s, uint32_t bit_string, int quantity)
             STATE_TRACE("EOL\n");
             if (s->row_len == 0)
             {
-                if (++s->consecutive_eols >= 5)
-                    return TRUE;
+                /* A zero length row - i.e. 2 consecutive EOLs - is distinctly
+                   the end of page condition. That's all we actually get on a
+                   T.6 page. However, there are a minimum of 6 EOLs at the end of
+                   any T.4 page. We can look for more than 2 EOLs in case bit
+                   errors simulate the end of page condition at the wrong point.
+                   Such robust checking is irrelevant for a T.6 page, as it should
+                   be error free. */
+                /* Note that for a T.6 page we should get here on the very first
+                   EOL, as the row length should be zero at that point. Therefore
+                   we should count up both EOLs, unless there is some bogus partial
+                   row ahead of them. */
+                s->consecutive_eols++;
+                if (s->line_encoding == T4_COMPRESSION_ITU_T6)
+                {
+                    if (s->consecutive_eols >= EOLS_TO_END_T6_RX_PAGE)
+                    {
+                        s->consecutive_eols = EOLS_TO_END_ANY_RX_PAGE;
+                        return TRUE;
+                    }
+                }
+                else
+                {
+                    if (s->consecutive_eols >= EOLS_TO_END_T4_RX_PAGE)
+                    {
+                        s->consecutive_eols = EOLS_TO_END_ANY_RX_PAGE;
+                        return TRUE;
+                    }
+                }
             }
             else
             {
+                /* The EOLs are not back-to-back, so they are not part of the
+                   end of page condition. */
                 if (s->run_length > 0)
                     add_run_to_row(s);
                 s->consecutive_eols = 0;
@@ -879,14 +1132,14 @@ static int rx_put_bits(t4_state_t *s, uint32_t bit_string, int quantity)
                     return TRUE;
                 update_row_bit_info(s);
             }
-            if (s->line_encoding == T4_COMPRESSION_ITU_T4_1D)
-            {
-                force_drop_rx_bits(s, 12);
-            }
-            else
+            if (s->line_encoding == T4_COMPRESSION_ITU_T4_2D)
             {
                 s->row_is_2d = !(s->rx_bitstream & 0x1000);
                 force_drop_rx_bits(s, 13);
+            }
+            else
+            {
+                force_drop_rx_bits(s, 12);
             }
             s->its_black = FALSE;
             s->black_white = 0;
@@ -1085,19 +1338,19 @@ static int rx_put_bits(t4_state_t *s, uint32_t bit_string, int quantity)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_rx_put_bit(t4_state_t *s, int bit)
+SPAN_DECLARE(int) t4_rx_put_bit(t4_state_t *s, int bit)
 {
     return rx_put_bits(s, bit & 1, 1);
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_rx_put_byte(t4_state_t *s, uint8_t byte)
+SPAN_DECLARE(int) t4_rx_put_byte(t4_state_t *s, uint8_t byte)
 {
     return rx_put_bits(s, byte & 0xFF, 8);
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_rx_put_chunk(t4_state_t *s, const uint8_t buf[], int len)
+SPAN_DECLARE(int) t4_rx_put_chunk(t4_state_t *s, const uint8_t buf[], int len)
 {
     int i;
     uint8_t byte;
@@ -1112,7 +1365,7 @@ int t4_rx_put_chunk(t4_state_t *s, const uint8_t buf[], int len)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_rx_set_row_write_handler(t4_state_t *s, t4_row_write_handler_t handler, void *user_data)
+SPAN_DECLARE(int) t4_rx_set_row_write_handler(t4_state_t *s, t4_row_write_handler_t handler, void *user_data)
 {
     s->row_write_handler = handler;
     s->row_write_user_data = user_data;
@@ -1120,8 +1373,13 @@ int t4_rx_set_row_write_handler(t4_state_t *s, t4_row_write_handler_t handler, v
 }
 /*- End of function --------------------------------------------------------*/
 
-t4_state_t *t4_rx_init(t4_state_t *s, const char *file, int output_encoding)
+SPAN_DECLARE(t4_state_t *) t4_rx_init(t4_state_t *s, const char *file, int output_encoding)
 {
+    if (s == NULL)
+    {
+        if ((s = (t4_state_t *) malloc(sizeof(*s))) == NULL)
+            return NULL;
+    }
     memset(s, 0, sizeof(*s));
     span_log_init(&s->logging, SPAN_LOG_NONE, NULL);
     span_log_set_protocol(&s->logging, "T.4");
@@ -1139,16 +1397,16 @@ t4_state_t *t4_rx_init(t4_state_t *s, const char *file, int output_encoding)
     switch (output_encoding)
     {
     case T4_COMPRESSION_ITU_T4_1D:
-        s->output_compression = COMPRESSION_CCITT_T4;
-        s->output_t4_options = GROUP3OPT_FILLBITS;
+        s->tiff.output_compression = COMPRESSION_CCITT_T4;
+        s->tiff.output_t4_options = GROUP3OPT_FILLBITS;
         break;
     case T4_COMPRESSION_ITU_T4_2D:
-        s->output_compression = COMPRESSION_CCITT_T4;
-        s->output_t4_options = GROUP3OPT_FILLBITS | GROUP3OPT_2DENCODING;
+        s->tiff.output_compression = COMPRESSION_CCITT_T4;
+        s->tiff.output_t4_options = GROUP3OPT_FILLBITS | GROUP3OPT_2DENCODING;
         break;
     case T4_COMPRESSION_ITU_T6:
-        s->output_compression = COMPRESSION_CCITT_T6;
-        s->output_t4_options = 0;
+        s->tiff.output_compression = COMPRESSION_CCITT_T6;
+        s->tiff.output_t4_options = 0;
         break;
     }
 
@@ -1156,7 +1414,7 @@ t4_state_t *t4_rx_init(t4_state_t *s, const char *file, int output_encoding)
        value to ensure it will be seen as changing when the real value is used. */
     s->bytes_per_row = 0;
 
-    s->pages_transferred = 0;
+    s->current_page = 0;
     s->pages_in_file = 0;
     s->start_page = 0;
     s->stop_page = INT_MAX;
@@ -1173,14 +1431,14 @@ t4_state_t *t4_rx_init(t4_state_t *s, const char *file, int output_encoding)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_rx_start_page(t4_state_t *s)
+SPAN_DECLARE(int) t4_rx_start_page(t4_state_t *s)
 {
     int bytes_per_row;
     int run_space;
     uint32_t *bufptr;
 
     span_log(&s->logging, SPAN_LOG_FLOW, "Start rx page - compression %d\n", s->line_encoding);
-    if (s->tiff_file == NULL)
+    if (s->tiff.tiff_file == NULL)
         return -1;
 
     /* Calculate the scanline/tile width. */
@@ -1209,7 +1467,7 @@ int t4_rx_start_page(t4_state_t *s)
 
     s->row_is_2d = (s->line_encoding == T4_COMPRESSION_ITU_T6);
     /* We start at -1 EOLs for 1D and 2D decoding, as an indication we are waiting for the
-       first EOL. */
+       first EOL. T.6 coding starts without any preamble. */
     s->consecutive_eols = (s->line_encoding == T4_COMPRESSION_ITU_T6)  ?  0  :  -1;
 
     s->bad_rows = 0;
@@ -1246,78 +1504,78 @@ int t4_rx_start_page(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_rx_delete(t4_state_t *s)
-{
-    if (t4_rx_end(s))
-        return -1;
-    free_buffers(s);
-    free(s);
-    return 0;
-}
-/*- End of function --------------------------------------------------------*/
-
-int t4_rx_end(t4_state_t *s)
+SPAN_DECLARE(int) t4_rx_release(t4_state_t *s)
 {
     if (!s->rx)
         return -1;
-    if (s->tiff_file)
+    if (s->tiff.tiff_file)
         close_tiff_output_file(s);
     free_buffers(s);
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_rx_encoding(t4_state_t *s, int encoding)
+SPAN_DECLARE(int) t4_rx_free(t4_state_t *s)
+{
+    int ret;
+
+    ret = t4_rx_release(s);
+    free(s);
+    return ret;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(void) t4_rx_set_rx_encoding(t4_state_t *s, int encoding)
 {
     s->line_encoding = encoding;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_image_width(t4_state_t *s, int width)
+SPAN_DECLARE(void) t4_rx_set_image_width(t4_state_t *s, int width)
 {
     s->image_width = width;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_y_resolution(t4_state_t *s, int resolution)
+SPAN_DECLARE(void) t4_rx_set_y_resolution(t4_state_t *s, int resolution)
 {
     s->y_resolution = resolution;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_x_resolution(t4_state_t *s, int resolution)
+SPAN_DECLARE(void) t4_rx_set_x_resolution(t4_state_t *s, int resolution)
 {
     s->x_resolution = resolution;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_dcs(t4_state_t *s, const char *dcs)
+SPAN_DECLARE(void) t4_rx_set_dcs(t4_state_t *s, const char *dcs)
 {
-    s->dcs = (dcs  &&  dcs[0])  ?  dcs  :  NULL;
+    s->tiff.dcs = (dcs  &&  dcs[0])  ?  dcs  :  NULL;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_sub_address(t4_state_t *s, const char *sub_address)
+SPAN_DECLARE(void) t4_rx_set_sub_address(t4_state_t *s, const char *sub_address)
 {
-    s->sub_address = (sub_address  &&  sub_address[0])  ?  sub_address  :  NULL;
+    s->tiff.sub_address = (sub_address  &&  sub_address[0])  ?  sub_address  :  NULL;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_far_ident(t4_state_t *s, const char *ident)
+SPAN_DECLARE(void) t4_rx_set_far_ident(t4_state_t *s, const char *ident)
 {
-    s->far_ident = (ident  &&  ident[0])  ?  ident  :  NULL;
+    s->tiff.far_ident = (ident  &&  ident[0])  ?  ident  :  NULL;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_vendor(t4_state_t *s, const char *vendor)
+SPAN_DECLARE(void) t4_rx_set_vendor(t4_state_t *s, const char *vendor)
 {
-    s->vendor = vendor;
+    s->tiff.vendor = vendor;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_rx_set_model(t4_state_t *s, const char *model)
+SPAN_DECLARE(void) t4_rx_set_model(t4_state_t *s, const char *model)
 {
-    s->model = model;
+    s->tiff.model = model;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -1459,8 +1717,8 @@ static void encode_2d_row(t4_state_t *s)
                         a0                  a1                      a2
 
 
-        a)	Pass mode
-	        This mode is identified when the position of b2 lies to the left of a1. When this mode
+        a)  Pass mode
+            This mode is identified when the position of b2 lies to the left of a1. When this mode
             has been coded, a0 is set on the element of the coding line below b2 in preparation for
             the next coding (i.e. on a0').
             
@@ -1481,16 +1739,16 @@ static void encode_2d_row(t4_state_t *s)
                                 Not pass mode
 
 
-        b)	Vertical mode
-	        When this mode is identified, the position of a1 is coded relative to the position of b1.
+        b)  Vertical mode
+            When this mode is identified, the position of a1 is coded relative to the position of b1.
             The relative distance a1b1 can take on one of seven values V(0), VR(1), VR(2), VR(3),
             VL(1), VL(2) and VL(3), each of which is represented by a separate code word. The
             subscripts R and L indicate that a1 is to the right or left respectively of b1, and the
             number in brackets indicates the value of the distance a1b1. After vertical mode coding
             has occurred, the position of a0 is set on a1 (see figure below).
 
-        c)	Horizontal mode
-	        When this mode is identified, both the run-lengths a0a1 and a1a2 are coded using the code
+        c)  Horizontal mode
+            When this mode is identified, both the run-lengths a0a1 and a1a2 are coded using the code
             words H + M(a0a1) + M(a1a2). H is the flag code word 001 taken from the two-dimensional
             code table. M(a0a1) and M(a1a2) are code words which represent the length and "colour"
             of the runs a0a1 and a1a2 respectively and are taken from the appropriate white or black
@@ -1574,11 +1832,11 @@ static void encode_2d_row(t4_state_t *s)
             b_cursor |= 1;
         else
             b_cursor &= ~1;
-        if (a0 < s->ref_runs[b_cursor])
+        if (a0 < (int) s->ref_runs[b_cursor])
         {
             for (  ;  b_cursor >= 0;  b_cursor -= 2)
             {
-                if (a0 >= s->ref_runs[b_cursor])
+                if (a0 >= (int) s->ref_runs[b_cursor])
                     break;
             }
             b_cursor += 2;
@@ -1587,7 +1845,7 @@ static void encode_2d_row(t4_state_t *s)
         {
             for (  ;  b_cursor < s->ref_steps;  b_cursor += 2)
             {
-                if (a0 < s->ref_runs[b_cursor])
+                if (a0 < (int) s->ref_runs[b_cursor])
                     break;
             }
             if (b_cursor >= s->ref_steps)
@@ -1669,7 +1927,7 @@ static int encode_row(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_set_row_read_handler(t4_state_t *s, t4_row_read_handler_t handler, void *user_data)
+SPAN_DECLARE(int) t4_tx_set_row_read_handler(t4_state_t *s, t4_row_read_handler_t handler, void *user_data)
 {
     s->row_read_handler = handler;
     s->row_read_user_data = user_data;
@@ -1677,10 +1935,15 @@ int t4_tx_set_row_read_handler(t4_state_t *s, t4_row_read_handler_t handler, voi
 }
 /*- End of function --------------------------------------------------------*/
 
-t4_state_t *t4_tx_init(t4_state_t *s, const char *file, int start_page, int stop_page)
+SPAN_DECLARE(t4_state_t *) t4_tx_init(t4_state_t *s, const char *file, int start_page, int stop_page)
 {
     int run_space;
 
+    if (s == NULL)
+    {
+        if ((s = (t4_state_t *) malloc(sizeof(*s))) == NULL)
+            return NULL;
+    }
     memset(s, 0, sizeof(*s));
     span_log_init(&s->logging, SPAN_LOG_NONE, NULL);
     span_log_set_protocol(&s->logging, "T.4");
@@ -1691,9 +1954,12 @@ t4_state_t *t4_tx_init(t4_state_t *s, const char *file, int start_page, int stop
     if (open_tiff_input_file(s, file) < 0)
         return NULL;
     s->file = strdup(file);
+    s->current_page =
     s->start_page = (start_page >= 0)  ?  start_page  :  0;
     s->stop_page = (stop_page >= 0)  ?  stop_page : INT_MAX;
 
+    if (!TIFFSetDirectory(s->tiff.tiff_file, (tdir_t) s->current_page))
+        return -1;
     if (get_tiff_directory_info(s))
     {
         close_tiff_input_file(s);
@@ -1702,7 +1968,6 @@ t4_state_t *t4_tx_init(t4_state_t *s, const char *file, int start_page, int stop
 
     s->rows_to_next_1d_row = s->max_rows_to_next_1d_row - 1;
 
-    s->pages_transferred = s->start_page;
     s->pages_in_file = -1;
 
     run_space = (s->image_width + 4)*sizeof(uint32_t);
@@ -1761,46 +2026,50 @@ static void make_header(t4_state_t *s, char *header)
              tm.tm_hour,
              tm.tm_min,
              s->header_info,
-             s->local_ident,
-             s->pages_transferred + 1);
+             s->tiff.local_ident,
+             s->current_page + 1);
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_start_page(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_start_page(t4_state_t *s)
 {
     int row;
     int i;
     int repeats;
     int pattern;
     int row_bufptr;
-    int parm;
     int run_space;
     int len;
+    int old_image_width;
     char *t;
     char header[132 + 1];
     uint8_t *bufptr8;
     uint32_t *bufptr;
 
-    span_log(&s->logging, SPAN_LOG_FLOW, "Start tx page %d\n", s->pages_transferred);
-    if (s->pages_transferred > s->stop_page)
+    span_log(&s->logging, SPAN_LOG_FLOW, "Start tx page %d\n", s->current_page);
+    if (s->current_page > s->stop_page)
         return -1;
-    if (s->tiff_file == NULL)
+    if (s->tiff.tiff_file == NULL)
         return -1;
-    if (!TIFFSetDirectory(s->tiff_file, (tdir_t) s->pages_transferred))
-        return -1;
+    old_image_width = s->image_width;
+    if (s->row_read_handler == NULL)
+    {
+#if defined(HAVE_LIBTIFF)
+        if (!TIFFSetDirectory(s->tiff.tiff_file, (tdir_t) s->current_page))
+            return -1;
+        get_tiff_directory_info(s);
+#endif
+    }
     s->image_size = 0;
     s->tx_bitstream = 0;
     s->tx_bits = 0;
     s->row_is_2d = (s->line_encoding == T4_COMPRESSION_ITU_T6);
     s->rows_to_next_1d_row = s->max_rows_to_next_1d_row - 1;
 
-    /* Allow for pages being of different width */
-    parm = 0;
-    TIFFGetField(s->tiff_file, TIFFTAG_IMAGEWIDTH, &parm);
-    run_space = (parm + 4)*sizeof(uint32_t);
-    if (parm != s->image_width)
+    /* Allow for pages being of different width. */
+    run_space = (s->image_width + 4)*sizeof(uint32_t);
+    if (old_image_width != s->image_width)
     {
-        s->image_width = parm;
         s->bytes_per_row = (s->image_width + 7)/8;
 
         if ((bufptr = (uint32_t *) realloc(s->cur_runs, run_space)) == NULL)
@@ -1888,30 +2157,20 @@ int t4_tx_start_page(t4_state_t *s)
     }
     else
     {
-        s->image_length = 0;
-        TIFFGetField(s->tiff_file, TIFFTAG_IMAGELENGTH, &s->image_length);
-        for (row = 0;  row < s->image_length;  row++)
-        {
-            if (TIFFReadScanline(s->tiff_file, s->row_buf, row, 0) <= 0)
-            {
-                span_log(&s->logging, SPAN_LOG_WARNING, "%s: Read error at row %d.\n", s->file, row);
-                break;
-            }
-            if (encode_row(s))
-                return -1;
-        }
+        if ((s->image_length = read_tiff_image(s)) < 0)
+            return -1;
     }
     if (s->line_encoding == T4_COMPRESSION_ITU_T6)
     {
-        /* Attach an EOFB (end of facsimile block) to the end of the page */
-        encode_eol(s);
-        encode_eol(s);
+        /* Attach an EOFB (end of facsimile block == 2 x EOLs) to the end of the page */
+        for (i = 0;  i < EOLS_TO_END_T6_TX_PAGE;  i++)
+            encode_eol(s);
     }
     else
     {
-        /* Attach a return to control (RTC == 6 x EOLs) to the end of the page */
+        /* Attach an RTC (return to control == 6 x EOLs) to the end of the page */
         s->row_is_2d = FALSE;
-        for (i = 0;  i < 6;  i++)
+        for (i = 0;  i < EOLS_TO_END_T4_TX_PAGE;  i++)
             encode_eol(s);
     }
 
@@ -1925,28 +2184,26 @@ int t4_tx_start_page(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_more_pages(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_next_page_has_different_format(t4_state_t *s)
 {
-    span_log(&s->logging, SPAN_LOG_FLOW, "Checking for the existance of page %d\n", s->pages_transferred + 1);
-    if (s->pages_transferred >= s->stop_page)
+    span_log(&s->logging, SPAN_LOG_FLOW, "Checking for the existance of page %d\n", s->current_page + 1);
+    if (s->current_page >= s->stop_page)
         return -1;
-    if (s->tiff_file == NULL)
-        return -1;
-    if (s->pages_in_file >= 0)
+    if (s->row_read_handler == NULL)
     {
-        if (s->pages_transferred + 1 >= s->pages_in_file)
+#if defined(HAVE_LIBTIFF)
+        if (s->tiff.tiff_file == NULL)
             return -1;
-    }
-    else
-    {
-        if (!TIFFSetDirectory(s->tiff_file, (tdir_t) s->pages_transferred + 1))
+        if (!TIFFSetDirectory(s->tiff.tiff_file, (tdir_t) s->current_page + 1))
             return -1;
+        return test_tiff_directory_info(s);
+#endif
     }
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_restart_page(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_restart_page(t4_state_t *s)
 {
     s->bit_pos = 7;
     s->bit_ptr = 0;
@@ -1954,14 +2211,14 @@ int t4_tx_restart_page(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_end_page(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_end_page(t4_state_t *s)
 {
-    s->pages_transferred++;
+    s->current_page++;
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_get_bit(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_get_bit(t4_state_t *s)
 {
     int bit;
 
@@ -1977,7 +2234,7 @@ int t4_tx_get_bit(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_get_byte(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_get_byte(t4_state_t *s)
 {
     if (s->bit_ptr >= s->image_size)
         return 0x100;
@@ -1985,7 +2242,7 @@ int t4_tx_get_byte(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_get_chunk(t4_state_t *s, uint8_t buf[], int max_len)
+SPAN_DECLARE(int) t4_tx_get_chunk(t4_state_t *s, uint8_t buf[], int max_len)
 {
     if (s->bit_ptr >= s->image_size)
         return 0;
@@ -1997,7 +2254,7 @@ int t4_tx_get_chunk(t4_state_t *s, uint8_t buf[], int max_len)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_check_bit(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_check_bit(t4_state_t *s)
 {
     int bit;
 
@@ -2008,28 +2265,28 @@ int t4_tx_check_bit(t4_state_t *s)
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_delete(t4_state_t *s)
-{
-    if (t4_tx_end(s))
-        return -1;
-    free_buffers(s);
-    free(s);
-    return 0;
-}
-/*- End of function --------------------------------------------------------*/
-
-int t4_tx_end(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_release(t4_state_t *s)
 {
     if (s->rx)
         return -1;
-    if (s->tiff_file)
+    if (s->tiff.tiff_file)
         close_tiff_input_file(s);
     free_buffers(s);
     return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_tx_set_tx_encoding(t4_state_t *s, int encoding)
+SPAN_DECLARE(int) t4_tx_free(t4_state_t *s)
+{
+    int ret;
+
+    ret = t4_tx_release(s);
+    free(s);
+    return ret;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(void) t4_tx_set_tx_encoding(t4_state_t *s, int encoding)
 {
     s->line_encoding = encoding;
     s->rows_to_next_1d_row = s->max_rows_to_next_1d_row - 1;
@@ -2037,63 +2294,64 @@ void t4_tx_set_tx_encoding(t4_state_t *s, int encoding)
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_tx_set_min_row_bits(t4_state_t *s, int bits)
+SPAN_DECLARE(void) t4_tx_set_min_row_bits(t4_state_t *s, int bits)
 {
     s->min_bits_per_row = bits;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_tx_set_local_ident(t4_state_t *s, const char *ident)
+SPAN_DECLARE(void) t4_tx_set_local_ident(t4_state_t *s, const char *ident)
 {
-    s->local_ident = (ident  &&  ident[0])  ?  ident  :  NULL;
+    s->tiff.local_ident = (ident  &&  ident[0])  ?  ident  :  NULL;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_tx_set_header_info(t4_state_t *s, const char *info)
+SPAN_DECLARE(void) t4_tx_set_header_info(t4_state_t *s, const char *info)
 {
     s->header_info = (info  &&  info[0])  ?  info  :  NULL;
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_get_y_resolution(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_get_y_resolution(t4_state_t *s)
 {
     return s->y_resolution;
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_get_x_resolution(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_get_x_resolution(t4_state_t *s)
 {
     return s->x_resolution;
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_get_image_width(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_get_image_width(t4_state_t *s)
 {
     return s->image_width;
 }
 /*- End of function --------------------------------------------------------*/
 
-int t4_tx_get_pages_in_file(t4_state_t *s)
+SPAN_DECLARE(int) t4_tx_get_pages_in_file(t4_state_t *s)
 {
     int max;
 
-    /* Each page *should* contain the total number of pages, but can this be
-       trusted? Some files say 0. Actually searching for the last page is
-       more reliable. */
     max = 0;
-    while (TIFFSetDirectory(s->tiff_file, (tdir_t) max))
-    	max++;
-    s->pages_in_file = max;
-    /* Back to the previous page */
-    if (!TIFFSetDirectory(s->tiff_file, (tdir_t) s->pages_transferred))
-        return -1;
+    if (s->row_write_handler == NULL)
+        max = get_tiff_total_pages(s);
+    if (max >= 0)
+        s->pages_in_file = max;
     return max;
 }
 /*- End of function --------------------------------------------------------*/
 
-void t4_get_transfer_statistics(t4_state_t *s, t4_stats_t *t)
+SPAN_DECLARE(int) t4_tx_get_current_page_in_file(t4_state_t *s)
 {
-    t->pages_transferred = s->pages_transferred - s->start_page;
+    return s->current_page;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(void) t4_get_transfer_statistics(t4_state_t *s, t4_stats_t *t)
+{
+    t->pages_transferred = s->current_page - s->start_page;
     t->pages_in_file = s->pages_in_file;
     t->width = s->image_width;
     t->length = s->image_length;
@@ -2106,7 +2364,7 @@ void t4_get_transfer_statistics(t4_state_t *s, t4_stats_t *t)
 }
 /*- End of function --------------------------------------------------------*/
 
-const char *t4_encoding_to_str(int encoding)
+SPAN_DECLARE(const char *) t4_encoding_to_str(int encoding)
 {
     switch (encoding)
     {

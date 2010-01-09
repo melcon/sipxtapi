@@ -34,11 +34,11 @@
 DisconnectedSipConnectionState::DisconnectedSipConnectionState(SipConnectionStateContext& rStateContext,
                                                                SipUserAgent& rSipUserAgent,
                                                                XCpCallControl& rCallControl,
-                                                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                                                               CpMessageQueueProvider& rMessageQueueProvider,
+                                                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                                                               CpMessageQueueProvider* pMessageQueueProvider,
                                                                XSipConnectionEventSink& rSipConnectionEventSink,
                                                                const CpNatTraversalConfig& natTraversalConfig)
-: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, rMediaInterfaceProvider, rMessageQueueProvider,
+: BaseSipConnectionState(rStateContext, rSipUserAgent, rCallControl, pMediaInterfaceProvider, pMessageQueueProvider,
                          rSipConnectionEventSink, natTraversalConfig)
 {
 

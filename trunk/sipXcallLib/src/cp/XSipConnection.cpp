@@ -13,13 +13,16 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsReadLock.h>
+#include <os/OsWriteLock.h>
 #include <mi/CpMediaInterface.h>
 #include <net/SipInfoEventListener.h>
 #include <cp/CpMediaInterfaceProvider.h>
+#include <cp/CpMessageQueueProvider.h>
 #include <cp/XSipConnection.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/CpMediaEventListener.h>
 #include <cp/CpCallStateEventListener.h>
+#include <cp/CpRtpRedirectEventListener.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -52,25 +55,27 @@ XSipConnection::XSipConnection(const UtlString& sAbstractCallId,
                                CP_100REL_CONFIG c100relSetting,
                                CP_SDP_OFFERING_MODE sdpOfferingMode,
                                int inviteExpiresSeconds,
-                               CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                               CpMessageQueueProvider& rMessageQueueProvider,
+                               CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                               CpMessageQueueProvider* pMessageQueueProvider,
                                const CpNatTraversalConfig& natTraversalConfig,
                                CpCallStateEventListener* pCallEventListener,
                                SipInfoStatusEventListener* pInfoStatusEventListener,
                                SipInfoEventListener* pInfoEventListener,
                                SipSecurityEventListener* pSecurityEventListener,
-                               CpMediaEventListener* pMediaEventListener)
+                               CpMediaEventListener* pMediaEventListener,
+                               CpRtpRedirectEventListener* pRtpRedirectEventListener)
 : m_instanceRWMutex(OsRWMutex::Q_FIFO)
-, m_stateMachine(rSipUserAgent, rCallControl, sLocalIpAddress, rMediaInterfaceProvider, rMessageQueueProvider, *this, natTraversalConfig)
+, m_stateMachine(rSipUserAgent, rCallControl, sLocalIpAddress, pMediaInterfaceProvider, pMessageQueueProvider, *this, natTraversalConfig)
 , m_rSipConnectionContext(m_stateMachine.getSipConnectionContext())
 , m_rSipUserAgent(rSipUserAgent)
-, m_rMediaInterfaceProvider(rMediaInterfaceProvider)
-, m_rMessageQueueProvider(rMessageQueueProvider)
+, m_pMediaInterfaceProvider(pMediaInterfaceProvider)
+, m_pMessageQueueProvider(pMessageQueueProvider)
 , m_pCallEventListener(pCallEventListener)
 , m_pInfoStatusEventListener(pInfoStatusEventListener)
 , m_pInfoEventListener(pInfoEventListener)
 , m_pSecurityEventListener(pSecurityEventListener)
 , m_pMediaEventListener(pMediaEventListener)
+, m_pRtpRedirectEventListener(pRtpRedirectEventListener)
 , m_natTraversalConfig(natTraversalConfig)
 , m_lastCallEvent(CP_CALLSTATE_UNKNOWN)
 {
@@ -128,6 +133,16 @@ OsStatus XSipConnection::connect(const UtlString& sipCallId,
 {
    return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId,
       replacesField, callstateCause, pCallbackSipDialog);
+}
+
+OsStatus XSipConnection::startRtpRedirect(const UtlString& slaveAbstractCallId, const SipDialog& slaveSipDialog)
+{
+   return m_stateMachine.startRtpRedirect(slaveAbstractCallId, slaveSipDialog);
+}
+
+OsStatus XSipConnection::stopRtpRedirect()
+{
+   return m_stateMachine.stopRtpRedirect();
 }
 
 OsStatus XSipConnection::acceptConnection(UtlBoolean bSendSDP,
@@ -190,7 +205,7 @@ OsStatus XSipConnection::unholdConnection()
 OsStatus XSipConnection::muteInputConnection()
 {
    int mediaConnectionId = getMediaConnectionId();
-   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   CpMediaInterface *pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
    if (pMediaInterface)
    {
       return pMediaInterface->muteInput(mediaConnectionId, TRUE);
@@ -202,7 +217,7 @@ OsStatus XSipConnection::muteInputConnection()
 OsStatus XSipConnection::unmuteInputConnection()
 {
    int mediaConnectionId = getMediaConnectionId();
-   CpMediaInterface *pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+   CpMediaInterface *pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
    if (pMediaInterface)
    {
       return pMediaInterface->muteInput(mediaConnectionId, FALSE);
@@ -222,6 +237,11 @@ OsStatus XSipConnection::sendInfo(const UtlString& sContentType,
                                   void* pCookie)
 {
    return m_stateMachine.sendInfo(sContentType, pContent, nContentLength, pCookie);
+}
+
+OsStatus XSipConnection::terminateMediaConnection()
+{
+   return m_stateMachine.terminateMediaConnection();
 }
 
 OsStatus XSipConnection::subscribe(CP_NOTIFICATION_TYPE notificationType, const SipDialog& callbackSipDialog)
@@ -342,6 +362,24 @@ void XSipConnection::getRemoteAddress(UtlString& sRemoteAddress) const
    remoteUrl.toString(sRemoteAddress);
 }
 
+void XSipConnection::setAbstractCallId(const UtlString& sAbstractCallId)
+{
+   OsWriteLock lock(m_rSipConnectionContext);
+   m_rSipConnectionContext.m_sAbstractCallId = sAbstractCallId;
+}
+
+void XSipConnection::setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider)
+{
+   m_pMessageQueueProvider = pMessageQueueProvider;
+   m_stateMachine.setMessageQueueProvider(pMessageQueueProvider);
+}
+
+void XSipConnection::setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider)
+{
+   m_pMediaInterfaceProvider = pMediaInterfaceProvider;
+   m_stateMachine.setMediaInterfaceProvider(pMediaInterfaceProvider);
+}
+
 /* ============================ INQUIRY =================================== */
 
 int XSipConnection::compareTo(UtlContainable const* inVal) const
@@ -427,6 +465,15 @@ void XSipConnection::prepareCallStateEvent(CpCallStateEvent& event,
    event.m_sResponseText = sResponseText;
    event.m_sReferredBy = sReferredBy;
    event.m_sReferTo = sReferTo;
+}
+
+void XSipConnection::prepareRtpRedirectEvent(CpRtpRedirectEvent& event, CP_RTP_REDIRECT_CAUSE cause)
+{
+   {
+      OsReadLock lock(m_rSipConnectionContext);
+      event.m_sCallId = m_rSipConnectionContext.m_sAbstractCallId; // copy id of abstract call
+   }
+   event.m_cause = cause;
 }
 
 void XSipConnection::fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
@@ -608,7 +655,7 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
       // intercept CONNECTED event, and change it to BRIDGED if we don't have focus
       if (eventCode == CP_CALLSTATE_CONNECTED)
       {
-         CpMediaInterface* pMediaInterface = m_rMediaInterfaceProvider.getMediaInterface(FALSE);
+         CpMediaInterface* pMediaInterface = m_pMediaInterfaceProvider->getMediaInterface(FALSE);
          if (pMediaInterface && !pMediaInterface->hasFocus())
          {
             eventCode = CP_CALLSTATE_BRIDGED;
@@ -666,6 +713,33 @@ void XSipConnection::fireSipXCallEvent(CP_CALLSTATE_EVENT eventCode,
          default:
             ;
          }
+      }
+   }
+}
+
+void XSipConnection::fireSipXRtpRedirectEvent(CP_RTP_REDIRECT_EVENT eventCode, CP_RTP_REDIRECT_CAUSE causeCode)
+{
+   if (m_pRtpRedirectEventListener)
+   {
+      CpRtpRedirectEvent event;
+      prepareRtpRedirectEvent(event, causeCode);
+
+      switch(eventCode)
+      {
+      case CP_RTP_REDIRECT_REQUESTED:
+         m_pRtpRedirectEventListener->OnRtpRedirectRequested(event);
+         break;
+      case CP_RTP_REDIRECT_ACTIVE:
+         m_pRtpRedirectEventListener->OnRtpRedirectActive(event);
+         break;
+      case CP_RTP_REDIRECT_ERROR:
+         m_pRtpRedirectEventListener->OnRtpRedirectError(event);
+         break;
+      case CP_RTP_REDIRECT_STOP:
+         m_pRtpRedirectEventListener->OnRtpRedirectStop(event);
+         break;
+      default:
+         ;
       }
    }
 }

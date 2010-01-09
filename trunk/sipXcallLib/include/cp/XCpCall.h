@@ -26,18 +26,11 @@
 // MACROS
 // FORWARD DECLARATIONS
 class AcConnectMsg;
-class AcAcceptConnectionMsg;
-class AcRejectConnectionMsg;
-class AcRedirectConnectionMsg;
-class AcAnswerConnectionMsg;
+class AcStartRtpRedirectMsg;
+class AcStopRtpRedirectMsg;
 class AcDropConnectionMsg;
 class AcDestroyConnectionMsg;
-class AcTransferBlindMsg;
-class AcHoldConnectionMsg;
-class AcUnholdConnectionMsg;
-class AcRenegotiateCodecsMsg;
-class AcSendInfoMsg;
-class AcTransferConsultativeMsg;
+class XCpConference;
 
 /**
  * XCpCall wraps XSipConnection realizing all call functionality. XCpCall is designed to hold
@@ -61,6 +54,8 @@ class AcTransferConsultativeMsg;
  */
 class XCpCall : public XCpAbstractCall
 {
+   friend class XCpConference; // needed for conference split/join
+
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
@@ -85,7 +80,8 @@ public:
            SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
            SipInfoEventListener* pInfoEventListener = NULL,
            SipSecurityEventListener* pSecurityEventListener = NULL,
-           CpMediaEventListener* pMediaEventListener = NULL);
+           CpMediaEventListener* pMediaEventListener = NULL,
+           CpRtpRedirectEventListener* pRtpRedirectEventListener = NULL);
 
    virtual ~XCpCall();
 
@@ -103,44 +99,17 @@ public:
                             CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                             const SipDialog* pCallbackSipDialog = NULL);
 
-   /** 
-   * Accepts inbound call connection. Inbound connections can only be part of XCpCall
-   *
-   * Progress the connection from the OFFERING state to the
-   * RINGING state. This causes a SIP 180 Ringing provisional
-   * response to be sent.
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling. Current call will become the master call.
    */
-   virtual OsStatus acceptConnection(UtlBoolean bSendSDP,
-                                     const UtlString& locationHeader,
-                                     CP_CONTACT_ID contactId);
+   OsStatus startCallRedirectRtp(const UtlString& slaveAbstractCallId,
+                                 const SipDialog& slaveSipDialog);
 
    /**
-   * Reject the incoming connection.
-   *
-   * Progress the connection from the OFFERING state to
-   * the FAILED state with the cause of busy. With SIP this
-   * causes a 486 Busy Here response to be sent.
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
    */
-   virtual OsStatus rejectConnection();
-
-   /**
-   * Redirect the incoming connection.
-   *
-   * Progress the connection from the OFFERING state to
-   * the FAILED state. This causes a SIP 302 Moved
-   * Temporarily response to be sent with the specified
-   * contact URI.
-   */
-   virtual OsStatus redirectConnection(const UtlString& sRedirectSipUrl);
-
-   /**
-   * Answer the incoming terminal connection.
-   *
-   * Progress the connection from the OFFERING or RINGING state
-   * to the ESTABLISHED state and also creating the terminal
-   * connection (with SIP a 200 OK response is sent).
-   */
-   virtual OsStatus answerConnection();
+   OsStatus stopCallRedirectRtp();
 
    /**
    * Disconnects given call with given sip call-id
@@ -152,75 +121,6 @@ public:
 
    /** Disconnects call without knowing the sip call-id*/
    OsStatus dropConnection();
-
-   /** Blind transfer given call to sTransferSipUri. Works for simple call and call in a conference */
-   virtual OsStatus transferBlind(const SipDialog& sipDialog,
-                                  const UtlString& sTransferSipUrl);
-
-   /**
-   * Consultative transfer given call to target call. Works for simple call and call in a conference. 
-   *
-   * @param sourceSipDialog Source call identifier.
-   * @param targetSipDialog Must be full SIP dialog with all fields initialized, not just callid and tags.
-   */
-   virtual OsStatus transferConsultative(const SipDialog& sourceSipDialog,
-                                         const SipDialog& targetSipDialog);
-
-   /**
-   * Put the specified terminal connection on hold.
-   *
-   * Change the terminal connection state from TALKING to HELD.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * no media should be sent.)
-   */
-   virtual OsStatus holdConnection(const SipDialog& sipDialog);
-
-   /**
-   * Put the specified terminal connection on hold.
-   *
-   * Change the terminal connection state from TALKING to HELD.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * no media should be sent.)
-   */
-   OsStatus holdConnection();
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   virtual OsStatus unholdConnection(const SipDialog& sipDialog);
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   virtual OsStatus unholdConnection();
-
-   /**
-   * Rebuild codec factory on the fly with new audio codec requirements
-   * and one specific video codec.  Renegotiate the codecs to be use for the
-   * specified terminal connection.
-   *
-   * This is typically performed after a capabilities change for the
-   * terminal connection (for example, addition or removal of a codec type).
-   * (Sends a SIP re-INVITE.)
-   */
-   virtual OsStatus renegotiateCodecsConnection(const SipDialog& sipDialog,
-                                                const UtlString& sAudioCodecs,
-                                                const UtlString& sVideoCodecs);
-
-   /** Sends an INFO message to the other party(s) on the call */
-   virtual OsStatus sendInfo(const SipDialog& sipDialog,
-                             const UtlString& sContentType,
-                             const char* pContent,
-                             const size_t nContentLength,
-                             void* pCookie);
 
    /* ============================ ACCESSORS ================================= */
 
@@ -258,7 +158,7 @@ protected:
    virtual UtlBoolean handleTimerMessage(const CpTimerMsg& rRawMsg);
 
    /** Handler for inbound SipMessageEvent messages. */
-   virtual UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
+   virtual OsStatus handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
@@ -268,36 +168,31 @@ private:
 
    /** Handles message to create new sip connection for call */
    OsStatus handleConnect(const AcConnectMsg& rMsg);
-   /** Handles message to accept inbound sip connection */
-   OsStatus handleAcceptConnection(const AcAcceptConnectionMsg& rMsg);
-   /** Handles message to reject inbound sip connection */
-   OsStatus handleRejectConnection(const AcRejectConnectionMsg& rMsg);
-   /** Handles message to redirect inbound sip connection */
-   OsStatus handleRedirectConnection(const AcRedirectConnectionMsg& rMsg);
-   /** Handles message to answer inbound sip connection */
-   OsStatus handleAnswerConnection(const AcAnswerConnectionMsg& rMsg);
+   /** Handles message to start RTP redirect */
+   OsStatus handleStartRtpRedirect(const AcStartRtpRedirectMsg& rMsg);
+   /** Handles message to stop RTP redirect */
+   OsStatus handleStopRtpRedirect(const AcStopRtpRedirectMsg& rMsg);
    /** Handles message to drop sip connection */
    OsStatus handleDropConnection(const AcDropConnectionMsg& rMsg);
    /** Handles message to destroy sip connection */
-   OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg);
-   /** Handles message to initiate blind call transfer */
-   OsStatus handleTransferBlind(const AcTransferBlindMsg& rMsg);
-   /** Handles message to initiate consultative call transfer */
-   OsStatus handleTransferConsultative(const AcTransferConsultativeMsg& rMsg);
-   /** Handles message to initiate remote hold on sip connection */
-   OsStatus handleHoldConnection(const AcHoldConnectionMsg& rMsg);
-   /** Handles message to initiate remote unhold on sip connection */
-   OsStatus handleUnholdConnection(const AcUnholdConnectionMsg& rMsg);
-   /** Handles message to renegotiate codecs for some sip connection */
-   OsStatus handleRenegotiateCodecs(const AcRenegotiateCodecsMsg& rMsg);
-   /** Handles message to send SIP INFO to on given sip connection */
-   OsStatus handleSendInfo(const AcSendInfoMsg& rMsg);
+   virtual OsStatus handleDestroyConnection(const AcDestroyConnectionMsg& rMsg);
 
    /** Creates new XSipConnection for the call, if it doesn't exist yet */
    void createSipConnection(const SipDialog& sipDialog, const UtlString& sFullLineUrl);
 
    /** Destroys XSipConnection if it exists */
    void destroySipConnection();
+
+   /**
+    * Request the call to be destroyed by call manager.
+    */
+   void requestCallDestruction();
+
+   /**
+    * Destroys XSipConnection if it exists by sip dialog. This should be called
+    * after call has been disconnected and connection is ready to be deleted.
+    */
+   virtual void destroySipConnection(const SipDialog& sSipDialog);
 
    /** Finds the correct connection by mediaConnectionId and fires media event for it. */
    virtual void fireSipXMediaConnectionEvent(CP_MEDIA_EVENT event,
@@ -319,6 +214,26 @@ private:
 
    /** Called when media focus is lost (speaker and mic are disengaged) */
    virtual void onFocusLost();
+
+   /** Called when abstract call thread is started */
+   virtual void onStarted();
+
+   /**
+    * Tries to extract sip connection from call. Meant to be used by XCpConference for
+    * join. Reference to queue and media interface, callId will need to be updated by caller.
+    * XCpCall thread must not be running at the time this operation executes.
+    * After this operation call will have no sip connection.
+    */
+   OsStatus extractConnection(XSipConnection **pSipConnection);
+
+   /**
+    * Tries to set sip connection on the call. Meant to be used by XCpConference for
+    * split. Reference to queue and media interface will be updated if operation succeeds.
+    * XCpCall thread must not be running at the time this operation executes.
+    * Operation will fail if call already has some sip connection.
+    */
+   OsStatus setConnection(XSipConnection *pSipConnection);
+
 
    // begin of members requiring m_memberMutex
    XSipConnection* m_pSipConnection; ///< XSipConnection handling Sip messages. Use destroySipConnection to delete it.

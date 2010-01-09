@@ -48,6 +48,8 @@ class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class CpRtpRedirectEvent;
+class CpRtpRedirectEventListener;
 class ScTimerMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
@@ -82,14 +84,15 @@ public:
                   CP_100REL_CONFIG c100relSetting,
                   CP_SDP_OFFERING_MODE sdpOfferingMode,
                   int inviteExpiresSeconds,
-                  CpMediaInterfaceProvider& rMediaInterfaceProvider,
-                  CpMessageQueueProvider& rMessageQueueProvider,
+                  CpMediaInterfaceProvider* pMediaInterfaceProvider,
+                  CpMessageQueueProvider* pMessageQueueProvider,
                   const CpNatTraversalConfig& natTraversalConfig,
                   CpCallStateEventListener* pCallEventListener = NULL,
                   SipInfoStatusEventListener* pInfoStatusEventListener = NULL,
                   SipInfoEventListener* pInfoEventListener = NULL,
                   SipSecurityEventListener* pSecurityEventListener = NULL,
-                  CpMediaEventListener* pMediaEventListener = NULL);
+                  CpMediaEventListener* pMediaEventListener = NULL,
+                  CpRtpRedirectEventListener* pRtpRedirectEventListener = NULL);
 
    virtual ~XSipConnection();
 
@@ -125,6 +128,18 @@ public:
                     const UtlString& replacesField = NULL, // value of Replaces INVITE field
                     CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                     const SipDialog* pCallbackSipDialog = NULL);
+
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling. Current call will become the master call.
+   */
+   OsStatus startRtpRedirect(const UtlString& slaveAbstractCallId,
+                             const SipDialog& slaveSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   OsStatus stopRtpRedirect();
 
    /** 
    * Accepts inbound call connection.
@@ -233,6 +248,13 @@ public:
                      void* pCookie);
 
    /**
+    * Terminates media connection silently without informing remote call party. Used for conference split/join.
+    * This operation may fail with OS_BUSY if there is INVITE or UPDATE in progress. In that case operation
+    * may be retried later.
+    */
+   OsStatus terminateMediaConnection();
+
+   /**
    * Subscribe for given notification type with given target sip call.
    * ScNotificationMsg messages will be sent to callbackSipDialog.
    */
@@ -309,6 +331,15 @@ public:
    /** Gets Url of the remote connection party field parameters if present (tag)*/
    void getRemoteAddress(UtlString& sRemoteAddress) const;
 
+   /** Sets new abstract call id on the connection */
+   void setAbstractCallId(const UtlString& sAbstractCallId);
+
+   /** Sets new message queue provider on the connection */
+   void setMessageQueueProvider(CpMessageQueueProvider* pMessageQueueProvider);
+
+   /** Sets new media interface provider on the connection */
+   void setMediaInterfaceProvider(CpMediaInterfaceProvider* pMediaInterfaceProvider);
+
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -362,6 +393,10 @@ private:
                               const UtlString& sReferredBy = NULL,
                               const UtlString& sReferTo = NULL);
 
+   /** Sets common properties on rtp redirect event */
+   void prepareRtpRedirectEvent(CpRtpRedirectEvent& event,
+                                CP_RTP_REDIRECT_CAUSE cause);
+
    /** Fire info status event */
    virtual void fireSipXInfoStatusEvent(CP_INFOSTATUS_EVENT event,
                                         SIPXTACK_MESSAGE_STATUS status,
@@ -400,6 +435,10 @@ private:
                                   const UtlString& sReferredBy = NULL,
                                   const UtlString& sReferTo = NULL);
 
+   /** Fires sipx RTP redirect event to event listener */
+   virtual void fireSipXRtpRedirectEvent(CP_RTP_REDIRECT_EVENT eventCode,
+                                         CP_RTP_REDIRECT_CAUSE causeCode);
+
    /** Block until the sync object is acquired. Timeout is not supported! */
    virtual OsStatus acquire(const OsTime& rTimeout = OsTime::OS_INFINITY);
 
@@ -415,16 +454,18 @@ private:
    XSipConnectionContext& m_rSipConnectionContext; ///< contains stateful information about sip connection.
    // thread safe
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
-   CpMediaInterfaceProvider& m_rMediaInterfaceProvider; ///< media interface provider
-   CpMessageQueueProvider& m_rMessageQueueProvider; ///< message queue provider
    // thread safe, atomic
    CP_CALLSTATE_EVENT m_lastCallEvent; ///< contains code of last call event (used for firing bridged state)
+   CpMediaInterfaceProvider* m_pMediaInterfaceProvider; ///< media interface provider
+   CpMessageQueueProvider* m_pMessageQueueProvider; ///< message queue provider
+
    // thread safe, set only once
    CpCallStateEventListener* m_pCallEventListener;
    SipInfoStatusEventListener* m_pInfoStatusEventListener; ///< event listener for INFO responses
    SipInfoEventListener* m_pInfoEventListener; ///< event listener for inbound INFO messages
    SipSecurityEventListener* m_pSecurityEventListener;
    CpMediaEventListener* m_pMediaEventListener;
+   CpRtpRedirectEventListener* m_pRtpRedirectEventListener; ///< listener for firing rtp redirect events
    const CpNatTraversalConfig m_natTraversalConfig; ///< NAT traversal configuration
 
    mutable OsRWMutex m_instanceRWMutex; ///< mutex for guarding instance against deletion from XCpAbstractCall

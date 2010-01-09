@@ -29,6 +29,8 @@
 #define CP_MAXIMUM_RINGING_EXPIRE_SECONDS 180
 #define CP_MINIMUM_RINGING_EXPIRE_SECONDS 1
 
+#define CONF_MAX_CONNECTIONS    32      /**< Max number of conference participants */
+
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
@@ -286,6 +288,55 @@ typedef enum
    CP_CALLSTATE_CAUSE_SERVER_ERROR,/**< Result of unknown 5xx response */
    CP_CALLSTATE_CAUSE_GLOBAL_ERROR,/**< Result of unknown 6xx response */
 } CP_CALLSTATE_CAUSE;
+
+/**
+* Enumeration of possible CP_RTP_REDIRECT events.
+*/
+typedef enum
+{
+   CP_RTP_REDIRECT_REQUESTED = 0, ///< fired when RTP redirect is initiated, but final result is unknown
+   CP_RTP_REDIRECT_ACTIVE, ///< fired when RTP redirect succeeds. However a failure may be fired later.
+   CP_RTP_REDIRECT_ERROR, ///< fired when RTP redirect fails for some reason after being initiated.
+   CP_RTP_REDIRECT_STOP ///< fired when RTP redirect stops. Will be fired only after SUCCESS event.
+} CP_RTP_REDIRECT_EVENT;
+
+/**
+* Enumeration of possible CP_RTP_REDIRECT cause codes.
+*/
+typedef enum
+{
+   CP_RTP_REDIRECT_CAUSE_NORMAL = 0,         /**< No error occurred. */
+   CP_RTP_REDIRECT_CAUSE_SDP_CODEC_MISMATCH, /**< SDP codec mismatch occurred during negotiation. */
+   CP_RTP_REDIRECT_CAUSE_CALL_NOT_READY, /**< Used when RTP redirect is requested but call is not ready for RTP redirect.
+                                           Request may be retried at later time. */
+   CP_RTP_REDIRECT_CAUSE_SETUP_FAILED, /**< Setup of RTP redirect failed. RTP redirect could not be coordinated successfully
+                                         between participating calls. */
+} CP_RTP_REDIRECT_CAUSE;
+
+/**
+* Enumeration of possible CP_CONFERENCE_EVENT events.
+*/
+typedef enum
+{
+   CP_CONFERENCE_CREATED = 0, ///< fired when conference is created
+   CP_CONFERENCE_DESTROYED, ///< fired when conference is destroyed
+   CP_CONFERENCE_CALL_ADDED, ///< fired when a new call is added to conference
+   CP_CONFERENCE_CALL_ADD_FAILURE, ///< fired when call failed to be added to conference (join)
+   CP_CONFERENCE_CALL_REMOVED, ///< fired when a call is removed from conference
+   CP_CONFERENCE_CALL_REMOVE_FAILURE ///< fired when call failed to be removed from conference (split)
+} CP_CONFERENCE_EVENT;
+
+/**
+* Enumeration of possible CP_CONFERENCE_CAUSE cause codes.
+*/
+typedef enum
+{
+   CP_CONFERENCE_CAUSE_NORMAL = 0,         /**< No error occurred. */
+   CP_CONFERENCE_CAUSE_INVALID_STATE,       ///< call is in invalid state for requested operation
+   CP_CONFERENCE_CAUSE_NOT_FOUND,           ///< call was not found
+   CP_CONFERENCE_CAUSE_LIMIT_REACHED,       ///< call limit was reached
+   CP_CONFERENCE_CAUSE_UNEXPECTED_ERROR,    ///< some unknown unexpected error occurred
+} CP_CONFERENCE_CAUSE;
 
 /**
 * Configuration of session timer refresher. Refresher is side which is responsible

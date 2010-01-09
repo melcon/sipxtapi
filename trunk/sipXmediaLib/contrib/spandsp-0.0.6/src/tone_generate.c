@@ -22,7 +22,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: tone_generate.c,v 1.47 2008/11/30 10:17:31 steveu Exp $
+ * $Id: tone_generate.c,v 1.50 2009/02/10 13:06:47 steveu Exp $
  */
 
 /*! \file */
@@ -37,15 +37,16 @@
 #include <stdio.h>
 #include <time.h>
 #include <fcntl.h>
-#include "floating_fudge.h"
 #if defined(HAVE_TGMATH_H)
 #include <tgmath.h>
 #endif
 #if defined(HAVE_MATH_H)
 #include <math.h>
 #endif
+#include "floating_fudge.h"
 
 #include "spandsp/telephony.h"
+#include "spandsp/fast_convert.h"
 #include "spandsp/dc_restore.h"
 #include "spandsp/complex.h"
 #include "spandsp/dds.h"
@@ -60,16 +61,16 @@
 
 #define ms_to_samples(t)            (((t)*SAMPLE_RATE)/1000)
 
-void make_tone_gen_descriptor(tone_gen_descriptor_t *s,
-                              int f1,
-                              int l1,
-                              int f2,
-                              int l2,
-                              int d1,
-                              int d2,
-                              int d3,
-                              int d4,
-                              int repeat)
+SPAN_DECLARE(void) make_tone_gen_descriptor(tone_gen_descriptor_t *s,
+                                            int f1,
+                                            int l1,
+                                            int f2,
+                                            int l2,
+                                            int d1,
+                                            int d2,
+                                            int d3,
+                                            int d4,
+                                            int repeat)
 {
     memset(s, 0, sizeof(*s));
     if (f1)
@@ -106,7 +107,7 @@ void make_tone_gen_descriptor(tone_gen_descriptor_t *s,
 }
 /*- End of function --------------------------------------------------------*/
 
-tone_gen_state_t *tone_gen_init(tone_gen_state_t *s, tone_gen_descriptor_t *t)
+SPAN_DECLARE(tone_gen_state_t *) tone_gen_init(tone_gen_state_t *s, tone_gen_descriptor_t *t)
 {
     int i;
 
@@ -128,7 +129,21 @@ tone_gen_state_t *tone_gen_init(tone_gen_state_t *s, tone_gen_descriptor_t *t)
 }
 /*- End of function --------------------------------------------------------*/
 
-int tone_gen(tone_gen_state_t *s, int16_t amp[], int max_samples)
+SPAN_DECLARE(int) tone_gen_release(tone_gen_state_t *s)
+{
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) tone_gen_free(tone_gen_state_t *s)
+{
+    if (s)
+        free(s);
+    return 0;
+}
+/*- End of function --------------------------------------------------------*/
+
+SPAN_DECLARE(int) tone_gen(tone_gen_state_t *s, int16_t amp[], int max_samples)
 {
     int samples;
     int limit;
@@ -170,7 +185,7 @@ int tone_gen(tone_gen_state_t *s, int16_t amp[], int max_samples)
 #else
                     xamp = dds_modf(&s->phase[0], -s->tone[0].phase_rate, s->tone[0].gain, 0)
                          *(1.0f + dds_modf(&s->phase[1], s->tone[1].phase_rate, s->tone[1].gain, 0));
-                    amp[samples] = (int16_t) lrintf(xamp);
+                    amp[samples] = (int16_t) lfastrintf(xamp);
 #endif
                 }
             }
@@ -200,7 +215,7 @@ int tone_gen(tone_gen_state_t *s, int16_t amp[], int max_samples)
 #if defined(SPANDSP_USE_FIXED_POINT)
                     amp[samples] = xamp;
 #else
-                    amp[samples] = (int16_t) lrintf(xamp);
+                    amp[samples] = (int16_t) lfastrintf(xamp);
 #endif
                 }
             }

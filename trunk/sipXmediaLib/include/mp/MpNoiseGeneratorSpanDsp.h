@@ -17,6 +17,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <mp/MpNoiseGeneratorBase.h>
+#include <spandsp/telephony.h>
 #include <spandsp/noise.h>
 
 // DEFINES

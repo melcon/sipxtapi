@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: v29_tests.c,v 1.112 2008/12/06 12:36:29 steveu Exp $
+ * $Id: v29_tests.c,v 1.115 2009/02/12 14:21:16 steveu Exp $
  */
 
 /*! \page v29_tests_page V.29 modem tests
@@ -109,7 +109,7 @@ static void reporter(void *user_data, int reason, bert_results_t *results)
 }
 /*- End of function --------------------------------------------------------*/
 
-static int v29_rx_status(void *user_data, int status)
+static void v29_rx_status(void *user_data, int status)
 {
     v29_rx_state_t *rx;
     int i;
@@ -139,7 +139,6 @@ static int v29_rx_status(void *user_data, int status)
 #endif
         break;
     }
-    return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -161,10 +160,9 @@ static void v29putbit(void *user_data, int bit)
 }
 /*- End of function --------------------------------------------------------*/
 
-static int v29_tx_status(void *user_data, int status)
+static void v29_tx_status(void *user_data, int status)
 {
     printf("V.29 tx status is %s (%d)\n", signal_status_to_str(status), status);
-    return 0;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -278,11 +276,19 @@ int main(int argc, char *argv[])
     signal_level = -13;
     bits_per_test = 50000;
     log_audio = FALSE;
-    while ((opt = getopt(argc, argv, "b:c:d:glm:n:r:s:t")) != -1)
+    while ((opt = getopt(argc, argv, "b:B:c:d:glm:n:r:s:t")) != -1)
     {
         switch (opt)
         {
         case 'b':
+            test_bps = atoi(optarg);
+            if (test_bps != 9600  &&  test_bps != 7200  &&  test_bps != 4800)
+            {
+                fprintf(stderr, "Invalid bit rate specified\n");
+                exit(2);
+            }
+            break;
+        case 'B':
             bits_per_test = atoi(optarg);
             break;
         case 'c':
@@ -321,22 +327,6 @@ int main(int argc, char *argv[])
             //usage();
             exit(2);
             break;
-        }
-    }
-    argc -= optind;
-    argv += optind;
-    if (argc > 0)
-    {
-        if (strcmp(argv[0], "9600") == 0)
-            test_bps = 9600;
-        else if (strcmp(argv[0], "7200") == 0)
-            test_bps = 7200;
-        else if (strcmp(argv[0], "4800") == 0)
-            test_bps = 4800;
-        else
-        {
-            fprintf(stderr, "Invalid bit rate\n");
-            exit(2);
         }
     }
     inhandle = NULL;

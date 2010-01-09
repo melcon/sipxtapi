@@ -48,10 +48,12 @@ class XCpCall;
 class XCpConference;
 class CpMediaInterfaceFactory;
 class CpCallStateEventListener;
+class CpConferenceEventListener;
 class SipInfoStatusEventListener;
 class SipInfoEventListener;
 class SipSecurityEventListener;
 class CpMediaEventListener;
+class CpRtpRedirectEventListener;
 class SipMessageEvent;
 class SipMessage;
 class CmCommandMsg;
@@ -60,6 +62,7 @@ class CmYieldFocusMsg;
 class CmDestroyAbstractCallMsg;
 class ScCommandMsg;
 class ScNotificationMsg;
+class ScTimerMsg;
 
 /**
  * Call manager class. Responsible for creation of calls, management of calls via various operations, conferencing.
@@ -78,6 +81,8 @@ public:
                   SipInfoEventListener* pInfoEventListener,
                   SipSecurityEventListener* pSecurityEventListener,
                   CpMediaEventListener* pMediaEventListener,
+                  CpRtpRedirectEventListener* pRtpRedirectEventListener,
+				      CpConferenceEventListener* pConferenceEventListener,
                   SipUserAgent& rSipUserAgent,
                   const SdpCodecList& rSdpCodecList,
                   SipLineProvider* pSipLineProvider,
@@ -102,8 +107,15 @@ public:
    /** Creates new empty call. If sCallId is NULL, new id is generated. Generated id is returned in sCallId */
    OsStatus createCall(UtlString& sCallId);
 
-   /** Creates new empty conference. If sConferenceId is NULL, new id is generated. Generated id is returned in sConferenceId */
-   OsStatus createConference(UtlString& sConferenceId);
+   /**
+    * Creates new empty conference. If sConferenceId is NULL, new id is generated.
+    * Generated id is returned in sConferenceId.
+    *
+    * @param conferenceUri if set then conference will be public and capable of handling
+    *        inbound calls
+    */
+   OsStatus createConference(UtlString& sConferenceId,
+                             const UtlString& conferenceUri = NULL);
 
    /**
     * Connects an existing call identified by id, to given address returning SipDialog.
@@ -134,17 +146,62 @@ public:
                                   CP_CONTACT_ID contactId,
                                   CP_FOCUS_CONFIG focusConfig);
 
+   /**
+    * Joins a call with a conference. Call must not have UPDATE/INVITE in progress
+    * otherwise the operation will fail asynchronously. Because this operation is asynchronous
+    * final result will not be available immediately.
+    *
+    * Joining a conference will result in renegotiation of media codecs, but does not
+    * require call to be held. No call events will be fired.
+    *
+    * @param sConferenceId id of existing conference
+    * @param sipDialog sip dialog of call that should be joined with conference
+    */
+   OsStatus conferenceJoin(const UtlString& sConferenceId,
+                           const SipDialog& sipDialog);
+
+   /**
+    * Splits a call from a conference. Call must not have UPDATE/INVITE in progress
+    * otherwise the operation will fail asynchronously. Because this operation is asynchronous
+    * final result will not be available immediately.
+    *
+    * Splitting from a conference will result in renegotiation of media codecs, but does not
+    * require call to be held. No call events will be fired.
+    *
+    * @param sConferenceId id of existing conference
+    * @param sipDialog sip dialog of call in conference that should be split
+    * @param sNewCallId generated abstractCallId which will receive split call. If operation fails
+    *        asynchronously this call will be dropped automatically.
+    */
+   OsStatus conferenceSplit(const UtlString& sConferenceId,
+                            const SipDialog& sipDialog,
+                            UtlString& sNewCallId);
+
+   /**
+   * Starts redirecting call RTP. Both calls will talk directly to each other, but we keep
+   * control of SIP signaling.
+   */
+   OsStatus startCallRedirectRtp(const UtlString& sSrcCallId,
+                                 const UtlString& sDstCallId,
+                                 const SipDialog& dstSipDialog);
+
+   /**
+   * stops redirecting call RTP. Will cancel RTP redirection for both calls participating in it.
+   */
+   OsStatus stopCallRedirectRtp(const UtlString& sCallId);
+
    /** 
-    * Accepts inbound call connection. Inbound connections can only be part of XCpCall
+    * Accepts inbound abstract call connection.
     *
     * Progress the connection from the OFFERING state to the
     * RINGING state. This causes a SIP 180 Ringing provisional
     * response to be sent.
     */
-   OsStatus acceptCallConnection(const UtlString& sCallId,
-                                 UtlBoolean bSendSDP,
-                                 const UtlString& locationHeader,
-                                 CP_CONTACT_ID contactId);
+   OsStatus acceptAbstractCallConnection(const UtlString& sAbstractCallId,
+                                         const SipDialog& sSipDialog,
+                                         UtlBoolean bSendSDP,
+                                         const UtlString& locationHeader,
+                                         CP_CONTACT_ID contactId);
 
    /**
     * Reject the incoming connection.
@@ -153,7 +210,8 @@ public:
     * the FAILED state with the cause of busy. With SIP this
     * causes a 486 Busy Here response to be sent.
     */
-   OsStatus rejectCallConnection(const UtlString& sCallId);
+   OsStatus rejectAbstractCallConnection(const UtlString& sAbstractCallId,
+                                         const SipDialog& sSipDialog);
 
    /**
     * Redirect the incoming connection.
@@ -163,8 +221,9 @@ public:
     * Temporarily response to be sent with the specified
     * contact URI.
     */
-   OsStatus redirectCallConnection(const UtlString& sCallId,
-                                   const UtlString& sRedirectSipUrl);
+   OsStatus redirectAbstractCallConnection(const UtlString& sAbstractCallId,
+                                           const SipDialog& sSipDialog,
+                                           const UtlString& sRedirectSipUrl);
 
    /**
     * Answer the incoming terminal connection.
@@ -173,7 +232,8 @@ public:
     * to the ESTABLISHED state and also creating the terminal
     * connection (with SIP a 200 OK response is sent).
     */
-   OsStatus answerCallConnection(const UtlString& sCallId);
+   OsStatus answerAbstractCallConnection(const UtlString& sAbstractCallId,
+                                         const SipDialog& sSipDialog);
 
    /**
    * Accepts transfer request on given abstract call. Must be called
@@ -335,15 +395,6 @@ public:
                                        const SipDialog& sSipDialog);
 
    /**
-   * Put the specified terminal connection on hold. Only works for calls.
-   *
-   * Change the terminal connection state from TALKING to HELD.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * no media should be sent.)
-   */
-   OsStatus holdCallConnection(const UtlString& sCallId);
-
-   /**
     * Convenience method to put all of the terminal connections in
     * the specified conference on hold.
     */
@@ -386,16 +437,6 @@ public:
     */
    OsStatus unholdAbstractCallConnection(const UtlString& sAbstractCallId,
                                          const SipDialog& sSipDialog);
-
-   /**
-   * Convenience method to take the terminal connection off hold.
-   * Works only for calls.
-   *
-   * Change the terminal connection state from HELD to TALKING.
-   * (With SIP a re-INVITE message is sent with SDP indicating
-   * media should be sent.)
-   */
-   OsStatus unholdCallConnection(const UtlString& sCallId);
 
    /**
     * Enables discarding of inbound RTP at bridge for given call
@@ -592,6 +633,12 @@ private:
    /** Handler for CpMessageTypes::ScNotificationMsg messages */
    UtlBoolean handleSipConnectionNotificationMessage(const ScNotificationMsg& rMsg);
 
+   /** Handler for generic timer message. */
+   UtlBoolean handleTimerMessage(const OsMsg& rRawMsg);
+
+   /** Handler for sip connection timers. If timer fires but connection is not found message goes here. */
+   UtlBoolean handleSipConnectionTimer(const ScTimerMsg& rMsg);
+
    /** Handler for inbound SipMessageEvent messages. Tries to find call for event. */
    UtlBoolean handleSipMessageEvent(const SipMessageEvent& rSipMsgEvent);
 
@@ -681,7 +728,6 @@ private:
                                         const UtlString& replacesField = NULL, // value of Replaces INVITE field
                                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
                                         const SipDialog* pCallbackSipDialog = NULL);
-
    static const int CALLMANAGER_MAX_REQUEST_MSGS;
 
    mutable OsMutex m_memberMutex; ///< mutex for member synchronization, delete guard.
@@ -699,6 +745,8 @@ private:
    SipInfoEventListener* m_pInfoEventListener; // listener for firing info message events
    SipSecurityEventListener* m_pSecurityEventListener; // listener for firing security events
    CpMediaEventListener* m_pMediaEventListener; // listener for firing media events
+   CpRtpRedirectEventListener* m_pRtpRedirectEventListener; // listener for firing rtp redirect events
+   CpConferenceEventListener* m_pConferenceEventListener; // listener for firing conference events
    SipUserAgent& m_rSipUserAgent; // sends sip messages
    const SdpCodecList& m_rDefaultSdpCodecList; ///< list for SDP codecs supplied to constructor
    SipLineProvider* m_pSipLineProvider; // read only functionality of line manager
