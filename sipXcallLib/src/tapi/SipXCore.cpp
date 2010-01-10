@@ -208,28 +208,6 @@ void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
       contactType = CONTACT_AUTO;
    }
 
-   // Use configured address first. Always selects mSipUdpServer port, ignoring transport.
-   if ((contactType == CONTACT_AUTO) || (contactType == CONTACT_CONFIG))
-   {
-      if (pData->pSipUserAgent->getConfiguredPublicAddress(&contactIp, &contactPort))
-      {
-         if (transport != TRANSPORT_UDP)
-         {
-            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
-               "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
-               transport, contactType);
-
-            if (transport == TRANSPORT_TLS)
-            {
-               // override transport, since contact port will be of UDP Sip server
-               transport = TRANSPORT_UDP;
-            }
-         }
-         contactType = CONTACT_CONFIG;
-         return;
-      }
-   }
-
    // Use NAT_MAPPED next. Always selects mSipUdpServer port, ignoring transport.
    if ((contactType == CONTACT_AUTO) || (contactType == CONTACT_NAT_MAPPED))
    {
@@ -410,23 +388,23 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    pInst->nLines = 0;
    pInst->nConferences = 0;
 
+   Url defaultIdentity(szIdentity); // used to build default contact for MESSAGE, keepalive OPTIONS etc
+
    // set default bind address, 0.0.0.0 = all IP addresses
    if (szBindToAddr == NULL)
    {
       szBindToAddr = "0.0.0.0";
    }
-
+   
    // Bind the SIP user agent to a port and start it up
    pInst->pSipUserAgent = new SipUserAgent(
       tcpPort,                    // sipTcpPort
       udpPort,                    // sipUdpPort
       iActualTLSPort,             // sipTlsPort
-      NULL,                       // publicAddress
-      NULL,                       // defaultUser
-      szBindToAddr,               // default IP Address
+      szBindToAddr,               // bind IP Address
+      defaultIdentity.getUserId().data(), // default user
       NULL,                       // sipProxyServers
       NULL,                       // sipDirectoryServers
-      NULL,                       // sipRegistryServers
       NULL,                       // authenticationScheme
       NULL,                       // authenicateRealm
       NULL,                       // authenticateDb
@@ -461,8 +439,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
       pInst->pSipUserAgent->getTlsPort());
 
    // create and start SipPimClient
-   Url pimClientAor(szIdentity);
-   pInst->pSipPimClient = new SipPimClient(*pInst->pSipUserAgent, pimClientAor);
+   pInst->pSipPimClient = new SipPimClient(*pInst->pSipUserAgent, defaultIdentity);
    pInst->pSipPimClient->start();
    pInst->pSipPimClient->setIncomingImTextHandler(&sipxFirePIMEvent, pInst);
 

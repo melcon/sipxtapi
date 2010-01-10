@@ -178,12 +178,13 @@ SipUdpServer::SipUdpServer(int port,
                            SipUserAgent* userAgent,
                            int udpReadBufferSize,
                            UtlBoolean bUseNextAvailablePort,
-                           const char* szBoundIp) :
-   SipProtocolServerBase(userAgent, "UDP", "SipUdpServer-%d"),
-   mStunRefreshSecs(28), 
-   mStunPort(PORT_NONE),
-        mKeepAliveMutex(OsRWMutex::Q_FIFO),
-   mMapLock(OsMutex::Q_FIFO)   
+                           const char* szBoundIp)
+: SipProtocolServerBase(userAgent, "UDP", "SipUdpServer-%d")
+, mSipCallIdGenerator("k")
+, mStunRefreshSecs(28)
+, mStunPort(PORT_NONE)
+, mKeepAliveMutex(OsRWMutex::Q_FIFO)
+, mMapLock(OsMutex::Q_FIFO)   
 {
     OsSysLog::add(FAC_SIP, PRI_DEBUG,
                   "SipUdpServer::_ port = %d, bUseNextAvailablePort = %d, szBoundIp = '%s'",
@@ -1060,7 +1061,7 @@ void SipUdpServer::sendSipKeepAlive(OsTimer* pTimer)
 
                 // Setup From Field
                 UtlString from;
-                mSipUserAgent->getContactUri(&from);
+                mSipUserAgent->getDefaultContactUri(&from);
                 char fromTag[80];
                 SNPRINTF(fromTag, sizeof(fromTag), ";tag=%d%d", rand(), rand());
                 from.append(fromTag);
@@ -1108,14 +1109,10 @@ void SipUdpServer::sendSipKeepAlive(OsTimer* pTimer)
                 delete[] dnsSrvRecords;
 
                 // Generate CallId
-                UtlString callId(mDefaultIp) ;
-                long epochTime = OsDateTime::getSecsSinceEpoch();
-                char callIdPrefix[80];
-                SNPRINTF(callIdPrefix, sizeof(callIdPrefix), "%ld%d-ping-", epochTime, rand());
-                callId.insert(0,callIdPrefix);                
+                UtlString callId(mSipCallIdGenerator.getNewCallId());
 
                 pBinding->m_pSipMessage->setRequestData(pBinding->m_method, 
-                        to, from, to, callId, rand() % 32768) ;
+                        to, from, to, callId, rand() % 32768);
 
                 // Set User Agent header
                 mSipUserAgent->setUserAgentHeader(*pBinding->m_pSipMessage) ;

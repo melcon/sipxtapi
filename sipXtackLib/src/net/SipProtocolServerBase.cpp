@@ -169,21 +169,11 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
 
     SipClient* client = getClient(hostAddress, hostPort, localIp);
 
-    if(! client)
+    if(!client)
     {
-#       if TEST_CLIENT_CREATION
-        OsSysLog::add(FAC_SIP, PRI_DEBUG, "SipProtocolServerBase::createClient( %s, %d )",
-                      hostAddress, hostPort);
-#       endif
-
         if(!portIsValid(hostPort))
         {
             hostPort = mDefaultPort;
-#           if TEST_CLIENT_CREATION
-            OsSysLog::add(FAC_SIP, PRI_DEBUG,
-                          "SipProtocolServerBase::createClient port defaulting to %d",
-                          hostPort);
-#           endif
         }
 
         OsTime time;
@@ -191,6 +181,11 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
         long beforeSecs = time.seconds();
 
         OsSocket* clientSocket = buildClientSocket(hostPort, hostAddress, localIp);
+        if (!clientSocket) {
+           OsSysLog::add(FAC_SIP, PRI_ERR, "No client socket could be created for localIp=%s",
+              localIp);
+           return NULL;
+        }
 
         OsDateTime::getCurTimeSinceBoot(time);
         long afterSecs = time.seconds();

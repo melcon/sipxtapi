@@ -430,10 +430,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\net\SipConfigServerAgent.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\net\SipContactDb.cpp"
 					>
 				</File>
@@ -611,10 +607,6 @@
 				</File>
 				<File
 					RelativePath=".\src\net\SipUserAgentBase.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\net\SipUserAgentStateless.cpp"
 					>
 				</File>
 				<File
@@ -819,10 +811,6 @@
 					>
 				</File>
 				<File
-					RelativePath="include\net\SipConfigServerAgent.h"
-					>
-				</File>
-				<File
 					RelativePath="include\net\SipContactDb.h"
 					>
 				</File>
@@ -984,10 +972,6 @@
 				</File>
 				<File
 					RelativePath="include\net\SipUserAgentBase.h"
-					>
-				</File>
-				<File
-					RelativePath="include\net\SipUserAgentStateless.h"
 					>
 				</File>
 				<File

@@ -23,6 +23,7 @@
 #include <os/OsServerTask.h>
 #include <utl/UtlString.h>
 #include <net/Url.h>
+#include <net/SipCallIdGenerator.h>
 
 // DEFINES
 // MACROS
@@ -162,19 +163,15 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
-    //! Call Id generator for SipPimClient
-    void getNextCallId(UtlString& callId);
-
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
-
-
     //! Disabled copy constructor
     SipPimClient(const SipPimClient& rSipPimClient);
 
     //! Disabled assignment operator
     SipPimClient& operator=(const SipPimClient& rhs);
 
+    SipCallIdGenerator mSipCallIdGenerator;
     int mCallIdIndex;
     Url mPresentityAor;
     UtlString mFromField;

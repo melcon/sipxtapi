@@ -37,9 +37,10 @@
 /* ============================ CREATORS ================================== */
 
 // Constructor
-SipPimClient::SipPimClient(SipUserAgent& userAgent, Url& presentityAor):
-mpTextHandlerFunction(NULL),
-mpTextHandlerUserData(NULL)
+SipPimClient::SipPimClient(SipUserAgent& userAgent, Url& presentityAor)
+: mpTextHandlerFunction(NULL)
+, mpTextHandlerUserData(NULL)
+, mSipCallIdGenerator("m")
 {
     mCallIdIndex = 0;
 
@@ -59,8 +60,9 @@ mpTextHandlerUserData(NULL)
 }
 
 // Copy constructor
-SipPimClient::SipPimClient(const SipPimClient& rSipPimClient):
-mpTextHandlerFunction(NULL)
+SipPimClient::SipPimClient(const SipPimClient& rSipPimClient)
+: mpTextHandlerFunction(NULL)
+, mSipCallIdGenerator("m")
 {
 }
 
@@ -125,8 +127,7 @@ UtlBoolean SipPimClient::sendPagerMessage(Url& destinationAor,
         UtlString toAddress = destinationAor.toString();
         UtlString requestUri;
         destinationAor.getUri(requestUri);
-        UtlString callId;
-        getNextCallId(callId);
+        UtlString callId(mSipCallIdGenerator.getNewCallId());
         SipMessage messageRequest;
         messageRequest.setRequestData(SIP_MESSAGE_METHOD, requestUri,
                          mFromField, toAddress,
@@ -329,33 +330,7 @@ UtlBoolean SipPimClient::handleMessage(OsMsg& eventMessage)
 
 /* ============================ INQUIRY =================================== */
 
-
-
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
-
-void SipPimClient::getNextCallId(UtlString& callId)
-{
-    UtlString callIdSeed;
-    mpUserAgent->getContactUri(&callIdSeed);
-
-    char num[20];
-
-    int epochTime = OsDateTime::getSecsSinceEpoch();
-    SNPRINTF(num, sizeof(num), "%d", epochTime);
-    callIdSeed.append(num);
-
-    mCallIdIndex++;
-    SNPRINTF(num, sizeof(num), "%d", mCallIdIndex);
-    callIdSeed.append(num);
-
-    callIdSeed.append(mFromField);
-
-    NetMd5Codec::encode(callIdSeed, callId);
-    callId.append("-pimc");
-    callId.append(num);
-
-
-}
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 

@@ -1215,7 +1215,7 @@ UtlString SipRefreshMgr::buildContactField(const Url& registerToField,
    // Use default contact from SipUserAgent if preferred is not supplied
    if (tempContact.length() == 0)
    {
-      m_pSipUserAgent->getContactUri(&tempContact);
+      m_pSipUserAgent->getDefaultContactUri(&tempContact);
    }
 
    // The contact URI does not have the correct urserId information in it ...

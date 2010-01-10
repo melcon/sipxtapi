@@ -104,7 +104,6 @@
                 <File RelativePath=".\src\net\SdpBody.cpp"/>
                 <File RelativePath=".\src\net\SipCallIdGenerator.cpp"/>
                 <File RelativePath=".\src\net\SipClient.cpp"/>
-                <File RelativePath=".\src\net\SipConfigServerAgent.cpp"/>
                 <File RelativePath=".\src\net\SipContactDb.cpp"/>
                 <File RelativePath=".\src\net\SipDialog.cpp"/>
                 <File RelativePath=".\src\net\SipDialogEvent.cpp"/>
@@ -150,7 +149,6 @@
                 <File RelativePath=".\src\net\SipUdpServer.cpp"/>
                 <File RelativePath=".\src\net\SipUserAgent.cpp"/>
                 <File RelativePath=".\src\net\SipUserAgentBase.cpp"/>
-                <File RelativePath=".\src\net\SipUserAgentStateless.cpp"/>
                 <File RelativePath=".\src\net\SmimeBody.cpp"/>
                 <File RelativePath=".\src\net\StateChangeNotifier.cpp"/>
                 <File RelativePath=".\src\net\Url.cpp"/>
@@ -210,7 +208,6 @@
                 <File RelativePath="include\net\SdpBody.h"/>
                 <File RelativePath=".\include\net\SipCallIdGenerator.h"/>
                 <File RelativePath="include\net\SipClient.h"/>
-                <File RelativePath="include\net\SipConfigServerAgent.h"/>
                 <File RelativePath="include\net\SipContactDb.h"/>
                 <File RelativePath="include\net\SipDialog.h"/>
                 <File RelativePath="include\net\SipDialogMgr.h"/>
@@ -252,7 +249,6 @@
                 <File RelativePath="include\net\SipUdpServer.h"/>
                 <File RelativePath="include\net\SipUserAgent.h"/>
                 <File RelativePath="include\net\SipUserAgentBase.h"/>
-                <File RelativePath="include\net\SipUserAgentStateless.h"/>
                 <File RelativePath=".\include\net\SmimeBody.h"/>
                 <File RelativePath="include\net\Url.h"/>
                 <Filter Name="msg">

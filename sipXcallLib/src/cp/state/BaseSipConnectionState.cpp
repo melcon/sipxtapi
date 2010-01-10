@@ -2861,7 +2861,7 @@ UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) con
    // automatic contact or id not found
    // Get host and port from default local contact
    UtlString contactHostPort;
-   m_rSipUserAgent.getContactUri(&contactHostPort);
+   m_rSipUserAgent.getDefaultContactUri(&contactHostPort);
    Url hostPort(contactHostPort);
    UtlString address; // use selected IP
    hostPort.getHostAddress(address); // sip user agent contact address will match bind IP
