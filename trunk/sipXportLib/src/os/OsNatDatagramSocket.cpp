@@ -594,7 +594,7 @@ void OsNatDatagramSocket::markStunSuccess(bool bAddressChanged)
    if (mpStunNotificationQueue && (!mbStunNotified || bAddressChanged))
    {   
       UtlString adapterName;        
-      getContactAdapterName(adapterName, mLocalIp);
+      getAdapterName(adapterName, mLocalIp);
 
       OsStunResultSuccessMsg msg(adapterName, mLocalIp, localHostPort, mStunState.mappedAddress, mStunState.mappedPort);
       mpStunNotificationQueue->send(msg);
@@ -611,7 +611,7 @@ void OsNatDatagramSocket::markStunFailure()
    if (mpStunNotificationQueue && !mbStunNotified)
    {
       UtlString adapterName;        
-      getContactAdapterName(adapterName, mLocalIp);
+      getAdapterName(adapterName, mLocalIp);
 
       OsStunResultFailureMsg msg(adapterName, mLocalIp, localHostPort);
       mpStunNotificationQueue->send(msg);

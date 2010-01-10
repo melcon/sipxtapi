@@ -47,7 +47,7 @@ extern "C" bool getAllLocalHostIps(const class HostAdapterAddress* localHostAddr
 *  @param numAddresses Input: Size of the preallocated array.
 *                      Output: Number of IPs found by the system.
 */
-extern "C" bool getContactAdapterName(UtlString &adapterName, const UtlString &ipAddress);
+extern "C" bool getAdapterName(UtlString &adapterName, const UtlString &ipAddress);
 //: Returns a generated adapter name associated with the IP address
 
 extern "C" int getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, const char* szLocalIp);

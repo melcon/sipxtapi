@@ -311,7 +311,7 @@ OsStatus SipUdpServer::createServerSocket(const char* szBoundIp,
         contact.eContactType = CONTACT_LOCAL;
         UtlString adapterName;
         
-        getContactAdapterName(adapterName, contact.cIpAddress);
+        getAdapterName(adapterName, contact.cIpAddress);
 
         SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
         contact.eTransportType = TRANSPORT_UDP;

@@ -311,13 +311,13 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
       contact.eContactType = CONTACT_CONFIG;
       strcpy(contact.cIpAddress, publicAddress);
 
-      if (getContactAdapterName(adapterName, mDefaultSipAddress))
+      if (getAdapterName(adapterName, mDefaultSipAddress))
       {
          SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
       }
       else
       {
-         // If getContactAdapterName can't find an adapter.
+         // If getAdapterName can't find an adapter.
          OsSysLog::add(FAC_SIP, PRI_WARNING,
             "SipUserAgent::_ no adapter found for address '%s'",
             mDefaultSipAddress.data());
@@ -1516,25 +1516,21 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
       int viaPort = -1 ;
       int receivedPort = -1 ;
       UtlString viaProtocol ;
-      UtlBoolean receivedSet = false ;
-      UtlBoolean maddrSet = false ;
-      UtlBoolean receivedPortSet = false ;
+      UtlBoolean receivedSet = false; // "received" Via parameter was set
+      UtlBoolean maddrSet = false;
+      UtlBoolean receivedPortSet = false; // "rport" Via parameter was set
 
       message->getLastVia(&viaAddr, &viaPort, &viaProtocol, &receivedPort,
          &receivedSet, &maddrSet, &receivedPortSet) ;
-      if (receivedSet && receivedPortSet)
+      if (receivedPortSet && portIsValid(receivedPort))
       {
-         // received=[ip] and rport=[port] were both set, create NAT binding
-         UtlString sendAddress ;
-         int sendPort ;
-
-         if (receivedPortSet && portIsValid(receivedPort))
-         {
-            viaPort = receivedPort ;
-         }
+         // rport=[port] was set, create NAT binding
+         UtlString sendAddress;
+         int sendPort;
+         viaPort = receivedPort;
 
          // Inform NAT agent (used for lookups)
-         message->getSendAddress(&sendAddress, &sendPort) ;
+         message->getSendAddress(&sendAddress, &sendPort);
          OsNatAgentTask::getInstance()->addExternalBinding(NULL, 
             sendAddress, sendPort, viaAddr, viaPort); // viaAddr will be from received=[ip]
 
