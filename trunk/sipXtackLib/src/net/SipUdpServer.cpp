@@ -572,29 +572,16 @@ UtlBoolean SipUdpServer::sendTo(const SipMessage& message,
 OsSocket* SipUdpServer::buildClientSocket(int hostPort, const char* hostAddress, const char* localIp)
 {
     OsNatDatagramSocket* pSocket = NULL;
+    UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
 
-    if (mSipUserAgent && mSipUserAgent->getUseRport())
-    {
-        UtlPtr<OsNatDatagramSocket>* pSocketContainer = NULL;
-
-        assert(localIp != NULL);
-        UtlString localKey(localIp);
-        
-        pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&localKey);
-        assert(pSocketContainer);
-        
-        pSocket = pSocketContainer->getValue();
-        assert(pSocket);
-    }
-    else
-    {
-        pSocket = new OsNatDatagramSocket(0, NULL, 0, localIp) ;
-        pSocket->enableTransparentReads(false);  
-        if (mStunServer.length() != 0)
-        {
-            pSocket->enableStun(mStunServer, mStunPort, mStunRefreshSecs, 0, true) ;
-        }
-    }
+    assert(localIp != NULL);
+    UtlString sLocalIp(localIp);
+     
+    pSocketContainer = (UtlPtr<OsNatDatagramSocket>*)mServerSocketMap.findValue(&sLocalIp);
+    assert(pSocketContainer);
+     
+    pSocket = pSocketContainer->getValue();
+    assert(pSocket);
 
     return pSocket ;
 }
