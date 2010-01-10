@@ -291,10 +291,6 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath=".\src\ExternalTransport.cpp"
-				>
-			</File>
-			<File
 				RelativePath="src\PlaceCall.cpp"
 				>
 				<FileConfiguration
@@ -341,10 +337,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath=".\include\ExternalTransport.h"
-				>
-			</File>
 			<File
 				RelativePath=".\include\PlaceCall.h"
 				>

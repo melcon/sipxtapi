@@ -155,7 +155,6 @@
             <File RelativePath=".\src\tapi\SipXSecurityEventListener.cpp"/>
             <File RelativePath=".\src\tapi\SipXSubscribe.cpp"/>
             <File RelativePath=".\src\tapi\sipXtapi.cpp"/>
-            <File RelativePath=".\src\tapi\SipXTransport.cpp"/>
             <File RelativePath=".\src\tapi\SipXUtil.cpp"/>
             <File RelativePath=".\src\tapi\template.cpp"/>
         </Filter>
@@ -195,7 +194,6 @@
             <File RelativePath=".\include\tapi\SipXSubscribe.h"/>
             <File RelativePath="include\tapi\sipXtapi.h"/>
             <File RelativePath="include\tapi\sipXtapiEvents.h"/>
-            <File RelativePath=".\include\tapi\SipXTransport.h"/>
             <File RelativePath=".\include\tapi\SipXUtil.h"/>
             <File RelativePath=".\include\tapi\Template.h"/>
         </Filter>

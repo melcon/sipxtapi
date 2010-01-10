@@ -52,19 +52,6 @@ SIPX_CALL g_hNewCallDetectorSourceCall1;
 SIPX_CALL g_hNewCallDetectorCall2;
 SIPX_CALL g_hNewCallDetectorSourceCall2;
 
-int SIPX_CALLING_CONVENTION FlibbleTransportCallback(SIPX_TRANSPORT hTransport,
-                                                     const char* szDestinationIp,
-                                                     const int   iDestPort,
-                                                     const char* szLocalIp,
-                                                     const int   iLocalPort,
-                                                     const void* pData,
-                                                     const size_t nData,
-                                                     const void* pUserData)
-{
-   int bRet = TRUE;
-   return bRet;
-}
-
 bool SIPX_CALLING_CONVENTION UniversalEventValidatorCallback(SIPX_EVENT_CATEGORY category,
                                                              void* pInfo,
                                                              void* pUserData)

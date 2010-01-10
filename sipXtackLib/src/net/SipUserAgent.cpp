@@ -67,7 +67,6 @@
 #include <os/OsSysLog.h>
 #include <os/OsFS.h>
 #include <utl/UtlTokenizer.h>
-#include "tapi/SipXTransport.h"
 #include <os/OsNatAgentTask.h>
 
 // EXTERNAL FUNCTIONS
@@ -556,8 +555,7 @@ void SipUserAgent::allowMethod(const char* methodName, const bool bAllow)
 
 UtlBoolean SipUserAgent::send(SipMessage& message,
                               OsMsgQ* responseListener,
-                              void* responseListenerData,
-                              SIPX_TRANSPORT_DATA* pTransport)
+                              void* responseListenerData)
 {
 #ifdef PRINT_SIP_MESSAGE
    enableConsoleOutput(TRUE);
@@ -821,26 +819,11 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
       else
       {
          //  All other messages just get sent.
-         // check for external transport
-         bool bDummy;
-         UtlString transport = message.getTransportName(bDummy);
 
-         if (!pTransport)
-         {
-            UtlString localIp = message.getLocalIp();
-            int dummy;
-
-            if (localIp.length() < 1)
-            {
-               getLocalAddress(&localIp, &dummy, TRANSPORT_UDP);
-            }
-            pTransport = (SIPX_TRANSPORT_DATA*)lookupExternalTransport(transport, localIp);
-         }
          sendSucceeded = transaction->handleOutgoing(message,
             *this,
             mSipTransactions,
-            relationship,
-            pTransport);
+            relationship);
       }
 
       mSipTransactions.markAvailable(*transaction);
@@ -1051,116 +1034,6 @@ UtlBoolean SipUserAgent::sendSymmetricUdp(SipMessage& message,
    return(sentOk);
 }
 
-UtlBoolean SipUserAgent::sendCustom(SIPX_TRANSPORT_DATA* pTransport,
-                                    SipMessage* message,
-                                    const char* sendAddress,
-                                    const int sendPort)
-{
-   UtlBoolean bSent(false);
-   UtlString bytes;
-   int length;
-   message->getBytes(&bytes, &length);
-
-   if (!pTransport)
-   {
-      bool bCustom = false;
-      const UtlString transportName = message->getTransportName(bCustom);
-      if (bCustom)
-      {
-         pTransport = (SIPX_TRANSPORT_DATA*)lookupExternalTransport(transportName, message->getLocalIp());
-      }
-   }    
-   if (pTransport)
-   {
-      if (pTransport->bRouteByUser)
-      {
-         UtlString from, to ;
-         Url fromUrl, toUrl ;
-         UtlString temp ;
-
-         /*
-         * Routing by "user" mode is a bit odd.  Ideally, we return the
-         * identity of the user (user@domain) without a port value.  
-         * However, if we only have hostname, we will return just that 
-         * (as opposed to "@hostname" which getIndentity returns).
-         */           
-         message->getFromUrl(message->isResponse() ? toUrl : fromUrl) ;
-         message->getToUrl(message->isResponse() ? fromUrl : toUrl) ;
-
-         // Parse From routing id
-         fromUrl.setHostPort(-1) ;
-         fromUrl.getUserId(temp) ;
-         if (temp.isNull())
-            fromUrl.getHostAddress(from) ;
-         else
-         {
-            fromUrl.getUserId(from) ;
-         }
-
-         // Parse To routing it
-         toUrl.setHostPort(-1) ;
-         toUrl.getUserId(temp) ;
-         if (temp.isNull())
-            toUrl.getHostAddress(to) ;
-         else
-         {
-            toUrl.getHostAddress(temp) ;
-            if (temp.compareTo("aol.com", UtlString::ignoreCase) == 0)
-               toUrl.getUserId(to) ;
-            else
-               toUrl.getIdentity(to) ;
-         }
-
-         if (OsSysLog::willLog(FAC_SIP_CUSTOM, PRI_DEBUG))
-         {
-            UtlString data((const char*) bytes.data(), length) ;
-            OsSysLog::add(FAC_SIP_CUSTOM, PRI_DEBUG, "[Sent] From: %s To: %s\r\n%s\r\n", 
-               from.data(),
-               to.data(),
-               data.data()) ;
-         }
-
-         bSent = pTransport->pFnWriteProc(pTransport->hTransport,
-            to.data(),
-            -1,
-            from.data(),
-            -1,
-            (void*)bytes.data(),
-            length,
-            pTransport->pUserData);
-
-      }
-      else
-      {
-
-         if (OsSysLog::willLog(FAC_SIP_CUSTOM, PRI_DEBUG))
-         {
-            UtlString data((const char*) bytes.data(), length) ;
-            OsSysLog::add(FAC_SIP_CUSTOM, PRI_DEBUG, "[Sent] From: %s To: %s\r\n%s\r\n", 
-               pTransport->szLocalIp,
-               sendAddress,
-               data.data()) ;
-         }
-
-
-         bSent = pTransport->pFnWriteProc(pTransport->hTransport,
-            sendAddress,
-            sendPort,
-            pTransport->szLocalIp,
-            pTransport->iLocalPort,
-            (void*)bytes.data(),
-            length,
-            pTransport->pUserData);
-      }
-   }
-   else
-   {
-      OsSysLog::add(FAC_SIP, PRI_ERR, "SipUserAgent::sendCustom - no external transport record found");
-   }                                        
-
-   return bSent;
-}
-
 UtlBoolean SipUserAgent::sendStatelessResponse(SipMessage& rresponse)
 {
    UtlBoolean sendSucceeded = FALSE;
@@ -1206,10 +1079,6 @@ UtlBoolean SipUserAgent::sendStatelessResponse(SipMessage& rresponse)
       sendSucceeded = sendTls(&responseCopy, sendAddress.data(), sendPort);
    }
 #endif
-   else // must be custom
-   {
-      sendSucceeded = sendCustom(NULL, &responseCopy, sendAddress.data(), sendPort);
-   }
 
    return(sendSucceeded);
 }
@@ -1256,10 +1125,7 @@ UtlBoolean SipUserAgent::sendStatelessRequest(SipMessage& request,
       sendSucceeded = sendTls(&request, address.data(), port);
    }
 #endif
-   else if (protocol >= OsSocket::CUSTOM)
-   {
-      sendSucceeded = sendCustom(NULL, &request, address.data(), port);
-   }
+
    return(sendSucceeded);
 }
 
@@ -1419,7 +1285,7 @@ UtlBoolean SipUserAgent::sendTls(SipMessage* message,
 #endif
 }
 
-void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT_DATA* pTransport)
+void SipUserAgent::dispatch(SipMessage* message, int messageType)
 {
    if(mbShuttingDown)
    {
@@ -1588,8 +1454,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   *this,
                   relationship,
                   mSipTransactions,
-                  delayedDispatchMessage,
-                  pTransport);
+                  delayedDispatchMessage);
 
                // Should never dispatch a resendof a 2xx
                if(delayedDispatchMessage)
@@ -1609,8 +1474,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   *this,
                   relationship,
                   mSipTransactions,
-                  delayedDispatchMessage,
-                  pTransport);
+                  delayedDispatchMessage);
                if(delayedDispatchMessage)
                {
                   delete delayedDispatchMessage;
@@ -1643,8 +1507,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   *this,
                   relationship,
                   mSipTransactions,
-                  delayedDispatchMessage,
-                  pTransport);
+                  delayedDispatchMessage);
 
                if(delayedDispatchMessage)
                {
@@ -1950,8 +1813,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                   transaction->handleOutgoing(*response,
                      *this,
                      mSipTransactions,
-                     SipTransaction::MESSAGE_FINAL,
-                     pTransport);
+                     SipTransaction::MESSAGE_FINAL);
                   delete response;
                   response = NULL;
                   if(message) delete message;
@@ -1964,8 +1826,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                      *this,
                      relationship,
                      mSipTransactions,
-                     delayedDispatchMessage,
-                     pTransport);
+                     delayedDispatchMessage);
                }
                else
                {
@@ -2001,8 +1862,7 @@ void SipUserAgent::dispatch(SipMessage* message, int messageType, SIPX_TRANSPORT
                      *this,
                      relationship,
                      mSipTransactions,
-                     delayedDispatchMessage,
-                     pTransport);
+                     delayedDispatchMessage);
                }
             }
             break;
@@ -2441,18 +2301,12 @@ UtlBoolean SipUserAgent::handleMessage(OsMsg& eventMessage)
                   SipMessage* delayedDispatchMessage = NULL;
                   bool bCustom = false;
                   const UtlString transportName = sipMessage->getTransportName(bCustom);
-                  SIPX_TRANSPORT_DATA* pTransport = NULL;
-                  if (bCustom)
-                  {
-                     pTransport = (SIPX_TRANSPORT_DATA*)lookupExternalTransport(transportName, sipMessage->getLocalIp());
-                  }
                   transaction->handleResendEvent(*sipMessage,
                      *this,
                      relationship,
                      mSipTransactions,
                      nextTimeout,
-                     delayedDispatchMessage,
-                     pTransport);
+                     delayedDispatchMessage);
 
                   if(nextTimeout == 0)
                   {
@@ -2614,8 +2468,7 @@ UtlBoolean SipUserAgent::handleMessage(OsMsg& eventMessage)
                      relationship,
                      mSipTransactions,
                      nextTimeout,
-                     delayedDispatchMessage,
-                     NULL);
+                     delayedDispatchMessage);
 
                   mSipTransactions.markAvailable(*transaction);
 
@@ -4139,16 +3992,11 @@ void SipUserAgent::prepareVia(SipMessage& message,
                               UtlString&  branchId, 
                               OsSocket::IpProtocolSocketType& toProtocol,
                               const char* szTargetAddress, 
-                              const int*  piTargetPort,
-                              SIPX_TRANSPORT_DATA* pTransport)
+                              const int*  piTargetPort)
 {
    UtlString viaAddress;
    UtlString viaProtocolString;
    SipMessage::convertProtocolEnumToString(toProtocol, viaProtocolString);
-   if ((pTransport) && toProtocol == OsSocket::CUSTOM)
-   {
-      viaProtocolString = pTransport->szTransport ;
-   }
 
    int viaPort;
    getViaInfo(toProtocol, viaAddress, viaPort, szTargetAddress, piTargetPort);
@@ -4219,10 +4067,6 @@ void SipUserAgent::prepareVia(SipMessage& message,
    }
 
    UtlString routeId ;
-   if ((pTransport) && toProtocol == OsSocket::CUSTOM)
-   {
-      routeId = pTransport->cRoutingId ;
-   }
 
    // Add the via field data
    message.addVia(viaAddress.data(),
@@ -4232,35 +4076,6 @@ void SipUserAgent::prepareVia(SipMessage& message,
       (toProtocol == OsSocket::UDP) && getUseRport(),
       routeId.data());
    return;
-}
-void SipUserAgent::addExternalTransport(const UtlString transportName, const SIPX_TRANSPORT_DATA* const pTransport)
-{
-   const UtlString key = transportName + "|" + UtlString(pTransport->szLocalIp);
-   mExternalTransports.insertKeyAndValue((UtlContainable*)new UtlString(key), new UtlInt((int)pTransport));
-   return;
-}
-
-void SipUserAgent::removeExternalTransport(const UtlString transportName, const SIPX_TRANSPORT_DATA* const pTransport)
-{
-   const UtlString key = transportName + "|" + UtlString(pTransport->szLocalIp);
-
-   mExternalTransports.destroy((UtlContainable*)&key);
-   return;
-}
-
-const SIPX_TRANSPORT_DATA* const SipUserAgent::lookupExternalTransport(const UtlString transportName, const UtlString ipAddress) const
-{
-   const UtlString key = transportName + "|" + ipAddress;
-   UtlInt* pTransportContainer;
-
-   pTransportContainer = (UtlInt*) mExternalTransports.findValue(&key);
-
-   if (pTransportContainer)
-   {
-      const SIPX_TRANSPORT_DATA* const pTransport = (const SIPX_TRANSPORT_DATA* const) pTransportContainer->getValue();
-      return pTransport;
-   }
-   return NULL;
 }
 
 UtlBoolean SipUserAgent::getCredentialForMessage(const SipMessage& sipResponse, // message with authentication request

@@ -101,8 +101,6 @@
                     <Tool Name="VCCLCompilerTool" AdditionalIncludeDirectories="" BrowseInformation="1" BasicRuntimeChecks="3" PreprocessorDefinitions="" Optimization="0"/>
                 </FileConfiguration>
             </File>
-            <File RelativePath=".\src\test\tapi\TestExternalTransport.cpp"/>
-            <File RelativePath=".\src\test\tapi\TestExternalTransport.h"/>
             <File RelativePath=".\src\test\tapi\TestRegistrar.cpp"/>
             <File RelativePath=".\src\test\tapi\TestStunServerTask.cpp"/>
         </Filter>

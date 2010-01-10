@@ -81,7 +81,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Winmm.lib sipXtapid.lib"
 				OutputFile=".\Debug/SimpleSipxTerm.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\sipXcallLib\lib"
 				GenerateDebugInformation="true"

@@ -29,7 +29,6 @@ DWORD WINAPI ConsoleStart(LPVOID lpParameter);
 
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
-#include "ExternalTransport.h"
 
 #define MAX_RECORD_EVENTS       16
 #define portIsValid(p) ((p) >= 1 && (p) <= 65535)
@@ -37,9 +36,6 @@ DWORD WINAPI ConsoleStart(LPVOID lpParameter);
 SIPX_INST g_hInst1 = NULL ;      // Handle to the sipXtapi instanance
 SIPX_LINE g_hLine = 0 ;         // Line Instance (id, auth, etc)
 SIPX_CALL g_hCall = 0 ;         // Handle to a call
-bool bUseCustomTransportReliable = false;
-bool bUseCustomTransportUnreliable = false;
-SIPX_TRANSPORT ghTransport = SIPX_TRANSPORT_NULL;
 
 SIPX_CALLSTATE_EVENT    g_eRecordEvents[MAX_RECORD_EVENTS] ;    // List of last N events
 int                     g_iNextEvent ;      // Index for g_eRecordEvents ringer buffer
@@ -52,29 +48,7 @@ extern HWND hMain;
 static bool bVideo = false;
 #endif
 
-
-void startTribbleListener(const char* szIp);
-int tribbleProc(SIPX_TRANSPORT hTransport,
-                 const char* szDestinationIp,
-                 const int   iDestPort,
-                 const char* szLocalIp,
-                 const int   iLocalPort,
-                 const void* pData,
-                 const size_t nData,
-                 const void* pUserData) ;
-                            
-void startFlibbleListener(const char* szIp);
-int flibbleProc(SIPX_TRANSPORT hTransport,
-                 const char* szDestinationIp,
-                 const int   iDestPort,
-                 const char* szLocalIp,
-                 const int   iLocalPort,
-                 const void* pData,
-                 const size_t nData,
-                 const void* pUserData) ;
-FlibbleTask* gpFlibbleTask = NULL;
 SIPX_CONTACT_ID gContactId = CONTACT_AUTO;
-SIPX_CONTACT_ADDRESS*   gpExternalTransportContactRecord;
 
 // Print usage message
 void usage(const char* szExecutable)
@@ -111,8 +85,6 @@ void usage(const char* szExecutable)
     printf("   -aec enable acoustic echo cancelation\n");
     printf("   -agc enable automatic gain control\n");
     printf("   -denoise enable speex denoiser\n");
-    printf("   -E use bogus custom external transport, reliable (transport=tribble)\n");
-    printf("   -e use bogus custom external transport, unreliable (transport=flibble)\n");
 #if defined(_WIN32) && defined(VIDEO)
     printf("   -V place a video call\n");
 #endif
@@ -146,8 +118,6 @@ bool parseArgs(int argc,
                bool*  bAEC,
                bool*  bAGC,
                bool*  bDenoise,
-               bool*  bUseCustomTransportReliable,
-               bool*  bUseCustomTransportUnreliable,
                bool*  bRegisterLine)
 {
     bool bRC = false ;
@@ -406,14 +376,6 @@ bool parseArgs(int argc,
         {
             *bDenoise = true;
         }
-        else if (strcmp(argv[i], "-E") == 0)
-        {
-            *bUseCustomTransportReliable = true;            
-        }
-        else if (strcmp(argv[i], "-e") == 0)
-        {
-            *bUseCustomTransportUnreliable = true;            
-        }
         else
         {
             if ((i+1) == argc)
@@ -584,35 +546,6 @@ bool placeCall(char* szSipUrl, char* szFromIdentity, char* szUsername, char* szP
                                1,
                                &numAddresses);
     
-
-
-    if (bUseCustomTransportReliable)
-    {
-        sipxConfigExternalTransportAdd(g_hInst1,
-                                       &ghTransport,
-                                       true,
-                                       "tribble",
-                                       address.cIpAddress,
-                                       -1,
-                                       tribbleProc,
-                                       "tribble");
-        startTribbleListener(address.cIpAddress);
-    }
-    
-    if (bUseCustomTransportUnreliable)
-    {
-        startFlibbleListener(address.cIpAddress);
-        sipxConfigExternalTransportAdd(g_hInst1,
-                                       &ghTransport,
-                                       true,
-                                       "flibble",
-                                       address.cIpAddress,
-                                       -1,
-                                       flibbleProc,
-                                       address.cIpAddress);
-                                               
-        gContactId = lookupContactId(address.cIpAddress, "flibble", ghTransport);
-    }
 
 #if defined(_WIN32) && defined(VIDEO)
     if (bVideo)
@@ -795,7 +728,7 @@ int local_main(int argc, char* argv[])
             &szFile, &szFileBuffer, &szSipUrl, &bUseRport, &szUsername, 
             &szPassword, &szRealm, &szFromIdentity, &szStunServer, &szProxy, 
             &szBindAddr, &iRepeatCount, &szInDevice, &szOutDevice, &szCodec, &bCList,
-            &bAEC, &bAGC, &bDenoise, &bUseCustomTransportReliable, &bUseCustomTransportUnreliable, &bRegisterLine) 
+            &bAEC, &bAGC, &bDenoise, &bRegisterLine) 
             && (iDuration > 0) && (portIsValid(iSipPort)) && (portIsValid(iRtpPort)))
     {
         // initialize sipx TAPI-like API
@@ -906,7 +839,7 @@ int local_main(int argc, char* argv[])
         {
            if (sipxConfigSelectAudioCodecByName(g_hInst1, "PCMU PCMA") == SIPX_RESULT_FAILURE)
            {
-              printf("!! Setting audio codecs to PCMU PCMA failed !!\n", szCodec);
+              printf("!! Setting audio codecs to PCMU PCMA failed !!\n");
            };
         }
         // Wait for a STUN response (should actually look for the STUN event status
@@ -1048,15 +981,3 @@ void JNI_LightButton(long)
 }
 
 #endif /* !defined(_WIN32) */
-
-
-void startTribbleListener(const char* szIp)
-{
-    
-}
-
-void startFlibbleListener(const char* szIp)
-{
-    gpFlibbleTask = new  FlibbleTask(szIp);
-    gpFlibbleTask->start();
-}

@@ -85,8 +85,8 @@
 				GenerateDebugInformation="true"
 				GenerateMapFile="true"
 				MapExports="true"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				RandomizedBaseAddress="2"
+				DataExecutionPrevention="2"
 				ImportLibrary="lib\sipXtapid.lib"
 				TargetMachine="1"
 			/>
@@ -286,8 +286,8 @@
 				GenerateDebugInformation="true"
 				GenerateMapFile="true"
 				MapExports="true"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				RandomizedBaseAddress="2"
+				DataExecutionPrevention="2"
 				ImportLibrary="lib\sipXtapid.lib"
 				TargetMachine="1"
 			/>
@@ -383,8 +383,8 @@
 				DelayLoadDLLs=""
 				GenerateDebugInformation="true"
 				GenerateMapFile="true"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				RandomizedBaseAddress="2"
+				DataExecutionPrevention="2"
 				ImportLibrary="lib\sipXtapid.lib"
 				TargetMachine="1"
 			/>
@@ -739,10 +739,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\tapi\SipXTransport.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\tapi\SipXUtil.cpp"
 				>
 			</File>
@@ -893,10 +889,6 @@
 			</File>
 			<File
 				RelativePath="include\tapi\sipXtapiEvents.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\tapi\SipXTransport.h"
 				>
 			</File>
 			<File

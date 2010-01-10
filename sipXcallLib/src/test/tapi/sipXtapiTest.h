@@ -147,7 +147,6 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
    CPPUNIT_TEST(testCallRedirect);
    CPPUNIT_TEST(testCallShutdown);
    CPPUNIT_TEST(testSendInfo);
-   CPPUNIT_TEST(testSendInfoExternalTransport);
    CPPUNIT_TEST(testSendInfoTimeout);
    CPPUNIT_TEST(testSendInfoFailure);
    CPPUNIT_TEST(testCallDestroyRinging);
@@ -246,7 +245,6 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
    CPPUNIT_TEST(testReinitializeSimple);
    CPPUNIT_TEST(testReinitializeCall);
    CPPUNIT_TEST(testReinitializeLine);    
-   CPPUNIT_TEST(testConfigExternalTransport);
 #ifdef VOICE_ENGINE /* [ */
    CPPUNIT_TEST(testConfigCodecPreferences);
 #endif /* VOICE_ENGINE ] */
@@ -256,8 +254,6 @@ class sipXtapiTestSuite : public CppUnit::TestFixture
 #if TEST_SUBSCRIBE /* [ */ 
    CPPUNIT_TEST(testPublishAndSubscribeCall);
    CPPUNIT_TEST(testPublishAndSubscribeConfig);
-   CPPUNIT_TEST(testPublishAndSubscribeCallCustom);
-   CPPUNIT_TEST(testPublishAndSubscribeConfigCustom);
    CPPUNIT_TEST(testPublishAndSubscribeConfigLong);
 #endif /* TEST_SUBSCRIBE ] */ 
 
@@ -473,14 +469,12 @@ public:
 
    void testGetVersion();
    void testSendInfo();
-   void testSendInfoExternalTransport();
    void testSendInfoFailure();
    void testSendInfoTimeout();
    void testSetCallback();
 
    void testAutoPortSelection();
    void testSeqPortSelection();
-   void testConfigExternalTransport();
    void testConfigLog();
    void testConfigOutOfBand();
    void testTeardown();
@@ -504,12 +498,10 @@ public:
 
    void testConfigEnableShortNames();
 
-   void testPublishAndSubscribe(bool bCallContext, bool bCustomTransport, const char* szTestName);
+   void testPublishAndSubscribe(bool bCallContext, const char* szTestName);
    void testPublishAndSubscribeCall();
    void testPublishAndSubscribeConfig();
    void testPublishAndSubscribeConfigLong();
-   void testPublishAndSubscribeCallCustom();
-   void testPublishAndSubscribeConfigCustom();
 
    void testCallRapidCallAndHangup();
 

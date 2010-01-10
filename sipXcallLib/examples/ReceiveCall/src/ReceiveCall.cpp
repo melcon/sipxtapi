@@ -27,7 +27,6 @@ DWORD WINAPI ConsoleStart(LPVOID lpParameter);
 
 #include "tapi/sipXtapi.h"
 #include "tapi/sipXtapiEvents.h"
-#include "ExternalTransport.h"
 
 #define LOOPBACK_LENGTH     200         // Frames for loopback delay (10ms per frame)
 
@@ -45,31 +44,8 @@ static SIPX_VIDEO_DISPLAY gPreviewDisplay;
 static bool  bVideo = false;
 
 #endif
-bool bUseCustomTransportReliable = false;
-bool bUseCustomTransportUnreliable = false;
-SIPX_TRANSPORT ghTransport = SIPX_TRANSPORT_NULL;
-void startTribbleListener(const char* szIp);
-int tribbleProc(SIPX_TRANSPORT hTransport,
-                 const char* szDestinationIp,
-                 const int   iDestPort,
-                 const char* szLocalIp,
-                 const int   iLocalPort,
-                 const void* pData,
-                 const size_t nData,
-                 const void* pUserData) ;                            
-void startFlibbleListener(const char* szIp);
-int flibbleProc(SIPX_TRANSPORT hTransport,
-                 const char* szDestinationIp,
-                 const int   iDestPort,
-                 const char* szLocalIp,
-                 const int   iLocalPort,
-                 const void* pData,
-                 const size_t nData,
-                 const void* pUserData) ;
-FlibbleTask* gpFlibbleTask = NULL;
-SIPX_CONTACT_ID gContactId = CONTACT_AUTO;
-SIPX_CONTACT_ADDRESS*   gpExternalTransportContactRecord;
 
+SIPX_CONTACT_ID gContactId = CONTACT_AUTO;
 
 
 // Print usage message
@@ -98,9 +74,6 @@ void usage(const char* szExecutable)
 #ifdef VIDEO
     printf("   -V receive video calls.\n");
 #endif
-    printf("   -E use bogus custom external transport, reliable (transport=tribble)\n");
-    printf("   -e use bogus custom external transport, unreliable (transport=flibble)\n");
-
     printf("\n") ;
 }
 
@@ -285,14 +258,6 @@ bool parseArgs(int argc,
             bVideo = true;
         }
 #endif
-        else if (strcmp(argv[i], "-E") == 0)
-        {
-            bUseCustomTransportReliable = true;            
-        }
-        else if (strcmp(argv[i], "-e") == 0)
-        {
-            bUseCustomTransportUnreliable = true;            
-        }
         else
         {
             bRC = false ;
@@ -518,6 +483,10 @@ int local_main(int argc, char* argv[])
                 sipxConfigEnableStun(hInst, szStunServer, DEFAULT_STUN_PORT, 28) ;
             }
             sipxEventListenerAdd(hInst, EventCallBack, NULL) ;
+            if (sipxConfigSelectAudioCodecByName(g_hInst1, "PCMU PCMA") == SIPX_RESULT_FAILURE)
+            {
+               printf("!! Setting audio codecs to PCMU PCMA failed !!\n");
+            };
                 
 #if defined(_WIN32) && defined(VIDEO)
             if (bVideo)
@@ -535,34 +504,6 @@ int local_main(int argc, char* argv[])
                                     &address,
                                     1,
                                     &numAddresses);
-
-            if (bUseCustomTransportReliable)
-            {
-                sipxConfigExternalTransportAdd(hInst,
-                                            &ghTransport,
-                                            true,
-                                            "tribble",
-                                            address.cIpAddress,
-                                            -1,                                            
-                                            tribbleProc,
-                                            "tribble");
-                startTribbleListener(address.cIpAddress);
-            }
-            
-            if (bUseCustomTransportUnreliable)
-            {
-                startFlibbleListener(address.cIpAddress);
-                sipxConfigExternalTransportAdd(hInst,
-                                            &ghTransport,
-                                            false,
-                                            "flibble",
-                                            address.cIpAddress,
-                                            -1,                                            
-                                            flibbleProc,
-                                            address.cIpAddress);
-                                                       
-                gContactId = lookupContactId(address.cIpAddress, "flibble", ghTransport);
-            }
 
             hLine = lineInit(hInst, szIdentity, szUsername, szPassword, szRealm) ;
 
@@ -631,14 +572,3 @@ void JNI_LightButton(long)
 }
 
 #endif /* !defined(_WIN32) */
-
-void startTribbleListener(const char* szIp)
-{
-    
-}
-
-void startFlibbleListener(const char* szIp)
-{
-    gpFlibbleTask = new  FlibbleTask(szIp);
-    gpFlibbleTask->start();
-}

@@ -63,7 +63,6 @@
 #include "tapi/SipXInfoEventListener.h"
 #include "tapi/SipXSecurityEventListener.h"
 #include "tapi/SipXMediaEventListener.h"
-#include <tapi/SipXTransport.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
@@ -73,7 +72,6 @@ extern SipXHandleMap gPubHandleMap;
 extern SipXHandleMap gLineHandleMap;
 extern SipXHandleMap gCallHandleMap;
 extern SipXHandleMap gConfHandleMap;
-extern SipXHandleMap gTransportHandleMap;
 
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
@@ -129,7 +127,6 @@ SIPX_RESULT sipxFlushHandles()
    gConfHandleMap.destroyAll();
    gPubHandleMap.destroyAll();
    gSubHandleMap.destroyAll();
-   gTransportHandleMap.destroyAll();
 
    return SIPX_RESULT_SUCCESS ;
 }
@@ -759,7 +756,6 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
          pInst->pConferenceEventListener = NULL;
          delete pInst->pMessageObserver;
          pInst->pMessageObserver = NULL;
-         sipxTransportDestroyAll(pInst);
          delete pInst->pKeepaliveEventListener;
          pInst->pKeepaliveEventListener = NULL;
 #ifdef _WIN32
