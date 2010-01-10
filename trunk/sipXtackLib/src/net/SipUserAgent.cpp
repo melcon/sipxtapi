@@ -2299,8 +2299,7 @@ UtlBoolean SipUserAgent::handleMessage(OsMsg& eventMessage)
                if(transaction)
                {
                   SipMessage* delayedDispatchMessage = NULL;
-                  bool bCustom = false;
-                  const UtlString transportName = sipMessage->getTransportName(bCustom);
+                  const UtlString transportName = sipMessage->getTransportName();
                   transaction->handleResendEvent(*sipMessage,
                      *this,
                      relationship,
@@ -2996,7 +2995,7 @@ void SipUserAgent::prepareContact(SipMessage& message,
    }
 
    // Update contact if we know anything about the target and our NAT binding
-   if (message.getContactField(0, contact))
+   if (message.isContactOverrideAllowed() && message.getContactField(0, contact))
    {
       Url       urlContact(contact) ;        
       UtlString contactIp ;

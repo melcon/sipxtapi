@@ -913,6 +913,16 @@ public:
 
     void setContactField(const char* contactField, int index = 0);
 
+    /**
+     * Configures if contact may be replaced if a better one is found.
+     */
+    void allowContactOverride(UtlBoolean allowOverride = TRUE) { mbAllowContactOverride = allowOverride; }
+
+    /**
+     * When true we may replace contact with a better one if found.
+     */
+    UtlBoolean isContactOverrideAllowed() { return mbAllowContactOverride; }
+
     void setRequestDispositionField(const char* dispositionField);
 
     void addRequestDisposition(const char* dispositionToken);
@@ -1096,7 +1106,7 @@ public:
     
     void setLocalIp(const UtlString& localIp);
 
-    void setTransportInfo(const SipMessage* pMsg) ;
+    void setLocalIp(const SipMessage* pMsg) ;
 
     //@}
 
@@ -1298,9 +1308,9 @@ public:
     SipTransaction* getSipTransaction() const;
 
     //! Accessor to retrieve any transport string from
-    /*! \the to-field.  Also determines if it is a custom transport.
+    /*! \the to-field.
      */
-    const UtlString getTransportName(bool& bCustom) const;       
+    const UtlString getTransportName() const;       
 
     void setUseShortFieldNames(UtlBoolean bUseShortNames)
         { mbUseShortNames = bUseShortNames; } ; 
@@ -1413,10 +1423,10 @@ private:
     SipTransaction* mpSipTransaction;
     mutable SIPXTACK_SECURITY_ATTRIBUTES* mpSecurity;
     mutable void* mpEventData;
-    UtlString mCustomRouteId;
 
     UtlString mLocalIp;
     UtlBoolean mbUseShortNames;
+    UtlBoolean mbAllowContactOverride; ///< when true then a better contact may be selected if found
 
     //SDUA
     UtlString m_dnsProtocol ;
