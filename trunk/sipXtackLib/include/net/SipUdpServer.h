@@ -17,6 +17,7 @@
 #include <os/OsNatKeepaliveListener.h>
 #include <utl/UtlSList.h>
 #include <os/OsRWMutex.h>
+#include <net/SipCallIdGenerator.h>
 
 // DEFINES
 // MACROS
@@ -174,6 +175,7 @@ protected:
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
 
+    SipCallIdGenerator mSipCallIdGenerator;
     UtlString mStunServer ;
     int mStunRefreshSecs ;
     int mStunPort ;

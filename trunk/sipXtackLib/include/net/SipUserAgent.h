@@ -183,12 +183,8 @@ public:
    * \param sipTlsPort - port to listen on for SIP TLS messages.
    *        Specify PORT_DEFAULT to automatically select a port, or
    *        PORT_NONE to disable.
-   * \param publicAddress - use this address in Via and Contact headers
-   *        instead of the actual adress.  This is useful for address
-   *        spoofing in a UA when behind a NAT
-   * \param defaultUser - default user ID to use in Contacts which get
-   *        inserted when missing on a UA.
-   * \param defaultSipAddress - deprecated
+   * \param bindIpAddress - IP address for binding sockets. 0.0.0.0 binds
+   *        to all local IP addresses.
    * \param sipProxyServers - server to which non-routed requests should
    *        be sent for next hop before going to the final destination
    * \param sipDirectoryServers - deprecated
@@ -230,12 +226,10 @@ public:
    SipUserAgent(int sipTcpPort = SIP_PORT,
       int sipUdpPort = SIP_PORT,
       int sipTlsPort = SIP_PORT+1,
-      const char* publicAddress = NULL,
-      const char* defaultUser = NULL,
-      const char* defaultSipAddress = NULL,
+      const char* bindIpAddress = NULL,
+      const UtlString& defaultUser = NULL,
       const char* sipProxyServers = NULL,
       const char* sipDirectoryServers = NULL,
-      const char* sipRegistryServers = NULL,
       const char* authenticationScheme = NULL,
       const char* authenicateRealm = NULL,
       OsConfigDb* authenticateDb = NULL,
@@ -418,9 +412,6 @@ public:
    //! Is use report set?
    UtlBoolean getUseRport() const ;
 
-   //! Get the manually configured public address
-   UtlBoolean getConfiguredPublicAddress(UtlString* pIpAddress, int* pPort) ;
-
    //! Get the local address and port
    UtlBoolean getLocalAddress(UtlString* pIpAddress,
       int* pPort,
@@ -450,8 +441,6 @@ public:
 
    //! Allow or disallow recursion and forking of 3xx class requests
    void setForking(UtlBoolean enabled);
-
-   void getFromAddress(UtlString* address, int* port, UtlString* protocol);
 
    void getViaInfo(int         protocol,
       UtlString&  address,
@@ -725,17 +714,13 @@ private:
    SipTlsServer* mSipTlsServer;
 #endif
    SipTransactionList mSipTransactions;
-   UtlString mDefaultSipUser;
-   UtlString mDefaultSipAddress;
+
+   UtlString mDefaultUser; // default user to use in Contact field
+   UtlString mDefaultIpAddress; // local IP address which may be used to build a contact
+   int mDefaultPort; // local port which may be used to build a contact
+
    UtlString m_defaultProxyServers;
    UtlString directoryServers;
-   UtlString registryServers;
-   int registryPeriod;
-   int lastRegisterSeqNum;
-   UtlString registerCallId;
-   UtlString sipIpAddress;
-   UtlString mConfigPublicAddress ;
-   int mSipPort;
    UtlDList allowedSipMethods;
    UtlDList allowedSipExtensions;
    UtlString mUserAgentHeaderProperties;

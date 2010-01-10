@@ -94,7 +94,7 @@ public:
 
     virtual void logMessage(const char* message, int messageLength) = 0;
 
-    virtual void getContactUri(UtlString* contactUri) ;
+    virtual void getDefaultContactUri(UtlString* contactUri) ;
 
 /* ============================ INQUIRY =================================== */
 
@@ -113,7 +113,7 @@ protected:
     int mUdpPort;
     int mTlsPort;
     UtlBoolean mMessageLogEnabled;
-    UtlString mContactAddress;
+    UtlString mDefaultContactAddress; // last resort contact which should be used sparingly
     OsRWMutex mObserverMutex;
     UtlHashBag mConfigChangeObservers;
     SipContactDb mContactDb;
@@ -125,9 +125,6 @@ private:
 
     SipUserAgentBase& operator=(const SipUserAgentBase& rhs);
      //:Assignment operator
-
-
-
 };
 
 /* ============================ INLINE METHODS ============================ */
