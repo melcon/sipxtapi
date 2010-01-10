@@ -3351,8 +3351,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetDnsSrvFailoverTimeout(const SIPX_INST hIns
 /**
  * Enable or disable the use of "rport".  If rport is included on a via,
  * responses should be sent back to the originating port -- not what is
- * advertised as part of via.  Additionally, the sip stack will not 
- * receive messages sent to the originating port unless this is enabled.  
+ * advertised as part of via.
  *
  * @param hInst Instance pointer obtained by sipxInitialize. 
  * @param bEnable Enable or disable the use of rport.
