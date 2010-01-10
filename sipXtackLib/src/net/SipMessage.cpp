@@ -54,10 +54,11 @@ SipMessage::SipMessageFieldProps SipMessage::sSipMessageFieldProps;
 
 // Constructor
 SipMessage::SipMessage(const char* messageBytes,
-                       int byteCount) :
-   HttpMessage(messageBytes, byteCount),
-   mpSecurity(NULL),
-   mpEventData(NULL)
+                       int byteCount)
+: HttpMessage(messageBytes, byteCount)
+, mpSecurity(NULL)
+, mpEventData(NULL)
+, mbAllowContactOverride(TRUE)
 {
    mbUseShortNames = false ;
    mLocalIp = "";
@@ -70,10 +71,11 @@ SipMessage::SipMessage(const char* messageBytes,
 }
 
 SipMessage::SipMessage(OsSocket* inSocket, 
-                       int bufferSize) :
-   HttpMessage(inSocket, bufferSize),
-   mpSecurity(NULL),
-   mpEventData(NULL)
+                       int bufferSize)
+: HttpMessage(inSocket, bufferSize)
+, mpSecurity(NULL)
+, mpEventData(NULL)
+, mbAllowContactOverride(TRUE)
 {
 #ifdef TRACK_LIFE
    osPrintf("Created SipMessage @ address:%X\n",this);
@@ -83,11 +85,11 @@ SipMessage::SipMessage(OsSocket* inSocket,
    replaceShortFieldNames();
 }
 
-
 // Copy constructor
-SipMessage::SipMessage(const SipMessage& rSipMessage) :
-   HttpMessage(rSipMessage),
-   mpSecurity(NULL)
+SipMessage::SipMessage(const SipMessage& rSipMessage)
+: HttpMessage(rSipMessage)
+, mpSecurity(NULL)
+, mbAllowContactOverride(rSipMessage.mbAllowContactOverride)
 {
 #ifdef TRACK_LIFE
    osPrintf("Created SipMessage @ address:%X\n",this);
@@ -99,7 +101,6 @@ SipMessage::SipMessage(const SipMessage& rSipMessage) :
    m_dnsAddress = rSipMessage.m_dnsAddress;
    m_dnsPort = rSipMessage.m_dnsPort;
    mpSipTransaction = rSipMessage.mpSipTransaction;
-   mCustomRouteId = rSipMessage.mCustomRouteId;
    mbUseShortNames = rSipMessage.mbUseShortNames;
 }
 
@@ -124,7 +125,7 @@ SipMessage::operator=(const SipMessage& rSipMessage)
       m_dnsAddress = rSipMessage.m_dnsAddress;
       m_dnsPort = rSipMessage.m_dnsPort;
       mpSipTransaction = rSipMessage.mpSipTransaction;
-      mCustomRouteId = rSipMessage.mCustomRouteId;
+      mbAllowContactOverride = rSipMessage.mbAllowContactOverride;
       mbUseShortNames = rSipMessage.mbUseShortNames;
    }
    return *this;
@@ -285,7 +286,7 @@ void SipMessage::setReinviteData(SipMessage* invite,
     UtlString contactUri;
     UtlString lastResponseContact;
 
-    setTransportInfo(invite) ;
+    setLocalIp(invite) ;
 
     // Get the to, from and callId fields
     if(invite->isFromThisSide())
@@ -725,7 +726,7 @@ void SipMessage::setInviteBusyData(const SipMessage* inviteRequest)
    int sequenceNum;
    UtlString sequenceMethod;
 
-   setTransportInfo(inviteRequest) ;
+   setLocalIp(inviteRequest) ;
 
    inviteRequest->getFromField(&fromField);
    inviteRequest->getToField(&toField);
@@ -746,7 +747,7 @@ void SipMessage::setRequestPendingData(const SipMessage* inviteRequest)
    int sequenceNum;
    UtlString sequenceMethod;
 
-   setTransportInfo(inviteRequest) ;
+   setLocalIp(inviteRequest) ;
 
    inviteRequest->getFromField(&fromField);
    inviteRequest->getToField(&toField);
@@ -887,7 +888,7 @@ void SipMessage::setInviteOkData(const SipMessage* inviteRequest,
    UtlString sequenceMethod;
    const SdpBody* inviteSdp = NULL;
 
-   setTransportInfo(inviteRequest) ;
+   setLocalIp(inviteRequest) ;
 
    inviteRequest->getFromField(&fromField);
    inviteRequest->getToField(&toField);
@@ -957,7 +958,7 @@ void SipMessage::setNotifyData(SipMessage *subscribeRequest,
    int dummySequenceNum;
    UtlString sequenceMethod;
 
-   setTransportInfo(subscribeRequest) ;
+   setLocalIp(subscribeRequest) ;
 
    subscribeRequest->getFromField(&fromField);
    subscribeRequest->getToField(&toField);
@@ -1311,7 +1312,7 @@ void SipMessage::setRequestUnauthorized(const SipMessage* request,
                             const char* authenticationOpaque,
                             HttpEndpointEnum authEntity)
 {
-    setTransportInfo(request) ;
+    setLocalIp(request) ;
 
     if(authEntity == SERVER)
     {
@@ -1398,7 +1399,7 @@ void SipMessage::setResponseData(const SipMessage* request,
                          const char* responseText,
                          const char* localContact)
 {
-   setTransportInfo(request) ;
+   setLocalIp(request) ;
 
    UtlString fromField;
    UtlString toField;
@@ -1434,7 +1435,7 @@ void SipMessage::setAckData(const SipMessage* inviteResponse,
                             const char* contact,
                             int sessionTimerExpires)
 {
-   setTransportInfo(inviteResponse) ;
+   setLocalIp(inviteResponse) ;
 
    UtlString fromField;
    UtlString toField;
@@ -1583,7 +1584,7 @@ void SipMessage::setByeData(const SipMessage* inviteRequest,
    UtlString sequenceMethod;
    UtlString remoteContactString;
 
-   setTransportInfo(inviteRequest) ;
+   setLocalIp(inviteRequest) ;
 
    if (remoteContact)
       remoteContactString.append(remoteContact);
@@ -1659,7 +1660,7 @@ void SipMessage::setReferData(const SipMessage* inviteRequest,
    int dummySequenceNum;
    UtlString sequenceMethod;
 
-   setTransportInfo(inviteRequest) ;
+   setLocalIp(inviteRequest) ;
 
    inviteRequest->getFromField(&fromField);
    inviteRequest->getToField(&toField);
@@ -1784,7 +1785,7 @@ void SipMessage::setOptionsData(const SipMessage* inviteRequest,
    int dummySequenceNum;
    UtlString sequenceMethod;
 
-   setTransportInfo(inviteRequest) ;
+   setLocalIp(inviteRequest) ;
 
    inviteRequest->getFromField(&fromField);
    inviteRequest->getToField(&toField);
@@ -1865,7 +1866,7 @@ void SipMessage::setCancelData(const SipMessage* inviteRequest,
    int sequenceNum;
    UtlString sequenceMethod;
 
-   setTransportInfo(inviteRequest) ;
+   setLocalIp(inviteRequest) ;
 
    inviteRequest->getFromField(&fromField);
    inviteRequest->getToField(&toField);
@@ -5778,7 +5779,7 @@ SipTransaction* SipMessage::getSipTransaction() const
     return(mpSipTransaction);
 }
 
-const UtlString SipMessage::getTransportName(bool& bCustom) const
+const UtlString SipMessage::getTransportName() const
 {
     UtlString transport;
 
@@ -5792,26 +5793,10 @@ const UtlString SipMessage::getTransportName(bool& bCustom) const
     route.getUrlParameter("transport", transport);
     if (transport.isNull())
     {
-    toUrl.getUrlParameter("transport", transport);
-        if (transport.isNull())
-    {
-        bCustom = false;
-    }
-    }
-
-    if ("UDP" == transport ||
-        "TCP" == transport ||
-        "TLS" == transport)
-    {
-        bCustom = false;
-    }
-    else
-    {
-        bCustom = true;
+       toUrl.getUrlParameter("transport", transport);
     }
 
     return transport;
-
 }
 
 
@@ -5906,7 +5891,7 @@ void SipMessage::setLocalIp(const UtlString& localIp)
     mLocalIp = localIp;
 }
 
-void SipMessage::setTransportInfo(const SipMessage* pMsg) 
+void SipMessage::setLocalIp(const SipMessage* pMsg) 
 {
     assert(pMsg != NULL) ;
     if (pMsg)
