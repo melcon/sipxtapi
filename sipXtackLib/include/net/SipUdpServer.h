@@ -161,6 +161,10 @@ public:
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
 
+   /**
+    * For UDP sockets returns an existing socket for given localIp.
+    * null will be returned if no socket is bound to given localIp.
+    */
     OsSocket* buildClientSocket(int hostPort,
                                 const char* hostAddress,
                                 const char* localIp);

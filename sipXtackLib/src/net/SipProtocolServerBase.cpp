@@ -215,19 +215,12 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
         if(isOk &&
            isReadyToWrite)
         {
-#ifdef TEST
-            osPrintf("Socket OK, creating client\n");
-#endif
             client = new SipClient(clientSocket) ;
-            if (client && mSipUserAgent->getUseRport() &&
-                    clientSocket->getIpProtocol() == OsSocket::UDP)
+            if (client && clientSocket->getIpProtocol() == OsSocket::UDP)
             {
-                client->setSharedSocket(TRUE) ;
+                client->setSharedSocket(TRUE);
             }
 
-#ifdef TEST
-            osPrintf("Created client\n");
-#endif
             if(mSipUserAgent)
             {
                 client->setUserAgent(mSipUserAgent);
@@ -248,15 +241,12 @@ SipClient* SipProtocolServerBase::createClient(const char* hostAddress,
                 mProtocolString.data(), client, localIp, hostAddress, hostPort);
 
             mClientList.push(client);
-        }
-
-        // The socket failed to be connected
-        else
+        }        
+        else // The socket failed to be connected
         {
             if(clientSocket)
             {
-                if (!mSipUserAgent->getUseRport() ||
-                        (clientSocket->getIpProtocol() == OsSocket::TCP))
+                if (clientSocket->getIpProtocol() == OsSocket::TCP)
                 {
                     delete clientSocket;
                 }
