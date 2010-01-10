@@ -10,6 +10,7 @@ Main differences between customized and SIP Foundry version:
   * slightly different API, more C like, C++ code is almost gone from header files
   * sipxcalllib was stripped of most unused code
   * GIPS (Global IP Sound) remnants have been removed from sipxtapi
+  * custom transport support has been removed (due to poor implementation)
   * removed many hard limits from underlying libraries, unlimited number of calls
   * parallel DNS lookups in Windows. SIP foundry version only supports 1 DNS lookup at time for all threads. For Linux, parallel lookups are untested but can be enabled.
   * support for multiple core processors in media processing library. Multiple audio encoding/decoding threads are supported.
