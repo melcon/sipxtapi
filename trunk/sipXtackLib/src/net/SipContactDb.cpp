@@ -76,7 +76,7 @@ const bool SipContactDb::addContact(SIPX_CONTACT_ADDRESS& contact)
         {
             pContactCopy = new SIPX_CONTACT_ADDRESS(contact);
             pContactCopy->eContactType = CONTACT_RELAY ;
-            pContactCopy->id = 0;
+            pContactCopy->id = -1;
             addContact(*pContactCopy);
         }
         bRet = true;

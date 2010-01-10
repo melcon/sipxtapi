@@ -926,6 +926,12 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
       sipMessage.setLocalIp(m_rStateContext.m_sBindIpAddress);
    }
 
+   if (m_rStateContext.m_contactId != AUTOMATIC_CONTACT_ID)
+   {
+      // we are not using automatic contact, disable contact override
+      sipMessage.allowContactOverride(FALSE);
+   }
+
    UtlBoolean res =  m_rSipUserAgent.send(sipMessage);
    if (!res)
    {

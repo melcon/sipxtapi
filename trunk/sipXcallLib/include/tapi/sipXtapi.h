@@ -764,6 +764,11 @@ private:
     
 };
 
+/**
+ * Use when contact should be selected automatically.
+ */
+#define SIPX_AUTOMATIC_CONTACT_ID -1
+
 /** 
  * Type for storing Contact Record identifiers 
  * @see sipxConfigGetLocalContacts
@@ -786,7 +791,7 @@ struct SIPX_CONTACT_ADDRESS
         memset((void*)cIpAddress, 0, sizeof(cIpAddress));
         eContactType = CONTACT_AUTO;
         eTransportType = TRANSPORT_UDP;
-        id = 0;
+        id = SIPX_AUTOMATIC_CONTACT_ID;
         iPort = -1;
     }
     SIPX_CONTACT_ID     id;              /**< Contact record Id      */

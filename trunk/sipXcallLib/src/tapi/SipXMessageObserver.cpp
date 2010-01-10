@@ -105,7 +105,7 @@ UtlBoolean SipXMessageObserver::handleStunSuccess(const OsStunResultSuccessMsg& 
    mappedPort = pResultMsg.getMappedPort();
    // create SIPX_CONTACT_ADDRESS
    SIPX_CONTACT_ADDRESS stunContact;
-   stunContact.id = 0; // will be assigned by SipUserAgent
+   stunContact.id = SIPX_AUTOMATIC_CONTACT_ID; // will be assigned by SipUserAgent
    SAFE_STRNCPY(stunContact.cInterface, adapterName.data(), sizeof(stunContact.cInterface));
    SAFE_STRNCPY(stunContact.cIpAddress, mappedIp.data(), sizeof(stunContact.cIpAddress));
    stunContact.iPort = mappedPort;
