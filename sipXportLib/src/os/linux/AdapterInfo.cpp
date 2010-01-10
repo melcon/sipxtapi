@@ -111,7 +111,7 @@ bool getAllLocalHostIps(const HostAdapterAddress* localHostAddresses[],
    return rc;
 }
 
-bool getContactAdapterName(UtlString &adapterName, const UtlString &ipAddress)
+bool getAdapterName(UtlString &adapterName, const UtlString &ipAddress)
 {
    bool found = false;
 
@@ -141,7 +141,7 @@ bool getContactAdapterName(UtlString &adapterName, const UtlString &ipAddress)
             adapterName = adapterAddresses[i]->mAdapter;
 /*
             OsSysLog::add(FAC_KERNEL, PRI_DEBUG,
-                        "getContactAdapterName found name %s for ip %s",
+                        "getAdapterName found name %s for ip %s",
                         szAdapter, szIp);
 */
             found = true;

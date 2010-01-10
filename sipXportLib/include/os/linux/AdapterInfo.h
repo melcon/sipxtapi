@@ -26,7 +26,7 @@ bool getAllLocalHostIps(const class HostAdapterAddress* localHostAddresses[],
 
   /// Return a generated adapter name associated with the IP address.
 extern "C"
-bool getContactAdapterName(UtlString &adapterName, const UtlString &ipAddress);
+bool getAdapterName(UtlString &adapterName, const UtlString &ipAddress);
 
 #endif
 

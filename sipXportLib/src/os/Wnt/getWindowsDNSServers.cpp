@@ -462,7 +462,7 @@ int getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, const char* szLoc
  *
  * @return true if successful
  */
-bool getContactAdapterName(UtlString &adapterName, const UtlString &ipAddress)
+bool getAdapterName(UtlString &adapterName, const UtlString &ipAddress)
 {
    bool rc = false;
 

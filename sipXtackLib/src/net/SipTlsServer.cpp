@@ -165,7 +165,7 @@ OsStatus SipTlsServer::createServerSocket(const char* szBindAddr,
             contact.eContactType = CONTACT_LOCAL;
             UtlString szAdapterName;
 
-            getContactAdapterName(szAdapterName, contact.cIpAddress);
+            getAdapterName(szAdapterName, contact.cIpAddress);
             SAFE_STRNCPY(contact.cInterface, szAdapterName.data(), sizeof(contact.cInterface));
             contact.eTransportType = TRANSPORT_TLS;
             mSipUserAgent->addContactAddress(contact);
