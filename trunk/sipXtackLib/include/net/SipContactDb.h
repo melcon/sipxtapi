@@ -28,9 +28,6 @@
 // CONSTANTS
 // STRUCTS
 // TYPEDEFS
-
-
-
 // FORWARD DECLARATIONS
 
 class SipContactDb
@@ -89,7 +86,7 @@ public:
     /**
      * Finds the first contact by a given contact type
      */
-    SIPX_CONTACT_ADDRESS* findByType(SIPX_CONTACT_TYPE type, SIPX_TRANSPORT_TYPE transportType, UtlString sCustomTransport = "") ;
+    SIPX_CONTACT_ADDRESS* findByType(SIPX_CONTACT_TYPE type, SIPX_TRANSPORT_TYPE transportType) ;
 
     /**
      * Return a transport type given the specified transport name.  The name 
@@ -137,13 +134,6 @@ public:
                                    const SIPX_TRANSPORT_TYPE transportFilter) const;
 
     
-    void replicateForTransport(const SIPX_TRANSPORT_TYPE originalTransport, 
-                               const SIPX_TRANSPORT_TYPE newTransport,
-                               const char* szTransport,
-                               const char* szRoutingID);
-
-    void removeForTransport(const SIPX_TRANSPORT_TYPE transport);
-
     void dump(UtlString& output) ;
 
 /* ============================ MANIPULATORS ============================== */
@@ -153,14 +143,10 @@ public:
 
 /* ============================ ACCESSORS ================================= */
 
-
 /* ============================ INQUIRY =================================== */
-
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-
-
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:

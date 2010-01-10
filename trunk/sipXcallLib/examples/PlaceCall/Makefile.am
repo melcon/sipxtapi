@@ -12,10 +12,8 @@ PlaceCall_LDADD = \
 #    @CA_LIBS@
 
 PlaceCall_SOURCES = \
-    src/PlaceCall.cpp \
-    src/ExternalTransport.cpp
+    src/PlaceCall.cpp
 
 noinst_HEADERS = \
     include/PlaceCall.h \
-    include/PlaceCallWntApp.h \
-    include/ExternalTransport.h
+    include/PlaceCallWntApp.h

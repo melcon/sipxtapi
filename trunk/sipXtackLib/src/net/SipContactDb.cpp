@@ -111,11 +111,7 @@ const bool SipContactDb::updateContact(SIPX_CONTACT_ADDRESS& contact)
         assert(pContact) ;
         if (    (pContact->eContactType == contact.eContactType) &&
                 (pContact->eTransportType == contact.eTransportType) &&
-                (strcasecmp(pContact->cInterface, contact.cInterface) == 0) &&
-                (strcasecmp(pContact->cCustomTransportName, 
-                contact.cCustomTransportName) == 0) &&
-                (strcasecmp(pContact->cCustomRouteID, 
-                contact.cCustomRouteID) == 0) )
+                (strcasecmp(pContact->cInterface, contact.cInterface) == 0) )
         {
             bFound = true ;
             replacedAddress = pContact->cIpAddress ;
@@ -173,7 +169,7 @@ SIPX_CONTACT_ADDRESS* SipContactDb::find(SIPX_CONTACT_ID id)
 
 
 // Finds the first contact by a given contact type
-SIPX_CONTACT_ADDRESS* SipContactDb::findByType(SIPX_CONTACT_TYPE type, SIPX_TRANSPORT_TYPE transportType, UtlString sCustomTransport) 
+SIPX_CONTACT_ADDRESS* SipContactDb::findByType(SIPX_CONTACT_TYPE type, SIPX_TRANSPORT_TYPE transportType) 
 {
     OsLock lock(mLock);
     UtlHashMapIterator iterator(mContacts);
@@ -190,24 +186,12 @@ SIPX_CONTACT_ADDRESS* SipContactDb::findByType(SIPX_CONTACT_TYPE type, SIPX_TRAN
         pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
         assert(pContact) ;
 
-        if (transportType != OsSocket::UNKNOWN && 
-            (((transportType < TRANSPORT_CUSTOM) && transportType == pContact->eTransportType) ||
-            ((transportType == TRANSPORT_CUSTOM) && pContact->eTransportType >= TRANSPORT_CUSTOM)))
+        if (transportType != OsSocket::UNKNOWN && (transportType == pContact->eTransportType))
         {
             if (pContact->eContactType == type)
             {
-				if (sCustomTransport.length() == 0)
-				{
-					pRC = pContact ;
-					break ;
-				}
-				else
-				{
-                    if (sCustomTransport.compareTo(pContact->cCustomTransportName, UtlString::ignoreCase) == 0)
-					{
-						pRC = pContact;
-					}
-				}
+				   pRC = pContact ;
+				   break ;
             }
         }
     }
@@ -237,30 +221,6 @@ SIPX_TRANSPORT_TYPE SipContactDb::findTransportType(const char* transportName)
         else if (transport.compareTo("tls", UtlString::ignoreCase)== 0)
         {
             eType = TRANSPORT_TLS ;
-        }
-        else
-        {
-            OsLock lock(mLock);
-            UtlHashMapIterator iterator(mContacts);
-            UtlVoidPtr* pValue;
-            UtlInt* pKey;
-            SIPX_CONTACT_ADDRESS* pContact = NULL;
-    
-            while (pKey = (UtlInt*)iterator())
-            {
-                pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-                assert(pValue); // Should NEVER happen
-                pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-                assert(pContact) ; // Should NEVER happen
-
-                if (    (pContact->eTransportType >= TRANSPORT_CUSTOM) && 
-                        (transport.compareTo(pContact->cCustomTransportName, 
-                        UtlString::ignoreCase) == 0))
-                {
-                    eType = pContact->eTransportType ;
-                    break ;
-                }
-            }
         }
     }
 
@@ -424,18 +384,10 @@ const bool SipContactDb::getRecordForAdapter(SIPX_CONTACT_ADDRESS& contact,
             continue;
 
         if (pContact->eContactType != contactFilter)
-            continue ;
+            continue;
 
-        if (transportFilter == TRANSPORT_CUSTOM)
-        {
-            if (pContact->eTransportType < TRANSPORT_CUSTOM)
+        if (pContact->eTransportType != transportFilter)
             continue;
-        }
-        else
-        {
-            if (pContact->eTransportType != transportFilter)
-            continue;
-        }
 
         contact = *pContact;
         bRet = true;
@@ -586,70 +538,6 @@ const bool SipContactDb::assignContactId(SIPX_CONTACT_ADDRESS& contact)
     return true;
 }
 
-void SipContactDb::replicateForTransport(const SIPX_TRANSPORT_TYPE originalTransportType, 
-                                         const SIPX_TRANSPORT_TYPE newTransport,
-                                         const char* szTransport,
-                                         const char* szRoutingID)
-{
-    OsLock lock(mLock);
-    UtlHashMapIterator iterator(mContacts);
-
-    UtlVoidPtr* pValue = NULL;
-    SIPX_CONTACT_ADDRESS* pContact = NULL;
-    UtlInt* pKey;
-    int index = 0; // array index
-    while (pKey = (UtlInt*)iterator())
-    {
-        pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-        assert(pValue);
-        
-        pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-        if (pContact->eTransportType == originalTransportType)
-        {
-            SIPX_CONTACT_ADDRESS* newContact = new SIPX_CONTACT_ADDRESS(*pContact);
-            newContact->id = 0;
-            newContact->eTransportType = newTransport;
-            memset(newContact->cCustomTransportName, 0, sizeof(newContact->cCustomTransportName)) ;
-            if (szTransport)
-                SAFE_STRNCPY(newContact->cCustomTransportName, szTransport, sizeof(newContact->cCustomTransportName));                
-            memset(newContact->cCustomRouteID, 0, sizeof(newContact->cCustomRouteID)) ;
-            if (szRoutingID)
-                SAFE_STRNCPY(newContact->cCustomRouteID, szRoutingID, sizeof(newContact->cCustomRouteID));
-
-            addContact(*newContact);
-        }
-        index++;
-    }
-    
-    return;
-}
-
-void SipContactDb::removeForTransport(const SIPX_TRANSPORT_TYPE transport)
-{
-    OsLock lock(mLock);
-    UtlHashMapIterator iterator(mContacts);
-
-    UtlVoidPtr* pValue = NULL;
-    SIPX_CONTACT_ADDRESS* pContact = NULL;
-    UtlInt* pKey;
-    int index = 0; // array index
-    while (pKey = (UtlInt*)iterator())
-    {
-        pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-        assert(pValue);
-        
-        pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-        if (pContact->eTransportType == transport)
-        {
-            deleteContact(pContact->id);
-        }
-        index++;
-    }
-
-    return;
-}
-
-
 void SipContactDb::dump(UtlString& output) 
 {
     OsLock lock(mLock);
@@ -668,15 +556,13 @@ void SipContactDb::dump(UtlString& output)
         pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
 
         char cFoo[512] ;
-        SNPRINTF(cFoo, sizeof(cFoo), "   %d %d %d %s/%s:%d %s %s\n",
+        SNPRINTF(cFoo, sizeof(cFoo), "   %d %d %d %s/%s:%d\n",
                 pContact->id,
                 pContact->eContactType,
                 pContact->eTransportType,
                 pContact->cInterface,
                 pContact->cIpAddress,
-                pContact->iPort,
-                pContact->cCustomTransportName,
-                pContact->cCustomRouteID) ;
+                pContact->iPort);
         
         output.append(cFoo) ;
     }

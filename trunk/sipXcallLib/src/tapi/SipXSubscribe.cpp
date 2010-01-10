@@ -575,14 +575,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                char szPort[32];
                SNPRINTF(szPort, sizeof(szPort), ":%d", pContact->iPort);
                contactField.append(szPort);
-
-               if (pContact->cCustomTransportName && pContact->cCustomTransportName[0])
-               {
-                  Url target(szTargetUrl);
-                  UtlString temp;
-                  target.setUrlParameter("transport", pContact->cCustomTransportName);
-                  target.toString(sTargetUrl);
-               }
             }
             else
             {

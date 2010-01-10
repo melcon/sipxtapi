@@ -165,7 +165,6 @@ libsipXcall_la_SOURCES = \
     tapi/SipXSecurityEventListener.cpp \
     tapi/SipXSubscribe.cpp \
     tapi/sipXtapi.cpp \
-    tapi/SipXTransport.cpp \
     tapi/SipXUtil.cpp
 
 DISTCLEANFILES = Makefile.in

@@ -74,7 +74,7 @@
 				AdditionalOptions="/fixed:no /incremental:no"
 				AdditionalDependencies="Ws2_32.lib cppunitd.lib ksuser.lib dxguid.lib"
 				OutputFile="$(OutDir)\sipXtapiTest.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="lib;..\sipXtackLib\debug;..\sipXportLib\debug;..\CPPUnit\lib;..\sipXportLib\contrib\pcre\lib"
 				IgnoreDefaultLibraryNames="libcmt.lib;msvcrt.lib"
@@ -400,14 +400,6 @@
 						BrowseInformation="1"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\src\test\tapi\TestExternalTransport.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\test\tapi\TestExternalTransport.h"
-				>
 			</File>
 			<File
 				RelativePath=".\src\test\tapi\TestRegistrar.cpp"

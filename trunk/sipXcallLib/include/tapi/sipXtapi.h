@@ -683,7 +683,6 @@ typedef enum
     TRANSPORT_UDP = 1,  /**< Indicator for a UDP socket type. */
     TRANSPORT_TCP = 0,  /**< Indicator for a TCP socket type. */ 
     TRANSPORT_TLS = 3,  /**< Indicator for a TLS socket type. */
-    TRANSPORT_CUSTOM = 4 /**< Indicator for a custom external transport. */
 } SIPX_TRANSPORT_TYPE;
 
 /**
@@ -785,8 +784,6 @@ struct SIPX_CONTACT_ADDRESS
         cbSize = sizeof(SIPX_CONTACT_ADDRESS);
         memset((void*)cInterface, 0, sizeof(cInterface));
         memset((void*)cIpAddress, 0, sizeof(cIpAddress));
-        memset((void*)cCustomTransportName, 0, sizeof(cCustomTransportName));
-        memset((void*)cCustomRouteID, 0, sizeof(cCustomRouteID));
         eContactType = CONTACT_AUTO;
         eTransportType = TRANSPORT_UDP;
         id = 0;
@@ -799,8 +796,6 @@ struct SIPX_CONTACT_ADDRESS
     char                cIpAddress[28] ; /**< IP Address             */
     int                 cbSize;		 /**< Size of structure      */
     int                 iPort ;          /**< Port                   */
-    char                cCustomTransportName[32]; /**< Custom transport name */
-    char                cCustomRouteID[64] ; /**< Custom transport routing tag */
 };
 
 /**
@@ -877,32 +872,6 @@ typedef struct
    char cVideoCodecName[SIPXTAPI_STRING_MEDIUM_LENGTH];  /**< Short video codec name */
    int bIsEncrypted;                /**< 1 if SRTP is enabled */
 } SIPX_CODEC_INFO;
-
-
-/**
- * Possible roles that a Media connection can have.  TCP is currently
- * defined, but not fully implemented.  Use at your own risk.
- *
- * @NOTE: Keep in sync RTP_TRANSPORT with SIPX_RTP_TRANSPORT
- */
-typedef enum
-{
-   SIPX_RTP_TRANSPORT_UNKNOWN   = 0x00000000,
-   SIPX_RTP_TRANSPORT_UDP       = 0x00000001,
-   SIPX_RTP_TRANSPORT_TCP       = 0x00000002,
-   SIPX_RTP_TCP_ROLE_ACTIVE     = 0x00000004,
-   SIPX_RTP_TCP_ROLE_PASSIVE    = 0x00000008,
-   SIPX_RTP_TCP_ROLE_ACTPASS    = 0x00000010,
-   SIPX_RTP_TCP_ROLE_CONNECTION = 0x00000020,
-}SIPX_RTP_TRANSPORT;
-
-
-/** 
-* The SIPX_TRANSPORT handle represents a user-implementation of 
-* a network transport mechanism to be used for SIP signaling.
-*/
-typedef unsigned int SIPX_TRANSPORT;
-const SIPX_TRANSPORT SIPX_TRANSPORT_NULL = 0; /**< Represents a null transport handle */
 
 /**
  * This structure gets passed into sipxCallConnect, sipxCallAccept, and
@@ -981,31 +950,6 @@ const SIPX_PUB SIPX_PUB_NULL = 0; /**< Represents a null publisher handle */
  * SIPX_SUB handles should be destroyed using the sipxCallUnsubscribe function.
  */
 typedef unsigned int SIPX_SUB;
-
-/** 
- * External Transport callback definition.  SIPxua will invoke this callback
- * when there is data to write to the external transport layer.  A function
- * pointer with this signature is passed into the 
- * sipxConfigExternalTransportAdd function.
- *
- * @param hTransport Handle to the external transport object.  Will match a transport handle
- *        obtained via a call to sipxConfigExternalTransportAdd 
- * @param szDestinationIp IP address which is the destination for the write.
- * @param iDestPort Port value to which the data will be sent.
- * @param szLocalIp IP address which is the source address for the write.
- * @param iLocalPort Port value from which the data will be sent.
- * @param pData Pointer to the data to be sent.
- * @param nData Size of the data to be sent.
- */
-typedef int (SIPX_CALLING_CONVENTION *SIPX_TRANSPORT_WRITE_PROC)(
-        SIPX_TRANSPORT hTransport,
-        const char*    szDestinationIp,
-        const int      iDestPort,
-        const char*    szLocalIp,
-        const int      iLocalPort,
-        const void*    pData,
-        const size_t   nData,
-        const void*    pUserData);
 
 /**
  * SIPX_KEEPALIVE_TYPEs define different methods of keeping NAT/firewall
@@ -4253,89 +4197,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
  *             sipxConfigSubscribe.
  */
 SIPXTAPI_API SIPX_RESULT sipxConfigUnsubscribe(const SIPX_SUB hSub); 
-
-
-/**
- * Associates an external transport mechanism for SIP signaling with 
- * the given instance. Only single external transport is supported.
- * Enabling external transport will add custom contact to database.
- *
- * @param hInst An instance handle obtained from sipxInitialize. 
- * @param hTransport Reference to a SIPX_TRANSPORT handle.  This function will
- *        assign a value to the referenced handle.
- * @param bIsReliable If false, indicates that SIPxua should retry external transport
- *        writes in case of response timeouts.  If true, SIPxua will not attempt retries
- *        in case of a response timeouts.  For connection oriented transport (like TCP),
- *        bIsReliable should be true, for packet oriented transport (like UDP),
- *        bIsReliable should be false.
- * @param szTransport Transport type string to be used in SIP URIs.
- *        For example, passing in a szTransport of "flibble" will cause the 
- *        transport tag to be added to the URI like so:  
- *        "sip:mickey\@example.com;transport=flibble"
- * @param szLocalIP IP address which is the source address for the write.
- * @param iLocalPort Port value from which the data will be sent.
- * @param writeProc Function pointer to the callback for writing data
- *        using the transport mechanism.
- * @param szLocalRoutingId A local routing id pass back to the write proc 
-          callback.
- * @param pUserData User data passed back to the write proc.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportAdd(SIPX_INST const hInst,
-                                                        SIPX_TRANSPORT* hTransport,
-                                                        const int bIsReliable,
-                                                        const char* szTransport,
-                                                        const char* szLocalIP,
-                                                        const int iLocalPort,
-                                                        SIPX_TRANSPORT_WRITE_PROC writeProc,
-                                                        const char* szLocalRoutingId,
-                                                        const void* pUserData = NULL);
-
-/**
- * Removes an external transport mechanism from the given instance.
- * Will fail if transport in use.
- *
- * @param hTransport Handle to the external transport object.  Obtained via
- *        a call to sipxConfigExternalTransportAdd . All custom contacts will
- *        be removed. Only single external transport is supported.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRemove(const SIPX_TRANSPORT hTransport);
-
-/**
- * The external transport mechanism can be configured to route by user or by 
- * destination ip/port.  User is the default.
- *
- * @param hTransport Handle to the external transport object.  Obtained via a 
- *        call to sipxConfigExternalTransportAdd 
- * @param bRouteByUser true to route by user (default), false to route by 
- *        destination ip/port.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRouteByUser(const SIPX_TRANSPORT hTransport,
-                                                                int bRouteByUser);
-
-/**
- * Called by the application when it receives a complete SIP message via
- * it's external transport mechanism and want to pass it along to sipXtapi.
- * The application is responsible for 
- * preparing the Data so that it is composed of a single and complete
- * SIP message.
- *
- * @param hTransport Handle to the external transport object.  Obtained via
- *        a call to sipxConfigExternalTransportAdd 
- * @param szSourceIP IP address which was the source of the data which was read.
- * @param iSourcePort Port value from which the data was sent.
- * @param szLocalIP Local IP address on which the data was received.
- * @param iLocalPort Local port value on which the data was received.
- * @param pData Pointer to the data which was received, which should point to
- *        a single and complete SIP message.
- * @param nData Size of the data which was received.
- */
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRANSPORT hTransport,
-                                                                  const char* szSourceIP,
-                                                                  const int iSourcePort,
-                                                                  const char* szLocalIP,
-                                                                  const int iLocalPort,
-                                                                  const void* pData,
-                                                                  const size_t nData);
 
 
 /**

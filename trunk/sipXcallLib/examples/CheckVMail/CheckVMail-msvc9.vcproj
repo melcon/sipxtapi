@@ -155,7 +155,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="..\bin\CheckVMail_Debug.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateDebugInformation="true"

@@ -71,7 +71,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib"
 				OutputFile="..\bin\ReceiveCall_dbg.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib;..\..\..\sipXportLib\contrib\pcre\lib"
 				GenerateDebugInformation="true"
@@ -248,7 +248,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib libeay32.lib ssleay32.lib"
 				OutputFile="..\bin\ReceiveCall_dbg.exe"
-				LinkIncremental="1"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib;..\..\..\sipXportLib\contrib\pcre\lib;..\..\..\..\openSSL\lib"
 				GenerateDebugInformation="true"
@@ -288,10 +288,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
-			<File
-				RelativePath="..\PlaceCall\src\ExternalTransport.cpp"
-				>
-			</File>
 			<File
 				RelativePath="src\ReceiveCall.cpp"
 				>
@@ -337,10 +333,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\PlaceCall\include\ExternalTransport.h"
-				>
-			</File>
 			<File
 				RelativePath=".\include\ReceiveCall.h"
 				>

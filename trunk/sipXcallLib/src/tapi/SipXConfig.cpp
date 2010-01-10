@@ -36,14 +36,10 @@
 #include "tapi/SipXConfig.h"
 #include "tapi/SipXCall.h"
 #include "tapi/SipXKeepaliveEventListener.h"
-#include "tapi/SipXTransport.h"
 
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
-
-extern SipXHandleMap gTransportHandleMap;
-
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
 // MACROS
@@ -1117,190 +1113,6 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetConnectionIdleTimeout(const SIPX_INST hIns
    return rc;
 }
 
-
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportAdd(SIPX_INST const hInst,
-                                                        SIPX_TRANSPORT* hTransport,
-                                                        const int bIsReliable,
-                                                        const char* szTransport,
-                                                        const char* szLocalIp,
-                                                        const int iLocalPort,
-                                                        SIPX_TRANSPORT_WRITE_PROC writeProc,
-                                                        const char* szLocalRoutingId,
-                                                        const void* pUserData)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigExternalTransportAdd");
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigExternalTransportAdd hInst=%p, reliable=%d, transport=%s, localIp=%s, localPort=%d, routingId=%s",
-      hInst,
-      bIsReliable, 
-      szTransport ? szTransport : "<NULL>",
-      szLocalIp ? szLocalIp : "<NULL>",
-      iLocalPort,
-      szLocalRoutingId ? szLocalRoutingId : "<NULL>") ;
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
-   assert(pInst);
-   assert(szTransport);
-   assert(szTransport[0] != '\0');
-   assert(writeProc);
-
-   if (pInst)
-   {
-      SIPX_TRANSPORT_DATA* pData = new SIPX_TRANSPORT_DATA();
-      pData->pMutex = new OsMutex(OsMutex::Q_FIFO);
-      pData->pMutex->acquire();
-
-      UtlBoolean res = gTransportHandleMap.allocHandle(*hTransport, pData);
-
-      if (res)
-      {
-         pData->pInst = pInst;
-         pData->bIsReliable = bIsReliable;
-         SAFE_STRNCPY(pData->szTransport, szTransport, sizeof(pData->szTransport));
-         SAFE_STRNCPY(pData->szLocalIp, szLocalIp, sizeof(pData->szLocalIp));
-         pData->iLocalPort = iLocalPort;
-         pData->pFnWriteProc = writeProc;
-         pData->pUserData = pUserData;
-         pData->hTransport = *hTransport;
-         SAFE_STRNCPY(pData->cRoutingId, szLocalRoutingId, sizeof(pData->cRoutingId));
-
-         pData->pInst->pSipUserAgent->addExternalTransport(pData->szTransport, pData);
-
-         pData->pInst->pSipUserAgent->getContactDb().replicateForTransport(TRANSPORT_UDP,
-               TRANSPORT_CUSTOM, szTransport, szLocalRoutingId);
-
-         pData->pMutex->release();
-         rc = SIPX_RESULT_SUCCESS;
-      }
-      else
-      {
-         // handle allocation failure
-         OsSysLog::add(FAC_SIPXTAPI, PRI_ERR,
-            "allocHandle failed to allocate a handle");
-         delete pData->pMutex;
-         delete pData;
-      }
-   }
-
-   return rc;
-}
-
-
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRemove(const SIPX_TRANSPORT hTransport)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigExternalTransportRemove");
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-
-   OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-      "sipxConfigExternalTransportRemove");
-
-   SIPX_TRANSPORT_DATA* pData = sipxTransportLookup(hTransport, SIPX_LOCK_READ, stackLogger);
-
-   if (pData)
-   {
-      SIPX_INSTANCE_DATA *pInst = pData->pInst;
-      assert(pInst);
-      SipUserAgent *pSipUserAgent = pInst->pSipUserAgent;
-
-      if (pInst && pSipUserAgent)
-      {
-         pSipUserAgent->removeExternalTransport(pData->szTransport, pData);
-
-         sipxTransportReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
-
-         pSipUserAgent->getContactDb().removeForTransport(TRANSPORT_CUSTOM);
-      }
-      else
-      {
-         sipxTransportReleaseLock(pData, SIPX_LOCK_READ, stackLogger);
-      }
-
-      sipxTransportObjectFree(hTransport);
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   return rc;
-}
-
-
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportRouteByUser(const SIPX_TRANSPORT hTransport,
-                                                                int bRouteByUser)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigExternalTransportRouteByUser");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SIPX_TRANSPORT_DATA* pTransportData = sipxTransportLookup(hTransport, SIPX_LOCK_WRITE, stackLogger);
-
-   if (pTransportData)
-   {
-      pTransportData->bRouteByUser = bRouteByUser;
-      sipxTransportReleaseLock(pTransportData, SIPX_LOCK_WRITE, stackLogger);
-      rc = SIPX_RESULT_SUCCESS;
-   }
-
-   return rc;
-}
-
-SIPXTAPI_API SIPX_RESULT sipxConfigExternalTransportHandleMessage(const SIPX_TRANSPORT hTransport,
-                                                                  const char* szSourceIP,
-                                                                  const int iSourcePort,
-                                                                  const char* szLocalIP,
-                                                                  const int iLocalPort,
-                                                                  const void* pData,
-                                                                  const size_t nData)
-{
-   OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigExternalTransportHandleMessage");
-
-   SIPX_RESULT rc = SIPX_RESULT_FAILURE;
-   SipMessage* message = new SipMessage((const char*)pData, (int)nData);
-
-   message->setFromThisSide(false);
-
-   long epochDate;
-   if(!message->getDateField(&epochDate))
-   {
-      message->setDateField();
-   }
-
-   message->setSendProtocol(OsSocket::CUSTOM);
-   OsTime time;
-   OsDateTime::getCurTimeSinceBoot(time);
-
-   message->setTransportTime(time.seconds());
-
-   // Keep track of where this message came from
-   message->setSendAddress(szSourceIP, iSourcePort);
-
-   // Keep track of the interface on which this message was
-   // received.
-   message->setLocalIp(szLocalIP);
-
-   SIPX_TRANSPORT_DATA* pTransportData = sipxTransportLookup(hTransport, SIPX_LOCK_READ, stackLogger);
-
-   if (pTransportData)
-   {
-      if (pTransportData->pInst && pTransportData->pInst->pSipUserAgent)
-      {
-         // have the user-agent dispatch it
-
-         if (OsSysLog::willLog(FAC_SIP_CUSTOM, PRI_DEBUG))
-         {
-            UtlString data((const char*)pData, nData);
-            OsSysLog::add(FAC_SIP_CUSTOM, PRI_DEBUG, "[Received] From: %s To: %s \r\n%s\r\n",
-               szSourceIP, szLocalIP, data.data());
-         }
-
-         pTransportData->pInst->pSipUserAgent->dispatch(message, SipMessageEvent::APPLICATION, pTransportData);
-         rc = SIPX_RESULT_SUCCESS;
-      }
-      sipxTransportReleaseLock(pTransportData, SIPX_LOCK_READ, stackLogger);
-   }
-
-   return rc;
-}
-
 SIPXTAPI_API SIPX_RESULT sipxConfigPrepareToHibernate(const SIPX_INST hInst)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigPrepareToHibernate");
@@ -2248,17 +2060,12 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalContacts(const SIPX_INST hInst,
       for (unsigned int i = 0; (i < (unsigned int)numContacts) && (i < nMaxAddresses); i++)
       {
          addresses[i] = *contacts[i];
-         if (addresses[i].eTransportType > TRANSPORT_CUSTOM)
-         {
-            addresses[i].eTransportType = TRANSPORT_CUSTOM;
-         }
 
          OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-            "sipxConfigGetLocalContacts index=%d contactId=%d contactType=%s transportType=%s port=%d address=%s adapter=%s",
+            "sipxConfigGetLocalContacts index=%d contactId=%d contactType=%s port=%d address=%s adapter=%s",
             i,
             contacts[i]->id,
             sipxContactTypeToString(contacts[i]->eContactType),
-            sipxTransportTypeToString(contacts[i]->eTransportType),
             contacts[i]->iPort,
             contacts[i]->cIpAddress,
             contacts[i]->cInterface);

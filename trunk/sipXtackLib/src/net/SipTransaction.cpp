@@ -26,7 +26,6 @@
 #include <net/NetMd5Codec.h>
 #include <net/SipTransactionList.h>
 #include <os/OsSocket.h>
-#include "tapi/SipXTransport.h"
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -49,9 +48,8 @@ UtlString SipTransaction::smBranchIdBase;
 // Constructor
 SipTransaction::SipTransaction(SipMessage* request,
                                UtlBoolean isOutgoing,
-                               UtlBoolean userAgentTransaction) :
-mRequestMethod(""),
-mpTransport(NULL)
+                               UtlBoolean userAgentTransaction)
+: mRequestMethod("")
 {
    mIsUaTransaction = userAgentTransaction;
 
@@ -424,11 +422,8 @@ SipTransaction::addResponse(SipMessage*& response,
 UtlBoolean SipTransaction::handleOutgoing(SipMessage& outgoingMessage,
                                           SipUserAgent& userAgent,
                                           SipTransactionList& transactionList,
-                                          enum messageRelationship relationship,
-                                          SIPX_TRANSPORT_DATA* pTransport)
+                                          enum messageRelationship relationship)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    UtlBoolean isResponse = outgoingMessage.isResponse();
    //UtlString toAddress;
    //UtlString protocol;
@@ -588,21 +583,8 @@ UtlBoolean SipTransaction::handleOutgoing(SipMessage& outgoingMessage,
 
       // Look up the DNS SRV records, create the children tranaction
       // and start pursuing the first child
-      if (SIPX_TRANSPORT_DATA::isCustomTransport(mpTransport))
-      {
-         protocol = OsSocket::CUSTOM;
-      }
-
-      if (protocol == OsSocket::CUSTOM)
-      {
-         sendSucceeded = recurseDnsSrvChildren(userAgent, transactionList, mpTransport);
-      }
-      else
-      {
-         sendSucceeded = recurseDnsSrvChildren(userAgent, transactionList, NULL);
-      }
+      sendSucceeded = recurseDnsSrvChildren(userAgent, transactionList);
    }
-
    else
    {
       // check the message's URI - 
@@ -617,11 +599,6 @@ UtlBoolean SipTransaction::handleOutgoing(SipMessage& outgoingMessage,
          protocol = OsSocket::SSL_SOCKET;
       }
 
-      if (SIPX_TRANSPORT_DATA::isCustomTransport(mpTransport))
-      {
-         protocol = OsSocket::CUSTOM;
-      }
-
       // also, take the transport hint from the to-field and/or from-field.  If there is a transport= in it, 
       // and it is not tls, tcp, or udp, use custom and set mpTransport
       UtlString tempFromField;
@@ -630,45 +607,12 @@ UtlBoolean SipTransaction::handleOutgoing(SipMessage& outgoingMessage,
       message->getFromField(&tempFromField);
       message->getToField(&tempToField);
 
-      UtlString transport;
-      Url tempToUrl(tempToField);
-      Url tempFromUrl(tempFromField);
-
-      tempToUrl.getUrlParameter("transport", transport, 0);
-      if (transport.length() < 1 ||
-         transport.compareTo("udp") == 0 ||
-         transport.compareTo("tls") == 0 ||
-         transport.compareTo("tcp") == 0)
-      {
-         tempFromUrl.getUrlParameter("transport", transport, 0);
-         if (transport.compareTo("udp") == 0 ||
-            transport.compareTo("tls") == 0 ||
-            transport.compareTo("tcp") == 0)
-         {
-            transport = "";
-         }                
-      }
-
-      UtlString localIp;
-      int dummy;
-
-      userAgent.getLocalAddress(&localIp, &dummy);
-      if (!mpTransport && transport.length() > 0)
-      {
-         mpTransport = (SIPX_TRANSPORT_DATA*)userAgent.lookupExternalTransport(transport, localIp);
-         if (mpTransport)
-         {
-            protocol = OsSocket::CUSTOM;
-         }
-      }
-
       sendSucceeded = doFirstSend(*message,
          relationship,
          userAgent,
          toAddress,
          port,
-         protocol,
-         mpTransport);
+         protocol);
 
       touch();
    }
@@ -956,10 +900,8 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
                                        SipUserAgent& userAgent,
                                        UtlString& toAddress,
                                        int& port,
-                                       OsSocket::IpProtocolSocketType& toProtocol,
-                                       SIPX_TRANSPORT_DATA* pTransport)
+                                       OsSocket::IpProtocolSocketType& toProtocol)
 {
-   if (!mpTransport) mpTransport = pTransport;
    UtlBoolean sendSucceeded = FALSE;
    UtlBoolean isResponse = message.isResponse();
    UtlString method;
@@ -1039,7 +981,7 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
       message.getRequestMethod(&method);
 
       // Add a via to requests, now that we know the protocol
-      userAgent.prepareVia(message, mBranchId, toProtocol, toAddress.data(), &port, mpTransport);
+      userAgent.prepareVia(message, mBranchId, toProtocol, toAddress.data(), &port);
    }
 
    if(toProtocol == OsSocket::TCP)
@@ -1056,20 +998,6 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
       resendTime = userAgent.getReliableTransportTimeout() * 1000;
    }
 #   endif
-   else if (OsSocket::CUSTOM == toProtocol)
-   {
-      lastSentProtocol = OsSocket::CUSTOM;
-      if (pTransport->bIsReliable)
-      {
-         resendDuration = 0;
-         resendTime = userAgent.getReliableTransportTimeout() * 1000;
-      }
-      else
-      {
-         resendTime = userAgent.getFirstResendTimeout() * 1000;
-         resendDuration = userAgent.getFirstResendTimeout();
-      }
-   }
    else
    {
       if(toProtocol != OsSocket::UDP)
@@ -1131,10 +1059,6 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
       sendSucceeded = userAgent.sendTls(&message,
          toAddress.data(),
          port);
-   }
-   else if (toProtocol >= OsSocket::CUSTOM)
-   {
-      sendSucceeded = userAgent.sendCustom(pTransport, &message, toAddress.data(), port);
    }
    else
    {
@@ -1296,11 +1220,8 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
                                        enum messageRelationship relationship,
                                        SipTransactionList& transactionList,
                                        int& nextTimeout,
-                                       SipMessage*& delayedDispatchedMessage,
-                                       SIPX_TRANSPORT_DATA* pTransport)
+                                       SipMessage*& delayedDispatchedMessage)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    if(delayedDispatchedMessage)
    {
       OsSysLog::add(FAC_SIP, PRI_WARNING, "SipTransaction::handleResendEvent %p delayedDispatchedMessage is not NULL", this);
@@ -1349,7 +1270,7 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
          // outgoingMessage is a snapshot that was taken when the
          // timer was set.
          UtlBoolean sentOk = doResend(*mpLastFinalResponse,
-            userAgent, nextTimeout, mpTransport);
+            userAgent, nextTimeout);
 
          if(sentOk)
          {
@@ -1463,7 +1384,7 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
          }
          //int nextTimeout = 0;
          UtlBoolean sentOk = doResend(*resendMessage,
-            userAgent, nextTimeout, mpTransport);
+            userAgent, nextTimeout);
 
          if(sentOk &&
             nextTimeout > 0)
@@ -1561,8 +1482,7 @@ void SipTransaction::handleResendEvent(const SipMessage& outgoingMessage,
          relationship,
          transactionList,
          nextTimeout,
-         delayedDispatchedMessage,
-         mpTransport);
+         delayedDispatchedMessage);
    }
 
    touch();
@@ -1573,11 +1493,8 @@ void SipTransaction::handleExpiresEvent(const SipMessage& outgoingMessage,
                                         enum messageRelationship relationship,
                                         SipTransactionList& transactionList,
                                         int& nextTimeout,
-                                        SipMessage*& delayedDispatchedMessage,
-                                        SIPX_TRANSPORT_DATA* pTransport)
+                                        SipMessage*& delayedDispatchedMessage)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
 #ifdef TEST_PRINT
    osPrintf( "SipTransaction::handleExpiresEvent %p\n", this );
 #endif
@@ -1682,8 +1599,7 @@ void SipTransaction::handleExpiresEvent(const SipMessage& outgoingMessage,
             relationship,
             transactionList,
             nextTimeout,
-            delayedDispatchedMessage,
-            mpTransport);
+            delayedDispatchedMessage);
       }
       // This is the top most parent and it is a client transaction
       // we need to find the best result
@@ -1695,8 +1611,7 @@ void SipTransaction::handleExpiresEvent(const SipMessage& outgoingMessage,
             relationship,
             transactionList,
             nextTimeout,
-            delayedDispatchedMessage,
-            mpTransport);
+            delayedDispatchedMessage);
       }
 
       touch();
@@ -1709,11 +1624,8 @@ UtlBoolean SipTransaction::handleChildIncoming(//SipTransaction& child,
                                                enum messageRelationship relationship,
                                                SipTransactionList& transactionList,
                                                UtlBoolean childSaysShouldDispatch,
-                                               SipMessage*& delayedDispatchedMessage,
-                                               SIPX_TRANSPORT_DATA* pTransport)
+                                               SipMessage*& delayedDispatchedMessage)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    UtlBoolean shouldDispatch = childSaysShouldDispatch;
 
 #ifdef TEST_PRINT
@@ -1747,8 +1659,7 @@ UtlBoolean SipTransaction::handleChildIncoming(//SipTransaction& child,
             relationship,
             transactionList,
             childSaysShouldDispatch,
-            delayedDispatchedMessage,
-            mpTransport);
+            delayedDispatchedMessage);
 #           ifdef TEST_PRINT
          osPrintf("SipTransaction::handleChildIncoming %p parent says %d\n",
             this, shouldDispatch);
@@ -1847,8 +1758,7 @@ UtlBoolean SipTransaction::handleChildIncoming(//SipTransaction& child,
             handleOutgoing(response,
                userAgent,
                transactionList,
-               relationship,
-               mpTransport);
+               relationship);
          }
 
          // If we got a good response for which forking
@@ -1994,7 +1904,7 @@ UtlBoolean SipTransaction::handleChildIncoming(//SipTransaction& child,
             // startSequentialSearch returns TRUE if something
             // is still searching or it starts the next sequential
             // search
-            if(startSequentialSearch(userAgent, transactionList, mpTransport))
+            if(startSequentialSearch(userAgent, transactionList))
             {
             }
 
@@ -2041,8 +1951,7 @@ UtlBoolean SipTransaction::handleChildIncoming(//SipTransaction& child,
                      handleOutgoing(bestResponse,
                         userAgent,
                         transactionList,
-                        MESSAGE_FINAL,
-                        mpTransport);
+                        MESSAGE_FINAL);
                   }
 
                   if(!mDispatchedFinalResponse)
@@ -2208,11 +2117,8 @@ void SipTransaction::handleChildTimeoutEvent(SipTransaction& child,
                                              enum messageRelationship relationship,
                                              SipTransactionList& transactionList,
                                              int& nextTimeout,
-                                             SipMessage*& delayedDispatchedMessage,
-                                             SIPX_TRANSPORT_DATA *pTransport)
+                                             SipMessage*& delayedDispatchedMessage)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    if(mpParentTransaction)
    {
       // For now recurse.  We might be able to short cut this
@@ -2223,12 +2129,9 @@ void SipTransaction::handleChildTimeoutEvent(SipTransaction& child,
          relationship,
          transactionList,
          nextTimeout,
-         delayedDispatchedMessage,
-         mpTransport);
-   }
-
-   // Top most parent
-   else
+         delayedDispatchedMessage);
+   }   
+   else // Top most parent
    {
 #ifdef LOG_FORKING
       OsSysLog::add(FAC_SIP, PRI_DEBUG, "SipTransaction::handleChildTimeoutEvent found top most parent: %p", this);
@@ -2286,7 +2189,7 @@ void SipTransaction::handleChildTimeoutEvent(SipTransaction& child,
                OsSysLog::add(FAC_SIP, PRI_DEBUG, "sipTransaction::handleChildTimeoutEvent %p", this );
 #endif
 
-               if(startSequentialSearch(userAgent, transactionList, mpTransport))
+               if(startSequentialSearch(userAgent, transactionList))
                {
 #ifdef LOG_FORKING
                   OsSysLog::add(FAC_SIP, PRI_DEBUG, "SipTransaction::handleChildTimeoutEvent %p starting/still searching", this);
@@ -2335,8 +2238,7 @@ void SipTransaction::handleChildTimeoutEvent(SipTransaction& child,
                      handleOutgoing(bestResponse,
                         userAgent,
                         transactionList,
-                        MESSAGE_FINAL,
-                        mpTransport);
+                        MESSAGE_FINAL);
                   }
                   else
                   {
@@ -2378,11 +2280,8 @@ void SipTransaction::handleChildTimeoutEvent(SipTransaction& child,
 }
 
 UtlBoolean SipTransaction::startSequentialSearch(SipUserAgent& userAgent,
-                                                 SipTransactionList& transactionList,
-                                                 SIPX_TRANSPORT_DATA* pTransport)
+                                                 SipTransactionList& transactionList)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    UtlSListIterator iterator(mChildTransactions);
    SipTransaction* childTransaction = NULL;
    UtlBoolean childStillProceeding = FALSE;
@@ -2412,8 +2311,7 @@ UtlBoolean SipTransaction::startSequentialSearch(SipUserAgent& userAgent,
       {
          // See if the grand children or decendants are still searching
          if(childTransaction->startSequentialSearch(userAgent,
-            transactionList,
-            mpTransport))
+            transactionList))
          {
             childStillProceeding = TRUE;
 #ifdef LOG_FORKING
@@ -2472,7 +2370,7 @@ UtlBoolean SipTransaction::startSequentialSearch(SipUserAgent& userAgent,
 
          if(mpDnsSrvRecords)
          {
-            recurseStartedNewSearch  = recurseDnsSrvChildren(userAgent, transactionList, mpTransport);
+            recurseStartedNewSearch  = recurseDnsSrvChildren(userAgent, transactionList);
          }
          else
          {
@@ -2519,11 +2417,8 @@ UtlBoolean SipTransaction::startSequentialSearch(SipUserAgent& userAgent,
 }
 
 UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
-                                                 SipTransactionList& transactionList,
-                                                 SIPX_TRANSPORT_DATA* pTransport)
+                                                 SipTransactionList& transactionList)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    // If this is a client transaction requiring DNS SRV lookup
    // and we need to create the children to recurse
    if(!mIsServerTransaction &&
@@ -2618,36 +2513,7 @@ UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
          OsTime expiresTime(expireSeconds, 0);
          expiresTimer->oneshotAfter(expiresTime);
 
-         if (pTransport)
-         {
-            SipTransaction* childTransaction =
-               new SipTransaction(mpRequest,
-               TRUE, // outgoing
-               mIsUaTransaction); // same as parent
-
-            if(childTransaction)
-            {
-               // Set the q values of the child based upon the parent
-               // As DNS SRV is recursed serially the Q values are decremented
-               // by a factor of the record index
-
-               // Inherit the expiration from the parent
-               childTransaction->mExpires = mExpires;
-
-               // Mark this as a DNS SRV child
-               childTransaction->mIsDnsSrvChild = TRUE;
-
-               childTransaction->mIsBusy = mIsBusy;
-
-               // Add it to the list
-               transactionList.addTransaction(childTransaction);
-
-               // Link it in to this parent
-               this->linkChild(*childTransaction);
-            }
-
-         }
-         else if(mpDnsSrvRecords)
+         if(mpDnsSrvRecords)
          {
             int numSrvRecords = 0;
             int maxSrvRecords = userAgent.getMaxSrvRecords();
@@ -2718,7 +2584,6 @@ UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
                numSrvRecords++;
             }
          }
-
          // We got no DNS SRV records back
          else
          {
@@ -2764,8 +2629,7 @@ UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
             if(childTransaction->handleOutgoing(recursedRequest,
                userAgent,
                transactionList,
-               MESSAGE_REQUEST,
-               mpTransport))
+               MESSAGE_REQUEST))
             {
                childRecursed = TRUE;
             }
@@ -3016,8 +2880,7 @@ UtlBoolean SipTransaction::recurseChildren(SipUserAgent& userAgent,
                if(childTransaction->handleOutgoing(recursedRequest,
                   userAgent,
                   transactionList,
-                  MESSAGE_REQUEST,
-                  mpTransport))
+                  MESSAGE_REQUEST))
                {
 
                   numRecursed++;
@@ -3251,11 +3114,8 @@ UtlBoolean SipTransaction::findBestResponse(SipMessage& bestResponse)
 
 UtlBoolean SipTransaction::doResend(SipMessage& resendMessage,
                                     SipUserAgent& userAgent,
-                                    int& nextTimeout,
-                                    SIPX_TRANSPORT_DATA* pTransport)
+                                    int& nextTimeout)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    // Find out how many times we have tried
    nextTimeout = 0;
    int numTries = resendMessage.getTimesSent();
@@ -3416,43 +3276,6 @@ UtlBoolean SipTransaction::doResend(SipMessage& resendMessage,
          }
       }
    } // TCP
-   else if (protocol == OsSocket::CUSTOM)
-   {
-      if(!pTransport->bIsReliable && numTries < SIP_UDP_RESEND_TIMES)
-      {
-         // Try again
-         numTries++;
-         if(userAgent.sendCustom(pTransport, &resendMessage, sendAddress.data(), sendPort))
-         {
-            // Do this after the send so that
-            // the log message is correct
-            resendMessage.setTimesSent(numTries);
-
-            // Schedule a time out
-            if(lastTimeout <
-               userAgent.getFirstResendTimeout())
-            {
-               nextTimeout =
-                  userAgent.getFirstResendTimeout();
-            }
-            else if(lastTimeout <
-               userAgent.getLastResendTimeout())
-            {
-               nextTimeout = lastTimeout * 2;
-            }
-            else
-            {
-               nextTimeout =
-                  userAgent.getLastResendTimeout();
-            }
-
-            resendMessage.setTimesSent(numTries);
-            resendMessage.setResendDuration(nextTimeout);
-
-            sentOk = TRUE;
-         }
-      }
-   }
 
    return(sentOk);
 } // end doResend
@@ -3461,11 +3284,8 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
                                           SipUserAgent& userAgent,
                                           enum messageRelationship relationship,
                                           SipTransactionList& transactionList,
-                                          SipMessage*& delayedDispatchedMessage,
-                                          SIPX_TRANSPORT_DATA* pTransport)
+                                          SipMessage*& delayedDispatchedMessage)
 {
-   if (!mpTransport) mpTransport = pTransport;
-
    if(delayedDispatchedMessage)
    {
       OsSysLog::add(FAC_SIP, PRI_DEBUG,
@@ -3553,10 +3373,6 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
                userAgent.sendTls(response, sendAddress.data(), sendPort);
             }
 #endif
-            else if (sendProtocol >= OsSocket::CUSTOM)
-            {
-               userAgent.sendCustom(NULL, response, sendAddress.data(), sendPort);
-            }
 
 #ifdef TEST_PRINT
             osPrintf("SipTransaction::handleIncoming resending response\n");
@@ -3602,10 +3418,6 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
                userAgent.sendTls(mpAck, sendAddress.data(), sendPort);
             }
 #endif
-            else if (sendProtocol >= OsSocket::CUSTOM)
-            {
-               userAgent.sendCustom(NULL, mpAck, sendAddress.data(), sendPort);
-            }
 
 #ifdef TEST_PRINT
             osPrintf("SipTransaction::handleIncoming resent ACK\n");
@@ -3646,10 +3458,6 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
             userAgent.sendTls(mpAck, sendAddress.data(), sendPort);
          }
 #endif
-         else if (sendProtocol >= OsSocket::CUSTOM)
-         {
-            userAgent.sendCustom(NULL, mpAck, sendAddress.data(), sendPort);
-         }
          mpAck->incrementTimesSent();
          mpAck->touchTransportTime();
 
@@ -3693,8 +3501,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
             handleOutgoing(ack,
                userAgent,
                transactionList,
-               MESSAGE_ACK,
-               mpTransport);
+               MESSAGE_ACK);
 
             shouldDispatch = TRUE;
          }
@@ -3747,8 +3554,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
             handleOutgoing(trying,
                userAgent,
                transactionList,
-               MESSAGE_PROVISIONAL,
-               mpTransport);
+               MESSAGE_PROVISIONAL);
          }
       }
 
@@ -3771,8 +3577,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
          handleOutgoing(cancel,
             userAgent,
             transactionList,
-            MESSAGE_CANCEL,
-            mpTransport);
+            MESSAGE_CANCEL);
       }
 
       // Incoming CANCEL, respond and cancel children
@@ -3834,8 +3639,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
                handleOutgoing(cancelResponse,
                   userAgent,
                   transactionList,
-                  MESSAGE_CANCEL_RESPONSE,
-                  mpTransport);
+                  MESSAGE_CANCEL_RESPONSE);
             }
          }
 
@@ -3851,8 +3655,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
             handleOutgoing(cancelError,
                userAgent,
                transactionList,
-               MESSAGE_CANCEL_RESPONSE,
-               mpTransport);
+               MESSAGE_CANCEL_RESPONSE);
          }
 
       } // End cancel request
@@ -3914,8 +3717,7 @@ UtlBoolean SipTransaction::handleIncoming(SipMessage& incomingMessage,
       relationship,
       transactionList,
       shouldDispatch,
-      delayedDispatchedMessage,
-      mpTransport);
+      delayedDispatchedMessage);
 
 #   ifdef DISPATCH_DEBUG
    OsSysLog::add(FAC_SIP, PRI_DEBUG,
@@ -4056,8 +3858,7 @@ void SipTransaction::cancel(SipUserAgent& userAgent,
             handleOutgoing(cancel,
                userAgent,
                transactionList,
-               MESSAGE_CANCEL,
-               mpTransport);
+               MESSAGE_CANCEL);
          }
 
          //if(mIsRecursing)

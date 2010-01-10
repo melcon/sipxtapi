@@ -20,14 +20,11 @@
 #include "EventValidator.h"
 #include "callbacks.h"
 #include "os/OsFS.h"
-#include "TestExternalTransport.h"
 
 extern SIPX_INST g_hInst1;
 extern SIPX_INST g_hInst2;
 extern SIPX_INST g_hInst3;
 extern SIPX_INST g_hInst5;
-extern SIPX_TRANSPORT ghTransport1;
-extern SIPX_TRANSPORT ghTransport2;
 
 extern bool g_bCallbackCalled;
 
@@ -2064,143 +2061,6 @@ void sipXtapiTestSuite::testSendInfo()
 
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
       CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hReceivingLine), SIPX_RESULT_SUCCESS);
-   }
-   OsTask::delay(TEST_DELAY);
-
-   checkForLeaks();
-}
-
-void sipXtapiTestSuite::testSendInfoExternalTransport()
-{
-   bool bRC;
-   EventValidator validatorCalling("testSendInfoExternalTransport.calling");
-   EventValidator validatorCalled("testSendInfoExternalTransport.called");
-   for (int iStressFactor = 0; iStressFactor<STRESS_FACTOR; iStressFactor++)
-   {
-      printf("\ntestSendInfoExternalTransport (%2d of %2d)", iStressFactor+1, STRESS_FACTOR);
-
-      TransportTask task1(1, "externalTransport1");
-      TransportTask task2(2, "externalTransport2");
-      task1.start();
-      task2.start();
-
-      SIPX_CALL hCall;
-      SIPX_LINE hLine;
-      SIPX_LINE hReceivingLine;
-      void* pCookie = NULL;
-
-      validatorCalling.reset();
-      validatorCalling.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
-      validatorCalled.reset();
-      validatorCalled.ignoreEventCategory(EVENT_CATEGORY_MEDIA);
-
-      // Setup Auto-answer call back
-      resetAutoAnswerCallback();
-      sipxConfigExternalTransportAdd(g_hInst1, &ghTransport1, true, "info-tunnel", "127.0.0.1", -1, transportProc1, "info-token1", "inst1");
-      sipxConfigExternalTransportRouteByUser(ghTransport1, false);
-      sipxConfigExternalTransportAdd(g_hInst2, &ghTransport2, true, "info-tunnel", "127.0.0.1", -1, transportProc2, "info-token2", "inst2");
-      sipxConfigExternalTransportRouteByUser(ghTransport2, false);
-
-      sipxEventListenerAdd(g_hInst1, UniversalEventValidatorCallback, &validatorCalling);
-      sipxEventListenerAdd(g_hInst2, AutoAnswerCallback, NULL);
-      sipxEventListenerAdd(g_hInst2, UniversalEventValidatorCallback, &validatorCalled);
-
-      CPPUNIT_ASSERT_EQUAL(sipxConfigSetUserAgentName(g_hInst1, "sipXtapiTest", false), SIPX_RESULT_SUCCESS);
-
-      sipxLineAdd(g_hInst2, "sip:foo@127.0.0.1:9100", &hReceivingLine, CONTACT_LOCAL);
-      bRC = validatorCalled.waitForLineEvent(hReceivingLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-
-
-      createCall(&hLine, &hCall);
-      bRC = validatorCalling.waitForLineEvent(hLine, LINESTATE_PROVISIONED, LINESTATE_PROVISIONED_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-
-      size_t nDummy;
-      SIPX_CONTACT_ADDRESS aAddress[32];
-      memset(aAddress, 0, 32);
-      sipxConfigGetLocalContacts(g_hInst1, aAddress, 32, &nDummy);
-
-      SIPX_CALL_OPTIONS options;
-      memset(&options, 0, sizeof(SIPX_CALL_OPTIONS));
-      options.cbSize = sizeof(SIPX_CALL_OPTIONS);
-
-      for (size_t j = 0; j < nDummy; j++)
-      {
-         if (strcmp(aAddress[j].cCustomTransportName, "info-tunnel") == 0)
-         {
-            options.contactId = aAddress[j].id;
-
-            sipxCallConnect(hCall, "sip:foo@127.0.0.1:9100", SIPX_FOCUS_MANUAL, &options);
-            break;
-         }
-      }
-      // If no match is found, sipxCallConnect will not be called,
-      // and the following tests will fail.
-
-      // Validate Calling Side
-      bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DIALTONE, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_REMOTE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-
-      // Validate Called Side
-      bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_NEWCALL, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_OFFERING, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_ALERTING, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_CONNECTED, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-
-      // Send Info
-      UtlString payload("abc");
-      pCookie = (void*)50;
-      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
-      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
-      CPPUNIT_ASSERT(bRC);
-
-      // Send Another Info
-      payload = "soylent green is people!";
-      pCookie = (void*)70;
-      sipxCallSendInfo(hCall, "text/plain", payload, payload.length(), pCookie);
-      bRC = validatorCalling.waitForInfoStatusEvent(pCookie, 0, 200, "OK");
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForInfoEvent(g_hAutoAnswerCallbackCall, g_hAutoAnswerCallbackLine, "text/plain", payload, payload.length());
-      CPPUNIT_ASSERT(bRC);
-
-      SIPX_CALL hDestroyedCall = hCall;
-      destroyCall(hDestroyedCall);
-
-      // Validate Calling Side
-      bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalling.waitForCallEvent(hLine, hCall, CALLSTATE_DESTROYED, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-
-      // Validate Called Side
-      bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_DISCONNECTED, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-      bRC = validatorCalled.waitForCallEvent(g_hAutoAnswerCallbackLine, g_hAutoAnswerCallbackCall, CALLSTATE_DESTROYED, CALLSTATE_CAUSE_NORMAL, true);
-      CPPUNIT_ASSERT(bRC);
-
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst1, UniversalEventValidatorCallback, &validatorCalling), SIPX_RESULT_SUCCESS);
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst2, AutoAnswerCallback, NULL), SIPX_RESULT_SUCCESS);
-      CPPUNIT_ASSERT_EQUAL(sipxEventListenerRemove(g_hInst2, UniversalEventValidatorCallback, &validatorCalled), SIPX_RESULT_SUCCESS);
-
-      CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hLine), SIPX_RESULT_SUCCESS);
-      CPPUNIT_ASSERT_EQUAL(sipxLineRemove(hReceivingLine), SIPX_RESULT_SUCCESS);
-
-      sipxConfigExternalTransportRemove(ghTransport1);
-      sipxConfigExternalTransportRemove(ghTransport2);
-
    }
    OsTask::delay(TEST_DELAY);
 

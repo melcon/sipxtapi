@@ -10,8 +10,7 @@ ReceiveCall_LDADD = \
     @SIPXMEDIA_MP_LIBS@ 
 
 ReceiveCall_SOURCES = \
-    src/ReceiveCall.cpp \
-    ../PlaceCall/src/ExternalTransport.cpp
+    src/ReceiveCall.cpp
 
 noinst_HEADERS = \
     include/ReceiveCall.h \

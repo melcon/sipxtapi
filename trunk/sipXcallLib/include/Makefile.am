@@ -168,7 +168,6 @@ nobase_include_HEADERS =  \
     tapi/SipXSubscribe.h \
     tapi/sipXtapi.h \
     tapi/sipXtapiEvents.h \
-    tapi/SipXTransport.h \
     tapi/SipXUtil.h
 
 noinst_HEADERS = \

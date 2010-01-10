@@ -336,8 +336,7 @@ public:
    */
    virtual UtlBoolean send(SipMessage& message,
                            OsMsgQ* responseListener = NULL,
-                           void* responseListenerData = NULL,
-                           SIPX_TRANSPORT_DATA* pTransport = NULL);
+                           void* responseListenerData = NULL);
 
    //! Dispatch the SIP message to the message consumer(s)
    /*! This is typically only used by the SipUserAgent and its sub-system.
@@ -351,8 +350,7 @@ public:
    *        send messages
    */
    virtual void dispatch(SipMessage* message,
-      int messageType = SipMessageEvent::APPLICATION,
-      SIPX_TRANSPORT_DATA* pData = NULL);
+      int messageType = SipMessageEvent::APPLICATION);
 
    void allowMethod(const char* methodName, const bool bAllow = true);
 
@@ -616,20 +614,15 @@ public:
    //! Gets all contact addresses for this user agent
    void getContactAddresses(SIPX_CONTACT_ADDRESS* pContacts[], int &numContacts);
 
-   void prepareVia(SipMessage&          message,
+   void prepareVia(SipMessage& message,
       UtlString&           branchId, 
       OsSocket::IpProtocolSocketType& toProtocol,
       const char*          szTargetAddress, 
-      const int*           piTargetPort,
-      SIPX_TRANSPORT_DATA* pTransport = NULL) ;
+      const int*           piTargetPort);
 
 #ifdef HAVE_SSL    
    SipTlsServer* getTlsServer() { return mSipTlsServer; }
 #endif
-
-   void addExternalTransport(const UtlString tranportName, const SIPX_TRANSPORT_DATA* const pTransport);
-   void removeExternalTransport(const UtlString transportName, const SIPX_TRANSPORT_DATA* const pTransport);
-   const SIPX_TRANSPORT_DATA* const lookupExternalTransport(const UtlString transportName, const UtlString ipAddress) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -668,11 +661,6 @@ protected:
    UtlBoolean sendUdp(SipMessage* message,
       const char* serverAddress,
       int port);
-
-   UtlBoolean sendCustom(SIPX_TRANSPORT_DATA* pTransport, 
-      SipMessage* message, 
-      const char* sendAddress, 
-      const int sendPort);                       
 
    UtlBoolean sendSymmetricUdp(SipMessage& message,
       const char* serverAddress,
@@ -726,7 +714,6 @@ private:
    UtlString mUserAgentHeaderProperties;
    UtlHashBag mMyHostAliases;
    UtlHashBag mMessageObservers;
-   UtlHashMap mExternalTransports;
    OsRWMutex mMessageLogRMutex;
    OsRWMutex mMessageLogWMutex;
 
