@@ -756,7 +756,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAccept");
    UtlBoolean bEnableLocationHeader = FALSE;
-   SIPX_CONTACT_ID contactId = 0;
+   SIPX_CONTACT_ID contactId = SIPX_AUTOMATIC_CONTACT_ID;
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
    char* pLocationHeader = NULL;
 
@@ -780,7 +780,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
       hCall, bEnableLocationHeader, contactId, 
       bSendSdp ? "true" : "false");
 
-   if (contactId < 0)
+   if (contactId < SIPX_AUTOMATIC_CONTACT_ID)
    {
       // wrong contactID
       return SIPX_RESULT_INVALID_ARGS;
@@ -1150,7 +1150,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
 
    // default values if options are not passed
    UtlBoolean bEnableLocationHeader = FALSE;
-   SIPX_CONTACT_ID contactId = 0; // passed to CallManager
+   SIPX_CONTACT_ID contactId = SIPX_AUTOMATIC_CONTACT_ID; // passed to CallManager
 
    if (options)
    {
@@ -1177,7 +1177,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
       return SIPX_RESULT_INVALID_ARGS;
    }
 
-   if (contactId < 0)
+   if (contactId < SIPX_AUTOMATIC_CONTACT_ID)
    {
       return SIPX_RESULT_INVALID_ARGS;
    }

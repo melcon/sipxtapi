@@ -4765,9 +4765,42 @@ SipTransaction::whatRelation(const SipMessage& message,
       UtlBoolean branchIdMatches = mBranchId.compareTo(msgBranch) == 0;
       UtlBoolean mustCheckTags;
 
-      mustCheckTags = FALSE;
-      toTagMatches  = branchIdMatches;
-      fromTagMatches = branchIdMatches;
+      // If the branch prefix is set, we can assume that
+      // all we need to look at is the branch parameter to
+      // determine if this is the same transaction or not.
+      // ACK to INVITEs with 200 response are really a different
+      // transaction.  For convenience we consider them to be
+      // the same.  CANCLE is also a different transaction
+      // that we store in the same SipTransaction object.
+      if(!branchPrefixSet ||
+         (!isResponse &&
+         (msgMethod.compareTo(SIP_CANCEL_METHOD) == 0 ||
+         (msgMethod.compareTo(SIP_ACK_METHOD) == 0 &&
+         lastFinalResponseCode < SIP_3XX_CLASS_CODE &&
+         lastFinalResponseCode >= SIP_2XX_CLASS_CODE) ||
+         (!mIsServerTransaction &&
+         mTransactionState == TRANSACTION_LOCALLY_INIITATED))))
+      {
+         // Avoid looking at the tags as it is expensive to
+         // parse the To and From fields into a Url object.
+         mustCheckTags = TRUE;
+
+         Url msgFrom;
+         UtlString msgFromTag;
+         UtlString fromTag;
+         message.getFromUrl(msgFrom);
+         msgFrom.getFieldParameter("tag", msgFromTag);
+
+         Url *pFromUrl = (Url *)&mFromField;
+         pFromUrl->getFieldParameter("tag", fromTag);
+         fromTagMatches = msgFromTag.compareTo(fromTag) == 0;
+      }
+      else
+      {
+         mustCheckTags = FALSE;
+         toTagMatches  = branchIdMatches;
+         fromTagMatches = branchIdMatches;
+      }
 
       // From field tag matches
       if(fromTagMatches)
