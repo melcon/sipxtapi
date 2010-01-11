@@ -52,6 +52,8 @@ typedef enum
  *
  * This class doesn't contain userId part to make it usable for constructing contacts
  * with any userId.
+ *
+ * This class is immutable.
  */
 class SipContact : public UtlCopyableContainable
 {
@@ -81,8 +83,6 @@ public:
    SipContact(const SipContact& rhs);
 
    /* ============================ MANIPULATORS ============================== */
-
-   SipContact& operator=(const SipContact& rhs);
 
   /**
    * Get the ContainableType for a UtlContainable-derived class.
@@ -122,7 +122,7 @@ public:
    int getContactId() const { return m_contactId; }
    SIP_CONTACT_TYPE getContactType() const { return m_contactType; }
    SIP_TRANSPORT_TYPE getTransportType() const { return m_transportType; }
-   UtlString getIpAddress() const { return m_ipAddress; }
+   void getIpAddress(UtlString& ipAddress) const { ipAddress = m_ipAddress; }
    int getPort() const { return m_port; }
 
    /* ============================ INQUIRY =================================== */
@@ -132,6 +132,8 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+
+   SipContact& operator=(const SipContact& rhs);
 
    int m_contactId; ///< unique id assigned to contact
    SIP_CONTACT_TYPE m_contactType; ///< type of contact - if it comes from NAT, local adapter

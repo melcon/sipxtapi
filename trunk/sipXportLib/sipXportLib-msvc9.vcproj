@@ -425,6 +425,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\os\OsNetworkAdapterInfo.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\os\OsPathBase.cpp"
 				>
 			</File>
@@ -987,6 +991,10 @@
 			</File>
 			<File
 				RelativePath=".\include\os\OsNatSocketBaseImpl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\OsNetworkAdapterInfo.h"
 				>
 			</File>
 			<File
