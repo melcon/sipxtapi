@@ -104,6 +104,7 @@
                 <File RelativePath=".\src\net\SdpBody.cpp"/>
                 <File RelativePath=".\src\net\SipCallIdGenerator.cpp"/>
                 <File RelativePath=".\src\net\SipClient.cpp"/>
+                <File RelativePath=".\src\net\SipContact.cpp"/>
                 <File RelativePath=".\src\net\SipContactDb.cpp"/>
                 <File RelativePath=".\src\net\SipDialog.cpp"/>
                 <File RelativePath=".\src\net\SipDialogEvent.cpp"/>
@@ -208,6 +209,7 @@
                 <File RelativePath="include\net\SdpBody.h"/>
                 <File RelativePath=".\include\net\SipCallIdGenerator.h"/>
                 <File RelativePath="include\net\SipClient.h"/>
+                <File RelativePath=".\include\net\SipContact.h"/>
                 <File RelativePath="include\net\SipContactDb.h"/>
                 <File RelativePath="include\net\SipDialog.h"/>
                 <File RelativePath="include\net\SipDialogMgr.h"/>

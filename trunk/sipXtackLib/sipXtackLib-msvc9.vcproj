@@ -430,6 +430,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\net\SipContact.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\net\SipContactDb.cpp"
 					>
 				</File>
@@ -808,6 +812,10 @@
 				</File>
 				<File
 					RelativePath="include\net\SipClient.h"
+					>
+				</File>
+				<File
+					RelativePath=".\include\net\SipContact.h"
 					>
 				</File>
 				<File

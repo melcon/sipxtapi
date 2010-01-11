@@ -863,7 +863,7 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
 
    UtlString localIp;
    int localPort;
-   SIPXSTACK_TRANSPORT_TYPE transport = SipTransport::getSipTransport(requestUri);
+   SIP_TRANSPORT_TYPE transport = SipTransport::getSipTransport(requestUri);
 
    m_pSipUserAgent->getLocalAddress(&localIp, &localPort, (SIPX_TRANSPORT_TYPE)transport);
    regMessage.setLocalIp(localIp);

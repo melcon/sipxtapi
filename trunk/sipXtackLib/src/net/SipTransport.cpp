@@ -36,31 +36,31 @@
 
 /* ============================ MANIPULATORS ============================== */
 
-SIPXSTACK_TRANSPORT_TYPE SipTransport::getSipTransport(const Url& url)
+SIP_TRANSPORT_TYPE SipTransport::getSipTransport(const Url& url)
 {
    return getSipTransport(url.toString());
 }
 
-SIPXSTACK_TRANSPORT_TYPE SipTransport::getSipTransport(const UtlString& strUrl)
+SIP_TRANSPORT_TYPE SipTransport::getSipTransport(const UtlString& strUrl)
 {
-   SIPXSTACK_TRANSPORT_TYPE transport = SIPXSTACK_TRANSPORT_UDP;
+   SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_UDP;
 
    UtlString lowerStrUrl(strUrl);
    lowerStrUrl.toLower();
 
    if (lowerStrUrl.contains("sips:") || lowerStrUrl.contains("transport=tls"))
    {
-      transport = SIPXSTACK_TRANSPORT_TLS;
+      transport = SIP_TRANSPORT_TLS;
    }
    if (lowerStrUrl.contains("transport=tcp"))
    {
-      transport = SIPXSTACK_TRANSPORT_TCP;
+      transport = SIP_TRANSPORT_TCP;
    }
 
    return transport;
 }
 
-SIPXSTACK_TRANSPORT_TYPE SipTransport::getSipTransport(const char* szUrl)
+SIP_TRANSPORT_TYPE SipTransport::getSipTransport(const char* szUrl)
 {
    UtlString strUrl(szUrl);
    return getSipTransport(strUrl);
