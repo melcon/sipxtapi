@@ -39,6 +39,7 @@ nobase_include_HEADERS =  \
     net/SdpBody.h \
     net/SipCallIdGenerator.h \
     net/SipClient.h \
+    net/SipContact.h \
     net/SipContactDb.h \
     net/SipDialog.h \
     net/SipDialogEvent.h \

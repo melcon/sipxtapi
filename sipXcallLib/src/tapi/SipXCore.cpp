@@ -179,9 +179,6 @@ const char* sipxContactTypeToString(SIPX_CONTACT_TYPE type)
    case CONTACT_RELAY:
       szResult = MAKESTR(CONTACT_RELAY);
       break;
-   case CONTACT_CONFIG:
-      szResult = MAKESTR(CONTACT_CONFIG);
-      break;
    default:
       break;
    }

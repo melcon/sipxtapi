@@ -63,6 +63,7 @@ libsipXtack_la_SOURCES =  \
     net/SdpBody.cpp \
     net/SipCallIdGenerator.cpp \
     net/SipClient.cpp \
+    net/SipContact.cpp \
     net/SipContactDb.cpp \
     net/SipDialog.cpp \
     net/SipDialogEvent.cpp \

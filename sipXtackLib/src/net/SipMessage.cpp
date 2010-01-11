@@ -2074,7 +2074,7 @@ void SipMessage::addVia(const char* domainName,
    // Default the protocol if not set
    else
    {
-      viaField.append(SIP_TRANSPORT_TCP);
+      viaField.append(SIP_TRANSPORT_TCP_STR);
    }
    viaField.append(" ");
    
@@ -3010,16 +3010,16 @@ UtlBoolean SipMessage::getResponseSendAddress(UtlString& address,
 void SipMessage::convertProtocolStringToEnum(const char* protocolString,
                         OsSocket::IpProtocolSocketType& protocolEnum)
 {
-    if(strcasecmp(protocolString, SIP_TRANSPORT_UDP) == 0)
+    if(strcasecmp(protocolString, SIP_TRANSPORT_UDP_STR) == 0)
     {
         protocolEnum = OsSocket::UDP;
     }
-    else if(strcasecmp(protocolString, SIP_TRANSPORT_TCP) == 0)
+    else if(strcasecmp(protocolString, SIP_TRANSPORT_TCP_STR) == 0)
     {
         protocolEnum = OsSocket::TCP;
     }
 
-    else if(strcasecmp(protocolString, SIP_TRANSPORT_TLS) == 0)
+    else if(strcasecmp(protocolString, SIP_TRANSPORT_TLS_STR) == 0)
     {
         protocolEnum = OsSocket::SSL_SOCKET;
     }

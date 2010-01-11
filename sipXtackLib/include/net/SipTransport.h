@@ -32,16 +32,16 @@ class UtlString;
 // TYPEDEFS
 
 /**
- * SIPXSTACK_TRANSPORT_TYPE defines various protocols use for signaling 
+ * SIP_TRANSPORT_TYPE defines various protocols use for signaling 
  * transport.
+ * Keep in sync with SIPX_TRANSPORT_TYPE.
  */
 typedef enum
 {
-   SIPXSTACK_TRANSPORT_UDP = 1,  /**< Indicator for a UDP socket type. */
-   SIPXSTACK_TRANSPORT_TCP = 0,  /**< Indicator for a TCP socket type. */ 
-   SIPXSTACK_TRANSPORT_TLS = 3,  /**< Indicator for a TLS socket type. */
-   SIPXSTACK_TRANSPORT_CUSTOM = 4 /**< Indicator for a custom external transport. */
-} SIPXSTACK_TRANSPORT_TYPE;
+   SIP_TRANSPORT_UDP = 0,  /**< Indicator for a UDP socket type. */
+   SIP_TRANSPORT_TCP = 1,  /**< Indicator for a TCP socket type. */ 
+   SIP_TRANSPORT_TLS = 2,  /**< Indicator for a TLS socket type. */
+} SIP_TRANSPORT_TYPE;
 
 // MACROS
 // GLOBAL VARIABLES
@@ -55,9 +55,9 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
-   static SIPXSTACK_TRANSPORT_TYPE getSipTransport(const Url& url);
-   static SIPXSTACK_TRANSPORT_TYPE getSipTransport(const UtlString& strUrl);
-   static SIPXSTACK_TRANSPORT_TYPE getSipTransport(const char* szUrl);
+   static SIP_TRANSPORT_TYPE getSipTransport(const Url& url);
+   static SIP_TRANSPORT_TYPE getSipTransport(const UtlString& strUrl);
+   static SIP_TRANSPORT_TYPE getSipTransport(const char* szUrl);
 
    /* ============================ INQUIRY =================================== */
 

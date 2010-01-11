@@ -478,7 +478,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
       keepAliveSecs);
 
    SIPX_RESULT rc = SIPX_RESULT_INVALID_ARGS;
-   UtlString localSocket = "0.0.0.0";
+   UtlString localIpAddress = "0.0.0.0";
    SIPX_INSTANCE_DATA* pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
 
    assert(pInst);
@@ -497,7 +497,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
          if (pContact)
          {
             // set IP address to that of contact
-            localSocket = pContact->cIpAddress;
+            localIpAddress = pContact->cIpAddress;
          }
       }
 
@@ -505,7 +505,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
       {
       case SIPX_KEEPALIVE_CRLF:
          // connect and send CRLF
-         if (pInst->pSipUserAgent->addCrLfKeepAlive(localSocket, 
+         if (pInst->pSipUserAgent->addCrLfKeepAlive(localIpAddress, 
                   remoteIp, remotePort, keepAliveSecs, pInst->pKeepaliveEventListener))
          {
             rc = SIPX_RESULT_SUCCESS;
@@ -516,7 +516,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
          }
          break;
       case SIPX_KEEPALIVE_STUN:
-         if (pInst->pSipUserAgent->addStunKeepAlive(localSocket,
+         if (pInst->pSipUserAgent->addStunKeepAlive(localIpAddress,
                   remoteIp, remotePort, keepAliveSecs, pInst->pKeepaliveEventListener))
          {
             rc = SIPX_RESULT_SUCCESS;
@@ -527,7 +527,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
          }
          break;
       case SIPX_KEEPALIVE_SIP_OPTIONS:
-         if (pInst->pSipUserAgent->addSipKeepAlive(localSocket,
+         if (pInst->pSipUserAgent->addSipKeepAlive(localIpAddress,
                   remoteIp, remotePort, SIP_OPTIONS_METHOD, keepAliveSecs, pInst->pKeepaliveEventListener))
          {
             rc = SIPX_RESULT_SUCCESS;

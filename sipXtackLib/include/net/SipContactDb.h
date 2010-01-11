@@ -52,15 +52,6 @@ public:
      */   
     const bool addContact(SIPX_CONTACT_ADDRESS& contact);
 
-
-    /**
-     * Searches for a similar contact and the datebase and updates the
-     * address/port.
-     * 
-     * @param contact Reference to a contact structure
-     */   
-    const bool updateContact(SIPX_CONTACT_ADDRESS& contact);
-
     /**
      * Removes a contact record from the DB.  
      *
@@ -82,17 +73,6 @@ public:
      * @param id The IP Address of the record to find.
      */    
 	SIPX_CONTACT_ADDRESS* find(const UtlString szIpAddress, const int port, SIPX_CONTACT_TYPE type);
-
-    /**
-     * Finds the first contact by a given contact type
-     */
-    SIPX_CONTACT_ADDRESS* findByType(SIPX_CONTACT_TYPE type, SIPX_TRANSPORT_TYPE transportType) ;
-
-    /**
-     * Return a transport type given the specified transport name.  The name 
-     * could be tls, tcp, udp, or a custom transport type.
-     */
-    SIPX_TRANSPORT_TYPE findTransportType(const char* transportName) ;
 
     /*
      * Find the local contact from a contact id.
@@ -122,24 +102,12 @@ public:
     void getAllForAdapter(const SIPX_CONTACT_ADDRESS* contacts[],
                           const char* szAdapter,
                           int& actualNum,
-                          SIPX_CONTACT_TYPE typeFilter = CONTACT_ALL) const;
+                          SIPX_CONTACT_TYPE typeFilter = CONTACT_AUTO) const;
                                     
-    const bool getRecordForAdapter(SIPX_CONTACT_ADDRESS& contact,
-                                   const char* szAdapter,
-                                   const SIPX_CONTACT_TYPE contactFilter) const;
-
-    const bool getRecordForAdapter(SIPX_CONTACT_ADDRESS& contact,
-                                   const char* szAdapter,
-                                   const SIPX_CONTACT_TYPE contactFilter,
-                                   const SIPX_TRANSPORT_TYPE transportFilter) const;
-
     
-    void dump(UtlString& output) ;
-
 /* ============================ MANIPULATORS ============================== */
 
     void enableTurn(bool bEnable) ;
-
 
 /* ============================ ACCESSORS ================================= */
 

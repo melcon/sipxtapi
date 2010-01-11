@@ -432,9 +432,6 @@ void dumpLocalContacts(SIPX_INST hInst)
                 case CONTACT_RELAY:
                     szType = "RELAY" ;
                     break ;
-                case CONTACT_CONFIG:
-                    szType = "CONFIG" ;
-                    break ;
             }
             printf("<-> Type %s, Interface: %s, Ip %s, Port %d\n",
                     szType, contacts[i].cInterface, contacts[i].cIpAddress,

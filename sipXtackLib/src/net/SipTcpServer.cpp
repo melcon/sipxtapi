@@ -168,7 +168,7 @@ OsStatus SipTcpServer::createServerSocket(const char* szBindAddr, int& port, con
 
 // Copy constructor
 SipTcpServer::SipTcpServer(const SipTcpServer& rSipTcpServer) :
-    SipProtocolServerBase(NULL, SIP_TRANSPORT_TCP, "SipTcpServer-%d")
+    SipProtocolServerBase(NULL, SIP_TRANSPORT_TCP_STR, "SipTcpServer-%d")
 {
 }
 

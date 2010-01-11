@@ -324,9 +324,10 @@ class SipRegInfoBody;        // for RFC 3680
 #define SIP_MULTIFIELD_SEPARATOR ","
 #define SIP_SINGLE_SPACE " "
 #define SIP_MULTIFIELD_SEPARATORS "\t ,"
-#define SIP_TRANSPORT_UDP "UDP"
-#define SIP_TRANSPORT_TCP "TCP"
-#define SIP_TRANSPORT_TLS "TLS"
+#define SIP_TRANSPORT "transport"
+#define SIP_TRANSPORT_UDP_STR "UDP"
+#define SIP_TRANSPORT_TCP_STR "TCP"
+#define SIP_TRANSPORT_TLS_STR "TLS"
 #define SIP_URL_TYPE "SIP:"
 #define SIPS_URL_TYPE "SIPS:"
 #define SIP_DEFAULT_MAX_FORWARDS 70

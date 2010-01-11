@@ -169,7 +169,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
 
    if (mTcpPort != PORT_NONE)
    {
-      mSipTcpServer = new SipTcpServer(mTcpPort, this, SIP_TRANSPORT_TCP, 
+      mSipTcpServer = new SipTcpServer(mTcpPort, this, SIP_TRANSPORT_TCP_STR, 
          "SipTcpServer-%d", bUseNextAvailablePort, bindIpAddress);
       mSipTcpServer->startListener();
       mTcpPort = mSipTcpServer->getServerPort();
@@ -987,7 +987,7 @@ UtlBoolean SipUserAgent::sendSymmetricUdp(SipMessage& message,
       bestKnownAddress, bestKnownPort, 
       serverAddress, &port) ;
    message.removeLastVia() ;
-   message.addVia(bestKnownAddress, bestKnownPort, SIP_TRANSPORT_UDP);
+   message.addVia(bestKnownAddress, bestKnownPort, SIP_TRANSPORT_UDP_STR);
    message.setLastViaTag("", "rport");
 
    // Send away
@@ -1065,16 +1065,16 @@ UtlBoolean SipUserAgent::sendStatelessResponse(SipMessage& rresponse)
       sendPort = receivedPort;
    }
 
-   if(sendProtocol.compareTo(SIP_TRANSPORT_UDP, UtlString::ignoreCase) == 0)
+   if(sendProtocol.compareTo(SIP_TRANSPORT_UDP_STR, UtlString::ignoreCase) == 0)
    {
       sendSucceeded = sendUdp(&responseCopy, sendAddress.data(), sendPort);
    }
-   else if(sendProtocol.compareTo(SIP_TRANSPORT_TCP, UtlString::ignoreCase) == 0)
+   else if(sendProtocol.compareTo(SIP_TRANSPORT_TCP_STR, UtlString::ignoreCase) == 0)
    {
       sendSucceeded = sendTcp(&responseCopy, sendAddress.data(), sendPort);
    }
 #ifdef HAVE_SSL
-   else if(sendProtocol.compareTo(SIP_TRANSPORT_TLS, UtlString::ignoreCase) == 0)
+   else if(sendProtocol.compareTo(SIP_TRANSPORT_TLS_STR, UtlString::ignoreCase) == 0)
    {
       sendSucceeded = sendTls(&responseCopy, sendAddress.data(), sendPort);
    }
@@ -3962,11 +3962,7 @@ void SipUserAgent::setIncludePlatformInUserAgentName( const UtlBoolean bInclude 
 
 const bool SipUserAgent::addContactAddress(SIPX_CONTACT_ADDRESS& contactAddress)
 {
-   bool bRC = mContactDb.updateContact(contactAddress) ;
-   if (!bRC)
-      bRC = mContactDb.addContact(contactAddress);
-
-   return bRC ;
+   return mContactDb.addContact(contactAddress);
 }
 
 void SipUserAgent::getContactAddresses(SIPX_CONTACT_ADDRESS* pContacts[], int &numContacts)

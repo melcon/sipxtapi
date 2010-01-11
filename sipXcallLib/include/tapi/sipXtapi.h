@@ -566,7 +566,7 @@ enum SIPX_SRTP_LEVEL
 
 class SIPX_SECURITY_ATTRIBUTES
 {
-  public:
+public:
     friend class SecurityHelper;
     
     SIPX_SECURITY_ATTRIBUTES() 
@@ -628,7 +628,7 @@ class SIPX_SECURITY_ATTRIBUTES
     
      
     const char* getCertDbLocation() const { return dbLocation; }
-  private:
+private:
     SIPX_SRTP_LEVEL nSrtpLevel;
     char szSrtpKey[MAX_SRTP_KEY_LENGTH];
     int  nSrtpKeyLength;    
@@ -663,26 +663,24 @@ class SIPX_SECURITY_ATTRIBUTES
  */
 typedef enum
 {
-    CONTACT_LOCAL = 0,      /**< Local address for a particular interface */
-    CONTACT_NAT_MAPPED, /**< NAT mapped address (e.g. STUN)           */
-    CONTACT_RELAY,      /**< Relay address (e.g. TURN)                */
-    CONTACT_CONFIG,     /**< Manually configured address              */
-
-    CONTACT_AUTO = -1,  /**< Automatic contact selection; used for API 
+    CONTACT_AUTO = 0,   /**< Automatic contact selection; used for API 
                              parameters */
-    CONTACT_ALL = -2
+    CONTACT_LOCAL,      /**< Local address for a particular interface */
+    CONTACT_NAT_MAPPED, /**< NAT mapped address (e.g. STUN)           */
+    CONTACT_RELAY      /**< Relay address (e.g. TURN)                */
 } SIPX_CONTACT_TYPE;
 
 /**
  * SIPX_TRANSPORT_TYPE defines various protocols use for signaling 
  * transport.  The SIPX_TRANSPORT_TYPE is return in contact 
  * addresses.
+ * Keep in sync with SIP_TRANSPORT_TYPE.
  */
 typedef enum
 {
-    TRANSPORT_UDP = 1,  /**< Indicator for a UDP socket type. */
-    TRANSPORT_TCP = 0,  /**< Indicator for a TCP socket type. */ 
-    TRANSPORT_TLS = 3,  /**< Indicator for a TLS socket type. */
+    TRANSPORT_UDP = 0,  /**< Indicator for a UDP socket type. */
+    TRANSPORT_TCP,  /**< Indicator for a TCP socket type. */ 
+    TRANSPORT_TLS,  /**< Indicator for a TLS socket type. */
 } SIPX_TRANSPORT_TYPE;
 
 /**
@@ -3486,8 +3484,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST hInst,
  * @param hInst Instance pointer obtained by sipxInitialize
  * @param contactId Contact ID used for the keep alive.  sipXtapi will
  *        remove keep alives from the interface identified by the 
- *        contactId.  Specify a contactId of -1 to remove keep alives from
- *        all interfaces.
+ *        contactId.
  * @param type Designates the method of keep alives.
  * @param remoteIp Remote IP address used to send keep alives.  The caller is
  *        responsible for converting hostnames to IP address.  This value must

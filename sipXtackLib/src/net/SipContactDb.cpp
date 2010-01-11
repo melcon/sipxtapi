@@ -90,61 +90,6 @@ const bool SipContactDb::addContact(SIPX_CONTACT_ADDRESS& contact)
     return bRet;
 }
 
-const bool SipContactDb::updateContact(SIPX_CONTACT_ADDRESS& contact)
-{
-    bool bFound = false ;
-    OsLock lock(mLock);
-    UtlHashMapIterator iterator(mContacts);
-    UtlVoidPtr* pValue = NULL;
-    SIPX_CONTACT_ADDRESS* pContact = NULL;
-    UtlInt* pKey;
-    UtlString replacedAddress ;
-    int replacedPort ;
-
-    // Pass one: replace the exact match
-    while (pKey = (UtlInt*)iterator())
-    {
-        pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-        assert(pValue);
-        
-        pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-        assert(pContact) ;
-        if (    (pContact->eContactType == contact.eContactType) &&
-                (pContact->eTransportType == contact.eTransportType) &&
-                (strcasecmp(pContact->cInterface, contact.cInterface) == 0) )
-        {
-            bFound = true ;
-            replacedAddress = pContact->cIpAddress ;
-            replacedPort = pContact->iPort ;
-            strcpy(pContact->cIpAddress, contact.cIpAddress) ;            
-            pContact->iPort = contact.iPort ;
-            break ;
-        }
-    }
-
-    // Pass two: replace anything else that had the same IP/port combo.  
-    // This pass adjusted relay and external transport duplicates.
-    if (bFound)
-    {
-        while (pKey = (UtlInt*)iterator())
-        {
-            pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-            assert(pValue);
-            
-            pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-            assert(pContact) ;
-            if ((   replacedAddress.compareTo(pContact->cIpAddress) == 0) &&
-                    (replacedPort == pContact->iPort))
-            {
-                strcpy(pContact->cIpAddress, contact.cIpAddress) ;            
-                pContact->iPort = contact.iPort ;
-            }
-        }
-    }
-
-    return bFound ;
-}
-
 const UtlBoolean SipContactDb::deleteContact( const SIPX_CONTACT_ID id )
 {
     OsLock lock(mLock);
@@ -166,67 +111,6 @@ SIPX_CONTACT_ADDRESS* SipContactDb::find(SIPX_CONTACT_ID id)
     
     return pContact;
 }
-
-
-// Finds the first contact by a given contact type
-SIPX_CONTACT_ADDRESS* SipContactDb::findByType(SIPX_CONTACT_TYPE type, SIPX_TRANSPORT_TYPE transportType) 
-{
-    OsLock lock(mLock);
-    UtlHashMapIterator iterator(mContacts);
-    SIPX_CONTACT_ADDRESS* pRC = NULL ;
-
-    UtlVoidPtr* pValue = NULL;
-    SIPX_CONTACT_ADDRESS* pContact = NULL;
-    UtlInt* pKey;
-    while (pKey = (UtlInt*)iterator())
-    {
-        pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-        assert(pValue);
-        
-        pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-        assert(pContact) ;
-
-        if (transportType != OsSocket::UNKNOWN && (transportType == pContact->eTransportType))
-        {
-            if (pContact->eContactType == type)
-            {
-				   pRC = pContact ;
-				   break ;
-            }
-        }
-    }
-    return pRC ;
-}
-
-
-// Return a transport type given the specified transport name.  The name 
-// could be tls, tcp, udp, or a custom transport type.
-SIPX_TRANSPORT_TYPE SipContactDb::findTransportType(const char* transportName) 
-{
-    SIPX_TRANSPORT_TYPE eType = TRANSPORT_UDP ;
-
-    assert(transportName) ;
-    if (transportName && strlen(transportName)) 
-    {
-        UtlString transport(transportName) ;
- 
-        if (transport.compareTo("tcp", UtlString::ignoreCase) == 0)
-        {
-            eType = TRANSPORT_TCP ;
-        }
-        else if (transport.compareTo("udp", UtlString::ignoreCase)== 0)
-        {
-            eType = TRANSPORT_UDP ;
-        }
-        else if (transport.compareTo("tls", UtlString::ignoreCase)== 0)
-        {
-            eType = TRANSPORT_TLS ;
-        }
-    }
-
-    return eType ;
-}
-
 
 // Find the local contact from a contact id
 SIPX_CONTACT_ADDRESS* SipContactDb::getLocalContact(SIPX_CONTACT_ID id)
@@ -323,78 +207,6 @@ void SipContactDb::getAll(SIPX_CONTACT_ADDRESS* contacts[], int& actualNum) cons
     }
     return;
 }
-
-
-const bool SipContactDb::getRecordForAdapter(SIPX_CONTACT_ADDRESS& contact,
-                                             const char* szAdapter,
-                                             const SIPX_CONTACT_TYPE contactFilter) const
-{
-    bool bRet = false;
-
-    OsLock lock(mLock);
-    UtlHashMapIterator iterator(mContacts);
-
-    UtlVoidPtr* pValue = NULL;
-    SIPX_CONTACT_ADDRESS* pContact = NULL;
-    UtlInt* pKey;
-    while (pKey = (UtlInt*)iterator())
-    {
-        pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-        assert(pValue);
-        
-        pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-        
-        if (0 != strcmp(pContact->cInterface, szAdapter))
-        {
-            continue;
-        }
-        if (pContact->eContactType != contactFilter)
-        {
-            continue;
-        }
-
-        contact = *pContact;
-        bRet = true;
-        break;
-    }
-    return bRet;
-}
-
-const bool SipContactDb::getRecordForAdapter(SIPX_CONTACT_ADDRESS& contact,
-                                             const char* szAdapter,
-                                             const SIPX_CONTACT_TYPE contactFilter,
-                                             const SIPX_TRANSPORT_TYPE transportFilter) const
-{
-    bool bRet = false;
-
-    OsLock lock(mLock);
-    UtlHashMapIterator iterator(mContacts);
-
-    UtlVoidPtr* pValue = NULL;
-    SIPX_CONTACT_ADDRESS* pContact = NULL;
-    UtlInt* pKey;
-    while (pKey = (UtlInt*)iterator())
-    {
-        pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-        assert(pValue);
-        
-        pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-        
-        if (0 != strcmp(pContact->cInterface, szAdapter))
-            continue;
-
-        if (pContact->eContactType != contactFilter)
-            continue;
-
-        if (pContact->eTransportType != transportFilter)
-            continue;
-
-        contact = *pContact;
-        bRet = true;
-        break;
-    }
-    return bRet;
-}
                                              
 void SipContactDb::getAllForAdapter(const SIPX_CONTACT_ADDRESS* contacts[],
                                     const char* szAdapter,
@@ -420,7 +232,7 @@ void SipContactDb::getAllForAdapter(const SIPX_CONTACT_ADDRESS* contacts[],
         {
             continue;
         }
-        if (contactFilter != CONTACT_ALL && pContact->eContactType != contactFilter)
+        if (contactFilter != CONTACT_AUTO && pContact->eContactType != contactFilter)
         {
             continue;
         }
@@ -536,38 +348,6 @@ const bool SipContactDb::assignContactId(SIPX_CONTACT_ADDRESS& contact)
     mNextContactId++;
     
     return true;
-}
-
-void SipContactDb::dump(UtlString& output) 
-{
-    OsLock lock(mLock);
-    UtlHashMapIterator iterator(mContacts);
-
-    output.append("\nSipContactDB Dump:\n") ;
-
-    UtlVoidPtr* pValue = NULL;
-    SIPX_CONTACT_ADDRESS* pContact = NULL;
-    UtlInt* pKey;
-    int index = 0; // array index
-    while (pKey = (UtlInt*)iterator())
-    {
-        pValue = (UtlVoidPtr*)mContacts.findValue(pKey);
-        assert(pValue);        
-        pContact = (SIPX_CONTACT_ADDRESS*)pValue->getValue();
-
-        char cFoo[512] ;
-        SNPRINTF(cFoo, sizeof(cFoo), "   %d %d %d %s/%s:%d\n",
-                pContact->id,
-                pContact->eContactType,
-                pContact->eTransportType,
-                pContact->cInterface,
-                pContact->cIpAddress,
-                pContact->iPort);
-        
-        output.append(cFoo) ;
-    }
-
-    return;
 }
 
 /* ============================ TESTING =================================== */

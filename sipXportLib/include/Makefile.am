@@ -65,6 +65,7 @@ nobase_include_HEADERS = \
     os/OsNatDatagramSocket.h \
     os/OsNatKeepaliveListener.h \
     os/OsNatSocketBaseImpl.h \
+    os/OsNetworkAdapterInfo.h \
     os/OsNotification.h \
     os/OsPathBase.h \
     os/OsProcess.h \

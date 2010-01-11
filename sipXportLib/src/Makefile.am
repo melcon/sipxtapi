@@ -76,6 +76,7 @@ libsipXport_la_SOURCES =  \
     os/OsNatAgentTask.cpp \
     os/OsNatDatagramSocket.cpp \
     os/OsNatSocketBaseImpl.cpp \
+    os/OsNetworkAdapterInfo.cpp \
     os/OsPathBase.cpp \
     os/OsProcessBase.cpp \
     os/OsProcessIteratorBase.cpp \
