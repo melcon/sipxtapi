@@ -101,6 +101,7 @@
             <File RelativePath=".\src\os\OsNameDb.cpp"/>
             <File RelativePath=".\src\os\OsNameDbInit.cpp"/>
             <File RelativePath=".\src\os\OsNatSocketBaseImpl.cpp"/>
+            <File RelativePath=".\src\os\OsNetworkAdapterInfo.cpp"/>
             <File RelativePath=".\src\os\OsPathBase.cpp"/>
             <File RelativePath=".\src\os\Wnt\OsPathWnt.cpp"/>
             <File RelativePath=".\src\os\osPrintf.cpp"/>
@@ -243,6 +244,7 @@
             <File RelativePath=".\include\os\OsNameDbInit.h"/>
             <File RelativePath=".\include\os\OsNatKeepaliveListener.h"/>
             <File RelativePath=".\include\os\OsNatSocketBaseImpl.h"/>
+            <File RelativePath=".\include\os\OsNetworkAdapterInfo.h"/>
             <File RelativePath="include\os\OsNotification.h"/>
             <File RelativePath="include\os\OsPathBase.h"/>
             <File RelativePath="include\os\wnt\OsPathWnt.h"/>

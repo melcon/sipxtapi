@@ -63,21 +63,6 @@ SipContact::SipContact(const SipContact& rhs)
 
 /* ============================ MANIPULATORS ============================== */
 
-SipContact& SipContact::operator=(const SipContact& rhs)
-{
-   if (this == &rhs) // handle the assignment to self case
-      return *this;
-   else
-   {
-      m_contactId = rhs.m_contactId;
-      m_contactType = rhs.m_contactType;
-      m_transportType = rhs.m_transportType;
-      m_ipAddress = rhs.m_ipAddress;
-      m_port = rhs.m_port;
-   }
-   return *this;
-}
-
 UtlContainableType SipContact::getContainableType() const
 {
    return SipContact::TYPE;
