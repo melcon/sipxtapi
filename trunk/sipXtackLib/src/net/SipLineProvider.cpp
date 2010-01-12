@@ -70,13 +70,8 @@ UtlBoolean SipLineProvider::getCredentialForMessage(const SipMessage& sipRespons
       UtlBoolean foundCredential = sipLine.getCredential(scheme, realm, sipCredential);
       if (foundCredential)
       {
-         // check that credentials are for required userid
-         if (!sipCredential.getUserId().compareTo(userId, UtlString::matchCase))
-         {
-            // userid match, return this credential
-            lineCredential = sipCredential;
-            result = TRUE;
-         }
+         lineCredential = sipCredential;
+         result = TRUE;
       }
    }
 
