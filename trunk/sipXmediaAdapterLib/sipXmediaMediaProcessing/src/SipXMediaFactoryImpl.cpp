@@ -535,6 +535,7 @@ OsStatus SipXMediaFactoryImpl::getOutboundDTMFMode(MEDIA_OUTBOUND_DTMF_MODE& mod
 UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 {
    UtlString supportedCodecs = 
+      "TELEPHONE-EVENT PCMU PCMA "
 #ifdef HAVE_SPEEX // [
       "SPEEX_5 SPEEX_8 SPEEX_11 SPEEX_15 SPEEX_18 SPEEX_24 "
 #ifdef ENABLE_WIDEBAND_AUDIO
@@ -564,7 +565,7 @@ UtlString SipXMediaFactoryImpl::getAllSupportedAudioCodecs() const
 #endif // ENABLE_WIDEBAND_AUDIO ]
       "G726_16 G726_24 G726_32 G726_40 "
 #endif // HAVE_SPAN_DSP ]
-      "PCMU PCMA TELEPHONE-EVENT";
+      ;
    return supportedCodecs;
 }
 
