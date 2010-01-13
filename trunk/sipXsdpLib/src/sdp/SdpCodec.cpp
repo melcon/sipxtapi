@@ -301,6 +301,18 @@ UtlBoolean SdpCodec::isCodecCompatible(const UtlString& mimeType,
    return FALSE;
 }
 
+UtlBoolean SdpCodec::hasDynamicPayloadId() const
+{
+   if (mCodecPayloadId == -1 || mCodecPayloadId >= SDP_MIN_DYNAMIC_PAYLOAD_ID)
+   {
+      return TRUE;
+   }
+   else
+   {
+      return FALSE;
+   }
+}
+
 SdpCodec::SdpCodecTypes SdpCodec::getCodecType(const UtlString& shortCodecName)
 {
     SdpCodec::SdpCodecTypes retType = SdpCodec::SDP_CODEC_UNKNOWN;
