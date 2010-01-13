@@ -3659,8 +3659,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetNumSelectedAudioCodecs(const SIPX_INST hIn
 
 /**
 * Get the number of all available audio codecs. 
-* This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
-* preferences.  SIPX_RESULT_FAILURE is returned if the number of codecs can
+* This method will return SIPX_RESULT_SUCCESS if able to get the number of
+* codecs. SIPX_RESULT_FAILURE is returned if the number of codecs can
 * no be retrieved.
 * 
 * @param hInst Instance pointer obtained by sipxInitialize
@@ -3693,10 +3693,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetSelectedAudioCodec(const SIPX_INST hInst,
 
 /**
 * Get the audio codec at a certain index in the list of codecs. Use this 
-* function in conjunction with sipxConfigGetNumSelectedAudioCodecs to enumerate
-* the list of selected audio codecs. This method in conjunction with 
-* sipxConfigGetNumSelectedAudioCodecs will enumerate only currently selected codecs,
-* and not all available codecs.
+* function in conjunction with sipxConfigGetNumAvailableAudioCodecs to enumerate
+* the list of available audio codecs. This method in conjunction with 
+* sipxConfigGetNumAvailableAudioCodecs will enumerate all supported codecs.
 *
 * This method will return SIPX_RESULT_SUCCESS if able to set the audio codec
 * preferences.  SIPX_RESULT_FAILURE is returned if the audio codec can not
