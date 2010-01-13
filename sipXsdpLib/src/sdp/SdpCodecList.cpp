@@ -183,7 +183,7 @@ void SdpCodecList::addCodec(const SdpCodec& newCodec)
 void SdpCodecList::bindPayloadIds()
 {
    OsLock lock(m_memberMutex);
-   int unusedDynamicPayloadId = SdpCodec::SDP_CODEC_MAXIMUM_STATIC_CODEC + 1;
+   int unusedDynamicPayloadId = SDP_MIN_DYNAMIC_PAYLOAD_ID;
    SdpCodec* codecWithoutPayloadId = NULL;
 
    // Find a codec which does not have its payload type set

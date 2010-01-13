@@ -55,6 +55,10 @@
 #define MIME_SUBTYPE_RGB24 "RGB24"
 #define MIME_SUBTYPE_H263 "H263"
 
+#define SDP_MIN_DYNAMIC_PAYLOAD_ID 96
+#define SDP_MAX_DYNAMIC_PAYLOAD_ID 127
+#define SDP_MAX_DYNAMIC_PAYLOAD_ID_COUNT 32
+
 // Bandwidth requirements for SDP Codecs
 #define SDP_CODEC_BANDWIDTH_VARIABLE 0
 #define SDP_CODEC_BANDWIDTH_LOW      1
@@ -398,6 +402,12 @@ public:
                                 int numChannels,
                                 const UtlString& fmtp,
                                 UtlBoolean bStrictMatch = TRUE) const;
+
+   /**
+    * Returns true if this codec uses a dynamic payload id (greater than 96 or -1 if not bound yet).
+    * Codecs may have higher payload id than 127, but such codecs will not be added into SDP.
+    */
+   UtlBoolean hasDynamicPayloadId() const;
 
 //@}
 
