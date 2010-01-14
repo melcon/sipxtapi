@@ -1191,7 +1191,9 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst, int bForceShutdown = 
  * @param options Pointer to a SIPX_CALL_OPTIONS structure.
  * @param bSendSdp Flag to send SDP in 180 Ringing response, resulting in
  *        early media being sent/received. Either SDP offer or answer will be sent
- *        depending on SDP negotiation state.
+ *        depending on SDP negotiation state. This flag will be ignored if INVITE
+ *        didn't contain SDP and reliable provisional response (100rel) is required.
+ *        In that case SDP offer will be sent in 18x response.
  *
  * @see sipxConfigSetLocationHeader
  * @see sipxConfigSetAudioCodecPreferences

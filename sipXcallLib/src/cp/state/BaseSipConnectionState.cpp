@@ -215,13 +215,14 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
             {
                sipResponse.setResponseData(m_rStateContext.m_pLastReceivedInvite, SIP_RINGING_CODE,
                   SIP_RINGING_TEXT, getLocalContactUrl());
-               // SDP offer was handled, we may add SDP answer
-               if (bSend100rel || bSendSDP)
+               if (bSend100rel)
                {
-                  if (bSend100rel)
-                  {
-                     sipResponse.addRequireExtension(SIP_PRACK_EXTENSION);
-                  }
+                  sipResponse.addRequireExtension(SIP_PRACK_EXTENSION);
+               }
+               // SDP offer was handled, we may add SDP answer
+               if (bSendSDP)
+               {
+                  // SDP was in INVITE, and we also want it in 18x
                   if (prepareSdpAnswer(sipResponse))
                   {
                      if (commitMediaSessionChanges()) // commit media session changes, so that we can hear early audio
@@ -232,7 +233,7 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
                }
                else
                {
-                  // we send 18x unreliably without SDP
+                  // SDP was in INVITE, but we don't want it in 18x
                   bProtocolError = FALSE;
                }
             }
@@ -2010,6 +2011,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
 
    if (connectionState == ISipConnectionState::CONNECTION_REMOTE_ALERTING ||
       connectionState == ISipConnectionState::CONNECTION_REMOTE_OFFERING ||
+      connectionState == ISipConnectionState::CONNECTION_ESTABLISHED ||
       connectionState == ISipConnectionState::CONNECTION_REMOTE_QUEUED)
    {
       int responseCode = sipResponse.getResponseStatusCode();
@@ -2022,6 +2024,11 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
       UtlBoolean bProtocolError = FALSE;
       UtlBoolean bGenerateSdpAnswer = FALSE;
 
+      if (sipResponse.is100RelResponse())
+      {
+         bSendPrack = m_rStateContext.m_100RelTracker.on100RelReceived(sipResponse);
+      }
+
       const SdpBody* pSdpBody = sipResponse.getSdpBody(m_rStateContext.m_pSecurity);
       if (pSdpBody)
       {
@@ -2029,7 +2036,6 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
          if (sipResponse.is100RelResponse())
          {
             // reliable 18x response
-            bSendPrack = m_rStateContext.m_100RelTracker.on100RelReceived(sipResponse);
             if (bSendPrack)
             {
                if (m_rStateContext.m_sdpNegotiation.getNegotiationState() == CpSdpNegotiation::SDP_NEGOTIATION_IN_PROGRESS)
@@ -2041,7 +2047,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
                   }
                   else
                   {
-                     bProtocolError = TRUE;
+                     bProtocolError = TRUE; // error while handling Sdp answer
                   }
                }
                else
@@ -2053,10 +2059,10 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
                   }
                   else
                   {
-                     bProtocolError = TRUE;
+                     bProtocolError = TRUE; // error while handling Sdp offer
                   }
                }
-            } // else 18x retransmit, but we sent PRACK, ignore as PRACK will be resent automatically
+            } // else 18x retransmit, but we sent PRACK, ignore as PRACK will be resent automatically by sipXtackLib
          }
          else
          {
@@ -2070,7 +2076,7 @@ SipConnectionStateTransition* BaseSipConnectionState::processProvisionalInviteRe
                }
                else
                {
-                  bProtocolError = TRUE;
+                  bProtocolError = TRUE; // error while handling Sdp answer
                }
             }
          }
