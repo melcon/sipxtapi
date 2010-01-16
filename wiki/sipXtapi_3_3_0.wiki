@@ -35,6 +35,7 @@ To compile sipXtapi with Intel IPP 6.0 support, follow steps from [http://code.g
 ==== sipXtackLib ====
  * removed support for PING method, it never became a standard (http://tools.ietf.org/html/draft-fwmiller-ping-03)
  * SipMessage class supports parsing and setting new fields
+ * much smarter selection of sip contacts, it's no more needed to select them manually. This makes usage of sipXtapi in multi ip/multi sip proxy environment much easier
 ==== sipXmediaLib ====
  * wide band audio support with 48Khz internal sampling rate. Old 8Khz narrow band is recommended for server applications due to lower CPU load.
  * VAD (voice activity detection), DTX (discontinuous transmission) for all codecs, CNG (comfort noise generation)
