@@ -45,7 +45,6 @@ class SipMessageTest : public CppUnit::TestCase
    CPPUNIT_TEST(testParseAddressFromUriPort);
    CPPUNIT_TEST(testProbPort);
    //CPPUNIT_TEST(testMultipartBody);
-   CPPUNIT_TEST(testCodecError);
    CPPUNIT_TEST(testSdpParse);
    CPPUNIT_TEST(testSdpShortHeaderNames);
    CPPUNIT_TEST(testNonSdpSipMessage);
