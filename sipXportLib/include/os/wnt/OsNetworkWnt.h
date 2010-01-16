@@ -20,6 +20,7 @@
 
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <utl/UtlSList.h>
 
 // DEFINES
 #define MAXIPLEN 40
@@ -78,6 +79,21 @@ public:
    static bool getAdapterName(UtlString &adapterName, const UtlString &ipAddress);
 
    /**
+    * Returns list of all network adapters present in system. Caller
+    * is responsible for deleting adapterList entries after it is done.
+    *
+    * @param adapterList list with OsNetworkAdapterInfo entries
+    */
+   static bool getAdapterList(UtlSList& adapterList);
+
+   /**
+    * Returns name of the best local interface for sending packets to given targetIpAddress.
+    *
+    * @return true if the best interface name could be determined, false otherwise
+    */
+   static bool getBestInterfaceName(const UtlString& targetIpAddress, UtlString& interfaceName);
+
+   /**
     * Gets IP addresses of DNS servers for the given local IP.
     *
     * Only implemented for Windows.
@@ -89,20 +105,6 @@ public:
     * @return Number of DNS servers found
     */
    static int getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, const char* szLocalIp);
-
-   /**
-    * Initializes internal adapter structure. Must be called before lookupIpAddressByMacAddress.
-    *
-    * Only implemented for Windows.
-    */
-   static int initAdaptersInfo();
-
-   /**
-    * Pass in a mac address and get out the current ip address assigned to it.
-    *
-    * Only implemented for Windows.
-    */
-   static int lookupIpAddressByMacAddress(char *mac_address, char *ipaddress);
 
    /**
     * Gets the domain name.

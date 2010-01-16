@@ -112,8 +112,6 @@ public:
 /* ============================ MANIPULATORS ============================== */
 
    static UtlBoolean socketInit();
-   static unsigned long initDefaultAdapterID(UtlString &adapter_id);
-
 
    virtual int write(const char* buffer,
                      int bufferLength,

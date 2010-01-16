@@ -75,7 +75,7 @@ public:
    /**
     * Destructor.
     */
-   ~SipContact();
+   virtual ~SipContact();
 
    /**
     * Copy constructor.
