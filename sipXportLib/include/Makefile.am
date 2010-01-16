@@ -6,7 +6,6 @@ nobase_includeHEADERS_INSTALL = $(INSTALL) -D -p -c -m 644
 nobase_include_HEADERS = \
     os/HostAdapterAddress.h \
     os/IStunSocket.h \
-    os/linux/AdapterInfo.h \
     os/linux/host_address.h \
     os/linux/OsBSemLinux.h \
     os/linux/OsCSemLinux.h \
@@ -17,6 +16,7 @@ nobase_include_HEADERS = \
     os/linux/OsFileLinux.h \
     os/linux/OsLinuxDefs.h \
     os/linux/OsMutexLinux.h \
+    os/linux/OsNetworkLinux.h \
     os/linux/OsPathLinux.h \
     os/linux/OsProcessIteratorLinux.h \
     os/linux/OsProcessLinux.h \
@@ -65,6 +65,7 @@ nobase_include_HEADERS = \
     os/OsNatDatagramSocket.h \
     os/OsNatKeepaliveListener.h \
     os/OsNatSocketBaseImpl.h \
+    os/OsNetwork.h \
     os/OsNetworkAdapterInfo.h \
     os/OsNotification.h \
     os/OsPathBase.h \

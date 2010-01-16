@@ -263,6 +263,14 @@
 			<File
 				RelativePath=".\src\os\Wnt\getWindowsDNSServers.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\src\os\Wnt\mdump.cpp"
@@ -426,6 +434,10 @@
 			</File>
 			<File
 				RelativePath=".\src\os\OsNetworkAdapterInfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\os\Wnt\OsNetworkWnt.cpp"
 				>
 			</File>
 			<File
@@ -773,10 +785,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\os\Wnt\WindowsAdapterInfo.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\utl\XmlContent.cpp"
 				>
 			</File>
@@ -994,7 +1002,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\os\OsNetwork.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\os\OsNetworkAdapterInfo.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\os\wnt\OsNetworkWnt.h"
 				>
 			</File>
 			<File
@@ -1427,10 +1443,6 @@
 			</File>
 			<File
 				RelativePath=".\include\os\WinCE\WinCEFixups.h"
-				>
-			</File>
-			<File
-				RelativePath="include\os\wnt\WIndowsAdapterInfo.h"
 				>
 			</File>
 			<File

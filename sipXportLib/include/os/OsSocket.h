@@ -37,9 +37,9 @@
 //: constant indentifier indicating the maximum number of IP addresses on this host.
 #define OS_INVALID_SOCKET_DESCRIPTOR (-1)
 
+#include <os/OsNetwork.h>
+
 #if defined(_WIN32)
-#   include <os/wnt/getWindowsDNSServers.h>
-#   include "os/wnt/WindowsAdapterInfo.h"
 #  define OsSocketGetERRNO() (WSAGetLastError())
 #  define OS_INVALID_INET_ADDRESS INADDR_NONE // 0xffffffff
 
@@ -49,7 +49,6 @@
 #  define OS_INVALID_INET_ADDRESS 0xffffffff
 
 #elif defined(__pingtel_on_posix__)
-#  include "os/linux/AdapterInfo.h"
 #  define OsSocketGetERRNO() (errno)
 #  define OS_INVALID_INET_ADDRESS 0xffffffff
 

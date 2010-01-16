@@ -22,14 +22,15 @@
 #ifdef HAVE_SSL
 #  include "os/OsSSL.h"
 #endif
+#include <os/OsNetwork.h>
 #include "os/OsNatAgentTask.h"
 #include "os/HostAdapterAddress.h"
 #include "net/SipUserAgent.h"
+#include "net/SipRefreshMgr.h"
 #include "sdp/SdpCodecList.h"
 #include <sdp/SdpCodecFactory.h>
-#include "net/SipRefreshMgr.h"
-#include "cp/XCpCallManager.h"
 #include "mi/CpMediaInterfaceFactory.h"
+#include "cp/XCpCallManager.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/sipXtapi.h"
 #include "tapi/SipXMessageObserver.h"
@@ -2134,7 +2135,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetAllLocalNetworkIps(char* arrAddresses[],
       *numAddresses = SIPX_MAX_IP_ADDRESSES;
    }
 
-   if (getAllLocalHostIps(utlAddresses, *numAddresses))
+   if (OsNetwork::getAllLocalHostIps(utlAddresses, *numAddresses))
    {
       rc = SIPX_RESULT_SUCCESS;
 
