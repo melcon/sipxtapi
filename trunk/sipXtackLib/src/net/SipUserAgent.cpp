@@ -592,7 +592,7 @@ UtlBoolean SipUserAgent::send(SipMessage& message,
 
    // Make sure the message includes a contact if required and
    // update it to the best possible known contact.
-   prepareContact(message, NULL, NULL) ;
+   prepareContact(message, NULL, PORT_NONE);
 
    // Get Method
    UtlString method;
@@ -854,7 +854,7 @@ UtlBoolean SipUserAgent::sendUdp(SipMessage* message,
    UtlString messageStatusString = "SipUserAgent::sendUdp ";
    int timesSent = message->getTimesSent();
 
-   prepareContact(*message, serverAddress, &port) ;
+   prepareContact(*message, serverAddress, port) ;
 
    if(!isResponse)
    {
@@ -982,7 +982,7 @@ UtlBoolean SipUserAgent::sendSymmetricUdp(SipMessage& message,
                                           const char* serverAddress,
                                           int port)
 {
-   prepareContact(message, serverAddress, &port) ;
+   prepareContact(message, serverAddress, port) ;
 
    // Update Via
    UtlString bestKnownAddress;
@@ -2967,112 +2967,64 @@ void SipUserAgent::setForking(UtlBoolean enabled)
 }
 
 void SipUserAgent::prepareContact(SipMessage& message,
-                                  const char* szTargetUdpAddress, 
-                                  const int*  piTargetUdpPort)
+                                  const UtlString& targetIpAddress,
+                                  int targetPort)
 {
+   SIP_TRANSPORT_TYPE transport = SipTransport::getSipTransport(message.getSendProtocol());
+
    // Add a default contact if none is present
    // AND To all requests -- except REGISTERs (registering using default contact is nosence)
    //   OR all non-failure responses 
    int cseqNum = 0;
    UtlString cseqMethod;
    message.getCSeqField(&cseqNum , &cseqMethod);
-   UtlString contact;
-   if (!message.getContactUri(0, &contact) &&
+   Url contactUri;
+   if (!message.getContactUri(0, contactUri) &&
       ((!message.isResponse() && (cseqMethod.compareTo(SIP_REGISTER_METHOD, UtlString::ignoreCase) != 0))
       || (message.getResponseStatusCode() < SIP_MULTI_CHOICE_CODE)))
    {
       UtlString contactIp;
+      int contactPort = PORT_NONE;
+      UtlString userId;
       if (message.isResponse())
-         contactIp = message.getLocalIp();
-      if (contactIp.isNull())
-         contactIp = mDefaultIpAddress;
-
-      // TODO:: We need to figure out what the protocol SHOULD be if not 
-      // already specified.  For example, if we are sending via TCP 
-      // we should use a TCP contact -- the application layer and override
-      // if desired by passing a contact.
-      SipMessage::buildSipUrl(&contact,
-         contactIp,
-         mDefaultPort,
-         NULL,
-         mDefaultUser.data());
-      message.setContactField(contact);
-   }
-
-   // Update contact if we know anything about the target and our NAT binding
-   if (message.isContactOverrideAllowed() && message.getContactField(0, contact))
-   {
-      Url       urlContact(contact) ;        
-      UtlString contactIp ;
-      int       contactPort ;
-
-      // Init Contact Info
-      urlContact.getHostAddress(contactIp) ;
-      contactPort = urlContact.getHostPort() ;
-
-      // Try specified send to host:port
-      if (szTargetUdpAddress && piTargetUdpPort &&
-         (OsNatAgentTask::getInstance()->findContactAddress(
-         szTargetUdpAddress, *piTargetUdpPort, 
-         &contactIp, &contactPort)))
       {
-         urlContact.setHostAddress(contactIp) ;
-         urlContact.setHostPort(contactPort) ;
-         message.removeHeader(SIP_CONTACT_FIELD, 0) ;
-         message.setContactField(urlContact.toString()) ;
+         // reuse userId of to field
+         Url toField;
+         message.getToUrl(toField);
+         toField.getUserId(userId);
       }
       else
       {
-         // Otherwise dig out info from message -- also make sure this is 
-         // contact we should adjust 
-         UtlString sendProtocol ;        
-         if ((urlContact.getScheme() == Url::SipUrlScheme) && 
-            ((urlContact.getUrlParameter("transport", sendProtocol) == false)
-            || (sendProtocol.compareTo("udp", UtlString::ignoreCase) == 0)))
-         {               
-            if (message.isResponse())
-            {
-               // Response: See if we have a better contact address to the 
-               // remote party
-
-               UtlString receivedFromAddress ;
-               int       receivedFromPort ;
-
-               message.getSendAddress(&receivedFromAddress, &receivedFromPort) ;
-               if (OsNatAgentTask::getInstance()->findContactAddress(
-                  receivedFromAddress, receivedFromPort, 
-                  &contactIp, &contactPort))
-               {
-                  urlContact.setHostAddress(contactIp) ;
-                  urlContact.setHostPort(contactPort) ;
-                  message.removeHeader(SIP_CONTACT_FIELD, 0) ;
-                  message.setContactField(urlContact.toString()) ;
-               }
-            }
-            else
-            {               
-               // Request: See if we have a better contact address to the 
-               // remote party
-
-               UtlString requestUriAddress ;
-               int       requestUriPort ;
-               UtlString requestUriProtocol ;  // ignored
-
-               message.getUri(&requestUriAddress, &requestUriPort, &requestUriProtocol) ;
-
-               if (OsNatAgentTask::getInstance()->findContactAddress(
-                  requestUriAddress, requestUriPort, 
-                  &contactIp, &contactPort))
-               {
-                  urlContact.setHostAddress(contactIp) ;
-                  urlContact.setHostPort(contactPort) ;
-                  message.removeHeader(SIP_CONTACT_FIELD, 0) ;
-                  message.setContactField(urlContact.toString()) ;
-               }
-            }
-         }
+         // reuse userId of from field
+         Url fromField;
+         message.getFromUrl(fromField);
+         fromField.getUserId(userId);
       }
-   }    
+
+      SipContactSelector contactSelector(*this);
+      contactSelector.getBestContactUri(contactUri, userId,
+         transport, message.getLocalIp(), targetIpAddress, targetPort);
+
+      message.setContactField(contactUri.toString());
+   }
+   else
+   {
+      // if there is already a contact and update is allowed, try to find a better contact
+      if (message.isContactOverrideAllowed() && message.getContactUri(0, contactUri))
+      {
+         UtlString contactIp;
+         int contactPort = PORT_NONE;
+         // reuse userId of from old contact
+         UtlString userId;
+         contactUri.getUserId(userId);
+
+         SipContactSelector contactSelector(*this);
+         contactSelector.getBestContactUri(contactUri, userId,
+            transport, message.getLocalIp(), targetIpAddress, targetPort);
+
+         message.setContactField(contactUri.toString());
+      }
+   }
 }
 
 void SipUserAgent::getAllowedMethods(UtlString* allowedMethods) const

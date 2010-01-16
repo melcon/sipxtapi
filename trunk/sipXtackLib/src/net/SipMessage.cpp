@@ -3428,15 +3428,18 @@ UtlBoolean SipMessage::getRAckField(int& rsequenceNum, int& csequenceNum, UtlStr
 
 UtlBoolean SipMessage::getContactUri(int addressIndex, UtlString* uri) const
 {
-    UtlBoolean uriFound = getContactEntry(addressIndex, uri);
-    if(uriFound)
-    {
-        int trimIndex = uri->index('<');
-        if(trimIndex >= 0) uri->remove(0, trimIndex + 1);
-        trimIndex = uri->index('>');
-        if(trimIndex > 0) uri->remove(trimIndex);
-    }
-    return(uriFound);
+    return getContactField(addressIndex, *uri);
+}
+
+UtlBoolean SipMessage::getContactUri(int addressIndex, Url& contactField) const
+{
+   UtlString sContactField;
+   UtlBoolean bRes = getContactField(addressIndex, sContactField);
+   if (bRes)
+   {
+      contactField = Url(sContactField);
+   }
+   return bRes;
 }
 
 UtlBoolean SipMessage::getContactField(int addressIndex, UtlString& contactField) const
@@ -3446,7 +3449,6 @@ UtlBoolean SipMessage::getContactField(int addressIndex, UtlString& contactField
 
     return(value != NULL);
 }
-
 
 // Make sure that the getContactEntry does the right thing for
 

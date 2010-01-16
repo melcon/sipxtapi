@@ -63,16 +63,11 @@ static DWORD (WINAPI *GetAdapterIndex)(
                                        PULONG IfIndex
                                        );
 
-static DWORD (WINAPI *GetInterfaceInfo)(
-                                        PIP_INTERFACE_INFO pIfTable,
-                                        PULONG dwOutBufLen
-                                        );
+static DWORD (WINAPI *GetInterfaceInfo)(PIP_INTERFACE_INFO pIfTable,
+                                        PULONG dwOutBufLen);
 
 static DWORD (WINAPI *GetBestInterface)(IPAddr dwDestAddr,
                                         PDWORD pdwBestIfIndex);
-
-static DWORD (WINAPI *GetIfEntry)(PMIB_IFROW pIfRow);
-
 
 static HMODULE hIpHelperModule = NULL;
 
@@ -159,15 +154,6 @@ static HMODULE loadIPHelperAPI()
          if (GetBestInterface == NULL)
          {
             OsSysLog::add(FAC_KERNEL, PRI_ERR, "Could not get the proc address to GetBestInterface!\n");
-            FreeLibrary(hIpHelperModule);
-            hIpHelperModule = NULL;
-            return hIpHelperModule;
-         }
-
-         *(FARPROC*)&GetIfEntry = GetProcAddress(hIpHelperModule,"GetIfEntry");
-         if (GetIfEntry == NULL)
-         {
-            OsSysLog::add(FAC_KERNEL, PRI_ERR, "Could not get the proc address to GetIfEntry!\n");
             FreeLibrary(hIpHelperModule);
             hIpHelperModule = NULL;
             return hIpHelperModule;
@@ -548,31 +534,53 @@ bool OsNetworkWnt::getBestInterfaceName(const UtlString& targetIpAddress, UtlStr
       DWORD dwRes = GetBestInterface(dwDestAddr, &dwBestIfIndex);
       if (dwRes == NO_ERROR)
       {
-         MIB_IFROW IfRow;
-         IfRow.dwIndex = dwBestIfIndex;
-         dwRes = GetIfEntry(&IfRow);
-         if (dwRes == NO_ERROR)
+         // get list of all interfaces and find the correct one
+         unsigned long outBufLen = 0;
+         if ((dwRes = GetInterfaceInfo(NULL, &outBufLen)) == ERROR_INSUFFICIENT_BUFFER)
          {
-            size_t convertedChars = 0;
-            char adapterName[MAX_ADAPTER_NAME_LENGTH + 4];
-            memset(adapterName, 0, sizeof(adapterName));
-            wcstombs_s(&convertedChars, adapterName, sizeof(adapterName), IfRow.wszName, _TRUNCATE);
-            interfaceName.append(adapterName);
-            rc = true;
+            PIP_INTERFACE_INFO pIpInterfaceInfo = (PIP_INTERFACE_INFO)malloc(outBufLen);
+            dwRes = GetInterfaceInfo(pIpInterfaceInfo, &outBufLen);
+            if (dwRes == NO_ERROR)
+            {
+               // loop through all interfaces
+               for (long i = 0; i < pIpInterfaceInfo->NumAdapters; i++)
+               {
+                  if (pIpInterfaceInfo->Adapter[i].Index == dwBestIfIndex)
+                  {
+                     size_t convertedChars = 0;
+                     char adapterName[MAX_ADAPTER_NAME_LENGTH + 4];
+                     memset(adapterName, 0, sizeof(adapterName));
+                     wcstombs_s(&convertedChars, adapterName, sizeof(adapterName), pIpInterfaceInfo->Adapter[i].Name, _TRUNCATE);
+                     // on windows vista we get guid, on older we get this garbage
+                     UtlString sAdapterName(adapterName);
+                     if (sAdapterName.first("\\DEVICE\\TCPIP_") == 0)
+                     {
+                        sAdapterName.remove(0, strlen("\\DEVICE\\TCPIP_"));
+                     }
+                     interfaceName = sAdapterName;
+                     rc = true;
+                     break;
+                  }
+               }
+            }
+            else
+            {
+               OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface name, GetInterfaceInfo failed with error %d\n", dwRes);
+            }
          }
          else
          {
-            OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface ip, GetIfEntry failed with error %d\n", dwRes);
+            OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface name, GetInterfaceInfo failed with error %d\n", dwRes);
          }
       }
       else
       {
-         OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface ip, GetBestInterface failed with error %d\n", dwRes);
+         OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface name, GetBestInterface failed with error %d\n", dwRes);
       }
    }
    else
    {
-      OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface ip, IP helper API couldn't be loaded\n");
+      OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface name, IP helper API couldn't be loaded\n");
    }
 
    return rc;
