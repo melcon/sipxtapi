@@ -13,12 +13,15 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsNetworkAdapterInfo.h>
+#include <utl/UtlSListIterator.h>
 
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
 // CONSTANTS
 // STATIC VARIABLE INITIALIZATIONS
+const UtlContainableType OsNetworkAdapterInfo::TYPE = "OsNetworkAdapterInfo";
+
 // MACROS
 // GLOBAL VARIABLES
 // GLOBAL FUNCTIONS
@@ -27,33 +30,90 @@
 
 /* ============================ CREATORS ================================== */
 
-OsNetworkAdapterInfo::OsNetworkAdapterInfo(unsigned long index,
-                                           const UtlString& ipAddress,
-                                           const UtlString& name,
-                                           const UtlString& description)
-: m_index(index)
-, m_ipAddress(ipAddress)
-, m_name(name)
+OsNetworkAdapterInfo::OsNetworkAdapterInfo(const UtlString& name,
+                                           const UtlString& description,
+                                           UtlSList* pIpAddresses)
+: m_name(name)
 , m_description(description)
+, m_pIpAddresses(pIpAddresses)
 {
 
 }
 
 OsNetworkAdapterInfo::~OsNetworkAdapterInfo()
 {
-
+   if (m_pIpAddresses)
+   {
+      m_pIpAddresses->destroyAll();
+      delete m_pIpAddresses;
+      m_pIpAddresses = NULL;
+   }
 }
 
 OsNetworkAdapterInfo::OsNetworkAdapterInfo(const OsNetworkAdapterInfo& rhs)
-: m_index(rhs.m_index)
-, m_ipAddress(rhs.m_ipAddress)
-, m_name(rhs.m_name)
+: m_name(rhs.m_name)
 , m_description(rhs.m_description)
+, m_pIpAddresses(NULL)
 {
-
+   if (rhs.m_pIpAddresses)
+   {
+      // clone list of ip addresses
+      m_pIpAddresses = new UtlSList();
+      UtlSListIterator itor(*rhs.m_pIpAddresses);
+      UtlCopyableContainable *pItem = NULL;
+      while (itor())
+      {
+         pItem = dynamic_cast<UtlCopyableContainable*>(itor.item());
+         if (pItem)
+         {
+            m_pIpAddresses->append(pItem->clone());
+         }
+      }
+   }
 }
 
 /* ============================ MANIPULATORS ============================== */
+
+UtlContainableType OsNetworkAdapterInfo::getContainableType() const
+{
+   return OsNetworkAdapterInfo::TYPE;
+}
+
+unsigned OsNetworkAdapterInfo::hash() const
+{
+   return m_name.hash();
+}
+
+int OsNetworkAdapterInfo::compareTo(UtlContainable const *compareContainable) const
+{
+   int compareFlag = -1;
+
+   if (compareContainable)
+   {
+      if (compareContainable->isInstanceOf(OsNetworkAdapterInfo::TYPE) == TRUE)
+      {
+         OsNetworkAdapterInfo const *pNetworkAdapterInfo = dynamic_cast<OsNetworkAdapterInfo const *>(compareContainable);
+         if (pNetworkAdapterInfo)
+         {
+            UtlString otherName;
+            pNetworkAdapterInfo->getName(otherName);
+            compareFlag = m_name.compareTo(otherName, UtlString::matchCase);
+         }
+      }
+      else
+      {
+         // for different type compare by direct hash
+         compareFlag = directHash() - compareContainable->directHash();
+      }
+   }
+
+   return compareFlag;
+}
+
+UtlCopyableContainable* OsNetworkAdapterInfo::clone() const
+{
+   return new OsNetworkAdapterInfo(*this);
+}
 
 /* ============================ ACCESSORS ================================= */
 

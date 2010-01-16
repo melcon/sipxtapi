@@ -24,6 +24,7 @@
 // APPLICATION INCLUDES
 #include <os/linux/OsNetworkLinux.h>
 #include <os/HostAdapterAddress.h>
+#include <os/OsNetworkAdapterInfo.h>
 #include <os/OsSysLog.h>
 
 // DEFINES
@@ -166,6 +167,46 @@ bool OsNetworkLinux::getAdapterName(UtlString &adapterName, const UtlString &ipA
    }
    
    return found;
+}
+
+bool OsNetworkLinux::getAdapterList(UtlSList& adapterList)
+{
+   bool rc = false;
+   adapterList.destroyAll();
+   
+   int numAddresses = 0;
+   const HostAdapterAddress* adapterAddresses[MAX_IP_ADDRESSES];
+   rc = getAllLocalHostIps(adapterAddresses, numAddresses);
+   
+   if (rc)
+   {
+      for (int i = 0; i < numAddresses; i++)
+      {
+         // add OsNetworkAdapterInfo for each HostAdapterAddress
+         UtlSList* pIpAddresses = new UtlSList();
+         pIpAddresses->append(new UtlString(adapterAddresses[i]->mAddress));
+         OsNetworkAdapterInfo *AdapterInfo = new OsNetworkAdapterInfo(adapterAddresses[i]->mAdapter,
+                  adapterAddresses[i]->mAdapter, pIpAddresses);
+         adapterList.append(AdapterInfo);
+
+         delete adapterAddresses[i];
+      }
+
+      // always append loopback at the end
+      UtlSList* ploopBackAddresses = new UtlSList();
+      ploopBackAddresses->append(new UtlString("127.0.0.1"));
+      adapterList.append(new OsNetworkAdapterInfo("loopback", "loopback", ploopBackAddresses));
+   }
+   
+   return rc;
+}
+
+bool OsNetworkLinux::getBestInterfaceName(const UtlString& targetIpAddress, UtlString& interfaceName)
+{
+   // TODO: implement for linux
+   
+   interfaceName.clear();
+   return false;
 }
 
 /* ============================ ACCESSORS ================================= */

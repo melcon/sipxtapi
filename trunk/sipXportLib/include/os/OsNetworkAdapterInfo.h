@@ -16,6 +16,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlString.h>
+#include <utl/UtlSList.h>
 
 // DEFINES
 // MACROS
@@ -27,29 +28,32 @@
 // FORWARD DECLARATIONS
 
 /**
- * Contains information about network adapter like name, description, ip address.
+ * Contains information about network adapter like name, description, ip addresses.
  * Each network adapter must have a unique name.
  *
  * This class is immutable.
  */
-class OsNetworkAdapterInfo
+class OsNetworkAdapterInfo : public UtlCopyableContainable
 {
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
+   static const UtlContainableType TYPE;    /** < Class type used for runtime checking */
+
    /* ============================ CREATORS ================================== */
 
    /**
     * Constructor.
+    *
+    * @param ipAddresses list of UtlString instances, will be managed by this class.
     */
-   OsNetworkAdapterInfo(unsigned long index,
-                        const UtlString& ipAddress,
-                        const UtlString& name,
-                        const UtlString& description);
+   OsNetworkAdapterInfo(const UtlString& name,
+                        const UtlString& description,
+                        UtlSList* pIpAddresses);
 
    /**
     * Destructor.
     */
-   ~OsNetworkAdapterInfo();
+   virtual ~OsNetworkAdapterInfo();
 
    /**
     * Copy constructor.
@@ -58,12 +62,29 @@ public:
 
    /* ============================ MANIPULATORS ============================== */
 
+   /**
+   * Get the ContainableType for a UtlContainable-derived class.
+   */
+   virtual UtlContainableType getContainableType() const;
+
+   /** Calculate a hash code for this object. */
+   virtual unsigned hash() const;
+
+   /** Compare this object to another object. */
+   virtual int compareTo(UtlContainable const *compareContainable) const;
+
+   /** Creates a copy of object */
+   virtual UtlCopyableContainable* clone() const;
+
    /* ============================ ACCESSORS ================================= */
 
-   unsigned long getIndex() const { return m_index; }
-   void getIpAddress(UtlString& ipAddress) const { ipAddress = m_ipAddress; }
    void getName(UtlString& name) const { name = m_name; }
    void getDescription(UtlString& description) const { description = m_description; }
+
+   /**
+    * Returns list of UtlString entries with ip addresses.
+    */
+   const UtlSList* getIpAddresses() const { return m_pIpAddresses; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -75,10 +96,9 @@ private:
 
    OsNetworkAdapterInfo& operator=(const OsNetworkAdapterInfo& rhs);
 
-   unsigned long m_index; ///< integer index of network adapter
-   UtlString m_ipAddress; ///< ip address assigned to network adapter
    UtlString m_name; ///< name of network adapter, in Linux "eth0" etc
    UtlString m_description; ///< printable name of network adapter for Windows
+   UtlSList* m_pIpAddresses; ///< ip addresses assigned to network adapter
 };
 
 #endif // OsNetworkAdapterInfo_h__

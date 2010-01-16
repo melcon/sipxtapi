@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <ipexport.h>
 #include <stdlib.h>
+#include <ifmib.h>
 
 
 // APPLICATION INCLUDES
@@ -25,6 +26,7 @@
 #include <os/wnt/OsNetworkWnt.h>
 #include <os/HostAdapterAddress.h>
 #include <os/OsSysLog.h>
+#include <os/OsNetworkAdapterInfo.h>
 #include <utl/UtlString.h>
 
 // DEFINES
@@ -66,49 +68,13 @@ static DWORD (WINAPI *GetInterfaceInfo)(
                                         PULONG dwOutBufLen
                                         );
 
+static DWORD (WINAPI *GetBestInterface)(IPAddr dwDestAddr,
+                                        PDWORD pdwBestIfIndex);
+
+static DWORD (WINAPI *GetIfEntry)(PMIB_IFROW pIfRow);
+
+
 static HMODULE hIpHelperModule = NULL;
-
-AdapterInfoRec adapters[MAX_ADAPTERS]; //used to store all the adapters it finds
-int AdapterCount = 0;
-
-/**
- * Retrieves the current windows version.
- *
- * @return Current windows version - WINDOWS_VERSION_98,
- *         WINDOWS_VERSION_NT4 or WINDOWS_VERSION_2000.
- */
-static int getWindowsVersion()
-{
-   OSVERSIONINFO osInfo;
-   int retVal = WINDOWS_VERSION_ERROR;
-
-   //try to figure out what version of windows we are running
-   osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-   if (GetVersionEx(&osInfo))
-   {
-      //check if it's the right version of windows
-      if (osInfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
-      {
-         if (osInfo.dwMinorVersion > 0) //true if it is 98 or ME
-            retVal = WINDOWS_VERSION_98;
-      }
-      else if (osInfo.dwPlatformId == VER_PLATFORM_WIN32_NT)
-      {
-         if (osInfo.dwMajorVersion == 4)
-         {
-            retVal = WINDOWS_VERSION_NT4;
-         }
-         else if (osInfo.dwMajorVersion > 4)
-         {
-            retVal = WINDOWS_VERSION_2000;
-         }
-      }
-   }
-
-   return retVal;
-}
-
 
 /**
  * Loads the iphlpapi.dll and sets any func pointers we may need.
@@ -187,7 +153,25 @@ static HMODULE loadIPHelperAPI()
             FreeLibrary(hIpHelperModule);
             hIpHelperModule = NULL;
             return hIpHelperModule;
-         }   
+         }
+
+         *(FARPROC*)&GetBestInterface = GetProcAddress(hIpHelperModule,"GetBestInterface");
+         if (GetBestInterface == NULL)
+         {
+            OsSysLog::add(FAC_KERNEL, PRI_ERR, "Could not get the proc address to GetBestInterface!\n");
+            FreeLibrary(hIpHelperModule);
+            hIpHelperModule = NULL;
+            return hIpHelperModule;
+         }
+
+         *(FARPROC*)&GetIfEntry = GetProcAddress(hIpHelperModule,"GetIfEntry");
+         if (GetIfEntry == NULL)
+         {
+            OsSysLog::add(FAC_KERNEL, PRI_ERR, "Could not get the proc address to GetIfEntry!\n");
+            FreeLibrary(hIpHelperModule);
+            hIpHelperModule = NULL;
+            return hIpHelperModule;
+         }
       }
    }
 
@@ -200,23 +184,7 @@ static int getIPHelperDNSEntries(char DNSServers[][MAXIPLEN], int max, const cha
 {
    int ipHelperDNSServerCount = 0;
 
-   int windowsVersion = getWindowsVersion();
-
-   if (windowsVersion != WINDOWS_VERSION_98 &&
-      windowsVersion < WINDOWS_VERSION_2000)
-   {
-      // iphlpapi.dll not supported
-      return 0;
-   }
-
-   HMODULE hModule = loadIPHelperAPI();
-   if (!hModule)
-   {
-      // unable to load iphlpapi.dll
-      return 0;
-   }
-
-   if (windowsVersion >= WINDOWS_VERSION_2000 && GetAdaptersInfo && GetPerAdapterInfo)
+   if (loadIPHelperAPI())
    {
       // Get list of adapters and find the index of the one associated with szLocalIp
       long index = -1;
@@ -286,53 +254,6 @@ static int getIPHelperDNSEntries(char DNSServers[][MAXIPLEN], int max, const cha
 
             free(pPerAdapterInfo);
          }
-      }
-   }
-   else if (GetNetworkParams)
-   {
-      // use GetNetworkParams, GetPerAdapterInfo is not available on Win98
-      // force size to 0 so the GetNetworkParams gets the correct size
-      DWORD dwNetworkInfoSize = 0;
-      DWORD retErr = GetNetworkParams(NULL, &dwNetworkInfoSize);
-
-      if (retErr == ERROR_BUFFER_OVERFLOW)
-      {
-         // Allocate memory from sizing information
-         PFIXED_INFO pNetworkInfo;
-
-         if (pNetworkInfo = (PFIXED_INFO)GlobalAlloc(GPTR, dwNetworkInfoSize))
-         {
-            // Get actual network params
-            if((retErr = GetNetworkParams(pNetworkInfo, &dwNetworkInfoSize)) == 0)
-            {
-               // point to the server list 
-               PIP_ADDR_STRING pAddrStr = &(pNetworkInfo->DnsServerList);
-
-               //walk the list of IP addresses
-               while(pAddrStr && ipHelperDNSServerCount < max)
-               {
-                  // copy one of the ip addresses
-                  strcpy(DNSServers[ipHelperDNSServerCount++], pAddrStr->IpAddress.String);
-                  pAddrStr = pAddrStr->Next;
-               }
-
-               // free the memory
-               GlobalFree(pNetworkInfo);   // handle to global memory object
-            }
-            else
-            {
-               OsSysLog::add(FAC_KERNEL, PRI_ERR, "DNS ERROR: GetNetworkParams failed with error %d\n", retErr);
-               GlobalFree(pNetworkInfo);   // handle to global memory object
-            }
-         }
-         else
-         {
-            OsSysLog::add(FAC_KERNEL, PRI_ERR, "DNS ERROR: GlobalAlloc failed\n");
-         }
-      }
-      else
-      {
-         OsSysLog::add(FAC_KERNEL, PRI_ERR, "DNS ERROR: Unexpected result from GetNetworkParams\n");
       }
    }
 
@@ -554,6 +475,107 @@ bool OsNetworkWnt::getAdapterName(UtlString &adapterName, const UtlString &ipAdd
    return rc;
 }
 
+bool OsNetworkWnt::getAdapterList(UtlSList& adapterList)
+{
+   bool rc = false;
+   adapterList.destroyAll();
+
+   if (loadIPHelperAPI())
+   {
+      unsigned long outBufLen = 0;
+      // first find out how big buffer we need
+      DWORD dwResult = GetAdaptersInfo(NULL, &outBufLen);
+
+      if (dwResult == ERROR_BUFFER_OVERFLOW)
+      {
+         PIP_ADAPTER_INFO pIpAdapterInfo = (PIP_ADAPTER_INFO)malloc(outBufLen);
+         dwResult = GetAdaptersInfo(pIpAdapterInfo, &outBufLen);
+
+         if (dwResult == ERROR_SUCCESS)
+         {
+            PIP_ADAPTER_INFO pNextInfoRecord = pIpAdapterInfo;
+
+            while (pNextInfoRecord && !rc)
+            {
+               UtlSList* pIpAddresses = new UtlSList();
+               PIP_ADDR_STRING pNextAddress = &(pNextInfoRecord->IpAddressList);
+
+               while (pNextAddress)
+               {
+                  // remember all ip addresses of adapter
+                  pIpAddresses->append(new UtlString(pNextAddress->IpAddress.String));
+                  pNextAddress = pNextAddress->Next;
+               }
+
+               OsNetworkAdapterInfo *AdapterInfo = new OsNetworkAdapterInfo(pNextInfoRecord->AdapterName,
+                  pNextInfoRecord->Description, pIpAddresses);
+               adapterList.append(AdapterInfo);
+
+               pNextInfoRecord = pNextInfoRecord->Next;
+            }
+
+            // always append loopback at the end
+            UtlSList* ploopBackAddresses = new UtlSList();
+            ploopBackAddresses->append(new UtlString("127.0.0.1"));
+            adapterList.append(new OsNetworkAdapterInfo("loopback", "loopback", ploopBackAddresses));
+            rc = true;
+         }
+
+         free((void*)pIpAdapterInfo);
+      }
+      else
+      {
+         OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot get adapter list, unexpected error code: %i\n", dwResult);
+      }
+   }
+   else
+   {
+      OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot get adapter list, IP helper API couldn't be loaded\n");
+   }
+
+   return rc;
+}
+
+bool OsNetworkWnt::getBestInterfaceName(const UtlString& targetIpAddress, UtlString& interfaceName)
+{
+   bool rc = false;
+   interfaceName.clear();
+
+   if (loadIPHelperAPI())
+   {
+      IPAddr dwDestAddr = inet_addr(targetIpAddress.data());
+      DWORD dwBestIfIndex = -1;
+      DWORD dwRes = GetBestInterface(dwDestAddr, &dwBestIfIndex);
+      if (dwRes == NO_ERROR)
+      {
+         MIB_IFROW IfRow;
+         IfRow.dwIndex = dwBestIfIndex;
+         dwRes = GetIfEntry(&IfRow);
+         if (dwRes == NO_ERROR)
+         {
+            size_t convertedChars = 0;
+            char adapterName[MAX_ADAPTER_NAME_LENGTH];
+            wcstombs_s(&convertedChars, adapterName, wcslen(IfRow.wszName) + 1, IfRow.wszName, _TRUNCATE);
+            interfaceName.append(adapterName);
+         }
+         else
+         {
+            OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface ip, GetIfEntry failed with error %d\n", dwRes);
+         }
+      }
+      else
+      {
+         OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface ip, GetBestInterface failed with error %d\n", dwRes);
+      }
+   }
+   else
+   {
+      OsSysLog::add(FAC_KERNEL, PRI_ERR, "Cannot determine the best interface ip, IP helper API couldn't be loaded\n");
+   }
+
+   return rc;
+}
+
 int OsNetworkWnt::getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, const char* szLocalIp)
 {
    int finalDNSServerCount = 0; //number of dns entries returned to user
@@ -574,101 +596,6 @@ int OsNetworkWnt::getWindowsDNSServers(char DNSServers[][MAXIPLEN], int max, con
 
    //return the number of DNS entries found
    return finalDNSServerCount;
-}
-
-///////////////////////////////////////////
-//
-// lookupIpAddressByMacAddress
-//
-//
-// mac_address: the mac address for which you want the ipaddress for
-//
-//returns:
-//  ipaddress is the address for the given mac address
-//
-// -1 is returned if adapters could not be found
-//  0 is returned on SUCCESS
-//
-//////////////////////////////////////////
-int OsNetworkWnt::lookupIpAddressByMacAddress(char *mac_address, char *ipaddress)
-{
-   int retval = -1;
-   for (int loop = 0; loop < AdapterCount; loop++)
-   {
-      if (memicmp(adapters[loop].MacAddress,mac_address,strlen(mac_address)) == 0)
-      {
-         strcpy(ipaddress,adapters[loop].IpAddress);
-         retval = 0;
-      }
-   }
-
-   return retval;
-}
-
-///////////////////////////////////////////
-//
-// getAdaptersInfo
-//
-//
-// iInterface: the interface for which you want the ipaddress for
-// pIpAddress: ip address returned.
-//
-//
-// returns 0 on failure or number of adapters available
-// 0 is returned if there are no adapters available.
-//
-//////////////////////////////////////////
-int OsNetworkWnt::initAdaptersInfo()
-{
-   char MacAddressStr[256]; //mac address converted to a string
-   char MacOneByteStr[10]; //used to hold one byte of mac address
-   int retval = 0; //return -1 if no adapters found
-
-   if (loadIPHelperAPI())  //inits iphlpapi and returns true if dll loaded
-   {
-      //just return count if we already did this before
-      if (AdapterCount)
-         return AdapterCount;
-
-      IP_ADAPTER_INFO  *pAdapterInfo; //points to buffer hold linked list adapter info
-
-      DWORD dwSize = (sizeof(IP_ADAPTER_INFO) * MAX_ADAPTERS) + sizeof(DWORD); //size for lots of adapters
-      char *buffer = new char[dwSize];  //allocate space for lots of adapters
-      if (buffer)
-      {
-         pAdapterInfo = (IP_ADAPTER_INFO *)buffer;  //point to buffer
-         if (GetAdaptersInfo(
-            pAdapterInfo,  // buffer for mapping table
-            &dwSize) == NO_ERROR)                     // sort the table
-         {
-            while (pAdapterInfo)
-            {
-               strcpy(adapters[AdapterCount].AdapterName, pAdapterInfo->Description);
-               strcpy(adapters[AdapterCount].IpAddress, (const char *)pAdapterInfo->IpAddressList.IpAddress.String);
-
-               //build mac address as a string
-               *MacAddressStr = '\0';
-               for (unsigned int loop = 0; loop < pAdapterInfo->AddressLength; loop++)
-               {
-                  if (strlen(MacAddressStr))
-                     strcat(MacAddressStr,"-");
-                  sprintf(MacOneByteStr,"%02X",pAdapterInfo->Address[loop]);
-                  strcat(MacAddressStr,MacOneByteStr);
-               }
-               strcpy((char *)adapters[AdapterCount].MacAddress, MacAddressStr);
-
-               AdapterCount++;
-               pAdapterInfo = pAdapterInfo->Next;
-            }
-
-            retval = AdapterCount;
-         }
-
-         delete [] buffer;
-      }
-   }
-
-   return retval;
 }
 
 ///////////////////////////////////////////
