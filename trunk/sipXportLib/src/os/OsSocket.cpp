@@ -23,7 +23,6 @@
 //#define FORCE_SOCKET_ERRORS
 #if defined(_WIN32)
 #   include <winsock2.h>
-#   include <os/wnt/getWindowsDNSServers.h>
 #elif defined(_VXWORKS)
 #   include <hostLib.h>
 #   include <inetLib.h>
@@ -51,6 +50,8 @@
 #else
 #error Unsupported target platform.
 #endif
+
+#include <os/OsNetwork.h>
 
 #ifdef __linux__
 #include "os/linux/host_address.h"
@@ -809,7 +810,7 @@ unsigned long OsSocket::initDefaultAdapterID(UtlString &interface_id)
     // or if the configuration parameter  PHONESET_BIND_MAC_ADDRESS is defined
     // we will look up the mac address against the windows adapters
     // and then return the correct ip address for that adapter
-    int numAdapters = getAdaptersInfo();  //fills in the structure with the adapter info
+    int numAdapters = OsNetwork::initAdaptersInfo();  //fills in the structure with the adapter info
     if (numAdapters < 2)
     {
         retip = htonl(INADDR_ANY);
@@ -826,7 +827,7 @@ unsigned long OsSocket::initDefaultAdapterID(UtlString &interface_id)
 
         //if this fails, then we need to choose any address
         if (strlen(adapter_id) == 0 || 
-                lookupIpAddressByMacAddress(adapter_id, ipaddress) == -1)
+                OsNetwork::lookupIpAddressByMacAddress(adapter_id, ipaddress) == -1)
         {
             retip = htonl(INADDR_ANY);
         }
@@ -893,7 +894,7 @@ void OsSocket::getDomainName(UtlString &domain_name)
 
 #ifdef WIN32
         char domain[DOMAIN_NAME_LENGTH];
-        getWindowsDomainName (domain);
+        OsNetwork::getWindowsDomainName(domain);
         m_DomainName = domain;
 #endif  //WIN32
 
@@ -949,7 +950,7 @@ void OsSocket::getHostIp(UtlString* hostAddress)
         const HostAdapterAddress* addresses[MAX_IP_ADDRESSES];
         int numAddresses = MAX_IP_ADDRESSES;
         memset(addresses, 0, sizeof(addresses));
-        getAllLocalHostIps(addresses, numAddresses);
+        OsNetwork::getAllLocalHostIps(addresses, numAddresses);
         assert(numAddresses > 0);
         
         if (numAddresses && hostAddress && addresses[0])

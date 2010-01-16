@@ -204,7 +204,7 @@ SipUdpServer::SipUdpServer(int port,
     {
         int numAddresses = MAX_IP_ADDRESSES;
         const HostAdapterAddress* adapterAddresses[MAX_IP_ADDRESSES];
-        getAllLocalHostIps(adapterAddresses, numAddresses);
+        OsNetwork::getAllLocalHostIps(adapterAddresses, numAddresses);
 
         for (int i = 0; i < numAddresses; i++)
         {
@@ -312,7 +312,7 @@ OsStatus SipUdpServer::createServerSocket(const char* szBoundIp,
         contact.eContactType = CONTACT_LOCAL;
         UtlString adapterName;
         
-        getAdapterName(adapterName, contact.cIpAddress);
+        OsNetwork::getAdapterName(adapterName, contact.cIpAddress);
 
         SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
         contact.eTransportType = TRANSPORT_UDP;

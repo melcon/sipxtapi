@@ -121,7 +121,6 @@ libsipXport_la_SOURCES =  \
     os/StunMessage.cpp \
     os/StunUtils.cpp \
     os/TurnMessage.cpp \
-    os/linux/AdapterInfo.cpp \
     os/linux/OsBSemLinux.cpp \
     os/linux/OsCSemLinux.cpp \
     os/linux/OsDateTimeLinux.cpp \
@@ -131,6 +130,7 @@ libsipXport_la_SOURCES =  \
     os/linux/OsFileLinux.cpp \
     os/linux/OsMutexLinux.cpp \
     os/linux/OsMutexLinuxC.c \
+    os/linux/OsNetworkLinux.cpp \
     os/linux/OsPathLinux.cpp \
     os/linux/OsProcessIteratorLinux.cpp \
     os/linux/OsProcessLinux.cpp \

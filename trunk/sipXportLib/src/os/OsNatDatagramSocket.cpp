@@ -31,6 +31,7 @@
 #include "os/OsNotification.h"
 #include "os/OsStunResultFailureMsg.h"
 #include "os/OsStunResultSuccessMsg.h"
+#include <os/OsNetwork.h>
 
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -594,7 +595,7 @@ void OsNatDatagramSocket::markStunSuccess(bool bAddressChanged)
    if (mpStunNotificationQueue && (!mbStunNotified || bAddressChanged))
    {   
       UtlString adapterName;        
-      getAdapterName(adapterName, mLocalIp);
+      OsNetwork::getAdapterName(adapterName, mLocalIp);
 
       OsStunResultSuccessMsg msg(adapterName, mLocalIp, localHostPort, mStunState.mappedAddress, mStunState.mappedPort);
       mpStunNotificationQueue->send(msg);
@@ -611,7 +612,7 @@ void OsNatDatagramSocket::markStunFailure()
    if (mpStunNotificationQueue && !mbStunNotified)
    {
       UtlString adapterName;        
-      getAdapterName(adapterName, mLocalIp);
+      OsNetwork::getAdapterName(adapterName, mLocalIp);
 
       OsStunResultFailureMsg msg(adapterName, mLocalIp, localHostPort);
       mpStunNotificationQueue->send(msg);

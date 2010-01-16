@@ -60,7 +60,11 @@
     <References/>
     <Files>
         <Filter Name="Source Files" Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
-            <File RelativePath=".\src\os\Wnt\getWindowsDNSServers.cpp"/>
+            <File RelativePath=".\src\os\Wnt\getWindowsDNSServers.cpp">
+                <FileConfiguration Name="Debug|Win32">
+                    <Tool Name="VCCLCompilerTool" CompileAs="0"/>
+                </FileConfiguration>
+            </File>
             <File RelativePath=".\src\os\Wnt\mdump.cpp"/>
             <File RelativePath=".\src\os\OsAssert.c"/>
             <File RelativePath=".\src\os\Wnt\OsBSemWnt.cpp"/>
@@ -102,6 +106,7 @@
             <File RelativePath=".\src\os\OsNameDbInit.cpp"/>
             <File RelativePath=".\src\os\OsNatSocketBaseImpl.cpp"/>
             <File RelativePath=".\src\os\OsNetworkAdapterInfo.cpp"/>
+            <File RelativePath=".\src\os\Wnt\OsNetworkWnt.cpp"/>
             <File RelativePath=".\src\os\OsPathBase.cpp"/>
             <File RelativePath=".\src\os\Wnt\OsPathWnt.cpp"/>
             <File RelativePath=".\src\os\osPrintf.cpp"/>
@@ -188,7 +193,6 @@
             <File RelativePath=".\src\utl\UtlString.cpp"/>
             <File RelativePath=".\src\utl\UtlTokenizer.cpp"/>
             <File RelativePath=".\src\utl\UtlVoidPtr.cpp"/>
-            <File RelativePath=".\src\os\Wnt\WindowsAdapterInfo.cpp"/>
             <File RelativePath=".\src\utl\XmlContent.cpp"/>
         </Filter>
         <Filter Name="Header Files" Filter="h;hpp;hxx;hm;inl">
@@ -244,7 +248,9 @@
             <File RelativePath=".\include\os\OsNameDbInit.h"/>
             <File RelativePath=".\include\os\OsNatKeepaliveListener.h"/>
             <File RelativePath=".\include\os\OsNatSocketBaseImpl.h"/>
+            <File RelativePath=".\include\os\OsNetwork.h"/>
             <File RelativePath=".\include\os\OsNetworkAdapterInfo.h"/>
+            <File RelativePath=".\include\os\wnt\OsNetworkWnt.h"/>
             <File RelativePath="include\os\OsNotification.h"/>
             <File RelativePath="include\os\OsPathBase.h"/>
             <File RelativePath="include\os\wnt\OsPathWnt.h"/>
@@ -353,7 +359,6 @@
             <File RelativePath=".\include\utl\UtlTypedValue.h"/>
             <File RelativePath="include\utl\UtlVoidPtr.h"/>
             <File RelativePath=".\include\os\WinCE\WinCEFixups.h"/>
-            <File RelativePath="include\os\wnt\WIndowsAdapterInfo.h"/>
             <File RelativePath=".\include\utl\XmlContent.h"/>
         </Filter>
         <Filter Name="NAT">

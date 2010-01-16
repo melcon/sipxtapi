@@ -1,13 +1,12 @@
-//  
-// Copyright (C) 2007 SIPez LLC. 
-// Licensed to SIPfoundry under a Contributor Agreement. 
 //
-// Copyright (C) 2004-2007 SIPfoundry Inc.
+// Copyright (C) 2004-2006 SIPfoundry Inc.
 // Licensed by SIPfoundry under the LGPL license.
 //
 // Copyright (C) 2004-2006 Pingtel Corp.  All rights reserved.
 // Licensed to SIPfoundry under a Contributor Agreement.
 //
+// Copyright (C) 2007 Jaroslav Libak
+// Licensed under the LGPL license.
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -23,8 +22,24 @@
 #include <unistd.h>
 
 // APPLICATION INCLUDES
+#include <os/linux/OsNetworkLinux.h>
 #include <os/HostAdapterAddress.h>
 #include <os/OsSysLog.h>
+
+// DEFINES
+// EXTERNAL FUNCTIONS
+// EXTERNAL VARIABLES
+// CONSTANTS
+// STATIC VARIABLE INITIALIZATIONS
+// MACROS
+// GLOBAL VARIABLES
+// GLOBAL FUNCTIONS
+
+/* //////////////////////////// PUBLIC //////////////////////////////////// */
+
+/* ============================ CREATORS ================================== */
+
+/* ============================ MANIPULATORS ============================== */
 
 /**
 *  Get the addresses associated with all of the IP interfaces.
@@ -32,8 +47,8 @@
 *  The core work is done by the SIOCGIFCONF ioctl, documented in the
 *  netdevice(7) manual page, with additional hints in ioctl(2), ip(7) and inet(3).
 */
-bool getAllLocalHostIps(const HostAdapterAddress* localHostAddresses[],
-                        int &numAddresses)
+bool OsNetworkLinux::getAllLocalHostIps(const HostAdapterAddress* localHostAddresses[],
+                                        int &numAddresses)
 {
    numAddresses = 0;
    UtlBoolean rc;
@@ -111,7 +126,7 @@ bool getAllLocalHostIps(const HostAdapterAddress* localHostAddresses[],
    return rc;
 }
 
-bool getAdapterName(UtlString &adapterName, const UtlString &ipAddress)
+bool OsNetworkLinux::getAdapterName(UtlString &adapterName, const UtlString &ipAddress)
 {
    bool found = false;
 
@@ -152,3 +167,14 @@ bool getAdapterName(UtlString &adapterName, const UtlString &ipAddress)
    
    return found;
 }
+
+/* ============================ ACCESSORS ================================= */
+
+/* ============================ INQUIRY =================================== */
+
+/* //////////////////////////// PROTECTED ///////////////////////////////// */
+
+/* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+/* ============================ FUNCTIONS ================================= */
+

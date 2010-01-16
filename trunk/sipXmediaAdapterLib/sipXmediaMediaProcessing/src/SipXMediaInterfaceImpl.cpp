@@ -23,18 +23,13 @@
 #include <os/OsNatDatagramSocket.h>
 #include <os/OsMulticastSocket.h>
 #include <os/HostAdapterAddress.h>
+#include <os/OsNetwork.h>
 #include "include/SipXMediaInterfaceImpl.h"
 #include "mi/CpMediaInterfaceFactory.h"
 #include <mp/MpMediaTask.h>
 #include <mp/MpCallFlowGraph.h>
 #include <mp/dtmflib.h>
 #include <sdp/SdpCodec.h>
-
-#ifdef _WIN32
-#include <os/wnt/getWindowsDNSServers.h>
-#else
-#include <os/linux/AdapterInfo.h>
-#endif
 
 #if defined(_VXWORKS)
 #   include <socket.h>
@@ -1531,7 +1526,7 @@ UtlBoolean SipXMediaInterfaceImpl::getLocalAddresses(int connectionId,
             {
                int addressCount = 32;
                const HostAdapterAddress* utlAddresses[32];
-               if (getAllLocalHostIps(utlAddresses, addressCount)) // changes addressCount
+               if (OsNetwork::getAllLocalHostIps(utlAddresses, addressCount)) // changes addressCount
                {
                   // this doesn't return 0.0.0.0 or 127.0.0.1
                   for (int i = 0; (i < addressCount) && (i < nMaxAddresses); i++)
