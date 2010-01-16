@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsNatAgentTask.h>
+#include <net/Url.h>
 #include <net/SipUserAgent.h>
 #include <net/SipContactSelector.h>
 #include <net/SipContactDb.h>
@@ -180,6 +181,21 @@ UtlBoolean SipContactSelector::isPrivateIp(const UtlString& ipAddress) const
    {
       return FALSE;
    }
+}
+
+void SipContactSelector::getBestContactUri(Url& contactUri,
+                                           const UtlString& userId,
+                                           SIP_TRANSPORT_TYPE transport,
+                                           const UtlString& messageLocalIp,
+                                           const UtlString& targetIpAddress,
+                                           int targetPort)
+{
+
+   UtlString contactIp;
+   int contactPort;
+   getBestContactAddress(contactIp, contactPort, transport, messageLocalIp, targetIpAddress, targetPort);
+
+   SipContact::buildContactUri(contactUri, userId, contactIp, contactPort, transport);
 }
 
 /* ============================ FUNCTIONS ================================= */

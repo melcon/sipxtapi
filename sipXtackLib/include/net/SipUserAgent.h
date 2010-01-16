@@ -623,9 +623,9 @@ public:
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
-   void prepareContact(SipMessage& message, 
-      const char* szTargetAddress, 
-      const int*  piTargetPort) ;
+   void prepareContact(SipMessage& message,
+                       const UtlString& targetIpAddress,
+                       int targetPort);
 
    /// constuct the value to be used in either user-agent or server header.
    void selfHeaderValue(UtlString& self);

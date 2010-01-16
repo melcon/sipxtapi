@@ -28,6 +28,7 @@
 // MACROS
 // FORWARD DECLARATIONS
 class SipUserAgent;
+class Url;
 
 /**
  * Responsible for selection of the best contact.
@@ -56,6 +57,18 @@ public:
     */
    void getBestContactAddress(UtlString& contactIp, ///< will receive selected contact ip
       int& contactPort, ///< will receive selected contact port
+      SIP_TRANSPORT_TYPE transport, ///< transport which will be used
+      const UtlString& messageLocalIp = NULL, ///< ip of local interface via which message should be sent if known
+      const UtlString& targetIpAddress = NULL, ///< where we are sending message
+      int targetPort = PORT_NONE);
+
+   /**
+    * Tries to select the best contact uri. Contact address
+    * can only be considered accurate if either messageLocalIp or targetIpAddress
+    * is known.
+    */
+   void getBestContactUri(Url& contactUri, ///< will receive contact uri
+      const UtlString& userId, ///< userId to use in contact
       SIP_TRANSPORT_TYPE transport, ///< transport which will be used
       const UtlString& messageLocalIp = NULL, ///< ip of local interface via which message should be sent if known
       const UtlString& targetIpAddress = NULL, ///< where we are sending message

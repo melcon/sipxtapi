@@ -841,8 +841,11 @@ public:
 
     UtlBoolean getContactUri(int addressIndex, UtlString* uri) const;
 
+    UtlBoolean getContactUri(int addressIndex,
+                             Url& contactField) const;
+
     UtlBoolean getContactField(int addressIndex,
-                              UtlString& contactField) const;
+                               UtlString& contactField) const;
 
     UtlBoolean getContactEntry(int addressIndex,
                               UtlString* uriAndParameters) const;
