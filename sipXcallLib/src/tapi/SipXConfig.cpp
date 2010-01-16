@@ -490,16 +490,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveAdd(const SIPX_INST     hInst,
        type >= SIPX_KEEPALIVE_CRLF && type <= SIPX_KEEPALIVE_SIP_OPTIONS &&
        keepAliveSecs > -2)
    {
-      if (contactId > 0)
+      SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+      if (pContact)
       {
-         SIPX_CONTACT_ADDRESS* pContact = NULL;
-
-         pContact = pInst->pSipUserAgent->getContactDb().getLocalContact(contactId);
-         if (pContact)
-         {
-            // set IP address to that of contact
-            localIpAddress = pContact->cIpAddress;
-         }
+         // set IP address to that of contact
+         localIpAddress = pContact->getAdapterIp();
+         delete pContact;
+         pContact = NULL;
       }
 
       switch (type)
@@ -571,16 +568,13 @@ SIPXTAPI_API SIPX_RESULT sipxConfigKeepAliveRemove(const SIPX_INST     hInst,
 
    if (pInst && remoteIp && remotePort > 0)
    {
-      if (contactId > 0)
+      SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+      if (pContact)
       {
-         SIPX_CONTACT_ADDRESS* pContact = NULL;
-         pContact = pInst->pSipUserAgent->getContactDb().getLocalContact(contactId);
-
-         if (pContact)
-         {
-            // set IP address to that of contact
-            localSocket = pContact->cIpAddress;
-         }
+         // set IP address to that of contact
+         localSocket = pContact->getAdapterIp();
+         delete pContact;
+         pContact = NULL;
       }
 
       switch (type)
@@ -2053,27 +2047,32 @@ SIPXTAPI_API SIPX_RESULT sipxConfigGetLocalContacts(const SIPX_INST hInst,
 
    if (pInst && pInst->pSipUserAgent && nMaxAddresses > 0)
    {
-      SIPX_CONTACT_ADDRESS* contacts[MAX_IP_ADDRESSES];
-      int numContacts = 0;
-      pInst->pSipUserAgent->getContactAddresses(contacts, numContacts);       
+      UtlSList contacts;
+      pInst->pSipUserAgent->getContacts(contacts);
+      UtlSListIterator itor(contacts);
 
-      // copy contact records
-      for (unsigned int i = 0; (i < (unsigned int)numContacts) && (i < nMaxAddresses); i++)
+      while (itor() && (*nActualAddresses < nMaxAddresses))
       {
-         addresses[i] = *contacts[i];
+         SipContact* pContact = dynamic_cast<SipContact*>(itor.item());
+         if (pContact)
+         {
+            SIPX_CONTACT_ADDRESS sipxContact = getSipxContact(*pContact);
+            addresses[*nActualAddresses] = sipxContact;
 
-         OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
-            "sipxConfigGetLocalContacts index=%d contactId=%d contactType=%s port=%d address=%s adapter=%s",
-            i,
-            contacts[i]->id,
-            sipxContactTypeToString(contacts[i]->eContactType),
-            contacts[i]->iPort,
-            contacts[i]->cIpAddress,
-            contacts[i]->cInterface);
+            OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
+               "sipxConfigGetLocalContacts contactId=%d contactType=%s port=%d address=%s adapter=%s adapterIp=%s",
+               sipxContact.id,
+               sipxContactTypeToString(sipxContact.eContactType),
+               sipxContact.iPort,
+               sipxContact.cIpAddress,
+               sipxContact.cInterface,
+               sipxContact.cInterfaceIp);
 
-         (*nActualAddresses)++;
+            (*nActualAddresses)++;
+         }
       }
 
+      contacts.destroyAll();
       rc = SIPX_RESULT_SUCCESS;
    }
    else

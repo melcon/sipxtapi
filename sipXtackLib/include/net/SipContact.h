@@ -52,8 +52,6 @@ typedef enum
  *
  * This class doesn't contain userId part to make it usable for constructing contacts
  * with any userId.
- *
- * This class is immutable.
  */
 class SipContact : public UtlCopyableContainable
 {
@@ -69,8 +67,10 @@ public:
    SipContact(int contactId,
               SIP_CONTACT_TYPE contactType,
               SIP_TRANSPORT_TYPE transportType,
-              UtlString ipAddress,
-              int port);
+              const UtlString& ipAddress,
+              int port,
+              const UtlString& adapterName = NULL,
+              const UtlString& adapterIp = NULL);
 
    /**
     * Destructor.
@@ -119,13 +119,24 @@ public:
 
    /* ============================ ACCESSORS ================================= */
 
+   void setContactId(int contactId) { m_contactId = contactId; }
    int getContactId() const { return m_contactId; }
    SIP_CONTACT_TYPE getContactType() const { return m_contactType; }
+   void setContactType(SIP_CONTACT_TYPE contactType) { m_contactType = contactType; }
    SIP_TRANSPORT_TYPE getTransportType() const { return m_transportType; }
    void getIpAddress(UtlString& ipAddress) const { ipAddress = m_ipAddress; }
+   UtlString getIpAddress() const { return m_ipAddress; }
    int getPort() const { return m_port; }
+   void getAdapterName(UtlString& adapterName) const { adapterName = m_adapterName; }
+   UtlString getAdapterName() const { return m_adapterName; }
+   void getAdapterIp(UtlString& adapterIp) const { adapterIp = m_adapterIp; }
+   UtlString getAdapterIp() const { return m_adapterIp; }
 
    /* ============================ INQUIRY =================================== */
+
+   UtlBoolean hasAdapterName(const UtlString& adapterName) const;
+   UtlBoolean hasAdapterIp(const UtlString& adapterIp) const;
+   UtlBoolean hasIpAddress(const UtlString& ipAddress) const;
 
    /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -140,6 +151,8 @@ private:
    SIP_TRANSPORT_TYPE m_transportType; ///< sip transport for which contact was created
    UtlString m_ipAddress; ///< ip address of contact
    int m_port; ///< port for contact -1 means hidden 5060
+   UtlString m_adapterName; ///< optional network adapter name
+   UtlString m_adapterIp; ///< optional network adapter ip
 };
 
 #endif // SipContact_h__

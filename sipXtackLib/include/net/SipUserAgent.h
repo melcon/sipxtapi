@@ -56,6 +56,7 @@ class OsQueuedEvent;
 class OsTimer;
 class SipDialog;
 class SipTcpServer;
+class SipContact;
 class SipLineProvider;
 class SipUserAgentBase;
 
@@ -440,12 +441,6 @@ public:
    //! Allow or disallow recursion and forking of 3xx class requests
    void setForking(UtlBoolean enabled);
 
-   void getViaInfo(int         protocol,
-      UtlString&  address,
-      int&        port,
-      const char* pszTargetAddress,
-      const int*  piTargetPort);
-
    void getDirectoryServer(int index, UtlString* address,
       int* port, UtlString* protocol);
 
@@ -570,6 +565,8 @@ public:
    void stopTransactionTimers() { mSipTransactions.stopTransactionTimers(); }
    void startTransactionTimers() { mSipTransactions.startTransactionTimers(); }                                       
 
+   UtlString getDefaultIpAddress() const { return mDefaultIpAddress; }
+
    /* ============================ INQUIRY =================================== */
 
    virtual UtlBoolean isMessageLoggingEnabled();
@@ -609,16 +606,16 @@ public:
    SipContactDb& getContactDb() { return mContactDb; }
 
    //! Adds a contact record to the contact db
-   const bool addContactAddress(SIPX_CONTACT_ADDRESS& contactAddress);
+   bool addContact(SipContact& sipContact);
 
    //! Gets all contact addresses for this user agent
-   void getContactAddresses(SIPX_CONTACT_ADDRESS* pContacts[], int &numContacts);
+   void getContacts(UtlSList& contacts);
 
    void prepareVia(SipMessage& message,
-      UtlString&           branchId, 
-      OsSocket::IpProtocolSocketType& toProtocol,
-      const char*          szTargetAddress, 
-      const int*           piTargetPort);
+                   UtlString& branchId, 
+                   OsSocket::IpProtocolSocketType toProtocol,
+                   const UtlString& targetAddress, 
+                   int targetPort);
 
 #ifdef HAVE_SSL    
    SipTlsServer* getTlsServer() { return mSipTlsServer; }

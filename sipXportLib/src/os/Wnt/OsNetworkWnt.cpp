@@ -554,9 +554,11 @@ bool OsNetworkWnt::getBestInterfaceName(const UtlString& targetIpAddress, UtlStr
          if (dwRes == NO_ERROR)
          {
             size_t convertedChars = 0;
-            char adapterName[MAX_ADAPTER_NAME_LENGTH];
-            wcstombs_s(&convertedChars, adapterName, wcslen(IfRow.wszName) + 1, IfRow.wszName, _TRUNCATE);
+            char adapterName[MAX_ADAPTER_NAME_LENGTH + 4];
+            memset(adapterName, 0, sizeof(adapterName));
+            wcstombs_s(&convertedChars, adapterName, sizeof(adapterName), IfRow.wszName, _TRUNCATE);
             interfaceName.append(adapterName);
+            rc = true;
          }
          else
          {

@@ -24,6 +24,7 @@
 #include <utl/UtlHashMapIterator.h>
 #include "cp/XCpCallManager.h"
 #include <net/SipUserAgent.h>
+#include <net/SipContact.h>
 #include "tapi/SipXSubscribe.h"
 #include "tapi/SipXHandleMap.h"
 #include "tapi/SipXCall.h"
@@ -563,24 +564,21 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
          {
             subscriptionData->pInst = pInst;
 
-            SIPX_CONTACT_ADDRESS* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+            // try to find contact by ID
+            SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+            if (!pContact)
+            {
+               // contact was not found by contactId, use the first local contact, will be overridden later anyway
+               // when sending via SipUserAgent
+               pContact = pInst->pSipUserAgent->getContactDb().find(SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP);
+            }
+            assert(pContact);
 
-            if (pContact) 
-            {
-               // contact found
-               contactField.append("sip:");
-               contactField.append(userId);
-               contactField.append("@");
-               contactField.append(pContact->cIpAddress);
-               char szPort[32];
-               SNPRINTF(szPort, sizeof(szPort), ":%d", pContact->iPort);
-               contactField.append(szPort);
-            }
-            else
-            {
-               // contact not found, use fromField
-               contactField.append(fromField);
-            }
+            Url contactUri;
+            pContact->buildContactUri(contactUri);
+            contactUri.toString(contactField);
+            delete pContact;
+            pContact = NULL;
 
             if(resourceId.length() <= 1 || 
                fromField.length() <= 4 || 

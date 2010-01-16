@@ -787,17 +787,19 @@ struct SIPX_CONTACT_ADDRESS
         cbSize = sizeof(SIPX_CONTACT_ADDRESS);
         memset((void*)cInterface, 0, sizeof(cInterface));
         memset((void*)cIpAddress, 0, sizeof(cIpAddress));
+        memset((void*)cInterfaceIp, 0, sizeof(cInterfaceIp));
         eContactType = CONTACT_AUTO;
         eTransportType = TRANSPORT_UDP;
         id = SIPX_AUTOMATIC_CONTACT_ID;
         iPort = -1;
     }
+    int                 cbSize;		 /**< Size of structure         */
     SIPX_CONTACT_ID     id;              /**< Contact record Id      */
     SIPX_CONTACT_TYPE   eContactType ;   /**< Address type/source    */
     SIPX_TRANSPORT_TYPE eTransportType ; /**< Contact transport type */
-    char                cInterface[MAX_ADAPTER_NAME_LENGTH + 4] ; /**< Source interface       */
-    char                cIpAddress[28] ; /**< IP Address             */
-    int                 cbSize;		 /**< Size of structure      */
+    char                cInterface[MAX_ADAPTER_NAME_LENGTH + 4] ; /**< Source interface if available */
+    char                cInterfaceIp[28]; ///< interface ip address if available
+    char                cIpAddress[28] ; /**< contact IP Address    */
     int                 iPort ;          /**< Port                   */
 };
 
@@ -3065,7 +3067,7 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetDriverLatency(const SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
                                      const char* szLineURL,
                                      SIPX_LINE* phLine,
-                                     SIPX_CONTACT_ID contactId = 0);
+                                     SIPX_CONTACT_ID contactId = SIPX_AUTOMATIC_CONTACT_ID);
 
 /**
  * Adds an alias for a line definition.  Line aliases are used to map an 

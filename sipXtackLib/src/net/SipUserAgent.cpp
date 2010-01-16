@@ -45,6 +45,8 @@
 #include <net/SipUdpServer.h>
 #include <net/SipLineProvider.h>
 #include <net/SipLineCredential.h>
+#include <net/SipContact.h>
+#include <net/SipContactSelector.h>
 #include <tapi/sipXtapiEvents.h>
 #include <os/OsDateTime.h>
 #include <os/OsEvent.h>
@@ -278,12 +280,14 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
    if (strcmp(bindIpAddress, "0.0.0.0") == 0)
    {
       // get the first CONTACT entry in the Db
-      SIPX_CONTACT_ADDRESS* pContact = mContactDb.find(1); 
+      SipContact* pContact = mContactDb.find(SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP); 
       assert(pContact);
       // Bind to the contact's Ip
       if (pContact)
       {
-         mDefaultIpAddress = pContact->cIpAddress;
+         mDefaultIpAddress = pContact->getIpAddress();
+         delete pContact;
+         pContact = NULL;
       }
    }
    else
@@ -981,11 +985,13 @@ UtlBoolean SipUserAgent::sendSymmetricUdp(SipMessage& message,
    prepareContact(message, serverAddress, &port) ;
 
    // Update Via
-   int bestKnownPort;
    UtlString bestKnownAddress;
-   getViaInfo(OsSocket::UDP, 
-      bestKnownAddress, bestKnownPort, 
-      serverAddress, &port) ;
+   int bestKnownPort;
+
+   SipContactSelector contactSelector(*this); // can also select via ip
+   contactSelector.getBestContactAddress(bestKnownAddress, bestKnownPort,
+      SIP_TRANSPORT_UDP, message.getLocalIp(), serverAddress, port);
+
    message.removeLastVia() ;
    message.addVia(bestKnownAddress, bestKnownPort, SIP_TRANSPORT_UDP_STR);
    message.setLastViaTag("", "rport");
@@ -1097,11 +1103,10 @@ UtlBoolean SipUserAgent::sendStatelessRequest(SipMessage& request,
    // Get via info
    UtlString viaAddress;
    int viaPort;
-   getViaInfo(protocol,
-      viaAddress,
-      viaPort,
-      address.data(),
-      &port);
+
+   SipContactSelector contactSelector(*this); // can also select via ip
+   contactSelector.getBestContactAddress(viaAddress, viaPort,
+      SipTransport::getSipTransport(protocol), request.getLocalIp(), address, port);
 
    // Add the via field data
    request.addVia(viaAddress.data(),
@@ -3089,36 +3094,6 @@ void SipUserAgent::getAllowedMethods(UtlString* allowedMethods) const
    }
 }
 
-void SipUserAgent::getViaInfo(int protocol,
-                              UtlString& address,
-                              int&        port,
-                              const char* pszTargetAddress,
-                              const int*  piTargetPort)
-{
-   address = mDefaultIpAddress;
-
-   if(protocol == OsSocket::TCP)
-   {
-      port = mTcpPort == SIP_PORT ? PORT_NONE : mTcpPort;
-   }
-#ifdef HAVE_SSL
-   else if(protocol == OsSocket::SSL_SOCKET)
-   {
-      port = mTlsPort == SIP_TLS_PORT ? PORT_NONE : mTlsPort;
-   }
-#endif
-   else // UDP protocol
-   {
-      port = mUdpPort == SIP_PORT ? PORT_NONE : mUdpPort;
-
-      if (pszTargetAddress && piTargetPort)
-      {
-         OsNatAgentTask::getInstance()->findContactAddress(pszTargetAddress, *piTargetPort, 
-            &address, &port);
-      }
-   }
-}
-
 void SipUserAgent::getDirectoryServer(int index, UtlString* address,
                                       int* port, UtlString* protocol)
 {
@@ -3960,14 +3935,14 @@ void SipUserAgent::setIncludePlatformInUserAgentName( const UtlBoolean bInclude 
    mbIncludePlatformInUserAgentName = bInclude;
 }
 
-const bool SipUserAgent::addContactAddress(SIPX_CONTACT_ADDRESS& contactAddress)
+bool SipUserAgent::addContact(SipContact& sipContact)
 {
-   return mContactDb.addContact(contactAddress);
+   return mContactDb.addContact(sipContact);
 }
 
-void SipUserAgent::getContactAddresses(SIPX_CONTACT_ADDRESS* pContacts[], int &numContacts)
+void SipUserAgent::getContacts(UtlSList& contacts)
 {
-   mContactDb.getAll(pContacts, numContacts);
+   mContactDb.getAll(contacts);
 }
 
 void SipUserAgent::setHeaderOptions(UtlBoolean bAllowHeader,
@@ -3984,92 +3959,26 @@ void SipUserAgent::setHeaderOptions(UtlBoolean bAllowHeader,
 }                          
 
 void SipUserAgent::prepareVia(SipMessage& message,
-                              UtlString&  branchId, 
-                              OsSocket::IpProtocolSocketType& toProtocol,
-                              const char* szTargetAddress, 
-                              const int*  piTargetPort)
+                              UtlString& branchId, 
+                              OsSocket::IpProtocolSocketType toProtocol,///< transport to use for sending SipMessage
+                              const UtlString& targetAddress, 
+                              int targetPort)
 {
    UtlString viaAddress;
+   int viaPort;
    UtlString viaProtocolString;
    SipMessage::convertProtocolEnumToString(toProtocol, viaProtocolString);
 
-   int viaPort;
-   getViaInfo(toProtocol, viaAddress, viaPort, szTargetAddress, piTargetPort);
-
-   // if the viaAddress is a local address that
-   // has a STUN or RELAY address associated with it,
-   // and the CONTACT is not a local address,
-   // then change the viaAddress and port to match
-   // the address and port from the Contact
-   UtlString stunnedAddress;
-   UtlString relayAddress;
-   UtlString contactAddress;
-   int contactPort;
-   UtlString contactProtocol;
-   SIPX_CONTACT_ADDRESS* pLocalContact = getContactDb().find(viaAddress, viaPort, CONTACT_LOCAL);
-   SIPX_CONTACT_ADDRESS* pStunnedAddress = NULL;
-   SIPX_CONTACT_ADDRESS* pRelayAddress = NULL;
-   int numStunnedContacts = 0;
-   const SIPX_CONTACT_ADDRESS* stunnedContacts[MAX_IP_ADDRESSES];
-   int numRelayContacts = 0;
-   const SIPX_CONTACT_ADDRESS* relayContacts[MAX_IP_ADDRESSES];
-
-   if (pLocalContact)
-   {
-      getContactDb().getAllForAdapter(stunnedContacts,
-         pLocalContact->cInterface,
-         numStunnedContacts, 
-         CONTACT_NAT_MAPPED);
-
-      getContactDb().getAllForAdapter(relayContacts,
-         pLocalContact->cInterface,
-         numRelayContacts, 
-         CONTACT_RELAY);
-
-      int i = 0;
-      bool bFound = false;
-      while (!bFound && 
-         TRUE == 
-         message.getContactAddress(i++, &contactAddress, &contactPort, &contactProtocol))
-      {
-         int j = 0;
-         for (j = 0; j < numStunnedContacts; j++)
-         {
-            if (strcmp(contactAddress, stunnedContacts[j]->cIpAddress) == 0)
-            {
-               // contact is a stunned address, corresponding to 
-               // the local address in the via, so, use it
-               viaAddress = stunnedContacts[j]->cIpAddress;
-               viaPort = stunnedContacts[j]->iPort;
-               bFound = true;
-               break;
-            }
-         }
-         for (j = 0; j < numRelayContacts; j++)
-         {
-            if (strcmp(contactAddress, relayContacts[j]->cIpAddress) == 0)
-            {
-               // contact is a stunned address, corresponding to 
-               // the local address in the via, so, use it
-               viaAddress = relayContacts[j]->cIpAddress;
-               viaPort = relayContacts[j]->iPort;
-               bFound = true;
-               break;
-            }
-         }
-
-      }
-   }
-
-   UtlString routeId ;
+   SipContactSelector contactSelector(*this); // contact selector can also find out the best Via address
+   contactSelector.getBestContactAddress(viaAddress, viaPort,
+      SipTransport::getSipTransport(toProtocol),
+      message.getLocalIp(), targetAddress, targetPort);
 
    // Add the via field data
-   message.addVia(viaAddress.data(),
-      viaPort,
-      viaProtocolString,
+   message.addVia(viaAddress.data(), viaPort, viaProtocolString,
       branchId.data(),
       (toProtocol == OsSocket::UDP) && getUseRport(),
-      routeId.data());
+      NULL);
    return;
 }
 

@@ -306,17 +306,13 @@ OsStatus SipUdpServer::createServerSocket(const char* szBoundIp,
     {     
         pSocket->enableTransparentReads(false);  
         port = pSocket->getLocalHostPort();
-        SIPX_CONTACT_ADDRESS contact;
-        SAFE_STRNCPY(contact.cIpAddress, szBoundIp, sizeof(contact.cIpAddress));
-        contact.iPort = port;
-        contact.eContactType = CONTACT_LOCAL;
-        UtlString adapterName;
-        
-        OsNetwork::getAdapterName(adapterName, contact.cIpAddress);
 
-        SAFE_STRNCPY(contact.cInterface, adapterName.data(), sizeof(contact.cInterface));
-        contact.eTransportType = TRANSPORT_UDP;
-        mSipUserAgent->addContactAddress(contact);
+        UtlString adapterName;        
+        OsNetwork::getAdapterName(adapterName, szBoundIp);
+
+        SipContact sipContact(-1, SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP,
+           szBoundIp, port, adapterName, szBoundIp);
+        mSipUserAgent->addContact(sipContact);
    
         // add address and port to the maps
         mServerSocketMap.insertKeyAndValue(new UtlString(szBoundIp),

@@ -18,6 +18,7 @@
 #include "tapi/SipXEvents.h"
 #include "tapi/SipXEventDispatcher.h"
 #include "net/SipUserAgent.h"
+#include <net/SipContact.h>
 #include "os/OsEventMsg.h"
 #include <os/OsStunResultFailureMsg.h>
 #include <os/OsStunResultSuccessMsg.h>
@@ -98,23 +99,24 @@ UtlBoolean SipXMessageObserver::handleStunOutcome(const OsStunResultMsg& pResult
 UtlBoolean SipXMessageObserver::handleStunSuccess(const OsStunResultSuccessMsg& pResultMsg)
 {
    UtlString adapterName;
+   UtlString localIp;
    UtlString mappedIp;
    int mappedPort;
    pResultMsg.getAdapterName(adapterName);
+   pResultMsg.getLocalIp(localIp);
    pResultMsg.getMappedIp(mappedIp);
    mappedPort = pResultMsg.getMappedPort();
+
    // create SIPX_CONTACT_ADDRESS
-   SIPX_CONTACT_ADDRESS stunContact;
-   stunContact.id = SIPX_AUTOMATIC_CONTACT_ID; // will be assigned by SipUserAgent
-   SAFE_STRNCPY(stunContact.cInterface, adapterName.data(), sizeof(stunContact.cInterface));
-   SAFE_STRNCPY(stunContact.cIpAddress, mappedIp.data(), sizeof(stunContact.cIpAddress));
-   stunContact.iPort = mappedPort;
-   stunContact.eContactType = CONTACT_NAT_MAPPED;
-   stunContact.eTransportType = TRANSPORT_UDP;
+   SipContact stunContact(SIPX_AUTOMATIC_CONTACT_ID, SIP_CONTACT_NAT_MAPPED, SIP_TRANSPORT_UDP,
+      mappedIp, mappedPort, adapterName, localIp);
+
    // first, find the user-agent, and add the contact to
-   // the user-agent's db
-   m_pInst->pSipUserAgent->addContactAddress(stunContact);
-   sipxFireConfigEvent(m_pInst, CONFIG_STUN_SUCCESS, &stunContact);
+   // the user-agent's db, will assign proper contactId
+   m_pInst->pSipUserAgent->addContact(stunContact);
+   SIPX_CONTACT_ADDRESS sipxContact = getSipxContact(stunContact);
+
+   sipxFireConfigEvent(m_pInst, CONFIG_STUN_SUCCESS, &sipxContact);
 
    return TRUE;
 }

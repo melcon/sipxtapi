@@ -41,6 +41,7 @@ nobase_include_HEADERS =  \
     net/SipClient.h \
     net/SipContact.h \
     net/SipContactDb.h \
+    net/SipContactSelector.h \
     net/SipDialog.h \
     net/SipDialogEvent.h \
     net/SipDialogMgr.h \

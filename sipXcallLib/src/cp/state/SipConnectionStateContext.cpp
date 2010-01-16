@@ -12,6 +12,7 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsTimer.h>
 #include <net/SipMessage.h>
 #include <cp/CpDefs.h>
 #include <cp/state/SipConnectionStateContext.h>

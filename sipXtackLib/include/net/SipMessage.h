@@ -774,15 +774,6 @@ public:
 
     void setTryingResponseData(const SipMessage* request);
 
-    /// Generate a 488 response (no compatible codecs).
-    void setInviteBadCodecs(const SipMessage* inviteRequest,
-                            SipUserAgent* ua
-                            /**< SipUserAgent from which to extract the
-                             *   agent identification for the Warning:
-                             *   header.
-                             */
-       );
-
     void setInviteForbidden(const SipMessage* request);
 
     void setRequestBadMethod(const SipMessage* request,
