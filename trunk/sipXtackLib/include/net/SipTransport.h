@@ -19,6 +19,8 @@
 
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
+#include <os/OsSocket.h>
+
 // DEFINES
 // EXTERNAL FUNCTIONS
 // EXTERNAL VARIABLES
@@ -58,6 +60,7 @@ public:
    static SIP_TRANSPORT_TYPE getSipTransport(const Url& url);
    static SIP_TRANSPORT_TYPE getSipTransport(const UtlString& strUrl);
    static SIP_TRANSPORT_TYPE getSipTransport(const char* szUrl);
+   static SIP_TRANSPORT_TYPE getSipTransport(OsSocket::IpProtocolSocketType protocolType);
 
    /* ============================ INQUIRY =================================== */
 

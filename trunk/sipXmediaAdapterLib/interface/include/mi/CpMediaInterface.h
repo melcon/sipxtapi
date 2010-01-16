@@ -27,6 +27,7 @@
 #include <net/SipContactDb.h>
 #include <net/SdpBody.h>
 #include <os/IStunSocket.h>
+#include <tapi/sipXtapi.h>
 
 // DEFINES
 // MACROS

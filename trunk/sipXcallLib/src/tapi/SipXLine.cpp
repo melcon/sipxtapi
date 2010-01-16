@@ -746,37 +746,27 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          Url userEnteredUrl(szLineUrl); // for example "display name"<sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
 
          // Set the preferred contact
-         SIPX_CONTACT_ADDRESS* pContact = NULL;
+         SIPX_TRANSPORT_TYPE lineTransport = TRANSPORT_UDP;
          SIPX_CONTACT_TYPE contactType = CONTACT_AUTO;
-         SIPX_TRANSPORT_TYPE suggestedTransport = TRANSPORT_UDP;
-         SIPX_TRANSPORT_TYPE transport = TRANSPORT_UDP;
          UtlString contactIp;
-         UtlString suggestedContactIp;
          int contactPort;
 
          // try to find contact by ID
-         pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
-         if (pContact)
+         SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+         if (!pContact)
          {
-            // contact found
-            contactType = pContact->eContactType;
-            suggestedContactIp = pContact->cIpAddress; // try to suggest contact IP address as well
+            // contact was not found by contactId, use the first local contact, will be overridden later anyway
+            // when sending via SipUserAgent
+            pContact = pInst->pSipUserAgent->getContactDb().find(SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP);
          }
 
-         suggestedTransport = (SIPX_TRANSPORT_TYPE)SipTransport::getSipTransport(szLineUrl);
-         transport = suggestedTransport; // we need to detect whether suggested transport was overridden
-
-         // select contact IP, port, maybe override contact type and suggestedTransport. Transport is used to select port.
-         sipxSelectContact(pInst, contactType, suggestedContactIp, contactIp, contactPort, transport);
-
-         if (transport != suggestedTransport)
-         {
-            // transport was rejected, we cannot use given lineUrl with this transport, return error
-            // the only way to proceed would have been removing suggestedTransport from szLineUrl
-            OsSysLog::add(FAC_SIPXTAPI, PRI_ERR, "selected transport %d was rejected", suggestedTransport);
-            sr = SIPX_RESULT_FAILURE;
-            return sr;
-         }
+         assert(pContact);
+         contactType = (SIPX_CONTACT_TYPE)pContact->getContactType();
+         lineTransport = (SIPX_TRANSPORT_TYPE)pContact->getTransportType();
+         contactIp = pContact->getIpAddress(); // try to suggest contact IP address as well
+         contactPort = pContact->getPort();
+         delete pContact;
+         pContact = NULL;
 
          SipLine line(userEnteredUrl, SipLine::LINE_STATE_UNKNOWN);
          Url lineUri = line.getLineUri(); // gets unique line uri, for line matching
@@ -791,7 +781,7 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
             if (pData)
             {
                pData->m_contactUrl = line.getPreferredContactUri();
-               pData->m_transport = suggestedTransport;
+               pData->m_transport = lineTransport;
                pData->m_contactType = contactType;
 
                UtlBoolean res = gLineHandleMap.allocHandle(*phLine, pData);

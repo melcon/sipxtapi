@@ -89,6 +89,10 @@ public:
 
     virtual void getDefaultContactUri(UtlString* contactUri) ;
 
+    int getTcpPort() const { return mTcpPort; }
+    int getUdpPort() const { return mUdpPort; }
+    int getTlsPort() const { return mTlsPort; }
+
 /* ============================ INQUIRY =================================== */
 
     virtual UtlBoolean isMessageLoggingEnabled() = 0;

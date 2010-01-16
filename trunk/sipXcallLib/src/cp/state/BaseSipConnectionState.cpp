@@ -22,6 +22,7 @@
 #include <sdp/SdpCodecList.h>
 #include <net/SipMessage.h>
 #include <net/SipUserAgent.h>
+#include <net/SipContact.h>
 #include <mi/CpMediaInterface.h>
 #include <cp/CpMessageQueueProvider.h>
 #include <cp/XSipConnectionContext.h>
@@ -2817,8 +2818,8 @@ UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
    if (m_rStateContext.m_contactId != AUTOMATIC_CONTACT_ID)
    {
       // contact id is known
-      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
-      if (pContact != NULL)
+      SipContact* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
+      if (pContact)
       {
          // Get display name and user id from from Url
          UtlString displayName;
@@ -2829,11 +2830,14 @@ UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
          Url contactUrl;
          contactUrl.setDisplayName(displayName);
          contactUrl.setUserId(userId);
-         contactUrl.setHostAddress(pContact->cIpAddress);
-         contactUrl.setHostPort(pContact->iPort);
+         contactUrl.setHostAddress(pContact->getIpAddress());
+         contactUrl.setHostPort(pContact->getPort());
          contactUrl.includeAngleBrackets();
          secureUrl(contactUrl);
          contactUrl.toString(sContact);
+
+         delete pContact;
+         pContact = NULL;
          return sContact;
       }
    }
@@ -2906,15 +2910,17 @@ UtlString BaseSipConnectionState::getLocalTag() const
    return localTag;
 }
 
-void BaseSipConnectionState::secureUrl(Url& fromUrl) const
+void BaseSipConnectionState::secureUrl(Url& url) const
 {
-   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
-   if (pContact != NULL)
+   SipContact* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
+   if (pContact)
    {
-      if (pContact->eTransportType == TRANSPORT_TLS)
+      if (pContact->getTransportType() == SIP_TRANSPORT_TLS)
       {
-         fromUrl.setScheme(Url::SipsUrlScheme);
+         url.setScheme(Url::SipsUrlScheme);
       }
+      delete pContact;
+      pContact = NULL;
    }
 }
 
@@ -2951,10 +2957,13 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
       }
    }
 
-   SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
-   if (pContact != NULL)
+   SipContact* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
+   if (pContact)
    {
-      pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
+      pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)pContact->getContactType(),
+         m_rStateContext.m_contactId);
+      delete pContact;
+      pContact = NULL;
    }
    else
    {
@@ -3054,10 +3063,13 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
 
    if (m_rStateContext.m_sdpNegotiation.isSdpOfferFinished())
    {
-      SIPX_CONTACT_ADDRESS* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
-      if (pContact != NULL)
+      SipContact* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
+      if (pContact)
       {
-         pMediaInterface->setContactType(mediaConnectionId, pContact->eContactType, m_rStateContext.m_contactId);
+         pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)pContact->getContactType(),
+            m_rStateContext.m_contactId);
+         delete pContact;
+         pContact = NULL;
       }
       else
       {

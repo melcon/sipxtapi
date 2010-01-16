@@ -66,6 +66,21 @@ SIP_TRANSPORT_TYPE SipTransport::getSipTransport(const char* szUrl)
    return getSipTransport(strUrl);
 }
 
+SIP_TRANSPORT_TYPE SipTransport::getSipTransport(OsSocket::IpProtocolSocketType protocolType)
+{
+   switch (protocolType)
+   {
+      case OsSocket::UDP:
+         return SIP_TRANSPORT_UDP;
+      case OsSocket::TCP:
+         return SIP_TRANSPORT_TCP;
+      case OsSocket::SSL_SOCKET:
+         return SIP_TRANSPORT_TLS;
+   }
+
+   return SIP_TRANSPORT_UDP; // default is UDP
+}
+
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */

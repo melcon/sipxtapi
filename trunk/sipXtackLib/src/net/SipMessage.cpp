@@ -775,46 +775,6 @@ void SipMessage::setForwardResponseData(const SipMessage* request,
    setContactField(contactAddress.data());
 }
 
-void SipMessage::setInviteBadCodecs(const SipMessage* inviteRequest,
-                                    SipUserAgent* ua)
-{
-   char warningCodeString[MAXIMUM_INTEGER_STRING_LENGTH + 1];
-   UtlString warningField;
-
-   setResponseData(inviteRequest, SIP_REQUEST_NOT_ACCEPTABLE_HERE_CODE,
-                   SIP_REQUEST_NOT_ACCEPTABLE_HERE_TEXT);
-
-   // Add a media not available warning
-   // The text message must be a quoted string
-   SNPRINTF(warningCodeString, sizeof(warningCodeString), "%d ", SIP_WARN_MEDIA_INCOMPAT_CODE);
-   warningField.append(warningCodeString);
-
-   // Construct the agent field from information extracted from the
-   // SipUserAgent.
-   UtlString address;
-   int port;
-   // Get the address/port for UDP, since it's too hard to figure out what
-   // protocol this message arrived on.
-
-   UtlString receivedFromAddress ;
-   int       receivedFromPort ;
-
-   inviteRequest->getSendAddress(&receivedFromAddress, &receivedFromPort) ;
-   ua->getViaInfo(OsSocket::UDP, address, port, receivedFromAddress.data(), &receivedFromPort) ;
-   warningField.append(address);
-
-   if ((port != 5060) && (port > 0))      // Port 5060 is treated as default port
-   {
-      SNPRINTF(warningCodeString, sizeof(warningCodeString), ":%d", port);
-      warningField.append(warningCodeString);
-   }
-
-   warningField.append(" \"");
-   warningField.append(SIP_WARN_MEDIA_INCOMPAT_TEXT);
-   warningField.append("\"");
-   addHeaderField(SIP_WARNING_FIELD, warningField.data());
-}
-
 void SipMessage::setInviteForbidden(const SipMessage* request)
 {
    setResponseData(request, SIP_FORBIDDEN_CODE, SIP_FORBIDDEN_TEXT);

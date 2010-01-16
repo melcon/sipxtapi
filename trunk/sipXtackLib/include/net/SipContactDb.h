@@ -8,19 +8,17 @@
 // $$
 ///////////////////////////////////////////////////////////////////////////////
 
-
 #ifndef _SipContactDb_h_
 #define _SipContactDb_h_
 
 // SYSTEM INCLUDES
-//#include <...>
+// APPLICATION INCLUDES
 #include <utl/UtlString.h>
 #include <utl/UtlHashMap.h>
 #include <os/OsMutex.h>
 #include <os/OsSocket.h>
-#include "tapi/sipXtapi.h"
+#include <net/SipContact.h>
 
-// APPLICATION INCLUDES
 // DEFINES
 // MACROS
 // EXTERNAL FUNCTIONS
@@ -38,19 +36,18 @@ public:
 /* ============================ CREATORS ================================== */
     SipContactDb();
 
-    virtual
-    ~SipContactDb();
+    virtual ~SipContactDb();
 
     /**
      * Inserts a contact into the contact table.  Fails if there is
-     * already an entry with the same port and IP address.
-     * If the ID of the incoming CONTACT_ADDRESS is less that 1,
-     * which it should be, then this method will assign
-     * a contact id.
-     * @param contact Reference to a contact structure, which will be
-     *        copied, and the copy will be added to the DB.
-     */   
-    const bool addContact(SIPX_CONTACT_ADDRESS& contact);
+     * already an entry with the same ip address, port, type and transport.
+     *
+     * @param sipContact Reference to a contact structure, which will be
+     *        copied, and the copy will be added to the DB. Id will be
+     *        assigned to passed contact.
+     * @return TRUE if operation succeeded
+     */
+    UtlBoolean addContact(SipContact& sipContact);
 
     /**
      * Removes a contact record from the DB.  
@@ -58,60 +55,65 @@ public:
      * @param id Key value (the contact id) used to find
      *        a matching record for deletion.
      */
-    const UtlBoolean deleteContact(const SIPX_CONTACT_ID id);
+    UtlBoolean deleteContact(int contactId);
     
     /** 
-     * Finds a contact in the DB, by SIPX_CONTACT_ID.
+     * Finds a contact in the DB, by contactId.
      *
-     * @param id The SIPX_CONTACT_ID of the record to find.
+     * @param id The contactId of the record to find.
+     * @return copy of SipContact, which must be deleted after usage by caller
      */
-    SIPX_CONTACT_ADDRESS* find(SIPX_CONTACT_ID id);
+    SipContact* find(int contactId) const;
 
-    /** 
-     * Finds a contact in the DB, by IP address.
-     *
-     * @param id The IP Address of the record to find.
-     */    
-	SIPX_CONTACT_ADDRESS* find(const UtlString szIpAddress, const int port, SIPX_CONTACT_TYPE type);
-
-    /*
-     * Find the local contact from a contact id.
+    /**
+     * Finds the first contact which satisfies given filter.
      */
-    SIPX_CONTACT_ADDRESS* getLocalContact(SIPX_CONTACT_ID id) ;
+    SipContact* find(SIP_CONTACT_TYPE typeFilter = SIP_CONTACT_AUTO,
+                     SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_UDP) const;
+
+    /**
+     * Populates contacts list with all of the contacts stored in this DB.
+     */
+    void getAll(UtlSList& contacts) const;
     
     /**
-     * Populates a CONTACT_ADDRESS array with all of the contacts
-     * stored in this DB.
-     *
-     * @param contacts Pre-allocated array of CONTACT_ADDRESS pointers.
-              Should be allocated using the MAX_IP_ADDRESSES for the size.
-     * @param actualNum The number of contacts.
+     * Populates contact list with all of the contacts
+     * stored in this DB that match a particular adapter name and type filter.
      */
-    void getAll(SIPX_CONTACT_ADDRESS* contacts[], int& actualNum) const;
-    
-    
+    void getAllForAdapterName(UtlSList& contacts,
+                              const UtlString& adapterName,
+                              SIP_CONTACT_TYPE typeFilter = SIP_CONTACT_AUTO,
+                              SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_UDP) const;
+
     /**
-     * Populates a CONTACT_ADDRESS array with all of the contacts
-     * stored in this DB that match a particular adapter name.
-     *
-     * @param contacts Pre-allocated array of CONTACT_ADDRESS pointers.
-              Should be allocated using the MAX_IP_ADDRESSES for the size.
-     * @param szAdapter Adapter name for which to look-up contacts.
-     * @param actualNum The number of contacts.
+     * Populates contact list with all of the contacts
+     * stored in this DB that match a particular adapter ip and type filter.
      */
-    void getAllForAdapter(const SIPX_CONTACT_ADDRESS* contacts[],
-                          const char* szAdapter,
-                          int& actualNum,
-                          SIPX_CONTACT_TYPE typeFilter = CONTACT_AUTO) const;
-                                    
+    void getAllForAdapterIp(UtlSList& contacts,
+                            const UtlString& adapterIp,
+                            SIP_CONTACT_TYPE typeFilter = SIP_CONTACT_AUTO,
+                            SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_UDP) const;
+
     
 /* ============================ MANIPULATORS ============================== */
 
-    void enableTurn(bool bEnable) ;
+    void enableTurn(UtlBoolean bEnable);
 
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
+
+    /** Checks this database for a duplicate record by key */
+    UtlBoolean contactExists(int id) const;
+
+    /** Checks this database for a duplicate record by ipAddress and port */
+    UtlBoolean contactExists(const UtlString& ipAddress,
+                             int port,
+                             SIP_CONTACT_TYPE type,
+                             SIP_TRANSPORT_TYPE transportType) const;
+
+    /** Checks this database for a duplicate sip contact */
+    UtlBoolean contactExists(const SipContact& sipContact) const;
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:
@@ -124,31 +126,19 @@ private:
 
     //** Disabled assignment operator */
     SipContactDb& operator=(const SipContactDb& rhs);
-    
-    /** Checks this database for a duplicate record by key */
-    const bool isDuplicate(const SIPX_CONTACT_ID id);
-    
-    /** Checks this database for a duplicate record by ipAddress and port */
-    const bool isDuplicate(const UtlString& ipAddress, const int port, SIPX_CONTACT_TYPE type, SIPX_TRANSPORT_TYPE transportType);
 
     /**
-     * Given a contact record containing an ID which is set
-     * to a value less than 1, this method will generate a contact 
-     * ID.
+     * Assigns next free id to contact.
      * 
-     * @param contact Reference to the CONTACT_ADDRESS object to be
+     * @param contact Reference to the SipContact object to be
      *        modified.
      */
-    const bool assignContactId(SIPX_CONTACT_ADDRESS& contact);
+    UtlBoolean assignContactId(SipContact& sipContact);
 
-    /** hash map storage for contact information, keyed by Contact Record ID */
-    UtlHashMap mContacts;   
-
-    int mNextContactId;
-    
-    mutable OsMutex mLock;
-
-    bool mbTurnEnabled ;
+    UtlHashMap m_contacts; ///< hash map storage for contact information, keyed by Contact Record ID
+    int m_nextContactId; ///< next free contact id
+    UtlBoolean m_bTurnEnabled;
+    mutable OsMutex m_mutex;
 };
 
 /* ============================ INLINE METHODS ============================ */

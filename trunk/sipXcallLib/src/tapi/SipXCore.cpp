@@ -186,52 +186,6 @@ const char* sipxContactTypeToString(SIPX_CONTACT_TYPE type)
    return szResult;
 }
 
-
-// Get the external host and port given the contact preference
-void sipxSelectContact(SIPX_INSTANCE_DATA* pData,
-                       SIPX_CONTACT_TYPE& contactType,
-                       const UtlString& suggestedContactIp,
-                       UtlString& contactIp,
-                       int& contactPort,
-                       SIPX_TRANSPORT_TYPE& transport)
-{
-
-   if (contactType == CONTACT_RELAY)
-   {
-      // Relay is not supported yet -- default to AUTO for now.
-      contactType = CONTACT_AUTO;
-   }
-
-   // Use NAT_MAPPED next. Always selects mSipUdpServer port, ignoring transport.
-   if ((contactType == CONTACT_AUTO) || (contactType == CONTACT_NAT_MAPPED))
-   {
-      if (pData->pSipUserAgent->getNatMappedAddress(&contactIp, &contactPort))
-      {
-         if (transport != TRANSPORT_UDP)
-         {
-            OsSysLog::add(FAC_SIPXTAPI, PRI_WARNING,
-               "Ignoring transport %d for selecting line contact port due to incompatibility with contactType %d.",
-               transport, contactType);
-
-            if (transport == TRANSPORT_TLS)
-            {
-               // override transport, since contact port will be of UDP Sip server
-               transport = TRANSPORT_UDP;
-            }
-         }
-         contactType = CONTACT_NAT_MAPPED;
-         return;
-      }
-   }
-
-   // Lastly, use local. Also takes into account transport to select contactPort.
-   if (pData->pSipUserAgent->getLocalAddress(&contactIp, &contactPort, transport, suggestedContactIp))
-   {
-      contactType = CONTACT_LOCAL; // propagate selected contact type up
-   }
-}
-
-
 SIPX_RESULT validateNetwork()
 {
    SIPX_RESULT res = SIPX_RESULT_NETWORK_FAILURE;
@@ -794,4 +748,17 @@ SIPXTAPI_API SIPX_RESULT sipxUnInitialize(SIPX_INST hInst,
    }
 
    return rc;
+}
+
+SIPX_CONTACT_ADDRESS getSipxContact(const SipContact& sipContact)
+{
+   SIPX_CONTACT_ADDRESS sipxContact;
+   sipxContact.id = sipContact.getContactId();
+   sipxContact.eContactType = (SIPX_CONTACT_TYPE)sipContact.getContactType();
+   sipxContact.eTransportType = (SIPX_TRANSPORT_TYPE)sipContact.getTransportType();
+   SAFE_STRNCPY(sipxContact.cInterface, sipContact.getAdapterName().data(), MAX_ADAPTER_NAME_LENGTH + 4);
+   SAFE_STRNCPY(sipxContact.cInterfaceIp, sipContact.getAdapterIp().data(), 28);
+   SAFE_STRNCPY(sipxContact.cIpAddress, sipContact.getIpAddress().data(), 28);
+   sipxContact.iPort = sipContact.getPort();
+   return sipxContact;
 }

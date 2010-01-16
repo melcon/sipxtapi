@@ -971,7 +971,6 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
       message.setSendAddress(toAddress.data(), port);
       message.setFirstSent();
    }
-
    // Requests:
    else
    {
@@ -981,7 +980,7 @@ UtlBoolean SipTransaction::doFirstSend(SipMessage& message,
       message.getRequestMethod(&method);
 
       // Add a via to requests, now that we know the protocol
-      userAgent.prepareVia(message, mBranchId, toProtocol, toAddress.data(), &port);
+      userAgent.prepareVia(message, mBranchId, toProtocol, toAddress, port);
    }
 
    if(toProtocol == OsSocket::TCP)

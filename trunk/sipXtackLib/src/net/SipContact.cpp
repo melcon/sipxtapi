@@ -35,13 +35,17 @@ const UtlContainableType SipContact::TYPE = "SipContact";
 SipContact::SipContact(int contactId,
                        SIP_CONTACT_TYPE contactType,
                        SIP_TRANSPORT_TYPE transportType,
-                       UtlString ipAddress,
-                       int port)
+                       const UtlString& ipAddress,
+                       int port,
+                       const UtlString& adapterName,
+                       const UtlString& adapterIp)
 : m_contactId(contactId)
 , m_contactType(contactType)
 , m_transportType(transportType)
 , m_ipAddress(ipAddress)
 , m_port(port)
+, m_adapterName(adapterName)
+, m_adapterIp(adapterIp)
 {
 
 }
@@ -57,6 +61,8 @@ SipContact::SipContact(const SipContact& rhs)
 , m_transportType(rhs.m_transportType)
 , m_ipAddress(rhs.m_ipAddress)
 , m_port(rhs.m_port)
+, m_adapterName(rhs.m_adapterName)
+, m_adapterIp(rhs.m_adapterIp)
 {
 
 }
@@ -139,6 +145,21 @@ void SipContact::buildContactUri(Url& contactUri,
 /* ============================ ACCESSORS ================================= */
 
 /* ============================ INQUIRY =================================== */
+
+UtlBoolean SipContact::hasAdapterName(const UtlString& adapterName) const
+{
+   return m_adapterName.compareTo(adapterName, UtlString::matchCase) == 0;
+}
+
+UtlBoolean SipContact::hasAdapterIp(const UtlString& adapterIp) const
+{
+   return m_adapterIp.compareTo(adapterIp, UtlString::matchCase) == 0;
+}
+
+UtlBoolean SipContact::hasIpAddress(const UtlString& ipAddress) const
+{
+   return m_ipAddress.compareTo(ipAddress, UtlString::matchCase) == 0;
+}
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
