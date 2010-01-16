@@ -13,6 +13,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <os/OsNatAgentTask.h>
+#include <os/OsUtil.h>
 #include <net/Url.h>
 #include <net/SipUserAgent.h>
 #include <net/SipContactSelector.h>
@@ -165,19 +166,23 @@ UtlBoolean SipContactSelector::isPrivateIp(const UtlString& ipAddress) const
    {
       return TRUE;
    }
-   else if (ipAddress.index("10.") == 0)
+   else if (OsUtil::isSameNetwork(ipAddress, "10.0.0.0", "255.0.0.0"))
    {
       return TRUE;
    }
-   else if (ipAddress.index("192.168.") == 0)
+   else if (OsUtil::isSameNetwork(ipAddress, "172.16.0.0", "255.240.0.0"))
    {
       return TRUE;
    }
-   else if (ipAddress.index("169.254.") == 0)
+   else if (OsUtil::isSameNetwork(ipAddress, "192.168.0.0", "255.255.0.0"))
    {
       return TRUE;
    }
-   else // we don't support 172.16.0.0 - 172.31.255.255 yet
+   else if (OsUtil::isSameNetwork(ipAddress, "169.254.0.0", "255.255.0.0"))
+   {
+      return TRUE;
+   }
+   else
    {
       return FALSE;
    }
