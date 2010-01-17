@@ -730,8 +730,8 @@ public:
     void setSecurityAttributes(const SIPXTACK_SECURITY_ATTRIBUTES* const pSecurity);
     SIPXTACK_SECURITY_ATTRIBUTES* const getSecurityAttributes() const { return mpSecurity; } 
     bool fireSecurityEvent(const void* pEventData,
-                           const enum SIPX_SECURITY_EVENT,
-                           const enum SIPX_SECURITY_CAUSE,
+                           const enum SIP_SECURITY_EVENT,
+                           const enum SIP_SECURITY_CAUSE,
                            SIPXTACK_SECURITY_ATTRIBUTES* const pSecurity,
                            void* pCert = NULL,
                            char* szSubjectAltName = NULL) const;
@@ -1407,7 +1407,7 @@ public:
                                     UtlContainer& viaParameterList
                                    );
     // ISmimeNotifySink implementations                               
-    void OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause);
+    void OnError(SIP_SECURITY_EVENT event, SIP_SECURITY_CAUSE cause);
     bool OnSignature(void* pCert, char* szSubjAltName);        
     /* //////////////////////////// PROTECTED ///////////////////////////////// */
 protected:

@@ -47,7 +47,6 @@
 #include <net/SipLineCredential.h>
 #include <net/SipContact.h>
 #include <net/SipContactSelector.h>
-#include <tapi/sipXtapiEvents.h>
 #include <os/OsDateTime.h>
 #include <os/OsEvent.h>
 #include <os/OsQueuedEvent.h>
@@ -2775,7 +2774,7 @@ const UtlString& SipUserAgent::getUserAgentName() const
 }
 
 // Get the local address and port
-UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX_TRANSPORT_TYPE protocol, const UtlString& preferredIp)
+UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIP_TRANSPORT_TYPE protocol, const UtlString& preferredIp)
 {
    if (pIpAddress)
    {
@@ -2787,14 +2786,14 @@ UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX
          switch (protocol)
          {
          default:
-         case TRANSPORT_UDP:
+         case SIP_TRANSPORT_UDP:
             if (mSipUdpServer && mSipUdpServer->isBoundTo(preferredIp))
             {
                // server is bound to preferred ip, we can use it
                *pIpAddress = preferredIp;
             }
             break;
-         case TRANSPORT_TCP:
+         case SIP_TRANSPORT_TCP:
             if (mSipTcpServer && mSipTcpServer->isBoundTo(preferredIp))
             {
                // server is bound to preferred ip, we can use it
@@ -2802,7 +2801,7 @@ UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX
             }
             break;
 #ifdef HAVE_SSL
-         case TRANSPORT_TLS:
+         case SIP_TRANSPORT_TLS:
             if (mSipTlsServer && mSipTlsServer->isBoundTo(preferredIp))
             {
                // server is bound to preferred ip, we can use it
@@ -2831,16 +2830,16 @@ UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX
    {
       switch (protocol)
       {
-      case TRANSPORT_UDP:
+      case SIP_TRANSPORT_UDP:
          if (mSipUdpServer)
             *pPort = mSipUdpServer->getServerPort();
          break;
-      case TRANSPORT_TCP:
+      case SIP_TRANSPORT_TCP:
          if (mSipTcpServer)
             *pPort = mSipTcpServer->getServerPort();
          break;
 #ifdef HAVE_SSL
-      case TRANSPORT_TLS:
+      case SIP_TRANSPORT_TLS:
          if (mSipTlsServer)
             *pPort = mSipTlsServer->getServerPort();
          break;
@@ -2859,7 +2858,7 @@ UtlBoolean SipUserAgent::getLocalAddress(UtlString* pIpAddress, int* pPort, SIPX
 // Get the NAT mapped address and port
 UtlBoolean SipUserAgent::getNatMappedAddress(UtlString* pIpAddress,
                                              int* pPort,
-                                             SIPX_TRANSPORT_TYPE protocol /*= TRANSPORT_UDP*/)
+                                             SIP_TRANSPORT_TYPE protocol /*= SIP_TRANSPORT_UDP*/)
 {
    UtlBoolean bRet(FALSE);
 

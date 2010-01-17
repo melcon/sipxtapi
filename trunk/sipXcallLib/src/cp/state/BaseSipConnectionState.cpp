@@ -2960,14 +2960,14 @@ UtlBoolean BaseSipConnectionState::prepareSdpOffer(SipMessage& sipMessage)
    SipContact* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
    if (pContact)
    {
-      pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)pContact->getContactType(),
+      pMediaInterface->setContactType(mediaConnectionId, pContact->getContactType(),
          m_rStateContext.m_contactId);
       delete pContact;
       pContact = NULL;
    }
    else
    {
-      pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
+      pMediaInterface->setContactType(mediaConnectionId, SIP_CONTACT_AUTO, AUTOMATIC_CONTACT_ID);
    }
 
    UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];
@@ -3066,14 +3066,14 @@ UtlBoolean BaseSipConnectionState::prepareSdpAnswer(SipMessage& sipMessage)
       SipContact* pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_contactId);
       if (pContact)
       {
-         pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)pContact->getContactType(),
+         pMediaInterface->setContactType(mediaConnectionId, pContact->getContactType(),
             m_rStateContext.m_contactId);
          delete pContact;
          pContact = NULL;
       }
       else
       {
-         pMediaInterface->setContactType(mediaConnectionId, (SIPX_CONTACT_TYPE)AUTOMATIC_CONTACT_TYPE, AUTOMATIC_CONTACT_ID);
+         pMediaInterface->setContactType(mediaConnectionId, SIP_CONTACT_AUTO, AUTOMATIC_CONTACT_ID);
       }
 
       UtlString hostAddresses[MAX_ADDRESS_CANDIDATES];

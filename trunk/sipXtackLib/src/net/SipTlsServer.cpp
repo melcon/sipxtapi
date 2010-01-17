@@ -21,7 +21,6 @@
 #include <utl/UtlHashMapIterator.h>
 #include <utl/UtlPtr.h>
 
-#include <tapi/sipXtapi.h>
 #include <os/OsSSLServerSocket.h>
 #include <os/OsSSLConnectionSocket.h>
 

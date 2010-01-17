@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
+				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
 				PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="false"
 				MinimalRebuild="false"
@@ -123,7 +123,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
+				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
 				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;WIN32;_DEBUG;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -200,7 +200,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
+				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
 				PreprocessorDefinitions="HAVE_GSM;HAVE_SPEEX;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_DEBUG;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_DEPRECATE;xxENABLE_TOPOLOGY_FLOWGRAPH_INTERFACE_FACTORY;xxDISABLE_DEFAULT_PHONE_MEDIA_INTERFACE_FACTORY;xxDISABLE_LOCAL_AUDIO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -213,7 +213,7 @@
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -278,7 +278,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="0"
-				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXcallLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
+				AdditionalIncludeDirectories="sipXmediaMediaProcessing;..\sipXportLib\include;..\sipXsdpLib\include;..\sipXmediaLib\include;..\sipXtackLib\include;interface\include;..\sipXportLib\contrib\pcre\include"
 				PreprocessorDefinitions="NDEBUG;HAVE_SPEEX;HAVE_GSM;HAVE_ILBC;HAVE_SPAN_DSP;ENABLE_WIDEBAND_AUDIO;HAVE_INTEL_IPP;WIN32;_LIB;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1;_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1;_CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES=1;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="false"
 				MinimalRebuild="false"

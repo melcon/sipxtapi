@@ -186,7 +186,7 @@ public:
    */
    virtual OsStatus recordAudio(const char* szFile);
 
-    virtual void setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) ;
+    virtual void setContactType(int connectionId, SIP_CONTACT_TYPE eType, int contactId) ;
      //: Set the contact type for this Phone media interface.  
      //  It is important to set the contact type BEFORE creating the 
      //  connection -- setting after the connection has been created
@@ -330,7 +330,7 @@ protected:
       /// Create socket pair for RTP/RTCP streams.
     OsStatus createRtpSocketPair(UtlString localAddress,
                                  int localPort,
-                                 SIPX_CONTACT_TYPE contactType,
+                                 SIP_CONTACT_TYPE contactType,
                                  OsDatagramSocket* &rtpSocket,
                                  OsDatagramSocket* &rtcpSocket);
       /**<

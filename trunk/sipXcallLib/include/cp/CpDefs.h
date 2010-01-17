@@ -38,7 +38,6 @@
 // STRUCTS
 // TYPEDEFS
 
-#define AUTOMATIC_CONTACT_TYPE -1
 #define AUTOMATIC_CONTACT_ID -1
 
 typedef int CP_CONTACT_ID; 
