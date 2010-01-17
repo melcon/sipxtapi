@@ -373,7 +373,7 @@ SIPXTAPI_API SIPX_RESULT sipxInitialize(SIPX_INST* phInst,
    // set bind address on OsSocket
    UtlString defaultBindAddressString;
    int unused;
-   pInst->pSipUserAgent->getLocalAddress(&defaultBindAddressString, &unused, TRANSPORT_UDP);
+   pInst->pSipUserAgent->getLocalAddress(&defaultBindAddressString, &unused, SIP_TRANSPORT_UDP);
    unsigned long defaultBindAddress = inet_addr(defaultBindAddressString.data());
    OsSocket::setDefaultBindAddress(defaultBindAddress);
    // start SipUserAgent server task

@@ -36,7 +36,6 @@
 #include <net/SipUserAgent.h>
 #include <os/OsDateTime.h>
 #include <os/OsSysLog.h>
-#include <tapi/sipXtapiEvents.h>
 #include <net/HttpBody.h>
 #include <os/OsDefs.h>
 
@@ -6128,7 +6127,7 @@ bool SipMessage::smimeEncryptSdp(const void *pEventData)
     }
     else
     {
-        OnError(SECURITY_ENCRYPT, SECURITY_CAUSE_ENCRYPT_FAILURE_INVALID_PARAMETER);
+        OnError(SIP_SECURITY_ENCRYPT, SIP_SECURITY_CAUSE_ENCRYPT_FAILURE_INVALID_PARAMETER);
     }
 
     return bRet;
@@ -6136,13 +6135,13 @@ bool SipMessage::smimeEncryptSdp(const void *pEventData)
 
 
 bool SipMessage::fireSecurityEvent(const void* pEventData,
-                        const enum SIPX_SECURITY_EVENT event,
-                        const enum SIPX_SECURITY_CAUSE cause,
+                        const enum SIP_SECURITY_EVENT event,
+                        const enum SIP_SECURITY_CAUSE cause,
                         SIPXTACK_SECURITY_ATTRIBUTES* const pSecurity,
                         void* pCert,
                         char* szSubjectAltName) const
 {
-    SIPX_SECURITY_INFO info;
+    /*SIPX_SECURITY_INFO info;
     memset(&info, 0, sizeof(SIPX_SECURITY_INFO));
     info.nSize = sizeof(SIPX_SECURITY_INFO);
     info.event = event;
@@ -6195,7 +6194,7 @@ bool SipMessage::fireSecurityEvent(const void* pEventData,
         info.szSRTPkey = (char*)pSecurity->getSrtpKey();
 
     }
-    /*return TapiMgr::getInstance().fireEvent(pEventData ? pEventData : mpEventData,
+    return TapiMgr::getInstance().fireEvent(pEventData ? pEventData : mpEventData,
                                             EVENT_CATEGORY_SECURITY,
                                             &info);*/
     // fix event callback!!, no way we use TapiMgr here
@@ -6203,7 +6202,7 @@ bool SipMessage::fireSecurityEvent(const void* pEventData,
     return true;
 }
 
-void SipMessage::OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause)
+void SipMessage::OnError(SIP_SECURITY_EVENT event, SIP_SECURITY_CAUSE cause)
 {
     fireSecurityEvent(mpEventData, event, cause, mpSecurity);
 }
@@ -6211,8 +6210,8 @@ void SipMessage::OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause)
 bool SipMessage::OnSignature(void* pCert, char* szSubjAltName)
 {
     return fireSecurityEvent(mpEventData,
-                             SECURITY_DECRYPT, 
-                             SECURITY_CAUSE_SIGNATURE_NOTIFY,
+                             SIP_SECURITY_DECRYPT, 
+                             SIP_SECURITY_CAUSE_SIGNATURE_NOTIFY,
                              mpSecurity,
                              pCert,
                              szSubjAltName);

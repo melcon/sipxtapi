@@ -71,7 +71,7 @@ public:
     , mRtpAudioReceiving(FALSE)
     , mpAudioCodec(NULL)
     , mpSdpCodecList(NULL)
-    , mContactType(CONTACT_AUTO)
+    , mContactType(SIP_CONTACT_AUTO)
     , mbAlternateDestinations(FALSE)
     {
     };
@@ -130,7 +130,7 @@ public:
     UtlBoolean mRtpAudioReceiving;
     SdpCodec* mpAudioCodec;
     SdpCodecList* mpSdpCodecList; /// list of SDP codecs used for SDP negotiation, but not up to date when RTP is flowing
-    SIPX_CONTACT_TYPE mContactType ;
+    SIP_CONTACT_TYPE mContactType ;
     UtlString mLocalIPAddress; ///< local bind IP address
     UtlBoolean mbAlternateDestinations ;
 };
@@ -291,7 +291,7 @@ OsStatus SipXMediaInterfaceImpl::createConnection(int& connectionId,
    mediaConnection->mIsMulticast = OsSocket::isMcastAddr(mediaConnection->mLocalIPAddress);
    if (mediaConnection->mIsMulticast)
    {
-      mediaConnection->mContactType = CONTACT_LOCAL;
+      mediaConnection->mContactType = SIP_CONTACT_LOCAL;
    }
 
    // Create the sockets for audio stream
@@ -368,7 +368,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
             // others are ignored.  They *SHOULD* be the same as the first.  
             // Possible exceptions: STUN worked for the first, but not the
             // others.  Not sure how to handle/recover from that case.
-            if (pMediaConn->mContactType == CONTACT_RELAY)
+            if (pMediaConn->mContactType == SIP_CONTACT_RELAY)
             {
                 assert(!pMediaConn->mIsMulticast);
                 if (!((OsNatDatagramSocket*)pMediaConn->mpRtpAudioSocket)->
@@ -379,7 +379,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
                 }
 
             }
-            else if (pMediaConn->mContactType == CONTACT_AUTO || pMediaConn->mContactType == CONTACT_NAT_MAPPED)
+            else if (pMediaConn->mContactType == SIP_CONTACT_AUTO || pMediaConn->mContactType == SIP_CONTACT_NAT_MAPPED)
             {
                 assert(!pMediaConn->mIsMulticast);
                 if (!pMediaConn->mpRtpAudioSocket->getMappedIp(&rtpHostAddress, &rtpAudioPort))
@@ -388,7 +388,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
                     rtpHostAddress = mRtpReceiveHostAddress ;
                 }
             }
-            else if (pMediaConn->mContactType == CONTACT_LOCAL)
+            else if (pMediaConn->mContactType == SIP_CONTACT_LOCAL)
             {
                  rtpHostAddress = pMediaConn->mpRtpAudioSocket->getLocalIp();
                  rtpAudioPort = pMediaConn->mpRtpAudioSocket->getLocalHostPort();
@@ -407,7 +407,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
         // Audio RTCP
         if (pMediaConn->mpRtcpAudioSocket)
         {
-            if (pMediaConn->mContactType == CONTACT_RELAY)
+            if (pMediaConn->mContactType == SIP_CONTACT_RELAY)
             {
                 UtlString tempHostAddress;
                 assert(!pMediaConn->mIsMulticast);
@@ -422,7 +422,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
                     assert(tempHostAddress.compareTo(rtpHostAddress) == 0) ;
                 }
             }
-            else if (pMediaConn->mContactType == CONTACT_AUTO || pMediaConn->mContactType == CONTACT_NAT_MAPPED)
+            else if (pMediaConn->mContactType == SIP_CONTACT_AUTO || pMediaConn->mContactType == SIP_CONTACT_NAT_MAPPED)
             {
                 UtlString tempHostAddress;
                 assert(!pMediaConn->mIsMulticast);
@@ -436,7 +436,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilities(int connectionId,
                     assert(tempHostAddress.compareTo(rtpHostAddress) == 0) ;
                 }
             }
-            else if (pMediaConn->mContactType == CONTACT_LOCAL)
+            else if (pMediaConn->mContactType == SIP_CONTACT_LOCAL)
             {
                 rtcpAudioPort = pMediaConn->mpRtcpAudioSocket->getLocalHostPort();
                 if (rtcpAudioPort <= 0)
@@ -499,7 +499,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilitiesEx(int connectionId,
     {        
         switch (pMediaConn->mContactType)
         {
-            case CONTACT_LOCAL:
+            case SIP_CONTACT_LOCAL:
                 addLocalContacts(connectionId, nMaxAddresses, rtpHostAddresses,
                         rtpAudioPorts, rtcpAudioPorts, rtpVideoPorts, 
                         rtcpVideoPorts, nActualAddresses) ;
@@ -510,7 +510,7 @@ OsStatus SipXMediaInterfaceImpl::getCapabilitiesEx(int connectionId,
                         rtpAudioPorts, rtcpAudioPorts, rtpVideoPorts, 
                         rtcpVideoPorts, nActualAddresses) ;
                 break ;
-            case CONTACT_RELAY:
+            case SIP_CONTACT_RELAY:
                 addRelayContacts(connectionId, nMaxAddresses, rtpHostAddresses,
                         rtpAudioPorts, rtcpAudioPorts, rtpVideoPorts, 
                         rtcpVideoPorts, nActualAddresses) ;
@@ -1272,20 +1272,20 @@ OsStatus SipXMediaInterfaceImpl::stopRecording()
    return ret;
 }
 
-void SipXMediaInterfaceImpl::setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) 
+void SipXMediaInterfaceImpl::setContactType(int connectionId, SIP_CONTACT_TYPE eType, int contactId) 
 {
     SipXMediaConnection* pMediaConn = getMediaConnection(connectionId);
 
     if (pMediaConn)
     {
-        if (pMediaConn->mIsMulticast && eType == CONTACT_AUTO)
+        if (pMediaConn->mIsMulticast && eType == SIP_CONTACT_AUTO)
         {
-            pMediaConn->mContactType = CONTACT_LOCAL;
+            pMediaConn->mContactType = SIP_CONTACT_LOCAL;
         }
         else
         {
             // Only CONTACT_LOCAL is allowed for multicast addresses.
-            assert(!pMediaConn->mIsMulticast || eType == CONTACT_LOCAL);
+            assert(!pMediaConn->mIsMulticast || eType == SIP_CONTACT_LOCAL);
             pMediaConn->mContactType = eType;
         }
     }
@@ -2007,7 +2007,7 @@ void SipXMediaInterfaceImpl::applyAlternateDestinations(int connectionId)
 
 OsStatus SipXMediaInterfaceImpl::createRtpSocketPair(UtlString localAddress,
                                                     int localPort,
-                                                    SIPX_CONTACT_TYPE contactType,
+                                                    SIP_CONTACT_TYPE contactType,
                                                     OsDatagramSocket* &rtpSocket,
                                                     OsDatagramSocket* &rtcpSocket)
 {
@@ -2138,7 +2138,7 @@ OsStatus SipXMediaInterfaceImpl::createRtpSocketPair(UtlString localAddress,
 
       // Enable Stun if we have a stun server and either non-local contact type or 
       // ICE is enabled.
-      if ((mStunServer.length() != 0) && ((contactType != CONTACT_LOCAL) || mEnableIce))
+      if ((mStunServer.length() != 0) && ((contactType != SIP_CONTACT_LOCAL) || mEnableIce))
       {
          ((OsNatDatagramSocket*)rtpSocket)->enableStun(mStunServer, mStunPort, mStunRefreshPeriodSecs, 0, false) ;
          rtpBindingMode = STUN_BINDING;
@@ -2146,7 +2146,7 @@ OsStatus SipXMediaInterfaceImpl::createRtpSocketPair(UtlString localAddress,
 
       // Enable Turn if we have a stun server and either non-local contact type or 
       // ICE is enabled.
-      if ((mTurnServer.length() != 0) && ((contactType != CONTACT_LOCAL) || mEnableIce))
+      if ((mTurnServer.length() != 0) && ((contactType != SIP_CONTACT_LOCAL) || mEnableIce))
       {
          ((OsNatDatagramSocket*)rtpSocket)->enableTurn(mTurnServer, mTurnPort, 
                   mTurnRefreshPeriodSecs, mTurnUsername, mTurnPassword, false) ;
@@ -2163,7 +2163,7 @@ OsStatus SipXMediaInterfaceImpl::createRtpSocketPair(UtlString localAddress,
 
       // Enable Stun if we have a stun server and either non-local contact type or 
       // ICE is enabled.
-      if ((mStunServer.length() != 0) && ((contactType != CONTACT_LOCAL) || mEnableIce))
+      if ((mStunServer.length() != 0) && ((contactType != SIP_CONTACT_LOCAL) || mEnableIce))
       {
          ((OsNatDatagramSocket*)rtcpSocket)->enableStun(mStunServer, mStunPort, mStunRefreshPeriodSecs, 0, false) ;
          rtcpBindingMode = STUN_BINDING;
@@ -2171,7 +2171,7 @@ OsStatus SipXMediaInterfaceImpl::createRtpSocketPair(UtlString localAddress,
 
       // Enable Turn if we have a stun server and either non-local contact type or 
       // ICE is enabled.
-      if ((mTurnServer.length() != 0) && ((contactType != CONTACT_LOCAL) || mEnableIce))
+      if ((mTurnServer.length() != 0) && ((contactType != SIP_CONTACT_LOCAL) || mEnableIce))
       {
          ((OsNatDatagramSocket*)rtcpSocket)->enableTurn(mTurnServer, mTurnPort, 
                   mTurnRefreshPeriodSecs, mTurnUsername, mTurnPassword, false) ;

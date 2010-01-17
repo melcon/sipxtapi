@@ -60,7 +60,7 @@ public:
       SIP_TRANSPORT_TYPE transport, ///< transport which will be used
       const UtlString& messageLocalIp = NULL, ///< ip of local interface via which message should be sent if known
       const UtlString& targetIpAddress = NULL, ///< where we are sending message
-      int targetPort = PORT_NONE);
+      int targetPort = PORT_NONE) const;
 
    /**
     * Tries to select the best contact uri. Contact address
@@ -72,7 +72,7 @@ public:
       SIP_TRANSPORT_TYPE transport, ///< transport which will be used
       const UtlString& messageLocalIp = NULL, ///< ip of local interface via which message should be sent if known
       const UtlString& targetIpAddress = NULL, ///< where we are sending message
-      int targetPort = PORT_NONE);
+      int targetPort = PORT_NONE) const;
 
    /* ============================ ACCESSORS ================================= */
 
@@ -83,6 +83,22 @@ protected:
 
    /* //////////////////////////// PRIVATE /////////////////////////////////// */
 private:
+   /**
+    * Finds the best local contact address for given target ip address and given transport.
+    */
+   void findBestLocalContactAddress(UtlString& contactIp, ///< will receive selected contact ip
+      int& contactPort, ///< will receive selected contact port
+      const UtlString& targetIpAddress,///< where we are sending message
+      SIP_TRANSPORT_TYPE transport) const;
+
+   /**
+    * Finds the best contact address for given target ip address and given transport.
+    */
+   void findBestContactAddress(UtlString& contactIp, ///< will receive selected contact ip
+      int& contactPort, ///< will receive selected contact port
+      const UtlString& targetIpAddress,///< where we are sending message
+      int targetPort,
+      SIP_TRANSPORT_TYPE transport) const;
 
    /**
     * Finds out if given ip address is a private ip.

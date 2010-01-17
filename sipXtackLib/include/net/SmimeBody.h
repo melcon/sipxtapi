@@ -46,7 +46,6 @@
 // APPLICATION INCLUDES
 #include <os/OsDefs.h>
 #include <net/HttpBody.h>
-#include <tapi/sipXtapiEvents.h>
 
 // DEFINES
 // MACROS
@@ -91,6 +90,64 @@ enum SIPXTACK_SRTP_LEVEL
     SIPXTACK_SRTP_LEVEL_AUTHENTICATION,
     SIPXTACK_SRTP_LEVEL_ENCRYPTION_AND_AUTHENTICATION
 };
+
+/**
+ * Enumeration of possible security events
+ */
+typedef enum SIP_SECURITY_EVENT
+{
+    SIP_SECURITY_UNKNOWN       = 0,/**< An UNKNOWN event is generated when the state for a call 
+                                 is no longer known.  This is generally an error 
+                                 condition; see the minor event for specific causes. */
+    SIP_SECURITY_ENCRYPT   = 1000, /**< The ENCRYPT event indicates that an SMIME encryption has been
+                                  attempted.  See the cause code for the encryption outcome,
+                                  and the info structure for more information. */
+    SIP_SECURITY_DECRYPT   = 2000, /**< The DECRYPT event indicates that an SMIME decryption has been
+                                  attempted.  See the cause code for the encryption outcome,
+                                  and the info structure for more information. */
+    SIP_SECURITY_TLS       = 4000, /**< TLS related security event. */
+} SIP_SECURITY_EVENT;
+
+/**
+ * Enumeration of possible security causes
+ */
+typedef enum SIP_SECURITY_CAUSE
+{
+    SIP_SECURITY_CAUSE_UNKNOWN = 0,                      /**< An UNKNOWN cause code is generated when the state
+                                                          for the security operation 
+                                                          is no longer known.  This is generally an error 
+                                                          condition; see the info structure for details. */
+    SIP_SECURITY_CAUSE_NORMAL,                           /**< Event was fired as part of the normal encryption / decryption process. */
+    SIP_SECURITY_CAUSE_ENCRYPT_SUCCESS,                  /**< An S/MIME encryption succeeded. */
+    SIP_SECURITY_CAUSE_ENCRYPT_FAILURE_LIB_INIT,         /**< An S/MIME encryption failed because the
+                                                          security library could not start. */
+    SIP_SECURITY_CAUSE_ENCRYPT_FAILURE_BAD_PUBLIC_KEY,   /**< An S/MIME encryption failed because of a bad certificate / public key. */
+    SIP_SECURITY_CAUSE_ENCRYPT_FAILURE_INVALID_PARAMETER,/**< An S/MIME encryption failed because of an invalid parameter. */
+    SIP_SECURITY_CAUSE_DECRYPT_SUCCESS,                  /**< An S/MIME decryption succeeded. */ 
+    SIP_SECURITY_CAUSE_DECRYPT_FAILURE_DB_INIT,          /**< An S/MIME decryption failed due to a failure to initialize the certificate database. */
+    SIP_SECURITY_CAUSE_DECRYPT_FAILURE_BAD_DB_PASSWORD,  /**< An S/MIME decryption failed due to an invalid certificate database password. */
+    SIP_SECURITY_CAUSE_DECRYPT_FAILURE_INVALID_PARAMETER,/**< An S/MIME decryption failed due to an invalid parameter. */
+    SIP_SECURITY_CAUSE_DECRYPT_BAD_SIGNATURE,            /**< An S/MIME decryption operation aborted due to a bad signature. */
+    SIP_SECURITY_CAUSE_DECRYPT_MISSING_SIGNATURE,        /**< An S/MIME decryption operation aborted due to a missing signature. */
+    SIP_SECURITY_CAUSE_DECRYPT_SIGNATURE_REJECTED,       /**< An S/MIME decryption operation aborted because the signature was rejected. */
+    SIP_SECURITY_CAUSE_TLS_SERVER_CERTIFICATE,           /**< A TLS server certificate is being presented to the application for possible rejection. 
+                                                          The application must respond to this message.
+                                                          If the application returns false, the certificate is rejected and the call will not
+                                                          complete.  If the application returns true, the certificate is accepted. */
+    SIP_SECURITY_CAUSE_TLS_BAD_PASSWORD,                /**< A TLS operation failed due to a bad password. */
+    SIP_SECURITY_CAUSE_TLS_LIBRARY_FAILURE,             /**< A TLS operation failed. */
+    SIP_SECURITY_CAUSE_REMOTE_HOST_UNREACHABLE,         /**< The remote host is not reachable. */
+    SIP_SECURITY_CAUSE_TLS_CONNECTION_FAILURE,          /**< A TLS connection to the remote party failed. */
+    SIP_SECURITY_CAUSE_TLS_HANDSHAKE_FAILURE,           /**< A failure occured during the TLS handshake. */
+    SIP_SECURITY_CAUSE_SIGNATURE_NOTIFY,                /**< The SIGNATURE_NOTIFY event is fired when the user-agent
+                                                         receives a SIP message with signed SMIME as its content.
+                                                         The signer's certificate will be located in the info structure
+                                                         associated with this event.  The application can choose to accept
+                                                         the signature, by returning 'true' in response to this message
+                                                         or can choose to reject the signature
+                                                         by returning 'false' in response to this message. */
+    SIP_SECURITY_CAUSE_TLS_CERTIFICATE_REJECTED         /** < The application has rejected the server's TLS certificate. */
+} SIP_SECURITY_CAUSE;
 
 /**
  * Container class for security attributes.  
@@ -205,7 +262,7 @@ class SIPXTACK_SECURITY_ATTRIBUTES
 class ISmimeNotifySink
 {
 public:
-        virtual void OnError(SIPX_SECURITY_EVENT event, SIPX_SECURITY_CAUSE cause) = 0;
+        virtual void OnError(SIP_SECURITY_EVENT event, SIP_SECURITY_CAUSE cause) = 0;
         virtual bool OnSignature(void* pCert, char* szSubjAltName) = 0 ;
 
         virtual ~ISmimeNotifySink() { } ;

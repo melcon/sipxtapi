@@ -50,7 +50,7 @@ void SipContactSelector::getBestContactAddress(UtlString& contactIp,
                                                SIP_TRANSPORT_TYPE transport,
                                                const UtlString& messageLocalIp,//optional
                                                const UtlString& targetIpAddress,//optional
-                                               int targetPort)//must be present if targetIpAddress is not empty
+                                               int targetPort) const//must be present if targetIpAddress is not empty
 {
    if (!messageLocalIp.isNull())
    {
@@ -64,11 +64,21 @@ void SipContactSelector::getBestContactAddress(UtlString& contactIp,
    if(transport == SIP_TRANSPORT_TCP)
    {
       contactPort = m_sipUserAgent.getTcpPort();
+
+      if (!targetIpAddress.isNull() && messageLocalIp.isNull())
+      {
+         findBestLocalContactAddress(contactIp, contactPort, targetIpAddress, transport);
+      }
    }
 #ifdef HAVE_SSL
    else if(transport == SIP_TRANSPORT_TLS)
    {
       contactPort = m_sipUserAgent.getTlsPort();
+
+      if (!targetIpAddress.isNull() && messageLocalIp.isNull())
+      {
+         findBestLocalContactAddress(contactIp, contactPort, targetIpAddress, transport);
+      }
    }
 #endif
    else // UDP transport
@@ -80,73 +90,11 @@ void SipContactSelector::getBestContactAddress(UtlString& contactIp,
          // target ip address is know, we can use it to find a better contact
          if (!isPrivateIp(targetIpAddress))
          {
-            // message is not going into private network, we may find NAT binding
-            UtlBoolean bFound = OsNatAgentTask::getInstance()->findContactAddress(targetIpAddress, targetPort,
-               &contactIp, &contactPort);
-            // we consider NAT binding the most accurate, if it's not found, we try searching contact db
-            if (!bFound)
-            {
-               // no NAT binding is known, select the best contact
-               UtlString interfaceName;
-               if (OsNetwork::getBestInterfaceName(targetIpAddress, interfaceName))
-               {
-                  UtlSList contacts;
-                  m_sipUserAgent.getContactDb().getAllForAdapterName(contacts, interfaceName, SIP_CONTACT_AUTO, transport);
-                  UtlSListIterator itor(contacts);
-                  SipContact* pBestContact = NULL;
-                  while (itor())
-                  {
-                     SipContact* pContact = dynamic_cast<SipContact*>(itor.item());
-                     if (pContact)
-                     {
-                        if (pBestContact == NULL)
-                        {
-                           pBestContact = pContact;
-                        }
-                        else if (pBestContact->getContactType() < pContact->getContactType())
-                        {
-                           pBestContact = pContact;
-                        }
-                     }
-                  }
-                  if (pBestContact)
-                  {
-                     contactIp = pBestContact->getIpAddress();
-                     contactPort = pBestContact->getPort();
-                  }
-                  contacts.destroyAll();
-               }
-            }
-         } 
+            findBestContactAddress(contactIp, contactPort, targetIpAddress, targetPort, transport);
+         }
          else if (messageLocalIp.isNull()) // don't override localIp from sipMessage if target ip is private
          {
-            // message is sent to private ip, select the best local contact for that target
-            UtlString interfaceName;
-            if (OsNetwork::getBestInterfaceName(targetIpAddress, interfaceName))
-            {
-               UtlSList contacts;
-               m_sipUserAgent.getContactDb().getAllForAdapterName(contacts, interfaceName, SIP_CONTACT_LOCAL, transport);
-               UtlSListIterator itor(contacts);
-               SipContact* pBestContact = NULL;
-               while (itor())
-               {
-                  SipContact* pContact = dynamic_cast<SipContact*>(itor.item());
-                  if (pContact)
-                  {
-                     if (pBestContact == NULL)
-                     {
-                        pBestContact = pContact;
-                        break;
-                     }
-                  }
-               }
-               if (pBestContact)
-               {
-                  contactIp = pBestContact->getIpAddress();
-                  contactPort = pBestContact->getPort();
-               }
-               contacts.destroyAll();
-            }
+            findBestLocalContactAddress(contactIp, contactPort, targetIpAddress, transport);
          }
       } // target ip address is not know, we can't do more
    }
@@ -159,6 +107,86 @@ void SipContactSelector::getBestContactAddress(UtlString& contactIp,
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
+
+void SipContactSelector::findBestLocalContactAddress(UtlString& contactIp,
+                                                     int& contactPort,
+                                                     const UtlString& targetIpAddress,
+                                                     SIP_TRANSPORT_TYPE transport) const
+{
+   // message is sent to private ip, select the best local contact for that target
+   UtlString interfaceName;
+   if (OsNetwork::getBestInterfaceName(targetIpAddress, interfaceName))
+   {
+      UtlSList contacts;
+      m_sipUserAgent.getContactDb().getAllForAdapterName(contacts, interfaceName, SIP_CONTACT_LOCAL, transport);
+      UtlSListIterator itor(contacts);
+      SipContact* pBestContact = NULL;
+      while (itor())
+      {
+         SipContact* pContact = dynamic_cast<SipContact*>(itor.item());
+         if (pContact)
+         {
+            if (pBestContact == NULL)
+            {
+               // note that if there are multiple IPs on single adapter, we are unable to select the correct local IP
+               pBestContact = pContact;
+               break;
+            }
+         }
+      }
+      if (pBestContact)
+      {
+         contactIp = pBestContact->getIpAddress();
+         contactPort = pBestContact->getPort();
+      }
+      contacts.destroyAll();
+   }
+}
+
+void SipContactSelector::findBestContactAddress(UtlString& contactIp,
+                                                int& contactPort,
+                                                const UtlString& targetIpAddress,
+                                                int targetPort,
+                                                SIP_TRANSPORT_TYPE transport) const
+{
+   // message is not going into private network, we may find NAT binding
+   UtlBoolean bFound = OsNatAgentTask::getInstance()->findContactAddress(targetIpAddress, targetPort,
+      &contactIp, &contactPort);
+   // we consider NAT binding the most accurate, if it's not found, we try searching contact db
+   if (!bFound)
+   {
+      // no NAT binding is known, select the best contact
+      UtlString interfaceName;
+      if (OsNetwork::getBestInterfaceName(targetIpAddress, interfaceName))
+      {
+         UtlSList contacts;
+         m_sipUserAgent.getContactDb().getAllForAdapterName(contacts, interfaceName, SIP_CONTACT_AUTO, transport);
+         UtlSListIterator itor(contacts);
+         SipContact* pBestContact = NULL;
+         while (itor())
+         {
+            SipContact* pContact = dynamic_cast<SipContact*>(itor.item());
+            if (pContact)
+            {
+               if (pBestContact == NULL)
+               {
+                  pBestContact = pContact;
+               }
+               else if (pBestContact->getContactType() < pContact->getContactType())
+               {
+                  pBestContact = pContact;
+               }
+            }
+         }
+         if (pBestContact)
+         {
+            contactIp = pBestContact->getIpAddress();
+            contactPort = pBestContact->getPort();
+         }
+         contacts.destroyAll();
+      }
+   }
+}
 
 UtlBoolean SipContactSelector::isPrivateIp(const UtlString& ipAddress) const
 {
@@ -193,7 +221,7 @@ void SipContactSelector::getBestContactUri(Url& contactUri,
                                            SIP_TRANSPORT_TYPE transport,
                                            const UtlString& messageLocalIp,
                                            const UtlString& targetIpAddress,
-                                           int targetPort)
+                                           int targetPort) const
 {
 
    UtlString contactIp;
@@ -202,6 +230,5 @@ void SipContactSelector::getBestContactUri(Url& contactUri,
 
    SipContact::buildContactUri(contactUri, userId, contactIp, contactPort, transport);
 }
-
 /* ============================ FUNCTIONS ================================= */
 

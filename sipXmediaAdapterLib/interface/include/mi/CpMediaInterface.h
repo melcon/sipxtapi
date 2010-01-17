@@ -27,7 +27,7 @@
 #include <net/SipContactDb.h>
 #include <net/SdpBody.h>
 #include <os/IStunSocket.h>
-#include <tapi/sipXtapi.h>
+//#include <tapi/sipXtapi.h>
 
 // DEFINES
 // MACROS
@@ -439,7 +439,7 @@ public:
    virtual OsStatus stopRecording() = 0;
 
    //! Set the preferred contact type for this media connection
-   virtual void setContactType(int connectionId, SIPX_CONTACT_TYPE eType, SIPX_CONTACT_ID contactId) = 0 ;
+   virtual void setContactType(int connectionId, SIP_CONTACT_TYPE eType, int contactId) = 0 ;
 
    /** Rebuilds internal SdpCodecList using supplied SdpCodecList */
    virtual OsStatus setCodecList(const SdpCodecList& sdpCodecList) = 0;
