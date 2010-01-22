@@ -123,7 +123,19 @@ UtlBoolean SipXMessageObserver::handleStunSuccess(const OsStunResultSuccessMsg& 
 
 UtlBoolean SipXMessageObserver::handleStunFailure(const OsStunResultFailureMsg& pResultMsg)
 {
-   sipxFireConfigEvent(m_pInst, CONFIG_STUN_FAILURE, NULL);
+   UtlString adapterName;
+   UtlString localIp;
+   pResultMsg.getAdapterName(adapterName);
+   pResultMsg.getLocalIp(localIp);
+
+   SIPX_STUN_FAILURE_INFO eventInfo;
+   memset(&eventInfo, 0, sizeof(SIPX_STUN_FAILURE_INFO));
+   eventInfo.nSize = sizeof(SIPX_STUN_FAILURE_INFO);
+   eventInfo.szAdapterName = SAFE_STRDUP(adapterName.data());
+   eventInfo.szInterfaceIp = SAFE_STRDUP(localIp.data());
+   sipxFireConfigEvent(m_pInst, CONFIG_STUN_FAILURE, NULL, &eventInfo);
+   free((void*)eventInfo.szAdapterName);
+   free((void*)eventInfo.szInterfaceIp);
 
    return TRUE;
 }
