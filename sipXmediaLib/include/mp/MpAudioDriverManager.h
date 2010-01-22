@@ -254,6 +254,11 @@ private:
    /// Assignment operator (not implemented for this class)
    MpAudioDriverManager& operator=(const MpAudioDriverManager& rhs);
 
+   /**
+    * Returns TRUE if synchronous stream should be used for given host api.
+    */
+   static UtlBoolean useSynchronousStream(const UtlString& hostApiName);
+
    static OsMutex ms_mutex;
    static MpAudioDriverManager* ms_pInstance;
 
