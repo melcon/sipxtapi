@@ -191,6 +191,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
          UtlBoolean bDriverReq = !driverName.isNull();
          MpAudioDeviceIndex deviceCount = 0;
          MpAudioDeviceIndex i = 0;
+         UtlString hostApiName;
          m_pAudioDriver->getDeviceCount(deviceCount);
 
          // loop through all devices, and find matching one
@@ -207,6 +208,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
+                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -219,6 +221,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
+                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -243,7 +246,7 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
                MP_AUDIO_STREAM_DITHEROFF,
-               TRUE);
+               MpAudioDriverManager::useSynchronousStream(hostApiName));
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -336,6 +339,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
          UtlBoolean bDriverReq = !driverName.isNull();
          MpAudioDeviceIndex deviceCount = 0;
          MpAudioDeviceIndex i = 0;
+         UtlString hostApiName;
          m_pAudioDriver->getDeviceCount(deviceCount);
 
          // loop through all devices, and find matching one
@@ -352,6 +356,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
+                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -364,6 +369,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                {
                   // we found match, we will select this device
                   bDeviceFound = TRUE;
+                  hostApiName = deviceInfo.getHostApiName();
                   break;
                }
             }
@@ -388,7 +394,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
                MpMisc.m_audioSamplesPerSec,
                MpMisc.m_audioSamplesPerFrame,
                MP_AUDIO_STREAM_DITHEROFF,
-               TRUE);
+               MpAudioDriverManager::useSynchronousStream(hostApiName));
             if (res != OS_SUCCESS)
             {
                return OS_FAILED;
@@ -824,7 +830,7 @@ MpAudioDriverManager::MpAudioDriverManager()
    inputParameters.setDeviceIndex(m_inputDeviceIndex);
    outputParameters.setDeviceIndex(m_outputDeviceIndex);
 
-   // open asynchronous input stream
+   // open default input stream
    m_pAudioDriver->openStream(&m_inputAudioStream,
       &inputParameters,
       NULL,
@@ -833,7 +839,7 @@ MpAudioDriverManager::MpAudioDriverManager()
       MP_AUDIO_STREAM_CLIPOFF,
       TRUE);
 
-   // open asynchronous output stream
+   // open default output stream
    m_pAudioDriver->openStream(&m_outputAudioStream,
       NULL,
       &outputParameters,
@@ -899,6 +905,18 @@ MpAudioDriverManager::~MpAudioDriverManager(void)
 
       m_pAudioDriver->release();
       m_pAudioDriver = NULL;
+   }
+}
+
+UtlBoolean MpAudioDriverManager::useSynchronousStream(const UtlString& hostApiName)
+{
+   if (hostApiName.compareTo("Windows DirectSound", UtlString::matchCase) == 0)
+   {
+      return FALSE; // direct sound driver doesn't support synchronous streams
+   }
+   else
+   {
+      return TRUE;
    }
 }
 
