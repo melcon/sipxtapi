@@ -427,7 +427,10 @@ typedef enum
                                        For a SIPX_CONFIG_EVENT type of CONFIG_STUN_SUCCESS, 
                                        the pData pointer of the info structure will point to a
                                        SIPX_CONTACT_ADDRESS structure. */
-    CONFIG_STUN_FAILURE  = 41000, /**< Unable to obtain a STUN binding for signaling purposes. */
+    CONFIG_STUN_FAILURE  = 41000, /**< Unable to obtain a STUN binding for signaling purposes.
+                                       For a SIPX_CONFIG_EVENT type of CONFIG_STUN_FAILURE,
+                                       the pData pointer of the info structure will point to a
+                                       SIPX_STUN_FAILURE_INFO structure. */
 } SIPX_CONFIG_EVENT;
 
 
@@ -992,7 +995,16 @@ typedef struct
     void*             pData;   /**< Pointer to event data -- SEE SIPX_CONFIG_EVENT
                                     for details. */
 } SIPX_CONFIG_INFO;
-					      
+
+/**
+ * SIPX_STUN_FAILURE_INFO carries additional information for CONFIG_STUN_FAILURE event.
+ */
+typedef struct
+{
+   int                 nSize;		           /**< Size of the structure */
+   const char*         szAdapterName;       /**< Adapter name if available */
+   const char*         szInterfaceIp;       ///< interface ip address for which STUN failed
+} SIPX_STUN_FAILURE_INFO;
 
 /**
  * An SIPX_SECURITY_INFO event informs that application layer of the status

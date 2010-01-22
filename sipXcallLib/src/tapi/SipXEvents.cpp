@@ -1213,16 +1213,26 @@ SIPXTAPI_API SIPX_RESULT sipxDuplicateEvent(SIPX_EVENT_CATEGORY category,
             SIPX_CONFIG_INFO* pInfo = new SIPX_CONFIG_INFO();
             memset(pInfo, 0, sizeof(SIPX_CONFIG_INFO));
 
-            pInfo->nSize = pSourceInfo->nSize;
+            pInfo->nSize = sizeof(SIPX_CONFIG_INFO);
             pInfo->event = pSourceInfo->event;
 
             if (pSourceInfo->pData)
             {
-               pInfo->pData = new SIPX_CONTACT_ADDRESS(*((SIPX_CONTACT_ADDRESS*)pSourceInfo->pData));
-            }
-            else
-            {
-               pInfo->pData = NULL;
+               if (pSourceInfo->event == CONFIG_STUN_SUCCESS)
+               {
+                  pInfo->pData = new SIPX_CONTACT_ADDRESS(*((SIPX_CONTACT_ADDRESS*)pSourceInfo->pData));
+               }
+               else if (pSourceInfo->event == CONFIG_STUN_FAILURE)
+               {
+                  const SIPX_STUN_FAILURE_INFO* pSourceStunFailureInfo = (const SIPX_STUN_FAILURE_INFO*)pSourceInfo->pData;
+                  assert(pSourceStunFailureInfo->nSize == sizeof(SIPX_STUN_FAILURE_INFO));
+                  // create copy
+                  SIPX_STUN_FAILURE_INFO* pStunFailureInfo = new SIPX_STUN_FAILURE_INFO();
+                  pStunFailureInfo->nSize = sizeof(SIPX_STUN_FAILURE_INFO);
+                  pStunFailureInfo->szAdapterName = SAFE_STRDUP(pSourceStunFailureInfo->szAdapterName);
+                  pStunFailureInfo->szInterfaceIp = SAFE_STRDUP(pSourceStunFailureInfo->szInterfaceIp);
+                  pInfo->pData = pStunFailureInfo;
+               }
             }
 
             *pEventCopy = pInfo;
@@ -1476,11 +1486,19 @@ SIPXTAPI_API SIPX_RESULT sipxFreeDuplicatedEvent(SIPX_EVENT_CATEGORY category,
             SIPX_CONFIG_INFO* pSourceInfo = (SIPX_CONFIG_INFO*)pEventCopy;
             assert(pSourceInfo->nSize == sizeof(SIPX_CONFIG_INFO));
 
-            if (pSourceInfo->event == CONFIG_STUN_SUCCESS ||
-               pSourceInfo->event == CONFIG_STUN_FAILURE)
+            if (pSourceInfo->event == CONFIG_STUN_SUCCESS)
             {
                delete ((SIPX_CONTACT_ADDRESS*)pSourceInfo->pData);
-            }                    
+            }
+            else if (pSourceInfo->event == CONFIG_STUN_FAILURE)
+            {
+               SIPX_STUN_FAILURE_INFO* pStunFailureInfo = (SIPX_STUN_FAILURE_INFO*)pSourceInfo->pData;
+               assert(pStunFailureInfo->nSize == sizeof(SIPX_STUN_FAILURE_INFO));
+               free((void*)pStunFailureInfo->szAdapterName);
+               free((void*)pStunFailureInfo->szInterfaceIp);
+               delete pStunFailureInfo;
+            }
+
             delete pSourceInfo;
 
             rc = SIPX_RESULT_SUCCESS;
@@ -1611,7 +1629,8 @@ void sipxFirePIMEvent(void* userData,
 
 void sipxFireConfigEvent(const SIPX_INST pInst,                                                        
                          SIPX_CONFIG_EVENT event,
-                         const SIPX_CONTACT_ADDRESS* pContactAddress)
+                         const SIPX_CONTACT_ADDRESS* pContactAddress,
+                         const SIPX_STUN_FAILURE_INFO* pStunFailureDetails)
 {
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
       "sipxFireConfigEvent src=%p event=%s\n",
@@ -1639,6 +1658,7 @@ void sipxFireConfigEvent(const SIPX_INST pInst,
       }
    case CONFIG_STUN_FAILURE:
       {
+         eventInfo.pData = (void*)pStunFailureDetails;
          SipXEventDispatcher::dispatchEvent(pInst, EVENT_CATEGORY_CONFIG, &eventInfo);
          break;
       }

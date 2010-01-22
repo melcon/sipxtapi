@@ -800,7 +800,7 @@ struct SIPX_CONTACT_ADDRESS
     char                cInterface[MAX_ADAPTER_NAME_LENGTH + 4] ; /**< Source interface if available */
     char                cInterfaceIp[28]; ///< interface ip address if available
     char                cIpAddress[28] ; /**< contact IP Address    */
-    int                 iPort ;          /**< Port                   */
+    int                 iPort ;          /**< contact Port         */
 };
 
 /**
