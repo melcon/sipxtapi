@@ -822,6 +822,7 @@ static PaError InitializeOutputDeviceInfo( PaWinMmeHostApiRepresentation *winMme
     MMRESULT mmresult;
     WAVEOUTCAPS woc;
     PaDeviceInfo *deviceInfo = &winMmeDeviceInfo->inheritedDeviceInfo;
+    int wdmksDeviceOutputChannelCountIsKnown;
 
     *success = 0;
 
@@ -887,8 +888,10 @@ static PaError InitializeOutputDeviceInfo( PaWinMmeHostApiRepresentation *winMme
     }
 
 #ifdef PAWIN_USE_WDMKS_DEVICE_INFO
-    winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 
-            QueryWaveOutKSFilterMaxChannels( winMmeOutputDeviceId, &deviceInfo->maxOutputChannels );
+    wdmksDeviceOutputChannelCountIsKnown = QueryWaveOutKSFilterMaxChannels( 
+			winMmeOutputDeviceId, &deviceInfo->maxOutputChannels );
+    if( wdmksDeviceOutputChannelCountIsKnown && !winMmeDeviceInfo->deviceOutputChannelCountIsKnown )
+        winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
 #endif /* PAWIN_USE_WDMKS_DEVICE_INFO */
 
     winMmeDeviceInfo->dwFormats = woc.dwFormats;
