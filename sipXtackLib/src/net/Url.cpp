@@ -1542,24 +1542,18 @@ void Url::parseString(const char* urlString, UtlBoolean isAddrSpec)
    case SipsUrlScheme:
    {
       // it may have url parameters of the form ";" param "=" value ...
-      //                if it meets the right conditions:
-      if (   isAddrSpec                          // in addr-spec, any param is a url param
-          || afterAngleBrackets != UTL_NOT_FOUND // inside angle brackets there may be a url param
-          ) 
+      LOG_TIME("urlparm   < ");
+      RegEx urlParams(UrlParams);
+      if (   (urlParams.SearchAt(urlString, workingOffset))
+          && (urlParams.MatchStart(0) == workingOffset)
+          )
       {
-         LOG_TIME("urlparm   < ");
-         RegEx urlParams(UrlParams);
-         if (   (urlParams.SearchAt(urlString, workingOffset))
-             && (urlParams.MatchStart(0) == workingOffset)
-             )
-         {
-            LOG_TIME("urlparm   > ");
-            urlParams.MatchString(&mRawUrlParameters, 1);
-            workingOffset = urlParams.AfterMatch(1);
+         LOG_TIME("urlparm   > ");
+         urlParams.MatchString(&mRawUrlParameters, 1);
+         workingOffset = urlParams.AfterMatch(1);
 
-            // actual parsing of the parameters is in parseUrlParameters
-            // so that it only happens if someone asks for them.
-         }
+         // actual parsing of the parameters is in parseUrlParameters
+         // so that it only happens if someone asks for them.
       }
    }
    break;
