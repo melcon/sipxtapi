@@ -346,6 +346,10 @@ OsStatus MpPortAudioDriver::openStream(MpAudioStreamId* stream,
                outputSampleFormat, inputSampleFormat,
                sampleRate, framesPerBuffer);
          }
+         // update stream wrapper with info about latency
+         const PaStreamInfo* paStreamInfo = Pa_GetStreamInfo(*stream);
+         strm->setInputPortStreamLatency(paStreamInfo->inputLatency);
+         strm->setOutputPortStreamLatency(paStreamInfo->outputLatency);
 
          m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream), strm);
          status = OS_SUCCESS;
@@ -404,6 +408,11 @@ OsStatus MpPortAudioDriver::openDefaultStream(MpAudioStreamId* stream,
                sampleFormat, sampleFormat,
                sampleRate, framesPerBuffer);
          }
+         // update stream wrapper with info about latency
+         const PaStreamInfo* paStreamInfo = Pa_GetStreamInfo(*stream);
+         strm->setInputPortStreamLatency(paStreamInfo->inputLatency);
+         strm->setOutputPortStreamLatency(paStreamInfo->outputLatency);
+
          m_audioStreamMap.insertKeyAndValue(new UtlTypedValue<MpAudioStreamId>(*stream), strm);
          status = OS_SUCCESS;
       }
@@ -556,15 +565,17 @@ OsStatus MpPortAudioDriver::getStreamInfo(MpAudioStreamId stream,
    OsLock lock(ms_driverMutex);
    OsStatus status = OS_FAILED;
 
-   if (isStreamValid(stream))
-   {
-      const PaStreamInfo* paStreamInfo = Pa_GetStreamInfo(stream);
+   UtlTypedValue<MpAudioStreamId> streamKey(stream);
+   UtlContainable* res = m_audioStreamMap.findValue(&streamKey);
 
-      if (paStreamInfo)
+   if (res) {
+      MpPortAudioStreamBase* strm = dynamic_cast<MpPortAudioStreamBase*>(res);
+
+      if (strm)
       {
-         streamInfo.setSampleRate(paStreamInfo->sampleRate);
-         streamInfo.setOutputLatency(paStreamInfo->outputLatency);
-         streamInfo.setInputLatency(paStreamInfo->inputLatency);
+         streamInfo.setSampleRate(strm->getSampleRate());
+         streamInfo.setOutputLatency(strm->getOutputLatency());
+         streamInfo.setInputLatency(strm->getInputLatency());
          status = OS_SUCCESS;
       }
    }

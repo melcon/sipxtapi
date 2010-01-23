@@ -107,6 +107,17 @@ public:
    /* ============================ ACCESSORS ================================= */
    ///@name Accessors
    //@{
+
+   /**
+    * Returns input latency in seconds of the stream.
+    */
+   virtual double getInputLatency() const;
+
+   /**
+    * Returns output latency in seconds of the stream.
+    */
+   virtual double getOutputLatency() const;
+
    //@}
    /* ============================ INQUIRY =================================== */
    ///@name Inquiry
@@ -170,7 +181,6 @@ private:
    volatile bool m_outputBufferPrefetchMode; ///< whether output buffer is in prefetch mode
    unsigned int m_inputPrefetchCount; ///< input buffer latency in frames
    unsigned int m_outputPrefetchCount; ///< output buffer latency in frames
-
    bool m_bFrameRecorded; ///< whether at least one frame has been recorded
    bool m_bFramePushed; ///< whether at least one frame has been pushed
 
