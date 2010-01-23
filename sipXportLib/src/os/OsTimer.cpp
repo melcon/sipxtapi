@@ -44,7 +44,7 @@ static char dummy;
 // Timer expiration event notification happens using the 
 // newly created OsQueuedEvent object
 
-OsTimer::OsTimer(OsMsgQ* pQueue, const int userData) :
+OsTimer::OsTimer(OsMsgQ* pQueue, const intptr_t userData) :
    mBSem(OsBSem::Q_PRIORITY, OsBSem::FULL),
    mApplicationState(0),
    mTaskState(0),

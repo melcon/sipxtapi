@@ -149,7 +149,7 @@ public:
     *  @endcode
     */
    OsTimer(OsMsgQ* pQueue,      ///< Queue to send OsEventMsg::NOTIFY message
-           int userData         ///< userData value to store in OsQueuedEvent
+           intptr_t userData         ///< userData value to store in OsQueuedEvent
            );
 
    /// @}

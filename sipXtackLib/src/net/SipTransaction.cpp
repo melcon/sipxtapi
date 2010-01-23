@@ -599,14 +599,6 @@ UtlBoolean SipTransaction::handleOutgoing(SipMessage& outgoingMessage,
          protocol = OsSocket::SSL_SOCKET;
       }
 
-      // also, take the transport hint from the to-field and/or from-field.  If there is a transport= in it, 
-      // and it is not tls, tcp, or udp, use custom and set mpTransport
-      UtlString tempFromField;
-      UtlString tempToField;
-
-      message->getFromField(&tempFromField);
-      message->getToField(&tempToField);
-
       sendSucceeded = doFirstSend(*message,
          relationship,
          userAgent,
