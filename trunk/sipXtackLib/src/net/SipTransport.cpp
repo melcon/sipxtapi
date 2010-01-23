@@ -19,6 +19,7 @@
 
 // APPLICATION INCLUDES
 #include <net/SipTransport.h>
+#include <net/SipMessage.h>
 #include <net/Url.h>
 
 // DEFINES
@@ -79,6 +80,48 @@ SIP_TRANSPORT_TYPE SipTransport::getSipTransport(OsSocket::IpProtocolSocketType 
    }
 
    return SIP_TRANSPORT_UDP; // default is UDP
+}
+
+UtlString SipTransport::getSipTransportString(OsSocket::IpProtocolSocketType protocolType)
+{
+   UtlString transportString;
+
+   switch (protocolType)
+   {
+   case OsSocket::TCP:
+      transportString = SIP_TRANSPORT_TCP_STR;
+      break;
+   case OsSocket::SSL_SOCKET:
+      transportString = SIP_TRANSPORT_TLS_STR;
+      break;
+   case OsSocket::UDP:
+   default:
+      transportString = SIP_TRANSPORT_UDP_STR;
+      break;
+   }
+
+   return transportString;
+}
+
+UtlString SipTransport::getSipTransportString(SIP_TRANSPORT_TYPE transport)
+{
+   UtlString transportString;
+
+   switch (transport)
+   {
+   case SIP_TRANSPORT_TCP:
+      transportString = SIP_TRANSPORT_TCP_STR;
+      break;
+   case SIP_TRANSPORT_TLS:
+      transportString = SIP_TRANSPORT_TLS_STR;
+      break;
+   case SIP_TRANSPORT_UDP:
+   default:
+      transportString = SIP_TRANSPORT_UDP_STR;
+      break;
+   }
+
+   return transportString;
 }
 
 /* ============================ ACCESSORS ================================= */
