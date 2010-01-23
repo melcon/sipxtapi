@@ -3006,8 +3006,8 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
 * back to previous audio device.
 *
 * @param hInst Instance pointer obtained by sipxInitialize.
-* @param inputLatency Suggested latency in seconds. 0.06 is the default value.
-* @param outputLatency Suggested latency in seconds. 0.06 is the default value.
+* @param inputLatency Suggested latency in seconds. 0.04 is the default value.
+* @param outputLatency Suggested latency in seconds. 0.04 is the default value.
 */
 SIPXTAPI_API SIPX_RESULT sipxAudioSetDriverLatency(const SIPX_INST hInst,
                                                    double inputLatency,
