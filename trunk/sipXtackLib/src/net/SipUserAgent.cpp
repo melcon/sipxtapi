@@ -853,7 +853,7 @@ UtlBoolean SipUserAgent::sendUdp(SipMessage* message,
    UtlString messageStatusString = "SipUserAgent::sendUdp ";
    int timesSent = message->getTimesSent();
 
-   prepareContact(*message, serverAddress, port) ;
+   prepareContact(*message, serverAddress, port);
 
    if(!isResponse)
    {
@@ -981,7 +981,7 @@ UtlBoolean SipUserAgent::sendSymmetricUdp(SipMessage& message,
                                           const char* serverAddress,
                                           int port)
 {
-   prepareContact(message, serverAddress, port) ;
+   prepareContact(message, serverAddress, port);
 
    // Update Via
    UtlString bestKnownAddress;
@@ -1142,6 +1142,8 @@ UtlBoolean SipUserAgent::sendTcp(SipMessage* message,
    UtlString msgBytes;
    UtlString messageStatusString = "SipUserAgent::sendTcp ";
 
+   prepareContact(*message, serverAddress, port);
+
    if (mbShortNames || message->getUseShortFieldNames())
    {
       message->replaceLongFieldNames();
@@ -1220,6 +1222,8 @@ UtlBoolean SipUserAgent::sendTls(SipMessage* message,
    int len;
    UtlString msgBytes;
    UtlString messageStatusString;
+
+   prepareContact(*message, serverAddress, port);
 
    if (mbShortNames || message->getUseShortFieldNames())
    {
