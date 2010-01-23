@@ -100,6 +100,16 @@ OsStatus MpSyncPortAudioStream::writeStream(const void *buffer, unsigned long fr
 
 /* ============================ ACCESSORS ================================= */
 
+double MpSyncPortAudioStream::getInputLatency() const
+{
+   return m_inputPortStreamLatency;
+}
+
+double MpSyncPortAudioStream::getOutputLatency() const
+{
+   return m_outputPortStreamLatency;
+}
+
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */

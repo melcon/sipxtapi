@@ -1392,7 +1392,7 @@ UtlBoolean MpCallFlowGraph::isInboundRFC2833DTMFEnabled()
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
-int MpCallFlowGraph::estimateEchoQueueLatency(int samplesPerSec,int samplesPerFrame)
+int MpCallFlowGraph::estimateEchoQueueLatency(int samplesPerSec, int samplesPerFrame)
 {
 #define MIN_DRIVER_LATENCY 4
 

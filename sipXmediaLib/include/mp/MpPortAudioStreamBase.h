@@ -91,6 +91,35 @@ public:
    */
    virtual UtlContainableType getContainableType() const;
 
+   /**
+    * Returns input latency in seconds of the stream.
+    */
+   virtual double getInputLatency() const = 0;
+
+   /**
+    * Returns output latency in seconds of the stream.
+    */
+   virtual double getOutputLatency() const = 0;
+
+   /**
+    * Gets latency of the input port audio stream
+    * which excludes latency of the wrapper.
+    */
+   double getInputPortStreamLatency() const { return m_inputPortStreamLatency; }
+   void setInputPortStreamLatency(double val) { m_inputPortStreamLatency = val; }
+
+   /**
+    * Gets latency of the output port audio stream
+    * which excludes latency of the wrapper.
+    */
+   double getOutputPortStreamLatency() const { return m_outputPortStreamLatency; }
+   void setOutputPortStreamLatency(double val) { m_outputPortStreamLatency = val; }
+
+   /**
+    * Returns sample rate of stream in Hz.
+    */
+   double getSampleRate() const;
+
    /* ============================ INQUIRY =================================== */
 
    /**
@@ -124,6 +153,9 @@ protected:
 
    unsigned int m_inputSampleSize; ///< size of input sample in bytes per channel
    unsigned int m_outputSampleSize; ///< size of output sample in bytes per channel
+
+   double m_inputPortStreamLatency; ///< latency in seconds of the input port audio stream
+   double m_outputPortStreamLatency; ///< latency in seconds of the output port audio stream
 
    MpVolumeMeterBase* m_inputVolumeMeter; ///< volume meter for input
    MpVolumeMeterBase* m_outputVolumeMeter; ///< volume meter for output
