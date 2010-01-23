@@ -61,6 +61,8 @@ public:
    static SIP_TRANSPORT_TYPE getSipTransport(const UtlString& strUrl);
    static SIP_TRANSPORT_TYPE getSipTransport(const char* szUrl);
    static SIP_TRANSPORT_TYPE getSipTransport(OsSocket::IpProtocolSocketType protocolType);
+   static UtlString getSipTransportString(OsSocket::IpProtocolSocketType protocolType);
+   static UtlString getSipTransportString(SIP_TRANSPORT_TYPE transport);
 
    /* ============================ INQUIRY =================================== */
 
