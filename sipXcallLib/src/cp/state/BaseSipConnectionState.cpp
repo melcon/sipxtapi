@@ -162,6 +162,7 @@ SipConnectionStateTransition* BaseSipConnectionState::connect(OsStatus& result,
                                                               const UtlString& fromAddress,
                                                               const UtlString& locationHeader,
                                                               CP_CONTACT_ID contactId,
+                                                              SIP_TRANSPORT_TYPE transport,
                                                               const UtlString& replacesField)
 {
    // we reject connect in all states except for Dialing
@@ -186,7 +187,8 @@ SipConnectionStateTransition* BaseSipConnectionState::stopRtpRedirect(OsStatus& 
 SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus& result,
                                                                        UtlBoolean bSendSDP,
                                                                        const UtlString& locationHeader,
-                                                                       CP_CONTACT_ID contactId)
+                                                                       CP_CONTACT_ID contactId,
+                                                                       SIP_TRANSPORT_TYPE transport)
 {
    result = OS_FAILED;
    // here we send either 180 or 183, and may proceed to alerting state
@@ -200,6 +202,7 @@ SipConnectionStateTransition* BaseSipConnectionState::acceptConnection(OsStatus&
       {
          Url requestUri;
          m_rStateContext.m_pLastReceivedInvite->getRequestUri(requestUri);
+         m_rStateContext.m_transportType = transport;
          initDialogContact(contactId, requestUri);
          m_rStateContext.m_locationHeader = locationHeader;
 
@@ -2828,12 +2831,7 @@ UtlString BaseSipConnectionState::buildContactUrl(const Url& fromUrl) const
          fromUrl.getUserId(userId);
 
          Url contactUrl;
-         contactUrl.setDisplayName(displayName);
-         contactUrl.setUserId(userId);
-         contactUrl.setHostAddress(pContact->getIpAddress());
-         contactUrl.setHostPort(pContact->getPort());
-         contactUrl.includeAngleBrackets();
-         secureUrl(contactUrl);
+         pContact->buildContactUri(displayName, userId, contactUrl);
          contactUrl.toString(sContact);
 
          delete pContact;
@@ -5084,7 +5082,8 @@ UtlBoolean BaseSipConnectionState::followRefer(const SipMessage& sipRequest)
    }
 
    connectStatus = m_rCallControl.createConnectedCall(m_rStateContext.m_transferSipDialog, referToUrl.toString(), fromField,
-      NULL, m_rStateContext.m_locationHeader, m_rStateContext.m_contactId, focusConfig, replacesField, CP_CALLSTATE_CAUSE_TRANSFER,
+      NULL, m_rStateContext.m_locationHeader, m_rStateContext.m_contactId, m_rStateContext.m_transportType,
+      focusConfig, replacesField, CP_CALLSTATE_CAUSE_TRANSFER,
       &currentSipDialog);
 
    if (connectStatus == OS_SUCCESS)

@@ -757,6 +757,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallAccept");
    UtlBoolean bEnableLocationHeader = FALSE;
    SIPX_CONTACT_ID contactId = SIPX_AUTOMATIC_CONTACT_ID;
+   SIPX_TRANSPORT_TYPE transport = TRANSPORT_AUTO;
    SIPX_RESULT sr = SIPX_RESULT_FAILURE;
    char* pLocationHeader = NULL;
 
@@ -766,6 +767,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
       {
          bEnableLocationHeader = options->sendLocation;
          contactId = options->contactId;
+         transport = options->transportType;
       }
       else
       {
@@ -780,7 +782,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
       hCall, bEnableLocationHeader, contactId, 
       bSendSdp ? "true" : "false");
 
-   if (contactId < SIPX_AUTOMATIC_CONTACT_ID)
+   if (contactId < SIPX_AUTOMATIC_CONTACT_ID || contactId == 0)
    {
       // wrong contactID
       return SIPX_RESULT_INVALID_ARGS;
@@ -789,6 +791,36 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
    SIPX_CALL_DATA *pCallData = sipxCallLookup(hCall, SIPX_LOCK_WRITE, stackLogger);
    if (pCallData)
    {
+      SIPX_INSTANCE_DATA* pInst = pCallData->m_pInst;
+      assert(pInst);
+
+      if (contactId > 0)
+      {
+         // verify contactId
+         SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+         if (!pContact)
+         {
+            // contactId is invalid
+            sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+            return SIPX_RESULT_INVALID_ARGS;
+         }
+         // contactId is valid, verify if contact transport matches specified transport
+         if (transport != TRANSPORT_AUTO &&
+            transport != (SIPX_TRANSPORT_TYPE)pContact->getTransportType())
+         {
+            delete pContact;
+            pContact = NULL;
+            sipxCallReleaseLock(pCallData, SIPX_LOCK_WRITE, stackLogger);
+            return SIPX_RESULT_INVALID_ARGS;
+         }
+         else
+         {
+            transport = (SIPX_TRANSPORT_TYPE)pContact->getTransportType();
+            delete pContact;
+            pContact = NULL;
+         }
+      }
+
       // check whether the call has a sessionId - then it's real
       if (!pCallData->m_sipDialog.getRemoteField().isNull() && !pCallData->m_sipDialog.getCallId().isNull())
       {
@@ -800,7 +832,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallAccept(const SIPX_CALL hCall,
             pCallData->m_sipDialog,
             bSendSdp,
             pLocationHeader,
-            contactId);
+            contactId,
+            (SIP_TRANSPORT_TYPE)transport);
 
          sr = SIPX_RESULT_SUCCESS;
       }
@@ -1151,6 +1184,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
    // default values if options are not passed
    UtlBoolean bEnableLocationHeader = FALSE;
    SIPX_CONTACT_ID contactId = SIPX_AUTOMATIC_CONTACT_ID; // passed to CallManager
+   SIPX_TRANSPORT_TYPE transport = TRANSPORT_AUTO;
 
    if (options)
    {
@@ -1158,6 +1192,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
       {
          bEnableLocationHeader = options->sendLocation;
          contactId = options->contactId;
+         transport = options->transportType;
       }
       else
       {
@@ -1177,7 +1212,7 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
       return SIPX_RESULT_INVALID_ARGS;
    }
 
-   if (contactId < SIPX_AUTOMATIC_CONTACT_ID)
+   if (contactId < SIPX_AUTOMATIC_CONTACT_ID || contactId == 0)
    {
       return SIPX_RESULT_INVALID_ARGS;
    }
@@ -1189,6 +1224,33 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
       assert(pInst);
       assert(pData->m_sipDialog.getRemoteField().isNull());    // should be null
 
+      if (contactId > 0)
+      {
+         // verify contactId
+         SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+         if (!pContact)
+         {
+            // contactId is invalid
+            sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
+            return SIPX_RESULT_INVALID_ARGS;
+         }
+         // contactId is valid, verify if contact transport matches specified transport
+         if (transport != TRANSPORT_AUTO &&
+            transport != (SIPX_TRANSPORT_TYPE)pContact->getTransportType())
+         {
+            delete pContact;
+            pContact = NULL;
+            sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
+            return SIPX_RESULT_INVALID_ARGS;
+         }
+         else
+         {
+            transport = (SIPX_TRANSPORT_TYPE)pContact->getTransportType();
+            delete pContact;
+            pContact = NULL;
+         }
+      }
+      
       if (pInst && pData->m_sipDialog.getRemoteField().isNull())
       {
          // create sipCallId
@@ -1211,14 +1273,14 @@ SIPXTAPI_API SIPX_RESULT sipxCallConnect(SIPX_CALL hCall,
             // call is not part of conference
             status = pInst->pCallManager->connectCall(pData->m_abstractCallId, pData->m_sipDialog,
                szAddress, pData->m_fullLineUrl.toString(), pData->m_sipDialog.getCallId(),
-               pLocationHeader, contactId, (CP_FOCUS_CONFIG)takeFocus);
+               pLocationHeader, contactId, (SIP_TRANSPORT_TYPE)transport, (CP_FOCUS_CONFIG)takeFocus);
          }
          else
          {
             // call is part of conference
             status = pInst->pCallManager->connectConferenceCall(pData->m_abstractCallId, pData->m_sipDialog,
                szAddress, pData->m_fullLineUrl.toString(), pData->m_sipDialog.getCallId(),
-               pLocationHeader, contactId, (CP_FOCUS_CONFIG)takeFocus);
+               pLocationHeader, contactId, (SIP_TRANSPORT_TYPE)transport, (CP_FOCUS_CONFIG)takeFocus);
          }
          sipxCallReleaseLock(pData, SIPX_LOCK_WRITE, stackLogger);
 

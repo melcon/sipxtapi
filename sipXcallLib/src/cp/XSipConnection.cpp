@@ -127,12 +127,13 @@ OsStatus XSipConnection::connect(const UtlString& sipCallId,
                                  const UtlString& fromAddress,
                                  const UtlString& locationHeader,
                                  CP_CONTACT_ID contactId,
+                                 SIP_TRANSPORT_TYPE transport,
                                  const UtlString& replacesField,
                                  CP_CALLSTATE_CAUSE callstateCause,
                                  const SipDialog* pCallbackSipDialog)
 {
    return m_stateMachine.connect(sipCallId, localTag, toAddress, fromAddress, locationHeader, contactId,
-      replacesField, callstateCause, pCallbackSipDialog);
+      transport, replacesField, callstateCause, pCallbackSipDialog);
 }
 
 OsStatus XSipConnection::startRtpRedirect(const UtlString& slaveAbstractCallId, const SipDialog& slaveSipDialog)
@@ -147,9 +148,10 @@ OsStatus XSipConnection::stopRtpRedirect()
 
 OsStatus XSipConnection::acceptConnection(UtlBoolean bSendSDP,
                                           const UtlString& locationHeader,
-                                          CP_CONTACT_ID contactId)
+                                          CP_CONTACT_ID contactId,
+                                          SIP_TRANSPORT_TYPE transport)
 {
-   return m_stateMachine.acceptConnection(bSendSDP, locationHeader, contactId);
+   return m_stateMachine.acceptConnection(bSendSDP, locationHeader, contactId, transport);
 }
 
 OsStatus XSipConnection::rejectConnection()

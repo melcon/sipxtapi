@@ -30,12 +30,14 @@
 AcAcceptConnectionMsg::AcAcceptConnectionMsg(const SipDialog& sSipDialog,
                                              UtlBoolean bSendSDP,
                                              const UtlString& sLocationHeader,
-                                             CP_CONTACT_ID contactId)
+                                             CP_CONTACT_ID contactId,
+                                             SIP_TRANSPORT_TYPE transport)
 : AcCommandMsg(AC_ACCEPT_CONNECTION)
 , m_sSipDialog(sSipDialog)
 , m_bSendSDP(bSendSDP)
 , m_sLocationHeader(sLocationHeader)
 , m_contactId(contactId)
+, m_transport(transport)
 {
 
 }
@@ -47,7 +49,8 @@ AcAcceptConnectionMsg::~AcAcceptConnectionMsg()
 
 OsMsg* AcAcceptConnectionMsg::createCopy(void) const
 {
-   return new AcAcceptConnectionMsg(m_sSipDialog, m_bSendSDP, m_sLocationHeader, m_contactId);
+   return new AcAcceptConnectionMsg(m_sSipDialog, m_bSendSDP, m_sLocationHeader,
+      m_contactId, m_transport);
 }
 
 /* ============================ MANIPULATORS ============================== */

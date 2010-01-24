@@ -72,6 +72,7 @@ public:
                                                  const UtlString& fromAddress,
                                                  const UtlString& locationHeader,
                                                  CP_CONTACT_ID contactId,
+                                                 SIP_TRANSPORT_TYPE transport,
                                                  const UtlString& replacesField);
 
    /** Disconnects call */

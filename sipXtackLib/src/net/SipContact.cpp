@@ -110,21 +110,28 @@ UtlCopyableContainable* SipContact::clone() const
 
 void SipContact::buildContactUri(Url& contactUri) const
 {
-   SipContact::buildContactUri(contactUri, NULL, m_ipAddress, m_port, m_transportType);
+   SipContact::buildContactUri(contactUri, NULL, NULL, m_ipAddress, m_port, m_transportType);
 }
 
 void SipContact::buildContactUri(const UtlString& userId, Url& contactUri) const
 {
-   SipContact::buildContactUri(contactUri, userId, m_ipAddress, m_port, m_transportType);
+   SipContact::buildContactUri(contactUri, NULL, userId, m_ipAddress, m_port, m_transportType);
+}
+
+void SipContact::buildContactUri(const UtlString& displayName, const UtlString& userId, Url& contactUri) const
+{
+   SipContact::buildContactUri(contactUri, displayName, userId, m_ipAddress, m_port, m_transportType);
 }
 
 void SipContact::buildContactUri(Url& contactUri,
+                                 const UtlString& displayName,
                                  const UtlString& userId,
                                  const UtlString& ipAddress,
-                                 int port /*= PORT_NONE*/,
-                                 SIP_TRANSPORT_TYPE transportType /*= SIP_TRANSPORT_UDP*/)
+                                 int port,
+                                 SIP_TRANSPORT_TYPE transportType)
 {
    Url uri;
+   uri.setDisplayName(displayName);
    uri.setUserId(userId);
    uri.setHostAddress(ipAddress.data());
    if (portIsValid(port))

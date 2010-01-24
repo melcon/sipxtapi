@@ -891,6 +891,10 @@ typedef struct
                                               sipxCallAccept at this moment) 
                                               pass 0 for automatic contact. Real contact
                                               IDs start with 1 */
+    SIPX_TRANSPORT_TYPE transportType;   /**< Transport to use for call. When contactId identifies
+                                              an automatic contact, then specified transport will be
+                                              used. If contactId identifies a specific contact then
+                                              this transport must match that of contact. */
     /*
      * NOTE: When adding new data to this structure, please always add it to
      *       the end.  This will allow us to maintain some drop-in 

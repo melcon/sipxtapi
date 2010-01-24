@@ -128,6 +128,7 @@ public:
                         const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
                         const UtlString& locationHeader = NULL,
                         CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                        SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO,
                         CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
                         const UtlString& replacesField = NULL, // value of Replaces INVITE field
                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
@@ -144,6 +145,7 @@ public:
                                   const UtlString& sSipCallId, // can be used to suggest sip call-id
                                   const UtlString& locationHeader,
                                   CP_CONTACT_ID contactId,
+                                  SIP_TRANSPORT_TYPE transport,
                                   CP_FOCUS_CONFIG focusConfig);
 
    /**
@@ -201,7 +203,8 @@ public:
                                          const SipDialog& sSipDialog,
                                          UtlBoolean bSendSDP,
                                          const UtlString& locationHeader,
-                                         CP_CONTACT_ID contactId);
+                                         CP_CONTACT_ID contactId,
+                                         SIP_TRANSPORT_TYPE transport);
 
    /**
     * Reject the incoming connection.
@@ -724,6 +727,7 @@ private:
                                         const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
                                         const UtlString& locationHeader = NULL,
                                         CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                                        SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO,
                                         CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
                                         const UtlString& replacesField = NULL, // value of Replaces INVITE field
                                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,

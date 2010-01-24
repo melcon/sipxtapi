@@ -194,9 +194,10 @@ UtlBoolean XCpAbstractCall::handleMessage(OsMsg& rRawMsg)
 OsStatus XCpAbstractCall::acceptConnection(const SipDialog& sSipDialog,
                                            UtlBoolean bSendSDP,
                                            const UtlString& locationHeader,
-                                           CP_CONTACT_ID contactId)
+                                           CP_CONTACT_ID contactId,
+                                           SIP_TRANSPORT_TYPE transport)
 {
-   AcAcceptConnectionMsg acceptConnectionMsg(sSipDialog, bSendSDP, locationHeader, contactId);
+   AcAcceptConnectionMsg acceptConnectionMsg(sSipDialog, bSendSDP, locationHeader, contactId, transport);
    return postMessage(acceptConnectionMsg);
 }
 
@@ -1056,7 +1057,8 @@ OsStatus XCpAbstractCall::handleAcceptConnection(const AcAcceptConnectionMsg& rM
    UtlBoolean resFound = findConnection(sipDialog, ptrLock);
    if (resFound)
    {
-      return ptrLock->acceptConnection(rMsg.getSendSDP() ,rMsg.getLocationHeader(), rMsg.getContactId());
+      return ptrLock->acceptConnection(rMsg.getSendSDP() ,rMsg.getLocationHeader(),
+         rMsg.getContactId(), rMsg.getTransport());
    }
 
    return OS_NOT_FOUND;

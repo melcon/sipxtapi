@@ -83,6 +83,7 @@ public:
                     const UtlString& fromAddress,
                     const UtlString& locationHeader,
                     CP_CONTACT_ID contactId,
+                    SIP_TRANSPORT_TYPE transport,
                     const UtlString& replacesField, // value of Replaces INVITE field
                     CP_CALLSTATE_CAUSE callstateCause,
                     const SipDialog* pCallbackSipDialog);
@@ -104,7 +105,8 @@ public:
    */
    OsStatus acceptConnection(UtlBoolean bSendSDP,
                              const UtlString& locationHeader,
-                             CP_CONTACT_ID contactId);
+                             CP_CONTACT_ID contactId,
+                             SIP_TRANSPORT_TYPE transport);
 
    /**
    * Reject the incoming connection.

@@ -19,6 +19,7 @@
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
 #include <net/SipDialog.h>
+#include <net/SipTransport.h>
 #include <cp/CpDefs.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
@@ -47,6 +48,7 @@ public:
                 const UtlString& sFromAddress,
                 const UtlString& sLocationHeader,
                 CP_CONTACT_ID contactId,
+                SIP_TRANSPORT_TYPE transport,
                 const UtlString& replacesField,
                 CP_CALLSTATE_CAUSE callstateCause,
                 const SipDialog* pCallbackSipDialog);
@@ -65,6 +67,7 @@ public:
    UtlString getFromAddress() const { return m_sFromAddress; }
    UtlString getLocationHeader() const { return m_sLocationHeader; }
    CP_CONTACT_ID getContactId() const { return m_contactId; }
+   SIP_TRANSPORT_TYPE getTransport() const { return m_transport; }
    UtlString getReplacesField() const { return m_replacesField; }
    CP_CALLSTATE_CAUSE getCallstateCause() const { return m_callstateCause; }
    const SipDialog* getCallbackSipDialog() const { return m_pCallbackSipDialog; }
@@ -88,6 +91,7 @@ private:
    UtlString m_sFromAddress;
    UtlString m_sLocationHeader;
    CP_CONTACT_ID m_contactId;
+   SIP_TRANSPORT_TYPE m_transport;
    UtlString m_replacesField;
    CP_CALLSTATE_CAUSE m_callstateCause;
    SipDialog* m_pCallbackSipDialog;

@@ -94,9 +94,11 @@ SipConnectionStateTransition* DialingSipConnectionState::connect(OsStatus& resul
                                                                  const UtlString& fromAddress,
                                                                  const UtlString& locationHeader,
                                                                  CP_CONTACT_ID contactId,
+                                                                 SIP_TRANSPORT_TYPE transport,
                                                                  const UtlString& replacesField)
 {
    m_rStateContext.m_contactId = contactId;
+   m_rStateContext.m_transportType = transport;
    m_rStateContext.m_locationHeader = locationHeader;
    m_rStateContext.m_sessionTimerProperties.reset(TRUE);
    result = OS_FAILED;

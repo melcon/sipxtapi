@@ -19,6 +19,7 @@
 #include <os/OsMsg.h>
 #include <utl/UtlString.h>
 #include <net/SipDialog.h>
+#include <net/SipTransport.h>
 #include <cp/CpDefs.h>
 #include <cp/CpMessageTypes.h>
 #include <cp/msg/AcCommandMsg.h>
@@ -44,7 +45,8 @@ public:
    AcAcceptConnectionMsg(const SipDialog& sSipDialog,
                          UtlBoolean bSendSDP,
                          const UtlString& sLocationHeader,
-                         CP_CONTACT_ID contactId);
+                         CP_CONTACT_ID contactId,
+                         SIP_TRANSPORT_TYPE transport);
 
    virtual ~AcAcceptConnectionMsg();
 
@@ -58,6 +60,7 @@ public:
    UtlBoolean getSendSDP() const { return m_bSendSDP; }
    UtlString getLocationHeader() const { return m_sLocationHeader; }
    CP_CONTACT_ID getContactId() const { return m_contactId; }
+   SIP_TRANSPORT_TYPE getTransport() const { return m_transport; }
 
    /* ============================ INQUIRY =================================== */
 
@@ -76,6 +79,7 @@ private:
    UtlBoolean m_bSendSDP;
    UtlString m_sLocationHeader;
    CP_CONTACT_ID m_contactId;
+   SIP_TRANSPORT_TYPE m_transport;
 };
 
 #endif // AcAcceptConnectionMsg_h__
