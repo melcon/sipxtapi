@@ -58,7 +58,7 @@ SipMessage::SipMessage(const char* messageBytes,
 , mpSecurity(NULL)
 , mpEventData(NULL)
 , mbAllowContactOverride(TRUE)
-, mPreferredTransport(OsSocket::UDP)
+, mPreferredTransport(OsSocket::UNKNOWN)
 {
    mbUseShortNames = false ;
    mLocalIp = "";
