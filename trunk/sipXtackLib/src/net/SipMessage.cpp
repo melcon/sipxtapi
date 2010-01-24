@@ -58,6 +58,7 @@ SipMessage::SipMessage(const char* messageBytes,
 , mpSecurity(NULL)
 , mpEventData(NULL)
 , mbAllowContactOverride(TRUE)
+, mPreferredTransport(OsSocket::UDP)
 {
    mbUseShortNames = false ;
    mLocalIp = "";
@@ -75,6 +76,7 @@ SipMessage::SipMessage(OsSocket* inSocket,
 , mpSecurity(NULL)
 , mpEventData(NULL)
 , mbAllowContactOverride(TRUE)
+, mPreferredTransport(OsSocket::UDP)
 {
 #ifdef TRACK_LIFE
    osPrintf("Created SipMessage @ address:%X\n",this);
@@ -89,6 +91,7 @@ SipMessage::SipMessage(const SipMessage& rSipMessage)
 : HttpMessage(rSipMessage)
 , mpSecurity(NULL)
 , mbAllowContactOverride(rSipMessage.mbAllowContactOverride)
+, mPreferredTransport(rSipMessage.mPreferredTransport)
 {
 #ifdef TRACK_LIFE
    osPrintf("Created SipMessage @ address:%X\n",this);
@@ -125,6 +128,7 @@ SipMessage::operator=(const SipMessage& rSipMessage)
       m_dnsPort = rSipMessage.m_dnsPort;
       mpSipTransaction = rSipMessage.mpSipTransaction;
       mbAllowContactOverride = rSipMessage.mbAllowContactOverride;
+      mPreferredTransport = rSipMessage.mPreferredTransport;
       mbUseShortNames = rSipMessage.mbUseShortNames;
    }
    return *this;
@@ -5859,6 +5863,16 @@ void SipMessage::setLocalIp(const SipMessage* pMsg)
     {
         setLocalIp(pMsg->getLocalIp()) ;
     }
+}
+
+void SipMessage::setPreferredTransport(OsSocket::IpProtocolSocketType transport)
+{
+   mPreferredTransport = transport;
+}
+
+OsSocket::IpProtocolSocketType SipMessage::getPreferredTransport() const
+{
+   return mPreferredTransport;
 }
 
 /// Get the name/value pairs for a Via field

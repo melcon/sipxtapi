@@ -66,6 +66,8 @@ public:
    /** Creates and sends new register message for given line. */
    UtlBoolean newRegisterMsg(const Url& fromUrl,
                              const Url& contactUri,
+                             UtlBoolean bAllowContactOverride,
+                             SIP_TRANSPORT_TYPE preferredTransport,
                              int registryPeriodSeconds = -1);
 
    void reRegister(const Url& fromUrl);
@@ -109,6 +111,8 @@ protected:
                     const Url& toUrl,
                     const Url& requestUri,
                     const UtlString& contactUrl,
+                    UtlBoolean bAllowContactOverride,
+                    SIP_TRANSPORT_TYPE preferredTransport,
                     const UtlString& callId,
                     int registerPeriod = -1);
 

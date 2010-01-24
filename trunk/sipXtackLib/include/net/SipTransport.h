@@ -40,6 +40,7 @@ class UtlString;
  */
 typedef enum
 {
+   SIP_TRANSPORT_AUTO = -1, /**< Automatic transport (we don't care) */
    SIP_TRANSPORT_UDP = 0,  /**< Indicator for a UDP socket type. */
    SIP_TRANSPORT_TCP = 1,  /**< Indicator for a TCP socket type. */ 
    SIP_TRANSPORT_TLS = 2,  /**< Indicator for a TLS socket type. */
@@ -61,6 +62,12 @@ public:
    static SIP_TRANSPORT_TYPE getSipTransport(const UtlString& strUrl);
    static SIP_TRANSPORT_TYPE getSipTransport(const char* szUrl);
    static SIP_TRANSPORT_TYPE getSipTransport(OsSocket::IpProtocolSocketType protocolType);
+   static OsSocket::IpProtocolSocketType getSipTransport(SIP_TRANSPORT_TYPE transport);
+
+   /**
+    * Returns string identifier for given transport. For automatic or unknown transport
+    * empty string is returned.
+    */
    static UtlString getSipTransportString(OsSocket::IpProtocolSocketType protocolType);
    static UtlString getSipTransportString(SIP_TRANSPORT_TYPE transport);
 

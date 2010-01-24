@@ -69,7 +69,7 @@ public:
      * Finds the first contact which satisfies given filter.
      */
     SipContact* find(SIP_CONTACT_TYPE typeFilter = SIP_CONTACT_AUTO,
-                     SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_UDP) const;
+                     SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_AUTO) const;
 
     /**
      * Populates contacts list with all of the contacts stored in this DB.
@@ -83,7 +83,7 @@ public:
     void getAllForAdapterName(UtlSList& contacts,
                               const UtlString& adapterName,
                               SIP_CONTACT_TYPE typeFilter = SIP_CONTACT_AUTO,
-                              SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_UDP) const;
+                              SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_AUTO) const;
 
     /**
      * Populates contact list with all of the contacts
@@ -92,7 +92,7 @@ public:
     void getAllForAdapterIp(UtlSList& contacts,
                             const UtlString& adapterIp,
                             SIP_CONTACT_TYPE typeFilter = SIP_CONTACT_AUTO,
-                            SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_UDP) const;
+                            SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_AUTO) const;
 
     
 /* ============================ MANIPULATORS ============================== */

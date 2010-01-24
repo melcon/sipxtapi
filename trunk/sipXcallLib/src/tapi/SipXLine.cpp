@@ -725,7 +725,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineGetURI(const SIPX_LINE hLine,
 SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
                                      const char* szLineUrl,
                                      SIPX_LINE* phLine,
-                                     SIPX_CONTACT_ID contactId)
+                                     SIPX_CONTACT_ID contactId,
+                                     SIPX_TRANSPORT_TYPE transport)
 
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxLineAdd");
@@ -746,8 +747,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          Url userEnteredUrl(szLineUrl); // for example "display name"<sip:number@domain;transport=tcp?headerParam=value>;fieldParam=value
 
          // Set the preferred contact
-         SIPX_TRANSPORT_TYPE lineTransport = TRANSPORT_UDP;
-         SIPX_CONTACT_TYPE contactType = CONTACT_AUTO;
+         SIPX_TRANSPORT_TYPE lineTransport = transport;
+         SIPX_CONTACT_TYPE contactType = CONTACT_LOCAL;
          UtlString contactIp;
          int contactPort;
 
@@ -757,12 +758,25 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          {
             // contact was not found by contactId, use the first local contact, will be overridden later anyway
             // when sending via SipUserAgent
-            pContact = pInst->pSipUserAgent->getContactDb().find(SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP);
+            pContact = pInst->pSipUserAgent->getContactDb().find((SIP_CONTACT_TYPE)contactType,
+               (SIP_TRANSPORT_TYPE)lineTransport);
+            if (!pContact)
+            {
+               // contact still not found, cannot continue
+               return SIPX_RESULT_INVALID_ARGS;
+            }
          }
-
-         assert(pContact);
+         
          contactType = (SIPX_CONTACT_TYPE)pContact->getContactType();
+         if (lineTransport != TRANSPORT_AUTO &&
+            lineTransport != (SIPX_TRANSPORT_TYPE)pContact->getTransportType())
+         {
+            // contact transport and supplied transport don't match
+            return SIPX_RESULT_INVALID_ARGS;
+         }
+         // if automatic transport was passed, use contact transport type
          lineTransport = (SIPX_TRANSPORT_TYPE)pContact->getTransportType();
+
          contactIp = pContact->getIpAddress(); // try to suggest contact IP address as well
          contactPort = pContact->getPort();
          delete pContact;
@@ -771,6 +785,9 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          SipLine line(userEnteredUrl, SipLine::LINE_STATE_UNKNOWN);
          Url lineUri = line.getLineUri(); // gets unique line uri, for line matching
          Url fullLineUrl = line.getFullLineUrl(); // gets full line url for constructing sip message from field
+         line.setPreferredTransport((SIP_TRANSPORT_TYPE)lineTransport);
+         // if automatic contact is used, allow contact override, otherwise disable it
+         line.setAllowContactOverride(contactId == SIPX_AUTOMATIC_CONTACT_ID);
          line.setPreferredContact(contactIp, contactPort);
 
          UtlBoolean bRC = pInst->pLineManager->addLine(line);

@@ -127,7 +127,9 @@ void SipLineMgr::deleteAllLines()
 UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
 {
    Url preferredContact;
+   UtlBoolean bAllowContactOverride;
    Url fullLineUrl;
+   SIP_TRANSPORT_TYPE preferredTransport;
 
    {
       OsLock lock(m_mutex); // scoped lock
@@ -144,10 +146,13 @@ UtlBoolean SipLineMgr::registerLine(const Url& lineURI)
       pLine->setState(SipLine::LINE_STATE_TRYING);
       preferredContact = pLine->getPreferredContactUri();
       fullLineUrl = pLine->getFullLineUrl();
+      bAllowContactOverride = pLine->getAllowContactOverride();
+      preferredTransport = pLine->getPreferredTransport();
       pLine = NULL;
    }
 
-   if (!m_pRefreshMgr->newRegisterMsg(fullLineUrl, preferredContact, -1))
+   if (!m_pRefreshMgr->newRegisterMsg(fullLineUrl, preferredContact, bAllowContactOverride,
+      preferredTransport, -1))
    {
       //duplicate ...call reregister
       m_pRefreshMgr->reRegister(fullLineUrl);

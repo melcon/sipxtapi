@@ -1103,6 +1103,16 @@ public:
 
     void setLocalIp(const SipMessage* pMsg) ;
 
+    /**
+     * Sets the transport that should be used for sending this message.
+     */
+    void setPreferredTransport(OsSocket::IpProtocolSocketType transport);
+
+    /**
+     * Gets the transport that should be used for sending this message.
+     */
+    OsSocket::IpProtocolSocketType getPreferredTransport() const;
+
     //@}
 
     //! @name SIP Routing header field accessors and manipulators
@@ -1418,6 +1428,8 @@ private:
     SipTransaction* mpSipTransaction;
     mutable SIPXTACK_SECURITY_ATTRIBUTES* mpSecurity;
     mutable void* mpEventData;
+
+    OsSocket::IpProtocolSocketType mPreferredTransport;
 
     UtlString mLocalIp;
     UtlBoolean mbUseShortNames;

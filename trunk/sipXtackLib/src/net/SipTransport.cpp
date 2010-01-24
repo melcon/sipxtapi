@@ -79,7 +79,22 @@ SIP_TRANSPORT_TYPE SipTransport::getSipTransport(OsSocket::IpProtocolSocketType 
          return SIP_TRANSPORT_TLS;
    }
 
-   return SIP_TRANSPORT_UDP; // default is UDP
+   return SIP_TRANSPORT_AUTO;
+}
+
+OsSocket::IpProtocolSocketType SipTransport::getSipTransport(SIP_TRANSPORT_TYPE transport)
+{
+   switch (transport)
+   {
+   case SIP_TRANSPORT_TCP:
+      return OsSocket::TCP;
+   case SIP_TRANSPORT_TLS:
+      return OsSocket::SSL_SOCKET;
+   case SIP_TRANSPORT_UDP:
+      return OsSocket::UDP;
+   default:
+      return OsSocket::UNKNOWN;
+   }
 }
 
 UtlString SipTransport::getSipTransportString(OsSocket::IpProtocolSocketType protocolType)
@@ -95,9 +110,10 @@ UtlString SipTransport::getSipTransportString(OsSocket::IpProtocolSocketType pro
       transportString = SIP_TRANSPORT_TLS_STR;
       break;
    case OsSocket::UDP:
-   default:
       transportString = SIP_TRANSPORT_UDP_STR;
       break;
+   default:
+      ;
    }
 
    return transportString;
@@ -116,9 +132,10 @@ UtlString SipTransport::getSipTransportString(SIP_TRANSPORT_TYPE transport)
       transportString = SIP_TRANSPORT_TLS_STR;
       break;
    case SIP_TRANSPORT_UDP:
-   default:
       transportString = SIP_TRANSPORT_UDP_STR;
       break;
+   default:
+      ;
    }
 
    return transportString;
