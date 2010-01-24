@@ -117,6 +117,30 @@ SipContact* SipContactDb::find(SIP_CONTACT_TYPE typeFilter,
    return NULL;
 }
 
+SipContact* SipContactDb::find(const UtlString& adapterIp,
+                               SIP_CONTACT_TYPE typeFilter,
+                               SIP_TRANSPORT_TYPE transportFilter) const
+{
+   OsLock lock(m_mutex);
+   UtlHashMapIterator itor(m_contacts);
+
+   while (itor())
+   {
+      SipContact* pContact = dynamic_cast<SipContact*>(itor.value());
+      if (pContact)
+      {
+         if (pContact->hasAdapterIp(adapterIp) &&
+            ((typeFilter == SIP_CONTACT_AUTO) || (pContact->getContactType() == typeFilter)) &&
+            (pContact->getTransportType() == transportFilter || transportFilter == SIP_TRANSPORT_AUTO))
+         {
+            return (SipContact*)pContact->clone();
+         }
+      }
+   }
+
+   return NULL;
+}
+
 void SipContactDb::getAll(UtlSList& contacts) const
 {
    OsLock lock(m_mutex);
