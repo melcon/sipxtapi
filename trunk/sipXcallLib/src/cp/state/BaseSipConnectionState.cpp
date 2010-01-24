@@ -912,6 +912,7 @@ UtlBoolean BaseSipConnectionState::sendMessage(SipMessage& sipMessage)
 
    if (sipMessage.isRequest())
    {
+      configureRequestTransport(sipMessage);
       trackTransactionRequest(sipMessage);
    }
    else
@@ -2872,30 +2873,40 @@ UtlString BaseSipConnectionState::getLocalContactUrl() const
 
 UtlString BaseSipConnectionState::buildDefaultContactUrl(const Url& fromUrl) const
 {
-   // automatic contact or id not found
-   // Get host and port from default local contact
-   UtlString contactHostPort;
-   m_rSipUserAgent.getDefaultContactUri(&contactHostPort);
-   Url hostPort(contactHostPort);
-   UtlString address; // use selected IP
-   hostPort.getHostAddress(address); // sip user agent contact address will match bind IP
-   int port = hostPort.getHostPort();
-
+   Url contactUrl;
    // Get display name and user id from from Url
    UtlString displayName;
    UtlString userId;
    fromUrl.getDisplayName(displayName);
    fromUrl.getUserId(userId);
 
-   // Construct a new contact URL with host/port from local contact
-   // and display name/userid from From URL
-   Url contactUrl;
-   contactUrl.setDisplayName(displayName);
-   contactUrl.setUserId(userId);
-   contactUrl.setHostAddress(address);
-   contactUrl.setHostPort(port);
-   contactUrl.includeAngleBrackets();
-   return contactUrl.toString();
+   SipContact* pContact = NULL;
+   if (m_rStateContext.m_sBindIpAddress.compareTo("0.0.0.0") != 0)
+   {
+      // we have specific IP address
+      pContact = m_rSipUserAgent.getContactDb().find(m_rStateContext.m_sBindIpAddress,
+         SIP_CONTACT_AUTO, m_rStateContext.m_transportType);
+   }
+   else
+   {
+      // we are bound to all IP addresses, we can't really select a good contact now
+      // it will be overridden later in SipUserAgent
+      pContact = m_rSipUserAgent.getContactDb().find(SIP_CONTACT_AUTO, m_rStateContext.m_transportType);
+   }
+
+   if (pContact)
+   {
+      pContact->buildContactUri(displayName, userId, contactUrl);
+      delete pContact;
+      pContact = NULL;
+      return contactUrl.toString();
+   }
+
+   // we should always be able to build some contact
+   OsSysLog::add(FAC_CP, PRI_ERR, "Failed to build automatic contact for %s\n",
+      fromUrl.toString().data());
+
+   return NULL;
 }
 
 UtlString BaseSipConnectionState::getLocalTag() const
@@ -5126,6 +5137,35 @@ UtlBoolean BaseSipConnectionState::getReferNotifyCode(ISipConnectionState::State
    }
 
    return FALSE;
+}
+
+void BaseSipConnectionState::configureRequestTransport(SipMessage& sipRequest) const
+{
+   Url remoteContact;
+   {
+      OsReadLock lock(m_rStateContext);
+      m_rStateContext.m_sipDialog.getRemoteContact(remoteContact);
+   }
+
+   if (!remoteContact.isNull())
+   {
+      // if remote contact is known, use TCP transport only
+      // if contact contains transport=tcp and preferred transport is either tcp or auto
+      UtlString transportString;
+      if (remoteContact.getUrlParameter(SIP_TRANSPORT, transportString))
+      {
+         SIP_TRANSPORT_TYPE transportType = SipTransport::getSipTransport(transportString);
+         if (transportType == SIP_TRANSPORT_TCP &&
+            (m_rStateContext.m_transportType == SIP_TRANSPORT_TCP || m_rStateContext.m_transportType == SIP_TRANSPORT_AUTO))
+         {
+            sipRequest.setPreferredTransport(SipTransport::getSipTransport(transportType));
+         } // else request transport is automatic
+      } // else no transport parameter, request transport is automatic
+   }
+   else // remote contact is not known yet, use configured transport
+   {
+      sipRequest.setPreferredTransport(SipTransport::getSipTransport(m_rStateContext.m_transportType));
+   }
 }
 
 /* //////////////////////////// PRIVATE /////////////////////////////////// */
