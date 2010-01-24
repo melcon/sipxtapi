@@ -792,6 +792,11 @@ protected:
     */
    UtlBoolean getReferNotifyCode(ISipConnectionState::StateEnum connectionState, int& code, UtlString& text) const;
 
+   /**
+    * Configures preferred transport that should be used for given sip request.
+    */
+   void configureRequestTransport(SipMessage& sipRequest) const;
+
    SipConnectionStateContext& m_rStateContext; ///< context containing state of sip connection. Needs to be locked when accessed.
    SipUserAgent& m_rSipUserAgent; // for sending sip messages
    XCpCallControl& m_rCallControl; ///< interface for controlling other calls
