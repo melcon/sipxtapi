@@ -117,7 +117,7 @@ We may consider supporting the following RFCs and drafts in the future:
  * RFC 4235 - An INVITE-Initiated Dialog Event Package for the Session Initiation Protocol (SIP) - http://tools.ietf.org/html/rfc4235
  * RFC 4575 - A Session Initiation Protocol (SIP) Event Package for Conference State - http://tools.ietf.org/html/rfc4575
  * draft-kaplan-sipping-dtmf-package-00 - DTMF Info-Event Package - http://tools.ietf.org/html/draft-kaplan-sipping-dtmf-package-00
- * draft-ietf-sip-info-events-02 - Session Initiation Protocol (SIP) INFO Method and Package Framework - http://tools.ietf.org/html/draft-ietf-sip-info-events-02
+ * draft-ietf-sipcore-info-events-05 - Session Initiation Protocol (SIP) INFO Method and Package Framework - http://tools.ietf.org/html/draft-ietf-sipcore-info-events-05
  * draft-ietf-mmusic-ice-19 - Interactive Connectivity Establishment (ICE) - http://tools.ietf.org/html/draft-ietf-mmusic-ice-19
  * draft-ietf-behave-turn-12 - Traversal Using Relays around NAT (TURN) - http://tools.ietf.org/html/draft-ietf-behave-turn-12
 
