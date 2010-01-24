@@ -119,6 +119,6 @@ We may consider supporting the following RFCs and drafts in the future:
  * draft-kaplan-sipping-dtmf-package-00 - DTMF Info-Event Package - http://tools.ietf.org/html/draft-kaplan-sipping-dtmf-package-00
  * draft-ietf-sipcore-info-events-05 - Session Initiation Protocol (SIP) INFO Method and Package Framework - http://tools.ietf.org/html/draft-ietf-sipcore-info-events-05
  * draft-ietf-mmusic-ice-19 - Interactive Connectivity Establishment (ICE) - http://tools.ietf.org/html/draft-ietf-mmusic-ice-19
- * draft-ietf-behave-turn-12 - Traversal Using Relays around NAT (TURN) - http://tools.ietf.org/html/draft-ietf-behave-turn-12
+ * draft-ietf-behave-turn-16 - Traversal Using Relays around NAT (TURN) - http://tools.ietf.org/html/draft-ietf-behave-turn-16
 
 Draft draft-kaplan-sipping-dtmf-package-00 is obsolete, but part of it dealing with transport of DTMF digits in INFO messages might be supported by many commercial applications. Capability negotiation in INVITE would not be implemented.
