@@ -18,8 +18,6 @@
 #include <assert.h>
 #include <ipexport.h>
 #include <stdlib.h>
-#include <ifmib.h>
-
 
 // APPLICATION INCLUDES
 #include "os/OsDefs.h"
