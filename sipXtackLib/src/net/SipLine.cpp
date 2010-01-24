@@ -42,6 +42,8 @@ const UtlContainableType SipLine::TYPE = "SipLine";
 
 SipLine::SipLine(const Url& fullLineUrl,
                  LineStateEnum state)
+: m_bAllowContactOverride(TRUE)
+, m_preferredTransport(SIP_TRANSPORT_AUTO)
 {
    m_fullLineUrl = SipLine::buildFullLineUrl(fullLineUrl);
    //then get uri from user entered url ...uri is complete in it
@@ -73,10 +75,13 @@ SipLine& SipLine::operator=(const SipLine& rSipLine)
       m_fullLineUrl = rSipLine.m_fullLineUrl;
       m_currentState = rSipLine.m_currentState;
       m_preferredContactUri = rSipLine.m_preferredContactUri;
+      m_bAllowContactOverride = rSipLine.m_bAllowContactOverride;
+      m_preferredTransport = rSipLine.m_preferredTransport;
       copyCredentials(rSipLine);
    }
    return *this;
 }
+
 //deep copy of credentials
 void SipLine::copyCredentials(const SipLine &rSipLine)
 {
@@ -227,6 +232,25 @@ Url SipLine::getPreferredContactUri() const
    return m_preferredContactUri;
 }
 
+SIP_TRANSPORT_TYPE SipLine::getPreferredTransport() const
+{
+   return m_preferredTransport;
+}
+
+void SipLine::setPreferredTransport(SIP_TRANSPORT_TYPE transport)
+{
+   m_preferredTransport = transport;
+   // also update transport parameter in contact
+   if (m_preferredTransport == SIP_TRANSPORT_TCP)
+   {
+      m_preferredContactUri.setUrlParameter(SIP_TRANSPORT, SIP_TRANSPORT_TCP_STR);
+   }
+   else
+   {
+      m_preferredContactUri.removeUrlParameter(SIP_TRANSPORT);
+   }
+}
+
 UtlBoolean SipLine::realmExists(const UtlString& realm) const
 {
    SipLineCredential* credential = dynamic_cast<SipLineCredential*>(m_credentials.find(&realm));
@@ -245,6 +269,15 @@ Url SipLine::buildLineContact(const UtlString& address, int port)
    contactUrl.setPassword(NULL);
    contactUrl.setPath(NULL);
    contactUrl.includeAngleBrackets();
+
+   if (m_preferredTransport == SIP_TRANSPORT_TCP)
+   {
+      contactUrl.setUrlParameter(SIP_TRANSPORT, SIP_TRANSPORT_TCP_STR);
+   }
+   else
+   {
+      contactUrl.removeUrlParameter(SIP_TRANSPORT);
+   }
 
    return contactUrl;
 }

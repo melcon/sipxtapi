@@ -103,6 +103,8 @@ void SipRefreshMgr::startRefreshMgr()
 
 UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
                                          const Url& contactUri,
+                                         UtlBoolean bAllowContactOverride,
+                                         SIP_TRANSPORT_TYPE preferredTransport,
                                          int registryPeriodSeconds)
 {
    if (!isDuplicateRegister(fromUrl))
@@ -119,6 +121,8 @@ UtlBoolean SipRefreshMgr::newRegisterMsg(const Url& fromUrl,
                   fromUrl, // to                    
                   requestUri, // sip request uri
                   contactUri.toString(), // contact
+                  bAllowContactOverride,
+                  preferredTransport,
                   registerCallId,
                   registryPeriodSeconds);
 
@@ -805,6 +809,8 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
                                 const Url& toUrl,
                                 const Url& requestUri,
                                 const UtlString& contactUrl,
+                                UtlBoolean bAllowContactOverride,
+                                SIP_TRANSPORT_TYPE preferredTransport,
                                 const UtlString& callId,
                                 int registerPeriod)
 {
@@ -823,6 +829,8 @@ void SipRefreshMgr::registerUrl(const Url& fromUrl,
       callId,             // callid
       startSequence,
       registerPeriod >= 0 ? registerPeriod : m_defaultRegistryPeriod );
+   regMessage.allowContactOverride(bAllowContactOverride);
+   regMessage.setPreferredTransport(SipTransport::getSipTransport(preferredTransport));
 
    // Add to the register list
    addToRegisterList(&regMessage);

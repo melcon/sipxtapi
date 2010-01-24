@@ -47,7 +47,7 @@ SipContact::SipContact(int contactId,
 , m_adapterName(adapterName)
 , m_adapterIp(adapterIp)
 {
-
+   assert(transportType != SIP_TRANSPORT_AUTO);
 }
 
 SipContact::~SipContact()

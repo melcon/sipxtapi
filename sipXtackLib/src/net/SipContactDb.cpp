@@ -95,8 +95,8 @@ SipContact* SipContactDb::find(int contactId) const
    return NULL;
 }
 
-SipContact* SipContactDb::find(SIP_CONTACT_TYPE typeFilter /*= CONTACT_AUTO*/,
-                               SIP_TRANSPORT_TYPE transportFilter /*= SIP_TRANSPORT_UDP*/) const
+SipContact* SipContactDb::find(SIP_CONTACT_TYPE typeFilter,
+                               SIP_TRANSPORT_TYPE transportFilter) const
 {
    OsLock lock(m_mutex);
    UtlHashMapIterator itor(m_contacts);
@@ -107,7 +107,7 @@ SipContact* SipContactDb::find(SIP_CONTACT_TYPE typeFilter /*= CONTACT_AUTO*/,
       if (pContact)
       {
          if (((typeFilter == SIP_CONTACT_AUTO) || (pContact->getContactType() == typeFilter)) &&
-            pContact->getTransportType() == transportFilter)
+            (pContact->getTransportType() == transportFilter || transportFilter == SIP_TRANSPORT_AUTO))
          {
              return (SipContact*)pContact->clone();
          }
@@ -149,7 +149,7 @@ void SipContactDb::getAllForAdapterName(UtlSList& contacts,
       {
          if (pContact->hasAdapterName(adapterName) &&
             ((typeFilter == SIP_CONTACT_AUTO) || (pContact->getContactType() == typeFilter)) &&
-            pContact->getTransportType() == transportFilter)
+            (pContact->getTransportType() == transportFilter || transportFilter == SIP_TRANSPORT_AUTO))
          {
             contacts.append(pContact->clone());
          }
@@ -173,7 +173,7 @@ void SipContactDb::getAllForAdapterIp(UtlSList& contacts,
       {
          if (pContact->hasAdapterIp(adapterIp) &&
             ((typeFilter == SIP_CONTACT_AUTO) || (pContact->getContactType() == typeFilter)) &&
-            pContact->getTransportType() == transportFilter)
+            (pContact->getTransportType() == transportFilter || transportFilter == SIP_TRANSPORT_AUTO))
          {
             contacts.append(pContact->clone());
          }

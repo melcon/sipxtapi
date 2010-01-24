@@ -2427,10 +2427,19 @@ UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
       {
          mTransactionState = TRANSACTION_CONFIRMED;
 
+         OsSocket::IpProtocolSocketType preferredTransport = mpRequest->getPreferredTransport();
+
+         if (mSendToProtocol != OsSocket::UNKNOWN)
+         {
+            // if transport protocol is already determined, use it instead of preferred
+            // transport from SipMessage
+            preferredTransport = mSendToProtocol;
+         }
+
          // Do the DNS SRV lookup for the request destination
          mpDnsSrvRecords = SipSrvLookup::servers(mSendToAddress.data(),
             "sip",
-            mSendToProtocol,
+            preferredTransport,
             mSendToPort,
             this->getRequest()->getLocalIp().data());
 
@@ -2542,8 +2551,7 @@ UtlBoolean SipTransaction::recurseDnsSrvChildren(SipUserAgent& userAgent,
                }
 #                        endif
                // Do not create child for unsupported protocol types
-               if(childTransaction->mSendToProtocol ==
-                  OsSocket::UNKNOWN)
+               if(childTransaction->mSendToProtocol == OsSocket::UNKNOWN)
                {
                   maxSrvRecords++;
                   delete childTransaction;

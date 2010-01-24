@@ -678,6 +678,7 @@ typedef enum
  */
 typedef enum
 {
+    TRANSPORT_AUTO = -1,  /**< Automatic transport (we don't care) */
     TRANSPORT_UDP = 0,  /**< Indicator for a UDP socket type. */
     TRANSPORT_TCP,  /**< Indicator for a TCP socket type. */ 
     TRANSPORT_TLS,  /**< Indicator for a TLS socket type. */
@@ -3061,13 +3062,17 @@ SIPXTAPI_API SIPX_RESULT sipxAudioGetDriverLatency(const SIPX_INST hInst,
  *         (e.g. LOCAL contact of 10.1.1.x or 
  *        192.168.x.x), the NAT-derived address to the target party,
  *        or, local contact addresses of other types.
+ * @param transport to use for sending REGISTER messages if automatic
+ *        contact is selected. If some specific contact is selected then
+ *        this transport must match that contact transport.
  *
  * @see sipxConfigGetLocalContacts
  */
 SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
                                      const char* szLineURL,
                                      SIPX_LINE* phLine,
-                                     SIPX_CONTACT_ID contactId = SIPX_AUTOMATIC_CONTACT_ID);
+                                     SIPX_CONTACT_ID contactId = SIPX_AUTOMATIC_CONTACT_ID,
+                                     SIPX_TRANSPORT_TYPE transport = TRANSPORT_AUTO);
 
 /**
  * Adds an alias for a line definition.  Line aliases are used to map an 

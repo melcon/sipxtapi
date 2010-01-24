@@ -20,6 +20,7 @@
 #include <utl/UtlString.h>
 #include "HttpMessage.h"
 #include "net/Url.h"
+#include <net/SipTransport.h>
 
 // DEFINES
 // MACROS
@@ -197,13 +198,29 @@ public:
    /** Removes all credentials for this line */
    void removeAllCredentials();
 
-   /** Set the preferred host/ip for the contact in subsequent registers */
-   void setPreferredContact(const UtlString& contactAddress, int contactPort);
+   /**
+    * Set the preferred host/ip for the contact in subsequent registers.
+    */
+   void setPreferredContact(const UtlString& contactAddress,
+                            int contactPort);
    
    /** 
     * Get Preferred host/ip for the contact in subsequent registers.
     */
    Url getPreferredContactUri() const;
+
+   /**
+    * If true then contact in REGISTER messages may be overridden if better
+    * contact is found.
+    */
+   UtlBoolean getAllowContactOverride() const { return m_bAllowContactOverride; }
+   void setAllowContactOverride(UtlBoolean val) { m_bAllowContactOverride = val; }
+
+   /**
+    * Gets preferred transport for REGISTER messages.
+    */
+   SIP_TRANSPORT_TYPE getPreferredTransport() const;
+   void setPreferredTransport(SIP_TRANSPORT_TYPE transport);
 
    //@}
    /* ============================ INQUIRY =================================== */
@@ -223,6 +240,8 @@ protected:
 
    LineStateEnum m_currentState; ///< current state of line
    Url m_preferredContactUri; ///< contact that will be used in SIP messages
+   UtlBoolean m_bAllowContactOverride; ///< when true then a better contact may be selected if found
+   SIP_TRANSPORT_TYPE m_preferredTransport; ///< preferred transport for REGISTER messages
    UtlString m_proxyServers; ///< SIP proxy servers address:port, separated by ,
 
    mutable UtlHashBag m_credentials; ///< bag of SipLineCredential
