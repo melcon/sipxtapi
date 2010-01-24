@@ -72,6 +72,13 @@ public:
                      SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_AUTO) const;
 
     /**
+     * Finds the first contact which satisfies given filter.
+     */
+    SipContact* find(const UtlString& adapterIp,
+                     SIP_CONTACT_TYPE typeFilter = SIP_CONTACT_AUTO,
+                     SIP_TRANSPORT_TYPE transportFilter = SIP_TRANSPORT_AUTO) const;
+
+    /**
      * Populates contacts list with all of the contacts stored in this DB.
      */
     void getAll(UtlSList& contacts) const;
