@@ -4399,6 +4399,7 @@ SIPXTAPI_API void sipxLogEntryAdd(SIPX_LOG_LEVEL logLevel,
 *        should be 200
 * @param responseCodeText Text of the response code
 * @param buffLength Length of responseCodeText buffer
+* @param transport Transport which should be used for sending MESSAGE request
 */
 SIPXTAPI_API SIPX_RESULT sipxPIMSendPagerMessage(SIPX_INST hInst,
                                                  const char* destinationAor, 
@@ -4406,7 +4407,8 @@ SIPXTAPI_API SIPX_RESULT sipxPIMSendPagerMessage(SIPX_INST hInst,
                                                  const char* subject,
                                                  int* responseCode,
                                                  char* responseCodeText,
-                                                 size_t buffLength);
+                                                 size_t buffLength,
+                                                 SIPX_TRANSPORT_TYPE transport = TRANSPORT_AUTO);
 
 /**
  * Saves full memory dump to given file. It is supported only in Windows.

@@ -24,6 +24,7 @@
 #include <utl/UtlString.h>
 #include <net/Url.h>
 #include <net/SipCallIdGenerator.h>
+#include <net/SipTransport.h>
 
 // DEFINES
 // MACROS
@@ -122,11 +123,13 @@ public:
      * \param messageText - text of the message to send in the IM
      * \param responseCode - the response code from the request to sent the text
      * \param responseCodeText - the response code text from the top header line
+     * \param transport - transport which should be used for sending MESSAGE request
      */
     UtlBoolean sendPagerMessage(Url& destinationAor, 
                                 const char* messageText, const char* subject,
                                 int& responseCode,
-                                UtlString& responseCodeText);
+                                UtlString& responseCodeText,
+                                SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO);
 
     //! Set callback function for incoming pager mode text messages 
     /*! Set the function to be called if there are incoming MESSAGE

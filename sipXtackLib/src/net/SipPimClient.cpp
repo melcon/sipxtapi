@@ -110,7 +110,8 @@ SipPimClient::operator=(const SipPimClient& rhs)
 UtlBoolean SipPimClient::sendPagerMessage(Url& destinationAor, 
                                           const char* messageText, const char* subject,
                                           int& responseCode,
-                                          UtlString& responseCodeText)
+                                          UtlString& responseCodeText,
+                                          SIP_TRANSPORT_TYPE transport)
 {
     UtlBoolean returnCode = FALSE;
     responseCode = -1;
@@ -134,6 +135,7 @@ UtlBoolean SipPimClient::sendPagerMessage(Url& destinationAor,
                          callId,
                          1, // sequenceNumber
                          NULL); // contactUrl
+        messageRequest.setPreferredTransport(SipTransport::getSipTransport(transport));
 
 
         if (NULL != subject && 0 != strlen(subject))

@@ -47,7 +47,8 @@ SIPXTAPI_API SIPX_RESULT sipxPIMSendPagerMessage(SIPX_INST hInst,
                                                  const char* subject,
                                                  int* responseCode,
                                                  char* responseCodeText,
-                                                 size_t buffLength)
+                                                 size_t buffLength,
+                                                 SIPX_TRANSPORT_TYPE transport)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxPIMSendPagerMessage");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -67,7 +68,8 @@ SIPXTAPI_API SIPX_RESULT sipxPIMSendPagerMessage(SIPX_INST hInst,
                               messageText,
                               subject,
                               *responseCode,
-                              responseText);
+                              responseText,
+                              (SIP_TRANSPORT_TYPE)transport);
 
       if (res == TRUE)
       {
