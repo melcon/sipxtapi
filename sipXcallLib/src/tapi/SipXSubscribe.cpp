@@ -557,6 +557,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
       if (transport != TRANSPORT_AUTO &&
          (SIPX_TRANSPORT_TYPE)pContact->getTransportType() != transport)
       {
+         delete pContact;
+         pContact = NULL;
          return SIPX_RESULT_INVALID_ARGS;
       }
       SIPX_TRANSPORT_TYPE subscribeTransport = (SIPX_TRANSPORT_TYPE)pContact->getTransportType();

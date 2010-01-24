@@ -771,6 +771,8 @@ SIPXTAPI_API SIPX_RESULT sipxLineAdd(const SIPX_INST hInst,
          if (lineTransport != TRANSPORT_AUTO &&
             lineTransport != (SIPX_TRANSPORT_TYPE)pContact->getTransportType())
          {
+            delete pContact;
+            pContact = NULL;
             // contact transport and supplied transport don't match
             return SIPX_RESULT_INVALID_ARGS;
          }
