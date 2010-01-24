@@ -16,6 +16,8 @@ To compile sipXtapi with Intel IPP 6.0 support, follow steps from [http://code.g
  * separate functions sipxCallLimitCodecPreferences, sipxCallRenegotiateCodecPreferences
  * sip proxy per line, using sipxLineSetOutboundProxy
  * better audio focus control when connecting call with SIPX_FOCUS_CONFIG
+ * contactId now works the way it should - when its SIPX_AUTOMATIC_CONTACT_ID then SipUserAgent will choose the best contact, otherwise contact selection will be respected (user knows better which contact is the best)
+ * transport selection is functional - SIPX_CALL_OPTIONS has transportType which in cooperation with contactId selects transport. It is now possible to initiate a call using TCP transport which was not possible in 3.2.0. Also sipxConfigSubscribe, sipxCallSubscribe, sipxLineAdd, sipxPIMSendPagerMessage now have transport parameter.
 ==== sipXcallLib ====
  * conferencing without having to invoke hold/unhold on conference or call.
  * public and private conferences. Public conferences will be bound to line, and any accepted inbound calls will be added to conference.
