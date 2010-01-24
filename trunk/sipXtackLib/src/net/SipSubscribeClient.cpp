@@ -189,7 +189,8 @@ UtlBoolean SipSubscribeClient::addSubscription(const char* resourceId,
                                void* applicationData,
                                const SubscriptionStateCallback subscriptionStateCallback,
                                const NotifyEventCallback notifyEventsCallback,
-                               UtlString& earlyDialogHandle)
+                               UtlString& earlyDialogHandle,
+                               SIP_TRANSPORT_TYPE transport)
 {
     UtlString callId;
     getNextCallId(resourceId, 
@@ -211,6 +212,7 @@ UtlBoolean SipSubscribeClient::addSubscription(const char* resourceId,
                                     contactFieldValue,
                                     NULL, // initial request no routeField
                                     subscriptionPeriodSeconds);
+    subscribeRequest.setPreferredTransport(SipTransport::getSipTransport(transport));
 
     // Create a subscription (i.e. send the request and keep the
     // subscription refreshed).

@@ -403,7 +403,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
                                            const char* szAcceptType,
                                            SIPX_SUB* phSub,
                                            int bRemoteContactIsGruu,
-                                           int subscriptionPeriod)
+                                           int subscriptionPeriod,
+                                           SIPX_TRANSPORT_TYPE transport)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxCallSubscribe");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -480,7 +481,8 @@ SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
                            (void*)*phSub, 
                            sipxSubscribeClientSubCallback,
                            sipxSubscribeClientNotifyCallback, 
-                           subscriptionData->dialogHandle))
+                           subscriptionData->dialogHandle,
+                           (SIP_TRANSPORT_TYPE)transport))
                {
                   sipXresult = SIPX_RESULT_SUCCESS;
                }
@@ -521,7 +523,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                                              const char* szAcceptType,
                                              const SIPX_CONTACT_ID contactId,
                                              SIPX_SUB* phSub,
-                                             int subscriptionPeriod)
+                                             int subscriptionPeriod,
+                                             SIPX_TRANSPORT_TYPE transport)
 {
    OsStackTraceLogger stackLogger(FAC_SIPXTAPI, PRI_DEBUG, "sipxConfigSubscribe");
    OsSysLog::add(FAC_SIPXTAPI, PRI_INFO,
@@ -537,6 +540,26 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
    {
       UtlString sTargetUrl(szTargetUrl);
       SIPX_INSTANCE_DATA *pInst = SAFE_PTR_CAST(SIPX_INSTANCE_DATA, hInst);
+
+      // try to find contact by ID
+      SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
+      if (!pContact)
+      {
+         // contact was not found by contactId, use the first local contact, will be overridden later anyway
+         // when sending via SipUserAgent
+         pContact = pInst->pSipUserAgent->getContactDb().find(SIP_CONTACT_LOCAL,
+            (SIP_TRANSPORT_TYPE)transport);
+         if (!pContact)
+         {
+            return SIPX_RESULT_INVALID_ARGS;
+         }
+      }
+      if (transport != TRANSPORT_AUTO &&
+         (SIPX_TRANSPORT_TYPE)pContact->getTransportType() != transport)
+      {
+         return SIPX_RESULT_INVALID_ARGS;
+      }
+      SIPX_TRANSPORT_TYPE subscribeTransport = (SIPX_TRANSPORT_TYPE)pContact->getTransportType();
 
       SIPX_LINE_DATA* pLineData = sipxLineLookup(hLine, SIPX_LOCK_READ, stackLogger);
 
@@ -564,21 +587,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
          {
             subscriptionData->pInst = pInst;
 
-            // try to find contact by ID
-            SipContact* pContact = pInst->pSipUserAgent->getContactDb().find(contactId);
-            if (!pContact)
-            {
-               // contact was not found by contactId, use the first local contact, will be overridden later anyway
-               // when sending via SipUserAgent
-               pContact = pInst->pSipUserAgent->getContactDb().find(SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP);
-            }
-            assert(pContact);
-
             Url contactUri;
             pContact->buildContactUri(contactUri);
             contactUri.toString(contactField);
-            delete pContact;
-            pContact = NULL;
 
             if(resourceId.length() <= 1 || 
                fromField.length() <= 4 || 
@@ -602,7 +613,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                         (void*)*phSub,
                         sipxSubscribeClientSubCallback,
                         sipxSubscribeClientNotifyCallback,
-                        subscriptionData->dialogHandle))
+                        subscriptionData->dialogHandle,
+                        (SIP_TRANSPORT_TYPE)subscribeTransport))
                {
                   sipXresult = SIPX_RESULT_SUCCESS;
                }
@@ -619,6 +631,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
             delete subscriptionData;
          }
       }// if(pLineData)
+
+      delete pContact;
+      pContact = NULL;
    } // if (hInst)
    else
    {

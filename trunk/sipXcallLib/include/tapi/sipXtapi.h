@@ -1861,13 +1861,15 @@ SIPXTAPI_API SIPX_RESULT sipxCallPlayBufferStop(const SIPX_CALL hCall);
  *        Record (AOR) that is globally routable. 0 value is recommended.
  * @param subscriptionPeriod Subscription expiration period. After this
  *        period, new SUBSCRIBE message will be sent.
+ * @param transport Transport to use for sending SUBSCRIBE message
  */                                          
 SIPXTAPI_API SIPX_RESULT sipxCallSubscribe(const SIPX_CALL hCall,
                                            const char* szEventType,
                                            const char* szAcceptType,
                                            SIPX_SUB* phSub,
                                            int bRemoteContactIsGruu = 0,
-                                           int subscriptionPeriod = 3600);
+                                           int subscriptionPeriod = 3600,
+                                           SIPX_TRANSPORT_TYPE transport = TRANSPORT_AUTO);
 
 /**
  * Unsubscribe from previously subscribed NOTIFY events.  This method will
@@ -4188,6 +4190,9 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetVideoCpuUsage(const SIPX_INST hInst,
  *        differeniate between NOTIFY events.
  * @param subscriptionPeriod Subscription expiration period. After this
  *        period, new SUBSCRIBE message will be sent.
+ * @param transport Transport which should be used for sending SUBSCRIBE request.
+ *        If contactId identifies a specific contact (not automatic), then
+ *        transport must match contact transport.
  */ 
 SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst, 
                                              const SIPX_LINE hLine, 
@@ -4196,7 +4201,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                                              const char* szAcceptType, 
                                              const SIPX_CONTACT_ID contactId, 
                                              SIPX_SUB* phSub,
-                                             int subscriptionPeriod = 3600); 
+                                             int subscriptionPeriod = 3600,
+                                             SIPX_TRANSPORT_TYPE transport = TRANSPORT_AUTO); 
 /**
  * Unsubscribe from previously subscribed NOTIFY events.  This method will
  * send another subscription request with an expires time of 0 (zero) to end
