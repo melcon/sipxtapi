@@ -240,6 +240,7 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
                                      const UtlString& sSipCallId,
                                      const UtlString& locationHeader,
                                      CP_CONTACT_ID contactId,
+                                     SIP_TRANSPORT_TYPE transport,
                                      CP_FOCUS_CONFIG focusConfig,
                                      const UtlString& replacesField,
                                      CP_CALLSTATE_CAUSE callstateCause,
@@ -264,7 +265,8 @@ OsStatus XCpCallManager::connectCall(const UtlString& sCallId,
          sTmpSipCallId = getNewSipCallId();
       }
       // we found call and have a lock on it
-      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig,
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader,
+         contactId, transport, focusConfig,
          replacesField, callstateCause, pCallbackSipDialog);
    }
 
@@ -278,6 +280,7 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
                                                const UtlString& sSipCallId,
                                                const UtlString& locationHeader,
                                                CP_CONTACT_ID contactId,
+                                               SIP_TRANSPORT_TYPE transport,
                                                CP_FOCUS_CONFIG focusConfig)
 {
    OsStatus result = OS_NOT_FOUND;
@@ -299,7 +302,8 @@ OsStatus XCpCallManager::connectConferenceCall(const UtlString& sConferenceId,
          sTmpSipCallId = getNewSipCallId();
       }
       // we found call and have a lock on it
-      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader, contactId, focusConfig,
+      return ptrLock->connect(sTmpSipCallId, sSipDialog, toAddress, fullLineUrl, locationHeader,
+         contactId, transport, focusConfig,
          NULL, CP_CALLSTATE_CAUSE_CONFERENCE);
    }
 
@@ -411,7 +415,8 @@ OsStatus XCpCallManager::acceptAbstractCallConnection(const UtlString& sAbstract
                                                       const SipDialog& sSipDialog,
                                                       UtlBoolean bSendSDP,
                                                       const UtlString& locationHeader,
-                                                      CP_CONTACT_ID contactId)
+                                                      CP_CONTACT_ID contactId,
+                                                      SIP_TRANSPORT_TYPE transport)
 {
    OsStatus result = OS_NOT_FOUND;
 
@@ -420,7 +425,7 @@ OsStatus XCpCallManager::acceptAbstractCallConnection(const UtlString& sAbstract
    if (resFind)
    {
       // we found call and have a lock on it
-      return ptrLock->acceptConnection(sSipDialog, bSendSDP, locationHeader, contactId);
+      return ptrLock->acceptConnection(sSipDialog, bSendSDP, locationHeader, contactId, transport);
    }
 
    return result;
@@ -1941,6 +1946,7 @@ OsStatus XCpCallManager::createConnectedCall(SipDialog& sipDialog,
                                              const UtlString& sSipCallId, // can be used to suggest sip call-id
                                              const UtlString& locationHeader,
                                              CP_CONTACT_ID contactId,
+                                             SIP_TRANSPORT_TYPE transport,
                                              CP_FOCUS_CONFIG focusConfig,
                                              const UtlString& replacesField,
                                              CP_CALLSTATE_CAUSE callstateCause,
@@ -1953,7 +1959,7 @@ OsStatus XCpCallManager::createConnectedCall(SipDialog& sipDialog,
    {
       // call was created, try to connect it
       OsStatus connectResult = connectCall(sCallId, sipDialog, toAddress, fullLineUrl, sSipCallId,
-         locationHeader, contactId, focusConfig, replacesField, callstateCause, pCallbackSipDialog);
+         locationHeader, contactId, transport, focusConfig, replacesField, callstateCause, pCallbackSipDialog);
 
       if (connectResult != OS_SUCCESS)
       {

@@ -109,9 +109,15 @@ public:
    void buildContactUri(const UtlString& userId, Url& contactUri) const;
 
    /**
+    * Builds a contact uri with given userId and displayName.
+    */
+   void buildContactUri(const UtlString& displayName, const UtlString& userId, Url& contactUri) const;
+
+   /**
     * Builds a contact uri with given userId, ip, port, transport.
     */
    static void buildContactUri(Url& contactUri,
+                               const UtlString& displayName,
                                const UtlString& userId,
                                const UtlString& ipAddress,
                                int port = PORT_NONE,

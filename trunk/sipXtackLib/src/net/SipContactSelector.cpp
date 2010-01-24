@@ -228,7 +228,7 @@ void SipContactSelector::getBestContactUri(Url& contactUri,
    int contactPort;
    getBestContactAddress(contactIp, contactPort, transport, messageLocalIp, targetIpAddress, targetPort);
 
-   SipContact::buildContactUri(contactUri, userId, contactIp, contactPort, transport);
+   SipContact::buildContactUri(contactUri, NULL, userId, contactIp, contactPort, transport);
 }
 /* ============================ FUNCTIONS ================================= */
 

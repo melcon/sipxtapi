@@ -168,6 +168,7 @@ public:
                             const UtlString& fromAddress,
                             const UtlString& locationHeader,
                             CP_CONTACT_ID contactId,
+                            SIP_TRANSPORT_TYPE transport,
                             CP_FOCUS_CONFIG focusConfig,
                             const UtlString& replacesField = NULL, // value of Replaces INVITE field
                             CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,
@@ -183,7 +184,8 @@ public:
    virtual OsStatus acceptConnection(const SipDialog& sSipDialog,
                                      UtlBoolean bSendSDP,
                                      const UtlString& locationHeader,
-                                     CP_CONTACT_ID contactId);
+                                     CP_CONTACT_ID contactId,
+                                     SIP_TRANSPORT_TYPE transport);
 
    /**
    * Reject the incoming connection.

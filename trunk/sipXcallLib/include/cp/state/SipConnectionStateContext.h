@@ -18,6 +18,7 @@
 #include <utl/UtlSList.h>
 #include <net/SipTagGenerator.h>
 #include <net/SmimeBody.h>
+#include <net/SipTransport.h>
 #include <cp/CpDefs.h>
 #include <cp/XSipConnectionContext.h>
 #include <cp/Cp100RelTracker.h>
@@ -115,6 +116,7 @@ public:
    CpSipTransactionManager m_sipServerTransactionMgr; ///< sip inbound transaction tracking
    UtlString m_locationHeader; ///< value of sip location header
    int m_contactId; ///< id of contact we use. Can be used to lookup SIPX_CONTACT_ADDRESS
+   SIP_TRANSPORT_TYPE m_transportType; ///< transport to use for sending requests
    SIPXTACK_SECURITY_ATTRIBUTES* m_pSecurity; ///< security configuration for S/MIME
    RTP_TRANSPORT m_rtpTransport;
    SipMessage* m_pLastReceivedInvite; ///< last received INVITE

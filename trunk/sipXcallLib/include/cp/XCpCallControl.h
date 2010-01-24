@@ -16,6 +16,7 @@
 // SYSTEM INCLUDES
 // APPLICATION INCLUDES
 #include <utl/UtlDefs.h>
+#include <net/SipTransport.h>
 
 // DEFINES
 // MACROS
@@ -56,6 +57,7 @@ public:
                                         const UtlString& sSipCallId = NULL, // can be used to suggest sip call-id
                                         const UtlString& locationHeader = NULL,
                                         CP_CONTACT_ID contactId = AUTOMATIC_CONTACT_ID,
+                                        SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO,
                                         CP_FOCUS_CONFIG focusConfig = CP_FOCUS_IF_AVAILABLE,
                                         const UtlString& replacesField = NULL, // value of Replaces INVITE field
                                         CP_CALLSTATE_CAUSE callstateCause = CP_CALLSTATE_CAUSE_NORMAL,

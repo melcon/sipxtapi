@@ -150,6 +150,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
                                             const UtlString& fromAddress,
                                             const UtlString& locationHeader,
                                             CP_CONTACT_ID contactId,
+                                            SIP_TRANSPORT_TYPE transport,
                                             const UtlString& replacesField,
                                             CP_CALLSTATE_CAUSE callstateCause,
                                             const SipDialog* pCallbackSipDialog)
@@ -177,7 +178,7 @@ OsStatus SipConnectionStateMachine::connect(const UtlString& sipCallId,
    if (m_pSipConnectionState)
    {
       handleStateTransition(m_pSipConnectionState->connect(result, sipCallId, localTag, toAddress, fromAddress,
-         locationHeader, contactId, replacesField));
+         locationHeader, contactId, transport, replacesField));
    }
 
    return result;
@@ -211,14 +212,16 @@ OsStatus SipConnectionStateMachine::stopRtpRedirect()
 
 OsStatus SipConnectionStateMachine::acceptConnection(UtlBoolean bSendSDP,
                                                      const UtlString& locationHeader,
-                                                     CP_CONTACT_ID contactId)
+                                                     CP_CONTACT_ID contactId,
+                                                     SIP_TRANSPORT_TYPE transport)
 {
    OsStatus result = OS_FAILED;
 
    // now let state handle request
    if (m_pSipConnectionState)
    {
-      handleStateTransition(m_pSipConnectionState->acceptConnection(result, bSendSDP, locationHeader, contactId));
+      handleStateTransition(m_pSipConnectionState->acceptConnection(result, bSendSDP, locationHeader,
+         contactId, transport));
    }
 
    return result;
