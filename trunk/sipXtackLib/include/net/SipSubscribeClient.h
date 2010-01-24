@@ -132,7 +132,8 @@ typedef void (*NotifyEventCallback) (const char* earlyDialogHandle,
                                const SubscriptionStateCallback subscriptionStateCallback,
                                const NotifyEventCallback notifyEventsCallback,
                                UtlString& earlyDialogHandle,
-                               SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO);
+                               SIP_TRANSPORT_TYPE transport = SIP_TRANSPORT_AUTO,
+                               UtlBoolean bAllowContactOverride = TRUE);
 
     //! Create a SIP event subscription for the given SUBSCRIBE request
     /*! 

@@ -592,6 +592,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
             Url contactUri;
             pContact->buildContactUri(contactUri);
             contactUri.toString(contactField);
+            UtlBoolean bAllowContactOverride = (contactId == AUTOMATIC_CONTACT_ID);
 
             if(resourceId.length() <= 1 || 
                fromField.length() <= 4 || 
@@ -616,7 +617,8 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSubscribe(const SIPX_INST hInst,
                         sipxSubscribeClientSubCallback,
                         sipxSubscribeClientNotifyCallback,
                         subscriptionData->dialogHandle,
-                        (SIP_TRANSPORT_TYPE)subscribeTransport))
+                        (SIP_TRANSPORT_TYPE)subscribeTransport,
+                        bAllowContactOverride))
                {
                   sipXresult = SIPX_RESULT_SUCCESS;
                }
