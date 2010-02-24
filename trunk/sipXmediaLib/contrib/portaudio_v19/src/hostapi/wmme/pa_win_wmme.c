@@ -3712,6 +3712,7 @@ static PaError ReadStream( PaStream* s,
     DWORD waitResult;
     DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
     unsigned int channel, i;
+    unsigned int bufferTimeoutCounter = 0;
     
     if( PA_IS_INPUT_STREAM_(stream) )
     {
@@ -3735,6 +3736,7 @@ static PaError ReadStream( PaStream* s,
         do{
             if( CurrentInputBuffersAreDone( stream ) )
             {
+                bufferTimeoutCounter = 0;
                 if( NoBuffersAreQueued( &stream->input ) )
                 {
                     /** @todo REVIEW: consider what to do if the input overflows.
@@ -3786,12 +3788,17 @@ static PaError ReadStream( PaStream* s,
                 }
                 else if( waitResult == WAIT_TIMEOUT )
                 {
+                    bufferTimeoutCounter++;
                     /* if a timeout is encountered, continue,
                         perhaps we should give up eventually
                     */
+                    if (bufferTimeoutCounter >= 10)
+                    {
+                        return paTimedOut;
+                    }
                 }         
             }
-        }while( framesRead < frames );
+        }while(framesRead < frames);
     }
     else
     {
