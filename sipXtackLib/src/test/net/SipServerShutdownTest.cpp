@@ -37,7 +37,7 @@ public:
    void testTcpShutdown()
    {
       SipUserAgent sipUA( PORT_NONE
-                         ,PORT_NONE
+                         ,SIP_PORT
                          ,PORT_NONE
                          ,NULL     // default publicAddress
                          ,NULL     // default defaultUser
