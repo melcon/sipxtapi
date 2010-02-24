@@ -110,7 +110,7 @@
 SipUserAgent::SipUserAgent(int sipTcpPort,
                            int sipUdpPort,
                            int sipTlsPort,
-                           const char* bindIpAddress,
+                           const char* bindIpAddress,// may be NULL
                            const UtlString& defaultUser,
                            const char* sipProxyServers,
                            const char* sipDirectoryServers,
@@ -155,7 +155,6 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
       "SipUserAgent::_ sipTcpPort = %d, sipUdpPort = %d, sipTlsPort = %d",
       sipTcpPort, sipUdpPort, sipTlsPort);
 
-   assert(bindIpAddress);
    assert(mUdpPort != PORT_NONE);
 
    // Get pointer to line manager
@@ -276,7 +275,7 @@ SipUserAgent::SipUserAgent(int sipTcpPort,
       directoryServers.append(sipDirectoryServers);
    }
 
-   if (strcmp(bindIpAddress, "0.0.0.0") == 0)
+   if (!bindIpAddress || strcmp(bindIpAddress, "0.0.0.0") == 0)
    {
       // get the first CONTACT entry in the Db
       SipContact* pContact = mContactDb.find(SIP_CONTACT_LOCAL, SIP_TRANSPORT_UDP); 
