@@ -1072,6 +1072,7 @@ SIPXTAPI_API SIPX_RESULT sipxConfigSetLocationHeader(const SIPX_INST hInst,
    if (pInst && szHeader)
    {
       SAFE_STRNCPY(pInst->szLocationHeader, szHeader, sizeof(pInst->szLocationHeader));
+      rc = SIPX_RESULT_SUCCESS;
    }
 
    return rc;
