@@ -238,7 +238,11 @@ int PidfBody::parseXmlToPidfProperties(const char* bytes,
             TiXmlNode* noteNode = tupleNode->FirstChild("note");
             if(noteNode)
             {
-                tuple->mTupleNote = noteNode->FirstChild()->Value();
+                const TiXmlNode* noteChild = noteNode->FirstChild();
+                if (noteChild != NULL)
+                {
+                   tuple->mTupleNote = noteChild->Value();
+                }
             }
 
             // Add the tuple to the list
