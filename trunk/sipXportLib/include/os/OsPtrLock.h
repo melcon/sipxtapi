@@ -36,8 +36,6 @@ class OsPtrLock
    /* //////////////////////////// PUBLIC //////////////////////////////////// */
 public:
    /* ============================ CREATORS ================================== */
-   // make friend with self, to allow access to private members of different templates of OsPtrLock
-   friend class OsPtrLock;
 
    /**
     * Constructor accepting an optional default value.
@@ -76,8 +74,7 @@ public:
    * Locks the assigned object. Object will get unlocked during destruction or
    * another assignment.
    */
-   template <class Y>
-   OsPtrLock<T>& operator=(const OsPtrLock<Y>& rhs)
+   OsPtrLock<T>& operator=(const OsPtrLock<T>& rhs)
    {
       if ((void*)&rhs == (void*)this)
       {
