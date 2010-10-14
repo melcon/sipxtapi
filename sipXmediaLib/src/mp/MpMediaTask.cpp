@@ -119,7 +119,10 @@ MpMediaTask::~MpMediaTask()
    
    if (m_pFrameStartCallback)
    {
-      delete m_pFrameStartCallback;
+      #ifdef _WIN32
+         delete m_pFrameStartCallback;
+         // in linux m_pFrameStartCallback is managed and deleted by OsTimer
+      #endif
       m_pFrameStartCallback = NULL;
    }
    
@@ -906,7 +909,7 @@ void MpMediaTask::startFrameStartTimer()
       m_pFrameStartTimer->setNotification(m_pFrameStartCallback);
       result = m_pFrameStartTimer->run((unsigned)timerPeriod);
 #else
-      m_pFrameStartTimer = new OsTimer(*m_pFrameStartCallback);
+      m_pFrameStartTimer = new OsTimer(m_pFrameStartCallback);
       // calculate timer period is milliseconds
       double timerPeriod = (1 / (double)MpMisc.m_audioSamplesPerSec) * MpMisc.m_audioSamplesPerFrame * 1000;
 
