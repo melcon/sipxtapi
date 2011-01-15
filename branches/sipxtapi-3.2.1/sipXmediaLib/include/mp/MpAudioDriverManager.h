@@ -23,6 +23,7 @@
 // FORWARD DECLARATIONS
 class MpAudioDriverBase;
 class MpAudioMixerBase;
+class MpAudioStreamInfo;
 class UtlString;
 
 // STRUCTS
@@ -97,6 +98,22 @@ public:
     * Gets information about given output device
     */
    OsStatus getOutputDeviceInfo(int deviceIndex, MpAudioDeviceInfo& deviceInfo);
+
+   /**
+   * Gets information about input audio stream.
+   *
+   * @param streamInfo Information about requested audio stream
+   * @returns OS_SUCCESS if successful
+   */
+   OsStatus getInputStreamInfo(MpAudioStreamInfo& streamInfo);
+
+   /**
+   * Gets information about output audio stream.
+   *
+   * @param streamInfo Information about requested audio stream
+   * @returns OS_SUCCESS if successful
+   */
+   OsStatus getOutputStreamInfo(MpAudioStreamInfo& streamInfo);
 
    /**
    * Starts input stream.
@@ -207,6 +224,12 @@ public:
 
    MpAudioDriverBase* getAudioDriver() const { return m_pAudioDriver; }
 
+   double getInitialInputStreamLatency() const { return m_initialInputStreamLatency; }
+   void setInitialInputStreamLatency(double val) { m_initialInputStreamLatency = val; }
+
+   double getInitialOutputStreamLatency() const { return m_initialOutputStreamLatency; }
+   void setInitialOutputStreamLatency(double val) { m_initialOutputStreamLatency = val; }
+
    //@}
    /* ============================ INQUIRY =================================== */
    ///@name Inquiry
@@ -242,7 +265,10 @@ private:
 
    MpAudioMixerBase* m_inputAudioMixer; ///< mixer for input stream
    MpAudioMixerBase* m_outputAudioMixer; ///< mixer for output stream
-   
+
+   double m_initialInputStreamLatency; ///< latency used when opening new stream in seconds
+   double m_initialOutputStreamLatency; ///< latency used when opening new stream in seconds
+
    std::vector<MpAudioDeviceInfo> m_outputAudioDevices; ///< array to store device info
    std::vector<MpAudioDeviceInfo> m_inputAudioDevices; ///< array to store device info
 };

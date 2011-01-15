@@ -2768,6 +2768,42 @@ SIPXTAPI_API SIPX_RESULT sipxAudioSetOutputDevice(const SIPX_INST hInst,
 SIPXTAPI_API SIPX_RESULT sipxAudioGetOutputDevice(const SIPX_INST hInst,
                                                   SIPX_AUDIO_DEVICE* deviceInfo);
 
+
+/**
+* Configures audio driver latency. Settings will be applied next time audio driver
+* is reset. To trigger reset of audio driver, set audio device to "None" and then
+* back to previous audio device.
+*
+* @param hInst Instance pointer obtained by sipxInitialize.
+* @param inputLatency Suggested latency in seconds. 0.06 is the default value.
+* @param outputLatency Suggested latency in seconds. 0.06 is the default value.
+*/
+SIPXTAPI_API SIPX_RESULT sipxAudioSetDriverLatency(const SIPX_INST hInst,
+                                                   double inputLatency,
+                                                   double outputLatency);
+
+/**
+* Gets audio driver latency. If "None" audio device is selected, then initial
+* latency will be returned. If some real audio device is selected and audio stream
+* is active, then real latency of audio stream will be returned.
+*
+* Latency returned by this function doesn't reflect the whole internal latency
+* of sipXtapi media processing, it merely contains information about latency of
+* audio driver. Other sources of latency are jitter buffer, encoder/decoder
+* and operating system.
+*
+* By default synchronous Portaudio streams are used. It is possible to enable
+* asynchronous Portaudio streams in sipXmediaLib, but that leads to increase
+* of latency at least 80ms for both input and output.
+*
+* @param hInst Instance pointer obtained by sipxInitialize.
+* @param inputLatency Latency in seconds.
+* @param outputLatency Latency in seconds.
+*/
+SIPXTAPI_API SIPX_RESULT sipxAudioGetDriverLatency(const SIPX_INST hInst,
+                                                   double* inputLatency,
+                                                   double* outputLatency);
+
 //@}
 /** @name Line / Identity Methods*/
 //@{
