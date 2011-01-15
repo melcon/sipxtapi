@@ -15,6 +15,7 @@
 #include <cppunit/TestCase.h>
 #include <sipxunit/TestUtilities.h>
 
+#include <mp/MpDefs.h>
 #include <mp/MpFlowGraphBase.h>
 #include <mp/MpTestResource.h>
 #include <mp/MpMisc.h>

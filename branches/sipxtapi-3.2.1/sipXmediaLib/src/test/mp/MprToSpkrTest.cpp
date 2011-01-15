@@ -209,7 +209,7 @@ public:
        CPPUNIT_ASSERT(echoBuf.isValid()); // echo buffer is a clone of output buffer
        MpAudioBufPtr pEchoQBuf = echoBuf;
        MpAudioBufPtr pSourceBuf = pBuf;
-       CPPUNIT_ASSERT(pSourceBuf.compareSamples(pEchoQBuf) == 0); // samples must be equal by content
+       CPPUNIT_ASSERT(pSourceBuf->compareSamples(pEchoQBuf) == 0); // samples must be equal by content
 
        // Buffer is sent to queues and to output
        CPPUNIT_ASSERT(mpSinkResource->mLastDoProcessArgs.inBufs[0] == pBuf);
@@ -273,7 +273,7 @@ public:
        CPPUNIT_ASSERT(echoBuf.isValid()); // echo buffer is a clone of output buffer
        MpAudioBufPtr pEchoQBuf = echoBuf;
        MpAudioBufPtr pSourceBuf = pBuf[0];
-       CPPUNIT_ASSERT(pSourceBuf.compareSamples(pEchoQBuf) == 0); // samples must be equal by content
+       CPPUNIT_ASSERT(pSourceBuf->compareSamples(pEchoQBuf) == 0); // samples must be equal by content
 
        CPPUNIT_ASSERT(mpSinkResource->mLastDoProcessArgs.inBufs[0] == pBuf[1]);
 
