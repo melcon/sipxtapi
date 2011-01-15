@@ -329,6 +329,30 @@ void MpAsyncPortAudioStream::resetStream()
 
 /* ============================ ACCESSORS ================================= */
 
+double MpAsyncPortAudioStream::getInputLatency() const
+{
+   if (m_inputSampleSize != 0 && m_inputChannelCount != 0)
+   {
+      return m_inputPortStreamLatency + (double)m_inputPrefetchCount / (m_sampleRate * m_inputSampleSize * m_inputChannelCount);
+   }
+   else
+   {
+      return 0.0;
+   }
+}
+
+double MpAsyncPortAudioStream::getOutputLatency() const
+{
+   if (m_outputSampleSize != 0 && m_outputChannelCount != 0)
+   {
+      return m_outputPortStreamLatency + (double)m_outputPrefetchCount / (m_sampleRate * m_outputSampleSize * m_outputChannelCount);
+   }
+   else
+   {
+      return 0.0;
+   }
+}
+
 /* ============================ INQUIRY =================================== */
 
 /* //////////////////////////// PROTECTED ///////////////////////////////// */
