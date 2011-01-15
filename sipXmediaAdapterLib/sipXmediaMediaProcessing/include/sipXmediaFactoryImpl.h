@@ -98,6 +98,9 @@ class sipXmediaFactoryImpl : public CpMediaInterfaceFactory
     virtual OsStatus setAudioOutputDevice(const UtlString& device, const UtlString& driverName = "");
     virtual OsStatus setAudioInputDevice(const UtlString& device, const UtlString& driverName = "");
 
+    virtual OsStatus setAudioDriverLatency(double inputLatency, double outputLatency);
+    virtual OsStatus getAudioDriverLatency(double& inputLatency, double& outputLatency);
+
     virtual OsStatus muteAudioOutput(UtlBoolean bMute);
     virtual OsStatus muteAudioInput(UtlBoolean bMute);
 

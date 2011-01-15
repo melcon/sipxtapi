@@ -152,6 +152,7 @@ public:
 class SIPX_INSTANCE_DATA
 {
 public:
+   size_t nSize;     /**< Size of the structure */
    SipUserAgent*    pSipUserAgent;
    SipPimClient*    pSipPimClient;
    SdpCodecFactory* pCodecFactory;
@@ -193,6 +194,7 @@ public:
    UtlBoolean      bRtpOverTcp;   /**< allow RTP over TCP */
 
    SIPX_INSTANCE_DATA() : lock(OsMutex::Q_FIFO),
+      nSize(sizeof(SIPX_INSTANCE_DATA)),
       pSipUserAgent(NULL),
       pSipPimClient(NULL),
       pCodecFactory(NULL),
@@ -232,6 +234,11 @@ public:
       
       memset(szAcceptLanguage, 0, sizeof(szAcceptLanguage));
       memset(szLocationHeader, 0, sizeof(szLocationHeader));
+   }
+
+   ~SIPX_INSTANCE_DATA()
+   {
+	   nSize = 0;
    }
 };
 

@@ -152,10 +152,10 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             MpAudioStreamParameters outputParameters;
             outputParameters.setChannelCount(1);
             outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
+            outputParameters.setSuggestedLatency(m_initialOutputStreamLatency);
             outputParameters.setDeviceIndex(defaultOutputDeviceIndex);
 
-            // open asynchronous output stream
+            // open output stream
             res = m_pAudioDriver->openStream(&m_outputAudioStream,
                NULL,
                &outputParameters,
@@ -233,10 +233,10 @@ OsStatus MpAudioDriverManager::setCurrentOutputDevice(const UtlString& device,
             MpAudioStreamParameters outputParameters;
             outputParameters.setChannelCount(1);
             outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
+            outputParameters.setSuggestedLatency(m_initialOutputStreamLatency);
             outputParameters.setDeviceIndex(i);
 
-            // open asynchronous output stream
+            // open output stream
             res = m_pAudioDriver->openStream(&m_outputAudioStream,
                NULL,
                &outputParameters,
@@ -296,7 +296,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             MpAudioStreamParameters inputParameters;
             inputParameters.setChannelCount(1);
             inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
+            inputParameters.setSuggestedLatency(m_initialInputStreamLatency);
             inputParameters.setDeviceIndex(defaultInputDeviceIndex);
 
             // open asynchronous input stream
@@ -378,7 +378,7 @@ OsStatus MpAudioDriverManager::setCurrentInputDevice(const UtlString& device,
             MpAudioStreamParameters inputParameters;
             inputParameters.setChannelCount(1);
             inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-            inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
+            inputParameters.setSuggestedLatency(m_initialInputStreamLatency);
             inputParameters.setDeviceIndex(i);
 
             // open asynchronous input stream
@@ -453,6 +453,30 @@ OsStatus MpAudioDriverManager::getOutputDeviceInfo(int deviceIndex, MpAudioDevic
    }
 
    return res;
+}
+
+OsStatus MpAudioDriverManager::getInputStreamInfo(MpAudioStreamInfo& streamInfo)
+{
+   OsLock lock(ms_mutex);
+
+   if (m_inputAudioStream && m_pAudioDriver)
+   {
+      return m_pAudioDriver->getStreamInfo(m_inputAudioStream, streamInfo);
+   }
+
+   return OS_FAILED;
+}
+
+OsStatus MpAudioDriverManager::getOutputStreamInfo(MpAudioStreamInfo& streamInfo)
+{
+   OsLock lock(ms_mutex);
+
+   if (m_outputAudioStream && m_pAudioDriver)
+   {
+      return m_pAudioDriver->getStreamInfo(m_outputAudioStream, streamInfo);
+   }
+
+   return OS_FAILED;
 }
 
 OsStatus MpAudioDriverManager::startInputStream() const
@@ -746,6 +770,8 @@ MpAudioDriverManager::MpAudioDriverManager()
 , m_inputAudioDevices()
 , m_inputAudioMixer(NULL)
 , m_outputAudioMixer(NULL)
+, m_initialInputStreamLatency(DEFAULT_LATENCY)
+, m_initialOutputStreamLatency(DEFAULT_LATENCY)
 {
    m_pAudioDriver = MpAudioDriverFactory::createAudioDriver(MpAudioDriverFactory::AUDIO_DRIVER_PORTAUDIO);
 
@@ -787,10 +813,10 @@ MpAudioDriverManager::MpAudioDriverManager()
 
    inputParameters.setChannelCount(1);
    inputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-   inputParameters.setSuggestedLatency(DEFAULT_LATENCY);
+   inputParameters.setSuggestedLatency(m_initialInputStreamLatency);
    outputParameters.setChannelCount(1);
    outputParameters.setSampleFormat(MP_AUDIO_FORMAT_INT16);
-   outputParameters.setSuggestedLatency(DEFAULT_LATENCY);
+   outputParameters.setSuggestedLatency(m_initialOutputStreamLatency);
 
    m_pAudioDriver->getDefaultInputDevice(m_inputDeviceIndex);
    m_pAudioDriver->getDefaultOutputDevice(m_outputDeviceIndex);
